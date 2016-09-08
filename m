@@ -1,46 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:34846 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752183AbcIPHZa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 03:25:30 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 3BA4D2017A
-        for <linux-media@vger.kernel.org>; Fri, 16 Sep 2016 10:25:28 +0300 (EEST)
-Subject: Re: [git:v4l-utils/master] media-ctl: Fix a compilation bug
- introduced by changeset 7a21d66983f7
-To: linux-media@vger.kernel.org
-References: <E1bknKY-0002n9-Gp@www.linuxtv.org>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <57DB9E68.4000701@linux.intel.com>
-Date: Fri, 16 Sep 2016 10:25:28 +0300
-MIME-Version: 1.0
-In-Reply-To: <E1bknKY-0002n9-Gp@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:44178 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941753AbcIHME0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:26 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 08/47] [media] demux.h: Fix a few documentation issues
+Date: Thu,  8 Sep 2016 09:03:30 -0300
+Message-Id: <8295a9d926bb3fe701426e1478538240bd49f725.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
+References: <cover.1473334905.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/16/16 10:11, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/cgit.cgi/v4l-utils.git tree:
-> 
-> Subject: media-ctl: Fix a compilation bug introduced by changeset 7a21d66983f7
-> Author:  Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Date:    Fri Sep 16 04:11:06 2016 -0300
-> 
-> options.c:56:9: warning: missing terminating " character
-> options.c:56:9: error: missing terminating " character
-> options.c:57:71: error: expected ')' before ';' token
-> options.c:57:2: warning: passing argument 1 of 'printf' makes pointer from integer without a cast [-Wint-conversion]
-> options.c:94:1: error: expected ';' before '}' token
-> options.c:42:15: warning: unused variable 'i' [-Wunused-variable]
-> 
-> Clearly, nobody tested this patch before merging it.
+demux.h was lacking documentation for the DMX_FE_ENTRY macro:
+	./drivers/media/dvb-core/demux.h:511: WARNING: c:func reference target not found: DMX_FE_ENTRY
 
-It was tested but not with the latest help text I got from Laurent.
+While here, get rid of unused parameters and fix a few minor issues
+at the header file.
 
-Thanks.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/demux.h | 36 ++++++++++++++++--------------------
+ 1 file changed, 16 insertions(+), 20 deletions(-)
 
+diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
+index 4b4c1da20f4b..0d9c53518be2 100644
+--- a/drivers/media/dvb-core/demux.h
++++ b/drivers/media/dvb-core/demux.h
+@@ -202,7 +202,7 @@ struct dmx_section_feed {
+  *
+  * This function callback prototype, provided by the client of the demux API,
+  * is called from the demux code. The function is only called when filtering
+- * on ae TS feed has been enabled using the start_filtering() function at
++ * on a TS feed has been enabled using the start_filtering\(\) function at
+  * the &dmx_demux.
+  * Any TS packets that match the filter settings are copied to a circular
+  * buffer. The filtered TS packets are delivered to the client using this
+@@ -243,8 +243,10 @@ struct dmx_section_feed {
+  * will also be sent to the hardware MPEG decoder.
+  *
+  * Return:
+- * 	0, on success;
+- * 	-EOVERFLOW, on buffer overflow.
++ *
++ * - 0, on success;
++ *
++ * - -EOVERFLOW, on buffer overflow.
+  */
+ typedef int (*dmx_ts_cb)(const u8 *buffer1,
+ 			 size_t buffer1_length,
+@@ -293,9 +295,9 @@ typedef int (*dmx_section_cb)(const u8 *buffer1,
+ 			      size_t buffer2_len,
+ 			      struct dmx_section_filter *source);
+ 
+-/*--------------------------------------------------------------------------*/
+-/* DVB Front-End */
+-/*--------------------------------------------------------------------------*/
++/*
++ * DVB Front-End
++ */
+ 
+ /**
+  * enum dmx_frontend_source - Used to identify the type of frontend
+@@ -349,15 +351,15 @@ enum dmx_demux_caps {
+ 
+ /*
+  * Demux resource type identifier.
+-*/
+-
+-/*
+- * DMX_FE_ENTRY(): Casts elements in the list of registered
+- * front-ends from the generic type struct list_head
+- * to the type * struct dmx_frontend
+- *.
+-*/
++ */
+ 
++/**
++ * DMX_FE_ENTRY - Casts elements in the list of registered
++ *		  front-ends from the generic type struct list_head
++ *		  to the type * struct dmx_frontend
++ *
++ * @list: list of struct dmx_frontend
++ */
+ #define DMX_FE_ENTRY(list) \
+ 	list_entry(list, struct dmx_frontend, connectivity_list)
+ 
+@@ -551,7 +553,6 @@ enum dmx_demux_caps {
+  *	0 on success;
+  *	-EINVAL on bad parameter.
+  */
+-
+ struct dmx_demux {
+ 	enum dmx_demux_caps capabilities;
+ 	struct dmx_frontend *frontend;
+@@ -581,11 +582,6 @@ struct dmx_demux {
+ 
+ 	int (*get_pes_pids)(struct dmx_demux *demux, u16 *pids);
+ 
+-	/* private: Not used upstream and never documented */
+-#if 0
+-	int (*get_caps)(struct dmx_demux *demux, struct dmx_caps *caps);
+-	int (*set_source)(struct dmx_demux *demux, const dmx_source_t *src);
+-#endif
+ 	/*
+ 	 * private: Only used at av7110, to read some data from firmware.
+ 	 *	As this was never documented, we have no clue about what's
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
+
+
