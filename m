@@ -1,83 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atlantic540.startdedicated.de ([188.138.9.77]:55338 "EHLO
-        atlantic540.startdedicated.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933190AbcIPL03 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 07:26:29 -0400
-From: Daniel Wagner <wagi@monom.org>
-To: linux-media@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jarod Wilson <jarod@wilsonet.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org,
-        Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: [PATCH 2/2] [media] lirc_imon: use complete() instead complete_all()
-Date: Fri, 16 Sep 2016 13:18:22 +0200
-Message-Id: <1474024702-19436-3-git-send-email-wagi@monom.org>
-In-Reply-To: <1474024702-19436-1-git-send-email-wagi@monom.org>
-References: <1474024702-19436-1-git-send-email-wagi@monom.org>
+Received: from ns.mm-sol.com ([37.157.136.199]:58956 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758602AbcIHJWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Sep 2016 05:22:03 -0400
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v6 0/2] OV5645 camera sensor driver
+Date: Thu,  8 Sep 2016 12:13:53 +0300
+Message-Id: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
+This is the sixth version of the OV5645 camera sensor driver patchset.
 
-There is only one waiter for the completion, therefore there
-is no need to use complete_all(). Let's make that clear by
-using complete() instead of complete_all().
+Changes since version 5 include:
+- external clock frequency set in DT;
+- added v4l2_subdev_pad_ops.init_cfg function to initialize formats;
+- current sensor mode not updated if set_fmt is TRY (not ACTIVE);
+- other small changes - debug messages removed, register addresses defines
+  renamed, redundant safety checks removed, unnecessary labels removed,
+  mutex_destroy added.
 
-While we are at it, we do a small optimization with the
-reinitialization of the completion before we use it.
+Two one-line changes since version 4:
+- return current format on set_format;
+- return all frame sizes when enumerating them.
 
-The usage pattern of the completion is:
+Only one change since version 3:
+- build failure on kernel v4.7-rc1 fixed:
+  s/media_entity_init/media_entity_pads_init/
 
-waiter context                          waker context
+Changes from version 2 include:
+- external camera clock configuration is moved from DT to driver;
+- pwdn-gpios renamed to enable-gpios;
+- switched polarity of reset-gpios to the more intuitive active low;
+- added Kconfig dependency to OF;
+- return values checks;
+- regulators and gpios are now required (not optional);
+- regulators names renamed;
+- power counter variable changed to a bool power state;
+- ov5645_registered() is removed and sensor id reading moved to probe().
 
-send_packet()
-  reinit_completion()
-  usb_sumbit_urb()
-  wait_for_completion_interruptible()
+Changes from version 1 include:
+- patch split to dt binding doc patch and driver patch;
+- changes in power on/off logic - s_power is now not called on
+  open/close;
+- using assigned-clock-rates in dt for setting camera external
+  clock rate;
+- correct api for gpio handling;
+- return values checks;
+- style fixes.
 
-                                        usb_tx_callback()
-                                          complete()
+Todor Tomov (2):
+  media: i2c/ov5645: add the device tree binding document
+  media: Add a driver for the ov5645 camera sensor.
 
-                                        imon_disconnect()
-                                          complete()
+ .../devicetree/bindings/media/i2c/ov5645.txt       |   52 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov5645.c                         | 1372 ++++++++++++++++++++
+ 4 files changed, 1437 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+ create mode 100644 drivers/media/i2c/ov5645.c
 
-Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
----
- drivers/staging/media/lirc/lirc_imon.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-index ff1926c..c449434 100644
---- a/drivers/staging/media/lirc/lirc_imon.c
-+++ b/drivers/staging/media/lirc/lirc_imon.c
-@@ -336,7 +336,7 @@ static int send_packet(struct imon_context *context)
- 
- 	context->tx_urb->actual_length = 0;
- 
--	init_completion(&context->tx.finished);
-+	reinit_completion(&context->tx.finished);
- 	atomic_set(&context->tx.busy, 1);
- 
- 	retval = usb_submit_urb(context->tx_urb, GFP_KERNEL);
-@@ -499,6 +499,8 @@ static int ir_open(void *data)
- 	context->rx.initial_space = 1;
- 	context->rx.prev_bit = 0;
- 
-+	init_completion(&context->tx.finished);
-+
- 	context->ir_isopen = 1;
- 	dev_info(context->driver->dev, "IR port opened\n");
- 
-@@ -937,7 +939,7 @@ static void imon_disconnect(struct usb_interface *interface)
- 	/* Abort ongoing write */
- 	if (atomic_read(&context->tx.busy)) {
- 		usb_kill_urb(context->tx_urb);
--		complete_all(&context->tx.finished);
-+		complete(&context->tx.finished);
- 	}
- 
- 	context->dev_present = 0;
 -- 
-2.7.4
+1.9.1
+
