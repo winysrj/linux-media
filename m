@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:37486 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754998AbcI2OBv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Sep 2016 10:01:51 -0400
-Received: from pps.filterd (m0098419.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.17/8.16.0.17) with SMTP id u8TDwWmZ069803
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2016 10:01:51 -0400
-Received: from e19.ny.us.ibm.com (e19.ny.us.ibm.com [129.33.205.209])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 25s3deu0hr-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2016 10:01:50 -0400
-Received: from localhost
-        by e19.ny.us.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <brking@linux.vnet.ibm.com>;
-        Thu, 29 Sep 2016 10:01:50 -0400
-Subject: Re: [PATCH 2/6] ipr: use pci_irq_allocate_vectors
-To: Christoph Hellwig <hch@lst.de>, hans.verkuil@cisco.com,
-        brking@us.ibm.com, haver@linux.vnet.ibm.com,
-        ching2048@areca.com.tw, axboe@fb.com, alex.williamson@redhat.com
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
- <1473600688-24043-3-git-send-email-hch@lst.de>
-Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Brian King <brking@linux.vnet.ibm.com>
-Date: Thu, 29 Sep 2016 09:01:44 -0500
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33212 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751786AbcIIH32 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 03:29:28 -0400
+Received: by mail-wm0-f66.google.com with SMTP id b187so1432289wme.0
+        for <linux-media@vger.kernel.org>; Fri, 09 Sep 2016 00:29:27 -0700 (PDT)
+Subject: Re: [PATCH v3 07/10] v4l: fdp1: Remove unused struct fdp1_v4l2_buffer
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1473287110-780-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Kieran Bingham <kieran@ksquared.org.uk>
+Message-ID: <7643da9a-31cc-364e-36bc-59e903d4438b@bingham.xyz>
+Date: Fri, 9 Sep 2016 08:29:25 +0100
 MIME-Version: 1.0
-In-Reply-To: <1473600688-24043-3-git-send-email-hch@lst.de>
+In-Reply-To: <1473287110-780-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Message-Id: <200e5b3f-8555-9cd3-7940-0ec0f2867b95@linux.vnet.ibm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Christoph. Very nice. As I was reviewing the patch, I noticed
-the additional PCI_IRQ_AFFINITY flag, which is currently not being set
-in this patch. Is the intention to set that globally by default, or
-should I follow up with a one liner to add that to the ipr driver
-in the next patch set I send out?
 
-Acked-by: Brian King <brking@linux.vnet.ibm.com>
 
-Thanks,
+On 07/09/16 23:25, Laurent Pinchart wrote:
+> The structure is not used, remove it.
 
-Brian
+Ahh yes, looks like a left over from my first attempt at serialising
+input fields.
 
+Reviewed-by: Kieran Bingham <kieran@bingham.xyz>
+
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  drivers/media/platform/rcar_fdp1.c | 13 -------------
+>  1 file changed, 13 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
+> index bbeacf1527b5..fdab41165f5a 100644
+> --- a/drivers/media/platform/rcar_fdp1.c
+> +++ b/drivers/media/platform/rcar_fdp1.c
+> @@ -514,19 +514,6 @@ enum fdp1_deint_mode {
+>  	 mode == FDP1_PREVFIELD)
+>  
+>  /*
+> - * fdp1_v4l2_buffer: Track v4l2_buffers with a reference count
+> - *
+> - * As buffers come in, they may be used for more than one field.
+> - * It then becomes necessary to track the usage of these buffers,
+> - * and only release when the last job has completed using this
+> - * vb buffer.
+> - */
+> -struct fdp1_v4l2_buffer {
+> -	struct vb2_v4l2_buffer	vb;
+> -	struct list_head	list;
+> -};
+> -
+> -/*
+>   * FDP1 operates on potentially 3 fields, which are tracked
+>   * from the VB buffers using this context structure.
+>   * Will always be a field or a full frame, never two fields.
+> 
 
 -- 
-Brian King
-Power Linux I/O
-IBM Linux Technology Center
+Regards
 
+Kieran Bingham
