@@ -1,34 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:38707 "EHLO newverein.lst.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751795AbcI2SiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Sep 2016 14:38:00 -0400
-Date: Thu, 29 Sep 2016 20:37:57 +0200
-From: Christoph Hellwig <hch@lst.de>
-To: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>, hans.verkuil@cisco.com,
-        brking@us.ibm.com, haver@linux.vnet.ibm.com,
-        ching2048@areca.com.tw, axboe@fb.com, alex.williamson@redhat.com,
-        kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/6] genwqe: use pci_irq_allocate_vectors
-Message-ID: <20160929183757.GA4106@lst.de>
-References: <1473600688-24043-1-git-send-email-hch@lst.de> <1473600688-24043-6-git-send-email-hch@lst.de> <87twcyk1cd.fsf@linux.vnet.ibm.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:17440 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752111AbcIIPsP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 11:48:15 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v2 4/4] arm64: dts: mediatek: Add Video Decoder for MT8173
+Date: Fri, 9 Sep 2016 23:48:07 +0800
+Message-ID: <1473436087-21943-5-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1473436087-21943-4-git-send-email-tiffany.lin@mediatek.com>
+References: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
+ <1473436087-21943-2-git-send-email-tiffany.lin@mediatek.com>
+ <1473436087-21943-3-git-send-email-tiffany.lin@mediatek.com>
+ <1473436087-21943-4-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87twcyk1cd.fsf@linux.vnet.ibm.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 29, 2016 at 03:28:02PM -0300, Gabriel Krisman Bertazi wrote:
-> Christoph Hellwig <hch@lst.de> writes:
-> 
-> > Simply the interrupt setup by using the new PCI layer helpers.
-> 
-> Good clean up.  Tested and:
-> 
-> Acked-by: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
+Add video decoder node for MT8173
 
-Which tree should this go in through?
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi |   44 ++++++++++++++++++++++++++++++
+ 1 file changed, 44 insertions(+)
+
+diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+index 10f638f..2872cd7 100644
+--- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
++++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
+@@ -974,6 +974,50 @@
+ 			#clock-cells = <1>;
+ 		};
+ 
++		vcodec_dec: vcodec@16000000 {
++			compatible = "mediatek,mt8173-vcodec-dec";
++			reg = <0 0x16000000 0 0x100>,	/* VDEC_SYS */
++			      <0 0x16020000 0 0x1000>,	/* VDEC_MISC */
++			      <0 0x16021000 0 0x800>,	/* VDEC_LD */
++			      <0 0x16021800 0 0x800>,	/* VDEC_TOP */
++			      <0 0x16022000 0 0x1000>,	/* VDEC_CM */
++			      <0 0x16023000 0 0x1000>,	/* VDEC_AD */
++			      <0 0x16024000 0 0x1000>,	/* VDEC_AV */
++			      <0 0x16025000 0 0x1000>,	/* VDEC_PP */
++			      <0 0x16026800 0 0x800>,	/* VDEC_HWD */
++			      <0 0x16027000 0 0x800>,	/* VDEC_HWQ */
++			      <0 0x16027800 0 0x800>,	/* VDEC_HWB */
++			      <0 0x16028400 0 0x400>;	/* VDEC_HWG */
++			interrupts = <GIC_SPI 204 IRQ_TYPE_LEVEL_LOW>;
++			mediatek,larb = <&larb1>;
++			iommus = <&iommu M4U_PORT_HW_VDEC_MC_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_PP_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_AVC_MV_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_PRED_RD_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_PRED_WR_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_UFO_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_VLD_EXT>,
++				 <&iommu M4U_PORT_HW_VDEC_VLD2_EXT>;
++			mediatek,vpu = <&vpu>;
++			power-domains = <&scpsys MT8173_POWER_DOMAIN_VDEC>;
++			clocks = <&apmixedsys CLK_APMIXED_VCODECPLL>,
++				 <&topckgen CLK_TOP_UNIVPLL_D2>,
++				 <&topckgen CLK_TOP_CCI400_SEL>,
++				 <&topckgen CLK_TOP_VDEC_SEL>,
++				 <&topckgen CLK_TOP_VCODECPLL>,
++				 <&apmixedsys CLK_APMIXED_VENCPLL>,
++				 <&topckgen CLK_TOP_VENC_LT_SEL>,
++				 <&topckgen CLK_TOP_VCODECPLL_370P5>;
++			clock-names = "vcodecpll",
++				      "univpll_d2",
++				      "clk_cci400_sel",
++				      "vdec_sel",
++				      "vdecpll",
++				      "vencpll",
++				      "venc_lt_sel",
++				      "vdec_bus_clk_src";
++		};
++
+ 		larb1: larb@16010000 {
+ 			compatible = "mediatek,mt8173-smi-larb";
+ 			reg = <0 0x16010000 0 0x1000>;
+-- 
+1.7.9.5
+
