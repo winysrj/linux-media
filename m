@@ -1,44 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35324 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753416AbcISWDN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 18:03:13 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: sre@kernel.org
-Subject: [PATCH v3 12/18] smiapp: Use SMIAPP_PADS when referring to number of pads
-Date: Tue, 20 Sep 2016 01:02:45 +0300
-Message-Id: <1474322571-20290-13-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail.infonetg.com ([1.224.163.43]:36761 "EHLO infonetg.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754091AbcIIS1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Sep 2016 14:27:34 -0400
+Message-Id: <201609091807.u89I7iM1002775@infonetg.com>
+Reply-To: <chimwiakim@gmail.com>
+From: "Acct. Dept." <jslee@infonetg.com>
+Subject: STRICTLY CONFIDENTIAL  
+Date: Fri, 9 Sep 2016 13:24:28 -0500
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace plain value 2 with SMIAPP_PADS when referring to the number of
-pads.
+I have important transaction for you as next of kin to claim US$18.37m  Mail me on my private email:   chimwiakim@gmail.com
+ so i can send you more details
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks
 
-diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
-index e71271e..f9febe0 100644
---- a/drivers/media/i2c/smiapp/smiapp.h
-+++ b/drivers/media/i2c/smiapp/smiapp.h
-@@ -157,9 +157,9 @@ struct smiapp_binning_subtype {
- 
- struct smiapp_subdev {
- 	struct v4l2_subdev sd;
--	struct media_pad pads[2];
-+	struct media_pad pads[SMIAPP_PADS];
- 	struct v4l2_rect sink_fmt;
--	struct v4l2_rect crop[2];
-+	struct v4l2_rect crop[SMIAPP_PADS];
- 	struct v4l2_rect compose; /* compose on sink */
- 	unsigned short sink_pad;
- 	unsigned short source_pad;
--- 
-2.1.4
+Mr.Chim Wai Kim
 
+
+
+
+
+
+
+
+
+
+===========================================================================
+
+DISCLAIMER: This email and any files it contains are confidential and intended for the use of the recipient(s) only. If you are not the intended recipient you should notify the sender immediately and destroy the material from your system. 
+
+
+                
