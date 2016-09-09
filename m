@@ -1,99 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:31686 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756935AbcIPLus (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 07:50:48 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34236 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753451AbcIITZA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 15:25:00 -0400
+Received: by mail-lf0-f66.google.com with SMTP id k12so3046029lfb.1
+        for <linux-media@vger.kernel.org>; Fri, 09 Sep 2016 12:24:59 -0700 (PDT)
+From: Olli Salonen <olli.salonen@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        mchehab@s-opensource.com
-Subject: [PATCH v5 4/4] media: Add flags to tell whether to take graph mutex for an IOCTL
-Date: Fri, 16 Sep 2016 14:49:08 +0300
-Message-Id: <1474026548-28829-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] dvb-usb-dvbsky: Add support for TechnoTrend S2-4650 CI
+Date: Fri,  9 Sep 2016 22:24:54 +0300
+Message-Id: <1473449094-9427-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New IOCTLs (especially for the request API) do not necessarily need the
-graph mutex acquired. Leave this up to the drivers.
+TechnoTrend TT-connect S2-4650 CI seems to be a variation of
+the DVBSky S960CI device.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Olli Salonen <olli.salonen@iki.fi>
 ---
- drivers/media/media-device.c | 37 +++++++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ drivers/media/dvb-core/dvb-usb-ids.h  | 1 +
+ drivers/media/usb/dvb-usb-v2/dvbsky.c | 4 ++++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index c44406e..2783531 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -381,31 +381,36 @@ static long copy_arg_to_user(void __user *uarg, void *karg, unsigned int cmd)
- 	return 0;
- }
- 
--#define MEDIA_IOC_ARG(__cmd, func, from_user, to_user)	\
--	[_IOC_NR(MEDIA_IOC_##__cmd)] = {		\
--		.cmd = MEDIA_IOC_##__cmd,		\
-+/* Do acquire the graph mutex */
-+#define MEDIA_IOC_FL_GRAPH_MUTEX	BIT(0)
-+
-+#define MEDIA_IOC_ARG(__cmd, func, fl, from_user, to_user)		\
-+	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
-+		.cmd = MEDIA_IOC_##__cmd,				\
- 		.fn = (long (*)(struct media_device *, void *))func,	\
--		.arg_from_user = from_user,		\
--		.arg_to_user = to_user,			\
-+		.flags = fl,						\
-+		.arg_from_user = from_user,				\
-+		.arg_to_user = to_user,					\
- 	}
- 
--#define MEDIA_IOC(__cmd, func)						\
--	MEDIA_IOC_ARG(__cmd, func, copy_arg_from_user, copy_arg_to_user)
-+#define MEDIA_IOC(__cmd, func, fl)					\
-+	MEDIA_IOC_ARG(__cmd, func, fl, copy_arg_from_user, copy_arg_to_user)
- 
- /* the table is indexed by _IOC_NR(cmd) */
- struct media_ioctl_info {
- 	unsigned int cmd;
-+	unsigned short flags;
- 	long (*fn)(struct media_device *dev, void *arg);
- 	long (*arg_from_user)(void *karg, void __user *uarg, unsigned int cmd);
- 	long (*arg_to_user)(void __user *uarg, void *karg, unsigned int cmd);
- };
- 
- static const struct media_ioctl_info ioctl_info[] = {
--	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
--	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
--	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
--	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
--	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
-+	MEDIA_IOC(DEVICE_INFO, media_device_get_info, MEDIA_IOC_FL_GRAPH_MUTEX),
-+	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities, MEDIA_IOC_FL_GRAPH_MUTEX),
-+	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
-+	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
-+	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
- };
- 
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
-@@ -436,9 +441,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 			goto out_free;
- 	}
- 
--	mutex_lock(&dev->graph_mutex);
-+	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
-+		mutex_lock(&dev->graph_mutex);
-+
- 	ret = info->fn(dev, karg);
--	mutex_unlock(&dev->graph_mutex);
-+
-+	if (info->flags & MEDIA_IOC_FL_GRAPH_MUTEX)
-+		mutex_unlock(&dev->graph_mutex);
- 
- 	if (!ret && info->arg_to_user)
- 		ret = info->arg_to_user(arg, karg, cmd);
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
+index a7a4674..a52c5c7 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -262,6 +262,7 @@
+ #define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI		0x3012
+ #define USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI_2	0x3015
+ #define USB_PID_TECHNOTREND_TVSTICK_CT2_4400		0x3014
++#define USB_PID_TECHNOTREND_CONNECT_S2_4650_CI		0x3017
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2	0x0081
+ #define USB_PID_TERRATEC_CINERGY_HT_USB_XE		0x0058
+diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+index 02dbc6c..0636eac 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
++++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
+@@ -851,6 +851,10 @@ static const struct usb_device_id dvbsky_id_table[] = {
+ 		USB_PID_TECHNOTREND_CONNECT_CT2_4650_CI_2,
+ 		&dvbsky_t680c_props, "TechnoTrend TT-connect CT2-4650 CI v1.1",
+ 		RC_MAP_TT_1500) },
++	{ DVB_USB_DEVICE(USB_VID_TECHNOTREND,
++		USB_PID_TECHNOTREND_CONNECT_S2_4650_CI,
++		&dvbsky_s960c_props, "TechnoTrend TT-connect S2-4650 CI",
++		RC_MAP_TT_1500) },
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC,
+ 		USB_PID_TERRATEC_H7_3,
+ 		&dvbsky_t680c_props, "Terratec H7 Rev.4",
 -- 
 2.7.4
 
