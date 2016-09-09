@@ -1,59 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:52301 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754692AbcIWOCm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 10:02:42 -0400
-Date: Fri, 23 Sep 2016 15:02:32 +0100
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 10/11] dma-buf: Use seqlock to close RCU
- race in test_signaled_single
-Message-ID: <20160923140232.GD28107@nuc-i3427.alporthouse.com>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
- <20160829070834.22296-10-chris@chris-wilson.co.uk>
- <20160923134926.GL3988@dvetter-linux.ger.corp.intel.com>
-MIME-Version: 1.0
+Received: from smtp1.goneo.de ([85.220.129.30]:54732 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751332AbcIIMZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Sep 2016 08:25:25 -0400
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160923134926.GL3988@dvetter-linux.ger.corp.intel.com>
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the c-domain
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160909090832.35c2d982@vento.lan>
+Date: Fri, 9 Sep 2016 14:25:11 +0200
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de>
+References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de> <20160909090832.35c2d982@vento.lan>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 23, 2016 at 03:49:26PM +0200, Daniel Vetter wrote:
-> On Mon, Aug 29, 2016 at 08:08:33AM +0100, Chris Wilson wrote:
-> > With the seqlock now extended to cover the lookup of the fence and its
-> > testing, we can perform that testing solely under the seqlock guard and
-> > avoid the effective locking and serialisation of acquiring a reference to
-> > the request.  As the fence is RCU protected we know it cannot disappear
-> > as we test it, the same guarantee that made it safe to acquire the
-> > reference previously.  The seqlock tests whether the fence was replaced
-> > as we are testing it telling us whether or not we can trust the result
-> > (if not, we just repeat the test until stable).
-> > 
-> > Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
-> > Cc: Sumit Semwal <sumit.semwal@linaro.org>
-> > Cc: linux-media@vger.kernel.org
-> > Cc: dri-devel@lists.freedesktop.org
-> > Cc: linaro-mm-sig@lists.linaro.org
+
+Am 09.09.2016 um 14:08 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
+
+> Em Wed,  7 Sep 2016 09:12:55 +0200
+> Markus Heiser <markus.heiser@darmarit.de> escreveu:
 > 
-> Not entirely sure this is safe for non-i915 drivers. We might now call
-> ->signalled on a zombie fence (i.e. refcount == 0, but not yet kfreed).
-> i915 can do that, but other drivers might go boom.
+>> From: Markus Heiser <markus.heiser@darmarIT.de>
+>> 
+>> Hi Jon,
+>> 
+>> according to your remarks I fixed the first and second patch. The third patch is
+>> resend unchanged;
+>> 
+>>> Am 06.09.2016 um 14:28 schrieb Jonathan Corbet <corbet@lwn.net>:
+>>> 
+>>> As others have pointed out, we generally want to hide the difference
+>>> between functions and macros, so this is probably one change we don't
+>>> want.  
+>> 
+>> I read "probably", so there might be a chance to persuade you ;)
+>> 
+>> I'm not a friend of *information hiding* and since the index is sorted
+>> alphabetical it does no matter if the entry is 'FOO (C function)' or 'FOO (C
+>> macro)'. The last one has the right information e.g. for someone how is looking
+>> for a macro. FOO is a function-like macro and not a function, if the author
+>> describes the macro he might use the word "macro FOO" but in the index it is
+>> tagged as C function.
+>> 
+>> Macros and functions are totally different even if their notation looks
+>> similarly. So where is the benefit of entries like 'FOO (C function)', which is
+>> IMHO ambiguous.
+>> 
+>> I tagged the 'function-like macros index entry' patch with 'RFC' and resend it
+>> within this series. If you and/or others have a different opinion, feel free to
+>> drop it.
+>> 
+>> Thanks for review.
+>> 
+>> -- Markus --
+>> 
+>> 
+>> Markus Heiser (3):
+>>  doc-rst:c-domain: fix sphinx version incompatibility
+>>  doc-rst:c-domain: function-like macros arguments
+>>  doc-rst:c-domain: function-like macros index entry
+>> 
+>> Documentation/sphinx/cdomain.py | 79 +++++++++++++++++++++++++++++++++++++++--
+>> 1 file changed, 76 insertions(+), 3 deletions(-)
+>> 
+> 
+> Those patches indeed fix the issues. The arguments are now
+> processed properly.
+> 
+> Tested-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> ---
+> 
+> Using either this approach or my kernel-doc patch, I'm now getting
+> only two warnings:
+> 
+> 1) at media-entity.h, even without nitpick mode:
+> 
+> ./include/media/media-entity.h:1053: warning: No description found for parameter '...'
+> 
+> This is caused by this kernel-doc tag and the corresponding macro:
+> 
+> 	/**
+> 	 * media_entity_call - Calls a struct media_entity_operations operation on
+> 	 *	an entity
+> 	 *
+> 	 * @entity: entity where the @operation will be called
+> 	 * @operation: type of the operation. Should be the name of a member of
+> 	 *	struct &media_entity_operations.
+> 	 *
+> 	 * This helper function will check if @operation is not %NULL. On such case,
+> 	 * it will issue a call to @operation\(@entity, @args\).
+> 	 */
+> 
+> 	#define media_entity_call(entity, operation, args...)			\
+> 		(((entity)->ops && (entity)->ops->operation) ?			\
+> 		 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+> 
+> 
+> Basically, the Sphinx C domain seems to be expecting a description for
+> "...". I didn't find any way to get rid of that.
+> 
+> 2) a nitpick warning at v4l2-mem2mem.h:
+> 
+> ./include/media/v4l2-mem2mem.h:339: WARNING: c:type reference target not found: queue_init
+> 
+> 
+> 	/**
+> 	 * v4l2_m2m_ctx_init() - allocate and initialize a m2m context
+> 	 *
+> 	 * @m2m_dev: opaque pointer to the internal data to handle M2M context
+> 	 * @drv_priv: driver's instance private data
+> 	 * @queue_init: a callback for queue type-specific initialization function
+> 	 * 	to be used for initializing videobuf_queues
+> 	 *
+> 	 * Usually called from driver's ``open()`` function.
+> 	 */
+> 	struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+> 			void *drv_priv,
+> 			int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
+> 
+> I checked the output of kernel-doc, and it looked ok. Yet, it expects
+> "queue_init" to be defined somehow. I suspect that this is an error at
+> Sphinx C domain parser.
+> 
+> Markus,
+> 
+> Could you please take a look on those?
 
-All fences must be under RCU guard, or is that the sticking point? Given
-that, the problem is fence reallocation within the RCU grace period. If
-we can mandate that fence reallocation must be safe for concurrent
-fence->ops->*(), we can use this technique to avoid the serialisation
-barrier otherwise required. In the simple stress test, the difference is
-an order of magnitude, and test_signaled_rcu is often on a path where
-every memory barrier quickly adds up (at least for us).
+Yes, I will give it a try, but I don't know if I find the time
+today.
 
-So is it just that you worry that others using SLAB_DESTROY_BY_RCU won't
-ensure their fence is safe during the reallocation?
--Chris
+On wich branch could I test this?
 
--- 
-Chris Wilson, Intel Open Source Technology Centre
+-- Markus --
+
+> 
+> Thanks,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
