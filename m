@@ -1,57 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:37434 "EHLO mail.kernel.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:49731 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752601AbcISVJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 17:09:36 -0400
-Date: Mon, 19 Sep 2016 23:09:29 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 08/17] smiapp: Merge smiapp_init() with smiapp_probe()
-Message-ID: <20160919210928.hnfqrgztxvwzdiwi@earth>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-9-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751014AbcIIPEJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Sep 2016 11:04:09 -0400
+Subject: Re: [GIT PULL STABLE 4.6] af9035 regression
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1e077824-104b-4665-96c8-de46c1a63a5d@iki.fi>
+ <20160909114906.66c77b1b@vento.lan>
+Cc: LMML <linux-media@vger.kernel.org>,
+        =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <943812ea-cec5-46a1-8652-a468ebb2cb42@iki.fi>
+Date: Fri, 9 Sep 2016 18:04:07 +0300
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="qkfysbh25peinhre"
-Content-Disposition: inline
-In-Reply-To: <1473938551-14503-9-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <20160909114906.66c77b1b@vento.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 09/09/2016 05:49 PM, Mauro Carvalho Chehab wrote:
+> Hi Antti,
+>
+> Em Sat, 3 Sep 2016 02:40:52 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> The following changes since commit 2dcd0af568b0cf583645c8a317dd12e344b1c72a:
+>>
+>>    Linux 4.6 (2016-05-15 15:43:13 -0700)
+>
+> Is this patchset really meant to Kernel 4.6? if so, you should send
+> the path to stable@vger.kernel.org, c/c the mailing list.
+>
+> It helps to point the original patch that fixed the issue upstream,
+> as they won't apply the fix if it was not fixed upstream yet.
 
---qkfysbh25peinhre
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I think you already applied upstream patch, that one is just back-ported 
+to 4.6.
 
-Hi,
+It is that patch:
+https://patchwork.linuxtv.org/patch/36795/
 
-On Thu, Sep 15, 2016 at 02:22:22PM +0300, Sakari Ailus wrote:
-> The smiapp_probe() is the sole caller of smiapp_init(). Unify the two.
+and it contains all the needed tags including Cc stable. Could you send 
+it to stable?
 
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
+Antti
 
--- Sebastian
+>
+> Regards,
+> Mauro
+>
+>>
+>> are available in the git repository at:
+>>
+>>    git://linuxtv.org/anttip/media_tree.git af9035_fix
+>>
+>> for you to fetch changes up to 7bb87ff5255defe87916f32cd1fcef163a489339:
+>>
+>>    af9035: fix dual tuner detection with PCTV 79e (2016-09-03 02:23:44
+>> +0300)
+>>
+>> ----------------------------------------------------------------
+>> Stefan Pöschel (1):
+>>        af9035: fix dual tuner detection with PCTV 79e
+>>
+>>   drivers/media/usb/dvb-usb-v2/af9035.c | 53
+>> +++++++++++++++++++++++++++++++++++------------------
+>>   drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+>>   2 files changed, 36 insertions(+), 19 deletions(-)
+>>
+>
+>
+>
+> Thanks,
+> Mauro
+>
 
---qkfysbh25peinhre
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4FQIAAoJENju1/PIO/qa+lEP/1Q5bH4Bv2JYT5cNpgCUMtMt
-e6zTjUyZ9u9hkxzXrHrKW92eVf3pcl5HRsVFFxagxHg5B9v7lR5GCjuVFLEE0oOJ
-rIYEE277pOGT+UOxmGvV8hUpiR9mUQGmxbVrm+Ix7c5jNkMGQXIlI5RLQbgN8vi2
-UQm8+pgKdmfltj0mAMA4kdAabPwNsiWv9FgnfgtDpFHjNU54jcC77hAAW7XL80Qc
-lLIDYZHYOKW5bZS/wjHe3fPusMElOCjado2zl2YOZjWjR1DJ6lTHNa6bB6dxmhNj
-VJ4HKbUdEuHJ4tE10bL+a0BokLXX3sgzrWJO+zX1OId+F9ZFR76uA3GbN89a4a4a
-rTN+FK9npSbX6ztLS5YP3GJRxDRDOUUXCyx48SK5znunphdfMG5oURyWft25H+Nw
-OpF1i2dAo5F21zemUixSh5IpETM7eJGjR4XpaESSTFqky+02r0Nm10AV+118cO15
-QVXsa1MlQnDTC3kl6oaDjJpk5XDTHW5ly7LlboAoQHf/xzprJuIgMloLLCm6VCGg
-hqnt57l8c5X/XIr9vZeCYIeYE4oPfTaIeSTHrop1N/H+73bHHNo599foePez32R6
-MzcUMtDSUYGgvTOl8Vh1fikYiPg9ef19ed6a6VCGGnHyY+fnePXoPxXRUSqs6/Td
-3cwu0tBJltCuiisZ06g0
-=41xE
------END PGP SIGNATURE-----
-
---qkfysbh25peinhre--
+-- 
+http://palosaari.fi/
