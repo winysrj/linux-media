@@ -1,33 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:60270 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752264AbcIKKNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 06:13:53 -0400
-Subject: Re: DVB: Unable to find symbol dib7000p_attach()
-To: linux-media@vger.kernel.org
-References: <fcfb7b2b-bd98-d847-8f07-ef3d018f5c19@gmx.de>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>
-From: =?UTF-8?Q?Toralf_F=c3=b6rster?= <toralf.foerster@gmx.de>
-Message-ID: <bc964489-498f-6f40-e764-d8b4a869b38a@gmx.de>
-Date: Sun, 11 Sep 2016 12:13:48 +0200
+Received: from mailgw02.mediatek.com ([210.61.82.184]:48305 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750760AbcIIPsP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 11:48:15 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v2 2/4] docs-rst: Add compressed video formats used on MT8173 codec driver
+Date: Fri, 9 Sep 2016 23:48:05 +0800
+Message-ID: <1473436087-21943-3-git-send-email-tiffany.lin@mediatek.com>
+In-Reply-To: <1473436087-21943-2-git-send-email-tiffany.lin@mediatek.com>
+References: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
+ <1473436087-21943-2-git-send-email-tiffany.lin@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <fcfb7b2b-bd98-d847-8f07-ef3d018f5c19@gmx.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/25/2016 08:31 PM, Toralf Förster wrote:
-> Aug 25 20:28:27 t44 kernel: DVB: registering new adapter (Terratec Cinergy T USB XXS (HD)/ T3)
-> Aug 25 20:28:27 t44 kernel: DVB: Unable to find symbol dib7000p_attach()
-> Aug 25 20:28:27 t44 kernel: dvb-usb: no frontend was attached by 'Terratec Cinergy T USB XXS (HD)/ T3'
+Add V4L2_PIX_FMT_MT21C documentation
 
-Well, "solved" this with:
+Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-CONFIG_TRIM_UNUSED_KSYMS=y
-
-/me wonders if that kernel options should be mandatory for the DVB-T adapter to not break functionality ?
-
+diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+index 0dd2f7f..0989e99 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+@@ -339,7 +339,17 @@ please make a proposal on the linux-media mailing list.
+ 	  array. Anything what's in between the UYVY lines is JPEG data and
+ 	  should be concatenated to form the JPEG stream.
+ 
++    -  .. _V4L2-PIX-FMT-MT21C:
+ 
++       -  ``V4L2_PIX_FMT_MT21C``
++
++       -  'MT21C'
++
++       -  Compressed two-planar YVU420 format used by Mediatek MT8173.
++          The compression is lossless.
++          It is an opaque intermediate format, and MDP HW could convert
++          V4L2_PIX_FMT_MT21C to V4L2_PIX_FMT_NV12M,
++          V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
+ 
+ .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+ 
 -- 
-Toralf
-PGP: C4EACDDE 0076E94E, OTR: 420E74C8 30246EE7
+1.7.9.5
+
