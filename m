@@ -1,38 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:31334 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757204AbcIVTsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 15:48:47 -0400
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-To: Bin Liu <b-liu@ti.com>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: g_webcam Isoch high bandwidth transfer
-In-Reply-To: <20160922133327.GA31827@uda0271908>
-References: <20160920170441.GA10705@uda0271908> <871t0d4r72.fsf@linux.intel.com> <20160921132702.GA18578@uda0271908> <87oa3go065.fsf@linux.intel.com> <87lgyknyp7.fsf@linux.intel.com> <87d1jw6yfd.fsf@linux.intel.com> <20160922133327.GA31827@uda0271908>
-Date: Thu, 22 Sep 2016 22:48:40 +0300
-Message-ID: <87a8ezn2av.fsf@linux.intel.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:48093 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750908AbcIIPHU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 9 Sep 2016 11:07:20 -0400
+Date: Fri, 9 Sep 2016 18:07:16 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        kernel-janitors@vger.kernel.org, Abylay Ospan <aospan@netup.ru>,
+        Sergey Kozlov <serjk@netup.ru>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] [media] pci: constify vb2_ops structures
+Message-ID: <20160909150716.daols6gymz2miiko@zver>
+References: <1473379158-17344-1-git-send-email-Julia.Lawall@lip6.fr>
+ <20160909091741.re5ll3jelooeitpv@zver>
+ <alpine.DEB.2.10.1609092231090.2832@hadrien>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.10.1609092231090.2832@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Sep 09, 2016 at 10:31:30PM +0800, Julia Lawall wrote:
+> Will this soon reach linux-next?
 
-Hi,
-
-Bin Liu <b-liu@ti.com> writes:
-
-[...]
-
->> Here's one that actually compiles, sorry about that.
->
-> No worries, I was sleeping ;-)
->
-> I will test it out early next week. Thanks.
-
-meanwhile, how about some instructions on how to test this out myself?
-How are you using g_webcam and what are you running on host side? Got a
-nice list of commands there I can use? I think I can get to bottom of
-this much quicker if I can reproduce it locally ;-)
-
--- 
-balbi
+No idea. Indeed it's simpler if you leave your patch as is, and then
+later we patch this new driver separately.
