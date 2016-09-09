@@ -1,65 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:46549 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756588AbcIAV1W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:22 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 6/7] Documentation: bindings: add documentation for ir-spi
- device driver
-Date: Fri, 02 Sep 2016 02:16:28 +0900
-Message-id: <20160901171629.15422-7-andi.shyti@samsung.com>
-In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
-References: <20160901171629.15422-1-andi.shyti@samsung.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:48305 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753263AbcIIPsR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 11:48:17 -0400
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
+        Tiffany Lin <tiffany.lin@mediatek.com>
+Subject: [PATCH v2 0/4] Add V4L2_PIX_FMT_MT21C format for MT8173 codec driver 
+Date: Fri, 9 Sep 2016 23:48:03 +0800
+Message-ID: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the ir-spi driver's binding which is a IR led driven
-through the SPI line.
+This patch series add Mediatek compressed block format V4L2_PIX_FMT_MT21C,
+the decoder driver will decoded bitstream to V4L2_PIX_FMT_MT21C format.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+User space applications could use MT8173 MDP driver to convert V4L2_PIX_FMT_MT21C
+to V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
+MDP driver[1] is stand alone driver.
+
+Usage:
+MT21C -> MT8173 MDP -> NV12M/YUV420M/YVU420 NV12M/NV21M/YUV420M/YVU420M -> mt8173 Encoder -> H264/VP8
+H264/VP8/VP9 -> mtk8173 Decoder -> MT21C
+
+When encode with MT21 source, the pipeline will be:
+MT21C -> MDP driver-> NV12M/NV21M/YUV420M/YVU420M -> Encoder -> H264/VP8
+
+When playback, the pipeline will be:
+H264/VP8/VP9 -> Decoder driver -> MT21C -> MDP Driver -> DRM
+
+[1]https://patchwork.kernel.org/patch/9305329/
+
 ---
- Documentation/devicetree/bindings/media/spi-ir.txt | 26 ++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
+v2: add more information for MT21C in docs-rst
+---
 
-diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
-new file mode 100644
-index 0000000..85cb21b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/spi-ir.txt
-@@ -0,0 +1,26 @@
-+Device tree bindings for IR LED connected through SPI bus which is used as
-+remote controller.
-+
-+The IR LED switch is connected to the MOSI line of the SPI device and the data
-+are delivered thourgh that.
-+
-+Required properties:
-+	- compatible: should be "ir-spi".
-+
-+Optional properties:
-+	- irled,switch: specifies the gpio switch which enables the irled/
-+	- negated: boolean value that specifies whether the output is negated
-+	  with a NOT gate.
-+	- duty-cycle: 8 bit value that stores the percentage of the duty cycle.
-+	  it can be 50, 60, 70, 75, 80 or 90.
-+
-+Example:
-+
-+        irled@0 {
-+                compatible = "ir-spi";
-+                reg = <0x0>;
-+                spi-max-frequency = <5000000>;
-+                irled,switch = <&gpr3 3 0>;
-+		negated;
-+		duty-cycle = /bits/ 8 <60>;
-+        };
+
+Tiffany Lin (4):
+  v4l: add Mediatek compressed video block format
+  docs-rst: Add compressed video formats used on MT8173 codec driver
+  vcodec: mediatek: Add V4L2_PIX_FMT_MT21C support for v4l2 decoder
+  arm64: dts: mediatek: Add Video Decoder for MT8173
+
+ Documentation/media/uapi/v4l/pixfmt-reserved.rst   |   10 +++++
+ arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   44 ++++++++++++++++++++
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |    7 +++-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    1 +
+ include/uapi/linux/videodev2.h                     |    1 +
+ 5 files changed, 62 insertions(+), 1 deletion(-)
+
 -- 
-2.9.3
+1.7.9.5
 
