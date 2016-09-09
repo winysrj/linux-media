@@ -1,81 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:33113 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758381AbcILNQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 09:16:38 -0400
-Date: Mon, 12 Sep 2016 16:16:25 +0300
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: linux-renesas-soc@vger.kernel.org, joe@perches.com,
-        kernel-janitors@vger.kernel.org,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-can@vger.kernel.org,
-        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Chien Tin Tung <chien.tin.tung@intel.com>,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-        linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 00/26] constify local structures
-Message-ID: <20160912131625.GD957@intel.com>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
- <20160911172105.GB5493@intel.com>
- <alpine.DEB.2.10.1609121051050.3049@hadrien>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53127
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751008AbcIIOtV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 10:49:21 -0400
+Date: Fri, 9 Sep 2016 11:49:06 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+        Stefan =?UTF-8?B?UMO2c2NoZWw=?= <basic.master@gmx.de>
+Subject: Re: [GIT PULL STABLE 4.6] af9035 regression
+Message-ID: <20160909114906.66c77b1b@vento.lan>
+In-Reply-To: <1e077824-104b-4665-96c8-de46c1a63a5d@iki.fi>
+References: <1e077824-104b-4665-96c8-de46c1a63a5d@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.10.1609121051050.3049@hadrien>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
+Hi Antti,
+
+Em Sat, 3 Sep 2016 02:40:52 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
+
+> The following changes since commit 2dcd0af568b0cf583645c8a317dd12e344b1c72a:
 > 
+>    Linux 4.6 (2016-05-15 15:43:13 -0700)
+
+Is this patchset really meant to Kernel 4.6? if so, you should send
+the path to stable@vger.kernel.org, c/c the mailing list.
+
+It helps to point the original patch that fixed the issue upstream,
+as they won't apply the fix if it was not fixed upstream yet.
+
+Regards,
+Mauro
+
 > 
-> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+> are available in the git repository at:
 > 
-> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
-> > > Constify local structures.
-> > >
-> > > The semantic patch that makes this change is as follows:
-> > > (http://coccinelle.lip6.fr/)
-> >
-> > Just my two cents but:
-> >
-> > 1. You *can* use a static analysis too to find bugs or other issues.
-> > 2. However, you should manually do the commits and proper commit
-> >    messages to subsystems based on your findings. And I generally think
-> >    that if one contributes code one should also at least smoke test changes
-> >    somehow.
-> >
-> > I don't know if I'm alone with my opinion. I just think that one should
-> > also do the analysis part and not blindly create and submit patches.
+>    git://linuxtv.org/anttip/media_tree.git af9035_fix
 > 
-> All of the patches are compile tested.  And the individual patches are
+> for you to fetch changes up to 7bb87ff5255defe87916f32cd1fcef163a489339:
+> 
+>    af9035: fix dual tuner detection with PCTV 79e (2016-09-03 02:23:44 
+> +0300)
+> 
+> ----------------------------------------------------------------
+> Stefan Pöschel (1):
+>        af9035: fix dual tuner detection with PCTV 79e
+> 
+>   drivers/media/usb/dvb-usb-v2/af9035.c | 53 
+> +++++++++++++++++++++++++++++++++++------------------
+>   drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+>   2 files changed, 36 insertions(+), 19 deletions(-)
+> 
 
-Compile-testing is not testing. If you are not able to test a commit,
-you should explain why.
 
-> submitted to the relevant maintainers.  The individual commit messages
-> give a more detailed explanation of the strategy used to decide that the
-> structure was constifiable.  It seemed redundant to put that in the cover
-> letter, which will not be committed anyway.
 
-I don't mean to be harsh but I do not care about your thought process
-*that much* when I review a commit (sometimes it might make sense to
-explain that but it depends on the context).
-
-I mostly only care why a particular change makes sense for this
-particular subsystem. The report given by a static analysis tool can
-be a starting point for making a commit but it's not sufficient.
-Based on the report you should look subsystems as individuals.
-
-> julia
-
-/Jarkko
+Thanks,
+Mauro
