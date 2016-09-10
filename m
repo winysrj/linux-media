@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:33108 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751667AbcIHDIW (ORCPT
+Received: from pv33p04im-asmtp002.me.com ([17.143.181.11]:51533 "EHLO
+        pv33p04im-asmtp002.me.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751543AbcIJHhO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 23:08:22 -0400
-Date: Thu, 8 Sep 2016 11:08:06 +0800 (SGT)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
-        Andy Walls <awalls@md.metrocast.net>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] pci: constify snd_pcm_ops structures
-In-Reply-To: <20160908022755.mr45eulz4r7vfoo5@zver>
-Message-ID: <alpine.DEB.2.10.1609081106070.6858@hadrien>
-References: <1473295479-24615-1-git-send-email-Julia.Lawall@lip6.fr> <20160908022755.mr45eulz4r7vfoo5@zver>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+        Sat, 10 Sep 2016 03:37:14 -0400
+Received: from process-dkim-sign-daemon.pv33p04im-asmtp002.me.com by
+ pv33p04im-asmtp002.me.com
+ (Oracle Communications Messaging Server 7.0.5.38.0 64bit (built Feb 26 2016))
+ id <0ODA00D00273F200@pv33p04im-asmtp002.me.com> for
+ linux-media@vger.kernel.org; Sat, 10 Sep 2016 07:37:14 +0000 (GMT)
+Content-type: text/plain; charset=utf-8
+MIME-version: 1.0 (Mac OS X Mail 9.3 \(3124\))
+Subject: Re: uvcvideo error on second capture from USB device,
+ leading to V4L2_BUF_FLAG_ERROR
+From: Oliver Collyer <ovcollyer@mac.com>
+In-reply-to: <20160906122823.toxscjyxomrh2col@zver>
+Date: Sat, 10 Sep 2016 10:37:08 +0300
+Cc: Andrey Utkin <andrey_utkin@fastmail.com>,
+        Support INOGENI <support@inogeni.com>, james.liu@magewell.net
+Content-transfer-encoding: quoted-printable
+Message-id: <71006CF0-B710-435A-B5A5-C0D0D20DE34F@mac.com>
+References: <C29C248E-5D7A-4E69-A88D-7B971D42E984@mac.com>
+ <20160904192538.75czuv7c2imru6ds@zver>
+ <AE433005-988F-4352-8CF3-30690C82CAA6@mac.com>
+ <20160905201935.wpgtrtt7e4bjjylo@zver>
+ <FE81AFD0-C5F1-4FE7-A282-3294E668066C@mac.com>
+ <20160906122823.toxscjyxomrh2col@zver>
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> I am curious to tinker with this, just not sure about free time for =
+it.
+> Please go through the following instruction, and then we'll see if ssh
+> is going to help to debug this.
+>=20
+> Also I think it is worth to CC actual manufacturers. There are =
+addresses
+> for technical support of both devices in public on maker websites.
+> Please CC them when replying with new logs, to let them catch up.
+>=20
 
+Ok, so I=E2=80=99ve provided all these logs requested by Andrey in an =
+earlier message but I=E2=80=99m unsubscribing from this list now.
 
-On Thu, 8 Sep 2016, Andrey Utkin wrote:
+I have written a patch for FFmpeg that deals with the problem for both =
+devices so it=E2=80=99s not really an issue for me anymore, but I=E2=80=99=
+m not sure if the patch will get accepted in their master git as it=E2=80=99=
+s a little messy.
 
-> Thanks for looking into this.
-> I have tested that it compiles and passes checks (C=2) cleanly after
-> this patch.
->
-> Acked-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
->
-> While we're at it, what about constification of
-> *-core.c:static struct pci_driver *_pci_driver = {
-> *-video.c:static struct vb2_ops *_video_qops = {
-> *-video.c:static struct video_device *_video_template = {
->
-> in drivers/media/pci/? Also there are even more similar entries not
-> constified yet in drivers/media/, however I may be underestimating
-> complexity of making semantic rules for catching that all.
+I=E2=80=99ve already documented another workaround ("modprobe -r =
+uvcvideo && modprobe uvcvideo=E2=80=9D before starting any capture) so =
+really it=E2=80=99s up to the people developing these devices and/or the =
+v4l2 driver/sub-system as to whether this gets sorted. Nobody from =
+Magewell even bothered replying and I=E2=80=99m not going to chase that =
+up as I=E2=80=99ve better things to do!
 
-I will check on these.  Thanks for the suggestion.
+I am however, perfectly happy for anyone to contact me off list/copy me =
+into any further discussion and I=E2=80=99m happy to provide ssh access =
+to a machine that shows the problem for debugging if that would help.
 
-julia
+- Oliver
+
