@@ -1,63 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:50348
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1034290AbcIZSC6 (ORCPT
+Received: from smtp-proxy002.phy.lolipop.jp ([157.7.104.43]:46618 "EHLO
+        smtp-proxy002.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750760AbcIJHZi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Sep 2016 14:02:58 -0400
-Date: Mon, 26 Sep 2016 15:02:53 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sat, 10 Sep 2016 03:25:38 -0400
+Subject: Re: [RFC][PATCH 0/2] ALSA: control: export all of TLV related macros
+ to user land
+To: Takashi Iwai <tiwai@suse.de>
+References: <1473483016-10529-1-git-send-email-o-takashi@sakamocchi.jp>
+ <s5hr38s9ru2.wl-tiwai@suse.de>
+Cc: clemens@ladisch.de, alsa-devel@alsa-project.org,
         linux-media@vger.kernel.org
-Subject: Re: [v4l-utils PATCH 2/2] Add --with-static-binaries option to link
- binaries statically
-Message-ID: <20160926150253.558e0693@vento.lan>
-In-Reply-To: <efd3b769-3079-c164-e948-d9ce8b1d6e10@googlemail.com>
-References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1474291350-15655-1-git-send-email-sakari.ailus@linux.intel.com>
-        <20160919112150.4c3eef98@vento.lan>
-        <efd3b769-3079-c164-e948-d9ce8b1d6e10@googlemail.com>
+From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Message-ID: <f8ef81e9-37a9-505e-ed66-2df9ae8070e8@sakamocchi.jp>
+Date: Sat, 10 Sep 2016 16:25:31 +0900
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <s5hr38s9ru2.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 26 Sep 2016 19:41:39 +0200
-Gregor Jasny <gjasny@googlemail.com> escreveu:
-
-> On 19/09/2016 16:21, Mauro Carvalho Chehab wrote:
-> > Em Mon, 19 Sep 2016 16:22:30 +0300
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >   
-> >> Add a new variable STATIC_LDFLAGS to add the linker flags required for
-> >> static linking for each binary built.
-> >>
-> >> Static and dynamic libraries are built by default but the binaries are
-> >> otherwise linked dynamically. --with-static-binaries requires that static
-> >> libraries are built.
-> >>  
-> > Instead of adding STATIC_LDFLAGS to all LDFLAGS, wouldn't be better to
-> > add the flags to LDFLAGS on configure.ac?  
+On Sep 10 2016 15:44, Takashi Iwai wrote:
+> On Sat, 10 Sep 2016 06:50:14 +0200,
+> Takashi Sakamoto wrote:
+>>
+>> Hi,
+>>
+>> Currently, TLV related protocol is not shared to user land. This is not
+>> good in a point of application interfaces, because application developers
+>> can't realize the protocol just to see UAPI headers.
+>>
+>> For this purpose, this patchset moves all of macros related to TLV to UAPI
+>> header. As a result, a header just for kernel land is obsoleted. When adding
+>> new items to the protocol, it's added to the UAPI header. This change affects
+>> some drivers in media subsystem.
+>>
+>> In my concern, this change can break applications. When these macros are
+>> already defined in application side and they includes tlv UAPI header
+>> directly, 'redefined' warning is generated at preprocess time. But the
+>> compilation will be success itself. If these two macros have different
+>> content, the result of preprocess is dominated to the order to define.
+>> However, the most applications are assumed to use TLV feature via libraries
+>> such as alsa-lib, thus I'm optimistic to this concern.
+>>
+>> As another my concern, the name of these macros are quite simple, as
+>> 'TLV_XXX'. It might be help application developers to rename them with a
+>> prefix, as 'SNDRV_CTL_TLV_XXX'. (But not yet. I'm a lazy guy.)
 > 
-> I don't really like adding all those build variants into the configure
-> script itself. It is already way too complex and adding another
-> dimension does not make it better.
-> 
-> Why is passing --disable-shared --enable-static LDLAGS="--static
-> -static" to configure not sufficient?
+> The second patch does simply wrong.  You must not obsolete
+> include/sound/tlv.h.  Even if it includes only uapi/*, it should be
+> still there.
 
-That sounds better than adding an extra STATIC_LDFLAGS option, but,
-IMHO, this sounds confusing, and it is not documented.
+Any reasons?
 
-The advantage of having an option is that the expected behavior
-can be documented in a way that the user will know what each option
-would be doing by calling ./configure --help. Yet, IMHO, the above
-parameters don't make clear about what type of output for executable
-files (static, dynamic, "partially" dynamic).
+> So, just move the stuff to include/uapi/sound/tlv.h, and that's all.
 
-We could (should?) also print, at the ./configure "summary" what
-kind of libraries will be generated and what kind of executables.
 
-Thanks,
-Mauro
+Regards
+
+Takashi Sakamoto
