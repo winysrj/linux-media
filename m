@@ -1,148 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58833 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750862AbcIUHEZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60094 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932306AbcIKNbi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Sep 2016 03:04:25 -0400
-Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
- framework
-To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
-        linux-media@vger.kernel.org
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
- <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
- <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
-Date: Wed, 21 Sep 2016 09:04:19 +0200
-MIME-Version: 1.0
-In-Reply-To: <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Sun, 11 Sep 2016 09:31:38 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: hans.verkuil@cisco.com, brking@us.ibm.com,
+        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
+        alex.williamson@redhat.com
+Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/6] arcmsr: use pci_alloc_irq_vectors
+Date: Sun, 11 Sep 2016 15:31:23 +0200
+Message-Id: <1473600688-24043-2-git-send-email-hch@lst.de>
+In-Reply-To: <1473600688-24043-1-git-send-email-hch@lst.de>
+References: <1473600688-24043-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/18/2016 07:53 AM, Wu, Songjun wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On 8/17/2016 14:29, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> This patch converts the atmel-isi driver from a soc-camera driver to a driver
->> that is stand-alone.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/platform/soc_camera/Kconfig     |    3 +-
->>  drivers/media/platform/soc_camera/atmel-isi.c | 1216 +++++++++++++++----------
->>  2 files changed, 721 insertions(+), 498 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
->> index 39f6641..f74e358 100644
->> --- a/drivers/media/platform/soc_camera/Kconfig
->> +++ b/drivers/media/platform/soc_camera/Kconfig
->> @@ -54,9 +54,8 @@ config VIDEO_SH_MOBILE_CEU
->>
->>  config VIDEO_ATMEL_ISI
->>  	tristate "ATMEL Image Sensor Interface (ISI) support"
->> -	depends on VIDEO_DEV && SOC_CAMERA
->> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
->>  	depends on ARCH_AT91 || COMPILE_TEST
->> -	depends on HAS_DMA
->>  	select VIDEOBUF2_DMA_CONTIG
->>  	---help---
->>  	  This module makes the ATMEL Image Sensor Interface available
->> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
->> index 30211f6..9947acb 100644
->> --- a/drivers/media/platform/soc_camera/atmel-isi.c
->> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+Switch the arcmsr driver to use pci_alloc_irq_vectors.  We need to two
+calls to pci_alloc_irq_vectors as arcmsr only supports multiple MSI-X
+vectors, but not multiple MSI vectors.
 
+Otherwise this cleans up a lot of cruft and allows to use a common
+request_irq loop for irq types, which happens to only iterate over a
+single line in the non MSI-X case.
 
->> +
->>  static int atmel_isi_probe(struct platform_device *pdev)
->>  {
->>  	int irq;
->>  	struct atmel_isi *isi;
->> +	struct vb2_queue *q;
->>  	struct resource *regs;
->>  	int ret, i;
->> -	struct soc_camera_host *soc_host;
->>
->>  	isi = devm_kzalloc(&pdev->dev, sizeof(struct atmel_isi), GFP_KERNEL);
->>  	if (!isi) {
->> @@ -1044,20 +1216,65 @@ static int atmel_isi_probe(struct platform_device *pdev)
->>  		return ret;
->>
->>  	isi->active = NULL;
->> -	spin_lock_init(&isi->lock);
->> +	isi->dev = &pdev->dev;
->> +	mutex_init(&isi->lock);
->> +	spin_lock_init(&isi->irqlock);
->>  	INIT_LIST_HEAD(&isi->video_buffer_list);
->>  	INIT_LIST_HEAD(&isi->dma_desc_head);
->>
->> +	q = &isi->queue;
->> +
->> +	/* Initialize the top-level structure */
->> +	ret = v4l2_device_register(&pdev->dev, &isi->v4l2_dev);
->> +	if (ret)
->> +		return ret;
->> +
->> +	isi->vdev = video_device_alloc();
->> +	if (isi->vdev == NULL) {
->> +		ret = -ENOMEM;
->> +		goto err_vdev_alloc;
->> +	}
-> If video device is unregistered, the ISI driver must be reloaded when 
-> registering a new video device.
-> So '*vdev' can be replaced by 'vdev', or move the code above to 
-> isi_graph_notify_complete.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/scsi/arcmsr/arcmsr.h     |  5 +--
+ drivers/scsi/arcmsr/arcmsr_hba.c | 82 ++++++++++++++++------------------------
+ 2 files changed, 33 insertions(+), 54 deletions(-)
 
-I'm afraid I don't understand what you mean. Can you clarify?
+diff --git a/drivers/scsi/arcmsr/arcmsr.h b/drivers/scsi/arcmsr/arcmsr.h
+index cf99f8c..a254b32 100644
+--- a/drivers/scsi/arcmsr/arcmsr.h
++++ b/drivers/scsi/arcmsr/arcmsr.h
+@@ -629,7 +629,6 @@ struct AdapterControlBlock
+ 	struct pci_dev *		pdev;
+ 	struct Scsi_Host *		host;
+ 	unsigned long			vir2phy_offset;
+-	struct msix_entry	entries[ARCMST_NUM_MSIX_VECTORS];
+ 	/* Offset is used in making arc cdb physical to virtual calculations */
+ 	uint32_t			outbound_int_enable;
+ 	uint32_t			cdb_phyaddr_hi32;
+@@ -671,8 +670,6 @@ struct AdapterControlBlock
+ 	/* iop init */
+ 	#define ACB_F_ABORT				0x0200
+ 	#define ACB_F_FIRMWARE_TRAP           		0x0400
+-	#define ACB_F_MSI_ENABLED		0x1000
+-	#define ACB_F_MSIX_ENABLED		0x2000
+ 	struct CommandControlBlock *			pccb_pool[ARCMSR_MAX_FREECCB_NUM];
+ 	/* used for memory free */
+ 	struct list_head		ccb_free_list;
+@@ -725,7 +722,7 @@ struct AdapterControlBlock
+ 	atomic_t 			rq_map_token;
+ 	atomic_t			ante_token_value;
+ 	uint32_t	maxOutstanding;
+-	int		msix_vector_count;
++	int		vector_count;
+ };/* HW_DEVICE_EXTENSION */
+ /*
+ *******************************************************************************
+diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
+index 7640498..a267327 100644
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c
++++ b/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -720,51 +720,39 @@ static void arcmsr_message_isr_bh_fn(struct work_struct *work)
+ static int
+ arcmsr_request_irq(struct pci_dev *pdev, struct AdapterControlBlock *acb)
+ {
+-	int	i, j, r;
+-	struct msix_entry entries[ARCMST_NUM_MSIX_VECTORS];
+-
+-	for (i = 0; i < ARCMST_NUM_MSIX_VECTORS; i++)
+-		entries[i].entry = i;
+-	r = pci_enable_msix_range(pdev, entries, 1, ARCMST_NUM_MSIX_VECTORS);
+-	if (r < 0)
+-		goto msi_int;
+-	acb->msix_vector_count = r;
+-	for (i = 0; i < r; i++) {
+-		if (request_irq(entries[i].vector,
+-			arcmsr_do_interrupt, 0, "arcmsr", acb)) {
++	unsigned long flags;
++	int nvec, i;
++
++	nvec = pci_alloc_irq_vectors(pdev, 1, ARCMST_NUM_MSIX_VECTORS,
++			PCI_IRQ_MSIX);
++	if (nvec > 0) {
++		pr_info("arcmsr%d: msi-x enabled\n", acb->host->host_no);
++		flags = 0;
++	} else {
++		nvec = pci_alloc_irq_vectors(pdev, 1, 1,
++				PCI_IRQ_MSI | PCI_IRQ_LEGACY);
++		if (nvec < 1)
++			return FAILED;
++
++		flags = IRQF_SHARED;
++	}
++
++	acb->vector_count = nvec;
++	for (i = 0; i < nvec; i++) {
++		if (request_irq(pci_irq_vector(pdev, i), arcmsr_do_interrupt,
++				flags, "arcmsr", acb)) {
+ 			pr_warn("arcmsr%d: request_irq =%d failed!\n",
+-				acb->host->host_no, entries[i].vector);
+-			for (j = 0 ; j < i ; j++)
+-				free_irq(entries[j].vector, acb);
+-			pci_disable_msix(pdev);
+-			goto msi_int;
++				acb->host->host_no, pci_irq_vector(pdev, i));
++			goto out_free_irq;
+ 		}
+-		acb->entries[i] = entries[i];
+-	}
+-	acb->acb_flags |= ACB_F_MSIX_ENABLED;
+-	pr_info("arcmsr%d: msi-x enabled\n", acb->host->host_no);
+-	return SUCCESS;
+-msi_int:
+-	if (pci_enable_msi_exact(pdev, 1) < 0)
+-		goto legacy_int;
+-	if (request_irq(pdev->irq, arcmsr_do_interrupt,
+-		IRQF_SHARED, "arcmsr", acb)) {
+-		pr_warn("arcmsr%d: request_irq =%d failed!\n",
+-			acb->host->host_no, pdev->irq);
+-		pci_disable_msi(pdev);
+-		goto legacy_int;
+-	}
+-	acb->acb_flags |= ACB_F_MSI_ENABLED;
+-	pr_info("arcmsr%d: msi enabled\n", acb->host->host_no);
+-	return SUCCESS;
+-legacy_int:
+-	if (request_irq(pdev->irq, arcmsr_do_interrupt,
+-		IRQF_SHARED, "arcmsr", acb)) {
+-		pr_warn("arcmsr%d: request_irq = %d failed!\n",
+-			acb->host->host_no, pdev->irq);
+-		return FAILED;
+ 	}
++
+ 	return SUCCESS;
++out_free_irq:
++	while (--i >= 0)
++		free_irq(pci_irq_vector(pdev, i), acb);
++	pci_free_irq_vectors(pdev);
++	return FAILED;
+ }
+ 
+ static int arcmsr_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+@@ -886,15 +874,9 @@ static void arcmsr_free_irq(struct pci_dev *pdev,
+ {
+ 	int i;
+ 
+-	if (acb->acb_flags & ACB_F_MSI_ENABLED) {
+-		free_irq(pdev->irq, acb);
+-		pci_disable_msi(pdev);
+-	} else if (acb->acb_flags & ACB_F_MSIX_ENABLED) {
+-		for (i = 0; i < acb->msix_vector_count; i++)
+-			free_irq(acb->entries[i].vector, acb);
+-		pci_disable_msix(pdev);
+-	} else
+-		free_irq(pdev->irq, acb);
++	for (i = 0; i < acb->vector_count; i++)
++		free_irq(pci_irq_vector(pdev, i), acb);
++	pci_free_irq_vectors(pdev);
+ }
+ 
+ static int arcmsr_suspend(struct pci_dev *pdev, pm_message_t state)
+-- 
+2.1.4
 
-Regards,
-
-	Hans
-
-> 
->> +
->> +	/* video node */
->> +	isi->vdev->fops = &isi_fops;
->> +	isi->vdev->v4l2_dev = &isi->v4l2_dev;
->> +	isi->vdev->queue = &isi->queue;
->> +	strlcpy(isi->vdev->name, KBUILD_MODNAME, sizeof(isi->vdev->name));
->> +	isi->vdev->release = video_device_release;
->> +	isi->vdev->ioctl_ops = &isi_ioctl_ops;
->> +	isi->vdev->lock = &isi->lock;
->> +	isi->vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->> +		V4L2_CAP_READWRITE;
->> +	video_set_drvdata(isi->vdev, isi);
->> +
->> +	/* buffer queue */
->> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->> +	q->io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF;
->> +	q->lock = &isi->lock;
->> +	q->drv_priv = isi;
->> +	q->buf_struct_size = sizeof(struct frame_buffer);
->> +	q->ops = &isi_video_qops;
->> +	q->mem_ops = &vb2_dma_contig_memops;
->> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->> +	q->min_buffers_needed = 2;
->> +	q->dev = &pdev->dev;
->> +
->> +	ret = vb2_queue_init(q);
->> +	if (ret < 0) {
->> +		dev_err(&pdev->dev, "failed to initialize VB2 queue\n");
->> +		goto err_vb2_queue;
->> +	}
-> 
-> Regards,
-> 	Songjun Wu
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
