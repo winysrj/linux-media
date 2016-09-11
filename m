@@ -1,49 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:44473 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934293AbcIEUTi (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:25115 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755542AbcIKN0W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 16:19:38 -0400
-Date: Mon, 5 Sep 2016 23:19:35 +0300
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Oliver Collyer <ovcollyer@mac.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: uvcvideo error on second capture from USB device, leading to
- V4L2_BUF_FLAG_ERROR
-Message-ID: <20160905201935.wpgtrtt7e4bjjylo@zver>
-References: <C29C248E-5D7A-4E69-A88D-7B971D42E984@mac.com>
- <20160904192538.75czuv7c2imru6ds@zver>
- <AE433005-988F-4352-8CF3-30690C82CAA6@mac.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AE433005-988F-4352-8CF3-30690C82CAA6@mac.com>
+        Sun, 11 Sep 2016 09:26:22 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: linux-renesas-soc@vger.kernel.org
+Cc: joe@perches.com, kernel-janitors@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-can@vger.kernel.org,
+        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Chien Tin Tung <chien.tin.tung@intel.com>,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
+        linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: [PATCH 00/26] constify local structures
+Date: Sun, 11 Sep 2016 15:05:42 +0200
+Message-Id: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 05, 2016 at 10:43:49PM +0300, Oliver Collyer wrote:
-> I do not have any knowledge of uvcvideo and the associated classes apart from the studying I’ve done the past day or two, but it seems likely that error -71 and the later setting of V4L2_BUF_FLAG_ERROR are linked. Also, the fact it only happens in captures after the first one suggests something isn’t being cleared down or released properly in uvcvideo/v4l2-core at the end of the first capture.
-> 
-> Let me know what I need to do next to further narrow it down.
+Constify local structures.
 
-Have tried to reproduce this (with kernel 4.6.0 and fresh build of
-ffmpeg) with uvcvideo-driven laptop webcam, and it doesn't happen to me.
-Also -EPROTO in uvcvideo comes from low-level USB stuff, see
-drivers/media/usb/uvc/uvc_status.c:127:
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-	case -EPROTO:		/* Device is disconnected (reported by some
-				 * host controller). */
+// <smpl>
+// The first rule ignores some cases that posed problems
+@r disable optional_qualifier@
+identifier s != {peri_clk_data,threshold_attr,tracer_flags,tracer};
+identifier i != {s5k5baf_cis_rect,smtcfb_fix};
+position p;
+@@
+static struct s i@p = { ... };
 
-So it seems like hardware misbehaves. To further clairify situation, I
-have such question: do the devices work in other operation systems on
-the same machine?
+@lstruct@
+identifier r.s;
+@@
+struct s { ... };
 
-Reviewing your original email mentioning that two different devices
-reproduce same problem, which is apparently related to disconnection in
-the middle of USB communication, I came to me that the connected device
-may be underpowered. So,
- - try plugging your devices through reliable _active_ USB hub,
- - use the most reliable cables you can get,
- - plug into USB 3.0 port if available - it should provide more power
-   than 1.0 and 2.0.
+@used depends on lstruct@
+identifier r.i;
+@@
+i
+
+@bad1@
+expression e;
+identifier r.i;
+assignment operator a;
+@@
+ (<+...i...+>) a e
+
+@bad2@
+identifier r.i;
+@@
+ &(<+...i...+>)
+
+@bad3@
+identifier r.i;
+declarer d;
+@@
+ d(...,<+...i...+>,...);
+
+@bad4@
+identifier r.i;
+type T;
+T[] e;
+identifier f;
+position p;
+@@
+
+f@p(...,
+(
+  (<+...i...+>)
+&
+  e
+)
+,...)
+
+@bad4a@
+identifier r.i;
+type T;
+T *e;
+identifier f;
+position p;
+@@
+
+f@p(...,
+(
+  (<+...i...+>)
+&
+  e
+)
+,...)
+
+@ok5@
+expression *e;
+identifier r.i;
+position p;
+@@
+e =@p i
+
+@bad5@
+expression *e;
+identifier r.i;
+position p != ok5.p;
+@@
+e =@p (<+...i...+>)
+
+@rr depends on used && !bad1 && !bad2 && !bad3 && !bad4 && !bad4a && !bad5@
+identifier s,r.i;
+position r.p;
+@@
+
+static
++const
+ struct s i@p = { ... };
+
+@depends on used && !bad1 && !bad2 && !bad3 && !bad4 && !bad4a && !bad5
+ disable optional_qualifier@
+identifier rr.s,r.i;
+@@
+
+static
++const
+ struct s i;
+// </smpl>
+
+---
+
+ drivers/acpi/acpi_apd.c                              |    8 +++---
+ drivers/char/tpm/tpm-interface.c                     |   10 ++++----
+ drivers/char/tpm/tpm-sysfs.c                         |    2 -
+ drivers/cpufreq/intel_pstate.c                       |    8 +++---
+ drivers/infiniband/hw/i40iw/i40iw_uk.c               |    6 ++---
+ drivers/media/i2c/tvp514x.c                          |    2 -
+ drivers/media/pci/ddbridge/ddbridge-core.c           |   18 +++++++--------
+ drivers/media/pci/ngene/ngene-cards.c                |   14 ++++++------
+ drivers/media/pci/smipcie/smipcie-main.c             |    8 +++---
+ drivers/misc/sgi-xp/xpc_uv.c                         |    2 -
+ drivers/net/arcnet/com20020-pci.c                    |   10 ++++----
+ drivers/net/can/c_can/c_can_pci.c                    |    4 +--
+ drivers/net/can/sja1000/plx_pci.c                    |   20 ++++++++---------
+ drivers/net/ethernet/mellanox/mlx4/main.c            |    4 +--
+ drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c |    2 -
+ drivers/net/ethernet/renesas/sh_eth.c                |   14 ++++++------
+ drivers/net/ethernet/stmicro/stmmac/stmmac_pci.c     |    2 -
+ drivers/net/wireless/ath/dfs_pattern_detector.c      |    2 -
+ drivers/net/wireless/intel/iwlegacy/3945.c           |    4 +--
+ drivers/net/wireless/realtek/rtlwifi/rtl8188ee/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8192ce/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8192de/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8192ee/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8192se/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8723ae/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8723be/sw.c  |    2 -
+ drivers/net/wireless/realtek/rtlwifi/rtl8821ae/sw.c  |    2 -
+ drivers/platform/chrome/chromeos_laptop.c            |   22 +++++++++----------
+ drivers/platform/x86/intel_scu_ipc.c                 |    6 ++---
+ drivers/platform/x86/intel_telemetry_debugfs.c       |    2 -
+ drivers/scsi/esas2r/esas2r_flash.c                   |    2 -
+ drivers/scsi/hptiop.c                                |    6 ++---
+ drivers/spi/spi-dw-pci.c                             |    4 +--
+ drivers/staging/rtl8192e/rtl8192e/rtl_core.c         |    2 -
+ drivers/usb/misc/ezusb.c                             |    2 -
+ drivers/video/fbdev/matrox/matroxfb_g450.c           |    2 -
+ lib/crc64_ecma.c                                     |    2 -
+ sound/pci/ctxfi/ctatc.c                              |    2 -
+ sound/pci/hda/patch_ca0132.c                         |   10 ++++----
+ sound/pci/riptide/riptide.c                          |    2 -
+ 40 files changed, 110 insertions(+), 110 deletions(-)
