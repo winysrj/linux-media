@@ -1,61 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:48907 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751795AbcI2Sph (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:60123 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932582AbcIKNbr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Sep 2016 14:45:37 -0400
-Received: from pps.filterd (m0098413.ppops.net [127.0.0.1])
-        by mx0b-001b2d01.pphosted.com (8.16.0.17/8.16.0.17) with SMTP id u8TIhF2I137535
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2016 14:45:37 -0400
-Received: from e24smtp01.br.ibm.com (e24smtp01.br.ibm.com [32.104.18.85])
-        by mx0b-001b2d01.pphosted.com with ESMTP id 25s34v7vvh-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2016 14:45:36 -0400
-Received: from localhost
-        by e24smtp01.br.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <krisman@linux.vnet.ibm.com>;
-        Thu, 29 Sep 2016 15:45:34 -0300
-From: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: hans.verkuil@cisco.com, brking@us.ibm.com,
+        Sun, 11 Sep 2016 09:31:47 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: hans.verkuil@cisco.com, brking@us.ibm.com,
         haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com, kvm@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/6] genwqe: use pci_irq_allocate_vectors
+        alex.williamson@redhat.com
+Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 5/6] genwqe: use pci_irq_allocate_vectors
+Date: Sun, 11 Sep 2016 15:31:27 +0200
+Message-Id: <1473600688-24043-6-git-send-email-hch@lst.de>
+In-Reply-To: <1473600688-24043-1-git-send-email-hch@lst.de>
 References: <1473600688-24043-1-git-send-email-hch@lst.de>
-        <1473600688-24043-6-git-send-email-hch@lst.de>
-        <87twcyk1cd.fsf@linux.vnet.ibm.com> <20160929183757.GA4106@lst.de>
-Date: Thu, 29 Sep 2016 15:45:29 -0300
-In-Reply-To: <20160929183757.GA4106@lst.de> (Christoph Hellwig's message of
-        "Thu, 29 Sep 2016 20:37:57 +0200")
-MIME-Version: 1.0
-Content-Type: text/plain
-Message-Id: <87lgyak0ja.fsf@linux.vnet.ibm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christoph Hellwig <hch@lst.de> writes:
+Simply the interrupt setup by using the new PCI layer helpers.
 
-> On Thu, Sep 29, 2016 at 03:28:02PM -0300, Gabriel Krisman Bertazi wrote:
->> Christoph Hellwig <hch@lst.de> writes:
->> 
->> > Simply the interrupt setup by using the new PCI layer helpers.
->> 
->> Good clean up.  Tested and:
->> 
->> Acked-by: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
->
-> Which tree should this go in through?
+One odd thing about this driver is that it looks like it could request
+multiple MSI vectors, but it will then only ever use a single one.
 
-I'd say Greg's char-misc tree.
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ drivers/misc/genwqe/card_base.h  |  1 -
+ drivers/misc/genwqe/card_utils.c | 12 ++----------
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-I'm stepping up to assist with the genwqe_card driver just now, since we
-(ibm) missed some of the last patches that went in.  I'll add myself to
-maintainers file.
-
-
+diff --git a/drivers/misc/genwqe/card_base.h b/drivers/misc/genwqe/card_base.h
+index cb851c1..5813b5f 100644
+--- a/drivers/misc/genwqe/card_base.h
++++ b/drivers/misc/genwqe/card_base.h
+@@ -41,7 +41,6 @@
+ #include "genwqe_driver.h"
+ 
+ #define GENWQE_MSI_IRQS			4  /* Just one supported, no MSIx */
+-#define GENWQE_FLAG_MSI_ENABLED		(1 << 0)
+ 
+ #define GENWQE_MAX_VFS			15 /* maximum 15 VFs are possible */
+ #define GENWQE_MAX_FUNCS		16 /* 1 PF and 15 VFs */
+diff --git a/drivers/misc/genwqe/card_utils.c b/drivers/misc/genwqe/card_utils.c
+index 222367c..da424c2 100644
+--- a/drivers/misc/genwqe/card_utils.c
++++ b/drivers/misc/genwqe/card_utils.c
+@@ -730,13 +730,10 @@ int genwqe_read_softreset(struct genwqe_dev *cd)
+ int genwqe_set_interrupt_capability(struct genwqe_dev *cd, int count)
+ {
+ 	int rc;
+-	struct pci_dev *pci_dev = cd->pci_dev;
+ 
+-	rc = pci_enable_msi_range(pci_dev, 1, count);
++	rc = pci_alloc_irq_vectors(cd->pci_dev, 1, count, PCI_IRQ_MSI);
+ 	if (rc < 0)
+ 		return rc;
+-
+-	cd->flags |= GENWQE_FLAG_MSI_ENABLED;
+ 	return 0;
+ }
+ 
+@@ -746,12 +743,7 @@ int genwqe_set_interrupt_capability(struct genwqe_dev *cd, int count)
+  */
+ void genwqe_reset_interrupt_capability(struct genwqe_dev *cd)
+ {
+-	struct pci_dev *pci_dev = cd->pci_dev;
+-
+-	if (cd->flags & GENWQE_FLAG_MSI_ENABLED) {
+-		pci_disable_msi(pci_dev);
+-		cd->flags &= ~GENWQE_FLAG_MSI_ENABLED;
+-	}
++	pci_free_irq_vectors(cd->pci_dev);
+ }
+ 
+ /**
 -- 
-Gabriel Krisman Bertazi
+2.1.4
 
