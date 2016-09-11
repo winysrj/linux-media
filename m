@@ -1,121 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:44178 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941753AbcIHME0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 08/47] [media] demux.h: Fix a few documentation issues
-Date: Thu,  8 Sep 2016 09:03:30 -0300
-Message-Id: <8295a9d926bb3fe701426e1478538240bd49f725.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from smtp-proxy002.phy.lolipop.jp ([157.7.104.43]:54505 "EHLO
+        smtp-proxy002.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753461AbcIKDGp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Sep 2016 23:06:45 -0400
+Subject: Re: [RFC][PATCH 0/2] ALSA: control: export all of TLV related macros
+ to user land
+To: Takashi Iwai <tiwai@suse.de>
+References: <1473483016-10529-1-git-send-email-o-takashi@sakamocchi.jp>
+ <s5hr38s9ru2.wl-tiwai@suse.de>
+ <f8ef81e9-37a9-505e-ed66-2df9ae8070e8@sakamocchi.jp>
+ <s5hmvjfan34.wl-tiwai@suse.de>
+Cc: clemens@ladisch.de, alsa-devel@alsa-project.org,
+        linux-media@vger.kernel.org
+From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
+Message-ID: <4bb2e266-61d5-29c0-65a0-c53ca0af3a69@sakamocchi.jp>
+Date: Sun, 11 Sep 2016 12:06:41 +0900
+MIME-Version: 1.0
+In-Reply-To: <s5hmvjfan34.wl-tiwai@suse.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-demux.h was lacking documentation for the DMX_FE_ENTRY macro:
-	./drivers/media/dvb-core/demux.h:511: WARNING: c:func reference target not found: DMX_FE_ENTRY
+On Sep 10 2016 22:41, Takashi Iwai wrote:
+> On Sat, 10 Sep 2016 09:25:31 +0200,
+> Takashi Sakamoto wrote:
+>>
+>> On Sep 10 2016 15:44, Takashi Iwai wrote:
+>>> On Sat, 10 Sep 2016 06:50:14 +0200,
+>>> Takashi Sakamoto wrote:
+>>>>
+>>>> Hi,
+>>>>
+>>>> Currently, TLV related protocol is not shared to user land. This is not
+>>>> good in a point of application interfaces, because application developers
+>>>> can't realize the protocol just to see UAPI headers.
+>>>>
+>>>> For this purpose, this patchset moves all of macros related to TLV to UAPI
+>>>> header. As a result, a header just for kernel land is obsoleted. When adding
+>>>> new items to the protocol, it's added to the UAPI header. This change affects
+>>>> some drivers in media subsystem.
+>>>>
+>>>> In my concern, this change can break applications. When these macros are
+>>>> already defined in application side and they includes tlv UAPI header
+>>>> directly, 'redefined' warning is generated at preprocess time. But the
+>>>> compilation will be success itself. If these two macros have different
+>>>> content, the result of preprocess is dominated to the order to define.
+>>>> However, the most applications are assumed to use TLV feature via libraries
+>>>> such as alsa-lib, thus I'm optimistic to this concern.
+>>>>
+>>>> As another my concern, the name of these macros are quite simple, as
+>>>> 'TLV_XXX'. It might be help application developers to rename them with a
+>>>> prefix, as 'SNDRV_CTL_TLV_XXX'. (But not yet. I'm a lazy guy.)
+>>>
+>>> The second patch does simply wrong.  You must not obsolete
+>>> include/sound/tlv.h.  Even if it includes only uapi/*, it should be
+>>> still there.
+>>
+>> Any reasons?
+> 
+> The concept and the design.
+> 
+> Don't need to change the root inclusion, it's just to provide cleaner
+> uapi header files, and not meant to be included directly -- it was the
+> basic idea when uapi split was introduced.
 
-While here, get rid of unused parameters and fix a few minor issues
-at the header file.
+OK. I can see what you indicated in this post for UAPI idea[0]. I'm
+ready to drop the second patch.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/demux.h | 36 ++++++++++++++++--------------------
- 1 file changed, 16 insertions(+), 20 deletions(-)
+Well, how do you think about my concern of macro prefix? For example, we
+can apply below step:
 
-diff --git a/drivers/media/dvb-core/demux.h b/drivers/media/dvb-core/demux.h
-index 4b4c1da20f4b..0d9c53518be2 100644
---- a/drivers/media/dvb-core/demux.h
-+++ b/drivers/media/dvb-core/demux.h
-@@ -202,7 +202,7 @@ struct dmx_section_feed {
-  *
-  * This function callback prototype, provided by the client of the demux API,
-  * is called from the demux code. The function is only called when filtering
-- * on ae TS feed has been enabled using the start_filtering() function at
-+ * on a TS feed has been enabled using the start_filtering\(\) function at
-  * the &dmx_demux.
-  * Any TS packets that match the filter settings are copied to a circular
-  * buffer. The filtered TS packets are delivered to the client using this
-@@ -243,8 +243,10 @@ struct dmx_section_feed {
-  * will also be sent to the hardware MPEG decoder.
-  *
-  * Return:
-- * 	0, on success;
-- * 	-EOVERFLOW, on buffer overflow.
-+ *
-+ * - 0, on success;
-+ *
-+ * - -EOVERFLOW, on buffer overflow.
-  */
- typedef int (*dmx_ts_cb)(const u8 *buffer1,
- 			 size_t buffer1_length,
-@@ -293,9 +295,9 @@ typedef int (*dmx_section_cb)(const u8 *buffer1,
- 			      size_t buffer2_len,
- 			      struct dmx_section_filter *source);
- 
--/*--------------------------------------------------------------------------*/
--/* DVB Front-End */
--/*--------------------------------------------------------------------------*/
-+/*
-+ * DVB Front-End
-+ */
- 
- /**
-  * enum dmx_frontend_source - Used to identify the type of frontend
-@@ -349,15 +351,15 @@ enum dmx_demux_caps {
- 
- /*
-  * Demux resource type identifier.
--*/
--
--/*
-- * DMX_FE_ENTRY(): Casts elements in the list of registered
-- * front-ends from the generic type struct list_head
-- * to the type * struct dmx_frontend
-- *.
--*/
-+ */
- 
-+/**
-+ * DMX_FE_ENTRY - Casts elements in the list of registered
-+ *		  front-ends from the generic type struct list_head
-+ *		  to the type * struct dmx_frontend
-+ *
-+ * @list: list of struct dmx_frontend
-+ */
- #define DMX_FE_ENTRY(list) \
- 	list_entry(list, struct dmx_frontend, connectivity_list)
- 
-@@ -551,7 +553,6 @@ enum dmx_demux_caps {
-  *	0 on success;
-  *	-EINVAL on bad parameter.
-  */
--
- struct dmx_demux {
- 	enum dmx_demux_caps capabilities;
- 	struct dmx_frontend *frontend;
-@@ -581,11 +582,6 @@ struct dmx_demux {
- 
- 	int (*get_pes_pids)(struct dmx_demux *demux, u16 *pids);
- 
--	/* private: Not used upstream and never documented */
--#if 0
--	int (*get_caps)(struct dmx_demux *demux, struct dmx_caps *caps);
--	int (*set_source)(struct dmx_demux *demux, const dmx_source_t *src);
--#endif
- 	/*
- 	 * private: Only used at av7110, to read some data from firmware.
- 	 *	As this was never documented, we have no clue about what's
--- 
-2.7.4
+Put substantial macros with renaming to 'include/uapi.sound/tlv.h':
+#define SNDRV_CTL_TLV_DATA_LENGTH(...) \
+       ((unsigned int)sizeof((const unsigned int[]) { __VA_ARGS__ }))
+
+Then, put alias macros to 'include/sound/tlv.h':
+#include <uapi/sound/tlv.h>
+#define TLV_LENGTH SNDRV_CTL_TLV_DATA_LENGTH
+...
+
+Finally, applications can expand these macro with apparent names with
+prefix of 'SNDRV_CTL_TLV_DATA_XXX'. I think the prefix prevent
+application codes from name conflict by including 'uapi/sound/tlv.h'.
 
 
+Thanks
+
+[0] [PATCH 00/13] UAPI header file split
+https://lkml.org/lkml/2012/7/20/406
+
+
+Takashi Sakamoto
