@@ -1,59 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44192 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751414AbcISGxW (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47983 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752480AbcIKDUS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 02:53:22 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 9EDF760093
-        for <linux-media@vger.kernel.org>; Mon, 19 Sep 2016 09:53:16 +0300 (EEST)
-Date: Mon, 19 Sep 2016 09:53:15 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+        Sat, 10 Sep 2016 23:20:18 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 2A76A1800F1
+        for <linux-media@vger.kernel.org>; Sun, 11 Sep 2016 05:20:12 +0200 (CEST)
+Date: Sun, 11 Sep 2016 05:20:12 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 FOR v4.10] Media IOCTL handling rework
-Message-ID: <20160919065315.GI5086@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160911032012.2A76A1800F1@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-These four patches rework Media controller IOCTL handling for cleanups and      
-preparation for variable sized IOCTL arguments.                                 
-                                                                                
-What's changed since the previous set is that the compat handling is kept
-as-is, i.e. it simply calls the regular handler if the IOCTL is something
-else than MEDIA_IOC_ENUM_LINKS32.
+Results of the daily build of media_tree:
 
-Please pull.
+date:		Sun Sep 11 04:00:14 CEST 2016
+git branch:	test
+git hash:	8a5a2ba86ab8fc12267fea974b9cd730ad2dee24
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: ERRORS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: ERRORS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: WARNINGS
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for arm-pxa
+smatch: WARNINGS
 
-The following changes since commit c3b809834db8b1a8891c7ff873a216eac119628d:
+Detailed results are available here:
 
-  [media] pulse8-cec: fix compiler warning (2016-09-12 06:42:44 -0300)
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-are available in the git repository at:
+Full logs are available here:
 
-  ssh://linuxtv.org/git/sailus/media_tree.git media-ioctl-rework
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-for you to fetch changes up to 267abb2f81a2457d0552eb1b3d988407f3f5eabc:
+The Media Infrastructure API from this daily build is here:
 
-  media: Add flags to tell whether to take graph mutex for an IOCTL (2016-09-16 12:36:08 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (4):
-      media: Determine early whether an IOCTL is supported
-      media: Unify IOCTL handler calling
-      media: Refactor copying IOCTL arguments from and to user space
-      media: Add flags to tell whether to take graph mutex for an IOCTL
-
- drivers/media/media-device.c | 224 +++++++++++++++++++++----------------------
- 1 file changed, 111 insertions(+), 113 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://www.xs4all.nl/~hverkuil/spec/index.html
