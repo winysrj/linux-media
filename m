@@ -1,151 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54222
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932674AbcI0QER (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:39084 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756127AbcIKN00 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Sep 2016 12:04:17 -0400
-Date: Tue, 27 Sep 2016 13:04:07 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, gjasny@googlemail.com
-Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
- v4l2-ctl
-Message-ID: <20160927130407.501e8552@vento.lan>
-In-Reply-To: <20160926214051.GB3225@valkosipuli.retiisi.org.uk>
-References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
-        <20160919082226.43cd1bc9@vento.lan>
-        <57DFE65A.5040607@linux.intel.com>
-        <20160919111912.6e7ceac6@vento.lan>
-        <20160926154640.GA3225@valkosipuli.retiisi.org.uk>
-        <20160926135945.351384ca@vento.lan>
-        <20160926214051.GB3225@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sun, 11 Sep 2016 09:26:26 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: joe@perches.com, kernel-janitors@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 13/26] [media]: constify local structures
+Date: Sun, 11 Sep 2016 15:05:55 +0200
+Message-Id: <1473599168-30561-14-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 27 Sep 2016 00:40:51 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+For structure types defined in the same file or local header files, find
+top-level static structure declarations that have the following
+properties:
+1. Never reassigned.
+2. Address never taken
+3. Not passed to a top-level macro call
+4. No pointer or array-typed field passed to a function or stored in a
+variable.
+Declare structures having all of these properties as const.
 
-> Hi Mauro,
-> 
-> On Mon, Sep 26, 2016 at 01:59:45PM -0300, Mauro Carvalho Chehab wrote:
-> > Em Mon, 26 Sep 2016 18:46:40 +0300
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
-> > > On Mon, Sep 19, 2016 at 11:19:12AM -0300, Mauro Carvalho Chehab wrote:  
-> > > > Em Mon, 19 Sep 2016 16:21:30 +0300
-> > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > > >     
-> > > > > Hi Mauro,
-> > > > > 
-> > > > > On 09/19/16 14:22, Mauro Carvalho Chehab wrote:    
-> > > > > > Em Mon, 19 Sep 2016 13:50:25 +0300
-> > > > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > > > > >       
-> > > > > >> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
-> > > > > >> are found by the linker only if these libraries are specified after the
-> > > > > >> objects that depend on them.
-> > > > > >>
-> > > > > >> As LDFLAGS variable end up expanded on libtool command line before LDADD,
-> > > > > >> move the libraries to LDADD after local objects. -lpthread is added as on
-> > > > > >> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
-> > > > > >> for instance.
-> > > > > >>
-> > > > > >> After this patch, creating a static build using the command
-> > > > > >>
-> > > > > >> LDFLAGS="--static -static" ./configure --disable-shared --enable-static      
-> > > > > > 
-> > > > > > It sounds weird to use LDFLAGS="--static -static" here, as the
-> > > > > > configure options are already asking for static.
-> > > > > > 
-> > > > > > IMHO, the right way would be to change configure.ac to add those LDFLAGS
-> > > > > > when --disable-shared is used.      
-> > > > > 
-> > > > > That's one option, but then shared libraries won't be built at all.    
-> > > > 
-> > > > Well, my understanding is that  --disable-shared is meant to disable
-> > > > building the shared library build :)
-> > > >     
-> > > > > I'm
-> > > > > not sure what would be the use cases for that, though: static linking
-> > > > > isn't very commonly needed except when you need to run the binaries
-> > > > > elsewhere (for whatever reason) where you don't have the libraries you
-> > > > > linked against available.    
-> > > > 
-> > > > Yeah, that's the common usage. It is also interesting if someone
-> > > > wants to build 2 versions of the same utility, each using a
-> > > > different library, for testing purposes.
-> > > > 
-> > > > The usecase I can't see is to use --disable-shared but keeping
-> > > > using the dynamic library for the exec files.    
-> > > 
-> > > There are three primary options here,
-> > > 
-> > > 1. build an entirely static binary,
-> > > 2. build a binary that relies on dynamic libraries as well and
-> > > 3. build a binary that relies on dynamic libraries outside v4l-utils package
-> > >    but that links v4l-utils originating libraries statically.
-> > > 
-> > > If you say 3. is not needed then we could just use --disable-shared also to
-> > > tell that static binaries are to be built.
-> > > 
-> > > 3. is always used for libv4l2subdev and libmediactl as the libraries do not
-> > > have stable APIs.  
-> > 
-> > Sakari,
-> > 
-> > I can't see what you mean by scenario (2). I mean, if 
-> > --disable-shared is called, it *should not* use dynamic libraries
-> > for any library provided by v4l-utils, as the generated binaries will
-> > either:
-> > 
-> > a) don't work, because those libraries weren't built;
-> > b) will do the wrong thing, as they'll be dynamically linked
-> >    to an older version of the library.
-> > 
-> > So, there are only 3 possible scenarios, IMHO:
-> > 
-> > 1) dynamic libraries, dynamic execs
-> > 2) static v4l-utils libraries, static execs
-> > 3) static v4l-utils libraries, static links for v4l-utils libs, dyn for the rest.
-> > 
-> > In practice, I don't see any reason for keeping support for both (2)
-> > and (3), as all usecases for (3) can be covered by a fully static
-> > exec. It is also very confusing for one to understand that.
-> > For example, right now, we have those static/shared options:
-> > 
-> >   --enable-static[=PKGS]  build static libraries [default=yes]
-> >   --enable-shared[=PKGS]  build shared libraries [default=yes]
-> > 
-> > with, IMHO, sounds confusing, as those options don't seem to be
-> > orthogonal. I mean, what happens someone calls ./configure with:
-> > 
-> > 	./configure --disable-static --disable-shared  
-> 
-> That doesn't make much sense --- to disable the build for both static and
-> dynamic libraries.
+Done using Coccinelle.
+Based on a suggestion by Joe Perches <joe@perches.com>.
 
-Yes, but it is still a "valid" set of options, as configure won't 
-complain. Yet, this will cause build errors:
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-/usr/bin/ld: ../../lib/libdvbv5/.libs/libdvbv5.a(libdvbv5_la-dvb-dev-local.o): undefined reference to symbol 'pthread_cancel@@GLIBC_2.2.5'
-/usr/lib64/libpthread.so.0: error adding symbols: DSO missing from command line
-collect2: error: ld returned 1 exit status
+---
+The semantic patch seems too long for a commit log, but is in the cover
+letter.
 
-> What would you prefer? Link binaries statically iff shared libraries are not
-> built? I'd just like to get this fixed. Currently building static binaries
-> is simply broken.
+ drivers/media/i2c/tvp514x.c                |    2 +-
+ drivers/media/pci/ddbridge/ddbridge-core.c |   18 +++++++++---------
+ drivers/media/pci/ngene/ngene-cards.c      |   14 +++++++-------
+ drivers/media/pci/smipcie/smipcie-main.c   |    8 ++++----
+ 4 files changed, 21 insertions(+), 21 deletions(-)
 
-IMHO, if --disable-shared is issued, it should do static linking for
-all libraries.
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 7cdd948..43a9252 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -977,7 +977,7 @@ static const struct v4l2_subdev_ops tvp514x_ops = {
+ 	.pad = &tvp514x_pad_ops,
+ };
+ 
+-static struct tvp514x_decoder tvp514x_dev = {
++static const struct tvp514x_decoder tvp514x_dev = {
+ 	.streaming = 0,
+ 	.fmt_list = tvp514x_fmt_list,
+ 	.num_fmts = ARRAY_SIZE(tvp514x_fmt_list),
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 47def73..18e3a4d 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1643,53 +1643,53 @@ fail:
+ /******************************************************************************/
+ /******************************************************************************/
+ 
+-static struct ddb_info ddb_none = {
++static const struct ddb_info ddb_none = {
+ 	.type     = DDB_NONE,
+ 	.name     = "Digital Devices PCIe bridge",
+ };
+ 
+-static struct ddb_info ddb_octopus = {
++static const struct ddb_info ddb_octopus = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus DVB adapter",
+ 	.port_num = 4,
+ };
+ 
+-static struct ddb_info ddb_octopus_le = {
++static const struct ddb_info ddb_octopus_le = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus LE DVB adapter",
+ 	.port_num = 2,
+ };
+ 
+-static struct ddb_info ddb_octopus_mini = {
++static const struct ddb_info ddb_octopus_mini = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus Mini",
+ 	.port_num = 4,
+ };
+ 
+-static struct ddb_info ddb_v6 = {
++static const struct ddb_info ddb_v6 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine S2 V6 DVB adapter",
+ 	.port_num = 3,
+ };
+-static struct ddb_info ddb_v6_5 = {
++static const struct ddb_info ddb_v6_5 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Cine S2 V6.5 DVB adapter",
+ 	.port_num = 4,
+ };
+ 
+-static struct ddb_info ddb_dvbct = {
++static const struct ddb_info ddb_dvbct = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices DVBCT V6.1 DVB adapter",
+ 	.port_num = 3,
+ };
+ 
+-static struct ddb_info ddb_satixS2v3 = {
++static const struct ddb_info ddb_satixS2v3 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Mystique SaTiX-S2 V3 DVB adapter",
+ 	.port_num = 3,
+ };
+ 
+-static struct ddb_info ddb_octopusv3 = {
++static const struct ddb_info ddb_octopusv3 = {
+ 	.type     = DDB_OCTOPUS,
+ 	.name     = "Digital Devices Octopus V3 DVB adapter",
+ 	.port_num = 4,
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index 4e783a6..423e8c8 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -613,7 +613,7 @@ static struct stv6110x_config tuner_cineS2_1 = {
+ 	.clk_div = 1,
+ };
+ 
+-static struct ngene_info ngene_info_cineS2 = {
++static const struct ngene_info ngene_info_cineS2 = {
+ 	.type		= NGENE_SIDEWINDER,
+ 	.name		= "Linux4Media cineS2 DVB-S2 Twin Tuner",
+ 	.io_type	= {NGENE_IO_TSIN, NGENE_IO_TSIN},
+@@ -627,7 +627,7 @@ static struct ngene_info ngene_info_cineS2 = {
+ 	.msi_supported	= true,
+ };
+ 
+-static struct ngene_info ngene_info_satixS2 = {
++static const struct ngene_info ngene_info_satixS2 = {
+ 	.type		= NGENE_SIDEWINDER,
+ 	.name		= "Mystique SaTiX-S2 Dual",
+ 	.io_type	= {NGENE_IO_TSIN, NGENE_IO_TSIN},
+@@ -641,7 +641,7 @@ static struct ngene_info ngene_info_satixS2 = {
+ 	.msi_supported	= true,
+ };
+ 
+-static struct ngene_info ngene_info_satixS2v2 = {
++static const struct ngene_info ngene_info_satixS2v2 = {
+ 	.type		= NGENE_SIDEWINDER,
+ 	.name		= "Mystique SaTiX-S2 Dual (v2)",
+ 	.io_type	= {NGENE_IO_TSIN, NGENE_IO_TSIN, NGENE_IO_TSIN, NGENE_IO_TSIN,
+@@ -656,7 +656,7 @@ static struct ngene_info ngene_info_satixS2v2 = {
+ 	.msi_supported	= true,
+ };
+ 
+-static struct ngene_info ngene_info_cineS2v5 = {
++static const struct ngene_info ngene_info_cineS2v5 = {
+ 	.type		= NGENE_SIDEWINDER,
+ 	.name		= "Linux4Media cineS2 DVB-S2 Twin Tuner (v5)",
+ 	.io_type	= {NGENE_IO_TSIN, NGENE_IO_TSIN, NGENE_IO_TSIN, NGENE_IO_TSIN,
+@@ -672,7 +672,7 @@ static struct ngene_info ngene_info_cineS2v5 = {
+ };
+ 
+ 
+-static struct ngene_info ngene_info_duoFlex = {
++static const struct ngene_info ngene_info_duoFlex = {
+ 	.type           = NGENE_SIDEWINDER,
+ 	.name           = "Digital Devices DuoFlex PCIe or miniPCIe",
+ 	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN, NGENE_IO_TSIN, NGENE_IO_TSIN,
+@@ -687,7 +687,7 @@ static struct ngene_info ngene_info_duoFlex = {
+ 	.msi_supported	= true,
+ };
+ 
+-static struct ngene_info ngene_info_m780 = {
++static const struct ngene_info ngene_info_m780 = {
+ 	.type           = NGENE_APP,
+ 	.name           = "Aver M780 ATSC/QAM-B",
+ 
+@@ -727,7 +727,7 @@ static struct drxd_config fe_terratec_dvbt_1 = {
+ 	.osc_deviation  = osc_deviation,
+ };
+ 
+-static struct ngene_info ngene_info_terratec = {
++static const struct ngene_info ngene_info_terratec = {
+ 	.type           = NGENE_TERRATEC,
+ 	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
+ 	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
+diff --git a/drivers/media/pci/smipcie/smipcie-main.c b/drivers/media/pci/smipcie/smipcie-main.c
+index 83981d61..6dbe3b4 100644
+--- a/drivers/media/pci/smipcie/smipcie-main.c
++++ b/drivers/media/pci/smipcie/smipcie-main.c
+@@ -1060,7 +1060,7 @@ static void smi_remove(struct pci_dev *pdev)
+ }
+ 
+ /* DVBSky cards */
+-static struct smi_cfg_info dvbsky_s950_cfg = {
++static const struct smi_cfg_info dvbsky_s950_cfg = {
+ 	.type = SMI_DVBSKY_S950,
+ 	.name = "DVBSky S950 V3",
+ 	.ts_0 = SMI_TS_NULL,
+@@ -1070,7 +1070,7 @@ static struct smi_cfg_info dvbsky_s950_cfg = {
+ 	.rc_map = RC_MAP_DVBSKY,
+ };
+ 
+-static struct smi_cfg_info dvbsky_s952_cfg = {
++static const struct smi_cfg_info dvbsky_s952_cfg = {
+ 	.type = SMI_DVBSKY_S952,
+ 	.name = "DVBSky S952 V3",
+ 	.ts_0 = SMI_TS_DMA_BOTH,
+@@ -1080,7 +1080,7 @@ static struct smi_cfg_info dvbsky_s952_cfg = {
+ 	.rc_map = RC_MAP_DVBSKY,
+ };
+ 
+-static struct smi_cfg_info dvbsky_t9580_cfg = {
++static const struct smi_cfg_info dvbsky_t9580_cfg = {
+ 	.type = SMI_DVBSKY_T9580,
+ 	.name = "DVBSky T9580 V3",
+ 	.ts_0 = SMI_TS_DMA_BOTH,
+@@ -1090,7 +1090,7 @@ static struct smi_cfg_info dvbsky_t9580_cfg = {
+ 	.rc_map = RC_MAP_DVBSKY,
+ };
+ 
+-static struct smi_cfg_info technotrend_s2_4200_cfg = {
++static const struct smi_cfg_info technotrend_s2_4200_cfg = {
+ 	.type = SMI_TECHNOTREND_S2_4200,
+ 	.name = "TechnoTrend TT-budget S2-4200 Twin",
+ 	.ts_0 = SMI_TS_DMA_BOTH,
 
-Gregor may have a different opinion, as I think he knows a lot more
-about how distros usually expect those options to be handled.
-
-Thanks,
-Mauro
