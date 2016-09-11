@@ -1,301 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:22169 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755877AbcIFJMD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:12:03 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v6 07/14] media: platform: pxa_camera: make printk consistent
-Date: Tue,  6 Sep 2016 11:04:17 +0200
-Message-Id: <1473152664-5077-7-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
-References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+Received: from bombadil.infradead.org ([198.137.202.9]:60114 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932607AbcIKNbt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Sep 2016 09:31:49 -0400
+From: Christoph Hellwig <hch@lst.de>
+To: hans.verkuil@cisco.com, brking@us.ibm.com,
+        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
+        alex.williamson@redhat.com
+Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
+        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 4/6] vfio_pci: use pci_irq_allocate_vectors
+Date: Sun, 11 Sep 2016 15:31:26 +0200
+Message-Id: <1473600688-24043-5-git-send-email-hch@lst.de>
+In-Reply-To: <1473600688-24043-1-git-send-email-hch@lst.de>
+References: <1473600688-24043-1-git-send-email-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make all print consistent by always using :
- - dev_xxx(pcdev_to_dev(pcdev), ....)
+Simply the interrupt setup by using the new PCI layer helpers.
 
-This prepares the soc_camera adherence removal by making these call rely
-on only pcdev, and not the soc_camera icd structure.
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 ---
- drivers/media/platform/soc_camera/pxa_camera.c | 70 ++++++++++++++++----------
- 1 file changed, 43 insertions(+), 27 deletions(-)
+ drivers/vfio/pci/vfio_pci_intrs.c   | 45 +++++++++----------------------------
+ drivers/vfio/pci/vfio_pci_private.h |  1 -
+ 2 files changed, 10 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 3091ec708a46..026ed308fea8 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -236,6 +236,14 @@ struct pxa_cam {
- 
- static const char *pxa_cam_driver_description = "PXA_Camera";
- 
-+static struct pxa_camera_dev *icd_to_pcdev(struct soc_camera_device *icd)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct pxa_camera_dev *pcdev = ici->priv;
-+
-+	return pcdev;
-+}
-+
- /*
-  *  Videobuf operations
-  */
-@@ -465,7 +473,6 @@ static void pxa_camera_check_link_miss(struct pxa_camera_dev *pcdev,
- static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
- 			       enum pxa_camera_active_dma act_dma)
+diff --git a/drivers/vfio/pci/vfio_pci_intrs.c b/drivers/vfio/pci/vfio_pci_intrs.c
+index 152b438..a1d283e 100644
+--- a/drivers/vfio/pci/vfio_pci_intrs.c
++++ b/drivers/vfio/pci/vfio_pci_intrs.c
+@@ -250,6 +250,7 @@ static irqreturn_t vfio_msihandler(int irq, void *arg)
+ static int vfio_msi_enable(struct vfio_pci_device *vdev, int nvec, bool msix)
  {
--	struct device *dev = pcdev_to_dev(pcdev);
- 	struct pxa_buffer *buf, *last_buf;
- 	unsigned long flags;
- 	u32 camera_status, overrun;
-@@ -476,7 +483,7 @@ static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
- 	spin_lock_irqsave(&pcdev->lock, flags);
+ 	struct pci_dev *pdev = vdev->pdev;
++	unsigned int flag = msix ? PCI_IRQ_MSIX : PCI_IRQ_MSI;
+ 	int ret;
  
- 	camera_status = __raw_readl(pcdev->base + CISR);
--	dev_dbg(dev, "camera dma irq, cisr=0x%x dma=%d\n",
-+	dev_dbg(pcdev_to_dev(pcdev), "camera dma irq, cisr=0x%x dma=%d\n",
- 		camera_status, act_dma);
- 	overrun = CISR_IFO_0;
- 	if (pcdev->channels == 3)
-@@ -522,7 +529,7 @@ static void pxa_camera_dma_irq(struct pxa_camera_dev *pcdev,
- 					       NULL, &last_issued);
- 	if (camera_status & overrun &&
- 	    last_status != DMA_COMPLETE) {
--		dev_dbg(dev, "FIFO overrun! CISR: %x\n",
-+		dev_dbg(pcdev_to_dev(pcdev), "FIFO overrun! CISR: %x\n",
- 			camera_status);
- 		pxa_camera_stop_capture(pcdev);
- 		list_for_each_entry(buf, &pcdev->capture, queue)
-@@ -545,7 +552,6 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
- 			    struct pxa_camera_dev *pcdev)
- {
- 	unsigned long mclk = pcdev->mclk;
--	struct device *dev = &pdev->dev;
- 	u32 div;
- 	unsigned long lcdclk;
+ 	if (!is_irq_none(vdev))
+@@ -259,35 +260,13 @@ static int vfio_msi_enable(struct vfio_pci_device *vdev, int nvec, bool msix)
+ 	if (!vdev->ctx)
+ 		return -ENOMEM;
  
-@@ -555,7 +561,8 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
- 	/* mclk <= ciclk / 4 (27.4.2) */
- 	if (mclk > lcdclk / 4) {
- 		mclk = lcdclk / 4;
--		dev_warn(dev, "Limiting master clock to %lu\n", mclk);
-+		dev_warn(pcdev_to_dev(pcdev),
-+			 "Limiting master clock to %lu\n", mclk);
+-	if (msix) {
+-		int i;
+-
+-		vdev->msix = kzalloc(nvec * sizeof(struct msix_entry),
+-				     GFP_KERNEL);
+-		if (!vdev->msix) {
+-			kfree(vdev->ctx);
+-			return -ENOMEM;
+-		}
+-
+-		for (i = 0; i < nvec; i++)
+-			vdev->msix[i].entry = i;
+-
+-		ret = pci_enable_msix_range(pdev, vdev->msix, 1, nvec);
+-		if (ret < nvec) {
+-			if (ret > 0)
+-				pci_disable_msix(pdev);
+-			kfree(vdev->msix);
+-			kfree(vdev->ctx);
+-			return ret;
+-		}
+-	} else {
+-		ret = pci_enable_msi_range(pdev, 1, nvec);
+-		if (ret < nvec) {
+-			if (ret > 0)
+-				pci_disable_msi(pdev);
+-			kfree(vdev->ctx);
+-			return ret;
+-		}
++	/* return the number of supported vectors if we can't get all: */
++	ret = pci_alloc_irq_vectors(pdev, 1, nvec, flag);
++	if (ret < nvec) {
++		if (ret > 0)
++			pci_free_irq_vectors(pdev);
++		kfree(vdev->ctx);
++		return ret;
  	}
  
- 	/* We verify mclk != 0, so if anyone breaks it, here comes their Oops */
-@@ -565,7 +572,7 @@ static u32 mclk_get_divisor(struct platform_device *pdev,
- 	if (pcdev->platform_flags & PXA_CAMERA_MCLK_EN)
- 		pcdev->mclk = lcdclk / (2 * (div + 1));
- 
--	dev_dbg(dev, "LCD clock %luHz, target freq %luHz, divisor %u\n",
-+	dev_dbg(pcdev_to_dev(pcdev), "LCD clock %luHz, target freq %luHz, divisor %u\n",
- 		lcdclk, mclk, div);
- 
- 	return div;
-@@ -662,7 +669,9 @@ static irqreturn_t pxa_camera_irq(int irq, void *data)
- 
- static int pxa_camera_add_device(struct soc_camera_device *icd)
- {
--	dev_info(icd->parent, "PXA Camera driver attached to camera %d\n",
-+	struct pxa_camera_dev *pcdev = icd_to_pcdev(icd);
-+
-+	dev_info(pcdev_to_dev(pcdev), "PXA Camera driver attached to camera %d\n",
- 		 icd->devnum);
- 
- 	return 0;
-@@ -670,7 +679,9 @@ static int pxa_camera_add_device(struct soc_camera_device *icd)
- 
- static void pxa_camera_remove_device(struct soc_camera_device *icd)
- {
--	dev_info(icd->parent, "PXA Camera driver detached from camera %d\n",
-+	struct pxa_camera_dev *pcdev = icd_to_pcdev(icd);
-+
-+	dev_info(pcdev_to_dev(pcdev), "PXA Camera driver detached from camera %d\n",
- 		 icd->devnum);
- }
- 
-@@ -1081,7 +1092,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
- 		if (!common_flags) {
--			dev_warn(icd->parent,
-+			dev_warn(pcdev_to_dev(pcdev),
- 				 "Flags incompatible: camera 0x%x, host 0x%lx\n",
- 				 cfg.flags, bus_flags);
- 			return -EINVAL;
-@@ -1122,7 +1133,7 @@ static int pxa_camera_set_bus_param(struct soc_camera_device *icd)
- 	cfg.flags = common_flags;
- 	ret = sensor_call(pcdev, video, s_mbus_config, &cfg);
- 	if (ret < 0 && ret != -ENOIOCTLCMD) {
--		dev_dbg(icd->parent, "camera s_mbus_config(0x%lx) returned %d\n",
-+		dev_dbg(pcdev_to_dev(pcdev), "camera s_mbus_config(0x%lx) returned %d\n",
- 			common_flags, ret);
- 		return ret;
- 	}
-@@ -1152,7 +1163,7 @@ static int pxa_camera_try_bus_param(struct soc_camera_device *icd,
- 		common_flags = soc_mbus_config_compatible(&cfg,
- 							  bus_flags);
- 		if (!common_flags) {
--			dev_warn(icd->parent,
-+			dev_warn(pcdev_to_dev(pcdev),
- 				 "Flags incompatible: camera 0x%x, host 0x%lx\n",
- 				 cfg.flags, bus_flags);
- 			return -EINVAL;
-@@ -1189,7 +1200,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 				  struct soc_camera_format_xlate *xlate)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct device *dev = icd->parent;
-+	struct pxa_camera_dev *pcdev = icd_to_pcdev(icd);
- 	int formats = 0, ret;
- 	struct pxa_cam *cam;
- 	struct v4l2_subdev_mbus_code_enum code = {
-@@ -1205,7 +1216,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 
- 	fmt = soc_mbus_get_fmtdesc(code.code);
- 	if (!fmt) {
--		dev_err(dev, "Invalid format code #%u: %d\n", idx, code.code);
-+		dev_err(pcdev_to_dev(pcdev), "Invalid format code #%u: %d\n", idx, code.code);
- 		return 0;
- 	}
- 
-@@ -1231,7 +1242,8 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 			xlate->host_fmt	= &pxa_camera_formats[0];
- 			xlate->code	= code.code;
- 			xlate++;
--			dev_dbg(dev, "Providing format %s using code %d\n",
-+			dev_dbg(pcdev_to_dev(pcdev),
-+				"Providing format %s using code %d\n",
- 				pxa_camera_formats[0].name, code.code);
- 		}
- 	case MEDIA_BUS_FMT_VYUY8_2X8:
-@@ -1240,14 +1252,15 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned int id
- 	case MEDIA_BUS_FMT_RGB565_2X8_LE:
- 	case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
- 		if (xlate)
--			dev_dbg(dev, "Providing format %s packed\n",
-+			dev_dbg(pcdev_to_dev(pcdev),
-+				"Providing format %s packed\n",
- 				fmt->name);
- 		break;
- 	default:
- 		if (!pxa_camera_packing_supported(fmt))
- 			return 0;
- 		if (xlate)
--			dev_dbg(dev,
-+			dev_dbg(pcdev_to_dev(pcdev),
- 				"Providing format %s in pass-through mode\n",
- 				fmt->name);
- 	}
-@@ -1311,7 +1324,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
- 	icd->sense = NULL;
- 
- 	if (ret < 0) {
--		dev_warn(dev, "Failed to crop to %ux%u@%u:%u\n",
-+		dev_warn(pcdev_to_dev(pcdev), "Failed to crop to %ux%u@%u:%u\n",
- 			 rect->width, rect->height, rect->left, rect->top);
- 		return ret;
- 	}
-@@ -1334,7 +1347,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
- 			return ret;
- 
- 		if (pxa_camera_check_frame(mf->width, mf->height)) {
--			dev_warn(icd->parent,
-+			dev_warn(pcdev_to_dev(pcdev),
- 				 "Inconsistent state. Use S_FMT to repair\n");
- 			return -EINVAL;
- 		}
-@@ -1342,7 +1355,7 @@ static int pxa_camera_set_selection(struct soc_camera_device *icd,
- 
- 	if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
- 		if (sense.pixel_clock > sense.pixel_clock_max) {
--			dev_err(dev,
-+			dev_err(pcdev_to_dev(pcdev),
- 				"pixel clock %lu set by the camera too high!",
- 				sense.pixel_clock);
- 			return -EIO;
-@@ -1379,7 +1392,8 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 
- 	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
- 	if (!xlate) {
--		dev_warn(dev, "Format %x not found\n", pix->pixelformat);
-+		dev_warn(pcdev_to_dev(pcdev),
-+			 "Format %x not found\n", pix->pixelformat);
+ 	vdev->num_ctx = nvec;
+@@ -315,7 +294,7 @@ static int vfio_msi_set_vector_signal(struct vfio_pci_device *vdev,
+ 	if (vector < 0 || vector >= vdev->num_ctx)
  		return -EINVAL;
- 	}
  
-@@ -1402,16 +1416,17 @@ static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 	icd->sense = NULL;
+-	irq = msix ? vdev->msix[vector].vector : pdev->irq + vector;
++	irq = pci_irq_vector(pdev, vector);
  
- 	if (ret < 0) {
--		dev_warn(dev, "Failed to configure for format %x\n",
-+		dev_warn(pcdev_to_dev(pcdev),
-+			 "Failed to configure for format %x\n",
- 			 pix->pixelformat);
- 	} else if (pxa_camera_check_frame(mf->width, mf->height)) {
--		dev_warn(dev,
-+		dev_warn(pcdev_to_dev(pcdev),
- 			 "Camera driver produced an unsupported frame %dx%d\n",
- 			 mf->width, mf->height);
- 		ret = -EINVAL;
- 	} else if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
- 		if (sense.pixel_clock > sense.pixel_clock_max) {
--			dev_err(dev,
-+			dev_err(pcdev_to_dev(pcdev),
- 				"pixel clock %lu set by the camera too high!",
- 				sense.pixel_clock);
- 			return -EIO;
-@@ -1435,6 +1450,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+	struct pxa_camera_dev *pcdev = icd_to_pcdev(icd);
- 	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev_pad_config pad_cfg;
-@@ -1447,7 +1463,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
+ 	if (vdev->ctx[vector].trigger) {
+ 		free_irq(irq, vdev->ctx[vector].trigger);
+@@ -408,11 +387,7 @@ static void vfio_msi_disable(struct vfio_pci_device *vdev, bool msix)
  
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (!xlate) {
--		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
-+		dev_warn(pcdev_to_dev(pcdev), "Format %x not found\n", pixfmt);
- 		return -EINVAL;
- 	}
+ 	vfio_msi_set_block(vdev, 0, vdev->num_ctx, NULL, msix);
  
-@@ -1484,7 +1500,7 @@ static int pxa_camera_try_fmt(struct soc_camera_device *icd,
- 		break;
- 	default:
- 		/* TODO: support interlaced at least in pass-through mode */
--		dev_err(icd->parent, "Field type %d unsupported.\n",
-+		dev_err(pcdev_to_dev(pcdev), "Field type %d unsupported.\n",
- 			mf->field);
- 		return -EINVAL;
- 	}
-@@ -1593,13 +1609,13 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+-	if (msix) {
+-		pci_disable_msix(vdev->pdev);
+-		kfree(vdev->msix);
+-	} else
+-		pci_disable_msi(pdev);
++	pci_free_irq_vectors(pdev);
  
- 	np = of_graph_get_next_endpoint(np, NULL);
- 	if (!np) {
--		dev_err(dev, "could not find endpoint\n");
-+		dev_err(pcdev_to_dev(pcdev), "could not find endpoint\n");
- 		return -EINVAL;
- 	}
- 
- 	err = v4l2_of_parse_endpoint(np, &ep);
- 	if (err) {
--		dev_err(dev, "could not parse endpoint\n");
-+		dev_err(pcdev_to_dev(pcdev), "could not parse endpoint\n");
- 		goto out;
- 	}
- 
+ 	vdev->irq_type = VFIO_PCI_NUM_IRQS;
+ 	vdev->num_ctx = 0;
+diff --git a/drivers/vfio/pci/vfio_pci_private.h b/drivers/vfio/pci/vfio_pci_private.h
+index 2128de8..f561ac1 100644
+--- a/drivers/vfio/pci/vfio_pci_private.h
++++ b/drivers/vfio/pci/vfio_pci_private.h
+@@ -72,7 +72,6 @@ struct vfio_pci_device {
+ 	struct perm_bits	*msi_perm;
+ 	spinlock_t		irqlock;
+ 	struct mutex		igate;
+-	struct msix_entry	*msix;
+ 	struct vfio_pci_irq_ctx	*ctx;
+ 	int			num_ctx;
+ 	int			irq_type;
 -- 
 2.1.4
 
