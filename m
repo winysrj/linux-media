@@ -1,76 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46886 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932771AbcIUUyv (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:26664 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932235AbcIKPCY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Sep 2016 16:54:51 -0400
-Subject: Re: [PATCH v5 2/2] media: Add a driver for the ov5645 camera sensor.
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        devicetree@vger.kernel.org, mchehab@osg.samsung.com,
-        hverkuil@xs4all.nl, geert@linux-m68k.org, matrandg@cisco.com,
-        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <1467989679-29774-1-git-send-email-todor.tomov@linaro.org>
- <1467989679-29774-3-git-send-email-todor.tomov@linaro.org>
- <20160824101708.GI12130@valkosipuli.retiisi.org.uk>
- <57BDBC2F.7020902@linaro.org>
- <20160825071800.GK12130@valkosipuli.retiisi.org.uk>
- <57E292AB.9060808@linaro.org>
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Message-ID: <57E2F393.6000706@iki.fi>
-Date: Wed, 21 Sep 2016 23:54:43 +0300
-MIME-Version: 1.0
-In-Reply-To: <57E292AB.9060808@linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+        Sun, 11 Sep 2016 11:02:24 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 2/3] [media] tuners: constify dvb_tuner_ops structures
+Date: Sun, 11 Sep 2016 16:44:13 +0200
+Message-Id: <1473605054-9002-3-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1473605054-9002-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1473605054-9002-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+These structures are only used to copy into other structures, so declare
+them as const.
 
-Todor Tomov wrote:
-> Hi Sakari,
-> 
-> One more question below:
-> 
-> On 08/25/2016 10:18 AM, Sakari Ailus wrote:
->>>>> +
->>>>> +static struct v4l2_subdev_core_ops ov5645_core_ops = {
->>>>> +	.s_power = ov5645_s_power,
->>>>> +};
->>>>> +
->>>>> +static struct v4l2_subdev_video_ops ov5645_video_ops = {
->>>>> +	.s_stream = ov5645_s_stream,
->>>>> +};
->>>>> +
->>>>> +static struct v4l2_subdev_pad_ops ov5645_subdev_pad_ops = {
->>>>> +	.enum_mbus_code = ov5645_enum_mbus_code,
->>>>> +	.enum_frame_size = ov5645_enum_frame_size,
->>>>> +	.get_fmt = ov5645_get_format,
->>>>> +	.set_fmt = ov5645_set_format,
->>>>> +	.get_selection = ov5645_get_selection,
->>>>
->>>> Could you add init_cfg() pad op to initialise the try format and selections?
->>>
->>> Yes, I'll do that.
-> 
-> If I follow the code correctly this init_cfg() is called whenever the device is opened, right?
-> This means that the format will be reset to default values every time the userspace opens the device.
-> So I wonder if this is what we really want, or do we want to keep the last set format instead. For
-> example if we use media-ctl only to get the current format, this is already enough - it opens the
-> subdev node and resets the format to default.
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-What's getting set in init_cfg() called through open system call is the
-try format, not the active format.
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct dvb_tuner_ops i@p = { ... };
 
-Whether to choose the default or current format for the try format for a
-file handle was discussed some years ago and we indeed settled to use
-the default one, since that's independent of whatever configuration
-happened to be set --- quite possibly by a different application. AFAIR.
+@ok1@
+identifier r.i;
+expression e;
+position p;
+@@
+e = i@p
 
--- 
-Kind regards,
+@ok2@
+identifier r.i;
+expression e1, e2;
+position p;
+@@
+memcpy(e1, &i@p, e2)
 
-Sakari Ailus
-sakari.ailus@iki.fi
+@bad@
+position p != {r.p,ok1.p,ok2.p};
+identifier r.i;
+struct dvb_tuner_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct dvb_tuner_ops i = { ... };
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/tuners/mt2063.c       |    2 +-
+ drivers/media/tuners/mt20xx.c       |    4 ++--
+ drivers/media/tuners/mxl5007t.c     |    2 +-
+ drivers/media/tuners/tda827x.c      |    4 ++--
+ drivers/media/tuners/tea5761.c      |    2 +-
+ drivers/media/tuners/tea5767.c      |    2 +-
+ drivers/media/tuners/tuner-simple.c |    2 +-
+ 7 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/tuners/tea5767.c b/drivers/media/tuners/tea5767.c
+index 36e85d8..6d86aa6 100644
+--- a/drivers/media/tuners/tea5767.c
++++ b/drivers/media/tuners/tea5767.c
+@@ -423,7 +423,7 @@ static int tea5767_set_config (struct dvb_frontend *fe, void *priv_cfg)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tea5767_tuner_ops = {
++static const struct dvb_tuner_ops tea5767_tuner_ops = {
+ 	.info = {
+ 		.name           = "tea5767", // Philips TEA5767HN FM Radio
+ 	},
+diff --git a/drivers/media/tuners/mxl5007t.c b/drivers/media/tuners/mxl5007t.c
+index f4ae04c..42569c6 100644
+--- a/drivers/media/tuners/mxl5007t.c
++++ b/drivers/media/tuners/mxl5007t.c
+@@ -794,7 +794,7 @@ static int mxl5007t_release(struct dvb_frontend *fe)
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+-static struct dvb_tuner_ops mxl5007t_tuner_ops = {
++static const struct dvb_tuner_ops mxl5007t_tuner_ops = {
+ 	.info = {
+ 		.name = "MaxLinear MxL5007T",
+ 	},
+diff --git a/drivers/media/tuners/mt2063.c b/drivers/media/tuners/mt2063.c
+index 7f0b9d5..dfec237 100644
+--- a/drivers/media/tuners/mt2063.c
++++ b/drivers/media/tuners/mt2063.c
+@@ -2201,7 +2201,7 @@ static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops mt2063_ops = {
++static const struct dvb_tuner_ops mt2063_ops = {
+ 	.info = {
+ 		 .name = "MT2063 Silicon Tuner",
+ 		 .frequency_min = 45000000,
+diff --git a/drivers/media/tuners/mt20xx.c b/drivers/media/tuners/mt20xx.c
+index 9e03104..52da467 100644
+--- a/drivers/media/tuners/mt20xx.c
++++ b/drivers/media/tuners/mt20xx.c
+@@ -363,7 +363,7 @@ static int mt2032_set_params(struct dvb_frontend *fe,
+ 	return ret;
+ }
+ 
+-static struct dvb_tuner_ops mt2032_tuner_ops = {
++static const struct dvb_tuner_ops mt2032_tuner_ops = {
+ 	.set_analog_params = mt2032_set_params,
+ 	.release           = microtune_release,
+ 	.get_frequency     = microtune_get_frequency,
+@@ -563,7 +563,7 @@ static int mt2050_set_params(struct dvb_frontend *fe,
+ 	return ret;
+ }
+ 
+-static struct dvb_tuner_ops mt2050_tuner_ops = {
++static const struct dvb_tuner_ops mt2050_tuner_ops = {
+ 	.set_analog_params = mt2050_set_params,
+ 	.release           = microtune_release,
+ 	.get_frequency     = microtune_get_frequency,
+diff --git a/drivers/media/tuners/tda827x.c b/drivers/media/tuners/tda827x.c
+index edcb4a7..5050ce9 100644
+--- a/drivers/media/tuners/tda827x.c
++++ b/drivers/media/tuners/tda827x.c
+@@ -818,7 +818,7 @@ static int tda827x_initial_sleep(struct dvb_frontend *fe)
+ 	return fe->ops.tuner_ops.sleep(fe);
+ }
+ 
+-static struct dvb_tuner_ops tda827xo_tuner_ops = {
++static const struct dvb_tuner_ops tda827xo_tuner_ops = {
+ 	.info = {
+ 		.name = "Philips TDA827X",
+ 		.frequency_min  =  55000000,
+@@ -834,7 +834,7 @@ static struct dvb_tuner_ops tda827xo_tuner_ops = {
+ 	.get_bandwidth = tda827x_get_bandwidth,
+ };
+ 
+-static struct dvb_tuner_ops tda827xa_tuner_ops = {
++static const struct dvb_tuner_ops tda827xa_tuner_ops = {
+ 	.info = {
+ 		.name = "Philips TDA827XA",
+ 		.frequency_min  =  44000000,
+diff --git a/drivers/media/tuners/tuner-simple.c b/drivers/media/tuners/tuner-simple.c
+index 8e9ce14..9ba9582 100644
+--- a/drivers/media/tuners/tuner-simple.c
++++ b/drivers/media/tuners/tuner-simple.c
+@@ -1035,7 +1035,7 @@ static int simple_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops simple_tuner_ops = {
++static const struct dvb_tuner_ops simple_tuner_ops = {
+ 	.init              = simple_init,
+ 	.sleep             = simple_sleep,
+ 	.set_analog_params = simple_set_params,
+diff --git a/drivers/media/tuners/tea5761.c b/drivers/media/tuners/tea5761.c
+index bf78cb9..36b0b1e 100644
+--- a/drivers/media/tuners/tea5761.c
++++ b/drivers/media/tuners/tea5761.c
+@@ -301,7 +301,7 @@ static int tea5761_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tea5761_tuner_ops = {
++static const struct dvb_tuner_ops tea5761_tuner_ops = {
+ 	.info = {
+ 		.name           = "tea5761", // Philips TEA5761HN FM Radio
+ 	},
+
