@@ -1,185 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sauron-mordor.net ([82.227.150.75]:51023 "EHLO
-        smtp.sauron-mordor.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758088AbcILMck (ORCPT
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:6431 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755982AbcIKPCX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 08:32:40 -0400
-Date: Mon, 12 Sep 2016 14:32:35 +0200
-From: "R. Groux" <rgroux@sauron-mordor.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH V2] [media] staging/media/cec: fix coding style error
-Message-ID: <20160912123233.ozjualv5ztpzruup@elias.sauron-mordor.intern>
-References: <20160911160753.7tiizqan5v3dt7sx@elias.sauron-mordor.intern>
- <58b5c75d-890f-1f52-2bf7-08e445da0ff3@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <58b5c75d-890f-1f52-2bf7-08e445da0ff3@iki.fi>
+        Sun, 11 Sep 2016 11:02:23 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, Abylay Ospan <aospan@netup.ru>,
+        Malcolm Priestley <tvboxspy@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Sergey Kozlov <serjk@netup.ru>
+Subject: [PATCH 1/3] [media] dvb-frontends: constify dvb_tuner_ops structures
+Date: Sun, 11 Sep 2016 16:44:12 +0200
+Message-Id: <1473605054-9002-2-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1473605054-9002-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1473605054-9002-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Sep 11, 2016 at 08:42:21PM +0300, Antti Palosaari wrote:
-> On 09/11/2016 07:07 PM, Richard wrote:
-> > Greetings Linux Kernel Developers,
-> >
-> > This is Task 10 of the Eudyptula Challenge, i fix few line over 80
-> > characters, hope you will accept this pacth.
-> >
-> > /Richard
-> >
-> > For the eudyptula challenge (http://eudyptula-challenge.org/).
-> > Simple style fix for few line over 80 characters
-> 
-> > -		if (!is_broadcast && !is_reply && !adap->follower_cnt &&
-> > +		if (is_directed && !is_reply && !adap->follower_cnt &&
-> 
-> !!
-> Antti
-> 
-> -- 
-> http://palosaari.fi/
+These structures are only used to copy into other structures, so declare
+them as const.
 
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-sorry, for my mistake, i made another patch and double check it this
-time.
+// <smpl>
+@r disable optional_qualifier@
+identifier i;
+position p;
+@@
+static struct dvb_tuner_ops i@p = { ... };
 
-Signed-off-by: Richard <rgroux@sauron-mordor.net>
+@ok1@
+identifier r.i;
+expression e;
+position p;
+@@
+e = i@p
+
+@ok2@
+identifier r.i;
+expression e1, e2;
+position p;
+@@
+memcpy(e1, &i@p, e2)
+
+@bad@
+position p != {r.p,ok1.p,ok2.p};
+identifier r.i;
+struct dvb_tuner_ops e;
+@@
+e@i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r.i;
+@@
+static
++const
+ struct dvb_tuner_ops i = { ... };
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
- drivers/staging/media/cec/cec-adap.c | 18 ++++++++++++------
- drivers/staging/media/cec/cec-api.c  |  6 ++++--
- drivers/staging/media/cec/cec-core.c |  9 ++++++---
- drivers/staging/media/cec/cec-priv.h |  3 ++-
- 4 files changed, 24 insertions(+), 12 deletions(-)
+ drivers/media/dvb-frontends/ascot2e.c      |    2 +-
+ drivers/media/dvb-frontends/dvb-pll.c      |    2 +-
+ drivers/media/dvb-frontends/helene.c       |    4 ++--
+ drivers/media/dvb-frontends/horus3a.c      |    2 +-
+ drivers/media/dvb-frontends/ix2505v.c      |    2 +-
+ drivers/media/dvb-frontends/stb6000.c      |    2 +-
+ drivers/media/dvb-frontends/stb6100.c      |    2 +-
+ drivers/media/dvb-frontends/stv6110.c      |    2 +-
+ drivers/media/dvb-frontends/stv6110x.c     |    2 +-
+ drivers/media/dvb-frontends/tda18271c2dd.c |    2 +-
+ drivers/media/dvb-frontends/tda665x.c      |    2 +-
+ drivers/media/dvb-frontends/tda8261.c      |    2 +-
+ drivers/media/dvb-frontends/tda826x.c      |    2 +-
+ drivers/media/dvb-frontends/ts2020.c       |    2 +-
+ drivers/media/dvb-frontends/tua6100.c      |    2 +-
+ drivers/media/dvb-frontends/zl10036.c      |    2 +-
+ drivers/media/dvb-frontends/zl10039.c      |    2 +-
+ 17 files changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index 611e07b..8aedd22 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -1,7 +1,8 @@
- /*
-  * cec-adap.c - HDMI Consumer Electronics Control framework - CEC adapter
-  *
-- * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-+ * All rights reserved.
-  *
-  * This program is free software; you may redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -64,7 +65,8 @@ static int cec_log_addr2idx(const struct cec_adapter *adap, u8 log_addr)
- 	return -1;
+diff --git a/drivers/media/dvb-frontends/ix2505v.c b/drivers/media/dvb-frontends/ix2505v.c
+index 0e3387e..2826bbb 100644
+--- a/drivers/media/dvb-frontends/ix2505v.c
++++ b/drivers/media/dvb-frontends/ix2505v.c
+@@ -258,7 +258,7 @@ static int ix2505v_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
  }
  
--static unsigned int cec_log_addr2dev(const struct cec_adapter *adap, u8 log_addr)
-+static unsigned int cec_log_addr2dev(const struct cec_adapter *adap,
-+				     u8 log_addr)
- {
- 	int i = cec_log_addr2idx(adap, log_addr);
+-static struct dvb_tuner_ops ix2505v_tuner_ops = {
++static const struct dvb_tuner_ops ix2505v_tuner_ops = {
+ 	.info = {
+ 		.name = "Sharp IX2505V (B0017)",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/helene.c b/drivers/media/dvb-frontends/helene.c
+index 97a8982..4cb0505 100644
+--- a/drivers/media/dvb-frontends/helene.c
++++ b/drivers/media/dvb-frontends/helene.c
+@@ -842,7 +842,7 @@ static int helene_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
  
-@@ -330,9 +332,11 @@ int cec_thread_func(void *_adap)
- 			 * see if the adapter is disabled in which case the
- 			 * transmit should be canceled.
- 			 */
--			err = wait_event_interruptible_timeout(adap->kthread_waitq,
-+			err = wait_event_interruptible_timeout(
-+				adap->kthread_waitq,
- 				kthread_should_stop() ||
--				(!adap->is_configured && !adap->is_configuring) ||
-+				(!adap->is_configured &&
-+				 !adap->is_configuring) ||
- 				(!adap->transmitting &&
- 				 !list_empty(&adap->transmit_queue)),
- 				msecs_to_jiffies(CEC_XFER_TIMEOUT_MS));
-@@ -1534,13 +1538,15 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		/* Do nothing for CEC switches using addr 15 */
- 		if (devtype == CEC_OP_PRIM_DEVTYPE_SWITCH && dest_laddr == 15)
- 			return 0;
--		cec_msg_report_physical_addr(&tx_cec_msg, adap->phys_addr, devtype);
-+		cec_msg_report_physical_addr(&tx_cec_msg, adap->phys_addr,
-+					     devtype);
- 		return cec_transmit_msg(adap, &tx_cec_msg, false);
+-static struct dvb_tuner_ops helene_tuner_ops = {
++static const struct dvb_tuner_ops helene_tuner_ops = {
+ 	.info = {
+ 		.name = "Sony HELENE Ter tuner",
+ 		.frequency_min = 1000000,
+@@ -856,7 +856,7 @@ static struct dvb_tuner_ops helene_tuner_ops = {
+ 	.get_frequency = helene_get_frequency,
+ };
  
- 	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
- 		if (adap->log_addrs.vendor_id == CEC_VENDOR_ID_NONE)
- 			return cec_feature_abort(adap, msg);
--		cec_msg_device_vendor_id(&tx_cec_msg, adap->log_addrs.vendor_id);
-+		cec_msg_device_vendor_id(&tx_cec_msg,
-+					 adap->log_addrs.vendor_id);
- 		return cec_transmit_msg(adap, &tx_cec_msg, false);
+-static struct dvb_tuner_ops helene_tuner_ops_s = {
++static const struct dvb_tuner_ops helene_tuner_ops_s = {
+ 	.info = {
+ 		.name = "Sony HELENE Sat tuner",
+ 		.frequency_min = 500000,
+diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
+index 8cc8c45..ad304ee 100644
+--- a/drivers/media/dvb-frontends/ascot2e.c
++++ b/drivers/media/dvb-frontends/ascot2e.c
+@@ -464,7 +464,7 @@ static int ascot2e_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
  
- 	case CEC_MSG_ABORT:
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index e274e2f..c14a0c1 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -1,7 +1,8 @@
- /*
-  * cec-api.c - HDMI Consumer Electronics Control framework - API
-  *
-- * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-+ * All rights reserved.
-  *
-  * This program is free software; you may redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -548,7 +549,8 @@ static int cec_release(struct inode *inode, struct file *filp)
- 	mutex_lock(&adap->lock);
- 	while (!list_empty(&fh->xfer_list)) {
- 		struct cec_data *data =
--			list_first_entry(&fh->xfer_list, struct cec_data, xfer_list);
-+			list_first_entry(&fh->xfer_list, struct cec_data,
-+					 xfer_list);
+-static struct dvb_tuner_ops ascot2e_tuner_ops = {
++static const struct dvb_tuner_ops ascot2e_tuner_ops = {
+ 	.info = {
+ 		.name = "Sony ASCOT2E",
+ 		.frequency_min = 1000000,
+diff --git a/drivers/media/dvb-frontends/horus3a.c b/drivers/media/dvb-frontends/horus3a.c
+index a98bca5..0c089b5 100644
+--- a/drivers/media/dvb-frontends/horus3a.c
++++ b/drivers/media/dvb-frontends/horus3a.c
+@@ -326,7 +326,7 @@ static int horus3a_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
  
- 		data->blocking = false;
- 		data->fh = NULL;
-diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
-index b0137e2..2a55d89 100644
---- a/drivers/staging/media/cec/cec-core.c
-+++ b/drivers/staging/media/cec/cec-core.c
-@@ -1,7 +1,8 @@
- /*
-  * cec-core.c - HDMI Consumer Electronics Control framework - Core
-  *
-- * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-+ * All rights reserved.
-  *
-  * This program is free software; you may redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -198,7 +199,8 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+-static struct dvb_tuner_ops horus3a_tuner_ops = {
++static const struct dvb_tuner_ops horus3a_tuner_ops = {
+ 	.info = {
+ 		.name = "Sony Horus3a",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/dvb-pll.c b/drivers/media/dvb-frontends/dvb-pll.c
+index 53089e1..735a966 100644
+--- a/drivers/media/dvb-frontends/dvb-pll.c
++++ b/drivers/media/dvb-frontends/dvb-pll.c
+@@ -739,7 +739,7 @@ static int dvb_pll_init(struct dvb_frontend *fe)
+ 	return -EINVAL;
+ }
  
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 					 void *priv, const char *name, u32 caps,
--					 u8 available_las, struct device *parent)
-+					 u8 available_las,
-+					 struct device *parent)
- {
- 	struct cec_adapter *adap;
- 	int res;
-@@ -314,7 +316,8 @@ int cec_register_adapter(struct cec_adapter *adap)
- 	if (!top_cec_dir)
- 		return 0;
+-static struct dvb_tuner_ops dvb_pll_tuner_ops = {
++static const struct dvb_tuner_ops dvb_pll_tuner_ops = {
+ 	.release = dvb_pll_release,
+ 	.sleep = dvb_pll_sleep,
+ 	.init = dvb_pll_init,
+diff --git a/drivers/media/dvb-frontends/stb6000.c b/drivers/media/dvb-frontends/stb6000.c
+index a0c3c52..73347d5 100644
+--- a/drivers/media/dvb-frontends/stb6000.c
++++ b/drivers/media/dvb-frontends/stb6000.c
+@@ -186,7 +186,7 @@ static int stb6000_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
  
--	adap->cec_dir = debugfs_create_dir(dev_name(&adap->devnode.dev), top_cec_dir);
-+	adap->cec_dir = debugfs_create_dir(dev_name(&adap->devnode.dev),
-+					   top_cec_dir);
- 	if (IS_ERR_OR_NULL(adap->cec_dir)) {
- 		pr_warn("cec-%s: Failed to create debugfs dir\n", adap->name);
- 		return 0;
-diff --git a/drivers/staging/media/cec/cec-priv.h b/drivers/staging/media/cec/cec-priv.h
-index 70767a7..6ace587 100644
---- a/drivers/staging/media/cec/cec-priv.h
-+++ b/drivers/staging/media/cec/cec-priv.h
-@@ -1,7 +1,8 @@
- /*
-  * cec-priv.h - HDMI Consumer Electronics Control internal header
-  *
-- * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-+ * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-+ * All rights reserved.
-  *
-  * This program is free software; you may redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
--- 
-2.7.3
+-static struct dvb_tuner_ops stb6000_tuner_ops = {
++static const struct dvb_tuner_ops stb6000_tuner_ops = {
+ 	.info = {
+ 		.name = "ST STB6000",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/stb6100.c b/drivers/media/dvb-frontends/stb6100.c
+index b9c2511..5add118 100644
+--- a/drivers/media/dvb-frontends/stb6100.c
++++ b/drivers/media/dvb-frontends/stb6100.c
+@@ -522,7 +522,7 @@ static int stb6100_set_params(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops stb6100_ops = {
++static const struct dvb_tuner_ops stb6100_ops = {
+ 	.info = {
+ 		.name			= "STB6100 Silicon Tuner",
+ 		.frequency_min		= 950000,
+diff --git a/drivers/media/dvb-frontends/stv6110.c b/drivers/media/dvb-frontends/stv6110.c
+index 91c6dcf..66a5a7f 100644
+--- a/drivers/media/dvb-frontends/stv6110.c
++++ b/drivers/media/dvb-frontends/stv6110.c
+@@ -382,7 +382,7 @@ static int stv6110_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops stv6110_tuner_ops = {
++static const struct dvb_tuner_ops stv6110_tuner_ops = {
+ 	.info = {
+ 		.name = "ST STV6110",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/stv6110x.c b/drivers/media/dvb-frontends/stv6110x.c
+index a62c01e..c611ad2 100644
+--- a/drivers/media/dvb-frontends/stv6110x.c
++++ b/drivers/media/dvb-frontends/stv6110x.c
+@@ -345,7 +345,7 @@ static int stv6110x_release(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops stv6110x_ops = {
++static const struct dvb_tuner_ops stv6110x_ops = {
+ 	.info = {
+ 		.name		= "STV6110(A) Silicon Tuner",
+ 		.frequency_min	=  950000,
+diff --git a/drivers/media/dvb-frontends/tda18271c2dd.c b/drivers/media/dvb-frontends/tda18271c2dd.c
+index de0a1c1..bc247f9 100644
+--- a/drivers/media/dvb-frontends/tda18271c2dd.c
++++ b/drivers/media/dvb-frontends/tda18271c2dd.c
+@@ -1217,7 +1217,7 @@ static int get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ }
+ 
+ 
+-static struct dvb_tuner_ops tuner_ops = {
++static const struct dvb_tuner_ops tuner_ops = {
+ 	.info = {
+ 		.name = "NXP TDA18271C2D",
+ 		.frequency_min  =  47125000,
+diff --git a/drivers/media/dvb-frontends/tda665x.c b/drivers/media/dvb-frontends/tda665x.c
+index 82f8cc5..7ca9659 100644
+--- a/drivers/media/dvb-frontends/tda665x.c
++++ b/drivers/media/dvb-frontends/tda665x.c
+@@ -206,7 +206,7 @@ static int tda665x_release(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tda665x_ops = {
++static const struct dvb_tuner_ops tda665x_ops = {
+ 	.get_status	= tda665x_get_status,
+ 	.set_params	= tda665x_set_params,
+ 	.get_frequency	= tda665x_get_frequency,
+diff --git a/drivers/media/dvb-frontends/tda8261.c b/drivers/media/dvb-frontends/tda8261.c
+index 3285b1b..e0df931 100644
+--- a/drivers/media/dvb-frontends/tda8261.c
++++ b/drivers/media/dvb-frontends/tda8261.c
+@@ -161,7 +161,7 @@ static int tda8261_release(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tda8261_ops = {
++static const struct dvb_tuner_ops tda8261_ops = {
+ 
+ 	.info = {
+ 		.name		= "TDA8261",
+diff --git a/drivers/media/dvb-frontends/tda826x.c b/drivers/media/dvb-frontends/tda826x.c
+index 04bbcc2..2ec671d 100644
+--- a/drivers/media/dvb-frontends/tda826x.c
++++ b/drivers/media/dvb-frontends/tda826x.c
+@@ -129,7 +129,7 @@ static int tda826x_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tda826x_tuner_ops = {
++static const struct dvb_tuner_ops tda826x_tuner_ops = {
+ 	.info = {
+ 		.name = "Philips TDA826X",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index 14b410f..a9f6bbe 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -496,7 +496,7 @@ static int ts2020_read_signal_strength(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops ts2020_tuner_ops = {
++static const struct dvb_tuner_ops ts2020_tuner_ops = {
+ 	.info = {
+ 		.name = "TS2020",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/tua6100.c b/drivers/media/dvb-frontends/tua6100.c
+index 029384d..6da12b9 100644
+--- a/drivers/media/dvb-frontends/tua6100.c
++++ b/drivers/media/dvb-frontends/tua6100.c
+@@ -157,7 +157,7 @@ static int tua6100_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops tua6100_tuner_ops = {
++static const struct dvb_tuner_ops tua6100_tuner_ops = {
+ 	.info = {
+ 		.name = "Infineon TUA6100",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/zl10036.c b/drivers/media/dvb-frontends/zl10036.c
+index 0903d46..7ed8131 100644
+--- a/drivers/media/dvb-frontends/zl10036.c
++++ b/drivers/media/dvb-frontends/zl10036.c
+@@ -446,7 +446,7 @@ static int zl10036_init(struct dvb_frontend *fe)
+ 	return ret;
+ }
+ 
+-static struct dvb_tuner_ops zl10036_tuner_ops = {
++static const struct dvb_tuner_ops zl10036_tuner_ops = {
+ 	.info = {
+ 		.name = "Zarlink ZL10036",
+ 		.frequency_min = 950000,
+diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
+index ee09ec2..f8c271b 100644
+--- a/drivers/media/dvb-frontends/zl10039.c
++++ b/drivers/media/dvb-frontends/zl10039.c
+@@ -255,7 +255,7 @@ static int zl10039_release(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static struct dvb_tuner_ops zl10039_ops = {
++static const struct dvb_tuner_ops zl10039_ops = {
+ 	.release = zl10039_release,
+ 	.init = zl10039_init,
+ 	.sleep = zl10039_sleep,
 
