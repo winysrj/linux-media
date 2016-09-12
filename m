@@ -1,95 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:17440 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752111AbcIIPsP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 11:48:15 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v2 4/4] arm64: dts: mediatek: Add Video Decoder for MT8173
-Date: Fri, 9 Sep 2016 23:48:07 +0800
-Message-ID: <1473436087-21943-5-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1473436087-21943-4-git-send-email-tiffany.lin@mediatek.com>
-References: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
- <1473436087-21943-2-git-send-email-tiffany.lin@mediatek.com>
- <1473436087-21943-3-git-send-email-tiffany.lin@mediatek.com>
- <1473436087-21943-4-git-send-email-tiffany.lin@mediatek.com>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:52432 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755607AbcILHqv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Sep 2016 03:46:51 -0400
+Received: from [192.168.1.137] (marune.xs4all.nl [80.101.105.217])
+        by tschai.lan (Postfix) with ESMTPSA id BFF8C18026F
+        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2016 09:46:45 +0200 (CEST)
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.9] Fix two compilation issues
+Message-ID: <6ca10155-97ba-a64b-b761-3e23ed9416d9@xs4all.nl>
+Date: Mon, 12 Sep 2016 09:46:45 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add video decoder node for MT8173
+Hi Mauro,
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   44 ++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+These two patches fix compilation issues for 4.9. One simple warning and one
+fixing duplicate functions.
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 10f638f..2872cd7 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -974,6 +974,50 @@
- 			#clock-cells = <1>;
- 		};
- 
-+		vcodec_dec: vcodec@16000000 {
-+			compatible = "mediatek,mt8173-vcodec-dec";
-+			reg = <0 0x16000000 0 0x100>,	/* VDEC_SYS */
-+			      <0 0x16020000 0 0x1000>,	/* VDEC_MISC */
-+			      <0 0x16021000 0 0x800>,	/* VDEC_LD */
-+			      <0 0x16021800 0 0x800>,	/* VDEC_TOP */
-+			      <0 0x16022000 0 0x1000>,	/* VDEC_CM */
-+			      <0 0x16023000 0 0x1000>,	/* VDEC_AD */
-+			      <0 0x16024000 0 0x1000>,	/* VDEC_AV */
-+			      <0 0x16025000 0 0x1000>,	/* VDEC_PP */
-+			      <0 0x16026800 0 0x800>,	/* VDEC_HWD */
-+			      <0 0x16027000 0 0x800>,	/* VDEC_HWQ */
-+			      <0 0x16027800 0 0x800>,	/* VDEC_HWB */
-+			      <0 0x16028400 0 0x400>;	/* VDEC_HWG */
-+			interrupts = <GIC_SPI 204 IRQ_TYPE_LEVEL_LOW>;
-+			mediatek,larb = <&larb1>;
-+			iommus = <&iommu M4U_PORT_HW_VDEC_MC_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_PP_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_AVC_MV_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_PRED_RD_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_PRED_WR_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_UFO_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_VLD_EXT>,
-+				 <&iommu M4U_PORT_HW_VDEC_VLD2_EXT>;
-+			mediatek,vpu = <&vpu>;
-+			power-domains = <&scpsys MT8173_POWER_DOMAIN_VDEC>;
-+			clocks = <&apmixedsys CLK_APMIXED_VCODECPLL>,
-+				 <&topckgen CLK_TOP_UNIVPLL_D2>,
-+				 <&topckgen CLK_TOP_CCI400_SEL>,
-+				 <&topckgen CLK_TOP_VDEC_SEL>,
-+				 <&topckgen CLK_TOP_VCODECPLL>,
-+				 <&apmixedsys CLK_APMIXED_VENCPLL>,
-+				 <&topckgen CLK_TOP_VENC_LT_SEL>,
-+				 <&topckgen CLK_TOP_VCODECPLL_370P5>;
-+			clock-names = "vcodecpll",
-+				      "univpll_d2",
-+				      "clk_cci400_sel",
-+				      "vdec_sel",
-+				      "vdecpll",
-+				      "vencpll",
-+				      "venc_lt_sel",
-+				      "vdec_bus_clk_src";
-+		};
-+
- 		larb1: larb@16010000 {
- 			compatible = "mediatek,mt8173-smi-larb";
- 			reg = <0 0x16010000 0 0x1000>;
--- 
-1.7.9.5
+Regards,
 
+	Hans
+
+The following changes since commit 8a5a2ba86ab8fc12267fea974b9cd730ad2dee24:
+
+  [media] v4l: vsp1: Add R8A7792 VSP1V support (2016-09-09 11:32:43 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v4.9d
+
+for you to fetch changes up to 2fb0feefa258953ebdb0f81931f4725fd5498c14:
+
+  pulse8-cec: fix compiler warning (2016-09-11 11:00:15 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      pxa_camera: merge soc_mediabus.c into pxa_camera.c
+      pulse8-cec: fix compiler warning
+
+ drivers/media/platform/Makefile               |   2 +-
+ drivers/media/platform/pxa_camera.c           | 482 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----
+ drivers/staging/media/pulse8-cec/pulse8-cec.c |   2 +-
+ 3 files changed, 460 insertions(+), 26 deletions(-)
