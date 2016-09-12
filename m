@@ -1,72 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54022 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750976AbcIGWYm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 18:24:42 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v3 01/10] v4l: ioctl: Clear the v4l2_pix_format_mplane reserved field
-Date: Thu,  8 Sep 2016 01:25:01 +0300
-Message-Id: <1473287110-780-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mga02.intel.com ([134.134.136.20]:57487 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751092AbcILUO4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Sep 2016 16:14:56 -0400
+Date: Mon, 12 Sep 2016 23:14:50 +0300
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+To: Felipe Balbi <felipe.balbi@linux.intel.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>,
+        linux-renesas-soc@vger.kernel.org, joe@perches.com,
+        kernel-janitors@vger.kernel.org,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+        linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-can@vger.kernel.org,
+        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
+        Shiraz Saleem <shiraz.saleem@intel.com>,
+        Mustafa Ismail <mustafa.ismail@intel.com>,
+        Chien Tin Tung <chien.tin.tung@intel.com>,
+        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
+        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
+        linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
+        linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
+        linux-acpi@vger.kernel.org
+Subject: Re: [PATCH 00/26] constify local structures
+Message-ID: <20160912201450.GA8889@intel.com>
+References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
+ <20160911172105.GB5493@intel.com>
+ <alpine.DEB.2.10.1609121051050.3049@hadrien>
+ <20160912131625.GD957@intel.com>
+ <877fah5j35.fsf@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <877fah5j35.fsf@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The S_FMT and TRY_FMT handlers in multiplane mode attempt at clearing
-the reserved fields of the v4l2_format structure after the pix_mp
-member. However, the reserved fields are inside pix_mp, not after it.
+On Mon, Sep 12, 2016 at 04:43:58PM +0300, Felipe Balbi wrote:
+> 
+> Hi,
+> 
+> Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
+> > On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
+> >> 
+> >> 
+> >> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
+> >> 
+> >> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
+> >> > > Constify local structures.
+> >> > >
+> >> > > The semantic patch that makes this change is as follows:
+> >> > > (http://coccinelle.lip6.fr/)
+> >> >
+> >> > Just my two cents but:
+> >> >
+> >> > 1. You *can* use a static analysis too to find bugs or other issues.
+> >> > 2. However, you should manually do the commits and proper commit
+> >> >    messages to subsystems based on your findings. And I generally think
+> >> >    that if one contributes code one should also at least smoke test changes
+> >> >    somehow.
+> >> >
+> >> > I don't know if I'm alone with my opinion. I just think that one should
+> >> > also do the analysis part and not blindly create and submit patches.
+> >> 
+> >> All of the patches are compile tested.  And the individual patches are
+> >
+> > Compile-testing is not testing. If you are not able to test a commit,
+> > you should explain why.
+> 
+> Dude, Julia has been doing semantic patching for years already and
+> nobody has raised any concerns so far. There's already an expectation
+> that Coccinelle *works* and Julia's sematic patches are sound.
+> 
+> Besides, adding 'const' is something that causes virtually no functional
+> changes to the point that build-testing is really all you need. Any
+> problems caused by adding 'const' to a definition will be seen by build
+> errors or warnings.
+> 
+> Really, just stop with the pointless discussion and go read a bit about
+> Coccinelle and what semantic patches are giving you. The work done by
+> Julia and her peers are INRIA have measurable benefits.
+> 
+> You're really making a thunderstorm in a glass of water.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Tested-by: Kieran Bingham <kieran@bingham.xyz>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Hmm... I've been using coccinelle in cyclic basis for some time now.
+My comment was oversized but I didn't mean it to be impolite or attack
+of any kind for that matter.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index eb6ccc70e9a8..c52d94c018bb 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1504,7 +1504,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_cap_mplane))
- 			break;
--		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-+		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
- 		return ops->vidioc_s_fmt_vid_cap_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_s_fmt_vid_overlay))
-@@ -1532,7 +1532,7 @@ static int v4l_s_fmt(const struct v4l2_ioctl_ops *ops,
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_mplane))
- 			break;
--		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-+		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
- 		return ops->vidioc_s_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_s_fmt_vid_out_overlay))
-@@ -1589,7 +1589,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_try_fmt_vid_cap_mplane))
- 			break;
--		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-+		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
- 		return ops->vidioc_try_fmt_vid_cap_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 		if (unlikely(!is_rx || !is_vid || !ops->vidioc_try_fmt_vid_overlay))
-@@ -1617,7 +1617,7 @@ static int v4l_try_fmt(const struct v4l2_ioctl_ops *ops,
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_try_fmt_vid_out_mplane))
- 			break;
--		CLEAR_AFTER_FIELD(p, fmt.pix_mp);
-+		CLEAR_AFTER_FIELD(p, fmt.pix_mp.xfer_func);
- 		return ops->vidioc_try_fmt_vid_out_mplane(file, fh, arg);
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		if (unlikely(!is_tx || !is_vid || !ops->vidioc_try_fmt_vid_out_overlay))
--- 
-Regards,
+> -- 
+> balbi
 
-Laurent Pinchart
-
+/Jarkko
