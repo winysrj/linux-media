@@ -1,73 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53834 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751948AbcIPJxu (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.134]:61023 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933657AbcILPbc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 05:53:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, william.towle@codethink.co.uk,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 1/2] media: adv7604: fix bindings inconsistency for default-input
-Date: Fri, 16 Sep 2016 12:54:35 +0300
-Message-ID: <1755939.A2nWVFYccr@avalon>
-In-Reply-To: <20160916093942.17213-2-ulrich.hecht+renesas@gmail.com>
-References: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com> <20160916093942.17213-2-ulrich.hecht+renesas@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 12 Sep 2016 11:31:32 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Rob Herring <robh@kernel.org>, Nick Dyer <nick@shmanahar.org>,
+        Hans de Goede <hdegoede@redhat.com>,
+        linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] [media] Input: atmel_mxt: disallow impossible configuration
+Date: Mon, 12 Sep 2016 17:30:32 +0200
+Message-Id: <20160912153105.3035940-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+The newnly added debug mode for the atmel_mxt_ts driver relies on
+the v4l2 interface and vb2_vmalloc, but those might be configured
+as loadable modules when the driver itself is built-in, resulting
+in a link failure:
 
-Thank you for the patch.
+drivers/input/touchscreen/atmel_mxt_ts.o: In function `mxt_vidioc_querycap':
+atmel_mxt_ts.c:(.text.mxt_vidioc_querycap+0x10): undefined reference to `video_devdata'
+drivers/input/touchscreen/atmel_mxt_ts.o: In function `mxt_buffer_queue':
+atmel_mxt_ts.c:(.text.mxt_buffer_queue+0x20): undefined reference to `vb2_plane_vaddr'
+atmel_mxt_ts.c:(.text.mxt_buffer_queue+0x164): undefined reference to `vb2_buffer_done'
+drivers/input/touchscreen/atmel_mxt_ts.o: In function `mxt_free_object_table':
+atmel_mxt_ts.c:(.text.mxt_free_object_table+0x18): undefined reference to `video_unregister_device'
+atmel_mxt_ts.c:(.text.mxt_free_object_table+0x20): undefined reference to `v4l2_device_unregister'
 
-On Friday 16 Sep 2016 11:39:41 Ulrich Hecht wrote:
-> The text states that default-input is an endpoint property, but in the
-> example it is a device property.  The example makes more sense.
+The best workaround I could come up with is to disallow the debug
+mode unless it's actually possible to call it.
 
-You should explain why it makes more sense. Something along the lines of
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: ecfdd7e2660e ("[media] Input: atmel_mxt_ts - output diagnostic debug via V4L2 device")
+---
+ drivers/input/touchscreen/Kconfig | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-"The example makes more sense as the default input is a property of the chip, 
-not of a particular port."
-
-With that changed,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/adv7604.txt | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> b/Documentation/devicetree/bindings/media/i2c/adv7604.txt index
-> 8337f75..9cbd92e 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-> @@ -34,6 +34,7 @@ The digital output port node must contain at least one
-> endpoint. Optional Properties:
-> 
->    - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-> +  - default-input: Select which input is selected after reset.
-> 
->  Optional Endpoint Properties:
-> 
-> @@ -47,8 +48,6 @@ Optional Endpoint Properties:
->    If none of hsync-active, vsync-active and pclk-sample is specified the
->    endpoint will use embedded BT.656 synchronization.
-> 
-> -  - default-input: Select which input is selected after reset.
-> -
->  Example:
-> 
->  	hdmi_receiver@4c {
-
+diff --git a/drivers/input/touchscreen/Kconfig b/drivers/input/touchscreen/Kconfig
+index fce1e41ffe8b..ccf933969587 100644
+--- a/drivers/input/touchscreen/Kconfig
++++ b/drivers/input/touchscreen/Kconfig
+@@ -117,7 +117,8 @@ config TOUCHSCREEN_ATMEL_MXT
+ 
+ config TOUCHSCREEN_ATMEL_MXT_T37
+ 	bool "Support T37 Diagnostic Data"
+-	depends on TOUCHSCREEN_ATMEL_MXT && VIDEO_V4L2
++	depends on TOUCHSCREEN_ATMEL_MXT
++	depends on VIDEO_V4L2=y || (TOUCHSCREEN_ATMEL_MXT=m && VIDEO_V4L2=m)
+ 	select VIDEOBUF2_VMALLOC
+ 	help
+ 	  Say Y here if you want support to output data from the T37
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.0
 
