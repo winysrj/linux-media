@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:48966 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753945AbcIPIbv (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.75]:49348 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932628AbcILPdy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 04:31:51 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] hva: fix sparse warnings
-Message-ID: <ec9c9c05-ac4b-29f3-8c14-c8dde291ff39@xs4all.nl>
-Date: Fri, 16 Sep 2016 10:31:45 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Mon, 12 Sep 2016 11:33:54 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] [media] atmel-isc: mark PM functions as __maybe_unused
+Date: Mon, 12 Sep 2016 17:32:58 +0200
+Message-Id: <20160912153322.3098750-2-arnd@arndb.de>
+In-Reply-To: <20160912153322.3098750-1-arnd@arndb.de>
+References: <20160912153322.3098750-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/sti/hva/hva-v4l2.c:43:22: warning: symbol 'hva_encoders' was not declared. Should it be static?
-drivers/media/platform/sti/hva/hva-v4l2.c:1401:24: warning: symbol 'hva_driver' was not declared. Should it be static?
+The newly added atmel-isc driver uses SET_RUNTIME_PM_OPS() to
+refer to its suspend/resume functions, causing a warning when
+CONFIG_PM is not set:
 
-Make these static.
+media/platform/atmel/atmel-isc.c:1477:12: error: 'isc_runtime_resume' defined but not used [-Werror=unused-function]
+media/platform/atmel/atmel-isc.c:1467:12: error: 'isc_runtime_suspend' defined but not used [-Werror=unused-function]
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This adds __maybe_unused annotations to avoid the warning without
+adding an error-prone #ifdef around it.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/platform/sti/hva/hva-v4l2.c | 4 ++--
+ drivers/media/platform/atmel/atmel-isc.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
-index 1696e02..6bf3c858 100644
---- a/drivers/media/platform/sti/hva/hva-v4l2.c
-+++ b/drivers/media/platform/sti/hva/hva-v4l2.c
-@@ -40,7 +40,7 @@
- #define fh_to_ctx(f)    (container_of(f, struct hva_ctx, fh))
-
- /* registry of available encoders */
--const struct hva_enc *hva_encoders[] = {
-+static const struct hva_enc *hva_encoders[] = {
- 	&nv12h264enc,
- 	&nv21h264enc,
- };
-@@ -1398,7 +1398,7 @@ static const struct of_device_id hva_match_types[] = {
-
- MODULE_DEVICE_TABLE(of, hva_match_types);
-
--struct platform_driver hva_driver = {
-+static struct platform_driver hva_driver = {
- 	.probe  = hva_probe,
- 	.remove = hva_remove,
- 	.driver = {
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index db6773de92f0..a9ab7ae89f04 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1464,7 +1464,7 @@ static int atmel_isc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int isc_runtime_suspend(struct device *dev)
++static int __maybe_unused isc_runtime_suspend(struct device *dev)
+ {
+ 	struct isc_device *isc = dev_get_drvdata(dev);
+ 
+@@ -1474,7 +1474,7 @@ static int isc_runtime_suspend(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int isc_runtime_resume(struct device *dev)
++static int __maybe_unused isc_runtime_resume(struct device *dev)
+ {
+ 	struct isc_device *isc = dev_get_drvdata(dev);
+ 	int ret;
 -- 
-2.8.1
-
+2.9.0
 
