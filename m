@@ -1,47 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:34341 "EHLO
-        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753235AbcIXEeD (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:4847 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751962AbcILQB3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Sep 2016 00:34:03 -0400
-Received: by mail-pf0-f174.google.com with SMTP id p64so48184135pfb.1
-        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2016 21:34:03 -0700 (PDT)
-From: Baoyou Xie <baoyou.xie@linaro.org>
-To: sumit.semwal@linaro.org
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-        arnd@arndb.de, baoyou.xie@linaro.org, xie.baoyou@zte.com.cn
-Subject: [PATCH] dma-buf/sw_sync: mark sync_timeline_create() static
-Date: Sat, 24 Sep 2016 12:33:46 +0800
-Message-Id: <1474691626-7037-1-git-send-email-baoyou.xie@linaro.org>
+        Mon, 12 Sep 2016 12:01:29 -0400
+From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 0/2] add debug capabilities to v4l2 encoder for STMicroelectronics SOC
+Date: Mon, 12 Sep 2016 18:01:13 +0200
+Message-ID: <1473696075-9190-1-git-send-email-jean-christophe.trotin@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We get 1 warning when building kernel with W=1:
-drivers/dma-buf/sw_sync.c:87:23: warning: no previous prototype for 'sync_timeline_create' [-Wmissing-prototypes]
+version 1:
+- Initial submission
 
-In fact, this function is only used in the file in which it is
-declared and don't need a declaration, but can be made static.
-So this patch marks it 'static'.
+With the first patch, a short summary about the encoding operation is
+unconditionnaly printed at each instance closing:
+- information about the stream (format, profile, level, resolution)
+- performance information (number of encoded frames, maximum framerate)
+- potential (system, encoding...) errors
 
-Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
----
- drivers/dma-buf/sw_sync.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+With the second patch, 4 static debugfs entries are created to dump:
+- the device-related information ("st-hva/device")
+- the list of registered encoders ("st-hva/encoders")
+- the current values of the hva registers ("st-hva/regs")
+- the information about the last closed instance ("st-hva/last")
 
-diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-index 62e8e6d..6f16c85 100644
---- a/drivers/dma-buf/sw_sync.c
-+++ b/drivers/dma-buf/sw_sync.c
-@@ -84,7 +84,7 @@ static inline struct sync_pt *fence_to_sync_pt(struct fence *fence)
-  * Creates a new sync_timeline. Returns the sync_timeline object or NULL in
-  * case of error.
-  */
--struct sync_timeline *sync_timeline_create(const char *name)
-+static struct sync_timeline *sync_timeline_create(const char *name)
- {
- 	struct sync_timeline *obj;
- 
+Moreover, a debugfs entry is dynamically created for each opened instance,
+("st-hva/<instance identifier>") to dump:
+- the information about the stream (profile, level, resolution,
+  alignment...)
+- the control parameters (bitrate mode, framerate, GOP size...)
+- the potential (system, encoding...) errors
+- the performance information about the encoding (HW processing
+  duration, average bitrate, average framerate...)
+Each time a running instance is closed, its context (including the debug
+information) is saved to feed, on demand, the last closed instance debugfs
+entry.
+
+These debug capabilities are mainly implemented in the hva-debug.c file.
+
+Jean-Christophe Trotin (2):
+  st-hva: encoding summary at instance release
+  st-hva: add debug file system
+
+ drivers/media/platform/sti/hva/Makefile    |   2 +-
+ drivers/media/platform/sti/hva/hva-debug.c | 487 +++++++++++++++++++++++++++++
+ drivers/media/platform/sti/hva/hva-h264.c  |   6 +
+ drivers/media/platform/sti/hva/hva-hw.c    |  44 +++
+ drivers/media/platform/sti/hva/hva-hw.h    |   1 +
+ drivers/media/platform/sti/hva/hva-mem.c   |   5 +-
+ drivers/media/platform/sti/hva/hva-v4l2.c  |  41 ++-
+ drivers/media/platform/sti/hva/hva.h       |  85 ++++-
+ 8 files changed, 656 insertions(+), 15 deletions(-)
+ create mode 100644 drivers/media/platform/sti/hva/hva-debug.c
+
 -- 
-2.7.4
+1.9.1
 
