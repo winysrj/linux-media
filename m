@@ -1,207 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:9959 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751449AbcITOeP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Sep 2016 10:34:15 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 0/9] Add support for DELTA video decoder of STMicroelectronics STiH4xx SoC series
-Date: Tue, 20 Sep 2016 16:33:31 +0200
-Message-ID: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51316 "EHLO comal.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755611AbcILS52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Sep 2016 14:57:28 -0400
+Date: Mon, 12 Sep 2016 13:57:09 -0500
+From: Bin Liu <b-liu@ti.com>
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+CC: Alan Stern <stern@rowland.harvard.edu>, <hdegoede@redhat.com>,
+        <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: musb: isoc pkt loss with pwc
+Message-ID: <20160912185709.GL18340@uda0271908>
+References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
+ <20160830183039.GA20056@uda0271908>
+ <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
+ <20160912032826.GB18340@uda0271908>
+ <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset introduces a basic support for DELTA multi-format video decoder
-of STMicroelectronics STiH4xx SoC series.
+Hi,
 
-DELTA hardware IP is controlled by a remote firmware loaded in a ST231
-coprocessor. Communication with firmware is done within an IPC layer
-using rpmsg kernel framework and a shared memory for messages handling.
-This driver is compatible with firmware version 21.1-0.
-While a single firmware is loaded in ST231 coprocessor, it is composed
-of several firmwares, one per video format family.
+On Mon, Sep 12, 2016 at 11:52:46AM +0300, Matwey V. Kornilov wrote:
+> 2016-09-12 6:28 GMT+03:00 Bin Liu <b-liu@ti.com>:
+> > Hi,
+> >
+> > On Tue, Aug 30, 2016 at 11:44:33PM +0300, Matwey V. Kornilov wrote:
+> >> 2016-08-30 21:30 GMT+03:00 Bin Liu <b-liu@ti.com>:
+> >> > Hi,
+> >> >
+> >> > On Sun, Aug 28, 2016 at 01:13:55PM +0300, Matwey V. Kornilov wrote:
+> >> >> Hello Bin,
+> >> >>
+> >> >> I would like to start new thread on my issue. Let me recall where the issue is:
+> >> >> There is 100% frame lost in pwc webcam driver due to lots of
+> >> >> zero-length packages coming from musb driver.
+> >> >
+> >> > What is the video resolution and fps?
+> >>
+> >> 640x480 YUV420 10 frames per second.
+> >> pwc uses proprietary compression during device-host transmission, but
+> >> I don't know how effective it is.
+> >
+> > The data rate for VGA YUV420 @10fps is 640x480*1.5*10 = 4.6MB/s, which
+> > is much higher than full-speed 12Mbps.  So the video data on the bus is
+> > compressed, not YUV420, I believe.
+> >
+> >>
+> >> >
+> >> >> The issue is present in all kernels (including 4.8) starting from the commit:
+> >> >>
+> >> >> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
+> >> >> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
+> >> >
+> >> > What is the behavior without this commit?
+> >>
+> >> Without this commit all frames are being received correctly. Single
+> >
+> > Which means without this commit your camera has been working without
+> > issues, and this is a regression with this commit, right?
+> >
+> 
+> Right
 
-This DELTA V4L2 driver is designed around files:
-  - delta-v4l2.c   : handles V4L2 APIs using M2M framework and calls decoder ops
-  - delta-<codec>* : implements <codec> decoder calling its associated
-                     video firmware (for ex. MJPEG) using IPC layer
-  - delta-ipc.c    : IPC layer which handles communication with firmware using rpmsg
+Okay, thanks for confirming.
 
-This first basic support implements only MJPEG hardware acceleration but
-the driver structure is in place to support all the features of the
-DELTA video decoder hardware IP.
+But we cannot just simply add this flag, as it breaks many other use
+cases. I will continue work on this to find a solution which works on
+all use cases.
 
-This driver depends on:
-  - ST remoteproc/rpmsg: patchset posted at https://lkml.org/lkml/2016/9/6/77
-  - ST DELTA firmware: its license is under review. When available,
-    pull request will be done on linux-firmware.
-
-===========
-= history =
-===========
-version 1:
-  - Initial submission
-
-===================
-= v4l2-compliance =
-===================
-Below is the v4l2-compliance report for the version 1 of the DELTA video
-decoder driver. v4l2-compliance has been build from SHA1:
-600492351ddf40cc524aab73802153674d7d287b (libdvb5: Fix multiple definition of dvb_dev_remote_init linking error)
-
-root@sti-next:~# v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : 600492351ddf40cc524aab73802153674d7d287b
-
-Driver Info:
-	Driver name   : st-delta
-	Card type     : st-delta-21.1-0
-	Bus info      : platform:soc:delta0
-	Driver version: 4.8.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK
-		test Composing: OK
-		test Scaling: OK
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 6
-
-
-
-Hugues Fruchet (9):
-  Documentation: DT: add bindings for ST DELTA
-  ARM: dts: STiH410: add DELTA dt node
-  [media] MAINTAINERS: add st-delta driver
-  [media] st-delta: STiH4xx multi-format video decoder v4l2 driver
-  [media] st-delta: add contiguous memory allocator
-  [media] st-delta: rpmsg ipc support
-  [media] st-delta: EOS (End Of Stream) support
-  [media] st-delta: add mjpeg support
-  [media] st-delta: debug: trace stream/frame information & summary
-
- .../devicetree/bindings/media/st,st-delta.txt      |   17 +
- MAINTAINERS                                        |    8 +
- arch/arm/boot/dts/stih410.dtsi                     |    8 +
- drivers/media/platform/Kconfig                     |   27 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/sti/delta/Makefile          |    6 +
- drivers/media/platform/sti/delta/delta-cfg.h       |   62 +
- drivers/media/platform/sti/delta/delta-debug.c     |  164 ++
- drivers/media/platform/sti/delta/delta-debug.h     |   18 +
- drivers/media/platform/sti/delta/delta-ipc.c       |  588 ++++++
- drivers/media/platform/sti/delta/delta-ipc.h       |   76 +
- drivers/media/platform/sti/delta/delta-mem.c       |   51 +
- drivers/media/platform/sti/delta/delta-mem.h       |   14 +
- drivers/media/platform/sti/delta/delta-mjpeg-dec.c |  439 ++++
- drivers/media/platform/sti/delta/delta-mjpeg-fw.h  |  223 +++
- drivers/media/platform/sti/delta/delta-mjpeg-hdr.c |  150 ++
- drivers/media/platform/sti/delta/delta-mjpeg.h     |   61 +
- drivers/media/platform/sti/delta/delta-v4l2.c      | 2118 ++++++++++++++++++++
- drivers/media/platform/sti/delta/delta.h           |  550 +++++
- 19 files changed, 4582 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
- create mode 100644 drivers/media/platform/sti/delta/Makefile
- create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
- create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
- create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
- create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
- create mode 100644 drivers/media/platform/sti/delta/delta.h
-
--- 
-1.9.1
-
+Regards,
+-Bin.
