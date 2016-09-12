@@ -1,121 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43969 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941754AbcIHME0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 36/47] [media] docs-rst: fix cec bad cross-references
-Date: Thu,  8 Sep 2016 09:03:58 -0300
-Message-Id: <dadad27d19602965ca662c2c16d32bb891365820.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:34973 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751044AbcILTjC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Sep 2016 15:39:02 -0400
+MIME-Version: 1.0
+In-Reply-To: <20160912185709.GL18340@uda0271908>
+References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
+ <20160830183039.GA20056@uda0271908> <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
+ <20160912032826.GB18340@uda0271908> <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
+ <20160912185709.GL18340@uda0271908>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Mon, 12 Sep 2016 22:38:40 +0300
+Message-ID: <CAJs94EaNwOiqTASzr2LQDWeCHnzoQQWndDsSg75YUuHLQhcuUw@mail.gmail.com>
+Subject: Re: musb: isoc pkt loss with pwc
+To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Alan Stern <stern@rowland.harvard.edu>, hdegoede@redhat.com,
+        linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix some CEC cross references that are broken.
+2016-09-12 21:57 GMT+03:00 Bin Liu <b-liu@ti.com>:
+> Hi,
+>
+> On Mon, Sep 12, 2016 at 11:52:46AM +0300, Matwey V. Kornilov wrote:
+>> 2016-09-12 6:28 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>> > Hi,
+>> >
+>> > On Tue, Aug 30, 2016 at 11:44:33PM +0300, Matwey V. Kornilov wrote:
+>> >> 2016-08-30 21:30 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>> >> > Hi,
+>> >> >
+>> >> > On Sun, Aug 28, 2016 at 01:13:55PM +0300, Matwey V. Kornilov wrote:
+>> >> >> Hello Bin,
+>> >> >>
+>> >> >> I would like to start new thread on my issue. Let me recall where the issue is:
+>> >> >> There is 100% frame lost in pwc webcam driver due to lots of
+>> >> >> zero-length packages coming from musb driver.
+>> >> >
+>> >> > What is the video resolution and fps?
+>> >>
+>> >> 640x480 YUV420 10 frames per second.
+>> >> pwc uses proprietary compression during device-host transmission, but
+>> >> I don't know how effective it is.
+>> >
+>> > The data rate for VGA YUV420 @10fps is 640x480*1.5*10 = 4.6MB/s, which
+>> > is much higher than full-speed 12Mbps.  So the video data on the bus is
+>> > compressed, not YUV420, I believe.
+>> >
+>> >>
+>> >> >
+>> >> >> The issue is present in all kernels (including 4.8) starting from the commit:
+>> >> >>
+>> >> >> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
+>> >> >> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
+>> >> >
+>> >> > What is the behavior without this commit?
+>> >>
+>> >> Without this commit all frames are being received correctly. Single
+>> >
+>> > Which means without this commit your camera has been working without
+>> > issues, and this is a regression with this commit, right?
+>> >
+>>
+>> Right
+>
+> Okay, thanks for confirming.
+>
+> But we cannot just simply add this flag, as it breaks many other use
+> cases. I will continue work on this to find a solution which works on
+> all use cases.
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/cec.h.rst.exceptions                  |  6 ------
- Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 10 +++++-----
- Documentation/media/uapi/cec/cec-ioc-receive.rst          |  9 +++++----
- 3 files changed, 10 insertions(+), 15 deletions(-)
+Ok, thank you.
 
-diff --git a/Documentation/media/cec.h.rst.exceptions b/Documentation/media/cec.h.rst.exceptions
-index b79339433718..b1687532742f 100644
---- a/Documentation/media/cec.h.rst.exceptions
-+++ b/Documentation/media/cec.h.rst.exceptions
-@@ -1,12 +1,6 @@
- # Ignore header name
- ignore define _CEC_UAPI_H
- 
--# Rename some symbols, to avoid namespace conflicts
--replace struct cec_event_state_change cec-event-state-change_s
--replace struct cec_event_lost_msgs cec-event-lost-msgs_s
--replace enum cec_mode_initiator cec-mode-initiator_e
--replace enum cec_mode_follower cec-mode-follower_e
--
- # define macros to ignore
- 
- ignore define CEC_MAX_MSG_SIZE
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-index bd0756ff022e..6c314c2db73e 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-@@ -30,7 +30,7 @@ Arguments
-     File descriptor returned by :c:func:`open() <cec-open>`.
- 
- ``argp``
--    Pointer to struct cec_log_addrs
-+    Pointer to struct :c:type:`cec_log_addrs`.
- 
- Description
- ===========
-@@ -42,10 +42,10 @@ Description
- 
- To query the current CEC logical addresses, applications call
- :ref:`ioctl CEC_ADAP_G_LOG_ADDRS <CEC_ADAP_G_LOG_ADDRS>` with a pointer to a
--:c:type:`struct cec_log_addrs` where the driver stores the logical addresses.
-+struct :c:type:`cec_log_addrs` where the driver stores the logical addresses.
- 
- To set new logical addresses, applications fill in
--:c:type:`struct cec_log_addrs` and call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
-+struct :c:type:`cec_log_addrs` and call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
- with a pointer to this struct. The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
- is only available if ``CEC_CAP_LOG_ADDRS`` is set (the ``ENOTTY`` error code is
- returned otherwise). The :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>`
-@@ -66,10 +66,10 @@ logical addresses are claimed or cleared.
- Attempting to call :ref:`ioctl CEC_ADAP_S_LOG_ADDRS <CEC_ADAP_S_LOG_ADDRS>` when
- logical address types are already defined will return with error ``EBUSY``.
- 
--.. tabularcolumns:: |p{1.0cm}|p{7.5cm}|p{8.0cm}|
--
- .. c:type:: cec_log_addrs
- 
-+.. tabularcolumns:: |p{1.0cm}|p{7.5cm}|p{8.0cm}|
-+
- .. cssclass:: longtable
- 
- .. flat-table:: struct cec_log_addrs
-diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-index f015f1259b27..18620f81b7d9 100644
---- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-@@ -40,7 +40,8 @@ Description
-    and is currently only available as a staging kernel module.
- 
- To receive a CEC message the application has to fill in the
--``timeout`` field of :c:type:`struct cec_msg` and pass it to :ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
-+``timeout`` field of struct :c:type:`cec_msg` and pass it to
-+:ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
- If the file descriptor is in non-blocking mode and there are no received
- messages pending, then it will return -1 and set errno to the ``EAGAIN``
- error code. If the file descriptor is in blocking mode and ``timeout``
-@@ -54,9 +55,9 @@ A received message can be:
- 2. the result of an earlier non-blocking transmit (the ``sequence`` field will
-    be non-zero).
- 
--To send a CEC message the application has to fill in the
--:c:type:`struct cec_msg` and pass it to
--:ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`. The :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is only available if
-+To send a CEC message the application has to fill in the struct
-+:c:type:` cec_msg` and pass it to :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`.
-+The :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is only available if
- ``CEC_CAP_TRANSMIT`` is set. If there is no more room in the transmit
- queue, then it will return -1 and set errno to the ``EBUSY`` error code.
- The transmit queue has enough room for 18 messages (about 1 second worth
+> Regards,
+> -Bin.
+>
+
+
+
 -- 
-2.7.4
-
-
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
