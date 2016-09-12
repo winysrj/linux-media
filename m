@@ -1,125 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47983 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752480AbcIKDUS (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:65275 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754932AbcILIrs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Sep 2016 23:20:18 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 2A76A1800F1
-        for <linux-media@vger.kernel.org>; Sun, 11 Sep 2016 05:20:12 +0200 (CEST)
-Date: Sun, 11 Sep 2016 05:20:12 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160911032012.2A76A1800F1@tschai.lan>
+        Mon, 12 Sep 2016 04:47:48 -0400
+From: Vincent Abriou <vincent.abriou@st.com>
+To: <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Vincent Abriou <vincent.abriou@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v2] [media] vivid: support for contiguous DMA buffers
+Date: Mon, 12 Sep 2016 10:47:27 +0200
+Message-ID: <1473670047-24670-1-git-send-email-vincent.abriou@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+It allows to simulate the behavior of hardware with such limitations or
+to connect vivid to real hardware with such limitations.
 
-Results of the daily build of media_tree:
+Add the "allocators" module parameter option to let vivid use the
+dma-contig instead of vmalloc.
 
-date:		Sun Sep 11 04:00:14 CEST 2016
-git branch:	test
-git hash:	8a5a2ba86ab8fc12267fea974b9cd730ad2dee24
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: OK
-linux-git-i686: ERRORS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for arm-pxa
-smatch: WARNINGS
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/v4l-drivers/vivid.rst |  8 ++++++++
+ drivers/media/platform/vivid/Kconfig      |  2 ++
+ drivers/media/platform/vivid/vivid-core.c | 32 ++++++++++++++++++++++++++-----
+ 3 files changed, 37 insertions(+), 5 deletions(-)
 
-Detailed results are available here:
+diff --git a/Documentation/media/v4l-drivers/vivid.rst b/Documentation/media/v4l-drivers/vivid.rst
+index c8cf371..3e44b22 100644
+--- a/Documentation/media/v4l-drivers/vivid.rst
++++ b/Documentation/media/v4l-drivers/vivid.rst
+@@ -263,6 +263,14 @@ all configurable using the following module options:
+ 	removed. Unless overridden by ccs_cap_mode and/or ccs_out_mode the
+ 	will default to enabling crop, compose and scaling.
+ 
++- allocators:
++
++	memory allocator selection, default is 0. It specifies the way buffers
++	will be allocated.
++
++		- 0: vmalloc
++		- 1: dma-contig
++
+ Taken together, all these module options allow you to precisely customize
+ the driver behavior and test your application with all sorts of permutations.
+ It is also very suitable to emulate hardware that is not yet available, e.g.
+diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+index 8e6918c..2e238a1 100644
+--- a/drivers/media/platform/vivid/Kconfig
++++ b/drivers/media/platform/vivid/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_VIVID
+ 	tristate "Virtual Video Test Driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64 && FB
++	depends on HAS_DMA
+ 	select FONT_SUPPORT
+ 	select FONT_8x16
+ 	select FB_CFB_FILLRECT
+@@ -8,6 +9,7 @@ config VIDEO_VIVID
+ 	select FB_CFB_IMAGEBLIT
+ 	select MEDIA_CEC_EDID
+ 	select VIDEOBUF2_VMALLOC
++	select VIDEOBUF2_DMA_CONTIG
+ 	select VIDEO_V4L2_TPG
+ 	default n
+ 	---help---
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 741460a..02e1909 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -30,6 +30,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <media/videobuf2-vmalloc.h>
++#include <media/videobuf2-dma-contig.h>
+ #include <media/v4l2-dv-timings.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-fh.h>
+@@ -151,6 +152,12 @@ static bool no_error_inj;
+ module_param(no_error_inj, bool, 0444);
+ MODULE_PARM_DESC(no_error_inj, " if set disable the error injecting controls");
+ 
++static unsigned int allocators[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 0 };
++module_param_array(allocators, uint, NULL, 0444);
++MODULE_PARM_DESC(allocators, " memory allocator selection, default is 0.\n"
++			     "\t\t    0 == vmalloc\n"
++			     "\t\t    1 == dma-contig");
++
+ static struct vivid_dev *vivid_devs[VIVID_MAX_DEVS];
+ 
+ const struct v4l2_rect vivid_min_rect = {
+@@ -636,6 +643,10 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ {
+ 	static const struct v4l2_dv_timings def_dv_timings =
+ 					V4L2_DV_BT_CEA_1280X720P60;
++	static const struct vb2_mem_ops * const vivid_mem_ops[2] = {
++		&vb2_vmalloc_memops,
++		&vb2_dma_contig_memops,
++	};
+ 	unsigned in_type_counter[4] = { 0, 0, 0, 0 };
+ 	unsigned out_type_counter[4] = { 0, 0, 0, 0 };
+ 	int ccs_cap = ccs_cap_mode[inst];
+@@ -646,6 +657,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 	struct video_device *vfd;
+ 	struct vb2_queue *q;
+ 	unsigned node_type = node_types[inst];
++	unsigned int allocator = allocators[inst];
+ 	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
+ 	int ret;
+ 	int i;
+@@ -1036,6 +1048,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 	if (!dev->cec_workqueue)
+ 		goto unreg_dev;
+ 
++	if (allocator == 1)
++		dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
++	else if (allocator >= ARRAY_SIZE(vivid_mem_ops))
++		allocator = 0;
++
+ 	/* start creating the vb2 queues */
+ 	if (dev->has_vid_cap) {
+ 		/* initialize vid_cap queue */
+@@ -1046,10 +1063,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_cap_qops;
+-		q->mem_ops = &vb2_vmalloc_memops;
++		q->mem_ops = vivid_mem_ops[allocator];
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
++		q->dev = dev->v4l2_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1065,10 +1083,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vid_out_qops;
+-		q->mem_ops = &vb2_vmalloc_memops;
++		q->mem_ops = vivid_mem_ops[allocator];
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
++		q->dev = dev->v4l2_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1084,10 +1103,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_cap_qops;
+-		q->mem_ops = &vb2_vmalloc_memops;
++		q->mem_ops = vivid_mem_ops[allocator];
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
++		q->dev = dev->v4l2_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1103,10 +1123,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_vbi_out_qops;
+-		q->mem_ops = &vb2_vmalloc_memops;
++		q->mem_ops = vivid_mem_ops[allocator];
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 2;
+ 		q->lock = &dev->mutex;
++		q->dev = dev->v4l2_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+@@ -1121,10 +1142,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 		q->drv_priv = dev;
+ 		q->buf_struct_size = sizeof(struct vivid_buffer);
+ 		q->ops = &vivid_sdr_cap_qops;
+-		q->mem_ops = &vb2_vmalloc_memops;
++		q->mem_ops = vivid_mem_ops[allocator];
+ 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 		q->min_buffers_needed = 8;
+ 		q->lock = &dev->mutex;
++		q->dev = dev->v4l2_dev.dev;
+ 
+ 		ret = vb2_queue_init(q);
+ 		if (ret)
+-- 
+1.9.1
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
