@@ -1,204 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:33812 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753364AbcIVWEC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 18:04:02 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: kernel-lintdoc parser - was: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the c-domain
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160922093516.3f28323e@vento.lan>
-Date: Fri, 23 Sep 2016 00:03:24 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <1CE8CC90-FB0E-459D-A0FA-500CF6E6CD81@darmarit.de>
-References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de> <20160909090832.35c2d982@vento.lan> <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de> <1089B8C0-6296-4CC4-84B9-A1F62FA565AD@darmarit.de> <20160919120030.4e390e9a@vento.lan> <35B447A7-6C12-4560-8D06-110B8B33CB56@darmarit.de> <20160922090850.56e3ebb1@vento.lan> <20160922093516.3f28323e@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:59577 "EHLO
+        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755530AbcILD2p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Sep 2016 23:28:45 -0400
+Date: Sun, 11 Sep 2016 22:28:26 -0500
+From: Bin Liu <b-liu@ti.com>
+To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+CC: Alan Stern <stern@rowland.harvard.edu>, <hdegoede@redhat.com>,
+        <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: musb: isoc pkt loss with pwc
+Message-ID: <20160912032826.GB18340@uda0271908>
+References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
+ <20160830183039.GA20056@uda0271908>
+ <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-thanks a lot for your tests and inspirations ...
-
-Am 22.09.2016 um 14:35 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
-
-> Hi Markus,
+On Tue, Aug 30, 2016 at 11:44:33PM +0300, Matwey V. Kornilov wrote:
+> 2016-08-30 21:30 GMT+03:00 Bin Liu <b-liu@ti.com>:
+> > Hi,
+> >
+> > On Sun, Aug 28, 2016 at 01:13:55PM +0300, Matwey V. Kornilov wrote:
+> >> Hello Bin,
+> >>
+> >> I would like to start new thread on my issue. Let me recall where the issue is:
+> >> There is 100% frame lost in pwc webcam driver due to lots of
+> >> zero-length packages coming from musb driver.
+> >
+> > What is the video resolution and fps?
 > 
-> Em Thu, 22 Sep 2016 09:08:50 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
-> 
->> Em Tue, 20 Sep 2016 20:56:35 +0200
->> Markus Heiser <markus.heiser@darmarit.de> escreveu:
->> 
-> 
->> The new parser seems to have some bugs, like those:
->> 
->> $ kernel-lintdoc include/media/v4l2-ctrls.h
->> include/media/v4l2-ctrls.h:106 :WARN: typedef of function pointer not marked as typdef, use: 'typedef v4l2_ctrl_notify_fnc' in the comment.
->> ...
->> include/media/v4l2-ctrls.h:605 :WARN: typedef of function pointer not marked as typdef, use: 'typedef v4l2_ctrl_filter' in the comment.
->> ...
->> include/media/v4l2-ctrls.h:809 [kernel-doc WARN] : can't understand function proto: 'const char * const *v4l2_ctrl_get_menu(u32 id);'
->> ...
-> 
-> I ran the kernel-lintdoc with:
-> 	for i in $(git grep kernel-doc Documentation/media/kapi/|cut -d: -f4); do kernel-lintdoc --sloppy $i; done
-> 
-> and I have a few comments:
-> 
-> 1) instead of printing the full patch, it would be good to print the
-> relative patch, as this makes easier to paste the errors on e-mails
-> and on patches.
+> 640x480 YUV420 10 frames per second.
+> pwc uses proprietary compression during device-host transmission, but
+> I don't know how effective it is.
 
-relative patch? ... I think you mean relative path, if so: 
-
-I can add an option like "--abspath", not a big deal
-but whats about calling the lint with $(pwd)/$i ::
-
- for i in $(git grep kernel-doc Documentation/media/kapi/|cut -d: -f4); do kernel-lintdoc --sloppy $(pwd)/$i; done
-
-.. fits this solution to your use-case?
-
-
-> 2) Parsing of embedded structs/unions
-> 
-> On some headers like dvb_frontend.h, we have unamed structs and enums
-> inside structs:
-> 
-> struct dtv_frontend_properties {
-> ...
-> 	struct {
-> 	    u8			segment_count;
-> 	    enum fe_code_rate	fec;
-> 	    enum fe_modulation	modulation;
-> 	    u8			interleaving;
-> 	} layer[3];
-> ...
-> };
-> 
-> The fields of the embedded struct are described as:
-> 
-> * @layer:		ISDB per-layer data (only ISDB standard)
-> * @layer.segment_count: Segment Count;
-> * @layer.fec:		per layer code rate;
-> * @layer.modulation:	per layer modulation;
-> * @layer.interleaving:	 per layer interleaving.
-> 
-> kernel-lintdoc didn't like that:
-> 
-> 	drivers/media/dvb-core/dvb_frontend.h:513 :ERROR: duplicate parameter definition 'layer'
-> 	drivers/media/dvb-core/dvb_frontend.h:514 :ERROR: duplicate parameter definition 'layer'
-> 	drivers/media/dvb-core/dvb_frontend.h:515 :ERROR: duplicate parameter definition 'layer'
-> 	drivers/media/dvb-core/dvb_frontend.h:516 :ERROR: duplicate parameter definition 'layer'
-
-Hah .. fixed this yesterday ;-)
-
-  https://github.com/return42/linuxdoc/commit/531df6dd7728393f447b1a4b3215b96687d02ba2
-
-I analyzed this yesterday and haven't had time to report it,
-so I will do it now:
-
-   This is also broken in the kernel-doc (perl) parser
-   .. are you able to fix it? 
-
-I can give it I try, but I have no extensive test case for the
-perl version and perl is a bid harder for me. So sometimes I'am
-a bit scary about patching the kernel-doc perl script.
-(as I said before, for the py version I test against the
-whole source and compare/versionize the resulted reST)
-
-What I tested:
-
-  ./scripts/kernel-doc -rst -function dtv_frontend_properties drivers/media/dvb-core/dvb_frontend.h
-
-for "layer" it outputs:
-
-    ``layer[3]``
-      per layer interleaving.
-
-Read my commit message above .. the description block is taken
-from " @layer.interleaving:" instead from "@layer:".
-
-
-> 2) it complains about function typedefs:
-> 
-> 	drivers/media/dvb-core/demux.h:251 :WARN: typedef of function pointer not marked as typdef, use: 'typedef dmx_ts_cb' in the comment.
-> 	drivers/media/dvb-core/demux.h:292 :WARN: typedef of function pointer not marked as typdef, use: 'typedef dmx_section_cb' in the comment.
-> 	include/media/v4l2-ioctl.h:677 :WARN: typedef of function pointer not marked as typdef, use: 'typedef v4l2_kioctl' in the comment.
-> 	include/media/v4l2-ctrls.h:106 :WARN: typedef of function pointer not marked as typdef, use: 'typedef v4l2_ctrl_notify_fnc' in the comment.
-> 	include/media/v4l2-ctrls.h:606 :WARN: typedef of function pointer not marked as typdef, use: 'typedef v4l2_ctrl_filter' in the comment.
-> 	include/media/v4l2-dv-timings.h:39 :WARN: typedef of function pointer not marked as typdef, use: 'typedef v4l2_check_dv_timings_fnc' in the comment.
-> 	include/media/v4l2-dv-timings.h:39 :WARN: typedef of function pointer used uncommon code style: 'typedef bool v4l2_check_dv_timings_fnc(const struct v4l2_dv_timings *t, void *handle);'
-> 	include/media/videobuf2-core.h:877 :WARN: typedef of function pointer not marked as typdef, use: 'typedef vb2_thread_fnc' in the comment.
-
-Thanks for reporting this ... fixed it:
-
-https://github.com/return42/linuxdoc/commit/9228f2128dba967519fd8f2cdeb2c2202caad84d
-
-> 3) this is actually a more complex problem: how to represent returned values
-> from the function callbacks. Maybe we'll need to patch kernel-doc. Right now,
-> it complains with:
-> 
-> 	drivers/media/dvb-core/demux.h:397 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:415 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:431 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:444 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:462 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:475 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:491 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:507 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:534 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:542 :WARN: duplicate section name 'It returns'
-> 	drivers/media/dvb-core/demux.h:552 :WARN: duplicate section name 'It returns'
-
-Hmm, IMO we should keep the kernel-doc markup simple.
-Sub-sections in parameter descriptions are not provided
-and we should not change this.
-This in mind, the above WARN messages are inappropriate.
-I fixed the parser.
-
-https://github.com/return42/linuxdoc/commit/6b664f537adc7970baffc8dae1ecf97c601ac7f9
-
-
-> 4) Parse errors.
-> 
-> Those seem to be caused by some errors at the parser:
-> 
-> 	include/media/v4l2-ctrls.h:809 :WARN: can't understand function proto: 'const char * const *v4l2_ctrl_get_menu(u32 id);'
-
-Argh, there was a type in the regexpr / fixed:
-
-  https://github.com/return42/linuxdoc/commit/dcf91bb2220c64135a2da7df866d06c126fb103e
-
-
-> 	include/media/v4l2-dev.h:173 :WARN: no description found for parameter 'valid_ioctls\[BITS_TO_LONGS(BASE_VIDIOC_PRIVATE)\]'
-> 	include/media/v4l2-dev.h:173 :WARN: no description found for parameter 'disable_locking\[BITS_TO_LONGS(BASE_VIDIOC_PRIVATE)\]'
-> 	include/media/videobuf2-core.h:555 :ERROR: can't parse struct!
-> 
-
-Argh, another typo .. fixed:
-
- https://github.com/return42/linuxdoc/commit/2947952d3fce17367193a3511349312f7a75ff04
-
-BTW: I fixed some more issues (see last changelogs).
-
-FYI: if you made a pip install, then update with:
-
-  pip install --upgrade git+http://github.com/return42/linuxdoc.git
-
-Ok let me say again, thanks for reporting all this, if you find more
-please inform me.
-
-Now I'am to tired, but I hope tomorrow I have the time to think
-about your last mail: using lint in conf_nitpick.py
-
--- Markus --
+The data rate for VGA YUV420 @10fps is 640x480*1.5*10 = 4.6MB/s, which
+is much higher than full-speed 12Mbps.  So the video data on the bus is
+compressed, not YUV420, I believe.
 
 > 
-> Thanks,
-> Mauro
+> >
+> >> The issue is present in all kernels (including 4.8) starting from the commit:
+> >>
+> >> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
+> >> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
+> >
+> > What is the behavior without this commit?
+> 
+> Without this commit all frames are being received correctly. Single
 
+Which means without this commit your camera has been working without
+issues, and this is a regression with this commit, right?
+
+> one issue is a number of zero byte package at the beginning of iso
+> stream (probably during camera internal sync, I have to check how the
+> stream is started on x86 later). But they are never repeated after
+> this.
+
+I think this zero byte packet is normal. I don't know much about pwc,
+but with uvc cameras, the beginning of the stream is similar, with many
+12-bytes packets. 12 byte is typical uvc header length, so 12-byte
+packet means zero data payload.
+
+> 
+> >>
+> >> The issue is here both when DMA enabled and DMA disabled.
+> >>
+> >> Attached here is a plot. The vertical axis designates the value of
+> >> rx_count variable from function musb_host_packet_rx(). One may see
+> >> that there are only two possibilities: 0 bytes and 956 bytes.
+> >> The horizontal axis is the last three digits of the timestamp when
+> >> musb_host_packet_rx() invoked. I.e for [   38.115379] it is 379. Given
+> >> that my webcam is USB 1.1 and base time is 1 ms, then all frames
+> >> should be grouped close to some single value. (Repeating package
+> >> receive event every 1 ms won't change last tree digits considerably)
+> >> One may see that it is not true, in practice there are two groups. And
+> >> receive time strongly correlates with the package size. Packages
+> >> received near round ms are 956 bytes long, packages received near 400
+> >> us are 0 bytes long.
+> >
+> > When the host IN packet passed the deadline, the device drops the video
+> > data, so device only sends 0 byte packet (or 12 bytes which is only the
+> > uvc header without data payload).
+> 
+> Doesn't it mean that free part of the frame, i.e (1 msec - (t_IN -
+> t_SOF)) is not enough to transmit 956 bytes in device firmware
+> opinion?
+> 
+> >
+> >>
+> >> I don't know how exactly SOF and IN are synchronized in musb, could
+> >> someone give a hint? But from what I see the time difference between
+> >> subsequent IN package requests is sometimes more than 1 ms due to
+> >> heavy urb->complete() callback. After such events only zero length
+> >
+> > Why musb delayed the IN packets, it needs to be investigated.  I will
+> > start to look at this webcam issue with musb soon, after I cleaned up
+> > the musb patches queued recently. I will update once I have progress in
+> > my investigation.
+> 
+> The last package in URB has different code path.
+> IN after the last package of URB is not requested in musb_host_packet_rx().
+> Instead, IN request is performed in the end of musb_advance_schedule()
+> by musb_start_urb().
+
+I am seeing the samilar issue with my Logitech pro9000 camera, and I
+have been looking at it whenever I got some time.
+
+I believe the IN after the last packet is coming from a new URB, that is
+why it is performed by musb_start_urb().
+
+> musb_advance_schedule() has the following code:
+> 
+>         qh->is_ready = 0;
+>         musb_giveback(musb, urb, status);
+>         qh->is_ready = ready;
+> 
+> Which can be executed pretty long if urb->complete() handler is not
+> postphoned by HCD_BH.
+> In my case, it takes about 300 us for pwc urb->complete() to run.
+
+My understanding so far is that when the current RX URB is completed in
+musb host driver, musb_giveback() is called which triggers
+urb->complete(), the uvc driver (pwc driver in your case) parses the
+packets, to know if further video data is needed. If so, a new URB is
+generated, so IN request is performed again.
+
+> Probably, the logic should be modified here, to run giveback on
+> current URB after the start of next URB.
+
+I believe this is what we have now, giveback is called before the next
+URB. 
+
+But still, musb driver has to wait for the next URB, which is generated
+by uvc/pwc when giveback is done. Until then, there is no IN on the bus.
+
+> 
+> >
+> >> packages are received. Surprisingly, that `synchronization' is
+> >> recovered sometimes in the middle of URB like the following:
+> >>
+> >> [  163.207363] musb int
+> >> [  163.207380] rx_count 0
+> >> [  163.207393] req pkt c9c76200 // Expected musb int at 163.208393
+> >> [  163.207403] int end
+> >> // No interrupt at 163.208393
+> >> [  163.209001] musb int
+> >> [  163.209017] rx_count 956
+> >> [  163.209108] req pkt c9c76200
+> >> [  163.209118] int end
+> >
+> > It looks like you used plain printk for these debug logs, which normally
+> > is not a good idea for this type of performance debugging. printk
+> > changes timing especially if the log is printed via uart console.
+> >
+> 
+> I think next time I will use tracepoints or something like that. Thank
+> you for pointing.
+> 
+> >> And then the series of 956 bytes long packages are received until URB
+> >> giveback will occasionally break it again.
+> >> Do I understand correctly, that SOF is generated every 1 ms by
+> >> hardware and should be followed by IN immediately?
+> >
+> > My understanding is that is does not have to be 'immediately', for
+> > example, in a few ns, it should be okay as long as the interval of IN
+> > packets is fixed, but I forgot what the tolerance is, I haven't read the
+> > related Specs for a long time.
+> 
+> But, If IN is postponed by 500 usec, then it means that half of frame
+> is wasted for isochronous transmission. Right?
+
+500us to too much delay, it will cause data drop on the camera side.
+
+Regards,
+-Bin.
+
+> 
+> >
+> >> If so, it is not clear to me how they should be aligned when the time
+> >> difference between to subsequent INs is greater than 1ms.
+> >
+> > It is up to the device firmware, which should have an internal clock to
+> > sync the received IN packets, and adjust the data payload to be send.
+> > This is the basics in video/audio applications.
+> >
+> > Regards,
+> > -Bin.
+> >
+> >>
+> >> --
+> >> With best regards,
+> >> Matwey V. Kornilov.
+> >> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+> >> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+> >
+> >
+> 
+> 
+> 
+> -- 
+> With best regards,
+> Matwey V. Kornilov.
+> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
