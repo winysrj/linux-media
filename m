@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39658 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933712AbcIOL3a (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:42095 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755843AbcILMxq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:29:30 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id E8641600A5
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:29:25 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 5/5] smiapp: Implement support for autosuspend
-Date: Thu, 15 Sep 2016 14:29:21 +0300
-Message-Id: <1473938961-16067-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
+        Mon, 12 Sep 2016 08:53:46 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Helen Koike <helen.koike@collabora.com>,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        jgebben@codeaurora.org, mchehab@osg.samsung.com
+Cc: Helen Fornazier <helen.fornazier@gmail.com>
+Subject: [PATCH] [media] MAINTAINERS: add vimc entry
+Date: Mon, 12 Sep 2016 09:53:28 -0300
+Message-Id: <0fe6a27b269e5d3da10e3c842f8cc3c466873703.1473684735.git.helen.koike@collabora.com>
+In-Reply-To: <cd080d30-e0eb-a544-5512-0de634f1cf22@xs4all.nl>
+References: <cd080d30-e0eb-a544-5512-0de634f1cf22@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Delay suspending the device by 1000 ms by default.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index ba5ad36..313f037 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -1559,7 +1559,8 @@ static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
- 		rval = smiapp_stop_streaming(sensor);
- 		sensor->streaming = false;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0a16a82..43e0eb4 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12540,6 +12540,14 @@ W:	https://linuxtv.org
+ S:	Maintained
+ F:	drivers/media/platform/vivid/*
  
--		pm_runtime_put(&client->dev);
-+		pm_runtime_mark_last_busy(&client->dev);
-+		pm_runtime_put_autosuspend(&client->dev);
- 	}
- 
- 	return rval;
-@@ -2327,7 +2328,8 @@ smiapp_sysfs_nvm_read(struct device *dev, struct device_attribute *attr,
- 			dev_err(&client->dev, "nvm read failed\n");
- 			return -ENODEV;
- 		}
--		pm_runtime_put(&client->dev);
-+		pm_runtime_mark_last_busy(&client->dev);
-+		pm_runtime_put_autosuspend(&client->dev);
- 	}
- 	/*
- 	 * NVM is still way below a PAGE_SIZE, so we can safely
-@@ -3038,7 +3040,9 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
- 
--	pm_runtime_put(&client->dev);
-+	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
-+	pm_runtime_use_autosuspend(&client->dev);
-+	pm_runtime_put_autosuspend(&client->dev);
- 
- 	return 0;
- 
++VIMC VIRTUAL MEDIA CONTROLLER DRIVER
++M:	Helen Koike <helen.koike@collabora.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	https://linuxtv.org
++S:	Maintained
++F:	drivers/media/platform/vimc/*
++
+ VLAN (802.1Q)
+ M:	Patrick McHardy <kaber@trash.net>
+ L:	netdev@vger.kernel.org
 -- 
-2.1.4
+2.7.4
 
