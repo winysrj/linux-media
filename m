@@ -1,142 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:52491 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751786AbcIHNJO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:14 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v6 4/6] arm64: dts: mediatek: Add MDP for MT8173
-Date: Thu, 8 Sep 2016 21:09:04 +0800
-Message-ID: <1473340146-6598-5-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mout.kundenserver.de ([212.227.126.130]:53896 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932616AbcILPcG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Sep 2016 11:32:06 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Andrew Duggan <aduggan@synaptics.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Nick Dyer <nick@shmanahar.org>, linux-input@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 2/2] [media] Input: synaptics-rmi4: disallow impossible configuration
+Date: Mon, 12 Sep 2016 17:30:33 +0200
+Message-Id: <20160912153105.3035940-2-arnd@arndb.de>
+In-Reply-To: <20160912153105.3035940-1-arnd@arndb.de>
+References: <20160912153105.3035940-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add MDP node for MT8173
+The newly added debug mode for the synaptics-rmi4 driver relies on
+the v4l2 interface and vb2_vmalloc, but those might be configured
+as loadable modules when the driver itself is built-in, resulting
+in a link failure:
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+drivers/input/rmi4/rmi_core.o: In function `rmi_f54_remove':
+rmi_f54.c:(.text.rmi_f54_remove+0x14): undefined reference to `video_unregister_device'
+rmi_f54.c:(.text.rmi_f54_remove+0x20): undefined reference to `v4l2_device_unregister'
+drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_s_input':
+rmi_f54.c:(.text.rmi_f54_vidioc_s_input+0x10): undefined reference to `video_devdata'
+drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_g_input':
+rmi_f54.c:(.text.rmi_f54_vidioc_g_input+0x10): undefined reference to `video_devdata'
+drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_fmt':
+rmi_f54.c:(.text.rmi_f54_vidioc_fmt+0x10): undefined reference to `video_devdata'
+drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_enum_input':
+rmi_f54.c:(.text.rmi_f54_vidioc_enum_input+0x10): undefined reference to `video_devdata'
+drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_querycap':
+...
+
+The best workaround I could come up with is to disallow the debug
+mode unless it's actually possible to call it.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fixes: 3a762dbd5347 ("[media] Input: synaptics-rmi4 - add support for F54 diagnostics")
 ---
- arch/arm64/boot/dts/mediatek/mt8173.dtsi |   84 ++++++++++++++++++++++++++++++
- 1 file changed, 84 insertions(+)
+ drivers/input/rmi4/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/mediatek/mt8173.dtsi b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-index 10f638f..cd93228 100644
---- a/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-+++ b/arch/arm64/boot/dts/mediatek/mt8173.dtsi
-@@ -41,6 +41,14 @@
- 		dpi0 = &dpi0;
- 		dsi0 = &dsi0;
- 		dsi1 = &dsi1;
-+		mdp_rdma0 = &mdp_rdma0;
-+		mdp_rdma1 = &mdp_rdma1;
-+		mdp_rsz0 = &mdp_rsz0;
-+		mdp_rsz1 = &mdp_rsz1;
-+		mdp_rsz2 = &mdp_rsz2;
-+		mdp_wdma0 = &mdp_wdma0;
-+		mdp_wrot0 = &mdp_wrot0;
-+		mdp_wrot1 = &mdp_wrot1;
- 	};
- 
- 	cpus {
-@@ -716,6 +724,82 @@
- 			#clock-cells = <1>;
- 		};
- 
-+		mdp {
-+			compatible = "mediatek,mt8173-mdp";
-+			#address-cells = <2>;
-+			#size-cells = <2>;
-+			ranges;
-+			mediatek,vpu = <&vpu>;
-+
-+			mdp_rdma0: rdma@14001000 {
-+				compatible = "mediatek,mt8173-mdp-rdma";
-+				reg = <0 0x14001000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RDMA0>,
-+					 <&mmsys CLK_MM_MUTEX_32K>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_RDMA0>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_rdma1: rdma@14002000 {
-+				compatible = "mediatek,mt8173-mdp-rdma";
-+				reg = <0 0x14002000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RDMA1>,
-+					 <&mmsys CLK_MM_MUTEX_32K>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_RDMA1>;
-+				mediatek,larb = <&larb4>;
-+			};
-+
-+			mdp_rsz0: rsz@14003000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14003000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ0>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_rsz1: rsz@14004000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14004000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ1>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_rsz2: rsz@14005000 {
-+				compatible = "mediatek,mt8173-mdp-rsz";
-+				reg = <0 0x14005000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_RSZ2>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+			};
-+
-+			mdp_wdma0: wdma@14006000 {
-+				compatible = "mediatek,mt8173-mdp-wdma";
-+				reg = <0 0x14006000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WDMA>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WDMA>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_wrot0: wrot@14007000 {
-+				compatible = "mediatek,mt8173-mdp-wrot";
-+				reg = <0 0x14007000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WROT0>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WROT0>;
-+				mediatek,larb = <&larb0>;
-+			};
-+
-+			mdp_wrot1: wrot@14008000 {
-+				compatible = "mediatek,mt8173-mdp-wrot";
-+				reg = <0 0x14008000 0 0x1000>;
-+				clocks = <&mmsys CLK_MM_MDP_WROT1>;
-+				power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+				iommus = <&iommu M4U_PORT_MDP_WROT1>;
-+				mediatek,larb = <&larb4>;
-+			};
-+		};
-+
- 		ovl0: ovl@1400c000 {
- 			compatible = "mediatek,mt8173-disp-ovl";
- 			reg = <0 0x1400c000 0 0x1000>;
+diff --git a/drivers/input/rmi4/Kconfig b/drivers/input/rmi4/Kconfig
+index f3418b65eb41..4c8a55857e00 100644
+--- a/drivers/input/rmi4/Kconfig
++++ b/drivers/input/rmi4/Kconfig
+@@ -65,7 +65,7 @@ config RMI4_F30
+ config RMI4_F54
+ 	bool "RMI4 Function 54 (Analog diagnostics)"
+ 	depends on RMI4_CORE
+-	depends on VIDEO_V4L2
++	depends on VIDEO_V4L2=y || (RMI4_CORE=m && VIDEO_V4L2=m)
+ 	select VIDEOBUF2_VMALLOC
+ 	help
+ 	  Say Y here if you want to add support for RMI4 function 54
 -- 
-1.7.9.5
+2.9.0
 
