@@ -1,54 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49664
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759256AbcIHSde (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 14:33:34 -0400
-Date: Thu, 8 Sep 2016 15:33:27 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Chris Mayo <aklhfex@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
-Message-ID: <20160908153327.545961df@vento.lan>
-In-Reply-To: <CAA7C2qh-XGBxsZk_GdO+Oj2Q8x9SqA1XOAb+b0ZRbsNCR2eesw@mail.gmail.com>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de>
-        <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de>
-        <20160824114927.3c6ab0d6@vento.lan>
-        <20160824115241.7e2c90ca@vento.lan>
-        <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
-        <20160905102511.6de3dbe4@vento.lan>
-        <eaa7b609-2c27-9943-5197-d9bec71b2db7@gmail.com>
-        <20160906064108.5bd84045@vento.lan>
-        <CAA7C2qj5ap3PoK2uenF+kqpCrqjO9znR4y5Y7h2UoaENDcT8XA@mail.gmail.com>
-        <20160906124723.6783fd39@vento.lan>
-        <7C627C3A-DF3F-4E50-9876-7130D9221D96@darmarit.de>
-        <CAA7C2qh-XGBxsZk_GdO+Oj2Q8x9SqA1XOAb+b0ZRbsNCR2eesw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50122 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756052AbcILDII (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Sep 2016 23:08:08 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id C70C11800F1
+        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2016 05:08:02 +0200 (CEST)
+Date: Mon, 12 Sep 2016 05:08:02 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160912030802.C70C11800F1@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 7 Sep 2016 10:59:32 -0700
-VDR User <user.vdr@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> I use nscan, which has easily been the
-> most successful of the scanners. An additional benefit to nscan is you
-> only supply a single transponder on the command line and it will
-> populate a channel list for the entire sat. You don't need to supply
-> an entire list of transponders to scan.
+Results of the daily build of media_tree:
 
-Well, AFAIKT, nowadays, almost all scanners need just one frequency for
-satellite and cable to get all channels (and even for some DVB-T/T2
-broadcasters, but this is a way more commonly found on DVB-S/S2/C).
+date:		Mon Sep 12 04:00:16 CEST 2016
+git branch:	test
+git hash:	8a5a2ba86ab8fc12267fea974b9cd730ad2dee24
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-If the extra transponders are listed via other NIT tables (it depends on
-the broadcaster), an extra parameter is needed (-N, in the case of
-dvbv5-scan), as the scan time per channel increases a lot if it has to
-wait to receive all NIT tables. So, most scanners default to use just
-the main NIT table, providing an option to parse the other ones.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin-bf561: OK
+linux-git-i686: ERRORS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: ERRORS
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: WARNINGS
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+ABI WARNING: change for arm-pxa
+smatch: WARNINGS
 
+Detailed results are available here:
 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
