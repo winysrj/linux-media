@@ -1,96 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43774 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941744AbcIHMES (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>
-Subject: [PATCH 01/47] kernel-doc: ignore arguments on macro definitions
-Date: Thu,  8 Sep 2016 09:03:23 -0300
-Message-Id: <db18427370e54fb936ad0786b8a8e49fd2f407c1.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:34016 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758675AbcILN1E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Sep 2016 09:27:04 -0400
+Date: Mon, 12 Sep 2016 08:27:02 -0500
+From: Rob Herring <robh@kernel.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v2 6/7] Documentation: bindings: add documentation for
+ ir-spi device driver
+Message-ID: <20160912132702.GA20044@rob-hp-laptop>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
+ <20160901171629.15422-7-andi.shyti@samsung.com>
+ <CGME20160901214120epcas1p3c4e212a695d1575acaf0d3bd8525560d@epcas1p3.samsung.com>
+ <CAL_JsqL_AG0m_BctOBV+QOGJcUEup_6ovS6shjo+BrJ974jpaA@mail.gmail.com>
+ <20160902053320.wqe5hklklnyvcc5m@samsunx.samsung>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160902053320.wqe5hklklnyvcc5m@samsunx.samsung>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A macro definition is mapped via .. c:function:: at the
-ReST markup when using the following kernel-doc tag:
+On Fri, Sep 02, 2016 at 02:33:20PM +0900, Andi Shyti wrote:
+> Hi Rob,
+> 
+> > > Document the ir-spi driver's binding which is a IR led driven
+> > > through the SPI line.
+> > >
+> > > Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+> > > ---
+> > >  Documentation/devicetree/bindings/media/spi-ir.txt | 26 ++++++++++++++++++++++
+> > >  1 file changed, 26 insertions(+)
+> > >  create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
+> > > new file mode 100644
+> > > index 0000000..85cb21b
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/spi-ir.txt
+> > 
+> > Move this to bindings/leds, and CC the leds maintainers.
+> 
+> More than an LED this is the driver of a remote controller, the
+> driver itself is under drivers/media/rc/.
 
-	/**
-	 * DMX_FE_ENTRY - Casts elements in the list of registered
-	 *               front-ends from the generic type struct list_head
-	 *               to the type * struct dmx_frontend
-	 *
-	 * @list: list of struct dmx_frontend
-	 */
-	 #define DMX_FE_ENTRY(list) \
-	        list_entry(list, struct dmx_frontend, connectivity_list)
-
-However, unlike a function description, the arguments of a macro
-doesn't contain the data type.
-
-This causes warnings when enabling Sphinx on nitkpick mode,
-like this one:
-	./drivers/media/dvb-core/demux.h:358: WARNING: c:type reference target not found: list
-
-That happens because kernel-doc output for the above is:
-
-	.. c:function:: DMX_FE_ENTRY ( list)
-
-	   Casts elements in the list of registered front-ends from the generic type struct list_head to the type * struct dmx_frontend
-
-	**Parameters**
-
-	``list``
-	  list of struct dmx_frontend
-
-As the type is blank, Sphinx would think that ``list`` is a type,
-and will try to add a cross reference for it, using their internal
-representation for c:type:`list`.
-
-However, ``list`` is not a type. So, that would cause either the
-above warning, or if a ``list`` type exists, it would create
-a reference to the wrong place at the doc.
-
-To avoid that, let's ommit macro arguments from c:function::
-declaration. As each argument will appear below the Parameters,
-the type of the argument can be described there, if needed.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 93721f3c91bf..3db6e6ac83f1 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1857,14 +1857,15 @@ sub output_function_rst(%) {
- 	if ($count ne 0) {
- 	    print ", ";
- 	}
--	$count++;
- 	$type = $args{'parametertypes'}{$parameter};
+The hardware is just an LED though and bindings describe h/w. What you 
+are using it for doesn't really matter. You only need to know it's an IR 
+led.
  
- 	if ($type =~ m/([^\(]*\(\*)\s*\)\s*\(([^\)]*)\)/) {
- 	    # pointer-to-function
- 	    print $1 . $parameter . ") (" . $2;
--	} else {
-+	    $count++;
-+	} elsif ($type ne "") {
- 	    print $type . " " . $parameter;
-+	    $count++;
- 	}
-     }
-     if ($args{'typedef'}) {
--- 
-2.7.4
+> Besides all the transmitters have an LED but still they are media
+> devices. This is a bit special because it's so simple that the
+> only hardware left is the LED itself, but still it's a media remote
+> controller.
+> 
+> > > @@ -0,0 +1,26 @@
+> > > +Device tree bindings for IR LED connected through SPI bus which is used as
+> > > +remote controller.
+> > > +
+> > > +The IR LED switch is connected to the MOSI line of the SPI device and the data
+> > > +are delivered thourgh that.
+> > > +
+> > > +Required properties:
+> > > +       - compatible: should be "ir-spi".
+> > 
+> > Really this is just an LED connected to a SPI, so maybe this should
+> > just be "spi-led". If being more specific is helpful, then I'm all for
+> > that, but perhaps spi-ir-led. (Trying to be consistent in naming with
+> > gpio-leds).
+> 
+> As I mentioned above, all transmitters have an LED, but they do
+> not have the 'led' name. "ir-spi" is coherent with the device
+> driver name and the driver name is coherent with the media/rc
+> driver's naming.
 
+The driver name is irrelevant to the binding. 
 
+[...]
+
+> If it's OK for you, I would keep the name and documentation path
+> and fix the rest. Please let me know if I'm missing something :)
+
+It's not OK for me.
+
+Rob
