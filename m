@@ -1,111 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:24096 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758575AbcINOaq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 10:30:46 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [v4l-utils PATCH v1.2 2/2] media-ctl: Print information related to a single entity
-Date: Wed, 14 Sep 2016 17:29:39 +0300
-Message-Id: <1473863379-4875-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <2226876.Vxqef30rz5@avalon>
-References: <2226876.Vxqef30rz5@avalon>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47292 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752031AbcIMKvc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Sep 2016 06:51:32 -0400
+Date: Tue, 13 Sep 2016 13:51:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v4 1/5] media: Determine early whether an IOCTL is
+ supported
+Message-ID: <20160913105124.GF5086@valkosipuli.retiisi.org.uk>
+References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1470947358-31168-2-git-send-email-sakari.ailus@linux.intel.com>
+ <20160906065617.1295d104@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160906065617.1295d104@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a possibility to printing all information related to a given entity by
-using both -p and -e options. This may be handy sometimes if only a single
-entity is of interest and there are many entities.
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Fixed the commit message as well.
+On Tue, Sep 06, 2016 at 06:56:17AM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 11 Aug 2016 23:29:14 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > Preparation for refactoring media IOCTL handling to unify common parts.
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  drivers/media/media-device.c | 54 ++++++++++++++++++++++++++++++++++++++++++--
+> >  1 file changed, 52 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 1795abe..aedd64e 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -419,13 +419,41 @@ static long media_device_get_topology(struct media_device *mdev,
+> >  	return 0;
+> >  }
+> >  
+> > -static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> > -			       unsigned long arg)
+> > +#define MEDIA_IOC(__cmd) \
+> > +	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
+> > +
+> > +/* the table is indexed by _IOC_NR(cmd) */
+> > +struct media_ioctl_info {
+> > +	unsigned int cmd;
+> > +};
+> > +
+> > +static const struct media_ioctl_info ioctl_info[] = {
+> > +	MEDIA_IOC(DEVICE_INFO),
+> > +	MEDIA_IOC(ENUM_ENTITIES),
+> > +	MEDIA_IOC(ENUM_LINKS),
+> > +	MEDIA_IOC(SETUP_LINK),
+> > +	MEDIA_IOC(G_TOPOLOGY),
+> > +};
+> > +
+> > +static inline long is_valid_ioctl(const struct media_ioctl_info *info,
+> > +				  unsigned int cmd)
+> > +{
+> > +	return (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+> > +		|| info[_IOC_NR(cmd)].cmd != cmd) ? -ENOIOCTLCMD : 0;
+> > +}
+> > +
+> > +static long __media_device_ioctl(
+> > +	struct file *filp, unsigned int cmd, void __user *arg,
+> > +	const struct media_ioctl_info *info_array)
+> >  {
+> >  	struct media_devnode *devnode = media_devnode_data(filp);
+> >  	struct media_device *dev = devnode->media_dev;
+> >  	long ret;
+> >  
+> > +	ret = is_valid_ioctl(info_array, cmd);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> >  	mutex_lock(&dev->graph_mutex);
+> >  	switch (cmd) {
+> >  	case MEDIA_IOC_DEVICE_INFO:
+> > @@ -461,6 +489,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> >  	return ret;
+> >  }
+> >  
+> > +static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> > +			       unsigned long arg)
+> > +{
+> > +	return __media_device_ioctl(
+> > +		filp, cmd, (void __user *)arg, ioctl_info);
+> > +}
+> > +
+> >  #ifdef CONFIG_COMPAT
+> >  
+> >  struct media_links_enum32 {
+> > @@ -491,6 +526,14 @@ static long media_device_enum_links32(struct media_device *mdev,
+> >  
+> >  #define MEDIA_IOC_ENUM_LINKS32		_IOWR('|', 0x02, struct media_links_enum32)
+> 
+> 
+> Hmm...
+> 
+> > +static const struct media_ioctl_info compat_ioctl_info[] = {
+> > +	MEDIA_IOC(DEVICE_INFO),
+> > +	MEDIA_IOC(ENUM_ENTITIES),
+> > +	MEDIA_IOC(ENUM_LINKS32),
+> > +	MEDIA_IOC(SETUP_LINK),
+> > +	MEDIA_IOC(G_TOPOLOGY),
+> > +};
+> > +
+> >  static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+> >  				      unsigned long arg)
+> >  {
+> > @@ -498,6 +541,13 @@ static long media_device_compat_ioctl(struct file *filp, unsigned int cmd,
+> >  	struct media_device *dev = devnode->media_dev;
+> >  	long ret;
+> >  
+> > +	/*
+> > +	 * The number of supported IOCTLs is the same for both regular and
+> > +	 * compat cases. Instead of passing the sizes around, ensure that
+> > +	 * they match.
+> > +	 */
+> > +	BUILD_BUG_ON(ARRAY_SIZE(ioctl_info) != ARRAY_SIZE(compat_ioctl_info));
+> > +
+> >  	switch (cmd) {
+> >  	case MEDIA_IOC_ENUM_LINKS32:
+> >  		mutex_lock(&dev->graph_mutex);
+> 
+> 
+> Why do we need the above? The only ioctl that it is handled inside
+> the compat logic is MEDIA_IOC_ENUM_LINKS. all the others fall back
+> to the usual handler, and we don't intend to add any other new
+> special case, as we're now using a different logic to handle 32 bit
+> pointers passed to a 64 bit Kernel that it is compatible with both 32
+> and 64 bits.
+> 
+> So, we don't expect to have the V4L2 compat32 mess here, but, instead,
+> to keep this untouched as we add more ioctl's.
 
- utils/media-ctl/media-ctl.c | 33 +++++++++++++++------------------
- utils/media-ctl/options.c   |  2 ++
- 2 files changed, 17 insertions(+), 18 deletions(-)
+That's a fair point. If we won't require compat handling for more IOCTLs,
+we'll be fine with less generic compat handling.
 
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index 0499008..109cc11 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -504,19 +504,11 @@ static void media_print_topology_text(struct media_device *media)
- 			media, media_get_entity(media, i));
- }
- 
--void media_print_topology(struct media_device *media, int dot)
--{
--	if (dot)
--		media_print_topology_dot(media);
--	else
--		media_print_topology_text(media);
--}
--
- int main(int argc, char **argv)
- {
- 	struct media_device *media;
-+	struct media_entity *entity = NULL;
- 	int ret = -1;
--	const char *devname;
- 
- 	if (parse_cmdline(argc, argv))
- 		return EXIT_FAILURE;
-@@ -562,17 +554,11 @@ int main(int argc, char **argv)
- 	}
- 
- 	if (media_opts.entity) {
--		struct media_entity *entity;
--
- 		entity = media_get_entity_by_name(media, media_opts.entity);
- 		if (entity == NULL) {
- 			printf("Entity '%s' not found\n", media_opts.entity);
- 			goto out;
- 		}
--
--		devname = media_entity_get_devname(entity);
--		if (devname)
--			printf("%s\n", devname);
- 	}
- 
- 	if (media_opts.fmt_pad) {
-@@ -611,9 +597,20 @@ int main(int argc, char **argv)
- 		}
- 	}
- 
--	if (media_opts.print || media_opts.print_dot) {
--		media_print_topology(media, media_opts.print_dot);
--		printf("\n");
-+	if (media_opts.print_dot) {
-+		media_print_topology_dot(media);
-+	} else if (media_opts.print) {
-+		if (entity) {
-+			media_print_topology_text_entity(media, entity);
-+		} else {
-+			media_print_topology_text(media);
-+		}
-+	} else if (entity) {
-+		const char *devname;
-+
-+		devname = media_entity_get_devname(entity);
-+		if (devname)
-+			printf("%s\n", devname);
- 	}
- 
- 	if (media_opts.reset) {
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index a288a1b..304a86c 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -52,6 +52,8 @@ static void usage(const char *argv0)
- 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
- 	printf("    --known-mbus-fmts	List known media bus formats and their numeric values\n");
- 	printf("-p, --print-topology	Print the device topology\n");
-+	printf("			If entity name is specified using -e option, information\n");
-+	printf("			related to that entity only is printed.\n");
- 	printf("    --print-dot		Print the device topology as a dot graph\n");
- 	printf("-r, --reset		Reset all links to inactive\n");
- 	printf("-v, --verbose		Be verbose\n");
+I'll resend the set.
+
 -- 
-2.7.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
