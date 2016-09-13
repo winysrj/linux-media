@@ -1,86 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60839 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932985AbcIPK5f (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 06:57:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga01.intel.com ([192.55.52.88]:49348 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751967AbcIMI30 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Sep 2016 04:29:26 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 8/8] v4l2-dv-timings: add v4l2_dv_timings_cea861_aspect_ratio
-Date: Fri, 16 Sep 2016 12:57:11 +0200
-Message-Id: <1474023431-32533-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
-References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [v4l-utils PATCH 2/2] media-ctl: Print information related to a single entity
+Date: Tue, 13 Sep 2016 11:28:16 +0300
+Message-Id: <1473755296-14109-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473755296-14109-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473755296-14109-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add an optional argument to the -p option that allows printing all
+information related to a given entity. This may be handy sometimes if only
+a single entity is of interest and there are many entities.
 
-This new function determines the picture aspect ratio from the
-DV timings and returns it in CEA-861 AVI InfoFrame format.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-dv-timings.c | 18 ++++++++++++++++++
- include/media/v4l2-dv-timings.h           |  8 ++++++++
- 2 files changed, 26 insertions(+)
+ utils/media-ctl/media-ctl.c | 26 +++++++++++++++-----------
+ utils/media-ctl/options.c   |  9 ++++++---
+ utils/media-ctl/options.h   |  1 +
+ 3 files changed, 22 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
-index 98aa2fa..43203e9 100644
---- a/drivers/media/v4l2-core/v4l2-dv-timings.c
-+++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
-@@ -23,6 +23,7 @@
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/rational.h>
-+#include <linux/hdmi.h>
- #include <linux/videodev2.h>
- #include <linux/v4l2-dv-timings.h>
- #include <media/v4l2-dv-timings.h>
-@@ -381,6 +382,23 @@ struct v4l2_fract v4l2_dv_timings_aspect_ratio(const struct v4l2_dv_timings *t)
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index 0499008..fdd2449 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -504,14 +504,6 @@ static void media_print_topology_text(struct media_device *media)
+ 			media, media_get_entity(media, i));
  }
- EXPORT_SYMBOL_GPL(v4l2_dv_timings_aspect_ratio);
  
-+u8 v4l2_dv_timings_cea861_aspect_ratio(const struct v4l2_dv_timings *t)
-+{
-+	unsigned int w = t->bt.width;
-+	unsigned int h = t->bt.height;
-+
-+	if (t->bt.flags & V4L2_DV_FL_HAS_PICTURE_ASPECT) {
-+		w = t->bt.picture_aspect.numerator;
-+		h = t->bt.picture_aspect.denominator;
-+	}
-+	if (w * 3 == h * 4)
-+		return HDMI_PICTURE_ASPECT_4_3;
-+	if (w * 9 == h * 16)
-+		return HDMI_PICTURE_ASPECT_16_9;
-+	return HDMI_PICTURE_ASPECT_NONE;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_dv_timings_cea861_aspect_ratio);
-+
- /*
-  * CVT defines
-  * Based on Coordinated Video Timings Standard
-diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
-index 3722ce8..efae7b1 100644
---- a/include/media/v4l2-dv-timings.h
-+++ b/include/media/v4l2-dv-timings.h
-@@ -203,6 +203,14 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
-  */
- struct v4l2_fract v4l2_dv_timings_aspect_ratio(const struct v4l2_dv_timings *t);
+-void media_print_topology(struct media_device *media, int dot)
+-{
+-	if (dot)
+-		media_print_topology_dot(media);
+-	else
+-		media_print_topology_text(media);
+-}
+-
+ int main(int argc, char **argv)
+ {
+ 	struct media_device *media;
+@@ -611,9 +603,21 @@ int main(int argc, char **argv)
+ 		}
+ 	}
  
-+/**
-+ * v4l2_dv_timings_cea861_aspect_ratio() - return CEA-861 picture aspect ratio
-+ * @t:		the timings data.
-+ *
-+ * Returns the CEA-861 picture aspect ratio value (AVI InfoFrame bits M0+M1)
-+ */
-+u8 v4l2_dv_timings_cea861_aspect_ratio(const struct v4l2_dv_timings *t);
+-	if (media_opts.print || media_opts.print_dot) {
+-		media_print_topology(media, media_opts.print_dot);
+-		printf("\n");
++	if (media_opts.print_dot) {
++		media_print_topology_dot(media);
++	} else if (media_opts.print_entity) {
++		struct media_entity *entity = NULL;
 +
- /*
-  * reduce_fps - check if conditions for reduced fps are true.
-  * bt - v4l2 timing structure
++		entity = media_get_entity_by_name(media,
++						  media_opts.print_entity);
++		if (entity == NULL) {
++			printf("Entity '%s' not found\n",
++			       media_opts.print_entity);
++			goto out;
++		}
++		media_print_topology_text_entity(media, entity);
++	} else if (media_opts.print) {
++		media_print_topology_text(media);
+ 	}
+ 
+ 	if (media_opts.reset) {
+diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+index a288a1b..3352626 100644
+--- a/utils/media-ctl/options.c
++++ b/utils/media-ctl/options.c
+@@ -51,7 +51,9 @@ static void usage(const char *argv0)
+ 	printf("-i, --interactive	Modify links interactively\n");
+ 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
+ 	printf("    --known-mbus-fmts	List known media bus formats and their numeric values\n");
+-	printf("-p, --print-topology	Print the device topology\n");
++	printf("-p, --print-topology [name] Print the device topology\n");
++	printf("			If entity name is specified, information to that entity\n");
++	printf("			only is printed.\n");
+ 	printf("    --print-dot		Print the device topology as a dot graph\n");
+ 	printf("-r, --reset		Reset all links to inactive\n");
+ 	printf("-v, --verbose		Be verbose\n");
+@@ -109,7 +111,7 @@ static struct option opts[] = {
+ 	{"links", 1, 0, 'l'},
+ 	{"known-mbus-fmts", 0, 0, OPT_LIST_KNOWN_MBUS_FMTS},
+ 	{"print-dot", 0, 0, OPT_PRINT_DOT},
+-	{"print-topology", 0, 0, 'p'},
++	{"print-topology", 2, 0, 'p'},
+ 	{"reset", 0, 0, 'r'},
+ 	{"verbose", 0, 0, 'v'},
+ 	{ },
+@@ -146,7 +148,7 @@ int parse_cmdline(int argc, char **argv)
+ 	}
+ 
+ 	/* parse options */
+-	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prvV:",
++	while ((opt = getopt_long(argc, argv, "d:e:f:hil:p::rvV:",
+ 				  opts, NULL)) != -1) {
+ 		switch (opt) {
+ 		case 'd':
+@@ -182,6 +184,7 @@ int parse_cmdline(int argc, char **argv)
+ 
+ 		case 'p':
+ 			media_opts.print = 1;
++			media_opts.print_entity = optarg;
+ 			break;
+ 
+ 		case 'r':
+diff --git a/utils/media-ctl/options.h b/utils/media-ctl/options.h
+index 9b5f314..ff9dfdf 100644
+--- a/utils/media-ctl/options.h
++++ b/utils/media-ctl/options.h
+@@ -30,6 +30,7 @@ struct media_options
+ 		     print_dot:1,
+ 		     reset:1,
+ 		     verbose:1;
++	const char *print_entity;
+ 	const char *entity;
+ 	const char *formats;
+ 	const char *links;
 -- 
-2.8.1
+2.7.4
 
