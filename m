@@ -1,108 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39124 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751340AbcIZPqv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46920 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758819AbcIMXQe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Sep 2016 11:46:51 -0400
-Date: Mon, 26 Sep 2016 18:46:40 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, gjasny@googlemail.com
-Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
- v4l2-ctl
-Message-ID: <20160926154640.GA3225@valkosipuli.retiisi.org.uk>
-References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
- <20160919082226.43cd1bc9@vento.lan>
- <57DFE65A.5040607@linux.intel.com>
- <20160919111912.6e7ceac6@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160919111912.6e7ceac6@vento.lan>
+        Tue, 13 Sep 2016 19:16:34 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: [PATCH 03/13] v4l: vsp1: Ensure pipeline locking in resume path
+Date: Wed, 14 Sep 2016 02:16:56 +0300
+Message-Id: <1473808626-19488-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Kieran Bingham <kieran+renesas@bingham.xyz>
 
-On Mon, Sep 19, 2016 at 11:19:12AM -0300, Mauro Carvalho Chehab wrote:
-> Em Mon, 19 Sep 2016 16:21:30 +0300
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > On 09/19/16 14:22, Mauro Carvalho Chehab wrote:
-> > > Em Mon, 19 Sep 2016 13:50:25 +0300
-> > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > >   
-> > >> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
-> > >> are found by the linker only if these libraries are specified after the
-> > >> objects that depend on them.
-> > >>
-> > >> As LDFLAGS variable end up expanded on libtool command line before LDADD,
-> > >> move the libraries to LDADD after local objects. -lpthread is added as on
-> > >> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
-> > >> for instance.
-> > >>
-> > >> After this patch, creating a static build using the command
-> > >>
-> > >> LDFLAGS="--static -static" ./configure --disable-shared --enable-static  
-> > > 
-> > > It sounds weird to use LDFLAGS="--static -static" here, as the
-> > > configure options are already asking for static.
-> > > 
-> > > IMHO, the right way would be to change configure.ac to add those LDFLAGS
-> > > when --disable-shared is used.  
-> > 
-> > That's one option, but then shared libraries won't be built at all.
-> 
-> Well, my understanding is that  --disable-shared is meant to disable
-> building the shared library build :)
-> 
-> > I'm
-> > not sure what would be the use cases for that, though: static linking
-> > isn't very commonly needed except when you need to run the binaries
-> > elsewhere (for whatever reason) where you don't have the libraries you
-> > linked against available.
-> 
-> Yeah, that's the common usage. It is also interesting if someone
-> wants to build 2 versions of the same utility, each using a
-> different library, for testing purposes.
-> 
-> The usecase I can't see is to use --disable-shared but keeping
-> using the dynamic library for the exec files.
+The vsp1_pipeline_ready() and vsp1_pipeline_run() functions must be
+called with the pipeline lock held, fix the resume code path.
 
-There are three primary options here,
+Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_pipe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-1. build an entirely static binary,
-2. build a binary that relies on dynamic libraries as well and
-3. build a binary that relies on dynamic libraries outside v4l-utils package
-   but that links v4l-utils originating libraries statically.
-
-If you say 3. is not needed then we could just use --disable-shared also to
-tell that static binaries are to be built.
-
-3. is always used for libv4l2subdev and libmediactl as the libraries do not
-have stable APIs.
-
-> 
-> > That's still a separate issue from what this patch fixes.
-> > 
-> > Ideally it should be possible to link the binaries statically while
-> > still building shared libraries: both are built by default right now,
-> > yet shared libraries are always used for linking unless you disable
-> > shared libraries.
-> 
-> Well, the point is: if dynamic library build is disabled, it should
-> be doing static links that are produced by the build, instead of using
-> an already existing set of dynamic libraries present on the system
-> (that may not contain the symbols needed by the tool, or miss some
-> patches that were on -git).
-
-No, it uses the static libraries that are built at the same time.
-
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 3e75fb3fcace..474de82165d8 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -365,6 +365,7 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
+ 
+ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+ {
++	unsigned long flags;
+ 	unsigned int i;
+ 
+ 	/* Resume all running pipelines. */
+@@ -379,7 +380,9 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+ 		if (pipe == NULL)
+ 			continue;
+ 
++		spin_lock_irqsave(&pipe->irqlock, flags);
+ 		if (vsp1_pipeline_ready(pipe))
+ 			vsp1_pipeline_run(pipe);
++		spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 	}
+ }
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
