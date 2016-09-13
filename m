@@ -1,87 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40635 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1765182AbcIPK5Y (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:45455 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760439AbcIMUKe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 06:57:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 2/8] videodev2.h: add VICs and picture aspect ratio
-Date: Fri, 16 Sep 2016 12:57:05 +0200
-Message-Id: <1474023431-32533-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
-References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+        Tue, 13 Sep 2016 16:10:34 -0400
+From: Helen Koike <helen.koike@collabora.com>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Cc: Helen Koike <helen.koike@collabora.com>
+Subject: [PATCH] [v4l-utils] libv4l2subdev: Propagate format deep in the topology
+Date: Tue, 13 Sep 2016 17:09:58 -0300
+Message-Id: <5776a3af5046c55b4efa3b936a1ca68466098207.1473796687.git.helen.koike@collabora.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The format was only being propagated to the subdevices directly
+connected to the node being changed.
+Continue propagating the format to all the subdevices in the video pipe.
 
-Add picture aspect ratio information, the CEA-861 VIC (Video Identification
-Code) and the HDMI VIC to struct v4l2_bt_timings.
-
-The picture aspect was chosen rather than the pixel aspect since 1) the
-CEA-861 standard uses picture aspect, and 2) pixel aspect ratio can become
-tricky when dealing with pixel repeat timings. While we don't support those
-yet at the moment, this might become necessary. And in that case using
-picture aspect ratio makes more sense. And converting picture aspect ratio
-to pixel aspect ratio is easy enough.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Helen Koike <helen.koike@collabora.com>
 ---
- include/uapi/linux/videodev2.h | 25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 3a2d94f..784bfeb 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1229,6 +1229,9 @@ struct v4l2_standard {
-  *		(aka field 2) of interlaced field formats
-  * @standards:	Standards the timing belongs to
-  * @flags:	Flags
-+ * @picture_aspect: The picture aspect ratio (hor/vert).
-+ * @cea861_vic:	VIC code as per the CEA-861 standard.
-+ * @hdmi_vic:	VIC code as per the HDMI standard.
-  * @reserved:	Reserved fields, must be zeroed.
-  *
-  * A note regarding vertical interlaced timings: height refers to the total
-@@ -1258,7 +1261,10 @@ struct v4l2_bt_timings {
- 	__u32	il_vbackporch;
- 	__u32	standards;
- 	__u32	flags;
--	__u32	reserved[14];
-+	struct v4l2_fract picture_aspect;
-+	__u8	cea861_vic;
-+	__u8	hdmi_vic;
-+	__u8	reserved[46];
- } __attribute__ ((packed));
+Only one level of propagation was not that useful for me so I made it to completely
+propagate the format through the topology, I hope this patch to be useful to others.
+
+ utils/media-ctl/libv4l2subdev.c | 43 +++++++++++++++++++++++------------------
+ 1 file changed, 24 insertions(+), 19 deletions(-)
+
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 3dcf943..8333557 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -644,6 +644,28 @@ static int set_frame_interval(struct media_entity *entity,
+ 	return 0;
+ }
  
- /* Interlaced or progressive format */
-@@ -1315,6 +1321,23 @@ struct v4l2_bt_timings {
-  * except for the 640x480 format are CE formats.
-  */
- #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
-+/*
-+ * If set, then the picture_aspect field is valid. Otherwise assume that the
-+ * pixels are square, so the picture aspect ratio is the same as the width to
-+ * height ratio.
-+ */
-+#define V4L2_DV_FL_HAS_PICTURE_ASPECT		(1 << 5)
-+/*
-+ * If set, then the cea861_vic field is valid and contains the Video
-+ * Identification Code as per the CEA-861 standard.
-+ */
-+#define V4L2_DV_FL_HAS_CEA861_VIC		(1 << 6)
-+/*
-+ * If set, then the hdmi_vic field is valid and contains the Video
-+ * Identification Code as per the HDMI standard (HDMI Vendor Specific
-+ * InfoFrame).
-+ */
-+#define V4L2_DV_FL_HAS_HDMI_VIC			(1 << 7)
++static void propagate_set_fmt(struct media_entity *entity)
++{
++	unsigned int i;
++
++	for (i = 0; i < entity->num_links; ++i) {
++		struct media_link *link = &entity->links[i];
++		struct v4l2_mbus_framefmt format;
++
++		if (!(link->flags & MEDIA_LNK_FL_ENABLED))
++			continue;
++
++		/* If we found a source pad, propagate it's format to the remote sink */
++		if (link->source->entity == entity &&
++		    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
++
++			v4l2_subdev_get_format(entity, &format, link->source->index,
++						V4L2_SUBDEV_FORMAT_ACTIVE);
++			set_format(link->sink, &format);
++			propagate_set_fmt(link->sink->entity);
++		}
++	}
++}
  
- /* A few useful defines to calculate the total blanking and frame sizes */
- #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
+ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 					  const char *p, char **endp)
+@@ -653,7 +675,6 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 	struct v4l2_rect crop = { -1, -1, -1, -1 };
+ 	struct v4l2_rect compose = crop;
+ 	struct v4l2_fract interval = { 0, 0 };
+-	unsigned int i;
+ 	char *end;
+ 	int ret;
+ 
+@@ -690,24 +711,8 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 		return ret;
+ 
+ 
+-	/* If the pad is an output pad, automatically set the same format on
+-	 * the remote subdev input pads, if any.
+-	 */
+-	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
+-		for (i = 0; i < pad->entity->num_links; ++i) {
+-			struct media_link *link = &pad->entity->links[i];
+-			struct v4l2_mbus_framefmt remote_format;
+-
+-			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+-				continue;
+-
+-			if (link->source == pad &&
+-			    link->sink->entity->info.type == MEDIA_ENT_T_V4L2_SUBDEV) {
+-				remote_format = format;
+-				set_format(link->sink, &remote_format);
+-			}
+-		}
+-	}
++	/* Automaticaly propagate formats through the video pipe */
++	propagate_set_fmt(pad->entity);
+ 
+ 	*endp = end;
+ 	return 0;
 -- 
-2.8.1
+1.9.1
 
