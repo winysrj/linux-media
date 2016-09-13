@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36296 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753446AbcIPJju (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46951 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756027AbcIMX2f (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 05:39:50 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
-        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk,
-        devicetree@vger.kernel.org
-Subject: [PATCH 1/2] media: adv7604: fix bindings inconsistency for default-input
-Date: Fri, 16 Sep 2016 11:39:41 +0200
-Message-Id: <20160916093942.17213-2-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com>
-References: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com>
+        Tue, 13 Sep 2016 19:28:35 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: [PATCH 14/13] v4l: vsp1: Fix spinlock in mixed IRQ context function
+Date: Wed, 14 Sep 2016 02:29:08 +0300
+Message-Id: <1473809348-5222-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The text states that default-input is an endpoint property, but in the
-example it is a device property.  The example makes more sense.
+The wpf_configure() function can be called both from IRQ and non-IRQ
+contexts, use spin_lock_irqsave().
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- Documentation/devicetree/bindings/media/i2c/adv7604.txt | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/vsp1/vsp1_wpf.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 8337f75..9cbd92e 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -34,6 +34,7 @@ The digital output port node must contain at least one endpoint.
- Optional Properties:
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index b4ecffbaa3e3..c483fead3e98 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -251,11 +251,12 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 	if (params == VSP1_ENTITY_PARAMS_RUNTIME) {
+ 		const unsigned int mask = BIT(WPF_CTRL_VFLIP)
+ 					| BIT(WPF_CTRL_HFLIP);
++		unsigned long flags;
  
-   - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-+  - default-input: Select which input is selected after reset.
+-		spin_lock(&wpf->flip.lock);
++		spin_lock_irqsave(&wpf->flip.lock, flags);
+ 		wpf->flip.active = (wpf->flip.active & ~mask)
+ 				 | (wpf->flip.pending & mask);
+-		spin_unlock(&wpf->flip.lock);
++		spin_unlock_irqrestore(&wpf->flip.lock, flags);
  
- Optional Endpoint Properties:
+ 		outfmt = (wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT) | wpf->outfmt;
  
-@@ -47,8 +48,6 @@ Optional Endpoint Properties:
-   If none of hsync-active, vsync-active and pclk-sample is specified the
-   endpoint will use embedded BT.656 synchronization.
- 
--  - default-input: Select which input is selected after reset.
--
- Example:
- 
- 	hdmi_receiver@4c {
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
