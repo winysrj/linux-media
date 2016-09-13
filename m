@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp01.microchip.com ([198.175.253.37]:52752 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1750738AbcI1FbR (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35224
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752654AbcIMK7x (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 01:31:17 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] atmel-isc: start dma in some scenario
-Date: Wed, 28 Sep 2016 13:28:57 +0800
-Message-ID: <1475040538-32591-1-git-send-email-songjun.wu@microchip.com>
+        Tue, 13 Sep 2016 06:59:53 -0400
+Date: Tue, 13 Sep 2016 07:59:48 -0300
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v4 1/5] media: Determine early whether an IOCTL is
+ supported
+Message-ID: <20160913075948.70b60842@vento.lan>
+In-Reply-To: <20160913105124.GF5086@valkosipuli.retiisi.org.uk>
+References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
+        <1470947358-31168-2-git-send-email-sakari.ailus@linux.intel.com>
+        <20160906065617.1295d104@vento.lan>
+        <20160913105124.GF5086@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If a new vb buf is added to vb queue, the queue is
-empty and steaming, dma should be started.
+Em Tue, 13 Sep 2016 13:51:25 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
----
+> Hi Mauro,
+> 
+> On Tue, Sep 06, 2016 at 06:56:17AM -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu, 11 Aug 2016 23:29:14 +0300
+> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> >   
 
- drivers/media/platform/atmel/atmel-isc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+> > So, we don't expect to have the V4L2 compat32 mess here, but, instead,
+> > to keep this untouched as we add more ioctl's.  
+> 
+> That's a fair point. If we won't require compat handling for more IOCTLs,
+> we'll be fine with less generic compat handling.
+> 
+> I'll resend the set.
 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index ccfe13b..8e25d3f 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -617,7 +617,13 @@ static void isc_buffer_queue(struct vb2_buffer *vb)
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&isc->dma_queue_lock, flags);
--	list_add_tail(&buf->list, &isc->dma_queue);
-+	if (!isc->cur_frm && list_empty(&isc->dma_queue) &&
-+		vb2_is_streaming(vb->vb2_queue)) {
-+		isc->cur_frm = buf;
-+		isc_start_dma(isc->regmap, isc->cur_frm,
-+			isc->current_fmt->reg_dctrl_dview);
-+	} else
-+		list_add_tail(&buf->list, &isc->dma_queue);
- 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
- }
- 
--- 
-2.7.4
+OK, thanks!
 
+Regards,
+Mauro
