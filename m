@@ -1,59 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39270 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751758AbcIOLWi (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37389 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750953AbcIMDHO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:22:38 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 494E1600A1
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:34 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Mon, 12 Sep 2016 23:07:14 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 92CDA1803D8
+        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2016 05:07:03 +0200 (CEST)
+Date: Tue, 13 Sep 2016 05:07:03 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH v2 03/17] smiapp: Initialise media entity after sensor init
-Date: Thu, 15 Sep 2016 14:22:17 +0300
-Message-Id: <1473938551-14503-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+Subject: cron job: media_tree daily build: ABI WARNING
+Message-Id: <20160913030703.92CDA1803D8@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows determining the number of pads in the entity based on the
-sensor.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index be74ba3..0a03f30 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -3056,12 +3056,7 @@ static int smiapp_probe(struct i2c_client *client,
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
- 	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	sensor->src->sensor = sensor;
--
- 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
--				 sensor->src->pads);
--	if (rval < 0)
--		return rval;
- 
- 	if (client->dev.of_node) {
- 		rval = smiapp_init(sensor);
-@@ -3069,6 +3064,11 @@ static int smiapp_probe(struct i2c_client *client,
- 			goto out_media_entity_cleanup;
- 	}
- 
-+	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
-+				 sensor->src->pads);
-+	if (rval < 0)
-+		goto out_media_entity_cleanup;
-+
- 	rval = v4l2_async_register_subdev(&sensor->src->sd);
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
--- 
-2.1.4
+date:		Tue Sep 13 04:00:20 CEST 2016
+git branch:	test
+git hash:	c3b809834db8b1a8891c7ff873a216eac119628d
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+ABI WARNING: change for arm-pxa
+sparse: WARNINGS
+smatch: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
