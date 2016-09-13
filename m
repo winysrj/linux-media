@@ -1,125 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:50122 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756052AbcILDII (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46919 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759454AbcIMXQh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 23:08:08 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id C70C11800F1
-        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2016 05:08:02 +0200 (CEST)
-Date: Mon, 12 Sep 2016 05:08:02 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Tue, 13 Sep 2016 19:16:37 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160912030802.C70C11800F1@tschai.lan>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: [PATCH 05/13] v4l: vsp1: Use DFE instead of FRE for frame end
+Date: Wed, 14 Sep 2016 02:16:58 +0300
+Message-Id: <1473808626-19488-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Kieran Bingham <kieran+renesas@bingham.xyz>
 
-Results of the daily build of media_tree:
+The DFE and FRE interrupts are both fired at frame completion, as each
+display list processes a single frame. This won't be true anymore when
+using image partitioning, switch to DFE in preparation.
 
-date:		Mon Sep 12 04:00:16 CEST 2016
-git branch:	test
-git hash:	8a5a2ba86ab8fc12267fea974b9cd730ad2dee24
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
+---
+ drivers/media/platform/vsp1/vsp1_drv.c | 2 +-
+ drivers/media/platform/vsp1/vsp1_wpf.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: OK
-linux-git-i686: ERRORS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: ERRORS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: WARNINGS
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-ABI WARNING: change for arm-pxa
-smatch: WARNINGS
+diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+index 92418fc09511..57c713a4e1df 100644
+--- a/drivers/media/platform/vsp1/vsp1_drv.c
++++ b/drivers/media/platform/vsp1/vsp1_drv.c
+@@ -60,7 +60,7 @@ static irqreturn_t vsp1_irq_handler(int irq, void *data)
+ 		status = vsp1_read(vsp1, VI6_WPF_IRQ_STA(i));
+ 		vsp1_write(vsp1, VI6_WPF_IRQ_STA(i), ~status & mask);
+ 
+-		if (status & VI6_WFP_IRQ_STA_FRE) {
++		if (status & VI6_WFP_IRQ_STA_DFE) {
+ 			vsp1_pipeline_frame_end(wpf->pipe);
+ 			ret = IRQ_HANDLED;
+ 		}
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index 31983169c24a..748f5af90b7e 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -318,7 +318,7 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 	/* Enable interrupts */
+ 	vsp1_dl_list_write(dl, VI6_WPF_IRQ_STA(wpf->entity.index), 0);
+ 	vsp1_dl_list_write(dl, VI6_WPF_IRQ_ENB(wpf->entity.index),
+-			   VI6_WFP_IRQ_ENB_FREE);
++			   VI6_WFP_IRQ_ENB_DFEE);
+ }
+ 
+ static const struct vsp1_entity_operations wpf_entity_ops = {
+-- 
+Regards,
 
-Detailed results are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
