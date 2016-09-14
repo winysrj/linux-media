@@ -1,139 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:55911 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753483AbcITOeU (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49690 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751168AbcINWFS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Sep 2016 10:34:20 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 5/9] [media] st-delta: add contiguous memory allocator
-Date: Tue, 20 Sep 2016 16:33:36 +0200
-Message-ID: <1474382020-17588-6-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
-References: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+        Wed, 14 Sep 2016 18:05:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [v4l-utils PATCH v1.2 2/2] media-ctl: Print information related to a single entity
+Date: Thu, 15 Sep 2016 01:05:58 +0300
+Message-ID: <163775066.40INlWgSp9@avalon>
+In-Reply-To: <1473863379-4875-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <2226876.Vxqef30rz5@avalon> <1473863379-4875-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/sti/delta/Makefile    |  2 +-
- drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
- drivers/media/platform/sti/delta/delta.h     |  8 +++++
- 4 files changed, 74 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+Hi Sakari,
 
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index 07ba7ad..cbfb1b5 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,2 +1,2 @@
- obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
--st-delta-y := delta-v4l2.o
-+st-delta-y := delta-v4l2.o delta-mem.o
-diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
-new file mode 100644
-index 0000000..3f2642f
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.c
-@@ -0,0 +1,51 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-mem.h"
-+
-+int hw_alloc(struct delta_ctx *ctx, __u32 size, const char *name,
-+	     struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	dma_addr_t dma_addr;
-+	void *addr;
-+	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
-+
-+	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
-+			       GFP_KERNEL | __GFP_NOWARN, attrs);
-+	if (!addr) {
-+		dev_err(delta->dev,
-+			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
-+			ctx->name, name, size);
-+		ctx->sys_errors++;
-+		return -ENOMEM;
-+	}
-+
-+	buf->size = size;
-+	buf->paddr = dma_addr;
-+	buf->vaddr = addr;
-+	buf->name = name;
-+	buf->attrs = attrs;
-+
-+	dev_dbg(delta->dev,
-+		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	return 0;
-+}
-+
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+
-+	dev_dbg(delta->dev,
-+		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-+		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
-+
-+	dma_free_attrs(delta->dev, buf->size,
-+		       buf->vaddr, buf->paddr, buf->attrs);
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
-new file mode 100644
-index 0000000..bfbd001
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mem.h
-@@ -0,0 +1,14 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_MEM_H
-+#define DELTA_MEM_H
-+
-+int hw_alloc(struct delta_ctx *ctx, __u32 size, const char *name,
-+	     struct delta_buf *buf);
-+void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
-+
-+#endif /* DELTA_MEM_H */
-diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-index e066d8b1..b40fbad 100644
---- a/drivers/media/platform/sti/delta/delta.h
-+++ b/drivers/media/platform/sti/delta/delta.h
-@@ -191,6 +191,14 @@ struct delta_dts {
- 	u64 val;
- };
- 
-+struct delta_buf {
-+	__u32 size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+	const char *name;
-+	unsigned long attrs;
-+};
-+
- struct delta_ctx;
- 
- /*
+Thank you for the patch.
+
+On Wednesday 14 Sep 2016 17:29:39 Sakari Ailus wrote:
+> Add a possibility to printing all information related to a given entity by
+> using both -p and -e options. This may be handy sometimes if only a single
+> entity is of interest and there are many entities.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Fixed the commit message as well.
+> 
+>  utils/media-ctl/media-ctl.c | 33 +++++++++++++++------------------
+>  utils/media-ctl/options.c   |  2 ++
+>  2 files changed, 17 insertions(+), 18 deletions(-)
+> 
+> diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+> index 0499008..109cc11 100644
+> --- a/utils/media-ctl/media-ctl.c
+> +++ b/utils/media-ctl/media-ctl.c
+> @@ -504,19 +504,11 @@ static void media_print_topology_text(struct
+> media_device *media) media, media_get_entity(media, i));
+>  }
+> 
+> -void media_print_topology(struct media_device *media, int dot)
+> -{
+> -	if (dot)
+> -		media_print_topology_dot(media);
+> -	else
+> -		media_print_topology_text(media);
+> -}
+> -
+>  int main(int argc, char **argv)
+>  {
+>  	struct media_device *media;
+> +	struct media_entity *entity = NULL;
+>  	int ret = -1;
+> -	const char *devname;
+> 
+>  	if (parse_cmdline(argc, argv))
+>  		return EXIT_FAILURE;
+> @@ -562,17 +554,11 @@ int main(int argc, char **argv)
+>  	}
+> 
+>  	if (media_opts.entity) {
+> -		struct media_entity *entity;
+> -
+>  		entity = media_get_entity_by_name(media, media_opts.entity);
+>  		if (entity == NULL) {
+>  			printf("Entity '%s' not found\n", media_opts.entity);
+>  			goto out;
+>  		}
+> -
+> -		devname = media_entity_get_devname(entity);
+> -		if (devname)
+> -			printf("%s\n", devname);
+>  	}
+> 
+>  	if (media_opts.fmt_pad) {
+> @@ -611,9 +597,20 @@ int main(int argc, char **argv)
+>  		}
+>  	}
+> 
+> -	if (media_opts.print || media_opts.print_dot) {
+> -		media_print_topology(media, media_opts.print_dot);
+> -		printf("\n");
+> +	if (media_opts.print_dot) {
+> +		media_print_topology_dot(media);
+> +	} else if (media_opts.print) {
+> +		if (entity) {
+> +			media_print_topology_text_entity(media, entity);
+> +		} else {
+> +			media_print_topology_text(media);
+> +		}
+
+You could remove the curly braces here.
+
+> +	} else if (entity) {
+> +		const char *devname;
+> +
+> +		devname = media_entity_get_devname(entity);
+> +		if (devname)
+> +			printf("%s\n", devname);
+>  	}
+> 
+>  	if (media_opts.reset) {
+> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+> index a288a1b..304a86c 100644
+> --- a/utils/media-ctl/options.c
+> +++ b/utils/media-ctl/options.c
+> @@ -52,6 +52,8 @@ static void usage(const char *argv0)
+>  	printf("-l, --links links	Comma-separated list of link 
+descriptors to
+> setup\n"); printf("    --known-mbus-fmts	List known media bus formats 
+and
+> their numeric values\n"); printf("-p, --print-topology	Print the 
+device
+> topology\n");
+> +	printf("			If entity name is specified using -e 
+option, information\n");
+> +	printf("			related to that entity only is 
+printed.\n");
+
+Nitpicking, was anything wrong with
+
+printf("-p, --print-topology    Print the device topology. If an entity\n");
+printf("                        is specified through the -e option, print\n");
+printf("                        information for that entity only.\n);
+
+? I think the help text looks more natural when using articles :-)
+
+>  	printf("    --print-dot		Print the device topology as a dot 
+graph\n");
+>  	printf("-r, --reset		Reset all links to inactive\n");
+>  	printf("-v, --verbose		Be verbose\n");
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
