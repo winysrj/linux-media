@@ -1,96 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegasos-out.vodafone.de ([80.84.1.38]:34226 "EHLO
-        pegasos-out.vodafone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932390AbcIWSJj (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:36412 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932645AbcINM6u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 14:09:39 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-        by pegasos-out.vodafone.de (Rohrpostix2  Daemon) with ESMTP id 98ACC6000DB
-        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2016 19:59:48 +0200 (CEST)
-Received: from pegasos-out.vodafone.de ([127.0.0.1])
-        by localhost (rohrpostix2.prod.vfnet.de [127.0.0.1]) (amavisd-new, port 10024)
-        with ESMTP id i48TySgL8X13 for <linux-media@vger.kernel.org>;
-        Fri, 23 Sep 2016 19:59:46 +0200 (CEST)
-Subject: Re: [Intel-gfx] [PATCH 11/11] dma-buf: Do a fast lockless check for
- poll with timeout=0
-To: Chris Wilson <chris@chris-wilson.co.uk>,
-        Daniel Vetter <daniel@ffwll.ch>,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org,
-        Sumit Semwal <sumit.semwal@linaro.org>
-References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
- <20160829070834.22296-11-chris@chris-wilson.co.uk>
- <20160923135044.GM3988@dvetter-linux.ger.corp.intel.com>
- <20160923152044.GG28107@nuc-i3427.alporthouse.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
-Message-ID: <a09b41cd-f907-226a-98f9-d9cf34fd6d2a@vodafone.de>
-Date: Fri, 23 Sep 2016 19:59:44 +0200
+        Wed, 14 Sep 2016 08:58:50 -0400
+Subject: Re: [PATCH v2 2/4] add stih-cec driver
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        hans.verkuil@cisco.com, linux-media@vger.kernel.org
+References: <1473852249-15960-1-git-send-email-benjamin.gaignard@linaro.org>
+ <1473852249-15960-3-git-send-email-benjamin.gaignard@linaro.org>
+Cc: kernel@stlinux.com, arnd@arndb.de, robh@kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <16e7882f-2975-281a-eb6e-f27c3ca76fa2@xs4all.nl>
+Date: Wed, 14 Sep 2016 14:58:43 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160923152044.GG28107@nuc-i3427.alporthouse.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1473852249-15960-3-git-send-email-benjamin.gaignard@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 23.09.2016 um 17:20 schrieb Chris Wilson:
-> On Fri, Sep 23, 2016 at 03:50:44PM +0200, Daniel Vetter wrote:
->> On Mon, Aug 29, 2016 at 08:08:34AM +0100, Chris Wilson wrote:
->>> Currently we install a callback for performing poll on a dma-buf,
->>> irrespective of the timeout. This involves taking a spinlock, as well as
->>> unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
->>> multiple threads.
->>>
->>> We can query whether the poll will block prior to installing the
->>> callback to make the busy-query fast.
->>>
->>> Single thread: 60% faster
->>> 8 threads on 4 (+4 HT) cores: 600% faster
->>>
->>> Still not quite the perfect scaling we get with a native busy ioctl, but
->>> poll(dmabuf) is faster due to the quicker lookup of the object and
->>> avoiding drm_ioctl().
->>>
->>> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
->>> Cc: Sumit Semwal <sumit.semwal@linaro.org>
->>> Cc: linux-media@vger.kernel.org
->>> Cc: dri-devel@lists.freedesktop.org
->>> Cc: linaro-mm-sig@lists.linaro.org
->>> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->> Need to strike the r-b here, since Christian König pointed out that
->> objects won't magically switch signalling on.
-> Oh, it also means that
->
-> commit fb8b7d2b9d80e1e71f379e57355936bd2b024be9
-> Author: Jammy Zhou <Jammy.Zhou@amd.com>
-> Date:   Wed Jan 21 18:35:47 2015 +0800
->
->      reservation: wait only with non-zero timeout specified (v3)
->      
->      When the timeout value passed to reservation_object_wait_timeout_rcu
->      is zero, no wait should be done if the fences are not signaled.
->      
->      Return '1' for idle and '0' for busy if the specified timeout is '0'
->      to keep consistent with the case of non-zero timeout.
->      
->      v2: call fence_put if not signaled in the case of timeout==0
->      
->      v3: switch to reservation_object_test_signaled_rcu
->      
->      Signed-off-by: Jammy Zhou <Jammy.Zhou@amd.com>
->      Reviewed-by: Christian König <christian.koenig@amd.com>
->      Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
->      Reviewed-By: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->      Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
->
-> is wrong. And reservation_object_test_signaled_rcu() is unreliable.
+Hi Benjamin,
 
-Ups indeed, that patch is wrong as well.
+Just one comment:
 
-I suggest that we just enable the signaling in this case as well.
+On 09/14/2016 01:24 PM, Benjamin Gaignard wrote:
+> This patch implement CEC driver for stih4xx platform.
+> Driver compliance has been test with cec-ctl and
+> cec-compliance tools.
+> 
+> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> ---
+>  drivers/staging/media/Kconfig           |   2 +
+>  drivers/staging/media/Makefile          |   1 +
+>  drivers/staging/media/st-cec/Kconfig    |   8 +
+>  drivers/staging/media/st-cec/Makefile   |   1 +
+>  drivers/staging/media/st-cec/stih-cec.c | 382 ++++++++++++++++++++++++++++++++
+>  5 files changed, 394 insertions(+)
+>  create mode 100644 drivers/staging/media/st-cec/Kconfig
+>  create mode 100644 drivers/staging/media/st-cec/Makefile
+>  create mode 100644 drivers/staging/media/st-cec/stih-cec.c
+> 
+
+<snip>
+
+> +static void stih_rx_done(struct stih_cec *cec, u32 status)
+> +{
+> +	struct cec_msg *msg = &cec->rx_msg;
+
+You can just say:
+
+	struct cec_msg msg = {};
+
+and drop rx_msg.
+
+> +	u8 i;
+> +
+> +	if (status & CEC_RX_ERROR_MIN)
+> +		return;
+> +
+> +	if (status & CEC_RX_ERROR_MAX)
+> +		return;
+> +
+> +	memset(msg, 0x00, sizeof(*msg));
+> +	msg->len = readl(cec->regs + CEC_DATA_ARRAY_STATUS) & 0x1f;
+> +
+> +	if (!msg-len)
+> +		return;
+> +
+> +	if (msg->len > 16)
+> +		msg->len = 16;
+> +
+> +	for (i = 0; i < msg->len; i++)
+> +		msg->msg[i] = readl(cec->regs + CEC_RX_DATA_BASE + i);
+> +
+> +	cec_received_msg(cec->adap, msg);
+
+cec_received_msg will copy the contents, so it is OK if it is gone after
+this call.
+
+> +}
 
 Regards,
-Christian.
 
-> -Chris
->
-
+	Hans
