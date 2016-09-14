@@ -1,62 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43780 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941742AbcIHMES (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 02/47] docs-rst: parse-headers.pl: make debug a command line option
-Date: Thu,  8 Sep 2016 09:03:24 -0300
-Message-Id: <3319e6af28550dd76a7e9c725e0d13b842343048.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:54493 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756146AbcINLva (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Sep 2016 07:51:30 -0400
+Subject: Re: [PATCH v2 2/4] docs-rst: Add compressed video formats used on
+ MT8173 codec driver
+To: Tiffany Lin <tiffany.lin@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+References: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
+ <1473436087-21943-2-git-send-email-tiffany.lin@mediatek.com>
+ <1473436087-21943-3-git-send-email-tiffany.lin@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e0d40ba4-a53e-72ca-0c45-2ab578922d9c@xs4all.nl>
+Date: Wed, 14 Sep 2016 13:51:17 +0200
+MIME-Version: 1.0
+In-Reply-To: <1473436087-21943-3-git-send-email-tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a parser for the --debug option, in order to allow
-seeing what the parser is doing.
+Hi Tiffany,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/sphinx/parse-headers.pl | 14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+On 09/09/2016 05:48 PM, Tiffany Lin wrote:
+> Add V4L2_PIX_FMT_MT21C documentation
+> 
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> ---
+>  Documentation/media/uapi/v4l/pixfmt-reserved.rst |   10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> index 0dd2f7f..0989e99 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> @@ -339,7 +339,17 @@ please make a proposal on the linux-media mailing list.
+>  	  array. Anything what's in between the UYVY lines is JPEG data and
+>  	  should be concatenated to form the JPEG stream.
+>  
+> +    -  .. _V4L2-PIX-FMT-MT21C:
+>  
+> +       -  ``V4L2_PIX_FMT_MT21C``
+> +
+> +       -  'MT21C'
+> +
+> +       -  Compressed two-planar YVU420 format used by Mediatek MT8173.
+> +          The compression is lossless.
+> +          It is an opaque intermediate format, and MDP HW could convert
 
-diff --git a/Documentation/sphinx/parse-headers.pl b/Documentation/sphinx/parse-headers.pl
-index 74089b0da798..531c710fc73f 100755
---- a/Documentation/sphinx/parse-headers.pl
-+++ b/Documentation/sphinx/parse-headers.pl
-@@ -2,12 +2,18 @@
- use strict;
- use Text::Tabs;
- 
--# Uncomment if debug is needed
--#use Data::Dumper;
--
--# change to 1 to generate some debug prints
- my $debug = 0;
- 
-+while ($ARGV[0] =~ m/^-(.*)/) {
-+	my $cmd = shift @ARGV;
-+	if ($cmd eq "--debug") {
-+		require Data::Dumper;
-+		$debug = 1;
-+		next;
-+	}
-+	die "argument $cmd unknown";
-+}
-+
- if (scalar @ARGV < 2 || scalar @ARGV > 3) {
- 	die "Usage:\n\t$0 <file in> <file out> [<exceptions file>]\n";
- }
--- 
-2.7.4
+Is it OK if I change this to:
 
+" and the MDP hardware must be used to convert"
 
+> +          V4L2_PIX_FMT_MT21C to V4L2_PIX_FMT_NV12M,
+> +          V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
+
+and here "and" should be replaced by "or".
+
+Regards,
+
+	Hans
+
+>  
+>  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+>  
+> 
