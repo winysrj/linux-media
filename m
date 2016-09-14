@@ -1,86 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:53173 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751180AbcIPIoq (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35963 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751168AbcINJXM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 04:44:46 -0400
-Subject: Re: [PATCH v8 1/2] media: adv7604: automatic "default-input"
- selection
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-References: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com>
- <20160915132408.20776-2-ulrich.hecht+renesas@gmail.com>
- <1962610.tCZYpFzJAm@avalon>
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-        william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2e0c5872-e914-6dd2-cd9c-4b39416f8180@xs4all.nl>
-Date: Fri, 16 Sep 2016 10:44:41 +0200
-MIME-Version: 1.0
-In-Reply-To: <1962610.tCZYpFzJAm@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Wed, 14 Sep 2016 05:23:12 -0400
+Received: by mail-wm0-f50.google.com with SMTP id b187so36760609wme.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 02:23:11 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
+Cc: kernel@stlinux.com, arnd@arndb.de, robh@kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 0/4] STIH CEC driver
+Date: Wed, 14 Sep 2016 11:22:00 +0200
+Message-Id: <1473844924-13895-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+Those patches implement HDMI CEC driver for stih4xx SoCs.
+I have used media_tree/fixes and the lastest v4l-utils branch.
 
-What should I do with this? I dropped it for now.
+The compliance tools have been run with the following sequence:
+cec-ctl --tuner -p 1.0.0.0
+cec-compliance -A
+and cec-follower running in a separate shell
 
-I'm just going ahead and post the pull request without this patch as I
-don't want this to be a blocker.
+Compliance logs:
+cec-ctl --tuner -p 1.0.0.0 
+Driver Info:
+	Driver Name                : stih-cec
+	Adapter Name               : stih-cec
+	Capabilities               : 0x0000000f
+		Physical Address
+		Logical Addresses
+		Transmit
+		Passthrough
+	Driver version             : 4.8.0
+	Available Logical Addresses: 1
+	Physical Address           : 1.0.0.0
+	Logical Address Mask       : 0x0008
+	CEC Version                : 2.0
+	Vendor ID                  : 0x000c03
+	OSD Name                   : 'Tuner'
+	Logical Addresses          : 1
 
-Regards,
+	  Logical Address          : 3 (Tuner 1)
+	    Primary Device Type    : Tuner
+	    Logical Address Type   : Tuner
+	    All Device Types       : Tuner
+	    RC TV Profile          : None
+	    Device Features        :
+		None
 
-	Hans
+cec-compliance -A 
+cec-compliance SHA                 : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
 
-On 09/15/2016 06:42 PM, Laurent Pinchart wrote:
-> Hi Ulrich,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 15 Sep 2016 15:24:07 Ulrich Hecht wrote:
->> Fall back to input 0 if "default-input" property is not present.
->>
->> Additionally, documentation in commit bf9c82278c34 ("[media]
->> media: adv7604: ability to read default input port from DT") states
->> that the "default-input" property should reside directly in the node
->> for adv7612.
-> 
-> Actually it doesn't. The DT bindings specifies "default-input" as an endpoint 
-> property, even though the example sets it in the device node. That's 
-> inconsistent so the DT bindings document should be fixed. I believe the 
-> property should be set in the device node, it doesn't make much sense to have 
-> different default inputs per port.
-> 
->> Hence, also adjust the parsing to make the implementation
->> consistent with this.
->>
->> Based on patch by William Towle <william.towle@codethink.co.uk>.
->>
->> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->> ---
->>  drivers/media/i2c/adv7604.c | 5 ++++-
->>  1 file changed, 4 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
->> index 4003831..055c9df 100644
->> --- a/drivers/media/i2c/adv7604.c
->> +++ b/drivers/media/i2c/adv7604.c
->> @@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state
->> *state) if (!of_property_read_u32(endpoint, "default-input", &v))
->>  		state->pdata.default_input = v;
->>  	else
->> -		state->pdata.default_input = -1;
->> +		state->pdata.default_input = 0;
->>
->>  	of_node_put(endpoint);
->>
->> +	if (!of_property_read_u32(np, "default-input", &v))
->> +		state->pdata.default_input = v;
->> +
->>  	flags = bus_cfg.bus.parallel.flags;
->>
->>  	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> 
+Driver Info:
+	Driver Name                : stih-cec
+	Adapter Name               : stih-cec
+	Capabilities               : 0x0000000f
+		Physical Address
+		Logical Addresses
+		Transmit
+		Passthrough
+	Driver version             : 4.8.0
+	Available Logical Addresses: 1
+	Physical Address           : 1.0.0.0
+	Logical Address Mask       : 0x0008
+	CEC Version                : 2.0
+	Vendor ID                  : 0x000c03
+	Logical Addresses          : 1
+
+	  Logical Address          : 3
+	    Primary Device Type    : Tuner
+	    Logical Address Type   : Tuner
+	    All Device Types       : Tuner
+	    RC TV Profile          : None
+	    Device Features        :
+		None
+
+Compliance test for device /dev/cec0:
+
+    The test results mean the following:
+        OK                  Supported correctly by the device.
+        OK (Not Supported)  Not supported and not mandatory for the device.
+        OK (Presumed)       Presumably supported.  Manually check to confirm.
+        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
+        OK (Refused)        Supported by the device, but was refused.
+        FAIL                Failed and was expected to be supported by this device.
+
+Find remote devices:
+	Polling: OK
+
+CEC API:
+	CEC_ADAP_G_CAPS: OK
+	CEC_DQEVENT: OK
+	CEC_ADAP_G/S_PHYS_ADDR: OK
+	CEC_ADAP_G/S_LOG_ADDRS: OK
+	CEC_TRANSMIT: OK
+	CEC_RECEIVE: OK
+	CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
+	CEC_G/S_MODE: OK
+	CEC_EVENT_LOST_MSGS: OK
+
+Network topology:
+	System Information for device 0 (TV) from device 3 (Tuner 1):
+		CEC Version                : 1.4
+		Physical Address           : Tx, OK, Not Acknowledged (1), Rx, Timeout
+		Vendor ID                  : 0x00903e
+		OSD Name                   : 'TV'
+		Menu Language              : fre
+		Power Status               : On
+
+Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
+
+cec-follower 
+cec-follower SHA                   : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
+
+Driver Info:
+	Driver Name                : stih-cec
+	Adapter Name               : stih-cec
+	Capabilities               : 0x0000000f
+		Physical Address
+		Logical Addresses
+		Transmit
+		Passthrough
+	Driver version             : 4.8.0
+	Available Logical Addresses: 1
+	Physical Address           : 1.0.0.0
+	Logical Address Mask       : 0x0008
+	CEC Version                : 2.0
+	Vendor ID                  : 0x000c03
+	Logical Addresses          : 1
+
+	  Logical Address          : 3
+	    Primary Device Type    : Tuner
+	    Logical Address Type   : Tuner
+	    All Device Types       : Tuner
+	    RC TV Profile          : None
+	    Device Features        :
+		None
+
+Initial Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
+Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
+Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
+Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
+Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
+Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
+Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
+
+Benjamin Gaignard (4):
+  bindings for stih-cec driver
+  add stih-cec driver
+  add stih-cec driver into DT
+  add maintainer for stih-cec driver
+
+ .../devicetree/bindings/media/stih-cec.txt         |  25 ++
+ MAINTAINERS                                        |   7 +
+ arch/arm/boot/dts/stih410.dtsi                     |  12 +
+ drivers/staging/media/Kconfig                      |   2 +
+ drivers/staging/media/Makefile                     |   1 +
+ drivers/staging/media/st-cec/Kconfig               |   8 +
+ drivers/staging/media/st-cec/Makefile              |   1 +
+ drivers/staging/media/st-cec/stih-cec.c            | 377 +++++++++++++++++++++
+ 8 files changed, 433 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/stih-cec.txt
+ create mode 100644 drivers/staging/media/st-cec/Kconfig
+ create mode 100644 drivers/staging/media/st-cec/Makefile
+ create mode 100644 drivers/staging/media/st-cec/stih-cec.c
+
+-- 
+1.9.1
+
