@@ -1,48 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:52588 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751320AbcIQJpw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Sep 2016 05:45:52 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the c-domain
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160916100226.055683ed@lwn.net>
-Date: Sat, 17 Sep 2016 11:45:09 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <17330187-A107-472D-98F0-044C768A7E7C@darmarit.de>
-References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de> <20160916100226.055683ed@lwn.net>
-To: Jonathan Corbet <corbet@lwn.net>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:36992 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751091AbcINDDX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Sep 2016 23:03:23 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 378BB180156
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 05:03:16 +0200 (CEST)
+Date: Wed, 14 Sep 2016 05:03:16 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160914030316.378BB180156@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Am 16.09.2016 um 18:02 schrieb Jonathan Corbet <corbet@lwn.net>:
+Results of the daily build of media_tree:
 
-> On Wed,  7 Sep 2016 09:12:55 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
-> 
->> according to your remarks I fixed the first and second patch. The third patch is
->> resend unchanged;
-> 
-> OK, I've applied the first two, finally.
-...
+date:		Wed Sep 14 04:00:17 CEST 2016
+git branch:	test
+git hash:	c3b809834db8b1a8891c7ff873a216eac119628d
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-> Information hiding is the only way we can maintain the kernel and stay
-> sane.  I have a hard time imagining why somebody would be looking for a
-> macro in particular; the whole idea is that they really shouldn't have to
-> care.  So my inclination is to leave this one out, sorry.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: OK
+linux-2.6.37.6-i686: OK
+linux-2.6.38.8-i686: OK
+linux-2.6.39.4-i686: OK
+linux-3.0.60-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: OK
+linux-3.5.7-i686: OK
+linux-3.6.11-i686: OK
+linux-3.7.4-i686: OK
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-3.10.1-i686: OK
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: OK
+linux-2.6.37.6-x86_64: OK
+linux-2.6.38.8-x86_64: OK
+linux-2.6.39.4-x86_64: OK
+linux-3.0.60-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: OK
+linux-3.5.7-x86_64: OK
+linux-3.6.11-x86_64: OK
+linux-3.7.4-x86_64: OK
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+linux-3.10.1-x86_64: OK
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-OK, thanks.
- 
--- Markus --
+Detailed results are available here:
 
-> 
-> Thanks,
-> 
-> jon
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
