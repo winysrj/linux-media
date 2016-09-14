@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44938 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751493AbcIAMCs (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49501 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753427AbcINT7v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 08:02:48 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 7774E6009C
-        for <linux-media@vger.kernel.org>; Thu,  1 Sep 2016 15:02:44 +0300 (EEST)
-Date: Thu, 1 Sep 2016 15:02:44 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.9] smiapp cleanups and probe deferral
-Message-ID: <20160901120243.GV12130@valkosipuli.retiisi.org.uk>
+        Wed, 14 Sep 2016 15:59:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: Re: [PATCH 11/13] v4l: vsp1: Determine partition requirements for scaled images
+Date: Wed, 14 Sep 2016 23:00:33 +0300
+Message-ID: <1554377.UPrL1uhbCT@avalon>
+In-Reply-To: <20160914192733.GL739@bigcity.dyn.berto.se>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1473808626-19488-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160914192733.GL739@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Niklas,
 
-Here are cleanups and probe deferral in case of a failure to obtain a clock
-for the smiapp driver.
+On Wednesday 14 Sep 2016 21:27:33 Niklas S=F6derlund wrote:
+> On 2016-09-14 02:17:04 +0300, Laurent Pinchart wrote:
+> > From: Kieran Bingham <kieran+renesas@bingham.xyz>
+> >=20
+> > The partition algorithm needs to determine the capabilities of each=
 
-Please pull.
+> > entity in the pipeline to identify the correct maximum partition wi=
+dth.
+> >=20
+> > Extend the vsp1 entity operations to provide a max_width operation =
+and
+> > use this call to calculate the number of partitions that will be
+> > processed by the algorithm.
+> >=20
+> > Gen 2 hardware does not require multiple partitioning, and as such
+> > will always return a single partition.
+> >=20
+> > Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+>=20
+> I can't find the information about the partition limitations for SRU =
+or
+> UDS in any of the documents I have.
 
+That's because it's not documented in the datasheet :-(
 
-The following changes since commit b6aa39228966e0d3f0bc3306be1892f87792903a:
+> But for the parts not relating to the logic of figuring out the hscal=
+e from
+> the input/output formats width:
+>=20
+> Reviewed-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.s=
+e>
 
-  Merge tag 'v4.8-rc1' into patchwork (2016-08-08 07:30:25 -0300)
+Thanks.
 
-are available in the git repository at:
+--=20
+Regards,
 
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp
+Laurent Pinchart
 
-for you to fetch changes up to e5523b3e420ea19172e364bb6f10ce6eeec61efc:
-
-  smiapp: Remove set_xclk() callback from hwconfig (2016-09-01 12:42:13 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (6):
-      smiapp: Unify enforced and need-based 8-bit read
-      smiapp: Rename smiapp_platform_data as smiapp_hwconfig
-      smiapp: Return -EPROBE_DEFER if the clock cannot be obtained
-      smiapp: Constify the regs argument to smiapp_write_8s()
-      smiapp: Switch to gpiod API for GPIO control
-      smiapp: Remove set_xclk() callback from hwconfig
-
- drivers/media/i2c/smiapp/smiapp-core.c  | 172 +++++++++++++-------------------
- drivers/media/i2c/smiapp/smiapp-quirk.c |  16 ++-
- drivers/media/i2c/smiapp/smiapp-regs.c  |  22 ++--
- drivers/media/i2c/smiapp/smiapp.h       |   3 +-
- include/media/i2c/smiapp.h              |   7 +-
- 5 files changed, 93 insertions(+), 127 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
