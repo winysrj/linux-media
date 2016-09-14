@@ -1,125 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37389 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750953AbcIMDHO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 23:07:14 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 92CDA1803D8
-        for <linux-media@vger.kernel.org>; Tue, 13 Sep 2016 05:07:03 +0200 (CEST)
-Date: Tue, 13 Sep 2016 05:07:03 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mga14.intel.com ([192.55.52.115]:53044 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757072AbcINO2u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Sep 2016 10:28:50 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ABI WARNING
-Message-Id: <20160913030703.92CDA1803D8@tschai.lan>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [v4l-utils PATCH v1.1 2/2] media-ctl: Print information related to a single entity
+Date: Wed, 14 Sep 2016 17:27:45 +0300
+Message-Id: <1473863265-4819-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <2226876.Vxqef30rz5@avalon>
+References: <2226876.Vxqef30rz5@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add an optional argument to the -p option that allows printing all
+information related to a given entity. This may be handy sometimes if only
+a single entity is of interest and there are many entities.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ utils/media-ctl/media-ctl.c | 33 +++++++++++++++------------------
+ utils/media-ctl/options.c   |  2 ++
+ 2 files changed, 17 insertions(+), 18 deletions(-)
 
-date:		Tue Sep 13 04:00:20 CEST 2016
-git branch:	test
-git hash:	c3b809834db8b1a8891c7ff873a216eac119628d
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index 0499008..109cc11 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -504,19 +504,11 @@ static void media_print_topology_text(struct media_device *media)
+ 			media, media_get_entity(media, i));
+ }
+ 
+-void media_print_topology(struct media_device *media, int dot)
+-{
+-	if (dot)
+-		media_print_topology_dot(media);
+-	else
+-		media_print_topology_text(media);
+-}
+-
+ int main(int argc, char **argv)
+ {
+ 	struct media_device *media;
++	struct media_entity *entity = NULL;
+ 	int ret = -1;
+-	const char *devname;
+ 
+ 	if (parse_cmdline(argc, argv))
+ 		return EXIT_FAILURE;
+@@ -562,17 +554,11 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	if (media_opts.entity) {
+-		struct media_entity *entity;
+-
+ 		entity = media_get_entity_by_name(media, media_opts.entity);
+ 		if (entity == NULL) {
+ 			printf("Entity '%s' not found\n", media_opts.entity);
+ 			goto out;
+ 		}
+-
+-		devname = media_entity_get_devname(entity);
+-		if (devname)
+-			printf("%s\n", devname);
+ 	}
+ 
+ 	if (media_opts.fmt_pad) {
+@@ -611,9 +597,20 @@ int main(int argc, char **argv)
+ 		}
+ 	}
+ 
+-	if (media_opts.print || media_opts.print_dot) {
+-		media_print_topology(media, media_opts.print_dot);
+-		printf("\n");
++	if (media_opts.print_dot) {
++		media_print_topology_dot(media);
++	} else if (media_opts.print) {
++		if (entity) {
++			media_print_topology_text_entity(media, entity);
++		} else {
++			media_print_topology_text(media);
++		}
++	} else if (entity) {
++		const char *devname;
++
++		devname = media_entity_get_devname(entity);
++		if (devname)
++			printf("%s\n", devname);
+ 	}
+ 
+ 	if (media_opts.reset) {
+diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+index a288a1b..304a86c 100644
+--- a/utils/media-ctl/options.c
++++ b/utils/media-ctl/options.c
+@@ -52,6 +52,8 @@ static void usage(const char *argv0)
+ 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
+ 	printf("    --known-mbus-fmts	List known media bus formats and their numeric values\n");
+ 	printf("-p, --print-topology	Print the device topology\n");
++	printf("			If entity name is specified using -e option, information\n");
++	printf("			related to that entity only is printed.\n");
+ 	printf("    --print-dot		Print the device topology as a dot graph\n");
+ 	printf("-r, --reset		Reset all links to inactive\n");
+ 	printf("-v, --verbose		Be verbose\n");
+-- 
+2.7.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-ABI WARNING: change for arm-pxa
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
