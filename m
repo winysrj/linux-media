@@ -1,120 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58292 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750750AbcISRmr (ORCPT
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:33551 "EHLO
+        mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753801AbcINS2u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 13:42:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH] [media] gs1662: make checkpatch happy
-Date: Mon, 19 Sep 2016 14:42:18 -0300
-Message-Id: <3c3ba5452e8a0e2dd9fb89222feb88f11ec6ff7a.1474306935.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Wed, 14 Sep 2016 14:28:50 -0400
+Received: by mail-lf0-f45.google.com with SMTP id h127so16575587lfh.0
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 11:28:49 -0700 (PDT)
+Date: Wed, 14 Sep 2016 20:28:46 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: Re: [PATCH 03/13] v4l: vsp1: Ensure pipeline locking in resume path
+Message-ID: <20160914182846.GH739@bigcity.dyn.berto.se>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1473808626-19488-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1473808626-19488-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-WARNING: line over 80 characters
-+			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN, GS_PIXELCLOCK_MAX,
+On 2016-09-14 02:16:56 +0300, Laurent Pinchart wrote:
+> From: Kieran Bingham <kieran+renesas@bingham.xyz>
+> 
+> The vsp1_pipeline_ready() and vsp1_pipeline_run() functions must be
+> called with the pipeline lock held, fix the resume code path.
+> 
+> Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-WARNING: line over 80 characters
-+		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0, false))
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-WARNING: Block comments use a trailing */ on a separate line
-+	 * which looks like a video signal activity.*/
+> ---
+>  drivers/media/platform/vsp1/vsp1_pipe.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+> index 3e75fb3fcace..474de82165d8 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+> @@ -365,6 +365,7 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
+>  
+>  void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+>  {
+> +	unsigned long flags;
+>  	unsigned int i;
+>  
+>  	/* Resume all running pipelines. */
+> @@ -379,7 +380,9 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
+>  		if (pipe == NULL)
+>  			continue;
+>  
+> +		spin_lock_irqsave(&pipe->irqlock, flags);
+>  		if (vsp1_pipeline_ready(pipe))
+>  			vsp1_pipeline_run(pipe);
+> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
+>  	}
+>  }
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-WARNING: else is not generally useful after a break or return
-+		return gs_write_register(gs->pdev, REG_FORCE_FMT, reg_value);
-+	} else {
-
-WARNING: Block comments use a trailing */ on a separate line
-+	 * which looks like a video signal activity.*/
-
-ERROR: spaces required around that '=' (ctx:VxW)
-+	.enum_dv_timings= gs_enum_dv_timings,
- 	                ^
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/spi/gs1662.c | 26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
-index f74342339e5a..d76f36233f43 100644
---- a/drivers/media/spi/gs1662.c
-+++ b/drivers/media/spi/gs1662.c
-@@ -134,7 +134,8 @@ static const struct v4l2_dv_timings_cap gs_timings_cap = {
- 	/* keep this initialization for compatibility with GCC < 4.4.6 */
- 	.reserved = { 0 },
- 	V4L2_INIT_BT_TIMINGS(GS_WIDTH_MIN, GS_WIDTH_MAX, GS_HEIGHT_MIN,
--			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN, GS_PIXELCLOCK_MAX,
-+			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN,
-+			     GS_PIXELCLOCK_MAX,
- 			     V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_SDI,
- 			     V4L2_DV_BT_CAP_PROGRESSIVE
- 			     | V4L2_DV_BT_CAP_INTERLACED)
-@@ -237,7 +238,8 @@ static u16 get_register_timings(struct v4l2_dv_timings *timings)
- 	int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
--		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0, false))
-+		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0,
-+					  false))
- 			return reg_fmt[i].reg_value | MASK_FORCE_STD;
- 	}
- 
-@@ -283,8 +285,10 @@ static int gs_query_dv_timings(struct v4l2_subdev *sd,
- 	if (gs->enabled)
- 		return -EBUSY;
- 
--	/* Check if the component detect a line, a frame or something else
--	 * which looks like a video signal activity.*/
-+	/*
-+	 * Check if the component detect a line, a frame or something else
-+	 * which looks like a video signal activity.
-+	 */
- 	for (i = 0; i < 4; i++) {
- 		gs_read_register(gs->pdev, REG_LINES_PER_FRAME + i, &reg_value);
- 		if (reg_value)
-@@ -337,10 +341,10 @@ static int gs_s_stream(struct v4l2_subdev *sd, int enable)
- 		/* To force the specific format */
- 		reg_value = get_register_timings(&gs->current_timings);
- 		return gs_write_register(gs->pdev, REG_FORCE_FMT, reg_value);
--	} else {
--		/* To renable auto-detection mode */
--		return gs_write_register(gs->pdev, REG_FORCE_FMT, 0x0);
- 	}
-+
-+	/* To renable auto-detection mode */
-+	return gs_write_register(gs->pdev, REG_FORCE_FMT, 0x0);
- }
- 
- static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
-@@ -349,8 +353,10 @@ static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
- 	u16 reg_value, i;
- 	int ret;
- 
--	/* Check if the component detect a line, a frame or something else
--	 * which looks like a video signal activity.*/
-+	/*
-+	 * Check if the component detect a line, a frame or something else
-+	 * which looks like a video signal activity.
-+	 */
- 	for (i = 0; i < 4; i++) {
- 		ret = gs_read_register(gs->pdev,
- 				       REG_LINES_PER_FRAME + i, &reg_value);
-@@ -404,7 +410,7 @@ static const struct v4l2_subdev_video_ops gs_video_ops = {
- };
- 
- static const struct v4l2_subdev_pad_ops gs_pad_ops = {
--	.enum_dv_timings= gs_enum_dv_timings,
-+	.enum_dv_timings = gs_enum_dv_timings,
- 	.dv_timings_cap = gs_dv_timings_cap,
- };
- 
 -- 
-2.7.4
-
+Regards,
+Niklas Söderlund
