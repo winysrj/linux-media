@@ -1,133 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:2285 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754547AbcIGKcL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Sep 2016 06:32:11 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 6DEDB22E87
-        for <linux-media@vger.kernel.org>; Wed,  7 Sep 2016 13:31:23 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 4/7] smiapp: Split off sub-device registration into two
-Date: Wed,  7 Sep 2016 13:30:12 +0300
-Message-Id: <1473244215-19432-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473244215-19432-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473244215-19432-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:35253 "EHLO
+        mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760199AbcINTaD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Sep 2016 15:30:03 -0400
+Received: by mail-lf0-f42.google.com with SMTP id l131so17568447lfl.2
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 12:30:03 -0700 (PDT)
+Date: Wed, 14 Sep 2016 21:30:01 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: Re: [PATCH 14/13] v4l: vsp1: Fix spinlock in mixed IRQ context
+ function
+Message-ID: <20160914193000.GM739@bigcity.dyn.berto.se>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1473809348-5222-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1473809348-5222-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove the loop in sub-device registration and create each sub-device
-explicitly instead.
+On 2016-09-14 02:29:08 +0300, Laurent Pinchart wrote:
+> The wpf_configure() function can be called both from IRQ and non-IRQ
+> contexts, use spin_lock_irqsave().
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 82 ++++++++++++++++++----------------
- 1 file changed, 43 insertions(+), 39 deletions(-)
+Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index fb0326d..346b677 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2467,56 +2467,60 @@ static const struct v4l2_subdev_ops smiapp_ops;
- static const struct v4l2_subdev_internal_ops smiapp_internal_ops;
- static const struct media_entity_operations smiapp_entity_ops;
- 
--static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
-+static int smiapp_register_subdev(struct smiapp_sensor *sensor,
-+				  struct smiapp_subdev *ssd,
-+				  struct smiapp_subdev *sink_ssd,
-+				  u16 source_pad, u16 sink_pad, u32 link_flags)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
--	struct smiapp_subdev *ssds[] = {
--		sensor->scaler,
--		sensor->binner,
--		sensor->pixel_array,
--	};
--	unsigned int i;
- 	int rval;
- 
--	for (i = 0; i < SMIAPP_SUBDEVS - 1; i++) {
--		struct smiapp_subdev *this = ssds[i + 1];
--		struct smiapp_subdev *last = ssds[i];
--
--		if (!last)
--			continue;
--
--		rval = media_entity_pads_init(&this->sd.entity,
--					 this->npads, this->pads);
--		if (rval) {
--			dev_err(&client->dev,
--				"media_entity_pads_init failed\n");
--			return rval;
--		}
-+	rval = media_entity_pads_init(&ssd->sd.entity,
-+				      ssd->npads, ssd->pads);
-+	if (rval) {
-+		dev_err(&client->dev,
-+			"media_entity_pads_init failed\n");
-+		return rval;
-+	}
- 
--		rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
--						   &this->sd);
--		if (rval) {
--			dev_err(&client->dev,
--				"v4l2_device_register_subdev failed\n");
--			return rval;
--		}
-+	rval = v4l2_device_register_subdev(sensor->src->sd.v4l2_dev,
-+					   &ssd->sd);
-+	if (rval) {
-+		dev_err(&client->dev,
-+			"v4l2_device_register_subdev failed\n");
-+		return rval;
-+	}
- 
--		rval = media_create_pad_link(&this->sd.entity,
--					     this->source_pad,
--					     &last->sd.entity,
--					     last->sink_pad,
--					     MEDIA_LNK_FL_ENABLED |
--					     MEDIA_LNK_FL_IMMUTABLE);
--		if (rval) {
--			dev_err(&client->dev,
--				"media_create_pad_link failed\n");
--			return rval;
--		}
-+	rval = media_create_pad_link(&ssd->sd.entity, source_pad,
-+				     &sink_ssd->sd.entity, sink_pad,
-+				     link_flags);
-+	if (rval) {
-+		dev_err(&client->dev,
-+			"media_create_pad_link failed\n");
-+		return rval;
- 	}
- 
- 	return 0;
- }
- 
-+static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
-+{
-+	int rval = 0;
-+
-+	if (sensor->scaler)
-+		rval = smiapp_register_subdev(
-+			sensor, sensor->binner, sensor->scaler,
-+			sensor->binner->sink_pad, sensor->scaler->source_pad,
-+			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
-+	if (rval < 0)
-+		return rval;
-+
-+	return smiapp_register_subdev(
-+		sensor, sensor->pixel_array, sensor->binner,
-+		sensor->pixel_array->sink_pad, sensor->binner->source_pad,
-+		MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
-+}
-+
- static void smiapp_cleanup(struct smiapp_sensor *sensor)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+> ---
+>  drivers/media/platform/vsp1/vsp1_wpf.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+> index b4ecffbaa3e3..c483fead3e98 100644
+> --- a/drivers/media/platform/vsp1/vsp1_wpf.c
+> +++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+> @@ -251,11 +251,12 @@ static void wpf_configure(struct vsp1_entity *entity,
+>  	if (params == VSP1_ENTITY_PARAMS_RUNTIME) {
+>  		const unsigned int mask = BIT(WPF_CTRL_VFLIP)
+>  					| BIT(WPF_CTRL_HFLIP);
+> +		unsigned long flags;
+>  
+> -		spin_lock(&wpf->flip.lock);
+> +		spin_lock_irqsave(&wpf->flip.lock, flags);
+>  		wpf->flip.active = (wpf->flip.active & ~mask)
+>  				 | (wpf->flip.pending & mask);
+> -		spin_unlock(&wpf->flip.lock);
+> +		spin_unlock_irqrestore(&wpf->flip.lock, flags);
+>  
+>  		outfmt = (wpf->alpha << VI6_WPF_OUTFMT_PDV_SHIFT) | wpf->outfmt;
+>  
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
 -- 
-2.7.4
-
+Regards,
+Niklas Söderlund
