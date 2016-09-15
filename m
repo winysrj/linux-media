@@ -1,119 +1,585 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.220]:19926 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755014AbcI2G72 (ORCPT
+Received: from 6.mo173.mail-out.ovh.net ([46.105.43.93]:46396 "EHLO
+        6.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751307AbcIOPaU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Sep 2016 02:59:28 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH] [media] omap3isp: don't call of_node_put
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <D55EF0EA-F7B8-4DA7-8F2F-BCC6650D194F@goldelico.com>
-Date: Thu, 29 Sep 2016 08:59:11 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        arnd@arndb.de, hans.verkuil@cisco.com, tony@atomide.com,
-        letux-kernel@openphoenux.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <880554FE-24B3-4D5C-AA01-6362CAFE0031@goldelico.com>
-References: <b46d4d86d20d6b93ecc0b434f2c9b7312bcaa829.1473349712.git.hns@goldelico.com> <D55EF0EA-F7B8-4DA7-8F2F-BCC6650D194F@goldelico.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
+        Thu, 15 Sep 2016 11:30:20 -0400
+Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
+        by mo173.mail-out.ovh.net (Postfix) with ESMTP id 63D2E1010D30
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 17:30:18 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v7 2/2] Add GS1662 driver, a video serializer
+Date: Thu, 15 Sep 2016 17:29:51 +0200
+Message-Id: <1473953391-3974-3-git-send-email-charles-antoine.couret@nexvision.fr>
+In-Reply-To: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
+References: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ping ping.
+You can read datasheet here:
+http://www.c-dis.net/media/871/GS1662_Datasheet.pdf
 
-> Am 19.09.2016 um 11:55 schrieb H. Nikolaus Schaller =
-<hns@goldelico.com>:
->=20
-> ping.
->=20
->> Am 08.09.2016 um 17:48 schrieb H. Nikolaus Schaller =
-<hns@goldelico.com>:
->>=20
->> of_node_put() has already been called inside =
-of_graph_get_next_endpoint().
->>=20
->> Otherwise we may get warnings like
->>=20
->> [   10.118286] omap3isp 480bc000.isp: parsing endpoint =
-/ocp/isp@480bc000/ports/port@0/endpoint, interface 0
->> [   10.118499] ERROR: Bad of_node_put() on =
-/ocp/isp@480bc000/ports/port@0/endpoint
->> [   10.118499] CPU: 0 PID: 968 Comm: udevd Not tainted =
-4.7.0-rc4-letux+ #376
->> [   10.118530] Hardware name: Generic OMAP36xx (Flattened Device =
-Tree)
->> [   10.118560] [<c010f0e0>] (unwind_backtrace) from [<c010b6d8>] =
-(show_stack+0x10/0x14)
->> [   10.118591] [<c010b6d8>] (show_stack) from [<c03ecc50>] =
-(dump_stack+0x98/0xd0)
->> [   10.118591] [<c03ecc50>] (dump_stack) from [<c03eecac>] =
-(kobject_release+0x60/0x74)
->> [   10.118621] [<c03eecac>] (kobject_release) from [<c05ab128>] =
-(__of_get_next_child+0x40/0x48)
->> [   10.118652] [<c05ab128>] (__of_get_next_child) from [<c05ab158>] =
-(of_get_next_child+0x28/0x44)
->> [   10.118652] [<c05ab158>] (of_get_next_child) from [<c05ab350>] =
-(of_graph_get_next_endpoint+0xe4/0x124)
->> [   10.118804] [<c05ab350>] (of_graph_get_next_endpoint) from =
-[<bf1c88a4>] (isp_probe+0xdc/0xd80 [omap3_isp])
->> [   10.118896] [<bf1c88a4>] (isp_probe [omap3_isp]) from [<c0482008>] =
-(platform_drv_probe+0x50/0xa0)
->> [   10.118927] [<c0482008>] (platform_drv_probe) from [<c04800e8>] =
-(driver_probe_device+0x134/0x29c)
->> [   10.118957] [<c04800e8>] (driver_probe_device) from [<c04802d8>] =
-(__driver_attach+0x88/0xac)
->> [   10.118957] [<c04802d8>] (__driver_attach) from [<c047e7b8>] =
-(bus_for_each_dev+0x6c/0x90)
->> [   10.118957] [<c047e7b8>] (bus_for_each_dev) from [<c047f798>] =
-(bus_add_driver+0xcc/0x1e8)
->> [   10.118988] [<c047f798>] (bus_add_driver) from [<c0481228>] =
-(driver_register+0xac/0xf4)
->> [   10.118988] [<c0481228>] (driver_register) from [<c010192c>] =
-(do_one_initcall+0xac/0x154)
->> [   10.119018] [<c010192c>] (do_one_initcall) from [<c02015bc>] =
-(do_init_module+0x58/0x39c)
->> [   10.119049] [<c02015bc>] (do_init_module) from [<c01bd314>] =
-(load_module+0xe5c/0x1004)
->> [   10.119049] [<c01bd314>] (load_module) from [<c01bd68c>] =
-(SyS_finit_module+0x88/0x90)
->> [   10.119079] [<c01bd68c>] (SyS_finit_module) from [<c0107040>] =
-(ret_fast_syscall+0x0/0x1c)
->>=20
->> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
->> ---
->> drivers/media/platform/omap3isp/isp.c | 3 +--
->> 1 file changed, 1 insertion(+), 2 deletions(-)
->>=20
->> diff --git a/drivers/media/platform/omap3isp/isp.c =
-b/drivers/media/platform/omap3isp/isp.c
->> index 5d54e2c..6e2624e 100644
->> --- a/drivers/media/platform/omap3isp/isp.c
->> +++ b/drivers/media/platform/omap3isp/isp.c
->> @@ -2114,7 +2114,6 @@ static int isp_of_parse_nodes(struct device =
-*dev,
->>=20
->> 		isd =3D devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
->> 		if (!isd) {
->> -			of_node_put(node);
->> 			return -ENOMEM;
->> 		}
->>=20
->> @@ -2126,7 +2125,7 @@ static int isp_of_parse_nodes(struct device =
-*dev,
->> 		}
->>=20
->> 		isd->asd.match.of.node =3D =
-of_graph_get_remote_port_parent(node);
->> -		of_node_put(node);
->> +
->> 		if (!isd->asd.match.of.node) {
->> 			dev_warn(dev, "bad remote port parent\n");
->> 			return -EINVAL;
->> --=20
->> 2.7.3
->>=20
->=20
+It's a component which supports HD and SD CEA or SDI formats
+to SDI output. It's configured through SPI bus.
+
+GS1662 driver is implemented as v4l2 subdev.
+
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+---
+ MAINTAINERS                |   7 +
+ drivers/media/Kconfig      |   1 +
+ drivers/media/Makefile     |   2 +-
+ drivers/media/spi/Kconfig  |   9 +
+ drivers/media/spi/Makefile |   1 +
+ drivers/media/spi/gs1662.c | 472 +++++++++++++++++++++++++++++++++++++++++++++
+ 6 files changed, 491 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8c20323..2bfbf9d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5147,6 +5147,13 @@ L:	netdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/net/ethernet/aeroflex/
+ 
++GS1662 VIDEO SERIALIZER
++M:	Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/spi/gs1662.c
++
+ GSPCA FINEPIX SUBDRIVER
+ M:	Frank Zago <frank@zago.net>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..d2fa6e7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -215,5 +215,6 @@ config MEDIA_ATTACH
+ source "drivers/media/i2c/Kconfig"
+ source "drivers/media/tuners/Kconfig"
+ source "drivers/media/dvb-frontends/Kconfig"
++source "drivers/media/spi/Kconfig"
+ 
+ endif # MEDIA_SUPPORT
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..75bc82e 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -28,6 +28,6 @@ obj-y += rc/
+ # Finally, merge the drivers that require the core
+ #
+ 
+-obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
++obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ spi/
+ obj-$(CONFIG_VIDEO_DEV) += radio/
+ 
+diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+new file mode 100644
+index 0000000..fa47c90
+--- /dev/null
++++ b/drivers/media/spi/Kconfig
+@@ -0,0 +1,9 @@
++if VIDEO_V4L2
++
++config VIDEO_GS1662
++	tristate "Gennum Serializers video"
++	depends on SPI && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	---help---
++	  Enable the GS1662 driver which serializes video streams.
++
++endif
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+new file mode 100644
+index 0000000..ea64013
+--- /dev/null
++++ b/drivers/media/spi/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
+diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
+new file mode 100644
+index 0000000..f743423
+--- /dev/null
++++ b/drivers/media/spi/gs1662.c
+@@ -0,0 +1,472 @@
++/*
++ * GS1662 device registration.
++ *
++ * Copyright (C) 2015-2016 Nexvision
++ * Author: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/spi/spi.h>
++#include <linux/platform_device.h>
++#include <linux/ctype.h>
++#include <linux/err.h>
++#include <linux/device.h>
++#include <linux/module.h>
++
++#include <linux/videodev2.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-dv-timings.h>
++#include <linux/v4l2-dv-timings.h>
++
++#define REG_STATUS			0x04
++#define REG_FORCE_FMT			0x06
++#define REG_LINES_PER_FRAME		0x12
++#define REG_WORDS_PER_LINE		0x13
++#define REG_WORDS_PER_ACT_LINE		0x14
++#define REG_ACT_LINES_PER_FRAME	0x15
++
++#define MASK_H_LOCK			0x001
++#define MASK_V_LOCK			0x002
++#define MASK_STD_LOCK			0x004
++#define MASK_FORCE_STD			0x020
++#define MASK_STD_STATUS		0x3E0
++
++#define GS_WIDTH_MIN			720
++#define GS_WIDTH_MAX			2048
++#define GS_HEIGHT_MIN			487
++#define GS_HEIGHT_MAX			1080
++#define GS_PIXELCLOCK_MIN		10519200
++#define GS_PIXELCLOCK_MAX		74250000
++
++struct gs {
++	struct spi_device *pdev;
++	struct v4l2_subdev sd;
++	struct v4l2_dv_timings current_timings;
++	int enabled;
++};
++
++struct gs_reg_fmt {
++	u16 reg_value;
++	struct v4l2_dv_timings format;
++};
++
++struct gs_reg_fmt_custom {
++	u16 reg_value;
++	__u32 width;
++	__u32 height;
++	__u64 pixelclock;
++	__u32 interlaced;
++};
++
++static const struct spi_device_id gs_id[] = {
++	{ "gs1662", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(spi, gs_id);
++
++static const struct v4l2_dv_timings fmt_cap[] = {
++	V4L2_DV_BT_SDI_720X487I60,
++	V4L2_DV_BT_CEA_720X576P50,
++	V4L2_DV_BT_CEA_1280X720P24,
++	V4L2_DV_BT_CEA_1280X720P25,
++	V4L2_DV_BT_CEA_1280X720P30,
++	V4L2_DV_BT_CEA_1280X720P50,
++	V4L2_DV_BT_CEA_1280X720P60,
++	V4L2_DV_BT_CEA_1920X1080P24,
++	V4L2_DV_BT_CEA_1920X1080P25,
++	V4L2_DV_BT_CEA_1920X1080P30,
++	V4L2_DV_BT_CEA_1920X1080I50,
++	V4L2_DV_BT_CEA_1920X1080I60,
++};
++
++static const struct gs_reg_fmt reg_fmt[] = {
++	{ 0x00, V4L2_DV_BT_CEA_1280X720P60 },
++	{ 0x01, V4L2_DV_BT_CEA_1280X720P60 },
++	{ 0x02, V4L2_DV_BT_CEA_1280X720P30 },
++	{ 0x03, V4L2_DV_BT_CEA_1280X720P30 },
++	{ 0x04, V4L2_DV_BT_CEA_1280X720P50 },
++	{ 0x05, V4L2_DV_BT_CEA_1280X720P50 },
++	{ 0x06, V4L2_DV_BT_CEA_1280X720P25 },
++	{ 0x07, V4L2_DV_BT_CEA_1280X720P25 },
++	{ 0x08, V4L2_DV_BT_CEA_1280X720P24 },
++	{ 0x09, V4L2_DV_BT_CEA_1280X720P24 },
++	{ 0x0A, V4L2_DV_BT_CEA_1920X1080I60 },
++	{ 0x0B, V4L2_DV_BT_CEA_1920X1080P30 },
++
++	/* Default value: keep this field before 0xC */
++	{ 0x14, V4L2_DV_BT_CEA_1920X1080I50 },
++	{ 0x0C, V4L2_DV_BT_CEA_1920X1080I50 },
++	{ 0x0D, V4L2_DV_BT_CEA_1920X1080P25 },
++	{ 0x0E, V4L2_DV_BT_CEA_1920X1080P25 },
++	{ 0x10, V4L2_DV_BT_CEA_1920X1080P24 },
++	{ 0x12, V4L2_DV_BT_CEA_1920X1080P24 },
++	{ 0x16, V4L2_DV_BT_SDI_720X487I60 },
++	{ 0x19, V4L2_DV_BT_SDI_720X487I60 },
++	{ 0x18, V4L2_DV_BT_CEA_720X576P50 },
++	{ 0x1A, V4L2_DV_BT_CEA_720X576P50 },
++
++	/* Implement following timings before enable it.
++	 * Because of we don't have access to these theoretical timings yet.
++	 * Workaround: use functions to get and set registers for these formats.
++	 */
++#if 0
++	{ 0x0F, V4L2_DV_BT_XXX_1920X1080I25 }, /* SMPTE 274M */
++	{ 0x11, V4L2_DV_BT_XXX_1920X1080I24 }, /* SMPTE 274M */
++	{ 0x13, V4L2_DV_BT_XXX_1920X1080I25 }, /* SMPTE 274M */
++	{ 0x15, V4L2_DV_BT_XXX_1920X1035I60 }, /* SMPTE 260M */
++	{ 0x17, V4L2_DV_BT_SDI_720X507I60 }, /* SMPTE 125M */
++	{ 0x1B, V4L2_DV_BT_SDI_720X507I60 }, /* SMPTE 125M */
++	{ 0x1C, V4L2_DV_BT_XXX_2048X1080P25 }, /* SMPTE 428.1M */
++#endif
++};
++
++static const struct v4l2_dv_timings_cap gs_timings_cap = {
++	.type = V4L2_DV_BT_656_1120,
++	/* keep this initialization for compatibility with GCC < 4.4.6 */
++	.reserved = { 0 },
++	V4L2_INIT_BT_TIMINGS(GS_WIDTH_MIN, GS_WIDTH_MAX, GS_HEIGHT_MIN,
++			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN, GS_PIXELCLOCK_MAX,
++			     V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_SDI,
++			     V4L2_DV_BT_CAP_PROGRESSIVE
++			     | V4L2_DV_BT_CAP_INTERLACED)
++};
++
++static int gs_read_register(struct spi_device *spi, u16 addr, u16 *value)
++{
++	int ret;
++	u16 buf_addr = (0x8000 | (0x0FFF & addr));
++	u16 buf_value = 0;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.rx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	*value = buf_value;
++
++	return ret;
++}
++
++static int gs_write_register(struct spi_device *spi, u16 addr, u16 value)
++{
++	int ret;
++	u16 buf_addr = addr;
++	u16 buf_value = value;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.tx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
++	};
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	return ret;
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int gs_g_register(struct v4l2_subdev *sd,
++		  struct v4l2_dbg_register *reg)
++{
++	struct spi_device *spi = v4l2_get_subdevdata(sd);
++	u16 val;
++	int ret;
++
++	ret = gs_read_register(spi, reg->reg & 0xFFFF, &val);
++	reg->val = val;
++	reg->size = 2;
++	return ret;
++}
++
++static int gs_s_register(struct v4l2_subdev *sd,
++		  const struct v4l2_dbg_register *reg)
++{
++	struct spi_device *spi = v4l2_get_subdevdata(sd);
++
++	return gs_write_register(spi, reg->reg & 0xFFFF, reg->val & 0xFFFF);
++}
++#endif
++
++static int gs_status_format(u16 status, struct v4l2_dv_timings *timings)
++{
++	int std = (status & MASK_STD_STATUS) >> 5;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
++		if (reg_fmt[i].reg_value == std) {
++			*timings = reg_fmt[i].format;
++			return 0;
++		}
++	}
++
++	return -ERANGE;
++}
++
++static u16 get_register_timings(struct v4l2_dv_timings *timings)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
++		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0, false))
++			return reg_fmt[i].reg_value | MASK_FORCE_STD;
++	}
++
++	return 0x0;
++}
++
++static inline struct gs *to_gs(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct gs, sd);
++}
++
++static int gs_s_dv_timings(struct v4l2_subdev *sd,
++		    struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++	int reg_value;
++
++	reg_value = get_register_timings(timings);
++	if (reg_value == 0x0)
++		return -EINVAL;
++
++	gs->current_timings = *timings;
++	return 0;
++}
++
++static int gs_g_dv_timings(struct v4l2_subdev *sd,
++		    struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++
++	*timings = gs->current_timings;
++	return 0;
++}
++
++static int gs_query_dv_timings(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++	struct v4l2_dv_timings fmt;
++	u16 reg_value, i;
++	int ret;
++
++	if (gs->enabled)
++		return -EBUSY;
++
++	/* Check if the component detect a line, a frame or something else
++	 * which looks like a video signal activity.*/
++	for (i = 0; i < 4; i++) {
++		gs_read_register(gs->pdev, REG_LINES_PER_FRAME + i, &reg_value);
++		if (reg_value)
++			break;
++	}
++
++	/* If no register reports a video signal */
++	if (i >= 4)
++		return -ENOLINK;
++
++	gs_read_register(gs->pdev, REG_STATUS, &reg_value);
++	if (!(reg_value & MASK_H_LOCK) || !(reg_value & MASK_V_LOCK))
++		return -ENOLCK;
++	if (!(reg_value & MASK_STD_LOCK))
++		return -ERANGE;
++
++	ret = gs_status_format(reg_value, &fmt);
++
++	if (ret < 0)
++		return ret;
++
++	*timings = fmt;
++	return 0;
++}
++
++static int gs_enum_dv_timings(struct v4l2_subdev *sd,
++		       struct v4l2_enum_dv_timings *timings)
++{
++	if (timings->index >= ARRAY_SIZE(fmt_cap))
++		return -EINVAL;
++
++	if (timings->pad != 0)
++		return -EINVAL;
++
++	timings->timings = fmt_cap[timings->index];
++	return 0;
++}
++
++static int gs_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct gs *gs = to_gs(sd);
++	int reg_value;
++
++	if (gs->enabled == enable)
++		return 0;
++
++	gs->enabled = enable;
++
++	if (enable) {
++		/* To force the specific format */
++		reg_value = get_register_timings(&gs->current_timings);
++		return gs_write_register(gs->pdev, REG_FORCE_FMT, reg_value);
++	} else {
++		/* To renable auto-detection mode */
++		return gs_write_register(gs->pdev, REG_FORCE_FMT, 0x0);
++	}
++}
++
++static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	struct gs *gs = to_gs(sd);
++	u16 reg_value, i;
++	int ret;
++
++	/* Check if the component detect a line, a frame or something else
++	 * which looks like a video signal activity.*/
++	for (i = 0; i < 4; i++) {
++		ret = gs_read_register(gs->pdev,
++				       REG_LINES_PER_FRAME + i, &reg_value);
++		if (reg_value)
++			break;
++		if (ret) {
++			*status = V4L2_IN_ST_NO_POWER;
++			return ret;
++		}
++	}
++
++	/* If no register reports a video signal */
++	if (i >= 4)
++		*status |= V4L2_IN_ST_NO_SIGNAL;
++
++	ret = gs_read_register(gs->pdev, REG_STATUS, &reg_value);
++	if (!(reg_value & MASK_H_LOCK))
++		*status |=  V4L2_IN_ST_NO_H_LOCK;
++	if (!(reg_value & MASK_V_LOCK))
++		*status |=  V4L2_IN_ST_NO_V_LOCK;
++	if (!(reg_value & MASK_STD_LOCK))
++		*status |=  V4L2_IN_ST_NO_STD_LOCK;
++
++	return ret;
++}
++
++static int gs_dv_timings_cap(struct v4l2_subdev *sd,
++			     struct v4l2_dv_timings_cap *cap)
++{
++	if (cap->pad != 0)
++		return -EINVAL;
++
++	*cap = gs_timings_cap;
++	return 0;
++}
++
++/* V4L2 core operation handlers */
++static const struct v4l2_subdev_core_ops gs_core_ops = {
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = gs_g_register,
++	.s_register = gs_s_register,
++#endif
++};
++
++static const struct v4l2_subdev_video_ops gs_video_ops = {
++	.s_dv_timings = gs_s_dv_timings,
++	.g_dv_timings = gs_g_dv_timings,
++	.s_stream = gs_s_stream,
++	.g_input_status = gs_g_input_status,
++	.query_dv_timings = gs_query_dv_timings,
++};
++
++static const struct v4l2_subdev_pad_ops gs_pad_ops = {
++	.enum_dv_timings= gs_enum_dv_timings,
++	.dv_timings_cap = gs_dv_timings_cap,
++};
++
++/* V4L2 top level operation handlers */
++static const struct v4l2_subdev_ops gs_ops = {
++	.core = &gs_core_ops,
++	.video = &gs_video_ops,
++	.pad = &gs_pad_ops,
++};
++
++static int gs_probe(struct spi_device *spi)
++{
++	int ret;
++	struct gs *gs;
++	struct v4l2_subdev *sd;
++
++	gs = devm_kzalloc(&spi->dev, sizeof(struct gs), GFP_KERNEL);
++	if (!gs)
++		return -ENOMEM;
++
++	gs->pdev = spi;
++	sd = &gs->sd;
++
++	spi->mode = SPI_MODE_0;
++	spi->irq = -1;
++	spi->max_speed_hz = 10000000;
++	spi->bits_per_word = 16;
++	ret = spi_setup(spi);
++	v4l2_spi_subdev_init(sd, spi, &gs_ops);
++
++	gs->current_timings = reg_fmt[0].format;
++	gs->enabled = 0;
++
++	/* Set H_CONFIG to SMPTE timings */
++	gs_write_register(spi, 0x0, 0x300);
++
++	return ret;
++}
++
++static int gs_remove(struct spi_device *spi)
++{
++	struct v4l2_subdev *sd = spi_get_drvdata(spi);
++	struct gs *gs = to_gs(sd);
++
++	v4l2_device_unregister_subdev(sd);
++	kfree(gs);
++	return 0;
++}
++
++static struct spi_driver gs_driver = {
++	.driver = {
++		.name		= "gs1662",
++		.owner		= THIS_MODULE,
++	},
++
++	.probe		= gs_probe,
++	.remove		= gs_remove,
++	.id_table	= gs_id,
++};
++
++module_spi_driver(gs_driver);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
++MODULE_DESCRIPTION("Gennum GS1662 HD/SD-SDI Serializer driver");
+-- 
+2.7.4
 
