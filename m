@@ -1,80 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50127 "EHLO comal.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933372AbcI1VVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:21:41 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch 14/35] media: ti-vpe: vpdma: Clear IRQs for individual lists
-Date: Wed, 28 Sep 2016 16:21:38 -0500
-Message-ID: <20160928212138.26950-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:34259 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934038AbcIOMO7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 08:14:59 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
+        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk
+Subject: [PATCH v7 1/2] media: adv7604: automatic "default-input" selection
+Date: Thu, 15 Sep 2016 14:14:45 +0200
+Message-Id: <20160915121446.25830-2-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <20160915121446.25830-1-ulrich.hecht+renesas@gmail.com>
+References: <20160915121446.25830-1-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
+Fall back to input 0 if "default-input" property is not present.
 
-VPDMA IRQs are registered for multiple lists
-When clearing an IRQ for a list interrupt, all the
-IRQs for the individual lists are to be cleared separately.
+Additionally, documentation in commit bf9c82278c34 ("[media]
+media: adv7604: ability to read default input port from DT") states
+that the "default-input" property should reside directly in the node
+for adv7612. Hence, also adjust the parsing to make the implementation
+consistent with this.
 
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Based on patch by William Towle <william.towle@codethink.co.uk>.
+
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c | 6 +++---
- drivers/media/platform/ti-vpe/vpdma.h | 3 ++-
- drivers/media/platform/ti-vpe/vpe.c   | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ drivers/media/i2c/adv7604.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index bfb0e19dd45c..96b5633ebb23 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -955,12 +955,12 @@ unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num)
- EXPORT_SYMBOL(vpdma_get_list_mask);
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4003831..055c9df 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 	if (!of_property_read_u32(endpoint, "default-input", &v))
+ 		state->pdata.default_input = v;
+ 	else
+-		state->pdata.default_input = -1;
++		state->pdata.default_input = 0;
  
- /* clear previosuly occured list intterupts in the LIST_STAT register */
--void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num)
-+void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
-+			   int list_num)
- {
- 	u32 reg_addr = VPDMA_INT_LIST0_STAT + VPDMA_INTX_OFFSET * irq_num;
+ 	of_node_put(endpoint);
  
--	write_reg(vpdma, reg_addr,
--		read_reg(vpdma, reg_addr));
-+	write_reg(vpdma, reg_addr, 3 << (list_num * 2));
- }
- EXPORT_SYMBOL(vpdma_clear_list_stat);
++	if (!of_property_read_u32(np, "default-input", &v))
++		state->pdata.default_input = v;
++
+ 	flags = bus_cfg.bus.parallel.flags;
  
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index f08f4370ce4a..65961147e8f7 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -244,7 +244,8 @@ int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
- /* vpdma list interrupt management */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
- 		int list_num, bool enable);
--void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num);
-+void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
-+			   int list_num);
- unsigned int vpdma_get_list_stat(struct vpdma_data *vpdma, int irq_num);
- unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num);
- 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 9823ee368a01..000cd073fa8d 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1326,7 +1326,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 
- 	if (irqst0) {
- 		if (irqst0 & VPE_INT0_LIST0_COMPLETE)
--			vpdma_clear_list_stat(ctx->dev->vpdma, 0);
-+			vpdma_clear_list_stat(ctx->dev->vpdma, 0, 0);
- 
- 		irqst0 &= ~(VPE_INT0_LIST0_COMPLETE);
- 	}
+ 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
 -- 
-2.9.0
+2.9.3
 
