@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:33333 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753157AbcILXDL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39280 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756385AbcIOLWo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 19:03:11 -0400
-Received: by mail-lf0-f52.google.com with SMTP id h127so98369733lfh.0
-        for <linux-media@vger.kernel.org>; Mon, 12 Sep 2016 16:03:10 -0700 (PDT)
-From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@kernel.org, hans.verkuil@cisco.com, Julia.Lawall@lip6.fr
-Cc: andrey_utkin@fastmail.com, maintainers@bluecherrydvr.com,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-Subject: [PATCH 1/2] [media] tw5864: constify vb2_ops structure
-Date: Tue, 13 Sep 2016 02:02:37 +0300
-Message-Id: <20160912230238.2302-2-andrey.utkin@corp.bluecherry.net>
-In-Reply-To: <20160912230238.2302-1-andrey.utkin@corp.bluecherry.net>
-References: <20160912230238.2302-1-andrey.utkin@corp.bluecherry.net>
+        Thu, 15 Sep 2016 07:22:44 -0400
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id EB364600AF
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:36 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 17/17] smiapp-pll: Don't complain aloud about failing PLL calculation
+Date: Thu, 15 Sep 2016 14:22:31 +0300
+Message-Id: <1473938551-14503-18-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Inspired by "[media] pci: constify vb2_ops structures" patch
-from Julia Lawall (dated 9 Sep 2016).
+Don't complain about a failure to compute the pre_pll divisor. The
+function is used to determine whether a particular combination of bits per
+sample value and a link frequency can be used, in which case there are
+lots of unnecessary driver messages. During normal operation the failure
+generally does not happen. Use dev_dbg() instead.
 
-Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/pci/tw5864/tw5864-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/smiapp-pll.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/tw5864/tw5864-video.c b/drivers/media/pci/tw5864/tw5864-video.c
-index 6c1685a..7401b64 100644
---- a/drivers/media/pci/tw5864/tw5864-video.c
-+++ b/drivers/media/pci/tw5864/tw5864-video.c
-@@ -465,7 +465,7 @@ static void tw5864_stop_streaming(struct vb2_queue *q)
- 	spin_unlock_irqrestore(&input->slock, flags);
- }
+diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
+index e3348db..771db56 100644
+--- a/drivers/media/i2c/smiapp-pll.c
++++ b/drivers/media/i2c/smiapp-pll.c
+@@ -479,7 +479,8 @@ int smiapp_pll_calculate(struct device *dev,
+ 		return 0;
+ 	}
  
--static struct vb2_ops tw5864_video_qops = {
-+static const struct vb2_ops tw5864_video_qops = {
- 	.queue_setup = tw5864_queue_setup,
- 	.buf_queue = tw5864_buf_queue,
- 	.start_streaming = tw5864_start_streaming,
+-	dev_info(dev, "unable to compute pre_pll divisor\n");
++	dev_dbg(dev, "unable to compute pre_pll divisor\n");
++
+ 	return rval;
+ }
+ EXPORT_SYMBOL_GPL(smiapp_pll_calculate);
 -- 
-2.9.2
+2.1.4
 
