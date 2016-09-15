@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:42752 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932187AbcIFFvz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 01:51:55 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH] vcodec: mediatek: Add V4L2_CAP_TIMEPERFRAME capability setting
-Date: Tue, 6 Sep 2016 13:51:45 +0800
-Message-ID: <1473141105-47201-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51138 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1765721AbcIOMV5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 08:21:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
+Subject: Re: [PATCH] [media] MAINTAINERS: Add entry for the Renesas VIN driver
+Date: Thu, 15 Sep 2016 15:22:38 +0300
+Message-ID: <64105078.kTzLmvx2p0@avalon>
+In-Reply-To: <20160915121836.23637-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20160915121836.23637-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch setting V4L2_CAP_TIMEPERFRAME capability in
-vidioc_venc_s/g_parm functions
+Hi Niklas,
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c |    3 +++
- 1 file changed, 3 insertions(+)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-index 34fd89c..d0c2b9a 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_enc.c
-@@ -243,6 +243,8 @@ static int vidioc_venc_s_parm(struct file *file, void *priv,
- 			a->parm.output.timeperframe.numerator;
- 	ctx->param_change |= MTK_ENCODE_PARAM_FRAMERATE;
- 
-+	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
-+
- 	return 0;
- }
- 
-@@ -254,6 +256,7 @@ static int vidioc_venc_g_parm(struct file *file, void *priv,
- 	if (a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
- 		return -EINVAL;
- 
-+	a->parm.output.capability = V4L2_CAP_TIMEPERFRAME;
- 	a->parm.output.timeperframe.denominator =
- 			ctx->enc_params.framerate_num;
- 	a->parm.output.timeperframe.numerator =
--- 
-1.7.9.5
+On Thursday 15 Sep 2016 14:18:36 Niklas S=F6derlund wrote:
+> The driver is maintained and supported, document it as such.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  MAINTAINERS | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>=20
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a12cd60..a4b5283 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7523,6 +7523,15 @@
+> F:=09Documentation/devicetree/bindings/media/renesas,fcp.txt
+> F:=09drivers/media/platform/rcar-fcp.c
+>  F:=09include/media/rcar-fcp.h
+>=20
+> +MEDIA DRIVERS FOR RENESAS - VIN
+> +M:=09Niklas S=F6derlund <niklas.soderlund@ragnatech.se>
+> +L:=09linux-media@vger.kernel.org
+> +L:=09linux-renesas-soc@vger.kernel.org
+> +T:=09git git://linuxtv.org/media_tree.git
+> +S:=09Supported
+> +F:=09Documentation/devicetree/bindings/media/rcar_vin.txt
+> +F:=09drivers/media/platform/rcar-vin/
+> +
+>  MEDIA DRIVERS FOR RENESAS - VSP1
+>  M:=09Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>  L:=09linux-media@vger.kernel.org
+
+--=20
+Regards,
+
+Laurent Pinchart
 
