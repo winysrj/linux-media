@@ -1,68 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55532 "EHLO
-        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754317AbcI1VQ5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52040 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752057AbcIOR5G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:16:57 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch 03/35] media: ti-vpe: vpdma: Add helper to set a background color
-Date: Wed, 28 Sep 2016 16:16:11 -0500
-Message-ID: <20160928211643.26298-4-bparrot@ti.com>
-In-Reply-To: <20160928211643.26298-1-bparrot@ti.com>
-References: <20160928211643.26298-1-bparrot@ti.com>
+        Thu, 15 Sep 2016 13:57:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, william.towle@codethink.co.uk
+Subject: Re: [PATCH v9 2/2] media: rcar-vin: use sink pad index for DV timings
+Date: Thu, 15 Sep 2016 20:57:49 +0300
+Message-ID: <2806955.uYoIn4sQcH@avalon>
+In-Reply-To: <20160915173324.24539-3-ulrich.hecht+renesas@gmail.com>
+References: <20160915173324.24539-1-ulrich.hecht+renesas@gmail.com> <20160915173324.24539-3-ulrich.hecht+renesas@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper to set the background color during vpdma transfer.
-This is needed when VPDMA is generating 32 bits RGB format
-to have the Alpha channel set to an appropriate value.
+Hi Ulrich,
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 10 ++++++++++
- drivers/media/platform/ti-vpe/vpdma.h |  3 ++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 8dfabff216c1..af8e8f083727 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -869,6 +869,16 @@ void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num)
- }
- EXPORT_SYMBOL(vpdma_clear_list_stat);
- 
-+void vpdma_set_bg_color(struct vpdma_data *vpdma,
-+		struct vpdma_data_format *fmt, u32 color)
-+{
-+	if (fmt->type == VPDMA_DATA_FMT_TYPE_RGB)
-+		write_reg(vpdma, VPDMA_BG_RGB, color);
-+	else if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV)
-+		write_reg(vpdma, VPDMA_BG_YUV, color);
-+}
-+EXPORT_SYMBOL(vpdma_set_bg_color);
-+
- /*
-  * configures the output mode of the line buffer for the given client, the
-  * line buffer content can either be mirrored(each line repeated twice) or
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index 83325d887546..220dc7e793f6 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -221,7 +221,8 @@ void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
- 		enum vpdma_channel chan);
- void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
- 		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
--
-+void vpdma_set_bg_color(struct vpdma_data *vpdma,
-+			struct vpdma_data_format *fmt, u32 color);
- void vpdma_dump_regs(struct vpdma_data *vpdma);
- 
- /* initialize vpdma, passed with VPE's platform device pointer */
+On Thursday 15 Sep 2016 19:33:24 Ulrich Hecht wrote:
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+
+With a commit message explaining why this is needed,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index f35005c..2bbe6d4 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -550,7 +550,7 @@ static int rvin_enum_dv_timings(struct file *file, void
+> *priv_fh, int pad, ret;
+> 
+>  	pad = timings->pad;
+> -	timings->pad = vin->src_pad_idx;
+> +	timings->pad = vin->sink_pad_idx;
+> 
+>  	ret = v4l2_subdev_call(sd, pad, enum_dv_timings, timings);
+> 
+> @@ -604,7 +604,7 @@ static int rvin_dv_timings_cap(struct file *file, void
+> *priv_fh, int pad, ret;
+> 
+>  	pad = cap->pad;
+> -	cap->pad = vin->src_pad_idx;
+> +	cap->pad = vin->sink_pad_idx;
+> 
+>  	ret = v4l2_subdev_call(sd, pad, dv_timings_cap, cap);
+
 -- 
-2.9.0
+Regards,
+
+Laurent Pinchart
 
