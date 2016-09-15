@@ -1,57 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35304 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753329AbcISWDK (ORCPT
+Received: from mail-pa0-f65.google.com ([209.85.220.65]:34880 "EHLO
+        mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933641AbcIOCVv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 18:03:10 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: sre@kernel.org
-Subject: [PATCH v3 03/18] smiapp: Initialise media entity after sensor init
-Date: Tue, 20 Sep 2016 01:02:36 +0300
-Message-Id: <1474322571-20290-4-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+        Wed, 14 Sep 2016 22:21:51 -0400
+Received: by mail-pa0-f65.google.com with SMTP id pp5so1471162pac.2
+        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 19:21:51 -0700 (PDT)
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
+Subject: [PATCH -next] [media] pxa_camera: fix error return code in pxa_camera_probe()
+Date: Thu, 15 Sep 2016 02:21:45 +0000
+Message-Id: <1473906105-29387-1-git-send-email-weiyj.lk@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows determining the number of pads in the entity based on the
-sensor.
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Fix to return error code -ENODEV from dma_request_slave_channel_compat()
+error handling case instead of 0, as done elsewhere in this function.
+
+Also fix to release resources in v4l2_clk_register() error handling.
+
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/platform/pxa_camera.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 2090b7f..4f97503 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -3058,12 +3058,7 @@ static int smiapp_probe(struct i2c_client *client,
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
- 	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	sensor->src->sensor = sensor;
--
- 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
--	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
--				 sensor->src->pads);
--	if (rval < 0)
--		return rval;
- 
- 	if (client->dev.of_node) {
- 		rval = smiapp_init(sensor);
-@@ -3071,6 +3066,11 @@ static int smiapp_probe(struct i2c_client *client,
- 			goto out_media_entity_cleanup;
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index 1bce7eb..8035290 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -2402,6 +2402,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 						 &params, &pdev->dev, "CI_U");
+ 	if (!pcdev->dma_chans[1]) {
+ 		dev_err(&pdev->dev, "Can't request DMA for Y\n");
++		err = -ENODEV;
+ 		goto exit_free_dma_y;
  	}
  
-+	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
-+				 sensor->src->pads);
-+	if (rval < 0)
-+		goto out_media_entity_cleanup;
-+
- 	rval = v4l2_async_register_subdev(&sensor->src->sd);
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
--- 
-2.1.4
+@@ -2411,6 +2412,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 						 &params, &pdev->dev, "CI_V");
+ 	if (!pcdev->dma_chans[2]) {
+ 		dev_err(&pdev->dev, "Can't request DMA for V\n");
++		err = -ENODEV;
+ 		goto exit_free_dma_u;
+ 	}
+ 
+@@ -2461,8 +2463,10 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 
+ 		pcdev->mclk_clk = v4l2_clk_register(&pxa_camera_mclk_ops,
+ 						    clk_name, NULL);
+-		if (IS_ERR(pcdev->mclk_clk))
+-			return PTR_ERR(pcdev->mclk_clk);
++		if (IS_ERR(pcdev->mclk_clk)) {
++			err = PTR_ERR(pcdev->mclk_clk);
++			goto exit_free_v4l2dev;
++		}
+ 	}
+ 
+ 	err = v4l2_async_notifier_register(&pcdev->v4l2_dev, &pcdev->notifier);
 
