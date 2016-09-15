@@ -1,95 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57487 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751092AbcILUO4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 16:14:56 -0400
-Date: Mon, 12 Sep 2016 23:14:50 +0300
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>,
-        linux-renesas-soc@vger.kernel.org, joe@perches.com,
-        kernel-janitors@vger.kernel.org,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        linux-pm@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-can@vger.kernel.org,
-        Tatyana Nikolova <tatyana.e.nikolova@intel.com>,
-        Shiraz Saleem <shiraz.saleem@intel.com>,
-        Mustafa Ismail <mustafa.ismail@intel.com>,
-        Chien Tin Tung <chien.tin.tung@intel.com>,
-        linux-rdma@vger.kernel.org, netdev@vger.kernel.org,
-        devel@driverdev.osuosl.org, alsa-devel@alsa-project.org,
-        linux-kernel@vger.kernel.org, linux-fbdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        tpmdd-devel@lists.sourceforge.net, linux-scsi@vger.kernel.org,
-        linux-spi@vger.kernel.org, linux-usb@vger.kernel.org,
-        linux-acpi@vger.kernel.org
-Subject: Re: [PATCH 00/26] constify local structures
-Message-ID: <20160912201450.GA8889@intel.com>
-References: <1473599168-30561-1-git-send-email-Julia.Lawall@lip6.fr>
- <20160911172105.GB5493@intel.com>
- <alpine.DEB.2.10.1609121051050.3049@hadrien>
- <20160912131625.GD957@intel.com>
- <877fah5j35.fsf@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <877fah5j35.fsf@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39264 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1756202AbcIOLWi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 07:22:38 -0400
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id F26A06009F
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:33 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 01/17] smiapp: Move sub-device initialisation into a separate function
+Date: Thu, 15 Sep 2016 14:22:15 +0300
+Message-Id: <1473938551-14503-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 12, 2016 at 04:43:58PM +0300, Felipe Balbi wrote:
-> 
-> Hi,
-> 
-> Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com> writes:
-> > On Mon, Sep 12, 2016 at 10:54:07AM +0200, Julia Lawall wrote:
-> >> 
-> >> 
-> >> On Sun, 11 Sep 2016, Jarkko Sakkinen wrote:
-> >> 
-> >> > On Sun, Sep 11, 2016 at 03:05:42PM +0200, Julia Lawall wrote:
-> >> > > Constify local structures.
-> >> > >
-> >> > > The semantic patch that makes this change is as follows:
-> >> > > (http://coccinelle.lip6.fr/)
-> >> >
-> >> > Just my two cents but:
-> >> >
-> >> > 1. You *can* use a static analysis too to find bugs or other issues.
-> >> > 2. However, you should manually do the commits and proper commit
-> >> >    messages to subsystems based on your findings. And I generally think
-> >> >    that if one contributes code one should also at least smoke test changes
-> >> >    somehow.
-> >> >
-> >> > I don't know if I'm alone with my opinion. I just think that one should
-> >> > also do the analysis part and not blindly create and submit patches.
-> >> 
-> >> All of the patches are compile tested.  And the individual patches are
-> >
-> > Compile-testing is not testing. If you are not able to test a commit,
-> > you should explain why.
-> 
-> Dude, Julia has been doing semantic patching for years already and
-> nobody has raised any concerns so far. There's already an expectation
-> that Coccinelle *works* and Julia's sematic patches are sound.
-> 
-> Besides, adding 'const' is something that causes virtually no functional
-> changes to the point that build-testing is really all you need. Any
-> problems caused by adding 'const' to a definition will be seen by build
-> errors or warnings.
-> 
-> Really, just stop with the pointless discussion and go read a bit about
-> Coccinelle and what semantic patches are giving you. The work done by
-> Julia and her peers are INRIA have measurable benefits.
-> 
-> You're really making a thunderstorm in a glass of water.
+Simplify smiapp_init() by moving the initialisation of individual
+sub-devices to a separate function.
 
-Hmm... I've been using coccinelle in cyclic basis for some time now.
-My comment was oversized but I didn't mean it to be impolite or attack
-of any kind for that matter.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 108 +++++++++++++++------------------
+ 1 file changed, 49 insertions(+), 59 deletions(-)
 
-> -- 
-> balbi
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 44f8c7e..862017e 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2535,11 +2535,55 @@ static void smiapp_cleanup(struct smiapp_sensor *sensor)
+ 	smiapp_free_controls(sensor);
+ }
+ 
++static void smiapp_create_subdev(struct smiapp_sensor *sensor,
++				 struct smiapp_subdev *ssd, const char *name)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
++
++	if (ssd != sensor->src)
++		v4l2_subdev_init(&ssd->sd, &smiapp_ops);
++
++	ssd->sensor = sensor;
++
++	if (ssd == sensor->pixel_array) {
++		ssd->npads = 1;
++	} else {
++		ssd->npads = 2;
++		ssd->source_pad = 1;
++	}
++
++	snprintf(ssd->sd.name,
++		 sizeof(ssd->sd.name), "%s %s %d-%4.4x", sensor->minfo.name,
++		 name, i2c_adapter_id(client->adapter), client->addr);
++
++	ssd->sink_fmt.width =
++		sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
++	ssd->sink_fmt.height =
++		sensor->limits[SMIAPP_LIMIT_Y_ADDR_MAX] + 1;
++	ssd->compose.width = ssd->sink_fmt.width;
++	ssd->compose.height = ssd->sink_fmt.height;
++	ssd->crop[ssd->source_pad] = ssd->compose;
++	ssd->pads[ssd->source_pad].flags = MEDIA_PAD_FL_SOURCE;
++	if (ssd != sensor->pixel_array) {
++		ssd->crop[ssd->sink_pad] = ssd->compose;
++		ssd->pads[ssd->sink_pad].flags = MEDIA_PAD_FL_SINK;
++	}
++
++	ssd->sd.entity.ops = &smiapp_entity_ops;
++
++	if (ssd == sensor->src)
++		return;
++
++	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ssd->sd.internal_ops = &smiapp_internal_ops;
++	ssd->sd.owner = THIS_MODULE;
++	v4l2_set_subdevdata(&ssd->sd, client);
++}
++
+ static int smiapp_init(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+ 	struct smiapp_pll *pll = &sensor->pll;
+-	struct smiapp_subdev *last = NULL;
+ 	unsigned int i;
+ 	int rval;
+ 
+@@ -2700,64 +2744,10 @@ static int smiapp_init(struct smiapp_sensor *sensor)
+ 	if (sensor->minfo.smiapp_profile == SMIAPP_PROFILE_0)
+ 		pll->flags |= SMIAPP_PLL_FLAG_NO_OP_CLOCKS;
+ 
+-	for (i = 0; i < SMIAPP_SUBDEVS; i++) {
+-		struct {
+-			struct smiapp_subdev *ssd;
+-			char *name;
+-		} const __this[] = {
+-			{ sensor->scaler, "scaler", },
+-			{ sensor->binner, "binner", },
+-			{ sensor->pixel_array, "pixel array", },
+-		}, *_this = &__this[i];
+-		struct smiapp_subdev *this = _this->ssd;
+-
+-		if (!this)
+-			continue;
+-
+-		if (this != sensor->src)
+-			v4l2_subdev_init(&this->sd, &smiapp_ops);
+-
+-		this->sensor = sensor;
+-
+-		if (this == sensor->pixel_array) {
+-			this->npads = 1;
+-		} else {
+-			this->npads = 2;
+-			this->source_pad = 1;
+-		}
+-
+-		snprintf(this->sd.name,
+-			 sizeof(this->sd.name), "%s %s %d-%4.4x",
+-			 sensor->minfo.name, _this->name,
+-			 i2c_adapter_id(client->adapter), client->addr);
+-
+-		this->sink_fmt.width =
+-			sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+-		this->sink_fmt.height =
+-			sensor->limits[SMIAPP_LIMIT_Y_ADDR_MAX] + 1;
+-		this->compose.width = this->sink_fmt.width;
+-		this->compose.height = this->sink_fmt.height;
+-		this->crop[this->source_pad] = this->compose;
+-		this->pads[this->source_pad].flags = MEDIA_PAD_FL_SOURCE;
+-		if (this != sensor->pixel_array) {
+-			this->crop[this->sink_pad] = this->compose;
+-			this->pads[this->sink_pad].flags = MEDIA_PAD_FL_SINK;
+-		}
+-
+-		this->sd.entity.ops = &smiapp_entity_ops;
+-
+-		if (last == NULL) {
+-			last = this;
+-			continue;
+-		}
+-
+-		this->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-		this->sd.internal_ops = &smiapp_internal_ops;
+-		this->sd.owner = THIS_MODULE;
+-		v4l2_set_subdevdata(&this->sd, client);
+-
+-		last = this;
+-	}
++	if (sensor->scaler)
++		smiapp_create_subdev(sensor, sensor->scaler, "scaler");
++	smiapp_create_subdev(sensor, sensor->binner, "binner");
++	smiapp_create_subdev(sensor, sensor->pixel_array, "pixel_array");
+ 
+ 	dev_dbg(&client->dev, "profile %d\n", sensor->minfo.smiapp_profile);
+ 
+-- 
+2.1.4
 
-/Jarkko
