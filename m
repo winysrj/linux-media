@@ -1,33 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39648 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933195AbcIOL32 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:50867 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756202AbcIOMiT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:29:28 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id DE4CE600A0
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:29:24 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] smiapp: Runtime PM support
-Date: Thu, 15 Sep 2016 14:29:16 +0300
-Message-Id: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
+        Thu, 15 Sep 2016 08:38:19 -0400
+Date: Thu, 15 Sep 2016 14:38:05 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+        linux-renesas-soc@vger.kernel.org, mchehab@kernel.org
+Subject: Re: [PATCH] [media] MAINTAINERS: Add entry for the Renesas VIN driver
+Message-ID: <20160915123804.GA6813@verge.net.au>
+References: <20160915121836.23637-1-niklas.soderlund+renesas@ragnatech.se>
+ <64105078.kTzLmvx2p0@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <64105078.kTzLmvx2p0@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Sep 15, 2016 at 03:22:38PM +0300, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> Thank you for the patch.
+> 
+> On Thursday 15 Sep 2016 14:18:36 Niklas Söderlund wrote:
+> > The driver is maintained and supported, document it as such.
+> > 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This set adds runtime PM support for the smiapp driver. The old s_power()
-callback is made redundant and removed as a result.
+I like this a lot:
 
-These patches go on top of my other patches in the "[PATCH v2 00/17] More
-smiapp cleanups, fixes" which I just sent to linux-media.
-
-The patches can also be found here:
-
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=smiapp-runtime-pm>
-
--- 
-Kind regards,
-Sakari
-
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
