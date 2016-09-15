@@ -1,83 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.220]:53601 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965152AbcIHRIv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 13:08:51 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 9.3 \(3124\))
-Subject: Re: [PATCH] [media] ov9650: add support for asynchronous probing
-From: "H. Nikolaus Schaller" <hns@goldelico.com>
-In-Reply-To: <1473339940-24572-1-git-send-email-javier@osg.samsung.com>
-Date: Thu, 8 Sep 2016 19:08:38 +0200
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:17688 "EHLO
+        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754112AbcIOHna (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 03:43:30 -0400
+Subject: Re: [PATCH 0/3] Add Mediatek JPEG Decoder
+To: Rick Chang <rick.chang@mediatek.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-media@vger.kernel.org
-Content-Transfer-Encoding: quoted-printable
-Message-Id: <28493A99-C0CF-4662-B4EF-6D8A3576593D@goldelico.com>
-References: <1473339940-24572-1-git-send-email-javier@osg.samsung.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+References: <1473834993-1196-1-git-send-email-rick.chang@mediatek.com>
+Cc: Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org, srv_heupstream@mediatek.com,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <62f27741-e5e9-e1df-5698-3198259c7c9e@cisco.com>
+Date: Thu, 15 Sep 2016 09:43:21 +0200
+MIME-Version: 1.0
+In-Reply-To: <1473834993-1196-1-git-send-email-rick.chang@mediatek.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Rick,
 
-> Am 08.09.2016 um 15:05 schrieb Javier Martinez Canillas =
-<javier@osg.samsung.com>:
->=20
-> Allow the sub-device to be probed asynchronously so a bridge driver =
-that's
-> waiting for the device can be notified and its .bound callback =
-executed.
->=20
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+I'm not sure why, but for some reason this patch series never made it to 
+the linux-media mailinglist.
 
-Tested-by: hns@goldelico.com
+Can you repost?
 
->=20
-> ---
->=20
-> drivers/media/i2c/ov9650.c | 7 ++++++-
-> 1 file changed, 6 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index be5a7fd4f076..502c72238a4a 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -23,6 +23,7 @@
-> #include <linux/videodev2.h>
->=20
-> #include <media/media-entity.h>
-> +#include <media/v4l2-async.h>
-> #include <media/v4l2-ctrls.h>
-> #include <media/v4l2-device.h>
-> #include <media/v4l2-event.h>
-> @@ -1520,6 +1521,10 @@ static int ov965x_probe(struct i2c_client =
-*client,
-> 	/* Update exposure time min/max to match frame format */
-> 	ov965x_update_exposure_ctrl(ov965x);
->=20
-> +	ret =3D v4l2_async_register_subdev(sd);
-> +	if (ret < 0)
-> +		goto err_ctrls;
-> +
-> 	return 0;
-> err_ctrls:
-> 	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> @@ -1532,7 +1537,7 @@ static int ov965x_remove(struct i2c_client =
-*client)
-> {
-> 	struct v4l2_subdev *sd =3D i2c_get_clientdata(client);
->=20
-> -	v4l2_device_unregister_subdev(sd);
-> +	v4l2_async_unregister_subdev(sd);
-> 	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> 	media_entity_cleanup(&sd->entity);
->=20
-> --=20
-> 2.7.4
->=20
+Regards,
+
+	Hans
+
+On 09/14/2016 08:36 AM, Rick Chang wrote:
+> This series of patches provide a v4l2 driver to control Mediatek JPEG hw
+> for decoding JPEG image and Motion JPEG bitstream.
+>
+> * Dependency
+> The patch "arm: dts: mt2701: Add node for JPEG decoder" depends on:
+>   CCF "arm: dts: mt2701: Add clock controller device nodes"[1]
+>   power domain patch "Mediatek MT2701 SCPSYS power domain support v7"[2]
+>   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[3]
+>
+> [1] https://patchwork.kernel.org/patch/9109081
+> [2] http://lists.infradead.org/pipermail/linux-mediatek/2016-May/005429.html
+> [3] https://patchwork.kernel.org/patch/9164013/
+>
+> * Compliance test
+> v4l2-compliance SHA   : abc1453dfe89f244dccd3460d8e1a2e3091cbadb
+>
+> Driver Info:
+>         Driver name   : mtk-jpeg decode
+>         Card type     : mtk-jpeg decoder
+>         Bus info      : platform:15004000.jpegdec
+>         Driver version: 4.8.0
+>         Capabilities  : 0x84204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+>                 Device Capabilities
+>         Device Caps   : 0x04204000
+>                 Video Memory-to-Memory Multiplanar
+>                 Streaming
+>                 Extended Pix Format
+>
+> Compliance test for device /dev/video3 (not using libv4l2):
+>
+> Required ioctls:
+>         test VIDIOC_QUERYCAP: OK
+>
+> Allow for multiple opens:
+>         test second video open: OK
+>         test VIDIOC_QUERYCAP: OK
+>         test VIDIOC_G/S_PRIORITY: OK
+>         test for unlimited opens: OK
+>
+> Debug ioctls:
+>         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+>         test VIDIOC_LOG_STATUS: OK (Not Supported)
+>
+> Input ioctls:
+>         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+>         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+>         Inputs: 0 Audio Inputs: 0 Tuners: 0
+>
+> Output ioctls:
+>         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+>         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+>         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+>         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+>         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+>         Outputs: 0 Audio Outputs: 0 Modulators: 0
+>
+> Input/Output configuration ioctls:
+>         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+>         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+>         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+>         test VIDIOC_G/S_EDID: OK (Not Supported)
+>
+>         Control ioctls:
+>                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+>                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+>                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+>                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+>                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+>                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+>                 Standard Controls: 0 Private Controls: 0
+>
+>         Format ioctls:
+>                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+>                 test VIDIOC_G/S_PARM: OK (Not Supported)
+>                 test VIDIOC_G_FBUF: OK (Not Supported)
+>                 test VIDIOC_G_FMT: OK
+>                 test VIDIOC_TRY_FMT: OK
+>                 test VIDIOC_S_FMT: OK
+>                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+>                 test Cropping: OK (Not Supported)
+>                 test Composing: OK
+>                 test Scaling: OK
+>
+>         Codec ioctls:
+>                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+>                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+>                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+>
+>         Buffer ioctls:
+>                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+>                 test VIDIOC_EXPBUF: OK
+>
+> Test input 0:
+>
+>
+> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+>
+> Rick Chang (3):
+>   dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+>   vcodec: mediatek: Add Mediatek JPEG Decoder Driver
+>   arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+>
+>  .../bindings/media/mediatek-jpeg-codec.txt         |   35 +
+>  arch/arm/boot/dts/mt2701.dtsi                      |   14 +
+>  drivers/media/platform/Kconfig                     |   15 +
+>  drivers/media/platform/Makefile                    |    2 +
+>  drivers/media/platform/mtk-jpeg/Makefile           |    4 +
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1271 ++++++++++++++++++++
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h    |  141 +++
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c      |  417 +++++++
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h      |   91 ++
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c   |  160 +++
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h   |   25 +
+>  drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h     |   58 +
+>  12 files changed, 2233 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+>  create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
+>  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
+>
 
