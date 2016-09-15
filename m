@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34133 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750820AbcIGHM4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 03:12:56 -0400
-MIME-Version: 1.0
-In-Reply-To: <3631828.PadezLxMAk@avalon>
-References: <1473207273-16446-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <CAPybu_2sKsLNuVbL1Av5DNHjNizw_4wUM_RaVjpvBov5aG-+JQ@mail.gmail.com> <3631828.PadezLxMAk@avalon>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 7 Sep 2016 09:12:34 +0200
-Message-ID: <CAPybu_20uf6BPMcCfGMTopQ0iBCUve+OkaZiLrPtVdKMKtnDmQ@mail.gmail.com>
-Subject: Re: [PATCH] v4l: vsp1: Add support for capture and output in HSV formats
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Content-Type: text/plain; charset=UTF-8
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39284 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1764393AbcIOLWl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 07:22:41 -0400
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 9F211600A8
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:35 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 10/17] smiapp: Unify setting up sub-devices
+Date: Thu, 15 Sep 2016 14:22:24 +0300
+Message-Id: <1473938551-14503-11-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The initialisation of the source sub-device is somewhat different as it's
+not created by the smiapp driver itself. Remove redundancy in initialising
+the two kind of sub-devices.
 
-On Wed, Sep 7, 2016 at 9:09 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
->>
->> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->
-> Do you mean Acked-by ?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Acked-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-
-Ups, my bad
-
-
->
-> Feel free to take the patch in your tree to get it merged along with the HSV
-> series.
-
-
-I do not really have a tree, I have a github account that is it.
-
-Let me ask Hans on the irc how to procede from here.
-
-I really appreciate your help!
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index c9aee83..b446d0a 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2574,6 +2574,7 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
+ 	if (ssd != sensor->src)
+ 		v4l2_subdev_init(&ssd->sd, &smiapp_ops);
+ 
++	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	ssd->sensor = sensor;
+ 
+ 	ssd->npads = num_pads;
+@@ -2599,7 +2600,6 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
+ 	if (ssd == sensor->src)
+ 		return;
+ 
+-	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	ssd->sd.internal_ops = &smiapp_internal_ops;
+ 	ssd->sd.owner = THIS_MODULE;
+ 	v4l2_set_subdevdata(&ssd->sd, client);
+@@ -2843,9 +2843,6 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+-	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	sensor->src->sensor = sensor;
+-	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
 -- 
-Ricardo Ribalda
+2.1.4
+
