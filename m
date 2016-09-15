@@ -1,171 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from andre.telenet-ops.be ([195.130.132.53]:38600 "EHLO
-        andre.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933391AbcIETB3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 15:01:29 -0400
-Date: Mon, 5 Sep 2016 21:01:25 +0200 (CEST)
-From: de_witte_koen@telenet.be
-To: linux-media@vger.kernel.org
-Message-ID: <611282171.287911096.1473102085377.JavaMail.root@telenet.be>
-Subject: v4l2-ctl does not show all parameters for HVR-1900
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:33496 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753307AbcIOR23 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 13:28:29 -0400
+Received: by mail-lf0-f50.google.com with SMTP id h127so48696704lfh.0
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 10:28:28 -0700 (PDT)
+Date: Thu, 15 Sep 2016 19:28:25 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        william.towle@codethink.co.uk
+Subject: Re: [PATCH v8 2/2] rcar-vin: implement EDID control ioctls
+Message-ID: <20160915172824.GD19172@bigcity.dyn.berto.se>
+References: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com>
+ <20160915132408.20776-3-ulrich.hecht+renesas@gmail.com>
+ <2433006.7RBxv9f6xW@avalon>
+ <19a27c03-d93e-9e67-7165-0e43631b66ee@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <19a27c03-d93e-9e67-7165-0e43631b66ee@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 2016-09-15 19:01:06 +0200, Hans Verkuil wrote:
+> 
+> 
+> On 09/15/2016 06:47 PM, Laurent Pinchart wrote:
+> > Hi Ulrich,
+> > 
+> > Thank you for the patch.
+> > 
+> > On Thursday 15 Sep 2016 15:24:08 Ulrich Hecht wrote:
+> >> Adds G_EDID and S_EDID.
+> >>
+> >> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> >> ---
+> >>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++++++++++++++++++++++++
+> >>  drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
+> >>  2 files changed, 43 insertions(+)
+> >>
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 62ca7e3..f679182 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >> @@ -557,6 +557,38 @@ static int rvin_dv_timings_cap(struct file *file, void
+> >> *priv_fh, return ret;
+> >>  }
+> >>
+> >> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+> >> +{
+> >> +	struct rvin_dev *vin = video_drvdata(file);
+> >> +	struct v4l2_subdev *sd = vin_to_source(vin);
+> >> +	int input, ret;
+> >> +
+> >> +	input = edid->pad;
+> >> +	edid->pad = vin->sink_pad_idx;
+> >> +
+> >> +	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+> >> +
+> >> +	edid->pad = input;
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >> +static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+> >> +{
+> >> +	struct rvin_dev *vin = video_drvdata(file);
+> >> +	struct v4l2_subdev *sd = vin_to_source(vin);
+> >> +	int input, ret;
+> >> +
+> >> +	input = edid->pad;
+> >> +	edid->pad = vin->sink_pad_idx;
+> >> +
+> >> +	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+> >> +
+> >> +	edid->pad = input;
+> >> +
+> >> +	return ret;
+> >> +}
+> >> +
+> >>  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+> >>  	.vidioc_querycap		= rvin_querycap,
+> >>  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
+> >> @@ -579,6 +611,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+> >>  	.vidioc_s_dv_timings		= rvin_s_dv_timings,
+> >>  	.vidioc_query_dv_timings	= rvin_query_dv_timings,
+> >>
+> >> +	.vidioc_g_edid			= rvin_g_edid,
+> >> +	.vidioc_s_edid			= rvin_s_edid,
+> >> +
+> >>  	.vidioc_querystd		= rvin_querystd,
+> >>  	.vidioc_g_std			= rvin_g_std,
+> >>  	.vidioc_s_std			= rvin_s_std,
+> >> @@ -832,6 +867,13 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+> >>  	vin->src_pad_idx = pad_idx;
+> >>  	fmt.pad = vin->src_pad_idx;
+> >>
+> >> +	vin->sink_pad_idx = 0;
+> >> +	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+> >> +		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+> >> +			vin->sink_pad_idx = pad_idx;
+> >> +			break;
+> >> +		}
+> >> +
+> > 
+> > What if the subdev has multiple sink pads ? Shouldn't the pad number be 
+> > instead computed in the get and set EDID handlers based on the input number 
+> > passed in the struct v4l2_edid::pad field ?
+> 
+> But there is only one input (VIDIOC_ENUM_INPUT), so this would not make sense.
+> 
+> What is wrong is that g/s_edid should check the pad and return -EINVAL if it
+> is non-zero. Odd that I missed that in the earlier reviews...
 
-In short:
-Is it normal that I can use the v4l2-ctl command to adjust brightness, saturation, hue, etc but not to adjust more interesting parameters like bitrate, aspect ration, etc?
+Both Hans and Laurents comments are correct in this case I think.
 
-Working:
-pi@raspberrypi:~ $ cat /sys/class/pvrusb2/sn-4034395926/ctl_hue/cur_val
-0
-pi@raspberrypi:~ $ v4l2-ctl -c hue=1
-pi@raspberrypi:~ $ cat /sys/class/pvrusb2/sn-4034395926/ctl_hue/cur_val
-1
+The original patches was based on top of the Gen3 work where just as 
+Laurent states the input number passed in the v4l2_edid::pad needs to be 
+translated to a sink pad number of the subdevice. But since this is for 
+Gen2 only there are only one input so no mapping is needed. All that is 
+required is as Hans state to check that v4l2_edid::pad is a valid input 
+number (equal to zero) from the rcar-vin perspective.
 
+I do however still think there are value to find the subdevice sink pad 
+id in rvin_v4l2_probe() and then use it in EDID handlers. The driver 
+still need to use a sink pad number which is correct from the subdevice 
+point of view.
 
-Not working:
-pi@raspberrypi:~ $ cat /sys/class/pvrusb2/sn-4034395926/ctl_video_bitrate/cur_val
-6000000
-pi@raspberrypi:~ $ v4l2-ctl -c bitrate=6000000
-unknown control 'bitrate'
-pi@raspberrypi:~ $ v4l2-ctl -c video_bitrate=6000000
-unknown control 'video_bitrate'
-pi@raspberrypi:~ $ v4l2-ctl -c ctl_video_bitrate=6000000
-unknown control 'ctl_video_bitrate'
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>  	/* Try to improve our guess of a reasonable window format */
+> >>  	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+> >>  	if (ret) {
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> >> b/drivers/media/platform/rcar-vin/rcar-vin.h index 793184d..af815cc 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> >> @@ -121,6 +121,7 @@ struct rvin_dev {
+> >>  	struct video_device vdev;
+> >>  	struct v4l2_device v4l2_dev;
+> >>  	int src_pad_idx;
+> >> +	int sink_pad_idx;
+> >>  	struct v4l2_ctrl_handler ctrl_handler;
+> >>  	struct v4l2_async_notifier notifier;
+> >>  	struct rvin_graph_entity digital;
+> > 
 
-the pvrusb2 driver has created all sysfs parameters and they work using the "echo" method but I thought this was also the purpose of the v4l2-ctl command, correct?
-
-Some details, let me know if you need more.
-
+-- 
 Regards,
-Koen
-
-
-pi@raspberrypi:~ $ uname -a
-Linux raspberrypi 4.4.13+ #894 Mon Jun 13 12:43:26 BST 2016 armv6l GNU/Linux
-pi@raspberrypi:~ $
-
-
-
-pi@raspberrypi:~ $ v4l2-ctl --all
-Driver Info (not using libv4l2):
-        Driver name   : pvrusb2
-        Card type     : WinTV HVR-1900 Model 73xxx
-        Bus info      : usb-20980000.usb-1.3
-        Driver version: 4.4.13
-        Capabilities  : 0x81270001
-                Video Capture
-                Tuner
-                Audio
-                Radio
-                Read/Write
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x01230001
-                Video Capture
-                Tuner
-                Audio
-                Read/Write
-                Extended Pix Format
-Priority: 2
-Frequency for tuner 0: 980 (61.250000 MHz)
-Tuner 0:
-        Name                 :
-        Capabilities         : 62.5 kHz multi-standard stereo lang1 lang2 freq-bands
-        Frequency range      : 44.000 MHz - 958.000 MHz
-        Signal strength/AFC  : 0%/0
-        Current audio mode   : stereo
-        Available subchannels: mono lang2
-Video input : 0 (television: ok)
-Audio input : 0 (PVRUSB2 Audio)
-Video Standard = 0x00000000
-Format Video Capture:
-        Width/Height  : 720/480
-        Pixel Format  : ''
-        Field         : Interlaced
-        Bytes per Line: 0
-        Size Image    : 32768
-        Colorspace    : Unknown (00000000)
-        Flags         :
-Crop Capability Video Capture:
-        Bounds      : Left 0, Top 0, Width 0, Height 0
-        Default     : Left 0, Top 0, Width 0, Height 0
-        Pixel Aspect: 0/0
-Crop: Left 0, Top 0, Width 720, Height 480
-Streaming Parameters Video Capture:
-        Frames per second: 25.000 (25/1)
-        Read buffers     : 2
-                     brightness (int)    : min=0 max=255 step=1 default=128 value=128
-                       contrast (int)    : min=0 max=127 step=1 default=68 value=68
-                     saturation (int)    : min=0 max=127 step=1 default=64 value=64
-                            hue (int)    : min=-128 max=127 step=1 default=0 value=0
-                         volume (int)    : min=0 max=65535 step=1 default=62000 value=62000
-                        balance (int)    : min=-32768 max=32767 step=1 default=0 value=0
-                           bass (int)    : min=-32768 max=32767 step=1 default=0 value=0
-                         treble (int)    : min=-32768 max=32767 step=1 default=0 value=0
-                           mute (bool)   : default=0 value=0
-
-dmesg output:
-
-
-[    4.162258] scsi host0: usb-storage 1-1.2:1.0
-[    4.258220] usb 1-1.3: new high-speed USB device number 5 using dwc_otg
-[    4.382814] usb 1-1.3: New USB device found, idVendor=2040, idProduct=7300
-[    4.391713] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[    4.400866] usb 1-1.3: Product: WinTV
-[    4.406259] usb 1-1.3: Manufacturer: Hauppauge
-[    4.412471] usb 1-1.3: SerialNumber: 7300-00-F077FF16
-...
-[   10.463517] media: Linux media interface: v0.10
-[   10.547654] Linux video capture interface: v2.00
-[   10.660771] EXT4-fs (sda1): mounted filesystem with ordered data mode. Opts: (null)
-[   10.781359] pvrusb2: Hardware description: WinTV HVR-1900 Model 73xxx
-[   10.798664] usbcore: registered new interface driver pvrusb2
-[   10.798702] pvrusb2: V4L in-tree version:Hauppauge WinTV-PVR-USB2 MPEG2 Encoder/Tuner
-[   10.798721] pvrusb2: Debug mask is 1 (0x1)
-[   11.484744] systemd-journald[117]: Received request to flush runtime journal from PID 1
-[   11.782401] pvrusb2: Device microcontroller firmware (re)loaded; it should now reset and reconnect.
-[   11.974683] usb 1-1.3: USB disconnect, device number 5
-[   13.748236] usb 1-1.3: new high-speed USB device number 6 using dwc_otg
-[   13.858748] usb 1-1.3: New USB device found, idVendor=2040, idProduct=7300
-[   13.858790] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-[   13.858810] usb 1-1.3: Product: WinTV
-[   13.858827] usb 1-1.3: Manufacturer: Hauppauge
-[   13.858844] usb 1-1.3: SerialNumber: 7300-00-F077FF16
-[   13.868612] pvrusb2: Hardware description: WinTV HVR-1900 Model 73xxx
-[   13.921561] pvrusb2: Binding ir_rx_z8f0811_haup to i2c address 0x71.
-[   13.921787] pvrusb2: Binding ir_tx_z8f0811_haup to i2c address 0x70.
-[   14.099430] cx25840 3-0044: cx25843-24 found @ 0x88 (pvrusb2_a)
-[   14.118546] pvrusb2: Attached sub-driver cx25840
-[   14.415416] tuner 3-0042: Tuner -1 found with type(s) Radio TV.
-[   14.415503] pvrusb2: Attached sub-driver tuner
-...
-[   16.664488] cx25840 3-0044: loaded v4l-cx25840.fw firmware (16382 bytes)
-[   16.786299] tveeprom 3-00a2: Hauppauge model 73219, rev D2F5, serial# 4034395926
-[   16.786337] tveeprom 3-00a2: MAC address is 00:0d:fe:77:ff:16
-[   16.786356] tveeprom 3-00a2: tuner model is NXP 18271C2 (idx 155, type 54)
-[   16.786377] tveeprom 3-00a2: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
-[   16.786393] tveeprom 3-00a2: audio processor is CX25843 (idx 37)
-[   16.786410] tveeprom 3-00a2: decoder processor is CX25843 (idx 30)
-[   16.786426] tveeprom 3-00a2: has radio, has IR receiver, has IR transmitter
-[   16.786522] pvrusb2: Device initialization completed successfully.
-[   16.833872] pvrusb2: registered device video0 [mpeg]
-[   16.833917] DVB: registering new adapter (pvrusb2-dvb)
-[   17.724319] smsc95xx 1-1.1:1.0 eth0: hardware isn't capable of remote wakeup
-[   17.725055] IPv6: ADDRCONF(NETDEV_UP): eth0: link is not ready
-[   19.185810] cx25840 3-0044: loaded v4l-cx25840.fw firmware (16382 bytes)
-[   19.318894] tda829x 3-0042: setting tuner address to 60
-[   19.336993] smsc95xx 1-1.1:1.0 eth0: link up, 100Mbps, full-duplex, lpa 0xCDE1
-[   19.348636] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
-[   19.408700] tda18271 3-0060: creating new instance
-[   19.458819] TDA18271HD/C2 detected @ 3-0060
-[   20.358789] tda18271: performing RF tracking filter calibration
-[   39.498969] tda18271: RF tracking filter calibration complete
-[   39.568994] tda829x 3-0042: type set to tda8295+18271
-[   46.439239] cx25840 3-0044: 0x0000 is not a valid video input!
-[   46.498783] usb 1-1.3: DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
-[   46.507172] tda829x 3-0042: type set to tda8295
-[   46.547113] tda18271 3-0060: attaching existing instance
+Niklas Söderlund
