@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:46511 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754068AbcIBOJ7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 10:09:59 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Cc: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 0/2] v4l: vsp1: Add HGT support
-Date: Fri,  2 Sep 2016 15:47:12 +0200
-Message-Id: <20160902134714.12224-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from avasout06.plus.net ([212.159.14.18]:53279 "EHLO
+        avasout06.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754178AbcIOUa4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 16:30:56 -0400
+From: Nick Dyer <nick@shmanahar.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Chris Healy <cphealy@gmail.com>, linux-input@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Nick Dyer <nick@shmanahar.org>
+Subject: [PATCH] Input: v4l-touch - add copyright lines
+Date: Thu, 15 Sep 2016 21:30:43 +0100
+Message-Id: <1473971443-19348-1-git-send-email-nick@shmanahar.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans-
 
-This series add support for the VSP1 2-D histogram engine HGT.
+Please could you apply this patch to your media_tree/touch branch before it
+goes to v4.9 if possible.
 
-It's based on top of Laurent Pinchart tree at 
-git://linuxtv.org/pinchartl/media.git hgo.
+Thanks
 
-It is tested on Koelsch using a modified vsp-tests suite package, 
-modifications can be found at https://git.ragnatech.se/vsp-tests hgt.
 
-Niklas Söderlund (2):
-  v4l: Define a pixel format for the R-Car VSP1 2-D histogram engine
-  v4l: vsp1: Add HGT support
 
- Documentation/media/uapi/v4l/meta-formats.rst      |   1 +
- .../media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst        | 150 +++++++
- drivers/media/platform/vsp1/Makefile               |   2 +-
- drivers/media/platform/vsp1/vsp1.h                 |   3 +
- drivers/media/platform/vsp1/vsp1_drv.c             |  32 +-
- drivers/media/platform/vsp1/vsp1_entity.c          |  33 +-
- drivers/media/platform/vsp1/vsp1_entity.h          |   1 +
- drivers/media/platform/vsp1/vsp1_hgt.c             | 495 +++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_hgt.h             |  51 +++
- drivers/media/platform/vsp1/vsp1_pipe.c            |  16 +
- drivers/media/platform/vsp1/vsp1_pipe.h            |   2 +
- drivers/media/platform/vsp1/vsp1_regs.h            |   9 +
- drivers/media/platform/vsp1/vsp1_video.c           |  10 +-
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/videodev2.h                     |   3 +-
- 15 files changed, 792 insertions(+), 17 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-vsp1-hgt.rst
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
+Add copyright lines for Zodiac who paid for the V4L touch work.
 
+Signed-off-by: Nick Dyer <nick@shmanahar.org>
+---
+ drivers/input/rmi4/rmi_f54.c             | 1 +
+ drivers/input/touchscreen/atmel_mxt_ts.c | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/input/rmi4/rmi_f54.c b/drivers/input/rmi4/rmi_f54.c
+index 99a8836..185b753 100644
+--- a/drivers/input/rmi4/rmi_f54.c
++++ b/drivers/input/rmi4/rmi_f54.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2012-2015 Synaptics Incorporated
++ * Copyright (C) 2016 Zodiac Inflight Innovations
+  *
+  * This program is free software; you can redistribute it and/or modify it
+  * under the terms of the GNU General Public License version 2 as published by
+diff --git a/drivers/input/touchscreen/atmel_mxt_ts.c b/drivers/input/touchscreen/atmel_mxt_ts.c
+index beede8f..e5d185f 100644
+--- a/drivers/input/touchscreen/atmel_mxt_ts.c
++++ b/drivers/input/touchscreen/atmel_mxt_ts.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2010 Samsung Electronics Co.Ltd
+  * Copyright (C) 2011-2014 Atmel Corporation
+  * Copyright (C) 2012 Google, Inc.
++ * Copyright (C) 2016 Zodiac Inflight Innovations
+  *
+  * Author: Joonyoung Shim <jy0922.shim@samsung.com>
+  *
 -- 
-2.9.3
+2.7.4
 
