@@ -1,583 +1,566 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34716 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934946AbcIXWks (ORCPT
+Received: from 4.mo173.mail-out.ovh.net ([46.105.34.219]:51413 "EHLO
+        4.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934345AbcION6y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Sep 2016 18:40:48 -0400
-Received: by mail-wm0-f65.google.com with SMTP id l132so8276862wmf.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Sep 2016 15:40:48 -0700 (PDT)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org, crope@iki.fi
-Cc: benjamin@southpole.se, mchehab@kernel.org,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [RFC] media: mn88473: add DVBv5 statistics support
-Date: Sun, 25 Sep 2016 00:40:19 +0200
-Message-Id: <20160924224019.677-2-martin.blumenstingl@googlemail.com>
-In-Reply-To: <20160924224019.677-1-martin.blumenstingl@googlemail.com>
-References: <20160924224019.677-1-martin.blumenstingl@googlemail.com>
+        Thu, 15 Sep 2016 09:58:54 -0400
+Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
+        by mo173.mail-out.ovh.net (Postfix) with ESMTP id 5079E10148A4
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 15:51:36 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v6 2/2] Add GS1662 driver, a video serializer
+Date: Thu, 15 Sep 2016 15:51:12 +0200
+Message-Id: <1473947472-26373-3-git-send-email-charles-antoine.couret@nexvision.fr>
+In-Reply-To: <1473947472-26373-1-git-send-email-charles-antoine.couret@nexvision.fr>
+References: <1473947472-26373-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement DVBv5 statistics support for DVB-T, DVB-T2 and DVB-C. All
-information was taken from the LinuxTV wiki, where Benjamin Larsson has
-documented all registers:
-https://www.linuxtv.org/wiki/index.php/Panasonic_MN88472
+You can read datasheet here:
+http://www.c-dis.net/media/871/GS1662_Datasheet.pdf
 
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+It's a component which supports HD and SD CEA or SDI formats
+to SDI output. It's configured through SPI bus.
+
+GS1662 driver is implemented as v4l2 subdev.
+
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
 ---
- drivers/media/dvb-frontends/mn88473.c      | 485 ++++++++++++++++++++++++++---
- drivers/media/dvb-frontends/mn88473_priv.h |   1 +
- 2 files changed, 445 insertions(+), 41 deletions(-)
+ drivers/media/Kconfig      |   1 +
+ drivers/media/Makefile     |   2 +-
+ drivers/media/spi/Kconfig  |   9 +
+ drivers/media/spi/Makefile |   1 +
+ drivers/media/spi/gs1662.c | 472 +++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 484 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/spi/Kconfig
+ create mode 100644 drivers/media/spi/Makefile
+ create mode 100644 drivers/media/spi/gs1662.c
 
-diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
-index 451974a..c8dc9d3 100644
---- a/drivers/media/dvb-frontends/mn88473.c
-+++ b/drivers/media/dvb-frontends/mn88473.c
-@@ -234,13 +234,388 @@ err:
- 	return ret;
- }
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index a8518fb..d2fa6e7 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -215,5 +215,6 @@ config MEDIA_ATTACH
+ source "drivers/media/i2c/Kconfig"
+ source "drivers/media/tuners/Kconfig"
+ source "drivers/media/dvb-frontends/Kconfig"
++source "drivers/media/spi/Kconfig"
  
-+static int mn88473_update_ber_stat_t_c(struct dvb_frontend *fe,
-+				       enum fe_status *status)
+ endif # MEDIA_SUPPORT
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index e608bbc..75bc82e 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -28,6 +28,6 @@ obj-y += rc/
+ # Finally, merge the drivers that require the core
+ #
+ 
+-obj-y += common/ platform/ pci/ usb/ mmc/ firewire/
++obj-y += common/ platform/ pci/ usb/ mmc/ firewire/ spi/
+ obj-$(CONFIG_VIDEO_DEV) += radio/
+ 
+diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+new file mode 100644
+index 0000000..fa47c90
+--- /dev/null
++++ b/drivers/media/spi/Kconfig
+@@ -0,0 +1,9 @@
++if VIDEO_V4L2
++
++config VIDEO_GS1662
++	tristate "Gennum Serializers video"
++	depends on SPI && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	---help---
++	  Enable the GS1662 driver which serializes video streams.
++
++endif
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+new file mode 100644
+index 0000000..ea64013
+--- /dev/null
++++ b/drivers/media/spi/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
+diff --git a/drivers/media/spi/gs1662.c b/drivers/media/spi/gs1662.c
+new file mode 100644
+index 0000000..f743423
+--- /dev/null
++++ b/drivers/media/spi/gs1662.c
+@@ -0,0 +1,472 @@
++/*
++ * GS1662 device registration.
++ *
++ * Copyright (C) 2015-2016 Nexvision
++ * Author: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/spi/spi.h>
++#include <linux/platform_device.h>
++#include <linux/ctype.h>
++#include <linux/err.h>
++#include <linux/device.h>
++#include <linux/module.h>
++
++#include <linux/videodev2.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-dv-timings.h>
++#include <linux/v4l2-dv-timings.h>
++
++#define REG_STATUS			0x04
++#define REG_FORCE_FMT			0x06
++#define REG_LINES_PER_FRAME		0x12
++#define REG_WORDS_PER_LINE		0x13
++#define REG_WORDS_PER_ACT_LINE		0x14
++#define REG_ACT_LINES_PER_FRAME	0x15
++
++#define MASK_H_LOCK			0x001
++#define MASK_V_LOCK			0x002
++#define MASK_STD_LOCK			0x004
++#define MASK_FORCE_STD			0x020
++#define MASK_STD_STATUS		0x3E0
++
++#define GS_WIDTH_MIN			720
++#define GS_WIDTH_MAX			2048
++#define GS_HEIGHT_MIN			487
++#define GS_HEIGHT_MAX			1080
++#define GS_PIXELCLOCK_MIN		10519200
++#define GS_PIXELCLOCK_MAX		74250000
++
++struct gs {
++	struct spi_device *pdev;
++	struct v4l2_subdev sd;
++	struct v4l2_dv_timings current_timings;
++	int enabled;
++};
++
++struct gs_reg_fmt {
++	u16 reg_value;
++	struct v4l2_dv_timings format;
++};
++
++struct gs_reg_fmt_custom {
++	u16 reg_value;
++	__u32 width;
++	__u32 height;
++	__u64 pixelclock;
++	__u32 interlaced;
++};
++
++static const struct spi_device_id gs_id[] = {
++	{ "gs1662", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(spi, gs_id);
++
++static const struct v4l2_dv_timings fmt_cap[] = {
++	V4L2_DV_BT_SDI_720X487I60,
++	V4L2_DV_BT_CEA_720X576P50,
++	V4L2_DV_BT_CEA_1280X720P24,
++	V4L2_DV_BT_CEA_1280X720P25,
++	V4L2_DV_BT_CEA_1280X720P30,
++	V4L2_DV_BT_CEA_1280X720P50,
++	V4L2_DV_BT_CEA_1280X720P60,
++	V4L2_DV_BT_CEA_1920X1080P24,
++	V4L2_DV_BT_CEA_1920X1080P25,
++	V4L2_DV_BT_CEA_1920X1080P30,
++	V4L2_DV_BT_CEA_1920X1080I50,
++	V4L2_DV_BT_CEA_1920X1080I60,
++};
++
++static const struct gs_reg_fmt reg_fmt[] = {
++	{ 0x00, V4L2_DV_BT_CEA_1280X720P60 },
++	{ 0x01, V4L2_DV_BT_CEA_1280X720P60 },
++	{ 0x02, V4L2_DV_BT_CEA_1280X720P30 },
++	{ 0x03, V4L2_DV_BT_CEA_1280X720P30 },
++	{ 0x04, V4L2_DV_BT_CEA_1280X720P50 },
++	{ 0x05, V4L2_DV_BT_CEA_1280X720P50 },
++	{ 0x06, V4L2_DV_BT_CEA_1280X720P25 },
++	{ 0x07, V4L2_DV_BT_CEA_1280X720P25 },
++	{ 0x08, V4L2_DV_BT_CEA_1280X720P24 },
++	{ 0x09, V4L2_DV_BT_CEA_1280X720P24 },
++	{ 0x0A, V4L2_DV_BT_CEA_1920X1080I60 },
++	{ 0x0B, V4L2_DV_BT_CEA_1920X1080P30 },
++
++	/* Default value: keep this field before 0xC */
++	{ 0x14, V4L2_DV_BT_CEA_1920X1080I50 },
++	{ 0x0C, V4L2_DV_BT_CEA_1920X1080I50 },
++	{ 0x0D, V4L2_DV_BT_CEA_1920X1080P25 },
++	{ 0x0E, V4L2_DV_BT_CEA_1920X1080P25 },
++	{ 0x10, V4L2_DV_BT_CEA_1920X1080P24 },
++	{ 0x12, V4L2_DV_BT_CEA_1920X1080P24 },
++	{ 0x16, V4L2_DV_BT_SDI_720X487I60 },
++	{ 0x19, V4L2_DV_BT_SDI_720X487I60 },
++	{ 0x18, V4L2_DV_BT_CEA_720X576P50 },
++	{ 0x1A, V4L2_DV_BT_CEA_720X576P50 },
++
++	/* Implement following timings before enable it.
++	 * Because of we don't have access to these theoretical timings yet.
++	 * Workaround: use functions to get and set registers for these formats.
++	 */
++#if 0
++	{ 0x0F, V4L2_DV_BT_XXX_1920X1080I25 }, /* SMPTE 274M */
++	{ 0x11, V4L2_DV_BT_XXX_1920X1080I24 }, /* SMPTE 274M */
++	{ 0x13, V4L2_DV_BT_XXX_1920X1080I25 }, /* SMPTE 274M */
++	{ 0x15, V4L2_DV_BT_XXX_1920X1035I60 }, /* SMPTE 260M */
++	{ 0x17, V4L2_DV_BT_SDI_720X507I60 }, /* SMPTE 125M */
++	{ 0x1B, V4L2_DV_BT_SDI_720X507I60 }, /* SMPTE 125M */
++	{ 0x1C, V4L2_DV_BT_XXX_2048X1080P25 }, /* SMPTE 428.1M */
++#endif
++};
++
++static const struct v4l2_dv_timings_cap gs_timings_cap = {
++	.type = V4L2_DV_BT_656_1120,
++	/* keep this initialization for compatibility with GCC < 4.4.6 */
++	.reserved = { 0 },
++	V4L2_INIT_BT_TIMINGS(GS_WIDTH_MIN, GS_WIDTH_MAX, GS_HEIGHT_MIN,
++			     GS_HEIGHT_MAX, GS_PIXELCLOCK_MIN, GS_PIXELCLOCK_MAX,
++			     V4L2_DV_BT_STD_CEA861 | V4L2_DV_BT_STD_SDI,
++			     V4L2_DV_BT_CAP_PROGRESSIVE
++			     | V4L2_DV_BT_CAP_INTERLACED)
++};
++
++static int gs_read_register(struct spi_device *spi, u16 addr, u16 *value)
 +{
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
 +	int ret;
-+	u64 total;
-+	unsigned int uitmp, value, errors;
-+
-+	if (*status & FE_HAS_LOCK) {
-+		ret = regmap_read(dev->regmap[0], 0x5b, &value);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[0], 0xdf, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		value &= uitmp;
-+		ret = regmap_write(dev->regmap[0], 0x5b, value);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[0], 0x60, &value);
-+		if (ret)
-+			goto err;
-+
-+		value &= 0xf0;
-+		value |= 0x5;
-+		ret = regmap_write(dev->regmap[0], 0x60, value);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[0], 0x92, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		errors = uitmp << 16;
-+
-+		ret = regmap_read(dev->regmap[0], 0x93, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		errors |= uitmp << 8;
-+
-+		ret = regmap_read(dev->regmap[0], 0x94, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		errors |= uitmp;
-+
-+		ret = regmap_read(dev->regmap[0], 0x95, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		total = uitmp << 8;
-+
-+		ret = regmap_read(dev->regmap[0], 0x96, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		total |= uitmp;
-+
-+		/* probably: (bytes -> bit) * (sizeof(TS packet) - 1) */
-+		total *= 8 * 203;
-+
-+		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_error.stat[0].uvalue += errors;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_count.stat[0].uvalue += total;
-+	} else {
-+		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+	return 0;
-+
-+err:
-+	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
-+static int mn88473_update_ber_stat_t2(struct dvb_frontend *fe,
-+				      enum fe_status *status)
-+{
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
-+	u64 total;
-+	unsigned int uitmp, value, berlen, fec_type_m, errors;
-+	static u16 fec_type_m_tbl0[] = {
-+		32400, 38880, 43200, 48600, 51840, 54000, 0
++	u16 buf_addr = (0x8000 | (0x0FFF & addr));
++	u16 buf_value = 0;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.rx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
 +	};
-+	static u16 fec_type_m_tbl1[] = {
-+		28800, 38880, 43200, 47520, 50400, 53280, 0
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
++
++	*value = buf_value;
++
++	return ret;
++}
++
++static int gs_write_register(struct spi_device *spi, u16 addr, u16 value)
++{
++	int ret;
++	u16 buf_addr = addr;
++	u16 buf_value = value;
++	struct spi_message msg;
++	struct spi_transfer tx[] = {
++		{
++			.tx_buf = &buf_addr,
++			.len = 2,
++			.delay_usecs = 1,
++		}, {
++			.tx_buf = &buf_value,
++			.len = 2,
++			.delay_usecs = 1,
++		},
 +	};
 +
-+	if (*status & FE_HAS_LOCK) {
-+		ret = regmap_read(dev->regmap[2], 0x82, &value);
-+		if (ret)
-+			goto err;
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx[0], &msg);
++	spi_message_add_tail(&tx[1], &msg);
++	ret = spi_sync(spi, &msg);
 +
-+		value |= 0x20;
-+		value &= 0xef;
-+		ret = regmap_write(dev->regmap[2], 0x82, value);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[2], 0xba, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		errors = uitmp << 16;
-+
-+		ret = regmap_read(dev->regmap[2], 0xbb, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		errors |= uitmp << 8;
-+
-+		ret = regmap_read(dev->regmap[2], 0xbc, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		errors |= uitmp;
-+
-+		ret = regmap_read(dev->regmap[2], 0x83, &berlen);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_write(dev->regmap[2], 0xc0, 0x3);
-+		if (ret)
-+			goto err;
-+
-+		/* berlen[4:2] are the index in fec_type_m_tbl */
-+		uitmp = (berlen >> 2) & 0x7;
-+
-+		if (BIT(0) & berlen)
-+			fec_type_m = fec_type_m_tbl0[uitmp];
-+		else
-+			fec_type_m = fec_type_m_tbl1[uitmp];
-+
-+		total = ((berlen & 0xff) << 1) * fec_type_m;
-+
-+		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_error.stat[0].uvalue += errors;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->post_bit_count.stat[0].uvalue += total;
-+	} else {
-+		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+	return 0;
-+
-+err:
-+	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
 +	return ret;
 +}
 +
-+static inline u32 log10times1000(u32 value)
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int gs_g_register(struct v4l2_subdev *sd,
++		  struct v4l2_dbg_register *reg)
 +{
-+	return (1000L * intlog10(value)) >> 24;
-+}
-+
-+static int mn88473_read_status_t(struct dvb_frontend *fe,
-+				 enum fe_status *status)
-+{
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct spi_device *spi = v4l2_get_subdevdata(sd);
++	u16 val;
 +	int ret;
-+	s32 cnr;
-+	unsigned int uitmp, tmp_upper, tmp_lower;
 +
-+	ret = regmap_read(dev->regmap[0], 0x62, &uitmp);
-+	if (ret)
-+		goto err;
-+
-+	if (!(uitmp & 0xa0)) {
-+		if ((uitmp & 0x0f) >= 0x09)
-+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-+					FE_HAS_VITERBI | FE_HAS_SYNC |
-+					FE_HAS_LOCK;
-+		else if ((uitmp & 0x0f) >= 0x03)
-+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
-+	}
-+
-+	/* CNR */
-+	if (*status & FE_HAS_VITERBI) {
-+		ret = regmap_read(dev->regmap[0], 0x8f, &tmp_upper);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[0], 0x90, &tmp_lower);
-+		if (ret)
-+			goto err;
-+
-+		uitmp = (tmp_upper << 8) | tmp_lower;
-+		if (uitmp) {
-+			cnr = log10times1000(65536);
-+			cnr -= log10times1000(uitmp);
-+			cnr += 200;
-+		} else
-+			cnr = 0;
-+
-+		if (cnr < 0)
-+			cnr = 0;
-+
-+		c->cnr.stat[0].svalue = cnr * 10;
-+		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+	} else {
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+	/* BER */
-+	ret = mn88473_update_ber_stat_t_c(fe, status);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++	ret = gs_read_register(spi, reg->reg & 0xFFFF, &val);
++	reg->val = val;
++	reg->size = 2;
 +	return ret;
 +}
 +
-+static int mn88473_read_status_t2(struct dvb_frontend *fe,
-+				  enum fe_status *status)
++static int gs_s_register(struct v4l2_subdev *sd,
++		  const struct v4l2_dbg_register *reg)
 +{
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
-+	s32 cnr;
-+	unsigned int uitmp, tmp_upper, tmp_lower, flag;
++	struct spi_device *spi = v4l2_get_subdevdata(sd);
 +
-+	ret = regmap_read(dev->regmap[2], 0x8b, &uitmp);
-+	if (ret)
-+		goto err;
-+
-+	if (!(uitmp & 0x40)) {
-+		if ((uitmp & 0x0f) >= 0x0d)
-+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-+					FE_HAS_VITERBI | FE_HAS_SYNC |
-+					FE_HAS_LOCK;
-+		else if ((uitmp & 0x0f) >= 0x0a)
-+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-+					FE_HAS_VITERBI;
-+		else if ((uitmp & 0x0f) >= 0x07)
-+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
-+	}
-+
-+	/* CNR */
-+	if (*status & FE_HAS_VITERBI) {
-+		ret = regmap_read(dev->regmap[2], 0xb7, &flag);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[2], 0xb8, &tmp_upper);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[2], 0xb9, &tmp_lower);
-+		if (ret)
-+			goto err;
-+
-+		uitmp = (tmp_upper << 8) | tmp_lower;
-+		if (uitmp) {
-+			if (flag & BIT(2)) {
-+				/* MISO */
-+				cnr = log10times1000(16384);
-+				cnr -= log10times1000(uitmp);
-+				cnr -= 600;
-+			} else {
-+				/* SISO */
-+				cnr = log10times1000(65536);
-+				cnr -= log10times1000(uitmp);
-+				cnr += 200;
-+			}
-+		} else
-+			cnr = 0;
-+
-+		if (cnr < 0)
-+			cnr = 0;
-+
-+		c->cnr.stat[0].svalue = cnr * 10;
-+		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+	} else {
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
-+
-+	/* BER */
-+	ret = mn88473_update_ber_stat_t2(fe, status);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+
-+err:
-+	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
-+	return ret;
++	return gs_write_register(spi, reg->reg & 0xFFFF, reg->val & 0xFFFF);
 +}
++#endif
 +
-+static int mn88473_read_status_c(struct dvb_frontend *fe,
-+				 enum fe_status *status)
++static int gs_status_format(u16 status, struct v4l2_dv_timings *timings)
 +{
-+	struct i2c_client *client = fe->demodulator_priv;
-+	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int ret;
-+	unsigned int uitmp, tmp_upper, tmp_lower, signal, noise;
++	int std = (status & MASK_STD_STATUS) >> 5;
++	int i;
 +
-+	ret = regmap_read(dev->regmap[1], 0x85, &uitmp);
-+	if (ret)
-+		goto err;
-+
-+	if (!(uitmp & 0x40)) {
-+		ret = regmap_read(dev->regmap[1], 0x89, &uitmp);
-+		if (ret)
-+			goto err;
-+
-+		if (uitmp & 0x01)
-+			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
-+					FE_HAS_VITERBI | FE_HAS_SYNC |
-+					FE_HAS_LOCK;
++	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
++		if (reg_fmt[i].reg_value == std) {
++			*timings = reg_fmt[i].format;
++			return 0;
++		}
 +	}
 +
-+	/* CNR */
-+	if (*status & FE_HAS_VITERBI) {
-+		ret = regmap_read(dev->regmap[1], 0xa1, &tmp_upper);
-+		if (ret)
-+			goto err;
++	return -ERANGE;
++}
 +
-+		ret = regmap_read(dev->regmap[1], 0xa2, &tmp_lower);
-+		if (ret)
-+			goto err;
++static u16 get_register_timings(struct v4l2_dv_timings *timings)
++{
++	int i;
 +
-+		signal = (tmp_upper << 8) | tmp_lower;
-+
-+		ret = regmap_read(dev->regmap[1], 0xa3, &tmp_upper);
-+		if (ret)
-+			goto err;
-+
-+		ret = regmap_read(dev->regmap[1], 0xa4, &tmp_lower);
-+		if (ret)
-+			goto err;
-+
-+		noise = (tmp_upper << 8) | tmp_lower;
-+		if (noise)
-+			uitmp = log10times1000(signal * 8 / noise);
-+		else
-+			uitmp = 0;
-+
-+		c->cnr.stat[0].svalue = uitmp * 10;
-+		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+	} else {
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	for (i = 0; i < ARRAY_SIZE(reg_fmt); i++) {
++		if (v4l2_match_dv_timings(timings, &reg_fmt[i].format, 0, false))
++			return reg_fmt[i].reg_value | MASK_FORCE_STD;
 +	}
 +
-+	/* BER */
-+	ret = mn88473_update_ber_stat_t_c(fe, status);
-+	if (ret)
-+		goto err;
++	return 0x0;
++}
 +
++static inline struct gs *to_gs(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct gs, sd);
++}
++
++static int gs_s_dv_timings(struct v4l2_subdev *sd,
++		    struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++	int reg_value;
++
++	reg_value = get_register_timings(timings);
++	if (reg_value == 0x0)
++		return -EINVAL;
++
++	gs->current_timings = *timings;
 +	return 0;
++}
 +
-+err:
-+	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++static int gs_g_dv_timings(struct v4l2_subdev *sd,
++		    struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++
++	*timings = gs->current_timings;
++	return 0;
++}
++
++static int gs_query_dv_timings(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings *timings)
++{
++	struct gs *gs = to_gs(sd);
++	struct v4l2_dv_timings fmt;
++	u16 reg_value, i;
++	int ret;
++
++	if (gs->enabled)
++		return -EBUSY;
++
++	/* Check if the component detect a line, a frame or something else
++	 * which looks like a video signal activity.*/
++	for (i = 0; i < 4; i++) {
++		gs_read_register(gs->pdev, REG_LINES_PER_FRAME + i, &reg_value);
++		if (reg_value)
++			break;
++	}
++
++	/* If no register reports a video signal */
++	if (i >= 4)
++		return -ENOLINK;
++
++	gs_read_register(gs->pdev, REG_STATUS, &reg_value);
++	if (!(reg_value & MASK_H_LOCK) || !(reg_value & MASK_V_LOCK))
++		return -ENOLCK;
++	if (!(reg_value & MASK_STD_LOCK))
++		return -ERANGE;
++
++	ret = gs_status_format(reg_value, &fmt);
++
++	if (ret < 0)
++		return ret;
++
++	*timings = fmt;
++	return 0;
++}
++
++static int gs_enum_dv_timings(struct v4l2_subdev *sd,
++		       struct v4l2_enum_dv_timings *timings)
++{
++	if (timings->index >= ARRAY_SIZE(fmt_cap))
++		return -EINVAL;
++
++	if (timings->pad != 0)
++		return -EINVAL;
++
++	timings->timings = fmt_cap[timings->index];
++	return 0;
++}
++
++static int gs_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct gs *gs = to_gs(sd);
++	int reg_value;
++
++	if (gs->enabled == enable)
++		return 0;
++
++	gs->enabled = enable;
++
++	if (enable) {
++		/* To force the specific format */
++		reg_value = get_register_timings(&gs->current_timings);
++		return gs_write_register(gs->pdev, REG_FORCE_FMT, reg_value);
++	} else {
++		/* To renable auto-detection mode */
++		return gs_write_register(gs->pdev, REG_FORCE_FMT, 0x0);
++	}
++}
++
++static int gs_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	struct gs *gs = to_gs(sd);
++	u16 reg_value, i;
++	int ret;
++
++	/* Check if the component detect a line, a frame or something else
++	 * which looks like a video signal activity.*/
++	for (i = 0; i < 4; i++) {
++		ret = gs_read_register(gs->pdev,
++				       REG_LINES_PER_FRAME + i, &reg_value);
++		if (reg_value)
++			break;
++		if (ret) {
++			*status = V4L2_IN_ST_NO_POWER;
++			return ret;
++		}
++	}
++
++	/* If no register reports a video signal */
++	if (i >= 4)
++		*status |= V4L2_IN_ST_NO_SIGNAL;
++
++	ret = gs_read_register(gs->pdev, REG_STATUS, &reg_value);
++	if (!(reg_value & MASK_H_LOCK))
++		*status |=  V4L2_IN_ST_NO_H_LOCK;
++	if (!(reg_value & MASK_V_LOCK))
++		*status |=  V4L2_IN_ST_NO_V_LOCK;
++	if (!(reg_value & MASK_STD_LOCK))
++		*status |=  V4L2_IN_ST_NO_STD_LOCK;
++
 +	return ret;
 +}
 +
- static int mn88473_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct mn88473_dev *dev = i2c_get_clientdata(client);
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
--	unsigned int uitmp;
-+	u16 errors, per_len;
-+	unsigned int upper, lower;
- 
- 	if (!dev->active) {
- 		ret = -EAGAIN;
-@@ -251,60 +626,73 @@ static int mn88473_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 
- 	switch (c->delivery_system) {
- 	case SYS_DVBT:
--		ret = regmap_read(dev->regmap[0], 0x62, &uitmp);
-+		ret = mn88473_read_status_t(fe, status);
-+		break;
-+	case SYS_DVBT2:
-+		ret = mn88473_read_status_t2(fe, status);
-+		break;
-+	case SYS_DVBC_ANNEX_A:
-+		ret = mn88473_read_status_c(fe, status);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
++static int gs_dv_timings_cap(struct v4l2_subdev *sd,
++			     struct v4l2_dv_timings_cap *cap)
++{
++	if (cap->pad != 0)
++		return -EINVAL;
 +
-+	if (ret)
-+		goto err;
++	*cap = gs_timings_cap;
++	return 0;
++}
 +
-+	/* signal strength, derived from AGC */
-+	if (*status & FE_HAS_SIGNAL) {
-+		ret = regmap_read(dev->regmap[2], 0x86, &upper);
- 		if (ret)
- 			goto err;
- 
--		if (!(uitmp & 0xa0)) {
--			if ((uitmp & 0x0f) >= 0x09)
--				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
--					  FE_HAS_VITERBI | FE_HAS_SYNC |
--					  FE_HAS_LOCK;
--			else if ((uitmp & 0x0f) >= 0x03)
--				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
--		}
--		break;
--	case SYS_DVBT2:
--		ret = regmap_read(dev->regmap[2], 0x8b, &uitmp);
-+		ret = regmap_read(dev->regmap[2], 0x87, &lower);
- 		if (ret)
- 			goto err;
- 
--		if (!(uitmp & 0x40)) {
--			if ((uitmp & 0x0f) >= 0x0d)
--				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
--					  FE_HAS_VITERBI | FE_HAS_SYNC |
--					  FE_HAS_LOCK;
--			else if ((uitmp & 0x0f) >= 0x0a)
--				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
--					  FE_HAS_VITERBI;
--			else if ((uitmp & 0x0f) >= 0x07)
--				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
--		}
--		break;
--	case SYS_DVBC_ANNEX_A:
--		ret = regmap_read(dev->regmap[1], 0x85, &uitmp);
-+		/* AGCRD[15:6] gives us a 10bit value ([5:0] are always 0) */
-+		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+		c->strength.stat[0].uvalue = (upper << 8) | lower;
-+	} else {
-+		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	}
++/* V4L2 core operation handlers */
++static const struct v4l2_subdev_core_ops gs_core_ops = {
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = gs_g_register,
++	.s_register = gs_s_register,
++#endif
++};
 +
-+	/* PER */
-+	if (*status & FE_HAS_LOCK) {
-+		ret = regmap_read(dev->regmap[0], 0xdd, &upper);
- 		if (ret)
- 			goto err;
- 
--		if (!(uitmp & 0x40)) {
--			ret = regmap_read(dev->regmap[1], 0x89, &uitmp);
--			if (ret)
--				goto err;
-+		ret = regmap_read(dev->regmap[0], 0xde, &lower);
-+		if (ret)
-+			goto err;
- 
--			if (uitmp & 0x01)
--				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
--					  FE_HAS_VITERBI | FE_HAS_SYNC |
--					  FE_HAS_LOCK;
--		}
--		break;
--	default:
--		ret = -EINVAL;
--		goto err;
-+		errors = (upper << 8) | lower;
++static const struct v4l2_subdev_video_ops gs_video_ops = {
++	.s_dv_timings = gs_s_dv_timings,
++	.g_dv_timings = gs_g_dv_timings,
++	.s_stream = gs_s_stream,
++	.g_input_status = gs_g_input_status,
++	.query_dv_timings = gs_query_dv_timings,
++};
 +
-+		ret = regmap_read(dev->regmap[0], 0xdf, &upper);
-+		if (ret)
-+			goto err;
++static const struct v4l2_subdev_pad_ops gs_pad_ops = {
++	.enum_dv_timings= gs_enum_dv_timings,
++	.dv_timings_cap = gs_dv_timings_cap,
++};
 +
-+		ret = regmap_read(dev->regmap[0], 0xe0, &lower);
-+		if (ret)
-+			goto err;
++/* V4L2 top level operation handlers */
++static const struct v4l2_subdev_ops gs_ops = {
++	.core = &gs_core_ops,
++	.video = &gs_video_ops,
++	.pad = &gs_pad_ops,
++};
 +
-+		per_len = (upper << 8) | lower;
++static int gs_probe(struct spi_device *spi)
++{
++	int ret;
++	struct gs *gs;
++	struct v4l2_subdev *sd;
 +
-+		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->block_error.stat[0].uvalue += errors;
-+		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->block_count.stat[0].uvalue += per_len;
-+	} else {
-+		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
- 	}
- 
- 	return 0;
- err:
--	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
- 	return ret;
- }
- 
-@@ -312,6 +700,7 @@ static int mn88473_init(struct dvb_frontend *fe)
- {
- 	struct i2c_client *client = fe->demodulator_priv;
- 	struct mn88473_dev *dev = i2c_get_clientdata(client);
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret, len, remain;
- 	unsigned int uitmp;
- 	const struct firmware *fw;
-@@ -378,6 +767,20 @@ warm:
- 
- 	dev->active = true;
- 
-+	/* init stats here to indicate which stats are supported */
-+	c->strength.len = 1;
-+	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->cnr.len = 1;
-+	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_error.len = 1;
-+	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->post_bit_count.len = 1;
-+	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->block_error.len = 1;
-+	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	c->block_count.len = 1;
-+	c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	gs = devm_kzalloc(&spi->dev, sizeof(struct gs), GFP_KERNEL);
++	if (!gs)
++		return -ENOMEM;
 +
- 	return 0;
- err_release_firmware:
- 	release_firmware(fw);
-diff --git a/drivers/media/dvb-frontends/mn88473_priv.h b/drivers/media/dvb-frontends/mn88473_priv.h
-index e6c6589..7cbef7b 100644
---- a/drivers/media/dvb-frontends/mn88473_priv.h
-+++ b/drivers/media/dvb-frontends/mn88473_priv.h
-@@ -18,6 +18,7 @@
- #define MN88473_PRIV_H
- 
- #include "dvb_frontend.h"
-+#include "dvb_math.h"
- #include "mn88473.h"
- #include <linux/firmware.h>
- #include <linux/regmap.h>
++	gs->pdev = spi;
++	sd = &gs->sd;
++
++	spi->mode = SPI_MODE_0;
++	spi->irq = -1;
++	spi->max_speed_hz = 10000000;
++	spi->bits_per_word = 16;
++	ret = spi_setup(spi);
++	v4l2_spi_subdev_init(sd, spi, &gs_ops);
++
++	gs->current_timings = reg_fmt[0].format;
++	gs->enabled = 0;
++
++	/* Set H_CONFIG to SMPTE timings */
++	gs_write_register(spi, 0x0, 0x300);
++
++	return ret;
++}
++
++static int gs_remove(struct spi_device *spi)
++{
++	struct v4l2_subdev *sd = spi_get_drvdata(spi);
++	struct gs *gs = to_gs(sd);
++
++	v4l2_device_unregister_subdev(sd);
++	kfree(gs);
++	return 0;
++}
++
++static struct spi_driver gs_driver = {
++	.driver = {
++		.name		= "gs1662",
++		.owner		= THIS_MODULE,
++	},
++
++	.probe		= gs_probe,
++	.remove		= gs_remove,
++	.id_table	= gs_id,
++};
++
++module_spi_driver(gs_driver);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>");
++MODULE_DESCRIPTION("Gennum GS1662 HD/SD-SDI Serializer driver");
 -- 
-2.10.0
+2.7.4
 
