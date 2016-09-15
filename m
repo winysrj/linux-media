@@ -1,127 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:36467 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752074AbcIORdd (ORCPT
+Received: from avasout05.plus.net ([84.93.230.250]:51552 "EHLO
+        avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756170AbcIOUbR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 13:33:33 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
-        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk
-Subject: [PATCH v9 1/2] rcar-vin: implement EDID control ioctls
-Date: Thu, 15 Sep 2016 19:33:23 +0200
-Message-Id: <20160915173324.24539-2-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160915173324.24539-1-ulrich.hecht+renesas@gmail.com>
-References: <20160915173324.24539-1-ulrich.hecht+renesas@gmail.com>
+        Thu, 15 Sep 2016 16:31:17 -0400
+Date: Thu, 15 Sep 2016 21:23:31 +0100
+From: Nick Dyer <nick@shmanahar.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Andrew Duggan <aduggan@synaptics.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] [media] Input: synaptics-rmi4: disallow impossible
+ configuration
+Message-ID: <20160915202331.GA18925@lava.h.shmanahar.org>
+References: <20160912153105.3035940-1-arnd@arndb.de>
+ <20160912153105.3035940-2-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160912153105.3035940-2-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds G_EDID and S_EDID.
+On Mon, Sep 12, 2016 at 05:30:33PM +0200, Arnd Bergmann wrote:
+> The newly added debug mode for the synaptics-rmi4 driver relies on
+> the v4l2 interface and vb2_vmalloc, but those might be configured
+> as loadable modules when the driver itself is built-in, resulting
+> in a link failure:
+> 
+> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_remove':
+> rmi_f54.c:(.text.rmi_f54_remove+0x14): undefined reference to `video_unregister_device'
+> rmi_f54.c:(.text.rmi_f54_remove+0x20): undefined reference to `v4l2_device_unregister'
+> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_s_input':
+> rmi_f54.c:(.text.rmi_f54_vidioc_s_input+0x10): undefined reference to `video_devdata'
+> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_g_input':
+> rmi_f54.c:(.text.rmi_f54_vidioc_g_input+0x10): undefined reference to `video_devdata'
+> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_fmt':
+> rmi_f54.c:(.text.rmi_f54_vidioc_fmt+0x10): undefined reference to `video_devdata'
+> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_enum_input':
+> rmi_f54.c:(.text.rmi_f54_vidioc_enum_input+0x10): undefined reference to `video_devdata'
+> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_querycap':
+> ...
+> 
+> The best workaround I could come up with is to disallow the debug
+> mode unless it's actually possible to call it.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Fixes: 3a762dbd5347 ("[media] Input: synaptics-rmi4 - add support for F54 diagnostics")
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 48 +++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
- 2 files changed, 50 insertions(+)
+Acked-by: Nick Dyer <nick@shmanahar.org>
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 61e9b59..f35005c 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -613,6 +613,44 @@ static int rvin_dv_timings_cap(struct file *file, void *priv_fh,
- 	return ret;
- }
- 
-+static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
-+	int input, ret;
-+
-+	if (edid->pad)
-+		return -EINVAL;
-+
-+	input = edid->pad;
-+	edid->pad = vin->sink_pad_idx;
-+
-+	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
-+
-+	edid->pad = input;
-+
-+	return ret;
-+}
-+
-+static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	struct v4l2_subdev *sd = vin_to_source(vin);
-+	int input, ret;
-+
-+	if (edid->pad)
-+		return -EINVAL;
-+
-+	input = edid->pad;
-+	edid->pad = vin->sink_pad_idx;
-+
-+	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
-+
-+	edid->pad = input;
-+
-+	return ret;
-+}
-+
- static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_querycap		= rvin_querycap,
- 	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
-@@ -635,6 +673,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_s_dv_timings		= rvin_s_dv_timings,
- 	.vidioc_query_dv_timings	= rvin_query_dv_timings,
- 
-+	.vidioc_g_edid			= rvin_g_edid,
-+	.vidioc_s_edid			= rvin_s_edid,
-+
- 	.vidioc_querystd		= rvin_querystd,
- 	.vidioc_g_std			= rvin_g_std,
- 	.vidioc_s_std			= rvin_s_std,
-@@ -883,6 +924,13 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 
- 	vin->src_pad_idx = pad_idx;
- 
-+	vin->sink_pad_idx = 0;
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
-+			vin->sink_pad_idx = pad_idx;
-+			break;
-+		}
-+
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
- 	rvin_reset_format(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 793184d..727e215 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -92,6 +92,7 @@ struct rvin_graph_entity {
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-  * @src_pad_idx:	source pad index for media controller drivers
-+ * @sink_pad_idx:	sink pad index for media controller drivers
-  * @ctrl_handler:	V4L2 control handler
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-@@ -121,6 +122,7 @@ struct rvin_dev {
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
- 	int src_pad_idx;
-+	int sink_pad_idx;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity digital;
--- 
-2.9.3
-
+> ---
+>  drivers/input/rmi4/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/input/rmi4/Kconfig b/drivers/input/rmi4/Kconfig
+> index f3418b65eb41..4c8a55857e00 100644
+> --- a/drivers/input/rmi4/Kconfig
+> +++ b/drivers/input/rmi4/Kconfig
+> @@ -65,7 +65,7 @@ config RMI4_F30
+>  config RMI4_F54
+>  	bool "RMI4 Function 54 (Analog diagnostics)"
+>  	depends on RMI4_CORE
+> -	depends on VIDEO_V4L2
+> +	depends on VIDEO_V4L2=y || (RMI4_CORE=m && VIDEO_V4L2=m)
+>  	select VIDEOBUF2_VMALLOC
+>  	help
+>  	  Say Y here if you want to add support for RMI4 function 54
+> -- 
+> 2.9.0
+> 
