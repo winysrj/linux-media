@@ -1,124 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49426 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938663AbcISDHW (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51878 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752045AbcIOQq5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Sep 2016 23:07:22 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id D55B21801C8
-        for <linux-media@vger.kernel.org>; Mon, 19 Sep 2016 05:07:15 +0200 (CEST)
-Date: Mon, 19 Sep 2016 05:07:15 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160919030715.D55B21801C8@tschai.lan>
+        Thu, 15 Sep 2016 12:46:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, william.towle@codethink.co.uk
+Subject: Re: [PATCH v8 2/2] rcar-vin: implement EDID control ioctls
+Date: Thu, 15 Sep 2016 19:47:40 +0300
+Message-ID: <2433006.7RBxv9f6xW@avalon>
+In-Reply-To: <20160915132408.20776-3-ulrich.hecht+renesas@gmail.com>
+References: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com> <20160915132408.20776-3-ulrich.hecht+renesas@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Ulrich,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Mon Sep 19 04:00:21 CEST 2016
-git branch:	test
-git hash:	c3b809834db8b1a8891c7ff873a216eac119628d
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+On Thursday 15 Sep 2016 15:24:08 Ulrich Hecht wrote:
+> Adds G_EDID and S_EDID.
+> 
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++++++++++++++++++++++++
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
+>  2 files changed, 43 insertions(+)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 62ca7e3..f679182 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -557,6 +557,38 @@ static int rvin_dv_timings_cap(struct file *file, void
+> *priv_fh, return ret;
+>  }
+> 
+> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+> +{
+> +	struct rvin_dev *vin = video_drvdata(file);
+> +	struct v4l2_subdev *sd = vin_to_source(vin);
+> +	int input, ret;
+> +
+> +	input = edid->pad;
+> +	edid->pad = vin->sink_pad_idx;
+> +
+> +	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
+> +
+> +	edid->pad = input;
+> +
+> +	return ret;
+> +}
+> +
+> +static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
+> +{
+> +	struct rvin_dev *vin = video_drvdata(file);
+> +	struct v4l2_subdev *sd = vin_to_source(vin);
+> +	int input, ret;
+> +
+> +	input = edid->pad;
+> +	edid->pad = vin->sink_pad_idx;
+> +
+> +	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
+> +
+> +	edid->pad = input;
+> +
+> +	return ret;
+> +}
+> +
+>  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+>  	.vidioc_querycap		= rvin_querycap,
+>  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
+> @@ -579,6 +611,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+>  	.vidioc_s_dv_timings		= rvin_s_dv_timings,
+>  	.vidioc_query_dv_timings	= rvin_query_dv_timings,
+> 
+> +	.vidioc_g_edid			= rvin_g_edid,
+> +	.vidioc_s_edid			= rvin_s_edid,
+> +
+>  	.vidioc_querystd		= rvin_querystd,
+>  	.vidioc_g_std			= rvin_g_std,
+>  	.vidioc_s_std			= rvin_s_std,
+> @@ -832,6 +867,13 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+>  	vin->src_pad_idx = pad_idx;
+>  	fmt.pad = vin->src_pad_idx;
+> 
+> +	vin->sink_pad_idx = 0;
+> +	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+> +		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+> +			vin->sink_pad_idx = pad_idx;
+> +			break;
+> +		}
+> +
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+What if the subdev has multiple sink pads ? Shouldn't the pad number be 
+instead computed in the get and set EDID handlers based on the input number 
+passed in the struct v4l2_edid::pad field ?
 
-Detailed results are available here:
+>  	/* Try to improve our guess of a reasonable window format */
+>  	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+>  	if (ret) {
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> b/drivers/media/platform/rcar-vin/rcar-vin.h index 793184d..af815cc 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -121,6 +121,7 @@ struct rvin_dev {
+>  	struct video_device vdev;
+>  	struct v4l2_device v4l2_dev;
+>  	int src_pad_idx;
+> +	int sink_pad_idx;
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	struct v4l2_async_notifier notifier;
+>  	struct rvin_graph_entity digital;
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+-- 
+Regards,
 
-Full logs are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
