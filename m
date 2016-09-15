@@ -1,146 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38889 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756696AbcIGIZM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 04:25:12 -0400
-Received: by mail-wm0-f46.google.com with SMTP id 1so17778923wmz.1
-        for <linux-media@vger.kernel.org>; Wed, 07 Sep 2016 01:25:12 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, zoltan.kuscsik@linaro.org,
-        sumit.semwal@linaro.org, cc.ma@mediatek.com,
-        joakim.bech@linaro.org, dan.caprita@windriver.com,
-        burt.lien@linaro.org
-Cc: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v9 0/3] Secure Memory Allocation Framework
-Date: Wed,  7 Sep 2016 10:24:53 +0200
-Message-Id: <1473236696-10002-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52515 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752448AbcIOVK0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 17:10:26 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran@ksquared.org.uk>
+Subject: [PATCH] v4l: vsp1: Disable VYUY on Gen3
+Date: Fri, 16 Sep 2016 00:11:00 +0300
+Message-Id: <1473973860-19516-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 9 changes:
- - rebased on 4.8-rc5
- - struct dma_attrs doesn't exist anymore so update CMA allocator
-   to compile with new dma_*_attr functions
- - add example SMAF use case in cover letter
+The VYUY format isn't supported on Gen3 hardware, disable it.
 
-version 8 changes:
- - rework of the structures used within ioctl
-   by adding a version field and padding to be futur proof
- - rename fake secure moduel to test secure module
- - fix the various remarks done on the previous patcheset
+Gen2 hardware supports VYUY in practice even though the documentation
+doesn't advertise it, so keep it for Gen2 devices.
 
-version 7 changes:
- - rebased on kernel 4.6-rc7
- - simplify secure module API
- - add vma ops to be able to detect mmap/munmap calls
- - add ioctl to get number and allocator names
- - update libsmaf with adding tests
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - add debug log in fake secure module
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c   | 2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c  | 8 +++++++-
+ drivers/media/platform/vsp1/vsp1_pipe.h  | 3 ++-
+ drivers/media/platform/vsp1/vsp1_video.c | 4 ++--
+ 4 files changed, 12 insertions(+), 5 deletions(-)
 
-version 6 changes:
- - rebased on kernel 4.5-rc4
- - fix mmapping bug while requested allocation size isn't a a multiple of
-   PAGE_SIZE (add a test for this in libsmaf)
-
-version 5 changes:
- - rebased on kernel 4.3-rc6
- - rework locking schema and make handle status use an atomic_t
- - add a fake secure module to allow performing tests without trusted
-   environment
-
-version 4 changes:
- - rebased on kernel 4.3-rc3
- - fix missing EXPORT_SYMBOL for smaf_create_handle()
-
-version 3 changes:
- - Remove ioctl for allocator selection instead provide the name of
-   the targeted allocator with allocation request.
-   Selecting allocator from userland isn't the prefered way of working
-   but is needed when the first user of the buffer is a software component.
- - Fix issues in case of error while creating smaf handle.
- - Fix module license.
- - Update libsmaf and tests to care of the SMAF API evolution
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
-
-version 2 changes:
- - Add one ioctl to allow allocator selection from userspace.
-   This is required for the uses case where the first user of
-   the buffer is a software IP which can't perform dma_buf attachement.
- - Add name and ranking to allocator structure to be able to sort them.
- - Create a tiny library to test SMAF:
-   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
- - Fix one issue when try to secure buffer without secure module registered
-
-SMAF aim to solve two problems: allocating memory that fit with hardware IPs
-constraints and secure those data from bus point of view.
-
-One example of SMAF usage is camera preview: on SoC you may use either an USB
-webcam or the built-in camera interface and the frames could be send directly
-to the dipslay Ip or handle by GPU.
-Most of USB interfaces and GPU have mmu but almost all built-in camera
-interace and display Ips don't have mmu so when selecting how allocate
-buffer you need to be aware of each devices constraints (contiguous memroy,
-stride, boundary, alignment ...).
-ION has solve this problem by let userland decide which allocator (heap) to use
-but this require to adapt userland for each platform and sometime for each
-use case.
-
-To be sure to select the best allocation method for devices SMAF implement
-deferred allocation mechanism: memory allocation is only done when the first
-device effectively required it.
-Allocator modules have to implement a match() to let SMAF know if they are
-compatibles with devices needs.
-This patch set provide an example of allocator module which use
-dma_{alloc/free/mmap}_attrs() and check if at least one device have
-coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
-
-In the same camera preview use case, SMAF allow to protect the data from being
-read by unauthorized IPs (i.e. a malware to dump camera stream).
-Until now I have only see access rights protection at process/thread level 
-(PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus firewalls.
-SMAF propose an interface to control and implement those firewalls.
-Like IOMMU, firewalls IPs can help to protect memory from malicious/faulty devices
-that are attempting DMA attacks.
-
-Secure modules are responsibles of granting and revoking devices access rights
-on the memory. Secure module is also called to check if CPU map memory into
-kernel and user address spaces.
-An example of secure module implementation can be found here:
-http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
-This code isn't yet part of the patch set because it depends on generic TEE
-which is still under discussion (https://lwn.net/Articles/644646/)
-
-For allocation part of SMAF code I get inspirated by Sumit Semwal work about
-constraint aware allocator.
-
-Benjamin Gaignard (3):
-  create SMAF module
-  SMAF: add CMA allocator
-  SMAF: add test secure module
-
- drivers/Kconfig                |   2 +
- drivers/Makefile               |   1 +
- drivers/smaf/Kconfig           |  17 +
- drivers/smaf/Makefile          |   3 +
- drivers/smaf/smaf-cma.c        | 186 ++++++++++
- drivers/smaf/smaf-core.c       | 818 +++++++++++++++++++++++++++++++++++++++++
- drivers/smaf/smaf-testsecure.c |  90 +++++
- include/linux/smaf-allocator.h |  45 +++
- include/linux/smaf-secure.h    |  65 ++++
- include/uapi/linux/smaf.h      |  85 +++++
- 10 files changed, 1312 insertions(+)
- create mode 100644 drivers/smaf/Kconfig
- create mode 100644 drivers/smaf/Makefile
- create mode 100644 drivers/smaf/smaf-cma.c
- create mode 100644 drivers/smaf/smaf-core.c
- create mode 100644 drivers/smaf/smaf-testsecure.c
- create mode 100644 include/linux/smaf-allocator.h
- create mode 100644 include/linux/smaf-secure.h
- create mode 100644 include/uapi/linux/smaf.h
-
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 832286975e71..54795b5e5a8a 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -286,7 +286,7 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
+ 	/* Store the format, stride, memory buffer address, crop and compose
+ 	 * rectangles and Z-order position and for the input.
+ 	 */
+-	fmtinfo = vsp1_get_format_info(cfg->pixelformat);
++	fmtinfo = vsp1_get_format_info(vsp1, cfg->pixelformat);
+ 	if (!fmtinfo) {
+ 		dev_dbg(vsp1->dev, "Unsupport pixel format %08x for RPF\n",
+ 			cfg->pixelformat);
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 474de82165d8..78b6184f91ce 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -138,15 +138,21 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 
+ /*
+  * vsp1_get_format_info - Retrieve format information for a 4CC
++ * @vsp1: the VSP1 device
+  * @fourcc: the format 4CC
+  *
+  * Return a pointer to the format information structure corresponding to the
+  * given V4L2 format 4CC, or NULL if no corresponding format can be found.
+  */
+-const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
++const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device *vsp1,
++						    u32 fourcc)
+ {
+ 	unsigned int i;
+ 
++	/* Special case, the VYUY format is supported on Gen2 only. */
++	if (vsp1->info->gen != 2 && fourcc == V4L2_PIX_FMT_VYUY)
++		return NULL;
++
+ 	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
+ 		const struct vsp1_format_info *info = &vsp1_video_formats[i];
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+index f15b697ad999..ac4ad2655551 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.h
++++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+@@ -130,6 +130,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
+ void vsp1_pipelines_suspend(struct vsp1_device *vsp1);
+ void vsp1_pipelines_resume(struct vsp1_device *vsp1);
+ 
+-const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc);
++const struct vsp1_format_info *vsp1_get_format_info(struct vsp1_device *vsp1,
++						    u32 fourcc);
+ 
+ #endif /* __VSP1_PIPE_H__ */
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 15d08cb50bd1..e773d3d30df2 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -117,9 +117,9 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+ 	/* Retrieve format information and select the default format if the
+ 	 * requested format isn't supported.
+ 	 */
+-	info = vsp1_get_format_info(pix->pixelformat);
++	info = vsp1_get_format_info(video->vsp1, pix->pixelformat);
+ 	if (info == NULL)
+-		info = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
++		info = vsp1_get_format_info(video->vsp1, VSP1_VIDEO_DEF_FORMAT);
+ 
+ 	pix->pixelformat = info->fourcc;
+ 	pix->colorspace = V4L2_COLORSPACE_SRGB;
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
