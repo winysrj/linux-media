@@ -1,41 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:39384 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933631AbcIALrW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:47:22 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39658 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933712AbcIOL3a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 07:29:30 -0400
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id E8641600A5
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:29:25 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, b.zolnierkie@samsung.com,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/3] s5k6a3: Add missing entity function initialization
-Date: Thu, 01 Sep 2016 13:47:06 +0200
-Message-id: <1472730427-17821-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
-References: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCH 5/5] smiapp: Implement support for autosuspend
+Date: Thu, 15 Sep 2016 14:29:21 +0300
+Message-Id: <1473938961-16067-6-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Suppresses warning like:
-s5p-fimc-md camera: Entity type for entity S5K6A3 13-0010 was not initialized!
+Delay suspending the device by 1000 ms by default.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/i2c/s5k6a3.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-index cbe4711..aa46a14 100644
---- a/drivers/media/i2c/s5k6a3.c
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -331,6 +331,7 @@ static int s5k6a3_probe(struct i2c_client *client,
- 	sensor->format.width = S5K6A3_DEFAULT_WIDTH;
- 	sensor->format.height = S5K6A3_DEFAULT_HEIGHT;
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index ba5ad36..313f037 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -1559,7 +1559,8 @@ static int smiapp_set_stream(struct v4l2_subdev *subdev, int enable)
+ 		rval = smiapp_stop_streaming(sensor);
+ 		sensor->streaming = false;
  
-+	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
- 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_pads_init(&sd->entity, 1, &sensor->pad);
- 	if (ret < 0)
+-		pm_runtime_put(&client->dev);
++		pm_runtime_mark_last_busy(&client->dev);
++		pm_runtime_put_autosuspend(&client->dev);
+ 	}
+ 
+ 	return rval;
+@@ -2327,7 +2328,8 @@ smiapp_sysfs_nvm_read(struct device *dev, struct device_attribute *attr,
+ 			dev_err(&client->dev, "nvm read failed\n");
+ 			return -ENODEV;
+ 		}
+-		pm_runtime_put(&client->dev);
++		pm_runtime_mark_last_busy(&client->dev);
++		pm_runtime_put_autosuspend(&client->dev);
+ 	}
+ 	/*
+ 	 * NVM is still way below a PAGE_SIZE, so we can safely
+@@ -3038,7 +3040,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
+-	pm_runtime_put(&client->dev);
++	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
++	pm_runtime_use_autosuspend(&client->dev);
++	pm_runtime_put_autosuspend(&client->dev);
+ 
+ 	return 0;
+ 
 -- 
-1.9.1
+2.1.4
 
