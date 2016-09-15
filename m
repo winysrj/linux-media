@@ -1,120 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43886 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965320AbcIHMET (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:19 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 39/47] [media] fix clock_gettime cross-references
-Date: Thu,  8 Sep 2016 09:04:01 -0300
-Message-Id: <f4ef9aa04ce919791efec7e0de65788f63ce6bba.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50582 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934058AbcIOIKB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 04:10:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [v4l-utils PATCH v1.3 2/2] media-ctl: Print information related to a single entity
+Date: Thu, 15 Sep 2016 11:10:41 +0300
+Message-ID: <3546778.Vlt7Ku4CEB@avalon>
+In-Reply-To: <1473921639-6544-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <163775066.40INlWgSp9@avalon> <1473921639-6544-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix those warnings:
+Hi Sakari,
 
-	Documentation/media/uapi/cec/cec-ioc-dqevent.rst:124: WARNING: c:func reference target not found: clock_gettime(2)
+Thank you for the patch.
 
-By replacing it with the right function name, using this shell script:
+On Thursday 15 Sep 2016 09:40:39 Sakari Ailus wrote:
+> Add a possibility to printing all information related to a given entity by
+> using both -p and -e options. This may be handy sometimes if only a single
+> entity is of interest and there are many entities.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-	for i in `find Documentation/media -type f`; do sed 's,clock_gettime(2),clock_gettime,' <$i >a && mv a $i; done
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Please notice that this will make the nitpick mode to shut up
-complaining about that, becasue clock_gettime is on its exclude list,
-but the cross reference will be undefined until someone documents
-this function at the core documentation.
+> ---
+>  utils/media-ctl/media-ctl.c | 32 ++++++++++++++------------------
+>  utils/media-ctl/options.c   |  4 +++-
+>  2 files changed, 17 insertions(+), 19 deletions(-)
+> 
+> diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+> index 0499008..b60d297 100644
+> --- a/utils/media-ctl/media-ctl.c
+> +++ b/utils/media-ctl/media-ctl.c
+> @@ -504,19 +504,11 @@ static void media_print_topology_text(struct
+> media_device *media) media, media_get_entity(media, i));
+>  }
+> 
+> -void media_print_topology(struct media_device *media, int dot)
+> -{
+> -	if (dot)
+> -		media_print_topology_dot(media);
+> -	else
+> -		media_print_topology_text(media);
+> -}
+> -
+>  int main(int argc, char **argv)
+>  {
+>  	struct media_device *media;
+> +	struct media_entity *entity = NULL;
+>  	int ret = -1;
+> -	const char *devname;
+> 
+>  	if (parse_cmdline(argc, argv))
+>  		return EXIT_FAILURE;
+> @@ -562,17 +554,11 @@ int main(int argc, char **argv)
+>  	}
+> 
+>  	if (media_opts.entity) {
+> -		struct media_entity *entity;
+> -
+>  		entity = media_get_entity_by_name(media, media_opts.entity);
+>  		if (entity == NULL) {
+>  			printf("Entity '%s' not found\n", media_opts.entity);
+>  			goto out;
+>  		}
+> -
+> -		devname = media_entity_get_devname(entity);
+> -		if (devname)
+> -			printf("%s\n", devname);
+>  	}
+> 
+>  	if (media_opts.fmt_pad) {
+> @@ -611,9 +597,19 @@ int main(int argc, char **argv)
+>  		}
+>  	}
+> 
+> -	if (media_opts.print || media_opts.print_dot) {
+> -		media_print_topology(media, media_opts.print_dot);
+> -		printf("\n");
+> +	if (media_opts.print_dot) {
+> +		media_print_topology_dot(media);
+> +	} else if (media_opts.print) {
+> +		if (entity)
+> +			media_print_topology_text_entity(media, entity);
+> +		else
+> +			media_print_topology_text(media);
+> +	} else if (entity) {
+> +		const char *devname;
+> +
+> +		devname = media_entity_get_devname(entity);
+> +		if (devname)
+> +			printf("%s\n", devname);
+>  	}
+> 
+>  	if (media_opts.reset) {
+> diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+> index a288a1b..77d1a51 100644
+> --- a/utils/media-ctl/options.c
+> +++ b/utils/media-ctl/options.c
+> @@ -51,7 +51,9 @@ static void usage(const char *argv0)
+>  	printf("-i, --interactive	Modify links interactively\n");
+>  	printf("-l, --links links	Comma-separated list of link 
+descriptors to
+> setup\n"); printf("    --known-mbus-fmts	List known media bus formats 
+and
+> their numeric values\n"); -	printf("-p, --print-topology	Print the 
+device
+> topology\n");
+> +	printf("-p, --print-topology	Print the device topology. If an 
+entity\n");
+> +	printf("			is specified through the -e option, 
+print\n");
+> +	printf("			information for that entity only.\n);
+>  	printf("    --print-dot		Print the device topology as a dot 
+graph\n");
+>  	printf("-r, --reset		Reset all links to inactive\n");
+>  	printf("-v, --verbose		Be verbose\n");
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/media/uapi/cec/cec-ioc-dqevent.rst | 2 +-
- Documentation/media/uapi/cec/cec-ioc-receive.rst | 4 ++--
- Documentation/media/uapi/v4l/buffer.rst          | 4 ++--
- Documentation/media/uapi/v4l/vidioc-dqevent.rst  | 2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-index 06b79361254c..060c455380ce 100644
---- a/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-dqevent.rst
-@@ -122,7 +122,7 @@ it is guaranteed that the state did change in between the two events.
-        -  :cspan:`1` Timestamp of the event in ns.
- 
- 	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
--	  the same clock from userspace use :c:func:`clock_gettime(2)`.
-+	  the same clock from userspace use :c:func:`clock_gettime`.
- 
-     -  .. row 2
- 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-index 18620f81b7d9..d585b1bba6ac 100644
---- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-@@ -95,7 +95,7 @@ result.
- 
-        -  Timestamp in ns of when the last byte of the message was transmitted.
- 	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
--	  the same clock from userspace use :c:func:`clock_gettime(2)`.
-+	  the same clock from userspace use :c:func:`clock_gettime`.
- 
-     -  .. row 2
- 
-@@ -105,7 +105,7 @@ result.
- 
-        -  Timestamp in ns of when the last byte of the message was received.
- 	  The timestamp has been taken from the ``CLOCK_MONOTONIC`` clock. To access
--	  the same clock from userspace use :c:func:`clock_gettime(2)`.
-+	  the same clock from userspace use :c:func:`clock_gettime`.
- 
-     -  .. row 3
- 
-diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-index 7d2d81a771b1..e71a458712d3 100644
---- a/Documentation/media/uapi/v4l/buffer.rst
-+++ b/Documentation/media/uapi/v4l/buffer.rst
-@@ -712,7 +712,7 @@ Buffer Flags
- 	  clock). Monotonic clock has been favoured in embedded systems
- 	  whereas most of the drivers use the realtime clock. Either kinds
- 	  of timestamps are available in user space via
--	  :c:func:`clock_gettime(2)` using clock IDs ``CLOCK_MONOTONIC``
-+	  :c:func:`clock_gettime` using clock IDs ``CLOCK_MONOTONIC``
- 	  and ``CLOCK_REALTIME``, respectively.
- 
-     -  .. _`V4L2-BUF-FLAG-TIMESTAMP-MONOTONIC`:
-@@ -723,7 +723,7 @@ Buffer Flags
- 
-        -  The buffer timestamp has been taken from the ``CLOCK_MONOTONIC``
- 	  clock. To access the same clock outside V4L2, use
--	  :c:func:`clock_gettime(2)`.
-+	  :c:func:`clock_gettime`.
- 
-     -  .. _`V4L2-BUF-FLAG-TIMESTAMP-COPY`:
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-index 3038f349049c..1e435ab674a2 100644
---- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
-@@ -152,7 +152,7 @@ call.
-        -
-        -  Event timestamp. The timestamp has been taken from the
- 	  ``CLOCK_MONOTONIC`` clock. To access the same clock outside V4L2,
--	  use :c:func:`clock_gettime(2)`.
-+	  use :c:func:`clock_gettime`.
- 
-     -  .. row 12
- 
 -- 
-2.7.4
+Regards,
 
+Laurent Pinchart
 
