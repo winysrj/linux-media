@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56862 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S937116AbcIHVhs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:48 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 08/15] [media] videobuf2-core.h: document enum vb2_memory
-Date: Thu,  8 Sep 2016 18:37:34 -0300
-Message-Id: <4fb634acfd16e6e0f0ba79a97af55b1d111713e9.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39270 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751758AbcIOLWi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 07:22:38 -0400
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 494E1600A1
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:34 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 03/17] smiapp: Initialise media entity after sensor init
+Date: Thu, 15 Sep 2016 14:22:17 +0300
+Message-Id: <1473938551-14503-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This enum was not documented. Document it.
+This allows determining the number of pads in the entity based on the
+sensor.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- include/media/videobuf2-core.h | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 68f93dacb38f..65eeca83687a 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -20,6 +20,20 @@
- #define VB2_MAX_FRAME	(32)
- #define VB2_MAX_PLANES	(8)
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index be74ba3..0a03f30 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3056,12 +3056,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->src->sensor = sensor;
+-
+ 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+-	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
+-				 sensor->src->pads);
+-	if (rval < 0)
+-		return rval;
  
-+/**
-+ * enum vb2_memory - type of memory model used to make the buffers visible
-+ *	on userspace.
-+ *
-+ * @VB2_MEMORY_UNKNOWN:	Buffer status is unknown or it is not used yet on
-+ *			userspace.
-+ * @VB2_MEMORY_MMAP:	The buffers are allocated by the Kernel and it is
-+ *			memory mapped via mmap() ioctl. This model is
-+ *			also used when the user is using the buffers via
-+ *			read() or write() system calls.
-+ * @VB2_MEMORY_USERPTR:	The buffers was allocated in userspace and it is
-+ *			memory mapped via mmap() ioctl.
-+ * @VB2_MEMORY_DMABUF:	The buffers are passed to userspace via DMA buffer.
-+ */
- enum vb2_memory {
- 	VB2_MEMORY_UNKNOWN	= 0,
- 	VB2_MEMORY_MMAP		= 1,
+ 	if (client->dev.of_node) {
+ 		rval = smiapp_init(sensor);
+@@ -3069,6 +3064,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 			goto out_media_entity_cleanup;
+ 	}
+ 
++	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
++				 sensor->src->pads);
++	if (rval < 0)
++		goto out_media_entity_cleanup;
++
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
 -- 
-2.7.4
-
+2.1.4
 
