@@ -1,70 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:54914 "EHLO smtp3-1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754555AbcIAQXf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 12:23:35 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH] doc-rst:sphinx-extensions: add metadata parallel-safe
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <87inufzoa5.fsf@intel.com>
-Date: Thu, 1 Sep 2016 18:22:09 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
-References: <1472045724-14559-1-git-send-email-markus.heiser@darmarit.de> <20160901082136.597c37bf@lwn.net> <87inufzoa5.fsf@intel.com>
-To: Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from 1.mo173.mail-out.ovh.net ([178.33.111.180]:43098 "EHLO
+        1.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750922AbcIOPaQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 11:30:16 -0400
+Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
+        by mo173.mail-out.ovh.net (Postfix) with ESMTP id F2E331010C86
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 17:30:13 +0200 (CEST)
+From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+To: linux-media@vger.kernel.org
+Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+Subject: [PATCH v7 1/2] SDI: add flag for SDI formats and SMPTE 125M definition
+Date: Thu, 15 Sep 2016 17:29:50 +0200
+Message-Id: <1473953391-3974-2-git-send-email-charles-antoine.couret@nexvision.fr>
+In-Reply-To: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
+References: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Adding others generic flags, which could be used by many
+components like GS1662.
 
-Am 01.09.2016 um 16:29 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
+Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
+---
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 11 +++++++----
+ include/uapi/linux/v4l2-dv-timings.h      | 12 ++++++++++++
+ include/uapi/linux/videodev2.h            |  8 ++++++++
+ 3 files changed, 27 insertions(+), 4 deletions(-)
 
-> On Thu, 01 Sep 2016, Jonathan Corbet <corbet@lwn.net> wrote:
->> On Wed, 24 Aug 2016 15:35:24 +0200
->> Markus Heiser <markus.heiser@darmarit.de> wrote:
->> 
->>> With metadata "parallel_read_safe = True" a extension is marked as
->>> save for "parallel reading of source". This is needed if you want
->>> build in parallel with N processes. E.g.:
->>> 
->>>  make SPHINXOPTS=-j4 htmldocs
->> 
->> A definite improvement; applied to the docs tree, thanks.
-> 
-> The Sphinx docs say -jN "should be considered experimental" [1]. Any
-> idea *how* experimental that is, really? Could we add some -j by
-> default?
-
-My experience is, that parallel build is only strong on "reading
-input" and weak on "writing output". I can't see any rich performance
-increase on more than -j2 ... 
-
-Mauro posted [2] his experience with -j8 compared to serial. He
-also compares -j8 to -j16:
-
-> PS: on my server with 16 dual-thread Xeon CPU, the gain with a
-> bigger value for -j was not impressive. Got about the same time as
-> with -j8 or -j32 there.
-
-I guess he will get nearly the same results with -j2 ;)
-
-If we want to add a -j default, I suggest -j2. 
-
-[2] https://www.mail-archive.com/linux-doc%40vger.kernel.org/msg05552.html
-
--- Markus --
-
-
-> BR,
-> Jani.
-> 
-> 
-> [1] http://www.sphinx-doc.org/en/stable/invocation.html#invocation-of-sphinx-build
-> 
-> -- 
-> Jani Nikula, Intel Open Source Technology Center
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 889de0a..730a7c3 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -306,7 +306,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+ 			bt->il_vsync, bt->il_vbackporch);
+ 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
+-	pr_info("%s: flags (0x%x):%s%s%s%s%s%s\n", dev_prefix, bt->flags,
++	pr_info("%s: flags (0x%x):%s%s%s%s%s%s%s\n", dev_prefix, bt->flags,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
+ 			" REDUCED_BLANKING" : "",
+ 			((bt->flags & V4L2_DV_FL_REDUCED_BLANKING) &&
+@@ -318,12 +318,15 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
+ 			" HALF_LINE" : "",
+ 			(bt->flags & V4L2_DV_FL_IS_CE_VIDEO) ?
+-			" CE_VIDEO" : "");
+-	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
++			" CE_VIDEO" : "",
++			(bt->flags & V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) ?
++			" FIRST_FIELD_EXTRA_LINE" : "");
++	pr_info("%s: standards (0x%x):%s%s%s%s%s\n", dev_prefix, bt->standards,
+ 			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
+-			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
++			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "",
++			(bt->standards & V4L2_DV_BT_STD_SDI) ?  " SDI" : "");
+ }
+ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+ 
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 086168e..f319571 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -934,4 +934,16 @@
+ 		V4L2_DV_FL_REDUCED_BLANKING) \
+ }
+ 
++/* SDI timings definitions */
++
++/* SMPTE-125M */
++#define V4L2_DV_BT_SDI_720X487I60 { \
++	.type = V4L2_DV_BT_656_1120, \
++	V4L2_INIT_BT_TIMINGS(720, 487, 1, \
++		V4L2_DV_HSYNC_POS_POL, \
++		13500000, 16, 121, 0, 0, 19, 0, 0, 19, 0, \
++		V4L2_DV_BT_STD_SDI, \
++		V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE) \
++}
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 8f95191..37126a4 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1259,6 +1259,7 @@ struct v4l2_bt_timings {
+ #define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
+ #define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
+ #define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
++#define V4L2_DV_BT_STD_SDI	(1 << 4)  /* SDI Timings */
+ 
+ /* Flags */
+ 
+@@ -1290,6 +1291,11 @@ struct v4l2_bt_timings {
+  * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
+  * except for the 640x480 format are CE formats. */
+ #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
++/* Some formats like SMPTE-125M have an interlaced signal with a odd
++ * total height. For these formats, if this flag is set, the first
++ * field has the extra line. If not, it is the second field.
++ */
++#define V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE		(1 << 5)
+ 
+ /* A few useful defines to calculate the total blanking and frame sizes */
+ #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
+@@ -1413,6 +1419,8 @@ struct v4l2_input {
+ /* field 'status' - analog */
+ #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+ #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
++#define V4L2_IN_ST_NO_V_LOCK   0x00000400  /* No vertical sync lock */
++#define V4L2_IN_ST_NO_STD_LOCK 0x00000800  /* No standard format lock */
+ 
+ /* field 'status' - digital */
+ #define V4L2_IN_ST_NO_SYNC     0x00010000  /* No synchronization lock */
+-- 
+2.7.4
 
