@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34454 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933007AbcI2JTM (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:36572 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933906AbcIOMO6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Sep 2016 05:19:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Linux USB <linux-usb@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH 30/45] media: usb: uvc: remove unnecessary & operation
-Date: Thu, 29 Sep 2016 12:19:08 +0300
-Message-ID: <9458858.X6S0nte73o@avalon>
-In-Reply-To: <20160928130554.29790-31-felipe.balbi@linux.intel.com>
-References: <20160928130554.29790-1-felipe.balbi@linux.intel.com> <20160928130554.29790-31-felipe.balbi@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 15 Sep 2016 08:14:58 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, ulrich.hecht+renesas@gmail.com,
+        laurent.pinchart@ideasonboard.com, william.towle@codethink.co.uk
+Subject: [PATCH v7 0/2] rcar-vin EDID control ioctls
+Date: Thu, 15 Sep 2016 14:14:44 +0200
+Message-Id: <20160915121446.25830-1-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Felipe,
+Hi!
 
-Thank you for the patch.
+This is a spinoff of "Lager/Koelsch board HDMI input support" that excludes
+the DT portions, and that works without the unmerged subdevice abstraction
+layer.
 
-On Wednesday 28 Sep 2016 16:05:39 Felipe Balbi wrote:
-> Now that usb_endpoint_maxp() only returns the lowest
-> 11 bits from wMaxPacketSize, we can remove the &
-> operation from this driver.
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: <linux-media@vger.kernel.org>
-> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+CU
+Uli
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index 11e0e5f4e1c2..f3c1c852e401 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1553,7 +1553,7 @@ static int uvc_init_video_bulk(struct uvc_streaming
-> *stream, u16 psize;
->  	u32 size;
-> 
-> -	psize = usb_endpoint_maxp(&ep->desc) & 0x7ff;
-> +	psize = usb_endpoint_maxp(&ep->desc);
->  	size = stream->ctrl.dwMaxPayloadTransferSize;
->  	stream->bulk.max_payload_size = size;
+Changes since v6:
+- work without subdev abstraction layer
+- split off DT parts, to be handled separately
+
+Changes since v5:
+- implement vin/subdev pad translation
+- move i2c devices
+
+Changes since v4:
+- drop merged patches
+- adv7604: always fall back to input 0 if nothing else is specified
+- rcar-vin: implement G_EDID, S_EDID in place of hard-coded EDID blob
+
+Changes since v3:
+- rvin_enum_dv_timings(): use vin->src_pad_idx
+- rvin_dv_timings_cap(): likewise
+- rvin_s_dv_timings(): update vin->format
+- add Koelsch support
+
+Changes since v2:
+- rebased on top of rcar-vin driver v4
+- removed "adv7604: fix SPA register location for ADV7612" (picked up)
+- changed prefix of dts patch to "ARM: dts: lager: "
+
+
+Ulrich Hecht (2):
+  media: adv7604: automatic "default-input" selection
+  rcar-vin: implement EDID control ioctls
+
+ drivers/media/i2c/adv7604.c                 |  5 +++-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 44 +++++++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
+ 3 files changed, 49 insertions(+), 1 deletion(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.3
 
