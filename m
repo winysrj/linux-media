@@ -1,133 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp10.smtpout.orange.fr ([80.12.242.132]:29209 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932486AbcIFJEe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 05:04:34 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v6 09/14] media: platform: pxa_camera: remove set_selection
-Date: Tue,  6 Sep 2016 11:04:19 +0200
-Message-Id: <1473152664-5077-9-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
-References: <1473152664-5077-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mga01.intel.com ([192.55.52.88]:13289 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933287AbcIOGmQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Sep 2016 02:42:16 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [v4l-utils PATCH v1.3 2/2] media-ctl: Print information related to a single entity
+Date: Thu, 15 Sep 2016 09:40:39 +0300
+Message-Id: <1473921639-6544-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <163775066.40INlWgSp9@avalon>
+References: <163775066.40INlWgSp9@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is to be seen as a regression as the set_selection (former
-set_crop) function is removed. This is a temporary situation in the v4l2
-porting, and will have to be added later.
+Add a possibility to printing all information related to a given entity by
+using both -p and -e options. This may be handy sometimes if only a single
+entity is of interest and there are many entities.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/soc_camera/pxa_camera.c | 83 --------------------------
- 1 file changed, 83 deletions(-)
+ utils/media-ctl/media-ctl.c | 32 ++++++++++++++------------------
+ utils/media-ctl/options.c   |  4 +++-
+ 2 files changed, 17 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index d9e2570d3931..8f329d0b2cda 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1294,88 +1294,6 @@ static int pxa_camera_check_frame(u32 width, u32 height)
- 		(width & 0x01);
+diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
+index 0499008..b60d297 100644
+--- a/utils/media-ctl/media-ctl.c
++++ b/utils/media-ctl/media-ctl.c
+@@ -504,19 +504,11 @@ static void media_print_topology_text(struct media_device *media)
+ 			media, media_get_entity(media, i));
  }
  
--static int pxa_camera_set_selection(struct soc_camera_device *icd,
--				    struct v4l2_selection *sel)
+-void media_print_topology(struct media_device *media, int dot)
 -{
--	const struct v4l2_rect *rect = &sel->r;
--	struct device *dev = icd->parent;
--	struct soc_camera_host *ici = to_soc_camera_host(dev);
--	struct pxa_camera_dev *pcdev = ici->priv;
--	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
--	struct soc_camera_sense sense = {
--		.master_clock = pcdev->mclk,
--		.pixel_clock_max = pcdev->ciclk / 4,
--	};
--	struct v4l2_subdev_format fmt = {
--		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
--	};
--	struct v4l2_mbus_framefmt *mf = &fmt.format;
--	struct pxa_cam *cam = icd->host_priv;
--	u32 fourcc = icd->current_fmt->host_fmt->fourcc;
--	struct v4l2_subdev_selection sdsel = {
--		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
--		.target = sel->target,
--		.flags = sel->flags,
--		.r = sel->r,
--	};
--	int ret;
--
--	/* If PCLK is used to latch data from the sensor, check sense */
--	if (pcdev->platform_flags & PXA_CAMERA_PCLK_EN)
--		icd->sense = &sense;
--
--	ret = sensor_call(pcdev, pad, set_selection, NULL, &sdsel);
--
--	icd->sense = NULL;
--
--	if (ret < 0) {
--		dev_warn(pcdev_to_dev(pcdev), "Failed to crop to %ux%u@%u:%u\n",
--			 rect->width, rect->height, rect->left, rect->top);
--		return ret;
--	}
--	sel->r = sdsel.r;
--
--	ret = sensor_call(pcdev, pad, get_fmt, NULL, &fmt);
--	if (ret < 0)
--		return ret;
--
--	if (pxa_camera_check_frame(mf->width, mf->height)) {
--		/*
--		 * Camera cropping produced a frame beyond our capabilities.
--		 * FIXME: just extract a subframe, that we can process.
--		 */
--		v4l_bound_align_image(&mf->width, 48, 2048, 1,
--			&mf->height, 32, 2048, 0,
--			fourcc == V4L2_PIX_FMT_YUV422P ? 4 : 0);
--		ret = sensor_call(pcdev, pad, set_fmt, NULL, &fmt);
--		if (ret < 0)
--			return ret;
--
--		if (pxa_camera_check_frame(mf->width, mf->height)) {
--			dev_warn(pcdev_to_dev(pcdev),
--				 "Inconsistent state. Use S_FMT to repair\n");
--			return -EINVAL;
--		}
--	}
--
--	if (sense.flags & SOCAM_SENSE_PCLK_CHANGED) {
--		if (sense.pixel_clock > sense.pixel_clock_max) {
--			dev_err(pcdev_to_dev(pcdev),
--				"pixel clock %lu set by the camera too high!",
--				sense.pixel_clock);
--			return -EIO;
--		}
--		recalculate_fifo_timeout(pcdev, sense.pixel_clock);
--	}
--
--	icd->user_width		= mf->width;
--	icd->user_height	= mf->height;
--
--	pxa_camera_setup_cicr(icd, cam->flags, fourcc);
--
--	return ret;
+-	if (dot)
+-		media_print_topology_dot(media);
+-	else
+-		media_print_topology_text(media);
 -}
 -
- static int pxa_camera_set_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
+ int main(int argc, char **argv)
  {
-@@ -1588,7 +1506,6 @@ static struct soc_camera_host_ops pxa_soc_camera_host_ops = {
- 	.remove		= pxa_camera_remove_device,
- 	.clock_start	= pxa_camera_clock_start,
- 	.clock_stop	= pxa_camera_clock_stop,
--	.set_selection	= pxa_camera_set_selection,
- 	.get_formats	= pxa_camera_get_formats,
- 	.put_formats	= pxa_camera_put_formats,
- 	.set_fmt	= pxa_camera_set_fmt,
+ 	struct media_device *media;
++	struct media_entity *entity = NULL;
+ 	int ret = -1;
+-	const char *devname;
+ 
+ 	if (parse_cmdline(argc, argv))
+ 		return EXIT_FAILURE;
+@@ -562,17 +554,11 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	if (media_opts.entity) {
+-		struct media_entity *entity;
+-
+ 		entity = media_get_entity_by_name(media, media_opts.entity);
+ 		if (entity == NULL) {
+ 			printf("Entity '%s' not found\n", media_opts.entity);
+ 			goto out;
+ 		}
+-
+-		devname = media_entity_get_devname(entity);
+-		if (devname)
+-			printf("%s\n", devname);
+ 	}
+ 
+ 	if (media_opts.fmt_pad) {
+@@ -611,9 +597,19 @@ int main(int argc, char **argv)
+ 		}
+ 	}
+ 
+-	if (media_opts.print || media_opts.print_dot) {
+-		media_print_topology(media, media_opts.print_dot);
+-		printf("\n");
++	if (media_opts.print_dot) {
++		media_print_topology_dot(media);
++	} else if (media_opts.print) {
++		if (entity)
++			media_print_topology_text_entity(media, entity);
++		else
++			media_print_topology_text(media);
++	} else if (entity) {
++		const char *devname;
++
++		devname = media_entity_get_devname(entity);
++		if (devname)
++			printf("%s\n", devname);
+ 	}
+ 
+ 	if (media_opts.reset) {
+diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
+index a288a1b..77d1a51 100644
+--- a/utils/media-ctl/options.c
++++ b/utils/media-ctl/options.c
+@@ -51,7 +51,9 @@ static void usage(const char *argv0)
+ 	printf("-i, --interactive	Modify links interactively\n");
+ 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
+ 	printf("    --known-mbus-fmts	List known media bus formats and their numeric values\n");
+-	printf("-p, --print-topology	Print the device topology\n");
++	printf("-p, --print-topology	Print the device topology. If an entity\n");
++	printf("			is specified through the -e option, print\n");
++	printf("			information for that entity only.\n);
+ 	printf("    --print-dot		Print the device topology as a dot graph\n");
+ 	printf("-r, --reset		Reset all links to inactive\n");
+ 	printf("-v, --verbose		Be verbose\n");
 -- 
-2.1.4
+2.7.4
 
