@@ -1,68 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37288 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752737AbcITU6V (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39288 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1764459AbcIOLWl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Sep 2016 16:58:21 -0400
-Date: Tue, 20 Sep 2016 17:58:11 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the
- c-domain
-Message-ID: <20160920175811.71f8b899@vento.lan>
-In-Reply-To: <20160920130033.6bb8668d@lwn.net>
-References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de>
-        <20160909090832.35c2d982@vento.lan>
-        <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de>
-        <1089B8C0-6296-4CC4-84B9-A1F62FA565AD@darmarit.de>
-        <20160919120030.4e390e9a@vento.lan>
-        <35B447A7-6C12-4560-8D06-110B8B33CB56@darmarit.de>
-        <20160920130033.6bb8668d@lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Thu, 15 Sep 2016 07:22:41 -0400
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id CC9B3600A9
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:35 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 11/17] smiapp: Use SMIAPP_PADS when referring to number of pads
+Date: Thu, 15 Sep 2016 14:22:25 +0300
+Message-Id: <1473938551-14503-12-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 20 Sep 2016 13:00:33 -0600
-Jonathan Corbet <corbet@lwn.net> escreveu:
+Replace plain value 2 with SMIAPP_PADS when referring to the number of
+pads.
 
-> On Tue, 20 Sep 2016 20:56:35 +0200
-> Markus Heiser <markus.heiser@darmarit.de> wrote:
-> 
-> > > I submitted one patch fixing it. Not sure if it got merged by Jon
-> > > or not.  
-> > 
-> > Ups, I might have overseen this patch .. as Jon said, its hard to
-> > follow you ;)
-> > 
-> > I tested the above with Jon's docs-next, so it seems your patch is
-> > not yet applied. Could you send me a link for this patch? (sorry,
-> > I can't find it).
-> 
-> Send again, please?  I'll add it to the pile of other stuff, and try not
-> to lose it again...:)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Gah, there are so many patches that I'm also confused whether I sent something
-or just dreamed about sending it :)
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index e71271e..f9febe0 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -157,9 +157,9 @@ struct smiapp_binning_subtype {
+ 
+ struct smiapp_subdev {
+ 	struct v4l2_subdev sd;
+-	struct media_pad pads[2];
++	struct media_pad pads[SMIAPP_PADS];
+ 	struct v4l2_rect sink_fmt;
+-	struct v4l2_rect crop[2];
++	struct v4l2_rect crop[SMIAPP_PADS];
+ 	struct v4l2_rect compose; /* compose on sink */
+ 	unsigned short sink_pad;
+ 	unsigned short source_pad;
+-- 
+2.1.4
 
-I actually sent a patch doing this on a /47 patch series, but only
-for macros:
-
-	Subject: [PATCH 01/47] kernel-doc: ignore arguments on macro definitions
-
-I was thinking on doing the same for functions, but didn't actually
-submitted such patch.
-
-Yet, it seems more coherent, IMHO, to use use same approach for both C
-functions and macros: presenting just the name instead of printing the
-arguments.
-
-I'll work on it and submit, likely tomorrow.
-
-Thanks,
-Mauro
