@@ -1,57 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:31595 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751124AbcITOeP (ORCPT
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:16445 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751308AbcIONZy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Sep 2016 10:34:15 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 1/9] Documentation: DT: add bindings for ST DELTA
-Date: Tue, 20 Sep 2016 16:33:32 +0200
-Message-ID: <1474382020-17588-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
-References: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+        Thu, 15 Sep 2016 09:25:54 -0400
+Subject: Re: [PATCH v8 0/2] rcar-vin EDID control ioctls
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se
+References: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+        william.towle@codethink.co.uk
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <29832cd4-9380-9cde-a868-90764daeea04@cisco.com>
+Date: Thu, 15 Sep 2016 15:25:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT binding documentation for STMicroelectronics
-DELTA V4L2 video decoder.
+On 09/15/2016 03:24 PM, Ulrich Hecht wrote:
+> Hi!
+>
+> This is a spinoff of "Lager/Koelsch board HDMI input support" that excludes
+> the DT portions, and that works without the unmerged subdevice abstraction
+> layer.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- Documentation/devicetree/bindings/media/st,st-delta.txt | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+Are you going to post another patch series for the DT portions?
 
-diff --git a/Documentation/devicetree/bindings/media/st,st-delta.txt b/Documentation/devicetree/bindings/media/st,st-delta.txt
-new file mode 100644
-index 0000000..a538ab3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/st,st-delta.txt
-@@ -0,0 +1,17 @@
-+* STMicroelectronics DELTA multi-format video decoder
-+
-+Required properties:
-+- compatible: should be "st,st-delta".
-+- clocks: from common clock binding: handle hardware IP needed clocks, the
-+  number of clocks may depend on the SoC type.
-+  See ../clock/clock-bindings.txt for details.
-+- clock-names: names of the clocks listed in clocks property in the same order.
-+
-+Example:
-+	delta0 {
-+		compatible = "st,st-delta";
-+		clock-names = "delta", "delta-st231", "delta-flash-promip";
-+		clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-+			 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-+			 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-+	};
--- 
-1.9.1
+Regards,
+
+	Hans
+
+>
+> This revision improves over v7 from earlier today in that it does not break
+> analog input devices...
+>
+> CU
+> Uli
+>
+>
+> Changes since v7:
+> - do not fail if there is no sink pad
+>
+> Changes since v6:
+> - work without subdev abstraction layer
+> - split off DT parts, to be handled separately
+>
+> Changes since v5:
+> - implement vin/subdev pad translation
+> - move i2c devices
+>
+> Changes since v4:
+> - drop merged patches
+> - adv7604: always fall back to input 0 if nothing else is specified
+> - rcar-vin: implement G_EDID, S_EDID in place of hard-coded EDID blob
+>
+> Changes since v3:
+> - rvin_enum_dv_timings(): use vin->src_pad_idx
+> - rvin_dv_timings_cap(): likewise
+> - rvin_s_dv_timings(): update vin->format
+> - add Koelsch support
+>
+> Changes since v2:
+> - rebased on top of rcar-vin driver v4
+> - removed "adv7604: fix SPA register location for ADV7612" (picked up)
+> - changed prefix of dts patch to "ARM: dts: lager: "
+>
+>
+> Ulrich Hecht (2):
+>   media: adv7604: automatic "default-input" selection
+>   rcar-vin: implement EDID control ioctls
+>
+>  drivers/media/i2c/adv7604.c                 |  5 +++-
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 +++++++++++++++++++++++++++++
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
+>  3 files changed, 47 insertions(+), 1 deletion(-)
+>
 
