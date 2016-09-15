@@ -1,34 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:60281 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759532AbcIXJIA (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:35938 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933335AbcIOIPW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Sep 2016 05:08:00 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Baoyou Xie <baoyou.xie@linaro.org>
-Cc: sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-kernel@vger.kernel.org, xie.baoyou@zte.com.cn
-Subject: Re: [PATCH] dma-buf/sw_sync: mark sync_timeline_create() static
-Date: Sat, 24 Sep 2016 11:07:44 +0200
-Message-ID: <1638426.ZIktWlTxEQ@wuerfel>
-In-Reply-To: <1474691626-7037-1-git-send-email-baoyou.xie@linaro.org>
-References: <1474691626-7037-1-git-send-email-baoyou.xie@linaro.org>
+        Thu, 15 Sep 2016 04:15:22 -0400
+Received: by mail-wm0-f47.google.com with SMTP id b187so83862643wme.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 01:15:21 -0700 (PDT)
+Date: Thu, 15 Sep 2016 09:15:16 +0100
+From: Peter Griffin <peter.griffin@linaro.org>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+        robh@kernel.org, kernel@stlinux.com, arnd@arndb.de
+Subject: Re: [STLinux Kernel] [PATCH v3 0/4] STIH CEC driver
+Message-ID: <20160915081516.GA15153@griffinp-ThinkPad-X1-Carbon-2nd>
+References: <1473925066-8289-1-git-send-email-benjamin.gaignard@linaro.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1473925066-8289-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, September 24, 2016 12:33:46 PM CEST Baoyou Xie wrote:
-> We get 1 warning when building kernel with W=1:
-> drivers/dma-buf/sw_sync.c:87:23: warning: no previous prototype for 'sync_timeline_create' [-Wmissing-prototypes]
-> 
-> In fact, this function is only used in the file in which it is
-> declared and don't need a declaration, but can be made static.
-> So this patch marks it 'static'.
-> 
-> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+Hi Benjamin,
+
+On Thu, 15 Sep 2016, Benjamin Gaignard wrote:
+
+> version 3:
+>  - remove rx_msg and use local variable instead
+>  - change configuration flag from VIDEO_STIH_CEC to VIDEO_STI_HDMI_CEC
 > 
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+For the series: -
+ Acked-by: Peter Griffin <peter.griffin@linaro.org>
+
+regards,
+
+Peter.
