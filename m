@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:45539 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754815AbcIFL5O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 07:57:14 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v4 5/8] doc-rst: 16-bit BGGR is always 16 bits
-Date: Tue,  6 Sep 2016 14:55:37 +0300
-Message-Id: <1473162940-31486-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36324 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756314AbcIPNJQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 09:09:16 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: horms@verge.net.au
+Cc: geert@linux-m68k.org, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com,
+        william.towle@codethink.co.uk
+Subject: [PATCH 0/2] Renesas Lager/Koelsch HDMI input
+Date: Fri, 16 Sep 2016 15:09:07 +0200
+Message-Id: <20160916130909.21225-1-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_PIX_FMT_SBGGR16 format is documented to contain samples of fewer
-than 16 bits. However, we do have specific definitions for smaller sample
-sizes. Therefore, this note is redundant from the API point of view.
+Hi!
 
-Currently only two drivers, am437x and davinci, use the
-V4L2_PIX_FMT_SBGGR16 pixelformat currently. The sampling precision is
-understood to be 16 bits in all current cases.
+This series enables HDMI input on the Lager and Koelsch boards.
+It sits on renesas-devel-20160913-v4.8-rc6 and also applies to the media
+tree.
 
-Remove the note on sampling precision.
+Testing this on a Lager board with v4l2-compliance on top of Hans's R-Car
+branch (https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=rcar) with
+"media: adv7604: automatic "default-input" selection" applied, it gets a
+perfect score (172/172 pass).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Documentation/media/uapi/v4l/pixfmt-sbggr16.rst | 5 -----
- 1 file changed, 5 deletions(-)
+CU
+Uli
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sbggr16.rst b/Documentation/media/uapi/v4l/pixfmt-sbggr16.rst
-index 801b78c..e3b53e3 100644
---- a/Documentation/media/uapi/v4l/pixfmt-sbggr16.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-sbggr16.rst
-@@ -17,11 +17,6 @@ This format is similar to
- has a depth of 16 bits. The least significant byte is stored at lower
- memory addresses (little-endian).
- 
--.. note::
--
--    The actual sampling precision may be lower than 16 bits,
--    for example 10 bits per pixel with values in tange 0 to 1023.
--
- **Byte Order.**
- Each cell is one byte.
- 
+
+Hans Verkuil (1):
+  ARM: dts: koelsch: add HDMI input
+
+William Towle (1):
+  ARM: dts: lager: Add entries for VIN HDMI input support
+
+ arch/arm/boot/dts/r8a7790-lager.dts   | 39 +++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/r8a7791-koelsch.dts | 41 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 80 insertions(+)
+
 -- 
-2.7.4
+2.9.3
 
