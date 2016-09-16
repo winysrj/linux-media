@@ -1,104 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37681 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755883AbcISKfe (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46799
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935371AbcIPPCN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 06:35:34 -0400
-Subject: Re: [PATCH v2 7/8] media: vidc: add Makefiles and Kconfig files
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
- <1473248229-5540-8-git-send-email-stanimir.varbanov@linaro.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a07f0a70-1500-c6aa-b42d-dd97fe8d06cb@xs4all.nl>
-Date: Mon, 19 Sep 2016 12:35:23 +0200
+        Fri, 16 Sep 2016 11:02:13 -0400
+Date: Fri, 16 Sep 2016 12:02:06 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>, Wade Berrier <wberrier@gmail.com>,
+        Sean Young <sean@mess.org>, <linux-media@vger.kernel.org>,
+        USB list <linux-usb@vger.kernel.org>
+Subject: Re: [PATCH] USB: change bInterval default to 10 ms
+Message-ID: <20160916120206.4fa95a58@vento.lan>
+In-Reply-To: <Pine.LNX.4.44L0.1609161017070.1657-100000@iolanthe.rowland.org>
+References: <20160915224804.GA14827@miniwade.localdomain>
+        <Pine.LNX.4.44L0.1609161017070.1657-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <1473248229-5540-8-git-send-email-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
-> Makefile and Kconfig files to build the video codec driver.
+Em Fri, 16 Sep 2016 10:24:26 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> escreveu:
+
+> Some full-speed mceusb infrared transceivers contain invalid endpoint
+> descriptors for their interrupt endpoints, with bInterval set to 0.
+> In the past they have worked out okay with the mceusb driver, because
+> the driver sets the bInterval field in the descriptor to 1,
+> overwriting whatever value may have been there before.  However, this
+> approach was never sanctioned by the USB core, and in fact it does not
+> work with xHCI controllers, because they use the bInterval value that
+> was present when the configuration was installed.
 > 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> Currently usbcore uses 32 ms as the default interval if the value in
+> the endpoint descriptor is invalid.  It turns out that these IR
+> transceivers don't work properly unless the interval is set to 10 ms
+> or below.  To work around this mceusb problem, this patch changes the
+> endpoint-descriptor parsing routine, making the default interval value
+> be 10 ms rather than 32 ms.
+> 
+> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+> Tested-by: Wade Berrier <wberrier@gmail.com>
+> CC: <stable@vger.kernel.org>
+
+Acked-by: Mauro Carvalho Chehab <m.chehab@s-opensource.com>
+
+> 
 > ---
->  drivers/media/platform/qcom/Kconfig       |  8 ++++++++
->  drivers/media/platform/qcom/Makefile      |  6 ++++++
->  drivers/media/platform/qcom/vidc/Makefile | 15 +++++++++++++++
->  3 files changed, 29 insertions(+)
->  create mode 100644 drivers/media/platform/qcom/Kconfig
->  create mode 100644 drivers/media/platform/qcom/Makefile
->  create mode 100644 drivers/media/platform/qcom/vidc/Makefile
 > 
-> diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
-> new file mode 100644
-> index 000000000000..4bad5c0f68e4
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/Kconfig
-> @@ -0,0 +1,8 @@
-> +comment "Qualcomm V4L2 drivers"
-> +
-> +menuconfig QCOM_VIDC
-> +        tristate "Qualcomm V4L2 encoder/decoder driver"
-> +        depends on ARCH_QCOM && VIDEO_V4L2
-> +        depends on IOMMU_DMA
-> +        depends on QCOM_VENUS_PIL
-> +        select VIDEOBUF2_DMA_SG
-
-If at all possible, please depend on COMPILE_TEST as well!
-
-Also missing: a patch adding an entry to the MAINTAINERS file.
-
-Regards,
-
-	Hans
-
-> diff --git a/drivers/media/platform/qcom/Makefile b/drivers/media/platform/qcom/Makefile
-> new file mode 100644
-> index 000000000000..150892f6533b
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/Makefile
-> @@ -0,0 +1,6 @@
-> +#
-> +# Makefile for the QCOM spcific video device drivers
-> +# based on V4L2.
-> +#
-> +
-> +obj-$(CONFIG_QCOM_VIDC)     += vidc/
-> diff --git a/drivers/media/platform/qcom/vidc/Makefile b/drivers/media/platform/qcom/vidc/Makefile
-> new file mode 100644
-> index 000000000000..f8b5f9a438ee
-> --- /dev/null
-> +++ b/drivers/media/platform/qcom/vidc/Makefile
-> @@ -0,0 +1,15 @@
-> +# Makefile for Qualcomm vidc driver
-> +
-> +vidc-objs += \
-> +		core.o \
-> +		helpers.o \
-> +		vdec.o \
-> +		vdec_ctrls.o \
-> +		venc.o \
-> +		venc_ctrls.o \
-> +		hfi_venus.o \
-> +		hfi_msgs.o \
-> +		hfi_cmds.o \
-> +		hfi.o \
-> +
-> +obj-$(CONFIG_QCOM_VIDC) += vidc.o
-
-I recommend renaming the module to qcom-vidc. 'vidc' is too generic.
-
-Regards,
-
-	Hans
-
 > 
+> [as1812]
+> 
+> 
+>  drivers/usb/core/config.c |   28 +++++++++++++++++-----------
+>  1 file changed, 17 insertions(+), 11 deletions(-)
+> 
+> Index: usb-4.x/drivers/usb/core/config.c
+> ===================================================================
+> --- usb-4.x.orig/drivers/usb/core/config.c
+> +++ usb-4.x/drivers/usb/core/config.c
+> @@ -240,8 +240,10 @@ static int usb_parse_endpoint(struct dev
+>  	memcpy(&endpoint->desc, d, n);
+>  	INIT_LIST_HEAD(&endpoint->urb_list);
+>  
+> -	/* Fix up bInterval values outside the legal range. Use 32 ms if no
+> -	 * proper value can be guessed. */
+> +	/*
+> +	 * Fix up bInterval values outside the legal range.
+> +	 * Use 10 or 8 ms if no proper value can be guessed.
+> +	 */
+>  	i = 0;		/* i = min, j = max, n = default */
+>  	j = 255;
+>  	if (usb_endpoint_xfer_int(d)) {
+> @@ -250,13 +252,15 @@ static int usb_parse_endpoint(struct dev
+>  		case USB_SPEED_SUPER_PLUS:
+>  		case USB_SPEED_SUPER:
+>  		case USB_SPEED_HIGH:
+> -			/* Many device manufacturers are using full-speed
+> +			/*
+> +			 * Many device manufacturers are using full-speed
+>  			 * bInterval values in high-speed interrupt endpoint
+> -			 * descriptors. Try to fix those and fall back to a
+> -			 * 32 ms default value otherwise. */
+> +			 * descriptors. Try to fix those and fall back to an
+> +			 * 8-ms default value otherwise.
+> +			 */
+>  			n = fls(d->bInterval*8);
+>  			if (n == 0)
+> -				n = 9;	/* 32 ms = 2^(9-1) uframes */
+> +				n = 7;	/* 8 ms = 2^(7-1) uframes */
+>  			j = 16;
+>  
+>  			/*
+> @@ -271,10 +275,12 @@ static int usb_parse_endpoint(struct dev
+>  			}
+>  			break;
+>  		default:		/* USB_SPEED_FULL or _LOW */
+> -			/* For low-speed, 10 ms is the official minimum.
+> +			/*
+> +			 * For low-speed, 10 ms is the official minimum.
+>  			 * But some "overclocked" devices might want faster
+> -			 * polling so we'll allow it. */
+> -			n = 32;
+> +			 * polling so we'll allow it.
+> +			 */
+> +			n = 10;
+>  			break;
+>  		}
+>  	} else if (usb_endpoint_xfer_isoc(d)) {
+> @@ -282,10 +288,10 @@ static int usb_parse_endpoint(struct dev
+>  		j = 16;
+>  		switch (to_usb_device(ddev)->speed) {
+>  		case USB_SPEED_HIGH:
+> -			n = 9;		/* 32 ms = 2^(9-1) uframes */
+> +			n = 7;		/* 8 ms = 2^(7-1) uframes */
+>  			break;
+>  		default:		/* USB_SPEED_FULL */
+> -			n = 6;		/* 32 ms = 2^(6-1) frames */
+> +			n = 4;		/* 8 ms = 2^(4-1) frames */
+>  			break;
+>  		}
+>  	}
+> 
+
+
+
+Thanks,
+Mauro
