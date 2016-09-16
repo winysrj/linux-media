@@ -1,126 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49991
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751962AbcIZQ7y (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40635 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932946AbcIPK5Z (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Sep 2016 12:59:54 -0400
-Date: Mon, 26 Sep 2016 13:59:45 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, gjasny@googlemail.com
-Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
- v4l2-ctl
-Message-ID: <20160926135945.351384ca@vento.lan>
-In-Reply-To: <20160926154640.GA3225@valkosipuli.retiisi.org.uk>
-References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
-        <20160919082226.43cd1bc9@vento.lan>
-        <57DFE65A.5040607@linux.intel.com>
-        <20160919111912.6e7ceac6@vento.lan>
-        <20160926154640.GA3225@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 16 Sep 2016 06:57:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 4/8] v4l2-dv-timings: add VICs and picture aspect ratio
+Date: Fri, 16 Sep 2016 12:57:07 +0200
+Message-Id: <1474023431-32533-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 26 Sep 2016 18:46:40 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Mauro,
-> 
-> On Mon, Sep 19, 2016 at 11:19:12AM -0300, Mauro Carvalho Chehab wrote:
-> > Em Mon, 19 Sep 2016 16:21:30 +0300
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
-> > > On 09/19/16 14:22, Mauro Carvalho Chehab wrote:  
-> > > > Em Mon, 19 Sep 2016 13:50:25 +0300
-> > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> > > >     
-> > > >> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
-> > > >> are found by the linker only if these libraries are specified after the
-> > > >> objects that depend on them.
-> > > >>
-> > > >> As LDFLAGS variable end up expanded on libtool command line before LDADD,
-> > > >> move the libraries to LDADD after local objects. -lpthread is added as on
-> > > >> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
-> > > >> for instance.
-> > > >>
-> > > >> After this patch, creating a static build using the command
-> > > >>
-> > > >> LDFLAGS="--static -static" ./configure --disable-shared --enable-static    
-> > > > 
-> > > > It sounds weird to use LDFLAGS="--static -static" here, as the
-> > > > configure options are already asking for static.
-> > > > 
-> > > > IMHO, the right way would be to change configure.ac to add those LDFLAGS
-> > > > when --disable-shared is used.    
-> > > 
-> > > That's one option, but then shared libraries won't be built at all.  
-> > 
-> > Well, my understanding is that  --disable-shared is meant to disable
-> > building the shared library build :)
-> >   
-> > > I'm
-> > > not sure what would be the use cases for that, though: static linking
-> > > isn't very commonly needed except when you need to run the binaries
-> > > elsewhere (for whatever reason) where you don't have the libraries you
-> > > linked against available.  
-> > 
-> > Yeah, that's the common usage. It is also interesting if someone
-> > wants to build 2 versions of the same utility, each using a
-> > different library, for testing purposes.
-> > 
-> > The usecase I can't see is to use --disable-shared but keeping
-> > using the dynamic library for the exec files.  
-> 
-> There are three primary options here,
-> 
-> 1. build an entirely static binary,
-> 2. build a binary that relies on dynamic libraries as well and
-> 3. build a binary that relies on dynamic libraries outside v4l-utils package
->    but that links v4l-utils originating libraries statically.
-> 
-> If you say 3. is not needed then we could just use --disable-shared also to
-> tell that static binaries are to be built.
-> 
-> 3. is always used for libv4l2subdev and libmediactl as the libraries do not
-> have stable APIs.
+Add the CEA-861 VIC, the HDMI VIC and the picture aspect ratio information
+where applicable.
 
-Sakari,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/v4l2-dv-timings.h | 97 +++++++++++++++++++++++-------------
+ 1 file changed, 63 insertions(+), 34 deletions(-)
 
-I can't see what you mean by scenario (2). I mean, if 
---disable-shared is called, it *should not* use dynamic libraries
-for any library provided by v4l-utils, as the generated binaries will
-either:
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 086168e..64c323f 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -1,7 +1,7 @@
+ /*
+  * V4L2 DV timings header.
+  *
+- * Copyright (C) 2012  Hans Verkuil <hans.verkuil@cisco.com>
++ * Copyright (C) 2012-2016  Hans Verkuil <hans.verkuil@cisco.com>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+@@ -11,11 +11,6 @@
+  * WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+  */
+ 
+ #ifndef _V4L2_DV_TIMINGS_H
+@@ -33,13 +28,14 @@
+ 	.bt = { _width , ## args }
+ #endif
+ 
+-/* CEA-861-E timings (i.e. standard HDTV timings) */
++/* CEA-861-F timings (i.e. standard HDTV timings) */
+ 
+ #define V4L2_DV_BT_CEA_640X480P59_94 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(640, 480, 0, 0, \
+ 		25175000, 16, 96, 48, 10, 2, 33, 0, 0, 0, \
+-		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, 0) \
++		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 1) \
+ }
+ 
+ /* Note: these are the nominal timings, for HDMI links this format is typically
+@@ -49,14 +45,18 @@
+ 	V4L2_INIT_BT_TIMINGS(720, 480, 1, 0, \
+ 		13500000, 19, 62, 57, 4, 3, 15, 4, 3, 16, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_PICTURE_ASPECT | V4L2_DV_FL_HAS_CEA861_VIC, \
++		{ 4, 3 }, 6) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_720X480P59_94 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 480, 0, 0, \
+ 		27000000, 16, 62, 60, 9, 6, 30, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_PICTURE_ASPECT | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 4, 3 }, 2) \
+ }
+ 
+ /* Note: these are the nominal timings, for HDMI links this format is typically
+@@ -66,14 +66,18 @@
+ 	V4L2_INIT_BT_TIMINGS(720, 576, 1, 0, \
+ 		13500000, 12, 63, 69, 2, 3, 19, 2, 3, 20, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_PICTURE_ASPECT | V4L2_DV_FL_HAS_CEA861_VIC, \
++		{ 4, 3 }, 21) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_720X576P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 576, 0, 0, \
+ 		27000000, 12, 64, 68, 5, 5, 39, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_PICTURE_ASPECT | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 4, 3 }, 17) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P24 { \
+@@ -82,7 +86,7 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		59400000, 1760, 40, 220, 5, 5, 20, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 60) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P25 { \
+@@ -90,7 +94,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 2420, 40, 220, 5, 5, 20, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 61) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P30 { \
+@@ -99,7 +104,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 1760, 40, 220, 5, 5, 20, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 62) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P50 { \
+@@ -107,7 +113,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 440, 40, 220, 5, 5, 20, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 19) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1280X720P60 { \
+@@ -116,7 +123,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 110, 40, 220, 5, 5, 20, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 4) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P24 { \
+@@ -125,7 +133,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 638, 44, 148, 4, 5, 36, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 32) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P25 { \
+@@ -133,7 +142,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 528, 44, 148, 4, 5, 36, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 33) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P30 { \
+@@ -142,7 +152,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 88, 44, 148, 4, 5, 36, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 34) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080I50 { \
+@@ -151,7 +162,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		74250000, 528, 44, 148, 2, 5, 15, 2, 5, 16, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 20) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P50 { \
+@@ -159,7 +171,8 @@
+ 	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		148500000, 528, 44, 148, 4, 5, 36, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 31) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080I60 { \
+@@ -169,7 +182,8 @@
+ 		74250000, 88, 44, 148, 2, 5, 15, 2, 5, 16, \
+ 		V4L2_DV_BT_STD_CEA861, \
+ 		V4L2_DV_FL_CAN_REDUCE_FPS | \
+-		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_HALF_LINE | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 5) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_1920X1080P60 { \
+@@ -178,7 +192,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		148500000, 88, 44, 148, 4, 5, 36, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 16) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P24 { \
+@@ -187,7 +202,9 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 1276, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC | V4L2_DV_FL_HAS_HDMI_VIC, \
++		{ 0, 0 }, 93, 3) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P25 { \
+@@ -195,7 +212,9 @@
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC | \
++		V4L2_DV_FL_HAS_HDMI_VIC, { 0, 0 }, 94, 2) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P30 { \
+@@ -204,7 +223,9 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC | V4L2_DV_FL_HAS_HDMI_VIC, \
++		{ 0, 0 }, 95, 1) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P50 { \
+@@ -212,7 +233,8 @@
+ 	V4L2_INIT_BT_TIMINGS(3840, 2160, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 1056, 88, 296, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 96) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_3840X2160P60 { \
+@@ -221,7 +243,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 176, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 97) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P24 { \
+@@ -230,7 +253,9 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 1020, 88, 296, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC | V4L2_DV_FL_HAS_HDMI_VIC, \
++		{ 0, 0 }, 98, 4) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P25 { \
+@@ -238,7 +263,8 @@
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 99) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P30 { \
+@@ -247,7 +273,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		297000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 100) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P50 { \
+@@ -255,7 +282,8 @@
+ 	V4L2_INIT_BT_TIMINGS(4096, 2160, 0, \
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 968, 88, 128, 8, 10, 72, 0, 0, 0, \
+-		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_BT_STD_CEA861, \
++		V4L2_DV_FL_IS_CE_VIDEO | V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 101) \
+ }
+ 
+ #define V4L2_DV_BT_CEA_4096X2160P60 { \
+@@ -264,7 +292,8 @@
+ 		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
+ 		594000000, 88, 88, 128, 8, 10, 72, 0, 0, 0, \
+ 		V4L2_DV_BT_STD_CEA861, \
+-		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO) \
++		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_IS_CE_VIDEO | \
++		V4L2_DV_FL_HAS_CEA861_VIC, { 0, 0 }, 102) \
+ }
+ 
+ 
+-- 
+2.8.1
 
-a) don't work, because those libraries weren't built;
-b) will do the wrong thing, as they'll be dynamically linked
-   to an older version of the library.
-
-So, there are only 3 possible scenarios, IMHO:
-
-1) dynamic libraries, dynamic execs
-2) static v4l-utils libraries, static execs
-3) static v4l-utils libraries, static links for v4l-utils libs, dyn for the rest.
-
-In practice, I don't see any reason for keeping support for both (2)
-and (3), as all usecases for (3) can be covered by a fully static
-exec. It is also very confusing for one to understand that.
-For example, right now, we have those static/shared options:
-
-  --enable-static[=PKGS]  build static libraries [default=yes]
-  --enable-shared[=PKGS]  build shared libraries [default=yes]
-
-with, IMHO, sounds confusing, as those options don't seem to be
-orthogonal. I mean, what happens someone calls ./configure with:
-
-	./configure --disable-static --disable-shared
-
-
-
-
-Thanks,
-Mauro
