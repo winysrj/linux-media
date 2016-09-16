@@ -1,124 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59239 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753866AbcIODJf (ORCPT
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:49551 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757933AbcIPKBP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 23:09:35 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id CDB9318026F
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 05:09:28 +0200 (CEST)
-Date: Thu, 15 Sep 2016 05:09:28 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160915030928.CDB9318026F@tschai.lan>
+        Fri, 16 Sep 2016 06:01:15 -0400
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: linux-media@vger.kernel.org, pmhahn+video@pmhahn.de
+Cc: hverkuil@xs4all.nl, Andrey Utkin <andrey_utkin@fastmail.com>
+Subject: [PATCH] Potential fix for "[BUG] process stuck when closing saa7146 [dvb_ttpci]"
+Date: Fri, 16 Sep 2016 13:00:28 +0300
+Message-Id: <20160916100028.8856-1-andrey_utkin@fastmail.com>
+In-Reply-To: <20160911133317.whw3j2pok4sktkeo@pmhahn.de>
+References: <20160911133317.whw3j2pok4sktkeo@pmhahn.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Philipp,
+Please try this patch. It is purely speculative as I don't have the hardware,
+but I hope my approach is right.
 
-Results of the daily build of media_tree:
+---
+ drivers/media/common/saa7146/saa7146_video.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-date:		Thu Sep 15 04:00:16 CEST 2016
-git branch:	test
-git hash:	c3b809834db8b1a8891c7ff873a216eac119628d
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
+index ea2f3bf..93c64f0 100644
+--- a/drivers/media/common/saa7146/saa7146_video.c
++++ b/drivers/media/common/saa7146/saa7146_video.c
+@@ -390,6 +390,7 @@ static int video_end(struct saa7146_fh *fh, struct file *file)
+ {
+ 	struct saa7146_dev *dev = fh->dev;
+ 	struct saa7146_vv *vv = dev->vv_data;
++	struct saa7146_dmaqueue *q = &vv->video_dmaq;
+ 	struct saa7146_format *fmt = NULL;
+ 	unsigned long flags;
+ 	unsigned int resource;
+@@ -428,6 +429,9 @@ static int video_end(struct saa7146_fh *fh, struct file *file)
+ 	/* shut down all used video dma transfers */
+ 	saa7146_write(dev, MC1, dmas);
+ 
++	if(q->curr)
++		saa7146_buffer_finish(dev, q, VIDEOBUF_DONE);
++
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+ 
+ 	vv->video_fh = NULL;
+-- 
+2.9.2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
