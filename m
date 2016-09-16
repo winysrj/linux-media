@@ -1,96 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53052 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752089AbcISWvd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 18:51:33 -0400
-Date: Tue, 20 Sep 2016 00:51:28 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v1.1 4/5] smiapp: Use runtime PM
-Message-ID: <20160919225127.ncjux2ybgqt66axu@earth>
-References: <1473938961-16067-5-git-send-email-sakari.ailus@linux.intel.com>
- <1473980009-19377-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from iolanthe.rowland.org ([192.131.102.54]:35326 "HELO
+        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1756400AbcIPOY2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 10:24:28 -0400
+Date: Fri, 16 Sep 2016 10:24:26 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Greg KH <greg@kroah.com>
+cc: Wade Berrier <wberrier@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sean Young <sean@mess.org>, <linux-media@vger.kernel.org>,
+        USB list <linux-usb@vger.kernel.org>
+Subject: [PATCH] USB: change bInterval default to 10 ms
+In-Reply-To: <20160915224804.GA14827@miniwade.localdomain>
+Message-ID: <Pine.LNX.4.44L0.1609161017070.1657-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="mng6hxhcbac37g6x"
-Content-Disposition: inline
-In-Reply-To: <1473980009-19377-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Some full-speed mceusb infrared transceivers contain invalid endpoint
+descriptors for their interrupt endpoints, with bInterval set to 0.
+In the past they have worked out okay with the mceusb driver, because
+the driver sets the bInterval field in the descriptor to 1,
+overwriting whatever value may have been there before.  However, this
+approach was never sanctioned by the USB core, and in fact it does not
+work with xHCI controllers, because they use the bInterval value that
+was present when the configuration was installed.
 
---mng6hxhcbac37g6x
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Currently usbcore uses 32 ms as the default interval if the value in
+the endpoint descriptor is invalid.  It turns out that these IR
+transceivers don't work properly unless the interval is set to 10 ms
+or below.  To work around this mceusb problem, this patch changes the
+endpoint-descriptor parsing routine, making the default interval value
+be 10 ms rather than 32 ms.
 
-Hi,
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Tested-by: Wade Berrier <wberrier@gmail.com>
+CC: <stable@vger.kernel.org>
 
-On Fri, Sep 16, 2016 at 01:53:29AM +0300, Sakari Ailus wrote:
-> [...]
->
-> diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2c/s=
-miapp/smiapp-regs.c
-> index 1e501c0..a9c7baf 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-regs.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-regs.c
-> @@ -18,6 +18,7 @@
-> =20
->  #include <linux/delay.h>
->  #include <linux/i2c.h>
-> +#include <linux/pm_runtime.h>
-> =20
->  #include "smiapp.h"
->  #include "smiapp-regs.h"
-> @@ -288,8 +289,12 @@ int smiapp_write_no_quirk(struct smiapp_sensor *sens=
-or, u32 reg, u32 val)
->   */
->  int smiapp_write(struct smiapp_sensor *sensor, u32 reg, u32 val)
->  {
-> +	struct i2c_client *client =3D v4l2_get_subdevdata(&sensor->src->sd);
->  	int rval;
-> =20
-> +	if (pm_runtime_suspended(&client->dev))
-> +		return 0;
-> +
+---
 
-This looks racy. What if idle countdown runs out immediately after
-this check? If you can't call get_sync in this function you can
-call pm_runtime_get() before the suspend check and pm_runtime_put
-before returning from the function, so that the device keeps being
-enabled.
 
-Also I would expect some error code instead of success for early
-return due to device being suspended?
+[as1812]
 
->  	rval =3D smiapp_call_quirk(sensor, reg_access, true, &reg, &val);
->  	if (rval =3D=3D -ENOIOCTLCMD)
->  		return 0;
->
-> [...]
 
--- Sebastian
+ drivers/usb/core/config.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
---mng6hxhcbac37g6x
-Content-Type: application/pgp-signature; name="signature.asc"
+Index: usb-4.x/drivers/usb/core/config.c
+===================================================================
+--- usb-4.x.orig/drivers/usb/core/config.c
++++ usb-4.x/drivers/usb/core/config.c
+@@ -240,8 +240,10 @@ static int usb_parse_endpoint(struct dev
+ 	memcpy(&endpoint->desc, d, n);
+ 	INIT_LIST_HEAD(&endpoint->urb_list);
+ 
+-	/* Fix up bInterval values outside the legal range. Use 32 ms if no
+-	 * proper value can be guessed. */
++	/*
++	 * Fix up bInterval values outside the legal range.
++	 * Use 10 or 8 ms if no proper value can be guessed.
++	 */
+ 	i = 0;		/* i = min, j = max, n = default */
+ 	j = 255;
+ 	if (usb_endpoint_xfer_int(d)) {
+@@ -250,13 +252,15 @@ static int usb_parse_endpoint(struct dev
+ 		case USB_SPEED_SUPER_PLUS:
+ 		case USB_SPEED_SUPER:
+ 		case USB_SPEED_HIGH:
+-			/* Many device manufacturers are using full-speed
++			/*
++			 * Many device manufacturers are using full-speed
+ 			 * bInterval values in high-speed interrupt endpoint
+-			 * descriptors. Try to fix those and fall back to a
+-			 * 32 ms default value otherwise. */
++			 * descriptors. Try to fix those and fall back to an
++			 * 8-ms default value otherwise.
++			 */
+ 			n = fls(d->bInterval*8);
+ 			if (n == 0)
+-				n = 9;	/* 32 ms = 2^(9-1) uframes */
++				n = 7;	/* 8 ms = 2^(7-1) uframes */
+ 			j = 16;
+ 
+ 			/*
+@@ -271,10 +275,12 @@ static int usb_parse_endpoint(struct dev
+ 			}
+ 			break;
+ 		default:		/* USB_SPEED_FULL or _LOW */
+-			/* For low-speed, 10 ms is the official minimum.
++			/*
++			 * For low-speed, 10 ms is the official minimum.
+ 			 * But some "overclocked" devices might want faster
+-			 * polling so we'll allow it. */
+-			n = 32;
++			 * polling so we'll allow it.
++			 */
++			n = 10;
+ 			break;
+ 		}
+ 	} else if (usb_endpoint_xfer_isoc(d)) {
+@@ -282,10 +288,10 @@ static int usb_parse_endpoint(struct dev
+ 		j = 16;
+ 		switch (to_usb_device(ddev)->speed) {
+ 		case USB_SPEED_HIGH:
+-			n = 9;		/* 32 ms = 2^(9-1) uframes */
++			n = 7;		/* 8 ms = 2^(7-1) uframes */
+ 			break;
+ 		default:		/* USB_SPEED_FULL */
+-			n = 6;		/* 32 ms = 2^(6-1) frames */
++			n = 4;		/* 8 ms = 2^(4-1) frames */
+ 			break;
+ 		}
+ 	}
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4GvsAAoJENju1/PIO/qaQ1YP/2Y7SSsC+R95++mMlEWEV5of
-R3AY2BLmMUS7l8MjSV/vPxlLlaS7H0Ty2MHAXgRGLk2l+zPSduxUKPt86Z+hX56n
-ZzG+e/OuQoVNLzKqg6hyJQNssMVfy7AyDWXwlQNf2wSqJ+2xCaqTaXejH89vb1Dp
-kBxqPrDA0l0YiH2xw7uCSvKLU1oVFhwJmX6U2khLWyjdB+Ff99uVYUlT6PeKSsY9
-Za3ljPyJmPW+tA6LRXX2C5T1KySRmjDkujuKkRHuynjg8l2u4TGj5RXyiTBwqTRA
-z3kY6lMeAbRdLQnyZ+sNAXdg9d7yhsYlNK0cwkZjpRAUtgrN6cu+Y6/7T/cNun68
-DERZBfGnG5GXT+SY2vuOWLGtKsfdhl8T9RFN+FSMcBmlQFM2i0SMfk/Fd1lKC4xa
-paMx8IMD9Bw5ogA3asHCNqdzJGaMoHoAd9qsWjdVNY9dROIxjOxxb0eKeZoZxyUs
-8O4cGj483LL6FmqYn3CyOrsG3PhaagJ4ygTbLVoDfYn87qAkxQYmg91/6o6R61l9
-dFHQy79e+Gc9VzkkqX8H5vka29h2K/JBIXgGu4QEwonzY6YP9BeG+mKnHZbSHcJn
-dM80VuoEOZxB4H2vLxSvSEMmFZdq2D8qsUIHLZhbS5/CGbyaF6PWAopBNCfWvsBR
-Qm8Nu1xSj8tO5hNfzrEW
-=13+k
------END PGP SIGNATURE-----
-
---mng6hxhcbac37g6x--
