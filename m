@@ -1,43 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp07.smtpout.orange.fr ([80.12.242.129]:56246 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754189AbcIRSsv (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:36690 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932985AbcIPK53 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Sep 2016 14:48:51 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/2] [media] pxa_camera: remove an unused structure pointer
-References: <8f05b34a8be23d483661de181aa77c07d8a1bd58.1473429632.git.mchehab@s-opensource.com>
-        <8f05b34a8be23d483661de181aa77c07d8a1bd58.1473429632.git.mchehab@s-opensource.com>
-        <ade50f4ff8029a182c16c6418995e6ec569ea9fc.1473429632.git.mchehab@s-opensource.com>
-Date: Sun, 18 Sep 2016 20:48:48 +0200
-In-Reply-To: <ade50f4ff8029a182c16c6418995e6ec569ea9fc.1473429632.git.mchehab@s-opensource.com>
-        (Mauro Carvalho Chehab's message of "Fri, 9 Sep 2016 11:00:40 -0300")
-Message-ID: <87shsxdoxb.fsf@belgarion.home>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 16 Sep 2016 06:57:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 5/8] v4l2-dv-timings: add helpers to find vic and pixelaspect ratio
+Date: Fri, 16 Sep 2016 12:57:08 +0200
+Message-Id: <1474023431-32533-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@s-opensource.com> writes:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> As reported by smatch:
->
-> drivers/media/platform/pxa_camera.c: In function 'pxa_dma_start_channels':
-> drivers/media/platform/pxa_camera.c:457:21: warning: variable 'active' set but not used [-Wunused-but-set-variable]
->   struct pxa_buffer *active;
->                      ^~~~~~
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Add a helper to find timings based on the CEA-861 VIC code. Also add a helper
+that returns the pixel aspect ratio based on the v4l2_dv_timings struct.
 
-Cheers.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/Kconfig           |  1 +
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 58 +++++++++++++++++++++++++++++--
+ include/media/v4l2-dv-timings.h           | 18 ++++++++++
+ 3 files changed, 75 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 29b3436..7d38db1 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -6,6 +6,7 @@
+ config VIDEO_V4L2
+ 	tristate
+ 	depends on (I2C || I2C=n) && VIDEO_DEV
++	select RATIONAL
+ 	default (I2C || I2C=n) && VIDEO_DEV
+ 
+ config VIDEO_ADV_DEBUG
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 889de0a..98aa2fa 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -22,6 +22,7 @@
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
++#include <linux/rational.h>
+ #include <linux/videodev2.h>
+ #include <linux/v4l2-dv-timings.h>
+ #include <media/v4l2-dv-timings.h>
+@@ -224,6 +225,24 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_find_dv_timings_cap);
+ 
++bool v4l2_find_dv_timings_cea861_vic(struct v4l2_dv_timings *t, u8 vic)
++{
++	unsigned int i;
++
++	for (i = 0; i < v4l2_dv_timings_presets[i].bt.width; i++) {
++		const struct v4l2_bt_timings *bt =
++			&v4l2_dv_timings_presets[i].bt;
++
++		if ((bt->flags & V4L2_DV_FL_HAS_CEA861_VIC) &&
++		    bt->cea861_vic == vic) {
++			*t = v4l2_dv_timings_presets[i];
++			return true;
++		}
++	}
++	return false;
++}
++EXPORT_SYMBOL_GPL(v4l2_find_dv_timings_cea861_vic);
++
+ /**
+  * v4l2_match_dv_timings - check if two timings match
+  * @t1 - compare this v4l2_dv_timings struct...
+@@ -306,7 +325,7 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->polarities & V4L2_DV_VSYNC_POS_POL) ? "+" : "-",
+ 			bt->il_vsync, bt->il_vbackporch);
+ 	pr_info("%s: pixelclock: %llu\n", dev_prefix, bt->pixelclock);
+-	pr_info("%s: flags (0x%x):%s%s%s%s%s%s\n", dev_prefix, bt->flags,
++	pr_info("%s: flags (0x%x):%s%s%s%s%s%s%s%s%s\n", dev_prefix, bt->flags,
+ 			(bt->flags & V4L2_DV_FL_REDUCED_BLANKING) ?
+ 			" REDUCED_BLANKING" : "",
+ 			((bt->flags & V4L2_DV_FL_REDUCED_BLANKING) &&
+@@ -318,15 +337,50 @@ void v4l2_print_dv_timings(const char *dev_prefix, const char *prefix,
+ 			(bt->flags & V4L2_DV_FL_HALF_LINE) ?
+ 			" HALF_LINE" : "",
+ 			(bt->flags & V4L2_DV_FL_IS_CE_VIDEO) ?
+-			" CE_VIDEO" : "");
++			" CE_VIDEO" : "",
++			(bt->flags & V4L2_DV_FL_HAS_PICTURE_ASPECT) ?
++			" HAS_PICTURE_ASPECT" : "",
++			(bt->flags & V4L2_DV_FL_HAS_CEA861_VIC) ?
++			" HAS_CEA861_VIC" : "",
++			(bt->flags & V4L2_DV_FL_HAS_HDMI_VIC) ?
++			" HAS_HDMI_VIC" : "");
+ 	pr_info("%s: standards (0x%x):%s%s%s%s\n", dev_prefix, bt->standards,
+ 			(bt->standards & V4L2_DV_BT_STD_CEA861) ?  " CEA" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_DMT) ?  " DMT" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_CVT) ?  " CVT" : "",
+ 			(bt->standards & V4L2_DV_BT_STD_GTF) ?  " GTF" : "");
++	if (bt->flags & V4L2_DV_FL_HAS_PICTURE_ASPECT)
++		pr_info("%s: picture aspect (hor:vert): %u:%u\n", dev_prefix,
++			bt->picture_aspect.numerator,
++			bt->picture_aspect.denominator);
++	if (bt->flags & V4L2_DV_FL_HAS_CEA861_VIC)
++		pr_info("%s: CEA-861 VIC: %u\n", dev_prefix, bt->cea861_vic);
++	if (bt->flags & V4L2_DV_FL_HAS_HDMI_VIC)
++		pr_info("%s: HDMI VIC: %u\n", dev_prefix, bt->hdmi_vic);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_print_dv_timings);
+ 
++struct v4l2_fract v4l2_dv_timings_aspect_ratio(const struct v4l2_dv_timings *t)
++{
++	struct v4l2_fract ratio = { 1, 1 };
++	unsigned long n, d;
++
++	if (t->type != V4L2_DV_BT_656_1120)
++		return ratio;
++	if (!(t->bt.flags & V4L2_DV_FL_HAS_PICTURE_ASPECT))
++		return ratio;
++
++	ratio.numerator = t->bt.width * t->bt.picture_aspect.denominator;
++	ratio.denominator = t->bt.height * t->bt.picture_aspect.numerator;
++
++	rational_best_approximation(ratio.numerator, ratio.denominator,
++				    ratio.numerator, ratio.denominator, &n, &d);
++	ratio.numerator = n;
++	ratio.denominator = d;
++	return ratio;
++}
++EXPORT_SYMBOL_GPL(v4l2_dv_timings_aspect_ratio);
++
+ /*
+  * CVT defines
+  * Based on Coordinated Video Timings Standard
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 0a7d9e1..3722ce8 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -101,6 +101,16 @@ bool v4l2_find_dv_timings_cap(struct v4l2_dv_timings *t,
+ 			      void *fnc_handle);
+ 
+ /**
++ * v4l2_find_dv_timings_cea861_vic() - find timings based on CEA-861 VIC
++ * @t:		the timings data.
++ * @vic:	CEA-861 VIC code
++ *
++ * On success it will fill in @t with the found timings and it returns true.
++ * On failure it will return false.
++ */
++bool v4l2_find_dv_timings_cea861_vic(struct v4l2_dv_timings *t, u8 vic);
++
++/**
+  * v4l2_match_dv_timings() - do two timings match?
+  *
+  * @measured:	  the measured timings data.
+@@ -185,6 +195,14 @@ bool v4l2_detect_gtf(unsigned frame_height, unsigned hfreq, unsigned vsync,
+  */
+ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait);
+ 
++/**
++ * v4l2_dv_timings_aspect_ratio - calculate the aspect ratio based on the
++ * 	v4l2_dv_timings information.
++ *
++ * @t: the timings data.
++ */
++struct v4l2_fract v4l2_dv_timings_aspect_ratio(const struct v4l2_dv_timings *t);
++
+ /*
+  * reduce_fps - check if conditions for reduced fps are true.
+  * bt - v4l2 timing structure
 -- 
-Robert
+2.8.1
+
