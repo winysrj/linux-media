@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43978 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941755AbcIHME0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:26 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 19/47] [media] v4l2-ctrls.h: Fix some c:type references
-Date: Thu,  8 Sep 2016 09:03:41 -0300
-Message-Id: <ecc2194ed8d4d76890fb3c518fc7d825d001b562.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60839 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932965AbcIPK51 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 06:57:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 6/8] cobalt: add cropcap support
+Date: Fri, 16 Sep 2016 12:57:09 +0200
+Message-Id: <1474023431-32533-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the uAPI is using c:type, let's use it here too.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Now that the timings contain picture aspect ratio information, we can support
+cropcap to return the pixel aspect ratio.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- include/media/v4l2-ctrls.h | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/pci/cobalt/cobalt-v4l2.c | 21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index ff2847705dac..86702037cf5d 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -973,9 +973,9 @@ extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
-  * v4l2_ctrl_replace - Function to be used as a callback to
-  *	&struct v4l2_subscribed_event_ops replace\(\)
-  *
-- * @old: pointer to :ref:`struct v4l2_event <v4l2-event>` with the reported
-+ * @old: pointer to struct &v4l2_event with the reported
-  *	 event;
-- * @new: pointer to :ref:`struct v4l2_event <v4l2-event>` with the modified
-+ * @new: pointer to struct &v4l2_event with the modified
-  *	 event;
-  */
- void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
-@@ -984,9 +984,9 @@ void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
-  * v4l2_ctrl_merge - Function to be used as a callback to
-  *	&struct v4l2_subscribed_event_ops merge(\)
-  *
-- * @old: pointer to :ref:`struct v4l2_event <v4l2-event>` with the reported
-+ * @old: pointer to struct &v4l2_event with the reported
-  *	 event;
-- * @new: pointer to :ref:`struct v4l2_event <v4l2-event>` with the merged
-+ * @new: pointer to struct &v4l2_event with the merged
-  *	 event;
-  */
- void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new);
+diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
+index 5c76637..3fea246 100644
+--- a/drivers/media/pci/cobalt/cobalt-v4l2.c
++++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
+@@ -1084,12 +1084,33 @@ static int cobalt_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+ 	return 0;
+ }
+ 
++static int cobalt_cropcap(struct file *file, void *fh, struct v4l2_cropcap *cc)
++{
++	struct cobalt_stream *s = video_drvdata(file);
++	struct v4l2_dv_timings timings;
++	int err = 0;
++
++	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++	if (s->input == 1)
++		timings = cea1080p60;
++	else
++		err = v4l2_subdev_call(s->sd, video, g_dv_timings, &timings);
++	if (!err) {
++		cc->bounds.width = cc->defrect.width = timings.bt.width;
++		cc->bounds.height = cc->defrect.height = timings.bt.height;
++		cc->pixelaspect = v4l2_dv_timings_aspect_ratio(&timings);
++	}
++	return err;
++}
++
+ static const struct v4l2_ioctl_ops cobalt_ioctl_ops = {
+ 	.vidioc_querycap		= cobalt_querycap,
+ 	.vidioc_g_parm			= cobalt_g_parm,
+ 	.vidioc_log_status		= cobalt_log_status,
+ 	.vidioc_streamon		= vb2_ioctl_streamon,
+ 	.vidioc_streamoff		= vb2_ioctl_streamoff,
++	.vidioc_cropcap			= cobalt_cropcap,
+ 	.vidioc_enum_input		= cobalt_enum_input,
+ 	.vidioc_g_input			= cobalt_g_input,
+ 	.vidioc_s_input			= cobalt_s_input,
 -- 
-2.7.4
-
+2.8.1
 
