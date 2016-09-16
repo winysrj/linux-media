@@ -1,198 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:37544 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751987AbcIINV4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Sep 2016 09:21:56 -0400
-From: Vincent Abriou <vincent.abriou@st.com>
-To: <linux-media@vger.kernel.org>
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Vincent Abriou <vincent.abriou@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] [media] vivid: support for contiguous DMA buffers
-Date: Fri, 9 Sep 2016 15:21:33 +0200
-Message-ID: <1473427293-22502-1-git-send-email-vincent.abriou@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga06.intel.com ([134.134.136.31]:58700 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1761994AbcIPLuS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 07:50:18 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        mchehab@s-opensource.com
+Subject: [PATCH v5 2/4] media: Unify IOCTL handler calling
+Date: Fri, 16 Sep 2016 14:49:06 +0300
+Message-Id: <1474026548-28829-3-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It allow to simulate the behavior of hardware with such limitations or
-to connect vivid to real hardware with such limitations.
+Each IOCTL handler can be listed in an array instead of using a large and
+cumbersome switch. Do that.
 
-Add the "allocator" module parameter option to let vivid use the
-dma-contig instead of vmalloc.
-
-Tested on X86 and ARM configuration.
-
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
-
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/media/v4l-drivers/vivid.rst |  8 ++++++++
- drivers/media/platform/vivid/Kconfig      |  1 +
- drivers/media/platform/vivid/vivid-core.c | 32 ++++++++++++++++++++++++++-----
- 3 files changed, 36 insertions(+), 5 deletions(-)
+ drivers/media/media-device.c | 51 +++++++++++++-------------------------------
+ 1 file changed, 15 insertions(+), 36 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/vivid.rst b/Documentation/media/v4l-drivers/vivid.rst
-index c8cf371..3e44b22 100644
---- a/Documentation/media/v4l-drivers/vivid.rst
-+++ b/Documentation/media/v4l-drivers/vivid.rst
-@@ -263,6 +263,14 @@ all configurable using the following module options:
- 	removed. Unless overridden by ccs_cap_mode and/or ccs_out_mode the
- 	will default to enabling crop, compose and scaling.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index f321264..4ac912b 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -419,20 +419,24 @@ static long media_device_get_topology(struct media_device *mdev,
+ 	return 0;
+ }
  
-+- allocators:
-+
-+	memory allocator selection, default is 0. It specifies the way buffers
-+	will be allocated.
-+
-+		- 0: vmalloc
-+		- 1: dma-contig
-+
- Taken together, all these module options allow you to precisely customize
- the driver behavior and test your application with all sorts of permutations.
- It is also very suitable to emulate hardware that is not yet available, e.g.
-diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
-index 8e6918c..ee57562 100644
---- a/drivers/media/platform/vivid/Kconfig
-+++ b/drivers/media/platform/vivid/Kconfig
-@@ -8,6 +8,7 @@ config VIDEO_VIVID
- 	select FB_CFB_IMAGEBLIT
- 	select MEDIA_CEC_EDID
- 	select VIDEOBUF2_VMALLOC
-+	select VIDEOBUF2_DMA_CONTIG
- 	select VIDEO_V4L2_TPG
- 	default n
- 	---help---
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 741460a..deca868 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -30,6 +30,7 @@
- #include <linux/videodev2.h>
- #include <linux/v4l2-dv-timings.h>
- #include <media/videobuf2-vmalloc.h>
-+#include <media/videobuf2-dma-contig.h>
- #include <media/v4l2-dv-timings.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-fh.h>
-@@ -151,6 +152,12 @@ static bool no_error_inj;
- module_param(no_error_inj, bool, 0444);
- MODULE_PARM_DESC(no_error_inj, " if set disable the error injecting controls");
+-#define MEDIA_IOC(__cmd) \
+-	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
++#define MEDIA_IOC(__cmd, func)						\
++	[_IOC_NR(MEDIA_IOC_##__cmd)] = {				\
++		.cmd = MEDIA_IOC_##__cmd,				\
++		.fn = (long (*)(struct media_device *, void __user *))func,    \
++	}
  
-+static unsigned allocators[VIVID_MAX_DEVS] = { [0 ... (VIVID_MAX_DEVS - 1)] = 0 };
-+module_param_array(allocators, uint, NULL, 0444);
-+MODULE_PARM_DESC(allocators, " memory allocator selection, default is 0.\n"
-+			     "\t\t    0 == vmalloc\n"
-+			     "\t\t    1 == dma-contig");
-+
- static struct vivid_dev *vivid_devs[VIVID_MAX_DEVS];
+ /* the table is indexed by _IOC_NR(cmd) */
+ struct media_ioctl_info {
+ 	unsigned int cmd;
++	long (*fn)(struct media_device *dev, void __user *arg);
+ };
  
- const struct v4l2_rect vivid_min_rect = {
-@@ -636,6 +643,10 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ static const struct media_ioctl_info ioctl_info[] = {
+-	MEDIA_IOC(DEVICE_INFO),
+-	MEDIA_IOC(ENUM_ENTITIES),
+-	MEDIA_IOC(ENUM_LINKS),
+-	MEDIA_IOC(SETUP_LINK),
+-	MEDIA_IOC(G_TOPOLOGY),
++	MEDIA_IOC(DEVICE_INFO, media_device_get_info),
++	MEDIA_IOC(ENUM_ENTITIES, media_device_enum_entities),
++	MEDIA_IOC(ENUM_LINKS, media_device_enum_links),
++	MEDIA_IOC(SETUP_LINK, media_device_setup_link),
++	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology),
+ };
+ 
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+@@ -440,42 +444,17 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
  {
- 	static const struct v4l2_dv_timings def_dv_timings =
- 					V4L2_DV_BT_CEA_1280X720P60;
-+	static const struct vb2_mem_ops * const vivid_mem_ops[2] = {
-+		&vb2_vmalloc_memops,
-+		&vb2_dma_contig_memops,
-+	};
- 	unsigned in_type_counter[4] = { 0, 0, 0, 0 };
- 	unsigned out_type_counter[4] = { 0, 0, 0, 0 };
- 	int ccs_cap = ccs_cap_mode[inst];
-@@ -646,6 +657,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 	struct video_device *vfd;
- 	struct vb2_queue *q;
- 	unsigned node_type = node_types[inst];
-+	unsigned allocator = allocators[inst];
- 	v4l2_std_id tvnorms_cap = 0, tvnorms_out = 0;
- 	int ret;
- 	int i;
-@@ -1036,6 +1048,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 	if (!dev->cec_workqueue)
- 		goto unreg_dev;
+ 	struct media_devnode *devnode = media_devnode_data(filp);
+ 	struct media_device *dev = devnode->media_dev;
++	const struct media_ioctl_info *info;
+ 	long ret;
  
-+	if (allocator == 1)
-+		dma_coerce_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(32));
-+	else if (allocator >= ARRAY_SIZE(vivid_mem_ops))
-+		allocator = 0;
-+
- 	/* start creating the vb2 queues */
- 	if (dev->has_vid_cap) {
- 		/* initialize vid_cap queue */
-@@ -1046,10 +1063,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vid_cap_qops;
--		q->mem_ops = &vb2_vmalloc_memops;
-+		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
-+		q->dev = dev->v4l2_dev.dev;
+ 	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
+ 	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
+ 		return -ENOIOCTLCMD;
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1065,10 +1083,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vid_out_qops;
--		q->mem_ops = &vb2_vmalloc_memops;
-+		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
-+		q->dev = dev->v4l2_dev.dev;
+-	mutex_lock(&dev->graph_mutex);
+-	switch (cmd) {
+-	case MEDIA_IOC_DEVICE_INFO:
+-		ret = media_device_get_info(dev,
+-				(struct media_device_info __user *)arg);
+-		break;
+-
+-	case MEDIA_IOC_ENUM_ENTITIES:
+-		ret = media_device_enum_entities(dev,
+-				(struct media_entity_desc __user *)arg);
+-		break;
+-
+-	case MEDIA_IOC_ENUM_LINKS:
+-		ret = media_device_enum_links(dev,
+-				(struct media_links_enum __user *)arg);
+-		break;
++	info = &ioctl_info[_IOC_NR(cmd)];
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1084,10 +1103,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vbi_cap_qops;
--		q->mem_ops = &vb2_vmalloc_memops;
-+		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
-+		q->dev = dev->v4l2_dev.dev;
+-	case MEDIA_IOC_SETUP_LINK:
+-		ret = media_device_setup_link(dev,
+-				(struct media_link_desc __user *)arg);
+-		break;
+-
+-	case MEDIA_IOC_G_TOPOLOGY:
+-		ret = media_device_get_topology(dev,
+-				(struct media_v2_topology __user *)arg);
+-		break;
+-
+-	default:
+-		ret = -ENOIOCTLCMD;
+-	}
++	mutex_lock(&dev->graph_mutex);
++	ret = info->fn(dev, (void __user *)arg);
+ 	mutex_unlock(&dev->graph_mutex);
  
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1103,10 +1123,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vbi_out_qops;
--		q->mem_ops = &vb2_vmalloc_memops;
-+		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 2;
- 		q->lock = &dev->mutex;
-+		q->dev = dev->v4l2_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
-@@ -1121,10 +1142,11 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_sdr_cap_qops;
--		q->mem_ops = &vb2_vmalloc_memops;
-+		q->mem_ops = vivid_mem_ops[allocator];
- 		q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 		q->min_buffers_needed = 8;
- 		q->lock = &dev->mutex;
-+		q->dev = dev->v4l2_dev.dev;
- 
- 		ret = vb2_queue_init(q);
- 		if (ret)
+ 	return ret;
 -- 
-1.9.1
+2.7.4
 
