@@ -1,76 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43790 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941743AbcIHMES (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>
-Subject: [PATCH 28/47] [media] ca-get-cap.rst: add a table for struct ca_caps
-Date: Thu,  8 Sep 2016 09:03:50 -0300
-Message-Id: <f40673634bdbc787a247431903114394373cf633.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34594 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933300AbcIPNJp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 09:09:45 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: horms@verge.net.au
+Cc: geert@linux-m68k.org, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 3/3] ARM: dts: gose: add composite video input
+Date: Fri, 16 Sep 2016 15:09:35 +0200
+Message-Id: <20160916130935.21292-4-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
+References: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a flat-table describing struct ca_caps, as found at
-the source file.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
- Documentation/media/uapi/dvb/ca-get-cap.rst | 29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/r8a7793-gose.dts | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff --git a/Documentation/media/uapi/dvb/ca-get-cap.rst b/Documentation/media/uapi/dvb/ca-get-cap.rst
-index 3486805b62a9..77c57ac59535 100644
---- a/Documentation/media/uapi/dvb/ca-get-cap.rst
-+++ b/Documentation/media/uapi/dvb/ca-get-cap.rst
-@@ -26,7 +26,34 @@ Arguments
-   File descriptor returned by a previous call to :c:func:`open() <dvb-ca-open>`.
- 
- ``caps``
--  Undocumented.
-+  struct :c:type:`ca_caps` pointer
+diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
+index e22d63c..981f0fe 100644
+--- a/arch/arm/boot/dts/r8a7793-gose.dts
++++ b/arch/arm/boot/dts/r8a7793-gose.dts
+@@ -379,6 +379,11 @@
+ 		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
+ 		function = "vin0";
+ 	};
 +
-+.. c:type:: struct ca_caps
-+
-+.. flat-table:: struct ca_caps
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    -
-+      - type
-+      - name
-+      - description
-+    -
-+      -	unsigned int
-+      - slot_num
-+      - total number of CA card and module slots
-+    -
-+      - unsigned int
-+      - slot_type
-+      - bitmask with all supported slot types
-+    -
-+      - unsigned int
-+      - descr_num
-+      - total number of descrambler slots (keys)
-+    -
-+      - unsigned int
-+      - descr_type
-+      - bit mask with all supported descr types
++	vin1_pins: vin1 {
++		groups = "vin1_data8", "vin1_clk";
++		function = "vin1";
++	};
+ };
  
+ &ether {
+@@ -504,6 +509,19 @@
+ 		reg = <0x12>;
+ 	};
  
- Description
++	composite-in@20 {
++		compatible = "adi,adv7180";
++		reg = <0x20>;
++		remote = <&vin1>;
++
++		port {
++			adv7180: endpoint {
++				bus-width = <8>;
++				remote-endpoint = <&vin1ep>;
++			};
++		};
++	};
++
+ 	hdmi@39 {
+ 		compatible = "adi,adv7511w";
+ 		reg = <0x39>;
+@@ -599,3 +617,21 @@
+ 		};
+ 	};
+ };
++
++/* composite video input */
++&vin1 {
++	pinctrl-0 = <&vin1_pins>;
++	pinctrl-names = "default";
++
++	status = "okay";
++
++	port {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		vin1ep: endpoint {
++			remote-endpoint = <&adv7180>;
++			bus-width = <8>;
++		};
++	};
++};
 -- 
-2.7.4
-
+2.9.3
 
