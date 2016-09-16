@@ -1,139 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:56831 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756021AbcIAVbT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 17:31:19 -0400
-Date: Thu, 1 Sep 2016 22:31:16 +0100
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH v2 3/7] [media] rc-core: add support for IR raw
- transmitters
-Message-ID: <20160901213116.GC22198@gofer.mess.org>
-References: <20160901171629.15422-1-andi.shyti@samsung.com>
- <20160901171629.15422-4-andi.shyti@samsung.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46815
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935495AbcIPPD3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 11:03:29 -0400
+Date: Fri, 16 Sep 2016 12:03:22 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Wade Berrier <wberrier@gmail.com>, Sean Young <sean@mess.org>,
+        <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
+Subject: Re: mceusb xhci issue?
+Message-ID: <20160916120322.466d23b8@vento.lan>
+In-Reply-To: <Pine.LNX.4.44L0.1609161024350.1657-100000@iolanthe.rowland.org>
+References: <20160915224804.GA14827@miniwade.localdomain>
+        <Pine.LNX.4.44L0.1609161024350.1657-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160901171629.15422-4-andi.shyti@samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 02, 2016 at 02:16:25AM +0900, Andi Shyti wrote:
-> IR raw transmitter driver type is specified in the enum
-> rc_driver_type as RC_DRIVER_IR_RAW_TX which includes all those
-> devices that transmit raw stream of bit to a receiver.
-> 
-> The data are provided by userspace applications, therefore they
-> don't need any input device allocation, but still they need to be
-> registered as raw devices.
-> 
-> Suggested-by: Sean Young <sean@mess.org>
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
->  drivers/media/rc/rc-main.c | 39 +++++++++++++++++++++++----------------
->  include/media/rc-core.h    |  9 ++++++---
->  2 files changed, 29 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 7961083..c3c1f68 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1361,20 +1361,24 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type type)
->  	if (!dev)
->  		return NULL;
->  
-> -	dev->input_dev = input_allocate_device();
-> -	if (!dev->input_dev) {
-> -		kfree(dev);
-> -		return NULL;
-> -	}
-> +	if (type != RC_DRIVER_IR_RAW_TX) {
-> +		dev->input_dev = input_allocate_device();
-> +		if (!dev->input_dev) {
-> +			kfree(dev);
-> +			return NULL;
-> +		}
-> +
-> +		dev->input_dev->getkeycode = ir_getkeycode;
-> +		dev->input_dev->setkeycode = ir_setkeycode;
-> +		input_set_drvdata(dev->input_dev, dev);
->  
-> -	dev->input_dev->getkeycode = ir_getkeycode;
-> -	dev->input_dev->setkeycode = ir_setkeycode;
-> -	input_set_drvdata(dev->input_dev, dev);
-> +		setup_timer(&dev->timer_keyup, ir_timer_keyup,
-> +						(unsigned long)dev);
->  
-> -	spin_lock_init(&dev->rc_map.lock);
-> -	spin_lock_init(&dev->keylock);
-> +		spin_lock_init(&dev->rc_map.lock);
-> +		spin_lock_init(&dev->keylock);
-> +	}
->  	mutex_init(&dev->lock);
-> -	setup_timer(&dev->timer_keyup, ir_timer_keyup, (unsigned long)dev);
->  
->  	dev->dev.type = &rc_dev_type;
->  	dev->dev.class = &rc_class;
-> @@ -1474,7 +1478,7 @@ out_table:
->  
->  static void rc_free_rx_device(struct rc_dev *dev)
->  {
-> -	if (!dev)
-> +	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
->  		return;
->  
->  	ir_free_table(&dev->rc_map);
-> @@ -1522,11 +1526,14 @@ int rc_register_device(struct rc_dev *dev)
+Em Fri, 16 Sep 2016 10:25:31 -0400 (EDT)
+Alan Stern <stern@rowland.harvard.edu> escreveu:
 
-An tx-only device shouldn't have the sysfs attribute protocol, that
-should be handled here too.
+> On Thu, 15 Sep 2016, Wade Berrier wrote:
+> 
+> > On Thu Sep 15 15:13, Alan Stern wrote:  
+> > > On Sat, 10 Sep 2016, Wade Berrier wrote:
+> > >   
+> > > > On Thu Aug 11 16:18, Alan Stern wrote:  
+> > > > > I never received any replies to this message.  Should the patch I 
+> > > > > suggested be merged?
+> > > > >  
+> > > > 
+> > > > Hello,
+> > > > 
+> > > > I applied this updated patch to the fedora23 4.7.2 kernel and the mceusb
+> > > > transceiver works as expected.  
+> > > 
+> > > Thank you for testing.  Can you provide the "lsusb -v" output for the
+> > > troublesome IR transceiver?
+> > >   
+> > 
+> > Here's the output:
+> > 
+> > Bus 001 Device 006: ID 1784:0006 TopSeed Technology Corp. eHome Infrared Transceiver
+> > Device Descriptor:
+> >   bLength                18
+> >   bDescriptorType         1
+> >   bcdUSB               2.00
+> >   bDeviceClass            0 
+> >   bDeviceSubClass         0 
+> >   bDeviceProtocol         0 
+> >   bMaxPacketSize0         8
+> >   idVendor           0x1784 TopSeed Technology Corp.
+> >   idProduct          0x0006 eHome Infrared Transceiver
+> >   bcdDevice            1.02
+> >   iManufacturer           1 TopSeed Technology Corp.
+> >   iProduct                2 eHome Infrared Transceiver
+> >   iSerial                 3 TS004RrP
+> >   bNumConfigurations      1
+> >   Configuration Descriptor:
+> >     bLength                 9
+> >     bDescriptorType         2
+> >     wTotalLength           32
+> >     bNumInterfaces          1
+> >     bConfigurationValue     1
+> >     iConfiguration          0 
+> >     bmAttributes         0xa0
+> >       (Bus Powered)
+> >       Remote Wakeup
+> >     MaxPower              100mA
+> >     Interface Descriptor:
+> >       bLength                 9
+> >       bDescriptorType         4
+> >       bInterfaceNumber        0
+> >       bAlternateSetting       0
+> >       bNumEndpoints           2
+> >       bInterfaceClass       255 Vendor Specific Class
+> >       bInterfaceSubClass    255 Vendor Specific Subclass
+> >       bInterfaceProtocol    255 Vendor Specific Protocol
+> >       iInterface              0 
+> >       Endpoint Descriptor:
+> >         bLength                 7
+> >         bDescriptorType         5
+> >         bEndpointAddress     0x01  EP 1 OUT
+> >         bmAttributes            3
+> >           Transfer Type            Interrupt
+> >           Synch Type               None
+> >           Usage Type               Data
+> >         wMaxPacketSize     0x0020  1x 32 bytes
+> >         bInterval               0  
+> 
+> And there's the problem.  0 is an invalid bInterval value for an 
+> Interrupt endpoint.
 
->  		dev->input_name ?: "Unspecified device", path ?: "N/A");
->  	kfree(path);
->  
-> -	rc = rc_setup_rx_device(dev);
-> -	if (rc)
-> -		goto out_dev;
-> +	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-> +		rc = rc_setup_rx_device(dev);
-> +		if (rc)
-> +			goto out_dev;
-> +	}
->  
-> -	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-> +	if (dev->driver_type == RC_DRIVER_IR_RAW ||
-> +				dev->driver_type == RC_DRIVER_IR_RAW_TX) {
->  		if (!raw_init) {
->  			request_module_nowait("ir-lirc-codec");
->  			raw_init = true;
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index 4fc60dd..56e33c1 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -32,13 +32,16 @@ do {								\
->  /**
->   * enum rc_driver_type - type of the RC output
->   *
-> - * @RC_DRIVER_SCANCODE:	Driver or hardware generates a scancode
-> - * @RC_DRIVER_IR_RAW:	Driver or hardware generates pulse/space sequences.
-> - *			It needs a Infra-Red pulse/space decoder
-> + * @RC_DRIVER_SCANCODE:	 Driver or hardware generates a scancode
-> + * @RC_DRIVER_IR_RAW:	 Driver or hardware generates pulse/space sequences.
-> + *			 It needs a Infra-Red pulse/space decoder
-> + * @RC_DRIVER_IR_RAW_TX: Device transmitter only,
-> +			 driver requires pulce/spce data sequence.
->   */
->  enum rc_driver_type {
->  	RC_DRIVER_SCANCODE = 0,
->  	RC_DRIVER_IR_RAW,
-> +	RC_DRIVER_IR_RAW_TX,
->  };
->  
->  /**
-> -- 
-> 2.9.3
+Unfortunately, it is a know issue that some mceusb drivers have the
+bInterval set to zero.
+
+> > Device Status:     0x0001
+> >   Self Powered
+> > 
+> > Wade  
+> 
+> Thank you.  The patch has been submitted.
+
+Thanks!
+
+Mauro
