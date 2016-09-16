@@ -1,121 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60114 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932607AbcIKNbt (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34502 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756670AbcIPNJj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 09:31:49 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: hans.verkuil@cisco.com, brking@us.ibm.com,
-        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com
-Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 4/6] vfio_pci: use pci_irq_allocate_vectors
-Date: Sun, 11 Sep 2016 15:31:26 +0200
-Message-Id: <1473600688-24043-5-git-send-email-hch@lst.de>
-In-Reply-To: <1473600688-24043-1-git-send-email-hch@lst.de>
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
+        Fri, 16 Sep 2016 09:09:39 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: horms@verge.net.au
+Cc: geert@linux-m68k.org, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH 0/3] r8a7793 Gose video input support
+Date: Fri, 16 Sep 2016 15:09:32 +0200
+Message-Id: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simply the interrupt setup by using the new PCI layer helpers.
+Hi!
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/vfio/pci/vfio_pci_intrs.c   | 45 +++++++++----------------------------
- drivers/vfio/pci/vfio_pci_private.h |  1 -
- 2 files changed, 10 insertions(+), 36 deletions(-)
+This is a by-the-datasheet implementation of analog and digital video input
+on the Gose board.
 
-diff --git a/drivers/vfio/pci/vfio_pci_intrs.c b/drivers/vfio/pci/vfio_pci_intrs.c
-index 152b438..a1d283e 100644
---- a/drivers/vfio/pci/vfio_pci_intrs.c
-+++ b/drivers/vfio/pci/vfio_pci_intrs.c
-@@ -250,6 +250,7 @@ static irqreturn_t vfio_msihandler(int irq, void *arg)
- static int vfio_msi_enable(struct vfio_pci_device *vdev, int nvec, bool msix)
- {
- 	struct pci_dev *pdev = vdev->pdev;
-+	unsigned int flag = msix ? PCI_IRQ_MSIX : PCI_IRQ_MSI;
- 	int ret;
- 
- 	if (!is_irq_none(vdev))
-@@ -259,35 +260,13 @@ static int vfio_msi_enable(struct vfio_pci_device *vdev, int nvec, bool msix)
- 	if (!vdev->ctx)
- 		return -ENOMEM;
- 
--	if (msix) {
--		int i;
--
--		vdev->msix = kzalloc(nvec * sizeof(struct msix_entry),
--				     GFP_KERNEL);
--		if (!vdev->msix) {
--			kfree(vdev->ctx);
--			return -ENOMEM;
--		}
--
--		for (i = 0; i < nvec; i++)
--			vdev->msix[i].entry = i;
--
--		ret = pci_enable_msix_range(pdev, vdev->msix, 1, nvec);
--		if (ret < nvec) {
--			if (ret > 0)
--				pci_disable_msix(pdev);
--			kfree(vdev->msix);
--			kfree(vdev->ctx);
--			return ret;
--		}
--	} else {
--		ret = pci_enable_msi_range(pdev, 1, nvec);
--		if (ret < nvec) {
--			if (ret > 0)
--				pci_disable_msi(pdev);
--			kfree(vdev->ctx);
--			return ret;
--		}
-+	/* return the number of supported vectors if we can't get all: */
-+	ret = pci_alloc_irq_vectors(pdev, 1, nvec, flag);
-+	if (ret < nvec) {
-+		if (ret > 0)
-+			pci_free_irq_vectors(pdev);
-+		kfree(vdev->ctx);
-+		return ret;
- 	}
- 
- 	vdev->num_ctx = nvec;
-@@ -315,7 +294,7 @@ static int vfio_msi_set_vector_signal(struct vfio_pci_device *vdev,
- 	if (vector < 0 || vector >= vdev->num_ctx)
- 		return -EINVAL;
- 
--	irq = msix ? vdev->msix[vector].vector : pdev->irq + vector;
-+	irq = pci_irq_vector(pdev, vector);
- 
- 	if (vdev->ctx[vector].trigger) {
- 		free_irq(irq, vdev->ctx[vector].trigger);
-@@ -408,11 +387,7 @@ static void vfio_msi_disable(struct vfio_pci_device *vdev, bool msix)
- 
- 	vfio_msi_set_block(vdev, 0, vdev->num_ctx, NULL, msix);
- 
--	if (msix) {
--		pci_disable_msix(vdev->pdev);
--		kfree(vdev->msix);
--	} else
--		pci_disable_msi(pdev);
-+	pci_free_irq_vectors(pdev);
- 
- 	vdev->irq_type = VFIO_PCI_NUM_IRQS;
- 	vdev->num_ctx = 0;
-diff --git a/drivers/vfio/pci/vfio_pci_private.h b/drivers/vfio/pci/vfio_pci_private.h
-index 2128de8..f561ac1 100644
---- a/drivers/vfio/pci/vfio_pci_private.h
-+++ b/drivers/vfio/pci/vfio_pci_private.h
-@@ -72,7 +72,6 @@ struct vfio_pci_device {
- 	struct perm_bits	*msi_perm;
- 	spinlock_t		irqlock;
- 	struct mutex		igate;
--	struct msix_entry	*msix;
- 	struct vfio_pci_irq_ctx	*ctx;
- 	int			num_ctx;
- 	int			irq_type;
+I don't have that hardware, so if somebody could test this, I would
+appreciate it.  To get the digital part to work, use Hans's R-Car branch
+(https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=rcar) plus the
+"media: adv7604: automatic "default-input" selection" patch.
+
+CU
+Uli
+
+
+Ulrich Hecht (3):
+  ARM: dts: r8a7793: Enable VIN0, VIN1
+  ARM: dts: gose: add HDMI input
+  ARM: dts: gose: add composite video input
+
+ arch/arm/boot/dts/r8a7793-gose.dts | 77 ++++++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/r8a7793.dtsi     | 20 ++++++++++
+ 2 files changed, 97 insertions(+)
+
 -- 
-2.1.4
+2.9.3
 
