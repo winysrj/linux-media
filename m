@@ -1,78 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53859 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751948AbcIPJ4g (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47112
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935556AbcIPQfR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 05:56:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, william.towle@codethink.co.uk,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: adv7604: automatic "default-input" selection
-Date: Fri, 16 Sep 2016 12:57:21 +0300
-Message-ID: <3410700.SJlxHzK90c@avalon>
-In-Reply-To: <20160916093942.17213-3-ulrich.hecht+renesas@gmail.com>
-References: <20160916093942.17213-1-ulrich.hecht+renesas@gmail.com> <20160916093942.17213-3-ulrich.hecht+renesas@gmail.com>
+        Fri, 16 Sep 2016 12:35:17 -0400
+Subject: Re: [PATCH] media: s5p-mfc: fix failure path of
+ s5p_mfc_alloc_memdev()
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <CGME20160916061511eucas1p21e71e28d5f12ef94694ccbdec8379774@eucas1p2.samsung.com>
+ <1474006490-13283-1-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+        stable@vger.kernel.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <101e33da-dc1b-74de-15e9-62ed014e3f60@osg.samsung.com>
+Date: Fri, 16 Sep 2016 12:35:07 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1474006490-13283-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+Hello Marek,
 
-Thank you for the patch.
+On 09/16/2016 02:14 AM, Marek Szyprowski wrote:
+> s5p_mfc_alloc_memdev() function lacks proper releasing of allocated device
+> in case of reserved memory initialization failure. This results in NULL pointer
+> dereference:
 
-On Friday 16 Sep 2016 11:39:42 Ulrich Hecht wrote:
-> Fall back to input 0 if "default-input" property is not present.
-> 
-> Documentation states that the "default-input" property should reside
-> directly in the node for adv7612.
+Patch looks good to me.
 
-Not just fo adv7612.
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-> Hence, also adjust the parsing to make the implementation consistent with
-> this.
-> 
-> Based on patch by William Towle <william.towle@codethink.co.uk>.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/i2c/adv7604.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 4003831..055c9df 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state
-> *state)
-> 	if (!of_property_read_u32(endpoint, "default-input", &v))
-
-Should this be removed if the property has to be in the device node and not in 
-the endpoint ?
-
->  		state->pdata.default_input = v;
->  	else
-> -		state->pdata.default_input = -1;
-> +		state->pdata.default_input = 0;
-
-What was the use case for setting it to -1 ? Is it safe to change that ?
-
->  	of_node_put(endpoint);
-> 
-> +	if (!of_property_read_u32(np, "default-input", &v))
-> +		state->pdata.default_input = v;
-> +
->  	flags = bus_cfg.bus.parallel.flags;
-> 
->  	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-
+Best regards,
 -- 
-Regards,
-
-Laurent Pinchart
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
