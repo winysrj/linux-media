@@ -1,172 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60094 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932306AbcIKNbi (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32008 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751241AbcIPGPR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 09:31:38 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: hans.verkuil@cisco.com, brking@us.ibm.com,
-        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com
-Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/6] arcmsr: use pci_alloc_irq_vectors
-Date: Sun, 11 Sep 2016 15:31:23 +0200
-Message-Id: <1473600688-24043-2-git-send-email-hch@lst.de>
-In-Reply-To: <1473600688-24043-1-git-send-email-hch@lst.de>
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
+        Fri, 16 Sep 2016 02:15:17 -0400
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
+        stable@vger.kernel.org
+Subject: [PATCH] media: s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()
+Date: Fri, 16 Sep 2016 08:14:33 +0200
+Message-id: <1474006490-13283-1-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20160916061511eucas1p21e71e28d5f12ef94694ccbdec8379774@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch the arcmsr driver to use pci_alloc_irq_vectors.  We need to two
-calls to pci_alloc_irq_vectors as arcmsr only supports multiple MSI-X
-vectors, but not multiple MSI vectors.
+s5p_mfc_alloc_memdev() function lacks proper releasing of allocated device
+in case of reserved memory initialization failure. This results in NULL pointer
+dereference:
+[    2.828457] Unable to handle kernel NULL pointer dereference at virtual address 00000001
+[    2.835089] pgd = c0004000
+[    2.837752] [00000001] *pgd=00000000
+[    2.844696] Internal error: Oops: 5 [#1] PREEMPT SMP ARM
+[    2.848680] Modules linked in:
+[    2.851722] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.8.0-rc6-00002-gafa1b97 #878
+[    2.859357] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
+[    2.865433] task: ef080000 task.stack: ef06c000
+[    2.869952] PC is at strcmp+0x0/0x30
+[    2.873508] LR is at platform_match+0x84/0xac
+[    2.877847] pc : [<c032621c>]    lr : [<c03f65e8>]    psr: 20000013
+[    2.877847] sp : ef06dea0  ip : 00000000  fp : 00000000
+[    2.889303] r10: 00000000  r9 : c0b34848  r8 : c0b1e968
+[    2.894511] r7 : 00000000  r6 : 00000001  r5 : c086e7fc  r4 : eeb8e010
+[    2.901021] r3 : 0000006d  r2 : 00000000  r1 : c086e7fc  r0 : 00000001
+[    2.907533] Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment none
+[    2.914649] Control: 10c5387d  Table: 4000404a  DAC: 00000051
+[    2.920378] Process swapper/0 (pid: 1, stack limit = 0xef06c210)
+[    2.926367] Stack: (0xef06dea0 to 0xef06e000)
+[    2.930711] dea0: eeb8e010 c0c2d91c c03f4a6c c03f4a8c 00000000 c0c2d91c c03f4a6c c03f2fc8
+[    2.938870] dec0: ef003274 ef10c4c0 c0c2d91c ef10cc80 c0c21270 c03f3fa4 c09c1be8 c0c2d91c
+[    2.947028] dee0: 00000006 c0c2d91c 00000006 c0b3483c c0c47000 c03f5314 c0c2d908 c0b5fed8
+[    2.955188] df00: 00000006 c010178c 60000013 c0a4ef14 00000000 c06feaa0 ef080000 60000013
+[    2.963347] df20: 00000000 c0c095c8 efffca76 c0816b8c 000000d5 c0134098 c0b34848 c09d6cdc
+[    2.971506] df40: c0a4de70 00000000 00000006 00000006 c0c09568 efffca40 c0b5fed8 00000006
+[    2.979665] df60: c0b3483c c0c47000 000000d5 c0b34848 c0b005a4 c0b00d84 00000006 00000006
+[    2.987824] df80: 00000000 c0b005a4 00000000 c06fb4d8 00000000 00000000 00000000 00000000
+[    2.995983] dfa0: 00000000 c06fb4e0 00000000 c01079b8 00000000 00000000 00000000 00000000
+[    3.004142] dfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[    3.012302] dfe0: 00000000 00000000 00000000 00000000 00000013 00000000 ffffffff ffffffff
+[    3.020469] [<c032621c>] (strcmp) from [<c03f65e8>] (platform_match+0x84/0xac)
+[    3.027672] [<c03f65e8>] (platform_match) from [<c03f4a8c>] (__driver_attach+0x20/0xb0)
+[    3.035654] [<c03f4a8c>] (__driver_attach) from [<c03f2fc8>] (bus_for_each_dev+0x54/0x88)
+[    3.043812] [<c03f2fc8>] (bus_for_each_dev) from [<c03f3fa4>] (bus_add_driver+0xe8/0x1f4)
+[    3.051971] [<c03f3fa4>] (bus_add_driver) from [<c03f5314>] (driver_register+0x78/0xf4)
+[    3.059958] [<c03f5314>] (driver_register) from [<c010178c>] (do_one_initcall+0x3c/0x16c)
+[    3.068123] [<c010178c>] (do_one_initcall) from [<c0b00d84>] (kernel_init_freeable+0x120/0x1ec)
+[    3.076802] [<c0b00d84>] (kernel_init_freeable) from [<c06fb4e0>] (kernel_init+0x8/0x118)
+[    3.084958] [<c06fb4e0>] (kernel_init) from [<c01079b8>] (ret_from_fork+0x14/0x3c)
+[    3.092506] Code: 1afffffb e12fff1e e1a03000 eafffff7 (e4d03001)
+[    3.098618] ---[ end trace 511bf9d750810709 ]---
+[    3.103207] Kernel panic - not syncing: Attempted to kill init! exitcode=0x0000000b
 
-Otherwise this cleans up a lot of cruft and allows to use a common
-request_irq loop for irq types, which happens to only iterate over a
-single line in the non MSI-X case.
+This patch fixes this issue.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Fixes: c79667dd93b084fe412bcfe7fbf0ba43f7dec520 ("media: s5p-mfc: replace custom
+	reserved memory handling code with generic one")
+CC: stable@vger.kernel.org  # v4.7+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/scsi/arcmsr/arcmsr.h     |  5 +--
- drivers/scsi/arcmsr/arcmsr_hba.c | 82 ++++++++++++++++------------------------
- 2 files changed, 33 insertions(+), 54 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/scsi/arcmsr/arcmsr.h b/drivers/scsi/arcmsr/arcmsr.h
-index cf99f8c..a254b32 100644
---- a/drivers/scsi/arcmsr/arcmsr.h
-+++ b/drivers/scsi/arcmsr/arcmsr.h
-@@ -629,7 +629,6 @@ struct AdapterControlBlock
- 	struct pci_dev *		pdev;
- 	struct Scsi_Host *		host;
- 	unsigned long			vir2phy_offset;
--	struct msix_entry	entries[ARCMST_NUM_MSIX_VECTORS];
- 	/* Offset is used in making arc cdb physical to virtual calculations */
- 	uint32_t			outbound_int_enable;
- 	uint32_t			cdb_phyaddr_hi32;
-@@ -671,8 +670,6 @@ struct AdapterControlBlock
- 	/* iop init */
- 	#define ACB_F_ABORT				0x0200
- 	#define ACB_F_FIRMWARE_TRAP           		0x0400
--	#define ACB_F_MSI_ENABLED		0x1000
--	#define ACB_F_MSIX_ENABLED		0x2000
- 	struct CommandControlBlock *			pccb_pool[ARCMSR_MAX_FREECCB_NUM];
- 	/* used for memory free */
- 	struct list_head		ccb_free_list;
-@@ -725,7 +722,7 @@ struct AdapterControlBlock
- 	atomic_t 			rq_map_token;
- 	atomic_t			ante_token_value;
- 	uint32_t	maxOutstanding;
--	int		msix_vector_count;
-+	int		vector_count;
- };/* HW_DEVICE_EXTENSION */
- /*
- *******************************************************************************
-diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
-index 7640498..a267327 100644
---- a/drivers/scsi/arcmsr/arcmsr_hba.c
-+++ b/drivers/scsi/arcmsr/arcmsr_hba.c
-@@ -720,51 +720,39 @@ static void arcmsr_message_isr_bh_fn(struct work_struct *work)
- static int
- arcmsr_request_irq(struct pci_dev *pdev, struct AdapterControlBlock *acb)
- {
--	int	i, j, r;
--	struct msix_entry entries[ARCMST_NUM_MSIX_VECTORS];
--
--	for (i = 0; i < ARCMST_NUM_MSIX_VECTORS; i++)
--		entries[i].entry = i;
--	r = pci_enable_msix_range(pdev, entries, 1, ARCMST_NUM_MSIX_VECTORS);
--	if (r < 0)
--		goto msi_int;
--	acb->msix_vector_count = r;
--	for (i = 0; i < r; i++) {
--		if (request_irq(entries[i].vector,
--			arcmsr_do_interrupt, 0, "arcmsr", acb)) {
-+	unsigned long flags;
-+	int nvec, i;
-+
-+	nvec = pci_alloc_irq_vectors(pdev, 1, ARCMST_NUM_MSIX_VECTORS,
-+			PCI_IRQ_MSIX);
-+	if (nvec > 0) {
-+		pr_info("arcmsr%d: msi-x enabled\n", acb->host->host_no);
-+		flags = 0;
-+	} else {
-+		nvec = pci_alloc_irq_vectors(pdev, 1, 1,
-+				PCI_IRQ_MSI | PCI_IRQ_LEGACY);
-+		if (nvec < 1)
-+			return FAILED;
-+
-+		flags = IRQF_SHARED;
-+	}
-+
-+	acb->vector_count = nvec;
-+	for (i = 0; i < nvec; i++) {
-+		if (request_irq(pci_irq_vector(pdev, i), arcmsr_do_interrupt,
-+				flags, "arcmsr", acb)) {
- 			pr_warn("arcmsr%d: request_irq =%d failed!\n",
--				acb->host->host_no, entries[i].vector);
--			for (j = 0 ; j < i ; j++)
--				free_irq(entries[j].vector, acb);
--			pci_disable_msix(pdev);
--			goto msi_int;
-+				acb->host->host_no, pci_irq_vector(pdev, i));
-+			goto out_free_irq;
- 		}
--		acb->entries[i] = entries[i];
--	}
--	acb->acb_flags |= ACB_F_MSIX_ENABLED;
--	pr_info("arcmsr%d: msi-x enabled\n", acb->host->host_no);
--	return SUCCESS;
--msi_int:
--	if (pci_enable_msi_exact(pdev, 1) < 0)
--		goto legacy_int;
--	if (request_irq(pdev->irq, arcmsr_do_interrupt,
--		IRQF_SHARED, "arcmsr", acb)) {
--		pr_warn("arcmsr%d: request_irq =%d failed!\n",
--			acb->host->host_no, pdev->irq);
--		pci_disable_msi(pdev);
--		goto legacy_int;
--	}
--	acb->acb_flags |= ACB_F_MSI_ENABLED;
--	pr_info("arcmsr%d: msi enabled\n", acb->host->host_no);
--	return SUCCESS;
--legacy_int:
--	if (request_irq(pdev->irq, arcmsr_do_interrupt,
--		IRQF_SHARED, "arcmsr", acb)) {
--		pr_warn("arcmsr%d: request_irq = %d failed!\n",
--			acb->host->host_no, pdev->irq);
--		return FAILED;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index e3f104f..9e88c2f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1073,6 +1073,7 @@ static struct device *s5p_mfc_alloc_memdev(struct device *dev,
+ 							 idx);
+ 		if (ret == 0)
+ 			return child;
++		device_del(child);
  	}
-+
- 	return SUCCESS;
-+out_free_irq:
-+	while (--i >= 0)
-+		free_irq(pci_irq_vector(pdev, i), acb);
-+	pci_free_irq_vectors(pdev);
-+	return FAILED;
- }
  
- static int arcmsr_probe(struct pci_dev *pdev, const struct pci_device_id *id)
-@@ -886,15 +874,9 @@ static void arcmsr_free_irq(struct pci_dev *pdev,
- {
- 	int i;
- 
--	if (acb->acb_flags & ACB_F_MSI_ENABLED) {
--		free_irq(pdev->irq, acb);
--		pci_disable_msi(pdev);
--	} else if (acb->acb_flags & ACB_F_MSIX_ENABLED) {
--		for (i = 0; i < acb->msix_vector_count; i++)
--			free_irq(acb->entries[i].vector, acb);
--		pci_disable_msix(pdev);
--	} else
--		free_irq(pdev->irq, acb);
-+	for (i = 0; i < acb->vector_count; i++)
-+		free_irq(pci_irq_vector(pdev, i), acb);
-+	pci_free_irq_vectors(pdev);
- }
- 
- static int arcmsr_suspend(struct pci_dev *pdev, pm_message_t state)
+ 	put_device(child);
 -- 
-2.1.4
+1.9.1
 
