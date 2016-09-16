@@ -1,56 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46920 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758819AbcIMXQe (ORCPT
+Received: from atlantic540.startdedicated.de ([188.138.9.77]:55339 "EHLO
+        atlantic540.startdedicated.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933625AbcIPL03 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Sep 2016 19:16:34 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+        Fri, 16 Sep 2016 07:26:29 -0400
+From: Daniel Wagner <wagi@monom.org>
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: [PATCH 03/13] v4l: vsp1: Ensure pipeline locking in resume path
-Date: Wed, 14 Sep 2016 02:16:56 +0300
-Message-Id: <1473808626-19488-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Jarod Wilson <jarod@wilsonet.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org,
+        Daniel Wagner <daniel.wagner@bmw-carit.de>
+Subject: [PATCH 1/2] [media] imon: use complete() instead of complete_all()
+Date: Fri, 16 Sep 2016 13:18:21 +0200
+Message-Id: <1474024702-19436-2-git-send-email-wagi@monom.org>
+In-Reply-To: <1474024702-19436-1-git-send-email-wagi@monom.org>
+References: <1474024702-19436-1-git-send-email-wagi@monom.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran+renesas@bingham.xyz>
+From: Daniel Wagner <daniel.wagner@bmw-carit.de>
 
-The vsp1_pipeline_ready() and vsp1_pipeline_run() functions must be
-called with the pipeline lock held, fix the resume code path.
+There is only one waiter for the completion, therefore there is no need
+to use complete_all(). Let's make that clear by using complete() instead
+of complete_all().
 
-Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+While we are at it, we do a small optimization with the reinitialization
+of the completion before we use it.
+
+The usage pattern of the completion is:
+
+waiter context                          waker context
+
+send_packet()
+  init_completion()
+  usb_submit_urb()
+  wait_for_completion_interruptible()
+
+                                        usb_tx_callback()
+                                          complete()
+
+                                        imon_disonnect()
+                                          complete()
+
+Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/rc/imon.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 3e75fb3fcace..474de82165d8 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -365,6 +365,7 @@ void vsp1_pipelines_suspend(struct vsp1_device *vsp1)
- 
- void vsp1_pipelines_resume(struct vsp1_device *vsp1)
- {
-+	unsigned long flags;
- 	unsigned int i;
- 
- 	/* Resume all running pipelines. */
-@@ -379,7 +380,9 @@ void vsp1_pipelines_resume(struct vsp1_device *vsp1)
- 		if (pipe == NULL)
- 			continue;
- 
-+		spin_lock_irqsave(&pipe->irqlock, flags);
- 		if (vsp1_pipeline_ready(pipe))
- 			vsp1_pipeline_run(pipe);
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 65f80b8..38cdfd6 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -611,7 +611,7 @@ static int send_packet(struct imon_context *ictx)
+ 		ictx->tx_urb->actual_length = 0;
  	}
- }
+ 
+-	init_completion(&ictx->tx.finished);
++	reinit_completion(&ictx->tx.finished);
+ 	ictx->tx.busy = true;
+ 	smp_rmb(); /* ensure later readers know we're busy */
+ 
+@@ -2233,6 +2233,8 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf,
+ 	ictx->tx_urb = tx_urb;
+ 	ictx->rf_device = false;
+ 
++	init_completion(&ictx->tx.finished);
++
+ 	ictx->vendor  = le16_to_cpu(ictx->usbdev_intf0->descriptor.idVendor);
+ 	ictx->product = le16_to_cpu(ictx->usbdev_intf0->descriptor.idProduct);
+ 
+@@ -2511,7 +2513,7 @@ static void imon_disconnect(struct usb_interface *interface)
+ 	/* Abort ongoing write */
+ 	if (ictx->tx.busy) {
+ 		usb_kill_urb(ictx->tx_urb);
+-		complete_all(&ictx->tx.finished);
++		complete(&ictx->tx.finished);
+ 	}
+ 
+ 	if (ifnum == 0) {
 -- 
-Regards,
-
-Laurent Pinchart
-
+2.7.4
