@@ -1,81 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55028 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932483AbcIEKcs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:48 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 04/12] [media] mb86a20s: fix the locking logic
-Date: Mon,  5 Sep 2016 07:32:32 -0300
-Message-Id: <15155db2de50cd9ceaa896a21a877211c1837b1c.1473071468.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
-References: <cover.1473071468.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
-References: <cover.1473071468.git.mchehab@s-opensource.com>
+Received: from mga06.intel.com ([134.134.136.31]:60293 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933781AbcIPLuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 07:50:20 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        mchehab@s-opensource.com
+Subject: [PATCH v5 1/4] media: Determine early whether an IOCTL is supported
+Date: Fri, 16 Sep 2016 14:49:05 +0300
+Message-Id: <1474026548-28829-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Preparation for refactoring media IOCTL handling to unify common parts.
 
-On this frontend, it takes a while to start output normal
-TS data. That only happens on state S9. On S8, the TS output
-is enabled, but it is not reliable enough.
-
-However, the zigzag loop is too fast to let it sync.
-
-As, on practical tests, the zigzag software loop doesn't
-seem to be helping, but just slowing down the tuning, let's
-switch to hardware algorithm, as the tuners used on such
-devices are capable of work with frequency drifts without
-any help from software.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ drivers/media/media-device.c | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index fb88dddaf3a3..66939eca445b 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -317,7 +317,11 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	if (val >= 7)
- 		*status |= FE_HAS_SYNC;
- 
--	if (val >= 8)				/* Maybe 9? */
-+	/*
-+	 * Actually, on state S8, it starts receiving TS, but the TS
-+	 * output is only on normal state after the transition to S9.
-+	 */
-+	if (val >= 9)
- 		*status |= FE_HAS_LOCK;
- 
- 	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
-@@ -2057,6 +2061,11 @@ static void mb86a20s_release(struct dvb_frontend *fe)
- 	kfree(state);
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 1795abe..f321264 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -419,6 +419,22 @@ static long media_device_get_topology(struct media_device *mdev,
+ 	return 0;
  }
  
-+static int mb86a20s_get_frontend_algo(struct dvb_frontend *fe)
-+{
-+        return DVBFE_ALGO_HW;
-+}
++#define MEDIA_IOC(__cmd) \
++	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
 +
- static struct dvb_frontend_ops mb86a20s_ops;
++/* the table is indexed by _IOC_NR(cmd) */
++struct media_ioctl_info {
++	unsigned int cmd;
++};
++
++static const struct media_ioctl_info ioctl_info[] = {
++	MEDIA_IOC(DEVICE_INFO),
++	MEDIA_IOC(ENUM_ENTITIES),
++	MEDIA_IOC(ENUM_LINKS),
++	MEDIA_IOC(SETUP_LINK),
++	MEDIA_IOC(G_TOPOLOGY),
++};
++
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
+ {
+@@ -426,6 +442,10 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 	struct media_device *dev = devnode->media_dev;
+ 	long ret;
  
- struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
-@@ -2129,6 +2138,7 @@ static struct dvb_frontend_ops mb86a20s_ops = {
- 	.read_status = mb86a20s_read_status_and_stats,
- 	.read_signal_strength = mb86a20s_read_signal_strength_from_cache,
- 	.tune = mb86a20s_tune,
-+	.get_frontend_algo = mb86a20s_get_frontend_algo,
- };
- 
- MODULE_DESCRIPTION("DVB Frontend module for Fujitsu mb86A20s hardware");
++	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
++	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
++		return -ENOIOCTLCMD;
++
+ 	mutex_lock(&dev->graph_mutex);
+ 	switch (cmd) {
+ 	case MEDIA_IOC_DEVICE_INFO:
 -- 
 2.7.4
-
 
