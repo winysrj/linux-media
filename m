@@ -1,41 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36849 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753195AbcIBXkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Sep 2016 19:40:53 -0400
-To: LMML <linux-media@vger.kernel.org>
-Cc: =?UTF-8?Q?Stefan_P=c3=b6schel?= <basic.master@gmx.de>
-From: Antti Palosaari <crope@iki.fi>
-Subject: [GIT PULL STABLE 4.6] af9035 regression
-Message-ID: <1e077824-104b-4665-96c8-de46c1a63a5d@iki.fi>
-Date: Sat, 3 Sep 2016 02:40:52 +0300
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:56413 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933144AbcIPK5b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Sep 2016 06:57:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 7/8] adv7604: add vic detect
+Date: Fri, 16 Sep 2016 12:57:10 +0200
+Message-Id: <1474023431-32533-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 2dcd0af568b0cf583645c8a317dd12e344b1c72a:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-   Linux 4.6 (2016-05-15 15:43:13 -0700)
+Obtain the correct timings based on the VIC code from the AVI InfoFrame.
 
-are available in the git repository at:
+It does a sanity check to see if at least the measured width and height
+are in line with what the VIC code reports. If not, then use the timings
+instead of the VIC code (as per the CEA-861 spec).
 
-   git://linuxtv.org/anttip/media_tree.git af9035_fix
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-for you to fetch changes up to 7bb87ff5255defe87916f32cd1fcef163a489339:
-
-   af9035: fix dual tuner detection with PCTV 79e (2016-09-03 02:23:44 
-+0300)
-
-----------------------------------------------------------------
-Stefan Pöschel (1):
-       af9035: fix dual tuner detection with PCTV 79e
-
-  drivers/media/usb/dvb-usb-v2/af9035.c | 53 
-+++++++++++++++++++++++++++++++++++------------------
-  drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
-  2 files changed, 36 insertions(+), 19 deletions(-)
-
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4003831..1ab7572 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1566,10 +1566,24 @@ static int adv76xx_query_dv_timings(struct v4l2_subdev *sd,
+ 		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
+ 
+ 	if (is_digital_input(sd)) {
++		bool hdmi_signal = hdmi_read(sd, 0x05) & 0x80;
++		u8 vic = 0;
++		u32 w, h;
++
++		w = hdmi_read16(sd, 0x07, info->linewidth_mask);
++		h = hdmi_read16(sd, 0x09, info->field0_height_mask);
++
++		if (hdmi_signal && (io_read(sd, 0x60) & 1))
++			vic = infoframe_read(sd, 0x04);
++
++		if (vic && v4l2_find_dv_timings_cea861_vic(timings, vic) &&
++		    bt->width == w && bt->height == h)
++			goto found;
++
+ 		timings->type = V4L2_DV_BT_656_1120;
+ 
+-		bt->width = hdmi_read16(sd, 0x07, info->linewidth_mask);
+-		bt->height = hdmi_read16(sd, 0x09, info->field0_height_mask);
++		bt->width = w;
++		bt->height = h;
+ 		bt->pixelclock = info->read_hdmi_pixelclock(sd);
+ 		bt->hfrontporch = hdmi_read16(sd, 0x20, info->hfrontporch_mask);
+ 		bt->hsync = hdmi_read16(sd, 0x22, info->hsync_mask);
 -- 
-http://palosaari.fi/
+2.8.1
+
