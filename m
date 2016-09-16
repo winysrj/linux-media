@@ -1,75 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avasout05.plus.net ([84.93.230.250]:51552 "EHLO
-        avasout05.plus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756170AbcIOUbR (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:40635 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1765182AbcIPK5Y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 16:31:17 -0400
-Date: Thu, 15 Sep 2016 21:23:31 +0100
-From: Nick Dyer <nick@shmanahar.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-        Andrew Duggan <aduggan@synaptics.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-input@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] [media] Input: synaptics-rmi4: disallow impossible
- configuration
-Message-ID: <20160915202331.GA18925@lava.h.shmanahar.org>
-References: <20160912153105.3035940-1-arnd@arndb.de>
- <20160912153105.3035940-2-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160912153105.3035940-2-arnd@arndb.de>
+        Fri, 16 Sep 2016 06:57:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 2/8] videodev2.h: add VICs and picture aspect ratio
+Date: Fri, 16 Sep 2016 12:57:05 +0200
+Message-Id: <1474023431-32533-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 12, 2016 at 05:30:33PM +0200, Arnd Bergmann wrote:
-> The newly added debug mode for the synaptics-rmi4 driver relies on
-> the v4l2 interface and vb2_vmalloc, but those might be configured
-> as loadable modules when the driver itself is built-in, resulting
-> in a link failure:
-> 
-> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_remove':
-> rmi_f54.c:(.text.rmi_f54_remove+0x14): undefined reference to `video_unregister_device'
-> rmi_f54.c:(.text.rmi_f54_remove+0x20): undefined reference to `v4l2_device_unregister'
-> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_s_input':
-> rmi_f54.c:(.text.rmi_f54_vidioc_s_input+0x10): undefined reference to `video_devdata'
-> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_g_input':
-> rmi_f54.c:(.text.rmi_f54_vidioc_g_input+0x10): undefined reference to `video_devdata'
-> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_fmt':
-> rmi_f54.c:(.text.rmi_f54_vidioc_fmt+0x10): undefined reference to `video_devdata'
-> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_enum_input':
-> rmi_f54.c:(.text.rmi_f54_vidioc_enum_input+0x10): undefined reference to `video_devdata'
-> drivers/input/rmi4/rmi_core.o: In function `rmi_f54_vidioc_querycap':
-> ...
-> 
-> The best workaround I could come up with is to disallow the debug
-> mode unless it's actually possible to call it.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Fixes: 3a762dbd5347 ("[media] Input: synaptics-rmi4 - add support for F54 diagnostics")
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Nick Dyer <nick@shmanahar.org>
+Add picture aspect ratio information, the CEA-861 VIC (Video Identification
+Code) and the HDMI VIC to struct v4l2_bt_timings.
 
-> ---
->  drivers/input/rmi4/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/input/rmi4/Kconfig b/drivers/input/rmi4/Kconfig
-> index f3418b65eb41..4c8a55857e00 100644
-> --- a/drivers/input/rmi4/Kconfig
-> +++ b/drivers/input/rmi4/Kconfig
-> @@ -65,7 +65,7 @@ config RMI4_F30
->  config RMI4_F54
->  	bool "RMI4 Function 54 (Analog diagnostics)"
->  	depends on RMI4_CORE
-> -	depends on VIDEO_V4L2
-> +	depends on VIDEO_V4L2=y || (RMI4_CORE=m && VIDEO_V4L2=m)
->  	select VIDEOBUF2_VMALLOC
->  	help
->  	  Say Y here if you want to add support for RMI4 function 54
-> -- 
-> 2.9.0
-> 
+The picture aspect was chosen rather than the pixel aspect since 1) the
+CEA-861 standard uses picture aspect, and 2) pixel aspect ratio can become
+tricky when dealing with pixel repeat timings. While we don't support those
+yet at the moment, this might become necessary. And in that case using
+picture aspect ratio makes more sense. And converting picture aspect ratio
+to pixel aspect ratio is easy enough.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 3a2d94f..784bfeb 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1229,6 +1229,9 @@ struct v4l2_standard {
+  *		(aka field 2) of interlaced field formats
+  * @standards:	Standards the timing belongs to
+  * @flags:	Flags
++ * @picture_aspect: The picture aspect ratio (hor/vert).
++ * @cea861_vic:	VIC code as per the CEA-861 standard.
++ * @hdmi_vic:	VIC code as per the HDMI standard.
+  * @reserved:	Reserved fields, must be zeroed.
+  *
+  * A note regarding vertical interlaced timings: height refers to the total
+@@ -1258,7 +1261,10 @@ struct v4l2_bt_timings {
+ 	__u32	il_vbackporch;
+ 	__u32	standards;
+ 	__u32	flags;
+-	__u32	reserved[14];
++	struct v4l2_fract picture_aspect;
++	__u8	cea861_vic;
++	__u8	hdmi_vic;
++	__u8	reserved[46];
+ } __attribute__ ((packed));
+ 
+ /* Interlaced or progressive format */
+@@ -1315,6 +1321,23 @@ struct v4l2_bt_timings {
+  * except for the 640x480 format are CE formats.
+  */
+ #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
++/*
++ * If set, then the picture_aspect field is valid. Otherwise assume that the
++ * pixels are square, so the picture aspect ratio is the same as the width to
++ * height ratio.
++ */
++#define V4L2_DV_FL_HAS_PICTURE_ASPECT		(1 << 5)
++/*
++ * If set, then the cea861_vic field is valid and contains the Video
++ * Identification Code as per the CEA-861 standard.
++ */
++#define V4L2_DV_FL_HAS_CEA861_VIC		(1 << 6)
++/*
++ * If set, then the hdmi_vic field is valid and contains the Video
++ * Identification Code as per the HDMI standard (HDMI Vendor Specific
++ * InfoFrame).
++ */
++#define V4L2_DV_FL_HAS_HDMI_VIC			(1 << 7)
+ 
+ /* A few useful defines to calculate the total blanking and frame sizes */
+ #define V4L2_DV_BT_BLANKING_WIDTH(bt) \
+-- 
+2.8.1
+
