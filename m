@@ -1,110 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46815
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935495AbcIPPD3 (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.13]:49415 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752342AbcIQP34 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 11:03:29 -0400
-Date: Fri, 16 Sep 2016 12:03:22 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Wade Berrier <wberrier@gmail.com>, Sean Young <sean@mess.org>,
-        <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
-Subject: Re: mceusb xhci issue?
-Message-ID: <20160916120322.466d23b8@vento.lan>
-In-Reply-To: <Pine.LNX.4.44L0.1609161024350.1657-100000@iolanthe.rowland.org>
-References: <20160915224804.GA14827@miniwade.localdomain>
-        <Pine.LNX.4.44L0.1609161024350.1657-100000@iolanthe.rowland.org>
+        Sat, 17 Sep 2016 11:29:56 -0400
+Date: Sat, 17 Sep 2016 17:29:51 +0200 (CEST)
+From: Bodo Eggert <7eggert@gmx.de>
+To: linux-media@vger.kernel.org, 7eggert@gmx.de
+Subject: BTTV problem: Terratec TV+ BT848 card: No composite input
+Message-ID: <alpine.DEB.2.11.1609132237440.1532@be6.lrz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Sep 2016 10:25:31 -0400 (EDT)
-Alan Stern <stern@rowland.harvard.edu> escreveu:
+Hardware (short description): Terratec TV+ BT848 card "1.0", reactivated 
+after several years. Video source is a camera (or a random DVB-T receiver 
+displaying "no signal" text, just for testing).
 
-> On Thu, 15 Sep 2016, Wade Berrier wrote:
-> 
-> > On Thu Sep 15 15:13, Alan Stern wrote:  
-> > > On Sat, 10 Sep 2016, Wade Berrier wrote:
-> > >   
-> > > > On Thu Aug 11 16:18, Alan Stern wrote:  
-> > > > > I never received any replies to this message.  Should the patch I 
-> > > > > suggested be merged?
-> > > > >  
-> > > > 
-> > > > Hello,
-> > > > 
-> > > > I applied this updated patch to the fedora23 4.7.2 kernel and the mceusb
-> > > > transceiver works as expected.  
-> > > 
-> > > Thank you for testing.  Can you provide the "lsusb -v" output for the
-> > > troublesome IR transceiver?
-> > >   
-> > 
-> > Here's the output:
-> > 
-> > Bus 001 Device 006: ID 1784:0006 TopSeed Technology Corp. eHome Infrared Transceiver
-> > Device Descriptor:
-> >   bLength                18
-> >   bDescriptorType         1
-> >   bcdUSB               2.00
-> >   bDeviceClass            0 
-> >   bDeviceSubClass         0 
-> >   bDeviceProtocol         0 
-> >   bMaxPacketSize0         8
-> >   idVendor           0x1784 TopSeed Technology Corp.
-> >   idProduct          0x0006 eHome Infrared Transceiver
-> >   bcdDevice            1.02
-> >   iManufacturer           1 TopSeed Technology Corp.
-> >   iProduct                2 eHome Infrared Transceiver
-> >   iSerial                 3 TS004RrP
-> >   bNumConfigurations      1
-> >   Configuration Descriptor:
-> >     bLength                 9
-> >     bDescriptorType         2
-> >     wTotalLength           32
-> >     bNumInterfaces          1
-> >     bConfigurationValue     1
-> >     iConfiguration          0 
-> >     bmAttributes         0xa0
-> >       (Bus Powered)
-> >       Remote Wakeup
-> >     MaxPower              100mA
-> >     Interface Descriptor:
-> >       bLength                 9
-> >       bDescriptorType         4
-> >       bInterfaceNumber        0
-> >       bAlternateSetting       0
-> >       bNumEndpoints           2
-> >       bInterfaceClass       255 Vendor Specific Class
-> >       bInterfaceSubClass    255 Vendor Specific Subclass
-> >       bInterfaceProtocol    255 Vendor Specific Protocol
-> >       iInterface              0 
-> >       Endpoint Descriptor:
-> >         bLength                 7
-> >         bDescriptorType         5
-> >         bEndpointAddress     0x01  EP 1 OUT
-> >         bmAttributes            3
-> >           Transfer Type            Interrupt
-> >           Synch Type               None
-> >           Usage Type               Data
-> >         wMaxPacketSize     0x0020  1x 32 bytes
-> >         bInterval               0  
-> 
-> And there's the problem.  0 is an invalid bInterval value for an 
-> Interrupt endpoint.
+Software used for testing: qv4l2, Debian Jessie. I assume neither they nor 
+you changed something recently so I didn't try a git kernel.
 
-Unfortunately, it is a know issue that some mceusb drivers have the
-bInterval set to zero.
 
-> > Device Status:     0x0001
-> >   Self Powered
-> > 
-> > Wade  
-> 
-> Thank you.  The patch has been submitted.
+Problem: No picture recognized on composite input.
 
-Thanks!
+The composite input did work previously (IIRC V4L 1). The video sources do 
+work, I get a black & white picture when connecting the same source to the 
+SVHS input (using an adapter).
 
-Mauro
+On "Composite1", I get no picture at all, but a blue background. Sometimes 
+I get a framecounter (25 FPS), but if I do, it keeps counting after I 
+unplug the video source.
+
+Using different card= values (1 .. 30), I get similar results.
+
+I traced the input to the correct pin, according to the data sheet.
+
+Off cause the card might just be broken, but maybe there is something else 
+I might try?
+
+
+Hardware (details):
+
+#lspci -vnn
+...
+01:06.0 Multimedia video controller [0400]: Brooktree Corporation Bt848 
+Video Capture [109e:0350] (rev 12)
+...
+Kernel driver in use: bttv
+
+# modprobe -v bttv
+insmod /lib/modules/3.16.0-4-amd64/kernel/drivers/media/pci/bt8xx/bttv.ko 
+card=25 pll=2
+
+On the card, there is a 35 MHz XTAL. Also I did test with pll=0, no 
+obvious change.
+
+The card is equipped with a radio connector - no radio connected.
+
+# dmesg
+[11861.804207] bttv: driver version 0.9.19 loaded
+[11861.804220] bttv: using 8 buffers with 2080k (520 pages) each for 
+capture
+[11861.804309] bttv: Bt8xx card found (0)
+[11861.804345] bttv: 0: Bt848 (rev 18) at 0000:01:06.0, irq: 17, latency: 
+16, mmio: 0xfdeff000
+[11861.804376] bttv: 0: using: Terratec TerraTV+ Version 1.0 (Bt848)/ 
+Terra TValue Version 1.0/ Vobis TV-Boostar [card=25,insmod option]
+[11862.804023] bttv: 0: tea5757: read timeout
+[11862.804029] bttv: 0: tuner type=5
+[11862.813526] bttv: 0: audio absent, no audio device found!
+[11862.819402] All bytes are equal. It is not a TEA5767
+[11862.819414] tuner 2-0060: Tuner -1 found with type(s) Radio TV.
+[11862.819694] tuner-simple 2-0060: creating new instance
+[11862.819697] tuner-simple 2-0060: type set to 5 (Philips PAL_BG (FI1216 
+and compatibles))
+[11862.821013] bttv: 0: PLL can sleep, using XTAL (35468950)
+[11862.821753] bttv: 0: registered device video0
+[11862.821816] bttv: 0: registered device vbi0
+
+# uname -a
+Linux be12 3.16.0-4-amd64 #1 SMP Debian 3.16.7-ckt20-1+deb8u2 (2016-01-02) 
+x86_64 GNU/Linux
+
