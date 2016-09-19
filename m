@@ -1,158 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:37810 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752737AbcIHNJP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 09:09:15 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH v6 2/6] dt-bindings: Add a binding for Mediatek MDP
-Date: Thu, 8 Sep 2016 21:09:02 +0800
-Message-ID: <1473340146-6598-3-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1473340146-6598-1-git-send-email-minghsiu.tsai@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35304 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753329AbcISWDK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 18:03:10 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v3 03/18] smiapp: Initialise media entity after sensor init
+Date: Tue, 20 Sep 2016 01:02:36 +0300
+Message-Id: <1474322571-20290-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation of MDP for the MT8173 SoC
-from Mediatek
+This allows determining the number of pads in the entity based on the
+sensor.
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../devicetree/bindings/media/mediatek-mdp.txt     |  109 ++++++++++++++++++++
- 1 file changed, 109 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-mdp.txt
+ drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-mdp.txt b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-new file mode 100644
-index 0000000..4182063
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-mdp.txt
-@@ -0,0 +1,109 @@
-+* Mediatek Media Data Path
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 2090b7f..4f97503 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -3058,12 +3058,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+ 	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	sensor->src->sensor = sensor;
+-
+ 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+-	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
+-				 sensor->src->pads);
+-	if (rval < 0)
+-		return rval;
+ 
+ 	if (client->dev.of_node) {
+ 		rval = smiapp_init(sensor);
+@@ -3071,6 +3066,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 			goto out_media_entity_cleanup;
+ 	}
+ 
++	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
++				 sensor->src->pads);
++	if (rval < 0)
++		goto out_media_entity_cleanup;
 +
-+Media Data Path is used for scaling and color space conversion.
-+
-+Required properties (controller (parent) node):
-+- compatible: "mediatek,mt8173-mdp"
-+- mediatek,vpu: the node of video processor unit, see
-+  Documentation/devicetree/bindings/media/mediatek-vpu.txt for details.
-+
-+Required properties (all function blocks, child node):
-+- compatible: Should be one of
-+        "mediatek,mt8173-mdp-rdma"  - read DMA
-+        "mediatek,mt8173-mdp-rsz"   - resizer
-+        "mediatek,mt8173-mdp-wdma"  - write DMA
-+        "mediatek,mt8173-mdp-wrot"  - write DMA with rotation
-+- reg: Physical base address and length of the function block register space
-+- clocks: device clocks, see
-+  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
-+- power-domains: a phandle to the power domain, see
-+  Documentation/devicetree/bindings/power/power_domain.txt for details.
-+
-+Required properties (DMA function blocks, child node):
-+- compatible: Should be one of
-+        "mediatek,mt8173-mdp-rdma"
-+        "mediatek,mt8173-mdp-wdma"
-+        "mediatek,mt8173-mdp-wrot"
-+- iommus: should point to the respective IOMMU block with master port as
-+  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-+  for details.
-+- mediatek,larb: must contain the local arbiters in the current Socs, see
-+  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-+  for details.
-+
-+Example:
-+mdp {
-+	compatible = "mediatek,mt8173-mdp";
-+	#address-cells = <2>;
-+	#size-cells = <2>;
-+	ranges;
-+	mediatek,vpu = <&vpu>;
-+
-+	mdp_rdma0: rdma@14001000 {
-+		compatible = "mediatek,mt8173-mdp-rdma";
-+		reg = <0 0x14001000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RDMA0>,
-+			 <&mmsys CLK_MM_MUTEX_32K>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_RDMA0>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_rdma1: rdma@14002000 {
-+		compatible = "mediatek,mt8173-mdp-rdma";
-+		reg = <0 0x14002000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RDMA1>,
-+			 <&mmsys CLK_MM_MUTEX_32K>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_RDMA1>;
-+		mediatek,larb = <&larb4>;
-+	};
-+
-+	mdp_rsz0: rsz@14003000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14003000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ0>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_rsz1: rsz@14004000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14004000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ1>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_rsz2: rsz@14005000 {
-+		compatible = "mediatek,mt8173-mdp-rsz";
-+		reg = <0 0x14005000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_RSZ2>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+	};
-+
-+	mdp_wdma0: wdma@14006000 {
-+		compatible = "mediatek,mt8173-mdp-wdma";
-+		reg = <0 0x14006000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WDMA>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WDMA>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_wrot0: wrot@14007000 {
-+		compatible = "mediatek,mt8173-mdp-wrot";
-+		reg = <0 0x14007000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WROT0>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WROT0>;
-+		mediatek,larb = <&larb0>;
-+	};
-+
-+	mdp_wrot1: wrot@14008000 {
-+		compatible = "mediatek,mt8173-mdp-wrot";
-+		reg = <0 0x14008000 0 0x1000>;
-+		clocks = <&mmsys CLK_MM_MDP_WROT1>;
-+		power-domains = <&scpsys MT8173_POWER_DOMAIN_MM>;
-+		iommus = <&iommu M4U_PORT_MDP_WROT1>;
-+		mediatek,larb = <&larb4>;
-+	};
-+};
+ 	rval = v4l2_async_register_subdev(&sensor->src->sd);
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
 -- 
-1.7.9.5
+2.1.4
 
