@@ -1,92 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50199 "EHLO comal.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934106AbcI1VXk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:23:40 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch 32/35] media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
-Date: Wed, 28 Sep 2016 16:23:37 -0500
-Message-ID: <20160928212337.27760-1-bparrot@ti.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:14558 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753067AbcISGev (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 02:34:51 -0400
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH 1/2] media: mtk-mdp: fix build warning in arch x86
+Date: Mon, 19 Sep 2016 14:34:42 +0800
+Message-ID: <1474266883-51155-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1474266883-51155-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1474266883-51155-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add RAW8 and RAW16 data type to VPDMA.
-To handle RAW format we are re-using the YUV CBY422
-vpdma data type so that we use the vpdma to re-order
-the incoming bytes, as the VIP parser assumes that the
-first byte presented on the bus is the MSB of a 2
-bytes value.
+This patch fix build warning in arch x86
 
-RAW8 handles from 1 to 8 bits.
-RAW16 handles from 9 to 16 bits.
-
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c | 23 +++++++++++++++++++++++
- drivers/media/platform/ti-vpe/vpdma.h |  6 ++++++
- 2 files changed, 29 insertions(+)
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c |    1 +
+ drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c |   10 ++++++----
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index e8ed6bae83ed..422fb0840e6e 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -191,6 +191,29 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
- };
- EXPORT_SYMBOL(vpdma_rgb_fmts);
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index a90972e..9a747e7 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -17,6 +17,7 @@
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
+ #include <linux/workqueue.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c b/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
+index fb07bf3..39188e5 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
+@@ -25,7 +25,8 @@ static inline struct mtk_mdp_ctx *vpu_to_ctx(struct mtk_mdp_vpu *vpu)
  
-+/*
-+ * To handle RAW format we are re-using the CBY422
-+ * vpdma data type so that we use the vpdma to re-order
-+ * the incoming bytes, as the parser assumes that the
-+ * first byte presented on the bus is the MSB of a 2
-+ * bytes value.
-+ * RAW8 handles from 1 to 8 bits
-+ * RAW16 handles from 9 to 16 bits
-+ */
-+const struct vpdma_data_format vpdma_raw_fmts[] = {
-+	[VPDMA_DATA_FMT_RAW8] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
-+		.data_type	= DATA_TYPE_CBY422,
-+		.depth		= 8,
-+	},
-+	[VPDMA_DATA_FMT_RAW16] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
-+		.data_type	= DATA_TYPE_CBY422,
-+		.depth		= 16,
-+	},
-+};
-+EXPORT_SYMBOL(vpdma_raw_fmts);
-+
- const struct vpdma_data_format vpdma_misc_fmts[] = {
- 	[VPDMA_DATA_FMT_MV] = {
- 		.type		= VPDMA_DATA_FMT_TYPE_MISC,
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index 0df156b7c1cf..131700c112b2 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -104,12 +104,18 @@ enum vpdma_rgb_formats {
- 	VPDMA_DATA_FMT_BGRA32,
- };
+ static void mtk_mdp_vpu_handle_init_ack(struct mdp_ipi_comm_ack *msg)
+ {
+-	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)msg->ap_inst;
++	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)
++					(unsigned long)msg->ap_inst;
  
-+enum vpdma_raw_formats {
-+	VPDMA_DATA_FMT_RAW8 = 0,
-+	VPDMA_DATA_FMT_RAW16,
-+};
-+
- enum vpdma_misc_formats {
- 	VPDMA_DATA_FMT_MV = 0,
- };
+ 	/* mapping VPU address to kernel virtual address */
+ 	vpu->vsi = (struct mdp_process_vsi *)
+@@ -37,7 +38,8 @@ static void mtk_mdp_vpu_ipi_handler(void *data, unsigned int len, void *priv)
+ {
+ 	unsigned int msg_id = *(unsigned int *)data;
+ 	struct mdp_ipi_comm_ack *msg = (struct mdp_ipi_comm_ack *)data;
+-	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)msg->ap_inst;
++	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)
++					(unsigned long)msg->ap_inst;
+ 	struct mtk_mdp_ctx *ctx;
  
- extern const struct vpdma_data_format vpdma_yuv_fmts[];
- extern const struct vpdma_data_format vpdma_rgb_fmts[];
-+extern const struct vpdma_data_format vpdma_raw_fmts[];
- extern const struct vpdma_data_format vpdma_misc_fmts[];
+ 	vpu->failure = msg->status;
+@@ -108,7 +110,7 @@ static int mtk_mdp_vpu_send_ap_ipi(struct mtk_mdp_vpu *vpu, uint32_t msg_id)
+ 	msg.msg_id = msg_id;
+ 	msg.ipi_id = IPI_MDP;
+ 	msg.vpu_inst_addr = vpu->inst_addr;
+-	msg.ap_inst = (uint64_t)vpu;
++	msg.ap_inst = (unsigned long)vpu;
+ 	err = mtk_mdp_vpu_send_msg((void *)&msg, sizeof(msg), vpu, IPI_MDP);
+ 	if (!err && vpu->failure)
+ 		err = -EINVAL;
+@@ -126,7 +128,7 @@ int mtk_mdp_vpu_init(struct mtk_mdp_vpu *vpu)
  
- enum vpdma_frame_start_event {
+ 	msg.msg_id = AP_MDP_INIT;
+ 	msg.ipi_id = IPI_MDP;
+-	msg.ap_inst = (uint64_t)vpu;
++	msg.ap_inst = (unsigned long)vpu;
+ 	err = mtk_mdp_vpu_send_msg((void *)&msg, sizeof(msg), vpu, IPI_MDP);
+ 	if (!err && vpu->failure)
+ 		err = -EINVAL;
 -- 
-2.9.0
+1.7.9.5
 
