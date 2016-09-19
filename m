@@ -1,48 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33936 "EHLO mail.kapsi.fi"
+Received: from smtp3-1.goneo.de ([85.220.129.38]:51766 "EHLO smtp3-1.goneo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933999AbcIFKVr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 06:21:47 -0400
-Received: from mobile-access-5d6aa6-113.dhcp.inet.fi ([93.106.166.113] helo=[192.168.1.2])
-        by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
-        (Exim 4.80)
-        (envelope-from <timo.helkio@kapsi.fi>)
-        id 1bhDVg-0005fU-JJ
-        for linux-media@vger.kernel.org; Tue, 06 Sep 2016 13:21:44 +0300
-Reply-To: timo.helkio@kapsi.fi
-To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Timo_Helki=c3=b6?= <timo.helkio@kapsi.fi>
-Subject: Build fails
-Message-ID: <7f64a902-3436-e21c-653d-5dff2c1115a2@kapsi.fi>
-Date: Tue, 6 Sep 2016 13:21:43 +0300
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+        id S1753895AbcISLhj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 07:37:39 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the c-domain
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de>
+Date: Mon, 19 Sep 2016 13:36:55 +0200
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <1089B8C0-6296-4CC4-84B9-A1F62FA565AD@darmarit.de>
+References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de> <20160909090832.35c2d982@vento.lan> <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-make -C /omat/media_build/v4l allyesconfig
-make[1]: Entering directory '/omat/media_build/v4l'
-No version yet, using 4.4.0-36-generic
-make[2]: Entering directory '/omat/media_build/linux'
-Syncing with dir ../media/
-Applying patches for kernel 4.4.0-36-generic
-patch -s -f -N -p1 -i ../backports/api_version.patch
-patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-patch -s -f -N -p1 -i ../backports/debug.patch
-patch -s -f -N -p1 -i ../backports/drx39xxj.patch
-patch -s -f -N -p1 -i ../backports/v4.7_dma_attrs.patch
-patch -s -f -N -p1 -i ../backports/v4.6_i2c_mux.patch
-1 out of 2 hunks FAILED
-Makefile:138: recipe for target 'apply_patches' failed
-make[2]: *** [apply_patches] Error 1
-make[2]: Leaving directory '/omat/media_build/linux'
-Makefile:369: recipe for target 'allyesconfig' failed
-make[1]: *** [allyesconfig] Error 2
-make[1]: Leaving directory '/omat/media_build/v4l'
-Makefile:26: recipe for target 'allyesconfig' failed
-make: *** [allyesconfig] Error 2
-can't select all drivers at ./build line 490.
+Hi Mauro, 
+
+sorry for my late reply (so much work to do) ..
+
+Am 09.09.2016 um 14:25 schrieb Markus Heiser <markus.heiser@darmarIT.de>:
+
+>> Using either this approach or my kernel-doc patch, I'm now getting
+>> only two warnings:
+>> 
+>> 1) at media-entity.h, even without nitpick mode:
+>> 
+>> ./include/media/media-entity.h:1053: warning: No description found for parameter '...'
+
+FYI: This message comes from the kernel-doc parser.
+
+>> This is caused by this kernel-doc tag and the corresponding macro:
+>> 
+>> 	/**
+>> 	 * media_entity_call - Calls a struct media_entity_operations operation on
+>> 	 *	an entity
+>> 	 *
+>> 	 * @entity: entity where the @operation will be called
+>> 	 * @operation: type of the operation. Should be the name of a member of
+>> 	 *	struct &media_entity_operations.
+>> 	 *
+>> 	 * This helper function will check if @operation is not %NULL. On such case,
+>> 	 * it will issue a call to @operation\(@entity, @args\).
+>> 	 */
+>> 
+>> 	#define media_entity_call(entity, operation, args...)			\
+>> 		(((entity)->ops && (entity)->ops->operation) ?			\
+>> 		 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
+>> 
+>> 
+>> Basically, the Sphinx C domain seems to be expecting a description for
+>> "...". I didn't find any way to get rid of that.
+
+This is a bug in the kernel-doc parser.	The parser generates:
+
+  .. c:function:: media_entity_call ( entity,  operation,  ...)
+
+correct is:
+
+  .. c:function::  media_entity_call( entity,  operation,  args...)
+
+So both, the message and the wrong parse result comes from kernel-doc.
+
+>> 
+>> 2) a nitpick warning at v4l2-mem2mem.h:
+>> 
+>> ./include/media/v4l2-mem2mem.h:339: WARNING: c:type reference target not found: queue_init
+
+FYI: this message comes from sphinx c-domain.
+
+>> 	/**
+>> 	 * v4l2_m2m_ctx_init() - allocate and initialize a m2m context
+>> 	 *
+>> 	 * @m2m_dev: opaque pointer to the internal data to handle M2M context
+>> 	 * @drv_priv: driver's instance private data
+>> 	 * @queue_init: a callback for queue type-specific initialization function
+>> 	 * 	to be used for initializing videobuf_queues
+>> 	 *
+>> 	 * Usually called from driver's ``open()`` function.
+>> 	 */
+>> 	struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+>> 			void *drv_priv,
+>> 			int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
+>> 
+>> I checked the output of kernel-doc, and it looked ok. Yet, it expects
+>> "queue_init" to be defined somehow. I suspect that this is an error at
+>> Sphinx C domain parser.
+
+Hmm, as far as I see, the output is not correct ... The output of
+functions with a function pointer argument are missing the 
+leading parenthesis in the function definition:
+
+  .. c:function:: struct v4l2_m2m_ctx * v4l2_m2m_ctx_init (struct v4l2_m2m_dev * m2m_dev, void * drv_priv, int (*queue_init) (void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
+
+The missing parenthesis cause the error message. 
+
+The output of the parameter description is:
+
+  ``int (*)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq) queue_init``
+    a callback for queue type-specific initialization function
+    to be used for initializing videobuf_queues
+
+Correct (and IMO better to read) is:
+
+  .. c:function:: struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev, void *drv_priv, int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq))
+
+and the parameter description should be something like ...
+
+   :param int (\*queue_init)(void \*priv, struct vb2_queue \*src_vq, struct vb2_queue \*dst_vq):
+        a callback for queue type-specific initialization function
+        to be used for initializing videobuf_queues
+
+I tested this with my linuxdoc tools (parser) with I get no
+error messages from the sphinx c-domain.
+
+BTW: 
+
+The parser of my linuxdoc project is more strict and spit out some 
+warnings, which are not detected by the kernel-doc parser from the
+kernel source tree.
+
+For your rework on kernel-doc comments, it might be helpful to see
+those messages, so I recommend to install the linuxdoc package and
+do some lint.
+
+install: https://return42.github.io/linuxdoc/install.html
+lint:    https://return42.github.io/linuxdoc/cmd-line.html#kernel-lintdoc
+
+E.g. if you want to lint your whole include/media tree type:
+
+  kernel-lintdoc [--sloppy] include/media
 
 
-          Timo Helkiö
+-- Markus --
+
+>> 
+>> Markus,
+>> 
+>> Could you please take a look on those?
+> 
+> Yes, I will give it a try, but I don't know if I find the time
+> today.
+> 
+> On wich branch could I test this?
+> 
+> -- Markus --
+> 
+>> 
+>> Thanks,
+>> Mauro
+
