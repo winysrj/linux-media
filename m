@@ -1,88 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:35227 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751234AbcITByC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 21:54:02 -0400
-Received: by mail-oi0-f45.google.com with SMTP id w11so4211332oia.2
-        for <linux-media@vger.kernel.org>; Mon, 19 Sep 2016 18:54:01 -0700 (PDT)
+Received: from mga07.intel.com ([134.134.136.100]:15409 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752601AbcISVKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 17:10:05 -0400
+Subject: Re: [PATCH v2 07/17] smiapp: Always initialise the sensor in probe
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-media@vger.kernel.org
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938551-14503-8-git-send-email-sakari.ailus@linux.intel.com>
+ <20160919205925.myramm47julqwcxb@earth>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <57E05427.1030800@linux.intel.com>
+Date: Tue, 20 Sep 2016 00:09:59 +0300
 MIME-Version: 1.0
-In-Reply-To: <CAKTMqxtREAB--eBQrQZJ7zH5BDnD=VmOkhrGfQgoU5-euwVvRw@mail.gmail.com>
-References: <CAKTMqxtREAB--eBQrQZJ7zH5BDnD=VmOkhrGfQgoU5-euwVvRw@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Mon, 19 Sep 2016 21:54:00 -0400
-Message-ID: <CAGoCfixDna2AJ2MKTGaEm-SUPTFBfotD6BVzUYqFKYruW52E5w@mail.gmail.com>
-Subject: Re: Null pointer dereference in ngene-core.c
-To: =?UTF-8?Q?Alexandre=2DXavier_Labont=C3=A9=2DLamoureux?=
-        <axdoomer@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <20160919205925.myramm47julqwcxb@earth>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Sep 19, 2016 at 8:51 PM, Alexandre-Xavier Labont=C3=A9-Lamoureux
-<axdoomer@gmail.com> wrote:
-> Hi people,
+Sebastian Reichel wrote:
+> Hi,
 >
-> In the file "/linux/drivers/media/pci/ngene/ngene-core.c", there is a
-> null pointer dereference at line 1480.
+> On Thu, Sep 15, 2016 at 02:22:21PM +0300, Sakari Ailus wrote:
+>> Initialise the sensor in probe. The reason why it wasn't previously done
+>> in case of platform data was that the probe() of the driver that provided
+>> the clock through the set_xclk() callback would need to finish before the
+>> probe() function of the smiapp driver. The set_xclk() callback no longer
+>> exists.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>   drivers/media/i2c/smiapp/smiapp-core.c | 53 ++++++++++++----------------------
+>>   1 file changed, 19 insertions(+), 34 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+>> index 5d251b4..13322f3 100644
+>> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+>> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+>> @@ -2530,8 +2530,19 @@ static int smiapp_register_subdev(struct smiapp_sensor *sensor,
+>>   	return 0;
+>>   }
+>>
+>> -static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
+>> +static void smiapp_cleanup(struct smiapp_sensor *sensor)
+>> +{
+>> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+>> +
+>> +	device_remove_file(&client->dev, &dev_attr_nvm);
+>> +	device_remove_file(&client->dev, &dev_attr_ident);
+>> +
+>> +	smiapp_free_controls(sensor);
+>> +}
+>> +
+>> +static int smiapp_registered(struct v4l2_subdev *subdev)
+>>   {
+>> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+>>   	int rval;
+>>
+>>   	if (sensor->scaler) {
+>> @@ -2540,23 +2551,18 @@ static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
+>>   			SMIAPP_PAD_SRC, SMIAPP_PAD_SINK,
+>>   			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
+>>   		if (rval < 0)
+>> -			return rval;
+>> +			goto out_err;
+>>   	}
+>>
+>>   	return smiapp_register_subdev(
+>>   		sensor, sensor->pixel_array, sensor->binner,
+>>   		SMIAPP_PA_PAD_SRC, SMIAPP_PAD_SINK,
+>>   		MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
 >
-> Code in the function "static int init_channel(struct ngene_channel *chan)=
-"
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> if (io & NGENE_IO_TSIN) {
->     chan->fe =3D NULL;                      // Set to NULL
->     if (ni->demod_attach[nr]) {         // First condition
->        ret =3D ni->demod_attach[nr](chan);
->             if (ret < 0)                           // Another condition
->                 goto err;                         // Goto that avoids
-> the problem
->     }
->     if (chan->fe && ni->tuner_attach[nr]) {     // Condition that
-> tests the null pointer
->         ret =3D ni->tuner_attach[nr](chan);
->         if (ret < 0)
->             goto err;
->     }
-> }
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> I guess you should also handle errors from the second
+> smiapp_register_subdev call?
+
+Um, yes. Perhaps it'd be better just fix it here now that we still 
+remember the problem. :-) I'll fix that for v2.
+
 >
-> "chan->fe" is set to NULL, then it tests for something (I have no idea
-> what it's doing, I know nothing about this driver), if the results of
-> the first two if conditions fail to reach the goto, then it will test
-> the condition with the null pointer, which will cause a crash. I don't
-> know if the kernel can recover from null pointers, I think not.
+>> -}
+>>
+>> -static void smiapp_cleanup(struct smiapp_sensor *sensor)
+>> -{
+>> -	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+>> -
+>> -	device_remove_file(&client->dev, &dev_attr_nvm);
+>> -	device_remove_file(&client->dev, &dev_attr_ident);
+>> +out_err:
+>> +	smiapp_cleanup(sensor);
+>>
+>> -	smiapp_free_controls(sensor);
+>> +	return rval;
+>>   }
+>
+> -- Sebastian
+>
 
-I would have to actually look at the code, but my guess is because the
-call to ni-ni->demod_attach[nr](chan) will actually set chan->fe if
-successful.
 
-The code path your describing is actually the primary use case.  The
-cases where you see "goto err" will only be followed if there was some
-sort of error condition, which means the driver essentially will
-*always* hit the if() statement you are referring to during normal
-operation (assuming nothing was broken in the hardware).
-
-In short, the code makes sure chan->fe is NULL, then it calls the
-demod_attach, then it checks both for the demod_attach returning an
-error *and* making sure demod_attach set chan->fe to some non-NULL
-value.  If both are the case, then it calls tuner_attach().
-
-This is a pretty standard workflow -- you should see it in many other
-drivers, although it's not uncommon in other drivers for something
-like chan->fe to actually be the value returned by the demod_attach(),
-and the demod attach routine would return NULL if there was some
-failure condition.  The problem with that approach is that you can
-only report one type of failure to the caller (all the caller knows is
-a failure occured, it has no visibility as to the nature of the
-failure), whereas with this approach you can return different values
-for different error conditions.
-
-Devin
-
---=20
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
