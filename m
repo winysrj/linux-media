@@ -1,123 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35973 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750729AbcIDDCH (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54395
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751207AbcISTCK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Sep 2016 23:02:07 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id ECE431808DF
-        for <linux-media@vger.kernel.org>; Sun,  4 Sep 2016 05:00:36 +0200 (CEST)
-Date: Sun, 04 Sep 2016 05:00:36 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20160904030036.ECE431808DF@tschai.lan>
+        Mon, 19 Sep 2016 15:02:10 -0400
+Date: Mon, 19 Sep 2016 16:02:04 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: Re: [PATCH 06/13] v4l: vsp1: Disable cropping on WPF sink pad
+Message-ID: <20160919160204.1aa1670e@vento.lan>
+In-Reply-To: <15522801.GRSqLoE04r@avalon>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        <6925382.EfY6pk391A@avalon>
+        <20160919152615.4b321a61@vento.lan>
+        <15522801.GRSqLoE04r@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 19 Sep 2016 21:33:13 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Results of the daily build of media_tree:
+> Hi Mauro,
+> 
+> On Monday 19 Sep 2016 15:26:15 Mauro Carvalho Chehab wrote:
+> > Em Mon, 19 Sep 2016 20:59:56 +0300 Laurent Pinchart escreveu:  
+> > > On Monday 19 Sep 2016 14:55:43 Mauro Carvalho Chehab wrote:  
+> > >> Em Wed, 14 Sep 2016 02:16:59 +0300 Laurent Pinchart escreveu:  
+> > >>> Cropping on the WPF sink pad restricts the left and top coordinates to
+> > >>> 0-255. The same result can be obtained by cropping on the RPF without
+> > >>> any such restriction, this feature isn't useful. Disable it.
+> > >>> 
+> > >>> Signed-off-by: Laurent Pinchart
+> > >>> <laurent.pinchart+renesas@ideasonboard.com>
+> > >>> ---
+> > >>> 
+> > >>>  drivers/media/platform/vsp1/vsp1_rwpf.c | 37 ++++++++++++------------
+> > >>>  drivers/media/platform/vsp1/vsp1_wpf.c  | 18 +++++++---------
+> > >>>  2 files changed, 26 insertions(+), 29 deletions(-)
+> > >>> 
+> > >>> diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> > >>> b/drivers/media/platform/vsp1/vsp1_rwpf.c index
+> > >>> 8cb87e96b78b..a3ace8df7f4d 100644
+> > >>> --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> > >>> +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c  
+> 
+> [snip]
+> 
+> > >>> @@ -129,8 +132,10 @@ static int vsp1_rwpf_get_selection(struct
+> > >>> v4l2_subdev *subdev,
+> > >>>  	struct v4l2_mbus_framefmt *format;
+> > >>>  	int ret = 0;
+> > >>> 
+> > >>> -	/* Cropping is implemented on the sink pad. */
+> > >>> -	if (sel->pad != RWPF_PAD_SINK)
+> > >>> +	/* Cropping is only supported on the RPF and is implemented on
+> > >>> the sink
+> > >>> +	 * pad.
+> > >>> +	 */  
+> > >> 
+> > >> Please read CodingStyle and run checkpatch before sending stuff
+> > >> upstream.
+> > >> 
+> > >> This violates the CodingStyle: it should be, instead:
+> > >> 	/*
+> > >> 	 * foo
+> > >> 	 * bar
+> > >> 	 */  
+> > > 
+> > > But it's consistent with the coding style of this driver. I'm OK fixing
+> > > it, but it should be done globally in that case.  
+> > 
+> > There are inconsistencies inside the driver too on multi-line
+> > comments even without fixing the ones introduced on this series,
+> > as, on several places, multi-line comments are correct:
+> > 
+> > drivers/media/platform/vsp1/vsp1_bru.c:/*
+> > drivers/media/platform/vsp1/vsp1_bru.c- * The BRU can't perform format
+> > conversion, all sink and source formats must be
+> > drivers/media/platform/vsp1/vsp1_bru.c- * identical. We pick the format on
+> > the first sink pad (pad 0) and propagate it
+> > drivers/media/platform/vsp1/vsp1_bru.c- * to all other pads.
+> > drivers/media/platform/vsp1/vsp1_bru.c- */
+> > 
+> > drivers/media/platform/vsp1/vsp1_dl.c:/*
+> > drivers/media/platform/vsp1/vsp1_dl.c- * Initialize a display list body
+> > object and allocate DMA memory for the body
+> > drivers/media/platform/vsp1/vsp1_dl.c- * data. The display list body object
+> > is expected to have been initialized to
+> > drivers/media/platform/vsp1/vsp1_dl.c- * 0 when allocated.
+> > drivers/media/platform/vsp1/vsp1_dl.c- */
+> > 
+> > ...
+> > 
+> > I'll address the ones only the CodingStyle violation introduced by this
+> > series. I'll leave for the vsp1 maintainers/developers.  
+> 
+> OK, I'll address that.
+> 
+> > Btw, there are several kernel-doc tags that use just:
+> > 	/*
+> > 	 ...
+> > 	 */
+> > 
+> > instead of:
+> > 
+> > 	/**
+> > 	 ...
+> > 	 */
+> > 
+> > I suggest you to add the files/headers with kernel-doc markups on
+> > a Documentation/media/v4l-drivers/vsp1.rst file, to be created.
+> > 
+> > This way, you can validate that such documentation is correct,
+> > and produce an auto-generated documentation for this driver.  
+> 
+> I've thought about it, but I don't think those comments should become part of 
+> the kernel documentation. They're really about driver internals, and meant for 
+> the driver developers. In particular only a subset of the driver is documented 
+> that way, when I've considered that the code or structures were complex enough 
+> to need proper documentation. A generated doc would then be quite incomplete 
+> and not very useful, the comments are meant to be read while working on the 
+> code.
 
-date:		Sun Sep  4 04:00:19 CEST 2016
-git branch:	test
-git hash:	fb6609280db902bd5d34445fba1c926e95e63914
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+The v4l-drivers book is meant to have driver internals documentation,
+and not the subsystem kAPI or uAPI.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.36.4-i686: OK
-linux-2.6.37.6-i686: OK
-linux-2.6.38.8-i686: OK
-linux-2.6.39.4-i686: OK
-linux-3.0.60-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: OK
-linux-3.5.7-i686: OK
-linux-3.6.11-i686: OK
-linux-3.7.4-i686: OK
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-3.10.1-i686: OK
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: OK
-linux-2.6.37.6-x86_64: OK
-linux-2.6.38.8-x86_64: OK
-linux-2.6.39.4-x86_64: OK
-linux-3.0.60-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: OK
-linux-3.5.7-x86_64: OK
-linux-3.6.11-x86_64: OK
-linux-3.7.4-x86_64: OK
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-linux-3.10.1-x86_64: OK
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+I don't see any problems if you want to document just the more complex
+functions/structs over the v4l-drivers/ book. Yet, as you already took
+the time to write documentation for those functions, providing that the
+kernel-doc markups are ok, a v4l-drivers/vsp1.rst file for it could be as
+simple as (untested):
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+VSP1 driver
+^^^^^^^^^^^
 
-Full logs are available here:
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_dl.c
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_drm.c
 
-The Media Infrastructure API from this daily build is here:
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_drm.h
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_entity.c
+
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_entity.h
+
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_pipe.c
+
+.. kernel-doc:: drivers/media/platform/vsp1/vsp1_video.c
+
+PS.: Eventually, you may need an extra attribute for the files with
+EXPORT_SYMBOL*, in order to associate a *.c file with the
+corresponding *.h file.
