@@ -1,105 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37685 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754957AbcIEOcf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 10:32:35 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id 257F41858C8
-        for <linux-media@vger.kernel.org>; Mon,  5 Sep 2016 16:32:29 +0200 (CEST)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] vivid: update EDID
-Message-ID: <645ef9e5-b6d1-b56f-7561-80ce3e2b75d7@xs4all.nl>
-Date: Mon, 5 Sep 2016 16:32:29 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from gofer.mess.org ([80.229.237.210]:35917 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753467AbcISWV1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 18:21:27 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] [media] rc: Hauppauge z8f0811 can decode RC6
+Date: Mon, 19 Sep 2016 23:21:23 +0100
+Message-Id: <1474323685-16439-2-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the vivid EDID, fixing various incorrect values (wrong name,
-product code, various video capabilities).
+The hardware does not decode the 16, 20 or 24 bit variety.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
-Change since v1: fix Display Type setting
----
- drivers/media/platform/vivid/vivid-core.c | 58 +++++++++++++++----------------
- 1 file changed, 29 insertions(+), 29 deletions(-)
+ drivers/media/i2c/ir-kbd-i2c.c               | 90 ++++++++++++++++++----------
+ drivers/media/pci/cx18/cx18-i2c.c            |  3 +-
+ drivers/media/pci/cx88/cx88-input.c          |  3 +-
+ drivers/media/pci/ivtv/ivtv-i2c.c            |  3 +-
+ drivers/media/usb/hdpvr/hdpvr-i2c.c          |  2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c |  3 +-
+ 6 files changed, 69 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 7f93713..741460a 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -163,38 +163,38 @@ const struct v4l2_rect vivid_max_rect = {
-
- static const u8 vivid_hdmi_edid[256] = {
- 	0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00,
--	0x63, 0x3a, 0xaa, 0x55, 0x00, 0x00, 0x00, 0x00,
--	0x0a, 0x18, 0x01, 0x03, 0x80, 0x10, 0x09, 0x78,
--	0x0e, 0x00, 0xb2, 0xa0, 0x57, 0x49, 0x9b, 0x26,
--	0x10, 0x48, 0x4f, 0x2f, 0xcf, 0x00, 0x31, 0x59,
-+	0x31, 0xd8, 0x34, 0x12, 0x00, 0x00, 0x00, 0x00,
-+	0x22, 0x1a, 0x01, 0x03, 0x80, 0x60, 0x36, 0x78,
-+	0x0f, 0xee, 0x91, 0xa3, 0x54, 0x4c, 0x99, 0x26,
-+	0x0f, 0x50, 0x54, 0x2f, 0xcf, 0x00, 0x31, 0x59,
- 	0x45, 0x59, 0x81, 0x80, 0x81, 0x40, 0x90, 0x40,
--	0x95, 0x00, 0xa9, 0x40, 0xb3, 0x00, 0x02, 0x3a,
--	0x80, 0x18, 0x71, 0x38, 0x2d, 0x40, 0x58, 0x2c,
--	0x46, 0x00, 0x10, 0x09, 0x00, 0x00, 0x00, 0x1e,
-+	0x95, 0x00, 0xa9, 0x40, 0xb3, 0x00, 0x08, 0xe8,
-+	0x00, 0x30, 0xf2, 0x70, 0x5a, 0x80, 0xb0, 0x58,
-+	0x8a, 0x00, 0xc0, 0x1c, 0x32, 0x00, 0x00, 0x1e,
- 	0x00, 0x00, 0x00, 0xfd, 0x00, 0x18, 0x55, 0x18,
--	0x5e, 0x11, 0x00, 0x0a, 0x20, 0x20, 0x20, 0x20,
--	0x20, 0x20, 0x00, 0x00, 0x00, 0xfc, 0x00,  'v',
--	'4',   'l',  '2',  '-',  'h',  'd',  'm',  'i',
--	0x0a, 0x0a, 0x0a, 0x0a, 0x00, 0x00, 0x00, 0x10,
-+	0x87, 0x3c, 0x00, 0x0a, 0x20, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x00, 0x00, 0x00, 0xfc, 0x00, 0x76,
-+	0x69, 0x76, 0x69, 0x64, 0x0a, 0x20, 0x20, 0x20,
-+	0x20, 0x20, 0x20, 0x20, 0x00, 0x00, 0x00, 0x10,
- 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0xf0,
--
--	0x02, 0x03, 0x1a, 0xc0, 0x48, 0xa2, 0x10, 0x04,
--	0x02, 0x01, 0x21, 0x14, 0x13, 0x23, 0x09, 0x07,
--	0x07, 0x65, 0x03, 0x0c, 0x00, 0x10, 0x00, 0xe2,
--	0x00, 0x2a, 0x01, 0x1d, 0x00, 0x80, 0x51, 0xd0,
--	0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x1e, 0x8c, 0x0a, 0xd0, 0x8a,
--	0x20, 0xe0, 0x2d, 0x10, 0x10, 0x3e, 0x96, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
--	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xd7
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x7b,
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index bf82726..f95a6bc 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -35,6 +35,7 @@
+  *
+  */
+ 
++#include <asm/unaligned.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -63,51 +64,80 @@ module_param(debug, int, 0644);    /* debug level (0,1,2) */
+ /* ----------------------------------------------------------------------- */
+ 
+ static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
+-			       u32 *scancode, u8 *ptoggle, int size, int offset)
++					u32 *scancode, u8 *ptoggle, int size)
+ {
+ 	unsigned char buf[6];
+-	int start, range, toggle, dev, code, ircode;
++	int start, range, toggle, dev, code, ircode, vendor;
+ 
+ 	/* poll IR chip */
+ 	if (size != i2c_master_recv(ir->c, buf, size))
+ 		return -EIO;
+ 
+-	/* split rc5 data block ... */
+-	start  = (buf[offset] >> 7) &    1;
+-	range  = (buf[offset] >> 6) &    1;
+-	toggle = (buf[offset] >> 5) &    1;
+-	dev    =  buf[offset]       & 0x1f;
+-	code   = (buf[offset+1] >> 2) & 0x3f;
++	if (buf[0] & 0x80) {
++		int offset = (size == 6) ? 3 : 0;
+ 
+-	/* rc5 has two start bits
+-	 * the first bit must be one
+-	 * the second bit defines the command range (1 = 0-63, 0 = 64 - 127)
+-	 */
+-	if (!start)
+-		/* no key pressed */
+-		return 0;
++		/* split rc5 data block ... */
++		start  = (buf[offset] >> 7) &    1;
++		range  = (buf[offset] >> 6) &    1;
++		toggle = (buf[offset] >> 5) &    1;
++		dev    =  buf[offset]       & 0x1f;
++		code   = (buf[offset+1] >> 2) & 0x3f;
+ 
+-	/* filter out invalid key presses */
+-	ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
+-	if ((ircode & 0x1fff) == 0x1fff)
+-		return 0;
++		/* rc5 has two start bits
++		 * the first bit must be one
++		 * the second bit defines the command range:
++		 * 1 = 0-63, 0 = 64 - 127
++		 */
++		if (!start)
++			/* no key pressed */
++			return 0;
+ 
+-	if (!range)
+-		code += 64;
++		/* filter out invalid key presses */
++		ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
++		if ((ircode & 0x1fff) == 0x1fff)
++			return 0;
+ 
+-	dprintk(1,"ir hauppauge (rc5): s%d r%d t%d dev=%d code=%d\n",
+-		start, range, toggle, dev, code);
++		if (!range)
++			code += 64;
+ 
+-	*protocol = RC_TYPE_RC5;
+-	*scancode = RC_SCANCODE_RC5(dev, code);
+-	*ptoggle = toggle;
+-	return 1;
++		dprintk(1, "ir hauppauge (rc5): s%d r%d t%d dev=%d code=%d\n",
++			start, range, toggle, dev, code);
 +
-+	0x02, 0x03, 0x3f, 0xf0, 0x51, 0x61, 0x60, 0x5f,
-+	0x5e, 0x5d, 0x10, 0x1f, 0x04, 0x13, 0x22, 0x21,
-+	0x20, 0x05, 0x14, 0x02, 0x11, 0x01, 0x23, 0x09,
-+	0x07, 0x07, 0x83, 0x01, 0x00, 0x00, 0x6d, 0x03,
-+	0x0c, 0x00, 0x10, 0x00, 0x00, 0x78, 0x21, 0x00,
-+	0x60, 0x01, 0x02, 0x03, 0x67, 0xd8, 0x5d, 0xc4,
-+	0x01, 0x78, 0x00, 0x00, 0xe2, 0x00, 0xea, 0xe3,
-+	0x05, 0x00, 0x00, 0xe3, 0x06, 0x01, 0x00, 0x4d,
-+	0xd0, 0x00, 0xa0, 0xf0, 0x70, 0x3e, 0x80, 0x30,
-+	0x20, 0x35, 0x00, 0xc0, 0x1c, 0x32, 0x00, 0x00,
-+	0x1e, 0x1a, 0x36, 0x80, 0xa0, 0x70, 0x38, 0x1f,
-+	0x40, 0x30, 0x20, 0x35, 0x00, 0xc0, 0x1c, 0x32,
-+	0x00, 0x00, 0x1a, 0x1a, 0x1d, 0x00, 0x80, 0x51,
-+	0xd0, 0x1c, 0x20, 0x40, 0x80, 0x35, 0x00, 0xc0,
-+	0x1c, 0x32, 0x00, 0x00, 0x1c, 0x00, 0x00, 0x00,
-+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x27,
- };
-
- static int vidioc_querycap(struct file *file, void  *priv,
++		*protocol = RC_TYPE_RC5;
++		*scancode = RC_SCANCODE_RC5(dev, code);
++		*ptoggle = toggle;
++
++		return 1;
++	} else if (size == 6 && (buf[0] & 0x40)) {
++		code = buf[4];
++		dev = buf[3];
++		vendor = get_unaligned_be16(buf + 1);
++
++		if (vendor == 0x800f) {
++			*ptoggle = (dev & 0x80) != 0;
++			*protocol = RC_TYPE_RC6_MCE;
++			dev &= 0x7f;
++			dprintk(1, "ir hauppauge (rc6-mce): t%d vendor=%d dev=%d code=%d\n",
++						toggle, vendor, dev, code);
++		} else {
++			*ptoggle = 0;
++			*protocol = RC_TYPE_RC6_6A_32;
++			dprintk(1, "ir hauppauge (rc6-6a-32): vendor=%d dev=%d code=%d\n",
++							vendor, dev, code);
++		}
++
++		*scancode = RC_SCANCODE_RC6_6A(vendor, dev, code);
++
++		return 1;
++	}
++
++	return 0;
+ }
+ 
+ static int get_key_haup(struct IR_i2c *ir, enum rc_type *protocol,
+ 			u32 *scancode, u8 *toggle)
+ {
+-	return get_key_haup_common (ir, protocol, scancode, toggle, 3, 0);
++	return get_key_haup_common(ir, protocol, scancode, toggle, 3);
+ }
+ 
+ static int get_key_haup_xvr(struct IR_i2c *ir, enum rc_type *protocol,
+@@ -126,7 +156,7 @@ static int get_key_haup_xvr(struct IR_i2c *ir, enum rc_type *protocol,
+ 	if (ret != 1)
+ 		return (ret < 0) ? ret : -EINVAL;
+ 
+-	return get_key_haup_common(ir, protocol, scancode, toggle, 6, 3);
++	return get_key_haup_common(ir, protocol, scancode, toggle, 6);
+ }
+ 
+ static int get_key_pixelview(struct IR_i2c *ir, enum rc_type *protocol,
+@@ -347,7 +377,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	case 0x71:
+ 		name        = "Hauppauge/Zilog Z8";
+ 		ir->get_key = get_key_haup_xvr;
+-		rc_type     = RC_BIT_RC5;
++		rc_type     = RC_BIT_RC5 | RC_BIT_RC6_MCE | RC_BIT_RC6_6A_32;
+ 		ir_codes    = RC_MAP_HAUPPAUGE;
+ 		break;
+ 	}
+diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
+index 4af8cd6..c932937 100644
+--- a/drivers/media/pci/cx18/cx18-i2c.c
++++ b/drivers/media/pci/cx18/cx18-i2c.c
+@@ -98,7 +98,8 @@ static int cx18_i2c_new_ir(struct cx18 *cx, struct i2c_adapter *adap, u32 hw,
+ 	case CX18_HW_Z8F0811_IR_RX_HAUP:
+ 		init_data->ir_codes = RC_MAP_HAUPPAUGE;
+ 		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+-		init_data->type = RC_BIT_RC5;
++		init_data->type = RC_BIT_RC5 | RC_BIT_RC6_MCE |
++							RC_BIT_RC6_6A_32;
+ 		init_data->name = cx->card_name;
+ 		info.platform_data = init_data;
+ 		break;
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index 3f1342c..21d029b 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -631,7 +631,8 @@ void cx88_i2c_init_ir(struct cx88_core *core)
+ 			/* Hauppauge XVR */
+ 			core->init_data.name = "cx88 Hauppauge XVR remote";
+ 			core->init_data.ir_codes = RC_MAP_HAUPPAUGE;
+-			core->init_data.type = RC_BIT_RC5;
++			core->init_data.type = RC_BIT_RC5 | RC_BIT_RC6_MCE |
++							RC_BIT_RC6_6A_32;
+ 			core->init_data.internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+ 
+ 			info.platform_data = &core->init_data;
+diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
+index c9dbeb3..98b5375 100644
+--- a/drivers/media/pci/ivtv/ivtv-i2c.c
++++ b/drivers/media/pci/ivtv/ivtv-i2c.c
+@@ -218,7 +218,8 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
+ 		/* Default to grey remote */
+ 		init_data->ir_codes = RC_MAP_HAUPPAUGE;
+ 		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+-		init_data->type = RC_BIT_RC5;
++		init_data->type = RC_BIT_RC5 | RC_BIT_RC6_MCE |
++							RC_BIT_RC6_6A_32;
+ 		init_data->name = itv->card_name;
+ 		break;
+ 	case IVTV_HW_I2C_IR_RX_ADAPTEC:
+diff --git a/drivers/media/usb/hdpvr/hdpvr-i2c.c b/drivers/media/usb/hdpvr/hdpvr-i2c.c
+index a38f58c..ee419fa 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-i2c.c
++++ b/drivers/media/usb/hdpvr/hdpvr-i2c.c
+@@ -55,7 +55,7 @@ struct i2c_client *hdpvr_register_ir_rx_i2c(struct hdpvr_device *dev)
+ 	/* Our default information for ir-kbd-i2c.c to use */
+ 	init_data->ir_codes = RC_MAP_HAUPPAUGE;
+ 	init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+-	init_data->type = RC_BIT_RC5;
++	init_data->type = RC_BIT_RC5 | RC_BIT_RC6_MCE | RC_BIT_RC6_6A_32;
+ 	init_data->name = "HD-PVR";
+ 	init_data->polling_interval = 405; /* ms, duplicated from Windows */
+ 	hdpvr_ir_rx_i2c_board_info.platform_data = init_data;
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+index 14321d0..6da5fb5 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+@@ -596,7 +596,8 @@ static void pvr2_i2c_register_ir(struct pvr2_hdw *hdw)
+ 	case PVR2_IR_SCHEME_24XXX_MCE: /* 24xxx MCE device */
+ 		init_data->ir_codes              = RC_MAP_HAUPPAUGE;
+ 		init_data->internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
+-		init_data->type                  = RC_BIT_RC5;
++		init_data->type                  = RC_BIT_RC5 | RC_BIT_RC6_MCE |
++							RC_BIT_RC6_6A_32;
+ 		init_data->name                  = hdw->hdw_desc->description;
+ 		/* IR Receiver */
+ 		info.addr          = 0x71;
 -- 
-2.8.1
+2.7.4
 
