@@ -1,215 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46919 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759537AbcIMXQl (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:52620
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759384AbcISLWi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Sep 2016 19:16:41 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: [PATCH 11/13] v4l: vsp1: Determine partition requirements for scaled images
-Date: Wed, 14 Sep 2016 02:17:04 +0300
-Message-Id: <1473808626-19488-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 19 Sep 2016 07:22:38 -0400
+Date: Mon, 19 Sep 2016 08:22:26 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, gjasny@googlemail.com
+Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
+ v4l2-ctl
+Message-ID: <20160919082226.43cd1bc9@vento.lan>
+In-Reply-To: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran+renesas@bingham.xyz>
+Em Mon, 19 Sep 2016 13:50:25 +0300
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-The partition algorithm needs to determine the capabilities of each
-entity in the pipeline to identify the correct maximum partition width.
+> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
+> are found by the linker only if these libraries are specified after the
+> objects that depend on them.
+> 
+> As LDFLAGS variable end up expanded on libtool command line before LDADD,
+> move the libraries to LDADD after local objects. -lpthread is added as on
+> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
+> for instance.
+> 
+> After this patch, creating a static build using the command
+> 
+> LDFLAGS="--static -static" ./configure --disable-shared --enable-static
 
-Extend the vsp1 entity operations to provide a max_width operation and
-use this call to calculate the number of partitions that will be
-processed by the algorithm.
+It sounds weird to use LDFLAGS="--static -static" here, as the
+configure options are already asking for static.
 
-Gen 2 hardware does not require multiple partitioning, and as such
-will always return a single partition.
+IMHO, the right way would be to change configure.ac to add those LDFLAGS
+when --disable-shared is used.
 
-Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_entity.h |  3 +++
- drivers/media/platform/vsp1/vsp1_pipe.h   |  5 ++++
- drivers/media/platform/vsp1/vsp1_sru.c    | 19 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_uds.c    | 25 +++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_video.c  | 40 +++++++++++++++++++++++++++++++
- 5 files changed, 92 insertions(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 0e3e394c44cd..90a4d95c0a50 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -77,11 +77,14 @@ struct vsp1_route {
-  * @destroy:	Destroy the entity.
-  * @configure:	Setup the hardware based on the entity state (pipeline, formats,
-  *		selection rectangles, ...)
-+ * @max_width:	Return the max supported width of data that the entity can
-+ *		process in a single operation.
-  */
- struct vsp1_entity_operations {
- 	void (*destroy)(struct vsp1_entity *);
- 	void (*configure)(struct vsp1_entity *, struct vsp1_pipeline *,
- 			  struct vsp1_dl_list *, enum vsp1_entity_params);
-+	unsigned int (*max_width)(struct vsp1_entity *, struct vsp1_pipeline *);
- };
- 
- struct vsp1_entity {
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index d20d997b1fda..af4cd23d399b 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -77,6 +77,8 @@ enum vsp1_pipeline_state {
-  * @uds_input: entity at the input of the UDS, if the UDS is present
-  * @entities: list of entities in the pipeline
-  * @dl: display list associated with the pipeline
-+ * @div_size: The maximum allowed partition size for the pipeline
-+ * @partitions: The number of partitions used to process one frame
-  */
- struct vsp1_pipeline {
- 	struct media_pipeline pipe;
-@@ -104,6 +106,9 @@ struct vsp1_pipeline {
- 	struct list_head entities;
- 
- 	struct vsp1_dl_list *dl;
-+
-+	unsigned int div_size;
-+	unsigned int partitions;
- };
- 
- void vsp1_pipeline_reset(struct vsp1_pipeline *pipe);
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 9d4a1afb6634..b4e568a3b4ed 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -306,8 +306,27 @@ static void sru_configure(struct vsp1_entity *entity,
- 	vsp1_sru_write(sru, dl, VI6_SRU_CTRL2, param->ctrl2);
- }
- 
-+static unsigned int sru_max_width(struct vsp1_entity *entity,
-+				  struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_sru *sru = to_sru(&entity->subdev);
-+	struct v4l2_mbus_framefmt *input;
-+	struct v4l2_mbus_framefmt *output;
-+
-+	input = vsp1_entity_get_pad_format(&sru->entity, sru->entity.config,
-+					   SRU_PAD_SINK);
-+	output = vsp1_entity_get_pad_format(&sru->entity, sru->entity.config,
-+					    SRU_PAD_SOURCE);
-+
-+	if (input->width != output->width)
-+		return 512;
-+	else
-+		return 256;
-+}
-+
- static const struct vsp1_entity_operations sru_entity_ops = {
- 	.configure = sru_configure,
-+	.max_width = sru_max_width,
- };
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 62beae5d6944..706b6e85f47d 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -311,8 +311,33 @@ static void uds_configure(struct vsp1_entity *entity,
- 		       (output->height << VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
- }
- 
-+static unsigned int uds_max_width(struct vsp1_entity *entity,
-+				  struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_uds *uds = to_uds(&entity->subdev);
-+	const struct v4l2_mbus_framefmt *output;
-+	const struct v4l2_mbus_framefmt *input;
-+	unsigned int hscale;
-+
-+	input = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-+					   UDS_PAD_SINK);
-+	output = vsp1_entity_get_pad_format(&uds->entity, uds->entity.config,
-+					    UDS_PAD_SOURCE);
-+	hscale = output->width / input->width;
-+
-+	if (hscale <= 2)
-+		return 256;
-+	else if (hscale <= 4)
-+		return 512;
-+	else if (hscale <= 8)
-+		return 1024;
-+	else
-+		return 2048;
-+}
-+
- static const struct vsp1_entity_operations uds_entity_ops = {
- 	.configure = uds_configure,
-+	.max_width = uds_max_width,
- };
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index b8339d874df4..b903cc5471e0 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -169,6 +169,43 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
- }
- 
- /* -----------------------------------------------------------------------------
-+ * VSP1 Partition Algorithm support
-+ */
-+
-+static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+	const struct v4l2_mbus_framefmt *format;
-+	struct vsp1_entity *entity;
-+	unsigned int div_size;
-+
-+	format = vsp1_entity_get_pad_format(&pipe->output->entity,
-+					    pipe->output->entity.config,
-+					    RWPF_PAD_SOURCE);
-+	div_size = format->width;
-+
-+	/* Gen2 hardware doesn't require image partitioning. */
-+	if (vsp1->info->gen == 2) {
-+		pipe->div_size = div_size;
-+		pipe->partitions = 1;
-+		return;
-+	}
-+
-+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
-+
-+		if (entity->ops->max_width) {
-+			entity_max = entity->ops->max_width(entity, pipe);
-+			if (entity_max)
-+				div_size = min(div_size, entity_max);
-+		}
-+	}
-+
-+	pipe->div_size = div_size;
-+	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
-+}
-+
-+/* -----------------------------------------------------------------------------
-  * Pipeline Management
-  */
- 
-@@ -594,6 +631,9 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_entity *entity;
- 
-+	/* Determine this pipelines sizes for image partitioning support. */
-+	vsp1_video_pipeline_setup_partitions(pipe);
-+
- 	/* Prepare the display list. */
- 	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
- 	if (!pipe->dl)
--- 
 Regards,
+Mauro
 
-Laurent Pinchart
+> 
+> works again.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi,
+> 
+> This patch fixes the static build; the error is:
+> 
+>   CXXLD    v4l2-compliance
+> ../../lib/libv4l2/.libs/libv4l2.a(libv4l2_la-v4l2-plugin.o): In function `v4l2_plugin_init':
+> /home/sailus/a/v4l-utils/lib/libv4l2/v4l2-plugin.c:75: warning: Using 'dlopen' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+> /home/sailus/a/v4l-utils/lib/libv4lconvert/.libs/libv4lconvert.a(libv4lconvert_la-libv4lcontrol.o): In function `v4lcontrol_create':
+> /home/sailus/a/v4l-utils/lib/libv4lconvert/control/libv4lcontrol.c:693: warning: Using 'getpwuid_r' in statically linked applications requires at runtime the shared libraries from the glibc version used for linking
+> /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/librt.a(shm_open.o): In function `shm_open':
+> (.text+0x1f): undefined reference to `__shm_directory'
+> collect2: error: ld returned 1 exit status
+> distcc[21660] ERROR: compile (null) on localhost failed
+> Makefile:559: recipe for target 'v4l2-compliance' failed
+> 
+> Kind regards,
+> Sakari
+> 
+>  utils/v4l2-compliance/Makefile.am | 4 ++--
+>  utils/v4l2-ctl/Makefile.am        | 3 +--
+>  2 files changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/utils/v4l2-compliance/Makefile.am b/utils/v4l2-compliance/Makefile.am
+> index a895e8e..c2b5919 100644
+> --- a/utils/v4l2-compliance/Makefile.am
+> +++ b/utils/v4l2-compliance/Makefile.am
+> @@ -5,12 +5,12 @@ DEFS :=
+>  v4l2_compliance_SOURCES = v4l2-compliance.cpp v4l2-test-debug.cpp v4l2-test-input-output.cpp \
+>  	v4l2-test-controls.cpp v4l2-test-io-config.cpp v4l2-test-formats.cpp v4l2-test-buffers.cpp \
+>  	v4l2-test-codecs.cpp v4l2-test-colors.cpp v4l2-compliance.h
+> -v4l2_compliance_LDFLAGS = -lrt
+>  v4l2_compliance_CPPFLAGS = -I../common
+>  
+>  if WITH_V4L2_COMPLIANCE_LIBV4L
+> -v4l2_compliance_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la
+> +v4l2_compliance_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lrt -lpthread
+>  else
+> +v4l2_compliance_LDADD = -lrt -lpthread
+>  DEFS += -DNO_LIBV4L2
+>  endif
+>  
+> diff --git a/utils/v4l2-ctl/Makefile.am b/utils/v4l2-ctl/Makefile.am
+> index 56943cd..2a05644 100644
+> --- a/utils/v4l2-ctl/Makefile.am
+> +++ b/utils/v4l2-ctl/Makefile.am
+> @@ -7,11 +7,10 @@ v4l2_ctl_SOURCES = v4l2-ctl.cpp v4l2-ctl.h v4l2-ctl-common.cpp v4l2-ctl-tuner.cp
+>  	v4l2-ctl-overlay.cpp v4l2-ctl-vbi.cpp v4l2-ctl-selection.cpp v4l2-ctl-misc.cpp \
+>  	v4l2-ctl-streaming.cpp v4l2-ctl-sdr.cpp v4l2-ctl-edid.cpp v4l2-ctl-modes.cpp \
+>  	v4l2-tpg-colors.c v4l2-tpg-core.c v4l-stream.c
+> -v4l2_ctl_LDFLAGS = -lrt
+>  v4l2_ctl_CPPFLAGS = -I../common
+>  
+>  if WITH_V4L2_CTL_LIBV4L
+> -v4l2_ctl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la
+> +v4l2_ctl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la -lrt -lpthread
+>  else
+>  DEFS += -DNO_LIBV4L2
+>  endif
 
+
+
+Thanks,
+Mauro
