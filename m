@@ -1,62 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43920 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932988AbcISVjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 17:39:41 -0400
-Date: Mon, 19 Sep 2016 23:39:35 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 16/17] smiapp: Drop a debug print on frame size and
- bit depth
-Message-ID: <20160919213934.ux53csohsesm26ex@earth>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-17-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="5lwd7ac32jntub5f"
-Content-Disposition: inline
-In-Reply-To: <1473938551-14503-17-git-send-email-sakari.ailus@linux.intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35314 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753435AbcISWDO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 18:03:14 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v3 17/18] smiapp: Drop a debug print on frame size and bit depth
+Date: Tue, 20 Sep 2016 01:02:50 +0300
+Message-Id: <1474322571-20290-18-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The first time the sensor is powered on, the information is not yet
+available.
 
---5lwd7ac32jntub5f
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-Hi,
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 5f4680d..8f9690e 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -926,12 +926,6 @@ static int smiapp_update_mode(struct smiapp_sensor *sensor)
+ 	unsigned int binning_mode;
+ 	int rval;
+ 
+-	dev_dbg(&client->dev, "frame size: %dx%d\n",
+-		sensor->src->crop[SMIAPP_PAD_SRC].width,
+-		sensor->src->crop[SMIAPP_PAD_SRC].height);
+-	dev_dbg(&client->dev, "csi format width: %d\n",
+-		sensor->csi_format->width);
+-
+ 	/* Binning has to be set up here; it affects limits */
+ 	if (sensor->binning_horizontal == 1 &&
+ 	    sensor->binning_vertical == 1) {
+-- 
+2.1.4
 
-On Thu, Sep 15, 2016 at 02:22:30PM +0300, Sakari Ailus wrote:
-> The first time the sensor is powered on, the information is not yet
-> available.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---5lwd7ac32jntub5f
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4FsWAAoJENju1/PIO/qalqsP/RKNHS6jQYNayow6aTskFfbB
-tAuPqwQ+IaFX1RAHxDBhXl9cKsZHYddyvW6wa2v3IWVTlWDL/X1PBiTQ/yQFXVEa
-oFkd9oCDH/zHxZXweAl8x8NIl1b6CKT/oAGY822QZcSWIcwcdvJUokLjPQAsgZTA
-I0d8BG7QoydzgbFJdz5WSO9i8wRmc4FqHqsr5cfygyvIVSXmXFp2nJX1vAKHd+Yl
-y/WmAlew1lxcrPY1/nMqWILHhujd+J8KxY3fWl2I5JTJoQBx44t2tj8rZwX8/LQf
-kFZSQPPNzkVMNsWjOS8K8nkvOztiVbr3YuiWU1+wq5U+tQsfk2h+VhyOlXR2q9TH
-wZs5440qf3c/9Q1sybvnpfMIgEX9D1fsVhex5CjtPh1SnqaHwrY8EPEKqr6x+/ZI
-mK/8iHXwZ7jJBsmPODmS6L0dlPbOZyHLZ8Hlr/1Ihp7p6yCSNJaOTXEJwq8+cSgA
-VDAPaMf8M5HZ19CVBSGq9HaeenAvTOk47dHHLq/qDiFvYbgNwuBeQtEY8vu6buSk
-aHcUcmaWmJRQRoBdcg3Iiln8MVjKrY4/AeG1YCbZlGR0EYEyWQ9FLvffkOvaSiAr
-5jxECi+HnocQv+b7tqLIFIIWP+z3BV8T1xoG7rYEhA7X1F+127/h4rH2U0tt1UYm
-Da86sPnANPdGaMPHuMFq
-=U/G2
------END PGP SIGNATURE-----
-
---5lwd7ac32jntub5f--
