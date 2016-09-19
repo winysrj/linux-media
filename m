@@ -1,173 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48169 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752101AbcIDOOH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2016 10:14:07 -0400
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54286
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932480AbcISS0V (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 14:26:21 -0400
+Date: Mon, 19 Sep 2016 15:26:15 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 6/7] [media] mb86a20s: fix demod settings
-Date: Sun,  4 Sep 2016 11:13:58 -0300
-Message-Id: <d0126c48b7f240172507b4658941ff227fa1df5d.1472998424.git.mchehab@s-opensource.com>
-In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>
+Subject: Re: [PATCH 06/13] v4l: vsp1: Disable cropping on WPF sink pad
+Message-ID: <20160919152615.4b321a61@vento.lan>
+In-Reply-To: <6925382.EfY6pk391A@avalon>
+References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        <1473808626-19488-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        <20160919145543.6fbdeadb@vento.lan>
+        <6925382.EfY6pk391A@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Em Mon, 19 Sep 2016 20:59:56 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-With the current settings, only one channel locks properly.
-That's likely because, when this driver was written, Brazil
-were still using experimental transmissions.
+> Hi Mauro,
+> 
+> On Monday 19 Sep 2016 14:55:43 Mauro Carvalho Chehab wrote:
+> > Em Wed, 14 Sep 2016 02:16:59 +0300 Laurent Pinchart escreveu:  
+> > > Cropping on the WPF sink pad restricts the left and top coordinates to
+> > > 0-255. The same result can be obtained by cropping on the RPF without
+> > > any such restriction, this feature isn't useful. Disable it.
+> > > 
+> > > Signed-off-by: Laurent Pinchart
+> > > <laurent.pinchart+renesas@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/platform/vsp1/vsp1_rwpf.c | 37
+> > >  +++++++++++++++++---------------- drivers/media/platform/vsp1/vsp1_wpf.c
+> > >   | 18 +++++++---------
+> > >  2 files changed, 26 insertions(+), 29 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> > > b/drivers/media/platform/vsp1/vsp1_rwpf.c index
+> > > 8cb87e96b78b..a3ace8df7f4d 100644
+> > > --- a/drivers/media/platform/vsp1/vsp1_rwpf.c
+> > > +++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+> > > @@ -66,7 +66,6 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev  
+> > > *subdev,>   
+> > >  	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
+> > >  	struct v4l2_subdev_pad_config *config;
+> > >  	struct v4l2_mbus_framefmt *format;
+> > > 
+> > > -	struct v4l2_rect *crop;
+> > > 
+> > >  	int ret = 0;
+> > >  	
+> > >  	mutex_lock(&rwpf->entity.lock);
+> > > 
+> > > @@ -103,12 +102,16 @@ static int vsp1_rwpf_set_format(struct v4l2_subdev  
+> > > *subdev,>   
+> > >  	fmt->format = *format;
+> > > 
+> > > -	/* Update the sink crop rectangle. */
+> > > -	crop = vsp1_rwpf_get_crop(rwpf, config);
+> > > -	crop->left = 0;
+> > > -	crop->top = 0;
+> > > -	crop->width = fmt->format.width;
+> > > -	crop->height = fmt->format.height;
+> > > +	if (rwpf->entity.type == VSP1_ENTITY_RPF) {
+> > > +		struct v4l2_rect *crop;
+> > > +
+> > > +		/* Update the sink crop rectangle. */
+> > > +		crop = vsp1_rwpf_get_crop(rwpf, config);
+> > > +		crop->left = 0;
+> > > +		crop->top = 0;
+> > > +		crop->width = fmt->format.width;
+> > > +		crop->height = fmt->format.height;
+> > > +	}
+> > > 
+> > >  	/* Propagate the format to the source pad. */
+> > >  	format = vsp1_entity_get_pad_format(&rwpf->entity, config,
+> > > 
+> > > @@ -129,8 +132,10 @@ static int vsp1_rwpf_get_selection(struct v4l2_subdev  
+> > > *subdev,>   
+> > >  	struct v4l2_mbus_framefmt *format;
+> > >  	int ret = 0;
+> > > 
+> > > -	/* Cropping is implemented on the sink pad. */
+> > > -	if (sel->pad != RWPF_PAD_SINK)
+> > > +	/* Cropping is only supported on the RPF and is implemented on the   
+> sink
+> > > +	 * pad.
+> > > +	 */  
+> > 
+> > Please read CodingStyle and run checkpatch before sending stuff upstream.
+> > 
+> > This violates the CodingStyle: it should be, instead:
+> > 	/*
+> > 	 * foo
+> > 	 * bar
+> > 	 */  
+> 
+> But it's consistent with the coding style of this driver. I'm OK fixing it, 
+> but it should be done globally in that case.
 
-Change it to reproduce the settings used by the newer drivers.
-That makes it lock on other channels.
+There are inconsistencies inside the driver too on multi-line
+comments even without fixing the ones introduced on this series,
+as, on several places, multi-line comments are correct:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 93 ++++++++++++++++------------------
- 1 file changed, 43 insertions(+), 50 deletions(-)
+drivers/media/platform/vsp1/vsp1_bru.c:/*
+drivers/media/platform/vsp1/vsp1_bru.c- * The BRU can't perform format conversion, all sink and source formats must be
+drivers/media/platform/vsp1/vsp1_bru.c- * identical. We pick the format on the first sink pad (pad 0) and propagate it
+drivers/media/platform/vsp1/vsp1_bru.c- * to all other pads.
+drivers/media/platform/vsp1/vsp1_bru.c- */
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 66939eca445b..a069df23fe6c 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -71,25 +71,28 @@ static struct regdata mb86a20s_init1[] = {
- };
- 
- static struct regdata mb86a20s_init2[] = {
--	{ 0x28, 0x22 }, { 0x29, 0x00 }, { 0x2a, 0x1f }, { 0x2b, 0xf0 },
-+	{ 0x09, 0x3e },
-+	{ 0x50, 0xd1 }, { 0x51, 0x22 },
-+	{ 0x39, 0x01 },
-+	{ 0x71, 0x00 },
- 	{ 0x3b, 0x21 },
--	{ 0x3c, 0x38 },
-+	{ 0x3c, 0x3a },
- 	{ 0x01, 0x0d },
--	{ 0x04, 0x08 }, { 0x05, 0x03 },
-+	{ 0x04, 0x08 }, { 0x05, 0x05 },
- 	{ 0x04, 0x0e }, { 0x05, 0x00 },
--	{ 0x04, 0x0f }, { 0x05, 0x37 },
--	{ 0x04, 0x0b }, { 0x05, 0x78 },
-+	{ 0x04, 0x0f }, { 0x05, 0x14 },
-+	{ 0x04, 0x0b }, { 0x05, 0x8c },
- 	{ 0x04, 0x00 }, { 0x05, 0x00 },
--	{ 0x04, 0x01 }, { 0x05, 0x1e },
--	{ 0x04, 0x02 }, { 0x05, 0x07 },
--	{ 0x04, 0x03 }, { 0x05, 0xd0 },
-+	{ 0x04, 0x01 }, { 0x05, 0x07 },
-+	{ 0x04, 0x02 }, { 0x05, 0x0f },
-+	{ 0x04, 0x03 }, { 0x05, 0xa0 },
- 	{ 0x04, 0x09 }, { 0x05, 0x00 },
- 	{ 0x04, 0x0a }, { 0x05, 0xff },
--	{ 0x04, 0x27 }, { 0x05, 0x00 },
-+	{ 0x04, 0x27 }, { 0x05, 0x64 },
- 	{ 0x04, 0x28 }, { 0x05, 0x00 },
--	{ 0x04, 0x1e }, { 0x05, 0x00 },
--	{ 0x04, 0x29 }, { 0x05, 0x64 },
--	{ 0x04, 0x32 }, { 0x05, 0x02 },
-+	{ 0x04, 0x1e }, { 0x05, 0xff },
-+	{ 0x04, 0x29 }, { 0x05, 0x0a },
-+	{ 0x04, 0x32 }, { 0x05, 0x0a },
- 	{ 0x04, 0x14 }, { 0x05, 0x02 },
- 	{ 0x04, 0x04 }, { 0x05, 0x00 },
- 	{ 0x04, 0x05 }, { 0x05, 0x22 },
-@@ -97,8 +100,6 @@ static struct regdata mb86a20s_init2[] = {
- 	{ 0x04, 0x07 }, { 0x05, 0xd8 },
- 	{ 0x04, 0x12 }, { 0x05, 0x00 },
- 	{ 0x04, 0x13 }, { 0x05, 0xff },
--	{ 0x04, 0x15 }, { 0x05, 0x4e },
--	{ 0x04, 0x16 }, { 0x05, 0x20 },
- 
- 	/*
- 	 * On this demod, when the bit count reaches the count below,
-@@ -152,42 +153,36 @@ static struct regdata mb86a20s_init2[] = {
- 	{ 0x50, 0x51 }, { 0x51, 0x04 },		/* MER symbol 4 */
- 	{ 0x45, 0x04 },				/* CN symbol 4 */
- 	{ 0x48, 0x04 },				/* CN manual mode */
--
-+	{ 0x50, 0xd5 }, { 0x51, 0x01 },
- 	{ 0x50, 0xd6 }, { 0x51, 0x1f },
- 	{ 0x50, 0xd2 }, { 0x51, 0x03 },
--	{ 0x50, 0xd7 }, { 0x51, 0xbf },
--	{ 0x28, 0x74 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0xff },
--	{ 0x28, 0x46 }, { 0x29, 0x00 }, { 0x2a, 0x1a }, { 0x2b, 0x0c },
--
--	{ 0x04, 0x40 }, { 0x05, 0x00 },
--	{ 0x28, 0x00 }, { 0x2b, 0x08 },
--	{ 0x28, 0x05 }, { 0x2b, 0x00 },
-+	{ 0x50, 0xd7 }, { 0x51, 0x3f },
- 	{ 0x1c, 0x01 },
--	{ 0x28, 0x06 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x1f },
--	{ 0x28, 0x07 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x18 },
--	{ 0x28, 0x08 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x12 },
--	{ 0x28, 0x09 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x30 },
--	{ 0x28, 0x0a }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x37 },
--	{ 0x28, 0x0b }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x02 },
--	{ 0x28, 0x0c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x09 },
--	{ 0x28, 0x0d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x06 },
--	{ 0x28, 0x0e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x7b },
--	{ 0x28, 0x0f }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x76 },
--	{ 0x28, 0x10 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x7d },
--	{ 0x28, 0x11 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x08 },
--	{ 0x28, 0x12 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0b },
--	{ 0x28, 0x13 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x00 },
--	{ 0x28, 0x14 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xf2 },
--	{ 0x28, 0x15 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xf3 },
--	{ 0x28, 0x16 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x05 },
--	{ 0x28, 0x17 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x16 },
--	{ 0x28, 0x18 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0f },
--	{ 0x28, 0x19 }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xef },
--	{ 0x28, 0x1a }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xd8 },
--	{ 0x28, 0x1b }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xf1 },
--	{ 0x28, 0x1c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x3d },
--	{ 0x28, 0x1d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x94 },
--	{ 0x28, 0x1e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0xba },
-+	{ 0x28, 0x06 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x03 },
-+	{ 0x28, 0x07 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0d },
-+	{ 0x28, 0x08 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x02 },
-+	{ 0x28, 0x09 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x01 },
-+	{ 0x28, 0x0a }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x21 },
-+	{ 0x28, 0x0b }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x29 },
-+	{ 0x28, 0x0c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x16 },
-+	{ 0x28, 0x0d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x31 },
-+	{ 0x28, 0x0e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0e },
-+	{ 0x28, 0x0f }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x4e },
-+	{ 0x28, 0x10 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x46 },
-+	{ 0x28, 0x11 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0f },
-+	{ 0x28, 0x12 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x56 },
-+	{ 0x28, 0x13 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x35 },
-+	{ 0x28, 0x14 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xbe },
-+	{ 0x28, 0x15 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0x84 },
-+	{ 0x28, 0x16 }, { 0x29, 0x00 }, { 0x2a, 0x03 }, { 0x2b, 0xee },
-+	{ 0x28, 0x17 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x98 },
-+	{ 0x28, 0x18 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x9f },
-+	{ 0x28, 0x19 }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xb2 },
-+	{ 0x28, 0x1a }, { 0x29, 0x00 }, { 0x2a, 0x06 }, { 0x2b, 0xc2 },
-+	{ 0x28, 0x1b }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0x4a },
-+	{ 0x28, 0x1c }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xbc },
-+	{ 0x28, 0x1d }, { 0x29, 0x00 }, { 0x2a, 0x04 }, { 0x2b, 0xba },
-+	{ 0x28, 0x1e }, { 0x29, 0x00 }, { 0x2a, 0x06 }, { 0x2b, 0x14 },
- 	{ 0x50, 0x1e }, { 0x51, 0x5d },
- 	{ 0x50, 0x22 }, { 0x51, 0x00 },
- 	{ 0x50, 0x23 }, { 0x51, 0xc8 },
-@@ -196,9 +191,7 @@ static struct regdata mb86a20s_init2[] = {
- 	{ 0x50, 0x26 }, { 0x51, 0x00 },
- 	{ 0x50, 0x27 }, { 0x51, 0xc3 },
- 	{ 0x50, 0x39 }, { 0x51, 0x02 },
--	{ 0xec, 0x0f },
--	{ 0xeb, 0x1f },
--	{ 0x28, 0x6a }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x00 },
-+	{ 0x50, 0xd5 }, { 0x51, 0x01 },
- 	{ 0xd0, 0x00 },
- };
- 
--- 
-2.7.4
+drivers/media/platform/vsp1/vsp1_dl.c:/*
+drivers/media/platform/vsp1/vsp1_dl.c- * Initialize a display list body object and allocate DMA memory for the body
+drivers/media/platform/vsp1/vsp1_dl.c- * data. The display list body object is expected to have been initialized to
+drivers/media/platform/vsp1/vsp1_dl.c- * 0 when allocated.
+drivers/media/platform/vsp1/vsp1_dl.c- */
 
+...
+
+I'll address the ones only the CodingStyle violation introduced by this
+series. I'll leave for the vsp1 maintainers/developers.
+
+Btw, there are several kernel-doc tags that use just:
+	/*
+	 ...
+	 */
+
+instead of:
+
+	/**
+	 ...
+	 */
+
+I suggest you to add the files/headers with kernel-doc markups on
+a Documentation/media/v4l-drivers/vsp1.rst file, to be created.
+
+This way, you can validate that such documentation is correct,
+and produce an auto-generated documentation for this driver.
+
+Regards,
+Mauro
