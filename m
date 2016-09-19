@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54026 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752159AbcIGWYy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 18:24:54 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v3 07/10] v4l: fdp1: Remove unused struct fdp1_v4l2_buffer
-Date: Thu,  8 Sep 2016 01:25:07 +0300
-Message-Id: <1473287110-780-8-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail.kernel.org ([198.145.29.136]:53312 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751443AbcISWzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 18:55:36 -0400
+Date: Tue, 20 Sep 2016 00:55:21 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/5] smiapp: Set device for pixel array and binner
+Message-ID: <20160919225519.xcy7abku7frm45a2@earth>
+References: <1473938961-16067-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938961-16067-3-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="i3ozvuqp3bkpe2ob"
+Content-Disposition: inline
+In-Reply-To: <1473938961-16067-3-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The structure is not used, remove it.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar_fdp1.c | 13 -------------
- 1 file changed, 13 deletions(-)
+--i3ozvuqp3bkpe2ob
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-index bbeacf1527b5..fdab41165f5a 100644
---- a/drivers/media/platform/rcar_fdp1.c
-+++ b/drivers/media/platform/rcar_fdp1.c
-@@ -514,19 +514,6 @@ enum fdp1_deint_mode {
- 	 mode == FDP1_PREVFIELD)
- 
- /*
-- * fdp1_v4l2_buffer: Track v4l2_buffers with a reference count
-- *
-- * As buffers come in, they may be used for more than one field.
-- * It then becomes necessary to track the usage of these buffers,
-- * and only release when the last job has completed using this
-- * vb buffer.
-- */
--struct fdp1_v4l2_buffer {
--	struct vb2_v4l2_buffer	vb;
--	struct list_head	list;
--};
--
--/*
-  * FDP1 operates on potentially 3 fields, which are tracked
-  * from the VB buffers using this context structure.
-  * Will always be a field or a full frame, never two fields.
--- 
-Regards,
+Hi,
 
-Laurent Pinchart
+On Thu, Sep 15, 2016 at 02:29:18PM +0300, Sakari Ailus wrote:
+> The dev field of the v4l2_subdev was left NULL for the pixel array and
+> binner sub-devices. Fix this.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--i3ozvuqp3bkpe2ob
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJX4GzXAAoJENju1/PIO/qaIOwQAIcgqiGl38FLlVOZAgP6kqa/
+iu0Zp4Ea+r/3wvEptiUhulpJXxFYJQbdTRMYH0ryyzfSJtCrY7F8ZBZ3ymx/hlkE
+8xv5/TJJIBjBbqw0uWwCyCTX7reEbAsVYpcRG+LTUNk5ESwi3htp2ZXiMjNOnR0F
+K4qWc15RV9tNH2gbqoQs2s8jF/hejrO1VbIwGxBcQ+N2RkVnygEBXouqPK7YQ3on
+RmWhTmxjMPzdsB/1KOFEhpKD2F0fJe4o8hQfTSj6HScO92pLlRJcVtk5AkORFxRd
+QrLy5udBQ6ICzUVndVU61BUGl1+QpKuR6ol/1i4qTR0jivyEIcyo45Me4LbzSaSb
+Wacq/QTSGWzY21PtUT/61/nOCH5Ia3phjITfDeMTWUU1+JT87dVNGjcCPJvMjm+c
+FnqkXqjZw7Zuo+8iXkwi+YMuiDkoIn2OAXkTSQbZcqIvwRJ1gq3IHw5lSXL3Wz/d
+xAyaaEhTrlCO1gkcgagdPBLjHDqED+ajIqNTNi+oHUrBVT+bcZDhO85ENPer9J6h
+vTRXWfllQeNowjPKnqpRvijoArjg8jcnOPDxI12SW8OwrCM8RhMrK8EQ5Sh5sEM8
+ftmXOoTbgIHMV8Ou9EJn0WQgU5fL1zMNdKWUnYNNn4lO0aBAurwM5DEo2nLheqDa
+Z55cxA3Iab4XitmeVNPc
+=aR4D
+-----END PGP SIGNATURE-----
+
+--i3ozvuqp3bkpe2ob--
