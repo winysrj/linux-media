@@ -1,58 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.134]:52310 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753895AbcISMrI (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35324 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753416AbcISWDN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 08:47:08 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] platform: pxa_camera: add VIDEO_V4L2 dependency
-Date: Mon, 19 Sep 2016 14:46:30 +0200
-Message-Id: <20160919124655.1466734-1-arnd@arndb.de>
+        Mon, 19 Sep 2016 18:03:13 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v3 12/18] smiapp: Use SMIAPP_PADS when referring to number of pads
+Date: Tue, 20 Sep 2016 01:02:45 +0300
+Message-Id: <1474322571-20290-13-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moving the pxa_camera driver from soc_camera lots the implied
-VIDEO_V4L2 Kconfig dependency, and building the driver without
-V4L2 results in a kernel that cannot link:
+Replace plain value 2 with SMIAPP_PADS when referring to the number of
+pads.
 
-drivers/media/platform/pxa_camera.o: In function `pxa_camera_remove':
-pxa_camera.c:(.text.pxa_camera_remove+0x10): undefined reference to `v4l2_clk_unregister'
-pxa_camera.c:(.text.pxa_camera_remove+0x18): undefined reference to `v4l2_device_unregister'
-drivers/media/platform/pxa_camera.o: In function `pxa_camera_probe':
-pxa_camera.c:(.text.pxa_camera_probe+0x458): undefined reference to `v4l2_of_parse_endpoint'
-drivers/media/v4l2-core/videobuf2-core.o: In function `__enqueue_in_driver':
-drivers/media/v4l2-core/videobuf2-core.o: In function `vb2_core_streamon':
-videobuf2-core.c:(.text.vb2_core_streamon+0x1b4): undefined reference to `v4l_vb2q_enable_media_source'
-drivers/media/v4l2-core/videobuf2-v4l2.o: In function `vb2_ioctl_reqbufs':
-videobuf2-v4l2.c:(.text.vb2_ioctl_reqbufs+0xc): undefined reference to `video_devdata'
-
-This adds back an explicit dependency.
-
-Fixes: 3050b9985024 ("[media] media: platform: pxa_camera: move pxa_camera out of soc_camera")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/smiapp/smiapp.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index ce4a96fccc43..5ff803efdc03 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -93,7 +93,7 @@ config VIDEO_OMAP3_DEBUG
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index e71271e..f9febe0 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -157,9 +157,9 @@ struct smiapp_binning_subtype {
  
- config VIDEO_PXA27x
- 	tristate "PXA27x Quick Capture Interface driver"
--	depends on VIDEO_DEV && HAS_DMA
-+	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	depends on PXA27x || COMPILE_TEST
- 	select VIDEOBUF2_DMA_SG
- 	select SG_SPLIT
+ struct smiapp_subdev {
+ 	struct v4l2_subdev sd;
+-	struct media_pad pads[2];
++	struct media_pad pads[SMIAPP_PADS];
+ 	struct v4l2_rect sink_fmt;
+-	struct v4l2_rect crop[2];
++	struct v4l2_rect crop[SMIAPP_PADS];
+ 	struct v4l2_rect compose; /* compose on sink */
+ 	unsigned short sink_pad;
+ 	unsigned short source_pad;
 -- 
-2.9.0
+2.1.4
 
