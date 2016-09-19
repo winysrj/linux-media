@@ -1,73 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:58956 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758602AbcIHJWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Sep 2016 05:22:03 -0400
-From: Todor Tomov <todor.tomov@linaro.org>
-To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
-        matrandg@cisco.com, sakari.ailus@iki.fi,
-        linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH v6 0/2] OV5645 camera sensor driver
-Date: Thu,  8 Sep 2016 12:13:53 +0300
-Message-Id: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:37985 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752711AbcISKPG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 06:15:06 -0400
+Subject: Re: [PATCH v2 4/8] media: vidc: encoder: add video encoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1473248229-5540-5-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <18374b1c-f3b3-4eda-6c05-cf364b1bef81@xs4all.nl>
+Date: Mon, 19 Sep 2016 12:15:01 +0200
+MIME-Version: 1.0
+In-Reply-To: <1473248229-5540-5-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the sixth version of the OV5645 camera sensor driver patchset.
+Many of my review comments for the decoder apply to the encoder as well,
+so I won't repeat those.
 
-Changes since version 5 include:
-- external clock frequency set in DT;
-- added v4l2_subdev_pad_ops.init_cfg function to initialize formats;
-- current sensor mode not updated if set_fmt is TRY (not ACTIVE);
-- other small changes - debug messages removed, register addresses defines
-  renamed, redundant safety checks removed, unnecessary labels removed,
-  mutex_destroy added.
+On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
+> This adds encoder part of the driver plus encoder controls.
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/vidc/venc.c       | 1252 +++++++++++++++++++++++++
+>  drivers/media/platform/qcom/vidc/venc.h       |   29 +
+>  drivers/media/platform/qcom/vidc/venc_ctrls.c |  396 ++++++++
+>  drivers/media/platform/qcom/vidc/venc_ctrls.h |   23 +
+>  4 files changed, 1700 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/vidc/venc.c
+>  create mode 100644 drivers/media/platform/qcom/vidc/venc.h
+>  create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.c
+>  create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.h
+> 
+> diff --git a/drivers/media/platform/qcom/vidc/venc.c b/drivers/media/platform/qcom/vidc/venc.c
+> new file mode 100644
+> index 000000000000..3b65f851a807
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/vidc/venc.c
+> @@ -0,0 +1,1252 @@
 
-Two one-line changes since version 4:
-- return current format on set_format;
-- return all frame sizes when enumerating them.
+<snip>
 
-Only one change since version 3:
-- build failure on kernel v4.7-rc1 fixed:
-  s/media_entity_init/media_entity_pads_init/
+> +static int venc_s_selection(struct file *file, void *fh,
+> +			    struct v4l2_selection *s)
+> +{
+> +	return -EINVAL;
+> +}
 
-Changes from version 2 include:
-- external camera clock configuration is moved from DT to driver;
-- pwdn-gpios renamed to enable-gpios;
-- switched polarity of reset-gpios to the more intuitive active low;
-- added Kconfig dependency to OF;
-- return values checks;
-- regulators and gpios are now required (not optional);
-- regulators names renamed;
-- power counter variable changed to a bool power state;
-- ov5645_registered() is removed and sensor id reading moved to probe().
+Huh? Either remove this, or implement this correctly.
 
-Changes from version 1 include:
-- patch split to dt binding doc patch and driver patch;
-- changes in power on/off logic - s_power is now not called on
-  open/close;
-- using assigned-clock-rates in dt for setting camera external
-  clock rate;
-- correct api for gpio handling;
-- return values checks;
-- style fixes.
+<snip>
 
-Todor Tomov (2):
-  media: i2c/ov5645: add the device tree binding document
-  media: Add a driver for the ov5645 camera sensor.
+> +static int venc_subscribe_event(struct v4l2_fh *fh,
+> +				const struct  v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_EOS:
+> +		return v4l2_event_subscribe(fh, sub, 2, NULL);
+> +	case V4L2_EVENT_SOURCE_CHANGE:
+> +		return v4l2_src_change_event_subscribe(fh, sub);
 
- .../devicetree/bindings/media/i2c/ov5645.txt       |   52 +
- drivers/media/i2c/Kconfig                          |   12 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov5645.c                         | 1372 ++++++++++++++++++++
- 4 files changed, 1437 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
- create mode 100644 drivers/media/i2c/ov5645.c
+These two events aren't used in this driver AFAICT, so this can be dropped.
 
--- 
-1.9.1
+Since that leaves just V4L2_EVENT_CTRL this function can be replaced by
+v4l2_ctrl_subscribe_event().
+
+Regards,
+
+	Hans
+
+
+> +	case V4L2_EVENT_CTRL:
+> +		return v4l2_ctrl_subscribe_event(fh, sub);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
 
