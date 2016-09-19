@@ -1,67 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:60293 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933781AbcIPLuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 07:50:20 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        mchehab@s-opensource.com
-Subject: [PATCH v5 1/4] media: Determine early whether an IOCTL is supported
-Date: Fri, 16 Sep 2016 14:49:05 +0300
-Message-Id: <1474026548-28829-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1474026548-28829-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:37924 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750809AbcISGVd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 02:21:33 -0400
+From: Colin King <colin.king@canonical.com>
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] st-hva: fix a copy-and-paste variable name error
+Date: Mon, 19 Sep 2016 07:19:28 +0100
+Message-Id: <20160919061928.6575-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Preparation for refactoring media IOCTL handling to unify common parts.
+From: Colin Ian King <colin.king@canonical.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The second check for an error on hva->lmi_err_reg appears
+to be a copy-and-paste error, it should be hva->emi_err_reg
+instead.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/media/media-device.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ drivers/media/platform/sti/hva/hva-hw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 1795abe..f321264 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -419,6 +419,22 @@ static long media_device_get_topology(struct media_device *mdev,
- 	return 0;
- }
+diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+index d341d49..dcf362c 100644
+--- a/drivers/media/platform/sti/hva/hva-hw.c
++++ b/drivers/media/platform/sti/hva/hva-hw.c
+@@ -245,7 +245,7 @@ static irqreturn_t hva_hw_err_irq_thread(int irq, void *arg)
+ 		ctx->hw_err = true;
+ 	}
  
-+#define MEDIA_IOC(__cmd) \
-+	[_IOC_NR(MEDIA_IOC_##__cmd)] = { .cmd = MEDIA_IOC_##__cmd }
-+
-+/* the table is indexed by _IOC_NR(cmd) */
-+struct media_ioctl_info {
-+	unsigned int cmd;
-+};
-+
-+static const struct media_ioctl_info ioctl_info[] = {
-+	MEDIA_IOC(DEVICE_INFO),
-+	MEDIA_IOC(ENUM_ENTITIES),
-+	MEDIA_IOC(ENUM_LINKS),
-+	MEDIA_IOC(SETUP_LINK),
-+	MEDIA_IOC(G_TOPOLOGY),
-+};
-+
- static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 			       unsigned long arg)
- {
-@@ -426,6 +442,10 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
- 	struct media_device *dev = devnode->media_dev;
- 	long ret;
- 
-+	if (_IOC_NR(cmd) >= ARRAY_SIZE(ioctl_info)
-+	    || ioctl_info[_IOC_NR(cmd)].cmd != cmd)
-+		return -ENOIOCTLCMD;
-+
- 	mutex_lock(&dev->graph_mutex);
- 	switch (cmd) {
- 	case MEDIA_IOC_DEVICE_INFO:
+-	if (hva->lmi_err_reg) {
++	if (hva->emi_err_reg) {
+ 		dev_err(dev, "%s     external memory interface error: 0x%08x\n",
+ 			ctx->name, hva->emi_err_reg);
+ 		ctx->hw_err = true;
 -- 
-2.7.4
+2.9.3
 
