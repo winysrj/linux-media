@@ -1,245 +1,345 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36006 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755226AbcILIxI (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46042 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932480AbcISS0v (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 04:53:08 -0400
-MIME-Version: 1.0
-In-Reply-To: <20160912032826.GB18340@uda0271908>
-References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
- <20160830183039.GA20056@uda0271908> <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
- <20160912032826.GB18340@uda0271908>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Mon, 12 Sep 2016 11:52:46 +0300
-Message-ID: <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
-Subject: Re: musb: isoc pkt loss with pwc
-To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Alan Stern <stern@rowland.harvard.edu>, hdegoede@redhat.com,
-        linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+        Mon, 19 Sep 2016 14:26:51 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH] [media] vsp1: fix CodingStyle violations on multi-line comments
+Date: Mon, 19 Sep 2016 15:26:19 -0300
+Message-Id: <b61873922d2c0029411304e66f810f5133b32c4d.1474309567.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-09-12 6:28 GMT+03:00 Bin Liu <b-liu@ti.com>:
-> Hi,
->
-> On Tue, Aug 30, 2016 at 11:44:33PM +0300, Matwey V. Kornilov wrote:
->> 2016-08-30 21:30 GMT+03:00 Bin Liu <b-liu@ti.com>:
->> > Hi,
->> >
->> > On Sun, Aug 28, 2016 at 01:13:55PM +0300, Matwey V. Kornilov wrote:
->> >> Hello Bin,
->> >>
->> >> I would like to start new thread on my issue. Let me recall where the issue is:
->> >> There is 100% frame lost in pwc webcam driver due to lots of
->> >> zero-length packages coming from musb driver.
->> >
->> > What is the video resolution and fps?
->>
->> 640x480 YUV420 10 frames per second.
->> pwc uses proprietary compression during device-host transmission, but
->> I don't know how effective it is.
->
-> The data rate for VGA YUV420 @10fps is 640x480*1.5*10 = 4.6MB/s, which
-> is much higher than full-speed 12Mbps.  So the video data on the bus is
-> compressed, not YUV420, I believe.
->
->>
->> >
->> >> The issue is present in all kernels (including 4.8) starting from the commit:
->> >>
->> >> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
->> >> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
->> >
->> > What is the behavior without this commit?
->>
->> Without this commit all frames are being received correctly. Single
->
-> Which means without this commit your camera has been working without
-> issues, and this is a regression with this commit, right?
->
+Several multi-line comments added at the vsp1 patch series
+violate the Kernel CodingStyle. Fix them.
 
-Right
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/vsp1/vsp1_bru.c    |  3 ++-
+ drivers/media/platform/vsp1/vsp1_clu.c    |  3 ++-
+ drivers/media/platform/vsp1/vsp1_dl.c     | 21 ++++++++++++++-------
+ drivers/media/platform/vsp1/vsp1_drm.c    |  3 ++-
+ drivers/media/platform/vsp1/vsp1_entity.h |  2 +-
+ drivers/media/platform/vsp1/vsp1_pipe.c   |  2 +-
+ drivers/media/platform/vsp1/vsp1_rpf.c    |  9 ++++++---
+ drivers/media/platform/vsp1/vsp1_rwpf.c   |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_video.c  | 20 +++++++++++++-------
+ drivers/media/platform/vsp1/vsp1_wpf.c    |  9 ++++++---
+ 10 files changed, 51 insertions(+), 27 deletions(-)
 
->> one issue is a number of zero byte package at the beginning of iso
->> stream (probably during camera internal sync, I have to check how the
->> stream is started on x86 later). But they are never repeated after
->> this.
->
-> I think this zero byte packet is normal. I don't know much about pwc,
-> but with uvc cameras, the beginning of the stream is similar, with many
-> 12-bytes packets. 12 byte is typical uvc header length, so 12-byte
-> packet means zero data payload.
->
->>
->> >>
->> >> The issue is here both when DMA enabled and DMA disabled.
->> >>
->> >> Attached here is a plot. The vertical axis designates the value of
->> >> rx_count variable from function musb_host_packet_rx(). One may see
->> >> that there are only two possibilities: 0 bytes and 956 bytes.
->> >> The horizontal axis is the last three digits of the timestamp when
->> >> musb_host_packet_rx() invoked. I.e for [   38.115379] it is 379. Given
->> >> that my webcam is USB 1.1 and base time is 1 ms, then all frames
->> >> should be grouped close to some single value. (Repeating package
->> >> receive event every 1 ms won't change last tree digits considerably)
->> >> One may see that it is not true, in practice there are two groups. And
->> >> receive time strongly correlates with the package size. Packages
->> >> received near round ms are 956 bytes long, packages received near 400
->> >> us are 0 bytes long.
->> >
->> > When the host IN packet passed the deadline, the device drops the video
->> > data, so device only sends 0 byte packet (or 12 bytes which is only the
->> > uvc header without data payload).
->>
->> Doesn't it mean that free part of the frame, i.e (1 msec - (t_IN -
->> t_SOF)) is not enough to transmit 956 bytes in device firmware
->> opinion?
->>
->> >
->> >>
->> >> I don't know how exactly SOF and IN are synchronized in musb, could
->> >> someone give a hint? But from what I see the time difference between
->> >> subsequent IN package requests is sometimes more than 1 ms due to
->> >> heavy urb->complete() callback. After such events only zero length
->> >
->> > Why musb delayed the IN packets, it needs to be investigated.  I will
->> > start to look at this webcam issue with musb soon, after I cleaned up
->> > the musb patches queued recently. I will update once I have progress in
->> > my investigation.
->>
->> The last package in URB has different code path.
->> IN after the last package of URB is not requested in musb_host_packet_rx().
->> Instead, IN request is performed in the end of musb_advance_schedule()
->> by musb_start_urb().
->
-> I am seeing the samilar issue with my Logitech pro9000 camera, and I
-> have been looking at it whenever I got some time.
->
-> I believe the IN after the last packet is coming from a new URB, that is
-> why it is performed by musb_start_urb().
->
->> musb_advance_schedule() has the following code:
->>
->>         qh->is_ready = 0;
->>         musb_giveback(musb, urb, status);
->>         qh->is_ready = ready;
->>
->> Which can be executed pretty long if urb->complete() handler is not
->> postphoned by HCD_BH.
->> In my case, it takes about 300 us for pwc urb->complete() to run.
->
-> My understanding so far is that when the current RX URB is completed in
-> musb host driver, musb_giveback() is called which triggers
-> urb->complete(), the uvc driver (pwc driver in your case) parses the
-> packets, to know if further video data is needed. If so, a new URB is
-> generated, so IN request is performed again.
-
-Not exactly. pwc_isoc_init() submits three URBs in a row. So, when an
-URB is finished there are always two more URBs pending. No need to
-wait a decision from urb->complete().
-
->
->> Probably, the logic should be modified here, to run giveback on
->> current URB after the start of next URB.
->
-> I believe this is what we have now, giveback is called before the next
-> URB.
->
-> But still, musb driver has to wait for the next URB, which is generated
-> by uvc/pwc when giveback is done. Until then, there is no IN on the bus.
-
-No, It has not to do if there are other pending URBs. So, now it works
-as the following
-
-1) URB1 interrupt handler
-2) URB1 giveback // takes 500 us
-3) URB2 IN request
-
-I think, it should be the following:
-
-1) URB1 interrupt handler
-2) URB2 IN request
-3) URB1 giveback // takes 500 us
-
-And actually, this is how it works when complete is postphoned by HCD_BH.
-
->
->>
->> >
->> >> packages are received. Surprisingly, that `synchronization' is
->> >> recovered sometimes in the middle of URB like the following:
->> >>
->> >> [  163.207363] musb int
->> >> [  163.207380] rx_count 0
->> >> [  163.207393] req pkt c9c76200 // Expected musb int at 163.208393
->> >> [  163.207403] int end
->> >> // No interrupt at 163.208393
->> >> [  163.209001] musb int
->> >> [  163.209017] rx_count 956
->> >> [  163.209108] req pkt c9c76200
->> >> [  163.209118] int end
->> >
->> > It looks like you used plain printk for these debug logs, which normally
->> > is not a good idea for this type of performance debugging. printk
->> > changes timing especially if the log is printed via uart console.
->> >
->>
->> I think next time I will use tracepoints or something like that. Thank
->> you for pointing.
->>
->> >> And then the series of 956 bytes long packages are received until URB
->> >> giveback will occasionally break it again.
->> >> Do I understand correctly, that SOF is generated every 1 ms by
->> >> hardware and should be followed by IN immediately?
->> >
->> > My understanding is that is does not have to be 'immediately', for
->> > example, in a few ns, it should be okay as long as the interval of IN
->> > packets is fixed, but I forgot what the tolerance is, I haven't read the
->> > related Specs for a long time.
->>
->> But, If IN is postponed by 500 usec, then it means that half of frame
->> is wasted for isochronous transmission. Right?
->
-> 500us to too much delay, it will cause data drop on the camera side.
->
-> Regards,
-> -Bin.
->
->>
->> >
->> >> If so, it is not clear to me how they should be aligned when the time
->> >> difference between to subsequent INs is greater than 1ms.
->> >
->> > It is up to the device firmware, which should have an internal clock to
->> > sync the received IN packets, and adjust the data payload to be send.
->> > This is the basics in video/audio applications.
->> >
->> > Regards,
->> > -Bin.
->> >
->> >>
->> >> --
->> >> With best regards,
->> >> Matwey V. Kornilov.
->> >> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->> >> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->> >
->> >
->>
->>
->>
->> --
->> With best regards,
->> Matwey V. Kornilov.
->> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
->> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
->
-
-
-
+diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
+index 2f5788c1a5be..ee8355c28f94 100644
+--- a/drivers/media/platform/vsp1/vsp1_bru.c
++++ b/drivers/media/platform/vsp1/vsp1_bru.c
+@@ -242,7 +242,8 @@ static int bru_set_selection(struct v4l2_subdev *subdev,
+ 		goto done;
+ 	}
+ 
+-	/* The compose rectangle top left corner must be inside the output
++	/*
++	 * The compose rectangle top left corner must be inside the output
+ 	 * frame.
+ 	 */
+ 	format = vsp1_entity_get_pad_format(&bru->entity, config,
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index f052abd05166..f2fb26e5ab4e 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -224,7 +224,8 @@ static void clu_configure(struct vsp1_entity *entity,
+ 
+ 	switch (params) {
+ 	case VSP1_ENTITY_PARAMS_INIT: {
+-		/* The format can't be changed during streaming, only verify it
++		/*
++		 * The format can't be changed during streaming, only verify it
+ 		 * at setup time and store the information internally for future
+ 		 * runtime configuration calls.
+ 		 */
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 0af3e8fdc714..ad545aff4e35 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -296,7 +296,8 @@ struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm)
+ 		dl = list_first_entry(&dlm->free, struct vsp1_dl_list, list);
+ 		list_del(&dl->list);
+ 
+-		/* The display list chain must be initialised to ensure every
++		/*
++		 * The display list chain must be initialised to ensure every
+ 		 * display list can assert list_empty() if it is not in a chain.
+ 		 */
+ 		INIT_LIST_HEAD(&dl->chain);
+@@ -315,7 +316,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ 	if (!dl)
+ 		return;
+ 
+-	/* Release any linked display-lists which were chained for a single
++	/*
++	 * Release any linked display-lists which were chained for a single
+ 	 * hardware operation.
+ 	 */
+ 	if (dl->has_chain) {
+@@ -325,7 +327,8 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
+ 
+ 	dl->has_chain = false;
+ 
+-	/* We can't free fragments here as DMA memory can only be freed in
++	/*
++	 * We can't free fragments here as DMA memory can only be freed in
+ 	 * interruptible context. Move all fragments to the display list
+ 	 * manager's list of fragments to be freed, they will be
+ 	 * garbage-collected by the work queue.
+@@ -437,7 +440,8 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
+ 	struct vsp1_dl_body *dlb;
+ 	unsigned int num_lists = 0;
+ 
+-	/* Fill the header with the display list bodies addresses and sizes. The
++	/*
++	 * Fill the header with the display list bodies addresses and sizes. The
+ 	 * address of the first body has already been filled when the display
+ 	 * list was allocated.
+ 	 */
+@@ -456,7 +460,8 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
+ 
+ 	dl->header->num_lists = num_lists;
+ 
+-	/* If this display list's chain is not empty, we are on a list, where
++	/*
++	 * If this display list's chain is not empty, we are on a list, where
+ 	 * the next item in the list is the display list entity which should be
+ 	 * automatically queued by the hardware.
+ 	 */
+@@ -482,7 +487,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 	if (dl->dlm->mode == VSP1_DL_MODE_HEADER) {
+ 		struct vsp1_dl_list *dl_child;
+ 
+-		/* In header mode the caller guarantees that the hardware is
++		/*
++		 * In header mode the caller guarantees that the hardware is
+ 		 * idle at this point.
+ 		 */
+ 
+@@ -495,7 +501,8 @@ void vsp1_dl_list_commit(struct vsp1_dl_list *dl)
+ 			vsp1_dl_list_fill_header(dl_child, last);
+ 		}
+ 
+-		/* Commit the head display list to hardware. Chained headers
++		/*
++		 * Commit the head display list to hardware. Chained headers
+ 		 * will auto-start.
+ 		 */
+ 		vsp1_write(vsp1, VI6_DL_HDR_ADDR(dlm->index), dl->dma);
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 54795b5e5a8a..cd209dccff1b 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -283,7 +283,8 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf_index,
+ 		cfg->pixelformat, cfg->pitch, &cfg->mem[0], &cfg->mem[1],
+ 		&cfg->mem[2], cfg->zpos);
+ 
+-	/* Store the format, stride, memory buffer address, crop and compose
++	/*
++	 * Store the format, stride, memory buffer address, crop and compose
+ 	 * rectangles and Z-order position and for the input.
+ 	 */
+ 	fmtinfo = vsp1_get_format_info(vsp1, cfg->pixelformat);
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 90a4d95c0a50..901146f807b9 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -35,7 +35,7 @@ enum vsp1_entity_type {
+ 	VSP1_ENTITY_WPF,
+ };
+ 
+-/*
++/**
+  * enum vsp1_entity_params - Entity configuration parameters class
+  * @VSP1_ENTITY_PARAMS_INIT - Initial parameters
+  * @VSP1_ENTITY_PARAMS_PARTITION - Per-image partition parameters
+diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+index 78b6184f91ce..756ca4ea7668 100644
+--- a/drivers/media/platform/vsp1/vsp1_pipe.c
++++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+@@ -136,7 +136,7 @@ static const struct vsp1_format_info vsp1_video_formats[] = {
+ 	  3, { 8, 8, 8 }, false, true, 1, 1, false },
+ };
+ 
+-/*
++/**
+  * vsp1_get_format_info - Retrieve format information for a 4CC
+  * @vsp1: the VSP1 device
+  * @fourcc: the format 4CC
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index e6236ff2f74a..b2e34a800ffa 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -75,7 +75,8 @@ static void rpf_configure(struct vsp1_entity *entity,
+ 		unsigned int offsets[2];
+ 		struct v4l2_rect crop;
+ 
+-		/* Source size and crop offsets.
++		/*
++		 * Source size and crop offsets.
+ 		 *
+ 		 * The crop offsets correspond to the location of the crop
+ 		 * rectangle top left corner in the plane buffer. Only two
+@@ -84,7 +85,8 @@ static void rpf_configure(struct vsp1_entity *entity,
+ 		 */
+ 		crop = *vsp1_rwpf_get_crop(rpf, rpf->entity.config);
+ 
+-		/* Partition Algorithm Control
++		/*
++		 * Partition Algorithm Control
+ 		 *
+ 		 * The partition algorithm can split this frame into multiple
+ 		 * slices. We must scale our partition window based on the pipe
+@@ -98,7 +100,8 @@ static void rpf_configure(struct vsp1_entity *entity,
+ 			struct vsp1_entity *wpf = &pipe->output->entity;
+ 			unsigned int input_width = crop.width;
+ 
+-			/* Scale the partition window based on the configuration
++			/*
++			 * Scale the partition window based on the configuration
+ 			 * of the pipeline.
+ 			 */
+ 			output = vsp1_entity_get_pad_format(wpf, wpf->config,
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
+index a3ace8df7f4d..66e4d7ea31d6 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
+@@ -132,7 +132,8 @@ static int vsp1_rwpf_get_selection(struct v4l2_subdev *subdev,
+ 	struct v4l2_mbus_framefmt *format;
+ 	int ret = 0;
+ 
+-	/* Cropping is only supported on the RPF and is implemented on the sink
++	/*
++	 * Cropping is only supported on the RPF and is implemented on the sink
+ 	 * pad.
+ 	 */
+ 	if (rwpf->entity.type == VSP1_ENTITY_WPF || sel->pad != RWPF_PAD_SINK)
+@@ -180,7 +181,8 @@ static int vsp1_rwpf_set_selection(struct v4l2_subdev *subdev,
+ 	struct v4l2_rect *crop;
+ 	int ret = 0;
+ 
+-	/* Cropping is only supported on the RPF and is implemented on the sink
++	/*
++	 * Cropping is only supported on the RPF and is implemented on the sink
+ 	 * pad.
+ 	 */
+ 	if (rwpf->entity.type == VSP1_ENTITY_WPF || sel->pad != RWPF_PAD_SINK)
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index e773d3d30df2..d351b9c768d2 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -205,7 +205,7 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+ 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+ }
+ 
+-/*
++/**
+  * vsp1_video_partition - Calculate the active partition output window
+  *
+  * @div_size: pre-determined maximum partition division size
+@@ -242,7 +242,8 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 
+ 	modulus = format->width % div_size;
+ 
+-	/* We need to prevent the last partition from being smaller than the
++	/*
++	 * We need to prevent the last partition from being smaller than the
+ 	 * *minimum* width of the hardware capabilities.
+ 	 *
+ 	 * If the modulus is less than half of the partition size,
+@@ -251,7 +252,8 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 	 * to prevents this:       |1234|1234|1234|1234|1|.
+ 	 */
+ 	if (modulus) {
+-		/* pipe->partitions is 1 based, whilst index is a 0 based index.
++		/*
++		 * pipe->partitions is 1 based, whilst index is a 0 based index.
+ 		 * Normalise this locally.
+ 		 */
+ 		unsigned int partitions = pipe->partitions - 1;
+@@ -371,7 +373,8 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ 	if (!pipe->dl)
+ 		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+ 
+-	/* Start with the runtime parameters as the configure operation can
++	/*
++	 * Start with the runtime parameters as the configure operation can
+ 	 * compute/cache information needed when configuring partitions. This
+ 	 * is the case with flipping in the WPF.
+ 	 */
+@@ -391,13 +394,15 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ 	     pipe->current_partition++) {
+ 		struct vsp1_dl_list *dl;
+ 
+-		/* Partition configuration operations will utilise
++		/*
++		 * Partition configuration operations will utilise
+ 		 * the pipe->current_partition variable to determine
+ 		 * the work they should complete.
+ 		 */
+ 		dl = vsp1_dl_list_get(pipe->output->dlm);
+ 
+-		/* An incomplete chain will still function, but output only
++		/*
++		 * An incomplete chain will still function, but output only
+ 		 * the partitions that had a dl available. The frame end
+ 		 * interrupt will be marked on the last dl in the chain.
+ 		 */
+@@ -818,7 +823,8 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	/* Clear the buffers ready flag to make sure the device won't be started
++	/*
++	 * Clear the buffers ready flag to make sure the device won't be started
+ 	 * by a QBUF on the video node on the other side of the pipeline.
+ 	 */
+ 	spin_lock_irqsave(&video->irqlock, flags);
+diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
+index deb53b5df1cf..7c48f81cd5c1 100644
+--- a/drivers/media/platform/vsp1/vsp1_wpf.c
++++ b/drivers/media/platform/vsp1/vsp1_wpf.c
+@@ -222,7 +222,8 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 		unsigned int height = source_format->height;
+ 		unsigned int offset;
+ 
+-		/* Cropping. The partition algorithm can split the image into
++		/*
++		 * Cropping. The partition algorithm can split the image into
+ 		 * multiple slices.
+ 		 */
+ 		if (pipe->partitions > 1)
+@@ -238,7 +239,8 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 		if (pipe->lif)
+ 			return;
+ 
+-		/* Update the memory offsets based on flipping configuration.
++		/*
++		 * Update the memory offsets based on flipping configuration.
+ 		 * The destination addresses point to the locations where the
+ 		 * VSP starts writing to memory, which can be different corners
+ 		 * of the image depending on vertical flipping.
+@@ -246,7 +248,8 @@ static void wpf_configure(struct vsp1_entity *entity,
+ 		if (pipe->partitions > 1) {
+ 			const struct vsp1_format_info *fmtinfo = wpf->fmtinfo;
+ 
+-			/* Horizontal flipping is handled through a line buffer
++			/*
++			 * Horizontal flipping is handled through a line buffer
+ 			 * and doesn't modify the start address, but still needs
+ 			 * to be handled when image partitioning is in effect to
+ 			 * order the partitions correctly.
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+2.7.4
+
