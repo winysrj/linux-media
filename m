@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:35056 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933389AbcIVNTR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 09:19:17 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: hans.verkuil@cisco.com
-Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com,
-        william.towle@codethink.co.uk, devicetree@vger.kernel.org,
-        radhey.shyam.pandey@xilinx.com
-Subject: [PATCH v2 1/2] media: adv7604: fix bindings inconsistency for default-input
-Date: Thu, 22 Sep 2016 15:18:59 +0200
-Message-Id: <1474550340-31455-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1474550340-31455-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1474550340-31455-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:57796 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750971AbcISUjM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 16:39:12 -0400
+Date: Mon, 19 Sep 2016 22:39:06 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 06/17] smiapp: Remove unnecessary BUG_ON()'s
+Message-ID: <20160919203906.c5dvmtec44qhu2oe@earth>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938551-14503-7-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="vsaqyvzvpazc3ysm"
+Content-Disposition: inline
+In-Reply-To: <1473938551-14503-7-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The text states that default-input is an endpoint property, but in the
-example it is a device property.
 
-The default input is a property of the chip, not of a particular port, so
-the example makes more sense.
+--vsaqyvzvpazc3ysm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/devicetree/bindings/media/i2c/adv7604.txt | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Hi,
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-index 8337f75..9cbd92e 100644
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt
-@@ -34,6 +34,7 @@ The digital output port node must contain at least one endpoint.
- Optional Properties:
- 
-   - reset-gpios: Reference to the GPIO connected to the device's reset pin.
-+  - default-input: Select which input is selected after reset.
- 
- Optional Endpoint Properties:
- 
-@@ -47,8 +48,6 @@ Optional Endpoint Properties:
-   If none of hsync-active, vsync-active and pclk-sample is specified the
-   endpoint will use embedded BT.656 synchronization.
- 
--  - default-input: Select which input is selected after reset.
--
- Example:
- 
- 	hdmi_receiver@4c {
--- 
-2.7.4
+On Thu, Sep 15, 2016 at 02:22:20PM +0300, Sakari Ailus wrote:
+> Instead, calculate how much is needed and then allocate the memory
+> dynamically.
 
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--vsaqyvzvpazc3ysm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJX4EzqAAoJENju1/PIO/qaT2oP/0FwF19lEIa9o1K+U8cnqj3k
+sTTRHd/uqPTwgyLaWnZdx31/+2yKqChuy24sOG+2FGW019VMj5JX3NFruO9F82yP
+hm1ndNucXkmIIVJBUpox9CNcnXn2vE0AunF4U3L7aj+10X9x81AtsMr/wsWC25pV
+QlgUF7FVgcDRlirNAegiEAY6KaALzYKXV7KdSZ3Nyo8k6mLjL/9lhccOU6RDI/Sz
+7m9JW/UCCkBH0+kQHpJmQqjUSHVY9vSsjQFRRcpCij7jbgK/sh4JDBJri4iG/j+J
+JnMLai3PkzrtbUcevAsyMgcX3aJYuJy8NkCWYkeqhzjVMLxxk9hvv+RiOazc3xdJ
+DyhdpsXKsIQj6KqJw1t97pwFJXD01at0ZQ5dpynH2jh3m+xdPJ0+td3ZKN4s2Jrt
+2of+DplJQtmBwFWx6bHpMesortvY7+O692ic8CwXJ340TEumYCvr6NOFlRnuFEcH
+KCHLn2wnuJto+OEybhDkgPRiFkJuBzW812OPT4uEoa6vMdBdoRjD324jm9UbAo4k
+8C52sqWSFtGlksSZRB0fLSpVjneF6B+NYHE6ddfC0sumlYuTo0ftuJV5rwOD7c18
++EwvzZuJvLTbTZ+Lx2VRkMaUJ0koGD2dUWQ1lthYu5Mu0ZilWkTVtP3NgY5XImN0
+n0AlpBWT1ieW7vv4mqYr
+=lN72
+-----END PGP SIGNATURE-----
+
+--vsaqyvzvpazc3ysm--
