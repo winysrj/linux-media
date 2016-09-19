@@ -1,139 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38646
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934268AbcIVPCB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44192 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751414AbcISGxW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 11:02:01 -0400
-Date: Thu, 22 Sep 2016 12:01:52 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l-utils: report rc protocol while testing
-Message-ID: <20160922120152.3973d6e6@vento.lan>
-In-Reply-To: <1474451663-29027-1-git-send-email-sean@mess.org>
-References: <1474451663-29027-1-git-send-email-sean@mess.org>
+        Mon, 19 Sep 2016 02:53:22 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 9EDF760093
+        for <linux-media@vger.kernel.org>; Mon, 19 Sep 2016 09:53:16 +0300 (EEST)
+Date: Mon, 19 Sep 2016 09:53:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL v2 FOR v4.10] Media IOCTL handling rework
+Message-ID: <20160919065315.GI5086@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 21 Sep 2016 10:54:23 +0100
-Sean Young <sean@mess.org> escreveu:
+Hi Mauro,
 
-> If you have a remote and want to see what protocol it uses, simply run
-> the following. That's enough to write a new keymap.
-> 
-> ./ir-keytable  -p rc-5,nec,rc-6,jvc,sony,sanyo,sharp,xmp -t
-> Testing events. Please, press CTRL-C to abort.
-> 1474415431.689685: event type EV_MSC(0x04): protocol = RC_TYPE_RC6_MCE
-> 1474415431.689685: event type EV_MSC(0x04): scancode = 0x800f040e
-> 1474415431.689685: event type EV_SYN(0x00).
-> 1474415443.857071: event type EV_MSC(0x04): protocol = RC_TYPE_RC5
-> 1474415443.857071: event type EV_MSC(0x04): scancode = 0x1e0f
-> 1474415443.857071: event type EV_SYN(0x00).
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  utils/keytable/Makefile.am |  7 +++++++
->  utils/keytable/keytable.c  |  6 ++++++
->  utils/keytable/parse.h     | 26 ++++++++++++++++++++++++++
->  3 files changed, 39 insertions(+)
-> 
-> diff --git a/utils/keytable/Makefile.am b/utils/keytable/Makefile.am
-> index 62b90ad..73cd676 100644
-> --- a/utils/keytable/Makefile.am
-> +++ b/utils/keytable/Makefile.am
-> @@ -59,6 +59,13 @@ sync-with-kernel:
->  	>> $(srcdir)/parse.h  
->  	@printf "\t{ NULL, 0}\n};\n" >> $(srcdir)/parse.h
->  
-> +	@printf "struct parse_event rc_type_events[] = {\n" >> $(srcdir)/parse.h
-> +	@more $(KERNEL_DIR)/usr/include/linux/input-event-codes.h | perl -n \
-> +	-e 'if (m/^\#define\s+(RC_TYPE_[^\s]+)\s+(0x[\d\w]+|[\d]+)/) ' \
-> +	-e '{ printf "\t{\"%s\", %s},\n",$$1,$$2; }' \
-> +	>> $(srcdir)/parse.h
-> +	@printf "\t{ NULL, 0}\n};\n" >> $(srcdir)/parse.h
-> +
->  	@-mkdir -p $(srcdir)/rc_keymaps
->  	@-rm $(srcdir)/rc_keymaps/*
->  	@-cp $(srcdir)/rc_keymaps_userspace/* $(srcdir)/rc_keymaps/
-> diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-> index 3922ad2..d4c295b 100644
-> --- a/utils/keytable/keytable.c
-> +++ b/utils/keytable/keytable.c
-> @@ -55,6 +55,10 @@ struct input_keymap_entry_v2 {
->  #define EVIOCSKEYCODE_V2	_IOW('E', 0x04, struct input_keymap_entry_v2)
->  #endif
->  
-> +#ifndef MSC_RC_TYPE
-> +#define MSC_RC_TYPE 6
-> +#endif
-> +
+These four patches rework Media controller IOCTL handling for cleanups and      
+preparation for variable sized IOCTL arguments.                                 
+                                                                                
+What's changed since the previous set is that the compat handling is kept
+as-is, i.e. it simply calls the regular handler if the IOCTL is something
+else than MEDIA_IOC_ENUM_LINKS32.
 
-No. The way we do is that we always include the needed Kernel header
-with the features, via "make sync-with-kernel". See the README.
-
->  struct keytable_entry {
->  	u_int32_t scancode;
->  	u_int32_t keycode;
-> @@ -1294,6 +1298,8 @@ static void test_event(int fd)
->  			case EV_MSC:
->  				if (ev[i].code == MSC_SCAN)
->  					printf(_(": scancode = 0x%02x\n"), ev[i].value);
-> +				else if (ev[i].code == MSC_RC_TYPE)
-> +					printf(_(": protocol = %s\n"), get_event_name(rc_type_events, ev[i].value));
->  				else
->  					printf(_(": code = %s(0x%02x), value = %d\n"),
->  						get_event_name(msc_events, ev[i].code),
-> diff --git a/utils/keytable/parse.h b/utils/keytable/parse.h
-> index 67eb1a6..10f58ef 100644
-> --- a/utils/keytable/parse.h
-> +++ b/utils/keytable/parse.h
-> @@ -25,6 +25,7 @@ struct parse_event msc_events[] = {
->  	{"MSC_RAW", 0x03},
->  	{"MSC_SCAN", 0x04},
->  	{"MSC_TIMESTAMP", 0x05},
-> +	{"MSC_RC_TYPE", 0x06},
->  	{"MSC_MAX", 0x07},
->  	{ NULL, 0}
->  };
-> @@ -639,3 +640,28 @@ struct parse_event abs_events[] = {
->  	{"ABS_MAX", 0x3f},
->  	{ NULL, 0}
->  };
-> +struct parse_event rc_type_events[] = {
-> +	{"RC_TYPE_UNKNOWN", 0},
-> +	{"RC_TYPE_OTHER", 1},
-> +	{"RC_TYPE_RC5", 2},
-> +	{"RC_TYPE_RC5X", 3},
-> +	{"RC_TYPE_RC5_SZ", 4},
-> +	{"RC_TYPE_JVC", 5},
-> +	{"RC_TYPE_SONY12", 6},
-> +	{"RC_TYPE_SONY15", 7},
-> +	{"RC_TYPE_SONY20", 8},
-> +	{"RC_TYPE_NEC", 9},
-> +	{"RC_TYPE_NECX", 10},
-> +	{"RC_TYPE_NEC32", 11},
-> +	{"RC_TYPE_SANYO", 12},
-> +	{"RC_TYPE_MCE_KBD", 13},
-> +	{"RC_TYPE_RC6_0", 14},
-> +	{"RC_TYPE_RC6_6A_20", 15},
-> +	{"RC_TYPE_RC6_6A_24", 16},
-> +	{"RC_TYPE_RC6_6A_32", 17},
-> +	{"RC_TYPE_RC6_MCE", 18},
-> +	{"RC_TYPE_SHARP", 19},
-> +	{"RC_TYPE_XMP", 20},
-> +	{"RC_TYPE_CEC", 21},
-
-Don't hardcode the numbers here. Instead, include the file and use it.
-
-You'll need to patch the main Makefile, in order to copy this header
-via "make sync-with-kernel" target. 
-> +	{ NULL, 0}
-> +};
+Please pull.
 
 
+The following changes since commit c3b809834db8b1a8891c7ff873a216eac119628d:
 
-Thanks,
-Mauro
+  [media] pulse8-cec: fix compiler warning (2016-09-12 06:42:44 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git media-ioctl-rework
+
+for you to fetch changes up to 267abb2f81a2457d0552eb1b3d988407f3f5eabc:
+
+  media: Add flags to tell whether to take graph mutex for an IOCTL (2016-09-16 12:36:08 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (4):
+      media: Determine early whether an IOCTL is supported
+      media: Unify IOCTL handler calling
+      media: Refactor copying IOCTL arguments from and to user space
+      media: Add flags to tell whether to take graph mutex for an IOCTL
+
+ drivers/media/media-device.c | 224 +++++++++++++++++++++----------------------
+ 1 file changed, 111 insertions(+), 113 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
