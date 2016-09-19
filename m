@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60839 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1759135AbcIPK5S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 06:57:18 -0400
-Received: from durdane.fritz.box (marune.xs4all.nl [80.101.105.217])
-        by tschai.lan (Postfix) with ESMTPSA id DF70A18021F
-        for <linux-media@vger.kernel.org>; Fri, 16 Sep 2016 12:57:11 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 0/8] dv-timings: add VICs and picture aspect ratio
-Date: Fri, 16 Sep 2016 12:57:03 +0200
-Message-Id: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mga03.intel.com ([134.134.136.65]:60283 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938904AbcISNVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 09:21:34 -0400
+Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
+ v4l2-ctl
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org, gjasny@googlemail.com
+References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20160919082226.43cd1bc9@vento.lan>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <57DFE65A.5040607@linux.intel.com>
+Date: Mon, 19 Sep 2016 16:21:30 +0300
+MIME-Version: 1.0
+In-Reply-To: <20160919082226.43cd1bc9@vento.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-The v4l2_bt_timings struct is missing information about the picture aspect
-ratio and the CEA-861 and HDMI VIC (Video Identification Code).
+On 09/19/16 14:22, Mauro Carvalho Chehab wrote:
+> Em Mon, 19 Sep 2016 13:50:25 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+>> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
+>> are found by the linker only if these libraries are specified after the
+>> objects that depend on them.
+>>
+>> As LDFLAGS variable end up expanded on libtool command line before LDADD,
+>> move the libraries to LDADD after local objects. -lpthread is added as on
+>> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
+>> for instance.
+>>
+>> After this patch, creating a static build using the command
+>>
+>> LDFLAGS="--static -static" ./configure --disable-shared --enable-static
+> 
+> It sounds weird to use LDFLAGS="--static -static" here, as the
+> configure options are already asking for static.
+> 
+> IMHO, the right way would be to change configure.ac to add those LDFLAGS
+> when --disable-shared is used.
 
-This patch series adds support for this.
+That's one option, but then shared libraries won't be built at all. I'm
+not sure what would be the use cases for that, though: static linking
+isn't very commonly needed except when you need to run the binaries
+elsewhere (for whatever reason) where you don't have the libraries you
+linked against available.
 
-Changes since v1:
+That's still a separate issue from what this patch fixes.
 
-- Split the first patch into a cleanup patch and a patch adding the
-  actual new flags.
-- Document the new flags.
-- Add the v4l2_dv_timings_cea861_aspect_ratio function (this patch is
-  not yet intended for upstreaming since no driver calls it).
+Ideally it should be possible to link the binaries statically while
+still building shared libraries: both are built by default right now,
+yet shared libraries are always used for linking unless you disable
+shared libraries. Most of the time this makes sense but not always.
 
-Regards,
-
-	Hans
-
-Hans Verkuil (8):
-  videodev2.h: checkpatch cleanup
-  videodev2.h: add VICs and picture aspect ratio
-  vidioc-g-dv-timings.rst: document the new dv_timings flags
-  v4l2-dv-timings: add VICs and picture aspect ratio
-  v4l2-dv-timings: add helpers to find vic and pixelaspect ratio
-  cobalt: add cropcap support
-  adv7604: add vic detect
-  v4l2-dv-timings: add v4l2_dv_timings_cea861_aspect_ratio
-
- .../media/uapi/v4l/vidioc-g-dv-timings.rst         | 23 +++++
- Documentation/media/videodev2.h.rst.exceptions     |  3 +
- drivers/media/i2c/adv7604.c                        | 18 +++-
- drivers/media/pci/cobalt/cobalt-v4l2.c             | 21 +++++
- drivers/media/v4l2-core/Kconfig                    |  1 +
- drivers/media/v4l2-core/v4l2-dv-timings.c          | 76 ++++++++++++++++-
- include/media/v4l2-dv-timings.h                    | 26 ++++++
- include/uapi/linux/v4l2-dv-timings.h               | 97 ++++++++++++++--------
- include/uapi/linux/videodev2.h                     | 75 ++++++++++++-----
- 9 files changed, 281 insertions(+), 59 deletions(-)
+I'm sending a separate patch to fix that by adding
+--with-static-binaries option.
 
 -- 
-2.8.1
-
+Sakari Ailus
+sakari.ailus@linux.intel.com
