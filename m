@@ -1,97 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:64158 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752826AbcIHJLd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 05:11:33 -0400
-Message-ID: <1473325879.26612.2.camel@mtksdaap41>
-Subject: Re: [PATCH 0/4] Add V4L2_PIX_FMT_MT21C format for MT8173 codec
- driver
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>
-Date: Thu, 8 Sep 2016 17:11:19 +0800
-In-Reply-To: <e4d91e67-0b36-3675-575a-c5f38a68dbdb@xs4all.nl>
-References: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
-         <e4d91e67-0b36-3675-575a-c5f38a68dbdb@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.136]:42738 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932221AbcISV2b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 17:28:31 -0400
+Date: Mon, 19 Sep 2016 23:28:24 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 13/17] smiapp: Improve debug messages from frame
+ layout reading
+Message-ID: <20160919212823.pd46zodubufkjyj2@earth>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938551-14503-14-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="eocg3dgpnwd7lzwj"
+Content-Disposition: inline
+In-Reply-To: <1473938551-14503-14-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-On Thu, 2016-09-08 at 09:21 +0200, Hans Verkuil wrote:
-> Hi Tiffany,
-> 
-> On 09/07/2016 08:56 AM, Tiffany Lin wrote:
-> > This patch series add Mediatek compressed block format V4L2_PIX_FMT_MT21C, the
-> > decoder driver will decoded bitstream to V4L2_PIX_FMT_MT21C format.
-> > 
-> > User space applications could use MT8173 MDP driver to convert V4L2_PIX_FMT_MT21C to
-> > V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
-> > 
-> > MDP driver[1] is stand alone driver.
-> > 
-> > Usage:
-> > MT21C -> MT8173 MDP -> NV12M/YUV420M/YVU420
-> > NV12M/NV21M/YUV420M/YVU420M -> mt8173 Encoder -> H264/VP8
-> > H264/VP8/VP9 -> mtk8173 Decoder -> MT21C
-> > 
-> > When encode with MT21 source, the pipeline will be:
-> > MT21C -> MDP driver-> NV12M/NV21M/YUV420M/YVU420M -> Encoder -> H264/VP8
-> > 
-> > When playback, the pipeline will be:
-> > H264/VP8/VP9 -> Decoder driver -> MT21C -> MDP Driver -> DRM
-> > 
-> > [1]https://patchwork.kernel.org/patch/9305329/
-> > 
-> > Tiffany Lin (4):
-> >   v4l: add Mediatek compressed video block format
-> >   docs-rst: Add compressed video formats used on MT8173 codec driver
-> >   vcodec: mediatek: Add V4L2_PIX_FMT_MT21C support for v4l2 decoder
-> >   arm64: dts: mediatek: Add Video Decoder for MT8173
-> > 
-> >  Documentation/media/uapi/v4l/pixfmt-reserved.rst   |    6 +++
-> >  arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   44 ++++++++++++++++++++
-> >  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |    7 +++-
-> >  drivers/media/v4l2-core/v4l2-ioctl.c               |    1 +
-> >  include/uapi/linux/videodev2.h                     |    1 +
-> >  5 files changed, 58 insertions(+), 1 deletion(-)
-> > 
-> 
-> So basically the video decoder is useless without support for this format and
-> without the MDP driver, right?
-> 
-Yes. It also require new vpu firmware.
-Andrew will help release new vpu firmware include encode/decode/mdp
-capability.
+--eocg3dgpnwd7lzwj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-best regards,
-Tiffany
+Hi,
 
+On Thu, Sep 15, 2016 at 02:22:27PM +0300, Sakari Ailus wrote:
+> Provide more debugging information on reading the frame layout.
+>=20
+> [...]
+>
+> @@ -130,7 +127,7 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor=
+ *sensor)
+>  			pixels =3D desc & SMIAPP_FRAME_FORMAT_DESC_4_PIXELS_MASK;
+>  		} else {
+>  			dev_dbg(&client->dev,
+> -				"invalid frame format model type %d\n",
+> +				"0x8.8x invalid frame format model type %d\n",
 
-> I'm wondering if I should hold off on merging the decoder driver until these two
-> are in. What is the timeline for v6 of the MDP driver?
-> 
-> If a v6 is posted early next week, then I have time to review and (assuming it is
-> OK) I can make a pull request for both this driver and the MDP driver.
-> 
-> If it takes longer, then there is a good chance that it will slip to 4.10. I will
-> have very little time in the period September 20 - October 14.
-> 
-> Regards,
-> 
-> 	Hans
+0x8.8x doesn't look very interesting ;)
 
+Apart from the '%' the actual argument is also missing.
 
+> [...]
+
+Once that is fixed:
+
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--eocg3dgpnwd7lzwj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJX4Fh3AAoJENju1/PIO/qakSQP/2l++XadelahUoWJjSgZvq98
+LUSRU2wjj/yhByPhJ1cOSiVx8FzGuoFHoG/0laEedhokKCqfXV75yz9g79t1Bcrk
+5gnvVeqypQK3ETaXpCTZrPhcC8+YgKmfnOqgTrf0+VQJ7IF387rkoOno+WFL/8Ib
+CleP/W8tPwZ2n8MlUrlz45RQuMD/XOPC8w+XOpe/ncLx5zbrxxiuV2CzXio9x3Oj
+sFHuKVus5eSnZa+0rjRF2Y9avL3BFGSsPAsP82Co7OH1/kfLn16HqEUOCCoyvaGQ
+9eP5UXs4IyNfKaNk42VWnTSyxpC8HeQcTXI7rJSMWTQrWilOf4pjyKOxnPftEvpO
+nop/RMcTPcOhLAAs75t++xM4v4PXJUe21ndvhrV6WKhjO9C03peyhXfEUxG7ilTF
+Yo+IWDPFK0FIHX0RoVVu6k6hcBdJ16bz+Xd0mWuJiiOW1ibrAPOvAIxpHG99Vfah
+rXmfnjuF4aBUsXhKUCUQYtLnoZ4+R3p3cZETe/IBtoj7sGPYOEtSVaDeYWgSqAYa
+FCST5t0lvqr0ZNE4Lro09djrZR2/q5sU+mmrLGQZ/CBrzYnvNrh/WwJoiWM07N6s
+qXQHJC6GDGylgNulfBmubXeeW2XvcE9T8BW1Lw8zTCVAY9tS3tQFkmXep/efB369
+/j4F85k/qjNaZ7AfrlXG
+=crb/
+-----END PGP SIGNATURE-----
+
+--eocg3dgpnwd7lzwj--
