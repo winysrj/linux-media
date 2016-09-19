@@ -1,109 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:53044 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757072AbcINO2u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 10:28:50 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35312 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753410AbcISWDN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 18:03:13 -0400
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [v4l-utils PATCH v1.1 2/2] media-ctl: Print information related to a single entity
-Date: Wed, 14 Sep 2016 17:27:45 +0300
-Message-Id: <1473863265-4819-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <2226876.Vxqef30rz5@avalon>
-References: <2226876.Vxqef30rz5@avalon>
+Cc: sre@kernel.org
+Subject: [PATCH v3 06/18] smiapp: Remove unnecessary BUG_ON()'s
+Date: Tue, 20 Sep 2016 01:02:39 +0300
+Message-Id: <1474322571-20290-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an optional argument to the -p option that allows printing all
-information related to a given entity. This may be handy sometimes if only
-a single entity is of interest and there are many entities.
+Instead, calculate how much is needed and then allocate the memory
+dynamically.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- utils/media-ctl/media-ctl.c | 33 +++++++++++++++------------------
- utils/media-ctl/options.c   |  2 ++
- 2 files changed, 17 insertions(+), 18 deletions(-)
+ drivers/media/i2c/smiapp/smiapp-core.c | 24 ++++++++++++++++++------
+ drivers/media/i2c/smiapp/smiapp.h      |  8 ++------
+ 2 files changed, 20 insertions(+), 12 deletions(-)
 
-diff --git a/utils/media-ctl/media-ctl.c b/utils/media-ctl/media-ctl.c
-index 0499008..109cc11 100644
---- a/utils/media-ctl/media-ctl.c
-+++ b/utils/media-ctl/media-ctl.c
-@@ -504,19 +504,11 @@ static void media_print_topology_text(struct media_device *media)
- 			media, media_get_entity(media, i));
- }
- 
--void media_print_topology(struct media_device *media, int dot)
--{
--	if (dot)
--		media_print_topology_dot(media);
--	else
--		media_print_topology_text(media);
--}
--
- int main(int argc, char **argv)
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index e5d4584..9873b3d 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -621,7 +621,7 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ static int smiapp_init_late_controls(struct smiapp_sensor *sensor)
  {
- 	struct media_device *media;
-+	struct media_entity *entity = NULL;
- 	int ret = -1;
--	const char *devname;
+ 	unsigned long *valid_link_freqs = &sensor->valid_link_freqs[
+-		sensor->csi_format->compressed - SMIAPP_COMPRESSED_BASE];
++		sensor->csi_format->compressed - sensor->compressed_min_bpp];
+ 	unsigned int max, i;
  
- 	if (parse_cmdline(argc, argv))
- 		return EXIT_FAILURE;
-@@ -562,17 +554,11 @@ int main(int argc, char **argv)
- 	}
+ 	for (i = 0; i < ARRAY_SIZE(sensor->test_data); i++) {
+@@ -754,6 +754,7 @@ static int smiapp_get_mbus_formats(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+ 	struct smiapp_pll *pll = &sensor->pll;
++	u8 compressed_max_bpp = 0;
+ 	unsigned int type, n;
+ 	unsigned int i, pixel_order;
+ 	int rval;
+@@ -826,16 +827,27 @@ static int smiapp_get_mbus_formats(struct smiapp_sensor *sensor)
+ 	pll->scale_m = sensor->scale_m;
  
- 	if (media_opts.entity) {
--		struct media_entity *entity;
--
- 		entity = media_get_entity_by_name(media, media_opts.entity);
- 		if (entity == NULL) {
- 			printf("Entity '%s' not found\n", media_opts.entity);
- 			goto out;
- 		}
--
--		devname = media_entity_get_devname(entity);
--		if (devname)
--			printf("%s\n", devname);
- 	}
- 
- 	if (media_opts.fmt_pad) {
-@@ -611,9 +597,20 @@ int main(int argc, char **argv)
- 		}
- 	}
- 
--	if (media_opts.print || media_opts.print_dot) {
--		media_print_topology(media, media_opts.print_dot);
--		printf("\n");
-+	if (media_opts.print_dot) {
-+		media_print_topology_dot(media);
-+	} else if (media_opts.print) {
-+		if (entity) {
-+			media_print_topology_text_entity(media, entity);
-+		} else {
-+			media_print_topology_text(media);
-+		}
-+	} else if (entity) {
-+		const char *devname;
+ 	for (i = 0; i < ARRAY_SIZE(smiapp_csi_data_formats); i++) {
++		sensor->compressed_min_bpp =
++			min(smiapp_csi_data_formats[i].compressed,
++			    sensor->compressed_min_bpp);
++		compressed_max_bpp =
++			max(smiapp_csi_data_formats[i].compressed,
++			    compressed_max_bpp);
++	}
 +
-+		devname = media_entity_get_devname(entity);
-+		if (devname)
-+			printf("%s\n", devname);
- 	}
++	sensor->valid_link_freqs = devm_kcalloc(
++		&client->dev,
++		compressed_max_bpp - sensor->compressed_min_bpp + 1,
++		sizeof(*sensor->valid_link_freqs), GFP_KERNEL);
++
++	for (i = 0; i < ARRAY_SIZE(smiapp_csi_data_formats); i++) {
+ 		const struct smiapp_csi_data_format *f =
+ 			&smiapp_csi_data_formats[i];
+ 		unsigned long *valid_link_freqs =
+ 			&sensor->valid_link_freqs[
+-				f->compressed - SMIAPP_COMPRESSED_BASE];
++				f->compressed - sensor->compressed_min_bpp];
+ 		unsigned int j;
  
- 	if (media_opts.reset) {
-diff --git a/utils/media-ctl/options.c b/utils/media-ctl/options.c
-index a288a1b..304a86c 100644
---- a/utils/media-ctl/options.c
-+++ b/utils/media-ctl/options.c
-@@ -52,6 +52,8 @@ static void usage(const char *argv0)
- 	printf("-l, --links links	Comma-separated list of link descriptors to setup\n");
- 	printf("    --known-mbus-fmts	List known media bus formats and their numeric values\n");
- 	printf("-p, --print-topology	Print the device topology\n");
-+	printf("			If entity name is specified using -e option, information\n");
-+	printf("			related to that entity only is printed.\n");
- 	printf("    --print-dot		Print the device topology as a dot graph\n");
- 	printf("-r, --reset		Reset all links to inactive\n");
- 	printf("-v, --verbose		Be verbose\n");
+-		BUG_ON(f->compressed < SMIAPP_COMPRESSED_BASE);
+-		BUG_ON(f->compressed > SMIAPP_COMPRESSED_MAX);
+-
+ 		if (!(sensor->default_mbus_frame_fmts & 1 << i))
+ 			continue;
+ 
+@@ -1769,7 +1781,7 @@ static int smiapp_set_format_source(struct v4l2_subdev *subdev,
+ 
+ 	valid_link_freqs = 
+ 		&sensor->valid_link_freqs[sensor->csi_format->compressed
+-					  - SMIAPP_COMPRESSED_BASE];
++					  - sensor->compressed_min_bpp];
+ 
+ 	__v4l2_ctrl_modify_range(
+ 		sensor->link_freq, 0,
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index aae72bc..e71271e 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -150,11 +150,6 @@ struct smiapp_csi_data_format {
+ #define SMIAPP_PAD_SRC			1
+ #define SMIAPP_PADS			2
+ 
+-#define SMIAPP_COMPRESSED_BASE		8
+-#define SMIAPP_COMPRESSED_MAX		16
+-#define SMIAPP_NR_OF_COMPRESSED		(SMIAPP_COMPRESSED_MAX - \
+-					 SMIAPP_COMPRESSED_BASE + 1)
+-
+ struct smiapp_binning_subtype {
+ 	u8 horizontal:4;
+ 	u8 vertical:4;
+@@ -224,6 +219,7 @@ struct smiapp_sensor {
+ 
+ 	bool streaming;
+ 	bool dev_init_done;
++	u8 compressed_min_bpp;
+ 
+ 	u8 *nvm;		/* nvm memory buffer */
+ 	unsigned int nvm_size;	/* bytes */
+@@ -233,7 +229,7 @@ struct smiapp_sensor {
+ 	struct smiapp_pll pll;
+ 
+ 	/* Is a default format supported for a given BPP? */
+-	unsigned long valid_link_freqs[SMIAPP_NR_OF_COMPRESSED];
++	unsigned long *valid_link_freqs;
+ 
+ 	/* Pixel array controls */
+ 	struct v4l2_ctrl *analog_gain;
 -- 
-2.7.4
+2.1.4
 
