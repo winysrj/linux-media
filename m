@@ -1,80 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:55552 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751643AbcIAVlU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 17:41:20 -0400
+Received: from mailgw02.mediatek.com ([210.61.82.184]:3130 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S937573AbcISDGq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Sep 2016 23:06:46 -0400
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>
+Subject: [RESEND PATCH 1/3] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+Date: Mon, 19 Sep 2016 11:05:39 +0800
+Message-ID: <1474254341-23715-2-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1474254341-23715-1-git-send-email-rick.chang@mediatek.com>
+References: <1474254341-23715-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <20160901171629.15422-7-andi.shyti@samsung.com>
-References: <20160901171629.15422-1-andi.shyti@samsung.com> <20160901171629.15422-7-andi.shyti@samsung.com>
-From: Rob Herring <robh+dt@kernel.org>
-Date: Thu, 1 Sep 2016 16:40:54 -0500
-Message-ID: <CAL_JsqL_AG0m_BctOBV+QOGJcUEup_6ovS6shjo+BrJ974jpaA@mail.gmail.com>
-Subject: Re: [PATCH v2 6/7] Documentation: bindings: add documentation for
- ir-spi device driver
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Andi Shyti <andi@etezian.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 1, 2016 at 12:16 PM, Andi Shyti <andi.shyti@samsung.com> wrote:
-> Document the ir-spi driver's binding which is a IR led driven
-> through the SPI line.
->
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
->  Documentation/devicetree/bindings/media/spi-ir.txt | 26 ++++++++++++++++++++++
->  1 file changed, 26 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/spi-ir.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/spi-ir.txt b/Documentation/devicetree/bindings/media/spi-ir.txt
-> new file mode 100644
-> index 0000000..85cb21b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/spi-ir.txt
+Add a DT binding documentation for Mediatek JPEG Decoder of
+MT2701 SoC.
 
-Move this to bindings/leds, and CC the leds maintainers.
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+ .../bindings/media/mediatek-jpeg-codec.txt         | 35 ++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
 
-> @@ -0,0 +1,26 @@
-> +Device tree bindings for IR LED connected through SPI bus which is used as
-> +remote controller.
-> +
-> +The IR LED switch is connected to the MOSI line of the SPI device and the data
-> +are delivered thourgh that.
-> +
-> +Required properties:
-> +       - compatible: should be "ir-spi".
+diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+new file mode 100644
+index 0000000..514e656
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+@@ -0,0 +1,35 @@
++* Mediatek JPEG Codec
++
++Mediatek JPEG Codec device driver is a v4l2 driver which can decode
++JPEG-encoded video frames.
++
++Required properties:
++  - compatible : "mediatek,mt2701-jpgdec"
++  - reg : Physical base address of the jpeg codec registers and length of
++        memory mapped region.
++  - interrupts : interrupt number to the cpu.
++  - clocks : clock name from clock manager
++  - clock-names: the clocks of the jpeg codec H/W
++  - power-domains : a phandle to the power domain.
++  - larb : must contain the larbes of current platform
++  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
++        the multimedia H/W. and there is only one multimedia iommu domain.
++        "iommus = <&iommu portid>" the "portid" is from
++        dt-bindings\iommu\mt2701-iommu-port.h, it means that this portid will
++        enable iommu. The portid default is disable iommu if "<&iommu portid>"
++        don't be added.
++
++Example:
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,mt2701-jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
+-- 
+1.9.1
 
-Really this is just an LED connected to a SPI, so maybe this should
-just be "spi-led". If being more specific is helpful, then I'm all for
-that, but perhaps spi-ir-led. (Trying to be consistent in naming with
-gpio-leds).
-
-> +
-> +Optional properties:
-> +       - irled,switch: specifies the gpio switch which enables the irled/
-
-As I said previously, "switch-gpios" as gpio lines should have a
-'-gpios' suffix. Or better yet, "enable-gpios" as that is a standard
-name for an enable line.
-
-> +       - negated: boolean value that specifies whether the output is negated
-> +         with a NOT gate.
-
-Negated or inverted assumes I know what normal is. Define this in
-terms of what is the on state. If on is normally active low, then this
-should be led-active-high. There may already be an LED property for
-this.
-
-> +       - duty-cycle: 8 bit value that stores the percentage of the duty cycle.
-> +         it can be 50, 60, 70, 75, 80 or 90.
-
-This is percent time on or off?
-
-Rob
