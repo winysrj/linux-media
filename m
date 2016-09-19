@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7.mo173.mail-out.ovh.net ([46.105.44.159]:39382 "EHLO
-        7.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750922AbcIOPaJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 11:30:09 -0400
-Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
-        by mo173.mail-out.ovh.net (Postfix) with ESMTP id 061881010C20
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 17:30:06 +0200 (CEST)
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-To: linux-media@vger.kernel.org
-Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Subject: [PATCH v7 0/2] Add GS1662 driver
-Date: Thu, 15 Sep 2016 17:29:49 +0200
-Message-Id: <1473953391-3974-1-git-send-email-charles-antoine.couret@nexvision.fr>
+Received: from ring0.de ([5.45.101.7]:54878 "EHLO ring0.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752729AbcISVdQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 17:33:16 -0400
+Date: Mon, 19 Sep 2016 23:33:14 +0200
+From: Sebastian Reichel <sre@ring0.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 15/17] smiapp: Obtain correct media bus code for try
+ format
+Message-ID: <20160919213313.cbungdfsrcmouxya@earth>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938551-14503-16-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="zmq4ybmdnzqksnlv"
+Content-Disposition: inline
+In-Reply-To: <1473938551-14503-16-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches add a driver for GS1662 component, a video serializer which
-supports CEA and SDI timings.
-To perform that, we need to determine SDI definition and some flags.
 
-The associated documentation will be into another patchset to be
-Sphinx comaptible.
+--zmq4ybmdnzqksnlv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This patchset add:
-	* driver in the MAINTAINERS file
+Hi,
 
-Charles-Antoine Couret (2):
-  SDI: add flag for SDI formats and SMPTE 125M definition
-  Add GS1662 driver, a video serializer
+On Thu, Sep 15, 2016 at 02:22:29PM +0300, Sakari Ailus wrote:
+> The media bus code obtained for try format may have been a code that the
+> sensor did not even support. Use a supported code with the current pixel
+> order.
 
- MAINTAINERS                               |   7 +
- drivers/media/Kconfig                     |   1 +
- drivers/media/Makefile                    |   2 +-
- drivers/media/spi/Kconfig                 |   9 +
- drivers/media/spi/Makefile                |   1 +
- drivers/media/spi/gs1662.c                | 472 ++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-dv-timings.c |  11 +-
- include/uapi/linux/v4l2-dv-timings.h      |  12 +
- include/uapi/linux/videodev2.h            |   8 +
- 9 files changed, 518 insertions(+), 5 deletions(-)
- create mode 100644 drivers/media/spi/Kconfig
- create mode 100644 drivers/media/spi/Makefile
- create mode 100644 drivers/media/spi/gs1662.c
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
--- 
-2.7.4
+-- Sebastian
 
+--zmq4ybmdnzqksnlv
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJX4FmZAAoJENju1/PIO/qaTcoP/1EiEVn/XdAtmlrOL09I89Oq
+zhUvgxD8yFoOGxFdVpi9EOAWtuqTAFeSbsgiXifMmgYfgp3azzUlnJIUJzK+W9co
+YPdnnSxbOlGc/7QsIb9EiQ00NSnwf6xBKX+SlhyoyTgbv0AlBIF8gQNL/AUoPuow
+uWKmp4n7kCHdOmh1yfiqoRfsu9fBuM/uUG+O2Ha/rLnZovpYDLrMMcHlvGEJ/5Rd
+RPCR5BIeer9/lld9wufb06KhUxitHAVLRfkKlusV5gLg6RjW12bw6htOn0qHaOrW
++OvU1BH1+xPRSFZjDFxK/STQrHm9eBMPT6LYC2VRVJmnn2NG6oxsZcpGKPojimkG
+HGdfG2Qc036uOQHTbJZs550Bmi+k7LdF/2+qDJR1rk3Ss+Gl1GapLNTpc6958Xys
+8YtgDdPnqS8SZsdtpjml9Qm9eK6xJOMpw0+dqP10j9Yd83Gnm8Au5OPUyh+2DzWv
+3/D2RqSvVPCYpxAaqLyCo7LOFN7ZJaUXAkcLRvdP+FFH5hqGxRIvTHPthkHuotke
+/CM+JcLWXkXqWo5q9lCEtotnn5upby5OU5Ew5P0Is5N5N5xf3DQi8s8v/ayEdirQ
+lKWRcLNg6mFlCb3KMhTNY8zTtmwtPVTACiUuBLOMXuO0ClX4FlbmbvfIr8z2XMYs
+TxTRTw3LRvOrKl8Mxp36
+=i57q
+-----END PGP SIGNATURE-----
+
+--zmq4ybmdnzqksnlv--
