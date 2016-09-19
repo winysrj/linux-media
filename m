@@ -1,224 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:59292 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932560AbcIEKSj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35326 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753412AbcISWDN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 06:18:39 -0400
-Subject: Re: [PATCH v5 3/5] media: Add Mediatek MDP Driver
-To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-References: <1472559944-55114-1-git-send-email-minghsiu.tsai@mediatek.com>
- <1472559944-55114-4-git-send-email-minghsiu.tsai@mediatek.com>
-Cc: srv_heupstream@mediatek.com,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cb59f743-66b9-15cd-0281-54510d7f93ca@xs4all.nl>
-Date: Mon, 5 Sep 2016 12:17:14 +0200
-MIME-Version: 1.0
-In-Reply-To: <1472559944-55114-4-git-send-email-minghsiu.tsai@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Sep 2016 18:03:13 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v3 13/18] smiapp: Obtain frame layout from the frame descriptor
+Date: Tue, 20 Sep 2016 01:02:46 +0300
+Message-Id: <1474322571-20290-14-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/30/2016 02:25 PM, Minghsiu Tsai wrote:
-> Add MDP driver for MT8173
-> 
-> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> ---
->  drivers/media/platform/Kconfig                |   17 +
->  drivers/media/platform/Makefile               |    2 +
->  drivers/media/platform/mtk-mdp/Makefile       |    9 +
->  drivers/media/platform/mtk-mdp/mtk_mdp_comp.c |  159 ++++
->  drivers/media/platform/mtk-mdp/mtk_mdp_comp.h |   72 ++
->  drivers/media/platform/mtk-mdp/mtk_mdp_core.c |  294 ++++++
->  drivers/media/platform/mtk-mdp/mtk_mdp_core.h |  260 +++++
->  drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h  |  126 +++
->  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 1270 +++++++++++++++++++++++++
->  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h  |   22 +
->  drivers/media/platform/mtk-mdp/mtk_mdp_regs.c |  152 +++
->  drivers/media/platform/mtk-mdp/mtk_mdp_regs.h |   31 +
->  drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c  |  145 +++
->  drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h  |   41 +
->  14 files changed, 2600 insertions(+)
->  create mode 100644 drivers/media/platform/mtk-mdp/Makefile
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.c
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_comp.h
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.c
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_core.h
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_ipi.h
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_m2m.h
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.c
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_regs.h
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
->  create mode 100644 drivers/media/platform/mtk-mdp/mtk_mdp_vpu.h
-> 
+Besides the image data, SMIA++ compliant sensors also provide embedded
+data in form of registers used to capture the image. Store this
+information for later use in frame descriptor and routing.
 
-<snip>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 46 +++++++++++++++++++---------------
+ drivers/media/i2c/smiapp/smiapp.h      |  5 +++-
+ 2 files changed, 30 insertions(+), 21 deletions(-)
 
-> +static inline bool mtk_mdp_is_target_compose(u32 target)
-> +{
-> +	if (target == V4L2_SEL_TGT_COMPOSE_DEFAULT
-> +	    || target == V4L2_SEL_TGT_COMPOSE_BOUNDS
-> +	    || target == V4L2_SEL_TGT_COMPOSE)
-> +		return true;
-> +	return false;
-> +}
-> +
-> +static inline bool mtk_mdp_is_target_crop(u32 target)
-> +{
-> +	if (target == V4L2_SEL_TGT_CROP_DEFAULT
-> +	    || target == V4L2_SEL_TGT_CROP_BOUNDS
-> +	    || target == V4L2_SEL_TGT_CROP)
-> +		return true;
-> +	return false;
-> +}
-> +
-> +static int mtk_mdp_m2m_g_selection(struct file *file, void *fh,
-> +				       struct v4l2_selection *s)
-> +{
-> +	struct mtk_mdp_frame *frame;
-> +	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
-> +	bool valid = false;
-> +
-> +	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> +		if (mtk_mdp_is_target_compose(s->target))
-> +			valid = true;
-> +	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +		if (mtk_mdp_is_target_crop(s->target))
-> +			valid = true;
-> +	}
-> +	if (!valid) {
-> +		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
-> +			    s->target);
-> +		return -EINVAL;
-> +	}
-> +
-> +	frame = mtk_mdp_ctx_get_frame(ctx, s->type);
-> +
-> +	switch (s->target) {
-> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_BOUNDS:
-> +	case V4L2_SEL_TGT_CROP_DEFAULT:
-> +		s->r.left = 0;
-> +		s->r.top = 0;
-> +		s->r.width = frame->width;
-> +		s->r.height = frame->height;
-> +		return 0;
-> +
-> +	case V4L2_SEL_TGT_COMPOSE:
-> +	case V4L2_SEL_TGT_CROP:
-> +		s->r.left = frame->crop.left;
-> +		s->r.top = frame->crop.top;
-> +		s->r.width = frame->crop.width;
-> +		s->r.height = frame->crop.height;
-> +		return 0;
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +static int mtk_mdp_check_scaler_ratio(struct mtk_mdp_variant *var, int src_w,
-> +				      int src_h, int dst_w, int dst_h, int rot)
-> +{
-> +	int tmp_w, tmp_h;
-> +
-> +	if (rot == 90 || rot == 270) {
-> +		tmp_w = dst_h;
-> +		tmp_h = dst_w;
-> +	} else {
-> +		tmp_w = dst_w;
-> +		tmp_h = dst_h;
-> +	}
-> +
-> +	if ((src_w / tmp_w) > var->h_scale_down_max ||
-> +	    (src_h / tmp_h) > var->v_scale_down_max ||
-> +	    (tmp_w / src_w) > var->h_scale_up_max ||
-> +	    (tmp_h / src_h) > var->v_scale_up_max)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mtk_mdp_m2m_s_selection(struct file *file, void *fh,
-> +				   struct v4l2_selection *s)
-> +{
-> +	struct mtk_mdp_frame *frame;
-> +	struct mtk_mdp_ctx *ctx = fh_to_ctx(fh);
-> +	struct v4l2_rect new_r;
-> +	struct mtk_mdp_variant *variant = ctx->mdp_dev->variant;
-> +	int ret;
-> +	bool valid = false;
-> +
-> +	if (s->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> +		if (mtk_mdp_is_target_compose(s->target))
-> +			valid = true;
-> +	} else if (s->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> +		if (mtk_mdp_is_target_crop(s->target))
-> +			valid = true;
-> +	}
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 7ac0d4e0..a7afcea 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -68,10 +68,9 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor *sensor)
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+ 	u32 fmt_model_type, fmt_model_subtype, ncol_desc, nrow_desc;
+ 	unsigned int i;
+-	int rval;
++	int pixel_count = 0;
+ 	int line_count = 0;
+-	int embedded_start = -1, embedded_end = -1;
+-	int image_start = 0;
++	int rval;
+ 
+ 	rval = smiapp_read(sensor, SMIAPP_REG_U8_FRAME_FORMAT_MODEL_TYPE,
+ 			   &fmt_model_type);
+@@ -166,33 +165,40 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor *sensor)
+ 		dev_dbg(&client->dev, "%s pixels: %d %s\n",
+ 			what, pixels, which);
+ 
+-		if (i < ncol_desc)
++		if (i < ncol_desc) {
++			if (pixelcode ==
++			    SMIAPP_FRAME_FORMAT_DESC_PIXELCODE_VISIBLE)
++				sensor->visible_pixel_start = pixel_count;
++			pixel_count += pixels;
+ 			continue;
++		}
+ 
+ 		/* Handle row descriptors */
+-		if (pixelcode
+-		    == SMIAPP_FRAME_FORMAT_DESC_PIXELCODE_EMBEDDED) {
+-			embedded_start = line_count;
+-		} else {
+-			if (pixelcode == SMIAPP_FRAME_FORMAT_DESC_PIXELCODE_VISIBLE
+-			    || pixels >= sensor->limits[SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES] / 2)
+-				image_start = line_count;
+-			if (embedded_start != -1 && embedded_end == -1)
+-				embedded_end = line_count;
++		switch (pixelcode) {
++		case SMIAPP_FRAME_FORMAT_DESC_PIXELCODE_EMBEDDED:
++			if (sensor->embedded_end)
++				break;
++			sensor->embedded_start = line_count;
++			sensor->embedded_end = line_count + pixels;
++			break;
++		case SMIAPP_FRAME_FORMAT_DESC_PIXELCODE_VISIBLE:
++			sensor->image_start = line_count;
++			break;
+ 		}
+ 		line_count += pixels;
+ 	}
+ 
+-	if (embedded_start == -1 || embedded_end == -1) {
+-		embedded_start = 0;
+-		embedded_end = 0;
++	if (sensor->embedded_end > sensor->image_start) {
++		dev_dbg(&client->dev,
++			"adjusting image start line to %u (was %u)\n",
++			sensor->embedded_end, sensor->image_start);
++		sensor->image_start = sensor->embedded_end;
+ 	}
+ 
+-	sensor->image_start = image_start;
+-
+ 	dev_dbg(&client->dev, "embedded data from lines %d to %d\n",
+-		embedded_start, embedded_end);
+-	dev_dbg(&client->dev, "image data starts at line %d\n", image_start);
++		sensor->embedded_start, sensor->embedded_end);
++	dev_dbg(&client->dev, "image data starts at line %d\n",
++		sensor->image_start);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/i2c/smiapp/smiapp.h b/drivers/media/i2c/smiapp/smiapp.h
+index f9febe0..d7b52a6 100644
+--- a/drivers/media/i2c/smiapp/smiapp.h
++++ b/drivers/media/i2c/smiapp/smiapp.h
+@@ -213,7 +213,10 @@ struct smiapp_sensor {
+ 
+ 	u8 hvflip_inv_mask; /* H/VFLIP inversion due to sensor orientation */
+ 	u8 frame_skip;
+-	u16 image_start;	/* Offset to first line after metadata lines */
++	u16 embedded_start; /* embedded data start line */
++	u16 embedded_end;
++	u16 image_start; /* image data start line */
++	u16 visible_pixel_start; /* start pixel of the visible image */
+ 
+ 	int power_count;
+ 
+-- 
+2.1.4
 
-These tests are wrong: you can't set the _DEFAULT and _BOUNDS targets.
-Those are read-only. It's easiest to just explicitly check for _CROP or
-_COMPOSE here.
-
-I've added a check to v4l2-compliance to test for this.
-
-> +	if (!valid) {
-> +		mtk_mdp_dbg(1, "[%d] invalid type:%d,%u", ctx->id, s->type,
-> +			    s->target);
-> +		return -EINVAL;
-> +	}
-> +
-> +	new_r = s->r;
-> +	ret = mtk_mdp_try_crop(ctx, s->type, &new_r);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (mtk_mdp_is_target_crop(s->target))
-> +		frame = &ctx->s_frame;
-> +	else
-> +		frame = &ctx->d_frame;
-> +
-> +	/* Check to see if scaling ratio is within supported range */
-> +	if (mtk_mdp_ctx_state_is_set(ctx, MTK_MDP_DST_FMT | MTK_MDP_SRC_FMT)) {
-> +		if (V4L2_TYPE_IS_OUTPUT(s->type)) {
-> +			ret = mtk_mdp_check_scaler_ratio(variant, new_r.width,
-> +				new_r.height, ctx->d_frame.crop.width,
-> +				ctx->d_frame.crop.height,
-> +				ctx->ctrls.rotate->val);
-> +		} else {
-> +			ret = mtk_mdp_check_scaler_ratio(variant,
-> +				ctx->s_frame.crop.width,
-> +				ctx->s_frame.crop.height, new_r.width,
-> +				new_r.height, ctx->ctrls.rotate->val);
-> +		}
-> +
-> +		if (ret) {
-> +			dev_info(&ctx->mdp_dev->pdev->dev,
-> +				"Out of scaler range");
-> +			return -EINVAL;
-> +		}
-> +	}
-> +
-> +	s->r = new_r;
-> +	frame->crop = new_r;
-> +
-> +	return 0;
-> +}
-
-
-Regards,
-
-	Hans
