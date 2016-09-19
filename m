@@ -1,53 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:48632 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755480AbcI2S2M (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35322 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753415AbcISWDM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Sep 2016 14:28:12 -0400
-Received: from pps.filterd (m0098399.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.17/8.16.0.17) with SMTP id u8TIMm1V101904
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2016 14:28:11 -0400
-Received: from e24smtp05.br.ibm.com (e24smtp05.br.ibm.com [32.104.18.26])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 25s40v4k0m-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-media@vger.kernel.org>; Thu, 29 Sep 2016 14:28:11 -0400
-Received: from localhost
-        by e24smtp05.br.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-media@vger.kernel.org> from <krisman@linux.vnet.ibm.com>;
-        Thu, 29 Sep 2016 15:28:08 -0300
-From: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
-To: Christoph Hellwig <hch@lst.de>
-Cc: hans.verkuil@cisco.com, brking@us.ibm.com,
-        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com, kvm@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 5/6] genwqe: use pci_irq_allocate_vectors
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
-        <1473600688-24043-6-git-send-email-hch@lst.de>
-Date: Thu, 29 Sep 2016 15:28:02 -0300
-In-Reply-To: <1473600688-24043-6-git-send-email-hch@lst.de> (Christoph
-        Hellwig's message of "Sun, 11 Sep 2016 15:31:27 +0200")
-MIME-Version: 1.0
-Content-Type: text/plain
-Message-Id: <87twcyk1cd.fsf@linux.vnet.ibm.com>
+        Mon, 19 Sep 2016 18:03:12 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v3 11/18] smiapp: Unify setting up sub-devices
+Date: Tue, 20 Sep 2016 01:02:44 +0300
+Message-Id: <1474322571-20290-12-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christoph Hellwig <hch@lst.de> writes:
+The initialisation of the source sub-device is somewhat different as it's
+not created by the smiapp driver itself. Remove redundancy in initialising
+the two kind of sub-devices.
 
-> Simply the interrupt setup by using the new PCI layer helpers.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Good clean up.  Tested and:
-
-Acked-by: Gabriel Krisman Bertazi <krisman@linux.vnet.ibm.com>
-
-> One odd thing about this driver is that it looks like it could request
-> multiple MSI vectors, but it will then only ever use a single one.
-
-I'll take a look at this.
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 6ec17ea..7ac0d4e0 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2591,6 +2591,7 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
+ 	if (ssd != sensor->src)
+ 		v4l2_subdev_init(&ssd->sd, &smiapp_ops);
+ 
++	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	ssd->sensor = sensor;
+ 
+ 	ssd->npads = num_pads;
+@@ -2616,7 +2617,6 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
+ 	if (ssd == sensor->src)
+ 		return;
+ 
+-	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	ssd->sd.internal_ops = &smiapp_internal_ops;
+ 	ssd->sd.owner = THIS_MODULE;
+ 	v4l2_set_subdevdata(&ssd->sd, client);
+@@ -2861,9 +2861,6 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
+ 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
+-	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	sensor->src->sensor = sensor;
+-	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	sensor->vana = devm_regulator_get(&client->dev, "vana");
+ 	if (IS_ERR(sensor->vana)) {
 -- 
-Gabriel Krisman Bertazi
+2.1.4
 
