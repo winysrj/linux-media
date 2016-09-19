@@ -1,121 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:48269 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755774AbcIEMkQ (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56216 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750772AbcISPWe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 08:40:16 -0400
-Subject: Re: [PATCH v5 00/13] pxa_camera transition to v4l2 standalone device
-To: Robert Jarzmik <robert.jarzmik@free.fr>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Jiri Kosina <trivial@kernel.org>
-References: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+        Mon, 19 Sep 2016 11:22:34 -0400
+Subject: Re: [PATCH v4 0/8] adv7180 subdev fixes, v4
+To: Jack Mitchell <ml@embed.me.uk>,
+        Steve Longerbeam <slongerbeam@gmail.com>, lars@metafoo.de
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+ <13d4da12-f0e2-6e3b-9fc2-a081cfc7014c@embed.me.uk>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <cb7496b2-cc64-7c6e-71b3-6c56e596c8dc@xs4all.nl>
-Date: Mon, 5 Sep 2016 14:40:05 +0200
+Message-ID: <7aee5a85-e590-64bd-e95d-53ff8a6b3ccb@xs4all.nl>
+Date: Mon, 19 Sep 2016 17:22:27 +0200
 MIME-Version: 1.0
-In-Reply-To: <1472493358-24618-1-git-send-email-robert.jarzmik@free.fr>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <13d4da12-f0e2-6e3b-9fc2-a081cfc7014c@embed.me.uk>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/29/2016 07:55 PM, Robert Jarzmik wrote:
-> There is no change between v4 and v5, ie. the global diff is empty, only one
-> line was shifted to prevent breaking bisectablility.
+On 09/19/2016 04:19 PM, Jack Mitchell wrote:
+> 
+> 
+> On 03/08/16 19:03, Steve Longerbeam wrote:
+>> Steve Longerbeam (8):
+>>   media: adv7180: fix field type
+>>   media: adv7180: define more registers
+>>   media: adv7180: add support for NEWAVMODE
+>>   media: adv7180: add power pin control
+>>   media: adv7180: implement g_parm
+>>   media: adv7180: change mbus format to UYVY
+>>   v4l: Add signal lock status to source change events
+>>   media: adv7180: enable lock/unlock interrupts
+>>
+>>  .../devicetree/bindings/media/i2c/adv7180.txt      |   8 +
+>>  Documentation/media/uapi/v4l/vidioc-dqevent.rst    |   9 +
+>>  Documentation/media/videodev2.h.rst.exceptions     |   1 +
+>>  drivers/media/i2c/Kconfig                          |   2 +-
+>>  drivers/media/i2c/adv7180.c                        | 200 +++++++++++++++++----
+>>  include/uapi/linux/videodev2.h                     |   1 +
+>>  6 files changed, 183 insertions(+), 38 deletions(-)
+>>
+> 
+> Did anything come of this patchset, I see a few select patches from the 
+> original (full imx6) series have been merged in but only seems partial?
 
-Against which tree do you develop? Unfortunately this patch series doesn't apply
-to the media_tree master branch anymore due to conflicts with a merged patch that
-converts s/g_crop to s/g_selection in all subdev drivers.
+I cherry-picked a few patches, but most are still in my TODO list.
 
-When you make the new patch series, please use the -M option with git send-email so
-patches that move files around are handled cleanly. That makes it much easier to review.
-
-BTW, checkpatch reported issues in a switch statement in function pxa_camera_get_formats():
-
-
-        switch (code.code) {
-        case MEDIA_BUS_FMT_UYVY8_2X8:
-                formats++;
-                if (xlate) {
-                        xlate->host_fmt = &pxa_camera_formats[0];
-                        xlate->code     = code.code;
-                        xlate++;
-                        dev_dbg(dev, "Providing format %s using code %d\n",
-                                pxa_camera_formats[0].name, code.code);
-                }
-        case MEDIA_BUS_FMT_VYUY8_2X8:
-        case MEDIA_BUS_FMT_YUYV8_2X8:
-        case MEDIA_BUS_FMT_YVYU8_2X8:
-        case MEDIA_BUS_FMT_RGB565_2X8_LE:
-        case MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE:
-                if (xlate)
-                        dev_dbg(dev, "Providing format %s packed\n",
-                                fmt->name);
-                break;
-        default:
-                if (!pxa_camera_packing_supported(fmt))
-                        return 0;
-                if (xlate)
-                        dev_dbg(dev,
-                                "Providing format %s in pass-through mode\n",
-                                fmt->name);
-        }
-
-Before 'case MEDIA_BUS_FMT_VYUY8_2X8' should there be a break? If not, then
-there should be a '/* fall through */' comment.
-
-At the end of the default case there should also be a break statement.
-
-This is already in the existing code, so just make a separate patch fixing
-this.
-
-I'm ready to make a pull request as soon as I have a v6 that applies cleanly.
+I need time to carefully look at the interlaced/NEWAVMODE support. So those
+patches won't make 4.9 but will be postponed for 4.10.
 
 Regards,
 
 	Hans
-
-> 
-> All the text in https://lkml.org/lkml/2016/8/15/609 is still applicable.
-> 
-> Cheers.
-> 
-> --
-> Robert
-> 
-> Robert Jarzmik (13):
->   media: mt9m111: make a standalone v4l2 subdevice
->   media: mt9m111: use only the SRGB colorspace
->   media: mt9m111: move mt9m111 out of soc_camera
->   media: platform: pxa_camera: convert to vb2
->   media: platform: pxa_camera: trivial move of functions
->   media: platform: pxa_camera: introduce sensor_call
->   media: platform: pxa_camera: make printk consistent
->   media: platform: pxa_camera: add buffer sequencing
->   media: platform: pxa_camera: remove set_crop
->   media: platform: pxa_camera: make a standalone v4l2 device
->   media: platform: pxa_camera: add debug register access
->   media: platform: pxa_camera: change stop_streaming semantics
->   media: platform: pxa_camera: move pxa_camera out of soc_camera
-> 
->  drivers/media/i2c/Kconfig                      |    7 +
->  drivers/media/i2c/Makefile                     |    1 +
->  drivers/media/i2c/mt9m111.c                    | 1033 ++++++++++++
->  drivers/media/i2c/soc_camera/Kconfig           |    7 +-
->  drivers/media/i2c/soc_camera/Makefile          |    1 -
->  drivers/media/i2c/soc_camera/mt9m111.c         | 1054 ------------
->  drivers/media/platform/Kconfig                 |    8 +
->  drivers/media/platform/Makefile                |    1 +
->  drivers/media/platform/pxa_camera.c            | 2096 ++++++++++++++++++++++++
->  drivers/media/platform/soc_camera/Kconfig      |    8 -
->  drivers/media/platform/soc_camera/Makefile     |    1 -
->  drivers/media/platform/soc_camera/pxa_camera.c | 1866 ---------------------
->  include/linux/platform_data/media/camera-pxa.h |    2 +
->  13 files changed, 3153 insertions(+), 2932 deletions(-)
->  create mode 100644 drivers/media/i2c/mt9m111.c
->  delete mode 100644 drivers/media/i2c/soc_camera/mt9m111.c
->  create mode 100644 drivers/media/platform/pxa_camera.c
->  delete mode 100644 drivers/media/platform/soc_camera/pxa_camera.c
-> 
