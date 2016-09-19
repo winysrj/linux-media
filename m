@@ -1,111 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:47785 "EHLO smtp3-1.goneo.de"
+Received: from mail.kernel.org ([198.145.29.136]:37434 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932127AbcIENNT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 09:13:19 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 2/2] v4l-utils: fixed dvbv5 vdr format
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20160824115241.7e2c90ca@vento.lan>
-Date: Mon, 5 Sep 2016 15:13:04 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <28A9DFEA-1E94-4EE0-A2BB-B22D029683B9@darmarit.de>
-References: <1470822739-29519-1-git-send-email-markus.heiser@darmarit.de> <1470822739-29519-3-git-send-email-markus.heiser@darmarit.de> <20160824114927.3c6ab0d6@vento.lan> <20160824115241.7e2c90ca@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Chris Mayo <aklhfex@gmail.com>
+        id S1752601AbcISVJg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 17:09:36 -0400
+Date: Mon, 19 Sep 2016 23:09:29 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 08/17] smiapp: Merge smiapp_init() with smiapp_probe()
+Message-ID: <20160919210928.hnfqrgztxvwzdiwi@earth>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938551-14503-9-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="qkfysbh25peinhre"
+Content-Disposition: inline
+In-Reply-To: <1473938551-14503-9-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, (Hi Chris)
 
-sorry for my late reply. I test the v4-utils on my HTPC,
-where I'am not often have time for experimentation ;-)
+--qkfysbh25peinhre
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Am 24.08.2016 um 16:52 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+Hi,
 
-> Em Wed, 24 Aug 2016 11:49:27 -0300
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> 
->> Hi Markus,
->> 
->> Em Wed, 10 Aug 2016 11:52:19 +0200
->> Markus Heiser <markus.heiser@darmarit.de> escreveu:
->> 
->>> From: Markus Heiser <markus.heiser@darmarIT.de>
->>> 
->>> From: Heiser, Markus <markus.heiser@darmarIT.de>
->>> 
->>> The vdr format was broken, I got '(null)' entries
->>> 
->>> HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
->>> 0-:1----:2--------------:3:4-----:
->>> 
->>> refering to the VDR Wikis ...
->>> 
->>> * LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
->>> * german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
->>> 
->>> There is no field at position 4 / in between "Source" and "SRate" which
->>> might have a value. I suppose the '(null):' is the result of pointing
->>> to *nothing*.
->>> 
->>> An other mistake is the ending colon (":") at the line. It is not
->>> explicit specified but adding an collon to the end of an channel entry
->>> will prevent players (like mpv or mplayer) from parsing the line (they
->>> will ignore these lines).
->>> 
->>> At least: generating a channel list with
->>> 
->>>  dvbv5-scan --output-format=vdr ...
->>> 
->>> will result in the same defective channel entry, containing "(null):"
->>> and the leading collon ":".  
->> 
->> Sorry for taking too long to handle that. I usually stop handling
->> patches one week before the merge window, returning to merge only
->> after -rc1. This time, it took a little more time, due to the Sphinx
->> changes, as I was needing some patches to be merged upstream, in order
->> to change my handling scripts to work with the new way.
->> 
->> Anyway, with regards to this patch, not sure if you saw, but
->> Chris Mayo sent us a different fix for it:
->> 
->> 	https://patchwork.linuxtv.org/patch/35803/
->> 
->> With is meant to support VDR format as used on version 2.2. Not sure
->> if this format is backward-compatible with versions 1.x, but usually
->> VDR just adds new parameters to the lines.
->> 
->> So, I'm inclined to merge Chris patch instead of yours.
->> 
->> So, could you please test if his patch does what's needed?
-> 
-> PS.: If the formats for v 1.x are not compatible with the ones for
-> v2.x, then the best would be to change the code to add a new format
-> for vdr v2.x, while keep supporting vdr v1.x.
+On Thu, Sep 15, 2016 at 02:22:22PM +0300, Sakari Ailus wrote:
+> The smiapp_probe() is the sole caller of smiapp_init(). Unify the two.
 
-Hmm, I'am a bit confused about vdr's channel.conf v1.x and v2.x.
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
-I can't find any documentation on this and since there is no
-version control system for vdr it is hard to dig the history.
+-- Sebastian
 
-As far as I can see, Chris fixes an issue with DVB-T and the
-issue with the leading ":".
+--qkfysbh25peinhre
+Content-Type: application/pgp-signature; name="signature.asc"
 
-My patch fixes an issue with DVB-S/2 entry-location (and the
-issue with the leading ":").
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-I will give it a try to merge my changes on top of Chris's
-patch and test DVB-T & DVB-S2 on my HTPC with an vdr server.
+iQIcBAEBCgAGBQJX4FQIAAoJENju1/PIO/qa+lEP/1Q5bH4Bv2JYT5cNpgCUMtMt
+e6zTjUyZ9u9hkxzXrHrKW92eVf3pcl5HRsVFFxagxHg5B9v7lR5GCjuVFLEE0oOJ
+rIYEE277pOGT+UOxmGvV8hUpiR9mUQGmxbVrm+Ix7c5jNkMGQXIlI5RLQbgN8vi2
+UQm8+pgKdmfltj0mAMA4kdAabPwNsiWv9FgnfgtDpFHjNU54jcC77hAAW7XL80Qc
+lLIDYZHYOKW5bZS/wjHe3fPusMElOCjado2zl2YOZjWjR1DJ6lTHNa6bB6dxmhNj
+VJ4HKbUdEuHJ4tE10bL+a0BokLXX3sgzrWJO+zX1OId+F9ZFR76uA3GbN89a4a4a
+rTN+FK9npSbX6ztLS5YP3GJRxDRDOUUXCyx48SK5znunphdfMG5oURyWft25H+Nw
+OpF1i2dAo5F21zemUixSh5IpETM7eJGjR4XpaESSTFqky+02r0Nm10AV+118cO15
+QVXsa1MlQnDTC3kl6oaDjJpk5XDTHW5ly7LlboAoQHf/xzprJuIgMloLLCm6VCGg
+hqnt57l8c5X/XIr9vZeCYIeYE4oPfTaIeSTHrop1N/H+73bHHNo599foePez32R6
+MzcUMtDSUYGgvTOl8Vh1fikYiPg9ef19ed6a6VCGGnHyY+fnePXoPxXRUSqs6/Td
+3cwu0tBJltCuiisZ06g0
+=41xE
+-----END PGP SIGNATURE-----
 
-
--- Markus --
-
-> 
-> 
-> 
-> Thanks,
-> Mauro
-
+--qkfysbh25peinhre--
