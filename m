@@ -1,98 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:45652 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933171AbcIAQiu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 1 Sep 2016 12:38:50 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH] doc-rst:sphinx-extensions: add metadata parallel-safe
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
-Date: Thu, 1 Sep 2016 18:38:36 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <8F59F755-FCF7-47A6-81E3-8FD584436E82@darmarit.de>
-References: <1472045724-14559-1-git-send-email-markus.heiser@darmarit.de> <20160901082136.597c37bf@lwn.net> <87inufzoa5.fsf@intel.com> <99F693FF-B49B-43DE-9D03-632121FCAE0A@darmarit.de>
-To: Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35328 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753418AbcISWDN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 18:03:13 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v3 14/18] smiapp: Improve debug messages from frame layout reading
+Date: Tue, 20 Sep 2016 01:02:47 +0300
+Message-Id: <1474322571-20290-15-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474322571-20290-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Provide more debugging information on reading the frame layout.
 
-Am 01.09.2016 um 18:22 schrieb Markus Heiser <markus.heiser@darmarit.de>:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-> 
-> Am 01.09.2016 um 16:29 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
-> 
->> On Thu, 01 Sep 2016, Jonathan Corbet <corbet@lwn.net> wrote:
->>> On Wed, 24 Aug 2016 15:35:24 +0200
->>> Markus Heiser <markus.heiser@darmarit.de> wrote:
->>> 
->>>> With metadata "parallel_read_safe = True" a extension is marked as
->>>> save for "parallel reading of source". This is needed if you want
->>>> build in parallel with N processes. E.g.:
->>>> 
->>>> make SPHINXOPTS=-j4 htmldocs
->>> 
->>> A definite improvement; applied to the docs tree, thanks.
->> 
->> The Sphinx docs say -jN "should be considered experimental" [1]. Any
->> idea *how* experimental that is, really? Could we add some -j by
->> default?
-> 
-> My experience is, that parallel build is only strong on "reading
-> input" and weak on "writing output". I can't see any rich performance
-> increase on more than -j2 ... 
-> 
-> Mauro posted [2] his experience with -j8 compared to serial. He
-> also compares -j8 to -j16:
-> 
->> PS: on my server with 16 dual-thread Xeon CPU, the gain with a
->> bigger value for -j was not impressive. Got about the same time as
->> with -j8 or -j32 there.
-> 
-> I guess he will get nearly the same results with -j2 ;)
-> 
-> If we want to add a -j default, I suggest -j2. 
-> 
-> [2] https://www.mail-archive.com/linux-doc%40vger.kernel.org/msg05552.html
-> 
-> -- Markus --
-> 
-
-Sorry, forget to mentioning, that there has been some improvements
-to parallel build in Sphinx 1.3 compared to 1.2. But in 1.3.2 they
-have also fixed a bug which lets parallel builds hang :-o
-
-https://github.com/sphinx-doc/sphinx/blob/master/CHANGES#L665
-
-This in mind and if we really support down to sphinx 1.2 ... we
-should not use any -j default.
-
-IMHO we should get rid of this sphinx 1.2. downward compatibility,
-it makes so may problems (e.g. see [3]) ... but we have discussed
-this already and I don't want to restart this thread ;-) 
-
-[3] https://www.mail-archive.com/linux-doc%40vger.kernel.org/msg05695.html
-
--- Markus --
-
-
-
-> 
->> BR,
->> Jani.
->> 
->> 
->> [1] http://www.sphinx-doc.org/en/stable/invocation.html#invocation-of-sphinx-build
->> 
->> -- 
->> Jani Nikula, Intel Open Source Technology Center
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index a7afcea..1337b22 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -100,12 +100,11 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor *sensor)
+ 		u32 pixels;
+ 		char *which;
+ 		char *what;
++		u32 reg;
+ 
+ 		if (fmt_model_type == SMIAPP_FRAME_FORMAT_MODEL_TYPE_2BYTE) {
+-			rval = smiapp_read(
+-				sensor,
+-				SMIAPP_REG_U16_FRAME_FORMAT_DESCRIPTOR_2(i),
+-				&desc);
++			reg = SMIAPP_REG_U16_FRAME_FORMAT_DESCRIPTOR_2(i);
++			rval = smiapp_read(sensor, reg,	&desc);
+ 			if (rval)
+ 				return rval;
+ 
+@@ -116,10 +115,8 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor *sensor)
+ 			pixels = desc & SMIAPP_FRAME_FORMAT_DESC_2_PIXELS_MASK;
+ 		} else if (fmt_model_type
+ 			   == SMIAPP_FRAME_FORMAT_MODEL_TYPE_4BYTE) {
+-			rval = smiapp_read(
+-				sensor,
+-				SMIAPP_REG_U32_FRAME_FORMAT_DESCRIPTOR_4(i),
+-				&desc);
++			reg = SMIAPP_REG_U32_FRAME_FORMAT_DESCRIPTOR_4(i);
++			rval = smiapp_read(sensor, reg, &desc);
+ 			if (rval)
+ 				return rval;
+ 
+@@ -158,12 +155,12 @@ static int smiapp_read_frame_fmt(struct smiapp_sensor *sensor)
+ 			break;
+ 		default:
+ 			what = "invalid";
+-			dev_dbg(&client->dev, "pixelcode %d\n", pixelcode);
+ 			break;
+ 		}
+ 
+-		dev_dbg(&client->dev, "%s pixels: %d %s\n",
+-			what, pixels, which);
++		dev_dbg(&client->dev,
++			"0x%8.8x %s pixels: %d %s (pixelcode %u)\n", reg,
++			what, pixels, which, pixelcode);
+ 
+ 		if (i < ncol_desc) {
+ 			if (pixelcode ==
+-- 
+2.1.4
 
