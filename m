@@ -1,181 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38479 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933287AbcIOHh7 (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:53910 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750790AbcISJj1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 03:37:59 -0400
-Received: by mail-wm0-f46.google.com with SMTP id 1so75110788wmz.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 00:37:59 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Cc: kernel@stlinux.com, arnd@arndb.de, robh@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v3 0/4] STIH CEC driver
-Date: Thu, 15 Sep 2016 09:37:42 +0200
-Message-Id: <1473925066-8289-1-git-send-email-benjamin.gaignard@linaro.org>
+        Mon, 19 Sep 2016 05:39:27 -0400
+Message-ID: <1474277960.25758.12.camel@mtksdaap41>
+Subject: Re: [PATCH] pixfmt-reserved.rst: Improve MT21C documentation
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon, 19 Sep 2016 17:39:20 +0800
+In-Reply-To: <82516dbf-d85e-ac69-0059-8235e4903e5a@xs4all.nl>
+References: <82516dbf-d85e-ac69-0059-8235e4903e5a@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 3:
- - remove rx_msg and use local variable instead
- - change configuration flag from VIDEO_STIH_CEC to VIDEO_STI_HDMI_CEC
+Hi Hans,
 
-version 2:
- - fix typo in comments
- - in DT move stih-cec driver from stih410.dtsi to stih407-family.dtsi
+On Mon, 2016-09-19 at 09:22 +0200, Hans Verkuil wrote:
+> Improve the MT21C documentation, making it clearer that this format requires the MDP
+> for further processing.
+> 
+> Also fix the fourcc (it was a fivecc :-) )
+> 
+reviewed-by: Tiffany Lin <tiffany.lin@mediatek.com>
 
-Those patches implement HDMI CEC driver for stih4xx SoCs.
-I have used media_tree/fixes and the lastest v4l-utils branch.
+Thanks. I did not notice it become fivecc.
 
-The compliance tools have been run with the following sequence:
-cec-ctl --tuner -p 1.0.0.0
-cec-compliance -A
-and cec-follower running in a separate shell
+best regards,
+Tiffany
 
-Compliance logs:
-cec-ctl --tuner -p 1.0.0.0 
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	OSD Name                   : 'Tuner'
-	Logical Addresses          : 1
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> index 0989e99..a019f15 100644
+> --- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> +++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
+> @@ -343,13 +343,13 @@ please make a proposal on the linux-media mailing list.
+> 
+>         -  ``V4L2_PIX_FMT_MT21C``
+> 
+> -       -  'MT21C'
+> +       -  'MT21'
+> 
+>         -  Compressed two-planar YVU420 format used by Mediatek MT8173.
+>            The compression is lossless.
+> -          It is an opaque intermediate format, and MDP HW could convert
+> -          V4L2_PIX_FMT_MT21C to V4L2_PIX_FMT_NV12M,
+> -          V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
+> +          It is an opaque intermediate format and the MDP hardware must be
+> +	  used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
+> +          ``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
+> 
+>  .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+> 
 
-	  Logical Address          : 3 (Tuner 1)
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-cec-compliance -A 
-cec-compliance SHA                 : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
-
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	Logical Addresses          : 1
-
-	  Logical Address          : 3
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-Compliance test for device /dev/cec0:
-
-    The test results mean the following:
-        OK                  Supported correctly by the device.
-        OK (Not Supported)  Not supported and not mandatory for the device.
-        OK (Presumed)       Presumably supported.  Manually check to confirm.
-        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
-        OK (Refused)        Supported by the device, but was refused.
-        FAIL                Failed and was expected to be supported by this device.
-
-Find remote devices:
-	Polling: OK
-
-CEC API:
-	CEC_ADAP_G_CAPS: OK
-	CEC_DQEVENT: OK
-	CEC_ADAP_G/S_PHYS_ADDR: OK
-	CEC_ADAP_G/S_LOG_ADDRS: OK
-	CEC_TRANSMIT: OK
-	CEC_RECEIVE: OK
-	CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
-	CEC_G/S_MODE: OK
-	CEC_EVENT_LOST_MSGS: OK
-
-Network topology:
-	System Information for device 0 (TV) from device 3 (Tuner 1):
-		CEC Version                : 1.4
-		Physical Address           : Tx, OK, Not Acknowledged (1), Rx, Timeout
-		Vendor ID                  : 0x00903e
-		OSD Name                   : 'TV'
-		Menu Language              : fre
-		Power Status               : On
-
-Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
-
-cec-follower 
-cec-follower SHA                   : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
-
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	Logical Addresses          : 1
-
-	  Logical Address          : 3
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-Initial Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
-
-Benjamin Gaignard (4):
-  bindings for stih-cec driver
-  add stih-cec driver
-  add stih-cec driver into DT
-  add maintainer for stih-cec driver
-
- .../devicetree/bindings/media/stih-cec.txt         |  25 ++
- MAINTAINERS                                        |   7 +
- arch/arm/boot/dts/stih407-family.dtsi              |  12 +
- drivers/staging/media/Kconfig                      |   2 +
- drivers/staging/media/Makefile                     |   1 +
- drivers/staging/media/st-cec/Kconfig               |   8 +
- drivers/staging/media/st-cec/Makefile              |   1 +
- drivers/staging/media/st-cec/stih-cec.c            | 380 +++++++++++++++++++++
- 8 files changed, 436 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/stih-cec.txt
- create mode 100644 drivers/staging/media/st-cec/Kconfig
- create mode 100644 drivers/staging/media/st-cec/Makefile
- create mode 100644 drivers/staging/media/st-cec/stih-cec.c
-
--- 
-1.9.1
 
