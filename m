@@ -1,99 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60839 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1765721AbcIPK5V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 06:57:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 1/8] videodev2.h: checkpatch cleanup
-Date: Fri, 16 Sep 2016 12:57:04 +0200
-Message-Id: <1474023431-32533-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
-References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+Received: from ring0.de ([5.45.101.7]:54304 "EHLO ring0.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932220AbcISVRB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 17:17:01 -0400
+Date: Mon, 19 Sep 2016 23:16:58 +0200
+From: Sebastian Reichel <sre@ring0.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 11/17] smiapp: Use SMIAPP_PADS when referring to
+ number of pads
+Message-ID: <20160919211658.vblhvl5fwc2iti5d@earth>
+References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1473938551-14503-12-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="2x42ittrr5wwrcd5"
+Content-Disposition: inline
+In-Reply-To: <1473938551-14503-12-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Format comments according to what checkpatch wants.
+--2x42ittrr5wwrcd5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-No other changes.
+Hi,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 50 +++++++++++++++++++++++++-----------------
- 1 file changed, 30 insertions(+), 20 deletions(-)
+On Thu, Sep 15, 2016 at 02:22:25PM +0300, Sakari Ailus wrote:
+> Replace plain value 2 with SMIAPP_PADS when referring to the number of
+> pads.
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 5529741..3a2d94f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1277,33 +1277,43 @@ struct v4l2_bt_timings {
- 
- /* Flags */
- 
--/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
--   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
--   intervals are reduced, allowing a higher resolution over the same
--   bandwidth. This is a read-only flag. */
-+/*
-+ * CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
-+ * GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-+ * intervals are reduced, allowing a higher resolution over the same
-+ * bandwidth. This is a read-only flag.
-+ */
- #define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
--/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
--   of six. These formats can be optionally played at 1 / 1.001 speed.
--   This is a read-only flag. */
-+/*
-+ * CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-+ * of six. These formats can be optionally played at 1 / 1.001 speed.
-+ * This is a read-only flag.
-+ */
- #define V4L2_DV_FL_CAN_REDUCE_FPS		(1 << 1)
--/* CEA-861 specific: only valid for video transmitters, the flag is cleared
--   by receivers.
--   If the framerate of the format is a multiple of six, then the pixelclock
--   used to set up the transmitter is divided by 1.001 to make it compatible
--   with 60 Hz based standards such as NTSC and PAL-M that use a framerate of
--   29.97 Hz. Otherwise this flag is cleared. If the transmitter can't generate
--   such frequencies, then the flag will also be cleared. */
-+/*
-+ * CEA-861 specific: only valid for video transmitters, the flag is cleared
-+ * by receivers.
-+ * If the framerate of the format is a multiple of six, then the pixelclock
-+ * used to set up the transmitter is divided by 1.001 to make it compatible
-+ * with 60 Hz based standards such as NTSC and PAL-M that use a framerate of
-+ * 29.97 Hz. Otherwise this flag is cleared. If the transmitter can't generate
-+ * such frequencies, then the flag will also be cleared.
-+ */
- #define V4L2_DV_FL_REDUCED_FPS			(1 << 2)
--/* Specific to interlaced formats: if set, then field 1 is really one half-line
--   longer and field 2 is really one half-line shorter, so each field has
--   exactly the same number of half-lines. Whether half-lines can be detected
--   or used depends on the hardware. */
-+/*
-+ * Specific to interlaced formats: if set, then field 1 is really one half-line
-+ * longer and field 2 is really one half-line shorter, so each field has
-+ * exactly the same number of half-lines. Whether half-lines can be detected
-+ * or used depends on the hardware.
-+ */
- #define V4L2_DV_FL_HALF_LINE			(1 << 3)
--/* If set, then this is a Consumer Electronics (CE) video format. Such formats
-+/*
-+ * If set, then this is a Consumer Electronics (CE) video format. Such formats
-  * differ from other formats (commonly called IT formats) in that if RGB
-  * encoding is used then by default the RGB values use limited range (i.e.
-  * use the range 16-235) as opposed to 0-255. All formats defined in CEA-861
-- * except for the 640x480 format are CE formats. */
-+ * except for the 640x480 format are CE formats.
-+ */
- #define V4L2_DV_FL_IS_CE_VIDEO			(1 << 4)
- 
- /* A few useful defines to calculate the total blanking and frame sizes */
--- 
-2.8.1
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
+-- Sebastian
+
+--2x42ittrr5wwrcd5
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBCgAGBQJX4FXKAAoJENju1/PIO/qaPGMQAJsw2FWMTjUVGlzEyBI33XFu
+0zff53hJARDA0UuvM5x0kXsg5FCU7YhqqU/OST5QZmuuVFx/6zisa+S8iOpMzotp
+U3M1v6AepwDQ0E4w/SCre5uzBRzzdqpOqPtPCGQJXtHEI8Uk154CuNpfmdtZBHMT
+JgUkctO2hKJk/8kakZWJRhaHb3Wb/TcmgBzjKjwnb2Lb3cLwhXvZSmANUSEvcyk1
+Y27jV3D/VNVreCOloo5uVEIjS4CpJT06M/Fdxqr+z9wr2WRn2OEn/pJbHMp9uc0N
+e7Wxap+7by5HIp2g7oRRrUxyeBWTBu7H3ZUncT1dUQrV1JhZ1FTLNgmy2KmA15e8
+VSy3sEl2XByp6AncN7JqINwaJmpJnifbHqEkqBkRGWY3JtdDMFrChMblEUtDRaKY
+V5lIQ4ZkzqUidbNP2x7votluMKyTQAOMufYfcA26D/kA4VPsfimraJtsZi5nSu0g
+pYCjBHbgePO+uG4Bt6vKSqfc/tP1+LSNIGEuptPparGlimkH+YatGjPfmfApgYJ0
+7AhUhSZN6GbhZ1/dvxEDs2LLbvA7fKCrFBQkCgRPghRK/6ipe+Od6kkcXThDDmcE
+q4Fcbh9eAlUsBNRY1eZ8ErlFvbHvQEV6Aq3eHroX20IgF4/RD4U+XmFN+5zDyPNK
++UVN/M8E4h3KhHAyQbcq
+=NSvV
+-----END PGP SIGNATURE-----
+
+--2x42ittrr5wwrcd5--
