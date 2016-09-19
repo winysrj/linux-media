@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:22026 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753192AbcIIPsQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Sep 2016 11:48:16 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>
-Subject: [PATCH v2 1/4] v4l: add Mediatek compressed video block format
-Date: Fri, 9 Sep 2016 23:48:04 +0800
-Message-ID: <1473436087-21943-2-git-send-email-tiffany.lin@mediatek.com>
-In-Reply-To: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
-References: <1473436087-21943-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from eumx.net ([91.82.101.43]:47573 "EHLO owm.eumx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751207AbcISOiC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Sep 2016 10:38:02 -0400
+Subject: Re: [PATCH v4 0/8] adv7180 subdev fixes, v4
+To: Steve Longerbeam <slongerbeam@gmail.com>, lars@metafoo.de
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+From: Jack Mitchell <ml@embed.me.uk>
+Message-ID: <13d4da12-f0e2-6e3b-9fc2-a081cfc7014c@embed.me.uk>
+Date: Mon, 19 Sep 2016 15:19:38 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2_PIX_FMT_MT21C format used on MT8173 driver.
-It is compressed format and need MT8173 MDP driver to transfer to other
-standard format.
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c |    1 +
- include/uapi/linux/videodev2.h       |    1 +
- 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 2bd1581..1d45c58 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1288,6 +1288,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 		case V4L2_PIX_FMT_JPGL:		descr = "JPEG Lite"; break;
- 		case V4L2_PIX_FMT_SE401:	descr = "GSPCA SE401"; break;
- 		case V4L2_PIX_FMT_S5C_UYVY_JPG:	descr = "S5C73MX interleaved UYVY/JPEG"; break;
-+		case V4L2_PIX_FMT_MT21C:	descr = "Mediatek Compressed Format"; break;
- 		default:
- 			WARN(1, "Unknown pixelformat 0x%08x\n", fmt->pixelformat);
- 			if (fmt->description[0])
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 43326c3..ddd0083 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -635,6 +635,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
- #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
-+#define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- 
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
--- 
-1.7.9.5
+On 03/08/16 19:03, Steve Longerbeam wrote:
+> Steve Longerbeam (8):
+>   media: adv7180: fix field type
+>   media: adv7180: define more registers
+>   media: adv7180: add support for NEWAVMODE
+>   media: adv7180: add power pin control
+>   media: adv7180: implement g_parm
+>   media: adv7180: change mbus format to UYVY
+>   v4l: Add signal lock status to source change events
+>   media: adv7180: enable lock/unlock interrupts
+>
+>  .../devicetree/bindings/media/i2c/adv7180.txt      |   8 +
+>  Documentation/media/uapi/v4l/vidioc-dqevent.rst    |   9 +
+>  Documentation/media/videodev2.h.rst.exceptions     |   1 +
+>  drivers/media/i2c/Kconfig                          |   2 +-
+>  drivers/media/i2c/adv7180.c                        | 200 +++++++++++++++++----
+>  include/uapi/linux/videodev2.h                     |   1 +
+>  6 files changed, 183 insertions(+), 38 deletions(-)
+>
 
+Did anything come of this patchset, I see a few select patches from the 
+original (full imx6) series have been merged in but only seems partial?
+
+Cheers,
+Jack.
