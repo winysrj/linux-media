@@ -1,127 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39278 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1764251AbcIOLWl (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:9959 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751449AbcITOeP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:22:41 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 1F9A0600A5
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:35 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 07/17] smiapp: Always initialise the sensor in probe
-Date: Thu, 15 Sep 2016 14:22:21 +0300
-Message-Id: <1473938551-14503-8-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 20 Sep 2016 10:34:15 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 0/9] Add support for DELTA video decoder of STMicroelectronics STiH4xx SoC series
+Date: Tue, 20 Sep 2016 16:33:31 +0200
+Message-ID: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialise the sensor in probe. The reason why it wasn't previously done
-in case of platform data was that the probe() of the driver that provided
-the clock through the set_xclk() callback would need to finish before the
-probe() function of the smiapp driver. The set_xclk() callback no longer
-exists.
+This patchset introduces a basic support for DELTA multi-format video decoder
+of STMicroelectronics STiH4xx SoC series.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 53 ++++++++++++----------------------
- 1 file changed, 19 insertions(+), 34 deletions(-)
+DELTA hardware IP is controlled by a remote firmware loaded in a ST231
+coprocessor. Communication with firmware is done within an IPC layer
+using rpmsg kernel framework and a shared memory for messages handling.
+This driver is compatible with firmware version 21.1-0.
+While a single firmware is loaded in ST231 coprocessor, it is composed
+of several firmwares, one per video format family.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 5d251b4..13322f3 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2530,8 +2530,19 @@ static int smiapp_register_subdev(struct smiapp_sensor *sensor,
- 	return 0;
- }
- 
--static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
-+static void smiapp_cleanup(struct smiapp_sensor *sensor)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-+
-+	device_remove_file(&client->dev, &dev_attr_nvm);
-+	device_remove_file(&client->dev, &dev_attr_ident);
-+
-+	smiapp_free_controls(sensor);
-+}
-+
-+static int smiapp_registered(struct v4l2_subdev *subdev)
- {
-+	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
- 	int rval;
- 
- 	if (sensor->scaler) {
-@@ -2540,23 +2551,18 @@ static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
- 			SMIAPP_PAD_SRC, SMIAPP_PAD_SINK,
- 			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
- 		if (rval < 0)
--			return rval;
-+			goto out_err;
- 	}
- 
- 	return smiapp_register_subdev(
- 		sensor, sensor->pixel_array, sensor->binner,
- 		SMIAPP_PA_PAD_SRC, SMIAPP_PAD_SINK,
- 		MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
--}
- 
--static void smiapp_cleanup(struct smiapp_sensor *sensor)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
--
--	device_remove_file(&client->dev, &dev_attr_nvm);
--	device_remove_file(&client->dev, &dev_attr_ident);
-+out_err:
-+	smiapp_cleanup(sensor);
- 
--	smiapp_free_controls(sensor);
-+	return rval;
- }
- 
- static void smiapp_create_subdev(struct smiapp_sensor *sensor,
-@@ -2817,25 +2823,6 @@ out_power_off:
- 	return rval;
- }
- 
--static int smiapp_registered(struct v4l2_subdev *subdev)
--{
--	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
--	struct i2c_client *client = v4l2_get_subdevdata(subdev);
--	int rval;
--
--	if (!client->dev.of_node) {
--		rval = smiapp_init(sensor);
--		if (rval)
--			return rval;
--	}
--
--	rval = smiapp_register_subdevs(sensor);
--	if (rval)
--		smiapp_cleanup(sensor);
--
--	return rval;
--}
--
- static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- {
- 	struct smiapp_subdev *ssd = to_smiapp_subdev(sd);
-@@ -3077,11 +3064,9 @@ static int smiapp_probe(struct i2c_client *client,
- 	sensor->src->sensor = sensor;
- 	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
- 
--	if (client->dev.of_node) {
--		rval = smiapp_init(sensor);
--		if (rval)
--			goto out_media_entity_cleanup;
--	}
-+	rval = smiapp_init(sensor);
-+	if (rval)
-+		goto out_media_entity_cleanup;
- 
- 	rval = media_entity_pads_init(&sensor->src->sd.entity, 2,
- 				 sensor->src->pads);
+This DELTA V4L2 driver is designed around files:
+  - delta-v4l2.c   : handles V4L2 APIs using M2M framework and calls decoder ops
+  - delta-<codec>* : implements <codec> decoder calling its associated
+                     video firmware (for ex. MJPEG) using IPC layer
+  - delta-ipc.c    : IPC layer which handles communication with firmware using rpmsg
+
+This first basic support implements only MJPEG hardware acceleration but
+the driver structure is in place to support all the features of the
+DELTA video decoder hardware IP.
+
+This driver depends on:
+  - ST remoteproc/rpmsg: patchset posted at https://lkml.org/lkml/2016/9/6/77
+  - ST DELTA firmware: its license is under review. When available,
+    pull request will be done on linux-firmware.
+
+===========
+= history =
+===========
+version 1:
+  - Initial submission
+
+===================
+= v4l2-compliance =
+===================
+Below is the v4l2-compliance report for the version 1 of the DELTA video
+decoder driver. v4l2-compliance has been build from SHA1:
+600492351ddf40cc524aab73802153674d7d287b (libdvb5: Fix multiple definition of dvb_dev_remote_init linking error)
+
+root@sti-next:~# v4l2-compliance -d /dev/video0
+v4l2-compliance SHA   : 600492351ddf40cc524aab73802153674d7d287b
+
+Driver Info:
+	Driver name   : st-delta
+	Card type     : st-delta-21.1-0
+	Bus info      : platform:soc:delta0
+	Driver version: 4.8.0
+	Capabilities  : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+		test VIDIOC_QUERYCTRL: OK (Not Supported)
+		test VIDIOC_G/S_CTRL: OK (Not Supported)
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
+		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
+		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
+		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
+		warn: /local/home/frq08990/views/opensdk-2.1.9/sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK
+		test Composing: OK
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 6
+
+
+
+Hugues Fruchet (9):
+  Documentation: DT: add bindings for ST DELTA
+  ARM: dts: STiH410: add DELTA dt node
+  [media] MAINTAINERS: add st-delta driver
+  [media] st-delta: STiH4xx multi-format video decoder v4l2 driver
+  [media] st-delta: add contiguous memory allocator
+  [media] st-delta: rpmsg ipc support
+  [media] st-delta: EOS (End Of Stream) support
+  [media] st-delta: add mjpeg support
+  [media] st-delta: debug: trace stream/frame information & summary
+
+ .../devicetree/bindings/media/st,st-delta.txt      |   17 +
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/stih410.dtsi                     |    8 +
+ drivers/media/platform/Kconfig                     |   27 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/sti/delta/Makefile          |    6 +
+ drivers/media/platform/sti/delta/delta-cfg.h       |   62 +
+ drivers/media/platform/sti/delta/delta-debug.c     |  164 ++
+ drivers/media/platform/sti/delta/delta-debug.h     |   18 +
+ drivers/media/platform/sti/delta/delta-ipc.c       |  588 ++++++
+ drivers/media/platform/sti/delta/delta-ipc.h       |   76 +
+ drivers/media/platform/sti/delta/delta-mem.c       |   51 +
+ drivers/media/platform/sti/delta/delta-mem.h       |   14 +
+ drivers/media/platform/sti/delta/delta-mjpeg-dec.c |  439 ++++
+ drivers/media/platform/sti/delta/delta-mjpeg-fw.h  |  223 +++
+ drivers/media/platform/sti/delta/delta-mjpeg-hdr.c |  150 ++
+ drivers/media/platform/sti/delta/delta-mjpeg.h     |   61 +
+ drivers/media/platform/sti/delta/delta-v4l2.c      | 2118 ++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta.h           |  550 +++++
+ 19 files changed, 4582 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+ create mode 100644 drivers/media/platform/sti/delta/Makefile
+ create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
+ create mode 100644 drivers/media/platform/sti/delta/delta.h
+
 -- 
-2.1.4
+1.9.1
 
