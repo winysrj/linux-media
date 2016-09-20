@@ -1,105 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33741 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755666AbcIKQpy (ORCPT
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:37359 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755535AbcITRMQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 12:45:54 -0400
-Received: by mail-wm0-f65.google.com with SMTP id b187so10300906wme.0
-        for <linux-media@vger.kernel.org>; Sun, 11 Sep 2016 09:45:54 -0700 (PDT)
-From: Kieran Bingham <kieran@ksquared.org.uk>
-Subject: Re: [PATCH v3 09/10] v4l: fdp1: Fix field validation when preparing
- buffer
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1473287110-780-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org
-Message-ID: <733020cd-f1b8-ff0c-0d95-1d205a67d38a@bingham.xyz>
-Date: Sun, 11 Sep 2016 17:45:51 +0100
+        Tue, 20 Sep 2016 13:12:16 -0400
+Date: Tue, 20 Sep 2016 20:10:15 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: andrey.utkin@corp.bluecherry.net, chall@corp.bluecherry.net,
+        artem.rusanov@gmail.com, maintainers@bluecherrydvr.com
+Subject: tw5864 - call to hardware owners
+Message-ID: <20160920171015.hnmf4y5qwmqhzpdw@acer>
 MIME-Version: 1.0
-In-Reply-To: <1473287110-780-10-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/16 23:25, Laurent Pinchart wrote:
-> Ensure that the buffer field matches the field configured for the
-> format.
+Hi all,
 
-Looks OK and tests fine.
+I would love to hear from anybody who owns any sample of PCIE board with
+TW5864 chip.
 
-I think with the field 'serialiser' the driver didn't actually care what
-the buffers put in were (as long as they were sequential) but it
-certainly isn't a bad thing to verify they are what we were told they
-would be :D
+It is possible to buy from here
+http://www.provideo.com.tw/Products.htm?link=web/DVR%20Card_Hardward.htm
+I guess there are more companies selling boards with it.
 
---
-Reviewed-by: Kieran Bingham <kieran@bingham.xyz>
+So there is a driver, "tw5864", submitted and accepted upstream,
+currently in linux-next, I guess it will get into Linux v4.9.
+https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/tree/drivers/media/pci/tw5864
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/rcar_fdp1.c | 40 +++++++++++++++++++++++++++++++-------
->  1 file changed, 33 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-> index 480f89381f15..c25531a919db 100644
-> --- a/drivers/media/platform/rcar_fdp1.c
-> +++ b/drivers/media/platform/rcar_fdp1.c
-> @@ -1884,17 +1884,43 @@ static int fdp1_buf_prepare(struct vb2_buffer *vb)
->  
->  	q_data = get_q_data(ctx, vb->vb2_queue->type);
->  
-> -	/* Default to Progressive if ANY selected */
-> -	if (vbuf->field == V4L2_FIELD_ANY)
-> -		vbuf->field = V4L2_FIELD_NONE;
-> +	if (V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type)) {
-> +		bool field_valid = true;
-> +
-> +		/* Validate the buffer field. */
-> +		switch (q_data->format.field) {
-> +		case V4L2_FIELD_NONE:
-> +			if (vbuf->field != V4L2_FIELD_NONE)
-> +				field_valid = false;
-> +			break;
-> +
-> +		case V4L2_FIELD_ALTERNATE:
-> +			if (vbuf->field != V4L2_FIELD_TOP &&
-> +			    vbuf->field != V4L2_FIELD_BOTTOM)
-> +				field_valid = false;
-> +			break;
->  
-> -	/* We only support progressive CAPTURE */
-> -	if (!V4L2_TYPE_IS_OUTPUT(vb->vb2_queue->type) &&
-> -	     vbuf->field != V4L2_FIELD_NONE) {
-> -		dprintk(ctx->fdp1, "field isn't supported on capture\n");
-> +		case V4L2_FIELD_INTERLACED:
-> +		case V4L2_FIELD_SEQ_TB:
-> +		case V4L2_FIELD_SEQ_BT:
-> +		case V4L2_FIELD_INTERLACED_TB:
-> +		case V4L2_FIELD_INTERLACED_BT:
-> +			if (vbuf->field != q_data->format.field)
-> +				field_valid = false;
-> +			break;
-> +		}
-> +
-> +		if (!field_valid) {
-> +			dprintk(ctx->fdp1,
-> +				"buffer field %u invalid for format field %u\n",
-> +				vbuf->field, q_data->format.field);
->  			return -EINVAL;
-> +		}
-> +	} else {
-> +		vbuf->field = V4L2_FIELD_NONE;
->  	}
->  
-> +	/* Validate the planes sizes. */
->  	for (i = 0; i < q_data->format.num_planes; i++) {
->  		unsigned long size = q_data->format.plane_fmt[i].sizeimage;
->  
-> 
+Then there is a pile of sources from vendor, obfuscated and bloated, not
+very human-readable, but that is what our painful development started
+with:
+http://lizard.bluecherry.net/~autkin/tw5864/TW-3XX_Linux.rar
 
--- 
-Regards
+TW5864 datasheet from manufacturer:
+http://lizard.bluecherry.net/~autkin/tw5864/tw5864b1-ds.pdf
 
-Kieran Bingham
+Recently a developer from another company contacted us, reporting that
+our driver doesn't work well on samples they had, and sharing quite
+different driver sources from their vendor, which work fine. Those
+sources were also obfuscated, but much less, and they have successfully
+deobfuscated by them. Link to the code:
+https://github.com/bluecherrydvr/linux/tree/master/drivers/media/pci/Isil5864
+
+This second driver is interesting because on some samples it really
+works well, despite the upstreamed driver gives worse picture. I cannot
+work on that productively because my hardware sample is not affected.
+That's why some communication with other owners would be useful.
+
+Oh and of course Intersil (current owner of Techwell labs) technical
+support is useless, just stating that development team was dismissed
+several years ago.
+
+(By the way, if anybody is aware of different PCI Express boards with
+both analog input decoders and video compression encoders, except
+solo6x10, which are easy to buy and to run on Linux, please let us
+know).
