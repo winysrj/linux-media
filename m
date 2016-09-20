@@ -1,962 +1,855 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45061 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752756AbcIEPNQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 11:13:16 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>
-Subject: [PATCH] v4l: vsp1: Move subdev operations from HGO to common histogram code
-Date: Mon,  5 Sep 2016 18:13:39 +0300
-Message-Id: <1473088419-2800-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:3548 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752364AbcITOeW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Sep 2016 10:34:22 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 6/9] [media] st-delta: rpmsg ipc support
+Date: Tue, 20 Sep 2016 16:33:37 +0200
+Message-ID: <1474382020-17588-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+References: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code will be shared with the HGT entity, move it to the generic
-histogram implementation.
+IPC (Inter Process Communication) support for communication with
+DELTA coprocessor firmware using rpmsg kernel framework.
+Based on 4 services open/set_stream/decode/close and their associated
+rpmsg messages.
+The messages structures are duplicated on both host and firmware
+side and are packed (use only of 32 bits size fields in messages
+structures to ensure packing).
+Each service is synchronous; service returns only when firmware
+acknowledges the associated command message.
+Due to significant parameters size exchanged from host to copro,
+parameters are not inserted in rpmsg messages. Instead, parameters are
+stored in physical memory shared between host and coprocessor.
+Memory is non-cacheable, so no special operation is required
+to ensure memory coherency on host and on coprocessor side.
+Multi-instance support and re-entrance are ensured using host_hdl and
+copro_hdl in message header exchanged between both host and coprocessor.
+This avoids to manage tables on both sides to get back the running context
+of each instance.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c   |   7 +-
- drivers/media/platform/vsp1/vsp1_hgo.c   | 308 ++--------------------------
- drivers/media/platform/vsp1/vsp1_hgo.h   |   7 +-
- drivers/media/platform/vsp1/vsp1_histo.c | 334 +++++++++++++++++++++++++++++--
- drivers/media/platform/vsp1/vsp1_histo.h |  25 ++-
- 5 files changed, 355 insertions(+), 326 deletions(-)
+ drivers/media/platform/Kconfig                |   1 +
+ drivers/media/platform/sti/delta/Makefile     |   2 +-
+ drivers/media/platform/sti/delta/delta-ipc.c  | 588 ++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-ipc.h  |  76 ++++
+ drivers/media/platform/sti/delta/delta-v4l2.c |  11 +
+ drivers/media/platform/sti/delta/delta.h      |  21 +
+ 6 files changed, 698 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 0b53280be150..1d6e87105752 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -151,8 +151,8 @@ static int vsp1_uapi_create_links(struct vsp1_device *vsp1)
- 	}
- 
- 	if (vsp1->hgo) {
--		ret = media_create_pad_link(&vsp1->hgo->entity.subdev.entity,
--					    HGO_PAD_SOURCE,
-+		ret = media_create_pad_link(&vsp1->hgo->histo.entity.subdev.entity,
-+					    HISTO_PAD_SOURCE,
- 					    &vsp1->hgo->histo.video.entity, 0,
- 					    MEDIA_LNK_FL_ENABLED |
- 					    MEDIA_LNK_FL_IMMUTABLE);
-@@ -298,7 +298,8 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 			goto done;
- 		}
- 
--		list_add_tail(&vsp1->hgo->entity.list_dev, &vsp1->entities);
-+		list_add_tail(&vsp1->hgo->histo.entity.list_dev,
-+			      &vsp1->entities);
- 	}
- 
- 	/* The LIF is only supported when used in conjunction with the DU, in
-diff --git a/drivers/media/platform/vsp1/vsp1_hgo.c b/drivers/media/platform/vsp1/vsp1_hgo.c
-index 94bb46f3e12b..2b257ad492db 100644
---- a/drivers/media/platform/vsp1/vsp1_hgo.c
-+++ b/drivers/media/platform/vsp1/vsp1_hgo.c
-@@ -21,8 +21,6 @@
- #include "vsp1_dl.h"
- #include "vsp1_hgo.h"
- 
--#define HGO_MIN_SIZE				4U
--#define HGO_MAX_SIZE				8192U
- #define HGO_DATA_SIZE				((2 + 256) * 4)
- 
- /* -----------------------------------------------------------------------------
-@@ -31,7 +29,7 @@
- 
- static inline u32 vsp1_hgo_read(struct vsp1_hgo *hgo, u32 reg)
- {
--	return vsp1_read(hgo->entity.vsp1, reg);
-+	return vsp1_read(hgo->histo.entity.vsp1, reg);
- }
- 
- static inline void vsp1_hgo_write(struct vsp1_hgo *hgo, struct vsp1_dl_list *dl,
-@@ -63,7 +61,8 @@ void vsp1_hgo_frame_end(struct vsp1_entity *entity)
- 		*data++ = vsp1_hgo_read(hgo, VI6_HGO_G_SUM);
- 
- 		for (i = 0; i < 256; ++i) {
--			vsp1_write(hgo->entity.vsp1, VI6_HGO_EXT_HIST_ADDR, i);
-+			vsp1_write(hgo->histo.entity.vsp1,
-+				   VI6_HGO_EXT_HIST_ADDR, i);
- 			*data++ = vsp1_hgo_read(hgo, VI6_HGO_EXT_HIST_DATA);
- 		}
- 
-@@ -129,272 +128,6 @@ static const struct v4l2_ctrl_config hgo_num_bins_control = {
- };
- 
- /* -----------------------------------------------------------------------------
-- * V4L2 Subdevice Operations
-- */
--
--static int hgo_enum_mbus_code(struct v4l2_subdev *subdev,
--			       struct v4l2_subdev_pad_config *cfg,
--			       struct v4l2_subdev_mbus_code_enum *code)
--{
--	static const unsigned int codes[] = {
--		MEDIA_BUS_FMT_ARGB8888_1X32,
--		MEDIA_BUS_FMT_AHSV8888_1X32,
--		MEDIA_BUS_FMT_AYUV8_1X32,
--	};
--
--	if (code->pad == HGO_PAD_SOURCE) {
--		code->code = MEDIA_BUS_FMT_FIXED;
--		return 0;
--	}
--
--	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
--					  ARRAY_SIZE(codes));
--}
--
--static int hgo_enum_frame_size(struct v4l2_subdev *subdev,
--				struct v4l2_subdev_pad_config *cfg,
--				struct v4l2_subdev_frame_size_enum *fse)
--{
--	if (fse->pad != HGO_PAD_SINK)
--		return -EINVAL;
--
--	return vsp1_subdev_enum_frame_size(subdev, cfg, fse, HGO_MIN_SIZE,
--					   HGO_MIN_SIZE, HGO_MAX_SIZE,
--					   HGO_MAX_SIZE);
--}
--
--static int hgo_get_selection(struct v4l2_subdev *subdev,
--			     struct v4l2_subdev_pad_config *cfg,
--			     struct v4l2_subdev_selection *sel)
--{
--	struct vsp1_hgo *hgo = to_hgo(subdev);
--	struct v4l2_subdev_pad_config *config;
--	struct v4l2_mbus_framefmt *format;
--	struct v4l2_rect *crop;
--
--	if (sel->pad != HGO_PAD_SINK)
--		return -EINVAL;
--
--	config = vsp1_entity_get_pad_config(&hgo->entity, cfg, sel->which);
--	if (!config)
--		return -EINVAL;
--
--	switch (sel->target) {
--	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
--	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
--		crop = vsp1_entity_get_pad_selection(&hgo->entity, config,
--						     HGO_PAD_SINK,
--						     V4L2_SEL_TGT_CROP);
--		sel->r.left = 0;
--		sel->r.top = 0;
--		sel->r.width = crop->width;
--		sel->r.height = crop->height;
--		return 0;
--
--	case V4L2_SEL_TGT_CROP_BOUNDS:
--	case V4L2_SEL_TGT_CROP_DEFAULT:
--		format = vsp1_entity_get_pad_format(&hgo->entity, config,
--						    HGO_PAD_SINK);
--		sel->r.left = 0;
--		sel->r.top = 0;
--		sel->r.width = format->width;
--		sel->r.height = format->height;
--		return 0;
--
--	case V4L2_SEL_TGT_COMPOSE:
--	case V4L2_SEL_TGT_CROP:
--		sel->r = *vsp1_entity_get_pad_selection(&hgo->entity, config,
--							sel->pad, sel->target);
--		return 0;
--
--	default:
--		return -EINVAL;
--	}
--}
--
--static int hgo_set_crop(struct v4l2_subdev *subdev,
--			struct v4l2_subdev_pad_config *config,
--			struct v4l2_subdev_selection *sel)
--{
--	struct vsp1_hgo *hgo = to_hgo(subdev);
--	struct v4l2_mbus_framefmt *format;
--	struct v4l2_rect *selection;
--
--	/* The crop rectangle must be inside the input frame. */
--	format = vsp1_entity_get_pad_format(&hgo->entity, config, HGO_PAD_SINK);
--	sel->r.left = clamp_t(unsigned int, sel->r.left, 0, format->width - 1);
--	sel->r.top = clamp_t(unsigned int, sel->r.top, 0, format->height - 1);
--	sel->r.width = clamp_t(unsigned int, sel->r.width, HGO_MIN_SIZE,
--			       format->width - sel->r.left);
--	sel->r.height = clamp_t(unsigned int, sel->r.height, HGO_MIN_SIZE,
--				format->height - sel->r.top);
--
--	/* Set the crop rectangle and reset the compose rectangle. */
--	selection = vsp1_entity_get_pad_selection(&hgo->entity, config,
--						  sel->pad, V4L2_SEL_TGT_CROP);
--	*selection = sel->r;
--
--	selection = vsp1_entity_get_pad_selection(&hgo->entity, config,
--						  sel->pad,
--						  V4L2_SEL_TGT_COMPOSE);
--	*selection = sel->r;
--
--	return 0;
--}
--
--static int hgo_set_compose(struct v4l2_subdev *subdev,
--			   struct v4l2_subdev_pad_config *config,
--			   struct v4l2_subdev_selection *sel)
--{
--	struct vsp1_hgo *hgo = to_hgo(subdev);
--	struct v4l2_rect *compose;
--	struct v4l2_rect *crop;
--	unsigned int ratio;
--
--	/* The compose rectangle is used to configure downscaling, the top left
--	 * corner is fixed to (0,0) and the size to 1/2 or 1/4 of the crop
--	 * rectangle.
--	 */
--	sel->r.left = 0;
--	sel->r.top = 0;
--
--	crop = vsp1_entity_get_pad_selection(&hgo->entity, config, sel->pad,
--					     V4L2_SEL_TGT_CROP);
--
--	/* Clamp the width and height to acceptable values first and then
--	 * compute the closest rounded dividing ratio.
--	 *
--	 * Ratio	Rounded ratio
--	 * --------------------------
--	 * [1.0 1.5[	1
--	 * [1.5 3.0[	2
--	 * [3.0 4.0]	4
--	 *
--	 * The rounded ratio can be computed using
--	 *
--	 * 1 << (ceil(ratio * 2) / 3)
--	 */
--	sel->r.width = clamp(sel->r.width, crop->width / 4, crop->width);
--	ratio = 1 << (crop->width * 2 / sel->r.width / 3);
--	sel->r.width = crop->width / ratio;
--
--
--	sel->r.height = clamp(sel->r.height, crop->height / 4, crop->height);
--	ratio = 1 << (crop->height * 2 / sel->r.height / 3);
--	sel->r.height = crop->height / ratio;
--
--	compose = vsp1_entity_get_pad_selection(&hgo->entity, config, sel->pad,
--						V4L2_SEL_TGT_COMPOSE);
--	*compose = sel->r;
--
--	return 0;
--}
--
--static int hgo_set_selection(struct v4l2_subdev *subdev,
--			     struct v4l2_subdev_pad_config *cfg,
--			     struct v4l2_subdev_selection *sel)
--{
--	struct vsp1_hgo *hgo = to_hgo(subdev);
--	struct v4l2_subdev_pad_config *config;
--
--	if (sel->pad != HGO_PAD_SINK)
--		return -EINVAL;
--
--	config = vsp1_entity_get_pad_config(&hgo->entity, cfg, sel->which);
--	if (!config)
--		return -EINVAL;
--
--	if (sel->target == V4L2_SEL_TGT_CROP)
--		return hgo_set_crop(subdev, config, sel);
--	else if (sel->target == V4L2_SEL_TGT_COMPOSE)
--		return hgo_set_compose(subdev, config, sel);
--	else
--		return -EINVAL;
--}
--
--static int hgo_get_format(struct v4l2_subdev *subdev,
--			   struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
--{
--	if (fmt->pad == HGO_PAD_SOURCE) {
--		fmt->format.code = MEDIA_BUS_FMT_FIXED;
--		fmt->format.width = 0;
--		fmt->format.height = 0;
--		fmt->format.field = V4L2_FIELD_NONE;
--		fmt->format.colorspace = V4L2_COLORSPACE_RAW;
--		return 0;
--	}
--
--	return vsp1_subdev_get_pad_format(subdev, cfg, fmt);
--}
--
--static int hgo_set_format(struct v4l2_subdev *subdev,
--			   struct v4l2_subdev_pad_config *cfg,
--			   struct v4l2_subdev_format *fmt)
--{
--	struct vsp1_hgo *hgo = to_hgo(subdev);
--	struct v4l2_subdev_pad_config *config;
--	struct v4l2_mbus_framefmt *format;
--	struct v4l2_rect *selection;
--
--	if (fmt->pad != HGO_PAD_SINK)
--		return hgo_get_format(subdev, cfg, fmt);
--
--	config = vsp1_entity_get_pad_config(&hgo->entity, cfg, fmt->which);
--	if (!config)
--		return -EINVAL;
--
--	/* Default to YUV if the requested format is not supported. */
--	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
--	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
--		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
--
--	format = vsp1_entity_get_pad_format(&hgo->entity, config, fmt->pad);
--
--	format->code = fmt->format.code;
--	format->width = clamp_t(unsigned int, fmt->format.width,
--				HGO_MIN_SIZE, HGO_MAX_SIZE);
--	format->height = clamp_t(unsigned int, fmt->format.height,
--				 HGO_MIN_SIZE, HGO_MAX_SIZE);
--	format->field = V4L2_FIELD_NONE;
--	format->colorspace = V4L2_COLORSPACE_SRGB;
--
--	fmt->format = *format;
--
--	/* Reset the crop and compose rectangles */
--	selection = vsp1_entity_get_pad_selection(&hgo->entity, config,
--						  fmt->pad, V4L2_SEL_TGT_CROP);
--	selection->left = 0;
--	selection->top = 0;
--	selection->width = format->width;
--	selection->height = format->height;
--
--	selection = vsp1_entity_get_pad_selection(&hgo->entity, config,
--						  fmt->pad,
--						  V4L2_SEL_TGT_COMPOSE);
--	selection->left = 0;
--	selection->top = 0;
--	selection->width = format->width;
--	selection->height = format->height;
--
--	return 0;
--}
--
--static const struct v4l2_subdev_pad_ops hgo_pad_ops = {
--	.enum_mbus_code = hgo_enum_mbus_code,
--	.enum_frame_size = hgo_enum_frame_size,
--	.get_fmt = hgo_get_format,
--	.set_fmt = hgo_set_format,
--	.get_selection = hgo_get_selection,
--	.set_selection = hgo_set_selection,
--};
--
--static const struct v4l2_subdev_ops hgo_ops = {
--	.pad    = &hgo_pad_ops,
--};
--
--/* -----------------------------------------------------------------------------
-  * VSP1 Entity Operations
-  */
- 
-@@ -412,9 +145,9 @@ static void hgo_configure(struct vsp1_entity *entity,
- 		return;
- 
- 	crop = vsp1_entity_get_pad_selection(entity, entity->config,
--					     HGO_PAD_SINK, V4L2_SEL_TGT_CROP);
-+					     HISTO_PAD_SINK, V4L2_SEL_TGT_CROP);
- 	compose = vsp1_entity_get_pad_selection(entity, entity->config,
--						HGO_PAD_SINK,
-+						HISTO_PAD_SINK,
- 						V4L2_SEL_TGT_COMPOSE);
- 
- 	vsp1_hgo_write(hgo, dl, VI6_HGO_REGRST, VI6_HGO_REGRST_RCLEA);
-@@ -441,22 +174,21 @@ static void hgo_configure(struct vsp1_entity *entity,
- 		       (vratio << VI6_HGO_MODE_VRATIO_SHIFT));
- }
- 
--static void hgo_destroy(struct vsp1_entity *entity)
--{
--	struct vsp1_hgo *hgo = to_hgo(&entity->subdev);
--
--	vsp1_histogram_cleanup(&hgo->histo);
--}
--
- static const struct vsp1_entity_operations hgo_entity_ops = {
- 	.configure = hgo_configure,
--	.destroy = hgo_destroy,
-+	.destroy = vsp1_histogram_destroy,
- };
- 
- /* -----------------------------------------------------------------------------
-  * Initialization and Cleanup
-  */
- 
-+static const unsigned int hgo_mbus_formats[] = {
-+	MEDIA_BUS_FMT_AYUV8_1X32,
-+	MEDIA_BUS_FMT_ARGB8888_1X32,
-+	MEDIA_BUS_FMT_AHSV8888_1X32,
-+};
-+
- struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1)
- {
- 	struct vsp1_hgo *hgo;
-@@ -466,14 +198,6 @@ struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1)
- 	if (hgo == NULL)
- 		return ERR_PTR(-ENOMEM);
- 
--	hgo->entity.ops = &hgo_entity_ops;
--	hgo->entity.type = VSP1_ENTITY_HGO;
--
--	ret = vsp1_entity_init(vsp1, &hgo->entity, "hgo", 2, &hgo_ops,
--			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
--	if (ret < 0)
--		return ERR_PTR(ret);
--
- 	/* Initialize the control handler. */
- 	v4l2_ctrl_handler_init(&hgo->ctrls.handler,
- 			       vsp1->info->gen == 3 ? 2 : 1);
-@@ -487,13 +211,15 @@ struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1)
- 	hgo->max_rgb = false;
- 	hgo->num_bins = 64;
- 
--	hgo->entity.subdev.ctrl_handler = &hgo->ctrls.handler;
-+	hgo->histo.entity.subdev.ctrl_handler = &hgo->ctrls.handler;
- 
- 	/* Initialize the video device and queue for statistics data. */
--	ret = vsp1_histogram_init(vsp1, &hgo->histo, hgo->entity.subdev.name,
-+	ret = vsp1_histogram_init(vsp1, &hgo->histo, VSP1_ENTITY_HGO, "hgo",
-+				  &hgo_entity_ops, hgo_mbus_formats,
-+				  ARRAY_SIZE(hgo_mbus_formats),
- 				  HGO_DATA_SIZE, V4L2_META_FMT_VSP1_HGO);
- 	if (ret < 0) {
--		vsp1_entity_destroy(&hgo->entity);
-+		vsp1_entity_destroy(&hgo->histo.entity);
- 		return ERR_PTR(ret);
- 	}
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_hgo.h b/drivers/media/platform/vsp1/vsp1_hgo.h
-index d677b3fe6023..c6c0b7a80e0c 100644
---- a/drivers/media/platform/vsp1/vsp1_hgo.h
-+++ b/drivers/media/platform/vsp1/vsp1_hgo.h
-@@ -17,16 +17,11 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-subdev.h>
- 
--#include "vsp1_entity.h"
- #include "vsp1_histo.h"
- 
- struct vsp1_device;
- 
--#define HGO_PAD_SINK				0
--#define HGO_PAD_SOURCE				1
--
- struct vsp1_hgo {
--	struct vsp1_entity entity;
- 	struct vsp1_histogram histo;
- 
- 	struct {
-@@ -41,7 +36,7 @@ struct vsp1_hgo {
- 
- static inline struct vsp1_hgo *to_hgo(struct v4l2_subdev *subdev)
- {
--	return container_of(subdev, struct vsp1_hgo, entity.subdev);
-+	return container_of(subdev, struct vsp1_hgo, histo.entity.subdev);
- }
- 
- struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1);
-diff --git a/drivers/media/platform/vsp1/vsp1_histo.c b/drivers/media/platform/vsp1/vsp1_histo.c
-index 89e162438bd6..382a93fead14 100644
---- a/drivers/media/platform/vsp1/vsp1_histo.c
-+++ b/drivers/media/platform/vsp1/vsp1_histo.c
-@@ -23,6 +23,9 @@
- #include "vsp1_histo.h"
- #include "vsp1_pipe.h"
- 
-+#define HISTO_MIN_SIZE				4U
-+#define HISTO_MAX_SIZE				8192U
-+
- /* -----------------------------------------------------------------------------
-  * Buffer Operations
-  */
-@@ -166,6 +169,275 @@ static const struct vb2_ops histo_video_queue_qops = {
- };
- 
- /* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index aefa8fb..172a249 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -262,6 +262,7 @@ config VIDEO_STI_DELTA
+ 	depends on VIDEO_DEV && VIDEO_V4L2
+ 	depends on ARCH_STI || COMPILE_TEST
+ 	depends on HAS_DMA
++	depends on RPMSG
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	help
+diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
+index cbfb1b5..e47e0bd 100644
+--- a/drivers/media/platform/sti/delta/Makefile
++++ b/drivers/media/platform/sti/delta/Makefile
+@@ -1,2 +1,2 @@
+ obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
+-st-delta-y := delta-v4l2.o delta-mem.o
++st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
+diff --git a/drivers/media/platform/sti/delta/delta-ipc.c b/drivers/media/platform/sti/delta/delta-ipc.c
+new file mode 100644
+index 0000000..57596e3
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-ipc.c
+@@ -0,0 +1,588 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
 + */
 +
-+static int histo_enum_mbus_code(struct v4l2_subdev *subdev,
-+				struct v4l2_subdev_pad_config *cfg,
-+				struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	struct vsp1_histogram *histo = subdev_to_histo(subdev);
++#include <linux/rpmsg.h>
 +
-+	if (code->pad == HISTO_PAD_SOURCE) {
-+		code->code = MEDIA_BUS_FMT_FIXED;
-+		return 0;
-+	}
++#include "delta.h"
++#include "delta-mem.h"
 +
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, histo->formats,
-+					  histo->num_formats);
-+}
++#define IPC_TIMEOUT 100
++#define IPC_SANITY_TAG 0xDEADBEEF
 +
-+static int histo_enum_frame_size(struct v4l2_subdev *subdev,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	if (fse->pad != HISTO_PAD_SINK)
-+		return -EINVAL;
-+
-+	return vsp1_subdev_enum_frame_size(subdev, cfg, fse, HISTO_MIN_SIZE,
-+					   HISTO_MIN_SIZE, HISTO_MAX_SIZE,
-+					   HISTO_MAX_SIZE);
-+}
-+
-+static int histo_get_selection(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_histogram *histo = subdev_to_histo(subdev);
-+	struct v4l2_subdev_pad_config *config;
-+	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *crop;
-+
-+	if (sel->pad != HISTO_PAD_SINK)
-+		return -EINVAL;
-+
-+	config = vsp1_entity_get_pad_config(&histo->entity, cfg, sel->which);
-+	if (!config)
-+		return -EINVAL;
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-+	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
-+		crop = vsp1_entity_get_pad_selection(&histo->entity, config,
-+						     HISTO_PAD_SINK,
-+						     V4L2_SEL_TGT_CROP);
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = crop->width;
-+		sel->r.height = crop->height;
-+		return 0;
-+
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		format = vsp1_entity_get_pad_format(&histo->entity, config,
-+						    HISTO_PAD_SINK);
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = format->width;
-+		sel->r.height = format->height;
-+		return 0;
-+
-+	case V4L2_SEL_TGT_COMPOSE:
-+	case V4L2_SEL_TGT_CROP:
-+		sel->r = *vsp1_entity_get_pad_selection(&histo->entity, config,
-+							sel->pad, sel->target);
-+		return 0;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static int histo_set_crop(struct v4l2_subdev *subdev,
-+			  struct v4l2_subdev_pad_config *config,
-+			 struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_histogram *histo = subdev_to_histo(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *selection;
-+
-+	/* The crop rectangle must be inside the input frame. */
-+	format = vsp1_entity_get_pad_format(&histo->entity, config,
-+					    HISTO_PAD_SINK);
-+	sel->r.left = clamp_t(unsigned int, sel->r.left, 0, format->width - 1);
-+	sel->r.top = clamp_t(unsigned int, sel->r.top, 0, format->height - 1);
-+	sel->r.width = clamp_t(unsigned int, sel->r.width, HISTO_MIN_SIZE,
-+			       format->width - sel->r.left);
-+	sel->r.height = clamp_t(unsigned int, sel->r.height, HISTO_MIN_SIZE,
-+				format->height - sel->r.top);
-+
-+	/* Set the crop rectangle and reset the compose rectangle. */
-+	selection = vsp1_entity_get_pad_selection(&histo->entity, config,
-+						  sel->pad, V4L2_SEL_TGT_CROP);
-+	*selection = sel->r;
-+
-+	selection = vsp1_entity_get_pad_selection(&histo->entity, config,
-+						  sel->pad,
-+						  V4L2_SEL_TGT_COMPOSE);
-+	*selection = sel->r;
-+
-+	return 0;
-+}
-+
-+static int histo_set_compose(struct v4l2_subdev *subdev,
-+			     struct v4l2_subdev_pad_config *config,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_histogram *histo = subdev_to_histo(subdev);
-+	struct v4l2_rect *compose;
-+	struct v4l2_rect *crop;
-+	unsigned int ratio;
-+
-+	/* The compose rectangle is used to configure downscaling, the top left
-+	 * corner is fixed to (0,0) and the size to 1/2 or 1/4 of the crop
-+	 * rectangle.
-+	 */
-+	sel->r.left = 0;
-+	sel->r.top = 0;
-+
-+	crop = vsp1_entity_get_pad_selection(&histo->entity, config, sel->pad,
-+					     V4L2_SEL_TGT_CROP);
-+
-+	/* Clamp the width and height to acceptable values first and then
-+	 * compute the closest rounded dividing ratio.
-+	 *
-+	 * Ratio	Rounded ratio
-+	 * --------------------------
-+	 * [1.0 1.5[	1
-+	 * [1.5 3.0[	2
-+	 * [3.0 4.0]	4
-+	 *
-+	 * The rounded ratio can be computed using
-+	 *
-+	 * 1 << (ceil(ratio * 2) / 3)
-+	 */
-+	sel->r.width = clamp(sel->r.width, crop->width / 4, crop->width);
-+	ratio = 1 << (crop->width * 2 / sel->r.width / 3);
-+	sel->r.width = crop->width / ratio;
-+
-+
-+	sel->r.height = clamp(sel->r.height, crop->height / 4, crop->height);
-+	ratio = 1 << (crop->height * 2 / sel->r.height / 3);
-+	sel->r.height = crop->height / ratio;
-+
-+	compose = vsp1_entity_get_pad_selection(&histo->entity, config,
-+						sel->pad,
-+						V4L2_SEL_TGT_COMPOSE);
-+	*compose = sel->r;
-+
-+	return 0;
-+}
-+
-+static int histo_set_selection(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_histogram *histo = subdev_to_histo(subdev);
-+	struct v4l2_subdev_pad_config *config;
-+
-+	if (sel->pad != HISTO_PAD_SINK)
-+		return -EINVAL;
-+
-+	config = vsp1_entity_get_pad_config(&histo->entity, cfg, sel->which);
-+	if (!config)
-+		return -EINVAL;
-+
-+	if (sel->target == V4L2_SEL_TGT_CROP)
-+		return histo_set_crop(subdev, config, sel);
-+	else if (sel->target == V4L2_SEL_TGT_COMPOSE)
-+		return histo_set_compose(subdev, config, sel);
-+	else
-+		return -EINVAL;
-+}
-+
-+static int histo_get_format(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
-+{
-+	if (fmt->pad == HISTO_PAD_SOURCE) {
-+		fmt->format.code = MEDIA_BUS_FMT_FIXED;
-+		fmt->format.width = 0;
-+		fmt->format.height = 0;
-+		fmt->format.field = V4L2_FIELD_NONE;
-+		fmt->format.colorspace = V4L2_COLORSPACE_RAW;
-+		return 0;
-+	}
-+
-+	return vsp1_subdev_get_pad_format(subdev, cfg, fmt);
-+}
-+
-+static int histo_set_format(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_histogram *histo = subdev_to_histo(subdev);
-+	struct v4l2_subdev_pad_config *config;
-+	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *selection;
-+	unsigned int i;
-+
-+	if (fmt->pad != HISTO_PAD_SINK)
-+		return histo_get_format(subdev, cfg, fmt);
-+
-+	config = vsp1_entity_get_pad_config(&histo->entity, cfg, fmt->which);
-+	if (!config)
-+		return -EINVAL;
-+
-+	/* Default to the first format if the requested format is not
-+	 * supported.
-+	 */
-+	for (i = 0; i < histo->num_formats; ++i) {
-+		if (fmt->format.code == histo->formats[i])
-+			break;
-+	}
-+	if (i == histo->num_formats)
-+		fmt->format.code = histo->formats[0];
-+
-+	format = vsp1_entity_get_pad_format(&histo->entity, config, fmt->pad);
-+
-+	format->code = fmt->format.code;
-+	format->width = clamp_t(unsigned int, fmt->format.width,
-+				HISTO_MIN_SIZE, HISTO_MAX_SIZE);
-+	format->height = clamp_t(unsigned int, fmt->format.height,
-+				 HISTO_MIN_SIZE, HISTO_MAX_SIZE);
-+	format->field = V4L2_FIELD_NONE;
-+	format->colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	fmt->format = *format;
-+
-+	/* Reset the crop and compose rectangles */
-+	selection = vsp1_entity_get_pad_selection(&histo->entity, config,
-+						  fmt->pad, V4L2_SEL_TGT_CROP);
-+	selection->left = 0;
-+	selection->top = 0;
-+	selection->width = format->width;
-+	selection->height = format->height;
-+
-+	selection = vsp1_entity_get_pad_selection(&histo->entity, config,
-+						  fmt->pad,
-+						  V4L2_SEL_TGT_COMPOSE);
-+	selection->left = 0;
-+	selection->top = 0;
-+	selection->width = format->width;
-+	selection->height = format->height;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_pad_ops histo_pad_ops = {
-+	.enum_mbus_code = histo_enum_mbus_code,
-+	.enum_frame_size = histo_enum_frame_size,
-+	.get_fmt = histo_get_format,
-+	.set_fmt = histo_set_format,
-+	.get_selection = histo_get_selection,
-+	.set_selection = histo_set_selection,
++enum delta_ipc_fw_command {
++	DELTA_IPC_OPEN,
++	DELTA_IPC_SET_STREAM,
++	DELTA_IPC_DECODE,
++	DELTA_IPC_CLOSE
 +};
 +
-+static const struct v4l2_subdev_ops histo_ops = {
-+	.pad    = &histo_pad_ops,
++#define to_rpmsg_driver(d) container_of(d, struct rpmsg_driver, drv)
++#define to_delta(d) container_of(d, struct delta_dev, rpmsg_driver)
++
++#define to_ctx(hdl) ((struct delta_ipc_ctx *)hdl)
++#define to_pctx(ctx) container_of(ctx, struct delta_ctx, ipc_ctx)
++
++struct delta_ipc_header_msg {
++	__u32 tag;
++	void *host_hdl;
++	__u32 copro_hdl;
++	__u32 command;
 +};
 +
-+/* -----------------------------------------------------------------------------
-  * V4L2 ioctls
-  */
- 
-@@ -173,7 +445,7 @@ static int histo_v4l2_querycap(struct file *file, void *fh,
- 			       struct v4l2_capability *cap)
- {
- 	struct v4l2_fh *vfh = file->private_data;
--	struct vsp1_histogram *histo = to_vsp1_histo(vfh->vdev);
-+	struct vsp1_histogram *histo = vdev_to_histo(vfh->vdev);
- 
- 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
- 			  | V4L2_CAP_VIDEO_CAPTURE_MPLANE
-@@ -185,7 +457,7 @@ static int histo_v4l2_querycap(struct file *file, void *fh,
- 	strlcpy(cap->driver, "vsp1", sizeof(cap->driver));
- 	strlcpy(cap->card, histo->video.name, sizeof(cap->card));
- 	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
--		 dev_name(histo->vsp1->dev));
-+		 dev_name(histo->entity.vsp1->dev));
- 
- 	return 0;
- }
-@@ -194,12 +466,12 @@ static int histo_v4l2_enum_format(struct file *file, void *fh,
- 				  struct v4l2_fmtdesc *f)
- {
- 	struct v4l2_fh *vfh = file->private_data;
--	struct vsp1_histogram *histo = to_vsp1_histo(vfh->vdev);
-+	struct vsp1_histogram *histo = vdev_to_histo(vfh->vdev);
- 
- 	if (f->index > 0 || f->type != histo->queue.type)
- 		return -EINVAL;
- 
--	f->pixelformat = histo->format;
-+	f->pixelformat = histo->meta_format;
- 
- 	return 0;
- }
-@@ -208,7 +480,7 @@ static int histo_v4l2_get_format(struct file *file, void *fh,
- 				 struct v4l2_format *format)
- {
- 	struct v4l2_fh *vfh = file->private_data;
--	struct vsp1_histogram *histo = to_vsp1_histo(vfh->vdev);
-+	struct vsp1_histogram *histo = vdev_to_histo(vfh->vdev);
- 	struct v4l2_meta_format *meta = &format->fmt.meta;
- 
- 	if (format->type != histo->queue.type)
-@@ -216,7 +488,7 @@ static int histo_v4l2_get_format(struct file *file, void *fh,
- 
- 	memset(meta, 0, sizeof(*meta));
- 
--	meta->dataformat = histo->format;
-+	meta->dataformat = histo->meta_format;
- 	meta->buffersize = histo->data_size;
- 
- 	return 0;
-@@ -251,14 +523,33 @@ static const struct v4l2_file_operations histo_v4l2_fops = {
- 	.mmap = vb2_fop_mmap,
- };
- 
-+static void vsp1_histogram_cleanup(struct vsp1_histogram *histo)
-+{
-+	if (video_is_registered(&histo->video))
-+		video_unregister_device(&histo->video);
++#define to_host_hdl(ctx) ((void *)ctx)
 +
-+	media_entity_cleanup(&histo->video.entity);
++#define msg_to_ctx(msg) ((struct delta_ipc_ctx *)msg->header.host_hdl)
++#define msg_to_copro_hdl(msg) (msg->header.copro_hdl)
++
++static inline dma_addr_t to_paddr(struct delta_ipc_ctx *ctx, void *vaddr)
++{
++	return (ctx->ipc_buf->paddr + (vaddr - ctx->ipc_buf->vaddr));
 +}
 +
-+void vsp1_histogram_destroy(struct vsp1_entity *entity)
++static inline bool is_valid_data(struct delta_ipc_ctx *ctx,
++				 void *data, __u32 size)
 +{
-+	struct vsp1_histogram *histo = subdev_to_histo(&entity->subdev);
-+
-+	vsp1_histogram_cleanup(histo);
++	return ((data >= ctx->ipc_buf->vaddr) &&
++		((data + size) <= (ctx->ipc_buf->vaddr + ctx->ipc_buf->size)));
 +}
 +
- int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
--			const char *name, size_t data_size, u32 format)
-+			enum vsp1_entity_type type, const char *name,
-+			const struct vsp1_entity_operations *ops,
-+			const unsigned int *formats, unsigned int num_formats,
-+			size_t data_size, u32 meta_format)
- {
- 	int ret;
- 
--	histo->vsp1 = vsp1;
-+	histo->formats = formats;
-+	histo->num_formats = num_formats;
- 	histo->data_size = data_size;
--	histo->format = format;
-+	histo->meta_format = meta_format;
- 
- 	histo->pad.flags = MEDIA_PAD_FL_SINK;
- 	histo->video.vfl_dir = VFL_DIR_RX;
-@@ -268,7 +559,16 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
- 	INIT_LIST_HEAD(&histo->irqqueue);
- 	init_waitqueue_head(&histo->wait_queue);
- 
--	/* Initialize the media entity... */
-+	/* Initialize the VSP entity... */
-+	histo->entity.ops = ops;
-+	histo->entity.type = type;
++/*
++ * IPC shared memory (@ipc_buf_size, @ipc_buf_paddr) is sent to copro
++ * at each instance opening. This memory is allocated by IPC client
++ * and given through delta_ipc_open(). All messages parameters
++ * (open, set_stream, decode) will have their phy address within
++ * this IPC shared memory, avoiding de-facto recopies inside delta-ipc.
++ * All the below messages structures are used on both host and firmware
++ * side and are packed (use only of 32 bits size fields in messages
++ * structures to ensure packing):
++ * - struct delta_ipc_open_msg
++ * - struct delta_ipc_set_stream_msg
++ * - struct delta_ipc_decode_msg
++ * - struct delta_ipc_close_msg
++ * - struct delta_ipc_cb_msg
++ */
++struct delta_ipc_open_msg {
++	struct delta_ipc_header_msg header;
++	__u32 ipc_buf_size;
++	dma_addr_t ipc_buf_paddr;
++	char name[32];
++	__u32 param_size;
++	dma_addr_t param_paddr;
++};
 +
-+	ret = vsp1_entity_init(vsp1, &histo->entity, name, 2, &histo_ops,
-+			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
-+	if (ret < 0)
++struct delta_ipc_set_stream_msg {
++	struct delta_ipc_header_msg header;
++	__u32 param_size;
++	dma_addr_t param_paddr;
++};
++
++struct delta_ipc_decode_msg {
++	struct delta_ipc_header_msg header;
++	__u32 param_size;
++	dma_addr_t param_paddr;
++	__u32 status_size;
++	dma_addr_t status_paddr;
++};
++
++struct delta_ipc_close_msg {
++	struct delta_ipc_header_msg header;
++};
++
++struct delta_ipc_cb_msg {
++	struct delta_ipc_header_msg header;
++	int err;
++};
++
++static void build_msg_header(struct delta_ipc_ctx *ctx,
++			     enum delta_ipc_fw_command command,
++			     struct delta_ipc_header_msg *header)
++{
++	header->tag = IPC_SANITY_TAG;
++	header->host_hdl = to_host_hdl(ctx);
++	header->copro_hdl = ctx->copro_hdl;
++	header->command = command;
++}
++
++int delta_ipc_open(struct delta_ctx *pctx, const char *name,
++		   struct delta_ipc_param *param, __u32 ipc_buf_size,
++		   struct delta_buf **ipc_buf, void **hdl)
++{
++	struct delta_dev *delta = pctx->dev;
++	struct rpmsg_channel *rpmsg_channel = delta->rpmsg_channel;
++	struct delta_ipc_ctx *ctx = &pctx->ipc_ctx;
++	struct delta_ipc_open_msg msg;
++	struct delta_buf *buf = &ctx->ipc_buf_struct;
++	int ret;
++
++	if (!rpmsg_channel) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, rpmsg is not initialized\n",
++			pctx->name);
++		pctx->sys_errors++;
++		return -EINVAL;
++	}
++
++	if (!name) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, no name given\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!param || !param->data || !param->size) {
++		dev_err(delta->dev,
++			"%s  ipc: failed to open, empty parameter\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!ipc_buf_size) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, no size given for ipc buffer\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (param->size > ipc_buf_size) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, too large ipc parameter (%d bytes while max %d expected)\n",
++			pctx->name,
++			param->size, ctx->ipc_buf->size);
++		return -EINVAL;
++	}
++
++	/* init */
++	init_completion(&ctx->done);
++
++	/* allocation of contiguous buffer for
++	 * data of commands exchanged between
++	 * host and firmware coprocessor
++	 */
++	ret = hw_alloc(pctx, ipc_buf_size,
++		       "ipc data buffer", buf);
++	if (ret)
 +		return ret;
++	ctx->ipc_buf = buf;
 +
-+	/* ... and the media entity... */
- 	ret = media_entity_pads_init(&histo->video.entity, 1, &histo->pad);
- 	if (ret < 0)
- 		return ret;
-@@ -293,10 +593,10 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
- 	histo->queue.ops = &histo_video_queue_qops;
- 	histo->queue.mem_ops = &vb2_vmalloc_memops;
- 	histo->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
--	histo->queue.dev = histo->vsp1->dev;
-+	histo->queue.dev = vsp1->dev;
- 	ret = vb2_queue_init(&histo->queue);
- 	if (ret < 0) {
--		dev_err(histo->vsp1->dev, "failed to initialize vb2 queue\n");
-+		dev_err(vsp1->dev, "failed to initialize vb2 queue\n");
- 		goto error;
- 	}
- 
-@@ -304,7 +604,7 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
- 	histo->video.queue = &histo->queue;
- 	ret = video_register_device(&histo->video, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0) {
--		dev_err(histo->vsp1->dev, "failed to register video device\n");
-+		dev_err(vsp1->dev, "failed to register video device\n");
- 		goto error;
- 	}
- 
-@@ -314,11 +614,3 @@ error:
- 	vsp1_histogram_cleanup(histo);
- 	return ret;
- }
--
--void vsp1_histogram_cleanup(struct vsp1_histogram *histo)
--{
--	if (video_is_registered(&histo->video))
--		video_unregister_device(&histo->video);
--
--	media_entity_cleanup(&histo->video.entity);
--}
-diff --git a/drivers/media/platform/vsp1/vsp1_histo.h b/drivers/media/platform/vsp1/vsp1_histo.h
-index daf648c490f5..af2874f6031d 100644
---- a/drivers/media/platform/vsp1/vsp1_histo.h
-+++ b/drivers/media/platform/vsp1/vsp1_histo.h
-@@ -22,9 +22,14 @@
- #include <media/v4l2-dev.h>
- #include <media/videobuf2-v4l2.h>
- 
-+#include "vsp1_entity.h"
++	/* build rpmsg message */
++	build_msg_header(ctx, DELTA_IPC_OPEN, &msg.header);
 +
- struct vsp1_device;
- struct vsp1_pipeline;
- 
-+#define HISTO_PAD_SINK				0
-+#define HISTO_PAD_SOURCE			1
++	msg.ipc_buf_size = ipc_buf_size;
++	msg.ipc_buf_paddr = ctx->ipc_buf->paddr;
 +
- struct vsp1_histogram_buffer {
- 	struct vb2_v4l2_buffer buf;
- 	struct list_head queue;
-@@ -32,14 +37,16 @@ struct vsp1_histogram_buffer {
- };
- 
- struct vsp1_histogram {
--	struct vsp1_device *vsp1;
- 	struct vsp1_pipeline *pipe;
- 
-+	struct vsp1_entity entity;
- 	struct video_device video;
- 	struct media_pad pad;
- 
-+	const u32 *formats;
-+	unsigned int num_formats;
- 	size_t data_size;
--	u32 format;
-+	u32 meta_format;
- 
- 	struct mutex lock;
- 	struct vb2_queue queue;
-@@ -51,14 +58,22 @@ struct vsp1_histogram {
- 	bool readout;
- };
- 
--static inline struct vsp1_histogram *to_vsp1_histo(struct video_device *vdev)
-+static inline struct vsp1_histogram *vdev_to_histo(struct video_device *vdev)
- {
- 	return container_of(vdev, struct vsp1_histogram, video);
- }
- 
-+static inline struct vsp1_histogram *subdev_to_histo(struct v4l2_subdev *subdev)
++	memcpy(msg.name, name, sizeof(msg.name));
++	msg.name[sizeof(msg.name) - 1] = 0;
++
++	msg.param_size = param->size;
++	memcpy(ctx->ipc_buf->vaddr, param->data, msg.param_size);
++	msg.param_paddr = ctx->ipc_buf->paddr;
++
++	/* send it */
++	ret = rpmsg_send(rpmsg_channel, &msg, sizeof(msg));
++	if (ret) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, rpmsg_send failed (%d) for DELTA_IPC_OPEN (name=%s, size=%d, data=%p)\n",
++			pctx->name,
++			ret, name, param->size, param->data);
++		goto err;
++	}
++
++	/* wait for acknowledge */
++	if (!wait_for_completion_timeout
++	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, timeout waiting for DELTA_IPC_OPEN callback (name=%s, size=%d, data=%p)\n",
++			pctx->name,
++			name, param->size, param->data);
++		ret = -ETIMEDOUT;
++		goto err;
++	}
++
++	/* command completed, check error */
++	if (ctx->cb_err) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to open, DELTA_IPC_OPEN completed but with error (%d) (name=%s, size=%d, data=%p)\n",
++			pctx->name,
++			ctx->cb_err, name, param->size, param->data);
++		ret = -EIO;
++		goto err;
++	}
++
++	*ipc_buf = ctx->ipc_buf;
++	*hdl = (void *)ctx;
++
++	return 0;
++
++err:
++	pctx->sys_errors++;
++	if (ctx->ipc_buf) {
++		hw_free(pctx, ctx->ipc_buf);
++		ctx->ipc_buf = NULL;
++	}
++
++	return ret;
++};
++
++int delta_ipc_set_stream(void *hdl, struct delta_ipc_param *param)
 +{
-+	return container_of(subdev, struct vsp1_histogram, entity.subdev);
++	struct delta_ipc_ctx *ctx = to_ctx(hdl);
++	struct delta_ctx *pctx = to_pctx(ctx);
++	struct delta_dev *delta = pctx->dev;
++	struct rpmsg_channel *rpmsg_channel = delta->rpmsg_channel;
++	struct delta_ipc_set_stream_msg msg;
++	int ret;
++
++	if (!hdl) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, invalid ipc handle\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!rpmsg_channel) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, rpmsg is not initialized\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!param || !param->data || !param->size) {
++		dev_err(delta->dev,
++			"%s  ipc: failed to set stream, empty parameter\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (param->size > ctx->ipc_buf->size) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, too large ipc parameter(%d bytes while max %d expected)\n",
++			pctx->name,
++			param->size, ctx->ipc_buf->size);
++		return -EINVAL;
++	}
++
++	if (!is_valid_data(ctx, param->data, param->size)) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, parameter is not in expected address range (size=%d, data=%p not in %p..%p)\n",
++			pctx->name,
++			param->size,
++			param->data,
++			ctx->ipc_buf->vaddr,
++			ctx->ipc_buf->vaddr + ctx->ipc_buf->size - 1);
++		return -EINVAL;
++	}
++
++	/* build rpmsg message */
++	build_msg_header(ctx, DELTA_IPC_SET_STREAM, &msg.header);
++
++	msg.param_size = param->size;
++	msg.param_paddr = to_paddr(ctx, param->data);
++
++	/* send it */
++	ret = rpmsg_send(rpmsg_channel, &msg, sizeof(msg));
++	if (ret) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, rpmsg_send failed (%d) for DELTA_IPC_SET_STREAM (size=%d, data=%p)\n",
++			pctx->name,
++			ret, param->size, param->data);
++		pctx->sys_errors++;
++		return ret;
++	}
++
++	/* wait for acknowledge */
++	if (!wait_for_completion_timeout
++	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, timeout waiting for DELTA_IPC_SET_STREAM callback (size=%d, data=%p)\n",
++			pctx->name,
++			param->size, param->data);
++		pctx->sys_errors++;
++		return -ETIMEDOUT;
++	}
++
++	/* command completed, check status */
++	if (ctx->cb_err) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to set stream, DELTA_IPC_SET_STREAM completed but with error (%d) (size=%d, data=%p)\n",
++			pctx->name,
++			ctx->cb_err, param->size, param->data);
++		pctx->sys_errors++;
++		return -EIO;
++	}
++
++	return 0;
 +}
 +
- int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
--			const char *name, size_t data_size, u32 format);
--void vsp1_histogram_cleanup(struct vsp1_histogram *histo);
-+			enum vsp1_entity_type type, const char *name,
-+			const struct vsp1_entity_operations *ops,
-+			const unsigned int *formats, unsigned int num_formats,
-+			size_t data_size, u32 meta_format);
-+void vsp1_histogram_destroy(struct vsp1_entity *entity);
++int delta_ipc_decode(void *hdl, struct delta_ipc_param *param,
++		     struct delta_ipc_param *status)
++{
++	struct delta_ipc_ctx *ctx = to_ctx(hdl);
++	struct delta_ctx *pctx = to_pctx(ctx);
++	struct delta_dev *delta = pctx->dev;
++	struct rpmsg_channel *rpmsg_channel = delta->rpmsg_channel;
++	struct delta_ipc_decode_msg msg;
++	int ret;
++
++	if (!hdl) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, invalid ipc handle\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!rpmsg_channel) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, rpmsg is not initialized\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!param || !param->data || !param->size) {
++		dev_err(delta->dev,
++			"%s  ipc: failed to decode, empty parameter\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (!status || !status->data || !status->size) {
++		dev_err(delta->dev,
++			"%s  ipc: failed to decode, empty status\n",
++			pctx->name);
++		return -EINVAL;
++	}
++
++	if (param->size + status->size > ctx->ipc_buf->size) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, too large ipc parameter (%d bytes (param) + %d bytes (status) while max %d expected)\n",
++			pctx->name,
++			param->size,
++			status->size,
++			ctx->ipc_buf->size);
++		return -EINVAL;
++	}
++
++	if (!is_valid_data(ctx, param->data, param->size)) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, parameter is not in expected address range (size=%d, data=%p not in %p..%p)\n",
++			pctx->name,
++			param->size,
++			param->data,
++			ctx->ipc_buf->vaddr,
++			ctx->ipc_buf->vaddr + ctx->ipc_buf->size - 1);
++		return -EINVAL;
++	}
++
++	if (!is_valid_data(ctx, status->data, status->size)) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, status is not in expected address range (size=%d, data=%p not in %p..%p)\n",
++			pctx->name,
++			status->size,
++			status->data,
++			ctx->ipc_buf->vaddr,
++			ctx->ipc_buf->vaddr + ctx->ipc_buf->size - 1);
++		return -EINVAL;
++	}
++
++	/* build rpmsg message */
++	build_msg_header(ctx, DELTA_IPC_DECODE, &msg.header);
++
++	msg.param_size = param->size;
++	msg.param_paddr = to_paddr(ctx, param->data);
++
++	msg.status_size = status->size;
++	msg.status_paddr = to_paddr(ctx, status->data);
++
++	/* send it */
++	ret = rpmsg_send(rpmsg_channel, &msg, sizeof(msg));
++	if (ret) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, rpmsg_send failed (%d) for DELTA_IPC_DECODE (size=%d, data=%p)\n",
++			pctx->name,
++			ret, param->size, param->data);
++		pctx->sys_errors++;
++		return ret;
++	}
++
++	/* wait for acknowledge */
++	if (!wait_for_completion_timeout
++	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, timeout waiting for DELTA_IPC_DECODE callback (size=%d, data=%p)\n",
++			pctx->name,
++			param->size, param->data);
++		pctx->sys_errors++;
++		return -ETIMEDOUT;
++	}
++
++	/* command completed, check status */
++	if (ctx->cb_err) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to decode, DELTA_IPC_DECODE completed but with error (%d) (size=%d, data=%p)\n",
++			pctx->name,
++			ctx->cb_err, param->size, param->data);
++		pctx->sys_errors++;
++		return -EIO;
++	}
++
++	return 0;
++};
++
++void delta_ipc_close(void *hdl)
++{
++	struct delta_ipc_ctx *ctx = to_ctx(hdl);
++	struct delta_ctx *pctx = to_pctx(ctx);
++	struct delta_dev *delta = pctx->dev;
++	struct rpmsg_channel *rpmsg_channel = delta->rpmsg_channel;
++	struct delta_ipc_close_msg msg;
++	int ret;
++
++	if (!hdl) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to close, invalid ipc handle\n",
++			pctx->name);
++		return;
++	}
++
++	if (ctx->ipc_buf) {
++		hw_free(pctx, ctx->ipc_buf);
++		ctx->ipc_buf = NULL;
++	}
++
++	if (!rpmsg_channel) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to close, rpmsg is not initialized\n",
++			pctx->name);
++		return;
++	}
++
++	/* build rpmsg message */
++	build_msg_header(ctx, DELTA_IPC_CLOSE, &msg.header);
++
++	/* send it */
++	ret = rpmsg_send(rpmsg_channel, &msg, sizeof(msg));
++	if (ret) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to close, rpmsg_send failed (%d) for DELTA_IPC_CLOSE\n",
++			pctx->name, ret);
++		pctx->sys_errors++;
++		return;
++	}
++
++	/* wait for acknowledge */
++	if (!wait_for_completion_timeout
++	    (&ctx->done, msecs_to_jiffies(IPC_TIMEOUT))) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to close, timeout waiting for DELTA_IPC_CLOSE callback\n",
++			pctx->name);
++		pctx->sys_errors++;
++		return;
++	}
++
++	/* command completed, check status */
++	if (ctx->cb_err) {
++		dev_err(delta->dev,
++			"%s   ipc: failed to close, DELTA_IPC_CLOSE completed but with error (%d)\n",
++			pctx->name, ctx->cb_err);
++		pctx->sys_errors++;
++	}
++};
++
++static void delta_ipc_cb(struct rpmsg_channel *rpmsg_channel, void *data,
++			 int len, void *priv, u32 src)
++{
++	struct delta_ipc_ctx *ctx;
++	struct delta_ipc_cb_msg *msg;
++
++	/* sanity check */
++	if (!rpmsg_channel) {
++		dev_err(NULL, "rpmsg_channel is NULL\n");
++		return;
++	}
++
++	if (!data || !len) {
++		dev_err(&rpmsg_channel->dev,
++			"unexpected empty message received from src=%d\n", src);
++		return;
++	}
++
++	if (len != sizeof(*msg)) {
++		dev_err(&rpmsg_channel->dev,
++			"unexpected message length received from src=%d (received %d bytes while %zu bytes expected)\n",
++			len, src, sizeof(*msg));
++		return;
++	}
++
++	msg = (struct delta_ipc_cb_msg *)data;
++	if (msg->header.tag != IPC_SANITY_TAG) {
++		dev_err(&rpmsg_channel->dev,
++			"unexpected message tag received from src=%d (received %x tag while %x expected)\n",
++			src, msg->header.tag, IPC_SANITY_TAG);
++		return;
++	}
++
++	ctx = msg_to_ctx(msg);
++	if (!ctx) {
++		dev_err(&rpmsg_channel->dev,
++			"unexpected message with NULL host_hdl received from src=%d\n",
++			src);
++		return;
++	}
++
++	/* if not already known, save copro instance context
++	 * to ensure re-entrance on copro side
++	 */
++	if (!ctx->copro_hdl)
++		ctx->copro_hdl = msg_to_copro_hdl(msg);
++
++	/* all is fine,
++	 * update status & complete command
++	 */
++	ctx->cb_err = msg->err;
++	complete(&ctx->done);
++}
++
++static int delta_ipc_probe(struct rpmsg_channel *rpmsg_channel)
++{
++	struct rpmsg_driver *rpdrv = to_rpmsg_driver(rpmsg_channel->dev.driver);
++	struct delta_dev *delta = to_delta(rpdrv);
++
++	delta->rpmsg_channel = rpmsg_channel;
++
++	return 0;
++}
++
++static void delta_ipc_remove(struct rpmsg_channel *rpmsg_channel)
++{
++	struct rpmsg_driver *rpdrv = to_rpmsg_driver(rpmsg_channel->dev.driver);
++	struct delta_dev *delta = to_delta(rpdrv);
++
++	delta->rpmsg_channel = NULL;
++}
++
++static struct rpmsg_device_id delta_ipc_device_id_table[] = {
++	{.name = "rpmsg-delta"},
++	{},
++};
++
++static struct rpmsg_driver delta_rpmsg_driver = {
++	.drv = {.name = KBUILD_MODNAME},
++	.id_table = delta_ipc_device_id_table,
++	.probe = delta_ipc_probe,
++	.callback = delta_ipc_cb,
++	.remove = delta_ipc_remove,
++};
++
++int delta_ipc_init(struct delta_dev *delta)
++{
++	delta->rpmsg_driver = delta_rpmsg_driver;
++
++	return register_rpmsg_driver(&delta->rpmsg_driver);
++}
++
++void delta_ipc_exit(struct delta_dev *delta)
++{
++	unregister_rpmsg_driver(&delta->rpmsg_driver);
++}
+diff --git a/drivers/media/platform/sti/delta/delta-ipc.h b/drivers/media/platform/sti/delta/delta-ipc.h
+new file mode 100644
+index 0000000..153a338
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-ipc.h
+@@ -0,0 +1,76 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#ifndef DELTA_IPC_H
++#define DELTA_IPC_H
++
++int delta_ipc_init(struct delta_dev *delta);
++void delta_ipc_exit(struct delta_dev *delta);
++
++/**
++ * delta_ipc_open - open a decoding instance on firmware side
++ * @ctx:		(in) delta context
++ * @name:		(in) name of decoder to be used
++ * @param:		(in) open command parameters specific to decoder
++ *  @param.size:		(in) size of parameter
++ *  @param.data:		(in) virtual address of parameter
++ * @ipc_buf_size:	(in) size of IPC shared buffer between host
++ *			     and copro used to share command data.
++ *			     Client have to set here the size of the biggest
++ *			     command parameters (+ status if any).
++ *			     Allocation will be done in this function which
++ *			     will give back to client in @ipc_buf the virtual
++ *			     & physical addresses & size of shared IPC buffer.
++ *			     All the further command data (parameters + status)
++ *			     have to be written in this shared IPC buffer
++ *			     virtual memory. This is done to avoid
++ *			     unnecessary copies of command data.
++ * @ipc_buf:		(out) allocated IPC shared buffer
++ *  @ipc_buf.size:		(out) allocated size
++ *  @ipc_buf.vaddr:		(out) virtual address where to copy
++ *				      further command data
++ * @hdl:		(out) handle of decoding instance.
++ */
++
++int delta_ipc_open(struct delta_ctx *ctx, const char *name,
++		   struct delta_ipc_param *param, __u32 ipc_buf_size,
++		   struct delta_buf **ipc_buf, void **hdl);
++
++/**
++ * delta_ipc_set_stream - set information about stream to decoder
++ * @hdl:		(in) handle of decoding instance.
++ * @param:		(in) set stream command parameters specific to decoder
++ *  @param.size:		(in) size of parameter
++ *  @param.data:		(in) virtual address of parameter. Must be
++ *				     within IPC shared buffer range
++*/
++int delta_ipc_set_stream(void *hdl, struct delta_ipc_param *param);
++
++/**
++ * delta_ipc_decode - frame decoding synchronous request, returns only
++ *		      after decoding completion on firmware side.
++ * @hdl:		(in) handle of decoding instance.
++ * @param:		(in) decode command parameters specific to decoder
++ *  @param.size:		(in) size of parameter
++ *  @param.data:		(in) virtual address of parameter. Must be
++ *				     within IPC shared buffer range
++ * @status:		(in/out) decode command status specific to decoder
++ *  @status.size:		(in) size of status
++ *  @status.data:		(in/out) virtual address of status. Must be
++ *					 within IPC shared buffer range.
++ *					 Status is filled by decoding instance
++ *					 after decoding completion.
++*/
++int delta_ipc_decode(void *hdl, struct delta_ipc_param *param,
++		     struct delta_ipc_param *status);
++
++/**
++ * delta_ipc_close - close decoding instance
++ * @hdl:		(in) handle of decoding instance to close.
++*/
++void delta_ipc_close(void *hdl);
++
++#endif /* DELTA_IPC_H */
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 0ea81ac..a8fcdbd 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -17,6 +17,7 @@
+ #include <media/videobuf2-dma-contig.h>
  
- struct vsp1_histogram_buffer *
- vsp1_histogram_buffer_get(struct vsp1_histogram *histo);
+ #include "delta.h"
++#include "delta-ipc.h"
+ 
+ #define DELTA_NAME	"st-delta"
+ 
+@@ -1830,6 +1831,14 @@ static int delta_probe(struct platform_device *pdev)
+ 	pm_runtime_set_suspended(dev);
+ 	pm_runtime_enable(dev);
+ 
++	/* init firmware ipc channel */
++	ret = delta_ipc_init(delta);
++	if (ret) {
++		dev_err(delta->dev, "%s failed to initialize firmware ipc channel\n",
++			DELTA_PREFIX);
++		goto err;
++	}
++
+ 	/* register all available decoders */
+ 	register_decoders(delta);
+ 
+@@ -1874,6 +1883,8 @@ static int delta_remove(struct platform_device *pdev)
+ {
+ 	struct delta_dev *delta = platform_get_drvdata(pdev);
+ 
++	delta_ipc_exit(delta);
++
+ 	delta_unregister_device(delta);
+ 
+ 	destroy_workqueue(delta->work_queue);
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index b40fbad..6f73cb9 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -7,6 +7,7 @@
+ #ifndef DELTA_H
+ #define DELTA_H
+ 
++#include <linux/rpmsg.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-mem2mem.h>
+ 
+@@ -199,6 +200,19 @@ struct delta_buf {
+ 	unsigned long attrs;
+ };
+ 
++struct delta_ipc_ctx {
++	int cb_err;
++	__u32 copro_hdl;
++	struct completion done;
++	struct delta_buf ipc_buf_struct;
++	struct delta_buf *ipc_buf;
++};
++
++struct delta_ipc_param {
++	__u32 size;
++	void *data;
++};
++
+ struct delta_ctx;
+ 
+ /*
+@@ -369,6 +383,7 @@ struct delta_dev;
+  * @fh:			V4L2 file handle
+  * @dev:		device context
+  * @dec:		selected decoder context for this instance
++ * @ipc_ctx:		context of IPC communication with firmware
+  * @state:		instance state
+  * @frame_num:		frame number
+  * @au_num:		access unit number
+@@ -400,6 +415,8 @@ struct delta_ctx {
+ 	struct v4l2_fh fh;
+ 	struct delta_dev *dev;
+ 	const struct delta_dec *dec;
++	struct delta_ipc_ctx ipc_ctx;
++
+ 	enum delta_state state;
+ 	u32 frame_num;
+ 	u32 au_num;
+@@ -449,6 +466,8 @@ struct delta_ctx {
+  * @nb_of_streamformats:number of supported compressed video formats
+  * @instance_id:	rolling counter identifying an instance (debug purpose)
+  * @work_queue:		decoding job work queue
++ * @rpmsg_driver:	rpmsg IPC driver
++ * @rpmsg_channel:	rpmsg IPC channel
+  */
+ struct delta_dev {
+ 	struct v4l2_device v4l2_dev;
+@@ -468,6 +487,8 @@ struct delta_dev {
+ 	u32 nb_of_streamformats;
+ 	u8 instance_id;
+ 	struct workqueue_struct *work_queue;
++	struct rpmsg_driver rpmsg_driver;
++	struct rpmsg_channel *rpmsg_channel;
+ };
+ 
+ static inline char *frame_type_str(__u32 flags)
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
