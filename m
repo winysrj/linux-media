@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:60839 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932965AbcIPK51 (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:49362 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753483AbcITOeR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 06:57:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 6/8] cobalt: add cropcap support
-Date: Fri, 16 Sep 2016 12:57:09 +0200
-Message-Id: <1474023431-32533-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
-References: <1474023431-32533-1-git-send-email-hverkuil@xs4all.nl>
+        Tue, 20 Sep 2016 10:34:17 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 3/9] [media] MAINTAINERS: add st-delta driver
+Date: Tue, 20 Sep 2016 16:33:34 +0200
+Message-ID: <1474382020-17588-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+References: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add entry for the STMicroelectronics DELTA driver.
 
-Now that the timings contain picture aspect ratio information, we can support
-cropcap to return the pixel aspect ratio.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/pci/cobalt/cobalt-v4l2.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/media/pci/cobalt/cobalt-v4l2.c b/drivers/media/pci/cobalt/cobalt-v4l2.c
-index 5c76637..3fea246 100644
---- a/drivers/media/pci/cobalt/cobalt-v4l2.c
-+++ b/drivers/media/pci/cobalt/cobalt-v4l2.c
-@@ -1084,12 +1084,33 @@ static int cobalt_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
- 	return 0;
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index db814a8..fae934b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2363,6 +2363,14 @@ W:	https://linuxtv.org
+ S:	Supported
+ F:	drivers/media/platform/sti/bdisp
  
-+static int cobalt_cropcap(struct file *file, void *fh, struct v4l2_cropcap *cc)
-+{
-+	struct cobalt_stream *s = video_drvdata(file);
-+	struct v4l2_dv_timings timings;
-+	int err = 0;
++DELTA ST MEDIA DRIVER
++M:	Hugues Fruchet <hugues.fruchet@st.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++W:	https://linuxtv.org
++S:	Supported
++F:	drivers/media/platform/sti/delta
 +
-+	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+	if (s->input == 1)
-+		timings = cea1080p60;
-+	else
-+		err = v4l2_subdev_call(s->sd, video, g_dv_timings, &timings);
-+	if (!err) {
-+		cc->bounds.width = cc->defrect.width = timings.bt.width;
-+		cc->bounds.height = cc->defrect.height = timings.bt.height;
-+		cc->pixelaspect = v4l2_dv_timings_aspect_ratio(&timings);
-+	}
-+	return err;
-+}
-+
- static const struct v4l2_ioctl_ops cobalt_ioctl_ops = {
- 	.vidioc_querycap		= cobalt_querycap,
- 	.vidioc_g_parm			= cobalt_g_parm,
- 	.vidioc_log_status		= cobalt_log_status,
- 	.vidioc_streamon		= vb2_ioctl_streamon,
- 	.vidioc_streamoff		= vb2_ioctl_streamoff,
-+	.vidioc_cropcap			= cobalt_cropcap,
- 	.vidioc_enum_input		= cobalt_enum_input,
- 	.vidioc_g_input			= cobalt_g_input,
- 	.vidioc_s_input			= cobalt_s_input,
+ BEFS FILE SYSTEM
+ M:	Luis de Bethencourt <luisbg@osg.samsung.com>
+ M:	Salah Triki <salah.triki@gmail.com>
 -- 
-2.8.1
+1.9.1
 
