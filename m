@@ -1,50 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:35492 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755452AbcINJXS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 05:23:18 -0400
-Received: by mail-wm0-f45.google.com with SMTP id i130so37615539wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 02:23:18 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Cc: kernel@stlinux.com, arnd@arndb.de, robh@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 3/4] add stih-cec driver into DT
-Date: Wed, 14 Sep 2016 11:22:03 +0200
-Message-Id: <1473844924-13895-4-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1473844924-13895-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1473844924-13895-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mga01.intel.com ([192.55.52.88]:41223 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752187AbcITHuw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 20 Sep 2016 03:50:52 -0400
+Subject: Re: [PATCH v1.1 4/5] smiapp: Use runtime PM
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-media@vger.kernel.org
+References: <1473938961-16067-5-git-send-email-sakari.ailus@linux.intel.com>
+ <1473980009-19377-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20160919225127.ncjux2ybgqt66axu@earth>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <57E0EA42.8070108@linux.intel.com>
+Date: Tue, 20 Sep 2016 10:50:26 +0300
+MIME-Version: 1.0
+In-Reply-To: <20160919225127.ncjux2ybgqt66axu@earth>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="ipeS6KIi7xcQuibNsn294EWRUf0WArL9L"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- arch/arm/boot/dts/stih410.dtsi | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--ipeS6KIi7xcQuibNsn294EWRUf0WArL9L
+Content-Type: multipart/mixed; boundary="emc3etpuOki2nmcXKKTFoLTcmXL0nF7Kj"
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-media@vger.kernel.org
+Message-ID: <57E0EA42.8070108@linux.intel.com>
+Subject: Re: [PATCH v1.1 4/5] smiapp: Use runtime PM
+References: <1473938961-16067-5-git-send-email-sakari.ailus@linux.intel.com>
+ <1473980009-19377-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20160919225127.ncjux2ybgqt66axu@earth>
+In-Reply-To: <20160919225127.ncjux2ybgqt66axu@earth>
 
-diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
-index 18ed1ad..440c4bd 100644
---- a/arch/arm/boot/dts/stih410.dtsi
-+++ b/arch/arm/boot/dts/stih410.dtsi
-@@ -227,5 +227,17 @@
- 			clock-names = "bdisp";
- 			clocks = <&clk_s_c0_flexgen CLK_IC_BDISP_0>;
- 		};
-+
-+		sti-cec@094a087c {
-+			compatible = "st,stih-cec";
-+			reg = <0x94a087c 0x64>;
-+			clocks = <&clk_sysin>;
-+			clock-names = "cec-clk";
-+			interrupts = <GIC_SPI 140 IRQ_TYPE_NONE>;
-+			interrupt-names = "cec-irq";
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_cec0_default>;
-+			resets = <&softreset STIH407_LPM_SOFTRESET>;
-+		};
- 	};
- };
--- 
-1.9.1
+--emc3etpuOki2nmcXKKTFoLTcmXL0nF7Kj
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
+Hi Sebastian,
+
+Thank you for the review.
+
+On 09/20/16 01:51, Sebastian Reichel wrote:
+> Hi,
+>=20
+> On Fri, Sep 16, 2016 at 01:53:29AM +0300, Sakari Ailus wrote:
+>> [...]
+>>
+>> diff --git a/drivers/media/i2c/smiapp/smiapp-regs.c b/drivers/media/i2=
+c/smiapp/smiapp-regs.c
+>> index 1e501c0..a9c7baf 100644
+>> --- a/drivers/media/i2c/smiapp/smiapp-regs.c
+>> +++ b/drivers/media/i2c/smiapp/smiapp-regs.c
+>> @@ -18,6 +18,7 @@
+>> =20
+>>  #include <linux/delay.h>
+>>  #include <linux/i2c.h>
+>> +#include <linux/pm_runtime.h>
+>> =20
+>>  #include "smiapp.h"
+>>  #include "smiapp-regs.h"
+>> @@ -288,8 +289,12 @@ int smiapp_write_no_quirk(struct smiapp_sensor *s=
+ensor, u32 reg, u32 val)
+>>   */
+>>  int smiapp_write(struct smiapp_sensor *sensor, u32 reg, u32 val)
+>>  {
+>> +	struct i2c_client *client =3D v4l2_get_subdevdata(&sensor->src->sd);=
+
+>>  	int rval;
+>> =20
+>> +	if (pm_runtime_suspended(&client->dev))
+>> +		return 0;
+>> +
+>=20
+> This looks racy. What if idle countdown runs out immediately after
+> this check? If you can't call get_sync in this function you can
+> call pm_runtime_get() before the suspend check and pm_runtime_put
+> before returning from the function, so that the device keeps being
+> enabled.
+
+Good point. It was probably late when I wrote the patch. X-)
+
+I guess I need to put pm_runtime_get_noresume() before that, and then
+put_autosuspend() it later on.
+
+>=20
+> Also I would expect some error code instead of success for early
+> return due to device being suspended?
+
+That's by design.
+
+If the sensor is off, there's no need to write anything there. The
+configuration is re-applied to the sensor when it's powered on.
+
+--=20
+Sakari Ailus
+sakari.ailus@linux.intel.com
+
+
+--emc3etpuOki2nmcXKKTFoLTcmXL0nF7Kj--
+
+--ipeS6KIi7xcQuibNsn294EWRUf0WArL9L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iF4EAREIAAYFAlfg6lgACgkQbUA2G24owZPm9QD/agGvmRRfSGEL1HiigBNEtZl9
+OlevwmK8NAWCPz+8T1EBAIRyTUtQ9H3CMKNW8ZFYXSkmJF9leWppD87rOb/YF/A+
+=TJsx
+-----END PGP SIGNATURE-----
+
+--ipeS6KIi7xcQuibNsn294EWRUf0WArL9L--
