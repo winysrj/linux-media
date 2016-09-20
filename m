@@ -1,177 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:37730 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbcINLYV (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:52555 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754765AbcITOeX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 07:24:21 -0400
-Received: by mail-wm0-f42.google.com with SMTP id k186so415235wmd.0
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 04:24:20 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: hans.verkuil@cisco.com, linux-media@vger.kernel.org
-Cc: kernel@stlinux.com, arnd@arndb.de, robh@kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v2 0/4] STIH CEC driver
-Date: Wed, 14 Sep 2016 13:24:05 +0200
-Message-Id: <1473852249-15960-1-git-send-email-benjamin.gaignard@linaro.org>
+        Tue, 20 Sep 2016 10:34:23 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 7/9] [media] st-delta: EOS (End Of Stream) support
+Date: Tue, 20 Sep 2016 16:33:38 +0200
+Message-ID: <1474382020-17588-8-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+References: <1474382020-17588-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 2:
- - fix typo in comments
- - in DT move stih-cec driver from stih410.dtsi to stih407-family.dtsi
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/delta-v4l2.c | 143 +++++++++++++++++++++++++-
+ drivers/media/platform/sti/delta/delta.h      |  24 ++++-
+ 2 files changed, 165 insertions(+), 2 deletions(-)
 
-Those patches implement HDMI CEC driver for stih4xx SoCs.
-I have used media_tree/fixes and the lastest v4l-utils branch.
-
-The compliance tools have been run with the following sequence:
-cec-ctl --tuner -p 1.0.0.0
-cec-compliance -A
-and cec-follower running in a separate shell
-
-Compliance logs:
-cec-ctl --tuner -p 1.0.0.0 
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	OSD Name                   : 'Tuner'
-	Logical Addresses          : 1
-
-	  Logical Address          : 3 (Tuner 1)
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-cec-compliance -A 
-cec-compliance SHA                 : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
-
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	Logical Addresses          : 1
-
-	  Logical Address          : 3
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-Compliance test for device /dev/cec0:
-
-    The test results mean the following:
-        OK                  Supported correctly by the device.
-        OK (Not Supported)  Not supported and not mandatory for the device.
-        OK (Presumed)       Presumably supported.  Manually check to confirm.
-        OK (Unexpected)     Supported correctly but is not expected to be supported for this device.
-        OK (Refused)        Supported by the device, but was refused.
-        FAIL                Failed and was expected to be supported by this device.
-
-Find remote devices:
-	Polling: OK
-
-CEC API:
-	CEC_ADAP_G_CAPS: OK
-	CEC_DQEVENT: OK
-	CEC_ADAP_G/S_PHYS_ADDR: OK
-	CEC_ADAP_G/S_LOG_ADDRS: OK
-	CEC_TRANSMIT: OK
-	CEC_RECEIVE: OK
-	CEC_TRANSMIT/RECEIVE (non-blocking): OK (Presumed)
-	CEC_G/S_MODE: OK
-	CEC_EVENT_LOST_MSGS: OK
-
-Network topology:
-	System Information for device 0 (TV) from device 3 (Tuner 1):
-		CEC Version                : 1.4
-		Physical Address           : Tx, OK, Not Acknowledged (1), Rx, Timeout
-		Vendor ID                  : 0x00903e
-		OSD Name                   : 'TV'
-		Menu Language              : fre
-		Power Status               : On
-
-Total: 10, Succeeded: 10, Failed: 0, Warnings: 0
-
-cec-follower 
-cec-follower SHA                   : 56075a41f9294b21aa6bd80dc5e94cbd2b44087a
-
-Driver Info:
-	Driver Name                : stih-cec
-	Adapter Name               : stih-cec
-	Capabilities               : 0x0000000f
-		Physical Address
-		Logical Addresses
-		Transmit
-		Passthrough
-	Driver version             : 4.8.0
-	Available Logical Addresses: 1
-	Physical Address           : 1.0.0.0
-	Logical Address Mask       : 0x0008
-	CEC Version                : 2.0
-	Vendor ID                  : 0x000c03
-	Logical Addresses          : 1
-
-	  Logical Address          : 3
-	    Primary Device Type    : Tuner
-	    Logical Address Type   : Tuner
-	    All Device Types       : Tuner
-	    RC TV Profile          : None
-	    Device Features        :
-		None
-
-Initial Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x4000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0000
-Event: State Change: PA: 1.0.0.0, LA mask: 0x0008
-
-Benjamin Gaignard (4):
-  bindings for stih-cec driver
-  add stih-cec driver
-  add stih-cec driver into DT
-  add maintainer for stih-cec driver
-
- .../devicetree/bindings/media/stih-cec.txt         |  25 ++
- MAINTAINERS                                        |   7 +
- arch/arm/boot/dts/stih407-family.dtsi              |  12 +
- drivers/staging/media/Kconfig                      |   2 +
- drivers/staging/media/Makefile                     |   1 +
- drivers/staging/media/st-cec/Kconfig               |   8 +
- drivers/staging/media/st-cec/Makefile              |   1 +
- drivers/staging/media/st-cec/stih-cec.c            | 382 +++++++++++++++++++++
- 8 files changed, 438 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/stih-cec.txt
- create mode 100644 drivers/staging/media/st-cec/Kconfig
- create mode 100644 drivers/staging/media/st-cec/Makefile
- create mode 100644 drivers/staging/media/st-cec/stih-cec.c
-
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index a8fcdbd..7ae5df7 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -167,7 +167,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
+ 	vbuf->sequence = ctx->frame_num++;
+ 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+ 
+-	ctx->output_frames++;
++	if (frame->info.size)/* ignore EOS */
++		ctx->output_frames++;
+ }
+ 
+ static void requeue_free_frames(struct delta_ctx *ctx)
+@@ -910,6 +911,132 @@ static int delta_s_selection(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
++static void delta_complete_eos(struct delta_ctx *ctx,
++			       struct delta_frame *frame)
++{
++	struct delta_dev *delta = ctx->dev;
++	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
++
++	/* Send EOS to user:
++	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
++	 * - and then send EOS event
++	 */
++
++	/* empty frame */
++	frame->info.size = 0;
++
++	/* set the last buffer flag */
++	frame->flags |= V4L2_BUF_FLAG_LAST;
++
++	/* release frame to user */
++	delta_frame_done(ctx, frame, 0);
++
++	/* send EOS event */
++	v4l2_event_queue_fh(&ctx->fh, &ev);
++
++	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
++}
++
++static int delta_try_decoder_cmd(struct file *file, void *fh,
++				 struct v4l2_decoder_cmd *cmd)
++{
++	if (cmd->cmd != V4L2_DEC_CMD_STOP)
++		return -EINVAL;
++
++	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
++		return -EINVAL;
++
++	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
++	    (cmd->stop.pts != 0))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
++{
++	const struct delta_dec *dec = ctx->dec;
++	struct delta_dev *delta = ctx->dev;
++	struct delta_frame *frame = NULL;
++	int ret = 0;
++
++	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
++
++	if (ctx->state != DELTA_STATE_READY)
++		return 0;
++
++	/* drain the decoder */
++	call_dec_op(dec, drain, ctx);
++
++	/* release to user drained frames */
++	while (1) {
++		frame = NULL;
++		ret = call_dec_op(dec, get_frame, ctx, &frame);
++		if (ret == -ENODATA) {
++			/* no more decoded frames */
++			break;
++		}
++		if (frame) {
++			dev_dbg(delta->dev, "%s drain frame[%d]\n",
++				ctx->name, frame->index);
++
++			/* pop timestamp and mark frame with it */
++			delta_pop_dts(ctx, &frame->dts);
++
++			/* release decoded frame to user */
++			delta_frame_done(ctx, frame, 0);
++		}
++	}
++
++	/* try to complete EOS */
++	ret = delta_get_free_frame(ctx, &frame);
++	if (ret)
++		goto delay_eos;
++
++	/* new frame available, EOS can now be completed */
++	delta_complete_eos(ctx, frame);
++
++	ctx->state = DELTA_STATE_EOS;
++
++	return 0;
++
++delay_eos:
++	/* EOS completion from driver is delayed because
++	 * we don't have a free empty frame available.
++	 * EOS completion is so delayed till next frame_queue() call
++	 * to be sure to have a free empty frame available.
++	 */
++	ctx->state = DELTA_STATE_WF_EOS;
++	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
++
++	return 0;
++}
++
++int delta_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
++{
++	struct delta_ctx *ctx = to_ctx(fh);
++	int ret = 0;
++
++	ret = delta_try_decoder_cmd(file, fh, cmd);
++	if (ret)
++		return ret;
++
++	return delta_decoder_stop_cmd(ctx, fh);
++}
++
++static int delta_subscribe_event(struct v4l2_fh *fh,
++				 const struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_EOS:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* v4l2 ioctl ops */
+ static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+ 	.vidioc_querycap = delta_querycap,
+@@ -931,6 +1058,10 @@ static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+ 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+ 	.vidioc_g_selection = delta_g_selection,
+ 	.vidioc_s_selection = delta_s_selection,
++	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
++	.vidioc_decoder_cmd = delta_decoder_cmd,
++	.vidioc_subscribe_event = delta_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ /*
+@@ -1508,6 +1639,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct delta_frame *frame = to_frame(vbuf);
+ 
++	if (ctx->state == DELTA_STATE_WF_EOS) {
++		/* new frame available, EOS can now be completed */
++		delta_complete_eos(ctx, frame);
++
++		ctx->state = DELTA_STATE_EOS;
++
++		/* return, no need to recycle this buffer to decoder */
++		return;
++	}
++
+ 	/* recycle this frame */
+ 	delta_recycle(ctx, frame);
+ }
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index 6f73cb9..648e64a 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -27,11 +27,19 @@
+  *@DELTA_STATE_READY:
+  *	Decoding instance is ready to decode compressed access unit.
+  *
++ *@DELTA_STATE_WF_EOS:
++ *	Decoding instance is waiting for EOS (End Of Stream) completion.
++ *
++ *@DELTA_STATE_EOS:
++ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
++ *	should then be closed.
+  */
+ enum delta_state {
+ 	DELTA_STATE_WF_FORMAT,
+ 	DELTA_STATE_WF_STREAMINFO,
+ 	DELTA_STATE_READY,
++	DELTA_STATE_WF_EOS,
++	DELTA_STATE_EOS
+ };
+ 
+ /*
+@@ -237,7 +245,7 @@ struct delta_ctx;
+  * @get_frame:		get the next decoded frame available, see below
+  * @recycle:		recycle the given frame, see below
+  * @flush:		(optional) flush decoder, see below
+- * @drain:		drain decoder, see below
++ * @drain:		(optional) drain decoder, see below
+ */
+ struct delta_dec {
+ 	const char *name;
+@@ -372,6 +380,18 @@ struct delta_dec {
+ 	 * decoding logic.
+ 	 */
+ 	void (*flush)(struct delta_ctx *ctx);
++
++	/*
++	 * drain() - drain decoder
++	 * @ctx:	(in) instance
++	 *
++	 * Optional.
++	 * Mark decoder pending frames (decoded but not yet output) as ready
++	 * so that they can be output to client at EOS (End Of Stream).
++	 * get_frame() is to be called in a loop right after drain() to
++	 * get all those pending frames.
++	*/
++	void (*drain)(struct delta_ctx *ctx);
+ };
+ 
+ struct delta_dev;
+@@ -499,6 +519,8 @@ static inline char *frame_type_str(__u32 flags)
+ 		return "P";
+ 	if (flags & V4L2_BUF_FLAG_BFRAME)
+ 		return "B";
++	if (flags & V4L2_BUF_FLAG_LAST)
++		return "EOS";
+ 	return "?";
+ }
+ 
 -- 
 1.9.1
 
