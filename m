@@ -1,64 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56887 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938546AbcIHVhu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Heiser <markus.heiser@darmarIT.de>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH 10/15] [media] conf_nitpick.py: ignore C domain data used on vb2
-Date: Thu,  8 Sep 2016 18:37:36 -0300
-Message-Id: <c193d2bdac1f50afb97374100cea066e52dcf7d3.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:36849 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757579AbcIUPNc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Sep 2016 11:13:32 -0400
+Received: by mail-pf0-f193.google.com with SMTP id n24so2507323pfb.3
+        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2016 08:13:06 -0700 (PDT)
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
+Subject: [PATCH -next] [media] cx88: fix error return code in cx8802_dvb_probe()
+Date: Wed, 21 Sep 2016 15:12:58 +0000
+Message-Id: <1474470778-8469-1-git-send-email-weiyj.lk@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ignore external C domain structs and functions used by VB2
-header.
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Fix to return error code -ENODEV from the error handling case
+instead of 0(err maybe overwrited to 0 in the for loop), as
+done elsewhere in this function.
+
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 ---
- Documentation/media/conf_nitpick.py | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/pci/cx88/cx88-dvb.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/Documentation/media/conf_nitpick.py b/Documentation/media/conf_nitpick.py
-index f71bb947eb15..480d548af670 100644
---- a/Documentation/media/conf_nitpick.py
-+++ b/Documentation/media/conf_nitpick.py
-@@ -40,6 +40,8 @@ nitpick_ignore = [
-     ("c:func", "struct fd_set"),
-     ("c:func", "struct pollfd"),
-     ("c:func", "usb_make_path"),
-+    ("c:func", "wait_finish"),
-+    ("c:func", "wait_prepare"),
-     ("c:func", "write"),
- 
-     ("c:type", "atomic_t"),
-@@ -67,6 +69,7 @@ nitpick_ignore = [
-     ("c:type", "off_t"),
-     ("c:type", "pci_dev"),
-     ("c:type", "pdvbdev"),
-+    ("c:type", "poll_table"),
-     ("c:type", "platform_device"),
-     ("c:type", "pollfd"),
-     ("c:type", "poll_table_struct"),
-@@ -98,6 +101,7 @@ nitpick_ignore = [
-     ("c:type", "usb_interface"),
-     ("c:type", "v4l2_std_id"),
-     ("c:type", "video_system_t"),
-+    ("c:type", "vm_area_struct"),
- 
-     # Opaque structures
- 
--- 
-2.7.4
-
+diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
+index ac2392d..d76a175 100644
+--- a/drivers/media/pci/cx88/cx88-dvb.c
++++ b/drivers/media/pci/cx88/cx88-dvb.c
+@@ -1779,6 +1779,7 @@ static int cx8802_dvb_probe(struct cx8802_driver *drv)
+ 		if (fe == NULL) {
+ 			printk(KERN_ERR "%s() failed to get frontend(%d)\n",
+ 					__func__, i);
++			err = -ENODEV;
+ 			goto fail_probe;
+ 		}
+ 		q = &fe->dvb.dvbq;
 
