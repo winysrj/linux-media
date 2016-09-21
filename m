@@ -1,54 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:65144 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754468AbcIEPfx (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:58833 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750862AbcIUHEZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Sep 2016 11:35:53 -0400
-From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "kernel@stlinux.com" <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick FERTRE <yannick.fertre@st.com>,
-        Hugues FRUCHET <hugues.fruchet@st.com>
-Date: Mon, 5 Sep 2016 17:35:45 +0200
-Subject: Re: [PATCH v6 0/3] support of v4l2 encoder for STMicroelectronics
- SOC
-Message-ID: <6c1dac71-feb6-9116-0493-d640d6adca6e@st.com>
-References: <1473084390-14860-1-git-send-email-jean-christophe.trotin@st.com>
- <44323d23-9f1d-b668-5363-dbdd6380fc6f@xs4all.nl>
-In-Reply-To: <44323d23-9f1d-b668-5363-dbdd6380fc6f@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+        Wed, 21 Sep 2016 03:04:25 -0400
+Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
+ framework
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        linux-media@vger.kernel.org
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
+ <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
+Date: Wed, 21 Sep 2016 09:04:19 +0200
 MIME-Version: 1.0
+In-Reply-To: <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 08/18/2016 07:53 AM, Wu, Songjun wrote:
+> Hi Hans,
+> 
+> Thank you for the patch.
+> 
+> On 8/17/2016 14:29, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> This patch converts the atmel-isi driver from a soc-camera driver to a driver
+>> that is stand-alone.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/platform/soc_camera/Kconfig     |    3 +-
+>>  drivers/media/platform/soc_camera/atmel-isi.c | 1216 +++++++++++++++----------
+>>  2 files changed, 721 insertions(+), 498 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+>> index 39f6641..f74e358 100644
+>> --- a/drivers/media/platform/soc_camera/Kconfig
+>> +++ b/drivers/media/platform/soc_camera/Kconfig
+>> @@ -54,9 +54,8 @@ config VIDEO_SH_MOBILE_CEU
+>>
+>>  config VIDEO_ATMEL_ISI
+>>  	tristate "ATMEL Image Sensor Interface (ISI) support"
+>> -	depends on VIDEO_DEV && SOC_CAMERA
+>> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
+>>  	depends on ARCH_AT91 || COMPILE_TEST
+>> -	depends on HAS_DMA
+>>  	select VIDEOBUF2_DMA_CONTIG
+>>  	---help---
+>>  	  This module makes the ATMEL Image Sensor Interface available
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 30211f6..9947acb 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
 
 
-On 09/05/2016 04:40 PM, Hans Verkuil wrote:
-> I ran checkpatch and it complains (correctly) that the MAINTAINERS file wasn't updated.
-> Can you add an entry for this driver to the MAINTAINERS file and post it as a separate
-> patch? I promise, that's the last thing I need :-)
->
-> Regards,
->
->         Hans
->
-> On 09/05/2016 04:06 PM, Jean-Christophe Trotin wrote:
->> version 6:
->> - "depends on HAS_DMA" added in Kconfig
->> - g/s parm only supported for output
->> - V4L2_CAP_TIMEPERFRAME capability set in g/s parm
->> - V4L2 compliance successfully passed with this version (see report below)
+>> +
+>>  static int atmel_isi_probe(struct platform_device *pdev)
+>>  {
+>>  	int irq;
+>>  	struct atmel_isi *isi;
+>> +	struct vb2_queue *q;
+>>  	struct resource *regs;
+>>  	int ret, i;
+>> -	struct soc_camera_host *soc_host;
+>>
+>>  	isi = devm_kzalloc(&pdev->dev, sizeof(struct atmel_isi), GFP_KERNEL);
+>>  	if (!isi) {
+>> @@ -1044,20 +1216,65 @@ static int atmel_isi_probe(struct platform_device *pdev)
+>>  		return ret;
+>>
+>>  	isi->active = NULL;
+>> -	spin_lock_init(&isi->lock);
+>> +	isi->dev = &pdev->dev;
+>> +	mutex_init(&isi->lock);
+>> +	spin_lock_init(&isi->irqlock);
+>>  	INIT_LIST_HEAD(&isi->video_buffer_list);
+>>  	INIT_LIST_HEAD(&isi->dma_desc_head);
+>>
+>> +	q = &isi->queue;
+>> +
+>> +	/* Initialize the top-level structure */
+>> +	ret = v4l2_device_register(&pdev->dev, &isi->v4l2_dev);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	isi->vdev = video_device_alloc();
+>> +	if (isi->vdev == NULL) {
+>> +		ret = -ENOMEM;
+>> +		goto err_vdev_alloc;
+>> +	}
+> If video device is unregistered, the ISI driver must be reloaded when 
+> registering a new video device.
+> So '*vdev' can be replaced by 'vdev', or move the code above to 
+> isi_graph_notify_complete.
 
-[snip]
-
-Hi Hans,
-
-I've just sent a patch that adds an entry to the MAINTAINERS file.
-Please let me know if it's not correctly formatted or if you need anything else.
+I'm afraid I don't understand what you mean. Can you clarify?
 
 Regards,
-Jean-Christophe
+
+	Hans
+
+> 
+>> +
+>> +	/* video node */
+>> +	isi->vdev->fops = &isi_fops;
+>> +	isi->vdev->v4l2_dev = &isi->v4l2_dev;
+>> +	isi->vdev->queue = &isi->queue;
+>> +	strlcpy(isi->vdev->name, KBUILD_MODNAME, sizeof(isi->vdev->name));
+>> +	isi->vdev->release = video_device_release;
+>> +	isi->vdev->ioctl_ops = &isi_ioctl_ops;
+>> +	isi->vdev->lock = &isi->lock;
+>> +	isi->vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+>> +		V4L2_CAP_READWRITE;
+>> +	video_set_drvdata(isi->vdev, isi);
+>> +
+>> +	/* buffer queue */
+>> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>> +	q->io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF;
+>> +	q->lock = &isi->lock;
+>> +	q->drv_priv = isi;
+>> +	q->buf_struct_size = sizeof(struct frame_buffer);
+>> +	q->ops = &isi_video_qops;
+>> +	q->mem_ops = &vb2_dma_contig_memops;
+>> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>> +	q->min_buffers_needed = 2;
+>> +	q->dev = &pdev->dev;
+>> +
+>> +	ret = vb2_queue_init(q);
+>> +	if (ret < 0) {
+>> +		dev_err(&pdev->dev, "failed to initialize VB2 queue\n");
+>> +		goto err_vb2_queue;
+>> +	}
+> 
+> Regards,
+> 	Songjun Wu
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
