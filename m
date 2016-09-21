@@ -1,200 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46709 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1761378AbcINMKO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41499 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933158AbcIUKxL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 08:10:14 -0400
-Subject: Re: [PATCH V2] [media] staging/media/cec: fix coding style error
-To: "R. Groux" <rgroux@sauron-mordor.net>,
-        Antti Palosaari <crope@iki.fi>
-References: <20160911160753.7tiizqan5v3dt7sx@elias.sauron-mordor.intern>
- <58b5c75d-890f-1f52-2bf7-08e445da0ff3@iki.fi>
- <20160912123233.ozjualv5ztpzruup@elias.sauron-mordor.intern>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d06fa202-ff3d-135d-42d0-7672c38910c3@xs4all.nl>
-Date: Wed, 14 Sep 2016 14:10:06 +0200
+        Wed, 21 Sep 2016 06:53:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Mauro Carvallo Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] Remove row numbers from tables in V4L2 documentation
+Date: Wed, 21 Sep 2016 13:45:50 +0300
+Message-ID: <1733373.9ULQhtaoNc@avalon>
+In-Reply-To: <222723F2-75D6-4418-AB0B-3EE74D22927A@darmarit.de>
+References: <7698306.QJLkYlHSte@avalon> <222723F2-75D6-4418-AB0B-3EE74D22927A@darmarit.de>
 MIME-Version: 1.0
-In-Reply-To: <20160912123233.ozjualv5ztpzruup@elias.sauron-mordor.intern>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Richard,
+Hi Markus,
 
-I'm sorry, but I won't take this patch. The overruns are small and breaking up the
-lines does not improve readability IMHO.
+On Wednesday 21 Sep 2016 11:24:33 Markus Heiser wrote:
+> Am 21.09.2016 um 10:48 schrieb Laurent Pinchart:
+> > Hello,
+> > 
+> > While documenting the metadata API I got annoyed by how tables were
+> > converted from DocBook to ReST.
+> 
+> I suggested to drop them, but Mauro wanted to address this later:
+> 
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg100971.html
 
-If you are looking for some other source code to fix coding style issues, then this
-would be a good candidate: drivers/media/common/saa7146/
+Mauro said he would take care of it for v4.9, these two patches might be our 
+last occasion not to miss the release ;-) Let's see what Mauro says.
 
-Cleaning that up would be welcome.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-On 09/12/2016 02:32 PM, R. Groux wrote:
-> On Sun, Sep 11, 2016 at 08:42:21PM +0300, Antti Palosaari wrote:
->> On 09/11/2016 07:07 PM, Richard wrote:
->>> Greetings Linux Kernel Developers,
->>>
->>> This is Task 10 of the Eudyptula Challenge, i fix few line over 80
->>> characters, hope you will accept this pacth.
->>>
->>> /Richard
->>>
->>> For the eudyptula challenge (http://eudyptula-challenge.org/).
->>> Simple style fix for few line over 80 characters
->>
->>> -		if (!is_broadcast && !is_reply && !adap->follower_cnt &&
->>> +		if (is_directed && !is_reply && !adap->follower_cnt &&
->>
->> !!
->> Antti
->>
->> -- 
->> http://palosaari.fi/
-> 
-> 
-> sorry, for my mistake, i made another patch and double check it this
-> time.
-> 
-> Signed-off-by: Richard <rgroux@sauron-mordor.net>
-> ---
->  drivers/staging/media/cec/cec-adap.c | 18 ++++++++++++------
->  drivers/staging/media/cec/cec-api.c  |  6 ++++--
->  drivers/staging/media/cec/cec-core.c |  9 ++++++---
->  drivers/staging/media/cec/cec-priv.h |  3 ++-
->  4 files changed, 24 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-> index 611e07b..8aedd22 100644
-> --- a/drivers/staging/media/cec/cec-adap.c
-> +++ b/drivers/staging/media/cec/cec-adap.c
-> @@ -1,7 +1,8 @@
->  /*
->   * cec-adap.c - HDMI Consumer Electronics Control framework - CEC adapter
->   *
-> - * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> + * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-> + * All rights reserved.
->   *
->   * This program is free software; you may redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -64,7 +65,8 @@ static int cec_log_addr2idx(const struct cec_adapter *adap, u8 log_addr)
->  	return -1;
->  }
->  
-> -static unsigned int cec_log_addr2dev(const struct cec_adapter *adap, u8 log_addr)
-> +static unsigned int cec_log_addr2dev(const struct cec_adapter *adap,
-> +				     u8 log_addr)
->  {
->  	int i = cec_log_addr2idx(adap, log_addr);
->  
-> @@ -330,9 +332,11 @@ int cec_thread_func(void *_adap)
->  			 * see if the adapter is disabled in which case the
->  			 * transmit should be canceled.
->  			 */
-> -			err = wait_event_interruptible_timeout(adap->kthread_waitq,
-> +			err = wait_event_interruptible_timeout(
-> +				adap->kthread_waitq,
->  				kthread_should_stop() ||
-> -				(!adap->is_configured && !adap->is_configuring) ||
-> +				(!adap->is_configured &&
-> +				 !adap->is_configuring) ||
->  				(!adap->transmitting &&
->  				 !list_empty(&adap->transmit_queue)),
->  				msecs_to_jiffies(CEC_XFER_TIMEOUT_MS));
-> @@ -1534,13 +1538,15 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
->  		/* Do nothing for CEC switches using addr 15 */
->  		if (devtype == CEC_OP_PRIM_DEVTYPE_SWITCH && dest_laddr == 15)
->  			return 0;
-> -		cec_msg_report_physical_addr(&tx_cec_msg, adap->phys_addr, devtype);
-> +		cec_msg_report_physical_addr(&tx_cec_msg, adap->phys_addr,
-> +					     devtype);
->  		return cec_transmit_msg(adap, &tx_cec_msg, false);
->  
->  	case CEC_MSG_GIVE_DEVICE_VENDOR_ID:
->  		if (adap->log_addrs.vendor_id == CEC_VENDOR_ID_NONE)
->  			return cec_feature_abort(adap, msg);
-> -		cec_msg_device_vendor_id(&tx_cec_msg, adap->log_addrs.vendor_id);
-> +		cec_msg_device_vendor_id(&tx_cec_msg,
-> +					 adap->log_addrs.vendor_id);
->  		return cec_transmit_msg(adap, &tx_cec_msg, false);
->  
->  	case CEC_MSG_ABORT:
-> diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-> index e274e2f..c14a0c1 100644
-> --- a/drivers/staging/media/cec/cec-api.c
-> +++ b/drivers/staging/media/cec/cec-api.c
-> @@ -1,7 +1,8 @@
->  /*
->   * cec-api.c - HDMI Consumer Electronics Control framework - API
->   *
-> - * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> + * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-> + * All rights reserved.
->   *
->   * This program is free software; you may redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -548,7 +549,8 @@ static int cec_release(struct inode *inode, struct file *filp)
->  	mutex_lock(&adap->lock);
->  	while (!list_empty(&fh->xfer_list)) {
->  		struct cec_data *data =
-> -			list_first_entry(&fh->xfer_list, struct cec_data, xfer_list);
-> +			list_first_entry(&fh->xfer_list, struct cec_data,
-> +					 xfer_list);
->  
->  		data->blocking = false;
->  		data->fh = NULL;
-> diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/staging/media/cec/cec-core.c
-> index b0137e2..2a55d89 100644
-> --- a/drivers/staging/media/cec/cec-core.c
-> +++ b/drivers/staging/media/cec/cec-core.c
-> @@ -1,7 +1,8 @@
->  /*
->   * cec-core.c - HDMI Consumer Electronics Control framework - Core
->   *
-> - * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> + * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-> + * All rights reserved.
->   *
->   * This program is free software; you may redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -198,7 +199,8 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
->  
->  struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
->  					 void *priv, const char *name, u32 caps,
-> -					 u8 available_las, struct device *parent)
-> +					 u8 available_las,
-> +					 struct device *parent)
->  {
->  	struct cec_adapter *adap;
->  	int res;
-> @@ -314,7 +316,8 @@ int cec_register_adapter(struct cec_adapter *adap)
->  	if (!top_cec_dir)
->  		return 0;
->  
-> -	adap->cec_dir = debugfs_create_dir(dev_name(&adap->devnode.dev), top_cec_dir);
-> +	adap->cec_dir = debugfs_create_dir(dev_name(&adap->devnode.dev),
-> +					   top_cec_dir);
->  	if (IS_ERR_OR_NULL(adap->cec_dir)) {
->  		pr_warn("cec-%s: Failed to create debugfs dir\n", adap->name);
->  		return 0;
-> diff --git a/drivers/staging/media/cec/cec-priv.h b/drivers/staging/media/cec/cec-priv.h
-> index 70767a7..6ace587 100644
-> --- a/drivers/staging/media/cec/cec-priv.h
-> +++ b/drivers/staging/media/cec/cec-priv.h
-> @@ -1,7 +1,8 @@
->  /*
->   * cec-priv.h - HDMI Consumer Electronics Control internal header
->   *
-> - * Copyright 2016 Cisco Systems, Inc. and/or its affiliates. All rights reserved.
-> + * Copyright 2016 Cisco Systems, Inc. and/or its affiliates.
-> + * All rights reserved.
->   *
->   * This program is free software; you may redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> 
