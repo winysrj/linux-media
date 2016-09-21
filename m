@@ -1,75 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51860 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751031AbcIOQmL (ORCPT
+Received: from smtp04.smtpout.orange.fr ([80.12.242.126]:30449 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751451AbcIUGhJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 12:42:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, william.towle@codethink.co.uk
-Subject: Re: [PATCH v8 1/2] media: adv7604: automatic "default-input" selection
-Date: Thu, 15 Sep 2016 19:42:53 +0300
-Message-ID: <1962610.tCZYpFzJAm@avalon>
-In-Reply-To: <20160915132408.20776-2-ulrich.hecht+renesas@gmail.com>
-References: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com> <20160915132408.20776-2-ulrich.hecht+renesas@gmail.com>
+        Wed, 21 Sep 2016 02:37:09 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: merge soc_mediabus.c into pxa_camera.c
+References: <874d9ba3-7508-7efd-e83f-a7c630a1fbe3@xs4all.nl>
+Date: Wed, 21 Sep 2016 08:37:06 +0200
+In-Reply-To: <874d9ba3-7508-7efd-e83f-a7c630a1fbe3@xs4all.nl> (Hans Verkuil's
+        message of "Sun, 11 Sep 2016 11:02:33 +0200")
+Message-ID: <87r38ddai5.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ulrich,
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Thank you for the patch.
+> Linking soc_mediabus into this driver causes multiple definition linker warnings
+> if soc_camera is also enabled:
+>
+>    drivers/media/platform/soc_camera/built-in.o:(___ksymtab+soc_mbus_image_size+0x0): multiple definition of `__ksymtab_soc_mbus_image_size'
+>    drivers/media/platform/soc_camera/soc_mediabus.o:(___ksymtab+soc_mbus_image_size+0x0): first defined here
+>>> drivers/media/platform/soc_camera/built-in.o:(___ksymtab+soc_mbus_samples_per_pixel+0x0): multiple definition of `__ksymtab_soc_mbus_samples_per_pixel'
+>    drivers/media/platform/soc_camera/soc_mediabus.o:(___ksymtab+soc_mbus_samples_per_pixel+0x0): first defined here
+>    drivers/media/platform/soc_camera/built-in.o: In function `soc_mbus_config_compatible':
+>    (.text+0x3840): multiple definition of `soc_mbus_config_compatible'
+>    drivers/media/platform/soc_camera/soc_mediabus.o:(.text+0x134): first defined here
+>
+> Since we really don't want to have to use any of the soc-camera code this patch
+> copies the relevant code and data structures from soc_mediabus and renames it to pxa_mbus_*.
+>
+> The large table of formats has been culled a bit, removing formats that are not supported
+> by this driver.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Robert Jarzmik <robert.jarzmik@free.fr>
 
-On Thursday 15 Sep 2016 15:24:07 Ulrich Hecht wrote:
-> Fall back to input 0 if "default-input" property is not present.
-> 
-> Additionally, documentation in commit bf9c82278c34 ("[media]
-> media: adv7604: ability to read default input port from DT") states
-> that the "default-input" property should reside directly in the node
-> for adv7612.
+Hi Hans,
 
-Actually it doesn't. The DT bindings specifies "default-input" as an endpoint 
-property, even though the example sets it in the device node. That's 
-inconsistent so the DT bindings document should be fixed. I believe the 
-property should be set in the device node, it doesn't make much sense to have 
-different default inputs per port.
+I wonder why you chose to copy-paste this code instead of adding in the Kconfig
+a "depends on !SOC_CAMERA". Any specific reason ? As this will have to be dealt
+with later anyway as you pointed out earlier, this format translation I mean, I
+was wondering if this was the best approach.
 
-> Hence, also adjust the parsing to make the implementation
-> consistent with this.
-> 
-> Based on patch by William Towle <william.towle@codethink.co.uk>.
-> 
-> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-> ---
->  drivers/media/i2c/adv7604.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index 4003831..055c9df 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -3077,10 +3077,13 @@ static int adv76xx_parse_dt(struct adv76xx_state
-> *state) if (!of_property_read_u32(endpoint, "default-input", &v))
->  		state->pdata.default_input = v;
->  	else
-> -		state->pdata.default_input = -1;
-> +		state->pdata.default_input = 0;
-> 
->  	of_node_put(endpoint);
-> 
-> +	if (!of_property_read_u32(np, "default-input", &v))
-> +		state->pdata.default_input = v;
-> +
->  	flags = bus_cfg.bus.parallel.flags;
-> 
->  	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+Cheers.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+--
+Robert
