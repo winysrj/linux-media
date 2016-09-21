@@ -1,100 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:38904 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752067AbcIMCMO (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41263 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753367AbcIUIsF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 22:12:14 -0400
-Subject: Re: [PATCH 2/2] [media] atmel-isc: mark PM functions as
- __maybe_unused
-To: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <20160912153322.3098750-1-arnd@arndb.de>
- <20160912153322.3098750-2-arnd@arndb.de>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <a89552fc-6048-4a43-ed4f-40cf19875b1f@microchip.com>
-Date: Tue, 13 Sep 2016 10:11:48 +0800
+        Wed, 21 Sep 2016 04:48:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvallo Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [RFC] Remove row numbers from tables in V4L2 documentation
+Date: Wed, 21 Sep 2016 11:48:22 +0300
+Message-ID: <7698306.QJLkYlHSte@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20160912153322.3098750-2-arnd@arndb.de>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hello,
 
-Thank you for your patch.
-I think it's better to add switch CONFIG_PM, but the PM feature is a 
-must, or the ISC can not work, maybe the best choice is to add 'depends 
-on PM' in Kconfig.
+While documenting the metadata API I got annoyed by how tables were converted
+from DocBook to ReST.
 
-#ifdef CONFIG_PM
-isc_runtime_suspend
-{
-	XXX
-}
+The table format currently used by the documentation is as follows:
 
-isc_runtime_resume
-{
-	XXX
-}
+ -  .. row 1
+    - row 1, entry 1
+    - row 1, entry 2
+ -  .. row 2
+    - row 2, entry 1
+    - row 2, entry 2
 
-static const struct dev_pm_ops atmel_isc_dev_pm_ops = {
-	SET_RUNTIME_PM_OPS(isc_runtime_suspend, isc_runtime_resume, NULL)
-};
-#define ATMEL_ISC_PM_OPS	(&atmel_isc_dev_pm_ops)
-#else
-#define ATMEL_ISC_PM_OPS	NULL
-#endif
+The comments that include row numbers are not only useless, but make row
+insertion or deletion painful.
 
-static struct platform_driver atmel_isc_driver = {
-	.probe	= atmel_isc_probe,
-	.remove	= atmel_isc_remove,
-	.driver	= {
-		.name		= ATMEL_ISC_NAME,
-		.pm		= ATMEL_ISC_PM_OPS,
-		.of_match_table = of_match_ptr(atmel_isc_of_match),
-	},
-};
+I propose switching to the following format instead:
 
-On 9/12/2016 23:32, Arnd Bergmann wrote:
-> The newly added atmel-isc driver uses SET_RUNTIME_PM_OPS() to
-> refer to its suspend/resume functions, causing a warning when
-> CONFIG_PM is not set:
->
-> media/platform/atmel/atmel-isc.c:1477:12: error: 'isc_runtime_resume' defined but not used [-Werror=unused-function]
-> media/platform/atmel/atmel-isc.c:1467:12: error: 'isc_runtime_suspend' defined but not used [-Werror=unused-function]
->
-> This adds __maybe_unused annotations to avoid the warning without
-> adding an error-prone #ifdef around it.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
->  drivers/media/platform/atmel/atmel-isc.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index db6773de92f0..a9ab7ae89f04 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -1464,7 +1464,7 @@ static int atmel_isc_remove(struct platform_device *pdev)
->  	return 0;
->  }
->
-> -static int isc_runtime_suspend(struct device *dev)
-> +static int __maybe_unused isc_runtime_suspend(struct device *dev)
->  {
->  	struct isc_device *isc = dev_get_drvdata(dev);
->
-> @@ -1474,7 +1474,7 @@ static int isc_runtime_suspend(struct device *dev)
->  	return 0;
->  }
->
-> -static int isc_runtime_resume(struct device *dev)
-> +static int __maybe_unused isc_runtime_resume(struct device *dev)
->  {
->  	struct isc_device *isc = dev_get_drvdata(dev);
->  	int ret;
->
+ * - row 1, entry 1
+   - row 1, entry 2
+ * - row 2, entry 1
+   - row 2, entry 2
+
+I've pushed two patches that perform the conversion to
+
+	git://linuxtv.org/pinchartl/media.git v4l2/doc
+
+I can't post the patch series to the mailing list due to its size
+(112 files changed, 15726 insertions(+), 31353 deletions(-)). However, the
+bulk of the changes are performed by a patch generated by a Python script,
+which should hopefully be easier to review (I realize that the regexs used in
+the script are still a bit painful to review, apologies about that).
+
+The first patch in the series performs a few manual small white space changes
+for odd cases that the Python script can't handle. The second patch is the
+result of running the script, which follows. I've also included it in the
+patch's commit message. 
+
+I've compared the compiled html documentation before and after the patches.
+There are no differences, so I'm quite confident that the conversion was done
+right.
+
+Given the high risk of conflict, I would recommend merging the patches for
+v4.9 now as no other v4.9 pull request should be queued.
+
+------------------------------------------------------------------------------
+#!/usr/bin/python
+
+import io
+import re
+import sys
+
+def process_table(fname, data):
+	if fname.endswith('hist-v4l2.rst'):
+		data = re.sub(u'\n{1,2}\t( ?)  -( ?) ?', u'\n\t\\1 -\\2', data, flags = re.MULTILINE)
+		data = re.sub(u'\n(\t|       )-  \.\. row [0-9]+\n\t  ?-( ?) ?', u'\\1* -\\2', data, flags = re.MULTILINE)
+	else:
+		data = re.sub(u'\n{1,2}       -( ?) ?', u'\n      -\\1', data, flags = re.MULTILINE)
+		data = re.sub(u'(\n?)(\n\n    -  \.\. row 1\n)', u'\n\\2', data, flags = re.MULTILINE)
+		data = re.sub(u'\n    -  \.\. row [0-9]+\n      -( ?) ?', u'    * -\\1', data, flags = re.MULTILINE)
+		data = re.sub(u'\n    -  \.\. row [0-9]+\n       \.\. (_[A-Z0-9_`-]*:)', u'\n    -  .. \\1', data, flags = re.MULTILINE)
+		data = re.sub(u'\n    -  \.\. (_[A-Z0-9_`-]*:)\n      -', u'    * .. \\1\n\n      -', data, flags = re.MULTILINE)
+		data = re.sub(u'^       - ', u'      -', data, flags = re.MULTILINE)
+		data = re.sub(u'^(\t{1,2})  ', u'\\1', data, flags = re.MULTILINE)
+
+	return data
+
+
+def process_file(fname, data):
+	buf = io.StringIO(data)
+	output = ''
+	in_table = False
+	table_separator = 0
+
+	for line in buf.readlines():
+		if line.find('.. flat-table::') != -1:
+			in_table = True
+			table = ''
+		elif in_table and not re.match('^[\t\n]|(    )', line):
+			in_table = False
+			output += process_table(fname, table)
+
+		if in_table:
+			table += line
+		else:
+			output += line
+
+	if in_table:
+		in_table = False
+		output += process_table(fname, table)
+
+	return output
+
+
+fname = sys.argv[1]
+
+data = file(fname, 'rb').read().decode('utf-8')
+data = process_file(fname, data)
+file(fname, 'wb').write(data.encode('utf-8'))
+------------------------------------------------------------------------------
+
+-- 
+Regards,
+
+Laurent Pinchart
+
