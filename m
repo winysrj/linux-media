@@ -1,42 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:39384 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933481AbcIALrY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 07:47:24 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, b.zolnierkie@samsung.com,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 3/3] s5c73m3: Fix entity function assignment for the OIF subdev
-Date: Thu, 01 Sep 2016 13:47:07 +0200
-Message-id: <1472730427-17821-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
-References: <1472730427-17821-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp2.goneo.de ([85.220.129.33]:34642 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752132AbcIUJYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Sep 2016 05:24:45 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [RFC] Remove row numbers from tables in V4L2 documentation
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <7698306.QJLkYlHSte@avalon>
+Date: Wed, 21 Sep 2016 11:24:33 +0200
+Cc: "linux-media@vger.kernel.org Mailing List"
+        <linux-media@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <222723F2-75D6-4418-AB0B-3EE74D22927A@darmarit.de>
+References: <7698306.QJLkYlHSte@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvallo Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Suppresses warnings like:
-s5p-fimc-md camera: Entity type for entity S5C73M3-OIF was not initialized!
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/i2c/s5c73m3/s5c73m3-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Am 21.09.2016 um 10:48 schrieb Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index 08af58f..3844853 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -1706,7 +1706,7 @@ static int s5c73m3_probe(struct i2c_client *client,
- 	state->oif_pads[OIF_ISP_PAD].flags = MEDIA_PAD_FL_SINK;
- 	state->oif_pads[OIF_JPEG_PAD].flags = MEDIA_PAD_FL_SINK;
- 	state->oif_pads[OIF_SOURCE_PAD].flags = MEDIA_PAD_FL_SOURCE;
--	oif_sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-+	oif_sd->entity.function = MEDIA_ENT_F_PROC_VIDEO_SCALER;
- 
- 	ret = media_entity_pads_init(&oif_sd->entity, OIF_NUM_PADS,
- 							state->oif_pads);
--- 
-1.9.1
+> Hello,
+> 
+> While documenting the metadata API I got annoyed by how tables were converted
+> from DocBook to ReST.
+
+I suggested to drop them, but Mauro wanted to address this later:
+
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg100971.html
+
+-- Markus --
 
