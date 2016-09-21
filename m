@@ -1,35 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49772 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37782 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S936545AbcIHHFe (ORCPT
+        by vger.kernel.org with ESMTP id S1751072AbcIUL1O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Sep 2016 03:05:34 -0400
-Date: Thu, 8 Sep 2016 10:04:55 +0300
+        Wed, 21 Sep 2016 07:27:14 -0400
+Date: Wed, 21 Sep 2016 14:18:30 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: Re: [PATCH v3 01/10] v4l: ioctl: Clear the v4l2_pix_format_mplane
- reserved field
-Message-ID: <20160908070454.GD3236@valkosipuli.retiisi.org.uk>
-References: <1473287110-780-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1473287110-780-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 4/7] ov7670: get xvclk
+Message-ID: <20160921111829.GC18295@valkosipuli.retiisi.org.uk>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-5-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1473287110-780-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1471415383-38531-5-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 08, 2016 at 01:25:01AM +0300, Laurent Pinchart wrote:
-> The S_FMT and TRY_FMT handlers in multiplane mode attempt at clearing
-> the reserved fields of the v4l2_format structure after the pix_mp
-> member. However, the reserved fields are inside pix_mp, not after it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> Tested-by: Kieran Bingham <kieran@bingham.xyz>
+Hi Hans,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+On Wed, Aug 17, 2016 at 08:29:40AM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Get the clock for this sensor.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/i2c/ov7670.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+> index fe527b2..57adf3d 100644
+> --- a/drivers/media/i2c/ov7670.c
+> +++ b/drivers/media/i2c/ov7670.c
+> @@ -10,6 +10,7 @@
+>   * This file may be distributed under the terms of the GNU General
+>   * Public License, version 2.
+>   */
+> +#include <linux/clk.h>
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+>  #include <linux/slab.h>
+> @@ -18,6 +19,7 @@
+>  #include <linux/videodev2.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-clk.h>
+>  #include <media/v4l2-mediabus.h>
+>  #include <media/v4l2-image-sizes.h>
+>  #include <media/i2c/ov7670.h>
+> @@ -228,6 +230,7 @@ struct ov7670_info {
+>  		struct v4l2_ctrl *hue;
+>  	};
+>  	struct ov7670_format_struct *fmt;  /* Current format */
+> +	struct v4l2_clk *clk;
+>  	int min_width;			/* Filter out smaller sizes */
+>  	int min_height;			/* Filter out smaller sizes */
+>  	int clock_speed;		/* External clock speed (MHz) */
+> @@ -1588,8 +1591,19 @@ static int ov7670_probe(struct i2c_client *client,
+>  			info->pclk_hb_disable = true;
+>  	}
+>  
+> +	info->clk = v4l2_clk_get(&client->dev, "xvclk");
+
+If you don't use this with either em28xx or SoC camera framework, you could
+use (devm_)clk_get() directly.
+
+> +	if (IS_ERR(info->clk))
+> +		return -EPROBE_DEFER;
+> +	v4l2_clk_enable(info->clk);
+
+The clock is left enabled after probe until remove. Runtime PM support would
+be nice.
+
+Can probe fail later on?
+
+> +
+> +	info->clock_speed = v4l2_clk_get_rate(info->clk) / 1000000;
+> +	if (info->clock_speed < 12 ||
+> +	    info->clock_speed > 48)
+> +		return -EINVAL;
+> +
+>  	/* Make sure it's an ov7670 */
+>  	ret = ov7670_detect(sd);
+> +
+>  	if (ret) {
+>  		v4l_dbg(1, debug, client,
+>  			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
+> @@ -1682,6 +1696,7 @@ static int ov7670_remove(struct i2c_client *client)
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	media_entity_cleanup(&sd->entity);
+>  #endif
+> +	v4l2_clk_put(info->clk);
+>  	return 0;
+>  }
 
 -- 
 Sakari Ailus
