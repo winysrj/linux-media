@@ -1,58 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:56758 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932802AbcIFGfl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 02:35:41 -0400
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <Tiffany.lin@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-Subject: [PATCH] vcodec: mediatek: add Maintainers entry for Mediatek MT8173 vcodec drivers
-Date: Tue, 6 Sep 2016 14:35:30 +0800
-Message-ID: <1473143730-22156-1-git-send-email-tiffany.lin@mediatek.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57146 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932916AbcIVG51 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Sep 2016 02:57:27 -0400
+Date: Thu, 22 Sep 2016 08:57:32 +0200
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+        Baoyou Xie <baoyou.xie@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, xie.baoyou@zte.com.cn,
+        LKML <linux-kernel@vger.kernel.org>,
+        DRI mailing list <dri-devel@lists.freedesktop.org>,
+        Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] dma-buf/sw_sync: mark sync_timeline_create() static
+Message-ID: <20160922065731.GA16298@kroah.com>
+References: <1474202961-10099-1-git-send-email-baoyou.xie@linaro.org>
+ <20160920111338.GE13275@joana>
+ <CAO_48GFTkpvKLZghbOtNu=CUB61tZx0q6uC1JPVRMB1rPiSPqA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAO_48GFTkpvKLZghbOtNu=CUB61tZx0q6uC1JPVRMB1rPiSPqA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Tiffany Lin and Andrew-CT Chen as maintainers for
-Mediatek MT8173 vcodec drivers
+On Tue, Sep 20, 2016 at 06:23:33PM +0530, Sumit Semwal wrote:
+> Hi Baoyou,
+> 
+> On 20 September 2016 at 16:43, Gustavo Padovan <gustavo@padovan.org> wrote:
+> > 2016-09-18 Baoyou Xie <baoyou.xie@linaro.org>:
+> >
+> >> We get 1 warning when building kernel with W=1:
+> >> drivers/dma-buf/sw_sync.c:87:23: warning: no previous prototype for 'sync_timeline_create' [-Wmissing-prototypes]
+> >>
+> >> In fact, this function is only used in the file in which it is
+> >> declared and don't need a declaration, but can be made static.
+> >> So this patch marks it 'static'.
+> >>
+> >> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+> >> ---
+> >>  drivers/dma-buf/sw_sync.c | 2 +-
+> >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > Thanks for finding this.
+> 
+> Thanks for the patch; this doesn't apply to mainline yet, since the
+> de-staging of sw_sync code is queued for 4.9 via Greg-KH's tree.
+> CC'ing him.
+> 
+> Greg, would it be possible to please take this via your tree?
 
-Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
-Signed-off-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
----
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+If someone resends it to me with the needed acks and reviewed-by, I
+will.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0a16a82..ed830c7 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7590,6 +7590,15 @@ F:	include/uapi/linux/meye.h
- F:	include/uapi/linux/ivtv*
- F:	include/uapi/linux/uvcvideo.h
- 
-+MT8173 MEDIA DRIVER
-+M:	Tiffany Lin <tiffany.lin@mediatek.com>
-+M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
-+S:	Supported
-+F:	drivers/media/platform/mtk-vcodec/
-+F:	drivers/media/platform/mtk-vpu/
-+F:	Documentation/devicetree/bindings/media/mediatek-vcodec.txt
-+F:	Documentation/devicetree/bindings/media/mediatek-vpu.txt
-+
- MEDIATEK ETHERNET DRIVER
- M:	Felix Fietkau <nbd@openwrt.org>
- M:	John Crispin <blogic@openwrt.org>
--- 
-1.7.9.5
+thanks,
 
+greg k-h
