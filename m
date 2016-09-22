@@ -1,238 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:56696 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751372AbcIAV1U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Sep 2016 17:27:20 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v2 2/7] [media] rc-main: split setup and unregister functions
-Date: Fri, 02 Sep 2016 02:16:24 +0900
-Message-id: <20160901171629.15422-3-andi.shyti@samsung.com>
-In-reply-to: <20160901171629.15422-1-andi.shyti@samsung.com>
-References: <20160901171629.15422-1-andi.shyti@samsung.com>
+Received: from smtp3-1.goneo.de ([85.220.129.38]:41756 "EHLO smtp3-1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753439AbcIWAGn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 22 Sep 2016 20:06:43 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: kernel-lintdoc parser - was: Re: [PATCH v2 0/3] doc-rst:c-domain: fix some issues in the c-domain
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160922093516.3f28323e@vento.lan>
+Date: Fri, 23 Sep 2016 01:58:43 +0200
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Jani Nikula <jani.nikula@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <674F0B88-DDA1-4D75-B3F3-97BBC950FA97@darmarit.de>
+References: <1473232378-11869-1-git-send-email-markus.heiser@darmarit.de> <20160909090832.35c2d982@vento.lan> <73B0403A-272C-4058-A0D9-493C685EE332@darmarit.de> <1089B8C0-6296-4CC4-84B9-A1F62FA565AD@darmarit.de> <20160919120030.4e390e9a@vento.lan> <35B447A7-6C12-4560-8D06-110B8B33CB56@darmarit.de> <20160922090850.56e3ebb1@vento.lan> <20160922093516.3f28323e@vento.lan>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the input device allocation, map and protocol handling to
-different functions.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/rc-main.c | 144 +++++++++++++++++++++++++--------------------
- 1 file changed, 81 insertions(+), 63 deletions(-)
+Am 22.09.2016 um 14:35 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index b28a8d1..7961083 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1403,16 +1403,12 @@ void rc_free_device(struct rc_dev *dev)
- }
- EXPORT_SYMBOL_GPL(rc_free_device);
- 
--int rc_register_device(struct rc_dev *dev)
-+static int rc_setup_rx_device(struct rc_dev *dev)
- {
--	static bool raw_init = false; /* raw decoders loaded? */
--	struct rc_map *rc_map;
--	const char *path;
--	int attr = 0;
--	int minor;
- 	int rc;
-+	struct rc_map *rc_map;
- 
--	if (!dev || !dev->map_name)
-+	if (!dev->map_name)
- 		return -EINVAL;
- 
- 	rc_map = rc_map_get(dev->map_name);
-@@ -1421,6 +1417,19 @@ int rc_register_device(struct rc_dev *dev)
- 	if (!rc_map || !rc_map->scan || rc_map->size == 0)
- 		return -EINVAL;
- 
-+	rc = ir_setkeytable(dev, rc_map);
-+	if (rc)
-+		return rc;
-+
-+	if (dev->change_protocol) {
-+		u64 rc_type = (1ll << rc_map->rc_type);
-+
-+		rc = dev->change_protocol(dev, &rc_type);
-+		if (rc < 0)
-+			goto out_table;
-+		dev->enabled_protocols = rc_type;
-+	}
-+
- 	set_bit(EV_KEY, dev->input_dev->evbit);
- 	set_bit(EV_REP, dev->input_dev->evbit);
- 	set_bit(EV_MSC, dev->input_dev->evbit);
-@@ -1430,6 +1439,61 @@ int rc_register_device(struct rc_dev *dev)
- 	if (dev->close)
- 		dev->input_dev->close = ir_close;
- 
-+	/*
-+	 * Default delay of 250ms is too short for some protocols, especially
-+	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-+	 * to avoid wrong repetition of the keycodes. Note that this must be
-+	 * set after the call to input_register_device().
-+	 */
-+	dev->input_dev->rep[REP_DELAY] = 500;
-+
-+	/*
-+	 * As a repeat event on protocols like RC-5 and NEC take as long as
-+	 * 110/114ms, using 33ms as a repeat period is not the right thing
-+	 * to do.
-+	 */
-+	dev->input_dev->rep[REP_PERIOD] = 125;
-+
-+	/* rc_open will be called here */
-+	rc = input_register_device(dev->input_dev);
-+	if (rc)
-+		goto out_table;
-+
-+	dev->input_dev->dev.parent = &dev->dev;
-+	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
-+	dev->input_dev->phys = dev->input_phys;
-+	dev->input_dev->name = dev->input_name;
-+
-+	return 0;
-+
-+out_table:
-+	ir_free_table(&dev->rc_map);
-+
-+	return rc;
-+}
-+
-+static void rc_free_rx_device(struct rc_dev *dev)
-+{
-+	if (!dev)
-+		return;
-+
-+	ir_free_table(&dev->rc_map);
-+
-+	input_unregister_device(dev->input_dev);
-+	dev->input_dev = NULL;
-+}
-+
-+int rc_register_device(struct rc_dev *dev)
-+{
-+	static bool raw_init = false; /* raw decoders loaded? */
-+	const char *path;
-+	int attr = 0;
-+	int minor;
-+	int rc;
-+
-+	if (!dev)
-+		return -EINVAL;
-+
- 	minor = ida_simple_get(&rc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
- 	if (minor < 0)
- 		return minor;
-@@ -1453,40 +1517,15 @@ int rc_register_device(struct rc_dev *dev)
- 	if (rc)
- 		goto out_unlock;
- 
--	rc = ir_setkeytable(dev, rc_map);
--	if (rc)
--		goto out_dev;
--
--	dev->input_dev->dev.parent = &dev->dev;
--	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
--	dev->input_dev->phys = dev->input_phys;
--	dev->input_dev->name = dev->input_name;
--
--	/*
--	 * Default delay of 250ms is too short for some protocols, especially
--	 * since the timeout is currently set to 250ms. Increase it to 500ms,
--	 * to avoid wrong repetition of the keycodes. Note that this must be
--	 * set after the call to input_register_device().
--	 */
--	dev->input_dev->rep[REP_DELAY] = 500;
--
--	/*
--	 * As a repeat event on protocols like RC-5 and NEC take as long as
--	 * 110/114ms, using 33ms as a repeat period is not the right thing
--	 * to do.
--	 */
--	dev->input_dev->rep[REP_PERIOD] = 125;
--
--	/* rc_open will be called here */
--	rc = input_register_device(dev->input_dev);
--	if (rc)
--		goto out_table;
--
- 	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
- 	dev_info(&dev->dev, "%s as %s\n",
- 		dev->input_name ?: "Unspecified device", path ?: "N/A");
- 	kfree(path);
- 
-+	rc = rc_setup_rx_device(dev);
-+	if (rc)
-+		goto out_dev;
-+
- 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
- 		if (!raw_init) {
- 			request_module_nowait("ir-lirc-codec");
-@@ -1494,36 +1533,20 @@ int rc_register_device(struct rc_dev *dev)
- 		}
- 		rc = ir_raw_event_register(dev);
- 		if (rc < 0)
--			goto out_input;
--	}
--
--	if (dev->change_protocol) {
--		u64 rc_type = (1ll << rc_map->rc_type);
--		rc = dev->change_protocol(dev, &rc_type);
--		if (rc < 0)
--			goto out_raw;
--		dev->enabled_protocols = rc_type;
-+			goto out_rx;
- 	}
- 
- 	/* Allow the RC sysfs nodes to be accessible */
- 	atomic_set(&dev->initialized, 1);
- 
--	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
-+	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
- 		   dev->minor,
--		   dev->driver_name ? dev->driver_name : "unknown",
--		   rc_map->name ? rc_map->name : "unknown",
--		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
-+		   dev->driver_name ? dev->driver_name : "unknown");
- 
- 	return 0;
- 
--out_raw:
--	if (dev->driver_type == RC_DRIVER_IR_RAW)
--		ir_raw_event_unregister(dev);
--out_input:
--	input_unregister_device(dev->input_dev);
--	dev->input_dev = NULL;
--out_table:
--	ir_free_table(&dev->rc_map);
-+out_rx:
-+	rc_free_rx_device(dev);
- out_dev:
- 	device_del(&dev->dev);
- out_unlock:
-@@ -1542,12 +1565,7 @@ void rc_unregister_device(struct rc_dev *dev)
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
- 		ir_raw_event_unregister(dev);
- 
--	/* Freeing the table should also call the stop callback */
--	ir_free_table(&dev->rc_map);
--	IR_dprintk(1, "Freed keycode table\n");
--
--	input_unregister_device(dev->input_dev);
--	dev->input_dev = NULL;
-+	rc_free_rx_device(dev);
- 
- 	device_del(&dev->dev);
- 
--- 
-2.9.3
+> Hi Markus,
+> 3) this is actually a more complex problem: how to represent returned values
+> from the function callbacks. Maybe we'll need to patch kernel-doc.
+
+This might be a solution for dense kernel-doc comments where you
+want to have paragraph and lists in parameter descriptions:
+
+https://github.com/return42/linuxdoc/commit/9bfb8a59326677a819f62cb16f3ffacc8b244af1
+
+--M--
+
 
