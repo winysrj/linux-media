@@ -1,79 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43889 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941747AbcIHMEY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 08:04:24 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 25/47] [media] v4l2-subdev.rst: get rid of legacy functions
-Date: Thu,  8 Sep 2016 09:03:47 -0300
-Message-Id: <376816d53c99adcb78a4f5cb6c855255dc322f6d.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473334905.git.mchehab@s-opensource.com>
-References: <cover.1473334905.git.mchehab@s-opensource.com>
+Received: from mail-lf0-f53.google.com ([209.85.215.53]:33073 "EHLO
+        mail-lf0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754708AbcIVADj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Sep 2016 20:03:39 -0400
+Received: by mail-lf0-f53.google.com with SMTP id b71so28061945lfg.0
+        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2016 17:03:38 -0700 (PDT)
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: ismael@iodev.co.uk, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        hans.verkuil@cisco.com
+Cc: maintainers@bluecherrydvr.com, andrey_utkin@fastmail.com,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+Subject: [PATCH] [media] solo6x10: avoid delayed register write
+Date: Thu, 22 Sep 2016 03:03:31 +0300
+Message-Id: <20160922000331.4193-1-andrey.utkin@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are two warnings that are due to functions that has long
-gone:
+This fixes a lockup at device probing which happens on some solo6010
+hardware samples. This is a regression introduced by commit e1ceb25a1569
+("[media] SOLO6x10: remove unneeded register locking and barriers")
 
-	Documentation/media/kapi/v4l2-subdev.rst:417: WARNING: c:func reference target not found: v4l2_i2c_new_subdev_cfg
-	Documentation/media/kapi/v4l2-subdev.rst:436: WARNING: c:func reference target not found: v4l2_i2c_new_probed_subdev
+The observed lockup happens in solo_set_motion_threshold() called from
+solo_motion_config().
 
-Update the documentation to remove those.
+This extra "flushing" is not fundamentally needed for every write, but
+apparently the code in driver assumes such behaviour at last in some
+places.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Actual fix was proposed by Hans Verkuil.
+
+Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
 ---
- Documentation/media/kapi/v4l2-subdev.rst | 21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/media/pci/solo6x10/solo6x10.h | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/Documentation/media/kapi/v4l2-subdev.rst b/Documentation/media/kapi/v4l2-subdev.rst
-index fcecce01a35c..e1f0b726e438 100644
---- a/Documentation/media/kapi/v4l2-subdev.rst
-+++ b/Documentation/media/kapi/v4l2-subdev.rst
-@@ -412,19 +412,7 @@ later date. It differs between i2c drivers and as such can be confusing.
- To see which chip variants are supported you can look in the i2c driver code
- for the i2c_device_id table. This lists all the possibilities.
+diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
+index 5bd4987..3f8da5e 100644
+--- a/drivers/media/pci/solo6x10/solo6x10.h
++++ b/drivers/media/pci/solo6x10/solo6x10.h
+@@ -284,7 +284,10 @@ static inline u32 solo_reg_read(struct solo_dev *solo_dev, int reg)
+ static inline void solo_reg_write(struct solo_dev *solo_dev, int reg,
+ 				  u32 data)
+ {
++	u16 val;
++
+ 	writel(data, solo_dev->reg_base + reg);
++	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
+ }
  
--There are two more helper functions:
--
--:c:func:`v4l2_i2c_new_subdev_cfg`: this function adds new irq and
--platform_data arguments and has both 'addr' and 'probed_addrs' arguments:
--if addr is not 0 then that will be used (non-probing variant), otherwise the
--probed_addrs are probed.
--
--For example: this will probe for address 0x10:
--
--.. code-block:: c
--
--	struct v4l2_subdev *sd = v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter,
--			  "module_foo", "chipid", 0, NULL, 0, I2C_ADDRS(0x10));
-+There are one more helper function:
- 
- :c:func:`v4l2_i2c_new_subdev_board` uses an :c:type:`i2c_board_info` struct
- which is passed to the i2c driver and replaces the irq, platform_data and addr
-@@ -433,9 +421,10 @@ arguments.
- If the subdev supports the s_config core ops, then that op is called with
- the irq and platform_data arguments after the subdev was setup.
- 
--The older :c:func:`v4l2_i2c_new_subdev` and
--:c:func:`v4l2_i2c_new_probed_subdev` functions will call ``s_config`` as
--well, but with irq set to 0 and platform_data set to ``NULL``.
-+The :c:func:`v4l2_i2c_new_subdev` function will call
-+:c:func:`v4l2_i2c_new_subdev_board`, internally filling a
-+:c:type:`i2c_board_info` structure using the ``client_type`` and the
-+``addr`` to fill it.
- 
- V4L2 sub-device functions and data structures
- ---------------------------------------------
+ static inline void solo_irq_on(struct solo_dev *dev, u32 mask)
 -- 
-2.7.4
-
+2.9.2
 
