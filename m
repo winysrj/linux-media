@@ -1,136 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42574 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751241AbcIORBP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:53684 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750868AbcIVQjU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 13:01:15 -0400
-Subject: Re: [PATCH v8 2/2] rcar-vin: implement EDID control ioctls
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-References: <20160915132408.20776-1-ulrich.hecht+renesas@gmail.com>
- <20160915132408.20776-3-ulrich.hecht+renesas@gmail.com>
- <2433006.7RBxv9f6xW@avalon>
-Cc: hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, william.towle@codethink.co.uk
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <19a27c03-d93e-9e67-7165-0e43631b66ee@xs4all.nl>
-Date: Thu, 15 Sep 2016 19:01:06 +0200
-MIME-Version: 1.0
-In-Reply-To: <2433006.7RBxv9f6xW@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Thu, 22 Sep 2016 12:39:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Olli Salonen <olli.salonen@iki.fi>,
+        Stephen Backway <stev391@gmail.com>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH] [media] cx23885: Fix some smatch warnings
+Date: Thu, 22 Sep 2016 13:38:44 -0300
+Message-Id: <e837d85c614e8d6e2d93daed972874ea3a8daec7.1474562316.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Make sure that it won't go past the config buffers
 
+	drivers/media/pci/cx23885/cx23885-dvb.c:1733 dvb_register() warn: buffer overflow 'netup_xc5000_config' 2 <= s32max
+	drivers/media/pci/cx23885/cx23885-dvb.c:1745 dvb_register() warn: buffer overflow 'netup_stv0367_config' 2 <= s32max
+	drivers/media/pci/cx23885/cx23885-dvb.c:1752 dvb_register() warn: buffer overflow 'netup_xc5000_config' 2 <= s32max
 
-On 09/15/2016 06:47 PM, Laurent Pinchart wrote:
-> Hi Ulrich,
-> 
-> Thank you for the patch.
-> 
-> On Thursday 15 Sep 2016 15:24:08 Ulrich Hecht wrote:
->> Adds G_EDID and S_EDID.
->>
->> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
->> ---
->>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 42 ++++++++++++++++++++++++++
->>  drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
->>  2 files changed, 43 insertions(+)
->>
->> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index 62ca7e3..f679182 100644
->> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
->> @@ -557,6 +557,38 @@ static int rvin_dv_timings_cap(struct file *file, void
->> *priv_fh, return ret;
->>  }
->>
->> +static int rvin_g_edid(struct file *file, void *fh, struct v4l2_edid *edid)
->> +{
->> +	struct rvin_dev *vin = video_drvdata(file);
->> +	struct v4l2_subdev *sd = vin_to_source(vin);
->> +	int input, ret;
->> +
->> +	input = edid->pad;
->> +	edid->pad = vin->sink_pad_idx;
->> +
->> +	ret = v4l2_subdev_call(sd, pad, get_edid, edid);
->> +
->> +	edid->pad = input;
->> +
->> +	return ret;
->> +}
->> +
->> +static int rvin_s_edid(struct file *file, void *fh, struct v4l2_edid *edid)
->> +{
->> +	struct rvin_dev *vin = video_drvdata(file);
->> +	struct v4l2_subdev *sd = vin_to_source(vin);
->> +	int input, ret;
->> +
->> +	input = edid->pad;
->> +	edid->pad = vin->sink_pad_idx;
->> +
->> +	ret = v4l2_subdev_call(sd, pad, set_edid, edid);
->> +
->> +	edid->pad = input;
->> +
->> +	return ret;
->> +}
->> +
->>  static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->>  	.vidioc_querycap		= rvin_querycap,
->>  	.vidioc_try_fmt_vid_cap		= rvin_try_fmt_vid_cap,
->> @@ -579,6 +611,9 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
->>  	.vidioc_s_dv_timings		= rvin_s_dv_timings,
->>  	.vidioc_query_dv_timings	= rvin_query_dv_timings,
->>
->> +	.vidioc_g_edid			= rvin_g_edid,
->> +	.vidioc_s_edid			= rvin_s_edid,
->> +
->>  	.vidioc_querystd		= rvin_querystd,
->>  	.vidioc_g_std			= rvin_g_std,
->>  	.vidioc_s_std			= rvin_s_std,
->> @@ -832,6 +867,13 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
->>  	vin->src_pad_idx = pad_idx;
->>  	fmt.pad = vin->src_pad_idx;
->>
->> +	vin->sink_pad_idx = 0;
->> +	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
->> +		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
->> +			vin->sink_pad_idx = pad_idx;
->> +			break;
->> +		}
->> +
-> 
-> What if the subdev has multiple sink pads ? Shouldn't the pad number be 
-> instead computed in the get and set EDID handlers based on the input number 
-> passed in the struct v4l2_edid::pad field ?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/cx23885/cx23885-dvb.c | 3 +++
+ drivers/media/pci/cx23885/cx23885.h     | 2 +-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-But there is only one input (VIDIOC_ENUM_INPUT), so this would not make sense.
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 828b54afd59e..818f3c2fc98d 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1720,6 +1720,9 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		}
+ 		break;
+ 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
++		if (port->nr > 2)
++			return 0;
++
+ 		i2c_bus = &dev->i2c_bus[0];
+ 		mfe_shared = 1;/* MFE */
+ 		port->frontends.gate = 0;/* not clear for me yet */
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 2ebece93d111..a6735afe2269 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -257,7 +257,7 @@ struct cx23885_dmaqueue {
+ struct cx23885_tsport {
+ 	struct cx23885_dev *dev;
+ 
+-	int                        nr;
++	unsigned                   nr;
+ 	int                        sram_chno;
+ 
+ 	struct vb2_dvb_frontends   frontends;
+-- 
+2.7.4
 
-What is wrong is that g/s_edid should check the pad and return -EINVAL if it
-is non-zero. Odd that I missed that in the earlier reviews...
-
-Regards,
-
-	Hans
-
-> 
->>  	/* Try to improve our guess of a reasonable window format */
->>  	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
->>  	if (ret) {
->> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
->> b/drivers/media/platform/rcar-vin/rcar-vin.h index 793184d..af815cc 100644
->> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
->> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
->> @@ -121,6 +121,7 @@ struct rvin_dev {
->>  	struct video_device vdev;
->>  	struct v4l2_device v4l2_dev;
->>  	int src_pad_idx;
->> +	int sink_pad_idx;
->>  	struct v4l2_ctrl_handler ctrl_handler;
->>  	struct v4l2_async_notifier notifier;
->>  	struct rvin_graph_entity digital;
-> 
