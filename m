@@ -1,86 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46920 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759217AbcIMXQg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Sep 2016 19:16:36 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Received: from jik4.kamens.us ([45.79.160.233]:56152 "EHLO jik4.kamens.us"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932313AbcIVBVZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Sep 2016 21:21:25 -0400
+Received: from jik5.kamens.us (146-115-42-232.c3-0.abr-ubr1.sbo-abr.ma.cable.rcn.com [146.115.42.232])
+        (authenticated bits=0)
+        by jik4.kamens.us (8.14.7/8.14.7) with ESMTP id u8M0bcjF009397
+        (version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2016 20:37:38 -0400
 To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: [PATCH 04/13] v4l: vsp1: Repair race between frame end and qbuf handler
-Date: Wed, 14 Sep 2016 02:16:57 +0300
-Message-Id: <1473808626-19488-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+From: Jonathan Kamens <jik@kamens.us>
+Subject: Supported, available Dual ATSC tuner? If not, I'll pay you to make
+ one work!
+Message-ID: <f0481f87-2f17-1230-12d7-43f74617cdc6@kamens.us>
+Date: Wed, 21 Sep 2016 20:37:38 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran+renesas@bingham.xyz>
+I'm sure this is one of the most commonly asked question on this list,
+and for that I apologize, but I've tried reading all the information
+that I can find about this online, and I just can't figure it out, so
+here goes... Is there actually a USB or PCI, ATSC, DVB-T device with
+two tuners that I can buy today that will actually work on Linux
+(Ubuntu 16.04.1)? If so, what is it?
 
-The frame-end function releases and completes the buffers on the input
-and output entities of the pipe before marking the pipe->state as
-'STOPPED'. This introduces a race whereby with the pipe->state still
-'RUNNING', a QBUF handler can commence processing a frame before the
-frame_end function has completed.
+It seems like all the lists of compatible devices I've seen list a
+bunch of devices that aren't actually sold anymore, and most of them
+only have one tuner. I already have a working device with one tuner; I
+need two.
 
-In the event that this happens, a frame queued by QBUF hangs due to the
-incorrect pipe->state setting which prevents vsp1_pipeline_run from
-issuing a CMD_STRCMD.
+And a related question... I bought the Hauppauge WinTV-dualHD tuner,
+in particular this device:
 
-By locking the entire function we prevent this from occurring, but we
-also change the locking state of the buffer release code. This has been
-analysed visually as acceptable, but it must be considered that this now
-causes the video->irqlock to be taken under the pipe->irqlock context.
+https://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-dualHD#Model_01595_.28USB_device_ID_2040:026d.29
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_video.c | 9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+thinking that it was compatible with Linux, but it's actually not.
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index ed9759e8a6fc..cd7d215ed455 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -234,18 +234,13 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- {
- 	struct vsp1_video *video = rwpf->video;
- 	struct vsp1_vb2_buffer *buf;
--	unsigned long flags;
- 
- 	buf = vsp1_video_complete_buffer(video);
- 	if (buf == NULL)
- 		return;
- 
--	spin_lock_irqsave(&pipe->irqlock, flags);
--
- 	video->rwpf->mem = buf->mem;
- 	pipe->buffers_ready |= 1 << video->pipe_index;
--
--	spin_unlock_irqrestore(&pipe->irqlock, flags);
- }
- 
- static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
-@@ -285,6 +280,8 @@ static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 	unsigned long flags;
- 	unsigned int i;
- 
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
- 	/* Complete buffers on all video nodes. */
- 	for (i = 0; i < vsp1->info->rpf_count; ++i) {
- 		if (!pipe->inputs[i])
-@@ -295,8 +292,6 @@ static void vsp1_video_pipeline_frame_end(struct vsp1_pipeline *pipe)
- 
- 	vsp1_video_frame_end(pipe, pipe->output);
- 
--	spin_lock_irqsave(&pipe->irqlock, flags);
--
- 	state = pipe->state;
- 	pipe->state = VSP1_PIPELINE_STOPPED;
- 
--- 
-Regards,
+Is it just a matter of messing around with USB device detection and
+kernel driver settings and loading the correct firmware into the
+dongle, or something? Could an experienced V4L developer with access
+to this device figure out how to make it work relatively easily?
 
-Laurent Pinchart
+If so, then I've got an offer that will hopefully be attractive enough
+for someone to take me up on it. Here's the deal...
+
+If you know what you're doing in this code -- I certainly don't, and I
+don't have time to learn -- and you think you can make this device
+work with Linux -- and to be clear, I mean making *both* tuners work,
+not just one of them -- then in exchange for your doing so, I offer
+one of the following:
+
+1. I will give you the tuner for free for you to keep;
+2. I will donate USD$300 to any IRS-recognized 501(c)3 charity of your
+   choice; or
+3. I will send you USD$200 via Paypal.
+
+To facilitate this, I will either give you remote access to an Ubuntu
+Linux 16.04.1 box with the tuner plugged into it for you to work on
+(including TeamViewer access so you can see the remote display to
+verify that the tuner is working when you get to the point where it's
+actually being registered properly in the kernel), or send you the
+tuner (if you're in the U.S.; shipping overseas is cost-prohibitive),
+with the understanding that if you then _can't_ make it work, you have
+to pay to send it back to me.
+
+Why am I doing this? Because I'm sick of trying to make this work by
+myself and I don't have any more time to spend on it, so I'm happy to
+substitute money for time if there's someone more knowledgeable than I
+am who can solve this problem for me. And because I want to help the
+Linux community by adding at least one to the small set of currently
+sold tuner devices that actually work with Linux.
+
+Anybody interested?
+
+Thanks,
+
+Jonathan Kamens
 
