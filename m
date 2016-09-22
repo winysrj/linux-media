@@ -1,99 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50075 "EHLO comal.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753162AbcI1VUc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:20:32 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch 05/35] media: ti-vpe: Use line average de-interlacing for first 2 frames
-Date: Wed, 28 Sep 2016 16:20:29 -0500
-Message-ID: <20160928212029.26502-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44649 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751387AbcIVDEE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 21 Sep 2016 23:04:04 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id E6EE4180BC2
+        for <linux-media@vger.kernel.org>; Thu, 22 Sep 2016 05:03:58 +0200 (CEST)
+Date: Thu, 22 Sep 2016 05:03:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20160922030358.E6EE4180BC2@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Archit Taneja <archit@ti.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-For n input fields, the VPE de-interlacer creates n - 2 progressive frames.
+Results of the daily build of media_tree:
 
-To support this, we use line average mode of de-interlacer for the first 2
-input fields to generate 2 progressive frames. We then revert back to the
-preferred EDI method, and create n - 2 frames, creating a sum of n frames.
+date:		Thu Sep 22 04:00:17 CEST 2016
+git branch:	test
+git hash:	142a0e11b52c18a82c4fe55132b762005dda05c0
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-Signed-off-by: Archit Taneja <archit@ti.com>
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 33 +++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: OK
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: OK
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 3921fd8cdf1d..a0b29685fb69 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -141,7 +141,7 @@ struct vpe_dei_regs {
-  */
- static const struct vpe_dei_regs dei_regs = {
- 	.mdt_spacial_freq_thr_reg = 0x020C0804u,
--	.edi_config_reg = 0x0118100Fu,
-+	.edi_config_reg = 0x0118100Cu,
- 	.edi_lut_reg0 = 0x08040200u,
- 	.edi_lut_reg1 = 0x1010100Cu,
- 	.edi_lut_reg2 = 0x10101010u,
-@@ -798,6 +798,23 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
- 	ctx->load_mmrs = true;
- }
- 
-+static void config_edi_input_mode(struct vpe_ctx *ctx, int mode)
-+{
-+	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-+	u32 *edi_config_reg = &mmr_adb->dei_regs[3];
-+
-+	if (mode & 0x2)
-+		write_field(edi_config_reg, 1, 1, 2);	/* EDI_ENABLE_3D */
-+
-+	if (mode & 0x3)
-+		write_field(edi_config_reg, 1, 1, 3);	/* EDI_CHROMA_3D  */
-+
-+	write_field(edi_config_reg, mode, VPE_EDI_INP_MODE_MASK,
-+		VPE_EDI_INP_MODE_SHIFT);
-+
-+	ctx->load_mmrs = true;
-+}
-+
- /*
-  * Set the shadow registers whose values are modified when either the
-  * source or destination format is changed.
-@@ -1111,6 +1128,15 @@ static void device_run(void *priv)
- 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 	WARN_ON(ctx->dst_vb == NULL);
- 
-+	if (ctx->deinterlacing) {
-+		/*
-+		 * we have output the first 2 frames through line average, we
-+		 * now switch to EDI de-interlacer
-+		 */
-+		if (ctx->sequence == 2)
-+			config_edi_input_mode(ctx, 0x3); /* EDI (Y + UV) */
-+	}
-+
- 	/* config descriptors */
- 	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
- 		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
-@@ -1865,7 +1891,10 @@ static void vpe_buf_queue(struct vb2_buffer *vb)
- 
- static int vpe_start_streaming(struct vb2_queue *q, unsigned int count)
- {
--	/* currently we do nothing here */
-+	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
-+
-+	if (ctx->deinterlacing)
-+		config_edi_input_mode(ctx, 0x0);
- 
- 	return 0;
- }
--- 
-2.9.0
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
