@@ -1,49 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37962 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751167AbcIULeC (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:35921 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933405AbcIVNTL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Sep 2016 07:34:02 -0400
-Date: Wed, 21 Sep 2016 14:33:29 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 5/7] ov7670: add devicetree support
-Message-ID: <20160921113328.GD18295@valkosipuli.retiisi.org.uk>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
- <1471415383-38531-6-git-send-email-hverkuil@xs4all.nl>
- <3513546.0HAk52lbkG@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3513546.0HAk52lbkG@avalon>
+        Thu, 22 Sep 2016 09:19:11 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com
+Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com,
+        william.towle@codethink.co.uk, devicetree@vger.kernel.org,
+        radhey.shyam.pandey@xilinx.com
+Subject: [PATCH v2 0/2] media: adv7604: fix default-input property inconsistencies
+Date: Thu, 22 Sep 2016 15:18:58 +0200
+Message-Id: <1474550340-31455-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi!
 
-On Wed, Aug 17, 2016 at 03:44:00PM +0300, Laurent Pinchart wrote:
-> > +			assigned-clock-rates = <24000000>;
-> 
-> You should compute and set the clock rate dynamically in the driver, not 
-> hardcode it in DT.
+This is a fix for the inconsistency in the adv7604 bindings regarding the
+default-input property, clarifying that it should be a property of the
+device, not the endpoint, and a patch to implement it.
 
-This frequency is typically defined by hardware engineers and it's
-hand-picked from possible ranges. What counts is EMC so you don't disturb
-a GSM/3G/4G modem (if you have one) or GPS receiver, for instance. In order
-to freely choose this frequency, you'd also need to be aware of the limits
-of the sensor's internal clock tree, and make sure you still would be able
-to obtain the desired frame rates for there are often corner cases where the
-resulting maximum pixel clock may be substantially lower if your input
-frequency goes up.
+This revision implements Laurent's suggestions:
 
-I also haven't encountered a use case for more than a single, fixed
-frequency. In other words I'd keep this constant.
+- The default input should not be set if the default-input property is missing.
+- The old code for parsing the property in the endpoint node can be removed.
+- The rationale for the change should go in the commit message.
+
+CU
+Uli
+
+
+Ulrich Hecht (2):
+  media: adv7604: fix bindings inconsistency for default-input
+  media: adv7604: automatic "default-input" selection
+
+ Documentation/devicetree/bindings/media/i2c/adv7604.txt | 3 +--
+ drivers/media/i2c/adv7604.c                             | 6 +++---
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
 -- 
-Regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
