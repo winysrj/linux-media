@@ -1,80 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60123 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932582AbcIKNbr (ORCPT
+Received: from or-71-0-52-80.sta.embarqhsd.net ([71.0.52.80]:35430 "EHLO
+        asgard.dharty.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753399AbcIVE0C (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 09:31:47 -0400
-From: Christoph Hellwig <hch@lst.de>
-To: hans.verkuil@cisco.com, brking@us.ibm.com,
-        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com
-Cc: kvm@vger.kernel.org, linux-scsi@vger.kernel.org,
-        linux-block@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 5/6] genwqe: use pci_irq_allocate_vectors
-Date: Sun, 11 Sep 2016 15:31:27 +0200
-Message-Id: <1473600688-24043-6-git-send-email-hch@lst.de>
-In-Reply-To: <1473600688-24043-1-git-send-email-hch@lst.de>
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
+        Thu, 22 Sep 2016 00:26:02 -0400
+Received: from [192.168.0.4] (buri.dharty.com [192.168.0.4])
+        (using TLSv1.2 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+        (No client certificate requested)
+        (Authenticated sender: dwh@dharty.com)
+        by asgard.dharty.com (Postfix) with ESMTPSA id 3EEB422806
+        for <linux-media@vger.kernel.org>; Wed, 21 Sep 2016 21:19:41 -0700 (PDT)
+To: Linux-Media <linux-media@vger.kernel.org>
+Reply-To: v4l@dharty.com
+From: catchall <catchall@dharty.com>
+Subject: WinTV-HVR-2255 saa7164 and linux kernel 4.1.27
+Message-ID: <b2095112-932c-afc0-ac61-e4f03376bf1c@dharty.com>
+Date: Wed, 21 Sep 2016 21:19:39 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simply the interrupt setup by using the new PCI layer helpers.
+I recently replaced a broken WinTV-HVR-2250 with an WinTV-HVR-2255.
 
-One odd thing about this driver is that it looks like it could request
-multiple MSI vectors, but it will then only ever use a single one.
+I knew that the 2255 was supported in kernel 4.2, what I didn't know was 
+that the latest stable version of my distro (opensuse) only used 4.1.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/misc/genwqe/card_base.h  |  1 -
- drivers/misc/genwqe/card_utils.c | 12 ++----------
- 2 files changed, 2 insertions(+), 11 deletions(-)
+I was on 13.2 with kernel 3.16 at the time of the upgrade.
 
-diff --git a/drivers/misc/genwqe/card_base.h b/drivers/misc/genwqe/card_base.h
-index cb851c1..5813b5f 100644
---- a/drivers/misc/genwqe/card_base.h
-+++ b/drivers/misc/genwqe/card_base.h
-@@ -41,7 +41,6 @@
- #include "genwqe_driver.h"
- 
- #define GENWQE_MSI_IRQS			4  /* Just one supported, no MSIx */
--#define GENWQE_FLAG_MSI_ENABLED		(1 << 0)
- 
- #define GENWQE_MAX_VFS			15 /* maximum 15 VFs are possible */
- #define GENWQE_MAX_FUNCS		16 /* 1 PF and 15 VFs */
-diff --git a/drivers/misc/genwqe/card_utils.c b/drivers/misc/genwqe/card_utils.c
-index 222367c..da424c2 100644
---- a/drivers/misc/genwqe/card_utils.c
-+++ b/drivers/misc/genwqe/card_utils.c
-@@ -730,13 +730,10 @@ int genwqe_read_softreset(struct genwqe_dev *cd)
- int genwqe_set_interrupt_capability(struct genwqe_dev *cd, int count)
- {
- 	int rc;
--	struct pci_dev *pci_dev = cd->pci_dev;
- 
--	rc = pci_enable_msi_range(pci_dev, 1, count);
-+	rc = pci_alloc_irq_vectors(cd->pci_dev, 1, count, PCI_IRQ_MSI);
- 	if (rc < 0)
- 		return rc;
--
--	cd->flags |= GENWQE_FLAG_MSI_ENABLED;
- 	return 0;
- }
- 
-@@ -746,12 +743,7 @@ int genwqe_set_interrupt_capability(struct genwqe_dev *cd, int count)
-  */
- void genwqe_reset_interrupt_capability(struct genwqe_dev *cd)
- {
--	struct pci_dev *pci_dev = cd->pci_dev;
--
--	if (cd->flags & GENWQE_FLAG_MSI_ENABLED) {
--		pci_disable_msi(pci_dev);
--		cd->flags &= ~GENWQE_FLAG_MSI_ENABLED;
--	}
-+	pci_free_irq_vectors(cd->pci_dev);
- }
- 
- /**
--- 
-2.1.4
+Anyway, is it possible to patch the saa7164 driver in 4.1?
+
+I had to perform a similar patch in  3.16 for the 2250 to address a PCI 
+interupt issue.
+
+
+Regards,
+
+David
+
 
