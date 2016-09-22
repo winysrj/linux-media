@@ -1,110 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:32842 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756249AbcINNRd (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33662 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933606AbcIVNTY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 09:17:33 -0400
-Received: by mail-oi0-f41.google.com with SMTP id r126so20440476oib.0
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 06:17:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <16e7882f-2975-281a-eb6e-f27c3ca76fa2@xs4all.nl>
-References: <1473852249-15960-1-git-send-email-benjamin.gaignard@linaro.org>
- <1473852249-15960-3-git-send-email-benjamin.gaignard@linaro.org> <16e7882f-2975-281a-eb6e-f27c3ca76fa2@xs4all.nl>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Wed, 14 Sep 2016 15:17:31 +0200
-Message-ID: <CA+M3ks6AO0VzQQfSstpQj1phhZcq5JOFLZxJEFCOKKEOzWuBoQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] add stih-cec driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: hans.verkuil@cisco.com,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        kernel@stlinux.com, Arnd Bergmann <arnd@arndb.de>,
-        Rob Herring <robh@kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Thu, 22 Sep 2016 09:19:24 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: hans.verkuil@cisco.com
+Cc: niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com,
+        william.towle@codethink.co.uk, devicetree@vger.kernel.org,
+        radhey.shyam.pandey@xilinx.com
+Subject: [PATCH v2 2/2] media: adv7604: automatic "default-input" selection
+Date: Thu, 22 Sep 2016 15:19:00 +0200
+Message-Id: <1474550340-31455-3-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1474550340-31455-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1474550340-31455-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed and tested, thanks.
+Documentation states that the "default-input" property should reside
+directly in the node of the device.  This adjusts the parsing to make the
+implementation consistent with the documentation.
 
-I will wait for any others comments before send a v3.
+Based on patch by William Towle <william.towle@codethink.co.uk>.
 
-Regards,
-Benjamin
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-2016-09-14 14:58 GMT+02:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> Hi Benjamin,
->
-> Just one comment:
->
-> On 09/14/2016 01:24 PM, Benjamin Gaignard wrote:
->> This patch implement CEC driver for stih4xx platform.
->> Driver compliance has been test with cec-ctl and
->> cec-compliance tools.
->>
->> Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
->> ---
->>  drivers/staging/media/Kconfig           |   2 +
->>  drivers/staging/media/Makefile          |   1 +
->>  drivers/staging/media/st-cec/Kconfig    |   8 +
->>  drivers/staging/media/st-cec/Makefile   |   1 +
->>  drivers/staging/media/st-cec/stih-cec.c | 382 +++++++++++++++++++++++++=
-+++++++
->>  5 files changed, 394 insertions(+)
->>  create mode 100644 drivers/staging/media/st-cec/Kconfig
->>  create mode 100644 drivers/staging/media/st-cec/Makefile
->>  create mode 100644 drivers/staging/media/st-cec/stih-cec.c
->>
->
-> <snip>
->
->> +static void stih_rx_done(struct stih_cec *cec, u32 status)
->> +{
->> +     struct cec_msg *msg =3D &cec->rx_msg;
->
-> You can just say:
->
->         struct cec_msg msg =3D {};
->
-> and drop rx_msg.
->
->> +     u8 i;
->> +
->> +     if (status & CEC_RX_ERROR_MIN)
->> +             return;
->> +
->> +     if (status & CEC_RX_ERROR_MAX)
->> +             return;
->> +
->> +     memset(msg, 0x00, sizeof(*msg));
->> +     msg->len =3D readl(cec->regs + CEC_DATA_ARRAY_STATUS) & 0x1f;
->> +
->> +     if (!msg-len)
->> +             return;
->> +
->> +     if (msg->len > 16)
->> +             msg->len =3D 16;
->> +
->> +     for (i =3D 0; i < msg->len; i++)
->> +             msg->msg[i] =3D readl(cec->regs + CEC_RX_DATA_BASE + i);
->> +
->> +     cec_received_msg(cec->adap, msg);
->
-> cec_received_msg will copy the contents, so it is OK if it is gone after
-> this call.
->
->> +}
->
-> Regards,
->
->         Hans
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 4003831..fa7046e 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -3074,13 +3074,13 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
+ 		return ret;
+ 	}
+ 
+-	if (!of_property_read_u32(endpoint, "default-input", &v))
++	of_node_put(endpoint);
++
++	if (!of_property_read_u32(np, "default-input", &v))
+ 		state->pdata.default_input = v;
+ 	else
+ 		state->pdata.default_input = -1;
+ 
+-	of_node_put(endpoint);
+-
+ 	flags = bus_cfg.bus.parallel.flags;
+ 
+ 	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+-- 
+2.7.4
 
-
-
---=20
-Benjamin Gaignard
-
-Graphic Study Group
-
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
