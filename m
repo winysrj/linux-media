@@ -1,50 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56846 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936480AbcIHVhr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:47 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 01/15] [media] mc-core.rst: fix a warning about an internal routine
-Date: Thu,  8 Sep 2016 18:37:27 -0300
-Message-Id: <4734daada63bece30c7ba88e2ba9aa3d06898248.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
+Received: from smtp2.goneo.de ([85.220.129.33]:58496 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965693AbcIWNfQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Sep 2016 09:35:16 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 06/11] dma-buf: Introduce fence_get_rcu_safe()
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20160923125932.GG3988@dvetter-linux.ger.corp.intel.com>
+Date: Fri, 23 Sep 2016 15:34:32 +0200
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <D6338AA5-B3C3-48DE-9318-B7255F1F2E84@darmarit.de>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk> <20160829070834.22296-6-chris@chris-wilson.co.uk> <20160923125932.GG3988@dvetter-linux.ger.corp.intel.com>
+To: Daniel Vetter <daniel@ffwll.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this warning:
-	Documentation/media/kapi/mc-core.rst:97: WARNING: c:func reference target not found: media_devnode_release
 
-The media_device_release() is a function internal to media-devnode.c,
-and not exported elsewhere. So, we can't cross-reference it here.
-Make it explicit at the documentation.
+Am 23.09.2016 um 14:59 schrieb Daniel Vetter <daniel@ffwll.ch>:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/media-devnode.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+>> 
+>> /**
+>> - * fence_put - decreases refcount of the fence
+>> - * @fence:	[in]	fence to reduce refcount of
+>> + * fence_get_rcu_safe  - acquire a reference to an RCU tracked fence
+>> + * @fence:	[in]	pointer to fence to increase refcount of
+>> + *
+>> + * Function returns NULL if no refcount could be obtained, or the fence.
+>> + * This function handles acquiring a reference to a fence that may be
+>> + * reallocated within the RCU grace period (such as with SLAB_DESTROY_BY_RCU),
+>> + * so long as the caller is using RCU on the pointer to the fence.
+>> + *
+>> + * An alternative mechanism is to employ a seqlock to protect a bunch of
+>> + * fences, such as used by struct reservation_object. When using a seqlock,
+>> + * the seqlock must be taken before and checked after a reference to the
+>> + * fence is acquired (as shown here).
+>> + *
+>> + * The caller is required to hold the RCU read lock.
+> 
+> Would be good to cross reference the various fence_get functions a bit
+> better in the docs. But since the docs aren't yet pulled into the rst/html
+> output, that doesn't matter that much
 
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index 972168e90413..cd23e915764c 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -76,7 +76,8 @@ struct media_file_operations {
-  * @parent:	parent device
-  * @minor:	device node minor number
-  * @flags:	flags, combination of the ``MEDIA_FLAG_*`` constants
-- * @release:	release callback called at the end of media_devnode_release()
-+ * @release:	release callback called at the end of ``media_devnode_release()``
-+ *		routine at media-device.c.
-  *
-  * This structure represents a media-related device node.
-  *
--- 
-2.7.4
+Hi Daniel ... I'am working on ;-)
 
+* http://return42.github.io/sphkerneldoc/linux_src_doc/include/linux/fence_h.html
 
+-- Markus 
