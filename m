@@ -1,82 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:42869 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751979AbcIHHVs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Sep 2016 03:21:48 -0400
-Subject: Re: [PATCH 0/4] Add V4L2_PIX_FMT_MT21C format for MT8173 codec driver
-To: Tiffany Lin <tiffany.lin@mediatek.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-References: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
-Cc: Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mediatek@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e4d91e67-0b36-3675-575a-c5f38a68dbdb@xs4all.nl>
-Date: Thu, 8 Sep 2016 09:21:42 +0200
+Received: from mga11.intel.com ([192.55.52.93]:21205 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758238AbcIWI1i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Sep 2016 04:27:38 -0400
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+To: yfw <nh26223@gmail.com>, Bin Liu <b-liu@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: g_webcam Isoch high bandwidth transfer
+In-Reply-To: <b73898d0-b5ff-d591-0946-acf127453aba@gmail.com>
+References: <20160920170441.GA10705@uda0271908> <871t0d4r72.fsf@linux.intel.com> <20160921132702.GA18578@uda0271908> <87oa3go065.fsf@linux.intel.com> <87lgyknyp7.fsf@linux.intel.com> <87d1jw6yfd.fsf@linux.intel.com> <20160922133327.GA31827@uda0271908> <87a8ezn2av.fsf@linux.intel.com> <20160922201131.GD31827@uda0271908> <87shsr5a3e.fsf@linux.intel.com> <b73898d0-b5ff-d591-0946-acf127453aba@gmail.com>
+Date: Fri, 23 Sep 2016 11:27:26 +0300
+Message-ID: <87k2e358cx.fsf@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1473231403-14900-1-git-send-email-tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tiffany,
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-On 09/07/2016 08:56 AM, Tiffany Lin wrote:
-> This patch series add Mediatek compressed block format V4L2_PIX_FMT_MT21C, the
-> decoder driver will decoded bitstream to V4L2_PIX_FMT_MT21C format.
-> 
-> User space applications could use MT8173 MDP driver to convert V4L2_PIX_FMT_MT21C to
-> V4L2_PIX_FMT_NV12M, V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
-> 
-> MDP driver[1] is stand alone driver.
-> 
-> Usage:
-> MT21C -> MT8173 MDP -> NV12M/YUV420M/YVU420
-> NV12M/NV21M/YUV420M/YVU420M -> mt8173 Encoder -> H264/VP8
-> H264/VP8/VP9 -> mtk8173 Decoder -> MT21C
-> 
-> When encode with MT21 source, the pipeline will be:
-> MT21C -> MDP driver-> NV12M/NV21M/YUV420M/YVU420M -> Encoder -> H264/VP8
-> 
-> When playback, the pipeline will be:
-> H264/VP8/VP9 -> Decoder driver -> MT21C -> MDP Driver -> DRM
-> 
-> [1]https://patchwork.kernel.org/patch/9305329/
-> 
-> Tiffany Lin (4):
->   v4l: add Mediatek compressed video block format
->   docs-rst: Add compressed video formats used on MT8173 codec driver
->   vcodec: mediatek: Add V4L2_PIX_FMT_MT21C support for v4l2 decoder
->   arm64: dts: mediatek: Add Video Decoder for MT8173
-> 
->  Documentation/media/uapi/v4l/pixfmt-reserved.rst   |    6 +++
->  arch/arm64/boot/dts/mediatek/mt8173.dtsi           |   44 ++++++++++++++++++++
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c |    7 +++-
->  drivers/media/v4l2-core/v4l2-ioctl.c               |    1 +
->  include/uapi/linux/videodev2.h                     |    1 +
->  5 files changed, 58 insertions(+), 1 deletion(-)
-> 
 
-So basically the video decoder is useless without support for this format and
-without the MDP driver, right?
+Hi,
 
-I'm wondering if I should hold off on merging the decoder driver until these two
-are in. What is the timeline for v6 of the MDP driver?
+yfw <nh26223@gmail.com> writes:
+>>>>>> Here's one that actually compiles, sorry about that.
+>>>>>
+>>>>> No worries, I was sleeping ;-)
+>>>>>
+>>>>> I will test it out early next week. Thanks.
+>>>>
+>>>> meanwhile, how about some instructions on how to test this out myself?
+>>>> How are you using g_webcam and what are you running on host side? Got a
+>>>> nice list of commands there I can use? I think I can get to bottom of
+>>>> this much quicker if I can reproduce it locally ;-)
+>>>
+>>> On device side:
+>>> - first patch g_webcam as in my first email in this thread to enable
+>>>   640x480@30fps;
+>>> - # modprobe g_webcam streaming_maxpacket=3D3072
+>>> - then run uvc-gadget to feed the YUV frames;
+>>> 	http://git.ideasonboard.org/uvc-gadget.git
+>>
+>> as is, g_webcam never enumerates to the host. It's calls to
+>> usb_function_active() and usb_function_deactivate() are unbalanced. Do
+>> you have any other changes to g_webcam?
+> With uvc function gadget driver, user daemon uvc-gadget must be started
+> before connect to host. Not sure whether g_webcam has same requirement.
 
-If a v6 is posted early next week, then I have time to review and (assuming it is
-OK) I can make a pull request for both this driver and the MDP driver.
+f_uvc.c should be handling that by means for usb_function_deactivate().
 
-If it takes longer, then there is a good chance that it will slip to 4.10. I will
-have very little time in the period September 20 - October 14.
+I'll try keeping cable disconnected until uvc-gadget is running.
 
-Regards,
+>> Also, uvc-gadget.git doesn't compile, had to modify it a bit:
+>>
+>> -#include "../drivers/usb/gadget/uvc.h"
+>> +#include "../drivers/usb/gadget/function/uvc.h"
+>>
+>> Also fixed a build warning:
+>>
+>> @@ -732,6 +732,8 @@ int main(int argc, char *argv[])
+>>                 fd_set wfds =3D fds;
+>>
+>>                 ret =3D select(dev->fd + 1, NULL, &wfds, &efds, NULL);
+>> +               if (ret < 0)
+>> +                       return ret;
+>>                 if (FD_ISSET(dev->fd, &efds))
+>>                         uvc_events_process(dev);
+>>                 if (FD_ISSET(dev->fd, &wfds))
+>>
+>> Laurent, have you tested g_webcam recently? What's the magic to get it
+>> working?
+>>
+>> Here's what I get out of dmesg:
+>>
+>> [   58.568380] usb 1-9: new high-speed USB device number 5 using xhci_hcd
+>> [   58.738680] usb 1-9: New USB device found, idVendor=3D1d6b, idProduct=
+=3D0102
+>> [   58.738683] usb 1-9: New USB device strings: Mfr=3D1, Product=3D2, Se=
+rialNumber=3D0
+>> [   58.738685] usb 1-9: Product: Webcam gadget
+>> [   58.738687] usb 1-9: Manufacturer: Linux Foundation
+>> [   58.739133] g_webcam gadget: high-speed config #1: Video
+>> [   58.739138] g_webcam gadget: uvc_function_set_alt(0, 0)
+>> [   58.739139] g_webcam gadget: reset UVC Control
+>> [   58.739149] g_webcam gadget: uvc_function_set_alt(1, 0)
+>> [   58.804369] uvcvideo: Found UVC 1.00 device Webcam gadget (1d6b:0102)
+>> [   58.804479] g_webcam gadget: uvc_function_set_alt(1, 0)
+>> [   64.188459] uvcvideo: UVC non compliance - GET_DEF(PROBE) not support=
+ed. Enabling workaround.
+> Looks like you connect your usb device to your usb host port on same
+> board. Nice.
 
-	Hans
+yeah, that helps.
+
+> The GET_DEF is handled by user daemon uvc-gadget. It may be related.
+
+okay.
+
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJX5OduAAoJEMy+uJnhGpkGZSgQAIjRYka1wxYWyE97YsywVcng
+UhjRpsbZ3RJPXODrLDzhgsK9dTwJMlBxN9vu35ESsN4WgBLBNrYxolFs7aPqfL/W
+oH5qR/BDJT9Cnp8BSwPB1q+kPxt5ccsE1brJsGD8uAWjMY1HJ+55qUbFXsnkZsM9
+/eqoDf/C52CLLL+3XliOSUMa/7fk8R19T2+jS7cPj00eRcwOu2WeLlqyF1/Tk38q
+WKECssJY8H+WyNqFSBqBRBwg+LydlS6HUmxTIW0Ol9XfXz8fleWQhdMXmfBP4ERj
+Ox8jZkIRg4QB2gc0fbk84WDelXrkNK9moM8sRIws8vp/2205McXkhDzgudT7dSCb
+iUCR//z46+RBTrN1q4jTaCuqzVoagep5ezHH9AAMkaqdkY79OEmeTsaMQ5SQWpQP
+QZDTmJhMg08mtuOE3rVjCvbHnSYOo7zlzTWG2UXTDJPKreMUuEmjw8WILWrB9rcW
+WVKOxpzsHOj1mir6KzkFBSxUgIAaeLQhz7UpGTkutcDg1h1OpDxB1y3zf53MnukU
+mQJ8AmfzGS1nFB/rsMgrA6Ln+FqiQvRWYdp0eWPKWI01uqUP3C7zahbExslM0IWy
+/LX06v1tR7wOxvtI/KV7q4RixFL8wbFHF2LTEFeuRADB6eNeLI0pdpF2iRvXe0tg
+uKrU9vojmI+BYDhn0qug
+=9Iej
+-----END PGP SIGNATURE-----
+--=-=-=--
