@@ -1,66 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49501 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753427AbcINT7v (ORCPT
+Received: from mail.fireflyinternet.com ([109.228.58.192]:61523 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1035155AbcIWPUx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 15:59:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: Re: [PATCH 11/13] v4l: vsp1: Determine partition requirements for scaled images
-Date: Wed, 14 Sep 2016 23:00:33 +0300
-Message-ID: <1554377.UPrL1uhbCT@avalon>
-In-Reply-To: <20160914192733.GL739@bigcity.dyn.berto.se>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1473808626-19488-12-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160914192733.GL739@bigcity.dyn.berto.se>
+        Fri, 23 Sep 2016 11:20:53 -0400
+Date: Fri, 23 Sep 2016 16:20:44 +0100
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [Intel-gfx] [PATCH 11/11] dma-buf: Do a fast lockless check for
+ poll with timeout=0
+Message-ID: <20160923152044.GG28107@nuc-i3427.alporthouse.com>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+ <20160829070834.22296-11-chris@chris-wilson.co.uk>
+ <20160923135044.GM3988@dvetter-linux.ger.corp.intel.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160923135044.GM3988@dvetter-linux.ger.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Fri, Sep 23, 2016 at 03:50:44PM +0200, Daniel Vetter wrote:
+> On Mon, Aug 29, 2016 at 08:08:34AM +0100, Chris Wilson wrote:
+> > Currently we install a callback for performing poll on a dma-buf,
+> > irrespective of the timeout. This involves taking a spinlock, as well as
+> > unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
+> > multiple threads.
+> > 
+> > We can query whether the poll will block prior to installing the
+> > callback to make the busy-query fast.
+> > 
+> > Single thread: 60% faster
+> > 8 threads on 4 (+4 HT) cores: 600% faster
+> > 
+> > Still not quite the perfect scaling we get with a native busy ioctl, but
+> > poll(dmabuf) is faster due to the quicker lookup of the object and
+> > avoiding drm_ioctl().
+> > 
+> > Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> > Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> > Cc: linux-media@vger.kernel.org
+> > Cc: dri-devel@lists.freedesktop.org
+> > Cc: linaro-mm-sig@lists.linaro.org
+> > Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> 
+> Need to strike the r-b here, since Christian König pointed out that
+> objects won't magically switch signalling on.
 
-On Wednesday 14 Sep 2016 21:27:33 Niklas S=F6derlund wrote:
-> On 2016-09-14 02:17:04 +0300, Laurent Pinchart wrote:
-> > From: Kieran Bingham <kieran+renesas@bingham.xyz>
-> >=20
-> > The partition algorithm needs to determine the capabilities of each=
+Oh, it also means that
 
-> > entity in the pipeline to identify the correct maximum partition wi=
-dth.
-> >=20
-> > Extend the vsp1 entity operations to provide a max_width operation =
-and
-> > use this call to calculate the number of partitions that will be
-> > processed by the algorithm.
-> >=20
-> > Gen 2 hardware does not require multiple partitioning, and as such
-> > will always return a single partition.
-> >=20
-> > Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
->=20
-> I can't find the information about the partition limitations for SRU =
-or
-> UDS in any of the documents I have.
+commit fb8b7d2b9d80e1e71f379e57355936bd2b024be9
+Author: Jammy Zhou <Jammy.Zhou@amd.com>
+Date:   Wed Jan 21 18:35:47 2015 +0800
 
-That's because it's not documented in the datasheet :-(
+    reservation: wait only with non-zero timeout specified (v3)
+    
+    When the timeout value passed to reservation_object_wait_timeout_rcu
+    is zero, no wait should be done if the fences are not signaled.
+    
+    Return '1' for idle and '0' for busy if the specified timeout is '0'
+    to keep consistent with the case of non-zero timeout.
+    
+    v2: call fence_put if not signaled in the case of timeout==0
+    
+    v3: switch to reservation_object_test_signaled_rcu
+    
+    Signed-off-by: Jammy Zhou <Jammy.Zhou@amd.com>
+    Reviewed-by: Christian König <christian.koenig@amd.com>
+    Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+    Reviewed-By: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+    Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
 
-> But for the parts not relating to the logic of figuring out the hscal=
-e from
-> the input/output formats width:
->=20
-> Reviewed-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.s=
-e>
+is wrong. And reservation_object_test_signaled_rcu() is unreliable.
+-Chris
 
-Thanks.
-
---=20
-Regards,
-
-Laurent Pinchart
-
+-- 
+Chris Wilson, Intel Open Source Technology Centre
