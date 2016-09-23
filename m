@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58576 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933878AbcIFMzP (ORCPT
+Received: from mail.fireflyinternet.com ([109.228.58.192]:59874 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1035037AbcIWPHA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 08:55:15 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id A219A600A4
-        for <linux-media@vger.kernel.org>; Tue,  6 Sep 2016 15:55:10 +0300 (EEST)
-Date: Tue, 6 Sep 2016 15:55:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.9] ad5820 driver cleanup
-Message-ID: <20160906125510.GC3236@valkosipuli.retiisi.org.uk>
+        Fri, 23 Sep 2016 11:07:00 -0400
+Date: Fri, 23 Sep 2016 16:06:54 +0100
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        intel-gfx@lists.freedesktop.org, linux-media@vger.kernel.org,
+        Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [Intel-gfx] [PATCH 11/11] dma-buf: Do a fast lockless check for
+ poll with timeout=0
+Message-ID: <20160923150654.GF28107@nuc-i3427.alporthouse.com>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+ <20160829070834.22296-11-chris@chris-wilson.co.uk>
+ <20160923135044.GM3988@dvetter-linux.ger.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160923135044.GM3988@dvetter-linux.ger.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Sep 23, 2016 at 03:50:44PM +0200, Daniel Vetter wrote:
+> On Mon, Aug 29, 2016 at 08:08:34AM +0100, Chris Wilson wrote:
+> > Currently we install a callback for performing poll on a dma-buf,
+> > irrespective of the timeout. This involves taking a spinlock, as well as
+> > unnecessary work, and greatly reduces scaling of poll(.timeout=0) across
+> > multiple threads.
+> > 
+> > We can query whether the poll will block prior to installing the
+> > callback to make the busy-query fast.
+> > 
+> > Single thread: 60% faster
+> > 8 threads on 4 (+4 HT) cores: 600% faster
+> > 
+> > Still not quite the perfect scaling we get with a native busy ioctl, but
+> > poll(dmabuf) is faster due to the quicker lookup of the object and
+> > avoiding drm_ioctl().
+> > 
+> > Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> > Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> > Cc: linux-media@vger.kernel.org
+> > Cc: dri-devel@lists.freedesktop.org
+> > Cc: linaro-mm-sig@lists.linaro.org
+> > Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> 
+> Need to strike the r-b here, since Christian König pointed out that
+> objects won't magically switch signalling on.
 
-This patch fixes the int bitfield issue you found in the ad5820 driver.
-
-Please pull.
-
-
-The following changes since commit e62c30e76829d46bf11d170fd81b735f13a014ac:
-
-  [media] smiapp: Remove set_xclk() callback from hwconfig (2016-09-05 15:53:20 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git ad5820
-
-for you to fetch changes up to 021a6d55696421194b72fbc3c6abc50b7f3f1dc4:
-
-  ad5820: Use bool for boolean values (2016-09-06 15:23:46 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (1):
-      ad5820: Use bool for boolean values
-
- drivers/media/i2c/ad5820.c | 19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+Propagating a flag through to sync_file is trivial, but not through to
+the dma_buf->resv. Looks like dma-buf will be without a fast busy query,
+which I guess in the grand scheme of things (i.e. dma-buf itself is not
+intended to be used as a fence) is not that important.
+-Chris
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Chris Wilson, Intel Open Source Technology Centre
