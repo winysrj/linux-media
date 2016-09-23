@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:44277 "EHLO mx2.suse.de"
+Received: from mga11.intel.com ([192.55.52.93]:63503 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941159AbcIHPZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Sep 2016 11:25:20 -0400
-Date: Thu, 8 Sep 2016 17:25:16 +0200
-From: Jean Delvare <jdelvare@suse.de>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] [media] cec: fix Kconfig help text
-Message-ID: <20160908172516.211694b8@endymion>
+        id S1759061AbcIWLNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Sep 2016 07:13:38 -0400
+Subject: Re: [PATCH v1.1 5/5] smiapp: Implement support for autosuspend
+To: Sebastian Reichel <sre@kernel.org>
+Cc: linux-media@vger.kernel.org
+References: <1473938961-16067-6-git-send-email-sakari.ailus@linux.intel.com>
+ <1474374598-32451-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20160923001448.mmeo3fhheajvbqzk@earth>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <57E50E5E.6010403@linux.intel.com>
+Date: Fri, 23 Sep 2016 14:13:34 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20160923001448.mmeo3fhheajvbqzk@earth>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MEDIA_CEC is no longer a tristate option, so the user can't actually
-choose M. Whether the code is built-in or built as a module is
-decided somewhere else. 
+Sebastian Reichel wrote:
+> Hi,
+>
+> On Tue, Sep 20, 2016 at 03:29:58PM +0300, Sakari Ailus wrote:
+>> Delay suspending the device by 1000 ms by default.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> ---
+>>
+>> since v1:
+>>
+>> - Increment usage count before register write using
+>>    pm_runtime_get_noresume(), and decrement it before returning. This
+>>    avoids a serialisation problem with autosuspend.
+>>
+>>   drivers/media/i2c/smiapp/smiapp-core.c | 10 +++++++---
+>>   drivers/media/i2c/smiapp/smiapp-regs.c | 21 +++++++++++++++------
+>>   2 files changed, 22 insertions(+), 9 deletions(-)
+>
+> Reviewed-By: Sebastian Reichel <sre@kernel.org>
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Fixes: 5bb2399a4fe4 ("[media] cec: fix Kconfig dependency problems")
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/cec/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
-
---- linux-4.8-rc5.orig/drivers/staging/media/cec/Kconfig	2016-09-04 23:31:46.000000000 +0200
-+++ linux-4.8-rc5/drivers/staging/media/cec/Kconfig	2016-09-08 17:20:03.048392694 +0200
-@@ -5,9 +5,6 @@ config MEDIA_CEC
- 	---help---
- 	  Enable the CEC API.
- 
--	  To compile this driver as a module, choose M here: the
--	  module will be called cec.
--
- config MEDIA_CEC_DEBUG
- 	bool "CEC debugfs interface (EXPERIMENTAL)"
- 	depends on MEDIA_CEC && DEBUG_FS
-
+Danke schön! :-)
 
 -- 
-Jean Delvare
-SUSE L3 Support
+Sakari Ailus
+sakari.ailus@linux.intel.com
