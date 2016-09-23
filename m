@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35224
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752654AbcIMK7x (ORCPT
+Received: from smtp09.smtpout.orange.fr ([80.12.242.131]:27408 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1035083AbcIWVTJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Sep 2016 06:59:53 -0400
-Date: Tue, 13 Sep 2016 07:59:48 -0300
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4 1/5] media: Determine early whether an IOCTL is
- supported
-Message-ID: <20160913075948.70b60842@vento.lan>
-In-Reply-To: <20160913105124.GF5086@valkosipuli.retiisi.org.uk>
-References: <1470947358-31168-1-git-send-email-sakari.ailus@linux.intel.com>
-        <1470947358-31168-2-git-send-email-sakari.ailus@linux.intel.com>
-        <20160906065617.1295d104@vento.lan>
-        <20160913105124.GF5086@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 23 Sep 2016 17:19:09 -0400
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+To: mchehab@kernel.org, matthias.bgg@gmail.com
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
+        kernel-janitors@vger.kernel.org,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: [PATCH] [media] VPU: mediatek: Fix return value in case of error
+Date: Fri, 23 Sep 2016 23:19:01 +0200
+Message-Id: <1474665541-7454-1-git-send-email-christophe.jaillet@wanadoo.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 13 Sep 2016 13:51:25 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+If 'dma_alloc_coherent()' returns NULL, 'vpu_alloc_ext_mem()' will
+return 0 which means success.
+Return -ENOMEM instead.
 
-> Hi Mauro,
-> 
-> On Tue, Sep 06, 2016 at 06:56:17AM -0300, Mauro Carvalho Chehab wrote:
-> > Em Thu, 11 Aug 2016 23:29:14 +0300
-> > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
-> >   
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+---
+ drivers/media/platform/mtk-vpu/mtk_vpu.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> > So, we don't expect to have the V4L2 compat32 mess here, but, instead,
-> > to keep this untouched as we add more ioctl's.  
-> 
-> That's a fair point. If we won't require compat handling for more IOCTLs,
-> we'll be fine with less generic compat handling.
-> 
-> I'll resend the set.
+diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+index c9bf58c97878..3edb5ed852e6 100644
+--- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
++++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+@@ -674,7 +674,7 @@ static int vpu_alloc_ext_mem(struct mtk_vpu *vpu, u32 fw_type)
+ 					       GFP_KERNEL);
+ 	if (!vpu->extmem[fw_type].va) {
+ 		dev_err(dev, "Failed to allocate the extended program memory\n");
+-		return PTR_ERR(vpu->extmem[fw_type].va);
++		return -ENOMEM;
+ 	}
+ 
+ 	/* Disable extend0. Enable extend1 */
+-- 
+2.7.4
 
-OK, thanks!
-
-Regards,
-Mauro
