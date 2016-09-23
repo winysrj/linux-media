@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:42439 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751414AbcISGeu (ORCPT
+Received: from mail-pf0-f169.google.com ([209.85.192.169]:35774 "EHLO
+        mail-pf0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934194AbcIWWIf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 02:34:50 -0400
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>
-CC: <srv_heupstream@mediatek.com>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: [PATCH 2/2] media: mtk-mdp: fix build error
-Date: Mon, 19 Sep 2016 14:34:43 +0800
-Message-ID: <1474266883-51155-3-git-send-email-minghsiu.tsai@mediatek.com>
-In-Reply-To: <1474266883-51155-1-git-send-email-minghsiu.tsai@mediatek.com>
-References: <1474266883-51155-1-git-send-email-minghsiu.tsai@mediatek.com>
+        Fri, 23 Sep 2016 18:08:35 -0400
+Date: Fri, 23 Sep 2016 15:08:31 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sean Young <sean@mess.org>, linux-input@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media/input] rc: report rc protocol type to userspace
+ through input
+Message-ID: <20160923220831.GE25499@dtor-ws>
+References: <1474451661-28986-1-git-send-email-sean@mess.org>
+ <20160922115713.7f341c46@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160922115713.7f341c46@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fix build error without CONFIG_PM_RUNTIME
-and CONFIG_PM_SLEEP
+On Thu, Sep 22, 2016 at 11:57:13AM -0300, Mauro Carvalho Chehab wrote:
+> Em Wed, 21 Sep 2016 10:54:21 +0100
+> Sean Young <sean@mess.org> escreveu:
+> 
+> > We might want to know what protocol a remote uses when we do not know. With
+> > this patch and another patch for v4l-utils (follows), you can do that with:
+> > 
+> > ./ir-keytable  -p rc-5,nec,rc-6,jvc,sony,sanyo,sharp,xmp -t
+> > Testing events. Please, press CTRL-C to abort.
+> > 1474415431.689685: event type EV_MSC(0x04): protocol = RC_TYPE_RC6_MCE
+> > 1474415431.689685: event type EV_MSC(0x04): scancode = 0x800f040e
+> > 1474415431.689685: event type EV_SYN(0x00).
+> > 
+> > This makes RC_TYPE_* part of the ABI. We also remove the enum rc_type,
+> > since in input-event-codes.h we cannot not use enums.
+> > 
+> > In addition, now that the input layer knows the rc protocol and scancode,
+> > at a later point we could add a feature where keymaps could be created
+> > based on both protocol and scancode, not just scancode.
+> 
+> We need Dmitry's ack in order to apply this one.
 
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- drivers/media/platform/mtk-mdp/mtk_mdp_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I'd rather not: I am trying to keep input API hardware-independent and
+the kind of device emitting keycodes (a remote control in the sense of
+drivers/media/rc or USB device or BT device) should not really matter to
+consumers. Similarly how we do not export whether device is USB1.1 or
+USB2 or USB3 (although we do have input->id.bustype, but it is more for
+identification purposes rather than for adjusting properties).
 
-diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
-index b0c421e..f4424064 100644
---- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
-+++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
-@@ -233,7 +233,7 @@ static int mtk_mdp_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--#if defined(CONFIG_PM_RUNTIME) || defined(CONFIG_PM_SLEEP)
-+#ifdef CONFIG_PM
- static int mtk_mdp_pm_suspend(struct device *dev)
- {
- 	struct mtk_mdp_dev *mdp = dev_get_drvdata(dev);
-@@ -251,7 +251,7 @@ static int mtk_mdp_pm_resume(struct device *dev)
- 
- 	return 0;
- }
--#endif /* CONFIG_PM_RUNTIME || CONFIG_PM_SLEEP */
-+#endif /* CONFIG_PM */
- 
- #ifdef CONFIG_PM_SLEEP
- static int mtk_mdp_suspend(struct device *dev)
+For configuration (like loading keymaps) we can examine
+parent hardware device and decide.
+
+Thanks.
+
 -- 
-1.7.9.5
-
+Dmitry
