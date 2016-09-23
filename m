@@ -1,52 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43908 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753518AbcIEIWt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 04:22:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:28305 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752083AbcIWSXN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Sep 2016 14:23:13 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] v4l: Add metadata buffer type and format
-Date: Mon, 05 Sep 2016 11:23:15 +0300
-Message-ID: <3474830.2BF5QWV559@avalon>
-In-Reply-To: <b7fd41ca-5173-c5cb-20ff-c6dc5542a6c8@xs4all.nl>
-References: <1472818023-11536-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <b7fd41ca-5173-c5cb-20ff-c6dc5542a6c8@xs4all.nl>
+Cc: "linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: merge soc_mediabus.c into pxa_camera.c
+References: <874d9ba3-7508-7efd-e83f-a7c630a1fbe3@xs4all.nl>
+        <87r38ddai5.fsf@belgarion.home>
+        <68f66d44-2098-1b01-3ebb-2261afe4fd29@xs4all.nl>
+Date: Fri, 23 Sep 2016 20:23:09 +0200
+In-Reply-To: <68f66d44-2098-1b01-3ebb-2261afe4fd29@xs4all.nl> (Hans Verkuil's
+        message of "Wed, 21 Sep 2016 08:46:45 +0200")
+Message-ID: <87eg4acw6q.fsf@belgarion.home>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-On Monday 05 Sep 2016 09:40:19 Hans Verkuil wrote:
-> On 09/02/2016 02:07 PM, Laurent Pinchart wrote:
-> > The metadata buffer type is used to transfer metadata between userspace
-> > and kernelspace through a V4L2 buffers queue. It comes with a new
-> > metadata capture capability and format description.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > Tested-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> 
-> Looks good. But include/trace/events/v4l2.h needs to be updated with the new
-> buf_type as well.
-> 
-> I would also like to see patches for v4l2-ctl and v4l2-compliance.
+>> Hi Hans,
+>> 
+>> I wonder why you chose to copy-paste this code instead of adding in the Kconfig
+>> a "depends on !SOC_CAMERA". Any specific reason ? As this will have to be dealt
+>> with later anyway as you pointed out earlier, this format translation I mean, I
+>> was wondering if this was the best approach.
+>
+> I thought about that, but that would make it impossible to COMPILE_TEST both the
+> pxa and the soc_camera driver. In addition, the pxa and soc_camera are the only
+> drivers that use this, and I prefer to just merge that code into pxa so that it can
+> be modified independently from soc_camera.
+>
+> I really want to remove all dependencies to soc_camera. That will also make it easier
+> to refactor soc_camera once I get the atmel-isi driver out of soc_camera.
+Ok, fair enough.
 
-I'll work on that.
+I have tested that for at least YUV422, YUYV, YVYU and RGB565 formats :
+Tested-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-> Having some support for it in vivid would be nice as well, but is a lower
-> prio.
-
-Feel free to submit patches ;-)
+Cheers.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Robert
