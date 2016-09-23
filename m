@@ -1,103 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:15409 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752601AbcISVKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 17:10:05 -0400
-Subject: Re: [PATCH v2 07/17] smiapp: Always initialise the sensor in probe
-To: Sebastian Reichel <sre@kernel.org>
-Cc: linux-media@vger.kernel.org
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-8-git-send-email-sakari.ailus@linux.intel.com>
- <20160919205925.myramm47julqwcxb@earth>
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Message-ID: <57E05427.1030800@linux.intel.com>
-Date: Tue, 20 Sep 2016 00:09:59 +0300
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:35466 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755454AbcIWNDj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Sep 2016 09:03:39 -0400
+Received: by mail-lf0-f66.google.com with SMTP id s64so5672704lfs.2
+        for <linux-media@vger.kernel.org>; Fri, 23 Sep 2016 06:03:38 -0700 (PDT)
+Date: Fri, 23 Sep 2016 15:03:35 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Maarten Lankhorst <maarten.lankhorst@linux.intel.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Alex Deucher <alexander.deucher@amd.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: Re: [PATCH 07/11] dma-buf: Restart
+ reservation_object_get_fences_rcu() after writes
+Message-ID: <20160923130335.GH3988@dvetter-linux.ger.corp.intel.com>
+References: <20160829070834.22296-1-chris@chris-wilson.co.uk>
+ <20160829070834.22296-7-chris@chris-wilson.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <20160919205925.myramm47julqwcxb@earth>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20160829070834.22296-7-chris@chris-wilson.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sebastian Reichel wrote:
-> Hi,
->
-> On Thu, Sep 15, 2016 at 02:22:21PM +0300, Sakari Ailus wrote:
->> Initialise the sensor in probe. The reason why it wasn't previously done
->> in case of platform data was that the probe() of the driver that provided
->> the clock through the set_xclk() callback would need to finish before the
->> probe() function of the smiapp driver. The set_xclk() callback no longer
->> exists.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> ---
->>   drivers/media/i2c/smiapp/smiapp-core.c | 53 ++++++++++++----------------------
->>   1 file changed, 19 insertions(+), 34 deletions(-)
->>
->> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
->> index 5d251b4..13322f3 100644
->> --- a/drivers/media/i2c/smiapp/smiapp-core.c
->> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
->> @@ -2530,8 +2530,19 @@ static int smiapp_register_subdev(struct smiapp_sensor *sensor,
->>   	return 0;
->>   }
->>
->> -static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
->> +static void smiapp_cleanup(struct smiapp_sensor *sensor)
->> +{
->> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
->> +
->> +	device_remove_file(&client->dev, &dev_attr_nvm);
->> +	device_remove_file(&client->dev, &dev_attr_ident);
->> +
->> +	smiapp_free_controls(sensor);
->> +}
->> +
->> +static int smiapp_registered(struct v4l2_subdev *subdev)
->>   {
->> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
->>   	int rval;
->>
->>   	if (sensor->scaler) {
->> @@ -2540,23 +2551,18 @@ static int smiapp_register_subdevs(struct smiapp_sensor *sensor)
->>   			SMIAPP_PAD_SRC, SMIAPP_PAD_SINK,
->>   			MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
->>   		if (rval < 0)
->> -			return rval;
->> +			goto out_err;
->>   	}
->>
->>   	return smiapp_register_subdev(
->>   		sensor, sensor->pixel_array, sensor->binner,
->>   		SMIAPP_PA_PAD_SRC, SMIAPP_PAD_SINK,
->>   		MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE);
->
-> I guess you should also handle errors from the second
-> smiapp_register_subdev call?
+On Mon, Aug 29, 2016 at 08:08:30AM +0100, Chris Wilson wrote:
+> In order to be completely generic, we have to double check the read
+> seqlock after acquiring a reference to the fence. If the driver is
+> allocating fences from a SLAB_DESTROY_BY_RCU, or similar freelist, then
+> within an RCU grace period a fence may be freed and reallocated. The RCU
+> read side critical section does not prevent this reallocation, instead
+> we have to inspect the reservation's seqlock to double check if the
+> fences have been reassigned as we were acquiring our reference.
+> 
+> Signed-off-by: Chris Wilson <chris@chris-wilson.co.uk>
+> Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+> Cc: Christian König <christian.koenig@amd.com>
+> Cc: Alex Deucher <alexander.deucher@amd.com>
+> Cc: Sumit Semwal <sumit.semwal@linaro.org>
+> Cc: linux-media@vger.kernel.org
+> Cc: dri-devel@lists.freedesktop.org
+> Cc: linaro-mm-sig@lists.linaro.org
+> ---
+>  drivers/dma-buf/reservation.c | 71 +++++++++++++++++++------------------------
+>  1 file changed, 31 insertions(+), 40 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> index 723d8af988e5..10fd441dd4ed 100644
+> --- a/drivers/dma-buf/reservation.c
+> +++ b/drivers/dma-buf/reservation.c
+> @@ -280,18 +280,24 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  				      unsigned *pshared_count,
+>  				      struct fence ***pshared)
+>  {
+> -	unsigned shared_count = 0;
+> -	unsigned retry = 1;
+> -	struct fence **shared = NULL, *fence_excl = NULL;
+> -	int ret = 0;
+> +	struct fence **shared = NULL;
+> +	struct fence *fence_excl;
+> +	unsigned shared_count;
+> +	int ret = 1;
 
-Um, yes. Perhaps it'd be better just fix it here now that we still 
-remember the problem. :-) I'll fix that for v2.
+Personally I'd go with ret = -EBUSY here, but that's a bikeshed.
 
->
->> -}
->>
->> -static void smiapp_cleanup(struct smiapp_sensor *sensor)
->> -{
->> -	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
->> -
->> -	device_remove_file(&client->dev, &dev_attr_nvm);
->> -	device_remove_file(&client->dev, &dev_attr_ident);
->> +out_err:
->> +	smiapp_cleanup(sensor);
->>
->> -	smiapp_free_controls(sensor);
->> +	return rval;
->>   }
->
-> -- Sebastian
->
-
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+>  
+> -	while (retry) {
+> +	do {
+>  		struct reservation_object_list *fobj;
+>  		unsigned seq;
+> +		unsigned i;
+>  
+> -		seq = read_seqcount_begin(&obj->seq);
+> +		shared_count = i = 0;
+>  
+>  		rcu_read_lock();
+> +		seq = read_seqcount_begin(&obj->seq);
+> +
+> +		fence_excl = rcu_dereference(obj->fence_excl);
+> +		if (fence_excl && !fence_get_rcu(fence_excl))
+> +			goto unlock;
+>  
+>  		fobj = rcu_dereference(obj->fence);
+>  		if (fobj) {
+> @@ -309,52 +315,37 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  				}
+>  
+>  				ret = -ENOMEM;
+> -				shared_count = 0;
+>  				break;
+>  			}
+>  			shared = nshared;
+> -			memcpy(shared, fobj->shared, sz);
+>  			shared_count = fobj->shared_count;
+> -		} else
+> -			shared_count = 0;
+> -		fence_excl = rcu_dereference(obj->fence_excl);
+> -
+> -		retry = read_seqcount_retry(&obj->seq, seq);
+> -		if (retry)
+> -			goto unlock;
+> -
+> -		if (!fence_excl || fence_get_rcu(fence_excl)) {
+> -			unsigned i;
+>  
+>  			for (i = 0; i < shared_count; ++i) {
+> -				if (fence_get_rcu(shared[i]))
+> -					continue;
+> -
+> -				/* uh oh, refcount failed, abort and retry */
+> -				while (i--)
+> -					fence_put(shared[i]);
+> -
+> -				if (fence_excl) {
+> -					fence_put(fence_excl);
+> -					fence_excl = NULL;
+> -				}
+> -
+> -				retry = 1;
+> -				break;
+> +				shared[i] = rcu_dereference(fobj->shared[i]);
+> +				if (!fence_get_rcu(shared[i]))
+> +					break;
+>  			}
+> -		} else
+> -			retry = 1;
+> +		}
+> +
+> +		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
+> +			while (i--)
+> +				fence_put(shared[i]);
+> +			fence_put(fence_excl);
+> +			goto unlock;
+> +		}
+>  
+> +		ret = 0;
+>  unlock:
+>  		rcu_read_unlock();
+> -	}
+> -	*pshared_count = shared_count;
+> -	if (shared_count)
+> -		*pshared = shared;
+> -	else {
+> -		*pshared = NULL;
+> +	} while (ret);
+> +
+> +	if (!shared_count) {
+>  		kfree(shared);
+> +		shared = NULL;
+>  	}
+> +
+> +	*pshared_count = shared_count;
+> +	*pshared = shared;
+>  	*pfence_excl = fence_excl;
+>  
+>  	return ret;
+> -- 
+> 2.9.3
+> 
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
