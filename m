@@ -1,134 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:32992 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754916AbcIVIvm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 04:51:42 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
-References: <20160915130441.ji3f3jiiebsnsbct@acer>
-        <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
-        <m3k2e5wfxy.fsf@t19.piap.pl> <20160921134554.s3tdolyej6r2w5wh@zver>
-Date: Thu, 22 Sep 2016 10:51:37 +0200
-In-Reply-To: <20160921134554.s3tdolyej6r2w5wh@zver> (Andrey Utkin's message of
-        "Wed, 21 Sep 2016 16:45:54 +0300")
-Message-ID: <m360powc4m.fsf@t19.piap.pl>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56228 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753144AbcIXDUE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 23 Sep 2016 23:20:04 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 15D6A18010C
+        for <linux-media@vger.kernel.org>; Sat, 24 Sep 2016 05:19:58 +0200 (CEST)
+Date: Sat, 24 Sep 2016 05:19:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160924031958.15D6A18010C@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrey Utkin <andrey_utkin@fastmail.com> writes:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> It happens in solo_disp_init at uploading default motion thresholds
-> array.
->
-> I've got a prints trace with solo6010-fix-lockup branch
-> https://github.com/bluecherrydvr/linux/tree/solo6010-fix-lockup/drivers/media/pci/solo6x10
-> the trace itself in jpg:
-> https://decent.im:5281/upload/3793f393-e285-4514-83dd-bf08d1c8b4a2/e7ad898b-515b-4522-86a9-553daaeb0860.jpg
+Results of the daily build of media_tree:
 
-solo_motion_config() uses BM DMA and thus generates IRQ, this may be
-indeed the ISR problem. BTW the IRQ debugging ("kernel hacking") should
-catch it.
-OTOH programming the DMA can be guilty as well.
+date:		Sat Sep 24 04:00:17 CEST 2016
+git branch:	test
+git hash:	e3ea5e94489bc8c711d422dfa311cfa310553a1b
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
-I wonder if the following fixes the problem (completely untested).
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: WARNINGS
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: WARNINGS
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-core.c b/drivers/media/pci/solo6x10/solo6x10-core.c
-index f50d072..2d4900e 100644
---- a/drivers/media/pci/solo6x10/solo6x10-core.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-core.c
-@@ -99,6 +99,7 @@ static irqreturn_t solo_isr(int irq, void *data)
- {
- 	struct solo_dev *solo_dev = data;
- 	u32 status;
-+	u16 tmp;
- 	int i;
- 
- 	status = solo_reg_read(solo_dev, SOLO_IRQ_STAT);
-@@ -129,6 +130,7 @@ static irqreturn_t solo_isr(int irq, void *data)
- 	if (status & SOLO_IRQ_G723)
- 		solo_g723_isr(solo_dev);
- 
-+	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &tmp) // flush write to SOLO_IRQ_STAT
- 	return IRQ_HANDLED;
- }
- 
-diff --git a/drivers/media/pci/solo6x10/solo6x10-p2m.c b/drivers/media/pci/solo6x10/solo6x10-p2m.c
-index 07c4e07..8a51d45 100644
---- a/drivers/media/pci/solo6x10/solo6x10-p2m.c
-+++ b/drivers/media/pci/solo6x10/solo6x10-p2m.c
-@@ -70,6 +70,7 @@ int solo_p2m_dma_desc(struct solo_dev *solo_dev,
- 	unsigned int config = 0;
- 	int ret = 0;
- 	int p2m_id = 0;
-+	u16 tmp;
- 
- 	/* Get next ID. According to Softlogic, 6110 has problems on !=0 P2M */
- 	if (solo_dev->type != SOLO_DEV_6110 && multi_p2m) {
-@@ -111,6 +112,7 @@ int solo_p2m_dma_desc(struct solo_dev *solo_dev,
- 			       desc[1].ctrl);
- 	}
- 
-+	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &tmp); // flush writes
- 	timeout = wait_for_completion_timeout(&p2m_dev->completion,
- 					      solo_dev->p2m_jiffies);
- 
+Detailed results are available here:
 
-> Indeed, targeted fixing would be more reasonable than making register
-> r/w routines follow blocking fashion. But the driver is already complete
-> and was known to be working, and I seems all places in code assume the
-> blocking fashion of reg r/w, and changing that assumption may lead to
-> covert bugs anywhere else, not just at probing, which may be hard to
-> nail down.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-The driver code doesn't have to assume anything about posted writes -
-except at very specific places (as explained by Alan).
+Full logs are available here:
 
-Normally, a CPU write to a register doesn't have to be flushed right
-away. It would be much slower, especially if used extensively. Nobody
-does anything alike since the end of the ISA bus.
-The driver (and the card) can still see all operations in correct
-order, in both cases.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-The potential problem is a write being held in a buffer (and not making
-it to the actual hardware). This may happen in ISR since the actual
-write is deactivates the physical IRQ line. Otherwise the ISR terminates
-and is immediately requested again - though this second call should
-bring the IRQ down by reading the register (thus flushing the write
-buffer) - so, while not very effective, it shouldn't lock up (but it's
-a real bug worth fixing).
+The Media Infrastructure API from this daily build is here:
 
-Also, I imagine a write to the DMA registers can be posted and the DMA
-may not start in time. This shouldn't end in a lock up, either. Perhaps
-a different bug is involved.
-
-
-The other thing is BM DMA (card->RAM). All DMA transfers (initiated by
-the card) are completed with an IRQ (either with success or failure).
-This is potentially a problem as well, though it has nothing to do with
-the patch in question. I guess the SOLO reads some descriptors or
-something, and such writes are flushed this way.
-
-> For now, I'll try setting pci_read_config_word() back instead of full
-> revert. Does it need to be just in reg_write? No need for it in
-> reg_read, right?
-
-Sure, reg_read() doesn't write to the device.
-
-It the patch doesn't fix the problem, what CPU and chipset are used by
-the computer which exhibits the issue? Perhaps I have something similar
-here and can reproduce it.
--- 
-Krzysztof Halasa
-
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
+http://www.xs4all.nl/~hverkuil/spec/index.html
