@@ -1,60 +1,583 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ring0.de ([5.45.101.7]:54878 "EHLO ring0.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752729AbcISVdQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 17:33:16 -0400
-Date: Mon, 19 Sep 2016 23:33:14 +0200
-From: Sebastian Reichel <sre@ring0.de>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 15/17] smiapp: Obtain correct media bus code for try
- format
-Message-ID: <20160919213313.cbungdfsrcmouxya@earth>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-16-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="zmq4ybmdnzqksnlv"
-Content-Disposition: inline
-In-Reply-To: <1473938551-14503-16-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34716 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934946AbcIXWks (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Sep 2016 18:40:48 -0400
+Received: by mail-wm0-f65.google.com with SMTP id l132so8276862wmf.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Sep 2016 15:40:48 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: benjamin@southpole.se, mchehab@kernel.org,
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [RFC] media: mn88473: add DVBv5 statistics support
+Date: Sun, 25 Sep 2016 00:40:19 +0200
+Message-Id: <20160924224019.677-2-martin.blumenstingl@googlemail.com>
+In-Reply-To: <20160924224019.677-1-martin.blumenstingl@googlemail.com>
+References: <20160924224019.677-1-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Implement DVBv5 statistics support for DVB-T, DVB-T2 and DVB-C. All
+information was taken from the LinuxTV wiki, where Benjamin Larsson has
+documented all registers:
+https://www.linuxtv.org/wiki/index.php/Panasonic_MN88472
 
---zmq4ybmdnzqksnlv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ drivers/media/dvb-frontends/mn88473.c      | 485 ++++++++++++++++++++++++++---
+ drivers/media/dvb-frontends/mn88473_priv.h |   1 +
+ 2 files changed, 445 insertions(+), 41 deletions(-)
 
-Hi,
+diff --git a/drivers/media/dvb-frontends/mn88473.c b/drivers/media/dvb-frontends/mn88473.c
+index 451974a..c8dc9d3 100644
+--- a/drivers/media/dvb-frontends/mn88473.c
++++ b/drivers/media/dvb-frontends/mn88473.c
+@@ -234,13 +234,388 @@ err:
+ 	return ret;
+ }
+ 
++static int mn88473_update_ber_stat_t_c(struct dvb_frontend *fe,
++				       enum fe_status *status)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88473_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	u64 total;
++	unsigned int uitmp, value, errors;
++
++	if (*status & FE_HAS_LOCK) {
++		ret = regmap_read(dev->regmap[0], 0x5b, &value);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[0], 0xdf, &uitmp);
++		if (ret)
++			goto err;
++
++		value &= uitmp;
++		ret = regmap_write(dev->regmap[0], 0x5b, value);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[0], 0x60, &value);
++		if (ret)
++			goto err;
++
++		value &= 0xf0;
++		value |= 0x5;
++		ret = regmap_write(dev->regmap[0], 0x60, value);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[0], 0x92, &uitmp);
++		if (ret)
++			goto err;
++
++		errors = uitmp << 16;
++
++		ret = regmap_read(dev->regmap[0], 0x93, &uitmp);
++		if (ret)
++			goto err;
++
++		errors |= uitmp << 8;
++
++		ret = regmap_read(dev->regmap[0], 0x94, &uitmp);
++		if (ret)
++			goto err;
++
++		errors |= uitmp;
++
++		ret = regmap_read(dev->regmap[0], 0x95, &uitmp);
++		if (ret)
++			goto err;
++
++		total = uitmp << 8;
++
++		ret = regmap_read(dev->regmap[0], 0x96, &uitmp);
++		if (ret)
++			goto err;
++
++		total |= uitmp;
++
++		/* probably: (bytes -> bit) * (sizeof(TS packet) - 1) */
++		total *= 8 * 203;
++
++		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_error.stat[0].uvalue += errors;
++		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_count.stat[0].uvalue += total;
++	} else {
++		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	return 0;
++
++err:
++	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++	return ret;
++}
++
++static int mn88473_update_ber_stat_t2(struct dvb_frontend *fe,
++				      enum fe_status *status)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88473_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	u64 total;
++	unsigned int uitmp, value, berlen, fec_type_m, errors;
++	static u16 fec_type_m_tbl0[] = {
++		32400, 38880, 43200, 48600, 51840, 54000, 0
++	};
++	static u16 fec_type_m_tbl1[] = {
++		28800, 38880, 43200, 47520, 50400, 53280, 0
++	};
++
++	if (*status & FE_HAS_LOCK) {
++		ret = regmap_read(dev->regmap[2], 0x82, &value);
++		if (ret)
++			goto err;
++
++		value |= 0x20;
++		value &= 0xef;
++		ret = regmap_write(dev->regmap[2], 0x82, value);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[2], 0xba, &uitmp);
++		if (ret)
++			goto err;
++
++		errors = uitmp << 16;
++
++		ret = regmap_read(dev->regmap[2], 0xbb, &uitmp);
++		if (ret)
++			goto err;
++
++		errors |= uitmp << 8;
++
++		ret = regmap_read(dev->regmap[2], 0xbc, &uitmp);
++		if (ret)
++			goto err;
++
++		errors |= uitmp;
++
++		ret = regmap_read(dev->regmap[2], 0x83, &berlen);
++		if (ret)
++			goto err;
++
++		ret = regmap_write(dev->regmap[2], 0xc0, 0x3);
++		if (ret)
++			goto err;
++
++		/* berlen[4:2] are the index in fec_type_m_tbl */
++		uitmp = (berlen >> 2) & 0x7;
++
++		if (BIT(0) & berlen)
++			fec_type_m = fec_type_m_tbl0[uitmp];
++		else
++			fec_type_m = fec_type_m_tbl1[uitmp];
++
++		total = ((berlen & 0xff) << 1) * fec_type_m;
++
++		c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_error.stat[0].uvalue += errors;
++		c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->post_bit_count.stat[0].uvalue += total;
++	} else {
++		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	return 0;
++
++err:
++	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++	return ret;
++}
++
++static inline u32 log10times1000(u32 value)
++{
++	return (1000L * intlog10(value)) >> 24;
++}
++
++static int mn88473_read_status_t(struct dvb_frontend *fe,
++				 enum fe_status *status)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88473_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	s32 cnr;
++	unsigned int uitmp, tmp_upper, tmp_lower;
++
++	ret = regmap_read(dev->regmap[0], 0x62, &uitmp);
++	if (ret)
++		goto err;
++
++	if (!(uitmp & 0xa0)) {
++		if ((uitmp & 0x0f) >= 0x09)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++					FE_HAS_VITERBI | FE_HAS_SYNC |
++					FE_HAS_LOCK;
++		else if ((uitmp & 0x0f) >= 0x03)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
++	}
++
++	/* CNR */
++	if (*status & FE_HAS_VITERBI) {
++		ret = regmap_read(dev->regmap[0], 0x8f, &tmp_upper);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[0], 0x90, &tmp_lower);
++		if (ret)
++			goto err;
++
++		uitmp = (tmp_upper << 8) | tmp_lower;
++		if (uitmp) {
++			cnr = log10times1000(65536);
++			cnr -= log10times1000(uitmp);
++			cnr += 200;
++		} else
++			cnr = 0;
++
++		if (cnr < 0)
++			cnr = 0;
++
++		c->cnr.stat[0].svalue = cnr * 10;
++		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++	} else {
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	/* BER */
++	ret = mn88473_update_ber_stat_t_c(fe, status);
++	if (ret)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++	return ret;
++}
++
++static int mn88473_read_status_t2(struct dvb_frontend *fe,
++				  enum fe_status *status)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88473_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	s32 cnr;
++	unsigned int uitmp, tmp_upper, tmp_lower, flag;
++
++	ret = regmap_read(dev->regmap[2], 0x8b, &uitmp);
++	if (ret)
++		goto err;
++
++	if (!(uitmp & 0x40)) {
++		if ((uitmp & 0x0f) >= 0x0d)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++					FE_HAS_VITERBI | FE_HAS_SYNC |
++					FE_HAS_LOCK;
++		else if ((uitmp & 0x0f) >= 0x0a)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++					FE_HAS_VITERBI;
++		else if ((uitmp & 0x0f) >= 0x07)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
++	}
++
++	/* CNR */
++	if (*status & FE_HAS_VITERBI) {
++		ret = regmap_read(dev->regmap[2], 0xb7, &flag);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[2], 0xb8, &tmp_upper);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[2], 0xb9, &tmp_lower);
++		if (ret)
++			goto err;
++
++		uitmp = (tmp_upper << 8) | tmp_lower;
++		if (uitmp) {
++			if (flag & BIT(2)) {
++				/* MISO */
++				cnr = log10times1000(16384);
++				cnr -= log10times1000(uitmp);
++				cnr -= 600;
++			} else {
++				/* SISO */
++				cnr = log10times1000(65536);
++				cnr -= log10times1000(uitmp);
++				cnr += 200;
++			}
++		} else
++			cnr = 0;
++
++		if (cnr < 0)
++			cnr = 0;
++
++		c->cnr.stat[0].svalue = cnr * 10;
++		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++	} else {
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	/* BER */
++	ret = mn88473_update_ber_stat_t2(fe, status);
++	if (ret)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++	return ret;
++}
++
++static int mn88473_read_status_c(struct dvb_frontend *fe,
++				 enum fe_status *status)
++{
++	struct i2c_client *client = fe->demodulator_priv;
++	struct mn88473_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int ret;
++	unsigned int uitmp, tmp_upper, tmp_lower, signal, noise;
++
++	ret = regmap_read(dev->regmap[1], 0x85, &uitmp);
++	if (ret)
++		goto err;
++
++	if (!(uitmp & 0x40)) {
++		ret = regmap_read(dev->regmap[1], 0x89, &uitmp);
++		if (ret)
++			goto err;
++
++		if (uitmp & 0x01)
++			*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
++					FE_HAS_VITERBI | FE_HAS_SYNC |
++					FE_HAS_LOCK;
++	}
++
++	/* CNR */
++	if (*status & FE_HAS_VITERBI) {
++		ret = regmap_read(dev->regmap[1], 0xa1, &tmp_upper);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[1], 0xa2, &tmp_lower);
++		if (ret)
++			goto err;
++
++		signal = (tmp_upper << 8) | tmp_lower;
++
++		ret = regmap_read(dev->regmap[1], 0xa3, &tmp_upper);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[1], 0xa4, &tmp_lower);
++		if (ret)
++			goto err;
++
++		noise = (tmp_upper << 8) | tmp_lower;
++		if (noise)
++			uitmp = log10times1000(signal * 8 / noise);
++		else
++			uitmp = 0;
++
++		c->cnr.stat[0].svalue = uitmp * 10;
++		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++	} else {
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	/* BER */
++	ret = mn88473_update_ber_stat_t_c(fe, status);
++	if (ret)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
++	return ret;
++}
++
+ static int mn88473_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ {
+ 	struct i2c_client *client = fe->demodulator_priv;
+ 	struct mn88473_dev *dev = i2c_get_clientdata(client);
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+-	unsigned int uitmp;
++	u16 errors, per_len;
++	unsigned int upper, lower;
+ 
+ 	if (!dev->active) {
+ 		ret = -EAGAIN;
+@@ -251,60 +626,73 @@ static int mn88473_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 
+ 	switch (c->delivery_system) {
+ 	case SYS_DVBT:
+-		ret = regmap_read(dev->regmap[0], 0x62, &uitmp);
++		ret = mn88473_read_status_t(fe, status);
++		break;
++	case SYS_DVBT2:
++		ret = mn88473_read_status_t2(fe, status);
++		break;
++	case SYS_DVBC_ANNEX_A:
++		ret = mn88473_read_status_c(fe, status);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	if (ret)
++		goto err;
++
++	/* signal strength, derived from AGC */
++	if (*status & FE_HAS_SIGNAL) {
++		ret = regmap_read(dev->regmap[2], 0x86, &upper);
+ 		if (ret)
+ 			goto err;
+ 
+-		if (!(uitmp & 0xa0)) {
+-			if ((uitmp & 0x0f) >= 0x09)
+-				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-					  FE_HAS_VITERBI | FE_HAS_SYNC |
+-					  FE_HAS_LOCK;
+-			else if ((uitmp & 0x0f) >= 0x03)
+-				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
+-		}
+-		break;
+-	case SYS_DVBT2:
+-		ret = regmap_read(dev->regmap[2], 0x8b, &uitmp);
++		ret = regmap_read(dev->regmap[2], 0x87, &lower);
+ 		if (ret)
+ 			goto err;
+ 
+-		if (!(uitmp & 0x40)) {
+-			if ((uitmp & 0x0f) >= 0x0d)
+-				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-					  FE_HAS_VITERBI | FE_HAS_SYNC |
+-					  FE_HAS_LOCK;
+-			else if ((uitmp & 0x0f) >= 0x0a)
+-				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-					  FE_HAS_VITERBI;
+-			else if ((uitmp & 0x0f) >= 0x07)
+-				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER;
+-		}
+-		break;
+-	case SYS_DVBC_ANNEX_A:
+-		ret = regmap_read(dev->regmap[1], 0x85, &uitmp);
++		/* AGCRD[15:6] gives us a 10bit value ([5:0] are always 0) */
++		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++		c->strength.stat[0].uvalue = (upper << 8) | lower;
++	} else {
++		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	/* PER */
++	if (*status & FE_HAS_LOCK) {
++		ret = regmap_read(dev->regmap[0], 0xdd, &upper);
+ 		if (ret)
+ 			goto err;
+ 
+-		if (!(uitmp & 0x40)) {
+-			ret = regmap_read(dev->regmap[1], 0x89, &uitmp);
+-			if (ret)
+-				goto err;
++		ret = regmap_read(dev->regmap[0], 0xde, &lower);
++		if (ret)
++			goto err;
+ 
+-			if (uitmp & 0x01)
+-				*status = FE_HAS_SIGNAL | FE_HAS_CARRIER |
+-					  FE_HAS_VITERBI | FE_HAS_SYNC |
+-					  FE_HAS_LOCK;
+-		}
+-		break;
+-	default:
+-		ret = -EINVAL;
+-		goto err;
++		errors = (upper << 8) | lower;
++
++		ret = regmap_read(dev->regmap[0], 0xdf, &upper);
++		if (ret)
++			goto err;
++
++		ret = regmap_read(dev->regmap[0], 0xe0, &lower);
++		if (ret)
++			goto err;
++
++		per_len = (upper << 8) | lower;
++
++		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->block_error.stat[0].uvalue += errors;
++		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->block_count.stat[0].uvalue += per_len;
++	} else {
++		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
+ 	}
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
++	dev_dbg(&client->dev, "%s failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -312,6 +700,7 @@ static int mn88473_init(struct dvb_frontend *fe)
+ {
+ 	struct i2c_client *client = fe->demodulator_priv;
+ 	struct mn88473_dev *dev = i2c_get_clientdata(client);
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, len, remain;
+ 	unsigned int uitmp;
+ 	const struct firmware *fw;
+@@ -378,6 +767,20 @@ warm:
+ 
+ 	dev->active = true;
+ 
++	/* init stats here to indicate which stats are supported */
++	c->strength.len = 1;
++	c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->cnr.len = 1;
++	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_error.len = 1;
++	c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->post_bit_count.len = 1;
++	c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->block_error.len = 1;
++	c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	c->block_count.len = 1;
++	c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	return 0;
+ err_release_firmware:
+ 	release_firmware(fw);
+diff --git a/drivers/media/dvb-frontends/mn88473_priv.h b/drivers/media/dvb-frontends/mn88473_priv.h
+index e6c6589..7cbef7b 100644
+--- a/drivers/media/dvb-frontends/mn88473_priv.h
++++ b/drivers/media/dvb-frontends/mn88473_priv.h
+@@ -18,6 +18,7 @@
+ #define MN88473_PRIV_H
+ 
+ #include "dvb_frontend.h"
++#include "dvb_math.h"
+ #include "mn88473.h"
+ #include <linux/firmware.h>
+ #include <linux/regmap.h>
+-- 
+2.10.0
 
-On Thu, Sep 15, 2016 at 02:22:29PM +0300, Sakari Ailus wrote:
-> The media bus code obtained for try format may have been a code that the
-> sensor did not even support. Use a supported code with the current pixel
-> order.
-
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---zmq4ybmdnzqksnlv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4FmZAAoJENju1/PIO/qaTcoP/1EiEVn/XdAtmlrOL09I89Oq
-zhUvgxD8yFoOGxFdVpi9EOAWtuqTAFeSbsgiXifMmgYfgp3azzUlnJIUJzK+W9co
-YPdnnSxbOlGc/7QsIb9EiQ00NSnwf6xBKX+SlhyoyTgbv0AlBIF8gQNL/AUoPuow
-uWKmp4n7kCHdOmh1yfiqoRfsu9fBuM/uUG+O2Ha/rLnZovpYDLrMMcHlvGEJ/5Rd
-RPCR5BIeer9/lld9wufb06KhUxitHAVLRfkKlusV5gLg6RjW12bw6htOn0qHaOrW
-+OvU1BH1+xPRSFZjDFxK/STQrHm9eBMPT6LYC2VRVJmnn2NG6oxsZcpGKPojimkG
-HGdfG2Qc036uOQHTbJZs550Bmi+k7LdF/2+qDJR1rk3Ss+Gl1GapLNTpc6958Xys
-8YtgDdPnqS8SZsdtpjml9Qm9eK6xJOMpw0+dqP10j9Yd83Gnm8Au5OPUyh+2DzWv
-3/D2RqSvVPCYpxAaqLyCo7LOFN7ZJaUXAkcLRvdP+FFH5hqGxRIvTHPthkHuotke
-/CM+JcLWXkXqWo5q9lCEtotnn5upby5OU5Ew5P0Is5N5N5xf3DQi8s8v/ayEdirQ
-lKWRcLNg6mFlCb3KMhTNY8zTtmwtPVTACiUuBLOMXuO0ClX4FlbmbvfIr8z2XMYs
-TxTRTw3LRvOrKl8Mxp36
-=i57q
------END PGP SIGNATURE-----
-
---zmq4ybmdnzqksnlv--
