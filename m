@@ -1,67 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:38876 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932424AbcISVWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 17:22:04 -0400
-Date: Mon, 19 Sep 2016 23:21:57 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 12/17] smiapp: Obtain frame layout from the frame
- descriptor
-Message-ID: <20160919212157.c3tnp72yufmqmyxm@earth>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-13-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36134 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759810AbcIYUdQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 25 Sep 2016 16:33:16 -0400
+Date: Sun, 25 Sep 2016 22:33:13 +0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+        Baoyou Xie <baoyou.xie@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, xie.baoyou@zte.com.cn,
+        LKML <linux-kernel@vger.kernel.org>,
+        DRI mailing list <dri-devel@lists.freedesktop.org>,
+        Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] dma-buf/sw_sync: mark sync_timeline_create() static
+Message-ID: <20160925203313.GA2571@joana>
+References: <1474202961-10099-1-git-send-email-baoyou.xie@linaro.org>
+ <20160920111338.GE13275@joana>
+ <CAO_48GFTkpvKLZghbOtNu=CUB61tZx0q6uC1JPVRMB1rPiSPqA@mail.gmail.com>
+ <20160922065731.GA16298@kroah.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="biogmpq4wkzf7udp"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1473938551-14503-13-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <20160922065731.GA16298@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Baoyou,
 
---biogmpq4wkzf7udp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+2016-09-22 Greg Kroah-Hartman <gregkh@linuxfoundation.org>:
 
-Hi,
+> On Tue, Sep 20, 2016 at 06:23:33PM +0530, Sumit Semwal wrote:
+> > Hi Baoyou,
+> > 
+> > On 20 September 2016 at 16:43, Gustavo Padovan <gustavo@padovan.org> wrote:
+> > > 2016-09-18 Baoyou Xie <baoyou.xie@linaro.org>:
+> > >
+> > >> We get 1 warning when building kernel with W=1:
+> > >> drivers/dma-buf/sw_sync.c:87:23: warning: no previous prototype for 'sync_timeline_create' [-Wmissing-prototypes]
+> > >>
+> > >> In fact, this function is only used in the file in which it is
+> > >> declared and don't need a declaration, but can be made static.
+> > >> So this patch marks it 'static'.
+> > >>
+> > >> Signed-off-by: Baoyou Xie <baoyou.xie@linaro.org>
+> > >> ---
+> > >>  drivers/dma-buf/sw_sync.c | 2 +-
+> > >>  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > Thanks for finding this.
+> > 
+> > Thanks for the patch; this doesn't apply to mainline yet, since the
+> > de-staging of sw_sync code is queued for 4.9 via Greg-KH's tree.
+> > CC'ing him.
+> > 
+> > Greg, would it be possible to please take this via your tree?
+> 
+> If someone resends it to me with the needed acks and reviewed-by, I
+> will.
 
-On Thu, Sep 15, 2016 at 02:22:26PM +0300, Sakari Ailus wrote:
-> Besides the image data, SMIA++ compliant sensors also provide embedded
-> data in form of registers used to capture the image. Store this
-> information for later use in frame descriptor and routing.
+Could please resend this to Greg with all the acks and reviewed-by in
+the commit message? Thanks.
 
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
+Gustavo
 
-> [...]
->
-> +	if (sensor->embedded_end > sensor->image_start)
-> +		sensor->image_start = sensor->embedded_end;
-
-Maybe add a dev_dbg about sensor format information being broken?
-
--- Sebastian
-
---biogmpq4wkzf7udp
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4Fb1AAoJENju1/PIO/qaMcEP/3FYIhXwcspXcV4VtI6/x6n5
-qJzxeFLuUfYolOG0xzoDCYjrKUAvHAKJP6ogSp5tuK9l+1kwt6atKpNpbjMgI9QI
-o4KfjEqP5p8Rp0CwfHnbiDeRLiF4bhIdIOh4LTCBZ3W/5AuOGW1Jz+inSFQEJ+BT
-Uqrskyx4DHrnYDeEyBY5zyueMtz8tZG1aaiB/YOuzpioAhE4BvR3wgcmwsLPuxho
-0wTanLdKE0MHCx4SLJpJPPV59jdJgWGVNj4YuTJlw5Dyb+CcI8Y+thrq8efEz8sS
-kRXuTGcogidKqefARSaRP3qPqvYfoZbuC2PGNHsZV5e0wC5v0bmkTjSOASsWuZuR
-PLxeeJ4PvHFcFAM4Fx3WWaLaKDIVA1n4PTLKkAt0Echumi7rzxSNj09LcFDN/mIZ
-c83Wc/xD6JA+8dnajcYj8MvZU24hREbs9YhEVbcmv9nWb1pdDVUCGPSB4r9GOsU0
-ElXBll4aecEzrqKHJos3NTXzIBe0ujLkrluvayCrTLkluaZz8x+tRjUGS+hWei8L
-GtLibZVSPMDVsjw2E7kMmnZvbMzVZdnRS8U19TNSh+9sttvzTLO5YGTLrvP8awWs
-A8I6Vc6Om2yVBSjAaJhO7e6eIK9vGdqFqdkNSadhtRTKzG7duMxcrl86XaK87pCv
-wu5ehH2lcT364sWpQyzG
-=LhAR
------END PGP SIGNATURE-----
-
---biogmpq4wkzf7udp--
