@@ -1,76 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:55078 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933292AbcIEKcu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Sep 2016 06:32:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Terry Heo <terryheo@google.com>, Peter Rosin <peda@axentia.se>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH v2 09/12] [media] cx231xx: can't proceed if I2C bus register fails
-Date: Mon,  5 Sep 2016 07:32:37 -0300
-Message-Id: <4a6a0b77d5b33127677230d8184e3cae9e107820.1473071468.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
-References: <cover.1473071468.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473071468.git.mchehab@s-opensource.com>
-References: <cover.1473071468.git.mchehab@s-opensource.com>
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:52239 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936226AbcIYDAT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 24 Sep 2016 23:00:19 -0400
+Received: from localhost (localhost [127.0.0.1])
+        by tschai.lan (Postfix) with ESMTPSA id 81221180907
+        for <linux-media@vger.kernel.org>; Sun, 25 Sep 2016 05:00:12 +0200 (CEST)
+Date: Sun, 25 Sep 2016 05:00:12 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20160925030012.81221180907@tschai.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver should not ignore errors while registering the I2C
-bus, as this device can't even minimally work without the buses,
-as it uses those buses internally to talk with the several IP
-blocks inside the chip.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/cx231xx/cx231xx-core.c | 24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 68b0df2814cf..03754c75454b 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -1309,15 +1309,29 @@ int cx231xx_dev_init(struct cx231xx *dev)
- 	dev->i2c_bus[2].i2c_reserve = 0;
- 
- 	/* register I2C buses */
--	cx231xx_i2c_register(&dev->i2c_bus[0]);
--	cx231xx_i2c_register(&dev->i2c_bus[1]);
--	cx231xx_i2c_register(&dev->i2c_bus[2]);
-+	errCode = cx231xx_i2c_register(&dev->i2c_bus[0]);
-+	if (errCode < 0)
-+		return errCode;
-+	errCode = cx231xx_i2c_register(&dev->i2c_bus[1]);
-+	if (errCode < 0)
-+		return errCode;
-+	errCode = cx231xx_i2c_register(&dev->i2c_bus[2]);
-+	if (errCode < 0)
-+		return errCode;
- 
- 	errCode = cx231xx_i2c_mux_create(dev);
-+	if (errCode < 0) {
-+		dev_err(dev->dev,
-+			"%s: Failed to create I2C mux\n", __func__);
-+		return errCode;
-+	}
-+	errCode = cx231xx_i2c_mux_register(dev, 0);
-+	if (errCode < 0)
-+		return errCode;
-+
-+	errCode = cx231xx_i2c_mux_register(dev, 1);
- 	if (errCode < 0)
- 		return errCode;
--	cx231xx_i2c_mux_register(dev, 0);
--	cx231xx_i2c_mux_register(dev, 1);
- 
- 	/* scan the real bus segments in the order of physical port numbers */
- 	cx231xx_do_i2c_scan(dev, I2C_0);
--- 
-2.7.4
+date:		Sun Sep 25 04:00:19 CEST 2016
+git branch:	test
+git hash:	e3ea5e94489bc8c711d422dfa311cfa310553a1b
+gcc version:	i686-linux-gcc (GCC) 5.4.0
+sparse version:	v0.5.0-56-g7647c77
+smatch version:	v0.5.0-3428-gdfe27cf
+host hardware:	x86_64
+host os:	4.6.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.23-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0-i686: OK
+linux-4.1.1-i686: OK
+linux-4.2-i686: OK
+linux-4.3-i686: OK
+linux-4.4-i686: OK
+linux-4.5-i686: OK
+linux-4.6-i686: OK
+linux-4.7-i686: WARNINGS
+linux-4.8-rc1-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.23-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0-x86_64: OK
+linux-4.1.1-x86_64: OK
+linux-4.2-x86_64: OK
+linux-4.3-x86_64: OK
+linux-4.4-x86_64: OK
+linux-4.5-x86_64: OK
+linux-4.6-x86_64: OK
+linux-4.7-x86_64: WARNINGS
+linux-4.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
+smatch: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
