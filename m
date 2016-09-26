@@ -1,147 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:35026 "EHLO
-        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755536AbcIFK2E (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 06:28:04 -0400
-Received: by mail-lf0-f41.google.com with SMTP id l131so49143396lfl.2
-        for <linux-media@vger.kernel.org>; Tue, 06 Sep 2016 03:28:03 -0700 (PDT)
-Date: Tue, 6 Sep 2016 12:28:00 +0200
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] v4l: vsp1: Move subdev operations from HGO to common
- histogram code
-Message-ID: <20160906102759.GG27014@bigcity.dyn.berto.se>
-References: <1473088419-2800-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:36322 "EHLO
+        mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964961AbcIZTmf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 26 Sep 2016 15:42:35 -0400
+Received: by mail-pa0-f54.google.com with SMTP id qn7so48545436pac.3
+        for <linux-media@vger.kernel.org>; Mon, 26 Sep 2016 12:42:34 -0700 (PDT)
+Subject: Re: [PATCH v2 1/8] doc: DT: vidc: binding document for Qualcomm video
+ driver
+To: Rob Herring <robh@kernel.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1473248229-5540-2-git-send-email-stanimir.varbanov@linaro.org>
+ <20160916141939.GA2320@rob-hp-laptop>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <b2a1db9d-02d6-56ee-1884-72ab1a4720f4@linaro.org>
+Date: Mon, 26 Sep 2016 22:42:32 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1473088419-2800-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20160916141939.GA2320@rob-hp-laptop>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Rob,
 
-Thanks for your patch.
+Thanks for the review!
 
-On 2016-09-05 18:13:39 +0300, Laurent Pinchart wrote:
-> The code will be shared with the HGT entity, move it to the generic
-> histogram implementation.
+On 09/16/2016 05:19 PM, Rob Herring wrote:
+> On Wed, Sep 07, 2016 at 02:37:02PM +0300, Stanimir Varbanov wrote:
+>> Adds binding document for vidc video encoder/decoder driver
+>>
+>> Cc: Rob Herring <robh+dt@kernel.org>
+>> Cc: Mark Rutland <mark.rutland@arm.com>
+>> Cc: devicetree@vger.kernel.org
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/qcom,vidc.txt        | 61 ++++++++++++++++++++++
+>>  1 file changed, 61 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/qcom,vidc.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/qcom,vidc.txt b/Documentation/devicetree/bindings/media/qcom,vidc.txt
+>> new file mode 100644
+>> index 000000000000..0d50a7b2e3ed
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/qcom,vidc.txt
+>> @@ -0,0 +1,61 @@
+>> +* Qualcomm video encoder/decoder accelerator
+>> +
+>> +- compatible:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Value should contain
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_drv.c   |   7 +-
->  drivers/media/platform/vsp1/vsp1_hgo.c   | 308 ++--------------------------
->  drivers/media/platform/vsp1/vsp1_hgo.h   |   7 +-
->  drivers/media/platform/vsp1/vsp1_histo.c | 334 +++++++++++++++++++++++++++++--
->  drivers/media/platform/vsp1/vsp1_histo.h |  25 ++-
->  5 files changed, 355 insertions(+), 326 deletions(-)
+> ... one of:
 > 
+>> +			- "qcom,vidc-msm8916"
+>> +			- "qcom,vidc-msm8996"
+>> +- reg:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: Register ranges as listed in the reg-names property
+>> +
+>> +- interrupts:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition:
+> 
+> How many interrupts?
 
-<snip>
+It is one, thanks for the catch.
 
->  int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
-> -			const char *name, size_t data_size, u32 format)
-> +			enum vsp1_entity_type type, const char *name,
-> +			const struct vsp1_entity_operations *ops,
-> +			const unsigned int *formats, unsigned int num_formats,
-> +			size_t data_size, u32 meta_format)
->  {
->  	int ret;
->  
-> -	histo->vsp1 = vsp1;
-> +	histo->formats = formats;
-> +	histo->num_formats = num_formats;
->  	histo->data_size = data_size;
-> -	histo->format = format;
-> +	histo->meta_format = meta_format;
->  
->  	histo->pad.flags = MEDIA_PAD_FL_SINK;
->  	histo->video.vfl_dir = VFL_DIR_RX;
-> @@ -268,7 +559,16 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
->  	INIT_LIST_HEAD(&histo->irqqueue);
->  	init_waitqueue_head(&histo->wait_queue);
->  
-> -	/* Initialize the media entity... */
-> +	/* Initialize the VSP entity... */
-> +	histo->entity.ops = ops;
-> +	histo->entity.type = type;
-> +
-> +	ret = vsp1_entity_init(vsp1, &histo->entity, name, 2, &histo_ops,
-> +			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	/* ... and the media entity... */
->  	ret = media_entity_pads_init(&histo->video.entity, 1, &histo->pad);
->  	if (ret < 0)
->  		return ret;
+> 
+>> +
+>> +- power-domains:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A phandle and power domain specifier pairs to the
+>> +		    power domain which is responsible for collapsing
+>> +		    and restoring power to the peripheral
+> 
+> How many power domains?
 
+Good question, for vidc-msm8916 it is one power-domain, for vidc-msm8996
+the power domains should be 3. Here the problem is that the genpd
+doesn't permit more than one power-domain per device.
 
-You forgot to update the histo video device name to match the subdevice 
-name here. Something like this makes vsp-tests work for me again.
+> 
+>> +
+>> +- clocks:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: List of phandle and clock specifier pairs as listed
+>> +		    in clock-names property
+>> +- clock-names:
+>> +	Usage: required
+>> +	Value type: <stringlist>
+>> +	Definition: Should contain the following entries
+>> +			- "core"  Core video accelerator clock
+>> +			- "iface" Video accelerator AHB clock
+>> +			- "bus"	  Video accelerator AXI clock
+>> +- rproc:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A phandle to remote processor responsible for
+>> +		    firmware loading
+>> +
+>> +- iommus:
+>> +	Usage: required
+>> +	Value type: <prop-encoded-array>
+>> +	Definition: A list of phandle and IOMMU specifier pairs
+>> +
+>> +* An Example
+>> +	qcom,vidc@1d00000 {
+> 
+> node names should be generic: video-codec@
 
-@@ -577,7 +577,7 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
-        histo->video.v4l2_dev = &vsp1->v4l2_dev;
-        histo->video.fops = &histo_v4l2_fops;
-        snprintf(histo->video.name, sizeof(histo->video.name),
--                "%s histo", name);
-+                "%s histo", histo->entity.subdev.name);
-        histo->video.vfl_type = VFL_TYPE_GRABBER;
-        histo->video.release = video_device_release_empty;
-        histo->video.ioctl_ops = &histo_v4l2_ioctl_ops;
-
-Without this fix the names listed using media-ctl -p show:
-
-- entity 1: hgo histo (1 pad, 1 link)
-
-Instead as it did before:
-
-- entity 1: fe928000.vsp1 hgo histo (1 pad, 1 link)
-
-Other then that
-
-Tested-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> @@ -293,10 +593,10 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
->  	histo->queue.ops = &histo_video_queue_qops;
->  	histo->queue.mem_ops = &vb2_vmalloc_memops;
->  	histo->queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> -	histo->queue.dev = histo->vsp1->dev;
-> +	histo->queue.dev = vsp1->dev;
->  	ret = vb2_queue_init(&histo->queue);
->  	if (ret < 0) {
-> -		dev_err(histo->vsp1->dev, "failed to initialize vb2 queue\n");
-> +		dev_err(vsp1->dev, "failed to initialize vb2 queue\n");
->  		goto error;
->  	}
->  
-> @@ -304,7 +604,7 @@ int vsp1_histogram_init(struct vsp1_device *vsp1, struct vsp1_histogram *histo,
->  	histo->video.queue = &histo->queue;
->  	ret = video_register_device(&histo->video, VFL_TYPE_GRABBER, -1);
->  	if (ret < 0) {
-> -		dev_err(histo->vsp1->dev, "failed to register video device\n");
-> +		dev_err(vsp1->dev, "failed to register video device\n");
->  		goto error;
->  	}
->  
-> @@ -314,11 +614,3 @@ error:
->  	vsp1_histogram_cleanup(histo);
->  	return ret;
->  }
-> -
-> -void vsp1_histogram_cleanup(struct vsp1_histogram *histo)
-> -{
-> -	if (video_is_registered(&histo->video))
-> -		video_unregister_device(&histo->video);
-> -
-> -	media_entity_cleanup(&histo->video.entity);
-> -}
-
-<snip>
+correct, will update it in next version.
 
 -- 
-Regards,
-Niklas Söderlund
+regards,
+Stan
