@@ -1,93 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34545 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932698AbcIPNJn (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39124 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751340AbcIZPqv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 09:09:43 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: horms@verge.net.au
-Cc: geert@linux-m68k.org, hans.verkuil@cisco.com,
-        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
-        ulrich.hecht+renesas@gmail.com, laurent.pinchart@ideasonboard.com
-Subject: [PATCH 2/3] ARM: dts: gose: add HDMI input
-Date: Fri, 16 Sep 2016 15:09:34 +0200
-Message-Id: <20160916130935.21292-3-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
-References: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
+        Mon, 26 Sep 2016 11:46:51 -0400
+Date: Mon, 26 Sep 2016 18:46:40 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, gjasny@googlemail.com
+Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
+ v4l2-ctl
+Message-ID: <20160926154640.GA3225@valkosipuli.retiisi.org.uk>
+References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20160919082226.43cd1bc9@vento.lan>
+ <57DFE65A.5040607@linux.intel.com>
+ <20160919111912.6e7ceac6@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20160919111912.6e7ceac6@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Identical to the setup on Lager.
+Hi Mauro,
 
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7793-gose.dts | 41 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+On Mon, Sep 19, 2016 at 11:19:12AM -0300, Mauro Carvalho Chehab wrote:
+> Em Mon, 19 Sep 2016 16:21:30 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > On 09/19/16 14:22, Mauro Carvalho Chehab wrote:
+> > > Em Mon, 19 Sep 2016 13:50:25 +0300
+> > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > >   
+> > >> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
+> > >> are found by the linker only if these libraries are specified after the
+> > >> objects that depend on them.
+> > >>
+> > >> As LDFLAGS variable end up expanded on libtool command line before LDADD,
+> > >> move the libraries to LDADD after local objects. -lpthread is added as on
+> > >> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
+> > >> for instance.
+> > >>
+> > >> After this patch, creating a static build using the command
+> > >>
+> > >> LDFLAGS="--static -static" ./configure --disable-shared --enable-static  
+> > > 
+> > > It sounds weird to use LDFLAGS="--static -static" here, as the
+> > > configure options are already asking for static.
+> > > 
+> > > IMHO, the right way would be to change configure.ac to add those LDFLAGS
+> > > when --disable-shared is used.  
+> > 
+> > That's one option, but then shared libraries won't be built at all.
+> 
+> Well, my understanding is that  --disable-shared is meant to disable
+> building the shared library build :)
+> 
+> > I'm
+> > not sure what would be the use cases for that, though: static linking
+> > isn't very commonly needed except when you need to run the binaries
+> > elsewhere (for whatever reason) where you don't have the libraries you
+> > linked against available.
+> 
+> Yeah, that's the common usage. It is also interesting if someone
+> wants to build 2 versions of the same utility, each using a
+> different library, for testing purposes.
+> 
+> The usecase I can't see is to use --disable-shared but keeping
+> using the dynamic library for the exec files.
 
-diff --git a/arch/arm/boot/dts/r8a7793-gose.dts b/arch/arm/boot/dts/r8a7793-gose.dts
-index 90af186..e22d63c 100644
---- a/arch/arm/boot/dts/r8a7793-gose.dts
-+++ b/arch/arm/boot/dts/r8a7793-gose.dts
-@@ -374,6 +374,11 @@
- 		groups = "audio_clk_a";
- 		function = "audio_clk";
- 	};
-+
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
- };
- 
- &ether {
-@@ -531,6 +536,21 @@
- 		};
- 	};
- 
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+		remote = <&vin0>;
-+		default-input = <0>;
-+
-+		port {
-+			adv7612: endpoint {
-+				remote-endpoint = <&vin0ep>;
-+			};
-+		};
-+	};
-+
- 	eeprom@50 {
- 		compatible = "renesas,r1ex24002", "atmel,24c02";
- 		reg = <0x50>;
-@@ -558,3 +578,24 @@
- &ssi1 {
- 	shared-pin;
- };
-+
-+/* HDMI video input */
-+&vin0 {
-+	status = "okay";
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep: endpoint {
-+			remote-endpoint = <&adv7612>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
+There are three primary options here,
+
+1. build an entirely static binary,
+2. build a binary that relies on dynamic libraries as well and
+3. build a binary that relies on dynamic libraries outside v4l-utils package
+   but that links v4l-utils originating libraries statically.
+
+If you say 3. is not needed then we could just use --disable-shared also to
+tell that static binaries are to be built.
+
+3. is always used for libv4l2subdev and libmediactl as the libraries do not
+have stable APIs.
+
+> 
+> > That's still a separate issue from what this patch fixes.
+> > 
+> > Ideally it should be possible to link the binaries statically while
+> > still building shared libraries: both are built by default right now,
+> > yet shared libraries are always used for linking unless you disable
+> > shared libraries.
+> 
+> Well, the point is: if dynamic library build is disabled, it should
+> be doing static links that are produced by the build, instead of using
+> an already existing set of dynamic libraries present on the system
+> (that may not contain the symbols needed by the tool, or miss some
+> patches that were on -git).
+
+No, it uses the static libraries that are built at the same time.
+
 -- 
-2.9.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
