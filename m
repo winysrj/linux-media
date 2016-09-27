@@ -1,88 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:34973 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751044AbcILTjC (ORCPT
+Received: from regular1.263xmail.com ([211.150.99.138]:49050 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754902AbcI0Dnq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Sep 2016 15:39:02 -0400
+        Mon, 26 Sep 2016 23:43:46 -0400
+To: linux-media@vger.kernel.org
+Cc: "linux-rockchip@lists.infradead.org"
+        <linux-rockchip@lists.infradead.org>,
+        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+From: Randy Li <randy.li@rock-chips.com>
+Subject: media: rockchip-vpu: I should place the huffman table at kernel or
+ userspace ?
+Message-ID: <5de5d305-0ecc-a994-d133-63d55c8b1741@rock-chips.com>
+Date: Tue, 27 Sep 2016 11:43:35 +0800
 MIME-Version: 1.0
-In-Reply-To: <20160912185709.GL18340@uda0271908>
-References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
- <20160830183039.GA20056@uda0271908> <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
- <20160912032826.GB18340@uda0271908> <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
- <20160912185709.GL18340@uda0271908>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Mon, 12 Sep 2016 22:38:40 +0300
-Message-ID: <CAJs94EaNwOiqTASzr2LQDWeCHnzoQQWndDsSg75YUuHLQhcuUw@mail.gmail.com>
-Subject: Re: musb: isoc pkt loss with pwc
-To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
-        Alan Stern <stern@rowland.harvard.edu>, hdegoede@redhat.com,
-        linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-09-12 21:57 GMT+03:00 Bin Liu <b-liu@ti.com>:
-> Hi,
->
-> On Mon, Sep 12, 2016 at 11:52:46AM +0300, Matwey V. Kornilov wrote:
->> 2016-09-12 6:28 GMT+03:00 Bin Liu <b-liu@ti.com>:
->> > Hi,
->> >
->> > On Tue, Aug 30, 2016 at 11:44:33PM +0300, Matwey V. Kornilov wrote:
->> >> 2016-08-30 21:30 GMT+03:00 Bin Liu <b-liu@ti.com>:
->> >> > Hi,
->> >> >
->> >> > On Sun, Aug 28, 2016 at 01:13:55PM +0300, Matwey V. Kornilov wrote:
->> >> >> Hello Bin,
->> >> >>
->> >> >> I would like to start new thread on my issue. Let me recall where the issue is:
->> >> >> There is 100% frame lost in pwc webcam driver due to lots of
->> >> >> zero-length packages coming from musb driver.
->> >> >
->> >> > What is the video resolution and fps?
->> >>
->> >> 640x480 YUV420 10 frames per second.
->> >> pwc uses proprietary compression during device-host transmission, but
->> >> I don't know how effective it is.
->> >
->> > The data rate for VGA YUV420 @10fps is 640x480*1.5*10 = 4.6MB/s, which
->> > is much higher than full-speed 12Mbps.  So the video data on the bus is
->> > compressed, not YUV420, I believe.
->> >
->> >>
->> >> >
->> >> >> The issue is present in all kernels (including 4.8) starting from the commit:
->> >> >>
->> >> >> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
->> >> >> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
->> >> >
->> >> > What is the behavior without this commit?
->> >>
->> >> Without this commit all frames are being received correctly. Single
->> >
->> > Which means without this commit your camera has been working without
->> > issues, and this is a regression with this commit, right?
->> >
->>
->> Right
->
-> Okay, thanks for confirming.
->
-> But we cannot just simply add this flag, as it breaks many other use
-> cases. I will continue work on this to find a solution which works on
-> all use cases.
->
-
-Ok, thank you.
-
-> Regards,
-> -Bin.
->
-
-
-
+Hello:
+   I have just done a JPEG HW encoder for the RK3288. I have been told 
+that I can't use the standard way to generate huffman table, the VPU 
+supports only 10 levels with a different huffman table.
+   If I send the huffman table through the v4l2 extra control, the 
+memory copy is requested, although the data is not very large(2 x 64 
+bytes) but still a overhead. The other way is to place them in the 
+kernel driver, and just define the quality every time it encode a 
+picture. But storing in kernel would make the driver a little bigger(2 x 
+11 x 64 bytes) and beyond the FIFO job.
+   So where Should I place the huffman table?
 -- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+Randy Li
+The third produce department
+===========================================================================
+This email message, including any attachments, is for the sole
+use of the intended recipient(s) and may contain confidential and
+privileged information. Any unauthorized review, use, disclosure or
+distribution is prohibited. If you are not the intended recipient, please
+contact the sender by reply e-mail and destroy all copies of the original
+message. [Fuzhou Rockchip Electronics, INC. China mainland]
+===========================================================================
+
