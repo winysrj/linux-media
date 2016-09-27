@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:32869 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932887AbcIBQqz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Sep 2016 12:46:55 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        sergei.shtylyov@cogentembedded.com, hans.verkuil@cisco.com
-Cc: slongerbeam@gmail.com, lars@metafoo.de, mchehab@kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv3 1/6] media: adv7180: fill in mbus format in set_fmt
-Date: Fri,  2 Sep 2016 18:44:56 +0200
-Message-Id: <20160902164501.19535-2-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20160902164501.19535-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from ni.piap.pl ([195.187.100.4]:35118 "EHLO ni.piap.pl"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755277AbcI0Ldz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Sep 2016 07:33:55 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
+Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
+References: <20160915130441.ji3f3jiiebsnsbct@acer>
+        <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
+        <m3k2e5wfxy.fsf@t19.piap.pl> <20160921134554.s3tdolyej6r2w5wh@zver>
+        <m360powc4m.fsf@t19.piap.pl> <20160922152356.nhgacxprxtvutb67@zver>
+        <m3ponri5ky.fsf@t19.piap.pl> <20160926091831.cp6qkv77oo5tinn5@zver>
+        <m337kldi92.fsf@t19.piap.pl> <20160927074009.3kcvruynnapj6y3q@zver>
+Date: Tue, 27 Sep 2016 13:33:49 +0200
+In-Reply-To: <20160927074009.3kcvruynnapj6y3q@zver> (Andrey Utkin's message of
+        "Tue, 27 Sep 2016 10:40:09 +0300")
+Message-ID: <m3y42dbmqq.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the V4L2_SUBDEV_FORMAT_TRY is used in set_fmt the width, height etc
-would not be filled.
+Andrey Utkin <andrey_utkin@fastmail.com> writes:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/i2c/adv7180.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+>> Can you share some details about the machine you are experiencing the
+>> problems on? CPU, chipset? I'd try to see if I can recreate the problem.
+>
+> See solo.txt.gz attached.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 515ea6a..50efecc 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -711,6 +711,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- {
- 	struct adv7180_state *state = to_state(sd);
- 	struct v4l2_mbus_framefmt *framefmt;
-+	int ret;
- 
- 	switch (format->format.field) {
- 	case V4L2_FIELD_NONE:
-@@ -722,8 +723,9 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- 		break;
- 	}
- 
-+	ret = adv7180_mbus_fmt(sd,  &format->format);
-+
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
--		framefmt = &format->format;
- 		if (state->field != format->format.field) {
- 			state->field = format->format.field;
- 			adv7180_set_power(state, false);
-@@ -735,7 +737,7 @@ static int adv7180_set_pad_format(struct v4l2_subdev *sd,
- 		*framefmt = format->format;
- 	}
- 
--	return adv7180_mbus_fmt(sd, framefmt);
-+	return ret;
- }
- 
- static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+Thanks. I can see you have quite a set of video devices there.
+I will see what I can do with this.
+
+BTW does the lookup occur on SOLO6010, 6110, or both?
 -- 
-2.9.3
+Krzysztof Halasa
 
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
