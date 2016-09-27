@@ -1,141 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 4.mo173.mail-out.ovh.net ([46.105.34.219]:45096 "EHLO
-        4.mo173.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756574AbcIOON7 (ORCPT
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:59151 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932289AbcI0HkN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 10:13:59 -0400
-Received: from player711.ha.ovh.net (b9.ovh.net [213.186.33.59])
-        by mo173.mail-out.ovh.net (Postfix) with ESMTP id 7549F100CA9F
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 15:54:09 +0200 (CEST)
-From: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-To: linux-media@vger.kernel.org
-Cc: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
-Subject: [PATCH v3] V4L2: Add documentation for SDI timings and related flags
-Date: Thu, 15 Sep 2016 15:53:55 +0200
-Message-Id: <1473947635-26532-1-git-send-email-charles-antoine.couret@nexvision.fr>
+        Tue, 27 Sep 2016 03:40:13 -0400
+Date: Tue, 27 Sep 2016 10:40:09 +0300
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
+Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
+Message-ID: <20160927074009.3kcvruynnapj6y3q@zver>
+References: <20160915130441.ji3f3jiiebsnsbct@acer>
+ <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
+ <m3k2e5wfxy.fsf@t19.piap.pl>
+ <20160921134554.s3tdolyej6r2w5wh@zver>
+ <m360powc4m.fsf@t19.piap.pl>
+ <20160922152356.nhgacxprxtvutb67@zver>
+ <m3ponri5ky.fsf@t19.piap.pl>
+ <20160926091831.cp6qkv77oo5tinn5@zver>
+ <m337kldi92.fsf@t19.piap.pl>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="giavxg2nm2ifrejz"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <m337kldi92.fsf@t19.piap.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Describe new needed constants defined by SDI format.
 
-Signed-off-by: Charles-Antoine Couret <charles-antoine.couret@nexvision.fr>
----
- Documentation/media/uapi/v4l/vidioc-enuminput.rst  | 31 +++++++++++++++++-----
- .../media/uapi/v4l/vidioc-g-dv-timings.rst         | 15 +++++++++++
- 2 files changed, 39 insertions(+), 7 deletions(-)
+--giavxg2nm2ifrejz
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-enuminput.rst b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
-index 5060f54..18331b9 100644
---- a/Documentation/media/uapi/v4l/vidioc-enuminput.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-enuminput.rst
-@@ -260,17 +260,34 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
- 
-     -  .. row 11
- 
--       -  :cspan:`2` Digital Video
-+       -  ``V4L2_IN_ST_NO_V_LOCK``
-+
-+       -  0x00000400
-+
-+       -  No vertical sync lock.
- 
-     -  .. row 12
- 
-+       -  ``V4L2_IN_ST_NO_STD_LOCK``
-+
-+       -  0x00000800
-+
-+       -  No standard format lock in case of auto-detection format
-+	  by the component.
-+
-+    -  .. row 13
-+
-+       -  :cspan:`2` Digital Video
-+
-+    -  .. row 14
-+
-        -  ``V4L2_IN_ST_NO_SYNC``
- 
-        -  0x00010000
- 
-        -  No synchronization lock.
- 
--    -  .. row 13
-+    -  .. row 15
- 
-        -  ``V4L2_IN_ST_NO_EQU``
- 
-@@ -278,7 +295,7 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
- 
-        -  No equalizer lock.
- 
--    -  .. row 14
-+    -  .. row 16
- 
-        -  ``V4L2_IN_ST_NO_CARRIER``
- 
-@@ -286,11 +303,11 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
- 
-        -  Carrier recovery failed.
- 
--    -  .. row 15
-+    -  .. row 17
- 
-        -  :cspan:`2` VCR and Set-Top Box
- 
--    -  .. row 16
-+    -  .. row 18
- 
-        -  ``V4L2_IN_ST_MACROVISION``
- 
-@@ -300,7 +317,7 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
- 	  signal to confuse video recorders. When this flag is set
- 	  Macrovision has been detected.
- 
--    -  .. row 17
-+    -  .. row 19
- 
-        -  ``V4L2_IN_ST_NO_ACCESS``
- 
-@@ -308,7 +325,7 @@ at index zero, incrementing by one until the driver returns ``EINVAL``.
- 
-        -  Conditional access denied.
- 
--    -  .. row 18
-+    -  .. row 20
- 
-        -  ``V4L2_IN_ST_VTR``
- 
-diff --git a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-index f7bf21f..9acfa19 100644
---- a/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-g-dv-timings.rst
-@@ -339,6 +339,13 @@ EBUSY
- 
-        -  The timings follow the VESA Generalized Timings Formula standard
- 
-+    -  .. row 7
-+
-+       -  ``V4L2_DV_BT_STD_SDI``
-+
-+       -  The timings follow the SDI Timings standard.
-+	  There are no horizontal syncs/porches at all in this format.
-+	  Total blanking timings must be set in hsync or vsync fields only.
- 
- 
- .. _dv-bt-flags:
-@@ -415,3 +422,11 @@ EBUSY
- 	  R'G'B' values use limited range (i.e. 16-235) as opposed to full
- 	  range (i.e. 0-255). All formats defined in CEA-861 except for the
- 	  640x480p59.94 format are CE formats.
-+
-+    -  .. row 8
-+
-+       -  ``V4L2_DV_FL_FIRST_FIELD_EXTRA_LINE``
-+
-+       -  Some formats like SMPTE-125M have an interlaced signal with a odd
-+	  total height. For these formats, if this flag is set, the first
-+	  field has the extra line. Else, it is the second field.
--- 
-2.7.4
+On Tue, Sep 27, 2016 at 07:27:53AM +0200, Krzysztof Hałasa wrote:
+> Andrey Utkin <andrey_utkin@fastmail.com> writes:
+> 
+> >> Does (only) adding the
+> >> 
+> >> 	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
+> >> 
+> >> in solo_reg_write() help?
+> >
+> > Yes.
+> > I have posted a patch with this change few days ago, I thought you have
+> > noticed it.
+> 
+> Well, I think you haven't sent me a copy. Anyway, it would be great to
+> determine where exactly writes need a flush. Adding it everywhere is a
+> bit suboptimal, one would think.
 
+Oh, I'm terribly sorry, I really meant to send you a copy.
+Actual posting is:
+lkml.kernel.org/r/20160922000331.4193-1-andrey.utkin@corp.bluecherry.net
+
+> Can you share some details about the machine you are experiencing the
+> problems on? CPU, chipset? I'd try to see if I can recreate the problem.
+
+See solo.txt.gz attached.
+
+> Alternatively, you could investigate yourself - at first you could put
+> pci_read_config_word() at the end of subroutines (including return
+> statements) using solo_reg_write(). And in that solo_p2m_dma_desc(),
+> before wait_for_completion_timeout(). Then eliminate them using some
+> sort of binary search to see which ones are required.
+
+Sorry, but I've got no time for this long-lasting debug session right
+now, and except for this issue, users enjoy their mainline kernel
+driver. So I'd just fix that in mainline kernels as quickly as possible.
+Now I'm even considering submitting that to longterm 4.4 branch.
+
+--giavxg2nm2ifrejz
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="solo.txt.gz"
+Content-Transfer-Encoding: base64
+
+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
+
+--giavxg2nm2ifrejz--
