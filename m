@@ -1,39 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([198.47.19.12]:48727 "EHLO arroyo.ext.ti.com"
+Received: from mail.kernel.org ([198.145.29.136]:50198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933752AbcI1VW2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Sep 2016 17:22:28 -0400
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: [Patch 20/35] media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
-Date: Wed, 28 Sep 2016 16:22:20 -0500
-Message-ID: <20160928212220.27220-1-bparrot@ti.com>
+        id S1750840AbcI0NLb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Sep 2016 09:11:31 -0400
+Date: Tue, 27 Sep 2016 15:11:24 +0200
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v1.1 4/5] smiapp: Use runtime PM
+Message-ID: <20160927131124.6w75mja2hewrrkf5@earth>
+References: <1473938961-16067-5-git-send-email-sakari.ailus@linux.intel.com>
+ <1473980009-19377-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="5n6z4cgbjiv2nm6p"
+Content-Disposition: inline
+In-Reply-To: <1473980009-19377-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ti_vpe module currently does not get loaded automatically.
-Added MODULE_DEVICE_TABLE hint to the driver to assist.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 1 +
- 1 file changed, 1 insertion(+)
+--5n6z4cgbjiv2nm6p
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index a43dcac0b15e..57d19ad6d4a5 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2448,6 +2448,7 @@ static const struct of_device_id vpe_of_match[] = {
- 	},
- 	{},
- };
-+MODULE_DEVICE_TABLE(of, vpe_of_match);
- #endif
- 
- static struct platform_driver vpe_pdrv = {
--- 
-2.9.0
+Hi,
 
+On Fri, Sep 16, 2016 at 01:53:29AM +0300, Sakari Ailus wrote:
+> Use runtime PM to manage power. The s_power() core sub-device callback is
+> removed as it is no longer needed.
+>=20
+> The power management of the sensor is changed so that it is no longer
+> dependent on open file descriptors on sub-device or use_count in the media
+> entity but solely will be powered on as needed for probing and streaming.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> since v1:
+>=20
+> - Both smiapp_set_ctrl() and smiapp_update_mode() perform work which is
+>   unrelated to the power state of the device. Instead, check the power
+>   state in smiapp_write() which is more appropriate.
+>=20
+> - Don't explicitly disable streaming in smiapp_remove(). It'd be an
+>   unrelated change.
+>=20
+>  drivers/media/i2c/smiapp/smiapp-core.c | 130 ++++++++++++++++-----------=
+------
+>  drivers/media/i2c/smiapp/smiapp-regs.c |   5 ++
+>  drivers/media/i2c/smiapp/smiapp.h      |  11 +--
+>  3 files changed, 67 insertions(+), 79 deletions(-)
+
+Reviewed-By: Sebastian Reichel <sre@kernel.org>
+
+-- Sebastian
+
+--5n6z4cgbjiv2nm6p
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAABCgAGBQJX6m/8AAoJENju1/PIO/qapAAP/ieWXbwF4QijWp6UFvn1gLTn
+E4qOIrN7fKLoaxM7WEUjfCeQfCN3xU9c40bqbSfDSZy9UGiFCUM3qQsmjqfbryWv
+QIyvOn7FlyRkS8Ov28gRRKLxRMENxJzcWAhRknHPEN72e6ZcdLsRIwBNCYwbu25A
+Ip3xAFKEyWZIvpOUxqEinKmsEX8j+RoFnd580XoWWzQyR8dnbOKLsrUruUyEhLw8
+QhElvt5CcQ3vwvhdtTB/S2rvqo2kozm5drhoS1Ucsx7HF1xBmfCZBQAelU4d4/iz
+TNvCO5urtJomUIrwY3qw0FSLKrk1N2XsQSOKJ97DyAdeyaofk6xZQWv5ooZigt+o
+Vj0+s4kUhTR0El9ZZRaKBxPoku6cHtJ28a6Sv6AXiO2eFKDykcYcxJ0Z0/U3KA/O
+r1NrR4HGRQx0/99ZCDgvszLwMZqHAuhVqCFJ1cwTr7ShosZCuPJgAsz9amqeQXqK
+GBnGkCwSVXEq6GuMk4acvYAoC4RVcnDNo4HTdGQ13L+I1dhGxZkhvhd8e6XVhOpQ
+/hBLG38tlpoc8/ie/jlCfp/oiiO8KN7chBOoFZMp19TkddrH4qUYOg8ubNPOkLZm
+LAdLDhKGQDVzR0zcSQUZPyP47K+k/fp+CrMi5SoIfww7UluocmNku0SXx4/xPHW4
+pztEa06A/7ct298XXvfR
+=256h
+-----END PGP SIGNATURE-----
+
+--5n6z4cgbjiv2nm6p--
