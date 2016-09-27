@@ -1,99 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49464 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1764328AbcINTt4 (ORCPT
+Received: from regular1.263xmail.com ([211.150.99.136]:34846 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751237AbcI0IIb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 15:49:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>
-Subject: Re: [PATCH 02/13] v4l: vsp1: Protect against race conditions between get and set format
-Date: Wed, 14 Sep 2016 22:50:37 +0300
-Message-ID: <2486540.vxE6uRc2v9@avalon>
-In-Reply-To: <20160914182317.GG739@bigcity.dyn.berto.se>
-References: <1473808626-19488-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1473808626-19488-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20160914182317.GG739@bigcity.dyn.berto.se>
+        Tue, 27 Sep 2016 04:08:31 -0400
+Subject: Re: media: rockchip-vpu: I should place the huffman table at kernel
+ or userspace?
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <5de5d305-0ecc-a994-d133-63d55c8b1741@rock-chips.com>
+ <84ce2871-be3b-bf9f-ba0e-75de8c7d4824@xs4all.nl>
+Cc: linux-rockchip@lists.infradead.org,
+        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>
+From: Randy Li <randy.li@rock-chips.com>
+Message-ID: <8ea18fd5-44a6-5217-acdb-6472f419dbed@rock-chips.com>
+Date: Tue, 27 Sep 2016 16:08:09 +0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <84ce2871-be3b-bf9f-ba0e-75de8c7d4824@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
 
-Thank you for the review.
 
-On Wednesday 14 Sep 2016 20:23:18 Niklas S=F6derlund wrote:
-> On 2016-09-14 02:16:55 +0300, Laurent Pinchart wrote:
-> > The subdev userspace API isn't serialized in the core, serialize ac=
-cess
-> > to formats and selection rectangles in the driver.
-> >=20
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> >=20
-> >  drivers/media/platform/vsp1/vsp1_bru.c    | 28 +++++++++++++++----=
--
-> >  drivers/media/platform/vsp1/vsp1_clu.c    | 15 ++++++++---
-> >  drivers/media/platform/vsp1/vsp1_entity.c | 22 +++++++++++++---
-> >  drivers/media/platform/vsp1/vsp1_entity.h |  4 ++-
-> >  drivers/media/platform/vsp1/vsp1_hsit.c   | 15 ++++++++---
-> >  drivers/media/platform/vsp1/vsp1_lif.c    | 15 ++++++++---
-> >  drivers/media/platform/vsp1/vsp1_lut.c    | 15 ++++++++---
-> >  drivers/media/platform/vsp1/vsp1_rwpf.c   | 44 +++++++++++++++++++=
--------
-> >  drivers/media/platform/vsp1/vsp1_sru.c    | 26 +++++++++++++-----
-> >  drivers/media/platform/vsp1/vsp1_uds.c    | 26 +++++++++++++-----
-> >  10 files changed, 161 insertions(+), 49 deletions(-)
-> >=20
-> > diff --git a/drivers/media/platform/vsp1/vsp1_bru.c
-> > b/drivers/media/platform/vsp1/vsp1_bru.c index 8268b87727a7..26b9e2=
-282a41
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_bru.c
-> > +++ b/drivers/media/platform/vsp1/vsp1_bru.c
-> > @@ -142,10 +142,15 @@ static int bru_set_format(struct v4l2_subdev
-> > *subdev,
-> >=20
-> >  =09struct vsp1_bru *bru =3D to_bru(subdev);
-> >  =09struct v4l2_subdev_pad_config *config;
-> >  =09struct v4l2_mbus_framefmt *format;
-> >=20
-> > +=09int ret =3D 0;
-> > +
-> > +=09mutex_lock(&bru->entity.lock);
-> >=20
-> >  =09config =3D vsp1_entity_get_pad_config(&bru->entity, cfg, fmt->w=
-hich);
-> >=20
-> > -=09if (!config)
-> > -=09=09return -EINVAL;
-> > +=09if (!config) {
-> > +=09=09goto done;
-> > +=09=09ret =3D -EINVAL;
->=20
-> This looks funny to me, you probably intended to do that in the other=
+On 09/27/2016 03:52 PM, Hans Verkuil wrote:
+> On 27/09/16 05:43, Randy Li wrote:
+>> Hello:
+>>   I have just done a JPEG HW encoder for the RK3288. I have been told
+>> that I can't use the standard way to generate huffman table, the VPU
+>> supports only 10 levels with a different huffman table.
+>>   If I send the huffman table through the v4l2 extra control, the memory
+>> copy is requested, although the data is not very large(2 x 64 bytes) but
+>> still a overhead. The other way is to place them in the kernel driver,
+>> and just define the quality every time it encode a picture. But storing
+>> in kernel would make the driver a little bigger(2 x 11 x 64 bytes) and
+>> beyond the FIFO job.
+>>   So where Should I place the huffman table?
+>
+> Put it in the driver. It's less than 1.5 kB, so really small.
+I see.
+>
+> I'm not sure what you mean with 'beyond the FIFO job' though.
+I always been taught that the kernel driver is just FIFO between 
+userspace and hardware.
+Next time I would learn those small thing(even hard code) could be 
+stored in kernel source code.
+>
+> My understanding is that there 10 quality levels, each with its own
+> huffman table?
+Right. But I still asking what the relationship is to the standard 
+quality in JPEG from 0 to 100 to the other staff.
+>
+> So the driver would implement the V4L2_CID_JPEG_COMPRESSION_QUALITY control
+> and for each quality level it picks a table. Makes sense to me.
+Let looks I could omit a extra JPEG control then.
+>
+> Regards,
+Thank you.
 
-> order right?
+P.S the encoder for VP8 and H.264 is really very hard. I really need 
+more time to do them. There is a new VA-API driver[1] which removed the 
+most possible information from the third party library(but still need 
+it) and using most decoder settings from the VA-API client.
 
-Oops, good catch !
+The new kernel driver is in schedule as well.
 
-> If you fix this feel free to add my:
->=20
-> Acked-by: Niklas S=F6derlund <niklas.soderlund@ragnatech.se>
+[1] https://github.com/hizukiayaka/rockchip-video-driver/tree/rk_v4l2_mix
+>
+>     Hans
+>
 
-Fixed and applied your ack (with +renesas as mentioned in your other em=
-ail).
-
-> > +=09}
-> >=20
-> >  =09bru_try_format(bru, config, fmt->pad, &fmt->format);
-
---=20
-Regards,
-
-Laurent Pinchart
+-- 
+Randy Li
+The third produce department
+===========================================================================
+This email message, including any attachments, is for the sole
+use of the intended recipient(s) and may contain confidential and
+privileged information. Any unauthorized review, use, disclosure or
+distribution is prohibited. If you are not the intended recipient, please
+contact the sender by reply e-mail and destroy all copies of the original
+message. [Fuzhou Rockchip Electronics, INC. China mainland]
+===========================================================================
 
