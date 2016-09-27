@@ -1,672 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:57080 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752381AbcIKJCk (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:54222
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932674AbcI0QER (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Sep 2016 05:02:40 -0400
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] pxa_camera: merge soc_mediabus.c into pxa_camera.c
-Message-ID: <874d9ba3-7508-7efd-e83f-a7c630a1fbe3@xs4all.nl>
-Date: Sun, 11 Sep 2016 11:02:33 +0200
+        Tue, 27 Sep 2016 12:04:17 -0400
+Date: Tue, 27 Sep 2016 13:04:07 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, gjasny@googlemail.com
+Subject: Re: [v4l-utils PATCH 1/1] Fix static linking of v4l2-compliance and
+ v4l2-ctl
+Message-ID: <20160927130407.501e8552@vento.lan>
+In-Reply-To: <20160926214051.GB3225@valkosipuli.retiisi.org.uk>
+References: <1474282225-31559-1-git-send-email-sakari.ailus@linux.intel.com>
+        <20160919082226.43cd1bc9@vento.lan>
+        <57DFE65A.5040607@linux.intel.com>
+        <20160919111912.6e7ceac6@vento.lan>
+        <20160926154640.GA3225@valkosipuli.retiisi.org.uk>
+        <20160926135945.351384ca@vento.lan>
+        <20160926214051.GB3225@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linking soc_mediabus into this driver causes multiple definition linker warnings
-if soc_camera is also enabled:
+Em Tue, 27 Sep 2016 00:40:51 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-   drivers/media/platform/soc_camera/built-in.o:(___ksymtab+soc_mbus_image_size+0x0): multiple definition of `__ksymtab_soc_mbus_image_size'
-   drivers/media/platform/soc_camera/soc_mediabus.o:(___ksymtab+soc_mbus_image_size+0x0): first defined here
->> drivers/media/platform/soc_camera/built-in.o:(___ksymtab+soc_mbus_samples_per_pixel+0x0): multiple definition of `__ksymtab_soc_mbus_samples_per_pixel'
-   drivers/media/platform/soc_camera/soc_mediabus.o:(___ksymtab+soc_mbus_samples_per_pixel+0x0): first defined here
-   drivers/media/platform/soc_camera/built-in.o: In function `soc_mbus_config_compatible':
-   (.text+0x3840): multiple definition of `soc_mbus_config_compatible'
-   drivers/media/platform/soc_camera/soc_mediabus.o:(.text+0x134): first defined here
+> Hi Mauro,
+> 
+> On Mon, Sep 26, 2016 at 01:59:45PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Mon, 26 Sep 2016 18:46:40 +0300
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > On Mon, Sep 19, 2016 at 11:19:12AM -0300, Mauro Carvalho Chehab wrote:  
+> > > > Em Mon, 19 Sep 2016 16:21:30 +0300
+> > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > > >     
+> > > > > Hi Mauro,
+> > > > > 
+> > > > > On 09/19/16 14:22, Mauro Carvalho Chehab wrote:    
+> > > > > > Em Mon, 19 Sep 2016 13:50:25 +0300
+> > > > > > Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> > > > > >       
+> > > > > >> v4l2-compliance and v4l2-ctl depend on librt and libpthread. The symbols
+> > > > > >> are found by the linker only if these libraries are specified after the
+> > > > > >> objects that depend on them.
+> > > > > >>
+> > > > > >> As LDFLAGS variable end up expanded on libtool command line before LDADD,
+> > > > > >> move the libraries to LDADD after local objects. -lpthread is added as on
+> > > > > >> some systems librt depends on libpthread. This is the case on Ubuntu 16.04
+> > > > > >> for instance.
+> > > > > >>
+> > > > > >> After this patch, creating a static build using the command
+> > > > > >>
+> > > > > >> LDFLAGS="--static -static" ./configure --disable-shared --enable-static      
+> > > > > > 
+> > > > > > It sounds weird to use LDFLAGS="--static -static" here, as the
+> > > > > > configure options are already asking for static.
+> > > > > > 
+> > > > > > IMHO, the right way would be to change configure.ac to add those LDFLAGS
+> > > > > > when --disable-shared is used.      
+> > > > > 
+> > > > > That's one option, but then shared libraries won't be built at all.    
+> > > > 
+> > > > Well, my understanding is that  --disable-shared is meant to disable
+> > > > building the shared library build :)
+> > > >     
+> > > > > I'm
+> > > > > not sure what would be the use cases for that, though: static linking
+> > > > > isn't very commonly needed except when you need to run the binaries
+> > > > > elsewhere (for whatever reason) where you don't have the libraries you
+> > > > > linked against available.    
+> > > > 
+> > > > Yeah, that's the common usage. It is also interesting if someone
+> > > > wants to build 2 versions of the same utility, each using a
+> > > > different library, for testing purposes.
+> > > > 
+> > > > The usecase I can't see is to use --disable-shared but keeping
+> > > > using the dynamic library for the exec files.    
+> > > 
+> > > There are three primary options here,
+> > > 
+> > > 1. build an entirely static binary,
+> > > 2. build a binary that relies on dynamic libraries as well and
+> > > 3. build a binary that relies on dynamic libraries outside v4l-utils package
+> > >    but that links v4l-utils originating libraries statically.
+> > > 
+> > > If you say 3. is not needed then we could just use --disable-shared also to
+> > > tell that static binaries are to be built.
+> > > 
+> > > 3. is always used for libv4l2subdev and libmediactl as the libraries do not
+> > > have stable APIs.  
+> > 
+> > Sakari,
+> > 
+> > I can't see what you mean by scenario (2). I mean, if 
+> > --disable-shared is called, it *should not* use dynamic libraries
+> > for any library provided by v4l-utils, as the generated binaries will
+> > either:
+> > 
+> > a) don't work, because those libraries weren't built;
+> > b) will do the wrong thing, as they'll be dynamically linked
+> >    to an older version of the library.
+> > 
+> > So, there are only 3 possible scenarios, IMHO:
+> > 
+> > 1) dynamic libraries, dynamic execs
+> > 2) static v4l-utils libraries, static execs
+> > 3) static v4l-utils libraries, static links for v4l-utils libs, dyn for the rest.
+> > 
+> > In practice, I don't see any reason for keeping support for both (2)
+> > and (3), as all usecases for (3) can be covered by a fully static
+> > exec. It is also very confusing for one to understand that.
+> > For example, right now, we have those static/shared options:
+> > 
+> >   --enable-static[=PKGS]  build static libraries [default=yes]
+> >   --enable-shared[=PKGS]  build shared libraries [default=yes]
+> > 
+> > with, IMHO, sounds confusing, as those options don't seem to be
+> > orthogonal. I mean, what happens someone calls ./configure with:
+> > 
+> > 	./configure --disable-static --disable-shared  
+> 
+> That doesn't make much sense --- to disable the build for both static and
+> dynamic libraries.
 
-Since we really don't want to have to use any of the soc-camera code this patch
-copies the relevant code and data structures from soc_mediabus and renames it to pxa_mbus_*.
+Yes, but it is still a "valid" set of options, as configure won't 
+complain. Yet, this will cause build errors:
 
-The large table of formats has been culled a bit, removing formats that are not supported
-by this driver.
+/usr/bin/ld: ../../lib/libdvbv5/.libs/libdvbv5.a(libdvbv5_la-dvb-dev-local.o): undefined reference to symbol 'pthread_cancel@@GLIBC_2.2.5'
+/usr/lib64/libpthread.so.0: error adding symbols: DSO missing from command line
+collect2: error: ld returned 1 exit status
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/Makefile     |   2 +-
- drivers/media/platform/pxa_camera.c | 482 ++++++++++++++++++++++++++++++++++--
- 2 files changed, 459 insertions(+), 25 deletions(-)
+> What would you prefer? Link binaries statically iff shared libraries are not
+> built? I'd just like to get this fixed. Currently building static binaries
+> is simply broken.
 
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index c645a50..40b18d1 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -9,7 +9,7 @@ obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
- obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
+IMHO, if --disable-shared is issued, it should do static linking for
+all libraries.
 
- obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
--obj-$(CONFIG_VIDEO_PXA27x)	+= pxa_camera.o soc_camera/soc_mediabus.o
-+obj-$(CONFIG_VIDEO_PXA27x)	+= pxa_camera.o
+Gregor may have a different opinion, as I think he knows a lot more
+about how distros usually expect those options to be handled.
 
- obj-$(CONFIG_VIDEO_VIU) += fsl-viu.o
-
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 1147836..1bce7eb 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -42,7 +42,6 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-of.h>
-
--#include <media/drv-intf/soc_mediabus.h>
- #include <media/videobuf2-dma-sg.h>
-
- #include <linux/videodev2.h>
-@@ -183,6 +182,441 @@
- /*
-  * Format handling
-  */
-+
-+/**
-+ * enum pxa_mbus_packing - data packing types on the media-bus
-+ * @PXA_MBUS_PACKING_NONE:	no packing, bit-for-bit transfer to RAM, one
-+ *				sample represents one pixel
-+ * @PXA_MBUS_PACKING_2X8_PADHI:	16 bits transferred in 2 8-bit samples, in the
-+ *				possibly incomplete byte high bits are padding
-+ * @PXA_MBUS_PACKING_EXTEND16:	sample width (e.g., 10 bits) has to be extended
-+ *				to 16 bits
-+ */
-+enum pxa_mbus_packing {
-+	PXA_MBUS_PACKING_NONE,
-+	PXA_MBUS_PACKING_2X8_PADHI,
-+	PXA_MBUS_PACKING_EXTEND16,
-+};
-+
-+/**
-+ * enum pxa_mbus_order - sample order on the media bus
-+ * @PXA_MBUS_ORDER_LE:		least significant sample first
-+ * @PXA_MBUS_ORDER_BE:		most significant sample first
-+ */
-+enum pxa_mbus_order {
-+	PXA_MBUS_ORDER_LE,
-+	PXA_MBUS_ORDER_BE,
-+};
-+
-+/**
-+ * enum pxa_mbus_layout - planes layout in memory
-+ * @PXA_MBUS_LAYOUT_PACKED:		color components packed
-+ * @PXA_MBUS_LAYOUT_PLANAR_2Y_U_V:	YUV components stored in 3 planes (4:2:2)
-+ * @PXA_MBUS_LAYOUT_PLANAR_2Y_C:	YUV components stored in a luma and a
-+ *					chroma plane (C plane is half the size
-+ *					of Y plane)
-+ * @PXA_MBUS_LAYOUT_PLANAR_Y_C:		YUV components stored in a luma and a
-+ *					chroma plane (C plane is the same size
-+ *					as Y plane)
-+ */
-+enum pxa_mbus_layout {
-+	PXA_MBUS_LAYOUT_PACKED = 0,
-+	PXA_MBUS_LAYOUT_PLANAR_2Y_U_V,
-+	PXA_MBUS_LAYOUT_PLANAR_2Y_C,
-+	PXA_MBUS_LAYOUT_PLANAR_Y_C,
-+};
-+
-+/**
-+ * struct pxa_mbus_pixelfmt - Data format on the media bus
-+ * @name:		Name of the format
-+ * @fourcc:		Fourcc code, that will be obtained if the data is
-+ *			stored in memory in the following way:
-+ * @packing:		Type of sample-packing, that has to be used
-+ * @order:		Sample order when storing in memory
-+ * @bits_per_sample:	How many bits the bridge has to sample
-+ */
-+struct pxa_mbus_pixelfmt {
-+	const char		*name;
-+	u32			fourcc;
-+	enum pxa_mbus_packing	packing;
-+	enum pxa_mbus_order	order;
-+	enum pxa_mbus_layout	layout;
-+	u8			bits_per_sample;
-+};
-+
-+/**
-+ * struct pxa_mbus_lookup - Lookup FOURCC IDs by mediabus codes for pass-through
-+ * @code:	mediabus pixel-code
-+ * @fmt:	pixel format description
-+ */
-+struct pxa_mbus_lookup {
-+	u32	code;
-+	struct pxa_mbus_pixelfmt	fmt;
-+};
-+
-+static const struct pxa_mbus_lookup mbus_fmt[] = {
-+{
-+	.code = MEDIA_BUS_FMT_YUYV8_2X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_YUYV,
-+		.name			= "YUYV",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_YVYU8_2X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_YVYU,
-+		.name			= "YVYU",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_UYVY8_2X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_UYVY,
-+		.name			= "UYVY",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_VYUY8_2X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_VYUY,
-+		.name			= "VYUY",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_RGB555_2X8_PADHI_LE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_RGB555,
-+		.name			= "RGB555",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_RGB555_2X8_PADHI_BE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_RGB555X,
-+		.name			= "RGB555X",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_BE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_RGB565_2X8_LE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_RGB565,
-+		.name			= "RGB565",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_RGB565_2X8_BE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_RGB565X,
-+		.name			= "RGB565X",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_BE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SBGGR8_1X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR8,
-+		.name			= "Bayer 8 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_NONE,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SBGGR10_1X10,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 10,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_Y8_1X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_GREY,
-+		.name			= "Grey",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_NONE,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_Y10_1X10,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_Y10,
-+		.name			= "Grey 10bit",
-+		.bits_per_sample	= 10,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR10,
-+		.name			= "Bayer 10 BGGR",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_BE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_RGB444_2X8_PADHI_BE,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_RGB444,
-+		.name			= "RGB444",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_BE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_UYVY8_1X16,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_UYVY,
-+		.name			= "UYVY 16bit",
-+		.bits_per_sample	= 16,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_VYUY8_1X16,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_VYUY,
-+		.name			= "VYUY 16bit",
-+		.bits_per_sample	= 16,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_YUYV8_1X16,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_YUYV,
-+		.name			= "YUYV 16bit",
-+		.bits_per_sample	= 16,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_YVYU8_1X16,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_YVYU,
-+		.name			= "YVYU 16bit",
-+		.bits_per_sample	= 16,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SGRBG8_1X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SGRBG8,
-+		.name			= "Bayer 8 GRBG",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_NONE,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SGRBG10DPCM8,
-+		.name			= "Bayer 10 BGGR DPCM 8",
-+		.bits_per_sample	= 8,
-+		.packing		= PXA_MBUS_PACKING_NONE,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SGBRG10_1X10,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SGBRG10,
-+		.name			= "Bayer 10 GBRG",
-+		.bits_per_sample	= 10,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SGRBG10_1X10,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SGRBG10,
-+		.name			= "Bayer 10 GRBG",
-+		.bits_per_sample	= 10,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SRGGB10_1X10,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SRGGB10,
-+		.name			= "Bayer 10 RGGB",
-+		.bits_per_sample	= 10,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SBGGR12_1X12,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SBGGR12,
-+		.name			= "Bayer 12 BGGR",
-+		.bits_per_sample	= 12,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SGBRG12_1X12,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SGBRG12,
-+		.name			= "Bayer 12 GBRG",
-+		.bits_per_sample	= 12,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SGRBG12_1X12,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SGRBG12,
-+		.name			= "Bayer 12 GRBG",
-+		.bits_per_sample	= 12,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+}, {
-+	.code = MEDIA_BUS_FMT_SRGGB12_1X12,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_SRGGB12,
-+		.name			= "Bayer 12 RGGB",
-+		.bits_per_sample	= 12,
-+		.packing		= PXA_MBUS_PACKING_EXTEND16,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PACKED,
-+	},
-+},
-+};
-+
-+static s32 pxa_mbus_bytes_per_line(u32 width, const struct pxa_mbus_pixelfmt *mf)
-+{
-+	if (mf->layout != PXA_MBUS_LAYOUT_PACKED)
-+		return width * mf->bits_per_sample / 8;
-+
-+	switch (mf->packing) {
-+	case PXA_MBUS_PACKING_NONE:
-+		return width * mf->bits_per_sample / 8;
-+	case PXA_MBUS_PACKING_2X8_PADHI:
-+	case PXA_MBUS_PACKING_EXTEND16:
-+		return width * 2;
-+	}
-+	return -EINVAL;
-+}
-+
-+static s32 pxa_mbus_image_size(const struct pxa_mbus_pixelfmt *mf,
-+			u32 bytes_per_line, u32 height)
-+{
-+	switch (mf->packing) {
-+	case PXA_MBUS_PACKING_2X8_PADHI:
-+		return bytes_per_line * height * 2;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static const struct pxa_mbus_pixelfmt *pxa_mbus_find_fmtdesc(
-+	u32 code,
-+	const struct pxa_mbus_lookup *lookup,
-+	int n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n; i++)
-+		if (lookup[i].code == code)
-+			return &lookup[i].fmt;
-+
-+	return NULL;
-+}
-+
-+static const struct pxa_mbus_pixelfmt *pxa_mbus_get_fmtdesc(
-+	u32 code)
-+{
-+	return pxa_mbus_find_fmtdesc(code, mbus_fmt, ARRAY_SIZE(mbus_fmt));
-+}
-+
-+static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
-+					unsigned int flags)
-+{
-+	unsigned long common_flags;
-+	bool hsync = true, vsync = true, pclk, data, mode;
-+	bool mipi_lanes, mipi_clock;
-+
-+	common_flags = cfg->flags & flags;
-+
-+	switch (cfg->type) {
-+	case V4L2_MBUS_PARALLEL:
-+		hsync = common_flags & (V4L2_MBUS_HSYNC_ACTIVE_HIGH |
-+					V4L2_MBUS_HSYNC_ACTIVE_LOW);
-+		vsync = common_flags & (V4L2_MBUS_VSYNC_ACTIVE_HIGH |
-+					V4L2_MBUS_VSYNC_ACTIVE_LOW);
-+		/* fall through */
-+	case V4L2_MBUS_BT656:
-+		pclk = common_flags & (V4L2_MBUS_PCLK_SAMPLE_RISING |
-+				       V4L2_MBUS_PCLK_SAMPLE_FALLING);
-+		data = common_flags & (V4L2_MBUS_DATA_ACTIVE_HIGH |
-+				       V4L2_MBUS_DATA_ACTIVE_LOW);
-+		mode = common_flags & (V4L2_MBUS_MASTER | V4L2_MBUS_SLAVE);
-+		return (!hsync || !vsync || !pclk || !data || !mode) ?
-+			0 : common_flags;
-+	case V4L2_MBUS_CSI2:
-+		mipi_lanes = common_flags & V4L2_MBUS_CSI2_LANES;
-+		mipi_clock = common_flags & (V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK |
-+					     V4L2_MBUS_CSI2_CONTINUOUS_CLOCK);
-+		return (!mipi_lanes || !mipi_clock) ? 0 : common_flags;
-+	}
-+	return 0;
-+}
-+
- /**
-  * struct soc_camera_format_xlate - match between host and sensor formats
-  * @code: code of a sensor provided format
-@@ -195,7 +629,7 @@
-  */
- struct soc_camera_format_xlate {
- 	u32 code;
--	const struct soc_mbus_pixelfmt *host_fmt;
-+	const struct pxa_mbus_pixelfmt *host_fmt;
- };
-
- /*
-@@ -281,7 +715,7 @@ static const char *pxa_cam_driver_description = "PXA_Camera";
-  * Format translation functions
-  */
- static const struct soc_camera_format_xlate
--*soc_mbus_xlate_by_fourcc(struct soc_camera_format_xlate *user_formats,
-+*pxa_mbus_xlate_by_fourcc(struct soc_camera_format_xlate *user_formats,
- 			  unsigned int fourcc)
- {
- 	unsigned int i;
-@@ -292,7 +726,7 @@ static const struct soc_camera_format_xlate
- 	return NULL;
- }
-
--static struct soc_camera_format_xlate *soc_mbus_build_fmts_xlate(
-+static struct soc_camera_format_xlate *pxa_mbus_build_fmts_xlate(
- 	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
- 	int (*get_formats)(struct v4l2_device *, unsigned int,
- 			   struct soc_camera_format_xlate *xlate))
-@@ -1151,7 +1585,7 @@ static int pxa_camera_set_bus_param(struct pxa_camera_dev *pcdev)
-
- 	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
--		common_flags = soc_mbus_config_compatible(&cfg,
-+		common_flags = pxa_mbus_config_compatible(&cfg,
- 							  bus_flags);
- 		if (!common_flags) {
- 			dev_warn(pcdev_to_dev(pcdev),
-@@ -1218,7 +1652,7 @@ static int pxa_camera_try_bus_param(struct pxa_camera_dev *pcdev,
-
- 	ret = sensor_call(pcdev, video, g_mbus_config, &cfg);
- 	if (!ret) {
--		common_flags = soc_mbus_config_compatible(&cfg,
-+		common_flags = pxa_mbus_config_compatible(&cfg,
- 							  bus_flags);
- 		if (!common_flags) {
- 			dev_warn(pcdev_to_dev(pcdev),
-@@ -1233,25 +1667,25 @@ static int pxa_camera_try_bus_param(struct pxa_camera_dev *pcdev,
- 	return ret;
- }
-
--static const struct soc_mbus_pixelfmt pxa_camera_formats[] = {
-+static const struct pxa_mbus_pixelfmt pxa_camera_formats[] = {
- 	{
- 		.fourcc			= V4L2_PIX_FMT_YUV422P,
- 		.name			= "Planar YUV422 16 bit",
- 		.bits_per_sample	= 8,
--		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
--		.order			= SOC_MBUS_ORDER_LE,
--		.layout			= SOC_MBUS_LAYOUT_PLANAR_2Y_U_V,
-+		.packing		= PXA_MBUS_PACKING_2X8_PADHI,
-+		.order			= PXA_MBUS_ORDER_LE,
-+		.layout			= PXA_MBUS_LAYOUT_PLANAR_2Y_U_V,
- 	},
- };
-
- /* This will be corrected as we get more formats */
--static bool pxa_camera_packing_supported(const struct soc_mbus_pixelfmt *fmt)
-+static bool pxa_camera_packing_supported(const struct pxa_mbus_pixelfmt *fmt)
- {
--	return	fmt->packing == SOC_MBUS_PACKING_NONE ||
-+	return	fmt->packing == PXA_MBUS_PACKING_NONE ||
- 		(fmt->bits_per_sample == 8 &&
--		 fmt->packing == SOC_MBUS_PACKING_2X8_PADHI) ||
-+		 fmt->packing == PXA_MBUS_PACKING_2X8_PADHI) ||
- 		(fmt->bits_per_sample > 8 &&
--		 fmt->packing == SOC_MBUS_PACKING_EXTEND16);
-+		 fmt->packing == PXA_MBUS_PACKING_EXTEND16);
- }
-
- static int pxa_camera_get_formats(struct v4l2_device *v4l2_dev,
-@@ -1264,14 +1698,14 @@ static int pxa_camera_get_formats(struct v4l2_device *v4l2_dev,
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 		.index = idx,
- 	};
--	const struct soc_mbus_pixelfmt *fmt;
-+	const struct pxa_mbus_pixelfmt *fmt;
-
- 	ret = sensor_call(pcdev, pad, enum_mbus_code, NULL, &code);
- 	if (ret < 0)
- 		/* No more formats */
- 		return 0;
-
--	fmt = soc_mbus_get_fmtdesc(code.code);
-+	fmt = pxa_mbus_get_fmtdesc(code.code);
- 	if (!fmt) {
- 		dev_err(pcdev_to_dev(pcdev),
- 			"Invalid format code #%u: %d\n", idx, code.code);
-@@ -1330,7 +1764,7 @@ static int pxa_camera_build_formats(struct pxa_camera_dev *pcdev)
- {
- 	struct soc_camera_format_xlate *xlate;
-
--	xlate = soc_mbus_build_fmts_xlate(&pcdev->v4l2_dev, pcdev->sensor,
-+	xlate = pxa_mbus_build_fmts_xlate(&pcdev->v4l2_dev, pcdev->sensor,
- 					  pxa_camera_get_formats);
- 	if (IS_ERR(xlate))
- 		return PTR_ERR(xlate);
-@@ -1383,7 +1817,7 @@ static int pxac_vidioc_enum_fmt_vid_cap(struct file *filp, void  *priv,
- 					struct v4l2_fmtdesc *f)
- {
- 	struct pxa_camera_dev *pcdev = video_drvdata(filp);
--	const struct soc_mbus_pixelfmt *format;
-+	const struct pxa_mbus_pixelfmt *format;
- 	unsigned int idx;
-
- 	for (idx = 0; pcdev->user_formats[idx].code; idx++);
-@@ -1427,7 +1861,7 @@ static int pxac_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 	__u32 pixfmt = pix->pixelformat;
- 	int ret;
-
--	xlate = soc_mbus_xlate_by_fourcc(pcdev->user_formats, pixfmt);
-+	xlate = pxa_mbus_xlate_by_fourcc(pcdev->user_formats, pixfmt);
- 	if (!xlate) {
- 		dev_warn(pcdev_to_dev(pcdev), "Format %x not found\n", pixfmt);
- 		return -EINVAL;
-@@ -1463,12 +1897,12 @@ static int pxac_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 		return -EINVAL;
- 	}
-
--	ret = soc_mbus_bytes_per_line(pix->width, xlate->host_fmt);
-+	ret = pxa_mbus_bytes_per_line(pix->width, xlate->host_fmt);
- 	if (ret < 0)
- 		return ret;
-
- 	pix->bytesperline = ret;
--	ret = soc_mbus_image_size(xlate->host_fmt, pix->bytesperline,
-+	ret = pxa_mbus_image_size(xlate->host_fmt, pix->bytesperline,
- 				  pix->height);
- 	if (ret < 0)
- 		return ret;
-@@ -1504,7 +1938,7 @@ static int pxac_vidioc_s_fmt_vid_cap(struct file *filp, void *priv,
- 	if (ret)
- 		return ret;
-
--	xlate = soc_mbus_xlate_by_fourcc(pcdev->user_formats,
-+	xlate = pxa_mbus_xlate_by_fourcc(pcdev->user_formats,
- 					 pix->pixelformat);
- 	v4l2_fill_mbus_format(&format.format, pix, xlate->code);
- 	ret = sensor_call(pcdev, pad, set_fmt, NULL, &format);
-@@ -1685,10 +2119,10 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
- 	pix->width = DEFAULT_WIDTH;
- 	pix->height = DEFAULT_HEIGHT;
- 	pix->bytesperline =
--		soc_mbus_bytes_per_line(pix->width,
-+		pxa_mbus_bytes_per_line(pix->width,
- 					pcdev->current_fmt->host_fmt);
- 	pix->sizeimage =
--		soc_mbus_image_size(pcdev->current_fmt->host_fmt,
-+		pxa_mbus_image_size(pcdev->current_fmt->host_fmt,
- 				    pix->bytesperline, pix->height);
- 	pix->pixelformat = pcdev->current_fmt->host_fmt->fourcc;
- 	v4l2_fill_mbus_format(mf, pix, pcdev->current_fmt->code);
--- 
-2.8.1
-
+Thanks,
+Mauro
