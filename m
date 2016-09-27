@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:44272 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756026AbcIFPLi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 11:11:38 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53814 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753865AbcI0OEo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 27 Sep 2016 10:04:44 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id B7F0D60096
+        for <linux-media@vger.kernel.org>; Tue, 27 Sep 2016 17:04:35 +0300 (EEST)
+Date: Tue, 27 Sep 2016 17:04:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.10] smiapp cleanups, fixes and runtime PM support
+Message-ID: <20160927140404.GC3225@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 1/3] doc-rst:c-domain: fix sphinx version incompatibility
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <87k2epxiby.fsf@intel.com>
-Date: Tue, 6 Sep 2016 17:10:53 +0200
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <3F2C3A86-D578-4978-AFFB-8B34DA758BE6@darmarit.de>
-References: <1472657372-21039-1-git-send-email-markus.heiser@darmarit.de> <1472657372-21039-2-git-send-email-markus.heiser@darmarit.de> <20160906061909.36aa2986@lwn.net> <87k2epxiby.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-Am 06.09.2016 um 15:34 schrieb Jani Nikula <jani.nikula@intel.com>:
+Here are a number of cleanups and some fixes plus runtime PM support for the
+smiapp driver.
 
-> On Tue, 06 Sep 2016, Jonathan Corbet <corbet@lwn.net> wrote:
->> On Wed, 31 Aug 2016 17:29:30 +0200
->> Markus Heiser <markus.heiser@darmarit.de> wrote:
->> 
->>> +            if major >= 1 and minor < 4:
->>> +                # indexnode's tuple changed in 1.4
->>> +                # https://github.com/sphinx-doc/sphinx/commit/e6a5a3a92e938fcd75866b4227db9e0524d58f7c
->>> +                self.indexnode['entries'].append(
->>> +                    ('single', indextext, targetname, ''))
->>> +            else:
->>> +                self.indexnode['entries'].append(
->>> +                    ('single', indextext, targetname, '', None))
->> 
->> So this doesn't seem right.  We'll get the four-entry tuple behavior with
->> 1.3 and the five-entry behavior with 1.4...but what happens when 2.0
->> comes out?
->> 
->> Did you want maybe:
->> 
->> 	if major == 1 and minor < 4:
->> 
->> ?
->> 
->> (That will fail on 0.x, but we've already stated that we don't support
->> below 1.2).
-> 
-> Is there a way to check the number of entries expected in the tuples
-> instead of trying to match the version?
+Please pull.
 
-Sadly not, the dissection of the tuple is spread around the source :(
 
-Sphinx has some more of these tuples with fixed length (remember
-conf.py, the latex_documents settings) where IMHO hash/value pairs
-(dicts) are more suitable.
+The following changes since commit e3ea5e94489bc8c711d422dfa311cfa310553a1b:
 
--- Markus --
-> BR,
-> Jani.
-> -- 
-> Jani Nikula, Intel Open Source Technology Center
+  [media] si2165: switch to regmap (2016-09-22 12:56:35 -0300)
 
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-runtime-pm
+
+for you to fetch changes up to eaae98f0b16d41c6b8f7ee414b49b11534024651:
+
+  smiapp: Implement support for autosuspend (2016-09-27 16:50:14 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (23):
+      smiapp: Move sub-device initialisation into a separate function
+      smiapp: Explicitly define number of pads in initialisation
+      smiapp: Initialise media entity after sensor init
+      smiapp: Split off sub-device registration into two
+      smiapp: Provide a common function to obtain native pixel array size
+      smiapp: Remove unnecessary BUG_ON()'s
+      smiapp: Always initialise the sensor in probe
+      smiapp: Fix resource management in registration failure
+      smiapp: Merge smiapp_init() with smiapp_probe()
+      smiapp: Read frame format earlier
+      smiapp: Unify setting up sub-devices
+      smiapp: Use SMIAPP_PADS when referring to number of pads
+      smiapp: Obtain frame layout from the frame descriptor
+      smiapp: Improve debug messages from frame layout reading
+      smiapp: Remove useless newlines and other small cleanups
+      smiapp: Obtain correct media bus code for try format
+      smiapp: Drop a debug print on frame size and bit depth
+      smiapp-pll: Don't complain aloud about failing PLL calculation
+      smiapp: Drop BUG_ON() in suspend path
+      smiapp: Set device for pixel array and binner
+      smiapp: Set use suspend and resume ops for other functions
+      smiapp: Use runtime PM
+      smiapp: Implement support for autosuspend
+
+ drivers/media/i2c/smiapp-pll.c         |   3 +-
+ drivers/media/i2c/smiapp/smiapp-core.c | 942 ++++++++++++++++-----------------
+ drivers/media/i2c/smiapp/smiapp-regs.c |  24 +-
+ drivers/media/i2c/smiapp/smiapp.h      |  28 +-
+ 4 files changed, 489 insertions(+), 508 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
