@@ -1,188 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:56885 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938389AbcIHVhu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Sep 2016 17:37:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 12/15] [media] videobuf2-v4l2.h: improve documentation
-Date: Thu,  8 Sep 2016 18:37:38 -0300
-Message-Id: <f350fff7ade1501e64d7706923c4126774df0ada.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1473370390.git.mchehab@s-opensource.com>
-References: <cover.1473370390.git.mchehab@s-opensource.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:50127 "EHLO comal.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933372AbcI1VVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 17:21:41 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [Patch 14/35] media: ti-vpe: vpdma: Clear IRQs for individual lists
+Date: Wed, 28 Sep 2016 16:21:38 -0500
+Message-ID: <20160928212138.26950-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few issues at the documentation: fields not documented,
-bad cross refrences, etc.
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-Fix them.
+VPDMA IRQs are registered for multiple lists
+When clearing an IRQ for a list interrupt, all the
+IRQs for the individual lists are to be cleared separately.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- include/media/videobuf2-v4l2.h | 52 +++++++++++++++++++++++++++---------------
- 1 file changed, 33 insertions(+), 19 deletions(-)
+ drivers/media/platform/ti-vpe/vpdma.c | 6 +++---
+ drivers/media/platform/ti-vpe/vpdma.h | 3 ++-
+ drivers/media/platform/ti-vpe/vpe.c   | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 01b1b71fc6fd..611d4f330a4c 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -25,11 +25,13 @@
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index bfb0e19dd45c..96b5633ebb23 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -955,12 +955,12 @@ unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num)
+ EXPORT_SYMBOL(vpdma_get_list_mask);
  
- /**
-  * struct vb2_v4l2_buffer - video buffer information for v4l2
-+ *
-  * @vb2_buf:	video buffer 2
-  * @flags:	buffer informational flags
-  * @field:	enum v4l2_field; field order of the image in the buffer
-  * @timecode:	frame timecode
-  * @sequence:	sequence count of this frame
-+ *
-  * Should contain enough information to be able to cover all the fields
-  * of struct v4l2_buffer at videodev2.h
-  */
-@@ -53,6 +55,7 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b);
- /**
-  * vb2_reqbufs() - Wrapper for vb2_core_reqbufs() that also verifies
-  * the memory and type values.
-+ *
-  * @q:		videobuf2 queue
-  * @req:	struct passed from userspace to vidioc_reqbufs handler
-  *		in driver
-@@ -62,6 +65,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req);
- /**
-  * vb2_create_bufs() - Wrapper for vb2_core_create_bufs() that also verifies
-  * the memory and type values.
-+ *
-  * @q:		videobuf2 queue
-  * @create:	creation parameters, passed from userspace to vidioc_create_bufs
-  *		handler in driver
-@@ -70,15 +74,17 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create);
+ /* clear previosuly occured list intterupts in the LIST_STAT register */
+-void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num)
++void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
++			   int list_num)
+ {
+ 	u32 reg_addr = VPDMA_INT_LIST0_STAT + VPDMA_INTX_OFFSET * irq_num;
  
- /**
-  * vb2_prepare_buf() - Pass ownership of a buffer from userspace to the kernel
-+ *
-  * @q:		videobuf2 queue
-  * @b:		buffer structure passed from userspace to vidioc_prepare_buf
-  *		handler in driver
-  *
-  * Should be called from vidioc_prepare_buf ioctl handler of a driver.
-  * This function:
-- * 1) verifies the passed buffer,
-- * 2) calls buf_prepare callback in the driver (if provided), in which
-- *    driver-specific buffer initialization can be performed,
-+ *
-+ * #) verifies the passed buffer,
-+ * #) calls buf_prepare callback in the driver (if provided), in which
-+ *    driver-specific buffer initialization can be performed.
-  *
-  * The return values from this function are intended to be directly returned
-  * from vidioc_prepare_buf handler in driver.
-@@ -88,53 +94,57 @@ int vb2_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b);
- /**
-  * vb2_qbuf() - Queue a buffer from userspace
-  * @q:		videobuf2 queue
-- * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-+ * @b:		buffer structure passed from userspace to VIDIOC_QBUF() handler
-  *		in driver
-  *
-- * Should be called from vidioc_qbuf ioctl handler of a driver.
-+ * Should be called from VIDIOC_QBUF() ioctl handler of a driver.
-+ *
-  * This function:
-- * 1) verifies the passed buffer,
-- * 2) if necessary, calls buf_prepare callback in the driver (if provided), in
-+ *
-+ * #) verifies the passed buffer,
-+ * #) if necessary, calls buf_prepare callback in the driver (if provided), in
-  *    which driver-specific buffer initialization can be performed,
-- * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-+ * #) if streaming is on, queues the buffer in driver by the means of buf_queue
-  *    callback for processing.
-  *
-  * The return values from this function are intended to be directly returned
-- * from vidioc_qbuf handler in driver.
-+ * from VIDIOC_QBUF() handler in driver.
-  */
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
+-	write_reg(vpdma, reg_addr,
+-		read_reg(vpdma, reg_addr));
++	write_reg(vpdma, reg_addr, 3 << (list_num * 2));
+ }
+ EXPORT_SYMBOL(vpdma_clear_list_stat);
  
- /**
-  * vb2_expbuf() - Export a buffer as a file descriptor
-  * @q:		videobuf2 queue
-- * @eb:		export buffer structure passed from userspace to vidioc_expbuf
-+ * @eb:		export buffer structure passed from userspace to VIDIOC_EXPBUF()
-  *		handler in driver
-  *
-  * The return values from this function are intended to be directly returned
-- * from vidioc_expbuf handler in driver.
-+ * from VIDIOC_EXPBUF() handler in driver.
-  */
- int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index f08f4370ce4a..65961147e8f7 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -244,7 +244,8 @@ int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
+ /* vpdma list interrupt management */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
+ 		int list_num, bool enable);
+-void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num);
++void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
++			   int list_num);
+ unsigned int vpdma_get_list_stat(struct vpdma_data *vpdma, int irq_num);
+ unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num);
  
- /**
-  * vb2_dqbuf() - Dequeue a buffer to the userspace
-  * @q:		videobuf2 queue
-- * @b:		buffer structure passed from userspace to vidioc_dqbuf handler
-+ * @b:		buffer structure passed from userspace to VIDIOC_DQBUF() handler
-  *		in driver
-  * @nonblocking: if true, this call will not sleep waiting for a buffer if no
-  *		 buffers ready for dequeuing are present. Normally the driver
-  *		 would be passing (file->f_flags & O_NONBLOCK) here
-  *
-- * Should be called from vidioc_dqbuf ioctl handler of a driver.
-+ * Should be called from VIDIOC_DQBUF() ioctl handler of a driver.
-+ *
-  * This function:
-- * 1) verifies the passed buffer,
-- * 2) calls buf_finish callback in the driver (if provided), in which
-+ *
-+ * #) verifies the passed buffer,
-+ * #) calls buf_finish callback in the driver (if provided), in which
-  *    driver can perform any additional operations that may be required before
-  *    returning the buffer to userspace, such as cache sync,
-- * 3) the buffer struct members are filled with relevant information for
-+ * #) the buffer struct members are filled with relevant information for
-  *    the userspace.
-  *
-  * The return values from this function are intended to be directly returned
-- * from vidioc_dqbuf handler in driver.
-+ * from VIDIOC_DQBUF() handler in driver.
-  */
- int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 9823ee368a01..000cd073fa8d 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1326,7 +1326,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
  
-@@ -144,7 +154,9 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
-  * @type:	type argument passed from userspace to vidioc_streamon handler
-  *
-  * Should be called from vidioc_streamon handler of a driver.
-+ *
-  * This function:
-+ *
-  * 1) verifies current state
-  * 2) passes any previously queued buffers to the driver and starts streaming
-  *
-@@ -159,9 +171,11 @@ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
-  * @type:	type argument passed from userspace to vidioc_streamoff handler
-  *
-  * Should be called from vidioc_streamoff handler of a driver.
-+ *
-  * This function:
-- * 1) verifies current state,
-- * 2) stop streaming and dequeues any queued buffers, including those previously
-+ *
-+ * #) verifies current state,
-+ * #) stop streaming and dequeues any queued buffers, including those previously
-  *    passed to the driver (after waiting for the driver to finish).
-  *
-  * This call can be used for pausing playback.
+ 	if (irqst0) {
+ 		if (irqst0 & VPE_INT0_LIST0_COMPLETE)
+-			vpdma_clear_list_stat(ctx->dev->vpdma, 0);
++			vpdma_clear_list_stat(ctx->dev->vpdma, 0, 0);
+ 
+ 		irqst0 &= ~(VPE_INT0_LIST0_COMPLETE);
+ 	}
 -- 
-2.7.4
-
+2.9.0
 
