@@ -1,60 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:56738 "EHLO mail.kernel.org"
+Received: from ni.piap.pl ([195.187.100.4]:34416 "EHLO ni.piap.pl"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753103AbcISUdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 16:33:22 -0400
-Date: Mon, 19 Sep 2016 22:33:15 +0200
-From: Sebastian Reichel <sre@kernel.org>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 05/17] smiapp: Provide a common function to obtain
- native pixel array size
-Message-ID: <20160919203314.ctgbi2moxkgpqxmh@earth>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
- <1473938551-14503-6-git-send-email-sakari.ailus@linux.intel.com>
+        id S1751699AbcI1FVu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 01:21:50 -0400
+From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
+Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
+References: <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
+        <m3k2e5wfxy.fsf@t19.piap.pl> <20160921134554.s3tdolyej6r2w5wh@zver>
+        <m360powc4m.fsf@t19.piap.pl> <20160922152356.nhgacxprxtvutb67@zver>
+        <m3ponri5ky.fsf@t19.piap.pl> <20160926091831.cp6qkv77oo5tinn5@zver>
+        <m337kldi92.fsf@t19.piap.pl> <20160927074009.3kcvruynnapj6y3q@zver>
+        <m3y42dbmqq.fsf@t19.piap.pl> <20160927142244.rocwg36f2bsfl3n6@zver>
+Date: Wed, 28 Sep 2016 07:21:44 +0200
+In-Reply-To: <20160927142244.rocwg36f2bsfl3n6@zver> (Andrey Utkin's message of
+        "Tue, 27 Sep 2016 17:22:44 +0300")
+Message-ID: <m3ponobnvb.fsf@t19.piap.pl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="jwz2omkgc7tsodjn"
-Content-Disposition: inline
-In-Reply-To: <1473938551-14503-6-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Andrey Utkin <andrey_utkin@fastmail.com> writes:
 
---jwz2omkgc7tsodjn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Lockup happens only on 6010. In provided log you can see that 6110
+> passes just fine right before 6010. Also if 6010 PCI ID is removed from
+> solo6x10 driver's devices list, the freeze doesn't happen.
 
-Hi,
+Probably explains why I don't see lockups :-)
 
-On Thu, Sep 15, 2016 at 02:22:19PM +0300, Sakari Ailus wrote:
-> The same pixel array size is required for the active format of each
-> sub-device sink pad and try format of each sink pad of each opened file
-> handle as well as for the native size rectangle.
+I will have a look.
+-- 
+Krzysztof Halasa
 
-Reviewed-By: Sebastian Reichel <sre@kernel.org>
-
--- Sebastian
-
---jwz2omkgc7tsodjn
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBCgAGBQJX4EuKAAoJENju1/PIO/qaKjMP/2eopFuDCNuE1yUWs3lOYO91
-yLR8R05jxF4H4jqYW8A72v+pvj2B1SBNmqBzS8CFL8PULjFdtKRGoEixRGFpGsX/
-OtN4T8Gv+ym4+aufxgbzpK0NHlgOjbocHul6aXqbqpnbozUrVaNiOUGUfzEqUir5
-XsH4vkR8/TLhy8I72PWx7Oz198naTHEIOv4jYKa1ULnDHK457+i97PgI6Yd9vW/5
-X8xGY9A1e1NAtIQ4K/BscNPzTqIfBK/7ctEXvFNXebC+KyOUsX+OrHq0vlZ0k1q2
-DUUbMwJbb47Ci6dnAGWyECsWMqr5CGaGf+6P33w5Rn+RAMq6iTSzxbelTaItz+iz
-2Xm0htAs1WGTGHsr9Xfu9NbtBy3P0u+97ZLlZme3gQ9szFVrCEAtnsok94N0HnSZ
-FO9gRFJjalbiU+wB4LcHndzI2Du4c3ogyfKW1Sw1JU5a9NpsERoowhTWD3iDDAUm
-beQoa1LN+8ffznjNya9L10+qG++j10vXnc7pDXA5MfVNjETogmcE4NbYl10fNoXL
-EYGoyNoxV7JAit/R4zXaRlCNTQoVcaDsFVAZxx9PdsKuzQZy3kNNT7AweOaYpv9Y
-1/sJo/Fw496Mpx0R8ndNDX3fVffEJF57A2CeSN9WbiwUDFQPkZ0HP8ajjZlItVds
-i7aZGaboDgNvEH8AkyWw
-=Mboc
------END PGP SIGNATURE-----
-
---jwz2omkgc7tsodjn--
+Industrial Research Institute for Automation and Measurements PIAP
+Al. Jerozolimskie 202, 02-486 Warsaw, Poland
