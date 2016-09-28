@@ -1,102 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:56259 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755981AbcIFSe6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Sep 2016 14:34:58 -0400
-Message-ID: <1473186892.2668.14.camel@ndufresne.ca>
-Subject: Re: [PATCH] [media] vb2: map dmabuf for planes on driver queue
- instead of vidioc_qbuf
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-Reply-To: nicolas@ndufresne.ca
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Pawel Osciak <pawel@osciak.com>, linux-media@vger.kernel.org,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Luis de Bethencourt <luisbg@osg.samsung.com>
-Date: Tue, 06 Sep 2016 14:34:52 -0400
-In-Reply-To: <20160720132005.GC7976@valkosipuli.retiisi.org.uk>
-References: <1468599966-31988-1-git-send-email-javier@osg.samsung.com>
-         <20160720132005.GC7976@valkosipuli.retiisi.org.uk>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-RcdezD98ndYiF1pBg0DM"
-Mime-Version: 1.0
+Received: from exsmtp01.microchip.com ([198.175.253.37]:52752 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750738AbcI1FbR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 01:31:17 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] atmel-isc: start dma in some scenario
+Date: Wed, 28 Sep 2016 13:28:57 +0800
+Message-ID: <1475040538-32591-1-git-send-email-songjun.wu@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+If a new vb buf is added to vb queue, the queue is
+empty and steaming, dma should be started.
 
---=-RcdezD98ndYiF1pBg0DM
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+---
 
-Le mercredi 20 juillet 2016 =C3=A0 16:20 +0300, Sakari Ailus a =C3=A9crit=
-=C2=A0:
-> Hi Javier,
->=20
-> On Fri, Jul 15, 2016 at 12:26:06PM -0400, Javier Martinez Canillas
-> wrote:
-> > The buffer planes' dma-buf are currently mapped when buffers are queued
-> > from userspace but it's more appropriate to do the mapping when buffers
-> > are queued in the driver since that's when the actual DMA operation are
-> > going to happen.
-> >=20
-> > Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-> > Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-> >=20
-> > ---
-> >=20
-> > Hello,
-> >=20
-> > A side effect of this change is that if the dmabuf map fails for some
-> > reasons (i.e: a driver using the DMA contig memory allocator but CMA
-> > not being enabled), the fail will no longer happen on VIDIOC_QBUF but
-> > later (i.e: in VIDIOC_STREAMON).
-> >=20
-> > I don't know if that's an issue though but I think is worth mentioning.
->=20
-> I have the same question has Hans --- why?
->=20
-> I rather think we should keep the buffers mapped all the time. That'd
-> require a bit of extra from the DMA-BUF framework I suppose, to support
-> streaming mappings.
->=20
-> The reason for that is performance. If you're passing the buffer between =
-a
-> couple of hardware devices, there's no need to map and unmap it every tim=
-e
-> the buffer is accessed by the said devices. That'd avoid an unnecessary
-> cache flush as well, something that tends to be quite expensive. On a PC
-> with resolutions typically used on webcams that might not really matter. =
-But
-> if you have an embedded system with a relatively modest 10 MP camera sens=
-or,
-> it's one of the first things you'll notice if you check where the CPU tim=
-e
-> is being spent.
+ drivers/media/platform/atmel/atmel-isc.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-That is very interesting since the initial discussion started from the
-idea of adding an implicit fence wait to the map operation. This way we
-could have a dma-buf fence attached without having to modify the
-drivers to support it. Buffer handles could be dispatched before there
-is any data in it. Though, if we keep it mapped, I believe this idea is
-simply incompatible and fences should remain explicit for extra
-flexibility.
---=-RcdezD98ndYiF1pBg0DM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlfPDEwACgkQcVMCLawGqByubACgu+GXVJ9P6QTCgaFIeJAhiKS9
-AKwAnjkyUr9jyj4g85VYxoPQdtoLRjWN
-=nxBJ
------END PGP SIGNATURE-----
-
---=-RcdezD98ndYiF1pBg0DM--
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index ccfe13b..8e25d3f 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -617,7 +617,13 @@ static void isc_buffer_queue(struct vb2_buffer *vb)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&isc->dma_queue_lock, flags);
+-	list_add_tail(&buf->list, &isc->dma_queue);
++	if (!isc->cur_frm && list_empty(&isc->dma_queue) &&
++		vb2_is_streaming(vb->vb2_queue)) {
++		isc->cur_frm = buf;
++		isc_start_dma(isc->regmap, isc->cur_frm,
++			isc->current_fmt->reg_dctrl_dview);
++	} else
++		list_add_tail(&buf->list, &isc->dma_queue);
+ 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
+ }
+ 
+-- 
+2.7.4
 
