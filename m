@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39284 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1764393AbcIOLWl (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55725 "EHLO
+        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754552AbcI1VVK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:22:41 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 9F211600A8
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:35 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 10/17] smiapp: Unify setting up sub-devices
-Date: Thu, 15 Sep 2016 14:22:24 +0300
-Message-Id: <1473938551-14503-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+        Wed, 28 Sep 2016 17:21:10 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [Patch 10/35] media: ti-vpe: Free vpdma buffers in vpe_release
+Date: Wed, 28 Sep 2016 16:21:08 -0500
+Message-ID: <20160928212108.26728-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The initialisation of the source sub-device is somewhat different as it's
-not created by the smiapp driver itself. Remove redundancy in initialising
-the two kind of sub-devices.
+From: Harinarayan Bhatta <harinarayan@ti.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Free vpdma buffers in vpe_release. Otherwise it was generating random
+backtrace.
+
+Signed-off-by: Harinarayan Bhatta <harinarayan@ti.com>
+Signed-off-by: Somnath Mukherjee <somnath@ti.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/platform/ti-vpe/vpe.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index c9aee83..b446d0a 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2574,6 +2574,7 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
- 	if (ssd != sensor->src)
- 		v4l2_subdev_init(&ssd->sd, &smiapp_ops);
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index b66b55322dd4..17451237220c 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2183,6 +2183,9 @@ static int vpe_release(struct file *file)
+ 	vpdma_free_desc_list(&ctx->desc_list);
+ 	vpdma_free_desc_buf(&ctx->mmr_adb);
  
-+	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	ssd->sensor = sensor;
- 
- 	ssd->npads = num_pads;
-@@ -2599,7 +2600,6 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
- 	if (ssd == sensor->src)
- 		return;
- 
--	ssd->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	ssd->sd.internal_ops = &smiapp_internal_ops;
- 	ssd->sd.owner = THIS_MODULE;
- 	v4l2_set_subdevdata(&ssd->sd, client);
-@@ -2843,9 +2843,6 @@ static int smiapp_probe(struct i2c_client *client,
- 
- 	v4l2_i2c_subdev_init(&sensor->src->sd, client, &smiapp_ops);
- 	sensor->src->sd.internal_ops = &smiapp_internal_src_ops;
--	sensor->src->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	sensor->src->sensor = sensor;
--	sensor->src->pads[0].flags = MEDIA_PAD_FL_SOURCE;
- 
- 	sensor->vana = devm_regulator_get(&client->dev, "vana");
- 	if (IS_ERR(sensor->vana)) {
++	vpdma_free_desc_buf(&ctx->sc_coeff_v);
++	vpdma_free_desc_buf(&ctx->sc_coeff_h);
++
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+ 	v4l2_ctrl_handler_free(&ctx->hdl);
 -- 
-2.1.4
+2.9.0
 
