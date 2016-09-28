@@ -1,46 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ni.piap.pl ([195.187.100.4]:35118 "EHLO ni.piap.pl"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755277AbcI0Ldz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Sep 2016 07:33:55 -0400
-From: khalasa@piap.pl (Krzysztof =?utf-8?Q?Ha=C5=82asa?=)
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
-References: <20160915130441.ji3f3jiiebsnsbct@acer>
-        <9cbb2079-f705-5312-d295-34bc3c8dadb9@xs4all.nl>
-        <m3k2e5wfxy.fsf@t19.piap.pl> <20160921134554.s3tdolyej6r2w5wh@zver>
-        <m360powc4m.fsf@t19.piap.pl> <20160922152356.nhgacxprxtvutb67@zver>
-        <m3ponri5ky.fsf@t19.piap.pl> <20160926091831.cp6qkv77oo5tinn5@zver>
-        <m337kldi92.fsf@t19.piap.pl> <20160927074009.3kcvruynnapj6y3q@zver>
-Date: Tue, 27 Sep 2016 13:33:49 +0200
-In-Reply-To: <20160927074009.3kcvruynnapj6y3q@zver> (Andrey Utkin's message of
-        "Tue, 27 Sep 2016 10:40:09 +0300")
-Message-ID: <m3y42dbmqq.fsf@t19.piap.pl>
+Received: from devils.ext.ti.com ([198.47.26.153]:55700 "EHLO
+        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754432AbcI1VUn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 17:20:43 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [Patch 06/35] media: ti-vpe: vpe: Do not perform job transaction atomically
+Date: Wed, 28 Sep 2016 16:20:40 -0500
+Message-ID: <20160928212040.26547-1-bparrot@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrey Utkin <andrey_utkin@fastmail.com> writes:
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
->> Can you share some details about the machine you are experiencing the
->> problems on? CPU, chipset? I'd try to see if I can recreate the problem.
->
-> See solo.txt.gz attached.
+Current VPE driver does not start the job until all the buffers for
+a transaction are not queued. When running in multiple context, this might
+increase the processing latency.
 
-Thanks. I can see you have quite a set of video devices there.
-I will see what I can do with this.
+Alternate solution would be to try to continue the same context as long as
+buffers for the transaction are ready; else switch the context. This may
+increase number of context switches but it reduces latency significantly.
 
-BTW does the lookup occur on SOLO6010, 6110, or both?
+In this approach, the job_ready always succeeds as long as there are
+buffers on the CAPTURE and OUTPUT stream. Processing may start immediately
+as the first 2 iterations don't need extra source buffers. Shift all the
+source buffers after each iteration and remove the oldest buffer.
+
+Also, with this removes the constraint of pre buffering 3 buffers before
+call to STREAMON in case of de-interlacing.
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index a0b29685fb69..9c38eff5df46 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -898,15 +898,14 @@ static struct vpe_ctx *file2ctx(struct file *file)
+ static int job_ready(void *priv)
+ {
+ 	struct vpe_ctx *ctx = priv;
+-	int needed = ctx->bufs_per_job;
+ 
+-	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL)
+-		needed += 2;	/* need additional two most recent fields */
+-
+-	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) < needed)
+-		return 0;
+-
+-	if (v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) < needed)
++	/*
++	 * This check is needed as this might be called directly from driver
++	 * When called by m2m framework, this will always satisy, but when
++	 * called from vpe_irq, this might fail. (src stream with zero buffers)
++	 */
++	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) <= 0 ||
++		v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) <= 0)
+ 		return 0;
+ 
+ 	return 1;
+@@ -1116,19 +1115,20 @@ static void device_run(void *priv)
+ 	struct sc_data *sc = ctx->dev->sc;
+ 	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
+ 
+-	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL) {
+-		ctx->src_vbs[2] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+-		WARN_ON(ctx->src_vbs[2] == NULL);
+-		ctx->src_vbs[1] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+-		WARN_ON(ctx->src_vbs[1] == NULL);
+-	}
+-
+ 	ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+ 	WARN_ON(ctx->src_vbs[0] == NULL);
+ 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+ 	WARN_ON(ctx->dst_vb == NULL);
+ 
+ 	if (ctx->deinterlacing) {
++
++		if (ctx->src_vbs[2] == NULL) {
++			ctx->src_vbs[2] = ctx->src_vbs[0];
++			WARN_ON(ctx->src_vbs[2] == NULL);
++			ctx->src_vbs[1] = ctx->src_vbs[0];
++			WARN_ON(ctx->src_vbs[1] == NULL);
++		}
++
+ 		/*
+ 		 * we have output the first 2 frames through line average, we
+ 		 * now switch to EDI de-interlacer
+@@ -1349,7 +1349,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 	}
+ 
+ 	ctx->bufs_completed++;
+-	if (ctx->bufs_completed < ctx->bufs_per_job) {
++	if (ctx->bufs_completed < ctx->bufs_per_job && job_ready(ctx)) {
+ 		device_run(ctx);
+ 		goto handled;
+ 	}
 -- 
-Krzysztof Halasa
+2.9.0
 
-Industrial Research Institute for Automation and Measurements PIAP
-Al. Jerozolimskie 202, 02-486 Warsaw, Poland
