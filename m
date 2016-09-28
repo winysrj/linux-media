@@ -1,41 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:47112
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935556AbcIPQfR (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55532 "EHLO
+        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754317AbcI1VQ5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Sep 2016 12:35:17 -0400
-Subject: Re: [PATCH] media: s5p-mfc: fix failure path of
- s5p_mfc_alloc_memdev()
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-References: <CGME20160916061511eucas1p21e71e28d5f12ef94694ccbdec8379774@eucas1p2.samsung.com>
- <1474006490-13283-1-git-send-email-m.szyprowski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <k.kozlowski@samsung.com>,
-        stable@vger.kernel.org
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <101e33da-dc1b-74de-15e9-62ed014e3f60@osg.samsung.com>
-Date: Fri, 16 Sep 2016 12:35:07 -0400
+        Wed, 28 Sep 2016 17:16:57 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch 03/35] media: ti-vpe: vpdma: Add helper to set a background color
+Date: Wed, 28 Sep 2016 16:16:11 -0500
+Message-ID: <20160928211643.26298-4-bparrot@ti.com>
+In-Reply-To: <20160928211643.26298-1-bparrot@ti.com>
+References: <20160928211643.26298-1-bparrot@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1474006490-13283-1-git-send-email-m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Marek,
+Add a helper to set the background color during vpdma transfer.
+This is needed when VPDMA is generating 32 bits RGB format
+to have the Alpha channel set to an appropriate value.
 
-On 09/16/2016 02:14 AM, Marek Szyprowski wrote:
-> s5p_mfc_alloc_memdev() function lacks proper releasing of allocated device
-> in case of reserved memory initialization failure. This results in NULL pointer
-> dereference:
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 10 ++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h |  3 ++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-Patch looks good to me.
-
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
-
-Best regards,
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 8dfabff216c1..af8e8f083727 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -869,6 +869,16 @@ void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num)
+ }
+ EXPORT_SYMBOL(vpdma_clear_list_stat);
+ 
++void vpdma_set_bg_color(struct vpdma_data *vpdma,
++		struct vpdma_data_format *fmt, u32 color)
++{
++	if (fmt->type == VPDMA_DATA_FMT_TYPE_RGB)
++		write_reg(vpdma, VPDMA_BG_RGB, color);
++	else if (fmt->type == VPDMA_DATA_FMT_TYPE_YUV)
++		write_reg(vpdma, VPDMA_BG_YUV, color);
++}
++EXPORT_SYMBOL(vpdma_set_bg_color);
++
+ /*
+  * configures the output mode of the line buffer for the given client, the
+  * line buffer content can either be mirrored(each line repeated twice) or
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 83325d887546..220dc7e793f6 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -221,7 +221,8 @@ void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
+ 		enum vpdma_channel chan);
+ void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
+ 		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
+-
++void vpdma_set_bg_color(struct vpdma_data *vpdma,
++			struct vpdma_data_format *fmt, u32 color);
+ void vpdma_dump_regs(struct vpdma_data *vpdma);
+ 
+ /* initialize vpdma, passed with VPE's platform device pointer */
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.9.0
+
