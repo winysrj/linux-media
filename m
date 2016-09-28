@@ -1,54 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48184 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753718AbcIDOOI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2016 10:14:08 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Terry Heo <terryheo@google.com>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        Peter Rosin <peda@axentia.se>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 3/7] [media] cx231xx: prints error code if can't switch TV mode
-Date: Sun,  4 Sep 2016 11:13:55 -0300
-Message-Id: <b2dffeb4bbda549b27a459ce4b75cd38237ed622.1472998424.git.mchehab@s-opensource.com>
-In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-In-Reply-To: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
-References: <9a71d7985c758c3ac789ba50e407e4e81c269bcc.1472998424.git.mchehab@s-opensource.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:50144 "EHLO comal.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933623AbcI1VWH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 17:22:07 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [Patch 18/35] media: ti-vpe: vpe: Add RGB565 and RGB5551 support
+Date: Wed, 28 Sep 2016 16:22:05 -0500
+Message-ID: <20160928212205.27130-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-If something bad happens when switching between digital
-and analog mode, prints an error and outputs the returned code.
+VPE hardware can generate output in RGB565 or in RGB5551 format.
+Add these formats in the supported format list for CAPTURE stream.
+Also, for RGB5551 format, the alpha component is not processed,
+so the alpha value is taken from the default color.
+Set the default color to make alpha component full when the dst
+format is of RGB color space.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/platform/ti-vpe/vpe.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 6c8f825452dd..44288f265a26 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -746,6 +746,10 @@ int cx231xx_set_mode(struct cx231xx *dev, enum cx231xx_mode set_mode)
- 		}
- 	}
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 843cbcbf3944..a43dcac0b15e 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -302,6 +302,22 @@ static struct vpe_fmt vpe_formats[] = {
+ 		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_ABGR32],
+ 				  },
+ 	},
++	{
++		.name		= "RGB565",
++		.fourcc		= V4L2_PIX_FMT_RGB565,
++		.types		= VPE_FMT_TYPE_CAPTURE,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_RGB565],
++				  },
++	},
++	{
++		.name		= "RGB5551",
++		.fourcc		= V4L2_PIX_FMT_RGB555,
++		.types		= VPE_FMT_TYPE_CAPTURE,
++		.coplanar	= 0,
++		.vpdma_fmt	= { &vpdma_rgb_fmts[VPDMA_DATA_FMT_RGBA16_5551],
++				  },
++	},
+ };
  
-+	dev_err(dev->dev, "Failed to set devmode to %s: error: %i",
-+		dev->mode == CX231XX_DIGITAL_MODE ? "digital" : "analog",
-+		errCode);
-+
- 	return errCode ? -EINVAL : 0;
- }
- EXPORT_SYMBOL_GPL(cx231xx_set_mode);
+ /*
+@@ -738,9 +754,11 @@ static void set_dst_registers(struct vpe_ctx *ctx)
+ 	struct vpe_fmt *fmt = ctx->q_data[Q_DATA_DST].fmt;
+ 	u32 val = 0;
+ 
+-	if (clrspc == V4L2_COLORSPACE_SRGB)
++	if (clrspc == V4L2_COLORSPACE_SRGB) {
+ 		val |= VPE_RGB_OUT_SELECT;
+-	else if (fmt->fourcc == V4L2_PIX_FMT_NV16)
++		vpdma_set_bg_color(ctx->dev->vpdma,
++			(struct vpdma_data_format *)fmt->vpdma_fmt[0], 0xff);
++	} else if (fmt->fourcc == V4L2_PIX_FMT_NV16)
+ 		val |= VPE_COLOR_SEPARATE_422;
+ 
+ 	/*
 -- 
-2.7.4
+2.9.0
 
