@@ -1,47 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52100 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756367AbcISHWa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 03:22:30 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Tiffany Lin <tiffany.lin@mediatek.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] pixfmt-reserved.rst: Improve MT21C documentation
-Message-ID: <82516dbf-d85e-ac69-0059-8235e4903e5a@xs4all.nl>
-Date: Mon, 19 Sep 2016 09:22:20 +0200
+Received: from arroyo.ext.ti.com ([198.47.19.12]:48686 "EHLO arroyo.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754137AbcI1VU4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 17:20:56 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [Patch 08/35] media: ti-vpe: Increasing max buffer height and width
+Date: Wed, 28 Sep 2016 16:20:54 -0500
+Message-ID: <20160928212054.26637-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve the MT21C documentation, making it clearer that this format requires the MDP
-for further processing.
+From: Harinarayan Bhatta <harinarayan@ti.com>
 
-Also fix the fourcc (it was a fivecc :-) )
+Increasing max buffer height and width to allow for padded buffers.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Harinarayan Bhatta <harinarayan@ti.com>
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
 ---
-diff --git a/Documentation/media/uapi/v4l/pixfmt-reserved.rst b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-index 0989e99..a019f15 100644
---- a/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-reserved.rst
-@@ -343,13 +343,13 @@ please make a proposal on the linux-media mailing list.
+ drivers/media/platform/ti-vpe/vpe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-        -  ``V4L2_PIX_FMT_MT21C``
-
--       -  'MT21C'
-+       -  'MT21'
-
-        -  Compressed two-planar YVU420 format used by Mediatek MT8173.
-           The compression is lossless.
--          It is an opaque intermediate format, and MDP HW could convert
--          V4L2_PIX_FMT_MT21C to V4L2_PIX_FMT_NV12M,
--          V4L2_PIX_FMT_YUV420M and V4L2_PIX_FMT_YVU420.
-+          It is an opaque intermediate format and the MDP hardware must be
-+	  used to convert ``V4L2_PIX_FMT_MT21C`` to ``V4L2_PIX_FMT_NV12M``,
-+          ``V4L2_PIX_FMT_YUV420M`` or ``V4L2_PIX_FMT_YVU420``.
-
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index d6a2f07c592e..2a4deceea17d 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -53,8 +53,8 @@
+ /* minimum and maximum frame sizes */
+ #define MIN_W		32
+ #define MIN_H		32
+-#define MAX_W		1920
+-#define MAX_H		1080
++#define MAX_W		2048
++#define MAX_H		1184
+ 
+ /* required alignments */
+ #define S_ALIGN		0	/* multiple of 1 */
+-- 
+2.9.0
 
