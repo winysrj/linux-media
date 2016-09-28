@@ -1,91 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:36219 "EHLO
-        mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756415AbcIVWag (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55782 "EHLO
+        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933901AbcI1VWx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Sep 2016 18:30:36 -0400
-Received: by mail-pa0-f42.google.com with SMTP id qn7so15874771pac.3
-        for <linux-media@vger.kernel.org>; Thu, 22 Sep 2016 15:30:36 -0700 (PDT)
-Subject: Re: TW2866 i2c driver and solo6x10
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-References: <25e70ffb-147a-33f4-76cf-3435ab555520@gmail.com>
- <75985f71-e1d6-cf22-91c0-6429955156e6@gmail.com>
- <20160919182033.qaom5ji4k43jsu24@acer>
- <57c69cbd-950e-ba01-5d6a-efdabe6f6d16@gmail.com>
- <20160922221713.kvi3q4qcobye6m5b@acer>
-Cc: linux-media <linux-media@vger.kernel.org>
-From: Marty Plummer <netz.kernel@gmail.com>
-Message-ID: <5873da5b-d402-6757-a7ab-16bdd9eed091@gmail.com>
-Date: Thu, 22 Sep 2016 17:30:33 -0500
+        Wed, 28 Sep 2016 17:22:53 -0400
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [Patch 25/35] media: ti-vpe: vpdma: Fix race condition for firmware loading
+Date: Wed, 28 Sep 2016 16:22:50 -0500
+Message-ID: <20160928212250.27445-1-bparrot@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20160922221713.kvi3q4qcobye6m5b@acer>
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="WXu7qtlf5Cjdx41f3f2cdbBdcAtCoMnGM"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---WXu7qtlf5Cjdx41f3f2cdbBdcAtCoMnGM
-Content-Type: multipart/mixed; boundary="7XqCNo35xRNW4D7vKpcwqxiHiLqVtG24M";
- protected-headers="v1"
-From: Marty Plummer <netz.kernel@gmail.com>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Message-ID: <5873da5b-d402-6757-a7ab-16bdd9eed091@gmail.com>
-Subject: Re: TW2866 i2c driver and solo6x10
-References: <25e70ffb-147a-33f4-76cf-3435ab555520@gmail.com>
- <75985f71-e1d6-cf22-91c0-6429955156e6@gmail.com>
- <20160919182033.qaom5ji4k43jsu24@acer>
- <57c69cbd-950e-ba01-5d6a-efdabe6f6d16@gmail.com>
- <20160922221713.kvi3q4qcobye6m5b@acer>
-In-Reply-To: <20160922221713.kvi3q4qcobye6m5b@acer>
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
---7XqCNo35xRNW4D7vKpcwqxiHiLqVtG24M
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+vpdma_create API is supposed to allocated the struct vpdma_data and
+return it to the driver. Also, it would call the callback function
+when the VPDMA firmware is loaded.
 
-On 09/22/2016 05:17 PM, Andrey Utkin wrote:
-> So is the actual machine x86 or ARM?
-> Do the tw28xx chips behind the bus (i2c as you said) show up in any way=
+Typically, VPE driver have following function call:
+    dev->vpdma = vpdma_create(pdev, firmware_load_callback);
+And the callback implementation would continue the probe further.
+Also, the dev->vpdma is accessed from the callback implementation.
 
-> at all? Is something like i2c controller available? Or it's ARM and we
-> should tell kernel how to "find" the i2c line by feeding correct
-> devicetree to it?
->=20
-This particular device is ARM. I can't be certain right now, as I've not
-gotten to the point of handling the i2c bus; In the kernel module that
-it currently uses it has hard-coded i2c addresses for each chip and does
-a small for-loop to do the setup i2c stuffs. I could see about getting
-the i2c bus running really quick and see if the various i2c tools
-buildroot provides can see them, if that's helpful.
+This may lead to race condition between assignment of dev->vpdma
+and the callback function being triggered.
+This would lead to kernel crash because of NULL pointer access.
 
-If you could provide a list of useful info and how to acquire it I'd be
-more than willing to probe stuff for it.
+Fix this by passing a driver wrapped &vpdma_data instead of allocating
+inside vpdma_create.
+Change the vpdma_create prototype accordingly and fix return paths.
 
+Also, update the VPE driver to use the updated API and
+initialize the dev->vpdma before hand so that the race condition
+is avoided.
 
---7XqCNo35xRNW4D7vKpcwqxiHiLqVtG24M--
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 17 +++++------------
+ drivers/media/platform/ti-vpe/vpdma.h |  2 +-
+ drivers/media/platform/ti-vpe/vpe.c   |  8 ++++----
+ 3 files changed, 10 insertions(+), 17 deletions(-)
 
---WXu7qtlf5Cjdx41f3f2cdbBdcAtCoMnGM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 8cf2922c9c6f..54c1174cad75 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -1132,21 +1132,14 @@ static int vpdma_load_firmware(struct vpdma_data *vpdma)
+ 	return 0;
+ }
+ 
+-struct vpdma_data *vpdma_create(struct platform_device *pdev,
++int vpdma_create(struct platform_device *pdev, struct vpdma_data *vpdma,
+ 		void (*cb)(struct platform_device *pdev))
+ {
+ 	struct resource *res;
+-	struct vpdma_data *vpdma;
+ 	int r;
+ 
+ 	dev_dbg(&pdev->dev, "vpdma_create\n");
+ 
+-	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
+-	if (!vpdma) {
+-		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+-
+ 	vpdma->pdev = pdev;
+ 	vpdma->cb = cb;
+ 	spin_lock_init(&vpdma->lock);
+@@ -1154,22 +1147,22 @@ struct vpdma_data *vpdma_create(struct platform_device *pdev,
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
+ 	if (res == NULL) {
+ 		dev_err(&pdev->dev, "missing platform resources data\n");
+-		return ERR_PTR(-ENODEV);
++		return -ENODEV;
+ 	}
+ 
+ 	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+ 	if (!vpdma->base) {
+ 		dev_err(&pdev->dev, "failed to ioremap\n");
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 	}
+ 
+ 	r = vpdma_load_firmware(vpdma);
+ 	if (r) {
+ 		pr_err("failed to load firmware %s\n", VPDMA_FIRMWARE);
+-		return ERR_PTR(r);
++		return r;
+ 	}
+ 
+-	return vpdma;
++	return 0;
+ }
+ EXPORT_SYMBOL(vpdma_create);
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 405a6febc254..0df156b7c1cf 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -273,7 +273,7 @@ void vpdma_set_bg_color(struct vpdma_data *vpdma,
+ void vpdma_dump_regs(struct vpdma_data *vpdma);
+ 
+ /* initialize vpdma, passed with VPE's platform device pointer */
+-struct vpdma_data *vpdma_create(struct platform_device *pdev,
++int vpdma_create(struct platform_device *pdev, struct vpdma_data *vpdma,
+ 		void (*cb)(struct platform_device *pdev));
+ 
+ #endif
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index fda5e02471c9..c09247960550 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -383,6 +383,7 @@ struct vpe_dev {
+ 	void __iomem		*base;
+ 	struct resource		*res;
+ 
++	struct vpdma_data	vpdma_data;
+ 	struct vpdma_data	*vpdma;		/* vpdma data handle */
+ 	struct sc_data		*sc;		/* scaler data handle */
+ 	struct csc_data		*csc;		/* csc data handle */
+@@ -2463,11 +2464,10 @@ static int vpe_probe(struct platform_device *pdev)
+ 		goto runtime_put;
+ 	}
+ 
+-	dev->vpdma = vpdma_create(pdev, vpe_fw_cb);
+-	if (IS_ERR(dev->vpdma)) {
+-		ret = PTR_ERR(dev->vpdma);
++	dev->vpdma = &dev->vpdma_data;
++	ret = vpdma_create(pdev, dev->vpdma, vpe_fw_cb);
++	if (ret)
+ 		goto runtime_put;
+-	}
+ 
+ 	return 0;
+ 
+-- 
+2.9.0
 
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCAAGBQJX5FuJAAoJEHWEtN3AMJGNRoAP/j9g2IHjiLTKsOOD7YpneJWG
-baxSEv3wQu7eas9u1oapLZWAGkgup0t7ak/X45HD86BigW3KmvOVouz4WcxrPlBu
-Rvr/s1P7Sr+0co7tP2qcn/geXx/A5PkpXcUZwOeHS0vudOQdZi0EKZNngXHRQCER
-AjCS/2J4in8+2DeqAQAMuQOHxAzmRwiAfOgyIHlDKqZXWFl3slyzpyBY+yQbdc07
-SNSbWr0xjpATD28cYaPj3pXifkxmezKyQydAQq7lbiW1O5aGGi9e/K2XNQ56JPln
-x3AY4KqfSt79QiqHA8oz5k1UOExVmQVrvn4JHmwalipCTQZnBnfsWCY2cdzhCNTF
-HdZ62IOBxUCkQgMOLv/ACBHtMtF//eZT+zBxWOqZXNfuaHEUNFVGZfnghptp71BT
-EhnaTpfG9POgSXKhEWp1ogGkRpEq6/AaNvmuDHFG+vVgnhHqUnq/hNeqjEvea5MK
-ZNfXbR6gJncmav4s1mDYO+B+0P2vaYz+WI7Fe+P1ZDnQkfYiMUsckLwDhZz+1fuM
-T8HVwlLoNAgFNCVZ7swaUtZ3jKGvaQO7VZ6T09O7gW/mPy+wgxIiwM9JEv8z/kZB
-oqp/l00xSNgst9sgl4+pU4r2B90oxrSR+aH7a2X13nr7FrfneyMHFf00dDRqAjcc
-dNtUhUi5Fg0i0eFTfVOK
-=LZz4
------END PGP SIGNATURE-----
-
---WXu7qtlf5Cjdx41f3f2cdbBdcAtCoMnGM--
