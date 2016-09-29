@@ -1,70 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp05.smtpout.orange.fr ([80.12.242.127]:50794 "EHLO
-        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966379AbcIWSlu (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:34578 "EHLO
+        mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753030AbcI2AxO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Sep 2016 14:41:50 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 1/2] media: platform: pxa_camera: add missing sensor power on
-Date: Fri, 23 Sep 2016 20:41:39 +0200
-Message-Id: <1474656100-7415-1-git-send-email-robert.jarzmik@free.fr>
+        Wed, 28 Sep 2016 20:53:14 -0400
+Received: by mail-pa0-f43.google.com with SMTP id dw4so8014281pac.1
+        for <linux-media@vger.kernel.org>; Wed, 28 Sep 2016 17:53:13 -0700 (PDT)
+Subject: Re: [PATCH v2 4/8] media: vidc: encoder: add video encoder files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1473248229-5540-5-git-send-email-stanimir.varbanov@linaro.org>
+ <18374b1c-f3b3-4eda-6c05-cf364b1bef81@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <7538007e-1337-2dcb-78b1-5900adb871a2@linaro.org>
+Date: Thu, 29 Sep 2016 03:53:09 +0300
+MIME-Version: 1.0
+In-Reply-To: <18374b1c-f3b3-4eda-6c05-cf364b1bef81@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During sensors binding, there is a window where the sensor is switched
-off, while there is a call it to set a new format, which can end up in
-an access to the sensor, especially an I2C based sensor.
+Hi Hans,
 
-Remove this window by activating the sensor.
+On 09/19/2016 01:15 PM, Hans Verkuil wrote:
+> Many of my review comments for the decoder apply to the encoder as well,
+> so I won't repeat those.
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/platform/pxa_camera.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+Sure, will address them too.
 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 2978cd6efa63..794c41d24d9f 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -2128,17 +2128,22 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
- 				    pix->bytesperline, pix->height);
- 	pix->pixelformat = pcdev->current_fmt->host_fmt->fourcc;
- 	v4l2_fill_mbus_format(mf, pix, pcdev->current_fmt->code);
--	err = sensor_call(pcdev, pad, set_fmt, NULL, &format);
-+
-+	err = sensor_call(pcdev, core, s_power, 1);
- 	if (err)
- 		goto out;
- 
-+	err = sensor_call(pcdev, pad, set_fmt, NULL, &format);
-+	if (err)
-+		goto out_sensor_poweroff;
-+
- 	v4l2_fill_pix_format(pix, mf);
- 	pr_info("%s(): colorspace=0x%x pixfmt=0x%x\n",
- 		__func__, pix->colorspace, pix->pixelformat);
- 
- 	err = pxa_camera_init_videobuf2(pcdev);
- 	if (err)
--		goto out;
-+		goto out_sensor_poweroff;
- 
- 	err = video_register_device(&pcdev->vdev, VFL_TYPE_GRABBER, -1);
- 	if (err) {
-@@ -2149,6 +2154,9 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
- 			 "PXA Camera driver attached to camera %s\n",
- 			 subdev->name);
- 	}
-+
-+out_sensor_poweroff:
-+	err = sensor_call(pcdev, core, s_power, 0);
- out:
- 	mutex_unlock(&pcdev->mlock);
- 	return err;
+> 
+> On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
+>> This adds encoder part of the driver plus encoder controls.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/vidc/venc.c       | 1252 +++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/vidc/venc.h       |   29 +
+>>  drivers/media/platform/qcom/vidc/venc_ctrls.c |  396 ++++++++
+>>  drivers/media/platform/qcom/vidc/venc_ctrls.h |   23 +
+>>  4 files changed, 1700 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/vidc/venc.c
+>>  create mode 100644 drivers/media/platform/qcom/vidc/venc.h
+>>  create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.c
+>>  create mode 100644 drivers/media/platform/qcom/vidc/venc_ctrls.h
+>>
+>> diff --git a/drivers/media/platform/qcom/vidc/venc.c b/drivers/media/platform/qcom/vidc/venc.c
+>> new file mode 100644
+>> index 000000000000..3b65f851a807
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/vidc/venc.c
+>> @@ -0,0 +1,1252 @@
+> 
+> <snip>
+> 
+>> +static int venc_s_selection(struct file *file, void *fh,
+>> +			    struct v4l2_selection *s)
+>> +{
+>> +	return -EINVAL;
+>> +}
+> 
+> Huh? Either remove this, or implement this correctly.
+
+OK, I cannot remember why I keep it this way, might be v4l2-compliance
+
+> 
+> <snip>
+> 
+>> +static int venc_subscribe_event(struct v4l2_fh *fh,
+>> +				const struct  v4l2_event_subscription *sub)
+>> +{
+>> +	switch (sub->type) {
+>> +	case V4L2_EVENT_EOS:
+>> +		return v4l2_event_subscribe(fh, sub, 2, NULL);
+>> +	case V4L2_EVENT_SOURCE_CHANGE:
+>> +		return v4l2_src_change_event_subscribe(fh, sub);
+> 
+> These two events aren't used in this driver AFAICT, so this can be dropped.
+> 
+> Since that leaves just V4L2_EVENT_CTRL this function can be replaced by
+> v4l2_ctrl_subscribe_event().
+
+sure I can remove it.
+
 -- 
-2.1.4
-
+regards,
+Stan
