@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kozue.soulik.info ([108.61.200.231]:56854 "EHLO
-        kozue.soulik.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754535AbcIDUSz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Sep 2016 16:18:55 -0400
-From: Randy Li <ayaka@soulik.info>
-To: linux-media@vger.kernel.org
-Cc: posciak@chromium.org, hverkuil@xs4all.nl,
-        linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org,
-        intel-gfx@lists.freedesktop.org, Randy Li <ayaka@soulik.info>
-Subject: [PATCH 1/2] [media] v4l2-ctrls: add H.264 decoder settings controls
-Date: Mon,  5 Sep 2016 04:18:35 +0800
-Message-Id: <1473020316-7325-2-git-send-email-ayaka@soulik.info>
-In-Reply-To: <1473020316-7325-1-git-send-email-ayaka@soulik.info>
-References: <1473020316-7325-1-git-send-email-ayaka@soulik.info>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:36594 "EHLO
+        mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753963AbcI2A4C (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 28 Sep 2016 20:56:02 -0400
+Received: by mail-pa0-f44.google.com with SMTP id qn7so21726665pac.3
+        for <linux-media@vger.kernel.org>; Wed, 28 Sep 2016 17:56:01 -0700 (PDT)
+Subject: Re: [PATCH v2 7/8] media: vidc: add Makefiles and Kconfig files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1473248229-5540-8-git-send-email-stanimir.varbanov@linaro.org>
+ <a07f0a70-1500-c6aa-b42d-dd97fe8d06cb@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <202c234c-fe72-458e-80ef-4438e0b184d9@linaro.org>
+Date: Thu, 29 Sep 2016 03:55:51 +0300
+MIME-Version: 1.0
+In-Reply-To: <a07f0a70-1500-c6aa-b42d-dd97fe8d06cb@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two controls would be used to set the H.264 codec settings
-for decoder.
+Hi Hans,
 
-Signed-off-by: Randy Li <ayaka@soulik.info>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 2 ++
- include/uapi/linux/v4l2-controls.h   | 2 ++
- 2 files changed, 4 insertions(+)
+On 09/19/2016 01:35 PM, Hans Verkuil wrote:
+> On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
+>> Makefile and Kconfig files to build the video codec driver.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/Kconfig       |  8 ++++++++
+>>  drivers/media/platform/qcom/Makefile      |  6 ++++++
+>>  drivers/media/platform/qcom/vidc/Makefile | 15 +++++++++++++++
+>>  3 files changed, 29 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/Kconfig
+>>  create mode 100644 drivers/media/platform/qcom/Makefile
+>>  create mode 100644 drivers/media/platform/qcom/vidc/Makefile
+>>
+>> diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
+>> new file mode 100644
+>> index 000000000000..4bad5c0f68e4
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/Kconfig
+>> @@ -0,0 +1,8 @@
+>> +comment "Qualcomm V4L2 drivers"
+>> +
+>> +menuconfig QCOM_VIDC
+>> +        tristate "Qualcomm V4L2 encoder/decoder driver"
+>> +        depends on ARCH_QCOM && VIDEO_V4L2
+>> +        depends on IOMMU_DMA
+>> +        depends on QCOM_VENUS_PIL
+>> +        select VIDEOBUF2_DMA_SG
+> 
+> If at all possible, please depend on COMPILE_TEST as well!
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 60056b0..789a5fc 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -740,6 +740,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER:return "H264 Number of HC Layers";
- 	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP:
- 								return "H264 Set QP Value for HC Layers";
-+	case V4L2_CID_MPEG_VIDEO_H264_PICTURE_PARAM:		return "H264 Picture Parameter";
-+	case V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM:		return "H264 Slice Parameter";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index b6a357a..5b0bdc5 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -521,6 +521,8 @@ enum v4l2_mpeg_video_h264_hierarchical_coding_type {
- };
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
- #define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
-+#define V4L2_CID_MPEG_VIDEO_H264_PICTURE_PARAM			(V4L2_CID_MPEG_BASE+383)
-+#define V4L2_CID_MPEG_VIDEO_H264_SLICE_PARAM			(V4L2_CID_MPEG_BASE+384)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
- #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+OK, I will add it.
+
+> 
+> Also missing: a patch adding an entry to the MAINTAINERS file.
+
+I will add such a patch in next submission.
+
 -- 
-2.7.4
-
+regards,
+Stan
