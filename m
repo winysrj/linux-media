@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:34400 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755279AbcIODgQ (ORCPT
+Received: from exsmtp01.microchip.com ([198.175.253.37]:25235 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752058AbcI2BXv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 23:36:16 -0400
-Received: by mail-pf0-f195.google.com with SMTP id 21so178724pfy.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 20:36:15 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
-Subject: [PATCH -next] [media] vivid: fix error return code in vivid_create_instance()
-Date: Thu, 15 Sep 2016 03:36:09 +0000
-Message-Id: <1473910569-4677-1-git-send-email-weiyj.lk@gmail.com>
+        Wed, 28 Sep 2016 21:23:51 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: [RESEND][PATCH] [media] atmel-isc: start dma in some scenario
+Date: Thu, 29 Sep 2016 09:21:31 +0800
+Message-ID: <1475112091-28120-1-git-send-email-songjun.wu@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+If a new vb buf is added to vb queue, the queue is
+empty and steaming, dma should be started.
 
-Fix to return error code -ENOMEM from the memory or workqueue alloc
-error handling case instead of 0, as done elsewhere in this function.
-
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
 ---
- drivers/media/platform/vivid/vivid-core.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index 741460a..5464fef 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -839,6 +839,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		dev->radio_tx_caps = V4L2_CAP_RDS_OUTPUT | V4L2_CAP_MODULATOR |
- 				     V4L2_CAP_READWRITE;
+ drivers/media/platform/atmel/atmel-isc.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index ccfe13b..ff403d5 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -617,7 +617,14 @@ static void isc_buffer_queue(struct vb2_buffer *vb)
+ 	unsigned long flags;
  
-+	ret = -ENOMEM;
- 	/* initialize the test pattern generator */
- 	tpg_init(&dev->tpg, 640, 360);
- 	if (tpg_alloc(&dev->tpg, MAX_ZOOM * MAX_WIDTH))
-@@ -1033,8 +1034,10 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 	 */
- 	dev->cec_workqueue =
- 		alloc_ordered_workqueue("vivid-%03d-cec", WQ_MEM_RECLAIM, inst);
--	if (!dev->cec_workqueue)
-+	if (!dev->cec_workqueue) {
-+		ret = -ENOMEM;
- 		goto unreg_dev;
+ 	spin_lock_irqsave(&isc->dma_queue_lock, flags);
+-	list_add_tail(&buf->list, &isc->dma_queue);
++	if (!isc->cur_frm && list_empty(&isc->dma_queue) &&
++		vb2_is_streaming(vb->vb2_queue)) {
++		isc->cur_frm = buf;
++		isc_start_dma(isc->regmap, isc->cur_frm,
++			isc->current_fmt->reg_dctrl_dview);
++	} else {
++		list_add_tail(&buf->list, &isc->dma_queue);
 +	}
+ 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
+ }
  
- 	/* start creating the vb2 queues */
- 	if (dev->has_vid_cap) {
+-- 
+2.7.4
 
