@@ -1,71 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53098 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34412 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751952AbcIGMrt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Sep 2016 08:47:49 -0400
+        with ESMTP id S1752894AbcI2Iye (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 29 Sep 2016 04:54:34 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        corbet@lwn.net, mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com
-Subject: Re: [PATCHv3 2/2] v4l: vsp1: Add HGT support
-Date: Wed, 07 Sep 2016 15:48:19 +0300
-Message-ID: <3579545.u5RR9atB6T@avalon>
-In-Reply-To: <20160907120938.818-3-niklas.soderlund+renesas@ragnatech.se>
-References: <20160907120938.818-1-niklas.soderlund+renesas@ragnatech.se> <20160907120938.818-3-niklas.soderlund+renesas@ragnatech.se>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        arnd@arndb.de, hans.verkuil@cisco.com, tony@atomide.com,
+        letux-kernel@openphoenux.org
+Subject: Re: [PATCH] [media] omap3isp: don't call of_node_put
+Date: Thu, 29 Sep 2016 11:54:28 +0300
+Message-ID: <3824432.fffa8JciHz@avalon>
+In-Reply-To: <b46d4d86d20d6b93ecc0b434f2c9b7312bcaa829.1473349712.git.hns@goldelico.com>
+References: <b46d4d86d20d6b93ecc0b434f2c9b7312bcaa829.1473349712.git.hns@goldelico.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Nikolaus,
 
-Thank you for the patch.
-
-On Wednesday 07 Sep 2016 14:09:38 Niklas S=F6derlund wrote:
-> The HGT is a Histogram Generator Two-Dimensions. It computes a weight=
-ed
-> frequency histograms for hue and saturation areas over a configurable=
-
-> region of the image with optional subsampling.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
-.se>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-However, please note that we might need to upstream HGT support before =
-HGO. To=20
-ease that, I've split the HGO patches in common code and HGO-specific c=
-ode,=20
-and rebased your patch on top of that. The result is available at
-
-=09git://linuxtv.org/pinchartl/media.git vsp1/next
-
-There will still be conflicts if we need to reorder the patches, but th=
-ey=20
-should be easier to handle now.
-
+On Thursday 08 Sep 2016 17:48:33 H. Nikolaus Schaller wrote:
+> of_node_put() has already been called inside of_graph_get_next_endpoint().
+> 
+> Otherwise we may get warnings like
+> 
+> [   10.118286] omap3isp 480bc000.isp: parsing endpoint
+> /ocp/isp@480bc000/ports/port@0/endpoint, interface 0 [   10.118499] ERROR:
+> Bad of_node_put() on /ocp/isp@480bc000/ports/port@0/endpoint [   10.118499]
+> CPU: 0 PID: 968 Comm: udevd Not tainted 4.7.0-rc4-letux+ #376 [  
+> 10.118530] Hardware name: Generic OMAP36xx (Flattened Device Tree) [  
+> 10.118560] [<c010f0e0>] (unwind_backtrace) from [<c010b6d8>]
+> (show_stack+0x10/0x14) [   10.118591] [<c010b6d8>] (show_stack) from
+> [<c03ecc50>] (dump_stack+0x98/0xd0) [   10.118591] [<c03ecc50>]
+> (dump_stack) from [<c03eecac>] (kobject_release+0x60/0x74) [   10.118621]
+> [<c03eecac>] (kobject_release) from [<c05ab128>]
+> (__of_get_next_child+0x40/0x48) [   10.118652] [<c05ab128>]
+> (__of_get_next_child) from [<c05ab158>] (of_get_next_child+0x28/0x44) [  
+> 10.118652] [<c05ab158>] (of_get_next_child) from [<c05ab350>]
+> (of_graph_get_next_endpoint+0xe4/0x124) [   10.118804] [<c05ab350>]
+> (of_graph_get_next_endpoint) from [<bf1c88a4>] (isp_probe+0xdc/0xd80
+> [omap3_isp]) [   10.118896] [<bf1c88a4>] (isp_probe [omap3_isp]) from
+> [<c0482008>] (platform_drv_probe+0x50/0xa0) [   10.118927] [<c0482008>]
+> (platform_drv_probe) from [<c04800e8>] (driver_probe_device+0x134/0x29c) [ 
+>  10.118957] [<c04800e8>] (driver_probe_device) from [<c04802d8>]
+> (__driver_attach+0x88/0xac) [   10.118957] [<c04802d8>] (__driver_attach)
+> from [<c047e7b8>] (bus_for_each_dev+0x6c/0x90) [   10.118957] [<c047e7b8>]
+> (bus_for_each_dev) from [<c047f798>] (bus_add_driver+0xcc/0x1e8) [  
+> 10.118988] [<c047f798>] (bus_add_driver) from [<c0481228>]
+> (driver_register+0xac/0xf4) [   10.118988] [<c0481228>] (driver_register)
+> from [<c010192c>] (do_one_initcall+0xac/0x154) [   10.119018] [<c010192c>]
+> (do_one_initcall) from [<c02015bc>] (do_init_module+0x58/0x39c) [  
+> 10.119049] [<c02015bc>] (do_init_module) from [<c01bd314>]
+> (load_module+0xe5c/0x1004) [   10.119049] [<c01bd314>] (load_module) from
+> [<c01bd68c>] (SyS_finit_module+0x88/0x90) [   10.119079] [<c01bd68c>]
+> (SyS_finit_module) from [<c0107040>] (ret_fast_syscall+0x0/0x1c)
+> 
+> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
 > ---
->  drivers/media/platform/vsp1/Makefile      |   2 +-
->  drivers/media/platform/vsp1/vsp1.h        |   3 +
->  drivers/media/platform/vsp1/vsp1_drv.c    |  33 ++++-
->  drivers/media/platform/vsp1/vsp1_entity.c |  33 +++--
->  drivers/media/platform/vsp1/vsp1_entity.h |   1 +
->  drivers/media/platform/vsp1/vsp1_hgt.c    | 221 ++++++++++++++++++++=
-+++++++
->  drivers/media/platform/vsp1/vsp1_hgt.h    |  42 ++++++
->  drivers/media/platform/vsp1/vsp1_pipe.c   |  16 +++
->  drivers/media/platform/vsp1/vsp1_pipe.h   |   2 +
->  drivers/media/platform/vsp1/vsp1_regs.h   |   9 ++
->  drivers/media/platform/vsp1/vsp1_video.c  |  10 +-
->  11 files changed, 356 insertions(+), 16 deletions(-)
->  create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.c
->  create mode 100644 drivers/media/platform/vsp1/vsp1_hgt.h
+>  drivers/media/platform/omap3isp/isp.c | 3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 5d54e2c..6e2624e 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2114,7 +2114,6 @@ static int isp_of_parse_nodes(struct device *dev,
+> 
+>  		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+>  		if (!isd) {
+> -			of_node_put(node);
 
---=20
+I don't think this one is correct. Looking at the context
+
+        while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+               (node = of_graph_get_next_endpoint(dev->of_node, node))) {
+                struct isp_async_subdev *isd;
+
+                isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+                if (!isd) {
+                        of_node_put(node);
+                        return -ENOMEM;
+                }
+
+                notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+
+                if (isp_of_parse_node(dev, node, isd)) {
+                        of_node_put(node);
+                        return -EINVAL;
+                }
+
+		isd->asd.match.of.node =
+			of_graph_get_remote_port_parent(node);
+                of_node_put(node);
+
+                if (!isd->asd.match.of.node) {
+                        dev_warn(dev, "bad remote port parent\n");
+                        return -EINVAL;
+                }
+
+                isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+                notifier->num_subdevs++;
+        }
+
+of_graph_get_next_endpoint() increases the reference count of the node it
+returns, which needs a corresponding of_node_put() in the error paths. It
+thus look like to me that the function isn't correct in that the
+devm_kzalloc() and !isd->asd.match.of.node error paths.
+
+>  			return -ENOMEM;
+>  		}
+> 
+> @@ -2126,7 +2125,7 @@ static int isp_of_parse_nodes(struct device *dev,
+>  		}
+> 
+>  		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+> -		of_node_put(node);
+> +
+
+This change is correct not because of_graph_get_next_endpoint() has called
+of_node_put() but because it *will* call it on the next iteration.
+
+How about the following patch instead ?
+
+commit 4ed9893bf52c90181c8d5b1ae29a37556b89f1da
+Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date:   Thu Sep 29 11:41:24 2016 +0300
+
+    omap3isp: Fix OF node double put when parsing OF graph
+    
+    When parsing the graph the driver loops over all endpoints using
+    of_graph_get_next_endpoint(). The function handles reference counting of
+    the passed and returned nodes, so the returned node's reference count
+    must not be decreased manually in the normal path.
+    
+    Move the offending of_node_put() call to the error path that requires
+    manual reference count handling.
+    
+    Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 5e212668f726..f8b437cc8943 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2131,23 +2131,18 @@ static int isp_of_parse_nodes(struct device *dev,
+ 		struct isp_async_subdev *isd;
+ 
+ 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+-		if (!isd) {
+-			of_node_put(node);
+-			return -ENOMEM;
+-		}
++		if (!isd)
++			goto error;
+ 
+ 		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+ 
+-		if (isp_of_parse_node(dev, node, isd)) {
+-			of_node_put(node);
+-			return -EINVAL;
+-		}
++		if (isp_of_parse_node(dev, node, isd))
++			goto error;
+ 
+ 		isd->asd.match.of.node = of_graph_get_remote_port_parent(node);
+-		of_node_put(node);
+ 		if (!isd->asd.match.of.node) {
+ 			dev_warn(dev, "bad remote port parent\n");
+-			return -EINVAL;
++			goto error;
+ 		}
+ 
+ 		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+@@ -2155,6 +2150,10 @@ static int isp_of_parse_nodes(struct device *dev,
+ 	}
+ 
+ 	return notifier->num_subdevs;
++
++error:
++	of_node_put(node);
++	return -EINVAL;
+ }
+ 
+ static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+
+>  		if (!isd->asd.match.of.node) {
+>  			dev_warn(dev, "bad remote port parent\n");
+>  			return -EINVAL;
+
+-- 
 Regards,
 
 Laurent Pinchart
