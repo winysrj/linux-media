@@ -1,107 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39274 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756196AbcIOLWk (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37031 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751161AbcI3IwV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Sep 2016 07:22:40 -0400
-Received: from lanttu.localdomain (unknown [192.168.15.166])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id C6612600A3
-        for <linux-media@vger.kernel.org>; Thu, 15 Sep 2016 14:22:34 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2 05/17] smiapp: Provide a common function to obtain native pixel array size
-Date: Thu, 15 Sep 2016 14:22:19 +0300
-Message-Id: <1473938551-14503-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473938551-14503-1-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 30 Sep 2016 04:52:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "H. Nikolaus Schaller" <hns@goldelico.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        arnd@arndb.de, hans.verkuil@cisco.com, tony@atomide.com,
+        letux-kernel@openphoenux.org
+Subject: Re: [PATCH] [media] omap3isp: don't call of_node_put
+Date: Fri, 30 Sep 2016 11:52:16 +0300
+Message-ID: <14483379.k0ruKCM9Us@avalon>
+In-Reply-To: <D2919AEE-E8B6-4CC8-9558-8AF1F50E6961@goldelico.com>
+References: <b46d4d86d20d6b93ecc0b434f2c9b7312bcaa829.1473349712.git.hns@goldelico.com> <3824432.fffa8JciHz@avalon> <D2919AEE-E8B6-4CC8-9558-8AF1F50E6961@goldelico.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The same pixel array size is required for the active format of each
-sub-device sink pad and try format of each sink pad of each opened file
-handle as well as for the native size rectangle.
+Hello Nikolaus,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 39 +++++++++++++++++-----------------
- 1 file changed, 19 insertions(+), 20 deletions(-)
+On Friday 30 Sep 2016 10:28:40 H. Nikolaus Schaller wrote:
+> > Am 29.09.2016 um 10:54 schrieb Laurent Pinchart:
+> > On Thursday 08 Sep 2016 17:48:33 H. Nikolaus Schaller wrote:
+> >> of_node_put() has already been called inside
+> >> of_graph_get_next_endpoint().
+> >> 
+> >> Otherwise we may get warnings like
+> >> 
+> >> [   10.118286] omap3isp 480bc000.isp: parsing endpoint
+> >> /ocp/isp@480bc000/ports/port@0/endpoint, interface 0 [   10.118499]
+> >> ERROR:
+> >> Bad of_node_put() on /ocp/isp@480bc000/ports/port@0/endpoint [  
+> >> 10.118499]
+> >> CPU: 0 PID: 968 Comm: udevd Not tainted 4.7.0-rc4-letux+ #376 [
+> >> 10.118530] Hardware name: Generic OMAP36xx (Flattened Device Tree) [
+> >> 10.118560] [<c010f0e0>] (unwind_backtrace) from [<c010b6d8>]
+> >> (show_stack+0x10/0x14) [   10.118591] [<c010b6d8>] (show_stack) from
+> >> [<c03ecc50>] (dump_stack+0x98/0xd0) [   10.118591] [<c03ecc50>]
+> >> (dump_stack) from [<c03eecac>] (kobject_release+0x60/0x74) [   10.118621]
+> >> [<c03eecac>] (kobject_release) from [<c05ab128>]
+> >> (__of_get_next_child+0x40/0x48) [   10.118652] [<c05ab128>]
+> >> (__of_get_next_child) from [<c05ab158>] (of_get_next_child+0x28/0x44) [
+> >> 10.118652] [<c05ab158>] (of_get_next_child) from [<c05ab350>]
+> >> (of_graph_get_next_endpoint+0xe4/0x124) [   10.118804] [<c05ab350>]
+> >> (of_graph_get_next_endpoint) from [<bf1c88a4>] (isp_probe+0xdc/0xd80
+> >> [omap3_isp]) [   10.118896] [<bf1c88a4>] (isp_probe [omap3_isp]) from
+> >> [<c0482008>] (platform_drv_probe+0x50/0xa0) [   10.118927] [<c0482008>]
+> >> (platform_drv_probe) from [<c04800e8>] (driver_probe_device+0x134/0x29c)
+> >> [
+> >> 10.118957] [<c04800e8>] (driver_probe_device) from [<c04802d8>]
+> >> (__driver_attach+0x88/0xac) [   10.118957] [<c04802d8>] (__driver_attach)
+> >> from [<c047e7b8>] (bus_for_each_dev+0x6c/0x90) [   10.118957]
+> >> [<c047e7b8>]
+> >> (bus_for_each_dev) from [<c047f798>] (bus_add_driver+0xcc/0x1e8) [
+> >> 10.118988] [<c047f798>] (bus_add_driver) from [<c0481228>]
+> >> (driver_register+0xac/0xf4) [   10.118988] [<c0481228>] (driver_register)
+> >> from [<c010192c>] (do_one_initcall+0xac/0x154) [   10.119018]
+> >> [<c010192c>]
+> >> (do_one_initcall) from [<c02015bc>] (do_init_module+0x58/0x39c) [
+> >> 10.119049] [<c02015bc>] (do_init_module) from [<c01bd314>]
+> >> (load_module+0xe5c/0x1004) [   10.119049] [<c01bd314>] (load_module) from
+> >> [<c01bd68c>] (SyS_finit_module+0x88/0x90) [   10.119079] [<c01bd68c>]
+> >> (SyS_finit_module) from [<c0107040>] (ret_fast_syscall+0x0/0x1c)
+> >> 
+> >> Signed-off-by: H. Nikolaus Schaller <hns@goldelico.com>
+> >> ---
+> >> drivers/media/platform/omap3isp/isp.c | 3 +--
+> >> 1 file changed, 1 insertion(+), 2 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/platform/omap3isp/isp.c
+> >> b/drivers/media/platform/omap3isp/isp.c index 5d54e2c..6e2624e 100644
+> >> --- a/drivers/media/platform/omap3isp/isp.c
+> >> +++ b/drivers/media/platform/omap3isp/isp.c
+> >> @@ -2114,7 +2114,6 @@ static int isp_of_parse_nodes(struct device *dev,
+> >> 
+> >> 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> >> 		if (!isd) {
+> >> -			of_node_put(node);
+> > 
+> > I don't think this one is correct. Looking at the context
+> > 
+> >        while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+> >               (node = of_graph_get_next_endpoint(dev->of_node, node))) {
+> >                struct isp_async_subdev *isd;
+> >                
+> >                isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> >                if (!isd) {
+> >                        of_node_put(node);
+> >                        return -ENOMEM;
+> >                }
+> >                
+> >                notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> >                
+> >                if (isp_of_parse_node(dev, node, isd)) {
+> >                        of_node_put(node);
+> >                        return -EINVAL;
+> >                }
+> > 		
+> > 		isd->asd.match.of.node =
+> > 			of_graph_get_remote_port_parent(node);
+> >                of_node_put(node);
+> >                
+> >                if (!isd->asd.match.of.node) {
+> >                        dev_warn(dev, "bad remote port parent\n");
+> >                        return -EINVAL;
+> >                }
+> >                
+> >                isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+> >                notifier->num_subdevs++;
+> >        }
+> > 
+> > of_graph_get_next_endpoint() increases the reference count of the node it
+> > returns, which needs a corresponding of_node_put() in the error paths. It
+> > thus look like to me that the function isn't correct in that the
+> > devm_kzalloc() and !isd->asd.match.of.node error paths.
+> 
+> Ah ok, the of_node_put() is not always wrong.
+> 
+> >> 			return -ENOMEM;
+> >> 		}
+> >> 
+> >> @@ -2126,7 +2125,7 @@ static int isp_of_parse_nodes(struct device *dev,
+> >> 		}
+> >> 		
+> >> 		isd->asd.match.of.node =
+> >> of_graph_get_remote_port_parent(node);
+> >> -		of_node_put(node);
+> >> +
+> > 
+> > This change is correct not because of_graph_get_next_endpoint() has called
+> > of_node_put() but because it *will* call it on the next iteration.
+> > 
+> > How about the following patch instead ?
+> > 
+> > commit 4ed9893bf52c90181c8d5b1ae29a37556b89f1da
+> > Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Date:   Thu Sep 29 11:41:24 2016 +0300
+> > 
+> >    omap3isp: Fix OF node double put when parsing OF graph
+> >    
+> >    When parsing the graph the driver loops over all endpoints using
+> >    of_graph_get_next_endpoint(). The function handles reference counting
+> >    of the passed and returned nodes, so the returned node's reference
+> >    count must not be decreased manually in the normal path.
+> >    
+> >    Move the offending of_node_put() call to the error path that requires
+> >    manual reference count handling.
+> >    
+> >    Reported-by: H. Nikolaus Schaller <hns@goldelico.com>
+> >    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 5e212668f726..f8b437cc8943
+> > 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -2131,23 +2131,18 @@ static int isp_of_parse_nodes(struct device *dev,
+> > 		struct isp_async_subdev *isd;
+> > 		
+> > 		isd = devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> > -		if (!isd) {
+> > -			of_node_put(node);
+> > -			return -ENOMEM;
+> > -		}
+> > +		if (!isd)
+> > +			goto error;
+> > 
+> > 		notifier->subdevs[notifier->num_subdevs] = &isd->asd;
+> > 
+> > -		if (isp_of_parse_node(dev, node, isd)) {
+> > -			of_node_put(node);
+> > -			return -EINVAL;
+> > -		}
+> > +		if (isp_of_parse_node(dev, node, isd))
+> > +			goto error;
+> > 
+> > 		isd->asd.match.of.node =
+> > of_graph_get_remote_port_parent(node);
+> > -		of_node_put(node);
+> > 		if (!isd->asd.match.of.node) {
+> > 			dev_warn(dev, "bad remote port parent\n");
+> > -			return -EINVAL;
+> > +			goto error;
+> > 		}
+> > 		
+> > 		isd->asd.match_type = V4L2_ASYNC_MATCH_OF;
+> > @@ -2155,6 +2150,10 @@ static int isp_of_parse_nodes(struct device *dev,
+> > 	}
+> > 	
+> > 	return notifier->num_subdevs;
+> > +
+> > +error:
+> > +	of_node_put(node);
+> > +	return -EINVAL;
+> > }
+> > 
+> > static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
+> 
+> Seems to fix the reported warning, but obviously I can't test the error
+> paths.
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 9022ffc..31d74c1 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2161,6 +2161,15 @@ static int smiapp_set_crop(struct v4l2_subdev *subdev,
- 	return 0;
- }
- 
-+static void smiapp_get_native_size(struct smiapp_subdev *ssd,
-+				    struct v4l2_rect *r)
-+{
-+	r->top = 0;
-+	r->left = 0;
-+	r->width = ssd->sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
-+	r->height = ssd->sensor->limits[SMIAPP_LIMIT_Y_ADDR_MAX] + 1;
-+}
-+
- static int __smiapp_get_selection(struct v4l2_subdev *subdev,
- 				  struct v4l2_subdev_pad_config *cfg,
- 				  struct v4l2_subdev_selection *sel)
-@@ -2192,17 +2201,12 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
- 	switch (sel->target) {
- 	case V4L2_SEL_TGT_CROP_BOUNDS:
- 	case V4L2_SEL_TGT_NATIVE_SIZE:
--		if (ssd == sensor->pixel_array) {
--			sel->r.left = sel->r.top = 0;
--			sel->r.width =
--				sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
--			sel->r.height =
--				sensor->limits[SMIAPP_LIMIT_Y_ADDR_MAX] + 1;
--		} else if (sel->pad == ssd->sink_pad) {
-+		if (ssd == sensor->pixel_array)
-+			smiapp_get_native_size(ssd, &sel->r);
-+		else if (sel->pad == ssd->sink_pad)
- 			sel->r = sink_fmt;
--		} else {
-+		else
- 			sel->r = *comp;
--		}
- 		break;
- 	case V4L2_SEL_TGT_CROP:
- 	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
-@@ -2561,10 +2565,8 @@ static void smiapp_create_subdev(struct smiapp_sensor *sensor,
- 		 sizeof(ssd->sd.name), "%s %s %d-%4.4x", sensor->minfo.name,
- 		 name, i2c_adapter_id(client->adapter), client->addr);
- 
--	ssd->sink_fmt.width =
--		sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
--	ssd->sink_fmt.height =
--		sensor->limits[SMIAPP_LIMIT_Y_ADDR_MAX] + 1;
-+	smiapp_get_native_size(ssd, &ssd->sink_fmt);
-+
- 	ssd->compose.width = ssd->sink_fmt.width;
- 	ssd->compose.height = ssd->sink_fmt.height;
- 	ssd->crop[ssd->source_pad] = ssd->compose;
-@@ -2838,16 +2840,13 @@ static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- 		struct v4l2_rect *try_crop = v4l2_subdev_get_try_crop(sd, fh->pad, i);
- 		struct v4l2_rect *try_comp;
- 
--		try_fmt->width = sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
--		try_fmt->height = sensor->limits[SMIAPP_LIMIT_Y_ADDR_MAX] + 1;
-+		smiapp_get_native_size(ssd, try_crop);
-+
-+		try_fmt->width = try_crop->width;
-+		try_fmt->height = try_crop->height;
- 		try_fmt->code = mbus_code;
- 		try_fmt->field = V4L2_FIELD_NONE;
- 
--		try_crop->top = 0;
--		try_crop->left = 0;
--		try_crop->width = try_fmt->width;
--		try_crop->height = try_fmt->height;
--
- 		if (ssd != sensor->pixel_array)
- 			continue;
- 
+Can I add
+
+Tested-by: H. Nikolaus Schaller <hns@goldelico.com>
+
+to the patch ?
+
+> So let's go this way (until someone shows a bug in the error path).
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
