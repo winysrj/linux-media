@@ -1,124 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:45635 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751148AbcITDQX (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33200 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750703AbcI3Umd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Sep 2016 23:16:23 -0400
-Received: from localhost (localhost [127.0.0.1])
-        by tschai.lan (Postfix) with ESMTPSA id AC17B18092D
-        for <linux-media@vger.kernel.org>; Tue, 20 Sep 2016 05:16:17 +0200 (CEST)
-Date: Tue, 20 Sep 2016 05:16:17 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20160920031617.AC17B18092D@tschai.lan>
+        Fri, 30 Sep 2016 16:42:33 -0400
+Received: by mail-wm0-f65.google.com with SMTP id p138so5000925wmb.0
+        for <linux-media@vger.kernel.org>; Fri, 30 Sep 2016 13:42:32 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 1/2] rc: core: add managed versions of rc_allocate_device and
+ rc_register_device
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <9979eabf-3b3c-8ed2-4298-b25bed348aee@gmail.com>
+Date: Fri, 30 Sep 2016 22:42:07 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Introduce managed versions of both functions.
+They allows to simplify the error path in the probe function of
+rc drivers, and usually also to simplify the remove function.
 
-Results of the daily build of media_tree:
+New element managed_alloc in struct rc_dev is needed to correctly
+handle mixed use, e.g. managed version of rc_register_device and
+normal version of rc_allocate_device.
 
-date:		Tue Sep 20 04:00:17 CEST 2016
-git branch:	test
-git hash:	142a0e11b52c18a82c4fe55132b762005dda05c0
-gcc version:	i686-linux-gcc (GCC) 5.4.0
-sparse version:	v0.5.0-56-g7647c77
-smatch version:	v0.5.0-3428-gdfe27cf
-host hardware:	x86_64
-host os:	4.6.0-164
+In addition devm_rc_allocate_device sets rc->dev.parent as having a
+reference to the parent device might be useful for future extensions.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.23-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0-i686: OK
-linux-4.1.1-i686: OK
-linux-4.2-i686: OK
-linux-4.3-i686: OK
-linux-4.4-i686: OK
-linux-4.5-i686: OK
-linux-4.6-i686: OK
-linux-4.7-i686: OK
-linux-4.8-rc1-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.23-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0-x86_64: OK
-linux-4.1.1-x86_64: OK
-linux-4.2-x86_64: OK
-linux-4.3-x86_64: OK
-linux-4.4-x86_64: OK
-linux-4.5-x86_64: OK
-linux-4.6-x86_64: OK
-linux-4.7-x86_64: OK
-linux-4.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: WARNINGS
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/rc-main.c | 58 +++++++++++++++++++++++++++++++++++++++++++++-
+ include/media/rc-core.h    | 18 ++++++++++++++
+ 2 files changed, 75 insertions(+), 1 deletion(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index d9c1f2f..c8c6aa5 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1403,6 +1403,34 @@ void rc_free_device(struct rc_dev *dev)
+ }
+ EXPORT_SYMBOL_GPL(rc_free_device);
+ 
++static void devm_rc_alloc_release(struct device *dev, void *res)
++{
++	rc_free_device(*(struct rc_dev **)res);
++}
++
++struct rc_dev *devm_rc_allocate_device(struct device *dev)
++{
++	struct rc_dev **dr, *rc;
++
++	dr = devres_alloc(devm_rc_alloc_release, sizeof(*dr), GFP_KERNEL);
++	if (!dr)
++		return NULL;
++
++	rc = rc_allocate_device();
++	if (!rc) {
++		devres_free(dr);
++		return NULL;
++	}
++
++	rc->dev.parent = dev;
++	rc->managed_alloc = true;
++	*dr = rc;
++	devres_add(dev, dr);
++
++	return rc;
++}
++EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
++
+ int rc_register_device(struct rc_dev *dev)
+ {
+ 	static bool raw_init = false; /* raw decoders loaded? */
+@@ -1531,6 +1559,33 @@ out_unlock:
+ }
+ EXPORT_SYMBOL_GPL(rc_register_device);
+ 
++static void devm_rc_release(struct device *dev, void *res)
++{
++	rc_unregister_device(*(struct rc_dev **)res);
++}
++
++int devm_rc_register_device(struct device *parent, struct rc_dev *dev)
++{
++	struct rc_dev **dr;
++	int ret;
++
++	dr = devres_alloc(devm_rc_release, sizeof(*dr), GFP_KERNEL);
++	if (!dr)
++		return -ENOMEM;
++
++	ret = rc_register_device(dev);
++	if (ret) {
++		devres_free(dr);
++		return ret;
++	}
++
++	*dr = dev;
++	devres_add(parent, dr);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_rc_register_device);
++
+ void rc_unregister_device(struct rc_dev *dev)
+ {
+ 	if (!dev)
+@@ -1552,7 +1607,8 @@ void rc_unregister_device(struct rc_dev *dev)
+ 
+ 	ida_simple_remove(&rc_ida, dev->minor);
+ 
+-	rc_free_device(dev);
++	if (!dev->managed_alloc)
++		rc_free_device(dev);
+ }
+ 
+ EXPORT_SYMBOL_GPL(rc_unregister_device);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 40188d3..55281b9 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -68,6 +68,7 @@ enum rc_filter_type {
+  * struct rc_dev - represents a remote control device
+  * @dev: driver model's view of this device
+  * @initialized: 1 if the device init has completed, 0 otherwise
++ * @managed_alloc: devm_rc_allocate_device was used to create rc_dev
+  * @sysfs_groups: sysfs attribute groups
+  * @input_name: name of the input child device
+  * @input_phys: physical path to the input child device
+@@ -131,6 +132,7 @@ enum rc_filter_type {
+ struct rc_dev {
+ 	struct device			dev;
+ 	atomic_t			initialized;
++	bool				managed_alloc;
+ 	const struct attribute_group	*sysfs_groups[5];
+ 	const char			*input_name;
+ 	const char			*input_phys;
+@@ -203,6 +205,14 @@ struct rc_dev {
+ struct rc_dev *rc_allocate_device(void);
+ 
+ /**
++ * devm_rc_allocate_device - Managed RC device allocation
++ *
++ * @dev: pointer to struct device
++ * returns a pointer to struct rc_dev.
++ */
++struct rc_dev *devm_rc_allocate_device(struct device *dev);
++
++/**
+  * rc_free_device - Frees a RC device
+  *
+  * @dev: pointer to struct rc_dev.
+@@ -217,6 +227,14 @@ void rc_free_device(struct rc_dev *dev);
+ int rc_register_device(struct rc_dev *dev);
+ 
+ /**
++ * devm_rc_register_device - Manageded registering of a RC device
++ *
++ * @parent: pointer to struct device.
++ * @dev: pointer to struct rc_dev.
++ */
++int devm_rc_register_device(struct device *parent, struct rc_dev *dev);
++
++/**
+  * rc_unregister_device - Unregisters a RC device
+  *
+  * @dev: pointer to struct rc_dev.
+-- 
+2.10.0
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
