@@ -1,70 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f65.google.com ([209.85.220.65]:34880 "EHLO
-        mail-pa0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933641AbcIOCVv (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37353 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751099AbcI3LI5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Sep 2016 22:21:51 -0400
-Received: by mail-pa0-f65.google.com with SMTP id pp5so1471162pac.2
-        for <linux-media@vger.kernel.org>; Wed, 14 Sep 2016 19:21:51 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Arnd Bergmann <arnd@arndb.de>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
-Subject: [PATCH -next] [media] pxa_camera: fix error return code in pxa_camera_probe()
-Date: Thu, 15 Sep 2016 02:21:45 +0000
-Message-Id: <1473906105-29387-1-git-send-email-weiyj.lk@gmail.com>
+        Fri, 30 Sep 2016 07:08:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: horms@verge.net.au, geert@linux-m68k.org, hans.verkuil@cisco.com,
+        niklas.soderlund@ragnatech.se, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com
+Subject: Re: [PATCH 1/3] ARM: dts: r8a7793: Enable VIN0, VIN1
+Date: Fri, 30 Sep 2016 14:08:53 +0300
+Message-ID: <2139972.htm5G2lxOE@avalon>
+In-Reply-To: <1961479.Ly4IFObGfR@avalon>
+References: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com> <20160916130935.21292-2-ulrich.hecht+renesas@gmail.com> <1961479.Ly4IFObGfR@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+Hi Ulrich,
 
-Fix to return error code -ENODEV from dma_request_slave_channel_compat()
-error handling case instead of 0, as done elsewhere in this function.
+On Friday 30 Sep 2016 13:55:50 Laurent Pinchart wrote:
+> On Friday 16 Sep 2016 15:09:33 Ulrich Hecht wrote:
+> > Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> > ---
+> > 
+> >  arch/arm/boot/dts/r8a7793.dtsi | 20 ++++++++++++++++++++
+> >  1 file changed, 20 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/r8a7793.dtsi
+> > b/arch/arm/boot/dts/r8a7793.dtsi index 8d02aac..0898668 100644
+> > --- a/arch/arm/boot/dts/r8a7793.dtsi
+> > +++ b/arch/arm/boot/dts/r8a7793.dtsi
+> > @@ -30,6 +30,8 @@
+> >  		i2c7 = &i2c7;
+> >  		i2c8 = &i2c8;
+> >  		spi0 = &qspi;
+> > +		vin0 = &vin0;
+> > +		vin1 = &vin1;
+> 
+> Why is this needed ?
+> 
+> >  	};
+> >  	
+> >  	cpus {
+> > @@ -852,6 +854,24 @@
+> >  		status = "disabled";
+> >  	};
+> > 
+> > +	vin0: video@e6ef0000 {
+> > +		compatible = "renesas,vin-r8a7793";
 
-Also fix to release resources in v4l2_clk_register() error handling.
+Additionally, should this be
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- drivers/media/platform/pxa_camera.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+	compatiable = "renesas,vin-r8a7793", "renesas,rcar-gen2-vin";
 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 1bce7eb..8035290 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -2402,6 +2402,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 						 &params, &pdev->dev, "CI_U");
- 	if (!pcdev->dma_chans[1]) {
- 		dev_err(&pdev->dev, "Can't request DMA for Y\n");
-+		err = -ENODEV;
- 		goto exit_free_dma_y;
- 	}
- 
-@@ -2411,6 +2412,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 						 &params, &pdev->dev, "CI_V");
- 	if (!pcdev->dma_chans[2]) {
- 		dev_err(&pdev->dev, "Can't request DMA for V\n");
-+		err = -ENODEV;
- 		goto exit_free_dma_u;
- 	}
- 
-@@ -2461,8 +2463,10 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 
- 		pcdev->mclk_clk = v4l2_clk_register(&pxa_camera_mclk_ops,
- 						    clk_name, NULL);
--		if (IS_ERR(pcdev->mclk_clk))
--			return PTR_ERR(pcdev->mclk_clk);
-+		if (IS_ERR(pcdev->mclk_clk)) {
-+			err = PTR_ERR(pcdev->mclk_clk);
-+			goto exit_free_v4l2dev;
-+		}
- 	}
- 
- 	err = v4l2_async_notifier_register(&pcdev->v4l2_dev, &pcdev->notifier);
+?
+
+> > +		reg = <0 0xe6ef0000 0 0x1000>;
+> > +		interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
+> > +		clocks = <&mstp8_clks R8A7793_CLK_VIN0>;
+> > +		power-domains = <&sysc R8A7793_PD_ALWAYS_ON>;
+> > +		status = "disabled";
+> > +	};
+> > +
+> > +	vin1: video@e6ef1000 {
+> > +		compatible = "renesas,vin-r8a7793";
+> > +		reg = <0 0xe6ef1000 0 0x1000>;
+> > +		interrupts = <GIC_SPI 189 IRQ_TYPE_LEVEL_HIGH>;
+> > +		clocks = <&mstp8_clks R8A7793_CLK_VIN1>;
+> > +		power-domains = <&sysc R8A7793_PD_ALWAYS_ON>;
+> > +		status = "disabled";
+> > +	};
+> > +
+> 
+> As Geert mentioned, you should add vin2 here.
+> 
+> >  	qspi: spi@e6b10000 {
+> >  	
+> >  		compatible = "renesas,qspi-r8a7793", "renesas,qspi";
+> >  		reg = <0 0xe6b10000 0 0x2c>;
+
+-- 
+Regards,
+
+Laurent Pinchart
 
