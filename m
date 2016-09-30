@@ -1,80 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48817 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753413AbcIFL5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Sep 2016 07:57:42 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH v4 1/8] doc-rst: Correct the ordering of LSBs of the 10-bit raw packed formats
-Date: Tue,  6 Sep 2016 14:55:33 +0300
-Message-Id: <1473162940-31486-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1473162940-31486-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40555
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933618AbcI3VR2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 30 Sep 2016 17:17:28 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        linux-media@vger.kernel.org,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 3/4] [media] exynos-gsc: fix supported RGB pixel format
+Date: Fri, 30 Sep 2016 17:16:43 -0400
+Message-Id: <1475270204-14005-4-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1475270204-14005-1-git-send-email-javier@osg.samsung.com>
+References: <1475270204-14005-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 10-bit packed raw bayer format documented that the data of the first
-pixel of a four-pixel group was found in the first byte and the two
-highest bits of the fifth byte. This was not entirely correct. The two
-bits in the fifth byte are the two lowest bits. The second pixel occupies
-the second byte and third and fourth least significant bits and so on.
+The driver exposes 32-bit A/XRGB 8-8-8-8 as supported format but testing
+shows that using this format produces frames with wrong colors. The test
+was done with the following GStreamer pipeline:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+$ gst-launch-1.0 videotestsrc num-buffers=20 ! video/x-raw,format=UYVY \
+! v4l2video3convert ! video/x-raw,format=xRGB ! videoconvert ! kmssink
+
+The manual seems to state that the Pixel Format are in Little Endianness
+so instead use the 32-bit BGRA/X 8-8-8-8 pixel format. This format works
+correctly when using the following pipeline:
+
+$ gst-launch-1.0 videotestsrc num-buffers=20 ! video/x-raw,format=UYVY \
+! v4l2video3convert ! video/x-raw,format=BGRx ! kmssink
+
+This change is similar to commit 7f2816e51ea1 ("[media] s5p-fimc: Changed
+RGB32 to BGR32") that fixed the same issue on a different Samsung driver.
+
+Suggested-by: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- Documentation/media/uapi/v4l/pixfmt-srggb10p.rst | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-index a5752b9..cc573c9 100644
---- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-@@ -56,8 +56,8 @@ Each cell is one byte.
- 
-        -  G\ :sub:`03high`
- 
--       -  B\ :sub:`00low`\ (bits 7--6) G\ :sub:`01low`\ (bits 5--4)
--	  B\ :sub:`02low`\ (bits 3--2) G\ :sub:`03low`\ (bits 1--0)
-+       -  G\ :sub:`03low`\ (bits 7--6) B\ :sub:`02low`\ (bits 5--4)
-+	  G\ :sub:`01low`\ (bits 3--2) B\ :sub:`00low`\ (bits 1--0)
- 
-     -  .. row 2
- 
-@@ -71,8 +71,8 @@ Each cell is one byte.
- 
-        -  R\ :sub:`13high`
- 
--       -  G\ :sub:`10low`\ (bits 7--6) R\ :sub:`11low`\ (bits 5--4)
--	  G\ :sub:`12low`\ (bits 3--2) R\ :sub:`13low`\ (bits 1--0)
-+       -  R\ :sub:`13low`\ (bits 7--6) G\ :sub:`12low`\ (bits 5--4)
-+	  R\ :sub:`11low`\ (bits 3--2) G\ :sub:`10low`\ (bits 1--0)
- 
-     -  .. row 3
- 
-@@ -86,8 +86,8 @@ Each cell is one byte.
- 
-        -  G\ :sub:`23high`
- 
--       -  B\ :sub:`20low`\ (bits 7--6) G\ :sub:`21low`\ (bits 5--4)
--	  B\ :sub:`22low`\ (bits 3--2) G\ :sub:`23low`\ (bits 1--0)
-+       -  G\ :sub:`23low`\ (bits 7--6) B\ :sub:`22low`\ (bits 5--4)
-+	  G\ :sub:`21low`\ (bits 3--2) B\ :sub:`20low`\ (bits 1--0)
- 
-     -  .. row 4
- 
-@@ -101,8 +101,8 @@ Each cell is one byte.
- 
-        -  R\ :sub:`33high`
- 
--       -  G\ :sub:`30low`\ (bits 7--6) R\ :sub:`31low`\ (bits 5--4)
--	  G\ :sub:`32low`\ (bits 3--2) R\ :sub:`33low`\ (bits 1--0)
-+       -  R\ :sub:`33low`\ (bits 7--6) G\ :sub:`32low`\ (bits 5--4)
-+	  R\ :sub:`31low`\ (bits 3--2) G\ :sub:`30low`\ (bits 1--0)
- 
- .. raw:: latex
- 
+ drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index fac0c0246ad4..8bb1d2be7234 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -39,8 +39,8 @@ static const struct gsc_fmt gsc_formats[] = {
+ 		.num_planes	= 1,
+ 		.num_comp	= 1,
+ 	}, {
+-		.name		= "XRGB-8-8-8-8, 32 bpp",
+-		.pixelformat	= V4L2_PIX_FMT_RGB32,
++		.name		= "BGRX-8-8-8-8, 32 bpp",
++		.pixelformat	= V4L2_PIX_FMT_BGR32,
+ 		.depth		= { 32 },
+ 		.color		= GSC_RGB,
+ 		.num_planes	= 1,
 -- 
 2.7.4
 
