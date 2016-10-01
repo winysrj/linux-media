@@ -1,189 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f66.google.com ([209.85.220.66]:35541 "EHLO
-        mail-pa0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932972AbcJQWgR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 18:36:17 -0400
-Subject: Re: [PATCH v4 3/8] media: adv7180: add support for NEWAVMODE
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:33095 "EHLO
+        mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751006AbcJAJTf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 1 Oct 2016 05:19:35 -0400
+Received: by mail-lf0-f43.google.com with SMTP id t81so56069235lfe.0
+        for <linux-media@vger.kernel.org>; Sat, 01 Oct 2016 02:19:34 -0700 (PDT)
+Date: Sat, 1 Oct 2016 11:19:31 +0200
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
- <1470247430-11168-4-git-send-email-steve_longerbeam@mentor.com>
- <3171592.lqAHMF38Fl@avalon>
-Cc: lars@metafoo.de, mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <34b5e02c-fcfc-1dbe-f67e-aeced11debf5@gmail.com>
-Date: Mon, 17 Oct 2016 15:36:14 -0700
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+        Simon Horman <horms@verge.net.au>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH 2/3] ARM: dts: gose: add HDMI input
+Message-ID: <20161001091931.GL8472@bigcity.dyn.berto.se>
+References: <20160916130935.21292-1-ulrich.hecht+renesas@gmail.com>
+ <1951325.PMIbTHqE2x@avalon>
+ <CAMuHMdV3ZSfMeyCv3j8F3rUeT48nQc-03L5iDXYF-=wT7Ek2nw@mail.gmail.com>
+ <3186140.opQPlkUUe2@avalon>
 MIME-Version: 1.0
-In-Reply-To: <3171592.lqAHMF38Fl@avalon>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <3186140.opQPlkUUe2@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 2016-09-30 16:32:52 +0300, Laurent Pinchart wrote:
+> On Friday 30 Sep 2016 15:00:59 Geert Uytterhoeven wrote:
+> > On Fri, Sep 30, 2016 at 2:40 PM, Laurent Pinchart wrote:
+> > >> --- a/arch/arm/boot/dts/r8a7793-gose.dts
+> > >> +++ b/arch/arm/boot/dts/r8a7793-gose.dts
+> > >> @@ -374,6 +374,11 @@
+> > >>               groups = "audio_clk_a";
+> > >>               function = "audio_clk";
+> > >>       };
+> > >> +
+> > >> +     vin0_pins: vin0 {
+> > >> +             groups = "vin0_data24", "vin0_sync", "vin0_clkenb",
+> > >> "vin0_clk";
+> > >> +             function = "vin0";
+> > >> +     };
+> > >>  };
+> > >>  
+> > >>  &ether {
+> > >> @@ -531,6 +536,21 @@
+> > >>               };
+> > >>       };
+> > >> 
+> > >> +     hdmi-in@4c {
+> > >> +             compatible = "adi,adv7612";
+> > >> +             reg = <0x4c>;
+> > >> +             interrupt-parent = <&gpio1>;
+> > >> +             interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
+> > > 
+> > > Isn't the interrupt signal connected to GP4_2 ?
+> > 
+> > No idea about Gose, but on Koelsch it is (hence koelsch DTS is wrong??)
+> 
+> I believe so. I don't have a Koelsch board anymore so I can't test that. 
+> Niklas, do you have a Koelsch on which you could confirm the IRQ number ?
 
+I have done the best I can to prove the IRQ, it proved to be a bit 
+tricky or maybe I'm doing it the wrong way.
 
-On 10/16/2016 05:18 AM, Laurent Pinchart wrote:
-> Hi Steve,
->
-> Thank you for the patch.
->
-> On Wednesday 03 Aug 2016 11:03:45 Steve Longerbeam wrote:
->> Parse the optional v4l2 endpoint DT node. If the bus type is
->> V4L2_MBUS_BT656 and the endpoint node specifies "newavmode",
->> configure the BT.656 bus in NEWAVMODE.
->>
->> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>
->> ---
->>
->> v4: no changes
->> v3:
->> - the newavmode endpoint property is now private to adv7180.
->> ---
->>   .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++
->>   drivers/media/i2c/adv7180.c                        | 46 +++++++++++++++++--
->>   2 files changed, 47 insertions(+), 3 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
->> b/Documentation/devicetree/bindings/media/i2c/adv7180.txt index
->> 0d50115..6c175d2 100644
->> --- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
->> +++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
->> @@ -15,6 +15,10 @@ Required Properties :
->>   		"adi,adv7282"
->>   		"adi,adv7282-m"
->>
->> +Optional Endpoint Properties :
->> +- newavmode: a boolean property to indicate the BT.656 bus is operating
->> +  in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
-> This is a vendor-specific property, it should be prefixed with "adi,".
+I hooked up my oscilloscope to EXIO Connector D pin 7, which according 
+to the schematics should be GP4_2 and attached to a pull-up at 3.3v. I 
+can observe the pull-up and if I control the pin using the 
+/sys/class/gpio interface I do indeed control GP4_2, So the schematic is 
+correct at least this far.
 
-Ok, I'll do that in next version.
+The trouble I have is that the adv7612 driver do not currently consume 
+the interrupt so I can't see multiple field interrupts by observing the 
+pin. I do however see what I believe is the first field interrupt, if I 
+observe the pin just as I turn on my HDMI video source the pin go from 1 
+-> 0 but is never reset and a reset of the entire board is needed if you 
+wish to see it again.
 
->   Could
-> you also explain how this mode works ? I'd like to make sure it qualifies for
-> a DT property.
+If I on the other hand observe pin GP1_20 on EXIO Connector A pin 66 I 
+notice nothing on the oscilloscope from that it's set to 3.3V at power 
+on, no mater how much HDMI input i run.
 
-The blurb in the ADV718x manual is terse:
+In conclusion, yes I do believe the DTS is wrong and that GP4_2 is the 
+correct interrupt signal on Koelsch. This adds up with the schematics 
+and my rudimentary measurements.
 
-"When NEWAVMODE is 0 (enabled), EAV/SAV codes are generated to
-suit Analog Devices encoders. No adjustments are possible."
-
-"Setting NEWAVMODE to 1 (default) enables the manual position
-of the VSYNC, FIELD, and AV codes using Register 0x32 to
-Register 0x33 and Register 0xE5 to Register 0xEA. Default register
-settings are CCIR656 compliant;"
-
-So it's not clear to me how the generated EAV and SAV codes are
-different from standard CCIR656, but apparently they are.
-
-Steve
-
-
->
->> +
->>   Example:
->>
->>   	i2c0@1c22000 {
->> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
->> index 6e093c22..467953e 100644
->> --- a/drivers/media/i2c/adv7180.c
->> +++ b/drivers/media/i2c/adv7180.c
->> @@ -31,6 +31,7 @@
->>   #include <media/v4l2-event.h>
->>   #include <media/v4l2-device.h>
->>   #include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-of.h>
->>   #include <linux/mutex.h>
->>   #include <linux/delay.h>
->>
->> @@ -106,6 +107,7 @@
->>   #define ADV7180_REG_SHAP_FILTER_CTL_1	0x0017
->>   #define ADV7180_REG_CTRL_2		0x001d
->>   #define ADV7180_REG_VSYNC_FIELD_CTL_1	0x0031
->> +#define ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE 0x02
->>   #define ADV7180_REG_MANUAL_WIN_CTL_1	0x003d
->>   #define ADV7180_REG_MANUAL_WIN_CTL_2	0x003e
->>   #define ADV7180_REG_MANUAL_WIN_CTL_3	0x003f
->> @@ -214,6 +216,7 @@ struct adv7180_state {
->>   	struct mutex		mutex; /* mutual excl. when accessing chip */
->>   	int			irq;
->>   	v4l2_std_id		curr_norm;
->> +	bool			newavmode;
->>   	bool			powered;
->>   	bool			streaming;
->>   	u8			input;
->> @@ -864,9 +867,15 @@ static int adv7180_init(struct adv7180_state *state)
->>   	if (ret < 0)
->>   		return ret;
->>
->> -	/* Manually set V bit end position in NTSC mode */
->> -	return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
->> -					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
->> +	if (!state->newavmode) {
->> +		/* Manually set V bit end position in NTSC mode */
->> +		ret = adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
->> +				    ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
->> +		if (ret < 0)
->> +			return ret;
->> +	}
->> +
->> +	return 0;
->>   }
->>
->>   static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
->> @@ -1217,6 +1226,13 @@ static int init_device(struct adv7180_state *state)
->>   	if (ret)
->>   		goto out_unlock;
->>
->> +	if (state->newavmode) {
->> +		ret = adv7180_write(state, ADV7180_REG_VSYNC_FIELD_CTL_1,
->> +				    ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE);
->> +		if (ret < 0)
->> +			goto out_unlock;
->> +	}
->> +
->>   	ret = adv7180_program_std(state);
->>   	if (ret)
->>   		goto out_unlock;
->> @@ -1257,6 +1273,28 @@ out_unlock:
->>   	return ret;
->>   }
->>
->> +static void adv7180_of_parse(struct adv7180_state *state)
->> +{
->> +	struct i2c_client *client = state->client;
->> +	struct device_node *np = client->dev.of_node;
->> +	struct device_node *endpoint;
->> +	struct v4l2_of_endpoint	ep;
->> +
->> +	endpoint = of_graph_get_next_endpoint(np, NULL);
->> +	if (!endpoint) {
->> +		v4l_warn(client, "endpoint node not found\n");
->> +		return;
->> +	}
->> +
->> +	v4l2_of_parse_endpoint(endpoint, &ep);
->> +	if (ep.bus_type == V4L2_MBUS_BT656) {
->> +		if (of_property_read_bool(endpoint, "newavmode"))
->> +			state->newavmode = true;
->> +	}
->> +
->> +	of_node_put(endpoint);
->> +}
->> +
->>   static int adv7180_probe(struct i2c_client *client,
->>   			 const struct i2c_device_id *id)
->>   {
->> @@ -1279,6 +1317,8 @@ static int adv7180_probe(struct i2c_client *client,
->>   	state->field = V4L2_FIELD_ALTERNATE;
->>   	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
->>
->> +	adv7180_of_parse(state);
->> +
->>   	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
->>   		state->csi_client = i2c_new_dummy(client->adapter,
->>   				ADV7180_DEFAULT_CSI_I2C_ADDR);
-
+-- 
+Regards,
+Niklas Söderlund
