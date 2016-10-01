@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:35943 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936395AbcJXJOX (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:14241
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750949AbcJAUFR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 05:14:23 -0400
-MIME-Version: 1.0
-In-Reply-To: <1477299818-31935-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1477299818-31935-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 24 Oct 2016 11:14:11 +0200
-Message-ID: <CAMuHMdUGy0+bv-t=8HXeQf0BpoMJMNP85cd2tubQzD4Zj8X9Gw@mail.gmail.com>
-Subject: Re: [PATCH v4 2/4] dt-bindings: Add Renesas R-Car FDP1 bindings
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Content-Type: text/plain; charset=UTF-8
+        Sat, 1 Oct 2016 16:05:17 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 05/15] dma-buf/sw_sync: improve function-level documentation
+Date: Sat,  1 Oct 2016 21:46:22 +0200
+Message-Id: <1475351192-27079-6-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 24, 2016 at 11:03 AM, Laurent Pinchart
-<laurent.pinchart+renesas@ideasonboard.com> wrote:
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-> @@ -0,0 +1,33 @@
-> +Renesas R-Car Fine Display Processor (FDP1)
-> +-------------------------------------------
-> +
-> +The FDP1 is a de-interlacing module which converts interlaced video to
-> +progressive video. It is capable of performing pixel format conversion between
-> +YCbCr/YUV formats and RGB formats. Only YCbCr/YUV formats are supported as
-> +an input to the module.
-> +
-> + - compatible: Must be the following
-> +
-> +   - "renesas,fdp1" for generic compatible
-> +
-> + - reg: the register base and size for the device registers
-> + - interrupts : interrupt specifier for the FDP1 instance
-> + - clocks: reference to the functional clock
-> + - renesas,fcp: reference to the FCPF connected to the FDP1
-> +
-> +Optional properties:
-> + - power-domains : power-domain property defined with a power domain specifier
+Adjust the documentation to use the names that appear in the function
+parameter list.
 
-                      "power domain"?
+Issue detected using Coccinelle (http://coccinelle.lip6.fr/)
 
-> +                            to respective power domain.
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Still, too many power domains in one sentence?
+---
+ drivers/dma-buf/sw_sync.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Gr{oetje,eeting}s,
+diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
+index 62e8e6d..5d2b1b6 100644
+--- a/drivers/dma-buf/sw_sync.c
++++ b/drivers/dma-buf/sw_sync.c
+@@ -155,11 +155,11 @@ static void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
+ 
+ /**
+  * sync_pt_create() - creates a sync pt
+- * @parent:	fence's parent sync_timeline
++ * @obj:	fence's parent sync_timeline
+  * @size:	size to allocate for this pt
+- * @inc:	value of the fence
++ * @value:	value of the fence
+  *
+- * Creates a new sync_pt as a child of @parent.  @size bytes will be
++ * Creates a new sync_pt as a child of @obj.  @size bytes will be
+  * allocated allowing for implementation specific data to be kept after
+  * the generic sync_timeline struct. Returns the sync_pt object or
+  * NULL in case of error.
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
