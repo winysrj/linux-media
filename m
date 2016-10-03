@@ -1,71 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.mda.gov.br ([200.198.212.36]:58018 "EHLO mx1.mda.gov.br"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751148AbcJKF4H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 01:56:07 -0400
-Date: Tue, 11 Oct 2016 02:10:45 -0300 (BRT)
-From: Lloyds TSB Bank PLC <livia.aguiar@mda.gov.br>
-Reply-To: "lloyds26tsb@gmail.com" <lloyds26tsb@gmail.com>
-Message-ID: <1416831980.2988142.1476162645823.JavaMail.zimbra@mda.gov.br>
-Subject: Darlehen Angebot von 3%
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43037 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752455AbcJCJfE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2016 05:35:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Harman Kalra <harman4linux@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] : Removing warnings caught by checkpatch.pl
+Date: Mon, 03 Oct 2016 12:34:58 +0300
+Message-ID: <295099868.3eYuVXyQ9F@avalon>
+In-Reply-To: <1475355646-6378-1-git-send-email-harman4linux@gmail.com>
+References: <1475355646-6378-1-git-send-email-harman4linux@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Harman,
 
+Thank you for the patch.
 
+The subject of your commit message should at least contain the name of the 
+driver. Furthermore, you can mention that the patch originates from warnings 
+output by checkpatch.pl, but the subject should describe what you fix (in this 
+case what type of warning).
 
-Sch=C3=B6nen Tag,
+On Sunday 02 Oct 2016 02:30:45 Harman Kalra wrote:
+> Removing warnings caught by checkpatch.pl
 
- Dies ist Lloyds TSB Bank plc Kredite anbieten.
+If the purpose of commit message bodies was to repeat the subject line, we 
+wouldn't use them :-) Here you should describe why this change is needed, and 
+possibly how it is performed when the patch is complex (which isn't the case 
+of this patch).
 
-   Lloyds TSB bietet flexible und g=C3=BCnstige Kredite f=C3=BCr jeden Zwec=
-k Sie Ihre Ziele erreichen zu helfen. wir bei niedrigen Zinssatz von 3% Dar=
-lehen. Hier sind einige wichtige Merkmale der pers=C3=B6nlichen Kredit ange=
-boten durch Lloyds TSB. Hier sind die Darlehen Faktoren, die wir mit den f=
-=C3=BChrenden britischen Makler arbeiten, die Zugang zu Top-Kreditgeber hab=
-en und sind in der Lage, die beste finanzielle L=C3=B6sung zu einem erschwi=
-nglichen price.Please zu finden, wenn Sie daran interessiert sind, uns freu=
-ndlich =C3=BCber diese E-Mail an: lloyds26tsb@gmail.com
+> Signed-off-by: Harman Kalra <harman4linux@gmail.com>
+> ---
+>  drivers/staging/media/omap4iss/iss_video.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c
+> b/drivers/staging/media/omap4iss/iss_video.c index c16927a..7cc1691 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -297,8 +297,8 @@ static void iss_video_pix_to_mbus(const struct
+> v4l2_pix_format *pix, */
+> 
+>  static int iss_video_queue_setup(struct vb2_queue *vq,
+> -				 unsigned int *count, unsigned int 
+*num_planes,
+> -				 unsigned int sizes[], struct device 
+*alloc_devs[])
+> +			unsigned int *count, unsigned int *num_planes,
+> +			unsigned int sizes[], struct device *alloc_devs[])
 
+This breaks the coding style of the driver which aligns function arguments to 
+the opening parenthesis. You can instead wrap the last line to shorten it.
 
-Nach der Reaktion wird eine Anwendung f=C3=BCr Darlehen f=C3=BCllen erhalte=
-n. Keine soziale Sicherheit und keine Bonit=C3=A4tspr=C3=BCfung, 100% garan=
-tiert.
+>  {
+>  	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
+>  	struct iss_video *video = vfh->video;
+> @@ -678,8 +678,8 @@ void omap4iss_video_cancel_stream(struct iss_video
+> *video) if (subdev == NULL)
+>  		return -EINVAL;
+> 
+> -	/* Try the get selection operation first and fallback to get format if 
+not
+> -	 * implemented.
+> +	/* Try the get selection operation first and
+> +	 * fallback to get format if not implemented.
 
-Es wird uns eine Ehre, wenn Sie uns erlauben, zu Ihren Diensten zu sein.
+Lines can be up to 80 characters long, there's no need to wrap them after 52 
+characters only.
 
+>  	 */
+>  	sdsel.pad = pad;
+>  	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
+> --
+> 1.7.9.5
 
-erforderlichen Informationen, um
+-- 
+Regards,
 
-Deine Namen:
+Laurent Pinchart
 
-Adresse: ...........
-
-Telefon: ...........
-
-Ben=C3=B6tigte Menge: ........
-
-Dauer: ...............
-
-Beruf: ...........
-
-Monatliches Einkommen Level: ........
-
-Geschlecht: ...............
-
-Geburtsdatum: ........
-
-Bundesland: ..................
-
-Land: ..........
-
-Zweck: .........
-
-Treffen Sie Ihre finanziellen Bed=C3=BCrfnisse ist unser Stolz.
-
-
-Dr.John Mahama.
