@@ -1,63 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:48226 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965068AbcJ0OBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 10:01:51 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [RFC 1/3] Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
-Date: Thu, 27 Oct 2016 15:01:23 +0100
-Message-Id: <1477576885-21978-2-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1477576885-21978-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1477576885-21978-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50244 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751365AbcJCI5F (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 3 Oct 2016 04:57:05 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v1.2 5/5] smiapp: Implement support for autosuspend
+Date: Mon,  3 Oct 2016 11:57:02 +0300
+Message-Id: <1475485022-20484-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1474374598-32451-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1474374598-32451-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 3299ba5c0b213be5d911752d40251c1abc1004f7.
+Delay suspending the device by 1000 ms by default. This is done on
+explicit power off through s_power() callback, through releasing the
+file descriptor, NVM read or when the probe finishes.
 
-The DU output mode does not rely on frames being supplied on the WPF as
-its pipeline is supplied from DRM. For the upcoming WPF writeback
-functionality, we will choose to enable writeback mode if there is an
-output buffer, or disable it (leaving the existing display pipeline
-unharmed) otherwise.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/vsp1/vsp1_video.c | 11 -----------
- 1 file changed, 11 deletions(-)
+since v1.1:
 
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 94b428596c4f..f10401065cd3 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -296,11 +296,6 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
-  * This function completes the current buffer by filling its sequence number,
-  * time stamp and payload size, and hands it back to the videobuf core.
-  *
-- * When operating in DU output mode (deep pipeline to the DU through the LIF),
-- * the VSP1 needs to constantly supply frames to the display. In that case, if
-- * no other buffer is queued, reuse the one that has just been processed instead
-- * of handing it back to the videobuf core.
-- *
-  * Return the next queued buffer or NULL if the queue is empty.
-  */
- static struct vsp1_vb2_buffer *
-@@ -322,12 +317,6 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
- 	done = list_first_entry(&video->irqqueue,
- 				struct vsp1_vb2_buffer, queue);
+- More or less just rebased. The previous patch changed quite a bit so
+  this one did as well.
+
+ drivers/media/i2c/smiapp/smiapp-core.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 68adc1b..44e32cf 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -1380,17 +1380,22 @@ static int smiapp_power_off(struct device *dev)
  
--	/* In DU output mode reuse the buffer if the list is singular. */
--	if (pipe->lif && list_is_singular(&video->irqqueue)) {
--		spin_unlock_irqrestore(&video->irqlock, flags);
--		return done;
--	}
--
- 	list_del(&done->queue);
+ static int smiapp_set_power(struct v4l2_subdev *subdev, int on)
+ {
+-	int rval = 0;
++	int rval;
  
- 	if (!list_empty(&video->irqqueue))
+-	if (on) {
+-		rval = pm_runtime_get_sync(subdev->dev);
+-		if (rval >= 0)
+-			return 0;
++	if (!on) {
++		pm_runtime_mark_last_busy(subdev->dev);
++		pm_runtime_put_autosuspend(subdev->dev);
+ 
+-		if (rval != -EBUSY && rval != -EAGAIN)
+-			pm_runtime_set_active(subdev->dev);
++		return 0;
+ 	}
+ 
++	rval = pm_runtime_get_sync(subdev->dev);
++	if (rval >= 0)
++		return 0;
++
++	if (rval != -EBUSY && rval != -EAGAIN)
++		pm_runtime_set_active(subdev->dev);
++
+ 	pm_runtime_put(subdev->dev);
+ 
+ 	return rval;
+@@ -2340,7 +2345,8 @@ smiapp_sysfs_nvm_read(struct device *dev, struct device_attribute *attr,
+ 			return -ENODEV;
+ 		}
+ 
+-		pm_runtime_put(&client->dev);
++		pm_runtime_mark_last_busy(&client->dev);
++		pm_runtime_put_autosuspend(&client->dev);
+ 	}
+ 	/*
+ 	 * NVM is still way below a PAGE_SIZE, so we can safely
+@@ -2681,7 +2687,8 @@ static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ 
+ static int smiapp_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ {
+-	pm_runtime_put(sd->dev);
++	pm_runtime_mark_last_busy(&client->dev);
++	pm_runtime_put_autosuspend(&client->dev);
+ 
+ 	return 0;
+ }
+@@ -3093,7 +3100,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
+-	pm_runtime_put(&client->dev);
++	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
++	pm_runtime_use_autosuspend(&client->dev);
++	pm_runtime_put_autosuspend(&client->dev);
+ 
+ 	return 0;
+ 
 -- 
-2.7.4
+2.1.4
 
