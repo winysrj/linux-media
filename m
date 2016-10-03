@@ -1,90 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39786 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751736AbcJKKhu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50796 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751668AbcJCJ1u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:37:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 29/31] s2255drv: don't use stack for DMA
-Date: Tue, 11 Oct 2016 07:09:44 -0300
-Message-Id: <474df449f4368f552aaa52d7ef77d4500f681bb3.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Mon, 3 Oct 2016 05:27:50 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: sre@kernel.org
+Subject: [PATCH v1.3 5/5] smiapp: Implement support for autosuspend
+Date: Mon,  3 Oct 2016 12:27:46 +0300
+Message-Id: <1475486866-31355-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1475485022-20484-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1475485022-20484-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Delay suspending the device by 1000 ms by default. This is done on
+explicit power off through s_power() callback, through releasing the
+file descriptor, NVM read or when the probe finishes.
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/usb/s2255/s2255drv.c | 15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+since v1.2:
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index c3a0e87066eb..f7bb78c1873c 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -1901,19 +1901,30 @@ static long s2255_vendor_req(struct s2255_dev *dev, unsigned char Request,
- 			     s32 TransferBufferLength, int bOut)
+- Fix copy & paste issue in smiapp_close().
+
+ drivers/media/i2c/smiapp/smiapp-core.c | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 68adc1b..59872b3 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -1380,17 +1380,22 @@ static int smiapp_power_off(struct device *dev)
+ 
+ static int smiapp_set_power(struct v4l2_subdev *subdev, int on)
  {
- 	int r;
-+	unsigned char *buf;
-+
-+	buf = kmalloc(TransferBufferLength, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
- 	if (!bOut) {
- 		r = usb_control_msg(dev->udev, usb_rcvctrlpipe(dev->udev, 0),
- 				    Request,
- 				    USB_TYPE_VENDOR | USB_RECIP_DEVICE |
- 				    USB_DIR_IN,
--				    Value, Index, TransferBuffer,
-+				    Value, Index, buf,
- 				    TransferBufferLength, HZ * 5);
-+
-+		if (r >= 0)
-+			memcpy(TransferBuffer, buf, TransferBufferLength);
- 	} else {
-+		memcpy(buf, TransferBuffer, TransferBufferLength);
- 		r = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
- 				    Request, USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				    Value, Index, TransferBuffer,
-+				    Value, Index, buf,
- 				    TransferBufferLength, HZ * 5);
+-	int rval = 0;
++	int rval;
+ 
+-	if (on) {
+-		rval = pm_runtime_get_sync(subdev->dev);
+-		if (rval >= 0)
+-			return 0;
++	if (!on) {
++		pm_runtime_mark_last_busy(subdev->dev);
++		pm_runtime_put_autosuspend(subdev->dev);
+ 
+-		if (rval != -EBUSY && rval != -EAGAIN)
+-			pm_runtime_set_active(subdev->dev);
++		return 0;
  	}
-+	kfree(buf);
- 	return r;
+ 
++	rval = pm_runtime_get_sync(subdev->dev);
++	if (rval >= 0)
++		return 0;
++
++	if (rval != -EBUSY && rval != -EAGAIN)
++		pm_runtime_set_active(subdev->dev);
++
+ 	pm_runtime_put(subdev->dev);
+ 
+ 	return rval;
+@@ -2340,7 +2345,8 @@ smiapp_sysfs_nvm_read(struct device *dev, struct device_attribute *attr,
+ 			return -ENODEV;
+ 		}
+ 
+-		pm_runtime_put(&client->dev);
++		pm_runtime_mark_last_busy(&client->dev);
++		pm_runtime_put_autosuspend(&client->dev);
+ 	}
+ 	/*
+ 	 * NVM is still way below a PAGE_SIZE, so we can safely
+@@ -2681,7 +2687,8 @@ static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ 
+ static int smiapp_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+ {
+-	pm_runtime_put(sd->dev);
++	pm_runtime_mark_last_busy(sd->dev);
++	pm_runtime_put_autosuspend(sd->dev);
+ 
+ 	return 0;
  }
+@@ -3093,7 +3100,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
+-	pm_runtime_put(&client->dev);
++	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
++	pm_runtime_use_autosuspend(&client->dev);
++	pm_runtime_put_autosuspend(&client->dev);
+ 
+ 	return 0;
  
 -- 
-2.7.4
-
+2.1.4
 
