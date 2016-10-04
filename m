@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.abbadie.fr ([37.187.122.32]:54508 "EHLO mail.abbadie.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938778AbcJSUrh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 16:47:37 -0400
-From: Jean-Baptiste Abbadie <jb@abbadie.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org
-Cc: Jean-Baptiste Abbadie <jb@abbadie.fr>
-Subject: [PATCH 2/3] Staging: media: radio-bcm2048: Fix indentation
-Date: Wed, 19 Oct 2016 22:47:13 +0200
-Message-Id: <20161019204714.11645-3-jb@abbadie.fr>
-In-Reply-To: <20161019204714.11645-1-jb@abbadie.fr>
-References: <20161019204714.11645-1-jb@abbadie.fr>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34680 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751697AbcJDLNz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2016 07:13:55 -0400
+Received: by mail-wm0-f68.google.com with SMTP id b201so13967053wmb.1
+        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2016 04:13:55 -0700 (PDT)
+From: Enrico Mioso <mrkiko.rs@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Enrico Mioso <mrkiko.rs@gmail.com>
+Subject: [PATCH] Add Cinergy S2 rev.4 support
+Date: Tue,  4 Oct 2016 13:13:27 +0200
+Message-Id: <20161004111327.2665-1-mrkiko.rs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Align multiple lines statement with parentheses
+This patch derives from previous one(s) by CrazyCat. I used the commit adding rev.3 to mainline Linux kernel as an example, so credits go to its author(s).
+The hardware seems to scan and tune OK.
 
-Signed-off-by: Jean-Baptiste Abbadie <jb@abbadie.fr>
+Signed-off-by: Enrico Mioso <mrkiko.rs@gmail.com>
 ---
- drivers/staging/media/bcm2048/radio-bcm2048.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/dvb-usb/dw2102.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 188d045d44ad..f66bea631e8e 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -997,7 +997,7 @@ static int bcm2048_set_fm_search_tune_mode(struct bcm2048_device *bdev,
- 		timeout = BCM2048_AUTO_SEARCH_TIMEOUT;
- 
- 	if (!wait_for_completion_timeout(&bdev->compl,
--		msecs_to_jiffies(timeout)))
-+					 msecs_to_jiffies(timeout)))
- 		dev_err(&bdev->client->dev, "IRQ timeout.\n");
- 
- 	if (value)
-@@ -2202,7 +2202,7 @@ static ssize_t bcm2048_fops_read(struct file *file, char __user *buf,
- 		}
- 		/* interruptible_sleep_on(&bdev->read_queue); */
- 		if (wait_event_interruptible(bdev->read_queue,
--		    bdev->rds_data_available) < 0) {
-+					     bdev->rds_data_available) < 0) {
- 			retval = -EINTR;
- 			goto done;
- 		}
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 5fb0c65..4bd1d13 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -1642,6 +1642,7 @@ enum dw2102_table_entry {
+ 	TEVII_S632,
+ 	TERRATEC_CINERGY_S2_R2,
+ 	TERRATEC_CINERGY_S2_R3,
++	TERRATEC_CINERGY_S2_R4,
+ 	GOTVIEW_SAT_HD,
+ 	GENIATECH_T220,
+ 	TECHNOTREND_S2_4600,
+@@ -1671,6 +1672,7 @@ static struct usb_device_id dw2102_table[] = {
+ 	[TEVII_S632] = {USB_DEVICE(0x9022, USB_PID_TEVII_S632)},
+ 	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R2)},
+ 	[TERRATEC_CINERGY_S2_R3] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R3)},
++	[TERRATEC_CINERGY_S2_R4] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_S2_R4)},
+ 	[GOTVIEW_SAT_HD] = {USB_DEVICE(0x1FE1, USB_PID_GOTVIEW_SAT_HD)},
+ 	[GENIATECH_T220] = {USB_DEVICE(0x1f4d, 0xD220)},
+ 	[TECHNOTREND_S2_4600] = {USB_DEVICE(USB_VID_TECHNOTREND,
 -- 
 2.10.0
 
