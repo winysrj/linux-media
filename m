@@ -1,83 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:33866 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932964AbcJQKSa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 06:18:30 -0400
-Received: by mail-qk0-f177.google.com with SMTP id f128so216501562qkb.1
-        for <linux-media@vger.kernel.org>; Mon, 17 Oct 2016 03:18:29 -0700 (PDT)
-Date: Mon, 17 Oct 2016 12:18:20 +0200
-From: Gary Bisson <gary.bisson@boundarydevices.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-Message-ID: <20161017101820.stfboaeqncadlvfz@t450s.lan>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49137 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753912AbcJDQXh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2016 12:23:37 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
+Date: Tue,  4 Oct 2016 19:23:29 +0300
+Message-Id: <1475598210-26857-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+Multiple incompatible data link layers have been used over time to
+transmit image data to LVDS panels. This binding supports display panels
+compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
+specifications.
 
-On Fri, Oct 14, 2016 at 07:34:20PM +0200, Philipp Zabel wrote:
-> Hi,
-> 
-> the second round removes the prepare_stream callback and instead lets the
-> intermediate subdevices propagate s_stream calls to their sources rather
-> than individually calling s_stream on each subdevice from the bridge driver.
-> This is similar to how drm bridges recursively call into their next neighbor.
-> It makes it easier to do bringup ordering on a per-link level, as long as the
-> source preparation can be done at s_power, and the sink can just prepare, call
-> s_stream on its source, and then enable itself inside s_stream. Obviously this
-> would only work in a generic fashion if all asynchronous subdevices with both
-> inputs and outputs would propagate s_stream to their source subdevices.
-> 
-> Changes since v1:
->  - Propagate field and colorspace in ipucsi_subdev_set_format.
->  - Remove v4l2_media_subdev_prepare_stream and v4l2_media_subdev_s_stream,
->    let subdevices propagate s_stream calls to their upstream subdevices
->    themselves.
->  - Various fixes (see individual patches for details)
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ .../bindings/display/panel/panel-lvds.txt          | 119 +++++++++++++++++++++
+ 1 file changed, 119 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/display/panel/panel-lvds.txt
 
-For the whole series:
-Tested-by: Gary Bisson <gary.bisson@boundarydevices.com>
-
-Tested on Nitrogen6x + BD_HDMI_MIPI daughter board on linux-next
-20161016.
-
-This required using your v4l2-ctl patch to set the EDID if the source
-output can't be forced:
-https://patchwork.kernel.org/patch/6097201/
-BTW, do you have any update on this? Because it looks like the
-VIDIOC_SUBDEV_QUERYCAP hasn't been implemented since your patch (March
-2015).
-
-Then I followed the procedure you gave here:
-https://patchwork.kernel.org/patch/9366503/
-
-For those interested in trying it out, note that kmssink requires to use
-Gstreamer 1.9.x.
-
-I have a few remarks:
-- I believe it would help having a patch that sets imx_v6_v7_defconfig
-  with the proper options in this series
-- Not related to this series, I couldn't boot the board unless I disable
-  the PCIe driver, have you experienced the same issue?
-- Is there a way not to set all the links manually using media-ctl? I
-  expected all the formats to be negotiated automatically once a stream
-  is properly detected.
-- As discussed last week, the Nitrogen6x dtsi file shouldn't be
-  included, instead an overlay would be more appropriate. Maybe the log
-  should contain a comment about this.
-
-Let me know if I need to add that Tested-by to every single patch so it
-appears on Patchwork.
-
+diff --git a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+new file mode 100644
+index 000000000000..250861f2673e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+@@ -0,0 +1,119 @@
++Generic LVDS Panel
++==================
++
++LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A. Multiple
++incompatible data link layers have been used over time to transmit image data
++to LVDS panels. This bindings supports display panels compatible with the
++following specifications.
++
++[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999, February
++1999 (Version 1.0), Japan Electronic Industry Development Association (JEIDA)
++[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95), National
++Semiconductor
++[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0), Video
++Electronics Standards Association (VESA)
++
++Device compatible with those specifications have been marketed under the
++FPD-Link and FlatLink brands.
++
++
++Required properties:
++- compatible: shall contain "panel-lvds"
++- width-mm: panel display width in millimeters
++- height-mm: panel display height in millimeters
++- data-mapping: the color signals mapping order, "jeida-18", "jeida-24"
++  or "vesa-24"
++
++Optional properties:
++- label: a symbolic name for the panel
++- avdd-supply: reference to the regulator that powers the panel analog supply
++- dvdd-supply: reference to the regulator that powers the panel digital supply
++- data-mirror: if set, reverse the bit order on all data lanes (6 to 0 instead
++  of 0 to 6)
++
++Required nodes:
++- One "panel-timing" node containing video timings, in accordance with the
++  display timing bindings defined in
++  Documentation/devicetree/bindings/display/display-timing.txt.
++- One "port" child node for the LVDS input port, in accordance with the
++  video interface bindings defined in
++  Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++
++LVDS data mappings are defined as follows.
++
++- "jeida-18" - 18-bit data mapping compatible with the [JEIDA], [LDI] and
++  [VESA] specifications. Data are transferred as follows on 3 LVDS lanes.
++
++Slot	    0       1       2       3       4       5       6
++	________________                         _________________
++Clock	                \_______________________/
++	  ______  ______  ______  ______  ______  ______  ______
++DATA0	><__G0__><__R5__><__R4__><__R3__><__R2__><__R1__><__R0__><
++DATA1	><__B1__><__B0__><__G5__><__G4__><__G3__><__G2__><__G1__><
++DATA2	><_CTL2_><_CTL1_><_CTL0_><__B5__><__B4__><__B3__><__B2__><
++
++- "jeida-24" - 24-bit data mapping compatible with the [DSIM] and [LDI]
++  specifications. Data are transferred as follows on 4 LVDS lanes.
++
++Slot	    0       1       2       3       4       5       6
++	________________                         _________________
++Clock	                \_______________________/
++	  ______  ______  ______  ______  ______  ______  ______
++DATA0	><__G2__><__R7__><__R6__><__R5__><__R4__><__R3__><__R2__><
++DATA1	><__B3__><__B2__><__G7__><__G6__><__G5__><__G4__><__G3__><
++DATA2	><_CTL2_><_CTL1_><_CTL0_><__B7__><__B6__><__B5__><__B4__><
++DATA3	><_CTL3_><__B1__><__B0__><__G1__><__G0__><__R1__><__R0__><
++
++- "vesa-24" - 24-bit data mapping compatible with the [VESA] specification.
++  Data are transferred as follows on 4 LVDS lanes.
++
++Slot	    0       1       2       3       4       5       6
++	________________                         _________________
++Clock	                \_______________________/
++	  ______  ______  ______  ______  ______  ______  ______
++DATA0	><__G0__><__R5__><__R4__><__R3__><__R2__><__R1__><__R0__><
++DATA1	><__B1__><__B0__><__G5__><__G4__><__G3__><__G2__><__G1__><
++DATA2	><_CTL2_><_CTL1_><_CTL0_><__B5__><__B4__><__B3__><__B2__><
++DATA3	><_CTL3_><__B7__><__B6__><__G7__><__G6__><__R7__><__R6__><
++
++
++Control signals are mapped as follows.
++
++CTL0: HSync
++CTL1: VSync
++CTL2: Data Enable
++CTL3: 0
++
++
++Example
++-------
++
++panel {
++	compatible = "mitsubishi,aa121td01", "panel-lvds";
++	label = "lcd";
++
++	width-mm = <261>;
++	height-mm = <163>;
++
++	data-mapping = "jeida-24";
++
++	panel-timing {
++		/* 1280x800 @60Hz */
++		clock-frequency = <71000000>;
++		hactive = <1280>;
++		vactive = <800>;
++		hsync-len = <70>;
++		hfront-porch = <20>;
++		hback-porch = <70>;
++		vsync-len = <5>;
++		vfront-porch = <3>;
++		vback-porch = <15>;
++	};
++
++	port {
++		panel_in: endpoint {
++			remote-endpoint = <&lvds_connector>;
++		};
++	};
++};
+-- 
 Regards,
-Gary
+
+Laurent Pinchart
+
