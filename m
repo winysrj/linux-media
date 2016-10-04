@@ -1,47 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f65.google.com ([209.85.214.65]:34958 "EHLO
-        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S940933AbcJSQYa (ORCPT
+Received: from a2nlsmtp01-04.prod.iad2.secureserver.net ([198.71.225.38]:49342
+        "EHLO a2nlsmtp01-04.prod.iad2.secureserver.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751479AbcJDTrI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 12:24:30 -0400
+        Tue, 4 Oct 2016 15:47:08 -0400
+Received: from stande86 by a2plcpnl0378.prod.iad2.secureserver.net with local (Exim 4.87)
+        (envelope-from <stande86@a2plcpnl0378.prod.iad2.secureserver.net>)
+        id 1brVfC-000pmV-4G
+        for linux-media@vger.kernel.org; Tue, 04 Oct 2016 12:46:06 -0700
+To: linux-media@vger.kernel.org
+Subject: Problems with item delivery, n.00000185327
+Date: Tue, 4 Oct 2016 19:46:06 +0000
+From: "FedEx Ground" <david.howe@takeastande.org>
+Reply-To: "FedEx Ground" <david.howe@takeastande.org>
+Message-ID: <3a1d28f95ca17226731d28d3ad515637@takeastande.org>
 MIME-Version: 1.0
-In-Reply-To: <1476802894-5105-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1476802894-5105-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 19 Oct 2016 09:33:11 +0200
-Message-ID: <CAMuHMdXMY5OGPNAxFCMRJYhAhct6vCqPodnCx=b5VqtCiqoYsQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] ARM: dts: koelsch: add HDMI input
-To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Cc: Simon Horman <horms@verge.net.au>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "william.towle" <william.towle@codethink.co.uk>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/mixed;
+        boundary="b1_9b1b3e285f9ab20a00eab9d094c71736"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 18, 2016 at 5:01 PM, Ulrich Hecht
-<ulrich.hecht+renesas@gmail.com> wrote:
-> From: Hans Verkuil <hverkuil@xs4all.nl>
->
-> Add support in the dts for the HDMI input. Based on the Lager dts
-> patch from Ultich Hecht.
+--b1_9b1b3e285f9ab20a00eab9d094c71736
+Content-Type: text/plain; charset=us-ascii
 
-Ulrich ;-)
+Dear Customer,
 
-Gr{oetje,eeting}s,
+Courier was unable to deliver the parcel to you.
+You can review complete details of your order in the find attached.
 
-                        Geert
+Yours trully,
+David Howe,
+Support Manager.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+--b1_9b1b3e285f9ab20a00eab9d094c71736
+Content-Type: application/zip; name="Label_00000185327.zip"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=Label_00000185327.zip
+
+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
+
+
+--b1_9b1b3e285f9ab20a00eab9d094c71736--
+
