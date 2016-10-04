@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:40515 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752027AbcJZIwZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 04:52:25 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v3 1/2] [media] videobuf2-dc: Move vb2_dc_get_base_sgt() above mmap callbacks
-Date: Wed, 26 Oct 2016 10:52:05 +0200
-Message-Id: <1477471926-15796-2-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
-References: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
+Received: from twin.jikos.cz ([89.185.236.188]:55452 "EHLO twin.jikos.cz"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751754AbcJDN15 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 4 Oct 2016 09:27:57 -0400
+Date: Tue, 4 Oct 2016 15:26:28 +0200 (CEST)
+From: Jiri Kosina <jikos@kernel.org>
+To: =?ISO-8859-15?Q?J=F6rg_Otte?= <jrg.otte@gmail.com>
+cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        linux-media@vger.kernel.org
+Subject: Re: Problem with VMAP_STACK=y
+In-Reply-To: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
+Message-ID: <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
+References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch moves vb2_dc_get_base_sgt() function above mmap buffers
-callbacks, particularly vb2_dc_alloc() and vb2_dc_mmap() from where it
-will be called for cacheable MMAP support introduced in the next patch.
+On Tue, 4 Oct 2016, Jörg Otte wrote:
 
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
----
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 44 +++++++++++++-------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+> With kernel 4.8.0-01558-g21f54dd I get thousands of
+> "dvb-usb: bulk message failed: -11 (1/0)"
+> messages in the logs and the DVB adapter is not working.
+> 
+> It tourned out the new config option VMAP_STACK=y (which is the default)
+> is the culprit.
+> No problems for me with VMAP_STACK=n.
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index a44e383..0d9665d 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -61,6 +61,28 @@ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- 	return size;
- }
- 
-+static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-+{
-+	int ret;
-+	struct sg_table *sgt;
-+
-+	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt) {
-+		dev_err(buf->dev, "failed to alloc sg table\n");
-+		return NULL;
-+	}
-+
-+	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
-+		buf->size, buf->attrs);
-+	if (ret < 0) {
-+		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
-+		kfree(sgt);
-+		return NULL;
-+	}
-+
-+	return sgt;
-+}
-+
- /*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
-@@ -363,28 +385,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.release = vb2_dc_dmabuf_ops_release,
- };
- 
--static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
--{
--	int ret;
--	struct sg_table *sgt;
--
--	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
--	if (!sgt) {
--		dev_err(buf->dev, "failed to alloc sg table\n");
--		return NULL;
--	}
--
--	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
--		buf->size, buf->attrs);
--	if (ret < 0) {
--		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
--		kfree(sgt);
--		return NULL;
--	}
--
--	return sgt;
--}
--
- static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
+I'd guess that this is EAGAIN coming from usb_hcd_map_urb_for_dma() as the 
+DVB driver is trying to perform on-stack DMA.
+
+Not really knowing which driver exactly you're using, I quickly skimmed 
+through DVB sources, and it turns out this indeed seems to be rather 
+common antipattern, and it should be fixed nevertheless. See
+
+	cxusb_ctrl_msg()
+	dibusb_power_ctrl()
+	dibusb2_0_streaming_ctrl()
+	dibusb2_0_power_ctrl()
+	digitv_ctrl_msg()
+	dtt200u_fe_init()
+	dtt200u_fe_set_frontend()
+	dtt200u_power_ctrl()
+	dtt200u_streaming_ctrl()
+	dtt200u_pid_filter()
+	
+Adding relevant CCs.
+
 -- 
-2.7.4
-
+Jiri Kosina
+SUSE Labs
