@@ -1,59 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:55890 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752262AbcJ2VEm (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34041 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750780AbcJDEFE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Oct 2016 17:04:42 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH] [media] dib0700: fix nec repeat handling
-Date: Sat, 29 Oct 2016 23:04:32 +0200
-Message-ID: <7477306.RsW9ioQisc@wuerfel>
-In-Reply-To: <20161013212844.GA23230@gofer.mess.org>
-References: <1476366699-21611-1-git-send-email-geert@linux-m68k.org> <20161013211407.GB21731@gofer.mess.org> <20161013212844.GA23230@gofer.mess.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 4 Oct 2016 00:05:04 -0400
+Message-ID: <6bd9da5e5b9a59192afcdab589ff0352@smtp-cloud2.xs4all.net>
+Date: Tue, 04 Oct 2016 06:05:00 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, October 13, 2016 10:28:44 PM CEST Sean Young wrote:
-> When receiving a nec repeat, ensure the correct scancode is repeated
-> rather than a random value from the stack. This removes the need
-> for the bogus uninitialized_var() and also fixes the warnings:
-> 
->     drivers/media/usb/dvb-usb/dib0700_core.c: In function ‘dib0700_rc_urb_completion’:
->     drivers/media/usb/dvb-usb/dib0700_core.c:679: warning: ‘protocol’ may be used uninitialized in this function
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/usb/dvb-usb/dib0700_core.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
-Cc: stable@vger.kernel.org
-Fixes: 2ceeca0499d7 ("[media] rc: split nec protocol into its three variants")
-Fixes: d3c501d1938c ("V4L/DVB: dib0700: Fix RC protocol logic to properly handle NEC/NECx and RC-5")
+Results of the daily build of media_tree:
 
+date:			Tue Oct  4 05:00:29 CEST 2016
+media-tree git hash:	e3ea5e94489bc8c711d422dfa311cfa310553a1b
+media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
+v4l-utils git hash:	7288e1413197237ab8064e3154469a25b49b0a06
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-The warning is gone for me too, so this obsoletes both
-https://patchwork.linuxtv.org/patch/37494/ and
-https://patchwork.kernel.org/patch/9380747/
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0.9-i686: OK
+linux-4.1.33-i686: OK
+linux-4.2.8-i686: OK
+linux-4.3.6-i686: OK
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: OK
+linux-4.6.7-i686: OK
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.33-x86_64: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.22-x86_64: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
+smatch: ERRORS
 
-Can we get this patch merged into v4.9 soonish? The warning
-is currently disabled, but I'd like to make sure it gets turned
-on again by default, and we should fix all the actual bugs in
-the process.
+Detailed results are available here:
 
-	Arnd
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-[I replied to Mauro's other address here as mchehab@s-opensource.com
-bounced with "Failed to transport message. Message sending failed
-since the following recipients were rejected by the server:
-mchehab@s-opensource.com (The server responded: Requested action
-not taken: mailbox unavailable invalid DNS MX or A/AAAA resource
-record)"]
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
