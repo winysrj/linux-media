@@ -1,144 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:51869 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755954AbcJ1JF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Oct 2016 05:05:56 -0400
-Date: Fri, 28 Oct 2016 10:05:52 +0100
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org,
-        David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: [PATCH] [media] lirc: introduce LIRC_SET_TRANSMITTER_WAIT ioctl
-Message-ID: <20161028090552.GA11697@gofer.mess.org>
-References: <CGME20161027143559epcas4p393edfca7329f184cda2f1954d46216ed@epcas4p3.samsung.com>
- <1477578953-5309-1-git-send-email-sean@mess.org>
- <20161028073839.5xtl3e7ifip2dqsb@gangnam.samsung>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161028073839.5xtl3e7ifip2dqsb@gangnam.samsung>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37175 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751647AbcJDLri (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2016 07:47:38 -0400
+Received: by mail-wm0-f43.google.com with SMTP id b201so139744353wmb.0
+        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2016 04:47:37 -0700 (PDT)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, cc.ma@mediatek.com,
+        joakim.bech@linaro.org, burt.lien@linaro.org,
+        linus.walleij@linaro.org
+Cc: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v10 0/3] Secure Memory Allocation Framework
+Date: Tue,  4 Oct 2016 13:47:21 +0200
+Message-Id: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andi,
+version 10 changes:
+ - rebased on kernel 4.8 tag
+ - minor typo fix
 
-On Fri, Oct 28, 2016 at 04:38:39PM +0900, Andi Shyti wrote:
-> Hi Sean,
-> 
-> >  	ret *= sizeof(unsigned int);
-> >  
-> > -	/*
-> > -	 * The lircd gap calculation expects the write function to
-> > -	 * wait for the actual IR signal to be transmitted before
-> > -	 * returning.
-> > -	 */
-> > -	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
-> > -	if (towait > 0) {
-> > -		set_current_state(TASK_INTERRUPTIBLE);
-> > -		schedule_timeout(usecs_to_jiffies(towait));
-> > +	if (!lirc->tx_no_wait) {
-> > +		/*
-> > +		 * The lircd gap calculation expects the write function to
-> > +		 * wait for the actual IR signal to be transmitted before
-> > +		 * returning.
-> > +		 */
-> > +		towait = ktime_us_delta(ktime_add_us(start, duration),
-> > +								ktime_get());
-> > +		if (towait > 0) {
-> > +			set_current_state(TASK_INTERRUPTIBLE);
-> > +			schedule_timeout(usecs_to_jiffies(towait));
-> > +		}
-> >  	}
-> > -
-> 
-> this doesn't fix my problem, though.
-> 
-> This approach gives the userspace the possibility to choose to
-> either sync or not. In my case the sync happens, but in a
-> different level and it's not up to the userspace to make the
-> decision.
+version 9 changes:
+ - rebased on 4.8-rc5
+ - struct dma_attrs doesn't exist anymore so update CMA allocator
+   to compile with new dma_*_attr functions
+ - add example SMAF use case in cover letter
 
-What problem are you trying to solve?
+version 8 changes:
+ - rework of the structures used within ioctl
+   by adding a version field and padding to be futur proof
+ - rename fake secure moduel to test secure module
+ - fix the various remarks done on the previous patcheset
 
-I wrote this patch as a response to this patch:
+version 7 changes:
+ - rebased on kernel 4.6-rc7
+ - simplify secure module API
+ - add vma ops to be able to detect mmap/munmap calls
+ - add ioctl to get number and allocator names
+ - update libsmaf with adding tests
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+ - add debug log in fake secure module
 
-https://lkml.org/lkml/2016/9/1/653
+version 6 changes:
+ - rebased on kernel 4.5-rc4
+ - fix mmapping bug while requested allocation size isn't a a multiple of
+   PAGE_SIZE (add a test for this in libsmaf)
 
-In the spi case, the driver already waits for the IR to complete so the 
-wait in ir_lirc_transmit_ir() is unnecessary. However it does not end up
-waiting. There are other drivers like yours that wait for the IR to 
-complete (ene_ir, ite-cir). Since towait in ir_lirc_transmit_ir is the 
-delta between before and after the driver transmits, it will be 0 and 
-will never goto into schedule_timeout(), barring some very minor rounding 
-differences.
+version 5 changes:
+ - rebased on kernel 4.3-rc6
+ - rework locking schema and make handle status use an atomic_t
+ - add a fake secure module to allow performing tests without trusted
+   environment
 
-> Besides, I see here a security issue: what happens if userspace
-> does something like
-> 
->  fd = open("/dev/lirc0", O_RDWR);
-> 
->  ioctl(fd, LIRC_SET_TRANSMITTER_WAIT, 0);
-> 
->  while(1)
->         write(fd, buffer, ENORMOUS_BUFFER_SIZE);
+version 4 changes:
+ - rebased on kernel 4.3-rc3
+ - fix missing EXPORT_SYMBOL for smaf_create_handle()
 
-I don't understand what problem this would introduce.
+version 3 changes:
+ - Remove ioctl for allocator selection instead provide the name of
+   the targeted allocator with allocation request.
+   Selecting allocator from userland isn't the prefered way of working
+   but is needed when the first user of the buffer is a software component.
+ - Fix issues in case of error while creating smaf handle.
+ - Fix module license.
+ - Update libsmaf and tests to care of the SMAF API evolution
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
 
-You can't write more than 512 pulse/spaces and each write cannot
-have more than 500ms in IR (so adding up the pulses and spaces). The driver
-should only send once the previous send completed.
+version 2 changes:
+ - Add one ioctl to allow allocator selection from userspace.
+   This is required for the uses case where the first user of
+   the buffer is a software IP which can't perform dma_buf attachement.
+ - Add name and ranking to allocator structure to be able to sort them.
+ - Create a tiny library to test SMAF:
+   https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+ - Fix one issue when try to secure buffer without secure module registered
 
-> >  
-> > +	case LIRC_SET_TRANSMITTER_WAIT:
-> > +		if (!dev->tx_ir)
-> > +			return -ENOTTY;
-> > +
-> > +		lirc->tx_no_wait = !val;
-> > +		break;
-> > +
-> 
-> Here I see an innocuous bug. Depending on the hardware (for
-> example ir-spi) it might happen that the device waits in any
-> case (in ir-spi the sync is done by the spi). This means that if
-> userspace sets 'tx_no_wait = true', the device/driver doesn't
-> care and waits anyway, doing the opposite from what is described
-> in the ABI.
-> 
-> Here we could call a dev->tx_set_transmitter_wait(...) function
-> that sets the value or returns error in case the wait is not
-> feasable, something like:
-> 
-> 	case LIRC_SET_TRANSMITTER_WAIT:
-> 		if (!dev->tx_ir)
-> 			return -ENOTTY;
-> 
-> 		if (dev->tx_set_transmitter_wait)
-> 			return dev->tx_set_transmitter_wait(lirc, val);
-> 
-> 		lirc->tx_no_wait = !val;
-> 		break;
+SMAF aim to solve two problems: allocating memory that fit with hardware IPs
+constraints and secure those data from bus point of view.
 
-That is true. Do you want the ir-spi driver to be able to send without
-waiting?
+One example of SMAF usage is camera preview: on SoC you may use either an USB
+webcam or the built-in camera interface and the frames could be send directly
+to the dipslay Ip or handle by GPU.
+Most of USB interfaces and GPU have mmu but almost all built-in camera
+interace and display Ips don't have mmu so when selecting how allocate
+buffer you need to be aware of each devices constraints (contiguous memroy,
+stride, boundary, alignment ...).
+ION has solve this problem by let userland decide which allocator (heap) to use
+but this require to adapt userland for each platform and sometime for each
+use case.
 
-> > --- a/drivers/media/rc/rc-core-priv.h
-> > +++ b/drivers/media/rc/rc-core-priv.h
-> > @@ -112,7 +112,7 @@ struct ir_raw_event_ctrl {
-> >  		u64 gap_duration;
-> >  		bool gap;
-> >  		bool send_timeout_reports;
-> > -
-> > +		bool tx_no_wait;
-> >  	} lirc;
-> 
-> this to me looks confusing, it has a negative meaning in kernel
-> space and a positive meaning in userspace. Can't we call it
-> lirc->tx_wait instead of lirc->tx_no_wait, so that we keep the
-> same meaning and we don't need to negate val?
+To be sure to select the best allocation method for devices SMAF implement
+deferred allocation mechanism: memory allocation is only done when the first
+device effectively required it.
+Allocator modules have to implement a match() to let SMAF know if they are
+compatibles with devices needs.
+This patch set provide an example of allocator module which use
+dma_{alloc/free/mmap}_attrs() and check if at least one device have
+coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
 
-This was just done to avoid having to initialise to true (non-zero).
+In the same camera preview use case, SMAF allow to protect the data from being
+read by unauthorized IPs (i.e. a malware to dump camera stream).
+Until now I have only see access rights protection at process/thread level 
+(PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus firewalls.
+SMAF propose an interface to control and implement those firewalls.
+Like IOMMU, firewalls IPs can help to protect memory from malicious/faulty devices
+that are attempting DMA attacks.
 
+Secure modules are responsibles of granting and revoking devices access rights
+on the memory. Secure module is also called to check if CPU map memory into
+kernel and user address spaces.
+An example of secure module implementation can be found here:
+http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+This code isn't yet part of the patch set because it depends on generic TEE
+which is still under discussion (https://lwn.net/Articles/644646/)
 
-Thanks,
-Sean
+For allocation part of SMAF code I get inspirated by Sumit Semwal work about
+constraint aware allocator.
+
+Benjamin Gaignard (3):
+  create SMAF module
+  SMAF: add CMA allocator
+  SMAF: add test secure module
+
+ drivers/Kconfig                |   2 +
+ drivers/Makefile               |   1 +
+ drivers/smaf/Kconfig           |  17 +
+ drivers/smaf/Makefile          |   3 +
+ drivers/smaf/smaf-cma.c        | 186 ++++++++++
+ drivers/smaf/smaf-core.c       | 818 +++++++++++++++++++++++++++++++++++++++++
+ drivers/smaf/smaf-testsecure.c |  90 +++++
+ include/linux/smaf-allocator.h |  45 +++
+ include/linux/smaf-secure.h    |  65 ++++
+ include/uapi/linux/smaf.h      |  85 +++++
+ 10 files changed, 1312 insertions(+)
+ create mode 100644 drivers/smaf/Kconfig
+ create mode 100644 drivers/smaf/Makefile
+ create mode 100644 drivers/smaf/smaf-cma.c
+ create mode 100644 drivers/smaf/smaf-core.c
+ create mode 100644 drivers/smaf/smaf-testsecure.c
+ create mode 100644 include/linux/smaf-allocator.h
+ create mode 100644 include/linux/smaf-secure.h
+ create mode 100644 include/uapi/linux/smaf.h
+
+-- 
+1.9.1
+
