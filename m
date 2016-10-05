@@ -1,87 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51190 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752092AbcJWKWR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 06:22:17 -0400
-Date: Sun, 23 Oct 2016 12:22:13 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: v4.9-rc1: smiapp divides by zero
-Message-ID: <20161023102213.GA13705@amd>
-References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20161023073322.GA3523@amd>
+Received: from mx2.suse.de ([195.135.220.15]:39398 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751423AbcJEHup (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Oct 2016 03:50:45 -0400
+Date: Wed, 5 Oct 2016 09:50:42 +0200 (CEST)
+From: Jiri Kosina <jikos@kernel.org>
+To: Patrick Boettcher <patrick.boettcher@posteo.de>
+cc: =?ISO-8859-15?Q?J=F6rg_Otte?= <jrg.otte@gmail.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Problem with VMAP_STACK=y
+In-Reply-To: <20161005093417.6e82bd97@vdr>
+Message-ID: <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm>
+References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com> <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com> <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
+ <20161005093417.6e82bd97@vdr>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="2fHTh5uZTiUOsy+g"
-Content-Disposition: inline
-In-Reply-To: <20161023073322.GA3523@amd>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 5 Oct 2016, Patrick Boettcher wrote:
 
---2fHTh5uZTiUOsy+g
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> > > Thanks for the quick response.
+> > > Drivers are:
+> > > dvb_core, dvb_usb, dbv_usb_cynergyT2  
+> > 
+> > This dbv_usb_cynergyT2 is not from Linus' tree, is it? I don't seem
+> > to be able to find it, and the only google hit I am getting is your
+> > very mail to LKML :)
+> 
+> It's a typo, it should say dvb_usb_cinergyT2.
 
-Hi!
+Ah, thanks. Same issues there in
 
-I tried to update camera code on n900 to v4.9-rc1, and I'm getting
-some divide by zero, that eventually cascades into fcam-dev not
-working.
+	cinergyt2_frontend_attach()
+	cinergyt2_rc_query()
 
-mul is zero in my testing, resulting in divide by zero.
+I think this would require more in-depth review of all the media drivers 
+and having all this fixed for 4.9. It should be pretty straightforward; 
+all the instances I've seen so far should be just straightforward 
+conversion to kmalloc() + kfree(), as the buffer is not being embedded in 
+any structure etc.
 
-(Note that this is going from my patched camera-v4.8 tree to
-camera-v4.9 tree.)
+-- 
+Jiri Kosina
+SUSE Labs
 
-Best regards,
-								Pavel
-
-diff --git a/drivers/media/i2c/smiapp-pll.c b/drivers/media/i2c/smiapp-pll.c
-index 5ad1edb..e0a6edd 100644
---- a/drivers/media/i2c/smiapp-pll.c
-+++ b/drivers/media/i2c/smiapp-pll.c
-@@ -16,6 +16,8 @@
-  * General Public License for more details.
-  */
-=20
-+#define DEBUG
-+
- #include <linux/device.h>
- #include <linux/gcd.h>
- #include <linux/lcm.h>
-@@ -457,6 +459,10 @@ int smiapp_pll_calculate(struct device *dev,
- 	i =3D gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
- 	mul =3D div_u64(pll->pll_op_clk_freq_hz, i);
- 	div =3D pll->ext_clk_freq_hz / i;
-+	if (!mul) {
-+		dev_err(dev, "forcing mul to 1\n");
-+		mul =3D 1;
-+	}
- 	dev_dbg(dev, "mul %u / div %u\n", mul, div);
-=20
- 	min_pre_pll_clk_div =3D
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---2fHTh5uZTiUOsy+g
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgMj1UACgkQMOfwapXb+vJg3QCdHASBuGgT7LYYLLbM+W0zKpOB
-QyQAnj1mB0iN7Gc0qPiTktFnd0oCqZR4
-=7567
------END PGP SIGNATURE-----
-
---2fHTh5uZTiUOsy+g--
