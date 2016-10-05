@@ -1,289 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f46.google.com ([209.85.214.46]:38683 "EHLO
-        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754028AbcJENPu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 09:15:50 -0400
-Received: by mail-it0-f46.google.com with SMTP id o19so172574353ito.1
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2016 06:15:49 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53854 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751230AbcJEHJN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Oct 2016 03:09:13 -0400
+Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 3FBE760096
+        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 10:09:04 +0300 (EEST)
+Date: Wed, 5 Oct 2016 10:08:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL v2 FOR v4.10] smiapp cleanups, fixes and runtime PM support
+Message-ID: <20161005070833.GH3225@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Wed, 5 Oct 2016 15:15:46 +0200
-Message-ID: <CAKMK7uHT3FutHQuQQ3iwXmYbidB3AOs7AxnpaJD4MTqy0-QehQ@mail.gmail.com>
-Subject: Re: [PATCH 00/15] improve function-level documentation
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: linux-metag@vger.kernel.org,
-        Linux PM list <linux-pm@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-        linux-mtd@lists.infradead.org,
-        "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        linux-clk@vger.kernel.org,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>, drbd-dev@lists.linbit.com
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jani Nikula has a patch with a scrip to make the one kernel-doc parser
-into a lint/checker pass over the entire kernel. I think that'd would
-be more robust instead of trying to approximate the real kerneldoc
-parser. Otoh that parser is a horror show of a perl/regex driven state
-machine ;-)
+Hi Mauro,
 
-Jani, can you pls digg out these patches? Can't find them right now ...
--Daniel
+Here are a number of cleanups and some fixes plus runtime PM support for the
+smiapp driver.
 
+Since the previous pull request, the runtime PM support patches have been
+rewritten.
 
-On Sat, Oct 1, 2016 at 9:46 PM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
-> These patches fix cases where the documentation above a function definition
-> is not consistent with the function header.  Issues are detected using the
-> semantic patch below (http://coccinelle.lip6.fr/).  Basically, the semantic
-> patch parses a file to find comments, then matches each function header,
-> and checks that the name and parameter list in the function header are
-> compatible with the comment that preceeds it most closely.
->
-> // <smpl>
-> @initialize:ocaml@
-> @@
->
-> let tbl = ref []
-> let fnstart = ref []
-> let success = Hashtbl.create 101
-> let thefile = ref ""
-> let parsed = ref []
-> let nea = ref []
->
-> let parse file =
->   thefile := List.nth (Str.split (Str.regexp "linux-next/") file) 1;
->   let i = open_in file in
->   let startline = ref 0 in
->   let fn = ref "" in
->   let ids = ref [] in
->   let rec inside n =
->     let l = input_line i in
->     let n = n + 1 in
->     match Str.split_delim (Str.regexp_string "*/") l with
->       before::after::_ ->
->         (if not (!fn = "")
->         then tbl := (!startline,n,!fn,List.rev !ids)::!tbl);
->         startline := 0;
->         fn := "";
->         ids := [];
->         outside n
->     | _ ->
->         (match Str.split (Str.regexp "[ \t]+") l with
->           "*"::name::rest ->
->             let len = String.length name in
->             (if !fn = "" && len > 2 && String.sub name (len-2) 2 = "()"
->             then fn := String.sub name 0 (len-2)
->             else if !fn = "" && (not (rest = [])) && List.hd rest = "-"
->             then
->               if String.get name (len-1) = ':'
->               then fn := String.sub name 0 (len-1)
->               else fn := name
->             else if not(!fn = "") && len > 2 &&
->               String.get name 0 = '@' && String.get name (len-1) = ':'
->             then ids := (String.sub name 1 (len-2)) :: !ids);
->         | _ -> ());
->         inside n
->   and outside n =
->     let l = input_line i in
->     let n = n + 1 in
->     if String.length l > 2 && String.sub l 0 3 = "/**"
->     then
->       begin
->         startline := n;
->         inside n
->       end
->     else outside n in
->   try outside 0 with End_of_file -> ()
->
-> let hashadd tbl k v =
->   let cell =
->     try Hashtbl.find tbl k
->     with Not_found ->
->       let cell = ref [] in
->       Hashtbl.add tbl k cell;
->       cell in
->   cell := v :: !cell
->
-> @script:ocaml@
-> @@
->
-> tbl := [];
-> fnstart := [];
-> Hashtbl.clear success;
-> parsed := [];
-> nea := [];
-> parse (List.hd (Coccilib.files()))
->
-> @r@
-> identifier f;
-> position p;
-> @@
->
-> f@p(...) { ... }
->
-> @script:ocaml@
-> p << r.p;
-> f << r.f;
-> @@
->
-> parsed := f :: !parsed;
-> fnstart := (List.hd p).line :: !fnstart
->
-> @param@
-> identifier f;
-> type T;
-> identifier i;
-> parameter list[n] ps;
-> parameter list[n1] ps1;
-> position p;
-> @@
->
-> f@p(ps,T i,ps1) { ... }
->
-> @script:ocaml@
-> @@
->
-> tbl := List.rev (List.sort compare !tbl)
->
-> @script:ocaml@
-> p << param.p;
-> f << param.f;
-> @@
->
-> let myline = (List.hd p).line in
-> let prevline =
->   List.fold_left
->     (fun prev x ->
->       if x < myline
->       then max x prev
->       else prev)
->     0 !fnstart in
-> let _ =
->   List.exists
->     (function (st,fn,nm,ids) ->
->       if prevline < st && myline > st && prevline < fn && myline > fn
->       then
->         begin
->           (if not (String.lowercase f = String.lowercase nm)
->           then
->             Printf.printf "%s:%d %s doesn't match preceding comment: %s\n"
->               !thefile myline f nm);
->           true
->         end
->       else false)
->     !tbl in
-> ()
->
-> @script:ocaml@
-> p << param.p;
-> n << param.n;
-> n1 << param.n1;
-> i << param.i;
-> f << param.f;
-> @@
->
-> let myline = (List.hd p).line in
-> let prevline =
->   List.fold_left
->     (fun prev x ->
->       if x < myline
->       then max x prev
->       else prev)
->     0 !fnstart in
-> let _ =
->   List.exists
->     (function (st,fn,nm,ids) ->
->       if prevline < st && myline > st && prevline < fn && myline > fn
->       then
->         begin
->           (if List.mem i ids then hashadd success (st,fn,nm) i);
->           (if ids = [] (* arg list seems not obligatory *)
->           then ()
->           else if not (List.mem i ids)
->           then
->             Printf.printf "%s:%d %s doesn't appear in ids: %s\n"
->               !thefile myline i (String.concat " " ids)
->           else if List.length ids <= n || List.length ids <= n1
->           then
->             (if not (List.mem f !nea)
->             then
->               begin
->                 nea := f :: !nea;
->                 Printf.printf "%s:%d %s not enough args\n" !thefile myline f;
->               end)
->           else
->             let foundid = List.nth ids n in
->             let efoundid = List.nth (List.rev ids) n1 in
->             if not(foundid = i || efoundid = i)
->             then
->               Printf.printf "%s:%d %s wrong arg in position %d: %s\n"
->                 !thefile myline i n foundid);
->           true
->         end
->       else false)
->     !tbl in
-> ()
->
-> @script:ocaml@
-> @@
-> List.iter
->   (function (st,fn,nm,ids) ->
->     if List.mem nm !parsed
->     then
->       let entry =
->         try !(Hashtbl.find success (st,fn,nm))
->         with Not_found -> [] in
->       List.iter
->         (fun id ->
->           if not (List.mem id entry) && not (id = "...")
->           then Printf.printf "%s:%d %s not used\n" !thefile st id)
->         ids)
->   !tbl
-> // </smpl>
->
->
-> ---
->
->  drivers/clk/keystone/pll.c               |    4 ++--
->  drivers/clk/sunxi/clk-mod0.c             |    2 +-
->  drivers/clk/tegra/cvb.c                  |   10 +++++-----
->  drivers/dma-buf/sw_sync.c                |    6 +++---
->  drivers/gpu/drm/gma500/intel_i2c.c       |    3 +--
->  drivers/gpu/drm/omapdrm/omap_drv.c       |    4 ++--
->  drivers/irqchip/irq-metag-ext.c          |    1 -
->  drivers/irqchip/irq-vic.c                |    1 -
->  drivers/mfd/tc3589x.c                    |    4 ++--
->  drivers/power/supply/ab8500_fg.c         |    8 ++++----
->  drivers/power/supply/abx500_chargalg.c   |    1 +
->  drivers/power/supply/intel_mid_battery.c |    2 +-
->  drivers/power/supply/power_supply_core.c |    4 ++--
->  fs/crypto/crypto.c                       |    4 ++--
->  fs/crypto/fname.c                        |    4 ++--
->  fs/ubifs/file.c                          |    2 +-
->  fs/ubifs/gc.c                            |    2 +-
->  fs/ubifs/lprops.c                        |    2 +-
->  fs/ubifs/lpt_commit.c                    |    4 +---
->  fs/ubifs/replay.c                        |    2 +-
->  lib/kobject_uevent.c                     |    6 +++---
->  lib/lru_cache.c                          |    4 ++--
->  lib/nlattr.c                             |    2 +-
->  23 files changed, 39 insertions(+), 43 deletions(-)
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+Please pull.
 
 
+The following changes since commit e3ea5e94489bc8c711d422dfa311cfa310553a1b:
+
+  [media] si2165: switch to regmap (2016-09-22 12:56:35 -0300)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git smiapp
+
+for you to fetch changes up to b77aa18b2b132468dcc42c17926e5dcc7c6fe9a6:
+
+  smiapp: Implement support for autosuspend (2016-10-03 12:11:37 +0300)
+
+----------------------------------------------------------------
+Sakari Ailus (23):
+      smiapp: Move sub-device initialisation into a separate function
+      smiapp: Explicitly define number of pads in initialisation
+      smiapp: Initialise media entity after sensor init
+      smiapp: Split off sub-device registration into two
+      smiapp: Provide a common function to obtain native pixel array size
+      smiapp: Remove unnecessary BUG_ON()'s
+      smiapp: Always initialise the sensor in probe
+      smiapp: Fix resource management in registration failure
+      smiapp: Merge smiapp_init() with smiapp_probe()
+      smiapp: Read frame format earlier
+      smiapp: Unify setting up sub-devices
+      smiapp: Use SMIAPP_PADS when referring to number of pads
+      smiapp: Obtain frame layout from the frame descriptor
+      smiapp: Improve debug messages from frame layout reading
+      smiapp: Remove useless newlines and other small cleanups
+      smiapp: Obtain correct media bus code for try format
+      smiapp: Drop a debug print on frame size and bit depth
+      smiapp-pll: Don't complain aloud about failing PLL calculation
+      smiapp: Drop BUG_ON() in suspend path
+      smiapp: Set device for pixel array and binner
+      smiapp: Set use suspend and resume ops for other functions
+      smiapp: Use runtime PM
+      smiapp: Implement support for autosuspend
+
+ drivers/media/i2c/smiapp-pll.c         |   3 +-
+ drivers/media/i2c/smiapp/smiapp-core.c | 946 +++++++++++++++++----------------
+ drivers/media/i2c/smiapp/smiapp.h      |  28 +-
+ 3 files changed, 495 insertions(+), 482 deletions(-)
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
