@@ -1,100 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:35184 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754225AbcJWKcY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 06:32:24 -0400
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Subject: Re: v4.9-rc1: smiapp divides by zero
-Date: Sun, 23 Oct 2016 12:32:20 +0200
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sakari.ailus@iki.fi,
-        sre@kernel.org, linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com> <20161023073322.GA3523@amd> <20161023102213.GA13705@amd>
-In-Reply-To: <20161023102213.GA13705@amd>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33314 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751154AbcJENUE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 09:20:04 -0400
+Received: by mail-wm0-f65.google.com with SMTP id p138so24560230wmb.0
+        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2016 06:20:03 -0700 (PDT)
+Date: Wed, 5 Oct 2016 15:19:59 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, cc.ma@mediatek.com,
+        joakim.bech@linaro.org, burt.lien@linaro.org,
+        linus.walleij@linaro.org, linaro-mm-sig@lists.linaro.org,
+        linaro-kernel@lists.linaro.org
+Subject: Re: [PATCH v10 0/3] Secure Memory Allocation Framework
+Message-ID: <20161005131959.GE20761@phenom.ffwll.local>
+References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart6429053.YPL4hkA8Wf";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Message-Id: <201610231232.20750@pali>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart6429053.YPL4hkA8Wf
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Oct 04, 2016 at 01:47:21PM +0200, Benjamin Gaignard wrote:
+> version 10 changes:
+>  - rebased on kernel 4.8 tag
+>  - minor typo fix
+> 
+> version 9 changes:
+>  - rebased on 4.8-rc5
+>  - struct dma_attrs doesn't exist anymore so update CMA allocator
+>    to compile with new dma_*_attr functions
+>  - add example SMAF use case in cover letter
+> 
+> version 8 changes:
+>  - rework of the structures used within ioctl
+>    by adding a version field and padding to be futur proof
+>  - rename fake secure moduel to test secure module
+>  - fix the various remarks done on the previous patcheset
+> 
+> version 7 changes:
+>  - rebased on kernel 4.6-rc7
+>  - simplify secure module API
+>  - add vma ops to be able to detect mmap/munmap calls
+>  - add ioctl to get number and allocator names
+>  - update libsmaf with adding tests
+>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>  - add debug log in fake secure module
+> 
+> version 6 changes:
+>  - rebased on kernel 4.5-rc4
+>  - fix mmapping bug while requested allocation size isn't a a multiple of
+>    PAGE_SIZE (add a test for this in libsmaf)
+> 
+> version 5 changes:
+>  - rebased on kernel 4.3-rc6
+>  - rework locking schema and make handle status use an atomic_t
+>  - add a fake secure module to allow performing tests without trusted
+>    environment
+> 
+> version 4 changes:
+>  - rebased on kernel 4.3-rc3
+>  - fix missing EXPORT_SYMBOL for smaf_create_handle()
+> 
+> version 3 changes:
+>  - Remove ioctl for allocator selection instead provide the name of
+>    the targeted allocator with allocation request.
+>    Selecting allocator from userland isn't the prefered way of working
+>    but is needed when the first user of the buffer is a software component.
+>  - Fix issues in case of error while creating smaf handle.
+>  - Fix module license.
+>  - Update libsmaf and tests to care of the SMAF API evolution
+>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+> 
+> version 2 changes:
+>  - Add one ioctl to allow allocator selection from userspace.
+>    This is required for the uses case where the first user of
+>    the buffer is a software IP which can't perform dma_buf attachement.
+>  - Add name and ranking to allocator structure to be able to sort them.
+>  - Create a tiny library to test SMAF:
+>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>  - Fix one issue when try to secure buffer without secure module registered
+> 
+> SMAF aim to solve two problems: allocating memory that fit with hardware IPs
+> constraints and secure those data from bus point of view.
+> 
+> One example of SMAF usage is camera preview: on SoC you may use either an USB
+> webcam or the built-in camera interface and the frames could be send directly
+> to the dipslay Ip or handle by GPU.
+> Most of USB interfaces and GPU have mmu but almost all built-in camera
+> interace and display Ips don't have mmu so when selecting how allocate
+> buffer you need to be aware of each devices constraints (contiguous memroy,
+> stride, boundary, alignment ...).
+> ION has solve this problem by let userland decide which allocator (heap) to use
+> but this require to adapt userland for each platform and sometime for each
+> use case.
+> 
+> To be sure to select the best allocation method for devices SMAF implement
+> deferred allocation mechanism: memory allocation is only done when the first
+> device effectively required it.
+> Allocator modules have to implement a match() to let SMAF know if they are
+> compatibles with devices needs.
+> This patch set provide an example of allocator module which use
+> dma_{alloc/free/mmap}_attrs() and check if at least one device have
+> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
+> 
+> In the same camera preview use case, SMAF allow to protect the data from being
+> read by unauthorized IPs (i.e. a malware to dump camera stream).
+> Until now I have only see access rights protection at process/thread level 
+> (PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus firewalls.
+> SMAF propose an interface to control and implement those firewalls.
+> Like IOMMU, firewalls IPs can help to protect memory from malicious/faulty devices
+> that are attempting DMA attacks.
+> 
+> Secure modules are responsibles of granting and revoking devices access rights
+> on the memory. Secure module is also called to check if CPU map memory into
+> kernel and user address spaces.
+> An example of secure module implementation can be found here:
+> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+> This code isn't yet part of the patch set because it depends on generic TEE
+> which is still under discussion (https://lwn.net/Articles/644646/)
+> 
+> For allocation part of SMAF code I get inspirated by Sumit Semwal work about
+> constraint aware allocator.
 
-On Sunday 23 October 2016 12:22:13 Pavel Machek wrote:
-> Hi!
->=20
-> I tried to update camera code on n900 to v4.9-rc1, and I'm getting
-> some divide by zero, that eventually cascades into fcam-dev not
-> working.
->=20
-> mul is zero in my testing, resulting in divide by zero.
->=20
-> (Note that this is going from my patched camera-v4.8 tree to
-> camera-v4.9 tree.)
->=20
-> Best regards,
-> 								Pavel
+semi-random review comment, and a bit late: Why not implement smaf as a
+new heap in ion? I think consensus is pretty much that we'll be stuck with
+ion forever, and I think it's better to have 1 central buffer allocater
+than lots of them ...
+-Daniel
 
-Hi! Ideally look at existing camera patches. I do not know which one is
-last, but here are some links:
+> 
+> Benjamin Gaignard (3):
+>   create SMAF module
+>   SMAF: add CMA allocator
+>   SMAF: add test secure module
+> 
+>  drivers/Kconfig                |   2 +
+>  drivers/Makefile               |   1 +
+>  drivers/smaf/Kconfig           |  17 +
+>  drivers/smaf/Makefile          |   3 +
+>  drivers/smaf/smaf-cma.c        | 186 ++++++++++
+>  drivers/smaf/smaf-core.c       | 818 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/smaf/smaf-testsecure.c |  90 +++++
+>  include/linux/smaf-allocator.h |  45 +++
+>  include/linux/smaf-secure.h    |  65 ++++
+>  include/uapi/linux/smaf.h      |  85 +++++
+>  10 files changed, 1312 insertions(+)
+>  create mode 100644 drivers/smaf/Kconfig
+>  create mode 100644 drivers/smaf/Makefile
+>  create mode 100644 drivers/smaf/smaf-cma.c
+>  create mode 100644 drivers/smaf/smaf-core.c
+>  create mode 100644 drivers/smaf/smaf-testsecure.c
+>  create mode 100644 include/linux/smaf-allocator.h
+>  create mode 100644 include/linux/smaf-secure.h
+>  create mode 100644 include/uapi/linux/smaf.h
+> 
+> -- 
+> 1.9.1
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
-https://github.com/freemangordon/linux-n900/tree/v4.6-rc4-n900-camera
-https://github.com/freemangordon/linux-n900/tree/camera
-https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/log/?h=3Dn9=
-00-camera-ivo
-https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/log/?h=3Dn9=
-00-camera
-
-> diff --git a/drivers/media/i2c/smiapp-pll.c
-> b/drivers/media/i2c/smiapp-pll.c index 5ad1edb..e0a6edd 100644
-> --- a/drivers/media/i2c/smiapp-pll.c
-> +++ b/drivers/media/i2c/smiapp-pll.c
-> @@ -16,6 +16,8 @@
->   * General Public License for more details.
->   */
->=20
-> +#define DEBUG
-> +
->  #include <linux/device.h>
->  #include <linux/gcd.h>
->  #include <linux/lcm.h>
-> @@ -457,6 +459,10 @@ int smiapp_pll_calculate(struct device *dev,
->  	i =3D gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
->  	mul =3D div_u64(pll->pll_op_clk_freq_hz, i);
->  	div =3D pll->ext_clk_freq_hz / i;
-> +	if (!mul) {
-> +		dev_err(dev, "forcing mul to 1\n");
-> +		mul =3D 1;
-> +	}
->  	dev_dbg(dev, "mul %u / div %u\n", mul, div);
->=20
->  	min_pre_pll_clk_div =3D
-
-Is not this patch still enough?
-https://patchwork.kernel.org/patch/8921761/
-
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
-
---nextPart6429053.YPL4hkA8Wf
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEABECAAYFAlgMkbQACgkQi/DJPQPkQ1IyIACfQ1CTllrsWMoSjdRo+PK+YA4i
-yDYAnRMgBc83lA92iYREs+Znzq9aMrhR
-=Watm
------END PGP SIGNATURE-----
-
---nextPart6429053.YPL4hkA8Wf--
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
