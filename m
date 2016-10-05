@@ -1,72 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-banded.atl.sa.earthlink.net ([209.86.89.70]:37888 "EHLO
-        elasmtp-banded.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935664AbcJVR3g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Oct 2016 13:29:36 -0400
-Received: from [24.144.93.62] (helo=localhost.localdomain)
-        by elasmtp-banded.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-        (envelope-from <jonathan.625266@earthlink.net>)
-        id 1by06s-0007w2-FE
-        for linux-media@vger.kernel.org; Sat, 22 Oct 2016 13:29:30 -0400
-Date: Sat, 22 Oct 2016 13:29:30 -0400
-From: Jonathan Sims <jonathan.625266@earthlink.net>
-To: linux-media@vger.kernel.org
-Subject: [RFCv2 PATCH 1/1] hdpvr: fix interrupted recording
-Message-ID: <20161022132930.4bc79a7a@earthlink.net>
+Received: from mx2.suse.de ([195.135.220.15]:35772 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753589AbcJEH0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Oct 2016 03:26:32 -0400
+Date: Wed, 5 Oct 2016 09:26:29 +0200 (CEST)
+From: Jiri Kosina <jikos@kernel.org>
+To: =?ISO-8859-15?Q?J=F6rg_Otte?= <jrg.otte@gmail.com>
+cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Problem with VMAP_STACK=y
+In-Reply-To: <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
+Message-ID: <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
+References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com> <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a reworking of a patch originally submitted by Ryley Angus, modified by Hans Verkuil and then seemingly forgotten before changes suggested by Keith Pyle here:
+On Tue, 4 Oct 2016, Jörg Otte wrote:
 
-http://linux-media.vger.kernel.narkive.com/vkxuOKwi/patch-hdpvr-fix-interrupted-recording#post3
+> Thanks for the quick response.
+> Drivers are:
+> dvb_core, dvb_usb, dbv_usb_cynergyT2
 
-were made and tested.
+This dbv_usb_cynergyT2 is not from Linus' tree, is it? I don't seem to be 
+able to find it, and the only google hit I am getting is your very mail to 
+LKML :)
 
-I have implemented the suggested changes and have been testing for the last 2 months. I am no longer experiencing lockups while recording (with blue light on, requiring power cycling) which had been a long standing problem with the HD-PVR. I have not noticed any other problems since applying the patch.
-
-- Jon
-
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -454,6 +454,7 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
- 
- 		if (buf->status != BUFSTAT_READY &&
- 		    dev->status != STATUS_DISCONNECTED) {
-+			int err;
- 			/* return nonblocking */
- 			if (file->f_flags & O_NONBLOCK) {
- 				if (!ret)
-@@ -461,9 +462,24 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
- 				goto err;
- 			}
- 
--			if (wait_event_interruptible(dev->wait_data,
--					      buf->status == BUFSTAT_READY))
--				return -ERESTARTSYS;
-+			err = wait_event_interruptible_timeout(dev->wait_data,
-+				buf->status == BUFSTAT_READY,
-+				msecs_to_jiffies(1000));
-+			if (err < 0) {
-+				ret = err;
-+				goto err;
-+			}
-+			if (!err) {
-+				v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
-+					"timeout: restart streaming\n");
-+				hdpvr_stop_streaming(dev);
-+				msecs_to_jiffies(4000);
-+				err = hdpvr_start_streaming(dev);
-+				if (err) {
-+					ret = err;
-+					goto err;
-+				}
-+			}
- 		}
- 
- 		if (buf->status != BUFSTAT_READY)
 -- 
-2.10.0
+Jiri Kosina
+SUSE Labs
+
