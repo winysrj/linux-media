@@ -1,131 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35398 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751672AbcJKOyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 10:54:43 -0400
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        liviu.dudau@arm.com, robdclark@gmail.com, hverkuil@xs4all.nl,
-        eric@anholt.net, ville.syrjala@linux.intel.com, daniel@ffwll.ch
-Subject: [RFC PATCH 00/11] Introduce writeback connectors
-Date: Tue, 11 Oct 2016 15:53:57 +0100
-Message-Id: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+Received: from mail-ua0-f177.google.com ([209.85.217.177]:35517 "EHLO
+        mail-ua0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751288AbcJEQpG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 12:45:06 -0400
+MIME-Version: 1.0
+In-Reply-To: <CALCETrVWYfijXeuKzk6FDDReaKXXP6Wck=80wtTohS8JpJND6A@mail.gmail.com>
+References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
+ <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
+ <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm> <20161005093417.6e82bd97@vdr>
+ <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm> <20161005060450.1b0f2152@vento.lan>
+ <CADDKRnABN_PoUtXGv3Rnbcc8FmgUFyLRm27KzShyK+9UPM3mqQ@mail.gmail.com> <CALCETrVWYfijXeuKzk6FDDReaKXXP6Wck=80wtTohS8JpJND6A@mail.gmail.com>
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+Date: Wed, 5 Oct 2016 18:45:05 +0200
+Message-ID: <CADDKRnB13h4cZN7y_EumnbcxK_Bj6evntx56Ya9WuZ3fYCJTBg@mail.gmail.com>
+Subject: Re: Problem with VMAP_STACK=y
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+2016-10-05 17:53 GMT+02:00 Andy Lutomirski <luto@amacapital.net>:
+> On Wed, Oct 5, 2016 at 8:21 AM, J=C3=B6rg Otte <jrg.otte@gmail.com> wrote=
+:
+>> 2016-10-05 11:04 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.c=
+om>:
+>>> Em Wed, 5 Oct 2016 09:50:42 +0200 (CEST)
+>>> Jiri Kosina <jikos@kernel.org> escreveu:
+>>>
+>>>> On Wed, 5 Oct 2016, Patrick Boettcher wrote:
+>>>>
+>>>> > > > Thanks for the quick response.
+>>>> > > > Drivers are:
+>>>> > > > dvb_core, dvb_usb, dbv_usb_cynergyT2
+>>>> > >
+>>>> > > This dbv_usb_cynergyT2 is not from Linus' tree, is it? I don't see=
+m
+>>>> > > to be able to find it, and the only google hit I am getting is you=
+r
+>>>> > > very mail to LKML :)
+>>>> >
+>>>> > It's a typo, it should say dvb_usb_cinergyT2.
+>>>>
+>>>> Ah, thanks. Same issues there in
+>>>>
+>>>>       cinergyt2_frontend_attach()
+>>>>       cinergyt2_rc_query()
+>>>>
+>>>> I think this would require more in-depth review of all the media drive=
+rs
+>>>> and having all this fixed for 4.9. It should be pretty straightforward=
+;
+>>>> all the instances I've seen so far should be just straightforward
+>>>> conversion to kmalloc() + kfree(), as the buffer is not being embedded=
+ in
+>>>> any structure etc.
+>>>
+>>> What we're doing on most cases is to put a buffer (usually with 80
+>>> chars for USB drivers) inside the "state" struct (on DVB drivers),
+>>> in order to avoid doing kmalloc/kfree all the times. One such patch is
+>>> changeset c4a98793a63c4.
+>>>
+>>> I'm enclosing a non-tested patch fixing it for the cinergyT2-core.c
+>>> driver.
+>>>
+>>> Thanks,
+>>> Mauro
+>>>
+>>> [PATCH] cinergyT2-core: don't do DMA on stack
+>>>
+>>
+>> Tried the cinergyT2 patch. No success. When I select a TV channel
+>> just nothing happens. There are no error messages.
+>
+> Could you try compiling with CONFIG_DEBUG_VIRTUAL=3Dy and seeing if you
+> get a nice error message?
+>
+> --Andy
 
-This RFC series introduces a new connector type:
- DRM_MODE_CONNECTOR_WRITEBACK
-It is a follow-on from a previous discussion: [1]
+Done. Still no error messages in dmesg and syslog.
 
-Writeback connectors are used to expose the memory writeback engines
-found in some display controllers, which can write a CRTC's
-composition result to a memory buffer.
-This is useful e.g. for testing, screen-recording, screenshots,
-wireless display, display cloning, memory-to-memory composition.
+DVB adapter signals it is tuned to the channel.
+For me it looks like there`s no data reaching the application
+(similar to if I forget to connect an antenna).
 
-Patches 1-7 include the core framework changes required, and patches
-8-11 implement a writeback connector for the Mali-DP writeback engine.
-The Mali-DP patches depend on this other series: [2].
-
-The connector is given the FB_ID property for the output framebuffer,
-and two new read-only properties: PIXEL_FORMATS and
-PIXEL_FORMATS_SIZE, which expose the supported framebuffer pixel
-formats of the engine.
-
-The EDID property is not exposed for writeback connectors.
-
-Writeback connector usage:
---------------------------
-Due to connector routing changes being treated as "full modeset"
-operations, any client which wishes to use a writeback connector
-should include the connector in every modeset. The writeback will not
-actually become active until a framebuffer is attached.
-
-The writeback itself is enabled by attaching a framebuffer to the
-FB_ID property of the connector. The driver must then ensure that the
-CRTC content of that atomic commit is written into the framebuffer.
-
-The writeback works in a one-shot mode with each atomic commit. This
-prevents the same content from being written multiple times.
-In some cases (front-buffer rendering) there might be a desire for
-continuous operation - I think a property could be added later for
-this kind of control.
-
-Writeback can be disabled by setting FB_ID to zero.
-
-Known issues:
--------------
- * I'm not sure what "DPMS" should mean for writeback connectors.
-   It could be used to disable writeback (even when a framebuffer is
-   attached), or it could be hidden entirely (which would break the
-   legacy DPMS call for writeback connectors).
- * With Daniel's recent re-iteration of the userspace API rules, I
-   fully expect to provide some userspace code to support this. The
-   question is what, and where? We want to use writeback for testing,
-   so perhaps some tests in igt is suitable.
- * Documentation. Probably some portion of this cover letter needs to
-   make it into Documentation/
- * Synchronisation. Our hardware will finish the writeback by the next
-   vsync. I've not implemented fence support here, but it would be an
-   obvious addition.
-
-See Also:
----------
-[1] https://lists.freedesktop.org/archives/dri-devel/2016-July/113197.html
-[2] https://lists.freedesktop.org/archives/dri-devel/2016-October/120486.html
-
-I welcome any comments, especially if this approach does/doesn't fit
-well with anyone else's hardware.
-
-Thanks,
-
--Brian
-
----
-
-Brian Starkey (10):
-  drm: add writeback connector type
-  drm/fb-helper: skip writeback connectors
-  drm: extract CRTC/plane disable from drm_framebuffer_remove
-  drm: add __drm_framebuffer_remove_atomic
-  drm: add fb to connector state
-  drm: expose fb_id property for writeback connectors
-  drm: add writeback-connector pixel format properties
-  drm: mali-dp: rename malidp_input_format
-  drm: mali-dp: add RGB writeback formats for DP550/DP650
-  drm: mali-dp: add writeback connector
-
-Liviu Dudau (1):
-  drm: mali-dp: Add support for writeback on DP550/DP650
-
- drivers/gpu/drm/arm/Makefile        |    1 +
- drivers/gpu/drm/arm/malidp_crtc.c   |   10 ++
- drivers/gpu/drm/arm/malidp_drv.c    |   25 +++-
- drivers/gpu/drm/arm/malidp_drv.h    |    5 +
- drivers/gpu/drm/arm/malidp_hw.c     |  104 ++++++++++----
- drivers/gpu/drm/arm/malidp_hw.h     |   27 +++-
- drivers/gpu/drm/arm/malidp_mw.c     |  268 +++++++++++++++++++++++++++++++++++
- drivers/gpu/drm/arm/malidp_planes.c |    8 +-
- drivers/gpu/drm/arm/malidp_regs.h   |   15 ++
- drivers/gpu/drm/drm_atomic.c        |   40 ++++++
- drivers/gpu/drm/drm_atomic_helper.c |    4 +
- drivers/gpu/drm/drm_connector.c     |   79 ++++++++++-
- drivers/gpu/drm/drm_crtc.c          |   14 +-
- drivers/gpu/drm/drm_fb_helper.c     |    4 +
- drivers/gpu/drm/drm_framebuffer.c   |  249 ++++++++++++++++++++++++++++----
- drivers/gpu/drm/drm_ioctl.c         |    7 +
- include/drm/drmP.h                  |    2 +
- include/drm/drm_atomic.h            |    3 +
- include/drm/drm_connector.h         |   15 ++
- include/drm/drm_crtc.h              |   12 ++
- include/uapi/drm/drm.h              |   10 ++
- include/uapi/drm/drm_mode.h         |    1 +
- 22 files changed, 830 insertions(+), 73 deletions(-)
- create mode 100644 drivers/gpu/drm/arm/malidp_mw.c
-
--- 
-1.7.9.5
-
+J=C3=B6rg
