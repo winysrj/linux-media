@@ -1,107 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:51094 "EHLO mout02.posteo.de"
+Received: from mga05.intel.com ([192.55.52.43]:18104 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751148AbcJJJlj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 05:41:39 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id DA4D820A2D
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 11:41:08 +0200 (CEST)
-Date: Mon, 10 Oct 2016 11:41:03 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Nicholas Mc Guire <hofrat@osadl.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Alejandro Torrado <aletorrado@gmail.com>,
-        Nicolas Sugino <nsugino@3way.com.ar>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC] [media] dib0700: remove redundant else
-Message-ID: <20161010114103.03caeef3@posteo.de>
-In-Reply-To: <20161010063035.7b766b79@vento.lan>
-References: <1475928199-20315-1-git-send-email-hofrat@osadl.org>
-        <20161010063035.7b766b79@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        id S1751378AbcJEHXs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Oct 2016 03:23:48 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id 8F00120077
+        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 10:23:16 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC 0/5] V4L2 fwnode support
+Date: Wed,  5 Oct 2016 10:21:44 +0300
+Message-Id: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 10 Oct 2016 06:30:35 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> >  drivers/media/usb/dvb-usb/dib0700_devices.c | 10 +++-------
-> >  1 file changed, 3 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c
-> > b/drivers/media/usb/dvb-usb/dib0700_devices.c index
-> > 0857b56..3cd8566 100644 ---
-> > a/drivers/media/usb/dvb-usb/dib0700_devices.c +++
-> > b/drivers/media/usb/dvb-usb/dib0700_devices.c @@ -1736,13 +1736,9
-> > @@ static int dib809x_tuner_attach(struct dvb_usb_adapter *adap)
-> > struct dib0700_adapter_state *st = adap->priv; struct i2c_adapter
-> > *tun_i2c = st->dib8000_ops.get_i2c_master(adap->fe_adap[0].fe,
-> > DIBX000_I2C_INTERFACE_TUNER, 1); 
-> > -	if (adap->id == 0) {
-> > -		if (dvb_attach(dib0090_register,
-> > adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
-> > -			return -ENODEV;
-> > -	} else {
-> > -		if (dvb_attach(dib0090_register,
-> > adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
-> > -			return -ENODEV;
-> > -	}
-> > +	if (dvb_attach(dib0090_register, adap->fe_adap[0].fe,
-> > +		       tun_i2c, &dib809x_dib0090_config) == NULL)
-> > +		return -ENODEV;  
-> 
-> 
-> I suspect that this patch is wrong. It should be, instead, using
-> fe_adap[1] on the else.
-> 
-> Patrick,
-> 
-> Could you please take a look?
+Hi folks,
 
-I think you're right, it should be fe_adap[1], but I have lost track of
-these devices and don't know the correct answer.
+This patchset adds support for fwnode to V4L2. Besides OF, also ACPI based
+systems can be supported this way. By using V4L2 fwnode, the individual
+drivers do not need to be aware of the underlying firmware implementation.
 
-However, this code was introduced by 
+The patchset depends on another patchset here:
 
-commit 91be260faaf8561dc51e72033c346f6ab28d40d8
-Author: Nicolas Sugino <nsugino@3way.com.ar>
-Date:   Thu Nov 26 19:00:28 2015 -0200
+<URL:http://www.spinics.net/lists/linux-acpi/msg69547.html>
 
-    [media] dib8000: Add support for Mygica/Geniatech S2870
-    
-    MyGica/Geniatech S2870 is very similar to the S870 but with dual tuner. The card is recognised as Geniatech STK8096-PVR.
-    
-    [mchehab@osg.samsung.com: Fix some checkpatch.pl issues]
-    Signed-off-by: Nicolas Sugino <nsugino@3way.com.ar>
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+And a fix for the V4L2 flash led class:
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 7ed4964..ea0391e 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -1736,8 +1736,13 @@ static int dib809x_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct dib0700_adapter_state *st = adap->priv;
- 	struct i2c_adapter *tun_i2c = st->dib8000_ops.get_i2c_master(adap->fe_adap[0].fe, DIBX000_I2C_INTERFACE_TUNER, 1);
- 
--	if (dvb_attach(dib0090_register, adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
--		return -ENODEV;
-+	if (adap->id == 0) {
-+		if (dvb_attach(dib0090_register, adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
-+			return -ENODEV;
-+	} else {
-+		if (dvb_attach(dib0090_register, adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
-+			return -ENODEV;
-+	}
- 
- 	st->set_param_save = adap->fe_adap[0].fe->ops.tuner_ops.set_params;
- 	adap->fe_adap[0].fe->ops.tuner_ops.set_params = dib8096_set_param_override;
+<URL:https://git.linuxtv.org/sailus/media_tree.git/commit/?h=v4l2-acpi&id=6abbf66418804aa5b82cc3231eab73c9759dcd69>
 
-[..]
+I'm sending this as RFC primarily because the other set is at RFC stage.
 
-Maybe Nicolas can help (and test).
+The intent is to eventually replace the plain OF support by the generic
+fwnode support in drivers.
 
---
-Patrick.
+-- 
+Kind regards,
+Sakari
+
