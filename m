@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39436 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752696AbcJ0H22 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 03:28:28 -0400
-Date: Thu, 27 Oct 2016 10:28:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] smiapp: make PM functions as __maybe_unused
-Message-ID: <20161027072818.GQ9460@valkosipuli.retiisi.org.uk>
-References: <20161026203814.1904690-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161026203814.1904690-1-arnd@arndb.de>
+Received: from mga04.intel.com ([192.55.52.120]:29548 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754627AbcJEIeB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Oct 2016 04:34:01 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id E603E2021E
+        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 11:33:29 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC 6/6] v4l2: async: Provide interoperability between OF and fwnode matching
+Date: Wed,  5 Oct 2016 11:32:11 +0300
+Message-Id: <1475656331-22497-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Of and fwnode support are separated in V4L2 and individual drivers may
+implement one of them. Sub-devices do not match with a notifier
+expecting sub-devices with fwnodes, nor the other way around.
 
-On Wed, Oct 26, 2016 at 10:38:01PM +0200, Arnd Bergmann wrote:
-> The rework of the PM support has caused two functions to
-> be orphaned when CONFIG_PM is disabled:
-> 
-> media/i2c/smiapp/smiapp-core.c:1352:12: error: 'smiapp_power_off' defined but not used [-Werror=unused-function]
-> media/i2c/smiapp/smiapp-core.c:1206:12: error: 'smiapp_power_on' defined but not used [-Werror=unused-function]
-> 
-> This changes all four PM entry points to __maybe_unused and
-> removes the #ifdef markers for consistency. This avoids the
-> warnings even when something changes again.
-> 
-> Fixes: cbba45d43631 ("[media] smiapp: Use runtime PM")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Fix this by checking for sub-device's of_node field in fwnode match and
+fwnode field in OF match.
 
-The power-on sequence is in fact mandatory as it involves writing the
-initial configuration to the sensor as well.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-Instead, I believe the correct fix is to make the driver depend on
-CONFIG_PM.
-
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 0dd5e85..984e6fa 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -42,12 +42,16 @@ static bool match_devname(struct v4l2_subdev *sd,
+ 
+ static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return sd->of_node == asd->match.of.node;
++	return sd->of_node == asd->match.of.node ||
++		(sd->fwnode && is_of_node(sd->fwnode) &&
++		 sd->fwnode == of_fwnode_handle(asd->match.of.node));
+ }
+ 
+ static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+-	return sd->fwnode == asd->match.fwnode.fwn;
++	return sd->fwnode == asd->match.fwnode.fwn ||
++		(sd->of_node &&
++		 of_fwnode_handle(sd->of_node) == asd->match.fwnode.fwn);
+ }
+ 
+ static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
