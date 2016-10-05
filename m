@@ -1,143 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34187 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932186AbcJRPBq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 11:01:46 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: horms@verge.net.au
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, william.towle@codethink.co.uk,
-        niklas.soderlund@ragnatech.se, geert@linux-m68k.org,
-        sergei.shtylyov@cogentembedded.com,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2 2/2] ARM: dts: koelsch: add HDMI input
-Date: Tue, 18 Oct 2016 17:01:34 +0200
-Message-Id: <1476802894-5105-3-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mail-it0-f46.google.com ([209.85.214.46]:38683 "EHLO
+        mail-it0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754028AbcJENPu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 09:15:50 -0400
+Received: by mail-it0-f46.google.com with SMTP id o19so172574353ito.1
+        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2016 06:15:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Wed, 5 Oct 2016 15:15:46 +0200
+Message-ID: <CAKMK7uHT3FutHQuQQ3iwXmYbidB3AOs7AxnpaJD4MTqy0-QehQ@mail.gmail.com>
+Subject: Re: [PATCH 00/15] improve function-level documentation
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: linux-metag@vger.kernel.org,
+        Linux PM list <linux-pm@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        linux-mtd@lists.infradead.org,
+        "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        linux-clk@vger.kernel.org,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>, drbd-dev@lists.linbit.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Jani Nikula has a patch with a scrip to make the one kernel-doc parser
+into a lint/checker pass over the entire kernel. I think that'd would
+be more robust instead of trying to approximate the real kerneldoc
+parser. Otoh that parser is a horror show of a perl/regex driven state
+machine ;-)
 
-Add support in the dts for the HDMI input. Based on the Lager dts
-patch from Ultich Hecht.
+Jani, can you pls digg out these patches? Can't find them right now ...
+-Daniel
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[uli: removed "renesas," prefixes from pfc nodes]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7791-koelsch.dts | 68 +++++++++++++++++++++++++++++++++--
- 1 file changed, 66 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/boot/dts/r8a7791-koelsch.dts b/arch/arm/boot/dts/r8a7791-koelsch.dts
-index f17bfa0..c457b43 100644
---- a/arch/arm/boot/dts/r8a7791-koelsch.dts
-+++ b/arch/arm/boot/dts/r8a7791-koelsch.dts
-@@ -265,12 +265,23 @@
- 		};
- 	};
- 
-+	hdmi-in {
-+		compatible = "hdmi-connector";
-+		type = "a";
-+
-+		port {
-+			hdmi_con_in: endpoint {
-+				remote-endpoint = <&adv7612_in>;
-+			};
-+		};
-+	};
-+
- 	hdmi-out {
- 		compatible = "hdmi-connector";
- 		type = "a";
- 
- 		port {
--			hdmi_con: endpoint {
-+			hdmi_con_out: endpoint {
- 				remote-endpoint = <&adv7511_out>;
- 			};
- 		};
-@@ -414,6 +425,11 @@
- 		function = "usb1";
- 	};
- 
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin1 {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -617,7 +633,34 @@
- 			port@1 {
- 				reg = <1>;
- 				adv7511_out: endpoint {
--					remote-endpoint = <&hdmi_con>;
-+					remote-endpoint = <&hdmi_con_out>;
-+				};
-+			};
-+		};
-+	};
-+
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio4>;
-+		interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
-+		default-input = <0>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				adv7612_in: endpoint {
-+					remote-endpoint = <&hdmi_con_in>;
-+				};
-+			};
-+
-+			port@2 {
-+				reg = <2>;
-+				adv7612_out: endpoint {
-+					remote-endpoint = <&vin0ep2>;
- 				};
- 			};
- 		};
-@@ -699,6 +742,27 @@
- 	cpu0-supply = <&vdd_dvfs>;
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	status = "okay";
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	port {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		vin0ep2: endpoint {
-+			remote-endpoint = <&adv7612_out>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	status = "okay";
+On Sat, Oct 1, 2016 at 9:46 PM, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
+> These patches fix cases where the documentation above a function definition
+> is not consistent with the function header.  Issues are detected using the
+> semantic patch below (http://coccinelle.lip6.fr/).  Basically, the semantic
+> patch parses a file to find comments, then matches each function header,
+> and checks that the name and parameter list in the function header are
+> compatible with the comment that preceeds it most closely.
+>
+> // <smpl>
+> @initialize:ocaml@
+> @@
+>
+> let tbl = ref []
+> let fnstart = ref []
+> let success = Hashtbl.create 101
+> let thefile = ref ""
+> let parsed = ref []
+> let nea = ref []
+>
+> let parse file =
+>   thefile := List.nth (Str.split (Str.regexp "linux-next/") file) 1;
+>   let i = open_in file in
+>   let startline = ref 0 in
+>   let fn = ref "" in
+>   let ids = ref [] in
+>   let rec inside n =
+>     let l = input_line i in
+>     let n = n + 1 in
+>     match Str.split_delim (Str.regexp_string "*/") l with
+>       before::after::_ ->
+>         (if not (!fn = "")
+>         then tbl := (!startline,n,!fn,List.rev !ids)::!tbl);
+>         startline := 0;
+>         fn := "";
+>         ids := [];
+>         outside n
+>     | _ ->
+>         (match Str.split (Str.regexp "[ \t]+") l with
+>           "*"::name::rest ->
+>             let len = String.length name in
+>             (if !fn = "" && len > 2 && String.sub name (len-2) 2 = "()"
+>             then fn := String.sub name 0 (len-2)
+>             else if !fn = "" && (not (rest = [])) && List.hd rest = "-"
+>             then
+>               if String.get name (len-1) = ':'
+>               then fn := String.sub name 0 (len-1)
+>               else fn := name
+>             else if not(!fn = "") && len > 2 &&
+>               String.get name 0 = '@' && String.get name (len-1) = ':'
+>             then ids := (String.sub name 1 (len-2)) :: !ids);
+>         | _ -> ());
+>         inside n
+>   and outside n =
+>     let l = input_line i in
+>     let n = n + 1 in
+>     if String.length l > 2 && String.sub l 0 3 = "/**"
+>     then
+>       begin
+>         startline := n;
+>         inside n
+>       end
+>     else outside n in
+>   try outside 0 with End_of_file -> ()
+>
+> let hashadd tbl k v =
+>   let cell =
+>     try Hashtbl.find tbl k
+>     with Not_found ->
+>       let cell = ref [] in
+>       Hashtbl.add tbl k cell;
+>       cell in
+>   cell := v :: !cell
+>
+> @script:ocaml@
+> @@
+>
+> tbl := [];
+> fnstart := [];
+> Hashtbl.clear success;
+> parsed := [];
+> nea := [];
+> parse (List.hd (Coccilib.files()))
+>
+> @r@
+> identifier f;
+> position p;
+> @@
+>
+> f@p(...) { ... }
+>
+> @script:ocaml@
+> p << r.p;
+> f << r.f;
+> @@
+>
+> parsed := f :: !parsed;
+> fnstart := (List.hd p).line :: !fnstart
+>
+> @param@
+> identifier f;
+> type T;
+> identifier i;
+> parameter list[n] ps;
+> parameter list[n1] ps1;
+> position p;
+> @@
+>
+> f@p(ps,T i,ps1) { ... }
+>
+> @script:ocaml@
+> @@
+>
+> tbl := List.rev (List.sort compare !tbl)
+>
+> @script:ocaml@
+> p << param.p;
+> f << param.f;
+> @@
+>
+> let myline = (List.hd p).line in
+> let prevline =
+>   List.fold_left
+>     (fun prev x ->
+>       if x < myline
+>       then max x prev
+>       else prev)
+>     0 !fnstart in
+> let _ =
+>   List.exists
+>     (function (st,fn,nm,ids) ->
+>       if prevline < st && myline > st && prevline < fn && myline > fn
+>       then
+>         begin
+>           (if not (String.lowercase f = String.lowercase nm)
+>           then
+>             Printf.printf "%s:%d %s doesn't match preceding comment: %s\n"
+>               !thefile myline f nm);
+>           true
+>         end
+>       else false)
+>     !tbl in
+> ()
+>
+> @script:ocaml@
+> p << param.p;
+> n << param.n;
+> n1 << param.n1;
+> i << param.i;
+> f << param.f;
+> @@
+>
+> let myline = (List.hd p).line in
+> let prevline =
+>   List.fold_left
+>     (fun prev x ->
+>       if x < myline
+>       then max x prev
+>       else prev)
+>     0 !fnstart in
+> let _ =
+>   List.exists
+>     (function (st,fn,nm,ids) ->
+>       if prevline < st && myline > st && prevline < fn && myline > fn
+>       then
+>         begin
+>           (if List.mem i ids then hashadd success (st,fn,nm) i);
+>           (if ids = [] (* arg list seems not obligatory *)
+>           then ()
+>           else if not (List.mem i ids)
+>           then
+>             Printf.printf "%s:%d %s doesn't appear in ids: %s\n"
+>               !thefile myline i (String.concat " " ids)
+>           else if List.length ids <= n || List.length ids <= n1
+>           then
+>             (if not (List.mem f !nea)
+>             then
+>               begin
+>                 nea := f :: !nea;
+>                 Printf.printf "%s:%d %s not enough args\n" !thefile myline f;
+>               end)
+>           else
+>             let foundid = List.nth ids n in
+>             let efoundid = List.nth (List.rev ids) n1 in
+>             if not(foundid = i || efoundid = i)
+>             then
+>               Printf.printf "%s:%d %s wrong arg in position %d: %s\n"
+>                 !thefile myline i n foundid);
+>           true
+>         end
+>       else false)
+>     !tbl in
+> ()
+>
+> @script:ocaml@
+> @@
+> List.iter
+>   (function (st,fn,nm,ids) ->
+>     if List.mem nm !parsed
+>     then
+>       let entry =
+>         try !(Hashtbl.find success (st,fn,nm))
+>         with Not_found -> [] in
+>       List.iter
+>         (fun id ->
+>           if not (List.mem id entry) && not (id = "...")
+>           then Printf.printf "%s:%d %s not used\n" !thefile st id)
+>         ids)
+>   !tbl
+> // </smpl>
+>
+>
+> ---
+>
+>  drivers/clk/keystone/pll.c               |    4 ++--
+>  drivers/clk/sunxi/clk-mod0.c             |    2 +-
+>  drivers/clk/tegra/cvb.c                  |   10 +++++-----
+>  drivers/dma-buf/sw_sync.c                |    6 +++---
+>  drivers/gpu/drm/gma500/intel_i2c.c       |    3 +--
+>  drivers/gpu/drm/omapdrm/omap_drv.c       |    4 ++--
+>  drivers/irqchip/irq-metag-ext.c          |    1 -
+>  drivers/irqchip/irq-vic.c                |    1 -
+>  drivers/mfd/tc3589x.c                    |    4 ++--
+>  drivers/power/supply/ab8500_fg.c         |    8 ++++----
+>  drivers/power/supply/abx500_chargalg.c   |    1 +
+>  drivers/power/supply/intel_mid_battery.c |    2 +-
+>  drivers/power/supply/power_supply_core.c |    4 ++--
+>  fs/crypto/crypto.c                       |    4 ++--
+>  fs/crypto/fname.c                        |    4 ++--
+>  fs/ubifs/file.c                          |    2 +-
+>  fs/ubifs/gc.c                            |    2 +-
+>  fs/ubifs/lprops.c                        |    2 +-
+>  fs/ubifs/lpt_commit.c                    |    4 +---
+>  fs/ubifs/replay.c                        |    2 +-
+>  lib/kobject_uevent.c                     |    6 +++---
+>  lib/lru_cache.c                          |    4 ++--
+>  lib/nlattr.c                             |    2 +-
+>  23 files changed, 39 insertions(+), 43 deletions(-)
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+
+
 -- 
-2.7.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
