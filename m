@@ -1,41 +1,499 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:38770 "EHLO hardeman.nu"
+Received: from mga02.intel.com ([134.134.136.20]:55489 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S943394AbcJaObz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 10:31:55 -0400
-Mime-Version: 1.0
-Date: Mon, 31 Oct 2016 14:31:52 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Message-ID: <7e2f88ed83c4044c30bc03aaea9f09e1@hardeman.nu>
-From: "=?utf-8?B?RGF2aWQgSMOkcmRlbWFu?=" <david@hardeman.nu>
-Subject: Re: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any
- transmitting time for tx only devices
-To: "Sean Young" <sean@mess.org>, "Andi Shyti" <andi.shyti@samsung.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-        "Rob Herring" <robh+dt@kernel.org>,
-        "Mark Rutland" <mark.rutland@arm.com>, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Andi Shyti" <andi@etezian.org>
-In-Reply-To: <20161027143601.GA5103@gofer.mess.org>
-References: <20161027143601.GA5103@gofer.mess.org>
- <20160901171629.15422-1-andi.shyti@samsung.com>
- <20160901171629.15422-6-andi.shyti@samsung.com>
- <CGME20160902084206epcas1p26e535506ec1c418ede9ba230d40f0656@epcas1p2.samsung.com>
- <20160902084158.GA25342@gofer.mess.org>
- <20161027074401.wxg5icc6hcpwnfsf@gangnam.samsung>
+        id S1752046AbcJEHXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 5 Oct 2016 03:23:19 -0400
+Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
+        by paasikivi.fi.intel.com (Postfix) with ESMTP id A6CFA20B78
+        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 10:23:16 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [RFC 1/5] v4l: fwnode: Support generic fwnode instead of just OF
+Date: Wed,  5 Oct 2016 10:21:45 +0300
+Message-Id: <1475652109-22164-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-October 27, 2016 4:36 PM, "Sean Young" <sean@mess.org> wrote:=0A> Since w=
-e have to be able to switch between waiting and not waiting,=0A> we need =
-some sort of ABI for this. I think this warrants a new ioctl;=0A> I'm not=
- sure how else it can be done. I'll be sending out a patch=0A> shortly.=
-=0A=0AHi Sean,=0A=0Ahave you considered using a module param for the LIRC=
- bridge module instead? As far as I understand it, this is an issue which=
- is entirely internal to LIRC, and it's also not something which really n=
-eeds to be changed on a per-device level (either you have a modern LIRC d=
-aemon or you don't, and all drivers should behave the same, no?).=0A=0AAn=
-other advantage is that the parameter would then go away if and when the =
-lirc bridge ever goes away (yes, I can still dream, can't I?).=0A=0ARegar=
-ds,=0ADavid
+The fwnode_handle is a more generic way than OF device_node to describe
+firmware nodes. This prepares for ACPI support in V4L2.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/v4l2-core/Makefile      |   1 +
+ drivers/media/v4l2-core/v4l2-fwnode.c | 338 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-fwnode.h           | 104 +++++++++++
+ 3 files changed, 443 insertions(+)
+ create mode 100644 drivers/media/v4l2-core/v4l2-fwnode.c
+ create mode 100644 include/media/v4l2-fwnode.h
+
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index 795a535..a7d80da 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -13,6 +13,7 @@ endif
+ ifeq ($(CONFIG_OF),y)
+   videodev-objs += v4l2-of.o
+ endif
++videodev-objs += v4l2-fwnode.o
+ ifeq ($(CONFIG_TRACEPOINTS),y)
+   videodev-objs += vb2-trace.o v4l2-trace.o
+ endif
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+new file mode 100644
+index 0000000..78c07c5
+--- /dev/null
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -0,0 +1,338 @@
++/*
++ * V4L2 fwnode binding parsing library
++ *
++ * Copyright (c) 2016 Intel Corporation.
++ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * Copyright (C) 2012 Renesas Electronics Corp.
++ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ */
++#include <linux/acpi.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/property.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/types.h>
++
++#include <media/v4l2-fwnode.h>
++
++static int v4l2_fwnode_endpoint_parse_csi_bus(struct fwnode_handle *fwn,
++					      struct v4l2_fwnode_endpoint *vfwn)
++{
++	struct v4l2_fwnode_bus_mipi_csi2 *bus = &vfwn->bus.mipi_csi2;
++	bool have_clk_lane = false;
++	unsigned int flags = 0;
++	unsigned int i;
++	u32 v;
++	int rval;
++
++	rval = fwnode_property_read_u32_array(fwn, "data-lanes", NULL, 0);
++	if (rval > 0) {
++		u32 array[ARRAY_SIZE(bus->data_lanes)];
++
++		bus->num_data_lanes =
++			min_t(int, ARRAY_SIZE(bus->data_lanes), rval);
++
++		fwnode_property_read_u32_array(
++			fwn, "data-lanes", array, bus->num_data_lanes);
++
++		for (i = 0; i < bus->num_data_lanes; i++)
++			bus->data_lanes[i] = array[i];
++	}
++
++	rval = fwnode_property_read_u32_array(fwn, "lane-polarities", NULL, 0);
++	if (rval > 0) {
++		u32 array[ARRAY_SIZE(bus->lane_polarities)];
++
++		if (rval < 1 + bus->num_data_lanes /* clock + data */) {
++			pr_warn("too few lane-polarities entries (need %u, got %u)\n",
++				1 + bus->num_data_lanes, rval);
++			return -EINVAL;
++		}
++
++		fwnode_property_read_u32_array(
++			fwn, "lane-polarities", array, 1 + bus->num_data_lanes);
++
++		for (i = 0; i < 1 + bus->num_data_lanes; i++)
++			bus->lane_polarities[i] = array[i];
++	}
++
++	if (!fwnode_property_read_u32(fwn, "clock-lanes", &v)) {
++		bus->clock_lane = v;
++		have_clk_lane = true;
++	}
++
++	if (fwnode_property_present(fwn, "clock-noncontinuous"))
++		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
++	else if (have_clk_lane || bus->num_data_lanes > 0)
++		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++
++	bus->flags = flags;
++	vfwn->bus_type = V4L2_MBUS_CSI2;
++
++	return 0;
++}
++
++static void v4l2_fwnode_endpoint_parse_parallel_bus(
++	struct fwnode_handle *fwn, struct v4l2_fwnode_endpoint *vfwn)
++{
++	struct v4l2_fwnode_bus_parallel *bus = &vfwn->bus.parallel;
++	unsigned int flags = 0;
++	u32 v;
++
++	if (!fwnode_property_read_u32(fwn, "hsync-active", &v))
++		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
++			V4L2_MBUS_HSYNC_ACTIVE_LOW;
++
++	if (!fwnode_property_read_u32(fwn, "vsync-active", &v))
++		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
++			V4L2_MBUS_VSYNC_ACTIVE_LOW;
++
++	if (!fwnode_property_read_u32(fwn, "field-even-active", &v))
++		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
++			V4L2_MBUS_FIELD_EVEN_LOW;
++	if (flags)
++		vfwn->bus_type = V4L2_MBUS_PARALLEL;
++	else
++		vfwn->bus_type = V4L2_MBUS_BT656;
++
++	if (!fwnode_property_read_u32(fwn, "pclk-sample", &v))
++		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
++			V4L2_MBUS_PCLK_SAMPLE_FALLING;
++
++	if (!fwnode_property_read_u32(fwn, "data-active", &v))
++		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
++			V4L2_MBUS_DATA_ACTIVE_LOW;
++
++	if (fwnode_property_present(fwn, "slave-mode"))
++		flags |= V4L2_MBUS_SLAVE;
++	else
++		flags |= V4L2_MBUS_MASTER;
++
++	if (!fwnode_property_read_u32(fwn, "bus-width", &v))
++		bus->bus_width = v;
++
++	if (!fwnode_property_read_u32(fwn, "data-shift", &v))
++		bus->data_shift = v;
++
++	if (!fwnode_property_read_u32(fwn, "sync-on-green-active", &v))
++		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
++			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
++
++	bus->flags = flags;
++
++}
++
++/**
++ * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
++ * @fwn: pointer to fwnode_handle
++ * @vfwn: pointer to the V4L2 fwnode data structure
++ *
++ * All properties are optional. If none are found, we don't set any flags.
++ * This means the port has a static configuration and no properties have
++ * to be specified explicitly.
++ * If any properties that identify the bus as parallel are found and
++ * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
++ * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
++ * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
++ * The caller should hold a reference to @node.
++ *
++ * NOTE: This function does not parse properties the size of which is
++ * variable without a low fixed limit. Please use
++ * v4l2_fwnode_endpoint_alloc_parse() in new drivers instead.
++ *
++ * Return: 0 on success or a negative error code on failure.
++ */
++int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwn,
++			       struct v4l2_fwnode_endpoint *vfwn)
++{
++	int rval;
++
++	fwnode_graph_parse_endpoint(fwn, &vfwn->base);
++
++	/* Zero fields from bus_type to until the end */
++	memset(&vfwn->bus_type, 0, sizeof(*vfwn) -
++	       offsetof(typeof(*vfwn), bus_type));
++
++	rval = v4l2_fwnode_endpoint_parse_csi_bus(fwn, vfwn);
++	if (rval)
++		return rval;
++	/*
++	 * Parse the parallel video bus properties only if none
++	 * of the MIPI CSI-2 specific properties were found.
++	 */
++	if (vfwn->bus.mipi_csi2.flags == 0)
++		v4l2_fwnode_endpoint_parse_parallel_bus(fwn, vfwn);
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_fwnode_endpoint_parse);
++
++/*
++ * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
++ * v4l2_fwnode_endpoint_alloc_parse()
++ * @fwn - the V4L2 fwnode the resources of which are to be released
++ *
++ * It is safe to call this function with NULL argument or on an
++ * V4L2 fwnode the parsing of which failed.
++ */
++void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vfwn)
++{
++	if (IS_ERR_OR_NULL(vfwn))
++		return;
++
++	kfree(vfwn->link_frequencies);
++	kfree(vfwn);
++}
++EXPORT_SYMBOL(v4l2_fwnode_endpoint_free);
++
++/**
++ * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
++ * @node: pointer to fwnode_handle
++ *
++ * All properties are optional. If none are found, we don't set any flags.
++ * This means the port has a static configuration and no properties have
++ * to be specified explicitly.
++ * If any properties that identify the bus as parallel are found and
++ * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
++ * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
++ * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
++ * The caller should hold a reference to @node.
++ *
++ * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
++ * v4l2_fwnode_endpoint_parse():
++ *
++ * 1. It also parses variable size data and
++ *
++ * 2. The memory it has allocated to store the variable size data must
++ *    be freed using v4l2_fwnode_endpoint_free() when no longer needed.
++ *
++ * Return: Pointer to v4l2_fwnode_endpoint if successful, on error a
++ * negative error code.
++ */
++struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
++	struct fwnode_handle *fwn)
++{
++	struct v4l2_fwnode_endpoint *vfwn;
++	int rval;
++
++	vfwn = kzalloc(sizeof(*vfwn), GFP_KERNEL);
++	if (!vfwn)
++		return ERR_PTR(-ENOMEM);
++
++	rval = v4l2_fwnode_endpoint_parse(fwn, vfwn);
++	if (rval < 0)
++		goto out_err;
++
++	rval = fwnode_property_read_u64_array(fwn, "link-frequencies",
++					      NULL, 0);
++
++	if (rval < 0)
++		goto out_err;
++
++	vfwn->link_frequencies =
++		kmalloc_array(rval, sizeof(*vfwn->link_frequencies),
++			      GFP_KERNEL);
++	if (!vfwn->link_frequencies) {
++		rval = -ENOMEM;
++		goto out_err;
++	}
++
++	vfwn->nr_of_link_frequencies = rval;
++
++	rval = fwnode_property_read_u64_array(
++		fwn, "link-frequencies", vfwn->link_frequencies,
++		vfwn->nr_of_link_frequencies);
++	if (rval < 0)
++		goto out_err;
++
++	return vfwn;
++
++out_err:
++	v4l2_fwnode_endpoint_free(vfwn);
++	return ERR_PTR(rval);
++}
++EXPORT_SYMBOL(v4l2_fwnode_endpoint_alloc_parse);
++
++/**
++ * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
++ * @node: pointer to the fwnode at the local end of the link
++ * @link: pointer to the V4L2 fwnode link data structure
++ *
++ * Fill the link structure with the local and remote nodes and port numbers.
++ * The local_node and remote_node fields are set to point to the local and
++ * remote port's parent nodes respectively (the port parent node being the
++ * parent node of the port node if that node isn't a 'ports' node, or the
++ * grand-parent node of the port node otherwise).
++ *
++ * A reference is taken to both the local and remote nodes, the caller
++ * must use v4l2_fwnode_endpoint_put_link() to drop the references
++ * when done with the link.
++ *
++ * Return: 0 on success, or -ENOLINK if the remote fwnode can't be found.
++ */
++int v4l2_fwnode_parse_link(struct fwnode_handle *__fwn,
++			   struct v4l2_fwnode_link *link)
++{
++	struct fwnode_handle *fwn;
++	const char *port_prop = is_of_node(__fwn) ? "reg" : "port";
++
++	memset(link, 0, sizeof(*link));
++
++	fwn = fwnode_get_parent(__fwn);
++	fwnode_property_read_u32(fwn, port_prop, &link->local_port);
++	fwn = fwnode_get_next_parent(fwn);
++	if (is_of_node(fwn)) {
++		if (of_node_cmp(to_of_node(fwn)->name, "ports") == 0)
++			fwn = fwnode_get_next_parent(fwn);
++	} else {
++		/* The "ports" node is always there in ACPI. */
++		fwn = fwnode_get_next_parent(fwn);
++	}
++	link->local_node = fwn;
++
++	fwn = fwnode_graph_get_remote_endpoint(fwn);
++	if (!fwn) {
++		fwnode_handle_put(fwn);
++		return -ENOLINK;
++	}
++
++	fwn = fwnode_get_parent(fwn);
++	fwnode_property_read_u32(fwn, port_prop, &link->remote_port);
++	fwn = fwnode_get_next_parent(fwn);
++	if (is_of_node(fwn)) {
++		if (of_node_cmp(to_of_node(fwn)->name, "ports") == 0)
++			fwn = fwnode_get_next_parent(fwn);
++	} else {
++		/* The "ports" node is always there in ACPI. */
++		fwn = fwnode_get_next_parent(fwn);
++	}
++	link->remote_node = fwn;
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_fwnode_parse_link);
++
++/**
++ * v4l2_fwnode_put_link() - drop references to nodes in a link
++ * @link: pointer to the V4L2 fwnode link data structure
++ *
++ * Drop references to the local and remote nodes in the link. This
++ * function must be called on every link parsed with
++ * v4l2_fwnode_parse_link().
++ */
++void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
++{
++	fwnode_handle_put(link->local_node);
++	fwnode_handle_put(link->remote_node);
++}
++EXPORT_SYMBOL(v4l2_fwnode_put_link);
+diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
+new file mode 100644
+index 0000000..a675d8a
+--- /dev/null
++++ b/include/media/v4l2-fwnode.h
+@@ -0,0 +1,104 @@
++/*
++ * V4L2 fwnode binding parsing library
++ *
++ * Copyright (c) 2016 Intel Corporation.
++ * Author: Sakari Ailus <sakari.ailus@linux.intel.com>
++ *
++ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * Copyright (C) 2012 Renesas Electronics Corp.
++ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ */
++#ifndef _V4L2_FWNODE_H
++#define _V4L2_FWNODE_H
++
++#include <linux/list.h>
++#include <linux/types.h>
++#include <linux/errno.h>
++#include <linux/of_graph.h>
++
++#include <media/v4l2-mediabus.h>
++
++struct fwnode_handle;
++
++/**
++ * struct v4l2_fwnode_bus_mipi_csi2 - MIPI CSI-2 bus data structure
++ * @flags: media bus (V4L2_MBUS_*) flags
++ * @data_lanes: an array of physical data lane indexes
++ * @clock_lane: physical lane index of the clock lane
++ * @num_data_lanes: number of data lanes
++ * @lane_polarities: polarity of the lanes. The order is the same of
++ *		   the physical lanes.
++ */
++struct v4l2_fwnode_bus_mipi_csi2 {
++	unsigned int flags;
++	unsigned char data_lanes[4];
++	unsigned char clock_lane;
++	unsigned short num_data_lanes;
++	bool lane_polarities[5];
++};
++
++/**
++ * struct v4l2_fwnode_bus_parallel - parallel data bus data structure
++ * @flags: media bus (V4L2_MBUS_*) flags
++ * @bus_width: bus width in bits
++ * @data_shift: data shift in bits
++ */
++struct v4l2_fwnode_bus_parallel {
++	unsigned int flags;
++	unsigned char bus_width;
++	unsigned char data_shift;
++};
++
++/**
++ * struct v4l2_fwnode_endpoint - the endpoint data structure
++ * @base: fwnode endpoint of the v4l2_fwnode
++ * @bus_type: bus type
++ * @bus: bus configuration data structure
++ * @link_frequencies: array of supported link frequencies
++ * @nr_of_link_frequencies: number of elements in link_frequenccies array
++ */
++struct v4l2_fwnode_endpoint {
++	struct fwnode_endpoint base;
++	/*
++	 * Fields below this line will be zeroed by
++	 * v4l2_fwnode_parse_endpoint()
++	 */
++	enum v4l2_mbus_type bus_type;
++	union {
++		struct v4l2_fwnode_bus_parallel parallel;
++		struct v4l2_fwnode_bus_mipi_csi2 mipi_csi2;
++	} bus;
++	u64 *link_frequencies;
++	unsigned int nr_of_link_frequencies;
++};
++
++/**
++ * struct v4l2_fwnode_link - a link between two endpoints
++ * @local_node: pointer to device_node of this endpoint
++ * @local_port: identifier of the port this endpoint belongs to
++ * @remote_node: pointer to device_node of the remote endpoint
++ * @remote_port: identifier of the port the remote endpoint belongs to
++ */
++struct v4l2_fwnode_link {
++	struct fwnode_handle *local_node;
++	unsigned int local_port;
++	struct fwnode_handle *remote_node;
++	unsigned int remote_port;
++};
++
++int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwn,
++			       struct v4l2_fwnode_endpoint *vfwn);
++struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
++	struct fwnode_handle *fwn);
++void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vfwn);
++int v4l2_fwnode_parse_link(struct fwnode_handle *fwn,
++			   struct v4l2_fwnode_link *link);
++void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
++
++#endif /* _V4L2_FWNODE_H */
+-- 
+2.7.4
+
