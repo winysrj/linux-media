@@ -1,58 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:62030 "EHLO mout.web.de"
+Received: from smtp1.goneo.de ([85.220.129.30]:38470 "EHLO smtp1.goneo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935004AbcJHLtK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Oct 2016 07:49:10 -0400
-Subject: [PATCH 1/2] [media] cx88-dsp: Use kmalloc_array() in
- read_rds_samples()
-To: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <ebf6d2f7-eb50-d55b-e782-689af9ecda31@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <ac88fc8d-05ec-644b-6b46-dc5027892a46@users.sourceforge.net>
-Date: Sat, 8 Oct 2016 13:47:49 +0200
-MIME-Version: 1.0
-In-Reply-To: <ebf6d2f7-eb50-d55b-e782-689af9ecda31@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        id S1751202AbcJFHUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Oct 2016 03:20:45 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarIT.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org
+Subject: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
+Date: Thu,  6 Oct 2016 09:20:16 +0200
+Message-Id: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 7 Oct 2016 22:07:27 +0200
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
-* A multiplication for the size determination of a memory allocation
-  indicated that an array data structure should be processed.
-  Thus use the corresponding function "kmalloc_array".
+Hi Jon, Mauro, and Jani,
 
-  This issue was detected by using the Coccinelle software.
+with this series a reST-directive kernel-cmd is introduced. The kernel-cmd
+directive includes contend from the stdout of a command-line (@mchehab asked
+for).
 
-* Replace the specification of a data type by a pointer dereference
-  to make the corresponding size determination a bit safer according to
-  the Linux coding style convention.
+Including content from a command's stdout is a more general solution for other
+workarounds like the "kernel_include + parseheaders" solution. This series also
+migrates the kernel-include uses to kernel-cmd directives and drops the Makefile
+in the media sub-folder. With the last patch, the (no longer needed)
+kernel-include directive is removed.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/pci/cx88/cx88-dsp.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+-- Markus --
 
-diff --git a/drivers/media/pci/cx88/cx88-dsp.c b/drivers/media/pci/cx88/cx88-dsp.c
-index a990726..9acda12 100644
---- a/drivers/media/pci/cx88/cx88-dsp.c
-+++ b/drivers/media/pci/cx88/cx88-dsp.c
-@@ -245,8 +245,7 @@ static s16 *read_rds_samples(struct cx88_core *core, u32 *N)
- 		"sample_count=%d, aud_intstat=%08x\n", current_address,
- 		current_address - srch->fifo_start, sample_count,
- 		cx_read(MO_AUD_INTSTAT));
--
--	samples = kmalloc(sizeof(s16)*sample_count, GFP_KERNEL);
-+	samples = kmalloc_array(sample_count, sizeof(*samples), GFP_KERNEL);
- 	if (!samples)
- 		return NULL;
- 
+Markus Heiser (4):
+  doc-rst: reST-directive kernel-cmd / include contentent from scripts
+  doc-rst: customize RTD theme; literal-block
+  doc-rst: migrated media build kernel-cmd directive
+  doc-rst: remove the kernel-include directive
+
+ Documentation/Makefile.sphinx                      |   4 +-
+ Documentation/conf.py                              |   2 +-
+ Documentation/media/Makefile                       |  61 ---
+ Documentation/media/audio.h.rst.exceptions         |  20 -
+ Documentation/media/ca.h.rst.exceptions            |  24 -
+ Documentation/media/cec.h.rst.exceptions           | 492 -------------------
+ Documentation/media/dmx.h.rst.exceptions           |  63 ---
+ Documentation/media/frontend.h.rst.exceptions      |  47 --
+ Documentation/media/lirc.h.rst.exceptions          |  43 --
+ Documentation/media/media.h.rst.exceptions         |  30 --
+ Documentation/media/net.h.rst.exceptions           |  11 -
+ Documentation/media/uapi/cec/cec-header.rst        |   3 +-
+ Documentation/media/uapi/cec/cec.h.exceptions      | 492 +++++++++++++++++++
+ Documentation/media/uapi/dvb/audio.h.exceptions    |  20 +
+ Documentation/media/uapi/dvb/audio_h.rst           |   2 +-
+ Documentation/media/uapi/dvb/ca.h.exceptions       |  24 +
+ Documentation/media/uapi/dvb/ca_h.rst              |   2 +-
+ Documentation/media/uapi/dvb/dmx.h.exceptions      |  63 +++
+ Documentation/media/uapi/dvb/dmx_h.rst             |   2 +-
+ Documentation/media/uapi/dvb/frontend.h.exceptions |  47 ++
+ Documentation/media/uapi/dvb/frontend_h.rst        |   2 +-
+ Documentation/media/uapi/dvb/net.h.exceptions      |  11 +
+ Documentation/media/uapi/dvb/net_h.rst             |   2 +-
+ Documentation/media/uapi/dvb/video.h.exceptions    |  40 ++
+ Documentation/media/uapi/dvb/video_h.rst           |   2 +-
+ Documentation/media/uapi/mediactl/media-header.rst |   3 +-
+ .../media/uapi/mediactl/media.h.exceptions         |  30 ++
+ Documentation/media/uapi/rc/lirc-header.rst        |   2 +-
+ Documentation/media/uapi/rc/lirc.h.exceptions      |  43 ++
+ Documentation/media/uapi/v4l/videodev.rst          |   2 +-
+ .../media/uapi/v4l/videodev2.h.exceptions          | 535 +++++++++++++++++++++
+ Documentation/media/video.h.rst.exceptions         |  40 --
+ Documentation/media/videodev2.h.rst.exceptions     | 535 ---------------------
+ Documentation/sphinx-static/theme_overrides.css    |   7 +
+ Documentation/sphinx/kernel_cmd.py                 | 206 ++++++++
+ Documentation/sphinx/kernel_include.py             | 190 --------
+ Documentation/sphinx/parse-headers.pl              |  17 +-
+ 37 files changed, 1538 insertions(+), 1581 deletions(-)
+ delete mode 100644 Documentation/media/Makefile
+ delete mode 100644 Documentation/media/audio.h.rst.exceptions
+ delete mode 100644 Documentation/media/ca.h.rst.exceptions
+ delete mode 100644 Documentation/media/cec.h.rst.exceptions
+ delete mode 100644 Documentation/media/dmx.h.rst.exceptions
+ delete mode 100644 Documentation/media/frontend.h.rst.exceptions
+ delete mode 100644 Documentation/media/lirc.h.rst.exceptions
+ delete mode 100644 Documentation/media/media.h.rst.exceptions
+ delete mode 100644 Documentation/media/net.h.rst.exceptions
+ create mode 100644 Documentation/media/uapi/cec/cec.h.exceptions
+ create mode 100644 Documentation/media/uapi/dvb/audio.h.exceptions
+ create mode 100644 Documentation/media/uapi/dvb/ca.h.exceptions
+ create mode 100644 Documentation/media/uapi/dvb/dmx.h.exceptions
+ create mode 100644 Documentation/media/uapi/dvb/frontend.h.exceptions
+ create mode 100644 Documentation/media/uapi/dvb/net.h.exceptions
+ create mode 100644 Documentation/media/uapi/dvb/video.h.exceptions
+ create mode 100644 Documentation/media/uapi/mediactl/media.h.exceptions
+ create mode 100644 Documentation/media/uapi/rc/lirc.h.exceptions
+ create mode 100644 Documentation/media/uapi/v4l/videodev2.h.exceptions
+ delete mode 100644 Documentation/media/video.h.rst.exceptions
+ delete mode 100644 Documentation/media/videodev2.h.rst.exceptions
+ create mode 100644 Documentation/sphinx/kernel_cmd.py
+ delete mode 100755 Documentation/sphinx/kernel_include.py
+
 -- 
-2.10.1
+2.7.4
 
