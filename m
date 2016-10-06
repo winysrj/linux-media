@@ -1,219 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59228 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:60269 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757095AbcJNUWn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        with ESMTP id S1751137AbcJFNbk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2016 09:31:40 -0400
+Date: Thu, 6 Oct 2016 10:31:32 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 20/57] [media] ttpci: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:08 -0300
-Message-Id: <9c52d21c85d8797dc041f9b234056485f367e088.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        linux-doc@vger.kernel.org
+Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from
+ scripts
+Message-ID: <20161006103132.3a56802a@vento.lan>
+In-Reply-To: <87oa2xrhqx.fsf@intel.com>
+References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
+        <87oa2xrhqx.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Em Thu, 06 Oct 2016 11:42:14 +0300
+Jani Nikula <jani.nikula@intel.com> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/ttpci/av7110.c       | 27 +++++++++------------------
- drivers/media/pci/ttpci/av7110_hw.c    | 12 ++++--------
- drivers/media/pci/ttpci/budget-av.c    |  3 +--
- drivers/media/pci/ttpci/budget-ci.c    |  4 +---
- drivers/media/pci/ttpci/budget-patch.c |  3 +--
- drivers/media/pci/ttpci/budget.c       |  3 +--
- drivers/media/pci/ttpci/ttpci-eeprom.c |  3 +--
- 7 files changed, 18 insertions(+), 37 deletions(-)
+> On Thu, 06 Oct 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> > with this series a reST-directive kernel-cmd is introduced. The kernel-cmd
+> > directive includes contend from the stdout of a command-line (@mchehab asked
+> > for).  
 
-diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
-index 382caf200ba1..155a46001631 100644
---- a/drivers/media/pci/ttpci/av7110.c
-+++ b/drivers/media/pci/ttpci/av7110.c
-@@ -100,8 +100,7 @@ MODULE_PARM_DESC(adac,"audio DAC type: 0 TI, 1 CRYSTAL, 2 MSP (use if autodetect
- module_param(hw_sections, int, 0444);
- MODULE_PARM_DESC(hw_sections, "0 use software section filter, 1 use hardware");
- module_param(rgb_on, int, 0444);
--MODULE_PARM_DESC(rgb_on, "For Siemens DVB-C cards only: Enable RGB control"
--		" signal on SCART pin 16 to switch SCART video mode from CVBS to RGB");
-+MODULE_PARM_DESC(rgb_on, "For Siemens DVB-C cards only: Enable RGB control signal on SCART pin 16 to switch SCART video mode from CVBS to RGB");
- module_param(volume, int, 0444);
- MODULE_PARM_DESC(volume, "initial volume: default 255 (range 0-255)");
- module_param(budgetpatch, int, 0444);
-@@ -833,8 +832,7 @@ static int StartHWFilter(struct dvb_demux_filter *dvbdmxfilter)
- 
- 	ret = av7110_fw_request(av7110, buf, 20, &handle, 1);
- 	if (ret != 0 || handle >= 32) {
--		printk("dvb-ttpci: %s error  buf %04x %04x %04x %04x  "
--				"ret %d  handle %04x\n",
-+		printk("dvb-ttpci: %s error  buf %04x %04x %04x %04x  ret %d  handle %04x\n",
- 				__func__, buf[0], buf[1], buf[2], buf[3],
- 				ret, handle);
- 		dvbdmxfilter->hw_handle = 0xffff;
-@@ -876,8 +874,7 @@ static int StopHWFilter(struct dvb_demux_filter *dvbdmxfilter)
- 	buf[2] = handle;
- 	ret = av7110_fw_request(av7110, buf, 3, answ, 2);
- 	if (ret != 0 || answ[1] != handle) {
--		printk("dvb-ttpci: %s error  cmd %04x %04x %04x  ret %x  "
--				"resp %04x %04x  pid %d\n",
-+		printk("dvb-ttpci: %s error  cmd %04x %04x %04x  ret %x  resp %04x %04x  pid %d\n",
- 				__func__, buf[0], buf[1], buf[2], ret,
- 				answ[0], answ[1], dvbdmxfilter->feed->pid);
- 		if (!ret)
-@@ -1532,15 +1529,11 @@ static int get_firmware(struct av7110* av7110)
- 	ret = request_firmware(&fw, "dvb-ttpci-01.fw", &av7110->dev->pci->dev);
- 	if (ret) {
- 		if (ret == -ENOENT) {
--			printk(KERN_ERR "dvb-ttpci: could not load firmware,"
--			       " file not found: dvb-ttpci-01.fw\n");
--			printk(KERN_ERR "dvb-ttpci: usually this should be in "
--			       "/usr/lib/hotplug/firmware or /lib/firmware\n");
--			printk(KERN_ERR "dvb-ttpci: and can be downloaded from"
--			       " https://linuxtv.org/download/dvb/firmware/\n");
-+			printk(KERN_ERR "dvb-ttpci: could not load firmware, file not found: dvb-ttpci-01.fw\n");
-+			printk(KERN_ERR "dvb-ttpci: usually this should be in /usr/lib/hotplug/firmware or /lib/firmware\n");
-+			printk(KERN_ERR "dvb-ttpci: and can be downloaded from https://linuxtv.org/download/dvb/firmware/\n");
- 		} else
--			printk(KERN_ERR "dvb-ttpci: cannot request firmware"
--			       " (error %i)\n", ret);
-+			printk(KERN_ERR "dvb-ttpci: cannot request firmware (error %i)\n", ret);
- 		return -EINVAL;
- 	}
- 
-@@ -2700,8 +2693,7 @@ static int av7110_attach(struct saa7146_dev* dev,
- 		goto err_stop_arm_9;
- 
- 	if (FW_VERSION(av7110->arm_app)<0x2501)
--		printk ("dvb-ttpci: Warning, firmware version 0x%04x is too old. "
--			"System might be unstable!\n", FW_VERSION(av7110->arm_app));
-+		printk ("dvb-ttpci: Warning, firmware version 0x%04x is too old. System might be unstable!\n", FW_VERSION(av7110->arm_app));
- 
- 	thread = kthread_run(arm_thread, (void *) av7110, "arm_mon");
- 	if (IS_ERR(thread)) {
-@@ -2944,7 +2936,6 @@ static void __exit av7110_exit(void)
- module_init(av7110_init);
- module_exit(av7110_exit);
- 
--MODULE_DESCRIPTION("driver for the SAA7146 based AV110 PCI DVB cards by "
--		   "Siemens, Technotrend, Hauppauge");
-+MODULE_DESCRIPTION("driver for the SAA7146 based AV110 PCI DVB cards by Siemens, Technotrend, Hauppauge");
- MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, others");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/pci/ttpci/av7110_hw.c b/drivers/media/pci/ttpci/av7110_hw.c
-index 0583d56ef5ef..520414cbe087 100644
---- a/drivers/media/pci/ttpci/av7110_hw.c
-+++ b/drivers/media/pci/ttpci/av7110_hw.c
-@@ -235,8 +235,7 @@ int av7110_bootarm(struct av7110 *av7110)
- 	iwdebi(av7110, DEBISWAP, DPRAM_BASE, 0x76543210, 4);
- 
- 	if ((ret=irdebi(av7110, DEBINOSWAP, DPRAM_BASE, 0, 4)) != 0x10325476) {
--		printk(KERN_ERR "dvb-ttpci: debi test in av7110_bootarm() failed: "
--		       "%08x != %08x (check your BIOS 'Plug&Play OS' settings)\n",
-+		printk(KERN_ERR "dvb-ttpci: debi test in av7110_bootarm() failed: %08x != %08x (check your BIOS 'Plug&Play OS' settings)\n",
- 		       ret, 0x10325476);
- 		return -1;
- 	}
-@@ -262,8 +261,7 @@ int av7110_bootarm(struct av7110 *av7110)
- 	iwdebi(av7110, DEBINOSWAP, AV7110_BOOT_STATE, BOOTSTATE_BUFFER_FULL, 2);
- 
- 	if (saa7146_wait_for_debi_done(av7110->dev, 1)) {
--		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): "
--		       "saa7146_wait_for_debi_done() timed out\n");
-+		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): saa7146_wait_for_debi_done() timed out\n");
- 		return -ETIMEDOUT;
- 	}
- 	saa7146_setgpio(dev, RESET_LINE, SAA7146_GPIO_OUTHI);
-@@ -271,8 +269,7 @@ int av7110_bootarm(struct av7110 *av7110)
- 
- 	dprintk(1, "load dram code\n");
- 	if (load_dram(av7110, (u32 *)av7110->bin_root, av7110->size_root) < 0) {
--		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): "
--		       "load_dram() failed\n");
-+		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): load_dram() failed\n");
- 		return -1;
- 	}
- 
-@@ -283,8 +280,7 @@ int av7110_bootarm(struct av7110 *av7110)
- 	mwdebi(av7110, DEBISWAB, DPRAM_BASE, av7110->bin_dpram, av7110->size_dpram);
- 
- 	if (saa7146_wait_for_debi_done(av7110->dev, 1)) {
--		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): "
--		       "saa7146_wait_for_debi_done() timed out after loading DRAM\n");
-+		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): saa7146_wait_for_debi_done() timed out after loading DRAM\n");
- 		return -ETIMEDOUT;
- 	}
- 	saa7146_setgpio(dev, RESET_LINE, SAA7146_GPIO_OUTHI);
-diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
-index 6f0d0161970e..896c66d4b3ae 100644
---- a/drivers/media/pci/ttpci/budget-av.c
-+++ b/drivers/media/pci/ttpci/budget-av.c
-@@ -1636,5 +1636,4 @@ module_exit(budget_av_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, Michael Hunold, others");
--MODULE_DESCRIPTION("driver for the SAA7146 based so-called "
--		   "budget PCI DVB w/ analog input and CI-module (e.g. the KNC cards)");
-+MODULE_DESCRIPTION("driver for the SAA7146 based so-called budget PCI DVB w/ analog input and CI-module (e.g. the KNC cards)");
-diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
-index 7b27af4d9658..20ad93bf0f54 100644
---- a/drivers/media/pci/ttpci/budget-ci.c
-+++ b/drivers/media/pci/ttpci/budget-ci.c
-@@ -1586,6 +1586,4 @@ module_exit(budget_ci_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Michael Hunold, Jack Thomasson, Andrew de Quincey, others");
--MODULE_DESCRIPTION("driver for the SAA7146 based so-called "
--		   "budget PCI DVB cards w/ CI-module produced by "
--		   "Siemens, Technotrend, Hauppauge");
-+MODULE_DESCRIPTION("driver for the SAA7146 based so-called budget PCI DVB cards w/ CI-module produced by Siemens, Technotrend, Hauppauge");
-diff --git a/drivers/media/pci/ttpci/budget-patch.c b/drivers/media/pci/ttpci/budget-patch.c
-index 591dbdfa2a13..f152eda0123a 100644
---- a/drivers/media/pci/ttpci/budget-patch.c
-+++ b/drivers/media/pci/ttpci/budget-patch.c
-@@ -679,5 +679,4 @@ module_exit(budget_patch_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Emard, Roberto Deza, Holger Waechtler, Michael Hunold, others");
--MODULE_DESCRIPTION("Driver for full TS modified DVB-S SAA7146+AV7110 "
--		   "based so-called Budget Patch cards");
-+MODULE_DESCRIPTION("Driver for full TS modified DVB-S SAA7146+AV7110 based so-called Budget Patch cards");
-diff --git a/drivers/media/pci/ttpci/budget.c b/drivers/media/pci/ttpci/budget.c
-index fb8ede5a1531..3091b480ce22 100644
---- a/drivers/media/pci/ttpci/budget.c
-+++ b/drivers/media/pci/ttpci/budget.c
-@@ -897,5 +897,4 @@ module_exit(budget_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, Michael Hunold, others");
--MODULE_DESCRIPTION("driver for the SAA7146 based so-called "
--		   "budget PCI DVB cards by Siemens, Technotrend, Hauppauge");
-+MODULE_DESCRIPTION("driver for the SAA7146 based so-called budget PCI DVB cards by Siemens, Technotrend, Hauppauge");
-diff --git a/drivers/media/pci/ttpci/ttpci-eeprom.c b/drivers/media/pci/ttpci/ttpci-eeprom.c
-index 079ee098b7e3..9534f29c1ffd 100644
---- a/drivers/media/pci/ttpci/ttpci-eeprom.c
-+++ b/drivers/media/pci/ttpci/ttpci-eeprom.c
-@@ -171,5 +171,4 @@ EXPORT_SYMBOL(ttpci_eeprom_parse_mac);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, others");
--MODULE_DESCRIPTION("Decode dvb_net MAC address from EEPROM of PCI DVB cards "
--		"made by Siemens, Technotrend, Hauppauge");
-+MODULE_DESCRIPTION("Decode dvb_net MAC address from EEPROM of PCI DVB cards made by Siemens, Technotrend, Hauppauge");
--- 
-2.7.4
+Ok, I ran some tests here and it works as expected.
+
+> I like the fact that this removes Documentation/media/Makefile, and
+> cleans up the Sphinx build rule in Documentation/Makefile.sphinx.
+
+Yeah, that sounds great.
+
+> Does
+> this also make the documentation buildable with sphinx-build directly,
+> without the kernel build system? If so, great.
+
+I guess it probably allows that, if you include the extension on
+some other tree.
+
+Just curious here: what use case do you see by building the Kernel
+documentation without the Kernel tree?
+
+> However, I would have much preferred the approach I proposed months ago,
+> having the extension itself do specifically what parse-headers.pl does
+> now. While it may seem generic on the surface, I don't think it's a
+> clean or a secure approach to allow running of arbitrary scripts from
+> PATH while building documentation. It's certainly not an approach that
+> should be encouraged.
+
+Sorry, but I disagree. The security threat of having a random command
+doing something wrong is the same as we already have with the Kernel
+Makefiles, as they can also run a random command. All it is needed
+is to add this to a Makefile:
+
+subdir-y                     += run_some_evil_cmd
+
+If we accept the fact that we do need to run commands when running "make",
+it doesn't really matter if such command is at a makefile, inside a 
+perl/python script or called via some Sphinx directive. In all cases,
+patches need to be reviewed by the community, to be sure that they won't
+introduce any vulnerabilities.
+
+Btw, with regards to security, a way bigger threat is if someone
+introduces a vulnerable code inside the Kernel code, as this will
+affect a lot more systems than a vulnerability at the documentation
+build process.
+
+Yet, if you think security is still a high risk, my suggestion
+would be to restrict the kernel-cmd script to only run scripts
+inside trusted places, like Documentation/sphinx.
 
 
+-
+
+The real issue here is that Sphinx itself doesn't provide what
+it is needed to build the Kernel documentation. Some extra
+scripts are required. Right now, we converted maybe 5% of the
+documentation to ReST, and we're using running two perl scripts:
+	- kernel-doc
+	- parse-headers.pl
+
+We also identified that, if we want to add the MAINTAINERS file to
+some documentation (or a parsed version of it), we would need an extra
+script to filter it[1].
+
+I can think on other use cases to run such scripts[2].
+
+What I'm saying is that, we can keep adding a Sphinx-specific
+extension for every such needs, with will result in code duplication
+and will make harder to maintain it, or we can use a generic
+solution like this kernel-cmd extension.
+
+IMO, a generic solution is a way better, as it sounds easier to
+maintain.
+
+Regards,
+Mauro
+
+[1] https://git.linuxtv.org/mchehab/experimental.git/commit/?h=lkml-books&id=c8b07684c0278d7f9d0e30f575eb4be3a2da4c3b
+
+[2] There's another possible usecase, with I'm not convinced yet
+whether should be addressed or not.
+
+At the media subsystem, we use 8 out-of-tree scripts that update
+the list of supported USB and PCI media boards, e. g. the files under:
+	Documentation/media/v4l-drivers/*cardlist.rst
+
+Such scripts used to be part of the mercurial tree, before we moved the 
+media development to git, like this one:
+	https://linuxtv.org/hg/v4l-dvb/file/3724e93f7af5/v4l/scripts/bttv.pl
+
+Currently, I'm using a local fork of the old scripts, and, when I
+notice a patch for a driver with a cardlist, if I remember, I run the
+scripts to add to update the cardlists. While it could be kept
+OOT forever, if moved it to the Kernel tree,  the documentation will 
+always reflect the Kernel status, with is, IMHO, a good thing.
