@@ -1,271 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:35428 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753765AbcJGNyn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 09:54:43 -0400
-Received: by mail-oi0-f54.google.com with SMTP id d132so57623322oib.2
-        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2016 06:54:42 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAF6AEGto6iuNSG3Q3sBk1-wedhkPaJxM=Ru=ZcwfB63GwH7mhw@mail.gmail.com>
-References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
- <20161005131959.GE20761@phenom.ffwll.local> <CA+M3ks5vZyrxzF84t2fX0CK33LWq2A-uM=6rDFru-AO0mAyKQA@mail.gmail.com>
- <CAF6AEGto6iuNSG3Q3sBk1-wedhkPaJxM=Ru=ZcwfB63GwH7mhw@mail.gmail.com>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Fri, 7 Oct 2016 15:54:41 +0200
-Message-ID: <CA+M3ks6BkGuwKMYZXHPBeawB-5m+O1HxZvPpfbjO6voyoVJyZg@mail.gmail.com>
-Subject: Re: [PATCH v10 0/3] Secure Memory Allocation Framework
-To: Rob Clark <robdclark@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Cc Ma <cc.ma@mediatek.com>,
-        Joakim Bech <joakim.bech@linaro.org>,
-        Burt Lien <burt.lien@linaro.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
-        Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52737 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751317AbcJFEGq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 6 Oct 2016 00:06:46 -0400
+Message-ID: <fd80b11d0683099342427d9937b0c846@smtp-cloud2.xs4all.net>
+Date: Thu, 06 Oct 2016 06:06:42 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rob,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-how do you know which devices are concerned when listing the constraints ?
-Does combine_capabilities is done from each allocation or can it be cached =
-?
+Results of the daily build of media_tree:
 
-Regards,
-Benjmain
+date:			Thu Oct  6 05:00:36 CEST 2016
+media-tree git hash:	e3ea5e94489bc8c711d422dfa311cfa310553a1b
+media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
+v4l-utils git hash:	2cd2699a8cfe8dce32dd35033a364c8375839d51
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-2016-10-06 18:54 GMT+02:00 Rob Clark <robdclark@gmail.com>:
-> so there is discussion about a "central userspace allocator" (ie. more
-> like a common userspace API that could be implemented on top of
-> various devices/APIs) to decide in a generic way which device could
-> allocate.
->
->   https://github.com/cubanismo/allocator
->
-> and I wrote up some rough thoughts/proposal about how the usage might
-> look.. just rough, so don't try to compile it or anything, and not
-> consensus yet so it will probably change/evolve..
->
->   https://github.com/robclark/allocator/blob/master/USAGE.md
->
-> I think ion could be just another device to share buffers with, which
-> happens to not impose any specific constraints.  How "liballoc-ion.so"
-> backend figures out how to map constraints/usage to a heap is a bit
-> hand-wavey at the moment.
->
-> BR,
-> -R
->
-> On Wed, Oct 5, 2016 at 9:40 AM, Benjamin Gaignard
-> <benjamin.gaignard@linaro.org> wrote:
->> because with ion it is up to userland to decide which heap to use
->> and until now userland doesn't have any way to get device constraints...
->>
->> I will prefer let a central allocator (in kernel) decide from the
->> attached devices
->> which allocator is the best. It is what I have implemented in smaf.
->>
->> Benjamin
->>
->>
->> 2016-10-05 15:19 GMT+02:00 Daniel Vetter <daniel@ffwll.ch>:
->>> On Tue, Oct 04, 2016 at 01:47:21PM +0200, Benjamin Gaignard wrote:
->>>> version 10 changes:
->>>>  - rebased on kernel 4.8 tag
->>>>  - minor typo fix
->>>>
->>>> version 9 changes:
->>>>  - rebased on 4.8-rc5
->>>>  - struct dma_attrs doesn't exist anymore so update CMA allocator
->>>>    to compile with new dma_*_attr functions
->>>>  - add example SMAF use case in cover letter
->>>>
->>>> version 8 changes:
->>>>  - rework of the structures used within ioctl
->>>>    by adding a version field and padding to be futur proof
->>>>  - rename fake secure moduel to test secure module
->>>>  - fix the various remarks done on the previous patcheset
->>>>
->>>> version 7 changes:
->>>>  - rebased on kernel 4.6-rc7
->>>>  - simplify secure module API
->>>>  - add vma ops to be able to detect mmap/munmap calls
->>>>  - add ioctl to get number and allocator names
->>>>  - update libsmaf with adding tests
->>>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->>>>  - add debug log in fake secure module
->>>>
->>>> version 6 changes:
->>>>  - rebased on kernel 4.5-rc4
->>>>  - fix mmapping bug while requested allocation size isn't a a multiple=
- of
->>>>    PAGE_SIZE (add a test for this in libsmaf)
->>>>
->>>> version 5 changes:
->>>>  - rebased on kernel 4.3-rc6
->>>>  - rework locking schema and make handle status use an atomic_t
->>>>  - add a fake secure module to allow performing tests without trusted
->>>>    environment
->>>>
->>>> version 4 changes:
->>>>  - rebased on kernel 4.3-rc3
->>>>  - fix missing EXPORT_SYMBOL for smaf_create_handle()
->>>>
->>>> version 3 changes:
->>>>  - Remove ioctl for allocator selection instead provide the name of
->>>>    the targeted allocator with allocation request.
->>>>    Selecting allocator from userland isn't the prefered way of working
->>>>    but is needed when the first user of the buffer is a software compo=
-nent.
->>>>  - Fix issues in case of error while creating smaf handle.
->>>>  - Fix module license.
->>>>  - Update libsmaf and tests to care of the SMAF API evolution
->>>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->>>>
->>>> version 2 changes:
->>>>  - Add one ioctl to allow allocator selection from userspace.
->>>>    This is required for the uses case where the first user of
->>>>    the buffer is a software IP which can't perform dma_buf attachement=
-.
->>>>  - Add name and ranking to allocator structure to be able to sort them=
-.
->>>>  - Create a tiny library to test SMAF:
->>>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->>>>  - Fix one issue when try to secure buffer without secure module regis=
-tered
->>>>
->>>> SMAF aim to solve two problems: allocating memory that fit with hardwa=
-re IPs
->>>> constraints and secure those data from bus point of view.
->>>>
->>>> One example of SMAF usage is camera preview: on SoC you may use either=
- an USB
->>>> webcam or the built-in camera interface and the frames could be send d=
-irectly
->>>> to the dipslay Ip or handle by GPU.
->>>> Most of USB interfaces and GPU have mmu but almost all built-in camera
->>>> interace and display Ips don't have mmu so when selecting how allocate
->>>> buffer you need to be aware of each devices constraints (contiguous me=
-mroy,
->>>> stride, boundary, alignment ...).
->>>> ION has solve this problem by let userland decide which allocator (hea=
-p) to use
->>>> but this require to adapt userland for each platform and sometime for =
-each
->>>> use case.
->>>>
->>>> To be sure to select the best allocation method for devices SMAF imple=
-ment
->>>> deferred allocation mechanism: memory allocation is only done when the=
- first
->>>> device effectively required it.
->>>> Allocator modules have to implement a match() to let SMAF know if they=
- are
->>>> compatibles with devices needs.
->>>> This patch set provide an example of allocator module which use
->>>> dma_{alloc/free/mmap}_attrs() and check if at least one device have
->>>> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
->>>>
->>>> In the same camera preview use case, SMAF allow to protect the data fr=
-om being
->>>> read by unauthorized IPs (i.e. a malware to dump camera stream).
->>>> Until now I have only see access rights protection at process/thread l=
-evel
->>>> (PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus f=
-irewalls.
->>>> SMAF propose an interface to control and implement those firewalls.
->>>> Like IOMMU, firewalls IPs can help to protect memory from malicious/fa=
-ulty devices
->>>> that are attempting DMA attacks.
->>>>
->>>> Secure modules are responsibles of granting and revoking devices acces=
-s rights
->>>> on the memory. Secure module is also called to check if CPU map memory=
- into
->>>> kernel and user address spaces.
->>>> An example of secure module implementation can be found here:
->>>> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
->>>> This code isn't yet part of the patch set because it depends on generi=
-c TEE
->>>> which is still under discussion (https://lwn.net/Articles/644646/)
->>>>
->>>> For allocation part of SMAF code I get inspirated by Sumit Semwal work=
- about
->>>> constraint aware allocator.
->>>
->>> semi-random review comment, and a bit late: Why not implement smaf as a
->>> new heap in ion? I think consensus is pretty much that we'll be stuck w=
-ith
->>> ion forever, and I think it's better to have 1 central buffer allocater
->>> than lots of them ...
->>> -Daniel
->>>
->>>>
->>>> Benjamin Gaignard (3):
->>>>   create SMAF module
->>>>   SMAF: add CMA allocator
->>>>   SMAF: add test secure module
->>>>
->>>>  drivers/Kconfig                |   2 +
->>>>  drivers/Makefile               |   1 +
->>>>  drivers/smaf/Kconfig           |  17 +
->>>>  drivers/smaf/Makefile          |   3 +
->>>>  drivers/smaf/smaf-cma.c        | 186 ++++++++++
->>>>  drivers/smaf/smaf-core.c       | 818 ++++++++++++++++++++++++++++++++=
-+++++++++
->>>>  drivers/smaf/smaf-testsecure.c |  90 +++++
->>>>  include/linux/smaf-allocator.h |  45 +++
->>>>  include/linux/smaf-secure.h    |  65 ++++
->>>>  include/uapi/linux/smaf.h      |  85 +++++
->>>>  10 files changed, 1312 insertions(+)
->>>>  create mode 100644 drivers/smaf/Kconfig
->>>>  create mode 100644 drivers/smaf/Makefile
->>>>  create mode 100644 drivers/smaf/smaf-cma.c
->>>>  create mode 100644 drivers/smaf/smaf-core.c
->>>>  create mode 100644 drivers/smaf/smaf-testsecure.c
->>>>  create mode 100644 include/linux/smaf-allocator.h
->>>>  create mode 100644 include/linux/smaf-secure.h
->>>>  create mode 100644 include/uapi/linux/smaf.h
->>>>
->>>> --
->>>> 1.9.1
->>>>
->>>> _______________________________________________
->>>> dri-devel mailing list
->>>> dri-devel@lists.freedesktop.org
->>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->>>
->>> --
->>> Daniel Vetter
->>> Software Engineer, Intel Corporation
->>> http://blog.ffwll.ch
->>
->>
->>
->> --
->> Benjamin Gaignard
->>
->> Graphic Study Group
->>
->> Linaro.org =E2=94=82 Open source software for ARM SoCs
->>
->> Follow Linaro: Facebook | Twitter | Blog
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.13.11-i686: OK
+linux-3.14.9-i686: OK
+linux-3.15.2-i686: OK
+linux-3.16.7-i686: OK
+linux-3.17.8-i686: OK
+linux-3.18.7-i686: OK
+linux-3.19-i686: OK
+linux-4.0.9-i686: OK
+linux-4.1.33-i686: OK
+linux-4.2.8-i686: OK
+linux-4.3.6-i686: OK
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: OK
+linux-4.6.7-i686: OK
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.13.11-x86_64: OK
+linux-3.14.9-x86_64: OK
+linux-3.15.2-x86_64: OK
+linux-3.16.7-x86_64: OK
+linux-3.17.8-x86_64: OK
+linux-3.18.7-x86_64: OK
+linux-3.19-x86_64: OK
+linux-4.0.9-x86_64: OK
+linux-4.1.33-x86_64: OK
+linux-4.2.8-x86_64: OK
+linux-4.3.6-x86_64: OK
+linux-4.4.22-x86_64: OK
+linux-4.5.7-x86_64: OK
+linux-4.6.7-x86_64: OK
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
---=20
-Benjamin Gaignard
+Full logs are available here:
 
-Graphic Study Group
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Linaro.org =E2=94=82 Open source software for ARM SoCs
+The Media Infrastructure API from this daily build is here:
 
-Follow Linaro: Facebook | Twitter | Blog
+http://www.xs4all.nl/~hverkuil/spec/index.html
