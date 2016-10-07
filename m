@@ -1,105 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51505 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:46770 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934457AbcJRUqU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:20 -0400
+        with ESMTP id S936228AbcJGRYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
-        <chehabrafael@gmail.com>
-Subject: [PATCH v2 31/58] au0828: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:43 -0200
-Message-Id: <cd079313b76aa17567b0f094bb1bc336acd06c8d.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH 17/26] gp8psk: don't do DMA on stack
+Date: Fri,  7 Oct 2016 14:24:27 -0300
+Message-Id: <9838f21cadaddf56402590ba62135c825960e330.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
-
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
-
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/au0828/au0828-video.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/usb/dvb-usb/gp8psk.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 85dd9a8e83ff..7a10eaa38f67 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -253,8 +253,7 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
- 		dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->usbdev,
- 			sb_size, GFP_KERNEL, &urb->transfer_dma);
- 		if (!dev->isoc_ctl.transfer_buffer[i]) {
--			printk("unable to allocate %i bytes for transfer"
--					" buffer %i%s\n",
-+			printk("unable to allocate %i bytes for transfer buffer %i%s\n",
- 					sb_size, i,
- 					in_interrupt() ? " while in int" : "");
- 			au0828_uninit_isoc(dev);
+diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+index 5d0384dd45b5..fa215ad37f7b 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk.c
++++ b/drivers/media/usb/dvb-usb/gp8psk.c
+@@ -24,6 +24,10 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DV
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
++struct gp8psk_state {
++	unsigned char data[80];
++};
++
+ static int gp8psk_get_fw_version(struct dvb_usb_device *d, u8 *fw_vers)
+ {
+ 	return (gp8psk_usb_in_op(d, GET_FW_VERS, 0, 0, fw_vers, 6));
+@@ -53,17 +57,19 @@ static void gp8psk_info(struct dvb_usb_device *d)
+ 
+ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
+ {
++	struct gp8psk_state *st = d->priv;
+ 	int ret = 0,try = 0;
+ 
+ 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+ 		return ret;
+ 
+ 	while (ret >= 0 && ret != blen && try < 3) {
++		memcpy(st->data, b, blen);
+ 		ret = usb_control_msg(d->udev,
+ 			usb_rcvctrlpipe(d->udev,0),
+ 			req,
+ 			USB_TYPE_VENDOR | USB_DIR_IN,
+-			value,index,b,blen,
++			value, index, st->data, blen,
+ 			2000);
+ 		deb_info("reading number %d (ret: %d)\n",try,ret);
+ 		try++;
+@@ -86,6 +92,7 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
+ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 			     u16 index, u8 *b, int blen)
+ {
++	struct gp8psk_state *st = d->priv;
+ 	int ret;
+ 
+ 	deb_xfer("out: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
+@@ -94,11 +101,12 @@ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+ 		return ret;
+ 
++	memcpy(st->data, b, blen);
+ 	if (usb_control_msg(d->udev,
+ 			usb_sndctrlpipe(d->udev,0),
+ 			req,
+ 			USB_TYPE_VENDOR | USB_DIR_OUT,
+-			value,index,b,blen,
++			value,index, st->data, blen,
+ 			2000) != blen) {
+ 		warn("usb out operation failed.");
+ 		ret = -EIO;
+@@ -265,6 +273,8 @@ static struct dvb_usb_device_properties gp8psk_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-gp8psk-01.fw",
+ 
++	.size_of_priv = sizeof(struct gp8psk_state),
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
 -- 
 2.7.4
 
