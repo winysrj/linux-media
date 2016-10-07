@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46762 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:46773 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938789AbcJGRYq (ORCPT
+        with ESMTP id S938880AbcJGRYq (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
@@ -16,9 +16,9 @@ Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 12/26] dtt200u-fe: don't do DMA on stack
-Date: Fri,  7 Oct 2016 14:24:22 -0300
-Message-Id: <a51d393e7fc3857da5036d14af08a30116ee4879.1475860773.git.mchehab@s-opensource.com>
+Subject: [PATCH 06/26] cxusb: don't do DMA on stack
+Date: Fri,  7 Oct 2016 14:24:16 -0300
+Message-Id: <7727b11abd004f683589586082f1b00926d5dade.1475860773.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
 References: <cover.1475860773.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
@@ -32,146 +32,75 @@ stack would be into a DMA enabled area.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/dvb-usb/dtt200u-fe.c | 66 +++++++++++++++++++++-------------
- 1 file changed, 41 insertions(+), 25 deletions(-)
+ drivers/media/usb/dvb-usb/cxusb.c | 20 +++++++-------------
+ drivers/media/usb/dvb-usb/cxusb.h |  5 +++++
+ 2 files changed, 12 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u-fe.c b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-index c09332bd99cb..9ed68429e950 100644
---- a/drivers/media/usb/dvb-usb/dtt200u-fe.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-@@ -18,17 +18,20 @@ struct dtt200u_fe_state {
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 907ac01ae297..f3615349de52 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -45,9 +45,6 @@
+ #include "si2168.h"
+ #include "si2157.h"
  
- 	struct dtv_frontend_properties fep;
- 	struct dvb_frontend frontend;
-+
-+	unsigned char data[80];
- };
- 
- static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- 				  enum fe_status *stat)
+-/* Max transfer size done by I2C transfer functions */
+-#define MAX_XFER_SIZE  80
+-
+ /* debug */
+ static int dvb_usb_cxusb_debug;
+ module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
+@@ -61,23 +58,20 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ static int cxusb_ctrl_msg(struct dvb_usb_device *d,
+ 			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
  {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 st = GET_TUNE_STATUS, b[3];
++	struct cxusb_state *st = d->priv;
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+-	u8 sndbuf[MAX_XFER_SIZE];
  
--	dvb_usb_generic_rw(state->d,&st,1,b,3,0);
-+	state->data[0] = GET_TUNE_STATUS;
- 
--	switch (b[0]) {
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+
-+	switch (state->data[0]) {
- 		case 0x01:
- 			*stat = FE_HAS_SIGNAL | FE_HAS_CARRIER |
- 				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
-@@ -47,45 +50,57 @@ static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- static int dtt200u_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_VIT_ERR_CNT,b[3];
--	dvb_usb_generic_rw(state->d,&bw,1,b,3,0);
--	*ber = (b[0] << 16) | (b[1] << 8) | b[2];
-+
-+	state->data[0] = GET_VIT_ERR_CNT;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	*ber = (state->data[0] << 16) | (state->data[1] << 8) | state->data[2];
- 	return 0;
- }
- 
- static int dtt200u_fe_read_unc_blocks(struct dvb_frontend* fe, u32 *unc)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_RS_UNCOR_BLK_CNT,b[2];
- 
--	dvb_usb_generic_rw(state->d,&bw,1,b,2,0);
--	*unc = (b[0] << 8) | b[1];
-+	state->data[0] = GET_RS_UNCOR_BLK_CNT;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 2, 0);
-+
-+	*unc = (state->data[0] << 8) | state->data[1];
- 	return 0;
- }
- 
- static int dtt200u_fe_read_signal_strength(struct dvb_frontend* fe, u16 *strength)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_AGC, b;
--	dvb_usb_generic_rw(state->d,&bw,1,&b,1,0);
--	*strength = (b << 8) | b;
-+
-+	state->data[0] = GET_AGC;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+
-+	*strength = (state->data[0] << 8) | state->data[0];
- 	return 0;
- }
- 
- static int dtt200u_fe_read_snr(struct dvb_frontend* fe, u16 *snr)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_SNR,br;
--	dvb_usb_generic_rw(state->d,&bw,1,&br,1,0);
--	*snr = ~((br << 8) | br);
-+
-+	state->data[0] = GET_SNR;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+
-+	*snr = ~((state->data[0] << 8) | state->data[0]);
- 	return 0;
- }
- 
- static int dtt200u_fe_init(struct dvb_frontend* fe)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 b = SET_INIT;
--	return dvb_usb_generic_write(state->d,&b,1);
-+
-+	state->data[0] = SET_INIT;
-+
-+	return dvb_usb_generic_write(state->d, state->data, 1);
- }
- 
- static int dtt200u_fe_sleep(struct dvb_frontend* fe)
-@@ -108,27 +123,28 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend *fe)
- 	int i;
- 	enum fe_status st;
- 	u16 freq = fep->frequency / 250000;
--	u8 bwbuf[2] = { SET_BANDWIDTH, 0 },freqbuf[3] = { SET_RF_FREQ, 0, 0 };
- 
-+	state->data[0] = SET_BANDWIDTH;
- 	switch (fep->bandwidth_hz) {
- 	case 8000000:
--		bwbuf[1] = 8;
-+		state->data[1] = 8;
- 		break;
- 	case 7000000:
--		bwbuf[1] = 7;
-+		state->data[1] = 7;
- 		break;
- 	case 6000000:
--		bwbuf[1] = 6;
-+		state->data[1] = 6;
- 		break;
- 	default:
- 		return -EINVAL;
+-	if (1 + wlen > sizeof(sndbuf)) {
+-		warn("i2c wr: len=%d is too big!\n",
+-		     wlen);
++	if (1 + wlen > MAX_XFER_SIZE) {
++		warn("i2c wr: len=%d is too big!\n", wlen);
+ 		return -EOPNOTSUPP;
  	}
  
--	dvb_usb_generic_write(state->d,bwbuf,2);
-+	dvb_usb_generic_write(state->d, state->data, 2);
+-	memset(sndbuf, 0, 1+wlen);
+-
+-	sndbuf[0] = cmd;
+-	memcpy(&sndbuf[1], wbuf, wlen);
++	st->data[0] = cmd;
++	memcpy(&st->data[1], wbuf, wlen);
+ 	if (wo)
+-		return dvb_usb_generic_write(d, sndbuf, 1+wlen);
++		return dvb_usb_generic_write(d, st->data, 1 + wlen);
+ 	else
+-		return dvb_usb_generic_rw(d, sndbuf, 1+wlen, rbuf, rlen, 0);
++		return dvb_usb_generic_rw(d, st->data, 1 + wlen, rbuf, rlen, 0);
+ }
  
--	freqbuf[1] = freq & 0xff;
--	freqbuf[2] = (freq >> 8) & 0xff;
--	dvb_usb_generic_write(state->d,freqbuf,3);
-+	state->data[0] = SET_RF_FREQ;
-+	state->data[1] = freq & 0xff;
-+	state->data[2] = (freq >> 8) & 0xff;
-+	dvb_usb_generic_write(state->d, state->data, 3);
+ /* GPIO */
+diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+index 527ff7905e15..18acda19527a 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.h
++++ b/drivers/media/usb/dvb-usb/cxusb.h
+@@ -28,10 +28,15 @@
+ #define CMD_ANALOG        0x50
+ #define CMD_DIGITAL       0x51
  
- 	for (i = 0; i < 30; i++) {
- 		msleep(20);
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  80
++
+ struct cxusb_state {
+ 	u8 gpio_write_state[3];
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
++
++	unsigned char data[MAX_XFER_SIZE];
+ };
+ 
+ #endif
 -- 
 2.7.4
 
