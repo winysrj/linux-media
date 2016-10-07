@@ -1,67 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35728 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755097AbcJRNOg (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36439 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933508AbcJGQBN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 09:14:36 -0400
-Date: Tue, 18 Oct 2016 08:14:34 -0500
-From: Rob Herring <robh@kernel.org>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, mark.rutland@arm.com,
-        mchehab@kernel.org, davem@davemloft.net, geert@linux-m68k.org,
-        akpm@linux-foundation.org, kvalo@codeaurora.org,
-        linux@roeck-us.net, hverkuil@xs4all.nl, lars@metafoo.de,
-        pavel@ucw.cz, robert.jarzmik@free.fr, slongerbeam@gmail.com,
-        dheitmueller@kernellabs.com, pali.rohar@gmail.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: Re: [PATCH v3 1/2] Add OV5647 device tree documentation
-Message-ID: <20161018131434.2bbk2evxkv7mutfo@rob-hp-laptop>
-References: <cover.1476286687.git.roliveir@synopsys.com>
- <0f85bdabe4951533e6fe7a842cc5dfa0f2cd8a6c.1476286687.git.roliveir@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <0f85bdabe4951533e6fe7a842cc5dfa0f2cd8a6c.1476286687.git.roliveir@synopsys.com>
+        Fri, 7 Oct 2016 12:01:13 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 02/22] [media] v4l2-async: allow subdevices to add further subdevices to the notifier waiting list
+Date: Fri,  7 Oct 2016 18:00:47 +0200
+Message-Id: <20161007160107.5074-3-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 12, 2016 at 05:02:21PM +0100, Ramiro Oliveira wrote:
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
->  1 file changed, 19 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> new file mode 100644
-> index 0000000..4c91b3b
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> @@ -0,0 +1,19 @@
-> +Omnivision OV5647 raw image sensor
-> +---------------------------------
-> +
-> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-> +and CCI (I2C compatible) control bus.
-> +
-> +Required properties:
-> +
-> +- compatible	: "ovti,ov5647";
-> +- reg		: I2C slave address of the sensor;
-> +
-> +The common video interfaces bindings (see video-interfaces.txt) should be
-> +used to specify link to the image data receiver. The OV5647 device
-> +node should contain one 'port' child node with an 'endpoint' subnode.
-> +
-> +Following properties are valid for the endpoint node:
-> +
-> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
-> +  video-interfaces.txt.  The sensor supports only two data lanes.
+Currently the v4l2_async_notifier needs to be given a list of matches
+for all expected subdevices on creation. When chaining subdevices that
+are asynchronously probed via device tree, the bridge device that sets
+up the notifier does not know the complete list of subdevices, as it
+can only parse its own device tree node to obtain information about
+the nearest neighbor subdevices.
+To support indirectly connected subdevices, we need to support amending
+the existing notifier waiting list with newly found neighbor subdevices
+with each registered subdevice.
 
-What's the default if not present?
+This can be achieved by adding new v42l_async_subdev matches to the
+notifier waiting list during the v4l2_subdev registered callback, which
+is called under the list lock from either v4l2_async_register_subdev or
+v4l2_async_notifier_register. For this purpose a new exported function
+__v4l2_async_notifier_add_subdev is added.
 
-> -- 
-> 2.9.3
-> 
-> 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 78 ++++++++++++++++++++++++++++++++++--
+ include/media/v4l2-async.h           | 12 ++++++
+ 2 files changed, 86 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index c4f1930..404eeea 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -109,6 +109,7 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+ 		if (ret < 0)
+ 			return ret;
+ 	}
++
+ 	/* Move from the global subdevice list to notifier's done */
+ 	list_move(&sd->async_list, &notifier->done);
+ 
+@@ -158,7 +159,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier)
+ {
+ 	struct v4l2_async_subdev *asd;
+-	int ret;
++	struct list_head *tail;
+ 	int i;
+ 
+ 	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+@@ -191,17 +192,71 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
+ 
++	do {
++		int ret;
++
++		tail = notifier->waiting.prev;
++
++		ret = v4l2_async_test_notify_all(notifier);
++		if (ret < 0) {
++			mutex_unlock(&list_lock);
++			return ret;
++		}
++
++		/*
++		 * If entries were added to the notifier waiting list, check
++		 * again if the corresponding subdevices are already available.
++		 */
++	} while (tail != notifier->waiting.prev);
++
+ 	mutex_unlock(&list_lock);
+ 
+-	return ret;
++	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_async_notifier_register);
+ 
++int __v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
++				     struct v4l2_async_subdev *asd)
++{
++	struct v4l2_async_subdev *tmp_asd;
++
++	lockdep_assert_held(&list_lock);
++
++	if (asd->match_type != V4L2_ASYNC_MATCH_OF)
++		return -EINVAL;
++
++	/*
++	 * First check if the same notifier is already on the waiting or done
++	 * lists. This can happen if a subdevice with multiple outputs is added
++	 * by all its downstream subdevices.
++	 */
++	list_for_each_entry(tmp_asd, &notifier->waiting, list)
++		if (tmp_asd->match.of.node == asd->match.of.node)
++			return 0;
++	list_for_each_entry(tmp_asd, &notifier->done, list)
++		if (tmp_asd->match.of.node == asd->match.of.node)
++			return 0;
++
++	/*
++	 * Add the new async subdev to the notifier waiting list, so
++	 * v4l2_async_belongs may use it to compare against entries in
++	 * subdev_list.
++	 * In case the subdev matching asd has already been passed in the
++	 * subdev_list walk in v4l2_async_notifier_register, or if
++	 * we are called from v4l2_async_register_subdev, the subdev_list
++	 * will have to be walked again.
++	 */
++	list_add_tail(&asd->list, &notifier->waiting);
++
++	return 0;
++}
++
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ {
+ 	struct v4l2_subdev *sd, *tmp;
+-	unsigned int notif_n_subdev = notifier->num_subdevs;
+-	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
++	unsigned int notif_n_subdev = 0;
++	unsigned int n_subdev;
++	struct list_head *list;
+ 	struct device **dev;
+ 	int i = 0;
+ 
+@@ -218,6 +273,10 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 
+ 	list_del(&notifier->list);
+ 
++	list_for_each(list, &notifier->done)
++		++notif_n_subdev;
++	n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
++
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+ 		struct device *d;
+ 
+@@ -294,8 +353,19 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	list_for_each_entry(notifier, &notifier_list, list) {
+ 		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
+ 		if (asd) {
++			struct list_head *tail = notifier->waiting.prev;
+ 			int ret = v4l2_async_test_notify(notifier, sd, asd);
++
++			/*
++			 * If entries were added to the notifier waiting list,
++			 * check if the corresponding subdevices are already
++			 * available.
++			 */
++			if (tail != notifier->waiting.prev)
++				ret = v4l2_async_test_notify_all(notifier);
++
+ 			mutex_unlock(&list_lock);
++
+ 			return ret;
+ 		}
+ 	}
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8e2a236..e4e4b11 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -114,6 +114,18 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier);
+ 
+ /**
++ * __v4l2_async_notifier_add_subdev - adds a subdevice to the notifier waitlist
++ *
++ * @v4l2_notifier: notifier the calling subdev is bound to
++ * @asd: asynchronous subdev match
++ *
++ * To be called from inside a subdevices' registered_async callback to add
++ * additional subdevices to the notifier waiting list.
++ */
++int __v4l2_async_notifier_add_subdev(struct v4l2_async_notifier *notifier,
++				     struct v4l2_async_subdev *asd);
++
++/**
+  * v4l2_async_notifier_unregister - unregisters a subdevice asynchronous notifier
+  *
+  * @notifier: pointer to &struct v4l2_async_notifier
+-- 
+2.9.3
+
