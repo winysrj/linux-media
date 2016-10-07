@@ -1,81 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48829 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751623AbcJVTK1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Oct 2016 15:10:27 -0400
-Date: Sat, 22 Oct 2016 17:10:19 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from
- scripts
-Message-ID: <20161022171019.0db76837@vento.lan>
-In-Reply-To: <20161022090421.722a6851@lwn.net>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
-        <87oa2xrhqx.fsf@intel.com>
-        <20161006103132.3a56802a@vento.lan>
-        <87lgy15zin.fsf@intel.com>
-        <20161006135028.2880f5a5@vento.lan>
-        <8737k8ya6f.fsf@intel.com>
-        <8E74FF11-208D-4C76-8A8C-2B2102E5CB20@darmarit.de>
-        <20161021160543.264b8cf2@lwn.net>
-        <20161022085629.6ebbc4f6@vento.lan>
-        <20161022090421.722a6851@lwn.net>
+Received: from mail-out.m-online.net ([212.18.0.10]:49146 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932338AbcJGSus (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 14:50:48 -0400
+Subject: Re: [PATCH 03/22] [media] v4l: of: add v4l2_of_subdev_registered
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+ <20161007160107.5074-4-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, kernel@pengutronix.de
+From: Marek Vasut <marex@denx.de>
+Message-ID: <99f7a5c6-2b51-38f0-5984-366cdc858f3d@denx.de>
+Date: Fri, 7 Oct 2016 20:50:43 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20161007160107.5074-4-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 22 Oct 2016 09:04:21 -0600
-Jonathan Corbet <corbet@lwn.net> escreveu:
-
-> On Sat, 22 Oct 2016 08:56:29 -0200
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+On 10/07/2016 06:00 PM, Philipp Zabel wrote:
+> Provide a default registered callback for device tree probed subdevices
+> that use OF graph bindings to add still missing source subdevices to
+> the async notifier waiting list.
+> This is only necessary for subdevices that have input ports to which
+> other subdevices are connected that are not initially known to the
+> master/bridge device when it sets up the notifier.
 > 
-> > The security implications will be the same if either coded as an
-> > "ioctl()" or as "syscall", the scripts should be audited. Actually,
-> > if we force the need of a "syscall" for every such script, we have
-> > twice the code to audit, as both the Sphinx extension and the perl
-> > script will need to audit, increasing the attack surface.  
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+[...]
+
+> +int v4l2_of_subdev_registered(struct v4l2_subdev *sd)
+> +{
+> +	struct device_node *ep;
+> +
+> +	for_each_endpoint_of_node(sd->of_node, ep) {
+> +		struct v4l2_of_link link;
+> +		struct media_entity *entity;
+> +		unsigned int pad;
+> +		int ret;
+> +
+> +		ret = v4l2_of_parse_link(ep, &link);
+> +		if (ret)
+> +			continue;
+> +
+> +		/*
+> +		 * Assume 1:1 correspondence between OF node and entity,
+> +		 * and between OF port numbers and pad indices.
+> +		 */
+> +		entity = &sd->entity;
+
+This here will not compile if CONFIG_MEDIA_CONTROLLER is not set,
+because ->entity will be missing from struct v4l2_subdev {} .
+
+> +		pad = link.local_port;
+> +
+> +		if (pad >= entity->num_pads)
+> +			return -EINVAL;
+> +
+> +		/* Add source subdevs to async notifier */
+> +		if (entity->pads[pad].flags & MEDIA_PAD_FL_SINK) {
+> +			struct v4l2_async_subdev *asd;
+> +
+> +			asd = devm_kzalloc(sd->dev, sizeof(*asd), GFP_KERNEL);
+> +			if (!asd) {
+> +				v4l2_of_put_link(&link);
+> +				return -ENOMEM;
+> +			}
+> +
+> +			asd->match_type = V4L2_ASYNC_MATCH_OF;
+> +			asd->match.of.node = link.remote_node;
+> +
+> +			__v4l2_async_notifier_add_subdev(sd->notifier, asd);
+> +		}
+> +
+> +		v4l2_of_put_link(&link);
+> +	}
+> +
+> +	return 0;
+> +}
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 4dc34b2..67d4f8b 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -22,6 +22,8 @@
+>  #include <media/v4l2-mediabus.h>
+>  
+>  struct device_node;
+> +struct v4l2_device;
+> +struct v4l2_subdev;
+>  
+>  /**
+>   * struct v4l2_of_bus_mipi_csi2 - MIPI CSI-2 bus data structure
+> @@ -95,6 +97,9 @@ void v4l2_of_free_endpoint(struct v4l2_of_endpoint *endpoint);
+>  int v4l2_of_parse_link(const struct device_node *node,
+>  		       struct v4l2_of_link *link);
+>  void v4l2_of_put_link(struct v4l2_of_link *link);
+> +int v4l2_of_subdev_registered(struct v4l2_subdev *sd);
+> +struct v4l2_subdev *v4l2_find_subdev_by_node(struct v4l2_device *v4l2_dev,
+> +					     struct device_node *node);
+>  #else /* CONFIG_OF */
+>  
+>  static inline int v4l2_of_parse_endpoint(const struct device_node *node,
+> @@ -123,6 +128,13 @@ static inline void v4l2_of_put_link(struct v4l2_of_link *link)
+>  {
+>  }
+>  
+> +#define v4l2_of_subdev_registered NULL
+> +
+> +struct v4l2_subdev *v4l2_find_subdev_by_node(struct v4l2_device *v4l2_dev,
+> +					     struct device_node *node)
+> +{
+> +	return NULL;
+> +}
+>  #endif /* CONFIG_OF */
+>  
+>  #endif /* _V4L2_OF_H */
 > 
-> Just addressing this one part for the moment.  Clearly I've not explained
-> my concern well.
-> 
-> The kernel-cmd directive makes it possible for *any* RST file to run
-> arbitrary shell commands.  I'm not concerned about the scripts we add, I
-> hope we can get those right.  I'm worried about what slips in via a tweak
-> to some obscure .rst file somewhere.
-> 
-> A quick check says that 932 commits touched Documentation/ since 4.8.  A
-> lot of those did not come from either my tree or yours; *everybody* messes
-> around in the docs tree.  People know to look closely at changes to
-> makefiles and such; nobody thinks to examine documentation changes for
-> such things. I think there are attackers out there who would like the
-> opportunity to run commands in the settings where kernels are built; we
-> need to think pretty hard before we make that easier to do.
-> 
-> See what I'm getting at here?
 
-Yes, I see your point, but IMHO, if we add an extra logic at kernel-cmd to
-restrict it to run scripts *only* from an specific directory 
-(like Documentation/sphinx), then you'll have a better control.
-There were only 37 commits there, from you, me and Jani (and, AFAIKT, all
-of them were sent to the linux-doc ML for review):
 
-$ git log --pretty=fuller Documentation/sphinx|grep Commit:|sort|uniq -c
-     11 Commit:     Jani Nikula <jani.nikula@intel.com>
-     10 Commit:     Jonathan Corbet <corbet@lwn.net>
-     16 Commit:     Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-With is, btw, the same rule we have for a Sphinx extension. 
-
-If you thing this isn't enough, we could also add some logic at
-checkpatch.pl to check for the usage of Sphinx extensions.
-
-Thanks,
-Mauro
+-- 
+Best regards,
+Marek Vasut
