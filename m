@@ -1,56 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44424 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932843AbcJYKkQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Oct 2016 06:40:16 -0400
-Date: Tue, 25 Oct 2016 13:39:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Thierry Escande <thierry.escande@collabora.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH v5] [media] vb2: Add support for
- capture_dma_bidirectional queue flag
-Message-ID: <20161025103935.GN9460@valkosipuli.retiisi.org.uk>
-References: <1477383749-16208-1-git-send-email-thierry.escande@collabora.com>
+Received: from mail-out.m-online.net ([212.18.0.10]:39342 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755012AbcJGTCh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 15:02:37 -0400
+Subject: Re: [PATCH 18/22] [media] imx-ipuv3-csi: support downsizing
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+ <20161007160107.5074-19-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, kernel@pengutronix.de
+From: Marek Vasut <marex@denx.de>
+Message-ID: <51b1da71-720f-1c82-a42b-74be35992054@denx.de>
+Date: Fri, 7 Oct 2016 21:01:30 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1477383749-16208-1-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <20161007160107.5074-19-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 25, 2016 at 10:22:29AM +0200, Thierry Escande wrote:
-> From: Pawel Osciak <posciak@chromium.org>
+On 10/07/2016 06:01 PM, Philipp Zabel wrote:
+> Add support for the CSI internal horizontal and vertical downsizing.
 > 
-> When this flag is set for CAPTURE queues by the driver on calling
-> vb2_queue_init(), it forces the buffers on the queue to be
-> allocated/mapped with DMA_BIDIRECTIONAL direction flag instead of
-> DMA_FROM_DEVICE. This allows the device not only to write to the
-> buffers, but also read out from them. This may be useful e.g. for codec
-> hardware which may be using CAPTURE buffers as reference to decode
-> other buffers.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/platform/imx/imx-ipuv3-csi.c | 20 ++++++++++++++------
+>  1 file changed, 14 insertions(+), 6 deletions(-)
 > 
-> This flag is ignored for OUTPUT queues as we don't want to allow HW to
-> be able to write to OUTPUT buffers.
-> 
-> This patch introduces 2 macros:
-> VB2_DMA_DIR(q) returns the corresponding dma_dir for the passed queue
-> type, tanking care of the capture_dma_birectional flag.
-> 
-> VB2_DMA_DIR_CAPTURE(d) is a test macro returning true if the passed DMA
-> direction refers to a capture buffer. This test is used to map virtual
-> addresses for writing and to mark pages as dirty.
-> 
-> Signed-off-by: Pawel Osciak <posciak@chromium.org>
-> Tested-by: Pawel Osciak <posciak@chromium.org>
-> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
+> index 699460e6..e8a6a7b 100644
+> --- a/drivers/media/platform/imx/imx-ipuv3-csi.c
+> +++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
+> @@ -167,8 +167,16 @@ static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
+>  		width = clamp_t(unsigned int, sdformat->format.width, 16, 8192);
+>  		height = clamp_t(unsigned int, sdformat->format.height, 16, 4096);
+>  	} else {
+> -		width = ipucsi->format_mbus[0].width;
+> -		height = ipucsi->format_mbus[0].height;
+> +		if (sdformat->format.width <
+> +		    (ipucsi->format_mbus[0].width * 3 / 4))
+> +			width = ipucsi->format_mbus[0].width / 2;
+> +		else
+> +			width = ipucsi->format_mbus[0].width;
+> +		if (sdformat->format.height <
+> +		    (ipucsi->format_mbus[0].height * 3 / 4))
+> +			height = ipucsi->format_mbus[0].height / 2;
+> +		else
+> +			height = ipucsi->format_mbus[0].height;
+>  	}
+>  
+>  	mbusformat = __ipucsi_get_pad_format(sd, cfg, sdformat->pad,
+> @@ -212,14 +220,14 @@ static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
+>  		window.width = fmt[0].width;
+>  		window.height = fmt[0].height;
+>  		ipu_csi_set_window(ipucsi->csi, &window);
+> +		ipu_csi_set_downsize(ipucsi->csi,
+> +				     fmt[0].width == 2 * fmt[1].width,
+> +				     fmt[0].height == 2 * fmt[1].height);
+>  
+>  		/* Is CSI data source MCT (MIPI)? */
+>  		mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
+> -
+>  		ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
+> -		if (mux_mct)
+> -			ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
+> -						  &fmt[0]);
+> +		ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0, &fmt[0]);
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This probably needs fixing , so that the correct VC is passed in ?
+
+>  		ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
+>  					     &fmt[0]);
+> 
+
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Best regards,
+Marek Vasut
