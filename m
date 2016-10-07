@@ -1,44 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:53978 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935717AbcJSSuO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 14:50:14 -0400
-Received: from PatrickLaptop ([91.6.177.199]) by smtp.web.de (mrweb103) with
- ESMTPSA (Nemesis) id 0MbyMU-1cCoth0Pag-00JH9l for
- <linux-media@vger.kernel.org>; Wed, 19 Oct 2016 20:50:11 +0200
-Reply-To: <ps00de@yahoo.de>
-From: <ps00de@yahoo.de>
-To: <linux-media@vger.kernel.org>
-Subject: Re: em28xx WinTV dualHD in Raspbian
-Date: Wed, 19 Oct 2016 20:50:09 +0200
-Message-ID: <000901d22a39$9de21e70$d9a65b50$@yahoo.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: de
+Received: from bombadil.infradead.org ([198.137.202.9]:46795 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938896AbcJGRYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
+        Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH 21/26] pctv452e: don't call BUG_ON() on non-fatal error
+Date: Fri,  7 Oct 2016 14:24:31 -0300
+Message-Id: <930024c357cd6ec079aee59f410734aad1d4be59.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Based on this log:
-> 
-> Oct 18 23:08:01 mediapi kernel: [ 7590.369200] em28xx_dvb: disagrees about version of symbol dvb_dmxdev_init Oct 18 23:08:01 mediapi kernel: [ 7590.369228] em28xx_dvb: Unknown symbol dvb_dmxdev_init (err -22)
-> 
-> it seems you messed the modules install or you have the V4L2 stack compiled builtin with a different version. 
+There are some conditions on this driver that are tested with
+BUG_ON() with are not serious enough to hang a machine.
 
-How to fix this?
+So, just return an error if this happens.
 
-- I reinstalled the current firmware and kernel on the raspberry.
-- I installed the headers with sudo apt-get install raspberrypi-kernel-headers
-- Then I have cloned, build and installed the modules:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/pctv452e.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-git clone git://linuxtv.org/media_build.git
-cd media_build 
-./build
-sudo make install
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index 855fe9d34b59..14bd927c50d8 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -109,9 +109,11 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
+ 	unsigned int rlen;
+ 	int ret;
+ 
+-	BUG_ON(NULL == data && 0 != (write_len | read_len));
+-	BUG_ON(write_len > 64 - 4);
+-	BUG_ON(read_len > 64 - 4);
++	if (NULL == data && 0 != (write_len | read_len) ||
++	    write_len > 64 - 4) || (read_len > 64 - 4)) {
++		ret = -EIO;
++		goto failed;
++	};
+ 
+ 	id = state->c++;
+ 
+-- 
+2.7.4
 
-But the same errors appear again.
-
-Thanks,
-Patrick
 
