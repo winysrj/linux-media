@@ -1,98 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:49536 "EHLO mout02.posteo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752161AbcJJGg7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 02:36:59 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id D592820B13
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:36:57 +0200 (CEST)
-Date: Mon, 10 Oct 2016 08:36:56 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
-Subject: Re: [PATCH 11/26] digitv: don't do DMA on stack
-Message-ID: <20161010083656.4fa6610e@posteo.de>
-In-Reply-To: <0ab236ba1bfe2935b2cda329b706fcc1ef55edeb.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-        <0ab236ba1bfe2935b2cda329b706fcc1ef55edeb.1475860773.git.mchehab@s-opensource.com>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:35428 "EHLO
+        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753765AbcJGNyn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 09:54:43 -0400
+Received: by mail-oi0-f54.google.com with SMTP id d132so57623322oib.2
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2016 06:54:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAF6AEGto6iuNSG3Q3sBk1-wedhkPaJxM=Ru=ZcwfB63GwH7mhw@mail.gmail.com>
+References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
+ <20161005131959.GE20761@phenom.ffwll.local> <CA+M3ks5vZyrxzF84t2fX0CK33LWq2A-uM=6rDFru-AO0mAyKQA@mail.gmail.com>
+ <CAF6AEGto6iuNSG3Q3sBk1-wedhkPaJxM=Ru=ZcwfB63GwH7mhw@mail.gmail.com>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Fri, 7 Oct 2016 15:54:41 +0200
+Message-ID: <CA+M3ks6BkGuwKMYZXHPBeawB-5m+O1HxZvPpfbjO6voyoVJyZg@mail.gmail.com>
+Subject: Re: [PATCH v10 0/3] Secure Memory Allocation Framework
+To: Rob Clark <robdclark@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Cc Ma <cc.ma@mediatek.com>,
+        Joakim Bech <joakim.bech@linaro.org>,
+        Burt Lien <burt.lien@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+        Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  7 Oct 2016 14:24:21 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+Rob,
 
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/usb/dvb-usb/digitv.c | 20 +++++++++++---------
->  drivers/media/usb/dvb-usb/digitv.h |  3 +++
->  2 files changed, 14 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb/digitv.c
-> b/drivers/media/usb/dvb-usb/digitv.c index 63134335c994..09f8c28bd4db
-> 100644 --- a/drivers/media/usb/dvb-usb/digitv.c
-> +++ b/drivers/media/usb/dvb-usb/digitv.c
-> @@ -28,20 +28,22 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->  static int digitv_ctrl_msg(struct dvb_usb_device *d,
->  		u8 cmd, u8 vv, u8 *wbuf, int wlen, u8 *rbuf, int
-> rlen) {
-> +	struct digitv_state *st = d->priv;
->  	int wo = (rbuf == NULL || rlen == 0); /* write-only */
-> -	u8 sndbuf[7],rcvbuf[7];
-> -	memset(sndbuf,0,7); memset(rcvbuf,0,7);
->  
-> -	sndbuf[0] = cmd;
-> -	sndbuf[1] = vv;
-> -	sndbuf[2] = wo ? wlen : rlen;
-> +	memset(st->sndbuf, 0, 7);
-> +	memset(st->rcvbuf, 0, 7);
-> +
-> +	st->sndbuf[0] = cmd;
-> +	st->sndbuf[1] = vv;
-> +	st->sndbuf[2] = wo ? wlen : rlen;
->  
->  	if (wo) {
-> -		memcpy(&sndbuf[3],wbuf,wlen);
-> -		dvb_usb_generic_write(d,sndbuf,7);
-> +		memcpy(&st->sndbuf[3], wbuf, wlen);
-> +		dvb_usb_generic_write(d, st->sndbuf, 7);
->  	} else {
-> -		dvb_usb_generic_rw(d,sndbuf,7,rcvbuf,7,10);
-> -		memcpy(rbuf,&rcvbuf[3],rlen);
-> +		dvb_usb_generic_rw(d, st->sndbuf, 7, st->rcvbuf, 7,
-> 10);
-> +		memcpy(rbuf, &st->rcvbuf[3], rlen);
->  	}
->  	return 0;
->  }
-> diff --git a/drivers/media/usb/dvb-usb/digitv.h
-> b/drivers/media/usb/dvb-usb/digitv.h index 908c09f4966b..cf104689bdff
-> 100644 --- a/drivers/media/usb/dvb-usb/digitv.h
-> +++ b/drivers/media/usb/dvb-usb/digitv.h
-> @@ -6,6 +6,9 @@
->  
->  struct digitv_state {
->      int is_nxt6000;
-> +
-> +    unsigned char sndbuf[7];
-> +    unsigned char rcvbuf[7];
->  };
->  
->  /* protocol (from usblogging and the SDK:
+how do you know which devices are concerned when listing the constraints ?
+Does combine_capabilities is done from each allocation or can it be cached =
+?
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+Regards,
+Benjmain
+
+2016-10-06 18:54 GMT+02:00 Rob Clark <robdclark@gmail.com>:
+> so there is discussion about a "central userspace allocator" (ie. more
+> like a common userspace API that could be implemented on top of
+> various devices/APIs) to decide in a generic way which device could
+> allocate.
+>
+>   https://github.com/cubanismo/allocator
+>
+> and I wrote up some rough thoughts/proposal about how the usage might
+> look.. just rough, so don't try to compile it or anything, and not
+> consensus yet so it will probably change/evolve..
+>
+>   https://github.com/robclark/allocator/blob/master/USAGE.md
+>
+> I think ion could be just another device to share buffers with, which
+> happens to not impose any specific constraints.  How "liballoc-ion.so"
+> backend figures out how to map constraints/usage to a heap is a bit
+> hand-wavey at the moment.
+>
+> BR,
+> -R
+>
+> On Wed, Oct 5, 2016 at 9:40 AM, Benjamin Gaignard
+> <benjamin.gaignard@linaro.org> wrote:
+>> because with ion it is up to userland to decide which heap to use
+>> and until now userland doesn't have any way to get device constraints...
+>>
+>> I will prefer let a central allocator (in kernel) decide from the
+>> attached devices
+>> which allocator is the best. It is what I have implemented in smaf.
+>>
+>> Benjamin
+>>
+>>
+>> 2016-10-05 15:19 GMT+02:00 Daniel Vetter <daniel@ffwll.ch>:
+>>> On Tue, Oct 04, 2016 at 01:47:21PM +0200, Benjamin Gaignard wrote:
+>>>> version 10 changes:
+>>>>  - rebased on kernel 4.8 tag
+>>>>  - minor typo fix
+>>>>
+>>>> version 9 changes:
+>>>>  - rebased on 4.8-rc5
+>>>>  - struct dma_attrs doesn't exist anymore so update CMA allocator
+>>>>    to compile with new dma_*_attr functions
+>>>>  - add example SMAF use case in cover letter
+>>>>
+>>>> version 8 changes:
+>>>>  - rework of the structures used within ioctl
+>>>>    by adding a version field and padding to be futur proof
+>>>>  - rename fake secure moduel to test secure module
+>>>>  - fix the various remarks done on the previous patcheset
+>>>>
+>>>> version 7 changes:
+>>>>  - rebased on kernel 4.6-rc7
+>>>>  - simplify secure module API
+>>>>  - add vma ops to be able to detect mmap/munmap calls
+>>>>  - add ioctl to get number and allocator names
+>>>>  - update libsmaf with adding tests
+>>>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>>>  - add debug log in fake secure module
+>>>>
+>>>> version 6 changes:
+>>>>  - rebased on kernel 4.5-rc4
+>>>>  - fix mmapping bug while requested allocation size isn't a a multiple=
+ of
+>>>>    PAGE_SIZE (add a test for this in libsmaf)
+>>>>
+>>>> version 5 changes:
+>>>>  - rebased on kernel 4.3-rc6
+>>>>  - rework locking schema and make handle status use an atomic_t
+>>>>  - add a fake secure module to allow performing tests without trusted
+>>>>    environment
+>>>>
+>>>> version 4 changes:
+>>>>  - rebased on kernel 4.3-rc3
+>>>>  - fix missing EXPORT_SYMBOL for smaf_create_handle()
+>>>>
+>>>> version 3 changes:
+>>>>  - Remove ioctl for allocator selection instead provide the name of
+>>>>    the targeted allocator with allocation request.
+>>>>    Selecting allocator from userland isn't the prefered way of working
+>>>>    but is needed when the first user of the buffer is a software compo=
+nent.
+>>>>  - Fix issues in case of error while creating smaf handle.
+>>>>  - Fix module license.
+>>>>  - Update libsmaf and tests to care of the SMAF API evolution
+>>>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>>>
+>>>> version 2 changes:
+>>>>  - Add one ioctl to allow allocator selection from userspace.
+>>>>    This is required for the uses case where the first user of
+>>>>    the buffer is a software IP which can't perform dma_buf attachement=
+.
+>>>>  - Add name and ranking to allocator structure to be able to sort them=
+.
+>>>>  - Create a tiny library to test SMAF:
+>>>>    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
+>>>>  - Fix one issue when try to secure buffer without secure module regis=
+tered
+>>>>
+>>>> SMAF aim to solve two problems: allocating memory that fit with hardwa=
+re IPs
+>>>> constraints and secure those data from bus point of view.
+>>>>
+>>>> One example of SMAF usage is camera preview: on SoC you may use either=
+ an USB
+>>>> webcam or the built-in camera interface and the frames could be send d=
+irectly
+>>>> to the dipslay Ip or handle by GPU.
+>>>> Most of USB interfaces and GPU have mmu but almost all built-in camera
+>>>> interace and display Ips don't have mmu so when selecting how allocate
+>>>> buffer you need to be aware of each devices constraints (contiguous me=
+mroy,
+>>>> stride, boundary, alignment ...).
+>>>> ION has solve this problem by let userland decide which allocator (hea=
+p) to use
+>>>> but this require to adapt userland for each platform and sometime for =
+each
+>>>> use case.
+>>>>
+>>>> To be sure to select the best allocation method for devices SMAF imple=
+ment
+>>>> deferred allocation mechanism: memory allocation is only done when the=
+ first
+>>>> device effectively required it.
+>>>> Allocator modules have to implement a match() to let SMAF know if they=
+ are
+>>>> compatibles with devices needs.
+>>>> This patch set provide an example of allocator module which use
+>>>> dma_{alloc/free/mmap}_attrs() and check if at least one device have
+>>>> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
+>>>>
+>>>> In the same camera preview use case, SMAF allow to protect the data fr=
+om being
+>>>> read by unauthorized IPs (i.e. a malware to dump camera stream).
+>>>> Until now I have only see access rights protection at process/thread l=
+evel
+>>>> (PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus f=
+irewalls.
+>>>> SMAF propose an interface to control and implement those firewalls.
+>>>> Like IOMMU, firewalls IPs can help to protect memory from malicious/fa=
+ulty devices
+>>>> that are attempting DMA attacks.
+>>>>
+>>>> Secure modules are responsibles of granting and revoking devices acces=
+s rights
+>>>> on the memory. Secure module is also called to check if CPU map memory=
+ into
+>>>> kernel and user address spaces.
+>>>> An example of secure module implementation can be found here:
+>>>> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
+>>>> This code isn't yet part of the patch set because it depends on generi=
+c TEE
+>>>> which is still under discussion (https://lwn.net/Articles/644646/)
+>>>>
+>>>> For allocation part of SMAF code I get inspirated by Sumit Semwal work=
+ about
+>>>> constraint aware allocator.
+>>>
+>>> semi-random review comment, and a bit late: Why not implement smaf as a
+>>> new heap in ion? I think consensus is pretty much that we'll be stuck w=
+ith
+>>> ion forever, and I think it's better to have 1 central buffer allocater
+>>> than lots of them ...
+>>> -Daniel
+>>>
+>>>>
+>>>> Benjamin Gaignard (3):
+>>>>   create SMAF module
+>>>>   SMAF: add CMA allocator
+>>>>   SMAF: add test secure module
+>>>>
+>>>>  drivers/Kconfig                |   2 +
+>>>>  drivers/Makefile               |   1 +
+>>>>  drivers/smaf/Kconfig           |  17 +
+>>>>  drivers/smaf/Makefile          |   3 +
+>>>>  drivers/smaf/smaf-cma.c        | 186 ++++++++++
+>>>>  drivers/smaf/smaf-core.c       | 818 ++++++++++++++++++++++++++++++++=
++++++++++
+>>>>  drivers/smaf/smaf-testsecure.c |  90 +++++
+>>>>  include/linux/smaf-allocator.h |  45 +++
+>>>>  include/linux/smaf-secure.h    |  65 ++++
+>>>>  include/uapi/linux/smaf.h      |  85 +++++
+>>>>  10 files changed, 1312 insertions(+)
+>>>>  create mode 100644 drivers/smaf/Kconfig
+>>>>  create mode 100644 drivers/smaf/Makefile
+>>>>  create mode 100644 drivers/smaf/smaf-cma.c
+>>>>  create mode 100644 drivers/smaf/smaf-core.c
+>>>>  create mode 100644 drivers/smaf/smaf-testsecure.c
+>>>>  create mode 100644 include/linux/smaf-allocator.h
+>>>>  create mode 100644 include/linux/smaf-secure.h
+>>>>  create mode 100644 include/uapi/linux/smaf.h
+>>>>
+>>>> --
+>>>> 1.9.1
+>>>>
+>>>> _______________________________________________
+>>>> dri-devel mailing list
+>>>> dri-devel@lists.freedesktop.org
+>>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>>
+>>> --
+>>> Daniel Vetter
+>>> Software Engineer, Intel Corporation
+>>> http://blog.ffwll.ch
+>>
+>>
+>>
+>> --
+>> Benjamin Gaignard
+>>
+>> Graphic Study Group
+>>
+>> Linaro.org =E2=94=82 Open source software for ARM SoCs
+>>
+>> Follow Linaro: Facebook | Twitter | Blog
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+
+
+--=20
+Benjamin Gaignard
+
+Graphic Study Group
+
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
