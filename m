@@ -1,76 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:47497 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750749AbcJRJNz (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:58675 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936473AbcJGQBV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 05:13:55 -0400
-Date: Tue, 18 Oct 2016 07:13:48 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org, Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 1/4] doc-rst: reST-directive kernel-cmd / include
- contentent from scripts
-Message-ID: <20161018071348.64550345@vento.lan>
-In-Reply-To: <87lgxmxkag.fsf@intel.com>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
-        <1475738420-8747-2-git-send-email-markus.heiser@darmarit.de>
-        <20161017144638.139491ad@vento.lan>
-        <87lgxmxkag.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 7 Oct 2016 12:01:21 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 17/22] gpu: ipuv3: add ipu_csi_set_downsize
+Date: Fri,  7 Oct 2016 18:01:02 +0200
+Message-Id: <20161007160107.5074-18-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 18 Oct 2016 09:07:03 +0300
-Jani Nikula <jani.nikula@intel.com> escreveu:
+Support downsizing to 1/2 width and/or height in the CSI.
 
-> On Mon, 17 Oct 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > [PATCH] docs-rst: user: add MAINTAINERS
-> >
-> > including MAINTAINERS using ReST is tricky, because all
-> > maintainer's entries are like:
-> >
-> > FOO SUBSYSTEM:
-> > M: My Name <my@name>
-> > L: mailing@list
-> > S: Maintained
-> > F: foo/bar
-> >
-> > On ReST, this would be displayed on a single line. Using
-> > alias, like |M|, |L|, ... won't solve, as an alias in
-> > Sphinx doesn't accept breaking lines.
-> >
-> > So, instead of changing every line at MAINTAINERS, let's
-> > use kernel-cmd extension in order to parse it via a script.  
-> 
-> Soon I'm going to stop fighting the windmills...
-> 
-> If you're going to insist on getting kernel-cmd upstream (and I haven't
-> changed my opinion on that) 
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/gpu/ipu-v3/ipu-csi.c | 16 ++++++++++++++++
+ include/video/imx-ipu-v3.h   |  1 +
+ 2 files changed, 17 insertions(+)
 
-I also didn't change my mind that maintaining just one python script is
-easier than maintaining a plead of python scripts with almost identical
-contents.
+diff --git a/drivers/gpu/ipu-v3/ipu-csi.c b/drivers/gpu/ipu-v3/ipu-csi.c
+index 06631ac..77f172e 100644
+--- a/drivers/gpu/ipu-v3/ipu-csi.c
++++ b/drivers/gpu/ipu-v3/ipu-csi.c
+@@ -527,6 +527,22 @@ void ipu_csi_set_window(struct ipu_csi *csi, struct v4l2_rect *w)
+ }
+ EXPORT_SYMBOL_GPL(ipu_csi_set_window);
+ 
++void ipu_csi_set_downsize(struct ipu_csi *csi, bool horiz, bool vert)
++{
++	unsigned long flags;
++	u32 reg;
++
++	spin_lock_irqsave(&csi->lock, flags);
++
++	reg = ipu_csi_read(csi, CSI_OUT_FRM_CTRL);
++	reg &= ~(CSI_HORI_DOWNSIZE_EN | CSI_VERT_DOWNSIZE_EN);
++	reg |= (horiz ? CSI_HORI_DOWNSIZE_EN : 0) |
++	       (vert ? CSI_VERT_DOWNSIZE_EN : 0);
++	ipu_csi_write(csi, reg, CSI_OUT_FRM_CTRL);
++
++	spin_unlock_irqrestore(&csi->lock, flags);
++}
++
+ void ipu_csi_set_test_generator(struct ipu_csi *csi, bool active,
+ 				u32 r_value, u32 g_value, u32 b_value,
+ 				u32 pix_clk)
+diff --git a/include/video/imx-ipu-v3.h b/include/video/imx-ipu-v3.h
+index 7adeaae0..5f2f26d 100644
+--- a/include/video/imx-ipu-v3.h
++++ b/include/video/imx-ipu-v3.h
+@@ -271,6 +271,7 @@ int ipu_csi_init_interface(struct ipu_csi *csi,
+ bool ipu_csi_is_interlaced(struct ipu_csi *csi);
+ void ipu_csi_get_window(struct ipu_csi *csi, struct v4l2_rect *w);
+ void ipu_csi_set_window(struct ipu_csi *csi, struct v4l2_rect *w);
++void ipu_csi_set_downsize(struct ipu_csi *csi, bool horiz, bool vert);
+ void ipu_csi_set_test_generator(struct ipu_csi *csi, bool active,
+ 				u32 r_value, u32 g_value, u32 b_value,
+ 				u32 pix_clk);
+-- 
+2.9.3
 
-In any case, if we're willing to have one Python script per each
-different non-Python parser, it helps if the source code of such extensions
-would be identical, except for the command line that will run the script,
-as, if we find a bug on one such script, the same bug fix could be applied
-to the other almost identical ones.
-
-> please at least have the sense to have just
-> *one* perl script to parse MAINTAINERS, not many. The one script should
-> be scripts/get_maintainer.pl.
-
-Agreed. get_maintainer.pl is indeed the best place to put it. I wrote
-it this separate script just for a proof of concept, whose goal is to test
-if the kernel-cmd extension would be properly parsing the ReST output,
-and to identify what sort of output would fit best for the MAINTAINERS
-database.
-
-Thanks,
-Mauro
