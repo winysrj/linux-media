@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:54511 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932163AbcJQSxE (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57545 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936586AbcJGQBY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 14:53:04 -0400
-Date: Mon, 17 Oct 2016 20:52:57 +0100
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: mchehab@s-opensource.com, hverkuil@xs4all.nl
-Cc: ismael@iodev.co.uk, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, maintainers@bluecherrydvr.com,
-        andrey.utkin@corp.bluecherry.net
-Subject: Re: [PATCH] [media] solo6x10: avoid delayed register write
-Message-ID: <20161017195257.GD21569@stationary.pb.com>
-References: <20160922000331.4193-1-andrey.utkin@corp.bluecherry.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20160922000331.4193-1-andrey.utkin@corp.bluecherry.net>
+        Fri, 7 Oct 2016 12:01:24 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 22/22] [media] tc358743: set entity function to video interface bridge
+Date: Fri,  7 Oct 2016 18:01:07 +0200
+Message-Id: <20161007160107.5074-23-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 22, 2016 at 03:03:31AM +0300, Andrey Utkin wrote:
-> This fixes a lockup at device probing which happens on some solo6010
-> hardware samples. This is a regression introduced by commit e1ceb25a1569
-> ("[media] SOLO6x10: remove unneeded register locking and barriers")
-> 
-> The observed lockup happens in solo_set_motion_threshold() called from
-> solo_motion_config().
-> 
-> This extra "flushing" is not fundamentally needed for every write, but
-> apparently the code in driver assumes such behaviour at last in some
-> places.
-> 
-> Actual fix was proposed by Hans Verkuil.
-> 
-> Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-> ---
->  drivers/media/pci/solo6x10/solo6x10.h | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/pci/solo6x10/solo6x10.h b/drivers/media/pci/solo6x10/solo6x10.h
-> index 5bd4987..3f8da5e 100644
-> --- a/drivers/media/pci/solo6x10/solo6x10.h
-> +++ b/drivers/media/pci/solo6x10/solo6x10.h
-> @@ -284,7 +284,10 @@ static inline u32 solo_reg_read(struct solo_dev *solo_dev, int reg)
->  static inline void solo_reg_write(struct solo_dev *solo_dev, int reg,
->  				  u32 data)
->  {
-> +	u16 val;
-> +
->  	writel(data, solo_dev->reg_base + reg);
-> +	pci_read_config_word(solo_dev->pdev, PCI_STATUS, &val);
->  }
->  
->  static inline void solo_irq_on(struct solo_dev *dev, u32 mask)
-> -- 
-> 2.9.2
-> 
+The TC358743 is an HDMI to MIPI CSI2-2 bridge.
 
-Mauro, Hans,
-Please pick this up. This has been around for a month, I expected it
-would get to v4.9-rc1 easily.
-Thanks.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/i2c/tc358743.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index dfa45d2..c7a8f55 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1891,6 +1891,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	}
+ 
+ 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
+ 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
+ 	if (err < 0)
+ 		goto err_hdl;
+-- 
+2.9.3
+
