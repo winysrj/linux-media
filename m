@@ -1,65 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57136 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755283AbcJQSoY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 14:44:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from mx2.suse.de ([195.135.220.15]:54430 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753718AbcJGHw6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Oct 2016 03:52:58 -0400
+Date: Fri, 7 Oct 2016 09:52:56 +0200 (CEST)
+From: Jiri Kosina <jikos@kernel.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+cc: =?ISO-8859-15?Q?J=F6rg_Otte?= <jrg.otte@gmail.com>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 54/57] [media] platform: don't break long lines
-Date: Mon, 17 Oct 2016 21:44:19 +0300
-Message-ID: <1555833.ll1z87MvFR@avalon>
-In-Reply-To: <20161017193945.GA21569@stationary.pb.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com> <3227277.L9jDJkdF0E@avalon> <20161017193945.GA21569@stationary.pb.com>
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Problem with VMAP_STACK=y
+In-Reply-To: <20161006141734.4b2e4880@vento.lan>
+Message-ID: <alpine.LNX.2.00.1610070952010.31629@cbobk.fhfr.pm>
+References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com> <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com> <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
+ <20161005093417.6e82bd97@vdr> <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm> <20161005060450.1b0f2152@vento.lan> <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org> <20161005155532.682258e2@vento.lan> <CADDKRnCV7YhD5ErkvWSL8P3adymCLqzp5OePYmGp0L=9Dt_=UA@mail.gmail.com>
+ <20161006141734.4b2e4880@vento.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrey,
+On Thu, 6 Oct 2016, Mauro Carvalho Chehab wrote:
 
-On Monday 17 Oct 2016 20:39:45 Andrey Utkin wrote:
-> On Mon, Oct 17, 2016 at 04:45:06PM +0300, Laurent Pinchart wrote:
-> > If you really want to perform such a change, let's not make lines
-> > unnecessarily long either. You should add a line break after the first and
-> > 
-> > second argument:
-> > 		dprintk(ctx->dev,
-> > 		
-> > 			"%s data will not fit into plane(%lu < %lu)\n",
-> > 			__func__, vb2_plane_size(vb, 0),
-> > 			(long)q_data->sizeimage);
-> > 
-> > And everything will fit in 80 columns.
-> 
-> Same happens in other places, e.g. the hunk for
-> cx8802_unregister_driver() in another patch in this series, and not just
-> one time (looked just patches where I was a direct recipient).
-> There is a printing function call with previously split string literal,
-> followed by several arguments. This unnecessarily long function call is
-> now a single line.
-> Maybe the remaining manual work may be outsourced to seekers of janitor
-> tasks?
+> I can't see any other obvious error on the conversion. You could try to 
+> enable debug options at DVB core/dvb-usb and/or add some printk's to the 
+> driver and see what's happening.
 
-I'm fine with that, but we should rework the original patches, not merge fixes 
-on top of them.
+Mauro, also please don't forget that there are many more places in 
+drivers/media that still perform DMA on stack, and so have to be fixed for 
+4.9 (as VMAP_STACK makes that to be immediately visible problem even on 
+x86_64, which it wasn't the case before).
+
+Thanks,
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jiri Kosina
+SUSE Labs
 
