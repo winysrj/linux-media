@@ -1,386 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f182.google.com ([209.85.192.182]:36862 "EHLO
-        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752929AbcJKXup (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:54534 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932719AbcJGRA2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 19:50:45 -0400
-Received: by mail-pf0-f182.google.com with SMTP id e6so9244890pfk.3
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 16:50:44 -0700 (PDT)
-From: Ruchi Kandoi <kandoiruchi@google.com>
-To: kandoiruchi@google.com, gregkh@linuxfoundation.org,
-        arve@android.com, riandrews@android.com, sumit.semwal@linaro.org,
-        arnd@arndb.de, labbott@redhat.com, viro@zeniv.linux.org.uk,
-        jlayton@poochiereds.net, bfields@fieldses.org, mingo@redhat.com,
-        peterz@infradead.org, akpm@linux-foundation.org,
-        keescook@chromium.org, mhocko@suse.com, oleg@redhat.com,
-        john.stultz@linaro.org, mguzik@redhat.com, jdanis@google.com,
-        adobriyan@gmail.com, ghackmann@google.com,
-        kirill.shutemov@linux.intel.com, vbabka@suse.cz,
-        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
-        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, luto@kernel.org,
-        tj@kernel.org, vdavydov.dev@gmail.com, ebiederm@xmission.com,
-        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org, linux-fsdevel@vger.kernel.org,
-        linux-mm@kvack.org
-Subject: [RFC 4/6] memtrack: Adds the accounting to keep track of all mmaped/unmapped pages.
-Date: Tue, 11 Oct 2016 16:50:08 -0700
-Message-Id: <1476229810-26570-5-git-send-email-kandoiruchi@google.com>
-In-Reply-To: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
-References: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+        Fri, 7 Oct 2016 13:00:28 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 3/3] libv4l-delta: add mpeg header parser
+Date: Fri, 7 Oct 2016 19:00:18 +0200
+Message-ID: <1475859618-829-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1475859618-829-1-git-send-email-hugues.fruchet@st.com>
+References: <1475859618-829-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since mmaped pages will be accounted by the PSS, memtrack needs a way
-to differentiate the total memory that hasn't been accounted for.
+From: Tiphaine Inguere <tifaine.inguere@st.com>
 
-Signed-off-by: Ruchi Kandoi <kandoiruchi@google.com>
-Signed-off-by: Greg Hackmann <ghackmann@google.com>
+If the input stream format is MPEG1 or MPEG2, the stream is parsed
+using mpeg parser library to build mpeg metadata.
+
+Change-Id: I767cd0a8ea546755bcdc031ca4a2808690cccf63
+signed-off-by: Tiphaine Inguere <tifaine.inguere@st.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/misc/memtrack.c           | 175 ++++++++++++++++++++++++++++++++------
- drivers/staging/android/ion/ion.c |   5 +-
- include/linux/memtrack.h          |  29 +++++++
- 3 files changed, 180 insertions(+), 29 deletions(-)
+ lib/libv4l-delta/Makefile.am          |   4 +
+ lib/libv4l-delta/libv4l-delta-mpeg2.c | 211 ++++++++++++++++++++++++++++++++++
+ lib/libv4l-delta/libv4l-delta.c       |   6 +-
+ 3 files changed, 220 insertions(+), 1 deletion(-)
+ create mode 100644 lib/libv4l-delta/libv4l-delta-mpeg2.c
 
-diff --git a/drivers/misc/memtrack.c b/drivers/misc/memtrack.c
-index e5c7e03..4b2d17f 100644
---- a/drivers/misc/memtrack.c
-+++ b/drivers/misc/memtrack.c
-@@ -22,12 +22,19 @@
- #include <linux/rbtree.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
-+#include <linux/mm.h>
+diff --git a/lib/libv4l-delta/Makefile.am b/lib/libv4l-delta/Makefile.am
+index fa401b6..3812de5 100644
+--- a/lib/libv4l-delta/Makefile.am
++++ b/lib/libv4l-delta/Makefile.am
+@@ -6,6 +6,10 @@ SUBDIRS = codecparsers
+ 
+ libv4l_delta_la_SOURCES = libv4l-delta.c libv4l-delta.h
+ 
++##### MPEG2 decoder #####
++libv4l_delta_la_SOURCES += libv4l-delta-mpeg2.c
 +
-+struct memtrack_vma_list {
-+	struct hlist_node node;
-+	const struct vm_area_struct *vma;
-+};
- 
- struct memtrack_handle {
- 	struct memtrack_buffer *buffer;
- 	struct rb_node node;
- 	struct rb_root *root;
- 	struct kref refcount;
-+	struct hlist_head vma_list;
- };
- 
- static struct kmem_cache *memtrack_handle_cache;
-@@ -40,8 +47,8 @@ static DEFINE_IDR(mem_idr);
- static DEFINE_IDA(mem_ida);
- #endif
- 
--static void memtrack_buffer_install_locked(struct rb_root *root,
--		struct memtrack_buffer *buffer)
-+static struct memtrack_handle *memtrack_handle_find_locked(struct rb_root *root,
-+		struct memtrack_buffer *buffer, bool alloc)
- {
- 	struct rb_node **new = &root->rb_node, *parent = NULL;
- 	struct memtrack_handle *handle;
-@@ -56,22 +63,38 @@ static void memtrack_buffer_install_locked(struct rb_root *root,
- 		} else if (handle->buffer->id < buffer->id) {
- 			new = &node->rb_right;
- 		} else {
--			kref_get(&handle->refcount);
--			return;
-+			return handle;
- 		}
- 	}
- 
--	handle = kmem_cache_alloc(memtrack_handle_cache, GFP_KERNEL);
--	if (!handle)
--		return;
-+	if (alloc) {
-+		handle = kmem_cache_alloc(memtrack_handle_cache, GFP_KERNEL);
-+		if (!handle)
-+			return NULL;
- 
--	handle->buffer = buffer;
--	handle->root = root;
--	kref_init(&handle->refcount);
-+		handle->buffer = buffer;
-+		handle->root = root;
-+		kref_init(&handle->refcount);
-+		INIT_HLIST_HEAD(&handle->vma_list);
- 
--	rb_link_node(&handle->node, parent, new);
--	rb_insert_color(&handle->node, root);
--	atomic_inc(&handle->buffer->userspace_handles);
-+		rb_link_node(&handle->node, parent, new);
-+		rb_insert_color(&handle->node, root);
-+		atomic_inc(&handle->buffer->userspace_handles);
++##### Codecparser interface  #####
+ libv4l_delta_la_CPPFLAGS = $(CFLAG_VISIBILITY)
+ libv4l_delta_la_CFLAGS =	$(GST_CFLAGS)	-DGST_USE_UNSTABLE_API
+ libv4l_delta_la_LDFLAGS = -avoid-version -module -shared -export-dynamic -lpthread
+diff --git a/lib/libv4l-delta/libv4l-delta-mpeg2.c b/lib/libv4l-delta/libv4l-delta-mpeg2.c
+new file mode 100644
+index 0000000..7f69dd4
+--- /dev/null
++++ b/lib/libv4l-delta/libv4l-delta-mpeg2.c
+@@ -0,0 +1,211 @@
++/*
++ * libv4l-delta-mpeg2.c
++ *
++ * Copyright (C) STMicroelectronics SA 2014
++ * Authors: Tifaine Inguere <tifaine.inguere@st.com>
++ *          Hugues Fruchet <hugues.fruchet@st.com>
++ */
++#include <errno.h>
++#include <stdlib.h>
++#include <string.h>
++
++#include "codecparsers/gstmpegvideoparser.h"
++#include "libv4l-delta.h"
++
++/* FIXME
++ * - meta coherency check (what is mandatory vs optional)
++ * - meta compatibility check (GST types must be aligned with V4L2 ones)
++ * - parsing errors tracing (trace in case of gst_parse_xxx fails)
++ * - do not parse all access unit (currently needed to detect the
++ *   second slice of a field interlaced bitstream)
++ */
++
++unsigned int delta_mpeg2_decode_header(void *au_addr,
++									   unsigned int au_size,
++									   struct v4l2_ctrl_mpeg2_meta *meta)
++{
++	unsigned char ExtensionCode;
++	unsigned int startcode_found = 0;
++	unsigned int header_found = 0;
++	GstMpegVideoPacket packet_data;
++	unsigned int slice_index = 0;
++
++	DELTA_LOG_DEBUG("> %s\n", __func__);
++
++	if ((!au_addr) || (!au_size) || (!meta)) {
++		DELTA_LOG_ERR("%s: invalid input: au_addr=%p, au_size=%d, meta=%p\n",
++					  __func__, au_addr, au_size, meta);
++		return 0;
 +	}
 +
-+	return NULL;
-+}
++	memset(meta, 0, sizeof(*meta));
++	meta->struct_size = sizeof(*meta);
 +
-+static void memtrack_buffer_install_locked(struct rb_root *root,
-+		struct memtrack_buffer *buffer)
-+{
-+	struct memtrack_handle *handle;
++	memset(&packet_data, 0, sizeof(packet_data));
 +
-+	handle = memtrack_handle_find_locked(root, buffer, true);
-+	if (handle) {
-+		kref_get(&handle->refcount);
-+		return;
-+	}
- }
- 
- /**
-@@ -112,19 +135,41 @@ static void memtrack_handle_destroy(struct kref *ref)
- static void memtrack_buffer_uninstall_locked(struct rb_root *root,
- 		struct memtrack_buffer *buffer)
- {
--	struct rb_node *node = root->rb_node;
-+	struct memtrack_handle *handle;
- 
--	while (node) {
--		struct memtrack_handle *handle = rb_entry(node,
--				struct memtrack_handle, node);
-+	handle = memtrack_handle_find_locked(root, buffer, false);
- 
--		if (handle->buffer->id > buffer->id) {
--			node = node->rb_left;
--		} else if (handle->buffer->id < buffer->id) {
--			node = node->rb_right;
--		} else {
--			kref_put(&handle->refcount, memtrack_handle_destroy);
--			return;
-+	if (handle)
-+		kref_put(&handle->refcount, memtrack_handle_destroy);
-+}
++	while (((packet_data.offset + 4) < au_size)) {
++		DELTA_LOG_DEBUG("%s: parsing input from offset=%d\n", __func__,
++						packet_data.offset);
++		startcode_found = gst_mpeg_video_parse(&packet_data, au_addr, au_size,
++											   packet_data.offset);
++		if (!startcode_found) {
++			DELTA_LOG_DEBUG("%s: parsing is over\n", __func__);
++            break;
++		}
++		DELTA_LOG_DEBUG("%s: found starcode @offset=%u, code=0x%02x\n",
++						__func__, packet_data.offset - 4, packet_data.type);
 +
-+static void memtrack_buffer_vm_open_locked(struct rb_root *root,
-+		struct memtrack_buffer *buffer,
-+		struct memtrack_vma_list *vma_list)
-+{
-+	struct memtrack_handle *handle;
-+
-+	handle = memtrack_handle_find_locked(root, buffer, false);
-+	if (handle)
-+		hlist_add_head(&vma_list->node, &handle->vma_list);
-+}
-+
-+static void memtrack_buffer_vm_close_locked(struct rb_root *root,
-+		struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma)
-+{
-+	struct memtrack_handle *handle;
-+
-+	handle = memtrack_handle_find_locked(root, buffer, false);
-+	if (handle) {
-+		struct memtrack_vma_list *vma_list;
-+
-+		hlist_for_each_entry(vma_list, &handle->vma_list, node) {
-+			if (vma_list->vma == vma) {
-+				hlist_del(&vma_list->node);
-+				kfree(vma_list);
-+				return;
++		switch (packet_data.type) {
++		case GST_MPEG_VIDEO_PACKET_PICTURE:
++			if (gst_mpeg_video_packet_parse_picture_header
++			    (&packet_data,
++				 (GstMpegVideoPictureHdr *)&(meta->pic[slice_index].pic_h))) {
++				meta->flags |= V4L2_CTRL_MPEG2_FLAG_PIC;
++				meta->pic[slice_index].flags |= MPEG2_META_PIC_FLAG_HDR;
++				DELTA_LOG_DEBUG("%s: MPEG2_META_PIC_FLAG_HDR\n", __func__);
++				header_found = 1;
 +			}
- 		}
- 	}
- }
-@@ -153,6 +198,49 @@ void memtrack_buffer_uninstall(struct memtrack_buffer *buffer,
- }
- EXPORT_SYMBOL(memtrack_buffer_uninstall);
++			break;
++
++		case GST_MPEG_VIDEO_PACKET_SLICE_MIN:
++			/* new slice encountered */
++			/* FIXME we can avoid to parse too much data here by stopping
++			* at first slice encountered but not in the case of field
++			* interlaced where 2 slices are expected
++			*/
++			if (slice_index > 1) {
++				DELTA_LOG_ERR("%s: more than 2 slices detected @offset=%d, ignoring this slice...\n",
++							  __func__, packet_data.offset);
++				break;
++			}
++
++			/* store its offset & size, including startcode */
++			meta->pic[slice_index].offset = packet_data.offset - 4;
++
++			slice_index++;
++
++			DELTA_LOG_DEBUG("%s: start of slice @ offset=%d\n", __func__, packet_data.offset);
++			header_found = 1;
++			break;
++
++		case GST_MPEG_VIDEO_PACKET_USER_DATA:
++			/* not implemented : do nothing */
++			DELTA_LOG_DEBUG("%s: user-data case not implemented\n", __func__);
++			break;
++
++		case GST_MPEG_VIDEO_PACKET_SEQUENCE:
++			if (gst_mpeg_video_packet_parse_sequence_header
++			    (&packet_data,
++				 (GstMpegVideoSequenceHdr *)&(meta->seq.seq_h))) {
++				meta->flags |= V4L2_CTRL_MPEG2_FLAG_SEQ;
++				meta->seq.flags |= MPEG2_META_SEQ_FLAG_HDR;
++				DELTA_LOG_DEBUG("%s: MPEG2_META_SEQ_FLAG_HDR\n", __func__);
++				header_found = 1;
++			}
++			break;
++
++		case GST_MPEG_VIDEO_PACKET_EXTENSION:
++			ExtensionCode = get_extension_code(&packet_data);
++			DELTA_LOG_DEBUG("%s: ExtensionCode=0x%02x  \n", __func__, ExtensionCode);
++
++			switch (ExtensionCode) {
++			case GST_MPEG_VIDEO_PACKET_EXT_SEQUENCE:
++				if (gst_mpeg_video_packet_parse_sequence_extension
++				    (&packet_data,
++					 (GstMpegVideoSequenceExt *)&(meta->seq.seq_e))) {
++					meta->flags |= V4L2_CTRL_MPEG2_FLAG_SEQ;
++					meta->seq.flags |= MPEG2_META_SEQ_FLAG_EXT;
++					DELTA_LOG_DEBUG("%s: MPEG2_META_SEQ_FLAG_EXT\n", __func__);
++					header_found = 1;
++				}
++				break;
++
++			case GST_MPEG_VIDEO_PACKET_EXT_SEQUENCE_DISPLAY:
++				if (gst_mpeg_video_packet_parse_sequence_display_extension
++				    (&packet_data,
++					 (GstMpegVideoSequenceDisplayExt *)&(meta->seq.seq_d))) {
++					meta->flags |= V4L2_CTRL_MPEG2_FLAG_SEQ;
++					meta->seq.flags |= MPEG2_META_SEQ_FLAG_DISPLAY_EXT;
++					DELTA_LOG_DEBUG("%s: MPEG2_META_SEQ_FLAG_DISPLAY_EXT\n", __func__);
++					header_found = 1;
++				}
++				break;
++
++			case GST_MPEG_VIDEO_PACKET_EXT_QUANT_MATRIX:
++				if (gst_mpeg_video_packet_parse_quant_matrix_extension
++				    (&packet_data,
++					 (GstMpegVideoQuantMatrixExt *)&(meta->seq.qua_m))) {
++					meta->flags |= V4L2_CTRL_MPEG2_FLAG_SEQ;
++					meta->seq.flags |= MPEG2_META_SEQ_FLAG_MATRIX_EXT;
++					DELTA_LOG_DEBUG("%s: MPEG2_META_SEQ_FLAG_MATRIX_EXT\n", __func__);
++					header_found = 1;
++				}
++				break;
++
++			case GST_MPEG_VIDEO_PACKET_EXT_SEQUENCE_SCALABLE:
++				if (gst_mpeg_video_packet_parse_sequence_scalable_extension
++				    (&packet_data,
++					 (GstMpegVideoSequenceScalableExt *)&(meta->seq.seq_s))) {
++					meta->flags |= V4L2_CTRL_MPEG2_FLAG_SEQ;
++					meta->seq.flags |= MPEG2_META_SEQ_FLAG_SCALABLE_EXT;
++					DELTA_LOG_DEBUG("%s: MPEG2_META_SEQ_FLAG_SCALABLE_EXT\n", __func__);
++					header_found = 1;
++				}
++				break;
++
++			case GST_MPEG_VIDEO_PACKET_EXT_PICTURE:
++				if (gst_mpeg_video_packet_parse_picture_extension
++				    (&packet_data,
++					 (GstMpegVideoPictureExt *)&(meta->pic[slice_index].pic_e))) {
++					meta->flags |= V4L2_CTRL_MPEG2_FLAG_PIC;
++					meta->pic[slice_index].flags |= MPEG2_META_PIC_FLAG_EXT;
++					DELTA_LOG_DEBUG("%s: MPEG2_META_PIC_FLAG_EXT top_field_first=%d\n",
++									__func__, meta->pic[slice_index].pic_e.top_field_first);
++					header_found = 1;
++				}
++				break;
++
++			default:
++				break;
++			}
++			break;
++
++		case GST_MPEG_VIDEO_PACKET_SEQUENCE_END:
++			DELTA_LOG_DEBUG("%s: end of packet sequence\n", __func__);
++			break;
++
++		case GST_MPEG_VIDEO_PACKET_GOP:
++			if (gst_mpeg_video_packet_parse_gop
++			    (&packet_data,
++				 (GstMpegVideoGop *)&(meta->pic[slice_index].g_o_p))) {
++				meta->flags |= V4L2_CTRL_MPEG2_FLAG_PIC;
++				meta->pic[slice_index].flags |= MPEG2_META_PIC_FLAG_GOP;
++				DELTA_LOG_DEBUG("%s: MPEG2_META_PIC_FLAG_GOP\n", __func__);
++				header_found = 1;
++			}
++			break;
++
++		default:
++			DELTA_LOG_DEBUG("%s: unknown/unsupported header %02x\n",
++							__func__, packet_data.type);
++			break;
++		}
++	}
++
++	DELTA_LOG_DEBUG("< %s\n", __func__);
++	return header_found;
++}
++
++const struct delta_metadata mpeg2meta = {
++	.name = "mpeg2",
++	.stream_format = V4L2_PIX_FMT_MPEG2,
++	.meta_size = sizeof(struct v4l2_ctrl_mpeg2_meta),
++	.decode_header = delta_mpeg2_decode_header,
++};
++
++const struct delta_metadata mpeg1meta = {
++	.name = "mpeg1",
++	.stream_format = V4L2_PIX_FMT_MPEG1,
++	.meta_size = sizeof(struct v4l2_ctrl_mpeg2_meta),
++	.decode_header = delta_mpeg2_decode_header,
++};
+diff --git a/lib/libv4l-delta/libv4l-delta.c b/lib/libv4l-delta/libv4l-delta.c
+index aa33e94..97e709a 100644
+--- a/lib/libv4l-delta/libv4l-delta.c
++++ b/lib/libv4l-delta/libv4l-delta.c
+@@ -50,8 +50,12 @@
+ 	((type == V4L2_BUF_TYPE_VIDEO_CAPTURE) ? "CAPTURE" : "?"))
  
-+/**
-+ * memtrack_buffer_vm_open - account for pages mapped during vm open
-+ *
-+ * @buffer: the buffer's memtrack entry
-+ *
-+ * @vma: vma being opened
-+ */
-+void memtrack_buffer_vm_open(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma)
-+{
-+	unsigned long flags;
-+	struct task_struct *leader = current->group_leader;
-+	struct memtrack_vma_list *vma_list;
-+
-+	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
-+	if (WARN_ON(!vma_list))
-+		return;
-+	vma_list->vma = vma;
-+
-+	write_lock_irqsave(&leader->memtrack_lock, flags);
-+	memtrack_buffer_vm_open_locked(&leader->memtrack_rb, buffer, vma_list);
-+	write_unlock_irqrestore(&leader->memtrack_lock, flags);
-+}
-+EXPORT_SYMBOL(memtrack_buffer_vm_open);
-+
-+/**
-+ * memtrack_buffer_vm_close - account for pages unmapped during vm close
-+ *
-+ * @buffer: the buffer's memtrack entry
-+ * @vma: the vma being closed
-+ */
-+void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma)
-+{
-+	unsigned long flags;
-+	struct task_struct *leader = current->group_leader;
-+
-+	write_lock_irqsave(&leader->memtrack_lock, flags);
-+	memtrack_buffer_vm_close_locked(&leader->memtrack_rb, buffer, vma);
-+	write_unlock_irqrestore(&leader->memtrack_lock, flags);
-+}
-+EXPORT_SYMBOL(memtrack_buffer_vm_close);
-+
- static int memtrack_id_alloc(struct memtrack_buffer *buffer)
- {
- 	int ret;
-@@ -271,6 +359,33 @@ static struct notifier_block process_notifier_block = {
- 	.notifier_call	= process_notifier,
+ /* available metadata builders */
+-const struct delta_metadata *delta_meta[] = {
++extern const struct delta_metadata mpeg2meta;
++extern const struct delta_metadata mpeg1meta;
+ 
++const struct delta_metadata *delta_meta[] = {
++	&mpeg2meta,
++	&mpeg1meta,
  };
  
-+static void show_memtrack_vma(struct seq_file *m,
-+		const struct vm_area_struct *vma,
-+		const struct memtrack_buffer *buf)
-+{
-+	unsigned long start = vma->vm_start;
-+	unsigned long end = vma->vm_end;
-+	unsigned long long pgoff = ((loff_t)vma->vm_pgoff) << PAGE_SHIFT;
-+	vm_flags_t flags = vma->vm_flags;
-+	vm_flags_t remap_flag = VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+
-+	seq_setwidth(m, 50);
-+	seq_printf(m, "%68lx-%08lx  %c%c%c%c%c  %08llx",
-+			start,
-+			end,
-+			flags & VM_READ ? 'r' : '-',
-+			flags & VM_WRITE ? 'w' : '-',
-+			flags & VM_EXEC ? 'x' : '-',
-+			flags & VM_MAYSHARE ? 's' : 'p',
-+			flags & remap_flag ? '#' : '-',
-+			pgoff);
-+	if (buf->tag) {
-+		seq_pad(m, ' ');
-+		seq_puts(m, buf->tag);
-+	}
-+	seq_putc(m, '\n');
-+}
-+
- int proc_memtrack(struct seq_file *m, struct pid_namespace *ns, struct pid *pid,
- 			struct task_struct *task)
- {
-@@ -281,18 +396,23 @@ int proc_memtrack(struct seq_file *m, struct pid_namespace *ns, struct pid *pid,
- 	if (RB_EMPTY_ROOT(&task->memtrack_rb))
- 		goto done;
- 
--	seq_printf(m, "%10.10s: %16.16s: %12.12s: %3.3s: pid:%d\n",
--			"ref_count", "Identifier", "size", "tag", task->pid);
-+	seq_printf(m, "%10.10s: %16.16s: %12.12s: %12.12s: %20s: %5s: %8s: pid:%d\n",
-+			"ref_count", "Identifier", "size", "tag",
-+			"startAddr-endAddr", "Flags", "pgOff", task->pid);
- 
- 	for (node = rb_first(&task->memtrack_rb); node; node = rb_next(node)) {
- 		struct memtrack_handle *handle = rb_entry(node,
- 				struct memtrack_handle, node);
- 		struct memtrack_buffer *buffer = handle->buffer;
-+		struct memtrack_vma_list *vma;
- 
--		seq_printf(m, "%10d  %16d  %12zu  %s\n",
-+		seq_printf(m, "%10d  %16d  %12zu  %12s\n",
- 				atomic_read(&buffer->userspace_handles),
- 				buffer->id, buffer->size,
- 				buffer->tag ? buffer->tag : "");
-+
-+		hlist_for_each_entry(vma, &handle->vma_list, node)
-+			show_memtrack_vma(m, vma->vma, handle->buffer);
- 	}
- 
- done:
-@@ -308,7 +428,6 @@ static int memtrack_show(struct seq_file *m, void *v)
- 
- 	seq_printf(m, "%4.4s %12.12s %10s %12.12s %3.3s\n", "pid",
- 			"buffer_size", "ref", "Identifier", "tag");
--
- 	rcu_read_lock();
- 	idr_for_each_entry(&mem_idr, buffer, i)
- 		seq_printf(m, "%4d %12zu %10d %12d %s\n", buffer->pid,
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 1c2df54..c32d520 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -906,6 +906,7 @@ static void ion_vm_open(struct vm_area_struct *vma)
- 	list_add(&vma_list->list, &buffer->vmas);
- 	mutex_unlock(&buffer->lock);
- 	pr_debug("%s: adding %p\n", __func__, vma);
-+	memtrack_buffer_vm_open(&buffer->memtrack_buffer, vma);
- }
- 
- static void ion_vm_close(struct vm_area_struct *vma)
-@@ -924,6 +925,7 @@ static void ion_vm_close(struct vm_area_struct *vma)
- 		break;
- 	}
- 	mutex_unlock(&buffer->lock);
-+	memtrack_buffer_vm_close(&buffer->memtrack_buffer, vma);
- }
- 
- static const struct vm_operations_struct ion_vma_ops = {
-@@ -963,7 +965,8 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
- 	if (ret)
- 		pr_err("%s: failure mapping buffer to userspace\n",
- 		       __func__);
--
-+	else
-+		memtrack_buffer_mmap(dma_buf_memtrack_buffer(dmabuf), vma);
- 	return ret;
- }
- 
-diff --git a/include/linux/memtrack.h b/include/linux/memtrack.h
-index f73be07..5a4c7ea 100644
---- a/include/linux/memtrack.h
-+++ b/include/linux/memtrack.h
-@@ -33,12 +33,18 @@ struct memtrack_buffer {
- 
- int proc_memtrack(struct seq_file *m, struct pid_namespace *ns, struct pid *pid,
- 		struct task_struct *task);
-+int proc_memtrack_maps(struct seq_file *m, struct pid_namespace *ns,
-+			struct pid *pid, struct task_struct *task);
- int memtrack_buffer_init(struct memtrack_buffer *buffer, size_t size);
- void memtrack_buffer_remove(struct memtrack_buffer *buffer);
- void memtrack_buffer_install(struct memtrack_buffer *buffer,
- 		struct task_struct *tsk);
- void memtrack_buffer_uninstall(struct memtrack_buffer *buffer,
- 		struct task_struct *tsk);
-+void memtrack_buffer_vm_open(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma);
-+void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma);
- 
- /**
-  * memtrack_buffer_set_tag - add a descriptive tag to a memtrack entry
-@@ -90,5 +96,28 @@ static inline int memtrack_buffer_set_tag(struct memtrack_buffer *buffer,
- 	return -ENOENT;
- }
- 
-+static inline void memtrack_buffer_vm_open(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma)
-+{
-+}
-+
-+static inline void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma)
-+{
-+}
- #endif /* CONFIG_MEMTRACK */
-+
-+
-+/**
-+ * memtrack_buffer_vm_mmap - account for pages mapped to userspace during mmap
-+ *
-+ * @buffer: the buffer's memtrack entry
-+ * @vma: the vma passed to mmap()
-+ */
-+static inline void memtrack_buffer_mmap(struct memtrack_buffer *buffer,
-+		const struct vm_area_struct *vma)
-+{
-+	memtrack_buffer_vm_open(buffer, vma);
-+}
-+
- #endif /* _MEMTRACK_ */
+ static void *delta_plugin_init(int fd)
 -- 
-2.8.0.rc3.226.g39d4020
+1.9.1
 
