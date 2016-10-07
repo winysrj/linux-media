@@ -1,153 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37304 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753307AbcJDLrp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2016 07:47:45 -0400
-Received: by mail-wm0-f46.google.com with SMTP id b201so139750175wmb.0
-        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2016 04:47:45 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, cc.ma@mediatek.com,
-        joakim.bech@linaro.org, burt.lien@linaro.org,
-        linus.walleij@linaro.org
-Cc: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v10 3/3] SMAF: add test secure module
-Date: Tue,  4 Oct 2016 13:47:24 +0200
-Message-Id: <1475581644-10600-4-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:46789 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936391AbcJGRYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Sean Young <sean@mess.org>,
+        Nicolas Sugino <nsugino@3way.com.ar>,
+        Alejandro Torrado <aletorrado@gmail.com>
+Subject: [PATCH 07/26] dib0700: be sure that dib0700_ctrl_rd() users can do DMA
+Date: Fri,  7 Oct 2016 14:24:17 -0300
+Message-Id: <30a00ca71aec4502905cbdf5d1ab11c2ae7b8562.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This module is allow testing secure calls of SMAF.
+dib0700_ctrl_rd() takes a RX and a TX pointer. Be sure that
+both will point to a memory allocated via kmalloc().
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/smaf/Kconfig           |  6 +++
- drivers/smaf/Makefile          |  1 +
- drivers/smaf/smaf-testsecure.c | 90 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 97 insertions(+)
- create mode 100644 drivers/smaf/smaf-testsecure.c
+ drivers/media/usb/dvb-usb/dib0700_core.c    |  4 +++-
+ drivers/media/usb/dvb-usb/dib0700_devices.c | 25 +++++++++++++------------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
-index cfdfffd..73f2ebf 100644
---- a/drivers/smaf/Kconfig
-+++ b/drivers/smaf/Kconfig
-@@ -9,3 +9,9 @@ config SMAF_CMA
- 	depends on SMAF
- 	help
- 	  Choose this option to enable CMA allocation within SMAF
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index f3196658fb70..515f89dba199 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -292,13 +292,15 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 
+ 			/* special thing in the current firmware: when length is zero the read-failed */
+ 			len = dib0700_ctrl_rd(d, st->buf, msg[i].len + 2,
+-					msg[i+1].buf, msg[i+1].len);
++					      st->buf, msg[i + 1].len);
+ 			if (len <= 0) {
+ 				deb_info("I2C read failed on address 0x%02x\n",
+ 						msg[i].addr);
+ 				break;
+ 			}
+ 
++			memcpy(msg[i + 1].buf, st->buf, msg[i + 1].len);
 +
-+config SMAF_TEST_SECURE
-+	tristate "SMAF secure module for test"
-+	depends on SMAF
-+	help
-+	  Choose this option to enable secure module for test purpose
-diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
-index 05bab01b..bca6b9c 100644
---- a/drivers/smaf/Makefile
-+++ b/drivers/smaf/Makefile
-@@ -1,2 +1,3 @@
- obj-$(CONFIG_SMAF) += smaf-core.o
- obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
-+obj-$(CONFIG_SMAF_TEST_SECURE) += smaf-testsecure.o
-diff --git a/drivers/smaf/smaf-testsecure.c b/drivers/smaf/smaf-testsecure.c
-new file mode 100644
-index 0000000..823d0dc
---- /dev/null
-+++ b/drivers/smaf/smaf-testsecure.c
-@@ -0,0 +1,90 @@
-+/*
-+ * smaf-testsecure.c
-+ *
-+ * Copyright (C) Linaro SA 2015
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/smaf-secure.h>
+ 			msg[i+1].len = len;
+ 
+ 			i++;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 0857b56e652c..ef1b8ee75c57 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -508,8 +508,6 @@ static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ #define DEFAULT_RC_INTERVAL 50
+ 
+-static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+-
+ /*
+  * This function is used only when firmware is < 1.20 version. Newer
+  * firmwares use bulk mode, with functions implemented at dib0700_core,
+@@ -517,7 +515,6 @@ static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+  */
+ static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
+ {
+-	u8 key[4];
+ 	enum rc_type protocol;
+ 	u32 scancode;
+ 	u8 toggle;
+@@ -532,39 +529,43 @@ static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
+ 		return 0;
+ 	}
+ 
+-	i = dib0700_ctrl_rd(d, rc_request, 2, key, 4);
++	st->buf[0] = REQUEST_POLL_RC;
++	st->buf[1] = 0;
 +
-+#define MAGIC 0xDEADBEEF
-+
-+struct test_private {
-+	int magic;
-+};
-+
-+#define to_priv(x) (struct test_private *)(x)
-+
-+static void *smaf_testsecure_create(void)
-+{
-+	struct test_private *priv;
-+
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return NULL;
-+
-+	priv->magic = MAGIC;
-+
-+	return priv;
-+}
-+
-+static int smaf_testsecure_destroy(void *ctx)
-+{
-+	struct test_private *priv = to_priv(ctx);
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+	kfree(priv);
-+
-+	return 0;
-+}
-+
-+static bool smaf_testsecure_grant_access(void *ctx,
-+					 struct device *dev,
-+					 size_t addr, size_t size,
-+					 enum dma_data_direction direction)
-+{
-+	struct test_private *priv = to_priv(ctx);
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+	pr_debug("grant requested by device %s\n",
-+		 dev->driver ? dev->driver->name : "cpu");
-+
-+	return priv->magic == MAGIC;
-+}
-+
-+static void smaf_testsecure_revoke_access(void *ctx,
-+					  struct device *dev,
-+					  size_t addr, size_t size,
-+					  enum dma_data_direction direction)
-+{
-+	struct test_private *priv = to_priv(ctx);
-+
-+	WARN_ON(!priv || (priv->magic != MAGIC));
-+	pr_debug("revoke requested by device %s\n",
-+		 dev->driver ? dev->driver->name : "cpu");
-+}
-+
-+static struct smaf_secure test = {
-+	.create_ctx = smaf_testsecure_create,
-+	.destroy_ctx = smaf_testsecure_destroy,
-+	.grant_access = smaf_testsecure_grant_access,
-+	.revoke_access = smaf_testsecure_revoke_access,
-+};
-+
-+static int __init smaf_testsecure_init(void)
-+{
-+	return smaf_register_secure(&test);
-+}
-+module_init(smaf_testsecure_init);
-+
-+static void __exit smaf_testsecure_deinit(void)
-+{
-+	smaf_unregister_secure(&test);
-+}
-+module_exit(smaf_testsecure_deinit);
-+
-+MODULE_DESCRIPTION("SMAF secure module for test purpose");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
++	i = dib0700_ctrl_rd(d, st->buf, 2, st->buf, 4);
+ 	if (i <= 0) {
+ 		err("RC Query Failed");
+-		return -1;
++		return -EIO;
+ 	}
+ 
+ 	/* losing half of KEY_0 events from Philipps rc5 remotes.. */
+-	if (key[0] == 0 && key[1] == 0 && key[2] == 0 && key[3] == 0)
++	if (st->buf[0] == 0 && st->buf[1] == 0
++	    && st->buf[2] == 0 && st->buf[3] == 0)
+ 		return 0;
+ 
+-	/* info("%d: %2X %2X %2X %2X",dvb_usb_dib0700_ir_proto,(int)key[3-2],(int)key[3-3],(int)key[3-1],(int)key[3]);  */
++	/* info("%d: %2X %2X %2X %2X",dvb_usb_dib0700_ir_proto,(int)st->buf[3 - 2],(int)st->buf[3 - 3],(int)st->buf[3 - 1],(int)st->buf[3]);  */
+ 
+ 	dib0700_rc_setup(d, NULL); /* reset ir sensor data to prevent false events */
+ 
+ 	switch (d->props.rc.core.protocol) {
+ 	case RC_BIT_NEC:
+ 		/* NEC protocol sends repeat code as 0 0 0 FF */
+-		if ((key[3-2] == 0x00) && (key[3-3] == 0x00) &&
+-		    (key[3] == 0xff)) {
++		if ((st->buf[3 - 2] == 0x00) && (st->buf[3 - 3] == 0x00) &&
++		    (st->buf[3] == 0xff)) {
+ 			rc_repeat(d->rc_dev);
+ 			return 0;
+ 		}
+ 
+ 		protocol = RC_TYPE_NEC;
+-		scancode = RC_SCANCODE_NEC(key[3-2], key[3-3]);
++		scancode = RC_SCANCODE_NEC(st->buf[3 - 2], st->buf[3 - 3]);
+ 		toggle = 0;
+ 		break;
+ 
+ 	default:
+ 		/* RC-5 protocol changes toggle bit on new keypress */
+ 		protocol = RC_TYPE_RC5;
+-		scancode = RC_SCANCODE_RC5(key[3-2], key[3-3]);
+-		toggle = key[3-1];
++		scancode = RC_SCANCODE_RC5(st->buf[3 - 2], st->buf[3 - 3]);
++		toggle = st->buf[3 - 1];
+ 		break;
+ 	}
+ 
 -- 
-1.9.1
+2.7.4
+
 
