@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48330
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752113AbcJSVJn (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53298 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935466AbcJGQBP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 17:09:43 -0400
-Date: Wed, 19 Oct 2016 19:09:38 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jean-Baptiste Abbadie <jb@abbadie.fr>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] Staging: media: radio-bcm2048: Fix indentation
-Message-ID: <20161019190938.617ad346@vento.lan>
-In-Reply-To: <20161019204714.11645-3-jb@abbadie.fr>
-References: <20161019204714.11645-1-jb@abbadie.fr>
-        <20161019204714.11645-3-jb@abbadie.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 7 Oct 2016 12:01:15 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 04/22] [media] v4l2-subdev.h: add prepare_stream op
+Date: Fri,  7 Oct 2016 18:00:49 +0200
+Message-Id: <20161007160107.5074-5-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 19 Oct 2016 22:47:13 +0200
-Jean-Baptiste Abbadie <jb@abbadie.fr> escreveu:
+In some cases, for example MIPI CSI-2 input on i.MX6, the sending and
+receiving subdevice need to be prepared in lock-step before the actual
+streaming can start. In the i.MX6 MIPI CSI-2 case, the sender needs to
+put its MIPI CSI-2 transmitter lanes into stop state, and the receiver
+needs to configure its D-PHY and detect the stop state on all active
+lanes. Only then the sender can be enabled to stream data and the
+receiver can lock its PLL to the clock lane.
 
-> Align multiple lines statement with parentheses
+This patch adds a prepare_stream(sd) callback that can be issued to all
+v4l2_subdevs before calling s_stream(sd, 1).
 
-Looks OK to me. Greg, do you want to pick it on your tree or do you
-prefer if I pick myself?
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ include/media/v4l2-subdev.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-If you prefer to pick it:
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index cf778c5..6502f43 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -395,6 +395,7 @@ struct v4l2_subdev_video_ops {
+ 	int (*g_tvnorms)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*g_tvnorms_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+ 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
++	int (*prepare_stream)(struct v4l2_subdev *sd);
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ 	int (*g_pixelaspect)(struct v4l2_subdev *sd, struct v4l2_fract *aspect);
+ 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+-- 
+2.9.3
 
-Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-> 
-> Signed-off-by: Jean-Baptiste Abbadie <jb@abbadie.fr>
-> ---
->  drivers/staging/media/bcm2048/radio-bcm2048.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> index 188d045d44ad..f66bea631e8e 100644
-> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-> @@ -997,7 +997,7 @@ static int bcm2048_set_fm_search_tune_mode(struct bcm2048_device *bdev,
->  		timeout = BCM2048_AUTO_SEARCH_TIMEOUT;
->  
->  	if (!wait_for_completion_timeout(&bdev->compl,
-> -		msecs_to_jiffies(timeout)))
-> +					 msecs_to_jiffies(timeout)))
->  		dev_err(&bdev->client->dev, "IRQ timeout.\n");
->  
->  	if (value)
-> @@ -2202,7 +2202,7 @@ static ssize_t bcm2048_fops_read(struct file *file, char __user *buf,
->  		}
->  		/* interruptible_sleep_on(&bdev->read_queue); */
->  		if (wait_event_interruptible(bdev->read_queue,
-> -		    bdev->rds_data_available) < 0) {
-> +					     bdev->rds_data_available) < 0) {
->  			retval = -EINTR;
->  			goto done;
->  		}
-
-
-
-Thanks,
-Mauro
