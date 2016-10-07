@@ -1,55 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54054 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755043AbcJNRfE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:35:04 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 14/21] ARM: dts: imx6qdl: Add MIPI CSI-2 D-PHY compatible and clocks
-Date: Fri, 14 Oct 2016 19:34:34 +0200
-Message-Id: <1476466481-24030-15-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+Received: from bombadil.infradead.org ([198.137.202.9]:46777 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938882AbcJGRYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 09/26] dibusb: don't do DMA on stack
+Date: Fri,  7 Oct 2016 14:24:19 -0300
+Message-Id: <801c76677194f958a58622129df3a0fcd59a5447.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From the data sheets it is not quite clear what the clock inputs should
-be named, but freescale code calls them "dphy_clk" (would that be per?)
-and "pixel_clk" and connects them to the mipi_core_cfg and emi_podf
-clocks, respectively.  The mipi_core_cfg control is called hsi_tx
-currently, but it really gates a whole lot of other clocks, too.
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- arch/arm/boot/dts/imx6qdl.dtsi | 7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/usb/dvb-usb/dibusb-common.c | 106 +++++++++++++++++++++---------
+ drivers/media/usb/dvb-usb/dibusb.h        |   5 ++
+ 2 files changed, 81 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index cd325bd..2be6de4 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -1123,9 +1123,16 @@
- 			};
+diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+index 4b08c2a47ae2..76b26dc7339c 100644
+--- a/drivers/media/usb/dvb-usb/dibusb-common.c
++++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+@@ -12,9 +12,6 @@
+ #include <linux/kconfig.h>
+ #include "dibusb.h"
  
- 			mipi_csi: mipi@021dc000 {
-+				compatible = "fsl,imx6q-mipi-csi2", "dw-mipi-csi2";
- 				reg = <0x021dc000 0x4000>;
-+				clocks = <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/ipg_clk_root */
-+					 <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/video_27m_clk_root */
-+					 <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/video_27m_clk_root */
-+					 <&clks IMX6QDL_CLK_EIM_PODF>;	/* shoid be ipu1_ipu_hsp_clk_root on S/DL, axi_clk_root on D/Q */
-+				clock-names = "pclk", "cfg", "ref", "pixel";
- 				#address-cells = <1>;
- 				#size-cells = <0>;
-+				status = "disabled";
- 			};
+-/* Max transfer size done by I2C transfer functions */
+-#define MAX_XFER_SIZE  64
+-
+ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "set debugging level (1=info (|-able))." DVB_USB_DEBUG_STATUS);
+@@ -63,72 +60,109 @@ EXPORT_SYMBOL(dibusb_pid_filter_ctrl);
  
- 			mipi_dsi: mipi@021e0000 {
+ int dibusb_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+-	u8 b[3];
++	u8 *b;
+ 	int ret;
++
++	b = kmalloc(3, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
+ 	b[0] = DIBUSB_REQ_SET_IOCTL;
+ 	b[1] = DIBUSB_IOCTL_CMD_POWER_MODE;
+ 	b[2] = onoff ? DIBUSB_IOCTL_POWER_WAKEUP : DIBUSB_IOCTL_POWER_SLEEP;
+-	ret = dvb_usb_generic_write(d,b,3);
++
++	ret = dvb_usb_generic_write(d, b, 3);
++
++	kfree(b);
++
+ 	msleep(10);
++
+ 	return ret;
+ }
+ EXPORT_SYMBOL(dibusb_power_ctrl);
+ 
+ int dibusb2_0_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+-	u8 b[3] = { 0 };
++	struct dibusb_state *st = adap->priv;
+ 	int ret;
+ 
+ 	if ((ret = dibusb_streaming_ctrl(adap,onoff)) < 0)
+ 		return ret;
+ 
+ 	if (onoff) {
+-		b[0] = DIBUSB_REQ_SET_STREAMING_MODE;
+-		b[1] = 0x00;
+-		if ((ret = dvb_usb_generic_write(adap->dev,b,2)) < 0)
++		st->data[0] = DIBUSB_REQ_SET_STREAMING_MODE;
++		st->data[1] = 0x00;
++		ret = dvb_usb_generic_write(adap->dev, st->data, 2);
++		if (ret  < 0)
+ 			return ret;
+ 	}
+ 
+-	b[0] = DIBUSB_REQ_SET_IOCTL;
+-	b[1] = onoff ? DIBUSB_IOCTL_CMD_ENABLE_STREAM : DIBUSB_IOCTL_CMD_DISABLE_STREAM;
+-	return dvb_usb_generic_write(adap->dev,b,3);
++	st->data[0] = DIBUSB_REQ_SET_IOCTL;
++	st->data[1] = onoff ? DIBUSB_IOCTL_CMD_ENABLE_STREAM : DIBUSB_IOCTL_CMD_DISABLE_STREAM;
++	return dvb_usb_generic_write(adap->dev, st->data, 3);
+ }
+ EXPORT_SYMBOL(dibusb2_0_streaming_ctrl);
+ 
+ int dibusb2_0_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+-	if (onoff) {
+-		u8 b[3] = { DIBUSB_REQ_SET_IOCTL, DIBUSB_IOCTL_CMD_POWER_MODE, DIBUSB_IOCTL_POWER_WAKEUP };
+-		return dvb_usb_generic_write(d,b,3);
+-	} else
++	u8 *b;
++	int ret;
++
++	if (!onoff)
+ 		return 0;
++
++	b = kmalloc(3, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	b[0] = DIBUSB_REQ_SET_IOCTL;
++	b[1] = DIBUSB_IOCTL_CMD_POWER_MODE;
++	b[2] = DIBUSB_IOCTL_POWER_WAKEUP;
++
++	ret = dvb_usb_generic_write(d, b, 3);
++
++	kfree(b);
++
++	return ret;
+ }
+ EXPORT_SYMBOL(dibusb2_0_power_ctrl);
+ 
+ static int dibusb_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 			  u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
+ {
+-	u8 sndbuf[MAX_XFER_SIZE]; /* lead(1) devaddr,direction(1) addr(2) data(wlen) (len(2) (when reading)) */
++	u8 *sndbuf;
++	int ret, wo, len;
++
+ 	/* write only ? */
+-	int wo = (rbuf == NULL || rlen == 0),
+-		len = 2 + wlen + (wo ? 0 : 2);
++	wo = (rbuf == NULL || rlen == 0);
+ 
+-	if (4 + wlen > sizeof(sndbuf)) {
++	len = 2 + wlen + (wo ? 0 : 2);
++
++	sndbuf = kmalloc(MAX_XFER_SIZE, GFP_KERNEL);
++	if (!sndbuf)
++		return -ENOMEM;
++
++	if (4 + wlen > MAX_XFER_SIZE) {
+ 		warn("i2c wr: len=%d is too big!\n", wlen);
+-		return -EOPNOTSUPP;
++		ret = -EOPNOTSUPP;
++		goto ret;
+ 	}
+ 
+ 	sndbuf[0] = wo ? DIBUSB_REQ_I2C_WRITE : DIBUSB_REQ_I2C_READ;
+ 	sndbuf[1] = (addr << 1) | (wo ? 0 : 1);
+ 
+-	memcpy(&sndbuf[2],wbuf,wlen);
++	memcpy(&sndbuf[2], wbuf, wlen);
+ 
+ 	if (!wo) {
+-		sndbuf[wlen+2] = (rlen >> 8) & 0xff;
+-		sndbuf[wlen+3] = rlen & 0xff;
++		sndbuf[wlen + 2] = (rlen >> 8) & 0xff;
++		sndbuf[wlen + 3] = rlen & 0xff;
+ 	}
+ 
+-	return dvb_usb_generic_rw(d,sndbuf,len,rbuf,rlen,0);
++	ret = dvb_usb_generic_rw(d, sndbuf, len, rbuf, rlen, 0);
++
++ret:
++	kfree(sndbuf);
++	return ret;
+ }
+ 
+ /*
+@@ -320,11 +354,23 @@ EXPORT_SYMBOL(rc_map_dibusb_table);
+ 
+ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+-	u8 key[5],cmd = DIBUSB_REQ_POLL_REMOTE;
+-	dvb_usb_generic_rw(d,&cmd,1,key,5,0);
+-	dvb_usb_nec_rc_key_to_event(d,key,event,state);
+-	if (key[0] != 0)
+-		deb_info("key: %*ph\n", 5, key);
++	u8 *buf;
++
++	buf = kmalloc(5, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	buf[0] = DIBUSB_REQ_POLL_REMOTE;
++
++	dvb_usb_generic_rw(d, buf, 1, buf, 5, 0);
++
++	dvb_usb_nec_rc_key_to_event(d, buf, event, state);
++
++	if (buf[0] != 0)
++		deb_info("key: %*ph\n", 5, buf);
++
++	kfree(buf);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL(dibusb_rc_query);
+diff --git a/drivers/media/usb/dvb-usb/dibusb.h b/drivers/media/usb/dvb-usb/dibusb.h
+index 3f82163d8ab8..42e9750393e5 100644
+--- a/drivers/media/usb/dvb-usb/dibusb.h
++++ b/drivers/media/usb/dvb-usb/dibusb.h
+@@ -96,10 +96,15 @@
+ #define DIBUSB_IOCTL_CMD_ENABLE_STREAM	0x01
+ #define DIBUSB_IOCTL_CMD_DISABLE_STREAM	0x02
+ 
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  64
++
+ struct dibusb_state {
+ 	struct dib_fe_xfer_ops ops;
+ 	int mt2060_present;
+ 	u8 tuner_addr;
++
++	unsigned char data[MAX_XFER_SIZE];
+ };
+ 
+ struct dibusb_device_state {
 -- 
-2.9.3
+2.7.4
+
 
