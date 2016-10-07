@@ -1,64 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36188 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754693AbcJHKLs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2016 06:11:48 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=EF=BF=BDrg=20Otte?= <jrg.otte@gmail.com>,
-        Olli Salonen <olli.salonen@iki.fi>
-Subject: [PATCH v2 21/26] pctv452e: don't call BUG_ON() on non-fatal error
-Date: Sat,  8 Oct 2016 07:11:36 -0300
-Message-Id: <dcc194077b55a267430fc8eb886953f669ef34a8.1475921429.git.mchehab@s-opensource.com>
-In-Reply-To: <930024c357cd6ec079aee59f410734aad1d4be59.1475860773.git.mchehab@s-opensource.com>
-References: <930024c357cd6ec079aee59f410734aad1d4be59.1475860773.git.mchehab@s-opensource.com>
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47697 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932719AbcJGQBW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Oct 2016 12:01:22 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 18/22] [media] imx-ipuv3-csi: support downsizing
+Date: Fri,  7 Oct 2016 18:01:03 +0200
+Message-Id: <20161007160107.5074-19-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add support for the CSI internal horizontal and vertical downsizing.
 
-There are some conditions on this driver that are tested with
-BUG_ON() with are not serious enough to hang a machine.
-
-So, just return an error if this happens.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
+ drivers/media/platform/imx/imx-ipuv3-csi.c | 20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
-v2: simplify the logic and use its own error message.
-
-
- drivers/media/usb/dvb-usb/pctv452e.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
-index 855fe9d34b59..f70202e6e3eb 100644
---- a/drivers/media/usb/dvb-usb/pctv452e.c
-+++ b/drivers/media/usb/dvb-usb/pctv452e.c
-@@ -109,9 +109,10 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
- 	unsigned int rlen;
- 	int ret;
+diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
+index 699460e6..e8a6a7b 100644
+--- a/drivers/media/platform/imx/imx-ipuv3-csi.c
++++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
+@@ -167,8 +167,16 @@ static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
+ 		width = clamp_t(unsigned int, sdformat->format.width, 16, 8192);
+ 		height = clamp_t(unsigned int, sdformat->format.height, 16, 4096);
+ 	} else {
+-		width = ipucsi->format_mbus[0].width;
+-		height = ipucsi->format_mbus[0].height;
++		if (sdformat->format.width <
++		    (ipucsi->format_mbus[0].width * 3 / 4))
++			width = ipucsi->format_mbus[0].width / 2;
++		else
++			width = ipucsi->format_mbus[0].width;
++		if (sdformat->format.height <
++		    (ipucsi->format_mbus[0].height * 3 / 4))
++			height = ipucsi->format_mbus[0].height / 2;
++		else
++			height = ipucsi->format_mbus[0].height;
+ 	}
  
--	BUG_ON(NULL == data && 0 != (write_len | read_len));
--	BUG_ON(write_len > 64 - 4);
--	BUG_ON(read_len > 64 - 4);
-+	if (!data || (write_len > 64 - 4) || (read_len > 64 - 4)) {
-+		err("%s: transfer data invalid", __func__);
-+		return -EIO;
-+	};
+ 	mbusformat = __ipucsi_get_pad_format(sd, cfg, sdformat->pad,
+@@ -212,14 +220,14 @@ static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
+ 		window.width = fmt[0].width;
+ 		window.height = fmt[0].height;
+ 		ipu_csi_set_window(ipucsi->csi, &window);
++		ipu_csi_set_downsize(ipucsi->csi,
++				     fmt[0].width == 2 * fmt[1].width,
++				     fmt[0].height == 2 * fmt[1].height);
  
- 	id = state->c++;
+ 		/* Is CSI data source MCT (MIPI)? */
+ 		mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
+-
+ 		ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
+-		if (mux_mct)
+-			ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
+-						  &fmt[0]);
++		ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0, &fmt[0]);
  
+ 		ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
+ 					     &fmt[0]);
 -- 
-2.7.4
-
+2.9.3
 
