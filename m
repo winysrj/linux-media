@@ -1,59 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48647 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755051AbcJNRrG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:47:06 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Amarjargal Gundjalam <amarjargal.gundjalam@gmail.com>,
-        Claudiu Beznea <claudiu.beznea@gmail.com>,
-        Joseph Marrero <jmarrero@gmail.com>,
-        Sandhya Bankar <bankarsandhya512@gmail.com>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 10/25] [media] radio-bcm2048: don't ignore errors
-Date: Fri, 14 Oct 2016 14:45:48 -0300
-Message-Id: <936c737b983c97387a654febc7f9b71098d1b3a5.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-out.m-online.net ([212.18.0.10]:48280 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933163AbcJGQaq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 12:30:46 -0400
+Subject: Re: [PATCH 01/22] [media] v4l2-async: move code out of
+ v4l2_async_notifier_register into v4l2_async_test_nofity_all
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+ <20161007160107.5074-2-p.zabel@pengutronix.de>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, kernel@pengutronix.de
+From: Marek Vasut <marex@denx.de>
+Message-ID: <9edf9ac6-8f8d-f421-5d88-604cfeaaff64@denx.de>
+Date: Fri, 7 Oct 2016 18:30:42 +0200
+MIME-Version: 1.0
+In-Reply-To: <20161007160107.5074-2-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove this warning:
+On 10/07/2016 06:00 PM, Philipp Zabel wrote:
+> This will be reused in the following patch to catch already registered,
+> newly added asynchronous subdevices from v4l2_async_register_subdev.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 38 +++++++++++++++++++++---------------
+>  1 file changed, 22 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 5bada20..c4f1930 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -134,11 +134,31 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
+>  	sd->dev = NULL;
+>  }
+>  
+> +static int v4l2_async_test_notify_all(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_subdev *sd, *tmp;
+> +
+> +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> +		struct v4l2_async_subdev *asd;
+> +		int ret;
+> +
+> +		asd = v4l2_async_belongs(notifier, sd);
+> +		if (!asd)
+> +			continue;
+> +
+> +		ret = v4l2_async_test_notify(notifier, sd, asd);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  				 struct v4l2_async_notifier *notifier)
+>  {
+> -	struct v4l2_subdev *sd, *tmp;
+>  	struct v4l2_async_subdev *asd;
+> +	int ret;
+>  	int i;
+>  
+>  	if (!notifier->num_subdevs || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> @@ -171,23 +191,9 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+>  
+> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
+> -		int ret;
+> -
+> -		asd = v4l2_async_belongs(notifier, sd);
+> -		if (!asd)
+> -			continue;
+> -
+> -		ret = v4l2_async_test_notify(notifier, sd, asd);
+> -		if (ret < 0) {
+> -			mutex_unlock(&list_lock);
+> -			return ret;
+> -		}
+> -	}
 
-drivers/staging/media/bcm2048/radio-bcm2048.c: In function 'bcm2048_set_rds_no_lock':
-drivers/staging/media/bcm2048/radio-bcm2048.c:467:6: warning: variable 'err' set but not used [-Wunused-but-set-variable]
-  int err;
-      ^~~
+Shouldn't you call ret = v4l2_async_test_notify_all() here now instead ?
 
-By returning the error code.
+>  	mutex_unlock(&list_lock);
+>  
+> -	return 0;
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL(v4l2_async_notifier_register);
+>  
+> 
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 2 ++
- 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index ea15cc638097..4d9bd02ede47 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -482,6 +482,8 @@ static int bcm2048_set_rds_no_lock(struct bcm2048_device *bdev, u8 rds_on)
- 					   flags);
- 		memset(&bdev->rds_info, 0, sizeof(bdev->rds_info));
- 	}
-+	if (err)
-+		return err;
- 
- 	return bcm2048_send_command(bdev, BCM2048_I2C_FM_RDS_SYSTEM,
- 				    bdev->cache_fm_rds_system);
 -- 
-2.7.4
-
-
+Best regards,
+Marek Vasut
