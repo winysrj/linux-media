@@ -1,80 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:59937 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1759689AbcJaHSL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 03:18:11 -0400
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:46874 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941162AbcJGRYv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:51 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>
-Subject: [PATCH v2 1/3] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-Date: Mon, 31 Oct 2016 15:16:55 +0800
-Message-ID: <1477898217-19250-2-git-send-email-rick.chang@mediatek.com>
-In-Reply-To: <1477898217-19250-1-git-send-email-rick.chang@mediatek.com>
-References: <1477898217-19250-1-git-send-email-rick.chang@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH 18/26] gp8psk: don't go past the buffer size
+Date: Fri,  7 Oct 2016 14:24:28 -0300
+Message-Id: <c318422c689dc1283c13a18873f83b8e5f65eb94.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation for Mediatek JPEG Decoder of
-MT2701 SoC.
+Add checks to avoid going out of the buffer.
 
-Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../bindings/media/mediatek-jpeg-codec.txt         | 35 ++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+ drivers/media/usb/dvb-usb/gp8psk.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-new file mode 100644
-index 0000000..514e656
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-@@ -0,0 +1,35 @@
-+* Mediatek JPEG Codec
+diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+index fa215ad37f7b..a745cf636846 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk.c
++++ b/drivers/media/usb/dvb-usb/gp8psk.c
+@@ -60,6 +60,9 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
+ 	struct gp8psk_state *st = d->priv;
+ 	int ret = 0,try = 0;
+ 
++	if (blen > sizeof(st->data))
++		return -EIO;
 +
-+Mediatek JPEG Codec device driver is a v4l2 driver which can decode
-+JPEG-encoded video frames.
+ 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+ 		return ret;
+ 
+@@ -98,6 +101,9 @@ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 	deb_xfer("out: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
+ 	debug_dump(b,blen,deb_xfer);
+ 
++	if (blen > sizeof(st->data))
++		return -EIO;
 +
-+Required properties:
-+  - compatible : "mediatek,mt2701-jpgdec"
-+  - reg : Physical base address of the jpeg codec registers and length of
-+        memory mapped region.
-+  - interrupts : interrupt number to the cpu.
-+  - clocks : clock name from clock manager
-+  - clock-names: the clocks of the jpeg codec H/W
-+  - power-domains : a phandle to the power domain.
-+  - larb : must contain the larbes of current platform
-+  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
-+        the multimedia H/W. and there is only one multimedia iommu domain.
-+        "iommus = <&iommu portid>" the "portid" is from
-+        dt-bindings\iommu\mt2701-iommu-port.h, it means that this portid will
-+        enable iommu. The portid default is disable iommu if "<&iommu portid>"
-+        don't be added.
+ 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+ 		return ret;
+ 
+@@ -151,6 +157,11 @@ static int gp8psk_load_bcm4500fw(struct dvb_usb_device *d)
+ 			err("failed to load bcm4500 firmware.");
+ 			goto out_free;
+ 		}
++		if (buflen > 64) {
++			err("firmare chunk size bigger than 64 bytes.");
++			goto out_free;
++		}
 +
-+Example:
-+	jpegdec: jpegdec@15004000 {
-+		compatible = "mediatek,mt2701-jpgdec";
-+		reg = <0 0x15004000 0 0x1000>;
-+		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-+		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-+			  <&imgsys CLK_IMG_JPGDEC>;
-+		clock-names = "jpgdec-smi",
-+			      "jpgdec";
-+		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-+		mediatek,larb = <&larb2>;
-+		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-+			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-+	};
+ 		memcpy(buf, ptr, buflen);
+ 		if (dvb_usb_generic_write(d, buf, buflen)) {
+ 			err("failed to load bcm4500 firmware.");
 -- 
-1.9.1
+2.7.4
+
 
