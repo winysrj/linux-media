@@ -1,14 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39784 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752015AbcJKKht (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:37:49 -0400
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33488
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932982AbcJGRaM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:30:12 -0400
+Date: Fri, 7 Oct 2016 14:30:03 -0300
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
+To: =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
+Cc: Andy Lutomirski <luto@amacapital.net>,
         Johannes Stezenbach <js@linuxtv.org>,
         Jiri Kosina <jikos@kernel.org>,
         Patrick Boettcher <patrick.boettcher@posteo.de>,
@@ -16,61 +14,45 @@ Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Andy Lutomirski <luto@kernel.org>,
         Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 25/31] nova-t-usb2: handle error code on RC query
-Date: Tue, 11 Oct 2016 07:09:40 -0300
-Message-Id: <94b9c99b381cf64468868aef2f64e80639b3238a.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] cinergyT2-core: don't do DMA on stack
+Message-ID: <20161007143003.67b90018@vento.lan>
+In-Reply-To: <CADDKRnAXgBNFy_csDEB5veA=XXPnu=jY_rTOEun7f-QNyzr4uQ@mail.gmail.com>
+References: <20161005155805.27dc4d33@vento.lan>
+        <CALCETrVg5FczwRaJuRe6G_FxX7yDsPS-L4JnR475UW4TwQWWzg@mail.gmail.com>
+        <20161006152905.2f9a9b13@vento.lan>
+        <CADDKRnAXgBNFy_csDEB5veA=XXPnu=jY_rTOEun7f-QNyzr4uQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no sense on decoding and generating a RC key code if
-there was an error on the URB control message.
+Em Fri, 7 Oct 2016 15:50:40 +0200
+Jörg Otte <jrg.otte@gmail.com> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/nova-t-usb2.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+> 2016-10-06 20:29 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> > Em Thu, 6 Oct 2016 10:27:56 -0700
+> > Andy Lutomirski <luto@amacapital.net> escreveu:
+> >  
+ 
+> Patch works for me!
+> Thanks, Jörg
 
-diff --git a/drivers/media/usb/dvb-usb/nova-t-usb2.c b/drivers/media/usb/dvb-usb/nova-t-usb2.c
-index 26d7188a1163..1babd3341910 100644
---- a/drivers/media/usb/dvb-usb/nova-t-usb2.c
-+++ b/drivers/media/usb/dvb-usb/nova-t-usb2.c
-@@ -76,7 +76,7 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- {
- 	u8 *buf, data, toggle, custom;
- 	u16 raw;
--	int i;
-+	int i, ret;
- 	struct dibusb_device_state *st = d->priv;
- 
- 	buf = kmalloc(5, GFP_KERNEL);
-@@ -85,7 +85,9 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 
- 	buf[0] = DIBUSB_REQ_POLL_REMOTE;
- 	buf[1] = 0x35;
--	dvb_usb_generic_rw(d, buf, 2, buf, 5, 0);
-+	ret = dvb_usb_generic_rw(d, buf, 2, buf, 5, 0);
-+	if (ret < 0)
-+		goto ret;
- 
- 	*state = REMOTE_NO_KEY_PRESSED;
- 	switch (buf[0]) {
-@@ -124,8 +126,9 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 			break;
- 	}
- 
-+ret:
- 	kfree(buf);
--	return 0;
-+	return ret;
- }
- 
- static int nova_t_read_mac_address (struct dvb_usb_device *d, u8 mac[6])
--- 
-2.7.4
+Thanks for testing!
 
+I just sent a 26 patch series to address this issue. There are 4 patches
+on it that affects cinergyT2 (one is this patch, but the other ones
+should be addressing other problems there).
 
+Could you please test them, and if they're ok, reply to me with a
+Tested-by: tag?
+
+PS.: I'm also putting those patches on my development tree, at:
+	git://git.linuxtv.org/mchehab/experimental.git media_dmastack_fixes
+
+(please notice that my tree is based on Kernel 4.8 - so, to test with
+VMAP_STACK, you'll likely need to pull also from Linus tree)
+
+Thanks,
+Mauro
