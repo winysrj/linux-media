@@ -1,7 +1,7 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46780 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:46766 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938762AbcJGRYq (ORCPT
+        with ESMTP id S938780AbcJGRYq (ORCPT
         <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
@@ -16,78 +16,126 @@ Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
         =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 00/26] Don't use stack for DMA transers on dvb-usb drivers
-Date: Fri,  7 Oct 2016 14:24:10 -0300
-Message-Id: <cover.1475860773.git.mchehab@s-opensource.com>
+Subject: [PATCH 04/26] cinergyT2-fe: cache stats at cinergyt2_fe_read_status()
+Date: Fri,  7 Oct 2016 14:24:14 -0300
+Message-Id: <d0f1f4bc344b1e0a09d476adf747cc38d66f91c3.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sending URB control messages from stack was never supported. Yet, on x86,
-the stack was usually at a memory region that allows DMA transfer.
+Instead of sending USB commands for every stats call, collect
+them once, when status is updated. As the frontend kthread
+will call it on every few seconds, the stats will still be
+collected.
 
-So, several drivers got it wrong. On Kernel 4.9, if VMAP_STACK=y, none of
-those drivers will work, as the stack won't be on a DMA-able area anymore.
+Besides reducing the amount of USB/I2C transfers, this also
+warrants that all stats will be collected at the same time,
+and makes easier to convert it to DVBv5 stats in the future.
 
-So, fix the dvb-usb drivers that requre it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/cinergyT2-fe.c | 48 +++++---------------------------
+ 1 file changed, 7 insertions(+), 41 deletions(-)
 
-Please notice that, while all those patches compile, I don't have devices
-using those drivers to test. So, I really appreciate if people with devices
-using those drivers could test and report if they don't break anything.
-
-Thanks!
-Mauro
-
-Mauro Carvalho Chehab (26):
-  af9005: don't do DMA on stack
-  cinergyT2-core: don't do DMA on stack
-  cinergyT2-core:: handle error code on RC query
-  cinergyT2-fe: cache stats at cinergyt2_fe_read_status()
-  cinergyT2-fe: don't do DMA on stack
-  cxusb: don't do DMA on stack
-  dib0700: be sure that dib0700_ctrl_rd() users can do DMA
-  dib0700_core: don't use stack on I2C reads
-  dibusb: don't do DMA on stack
-  dibusb: handle error code on RC query
-  digitv: don't do DMA on stack
-  dtt200u-fe: don't do DMA on stack
-  dtt200u-fe: handle errors on USB control messages
-  dtt200u: don't do DMA on stack
-  dtt200u: handle USB control message errors
-  dtv5100: : don't do DMA on stack
-  gp8psk: don't do DMA on stack
-  gp8psk: don't go past the buffer size
-  nova-t-usb2: don't do DMA on stack
-  pctv452e: don't do DMA on stack
-  pctv452e: don't call BUG_ON() on non-fatal error
-  technisat-usb2: use DMA buffers for I2C transfers
-  dvb-usb: warn if return value for USB read/write routines is not
-    checked
-  nova-t-usb2: handle error code on RC query
-  dw2102: return error if su3000_power_ctrl() fails
-  digitv: handle error code on RC query
-
- drivers/media/usb/dvb-usb/af9005.c          | 211 +++++++++++++++-------------
- drivers/media/usb/dvb-usb/cinergyT2-core.c  |  52 ++++---
- drivers/media/usb/dvb-usb/cinergyT2-fe.c    |  91 ++++--------
- drivers/media/usb/dvb-usb/cxusb.c           |  20 +--
- drivers/media/usb/dvb-usb/cxusb.h           |   5 +
- drivers/media/usb/dvb-usb/dib0700_core.c    |  31 +++-
- drivers/media/usb/dvb-usb/dib0700_devices.c |  25 ++--
- drivers/media/usb/dvb-usb/dibusb-common.c   | 112 +++++++++++----
- drivers/media/usb/dvb-usb/dibusb.h          |   5 +
- drivers/media/usb/dvb-usb/digitv.c          |  26 ++--
- drivers/media/usb/dvb-usb/digitv.h          |   3 +
- drivers/media/usb/dvb-usb/dtt200u-fe.c      |  90 ++++++++----
- drivers/media/usb/dvb-usb/dtt200u.c         |  80 +++++++----
- drivers/media/usb/dvb-usb/dtv5100.c         |  10 +-
- drivers/media/usb/dvb-usb/dvb-usb.h         |   6 +-
- drivers/media/usb/dvb-usb/dw2102.c          |   2 +-
- drivers/media/usb/dvb-usb/gp8psk.c          |  25 +++-
- drivers/media/usb/dvb-usb/nova-t-usb2.c     |  25 +++-
- drivers/media/usb/dvb-usb/pctv452e.c        | 118 ++++++++--------
- drivers/media/usb/dvb-usb/technisat-usb2.c  |  16 ++-
- 20 files changed, 577 insertions(+), 376 deletions(-)
-
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+index b3ec743a7a2e..fd8edcb56e61 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+@@ -139,6 +139,7 @@ static uint16_t compute_tps(struct dtv_frontend_properties *op)
+ struct cinergyt2_fe_state {
+ 	struct dvb_frontend fe;
+ 	struct dvb_usb_device *d;
++	struct dvbt_get_status_msg status;
+ };
+ 
+ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
+@@ -154,6 +155,8 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
+ 	if (ret < 0)
+ 		return ret;
+ 
++	state->status = result;
++
+ 	*status = 0;
+ 
+ 	if (0xffff - le16_to_cpu(result.gain) > 30)
+@@ -177,34 +180,16 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
+ static int cinergyt2_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0)
+-		return ret;
+-
+-	*ber = le32_to_cpu(status.viterbi_error_rate);
++	*ber = le32_to_cpu(state->status.viterbi_error_rate);
+ 	return 0;
+ }
+ 
+ static int cinergyt2_fe_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0) {
+-		err("cinergyt2_fe_read_unc_blocks() Failed! (Error=%d)\n",
+-			ret);
+-		return ret;
+-	}
+-	*unc = le32_to_cpu(status.uncorrected_block_count);
++	*unc = le32_to_cpu(state->status.uncorrected_block_count);
+ 	return 0;
+ }
+ 
+@@ -212,35 +197,16 @@ static int cinergyt2_fe_read_signal_strength(struct dvb_frontend *fe,
+ 						u16 *strength)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0) {
+-		err("cinergyt2_fe_read_signal_strength() Failed!"
+-			" (Error=%d)\n", ret);
+-		return ret;
+-	}
+-	*strength = (0xffff - le16_to_cpu(status.gain));
++	*strength = (0xffff - le16_to_cpu(state->status.gain));
+ 	return 0;
+ }
+ 
+ static int cinergyt2_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0) {
+-		err("cinergyt2_fe_read_snr() Failed! (Error=%d)\n", ret);
+-		return ret;
+-	}
+-	*snr = (status.snr << 8) | status.snr;
++	*snr = (state->status.snr << 8) | state->status.snr;
+ 	return 0;
+ }
+ 
 -- 
 2.7.4
 
