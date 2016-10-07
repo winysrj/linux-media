@@ -1,83 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:55487 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755170AbcJLO7Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:59:24 -0400
-Subject: [PATCH 14/34] [media] DaVinci-VPFE-Capture: Delete three error
- messages for a failed memory allocation
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        Wolfram Sang <wsa@the-dreams.de>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <cce4ef26-53b4-02d7-e46c-9438d5953cb9@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:52:35 +0200
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:62572 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932268AbcJGRAF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 7 Oct 2016 13:00:05 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1 0/2] Add MPEG2 support to STMicroelectronics DELTA video decoder
+Date: Fri, 7 Oct 2016 18:59:53 +0200
+Message-ID: <1475859595-732-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 10:22:47 +0200
+This patchset adds MPEG2 support to STMicroelectronics DELTA driver [1].
+MPEG2 support requires V4L2 "frame API" in order that MPEG2 parsed metadata
+are received in addition to MPEG2 video bitstream buffers.
+To do so those patchset are based on work from Florent Revest on MPEG2 low
+level decoder [2], which have been enhanced to support more MPEG2 features
+(see additional patchset on subject). This work also needs the V4L2 "request
+API" [3].
+A reference libv4l-delta plugin implementation is sent separately which embeds
+a MPEG2 parser generating the headers metadata needed by DELTA video decoder.
 
-The script "checkpatch.pl" pointed information out like the following.
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg102894.html
+[2] http://www.spinics.net/lists/linux-media/msg104824.html
+[3] https://lwn.net/Articles/641204/
 
-WARNING: Possible unnecessary 'out of memory' message
+Hugues Fruchet (2):
+  [media] st-delta: add parser meta controls
+  [media] st-delta: add mpeg2 support
 
-Thus remove such a logging statement in two functions.
+ drivers/media/platform/Kconfig                     |    6 +
+ drivers/media/platform/sti/delta/Makefile          |    3 +
+ drivers/media/platform/sti/delta/delta-cfg.h       |    5 +
+ drivers/media/platform/sti/delta/delta-mpeg2-dec.c | 1412 ++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-mpeg2-fw.h  |  415 ++++++
+ drivers/media/platform/sti/delta/delta-v4l2.c      |   96 +-
+ drivers/media/platform/sti/delta/delta.h           |    8 +-
+ 7 files changed, 1943 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-dec.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-fw.h
 
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpfe_capture.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index 5c1b8cf..23142f0 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -512,11 +512,9 @@ static int vpfe_open(struct file *file)
- 
- 	/* Allocate memory for the file handle object */
- 	fh = kmalloc(sizeof(struct vpfe_fh), GFP_KERNEL);
--	if (NULL == fh) {
--		v4l2_err(&vpfe_dev->v4l2_dev,
--			"unable to allocate memory for file handle object\n");
-+	if (!fh)
- 		return -ENOMEM;
--	}
-+
- 	/* store pointer to fh in private_data member of file */
- 	file->private_data = fh;
- 	fh->vpfe_dev = vpfe_dev;
-@@ -1853,11 +1851,8 @@ static int vpfe_probe(struct platform_device *pdev)
- 
- 	/* Allocate memory for ccdc configuration */
- 	ccdc_cfg = kmalloc(sizeof(struct ccdc_config), GFP_KERNEL);
--	if (NULL == ccdc_cfg) {
--		v4l2_err(pdev->dev.driver,
--			 "Memory allocation failed for ccdc_cfg\n");
-+	if (!ccdc_cfg)
- 		goto probe_free_dev_mem;
--	}
- 
- 	mutex_lock(&ccdc_lock);
- 
-@@ -1944,8 +1939,6 @@ static int vpfe_probe(struct platform_device *pdev)
- 				     sizeof(*vpfe_dev->sd),
- 				     GFP_KERNEL);
- 	if (NULL == vpfe_dev->sd) {
--		v4l2_err(&vpfe_dev->v4l2_dev,
--			"unable to allocate memory for subdevice pointers\n");
- 		ret = -ENOMEM;
- 		goto probe_out_video_unregister;
- 	}
 -- 
-2.10.1
+1.9.1
 
