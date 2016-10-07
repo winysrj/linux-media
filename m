@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34046 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S946090AbcJaWyN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 18:54:13 -0400
-Date: Tue, 1 Nov 2016 00:54:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
- <20161023203315.GC6391@amd>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60297
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752430AbcJGLLo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 07:11:44 -0400
+Date: Fri, 7 Oct 2016 08:11:36 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jiri Kosina <jikos@kernel.org>
+Cc: =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Problem with VMAP_STACK=y
+Message-ID: <20161007081136.1eb8fae9@vento.lan>
+In-Reply-To: <alpine.LNX.2.00.1610070952010.31629@cbobk.fhfr.pm>
+References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
+        <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
+        <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
+        <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
+        <20161005093417.6e82bd97@vdr>
+        <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm>
+        <20161005060450.1b0f2152@vento.lan>
+        <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org>
+        <20161005155532.682258e2@vento.lan>
+        <CADDKRnCV7YhD5ErkvWSL8P3adymCLqzp5OePYmGp0L=9Dt_=UA@mail.gmail.com>
+        <20161006141734.4b2e4880@vento.lan>
+        <alpine.LNX.2.00.1610070952010.31629@cbobk.fhfr.pm>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161023203315.GC6391@amd>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Em Fri, 7 Oct 2016 09:52:56 +0200 (CEST)
+Jiri Kosina <jikos@kernel.org> escreveu:
 
-On Sun, Oct 23, 2016 at 10:33:15PM +0200, Pavel Machek wrote:
-> Hi!
+> On Thu, 6 Oct 2016, Mauro Carvalho Chehab wrote:
 > 
-> > Thanks, this answered half of my questions already. ;-)
+> > I can't see any other obvious error on the conversion. You could try to 
+> > enable debug options at DVB core/dvb-usb and/or add some printk's to the 
+> > driver and see what's happening.
 > 
-> :-).
-> 
-> I'll have to go through the patches, et8ek8 driver is probably not
-> enough to get useful video. platform/video-bus-switch.c is needed for
-> camera switching, then some omap3isp patches to bind flash and
-> autofocus into the subdevice.
-> 
-> Then, device tree support on n900 can be added.
+> Mauro, also please don't forget that there are many more places in 
+> drivers/media that still perform DMA on stack, and so have to be fixed for 
+> 4.9 (as VMAP_STACK makes that to be immediately visible problem even on 
+> x86_64, which it wasn't the case before).
 
-I briefly discussed with with Sebastian.
+Yes, I'm aware of that. I'm doing the conversion of drivers under dvb-usb,
+at:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=media_dmastack_fixes
 
-Do you think the elusive support for the secondary camera is worth keeping
-out the main camera from the DT in mainline? As long as there's a reasonable
-way to get it working, I'd just merge that. If someone ever gets the
-secondary camera working properly and nicely with the video bus switch,
-that's cool, we'll somehow deal with the problem then. But frankly I don't
-think it's very useful even if we get there: the quality is really bad.
+I'll be sending the patches to the ML after ready.
 
-> > Do all the modes work for you currently btw.?
-> 
-> I don't think I got 5MP mode to work. Even 2.5MP mode is tricky (needs
-> a lot of continuous memory).
+I'll then take a look on other USB drivers that use the stack. I guess
+the non-USB media drivers are safe from this issue.
 
-The OMAP 3 ISP has got an MMU, getting some contiguous memory is not really
-a problem when you have a 4 GiB empty space to use.
-
-> Anyway, I have to start somewhere, and I believe this is a good
-> starting place; I'd like to get the code cleaned up and merged, then
-> move to the next parts.
-
-I wonder if something else could be the problem. I think the data rate is
-higher in the 5 MP mode, and that might be the reason. I don't remember how
-similar is the clock tree in the 3430 to the 3630. Could it be that the ISP
-clock is lower than it should be for some reason, for instance?
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Mauro
