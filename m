@@ -1,1756 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:48449 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933253AbcJLOZQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:25:16 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert@linux-m68k.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [RFC 3/5] media: platform: rcar_drif: Add DRIF support
-Date: Wed, 12 Oct 2016 15:10:27 +0100
-Message-Id: <1476281429-27603-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:46790 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936479AbcJGRYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
+        Jonathan McDowell <noodles@earth.li>,
+        Sean Young <sean@mess.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 14/26] dtt200u: don't do DMA on stack
+Date: Fri,  7 Oct 2016 14:24:24 -0300
+Message-Id: <496132fd385efcfe88f0746cd645aaaa07ddc736.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds Digital Radio Interface (DRIF) support to R-Car Gen3 SoCs.
-The driver exposes each instance of DRIF as a V4L2 SDR device. A DRIF
-device represents a channel and each channel can have one or two
-sub-channels respectively depending on the target board.
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-DRIF supports only Rx functionality. It receives samples from a RF
-frontend tuner chip it is interfaced with. The combination of DRIF and the
-tuner device, which is registered as a sub-device, determines the receive
-sample rate and format.
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-In order to be compliant as a V4L2 SDR device, DRIF needs to bind with
-the tuner device, which can be provided by a third party vendor. DRIF acts
-as a slave device and the tuner device acts as a master transmitting the
-samples. The driver allows asynchronous binding of a tuner device that
-is registered as a v4l2 sub-device. The driver can learn about the tuner
-it is interfaced with based on port endpoint properties of the device in
-device tree. The V4L2 SDR device inherits the controls exposed by the
-tuner device.
-
-The device can also be configured to use either one or both of the data
-pins at runtime based on the master (tuner) configuration.
-
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../devicetree/bindings/media/renesas,drif.txt     |  109 ++
- drivers/media/platform/Kconfig                     |   25 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rcar_drif.c                 | 1534 ++++++++++++++++++++
- 4 files changed, 1669 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
- create mode 100644 drivers/media/platform/rcar_drif.c
+ drivers/media/usb/dvb-usb/dtt200u.c | 73 +++++++++++++++++++++++++------------
+ 1 file changed, 49 insertions(+), 24 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-new file mode 100644
-index 0000000..24239d9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-@@ -0,0 +1,109 @@
-+Renesas R-Car Gen3 DRIF controller (DRIF)
-+-----------------------------------------
-+
-+Required properties:
-+--------------------
-+- compatible: "renesas,drif-r8a7795" if DRIF controller is a part of R8A7795 SoC.
-+	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-+	      When compatible with the generic version, nodes must list the
-+	      SoC-specific version corresponding to the platform first
-+	      followed by the generic version.
-+
-+- reg: offset and length of each sub-channel.
-+- interrupts: associated with each sub-channel.
-+- clocks: phandles and clock specifiers for each sub-channel.
-+- clock-names: clock input name strings: "fck0", "fck1".
-+- pinctrl-0: pin control group to be used for this controller.
-+- pinctrl-names: must be "default".
-+- dmas: phandles to the DMA channels for each sub-channel.
-+- dma-names: names for the DMA channels: "rx0", "rx1".
-+
-+Required child nodes:
-+---------------------
-+- Each DRIF channel can have one or both of the sub-channels enabled in a
-+  setup. The sub-channels are represented as a child node. The name of the
-+  child nodes are "sub-channel0" and "sub-channel1" respectively. Each child
-+  node supports the "status" property only, which is used to enable/disable
-+  the respective sub-channel.
-+
-+Optional properties:
-+--------------------
-+- port: video interface child port node of a channel that defines the local
-+  and remote endpoints. The remote endpoint is assumed to a tuner subdevice
-+  endpoint.
-+- power-domains: phandle to respective power domain.
-+- renesas,syncmd       : sync mode
-+			 0 (Frame start sync pulse mode. 1-bit width pulse
-+			    indicates start of a frame)
-+			 1 (L/R sync or I2S mode) (default)
-+- renesas,lsb-first    : empty property indicates lsb bit is received first.
-+			 When not defined msb bit is received first (default)
-+- renesas,syncac-pol-high  : empty property indicates sync signal polarity.
-+			 When defined, active high or high->low sync signal.
-+			 When not defined, active low or low->high sync signal
-+			 (default)
-+- renesas,dtdl         : delay between sync signal and start of reception.
-+			 Must contain one of the following values:
-+			 0   (no bit delay)
-+			 50  (0.5-clock-cycle delay)
-+			 100 (1-clock-cycle delay) (default)
-+			 150 (1.5-clock-cycle delay)
-+			 200 (2-clock-cycle delay)
-+- renesas,syncdl       : delay between end of reception and sync signal edge.
-+			 Must contain one of the following values:
-+			 0   (no bit delay) (default)
-+			 50  (0.5-clock-cycle delay)
-+			 100 (1-clock-cycle delay)
-+			 150 (1.5-clock-cycle delay)
-+			 200 (2-clock-cycle delay)
-+			 300 (3-clock-cycle delay)
-+
-+Example
-+--------
-+
-+SoC common dtsi file
-+
-+drif0: rif@e6f40000 {
-+	compatible = "renesas,drif-r8a7795",
-+		   "renesas,rcar-gen3-drif";
-+	reg = <0 0xe6f40000 0 0x64>, <0 0xe6f50000 0 0x64>;
-+	interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
-+		   <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+	clocks = <&cpg CPG_MOD 515>, <&cpg CPG_MOD 514>;
-+	clock-names = "fck0", "fck1";
-+	dmas = <&dmac1 0x20>, <&dmac1 0x22>;
-+	dma-names = "rx0", "rx1";
-+	power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+	status = "disabled";
-+
-+	sub-channel0 {
-+		status = "disabled";
-+	};
-+
-+	sub-channel1 {
-+		status = "disabled";
-+	};
-+
-+};
-+
-+Board specific dts file
-+
-+&drif0 {
-+	pinctrl-0 = <&drif0_pins>;
-+	pinctrl-names = "default";
-+	status = "okay";
-+
-+	sub-channel0 {
-+		status = "okay";
-+	};
-+
-+	sub-channel1 {
-+		status = "okay";
-+	};
-+
-+	port {
-+		drif0_ep: endpoint {
-+		     remote-endpoint = <&tuner_subdev_ep>;
-+		};
-+	};
-+};
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index e9fc288..0ba6c1f 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -377,3 +377,28 @@ menuconfig DVB_PLATFORM_DRIVERS
- if DVB_PLATFORM_DRIVERS
- source "drivers/media/platform/sti/c8sectpfe/Kconfig"
- endif #DVB_PLATFORM_DRIVERS
-+
-+menuconfig SDR_PLATFORM_DRIVERS
-+	bool "SDR platform devices"
-+	depends on MEDIA_SDR_SUPPORT
-+	default n
-+	---help---
-+	  Say Y here to enable support for platform-specific SDR Drivers.
-+
-+if SDR_PLATFORM_DRIVERS
-+
-+config VIDEO_RCAR_DRIF
-+	tristate "Renesas Digitial Radio Interface (DRIF)"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && HAS_DMA
-+	depends on ARCH_RENESAS
-+	select VIDEOBUF2_VMALLOC
-+	---help---
-+	  Say Y if you want to enable R-Car Gen3 DRIF support. DRIF is Digital
-+	  Radio Interface that interfaces with an RF front end chip. It is a
-+	  receiver of digital data which uses DMA to transfer received data to
-+	  a configured location for an application to use.
-+
-+	  To compile this driver as a module, choose M here; the module
-+	  will be called rcar_drif.
-+
-+endif # SDR_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 40b18d1..e3e38b4 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -49,6 +49,7 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+diff --git a/drivers/media/usb/dvb-usb/dtt200u.c b/drivers/media/usb/dvb-usb/dtt200u.c
+index d2a01b50af0d..d6023fb6a1d4 100644
+--- a/drivers/media/usb/dvb-usb/dtt200u.c
++++ b/drivers/media/usb/dvb-usb/dtt200u.c
+@@ -20,73 +20,88 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2 (or-able))." DVB_USB
  
- obj-$(CONFIG_VIDEO_RENESAS_FCP) 	+= rcar-fcp.o
- obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
-+obj-$(CONFIG_VIDEO_RCAR_DRIF)		+= rcar_drif.o
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- obj-y	+= omap/
-diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
-new file mode 100644
-index 0000000..39d8637
---- /dev/null
-+++ b/drivers/media/platform/rcar_drif.c
-@@ -0,0 +1,1534 @@
-+/*
-+ * R-Car Gen3 Digital Radio Interface (DRIF) driver
-+ *
-+ * Copyright (C) 2016 Renesas Electronics Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/*
-+ * The R-Car DRIF is a receive only MSIOF like controller with an
-+ * external master device driving the SCK. It receives data into a FIFO,
-+ * then this driver uses the SYS-DMAC engine to move the data from
-+ * the device to memory.
-+ *
-+ * Each DRIF channel supports two sub-channels with their own resources
-+ * like module clk, register set and dma.
-+ *
-+ * Depending on the master device, a DRIF channel can use
-+ *  (1) both sub-channels (D0 & D1 pins) to receive data in parallel (or)
-+ *  (2) one sub-channel (D0 or D1) to receive data
-+ *
-+ * The primary design goal of this controller is to act as Digitial Radio
-+ * Interface that receives digital samples from a tuner device. Hence the
-+ * driver exposes the device as a V4L2 SDR device. In order to qualify as
-+ * a V4L2 SDR device, it should possess tuner interface as mandated by the
-+ * framework. This driver expects a tuner driver (sub-device) to bind
-+ * asynchronously with this device and the combined drivers shall expose
-+ * a V4L2 compliant SDR device. The DRIF driver is independent of the
-+ * tuner vendor.
-+ */
-+#include <linux/bitops.h>
-+#include <linux/clk.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/dmaengine.h>
-+#include <linux/ioctl.h>
-+#include <linux/iopoll.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/sched.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-v4l2.h>
-+#include <media/videobuf2-vmalloc.h>
-+
-+/* Internal flags */
-+#define RCAR_DRIF_BUF_DONE			BIT(0)
-+#define RCAR_DRIF_BUF_OVERFLOW			BIT(1)
-+
-+#define RCAR_DRIF_BUF_PAIRS_DONE(buf1, buf2)	\
-+	((buf1->status & buf2->status & RCAR_DRIF_BUF_DONE) == \
-+	 RCAR_DRIF_BUF_DONE)
-+
-+/* DRIF register offsets */
-+#define RCAR_DRIF_SITMDR1			(0x00)
-+#define RCAR_DRIF_SITMDR2			(0x04)
-+#define RCAR_DRIF_SITMDR3			(0x08)
-+#define RCAR_DRIF_SIRMDR1			(0x10)
-+#define RCAR_DRIF_SIRMDR2			(0x14)
-+#define RCAR_DRIF_SIRMDR3			(0x18)
-+#define RCAR_DRIF_SICTR				(0x28)
-+#define RCAR_DRIF_SIFCTR			(0x30)
-+#define RCAR_DRIF_SISTR				(0x40)
-+#define RCAR_DRIF_SIIER				(0x44)
-+#define RCAR_DRIF_SIRFDR			(0x60)
-+
-+#define RCAR_DRIF_RFOVF			BIT(3)	/* Receive FIFO overflow */
-+#define RCAR_DRIF_RFUDF			BIT(4)	/* Receive FIFO underflow */
-+#define RCAR_DRIF_RFSERR		BIT(5)	/* Receive frame sync error */
-+#define RCAR_DRIF_REOF			BIT(7)	/* Frame reception end */
-+#define RCAR_DRIF_RDREQ			BIT(12) /* Receive data xfer req */
-+#define RCAR_DRIF_RFFUL			BIT(13)	/* Receive FIFO full */
-+
-+/* Configuration */
-+#define RCAR_DRIF_SIRMDR1_SYNCMD_FRAME		(0 << 28)
-+#define RCAR_DRIF_SIRMDR1_SYNCMD_LR		(3 << 28)
-+
-+#define RCAR_DRIF_SIRMDR1_SYNCAC_POL_HIGH	(0 << 25)
-+#define RCAR_DRIF_SIRMDR1_SYNCAC_POL_LOW	(1 << 25)
-+
-+#define RCAR_DRIF_SIRMDR1_MSB_FIRST		(0 << 24)
-+#define RCAR_DRIF_SIRMDR1_LSB_FIRST		(1 << 24)
-+
-+#define RCAR_DRIF_SIRMDR1_DTDL_0		(0 << 20)
-+#define RCAR_DRIF_SIRMDR1_DTDL_1		(1 << 20)
-+#define RCAR_DRIF_SIRMDR1_DTDL_2		(2 << 20)
-+#define RCAR_DRIF_SIRMDR1_DTDL_0PT5		(5 << 20)
-+#define RCAR_DRIF_SIRMDR1_DTDL_1PT5		(6 << 20)
-+
-+#define RCAR_DRIF_SIRMDR1_SYNCDL_0		(0 << 20)
-+#define RCAR_DRIF_SIRMDR1_SYNCDL_1		(1 << 20)
-+#define RCAR_DRIF_SIRMDR1_SYNCDL_2		(2 << 20)
-+#define RCAR_DRIF_SIRMDR1_SYNCDL_3		(3 << 20)
-+#define RCAR_DRIF_SIRMDR1_SYNCDL_0PT5		(5 << 20)
-+#define RCAR_DRIF_SIRMDR1_SYNCDL_1PT5		(6 << 20)
-+
-+#define RCAR_DRIF_MDR_GRPCNT(n)			(((n) - 1) << 30)
-+#define RCAR_DRIF_MDR_BITLEN(n)			(((n) - 1) << 24)
-+#define RCAR_DRIF_MDR_WDCNT(n)			(((n) - 1) << 16)
-+
-+/* Hidden Transmit register that controls CLK & SYNC */
-+#define RCAR_DRIF_SITMDR1_PCON			BIT(30)
-+
-+#define RCAR_DRIF_SICTR_RX_RISING_EDGE		BIT(26)
-+#define RCAR_DRIF_SICTR_RX_EN			BIT(8)
-+#define RCAR_DRIF_SICTR_RESET			BIT(0)
-+
-+/* Constants */
-+#define RCAR_DRIF_MAX_NUM_HWBUFS		32
-+#define RCAR_DRIF_MAX_DEVS			4
-+#define RCAR_DRIF_DEFAULT_NUM_HWBUFS		16
-+#define RCAR_DRIF_DEFAULT_HWBUF_SIZE		(4 * PAGE_SIZE)
-+#define RCAR_DRIF_MAX_SUBCHANS			2
-+#define RCAR_SDR_BUFFER_SIZE			(64 * 1024)
-+
-+/* A tuner for each sub channel */
-+#define RCAR_DRIF_MAX_SUBDEVS			RCAR_DRIF_MAX_SUBCHANS
-+
-+/* Stream formats */
-+struct rcar_drif_format {
-+	char	*name;
-+	u32	pixelformat;
-+	u32	buffersize;
-+	u32	wdlen;
-+	u32	num_schans;
++struct dtt200u_state {
++	unsigned char data[80];
 +};
 +
-+/* Format descriptions for capture and preview */
-+static const struct rcar_drif_format formats[] = {
-+	{
-+		.name		= "Sliced Complex U16BE",
-+		.pixelformat	= V4L2_SDR_FMT_SCU16BE,
-+		.buffersize	= RCAR_SDR_BUFFER_SIZE,
-+		.wdlen		= 16,
-+		.num_schans	= 2,
-+	},
-+	{
-+		.name		= "Sliced Complex U18BE",
-+		.pixelformat	= V4L2_SDR_FMT_SCU18BE,
-+		.buffersize	= RCAR_SDR_BUFFER_SIZE,
-+		.wdlen		= 18,
-+		.num_schans	= 2,
-+	},
-+	{
-+		.name		= "Sliced Complex U20BE",
-+		.pixelformat	= V4L2_SDR_FMT_SCU20BE,
-+		.buffersize	= RCAR_SDR_BUFFER_SIZE,
-+		.wdlen		= 20,
-+		.num_schans	= 2,
-+	},
-+};
-+
-+#define to_rcar_drif_buf_pair(p, ch, idx)		\
-+	(p->schan[!ch]->buf[idx])
-+
-+static const unsigned int NUM_FORMATS = ARRAY_SIZE(formats);
-+
-+/* Buffer for a received frame from one or both sub-channels */
-+struct rcar_drif_frame_buf {
-+	/* Common v4l buffer stuff -- must be first */
-+	struct vb2_v4l2_buffer vb;
-+	struct list_head list;
-+};
-+
-+struct rcar_drif_async_subdev {
-+	struct v4l2_subdev *sd;
-+	struct v4l2_async_subdev asd;
-+};
-+
-+/* DMA buffer */
-+struct rcar_drif_hwbuf {
-+	void *addr;			/* Cpu-side address */
-+	int status;			/* Buffer status flags */
-+};
-+
-+/* Sub-channel resources */
-+struct rcar_drif_subchan {
-+	struct rcar_drif_chan *parent;	/* Parent ctx */
-+	void __iomem *base;		/* Base register address */
-+	resource_size_t start;		/* I/O resource offset */
-+	struct dma_chan *dmach;		/* Reserved DMA channel */
-+	struct clk *clkp;		/* Module clock */
-+	struct rcar_drif_hwbuf *buf[RCAR_DRIF_MAX_NUM_HWBUFS];
-+	dma_addr_t dma_handle;		/* Handle for all bufs */
-+	u8 num;				/* Sub-channel number */
-+};
-+
-+/* Channel context */
-+struct rcar_drif_chan {
-+	struct device *dev;		/* Platform device */
-+	struct video_device vdev;	/* SDR device */
-+	struct v4l2_device v4l2_dev;	/* V4l2 device */
-+
-+	/* Videobuf2 queue and queued buffers list */
-+	struct vb2_queue vb_queue;
-+	struct list_head queued_bufs;
-+	spinlock_t queued_bufs_lock;	/* Protects queued_bufs */
-+
-+	struct mutex v4l2_mutex;	/* To serialize ioctls */
-+	struct mutex vb_queue_mutex;	/* To serialize streaming ioctls */
-+	struct v4l2_ctrl_handler ctrl_hdl;	/* SDR control handler */
-+	struct v4l2_async_notifier notifier;	/* For subdev (tuner) */
-+	u32 num_subdevs;		/* Num of sub devices used */
-+
-+	/* Current V4L2 SDR format array index */
-+	u32 fmt_idx;
-+
-+	/* Device tree SYNC properties */
-+	u32 mdr1;
-+
-+	/* Internals */
-+	struct rcar_drif_subchan *schan[2]; /* DRIFx0 and DRIFx1 */
-+	unsigned long hw_schans_mask;	/* Enabled sub-channels per DT */
-+	unsigned long cur_schans_mask;	/* Used sub-channels for an SDR FMT */
-+	u32 num_hw_schans;		/* Num of DT enabled sub-channels */
-+	u32 num_cur_schans;		/* Num of used sub-channels */
-+	u32 num_hwbufs;			/* Num of DMA buffers */
-+	u32 hwbuf_size;			/* Each DMA buffer size */
-+	u32 produced;			/* Counter: Buf produced by dev */
-+};
-+
-+/* Allocate buffer context */
-+static int rcar_drif_alloc_bufctxt(struct rcar_drif_chan *ch)
-+{
-+	struct rcar_drif_hwbuf *bufctx;
-+	u32 i, idx;
-+
-+	/* Alloc buf contexts for given number of sub-channels */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		bufctx = kcalloc(ch->num_hwbufs, sizeof(*bufctx), GFP_KERNEL);
-+		if (!bufctx)
-+			return 1;
-+
-+		for (idx = 0; idx < ch->num_hwbufs; idx++)
-+			ch->schan[i]->buf[idx] = bufctx + idx;
-+	}
-+	return 0;
-+}
-+
-+/* Release buffer context */
-+static void rcar_drif_release_bufctxt(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+
-+	/* First entry of first sub channel is the bufctxt ptr always */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		kfree(ch->schan[i]->buf[0]);
-+		ch->schan[i]->buf[0] = NULL;
-+	}
-+}
-+
-+/* Release DMA channel */
-+static void rcar_drif_release_dmachannel(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS)
-+		if (ch->schan[i]->dmach) {
-+			dma_release_channel(ch->schan[i]->dmach);
-+			ch->schan[i]->dmach = NULL;
-+		}
-+}
-+
-+/* Allocate DMA channel */
-+static int rcar_drif_alloc_dmachannel(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+	struct dma_slave_config dma_cfg;
-+	int ret = -ENODEV;
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ch->schan[i]->dmach =
-+			dma_request_slave_channel(ch->dev, (i ? "rx1" : "rx0"));
-+		if (!ch->schan[i]->dmach) {
-+			dev_err(&ch->vdev.dev,
-+				"schan%u: dma channel req failed\n", i);
-+			goto dmach_error;
-+		}
-+
-+		/* Configure slave */
-+		memset(&dma_cfg, 0, sizeof(dma_cfg));
-+		dma_cfg.src_addr = (phys_addr_t)(ch->schan[i]->start +
-+						 RCAR_DRIF_SIRFDR);
-+		dma_cfg.dst_addr = 0;
-+		dma_cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
-+		ret = dmaengine_slave_config(ch->schan[i]->dmach, &dma_cfg);
-+		if (ret) {
-+			dev_err(&ch->vdev.dev,
-+				"schan%u: dma slave config failed\n", i);
-+			goto dmach_error;
-+		}
-+		dev_dbg(&ch->vdev.dev, "schan%u: dma slave configed\n", i);
-+	}
-+
-+	return 0;
-+
-+dmach_error:
-+	rcar_drif_release_dmachannel(ch);
-+	return ret;
-+}
-+
-+/* Release queued vb2 buffers */
-+static void rcar_drif_release_queued_bufs(struct rcar_drif_chan *ch,
-+					  enum vb2_buffer_state state)
-+{
-+	struct rcar_drif_frame_buf *fbuf, *tmp;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ch->queued_bufs_lock, flags);
-+	list_for_each_entry_safe(fbuf, tmp, &ch->queued_bufs, list) {
-+		list_del(&fbuf->list);
-+		vb2_buffer_done(&fbuf->vb.vb2_buf, state);
-+	}
-+	spin_unlock_irqrestore(&ch->queued_bufs_lock, flags);
-+}
-+
-+/* Set MDR defaults */
-+static inline void rcar_drif_set_mdr1(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+
-+	/* Set defaults for both sub-channels */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		/* Refer MSIOF section in manual for this register setting */
-+		writel(RCAR_DRIF_SITMDR1_PCON,
-+		       ch->schan[i]->base + RCAR_DRIF_SITMDR1);
-+
-+		/* Setup MDR1 value */
-+		writel(ch->mdr1, ch->schan[i]->base + RCAR_DRIF_SIRMDR1);
-+
-+		dev_dbg(&ch->vdev.dev,
-+			"schan%u: SIRMDR1 = 0x%08x",
-+			i, readl(ch->schan[i]->base + RCAR_DRIF_SIRMDR1));
-+	}
-+}
-+
-+/* Extract bitlen and wdcnt from given word length */
-+static int rcar_drif_convert_wdlen(struct rcar_drif_chan *ch,
-+				   u32 wdlen, u32 *bitlen, u32 *wdcnt)
-+{
-+	u32 i, nr_wds;
-+
-+	/* FIFO register size is 32 bits */
-+	for (i = 0; i < 32; i++) {
-+		nr_wds = wdlen % (32 - i);
-+		if (nr_wds == 0) {
-+			*bitlen = (32 - i);
-+			*wdcnt = (wdlen / *bitlen);
-+			break;
-+		}
-+	}
-+
-+	/* Sanity check range */
-+	if ((i == 32) || !((*bitlen >= 8) && (*bitlen <= 32)) ||
-+	    !((*wdcnt >= 1) && (*wdcnt <= 64))) {
-+		dev_err(&ch->vdev.dev, "invalid wdlen %u configured\n",
-+			wdlen);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Set DRIF receive format */
-+static int rcar_drif_set_format(struct rcar_drif_chan *ch)
-+{
-+	u32 i, bitlen, wdcnt, wdlen;
-+
-+	wdlen = formats[ch->fmt_idx].wdlen;
-+	dev_dbg(&ch->vdev.dev, "setfmt: idx %u, wdlen %u, num_schans %u\n",
-+		ch->fmt_idx, wdlen, formats[ch->fmt_idx].num_schans);
-+
-+	/* Sanity check */
-+	if (formats[ch->fmt_idx].num_schans > ch->num_cur_schans) {
-+		dev_err(ch->dev, "fmt idx %u current schans %u mismatch\n",
-+			ch->fmt_idx, ch->num_cur_schans);
-+		return 1;
-+	}
-+
-+	if (rcar_drif_convert_wdlen(ch, wdlen, &bitlen, &wdcnt))
-+		return 1;
-+
-+	/* Setup group, bitlen & word count */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		u32 mdr;
-+
-+		/* Two groups */
-+		mdr = RCAR_DRIF_MDR_GRPCNT(2) | RCAR_DRIF_MDR_BITLEN(bitlen) |
-+		       RCAR_DRIF_MDR_WDCNT(wdcnt);
-+		writel(mdr, ch->schan[i]->base + RCAR_DRIF_SIRMDR2);
-+
-+		mdr = RCAR_DRIF_MDR_BITLEN(bitlen) | RCAR_DRIF_MDR_WDCNT(wdcnt);
-+		writel(mdr, ch->schan[i]->base + RCAR_DRIF_SIRMDR3);
-+
-+		dev_dbg(&ch->vdev.dev,
-+			"schan%u: new SIRMDR[2,3] = 0x%08x 0x%08x\n",
-+			i, readl(ch->schan[i]->base + RCAR_DRIF_SIRMDR2),
-+			readl(ch->schan[i]->base + RCAR_DRIF_SIRMDR3));
-+	}
-+	return 0;
-+}
-+
-+/* Release DMA buffers */
-+static void rcar_drif_release_buf(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		struct rcar_drif_subchan *schan = ch->schan[i];
-+
-+		/* First entry of the sub-channel contains the dma buf ptr */
-+		if (schan->buf[0] && schan->buf[0]->addr) {
-+			dma_free_coherent(ch->dev,
-+				ch->hwbuf_size * ch->num_hwbufs,
-+				schan->buf[0]->addr, schan->dma_handle);
-+			schan->buf[0]->addr = NULL;
-+		}
-+	}
-+}
-+
-+/* Request DMA buffers */
-+static int rcar_drif_request_buf(struct rcar_drif_chan *ch)
-+{
-+	int ret = 0;
-+	u32 i, j;
-+	void *addr;
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		struct rcar_drif_subchan *schan = ch->schan[i];
-+
-+		/* Allocate DMA buffers */
-+		addr = dma_alloc_coherent(ch->dev,
-+				ch->hwbuf_size * ch->num_hwbufs,
-+				&schan->dma_handle, GFP_KERNEL);
-+		if (!addr) {
-+			dev_err(&ch->vdev.dev,
-+				"dma alloc failed. num_hwbufs %u hwbuf_size %u\n",
-+				ch->num_hwbufs, ch->hwbuf_size);
-+			ret = 1;
-+			goto alloc_error;
-+		}
-+
-+		for (j = 0; j < ch->num_hwbufs; j++) {
-+			schan->buf[j]->addr = addr + (j * ch->hwbuf_size);
-+			schan->buf[j]->status = 0;
-+		}
-+	}
-+
-+	return 0;
-+
-+alloc_error:
-+	return ret;
-+}
-+
-+/* Setup vb_queue minimum buffer requirements */
-+static int rcar_drif_queue_setup(struct vb2_queue *vq,
-+			unsigned int *num_buffers, unsigned int *num_planes,
-+			unsigned int sizes[], struct device *alloc_devs[])
-+{
-+	struct rcar_drif_chan *ch = vb2_get_drv_priv(vq);
-+
-+	dev_dbg(&ch->vdev.dev, "num_buffers %u vq->num_buffers %u\n",
-+		*num_buffers, vq->num_buffers);
-+
-+	/* Need at least 16 buffers */
-+	if (vq->num_buffers + *num_buffers < 16)
-+		*num_buffers = 16 - vq->num_buffers;
-+
-+	*num_planes = 1;
-+	sizes[0] = PAGE_ALIGN(formats[ch->fmt_idx].buffersize);
-+
-+	dev_dbg(&ch->vdev.dev, "nbuf %d sizes[0] %d\n", *num_buffers, sizes[0]);
-+	return 0;
-+}
-+
-+/* Enqueue buffer */
-+static void rcar_drif_buf_queue(struct vb2_buffer *vb)
-+{
-+	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
-+	struct rcar_drif_chan *ch = vb2_get_drv_priv(vb->vb2_queue);
-+	struct rcar_drif_frame_buf *fbuf =
-+			container_of(vbuf, struct rcar_drif_frame_buf, vb);
-+	unsigned long flags;
-+
-+	dev_dbg(&ch->vdev.dev, "buf_queue idx %u len %u, used %d\n", vb->index,
-+		vb->planes[0].length, vb->planes[0].bytesused);
-+	spin_lock_irqsave(&ch->queued_bufs_lock, flags);
-+	list_add_tail(&fbuf->list, &ch->queued_bufs);
-+	spin_unlock_irqrestore(&ch->queued_bufs_lock, flags);
-+}
-+
-+/* Deliver buffer to user space */
-+static void rcar_drif_deliver_buf(struct rcar_drif_subchan *schan, u32 idx)
-+{
-+	struct rcar_drif_chan *ch = schan->parent;
-+	struct rcar_drif_frame_buf *fbuf;
-+	unsigned long flags;
-+	bool overflow = false;
-+
-+	spin_lock_irqsave(&ch->queued_bufs_lock, flags);
-+	fbuf = list_first_entry_or_null(&ch->queued_bufs, struct
-+					rcar_drif_frame_buf, list);
-+	if (!fbuf) {
-+		/* App is late in enqueing buffers. There will be a gap in
-+		 * sequence number when app recovers
-+		 */
-+		dev_dbg(&ch->vdev.dev, "app late: schan%u: prod %u\n",
-+			schan->num, ch->produced);
-+		ch->produced++;	/* Increment the produced count anyway */
-+		spin_unlock_irqrestore(&ch->queued_bufs_lock, flags);
-+		return;
-+	}
-+	list_del(&fbuf->list);
-+	spin_unlock_irqrestore(&ch->queued_bufs_lock, flags);
-+
-+	if (ch->num_cur_schans == RCAR_DRIF_MAX_SUBCHANS) {
-+		struct rcar_drif_hwbuf *buf_i, *buf_q;
-+
-+		if (schan->num) {
-+			buf_i = to_rcar_drif_buf_pair(ch, schan->num, idx);
-+			buf_q = schan->buf[idx];
-+		} else {
-+			buf_q = to_rcar_drif_buf_pair(ch, schan->num, idx);
-+			buf_i = schan->buf[idx];
-+		}
-+		memcpy(vb2_plane_vaddr(&fbuf->vb.vb2_buf, 0),
-+		       buf_i->addr, ch->hwbuf_size);
-+		memcpy(vb2_plane_vaddr(&fbuf->vb.vb2_buf, 0) + ch->hwbuf_size,
-+		       buf_q->addr, ch->hwbuf_size);
-+
-+		if ((buf_i->status | buf_q->status) & RCAR_DRIF_BUF_OVERFLOW) {
-+			/* Clear the flag in status */
-+			buf_i->status &= ~RCAR_DRIF_BUF_OVERFLOW;
-+			buf_q->status &= ~RCAR_DRIF_BUF_OVERFLOW;
-+			overflow = true;
-+		}
-+	} else {
-+		struct rcar_drif_hwbuf *buf_iq;
-+
-+		buf_iq = schan->buf[idx];
-+		memcpy(vb2_plane_vaddr(&fbuf->vb.vb2_buf, 0),
-+		       buf_iq->addr, ch->hwbuf_size);
-+
-+		if (buf_iq->status & RCAR_DRIF_BUF_OVERFLOW) {
-+			/* Clear the flag in status */
-+			buf_iq->status &= ~RCAR_DRIF_BUF_OVERFLOW;
-+			overflow = true;
-+		}
-+	}
-+
-+	dev_dbg(&ch->vdev.dev, "schan%u: produced %u\n",
-+		schan->num, ch->produced);
-+
-+	fbuf->vb.field = V4L2_FIELD_NONE;
-+	fbuf->vb.sequence = ch->produced++;
-+	fbuf->vb.vb2_buf.timestamp = ktime_get_ns();
-+	vb2_set_plane_payload(&fbuf->vb.vb2_buf, 0,
-+			      formats[ch->fmt_idx].buffersize);
-+	if (overflow)
-+		vb2_buffer_done(&fbuf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
-+	else
-+		vb2_buffer_done(&fbuf->vb.vb2_buf, VB2_BUF_STATE_DONE);
-+}
-+
-+/* Check if DMA of the paired sub-channel is also complete */
-+static void rcar_drif_dmapair_complete(struct rcar_drif_subchan *schan, u32 idx)
-+{
-+	struct rcar_drif_chan *ch = schan->parent;
-+	struct rcar_drif_hwbuf *buf, *pair;
-+
-+	buf = schan->buf[idx];
-+	pair = to_rcar_drif_buf_pair(ch, schan->num, idx);
-+	buf->status |= RCAR_DRIF_BUF_DONE;
-+	dev_dbg(&ch->vdev.dev, "schan%u: status: buf 0x%08x pair 0x%08x\n",
-+		schan->num, buf->status, pair->status);
-+
-+	/* Check if both DMA buffers are done */
-+	if (RCAR_DRIF_BUF_PAIRS_DONE(buf, pair)) {
-+		/* Clear status flag */
-+		buf->status &= ~RCAR_DRIF_BUF_DONE;
-+		pair->status &= ~RCAR_DRIF_BUF_DONE;
-+
-+		/* Deliver buffer to user */
-+		rcar_drif_deliver_buf(schan, idx);
-+	}
-+}
-+
-+/* DMA callback for each stage */
-+static void rcar_drif_dma_complete(void *dma_async_param)
-+{
-+	struct rcar_drif_subchan *schan =
-+		(struct rcar_drif_subchan *)dma_async_param;
-+	struct rcar_drif_chan *ch = schan->parent;
-+	struct rcar_drif_hwbuf *buf;
-+	u32 str, idx;
-+
-+	mutex_lock(&ch->vb_queue_mutex);
-+
-+	/* DMA can be terminated while the callback was waiting on lock */
-+	if (!vb2_is_streaming(&ch->vb_queue)) {
-+		mutex_unlock(&ch->vb_queue_mutex);
-+		return;
-+	}
-+
-+	idx = ch->produced % ch->num_hwbufs;
-+	buf = schan->buf[idx];
-+
-+	/* Check for DRIF errors */
-+	str = readl(schan->base + RCAR_DRIF_SISTR);
-+	if (str & RCAR_DRIF_RFOVF) {
-+		/* Writing the same clears it */
-+		writel(str, schan->base + RCAR_DRIF_SISTR);
-+
-+		/* Overflow: some samples are lost */
-+		buf->status |= RCAR_DRIF_BUF_OVERFLOW;
-+		dev_dbg(&ch->vdev.dev, "fifo overflow: schan%u: prod %d\n",
-+			schan->num, ch->produced);
-+	}
-+
-+	/* Check if the rx'ed data can be delivered to user */
-+	if (ch->num_cur_schans == RCAR_DRIF_MAX_SUBCHANS)
-+		rcar_drif_dmapair_complete(schan, idx);
-+	else
-+		rcar_drif_deliver_buf(schan, idx);
-+
-+	mutex_unlock(&ch->vb_queue_mutex);
-+}
-+
-+static int rcar_drif_qbuf(struct rcar_drif_subchan *schan)
-+{
-+	struct rcar_drif_chan *ch = schan->parent;
-+	dma_addr_t addr = schan->dma_handle;
-+	struct dma_async_tx_descriptor *rxd;
-+	dma_cookie_t cookie;
-+
-+	/* Setup cyclic DMA with given buffers */
-+	rxd = dmaengine_prep_dma_cyclic(schan->dmach, addr,
-+					ch->hwbuf_size * ch->num_hwbufs,
-+					ch->hwbuf_size, DMA_DEV_TO_MEM,
-+					DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
-+	if (!rxd) {
-+		dev_err(&ch->vdev.dev, "schan%u: prep dma cyclic failed\n",
-+			schan->num);
-+		return 1;
-+	}
-+
-+	/* Submit descriptor */
-+	rxd->callback = rcar_drif_dma_complete;
-+	rxd->callback_param = schan;
-+	dev_dbg(&ch->vdev.dev, "schan%u: param %p\n", schan->num, schan);
-+	cookie = dmaengine_submit(rxd);
-+	if (dma_submit_error(cookie)) {
-+		dev_err(&ch->vdev.dev, "schan%u: dma submit failed\n",
-+			schan->num);
-+		return 1;
-+	}
-+
-+	dma_async_issue_pending(schan->dmach);
-+	return 0;
-+}
-+
-+/* Enable reception */
-+static int rcar_drif_enable_rx(struct rcar_drif_chan *ch)
-+{
-+	u32 ctr, i;
-+	int ret;
-+
-+	/*
-+	 * When both sub-channels are enabled, they can be syncronized only by
-+	 * the master
-+	 */
-+
-+	/* Enable receive */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ctr = readl(ch->schan[i]->base + RCAR_DRIF_SICTR);
-+		ctr |= (RCAR_DRIF_SICTR_RX_RISING_EDGE |
-+			 RCAR_DRIF_SICTR_RX_EN);
-+		writel(ctr, ch->schan[i]->base + RCAR_DRIF_SICTR);
-+	}
-+
-+	/* Check receive enabled */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ret = readl_poll_timeout(ch->schan[i]->base + RCAR_DRIF_SICTR,
-+					 ctr, ctr & RCAR_DRIF_SICTR_RX_EN,
-+					 2, 500000);
-+		if (ret) {
-+			dev_err(&ch->vdev.dev,
-+			"schan%u: failed to enable rx. CTR 0x%08x\n",
-+			i, readl(ch->schan[i]->base + RCAR_DRIF_SICTR));
-+			break;
-+		}
-+	}
-+	return ret;
-+}
-+
-+/* Disable reception */
-+static void rcar_drif_disable_rx(struct rcar_drif_chan *ch)
-+{
-+	u32 ctr, i;
-+	int ret;
-+
-+	/* Disable receive */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ctr = readl(ch->schan[i]->base + RCAR_DRIF_SICTR);
-+		ctr &= ~RCAR_DRIF_SICTR_RX_EN;
-+		writel(ctr, ch->schan[i]->base + RCAR_DRIF_SICTR);
-+	}
-+
-+	/* Check receive disabled */
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ret = readl_poll_timeout(ch->schan[i]->base + RCAR_DRIF_SICTR,
-+					 ctr, !(ctr & RCAR_DRIF_SICTR_RX_EN),
-+					 2, 500000);
-+		if (ret)
-+			dev_warn(&ch->vdev.dev,
-+			"schan%u: failed to disable rx. CTR 0x%08x\n",
-+			i, readl(ch->schan[i]->base + RCAR_DRIF_SICTR));
-+	}
-+}
-+
-+/* Start sub-channel */
-+static int rcar_drif_start_subchan(struct rcar_drif_subchan *schan)
-+{
-+	struct rcar_drif_chan *ch = schan->parent;
-+	u32 ctr, str;
-+	int ret;
-+
-+	/* Reset receive */
-+	writel(RCAR_DRIF_SICTR_RESET, schan->base + RCAR_DRIF_SICTR);
-+	ret = readl_poll_timeout(schan->base + RCAR_DRIF_SICTR,
-+					 ctr, !(ctr & RCAR_DRIF_SICTR_RESET),
-+					 2, 500000);
-+	if (ret) {
-+		dev_err(&ch->vdev.dev,
-+			"schan%u: failed to reset rx. CTR 0x%08x\n",
-+			schan->num, readl(schan->base + RCAR_DRIF_SICTR));
-+		return ret;
-+	}
-+
-+	/* Queue buffers for DMA */
-+	if (rcar_drif_qbuf(schan)) {
-+		dev_err(&ch->vdev.dev,
-+			"failed to queue schan %u DMA transfer.\n", schan->num);
-+		return 1;
-+	}
-+
-+	/* Clear status register flags */
-+	str = RCAR_DRIF_RFFUL | RCAR_DRIF_REOF | RCAR_DRIF_RFSERR |
-+		RCAR_DRIF_RFUDF | RCAR_DRIF_RFOVF;
-+	writel(str, schan->base + RCAR_DRIF_SISTR);
-+
-+	/* Enable DMA receive interrupt */
-+	writel(0x00009000, schan->base + RCAR_DRIF_SIIER);
-+
-+	return 0;
-+}
-+
-+/* Start receive operation */
-+static int rcar_drif_start(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+	int ret;
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ret = rcar_drif_start_subchan(ch->schan[i]);
-+		if (ret)
-+			goto start_error;
-+	}
-+
-+	/* Reset counters */
-+	ch->produced = 0;
-+
-+	/* Enable Rx */
-+	ret = rcar_drif_enable_rx(ch);
-+	if (ret)
-+		goto start_error;
-+
-+	dev_dbg(&ch->vdev.dev, "started\n");
-+
-+start_error:
-+	return ret;
-+}
-+
-+/* Stop sub-channel */
-+static void rcar_drif_stop_subchan(struct rcar_drif_subchan *schan)
-+{
-+	struct rcar_drif_chan *ch = schan->parent;
-+	int ret, retries = 3;
-+
-+	/* Disable DMA receive interrupt */
-+	writel(0x00000000, schan->base + RCAR_DRIF_SIIER);
-+
-+	do {
-+		/* Terminate all DMA transfers */
-+		ret = dmaengine_terminate_sync(schan->dmach);
-+		if (!ret)
-+			break;
-+		dev_dbg(&ch->vdev.dev, "stop retry\n");
-+	} while (--retries);
-+
-+	WARN_ON(!retries);
-+}
-+
-+/* Stop receive operation */
-+static void rcar_drif_stop(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+
-+	/* Disable Rx */
-+	rcar_drif_disable_rx(ch);
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS)
-+		rcar_drif_stop_subchan(ch->schan[i]);
-+
-+	dev_dbg(&ch->vdev.dev, "stopped: prod %u\n", ch->produced);
-+}
-+
-+/* Start streaming */
-+static int rcar_drif_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct rcar_drif_chan *ch = vb2_get_drv_priv(vq);
-+	int ret, i, j;
-+
-+	dev_dbg(&ch->vdev.dev, "start streaming\n");
-+	mutex_lock(&ch->v4l2_mutex);
-+
-+	for_each_set_bit(i, &ch->cur_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		ret = clk_prepare_enable(ch->schan[i]->clkp);
-+		if (ret)
-+			goto start_error;
-+	}
-+
-+	/* Set default MDRx settings */
-+	rcar_drif_set_mdr1(ch);
-+
-+	/* Set new format */
-+	ret = rcar_drif_set_format(ch);
-+	if (ret)
-+		goto start_error;
-+
-+	if (ch->num_cur_schans == RCAR_DRIF_MAX_SUBCHANS)
-+		ch->hwbuf_size = formats[ch->fmt_idx].buffersize/2;
-+	else
-+		ch->hwbuf_size = formats[ch->fmt_idx].buffersize;
-+
-+	dev_dbg(&ch->vdev.dev, "num_hwbufs %u, hwbuf_size %u\n",
-+		ch->num_hwbufs, ch->hwbuf_size);
-+
-+	if (rcar_drif_alloc_dmachannel(ch)) {
-+		ret = -ENODEV;
-+		goto start_error;
-+	}
-+
-+	/* Alloc buf context */
-+	if (rcar_drif_alloc_bufctxt(ch)) {
-+		ret = -ENOMEM;
-+		goto start_error;
-+	}
-+
-+	if (rcar_drif_request_buf(ch)) {
-+		ret = -ENOMEM;
-+		goto start_error;
-+	}
-+
-+	dev_dbg(&ch->vdev.dev, "dma setup successful\n");
-+
-+	ret = rcar_drif_start(ch);
-+	if (ret)
-+		goto start_error;
-+
-+	mutex_unlock(&ch->v4l2_mutex);
-+	return ret;
-+
-+start_error:
-+	/* Return all queued buffers to vb2 */
-+	rcar_drif_release_queued_bufs(ch, VB2_BUF_STATE_QUEUED);
-+	rcar_drif_release_buf(ch);
-+	rcar_drif_release_bufctxt(ch);
-+	rcar_drif_release_dmachannel(ch);
-+	for (j = 0; j < i; j++)
-+		clk_disable_unprepare(ch->schan[j]->clkp);
-+
-+	mutex_unlock(&ch->v4l2_mutex);
-+	return ret;
-+}
-+
-+/* Stop streaming */
-+static void rcar_drif_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct rcar_drif_chan *ch = vb2_get_drv_priv(vq);
-+	u32 i;
-+
-+	mutex_lock(&ch->v4l2_mutex);
-+
-+	/* Stop hardware streaming */
-+	rcar_drif_stop(ch);
-+
-+	/* Return all queued buffers to vb2 */
-+	rcar_drif_release_queued_bufs(ch, VB2_BUF_STATE_ERROR);
-+
-+	/* Release buf & buf context */
-+	rcar_drif_release_buf(ch);
-+	rcar_drif_release_bufctxt(ch);
-+
-+	/* Release DMA channel resources */
-+	rcar_drif_release_dmachannel(ch);
-+
-+	for (i = 0; i < RCAR_DRIF_MAX_SUBCHANS; i++)
-+		clk_disable_unprepare(ch->schan[i]->clkp);
-+
-+	mutex_unlock(&ch->v4l2_mutex);
-+	dev_dbg(&ch->vdev.dev, "stopped streaming\n");
-+}
-+
-+/* Vb2 ops */
-+static struct vb2_ops rcar_drif_vb2_ops = {
-+	.queue_setup            = rcar_drif_queue_setup,
-+	.buf_queue              = rcar_drif_buf_queue,
-+	.start_streaming        = rcar_drif_start_streaming,
-+	.stop_streaming         = rcar_drif_stop_streaming,
-+	.wait_prepare		= vb2_ops_wait_prepare,
-+	.wait_finish		= vb2_ops_wait_finish,
-+};
-+
-+static int rcar_drif_querycap(struct file *file, void *fh,
-+		struct v4l2_capability *cap)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+
-+	strlcpy(cap->driver, KBUILD_MODNAME, sizeof(cap->driver));
-+	strlcpy(cap->card, ch->vdev.name, sizeof(cap->card));
-+	cap->device_caps = V4L2_CAP_SDR_CAPTURE | V4L2_CAP_TUNER |
-+				   V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
-+		 ch->vdev.name);
-+	return 0;
-+}
-+
-+static int rcar_drif_set_default_format(struct rcar_drif_chan *ch)
-+{
-+	u32 i;
-+
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		/* Find any matching fmt and set it as default */
-+		if (ch->num_hw_schans == formats[i].num_schans) {
-+			ch->fmt_idx = i;
-+			ch->cur_schans_mask = ch->hw_schans_mask;
-+			ch->num_cur_schans = ch->num_hw_schans;
-+			dev_dbg(ch->dev, "default fmt[%u]: mask %lu num %u\n",
-+				i, ch->cur_schans_mask, ch->num_cur_schans);
-+			return 0;
-+		}
-+	}
-+	return -EINVAL;
-+}
-+
-+static int rcar_drif_enum_fmt_sdr_cap(struct file *file, void *priv,
-+				      struct v4l2_fmtdesc *f)
-+{
-+	if (f->index >= NUM_FORMATS)
-+		return -EINVAL;
-+
-+	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
-+	f->pixelformat = formats[f->index].pixelformat;
-+	return 0;
-+}
-+
-+static int rcar_drif_g_fmt_sdr_cap(struct file *file, void *priv,
-+				   struct v4l2_format *f)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+
-+	f->fmt.sdr.pixelformat = formats[ch->fmt_idx].pixelformat;
-+	f->fmt.sdr.buffersize = formats[ch->fmt_idx].buffersize;
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+	return 0;
-+}
-+
-+static int rcar_drif_s_fmt_sdr_cap(struct file *file, void *priv,
-+				   struct v4l2_format *f)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	struct vb2_queue *q = &ch->vb_queue;
-+	u32 i;
-+
-+	if (vb2_is_busy(q))
-+		return -EBUSY;
-+
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			ch->fmt_idx  = i;
-+			f->fmt.sdr.buffersize = formats[i].buffersize;
-+
-+			/* If a format demands one subch out of two enabled
-+			 * sub-channels then pick the 0th sub-channel
-+			 */
-+			if (formats[i].num_schans < ch->num_hw_schans) {
-+				ch->cur_schans_mask = BIT(0);	/* Enable D0 */
-+				ch->num_cur_schans = formats[i].num_schans;
-+			} else {
-+				ch->cur_schans_mask = ch->hw_schans_mask;
-+				ch->num_cur_schans = ch->num_hw_schans;
-+			}
-+
-+			dev_dbg(&ch->vdev.dev, "cur: idx %u mask %lu num %u\n",
-+				i, ch->cur_schans_mask, ch->num_cur_schans);
-+			return 0;
-+		}
-+	}
-+
-+	if (rcar_drif_set_default_format(ch))
-+		return -EINVAL;
-+
-+	f->fmt.sdr.pixelformat = formats[ch->fmt_idx].pixelformat;
-+	f->fmt.sdr.buffersize = formats[ch->fmt_idx].buffersize;
-+	return 0;
-+}
-+
-+static int rcar_drif_try_fmt_sdr_cap(struct file *file, void *priv,
-+				     struct v4l2_format *f)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	u32 i;
-+
-+	memset(f->fmt.sdr.reserved, 0, sizeof(f->fmt.sdr.reserved));
-+	for (i = 0; i < NUM_FORMATS; i++) {
-+		if (formats[i].pixelformat == f->fmt.sdr.pixelformat) {
-+			f->fmt.sdr.buffersize = formats[i].buffersize;
-+			return 0;
-+		}
-+	}
-+
-+	f->fmt.sdr.pixelformat = formats[ch->fmt_idx].pixelformat;
-+	f->fmt.sdr.buffersize = formats[ch->fmt_idx].buffersize;
-+	return 0;
-+}
-+
-+static int rcar_drif_enum_freq_bands(struct file *file, void *priv,
-+		struct v4l2_frequency_band *band)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	struct v4l2_subdev *sd, *tmp;
-+	int ret = 0;
-+
-+	list_for_each_entry_safe(sd, tmp, &ch->v4l2_dev.subdevs, list)
-+		ret = v4l2_subdev_call(sd, tuner, enum_freq_bands, band);
-+
-+	return ret;
-+}
-+
-+static int rcar_drif_g_frequency(struct file *file, void *priv,
-+		struct v4l2_frequency *f)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	struct v4l2_subdev *sd, *tmp;
-+	int ret = 0;
-+
-+	list_for_each_entry_safe(sd, tmp, &ch->v4l2_dev.subdevs, list)
-+		ret = v4l2_subdev_call(sd, tuner, g_frequency, f);
-+
-+	return ret;
-+}
-+
-+static int rcar_drif_s_frequency(struct file *file, void *priv,
-+				 const struct v4l2_frequency *f)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	struct v4l2_subdev *sd, *tmp;
-+	int ret = 0;
-+
-+	list_for_each_entry_safe(sd, tmp, &ch->v4l2_dev.subdevs, list)
-+		ret = v4l2_subdev_call(sd, tuner, s_frequency, f);
-+
-+	return ret;
-+}
-+
-+static int rcar_drif_g_tuner(struct file *file, void *priv,
-+			     struct v4l2_tuner *vt)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	struct v4l2_subdev *sd, *tmp;
-+	int ret = 0;
-+
-+	list_for_each_entry_safe(sd, tmp, &ch->v4l2_dev.subdevs, list)
-+		ret = v4l2_subdev_call(sd, tuner, g_tuner, vt);
-+
-+	return ret;
-+}
-+
-+static int rcar_drif_s_tuner(struct file *file, void *priv,
-+			     const struct v4l2_tuner *vt)
-+{
-+	struct rcar_drif_chan *ch = video_drvdata(file);
-+	struct v4l2_subdev *sd, *tmp;
-+	int ret = 0;
-+
-+	list_for_each_entry_safe(sd, tmp, &ch->v4l2_dev.subdevs, list)
-+		ret = v4l2_subdev_call(sd, tuner, s_tuner, vt);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_ioctl_ops rcar_drif_ioctl_ops = {
-+	.vidioc_querycap          = rcar_drif_querycap,
-+
-+	.vidioc_enum_fmt_sdr_cap  = rcar_drif_enum_fmt_sdr_cap,
-+	.vidioc_g_fmt_sdr_cap     = rcar_drif_g_fmt_sdr_cap,
-+	.vidioc_s_fmt_sdr_cap     = rcar_drif_s_fmt_sdr_cap,
-+	.vidioc_try_fmt_sdr_cap   = rcar_drif_try_fmt_sdr_cap,
-+
-+	.vidioc_reqbufs           = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs       = vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf       = vb2_ioctl_prepare_buf,
-+	.vidioc_querybuf          = vb2_ioctl_querybuf,
-+	.vidioc_qbuf              = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf             = vb2_ioctl_dqbuf,
-+
-+	.vidioc_streamon          = vb2_ioctl_streamon,
-+	.vidioc_streamoff         = vb2_ioctl_streamoff,
-+
-+	.vidioc_s_frequency       = rcar_drif_s_frequency,
-+	.vidioc_g_frequency       = rcar_drif_g_frequency,
-+	.vidioc_s_tuner		  = rcar_drif_s_tuner,
-+	.vidioc_g_tuner		  = rcar_drif_g_tuner,
-+	.vidioc_enum_freq_bands   = rcar_drif_enum_freq_bands,
-+	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-+	.vidioc_log_status        = v4l2_ctrl_log_status,
-+};
-+
-+static const struct v4l2_file_operations rcar_drif_fops = {
-+	.owner                    = THIS_MODULE,
-+	.open                     = v4l2_fh_open,
-+	.release                  = vb2_fop_release,
-+	.read                     = vb2_fop_read,
-+	.poll                     = vb2_fop_poll,
-+	.mmap                     = vb2_fop_mmap,
-+	.unlocked_ioctl           = video_ioctl2,
-+};
-+
-+static struct video_device rcar_drif_template = {
-+	.name                     = "R-Car DRIF",
-+	.release                  = video_device_release_empty,
-+	.fops                     = &rcar_drif_fops,
-+	.ioctl_ops                = &rcar_drif_ioctl_ops,
-+};
-+
-+static void rcar_drif_video_release(struct v4l2_device *v)
-+{
-+	struct rcar_drif_chan *ch = container_of(v, struct rcar_drif_chan,
-+						v4l2_dev);
-+	u32 i;
-+
-+	dev_dbg(ch->dev, "video release\n");
-+	v4l2_device_unregister(&ch->v4l2_dev);
-+	for_each_set_bit(i, &ch->hw_schans_mask, RCAR_DRIF_MAX_SUBCHANS)
-+		kfree(ch->schan[i]);
-+	kfree(ch);
-+}
-+
-+static int rcar_drif_notify_bound(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *subdev,
-+				   struct v4l2_async_subdev *asd)
-+{
-+	struct rcar_drif_chan *ch =
-+		container_of(notifier, struct rcar_drif_chan, notifier);
-+	dev_dbg(ch->dev, "bound: asd %s\n", asd->match.of.node->name);
-+	return 0;
-+}
-+
-+/* Sub-device registered notification callback */
-+static int rcar_drif_notify_complete(struct v4l2_async_notifier *notifier)
-+{
-+	struct rcar_drif_chan *ch =
-+		container_of(notifier, struct rcar_drif_chan, notifier);
-+	struct v4l2_subdev *sd, *tmp;
-+	int ret;
-+
-+	v4l2_ctrl_handler_init(&ch->ctrl_hdl, 10);
-+	ch->v4l2_dev.ctrl_handler = &ch->ctrl_hdl;
-+	dev_dbg(ch->dev, "notify complete\n");
-+	ret = v4l2_device_register_subdev_nodes(&ch->v4l2_dev);
-+	if (ret) {
-+		dev_err(ch->dev, "failed register subdev nodes ret %d\n", ret);
-+		return ret;
-+	}
-+
-+	list_for_each_entry_safe(sd, tmp, &ch->v4l2_dev.subdevs, list) {
-+		ret = v4l2_ctrl_add_handler(ch->v4l2_dev.ctrl_handler,
-+					    sd->ctrl_handler, NULL);
-+		if (ret) {
-+			dev_err(ch->dev, "failed ctrl add hdlr ret %d\n", ret);
-+			return ret;
-+		}
-+	}
-+	return 0;
-+}
-+
-+/* Parse sub-devs (tuner) to find a matching device */
-+static int rcar_drif_parse_subdevs(struct device *dev,
-+				   struct v4l2_async_notifier *notifier)
-+{
-+	struct device_node *node = NULL;
-+
-+	notifier->subdevs = devm_kcalloc(dev, RCAR_DRIF_MAX_SUBDEVS,
-+				sizeof(*notifier->subdevs), GFP_KERNEL);
-+	if (!notifier->subdevs)
-+		return -ENOMEM;
-+
-+	while (notifier->num_subdevs < RCAR_DRIF_MAX_SUBDEVS &&
-+	       (node = of_graph_get_next_endpoint(dev->of_node, node))) {
-+		struct rcar_drif_async_subdev *rsd;
-+
-+		dev_dbg(dev, "node name %s\n", node->name);
-+		rsd = devm_kzalloc(dev, sizeof(*rsd), GFP_KERNEL);
-+		if (!rsd) {
-+			of_node_put(node);
-+			return -ENOMEM;
-+		}
-+
-+		notifier->subdevs[notifier->num_subdevs] = &rsd->asd;
-+		rsd->asd.match.of.node = of_graph_get_remote_port_parent(node);
-+		of_node_put(node);
-+		if (!rsd->asd.match.of.node) {
-+			dev_warn(dev, "bad remote port parent\n");
-+			return -EINVAL;
-+		}
-+
-+		rsd->asd.match_type = V4L2_ASYNC_MATCH_OF;
-+		notifier->num_subdevs++;
-+	}
-+	return 0;
-+}
-+
-+/* SIRMDR1 configuration */
-+static void rcar_drif_validate_syncmd(struct rcar_drif_chan *ch, u32 val)
-+{
-+	if (val > 1) {
-+		dev_warn(ch->dev, "invalid syncmd %u using L/R mode\n", val);
-+		return;
-+	}
-+
-+	ch->mdr1 &= ~(3 << 28);	/* Clear current settings */
-+	if (val == 0)
-+		ch->mdr1 |= RCAR_DRIF_SIRMDR1_SYNCMD_FRAME;
-+	else
-+		ch->mdr1 |= RCAR_DRIF_SIRMDR1_SYNCMD_LR;
-+}
-+
-+/* Get the dtdl or syncdl bits as in MSIOF */
-+static u32 rcar_drif_get_dtdl_or_syncdl_bits(u32 dtdl_or_syncdl)
-+{
-+	/*
-+	 * DTDL/SYNCDL bit	: dtdl/syncdl
-+	 * b'000		: 0
-+	 * b'001		: 100
-+	 * b'010		: 200
-+	 * b'011 (SYNCDL only)	: 300
-+	 * b'101		: 50
-+	 * b'110		: 150
-+	 */
-+	if (dtdl_or_syncdl % 100)
-+		return dtdl_or_syncdl / 100 + 5;
-+	else
-+		return dtdl_or_syncdl / 100;
-+}
-+
-+static void rcar_drif_validate_dtdl_syncdl(struct rcar_drif_chan *ch, u32 dtdl,
-+					   u32 syncdl)
-+{
-+	/* Sanity checks */
-+	if (dtdl > 200 || syncdl > 300) {
-+		dev_warn(ch->dev, "invalid dtdl %u or syncdl %u\n",
-+			 dtdl, syncdl);
-+		return;
-+	}
-+	if ((dtdl + syncdl) % 100) {
-+		dev_warn(ch->dev, "sum of dtdl %u or syncdl %u not OK\n",
-+			 dtdl, syncdl);
-+		return;
-+	}
-+	ch->mdr1 &= (~(7 << 20) & ~(7 << 16));	/* Clear current settings */
-+	ch->mdr1 |= (rcar_drif_get_dtdl_or_syncdl_bits(dtdl) << 20);
-+	ch->mdr1 |= (rcar_drif_get_dtdl_or_syncdl_bits(syncdl) << 16);
-+}
-+
-+static void rcar_drif_parse_properties(struct rcar_drif_chan *ch)
-+{
-+	u32 val, dtdl = 100, syncdl = 0;
-+	struct device_node *np = ch->dev->of_node;
-+
-+	/* Set the defaults and check for overrides */
-+	ch->mdr1 = RCAR_DRIF_SIRMDR1_SYNCMD_LR;	/* Default */
-+	if (!of_property_read_u32(np, "renesas,syncmd", &val))
-+		rcar_drif_validate_syncmd(ch, val);
-+
-+	if (of_find_property(np, "renesas,lsb-first", NULL))
-+		ch->mdr1 |= RCAR_DRIF_SIRMDR1_LSB_FIRST;
-+	else
-+		ch->mdr1 |= RCAR_DRIF_SIRMDR1_MSB_FIRST;
-+
-+	if (of_find_property(np, "renesas,syncac-pol-high", NULL))
-+		ch->mdr1 |= RCAR_DRIF_SIRMDR1_SYNCAC_POL_HIGH;
-+	else
-+		ch->mdr1 |= RCAR_DRIF_SIRMDR1_SYNCAC_POL_LOW;
-+
-+	ch->mdr1 |= RCAR_DRIF_SIRMDR1_DTDL_1 | RCAR_DRIF_SIRMDR1_SYNCDL_0;
-+	of_property_read_u32(np, "renesas,dtdl", &dtdl);
-+	of_property_read_u32(np, "renesas,syncdl", &syncdl);
-+	rcar_drif_validate_dtdl_syncdl(ch, dtdl, syncdl);
-+
-+	dev_info(ch->dev, "Parsed SIRMDR1 0x%08x\n", ch->mdr1);
-+}
-+
-+static int rcar_drif_probe(struct platform_device *pdev)
-+{
-+	struct rcar_drif_chan *ch;
-+	struct device_node *of_child;
-+	unsigned long hw_schans_mask = 0;
-+	int ret;
-+	u32 i;
-+
-+	of_child = of_get_child_by_name(pdev->dev.of_node, "sub-channel0");
-+	if (of_child && of_device_is_available(of_child))
-+		hw_schans_mask |= BIT(0);	/* Sub-channel 0 */
-+
-+	of_child = of_get_child_by_name(pdev->dev.of_node, "sub-channel1");
-+	if (of_child && of_device_is_available(of_child))
-+		hw_schans_mask |= BIT(1);	/* Sub-channel 1 */
-+
-+	/* Reserve memory for driver structure */
-+	ch = kzalloc(sizeof(*ch), GFP_KERNEL);
-+	if (!ch) {
-+		ret = PTR_ERR(ch);
-+		dev_err(&pdev->dev, "failed alloc drif context\n");
-+		return ret;
-+	}
-+	ch->dev = &pdev->dev;
-+
-+	/* Parse device tree optional properties */
-+	rcar_drif_parse_properties(ch);
-+
-+	/* Setup enabled sub-channels */
-+	for_each_set_bit(i, &hw_schans_mask, RCAR_DRIF_MAX_SUBCHANS) {
-+		struct clk *clkp;
-+		struct resource	*res;
-+		void __iomem *base;
-+
-+		/* Peripheral clock */
-+		clkp = devm_clk_get(&pdev->dev, (i == 0 ? "fck0" : "fck1"));
-+		if (IS_ERR(clkp)) {
-+			ret = PTR_ERR(clkp);
-+			dev_err(&pdev->dev, "schan%u: clk get failed\n", i);
-+			goto err_free_mem;
-+		}
-+
-+		/* Register map */
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		base = devm_ioremap_resource(&pdev->dev, res);
-+		if (IS_ERR(base)) {
-+			ret = PTR_ERR(base);
-+			dev_err(&pdev->dev, "schan%u: io res get failed\n", i);
-+			break;
-+		}
-+
-+		/* Reserve memory for enabled sub-channels */
-+		ch->schan[i] = kzalloc(sizeof(*ch->schan[i]), GFP_KERNEL);
-+		if (!ch->schan[i]) {
-+			ret = PTR_ERR(ch);
-+			dev_err(&pdev->dev, "failed alloc sub-channel\n");
-+			goto err_free_mem;
-+		}
-+		ch->schan[i]->clkp = clkp;
-+		ch->schan[i]->base = base;
-+		ch->schan[i]->num = i;
-+		ch->schan[i]->start = res->start;
-+		ch->schan[i]->parent = ch;
-+		ch->num_hw_schans++;
-+	}
-+	ch->hw_schans_mask = hw_schans_mask;
-+
-+	/* Validate any supported format for enabled sub-channels */
-+	ret = rcar_drif_set_default_format(ch);
-+	if (ret)
-+		goto err_free_mem;
-+
-+	/* Set defaults */
-+	ch->num_hwbufs = RCAR_DRIF_DEFAULT_NUM_HWBUFS;
-+	ch->hwbuf_size = RCAR_DRIF_DEFAULT_HWBUF_SIZE;
-+
-+	mutex_init(&ch->v4l2_mutex);
-+	mutex_init(&ch->vb_queue_mutex);
-+	spin_lock_init(&ch->queued_bufs_lock);
-+	INIT_LIST_HEAD(&ch->queued_bufs);
-+
-+	/* Init videobuf2 queue structure */
-+	ch->vb_queue.type = V4L2_BUF_TYPE_SDR_CAPTURE;
-+	ch->vb_queue.io_modes = VB2_READ | VB2_MMAP | VB2_DMABUF;
-+	ch->vb_queue.drv_priv = ch;
-+	ch->vb_queue.buf_struct_size = sizeof(struct rcar_drif_frame_buf);
-+	ch->vb_queue.ops = &rcar_drif_vb2_ops;
-+	ch->vb_queue.mem_ops = &vb2_vmalloc_memops;
-+	ch->vb_queue.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+
-+	/* Init videobuf2 queue */
-+	ret = vb2_queue_init(&ch->vb_queue);
-+	if (ret) {
-+		dev_err(ch->dev, "Could not initialize vb2 queue\n");
-+		goto err_free_mem;
-+	}
-+
-+	/* Init video_device structure */
-+	ch->vdev = rcar_drif_template;
-+	ch->vdev.lock = &ch->v4l2_mutex;
-+	ch->vdev.queue = &ch->vb_queue;
-+	ch->vdev.queue->lock = &ch->vb_queue_mutex;
-+	ch->vdev.ctrl_handler = &ch->ctrl_hdl;
-+	video_set_drvdata(&ch->vdev, ch);
-+
-+	/* Register the v4l2_device structure */
-+	ch->v4l2_dev.release = rcar_drif_video_release;
-+	ret = v4l2_device_register(&pdev->dev, &ch->v4l2_dev);
-+	if (ret) {
-+		dev_err(ch->dev, "Failed to register v4l2-device (%d)\n", ret);
-+		goto err_free_mem;
-+	}
-+
-+	ch->vdev.v4l2_dev = &ch->v4l2_dev;
-+
-+	/* Parse subdevs after v4l2_device_register because if the subdev
-+	 * is already probed, bound and complete will get called immediately
-+	 */
-+	ret = rcar_drif_parse_subdevs(&pdev->dev, &ch->notifier);
-+	if (ret)
-+		goto err_free_mem;
-+
-+	dev_info(ch->dev, "Num of subdevs %d\n", ch->notifier.num_subdevs);
-+	ch->notifier.bound = rcar_drif_notify_bound;
-+	ch->notifier.complete = rcar_drif_notify_complete;
-+
-+	ret = v4l2_async_notifier_register(&ch->v4l2_dev, &ch->notifier);
-+	if (ret < 0) {
-+		dev_err(ch->dev, "notifier registration failed\n");
-+		goto err_unregister_v4l2_dev;
-+	}
-+
-+	/* Register SDR device */
-+	ret = video_register_device(&ch->vdev, VFL_TYPE_SDR, -1);
-+	if (ret) {
-+		dev_err(ch->dev, "Failed to register as video device (%d)\n",
-+				ret);
-+		goto err_unregister;
-+	}
-+
-+	platform_set_drvdata(pdev, ch);
-+	dev_notice(ch->dev, "probed\n");
-+	return 0;
-+
-+err_unregister:
-+	v4l2_async_notifier_unregister(&ch->notifier);
-+err_unregister_v4l2_dev:
-+	v4l2_device_unregister(&ch->v4l2_dev);
-+err_free_mem:
-+	for_each_set_bit(i, &hw_schans_mask, RCAR_DRIF_MAX_SUBCHANS)
-+		kfree(ch->schan[i]);
-+	kfree(ch);
-+	return ret;
-+}
-+
-+static int rcar_drif_remove(struct platform_device *pdev)
-+{
-+	struct rcar_drif_chan *ch = platform_get_drvdata(pdev);
-+
-+	v4l2_ctrl_handler_free(ch->v4l2_dev.ctrl_handler);
-+	v4l2_async_notifier_unregister(&ch->notifier);
-+	video_unregister_device(&ch->vdev);
-+	dev_notice(ch->dev, "removed\n");
-+	v4l2_device_put(&ch->v4l2_dev);
-+	return 0;
-+}
-+
-+static int __maybe_unused rcar_drif_suspend(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static int __maybe_unused rcar_drif_resume(struct device *dev)
-+{
-+	return 0;
-+}
-+
-+static SIMPLE_DEV_PM_OPS(rcar_drif_pm_ops, rcar_drif_suspend,
-+			 rcar_drif_resume);
-+
-+static const struct of_device_id rcar_drif_of_table[] = {
-+	{ .compatible = "renesas,rcar-gen3-drif" },
-+	{ }
-+};
-+
-+MODULE_DEVICE_TABLE(of, rcar_drif_of_table);
-+
-+#define RCAR_DRIF_DRV_NAME "rcar_drif"
-+static struct platform_driver rcar_drif_driver = {
-+	.driver = {
-+		.name = RCAR_DRIF_DRV_NAME,
-+		.of_match_table = of_match_ptr(rcar_drif_of_table),
-+		.pm = &rcar_drif_pm_ops,
-+		},
-+	.probe = rcar_drif_probe,
-+	.remove = rcar_drif_remove,
-+};
-+
-+module_platform_driver(rcar_drif_driver);
-+
-+MODULE_DESCRIPTION("Renesas R-Car Gen3 DRIF driver");
-+MODULE_ALIAS("platform:" RCAR_DRIF_DRV_NAME);
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>");
+ static int dtt200u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+-	u8 b = SET_INIT;
++	struct dtt200u_state *st = d->priv;
++
++	st->data[0] = SET_INIT;
+ 
+ 	if (onoff)
+-		dvb_usb_generic_write(d,&b,2);
++		dvb_usb_generic_write(d, st->data, 2);
+ 
+ 	return 0;
+ }
+ 
+ static int dtt200u_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ {
+-	u8 b_streaming[2] = { SET_STREAMING, onoff };
+-	u8 b_rst_pid = RESET_PID_FILTER;
++	struct dtt200u_state *st = adap->dev->priv;
+ 
+-	dvb_usb_generic_write(adap->dev, b_streaming, 2);
++	st->data[0] = SET_STREAMING;
++	st->data[1] = onoff;
++
++	dvb_usb_generic_write(adap->dev, st->data, 2);
++
++	if (onoff)
++		return 0;
++
++	st->data[0] = RESET_PID_FILTER;
++	dvb_usb_generic_write(adap->dev, st->data, 1);
+ 
+-	if (onoff == 0)
+-		dvb_usb_generic_write(adap->dev, &b_rst_pid, 1);
+ 	return 0;
+ }
+ 
+ static int dtt200u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
+ {
+-	u8 b_pid[4];
++	struct dtt200u_state *st = adap->dev->priv;
++
+ 	pid = onoff ? pid : 0;
+ 
+-	b_pid[0] = SET_PID_FILTER;
+-	b_pid[1] = index;
+-	b_pid[2] = pid & 0xff;
+-	b_pid[3] = (pid >> 8) & 0x1f;
++	st->data[0] = SET_PID_FILTER;
++	st->data[1] = index;
++	st->data[2] = pid & 0xff;
++	st->data[3] = (pid >> 8) & 0x1f;
+ 
+-	return dvb_usb_generic_write(adap->dev, b_pid, 4);
++	return dvb_usb_generic_write(adap->dev, st->data, 4);
+ }
+ 
+ static int dtt200u_rc_query(struct dvb_usb_device *d)
+ {
+-	u8 key[5],cmd = GET_RC_CODE;
++	struct dtt200u_state *st = d->priv;
+ 	u32 scancode;
+ 
+-	dvb_usb_generic_rw(d,&cmd,1,key,5,0);
+-	if (key[0] == 1) {
++	st->data[0] = GET_RC_CODE;
++
++	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
++	if (st->data[0] == 1) {
+ 		enum rc_type proto = RC_TYPE_NEC;
+ 
+-		scancode = key[1];
+-		if ((u8) ~key[1] != key[2]) {
++		scancode = st->data[1];
++		if ((u8) ~st->data[1] != st->data[2]) {
+ 			/* Extended NEC */
+ 			scancode = scancode << 8;
+-			scancode |= key[2];
++			scancode |= st->data[2];
+ 			proto = RC_TYPE_NECX;
+ 		}
+ 		scancode = scancode << 8;
+-		scancode |= key[3];
++		scancode |= st->data[3];
+ 
+ 		/* Check command checksum is ok */
+-		if ((u8) ~key[3] == key[4])
++		if ((u8) ~st->data[3] == st->data[4])
+ 			rc_keydown(d->rc_dev, proto, scancode, 0);
+ 		else
+ 			rc_keyup(d->rc_dev);
+-	} else if (key[0] == 2) {
++	} else if (st->data[0] == 2) {
+ 		rc_repeat(d->rc_dev);
+ 	} else {
+ 		rc_keyup(d->rc_dev);
+ 	}
+ 
+-	if (key[0] != 0)
+-		deb_info("key: %*ph\n", 5, key);
++	if (st->data[0] != 0)
++		deb_info("st->data: %*ph\n", 5, st->data);
+ 
+ 	return 0;
+ }
+@@ -140,6 +155,8 @@ static struct dvb_usb_device_properties dtt200u_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-dtt200u-01.fw",
+ 
++	.size_of_priv     = sizeof(struct dtt200u_state),
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -190,6 +207,8 @@ static struct dvb_usb_device_properties wt220u_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-wt220u-02.fw",
+ 
++	.size_of_priv     = sizeof(struct dtt200u_state),
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -240,6 +259,8 @@ static struct dvb_usb_device_properties wt220u_fc_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-wt220u-fc03.fw",
+ 
++	.size_of_priv     = sizeof(struct dtt200u_state),
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -290,6 +311,8 @@ static struct dvb_usb_device_properties wt220u_zl0353_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-wt220u-zl0353-01.fw",
+ 
++	.size_of_priv     = sizeof(struct dtt200u_state),
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -340,6 +363,8 @@ static struct dvb_usb_device_properties wt220u_miglia_properties = {
+ 	.usb_ctrl = CYPRESS_FX2,
+ 	.firmware = "dvb-usb-wt220u-miglia-01.fw",
+ 
++	.size_of_priv     = sizeof(struct dtt200u_state),
++
+ 	.num_adapters = 1,
+ 	.generic_bulk_ctrl_endpoint = 0x01,
+ 
 -- 
-1.9.1
+2.7.4
+
 
