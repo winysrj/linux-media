@@ -1,68 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:33426 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941725AbcJSQEB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 12:04:01 -0400
-Date: Wed, 19 Oct 2016 11:23:51 +0200
-From: Michal Hocko <mhocko@kernel.org>
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Hugh Dickins <hughd@google.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH 08/10] mm: replace __access_remote_vm() write parameter
- with gup_flags
-Message-ID: <20161019092350.GF7517@dhcp22.suse.cz>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161013002020.3062-9-lstoakes@gmail.com>
- <20161019075903.GP29967@quack2.suse.cz>
- <20161019081352.GB7562@dhcp22.suse.cz>
- <20161019084045.GA19441@lucifer>
- <20161019085204.GD7517@dhcp22.suse.cz>
- <20161019090646.GA24243@lucifer>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:33604 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756465AbcJGNEF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 09:04:05 -0400
+Received: by mail-lf0-f68.google.com with SMTP id l131so2630500lfl.0
+        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2016 06:04:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161019090646.GA24243@lucifer>
+Reply-To: henryw683@gmail.com
+From: Henry williams <henrywilliamst@gmail.com>
+Date: Fri, 7 Oct 2016 15:04:03 +0200
+Message-ID: <CAHD_y5D0ppaezzU6bUQBJTZSa3YLyNzZ+E=hrsyts11545oufw@mail.gmail.com>
+Subject: Reply
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 19-10-16 10:06:46, Lorenzo Stoakes wrote:
-> On Wed, Oct 19, 2016 at 10:52:05AM +0200, Michal Hocko wrote:
-> > yes this is the desirable and expected behavior.
-> >
-> > > wonder if this is desirable behaviour or whether this ought to be limited to
-> > > ptrace system calls. Regardless, by making the flag more visible it makes it
-> > > easier to see that this is happening.
-> >
-> > mem_open already enforces PTRACE_MODE_ATTACH
-> 
-> Ah I missed this, that makes a lot of sense, thanks!
-> 
-> I still wonder whether other invocations of access_remote_vm() in fs/proc/base.c
-> (the principle caller of this function) need FOLL_FORCE, for example the various
-> calls that simply read data from other processes, so I think the point stands
-> about keeping this explicit.
+Dear Friend,
 
-I do agree. Making them explicit will help to clean them up later,
-should there be a need.
+I have a business proposal for you that will be of mutual benefit to
+both of us. It=E2=80=99s about the death of my late client and some money h=
+e
+left behind before his death. I want you to stand as his next of kin
+since you bear the same surname with him, so that the bank can
+release/transfer his money to you as his next of kin. Contact me for
+more details contact us via our official email address
+(henryw683@gmail.com)
 
--- 
-Michal Hocko
-SUSE Labs
+Barrister Henry Williams
