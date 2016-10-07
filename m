@@ -1,76 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48625 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754525AbcJNRrG (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:51666 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S938757AbcJGQB3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:47:06 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 23/25] [media] cx2341x: mark printk continuation lines as such
-Date: Fri, 14 Oct 2016 14:46:01 -0300
-Message-Id: <744e602144d08b09e58634892550d333cb0c3631.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Fri, 7 Oct 2016 12:01:29 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 15/22] ARM: dts: imx6qdl: Add MIPI CSI-2 D-PHY compatible and clocks
+Date: Fri,  7 Oct 2016 18:01:00 +0200
+Message-Id: <20161007160107.5074-16-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has printk continuation lines for debugging purposes.
+>From the data sheets it is not quite clear what the clock inputs should
+be named, but freescale code calls them "dphy_clk" (would that be per?)
+and "pixel_clk" and connects them to the mipi_core_cfg and emi_podf
+clocks, respectively.  The mipi_core_cfg control is called hsi_tx
+currently, but it really gates a whole lot of other clocks, too.
 
-Since commit 563873318d32 ("Merge branch 'printk-cleanups'"),
-this won't work as expected anymore. So, let's add KERN_CONT to
-those lines.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/common/cx2341x.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/imx6qdl.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/common/cx2341x.c b/drivers/media/common/cx2341x.c
-index 5e4afa0131e6..2725702eda7b 100644
---- a/drivers/media/common/cx2341x.c
-+++ b/drivers/media/common/cx2341x.c
-@@ -1190,8 +1190,8 @@ void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix)
- 		prefix,
- 		cx2341x_menu_item(p, V4L2_CID_MPEG_STREAM_TYPE));
- 	if (p->stream_insert_nav_packets)
--		printk(" (with navigation packets)");
--	printk("\n");
-+		printk(KERN_CONT " (with navigation packets)");
-+	printk(KERN_CONT "\n");
- 	printk(KERN_INFO "%s: VBI Format: %s\n",
- 		prefix,
- 		cx2341x_menu_item(p, V4L2_CID_MPEG_STREAM_VBI_FMT));
-@@ -1209,8 +1209,8 @@ void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix)
- 		cx2341x_menu_item(p, V4L2_CID_MPEG_VIDEO_BITRATE_MODE),
- 		p->video_bitrate);
- 	if (p->video_bitrate_mode == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR)
--		printk(", Peak %d", p->video_bitrate_peak);
--	printk("\n");
-+		printk(KERN_CONT ", Peak %d", p->video_bitrate_peak);
-+	printk(KERN_CONT "\n");
- 	printk(KERN_INFO
- 		"%s: Video:  GOP Size %d, %d B-Frames, %sGOP Closure\n",
- 		prefix,
-@@ -1232,9 +1232,9 @@ void cx2341x_log_status(const struct cx2341x_mpeg_params *p, const char *prefix)
- 		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_MODE),
- 		p->audio_mute ? " (muted)" : "");
- 	if (p->audio_mode == V4L2_MPEG_AUDIO_MODE_JOINT_STEREO)
--		printk(", %s", cx2341x_menu_item(p,
-+		printk(KERN_CONT ", %s", cx2341x_menu_item(p,
- 				V4L2_CID_MPEG_AUDIO_MODE_EXTENSION));
--	printk(", %s, %s\n",
-+	printk(KERN_CONT ", %s, %s\n",
- 		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_EMPHASIS),
- 		cx2341x_menu_item(p, V4L2_CID_MPEG_AUDIO_CRC));
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index cd325bd..2be6de4 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1123,9 +1123,16 @@
+ 			};
  
+ 			mipi_csi: mipi@021dc000 {
++				compatible = "fsl,imx6q-mipi-csi2", "dw-mipi-csi2";
+ 				reg = <0x021dc000 0x4000>;
++				clocks = <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/ipg_clk_root */
++					 <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/video_27m_clk_root */
++					 <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/video_27m_clk_root */
++					 <&clks IMX6QDL_CLK_EIM_PODF>;	/* shoid be ipu1_ipu_hsp_clk_root on S/DL, axi_clk_root on D/Q */
++				clock-names = "pclk", "cfg", "ref", "pixel";
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				status = "disabled";
+ 			};
+ 
+ 			mipi_dsi: mipi@021e0000 {
 -- 
-2.7.4
-
+2.9.3
 
