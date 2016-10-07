@@ -1,387 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:58691 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030203AbcJQQqv (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:54456 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S938894AbcJGQ70 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 12:46:51 -0400
-Date: Mon, 17 Oct 2016 14:46:38 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 1/4] doc-rst: reST-directive kernel-cmd / include
- contentent from scripts
-Message-ID: <20161017144638.139491ad@vento.lan>
-In-Reply-To: <1475738420-8747-2-git-send-email-markus.heiser@darmarit.de>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
-        <1475738420-8747-2-git-send-email-markus.heiser@darmarit.de>
+        Fri, 7 Oct 2016 12:59:26 -0400
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1] [media] v4l2-ctrls: add mpeg2 parser metadata
+Date: Fri, 7 Oct 2016 18:59:05 +0200
+Message-ID: <1475859545-654-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1475859545-654-1-git-send-email-hugues.fruchet@st.com>
+References: <1475859545-654-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |   2 +-
+ include/uapi/linux/v4l2-controls.h   | 163 +++++++++++++++++++++++++++++------
+ 2 files changed, 140 insertions(+), 25 deletions(-)
 
-Em Thu,  6 Oct 2016 09:20:17 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
-
-> From: Markus Heiser <markus.heiser@darmarIT.de>
-> 
-> The ``kernel-cmd`` directive includes contend from the stdout of a
-> command-line. With the ``kernel-cmd`` directive we can include the
-> output of any (Perl or whatever) script. This is a more general solution
-> for other workarounds like the "kernel_include + parseheaders" solution.
-
-Unfortunately, there are some problems with kernel-cmd: it seems
-that it only partially parses the ReST file, not accepting several ReST tags.
-
-See the enclosed patch and see the produced html file at:
-	Documentation/output/user/MAINTAINERS.html
-
-Then run the script manually with:
-	./Documentation/sphinx/format_maintainers.pl MAINTAINERS >Documentation/user/MAINTAINERS.rst
-
-And see the produced html output after re-building the user book.
-
-
-PS.: You can test it on my git tree, with has the code to produce
-it at the lkml-books branch, at
-	http:://git.linuxtv.org/mchehab/experimental.git
-
-Regards,
-Mauro
-
-
-[PATCH] docs-rst: user: add MAINTAINERS
-
-including MAINTAINERS using ReST is tricky, because all
-maintainer's entries are like:
-
-FOO SUBSYSTEM:
-M: My Name <my@name>
-L: mailing@list
-S: Maintained
-F: foo/bar
-
-On ReST, this would be displayed on a single line. Using
-alias, like |M|, |L|, ... won't solve, as an alias in
-Sphinx doesn't accept breaking lines.
-
-So, instead of changing every line at MAINTAINERS, let's
-use kernel-cmd extension in order to parse it via a script.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/Documentation/sphinx/format_maintainers.pl b/Documentation/sphinx/format_maintainers.pl
-new file mode 100755
-index 000000000000..fb3af2a30c36
---- /dev/null
-+++ b/Documentation/sphinx/format_maintainers.pl
-@@ -0,0 +1,44 @@
-+#!/usr/bin/perl
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c8bc4d4..6187dfc 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2115,7 +2115,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 		elem_size = sizeof(u32);
+ 		break;
+ 	case V4L2_CTRL_TYPE_MPEG2_FRAME_HDR:
+-		elem_size = sizeof(struct v4l2_ctrl_mpeg2_frame_hdr);
++		elem_size = sizeof(struct v4l2_ctrl_mpeg2_meta);
+ 		break;
+ 	default:
+ 		if (type < V4L2_CTRL_COMPOUND_TYPES)
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index cdf9497..cb685a7 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -549,6 +549,145 @@ enum v4l2_mpeg_video_mpeg4_profile {
+ 
+ #define V4L2_CID_MPEG_VIDEO_MPEG2_FRAME_HDR     (V4L2_CID_MPEG_BASE+450)
+ 
++/* MPEG2 frame API metadata */
++#define MPEG2_QUANTISER_MATRIX_SIZE           64
 +
-+my $is_rst = 1;
++struct mpeg_video_sequence_hdr {
++	unsigned short width, height;
++	unsigned char aspect_ratio_info;
++	unsigned char frame_rate_code;
++	unsigned int bitrate_value;
++	unsigned short vbv_buffer_size_value;
++	unsigned char constrained_parameters_flag;
++	unsigned char load_intra_flag, load_non_intra_flag;
++	unsigned char intra_quantiser_matrix[MPEG2_QUANTISER_MATRIX_SIZE];
++	unsigned char non_intra_quantiser_matrix[MPEG2_QUANTISER_MATRIX_SIZE];
++	unsigned int par_w, par_h;
++	unsigned int fps_n, fps_d;
++	unsigned int bitrate;
++};
 +
-+# For now, ignore file tags, like F, N, X, K.
-+my %tags = (
-+	'P' => 'Person',
-+	'M' => 'Mail',
-+	'R' => 'Designated reviewer',
-+	'L' => 'Mailing list',
-+	'W' => 'Web page',
-+	'Q' => 'Patchwork',
-+	'T' => 'Develoment tree',
-+	'S' => 'Status',
-+);
++struct mpeg_video_sequence_ext {
++	unsigned char profile_and_level;
++	unsigned char progressive;
++	unsigned char chroma_format;
++	unsigned char horiz_size_ext, vert_size_ext;
++	unsigned short bitrate_ext;
++	unsigned char vbv_buffer_size_extension;
++	unsigned char low_delay;
++	unsigned char fps_n_ext, fps_d_ext;
++};
 +
-+while (<>) {
-+	if ($is_rst) {
-+		if (m/^\s+\-+$/) {
-+			$is_rst = 0;
-+			next;
-+		}
-+		print $_;
-+		next;
-+	}
++struct mpeg_video_sequence_display_ext {
++	unsigned char video_format;
++	unsigned char colour_description_flag;
++	unsigned char colour_primaries;
++	unsigned char transfer_characteristics;
++	unsigned char matrix_coefficients;
++	unsigned short display_horizontal_size;
++	unsigned short display_vertical_size;
++};
 +
-+	next if (m/^$/);
++struct mpeg_video_sequence_scalable_ext {
++	unsigned char scalable_mode;
++	unsigned char layer_id;
++	unsigned short lower_layer_prediction_horizontal_size;
++	unsigned short lower_layer_prediction_vertical_size;
++	unsigned char horizontal_subsampling_factor_m;
++	unsigned char horizontal_subsampling_factor_n;
++	unsigned char vertical_subsampling_factor_m;
++	unsigned char vertical_subsampling_factor_n;
++	unsigned char picture_mux_enable;
++	unsigned char mux_to_progressive_sequence;
++	unsigned char picture_mux_order;
++	unsigned char picture_mux_factor;
++};
 +
-+	if (m/^([A-Z])\:(.*)/) {
-+		my $tag = $1;
-+		my $value = $2;
++struct mpeg_video_gop {
++	unsigned char drop_frame_flag;
++	unsigned char hour, minute, second, frame;
++	unsigned char closed_gop;
++	unsigned char broken_link;
++};
 +
-+		my $meaning;
++struct mpeg_video_picture_hdr {
++	unsigned short tsn;
++	unsigned char pic_type;
++	unsigned short vbv_delay;
++	unsigned char full_pel_forward_vector, full_pel_backward_vector;
++	unsigned char f_f_code;
++	unsigned char b_f_code;
++};
 +
-+		next if (!defined($tags{$tag}));
++struct mpeg_video_picture_ext {
++	unsigned char f_code[2][2];
++	unsigned char intra_dc_precision;
++	unsigned char picture_structure;
++	unsigned char top_field_first;
++	unsigned char frame_pred_frame_dct;
++	unsigned char concealment_motion_vectors;
++	unsigned char q_scale_type;
++	unsigned char intra_vlc_format;
++	unsigned char alternate_scan;
++	unsigned char repeat_first_field;
++	unsigned char chroma_420_type;
++	unsigned char progressive_frame;
++	unsigned char composite_display_flag;
++	unsigned char v_axis;
++	unsigned char field_sequence;
++	unsigned char sub_carrier;
++	unsigned char burst_amplitude;
++	unsigned char sub_carrier_phase;
++};
 +
-+		printf " - %s:\n   %s\n\n", $tags{$tag}, $value;
-+		next;
-+	}
++struct mpeg_video_quant_matrix_ext {
++	unsigned char load_intra_quantiser_matrix;
++	unsigned char intra_quantiser_matrix[MPEG2_QUANTISER_MATRIX_SIZE];
++	unsigned char load_non_intra_quantiser_matrix;
++	unsigned char non_intra_quantiser_matrix[MPEG2_QUANTISER_MATRIX_SIZE];
++	unsigned char load_chroma_intra_quantiser_matrix;
++	unsigned char chroma_intra_quantiser_matrix[MPEG2_QUANTISER_MATRIX_SIZE];
++	unsigned char load_chroma_non_intra_quantiser_matrix;
++	unsigned char chroma_non_intra_quantiser_matrix[MPEG2_QUANTISER_MATRIX_SIZE];
++};
 +
-+	print "\n$_";
-+}
++struct mpeg2_meta_seq {
++	struct mpeg_video_sequence_hdr seq_h;
++	struct mpeg_video_sequence_ext seq_e;
++	struct mpeg_video_sequence_display_ext seq_d;
++	struct mpeg_video_sequence_scalable_ext seq_s;
++	struct mpeg_video_quant_matrix_ext qua_m;
++	__u32 flags;
++};
 +
-+print "\n";
-diff --git a/Documentation/user/MAINTAINERS.rst b/Documentation/user/MAINTAINERS.rst
-new file mode 100644
-index 000000000000..9b01b51749bd
---- /dev/null
-+++ b/Documentation/user/MAINTAINERS.rst
-@@ -0,0 +1 @@
-+.. kernel-cmd:: format_maintainers.pl $srctree/MAINTAINERS
-diff --git a/Documentation/user/index.rst b/Documentation/user/index.rst
-index 6fbb2dc4b3b7..c4bfd45f0649 100644
---- a/Documentation/user/index.rst
-+++ b/Documentation/user/index.rst
-@@ -32,3 +32,4 @@ Contents:
-    java
-    bad_memory
-    basic_profiling
-+   MAINTAINERS
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 1cd38a7e0064..d46ffec4e682 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1,12 +1,14 @@
++#define MPEG2_META_SEQ_FLAG_HDR			0x00000001
++#define MPEG2_META_SEQ_FLAG_EXT			0x00000002
++#define MPEG2_META_SEQ_FLAG_DISPLAY_EXT		0x00000004
++#define MPEG2_META_SEQ_FLAG_SCALABLE_EXT	0x00000008
++#define MPEG2_META_SEQ_FLAG_MATRIX_EXT		0x00000010
++
++struct mpeg2_meta_pic {
++	struct mpeg_video_picture_hdr pic_h;
++	struct mpeg_video_gop g_o_p;
++	struct mpeg_video_picture_ext pic_e;
++	unsigned long offset;
++	__u32 flags;
++};
++
++#define MPEG2_META_PIC_FLAG_HDR		0x00000001
++#define MPEG2_META_PIC_FLAG_GOP		0x00000002
++#define MPEG2_META_PIC_FLAG_EXT		0x00000004
++
++struct v4l2_ctrl_mpeg2_meta {
++	unsigned int struct_size;
++	struct mpeg2_meta_seq	seq;
++	struct mpeg2_meta_pic	pic[2];
++	__u32 flags;
++};
++
++#define V4L2_CTRL_MPEG2_FLAG_SEQ	0x00000001
++#define V4L2_CTRL_MPEG2_FLAG_PIC	0x00000002
++
+ /*  Control IDs for VP8 streams
+  *  Although VP8 is not part of MPEG we add these controls to the MPEG class
+  *  as that class is already handling other video compression standards
+@@ -976,28 +1115,4 @@ enum v4l2_detect_md_mode {
+ #define V4L2_CID_DETECT_MD_THRESHOLD_GRID	(V4L2_CID_DETECT_CLASS_BASE + 3)
+ #define V4L2_CID_DETECT_MD_REGION_GRID		(V4L2_CID_DETECT_CLASS_BASE + 4)
+ 
+-struct v4l2_ctrl_mpeg2_frame_hdr {
+-	__u32 slice_len;
+-	__u32 slice_pos;
+-	enum { MPEG1, MPEG2 } type;
 -
+-	__u16 width;
+-	__u16 height;
 -
--	List of maintainers and how to submit kernel changes
-+List of maintainers and how to submit kernel changes
-+====================================================
- 
- Please try to follow the guidelines below.  This will make things
- easier on the maintainers.  Not all of these guidelines matter for every
- trivial patch so apply some common sense.
- 
--1.	Always _test_ your changes, however small, on at least 4 or
-+Tips for patch submitters
-+-------------------------
-+
-+1.	Always **test** your changes, however small, on at least 4 or
- 	5 people, preferably many more.
- 
- 2.	Try to release a few ALPHA test versions to the net. Announce
-@@ -15,7 +17,7 @@ trivial patch so apply some common sense.
- 	you will find things like the fact version 3 firmware needs
- 	a magic fix you didn't know about, or some clown changed the
- 	chips on a board and not its name.  (Don't laugh!  Look at the
--	SMC etherpower for that.)
-+	SMC ``etherpower`` for that.)
- 
- 3.	Make sure your changes compile correctly in multiple
- 	configurations. In particular check that changes work both as a
-@@ -25,7 +27,7 @@ trivial patch so apply some common sense.
- 	testing and await feedback.
- 
- 5.	Make a patch available to the relevant maintainer in the list. Use
--	'diff -u' to make the patch easy to merge. Be prepared to get your
-+	``diff -u`` to make the patch easy to merge. Be prepared to get your
- 	changes sent back with seemingly silly requests about formatting
- 	and variable names.  These aren't as silly as they seem. One
- 	job the maintainers (and especially Linus) do is to keep things
-@@ -33,28 +35,34 @@ trivial patch so apply some common sense.
- 	your driver to get around a problem actually needs to become a
- 	generalized kernel feature ready for next time.
- 
--	PLEASE check your patch with the automated style checker
--	(scripts/checkpatch.pl) to catch trivial style violations.
--	See Documentation/CodingStyle for guidance here.
-+	.. attention::
-+
-+	  **PLEASE:**
-+
-+	  - check your patch with the automated style checker
-+	    (``scripts/checkpatch.pl``) to catch trivial style violations.
-+	    See :ref:`Documentation/CodingStyle <codingstyle>` for guidance
-+	    here.
- 
--	PLEASE CC: the maintainers and mailing lists that are generated
--	by scripts/get_maintainer.pl.  The results returned by the
--	script will be best if you have git installed and are making
--	your changes in a branch derived from Linus' latest git tree.
--	See Documentation/SubmittingPatches for details.
-+	  - CC: the maintainers and mailing lists that are generated
-+	    by ``scripts/get_maintainer.pl``.  The results returned by the
-+	    script will be best if you have git installed and are making
-+	    your changes in a branch derived from Linus' latest git tree.
-+	    See :ref:`Documentation/SubmittingPatches <submittingpatches>`
-+	    for details.
- 
--	PLEASE try to include any credit lines you want added with the
--	patch. It avoids people being missed off by mistake and makes
--	it easier to know who wants adding and who doesn't.
-+	  - try to include any credit lines you want added with the
-+	    patch. It avoids people being missed off by mistake and makes
-+	    it easier to know who wants adding and who doesn't.
- 
--	PLEASE document known bugs. If it doesn't work for everything
--	or does something very odd once a month document it.
-+	  - document known bugs. If it doesn't work for everything
-+	    or does something very odd once a month document it.
- 
--	PLEASE remember that submissions must be made under the terms
--	of the Linux Foundation certificate of contribution and should
--	include a Signed-off-by: line.  The current version of this
--	"Developer's Certificate of Origin" (DCO) is listed in the file
--	Documentation/SubmittingPatches.
-+	  - remember that submissions must be made under the terms
-+	    of the Linux Foundation certificate of contribution and should
-+	    include a Signed-off-by: line.  The current version of this
-+	    "Developer's Certificate of Origin" (DCO) is listed in the file
-+	    :ref:`Documentation/SubmittingPatches <submittingpatches>`.
- 
- 6.	Make sure you have the right to send any changes you make. If you
- 	do changes at work you may find your employer owns the patch
-@@ -66,64 +74,103 @@ trivial patch so apply some common sense.
- 
- 8.	Happy hacking.
- 
--Descriptions of section entries:
+-	enum { PCT_I = 1, PCT_P, PCT_B, PCT_D } picture_coding_type;
+-	__u8 f_code[2][2];
 -
--	P: Person (obsolete)
--	M: Mail patches to: FullName <address@domain>
--	R: Designated reviewer: FullName <address@domain>
--	   These reviewers should be CCed on patches.
--	L: Mailing list that is relevant to this area
--	W: Web-page with status/info
--	Q: Patchwork web based patch tracking system site
--	T: SCM tree type and location.
--	   Type is one of: git, hg, quilt, stgit, topgit
--	S: Status, one of the following:
--	   Supported:	Someone is actually paid to look after this.
--	   Maintained:	Someone actually looks after it.
--	   Odd Fixes:	It has a maintainer but they don't have time to do
-+Descriptions of section entries
-+-------------------------------
-+
-+-	``P:`` Person (obsolete)
-+-	``M:`` Mail patches to: FullName <address@domain>
-+-	``R:`` Designated reviewer: FullName <address@domain>
-+
-+	- These reviewers should be CCed on patches.
-+
-+-	``L:`` Mailing list that is relevant to this area
-+-	``W:`` Web-page with status/info
-+-	``Q:`` Patchwork web based patch tracking system site
-+-	``T:`` SCM tree type and location.
-+
-+	- Type is one of: **git**, **hg**, **quilt**, **stgit**, **topgit**
-+
-+-	``S:`` Status, one of the following:
-+
-+	   - Supported:
-+			Someone is actually paid to look after this.
-+	   - Maintained:
-+			Someone actually looks after it.
-+	   - Odd Fixes:
-+			It has a maintainer but they don't have time to do
- 			much other than throw the odd patch in. See below..
--	   Orphan:	No current maintainer [but maybe you could take the
-+	   - Orphan:
-+			No current maintainer [but maybe you could take the
- 			role as you write your new code].
--	   Obsolete:	Old code. Something tagged obsolete generally means
-+	   - Obsolete:
-+			Old code. Something tagged obsolete generally means
- 			it has been replaced by a better system and you
- 			should be using that.
--	F: Files and directories with wildcard patterns.
-+-	``F:`` Files and directories with wildcard patterns.
-+
- 	   A trailing slash includes all files and subdirectory files.
--	   F:	drivers/net/	all files in and below drivers/net
--	   F:	drivers/net/*	all files in drivers/net, but not below
--	   F:	*/net/*		all files in "any top level directory"/net
--	   One pattern per line.  Multiple F: lines acceptable.
--	N: Files and directories with regex patterns.
--	   N:	[^a-z]tegra	all files whose path contains the word tegra
--	   One pattern per line.  Multiple N: lines acceptable.
--	   scripts/get_maintainer.pl has different behavior for files that
--	   match F: pattern and matches of N: patterns.  By default,
--	   get_maintainer will not look at git log history when an F: pattern
--	   match occurs.  When an N: match occurs, git log history is used
--	   to also notify the people that have git commit signatures.
--	X: Files and directories that are NOT maintained, same rules as F:
--	   Files exclusions are tested before file matches.
--	   Can be useful for excluding a specific subdirectory, for instance:
--	   F:	net/
--	   X:	net/ipv6/
--	   matches all files in and below net excluding net/ipv6/
--	K: Keyword perl extended regex pattern to match content in a
-+
-+	   ============================== ======================================
-+	   ``F:``	``drivers/net/``	all files in and below
-+						``drivers/net``
-+	   ``F:``	``drivers/net/*``	all files in ``drivers/net``,
-+						but not below
-+	   ``F:``	``*/net/*``		all files in "any top level
-+						directory" ``/net``
-+	   ============================== ======================================
-+
-+	   One pattern per line.  Multiple ``F:`` lines acceptable.
-+-	``N:`` Files and directories with regex patterns.
-+
-+	   ============================ ========================================
-+	   ``N:``	``[^a-z]tegra``		all files whose path contains
-+						the word ``tegra``
-+	   ============================ ========================================
-+
-+	   One pattern per line.  Multiple ``N:`` lines acceptable.
-+	   ``scripts/get_maintainer.pl`` has different behavior for files that
-+	   match ``F:`` pattern and matches of ``N:`` patterns.  By default,
-+	   get_maintainer will not look at git log history when an ``F:``
-+	   pattern match occurs.  When an ``N:`` match occurs, git log history
-+	   is used to also notify the people that have git commit signatures.
-+-	``X:`` Files and directories that are NOT maintained, same rules as
-+	``F:`` Files exclusions are tested before file matches.
-+	Can be useful for excluding a specific subdirectory, for instance:
-+
-+	   ============================ ========================================
-+	   ``F:``	``net/``	matches all files in and below
-+					``net`` ...
-+	   ``X:``	``net/ipv6/``	... excluding ``net/ipv6/``
-+	   ============================ ========================================
-+
-+-	``K:`` Keyword perl extended regex pattern to match content in a
- 	   patch or file.  For instance:
--	   K: of_get_profile
--	      matches patches or files that contain "of_get_profile"
--	   K: \b(printk|pr_(info|err))\b
--	      matches patches or files that contain one or more of the words
--	      printk, pr_info or pr_err
--	   One regex pattern per line.  Multiple K: lines acceptable.
- 
--Note: For the hard of thinking, this list is meant to remain in alphabetical
--order. If you could add yourselves to it in alphabetical order that would be
--so much easier [Ed]
-+	   =========================================== =========================
-+	   ``K:`` ``of_get_profile``			matches patches or files
-+							that contain
-+							``of_get_profile``
-+	   ``K:`` ``\b(printk|pr_(info|err))\b``	matches patches or
-+							files that contain one
-+							or more of the words
-+							``printk``, ``pr_info``
-+							or ``pr_err``
-+	   =========================================== =========================
-+
-+	   One regex pattern per line.  Multiple ``K:`` lines acceptable.
-+
-+.. note::
-+
-+  For the hard of thinking, this list is meant to remain in alphabetical
-+  order. If you could add yourselves to it in alphabetical order that would be
-+  so much easier [Ed]
- 
- Maintainers List (try to look for most precise areas first)
-+-----------------------------------------------------------
- 
- 		-----------------------------------
- 
-+
- 3C59X NETWORK DRIVER
- M:	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
- L:	netdev@vger.kernel.org
+-	__u8 intra_dc_precision;
+-	__u8 picture_structure;
+-	__u8 top_field_first;
+-	__u8 frame_pred_frame_dct;
+-	__u8 concealment_motion_vectors;
+-	__u8 q_scale_type;
+-	__u8 intra_vlc_format;
+-	__u8 alternate_scan;
+-
+-	__u8 backward_index;
+-	__u8 forward_index;
+-};
+-
+ #endif
+-- 
+1.9.1
+
