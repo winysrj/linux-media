@@ -1,106 +1,591 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34154 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S947759AbcJaW7X (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48041 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S936141AbcJGQBR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 18:59:23 -0400
-Date: Tue, 1 Nov 2016 00:58:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161031225845.GC3217@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
- <20161023204001.GD6391@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161023204001.GD6391@amd>
+        Fri, 7 Oct 2016 12:01:17 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>,
+        Marc Kleine-Budde <mkl@pengutronix.de>
+Subject: [PATCH 08/22] [media] imx-ipu: Add i.MX IPUv3 CSI subdevice driver
+Date: Fri,  7 Oct 2016 18:00:53 +0200
+Message-Id: <20161007160107.5074-9-p.zabel@pengutronix.de>
+In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+This adds a V4L2 subdevice driver for the two CMOS Sensor Interface (CSI)
+modules contained in each IPUv3. These sample video data from the
+parallel CSI0/1 pads or from the the MIPI CSI-2 bridge via IOMUXC video
+bus multiplexers and write to IPU internal FIFOs to deliver data to
+either the IDMAC or IC modules.
 
-(Cc Laurent.)
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/imx/Kconfig         |   7 +
+ drivers/media/platform/imx/Makefile        |   1 +
+ drivers/media/platform/imx/imx-ipuv3-csi.c | 522 +++++++++++++++++++++++++++++
+ 3 files changed, 530 insertions(+)
+ create mode 100644 drivers/media/platform/imx/imx-ipuv3-csi.c
 
-On Sun, Oct 23, 2016 at 10:40:01PM +0200, Pavel Machek wrote:
-> Hi!
-> 
-> > Thanks, this answered half of my questions already. ;-)
-> > 
-> > Do all the modes work for you currently btw.?
-> 
-> Aha, went through my notes. This is what it does in 5MP mode, even on
-> v4.9:
-> 
-> pavel@n900:/my/fcam-dev$ ./camera.py
-> ['-r']
-> ['-l', '"et8ek8 3-003e":0 -> "video-bus-switch":1 [1]']
-> ['-l', '"video-bus-switch":0 -> "OMAP3 ISP CCP2":0 [1]']
-> ['-l', '"OMAP3 ISP CCP2":1 -> "OMAP3 ISP CCDC":0 [1]']
-> ['-l', '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0 [1]']
-> ['-V', '"et8ek8 3-003e":0 [SGRBG10 2592x1968]']
-> ['-V', '"OMAP3 ISP CCP2":0 [SGRBG10 2592x1968]']
-> ['-V', '"OMAP3 ISP CCP2":1 [SGRBG10 2592x1968]']
-> ['-V', '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1968]']
-> ['-V', '"OMAP3 ISP CCDC":2 [SGRBG10 2592x1968]']
-> Device /dev/video2 opened.
-> Device `OMAP3 ISP CCDC output' on `media' is a video capture (without
-> mplanes) device.
-> Video format set: SGRBG10 (30314142) 2592x1968 (stride 5184) field
-> none buffer size 10202112
-> Video format: SGRBG10 (30314142) 2592x1968 (stride 5184) field none
-> buffer size 10202112
-> 4 buffers requested.
-> length: 10202112 offset: 0 timestamp type/source: mono/EoF
-> Buffer 0/0 mapped at address 0xb63a0000.
-> length: 10202112 offset: 10203136 timestamp type/source: mono/EoF
-> Buffer 1/0 mapped at address 0xb59e5000.
-> length: 10202112 offset: 20406272 timestamp type/source: mono/EoF
-> Buffer 2/0 mapped at address 0xb502a000.
-> length: 10202112 offset: 30609408 timestamp type/source: mono/EoF
-> Buffer 3/0 mapped at address 0xb466f000.
-> 0 (0) [E] any 0 10202112 B 0.000000 2792.366987 0.001 fps ts mono/EoF
-> Unable to queue buffer: Input/output error (5).
-> Unable to requeue buffer: Input/output error (5).
-> Unable to release buffers: Device or resource busy (16).
-> pavel@n900:/my/fcam-dev$
-> 
-> (gitlab.com fcam-dev branch good)
-> 
-> Kernel will say
-> 
-> [ 2689.598358] stream on success
-> [ 2702.426635] Streamon
-> [ 2702.426727] check_format checking px 808534338 808534338, h 984
-> 984, w 1296 1296, bpline 2592 2592, size 2550528 2550528 field 1 1
-> [ 2702.426818] configuring for 1296(2592)x984
-> [ 2702.434722] stream on success
-> [ 2792.276184] Streamon
-> [ 2792.276306] check_format checking px 808534338 808534338, h 1968
-> 1968, w 2592 2592, bpline 5184 5184, size 10202112 10202112 field 1 1
-> [ 2792.276367] configuring for 2592(5184)x1968
-> [ 2792.284240] stream on success
-> [ 2792.368164] omap3isp 480bc000.isp: CCDC won't become idle!
-
-This is Bad(tm).
-
-It means that the driver waited for the CCDC to become idle to reprogram it,
-but it didn't happen. This could be a problem in the number of lines
-configured, or some polarity settings between the CCP2 receiver and the
-CCDC. I suspect the latter, but I could be totally wrong here as well since
-it was more than five years I worked on these things. :-I
-
-> [ 2793.901550] omap3isp 480bc000.isp: Unable to stop OMAP3 ISP CCDC
-
-And this is probably directly caused by the same problem. :-(
-
+diff --git a/drivers/media/platform/imx/Kconfig b/drivers/media/platform/imx/Kconfig
+index 1662bb0b..a88c4f7 100644
+--- a/drivers/media/platform/imx/Kconfig
++++ b/drivers/media/platform/imx/Kconfig
+@@ -8,3 +8,10 @@ config MEDIA_IMX
+ 
+ config VIDEO_IMX_IPU_COMMON
+ 	tristate
++
++config VIDEO_IMX_IPU_CSI
++	tristate "i.MX5/6 CMOS Sensor Interface driver"
++	depends on VIDEO_DEV && IMX_IPUV3_CORE && MEDIA_IMX
++	select VIDEO_IMX_IPUV3
++	---help---
++	  This is a v4l2 subdevice driver for two CSI modules in each IPUv3.
+diff --git a/drivers/media/platform/imx/Makefile b/drivers/media/platform/imx/Makefile
+index 0ba601a..82a3616 100644
+--- a/drivers/media/platform/imx/Makefile
++++ b/drivers/media/platform/imx/Makefile
+@@ -1,2 +1,3 @@
+ obj-$(CONFIG_MEDIA_IMX)			+= imx-media.o
+ obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)	+= imx-ipu.o
++obj-$(CONFIG_VIDEO_IMX_IPU_CSI)		+= imx-ipuv3-csi.o
+diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
+new file mode 100644
+index 0000000..316175b
+--- /dev/null
++++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
+@@ -0,0 +1,522 @@
++/*
++ * i.MX IPUv3 CSI V4L2 Subdevice Driver
++ *
++ * Copyright (C) 2016, Pengutronix, Philipp Zabel <kernel@pengutronix.de>
++ *
++ * Based on code
++ * Copyright (C) 2006, Sascha Hauer, Pengutronix
++ * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
++ * Copyright (C) 2008, Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
++ * Copyright (C) 2009, Darius Augulis <augulis.darius@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/clk.h>
++#include <linux/device.h>
++#include <linux/dma-mapping.h>
++#include <linux/errno.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/mutex.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/time.h>
++#include <linux/version.h>
++#include <linux/videodev2.h>
++
++#include <media/v4l2-common.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
++#include <media/v4l2-of.h>
++#include <media/videobuf2-dma-contig.h>
++
++#include <video/imx-ipu-v3.h>
++
++#include "imx-ipu.h"
++
++#define DRIVER_NAME "imx-ipuv3-csi"
++
++struct ipucsi {
++	struct v4l2_subdev		subdev;
++
++	struct device			*dev;
++	u32				id;
++
++	struct ipu_csi			*csi;
++	struct ipu_soc			*ipu;
++	struct v4l2_of_endpoint		endpoint;
++	enum ipu_csi_dest		csi_dest;
++
++	struct media_pad		subdev_pad[2];
++	struct v4l2_mbus_framefmt	format_mbus[2];
++	struct v4l2_fract		timeperframe[2];
++};
++
++static int ipu_csi_get_mbus_config(struct ipucsi *ipucsi,
++				   struct v4l2_mbus_config *config)
++{
++	struct v4l2_subdev *sd;
++	struct media_pad *pad;
++	int ret;
++
++	/*
++	 * Retrieve media bus configuration from the entity connected directly
++	 * to the CSI subdev sink pad.
++	 */
++	pad = media_entity_remote_pad(&ipucsi->subdev_pad[0]);
++	if (!pad) {
++		dev_err(ipucsi->dev,
++			"failed to retrieve mbus config from source entity\n");
++		return -ENODEV;
++	}
++	sd = media_entity_to_v4l2_subdev(pad->entity);
++	ret = v4l2_subdev_call(sd, video, g_mbus_config, config);
++	if (ret == -ENOIOCTLCMD) {
++		/* Fall back to static mbus configuration from device tree */
++		config->type = ipucsi->endpoint.bus_type;
++		config->flags = ipucsi->endpoint.bus.parallel.flags;
++		ret = 0;
++	}
++
++	return ret;
++}
++
++static struct v4l2_mbus_framefmt *
++__ipucsi_get_pad_format(struct v4l2_subdev *sd,
++			struct v4l2_subdev_pad_config *cfg,
++			unsigned int pad, u32 which)
++{
++	struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
++
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &ipucsi->format_mbus[pad ? 1 : 0];
++	default:
++		return NULL;
++	}
++}
++
++static int ipucsi_subdev_log_status(struct v4l2_subdev *subdev)
++{
++	struct ipucsi *ipucsi = container_of(subdev, struct ipucsi, subdev);
++
++	ipu_csi_dump(ipucsi->csi);
++
++	return 0;
++}
++
++static int ipucsi_subdev_get_format(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *sdformat)
++{
++	sdformat->format = *__ipucsi_get_pad_format(sd, cfg, sdformat->pad,
++						    sdformat->which);
++	return 0;
++}
++
++static bool ipucsi_mbus_code_supported(const u32 mbus_code)
++{
++	static const u32 mbus_codes[] = {
++		MEDIA_BUS_FMT_Y8_1X8,
++		MEDIA_BUS_FMT_Y10_1X10,
++		MEDIA_BUS_FMT_Y12_1X12,
++		MEDIA_BUS_FMT_UYVY8_2X8,
++		MEDIA_BUS_FMT_YUYV8_2X8,
++		MEDIA_BUS_FMT_UYVY8_1X16,
++		MEDIA_BUS_FMT_YUYV8_1X16,
++	};
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(mbus_codes); i++) {
++		if (mbus_code == mbus_codes[i])
++			return true;
++	}
++
++	return false;
++}
++
++static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *sdformat)
++{
++	struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
++	struct v4l2_mbus_framefmt *mbusformat;
++	unsigned int width, height;
++	bool supported;
++
++	supported = ipucsi_mbus_code_supported(sdformat->format.code);
++	if (!supported)
++		return -EINVAL;
++
++	if (sdformat->pad == 0) {
++		width = clamp_t(unsigned int, sdformat->format.width, 16, 8192);
++		height = clamp_t(unsigned int, sdformat->format.height, 16, 4096);
++	} else {
++		width = ipucsi->format_mbus[0].width;
++		height = ipucsi->format_mbus[0].height;
++	}
++
++	mbusformat = __ipucsi_get_pad_format(sd, cfg, sdformat->pad,
++					     sdformat->which);
++	mbusformat->width = width;
++	mbusformat->height = height;
++	mbusformat->code = sdformat->format.code;
++	mbusformat->field = sdformat->format.field;
++
++	if (mbusformat->field == V4L2_FIELD_SEQ_TB &&
++	    mbusformat->width == 720 && mbusformat->height == 480 &&
++	    ipucsi->endpoint.bus_type == V4L2_MBUS_BT656) {
++		/* We capture NTSC bottom field first */
++		mbusformat->field = V4L2_FIELD_SEQ_BT;
++	} else if (mbusformat->field == V4L2_FIELD_ANY) {
++		mbusformat->field = ipucsi->format_mbus[!sdformat->pad].field;
++	}
++
++	sdformat->format = *mbusformat;
++
++	return 0;
++}
++
++static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
++
++	if (enable) {
++		struct v4l2_mbus_framefmt *fmt = ipucsi->format_mbus;
++		struct v4l2_mbus_config mbus_config;
++		struct v4l2_rect window;
++		bool mux_mct;
++		int ret;
++
++		ret = ipu_csi_get_mbus_config(ipucsi, &mbus_config);
++		if (ret)
++			return ret;
++
++		window.left = 0;
++		window.top = 0;
++		window.width = fmt[0].width;
++		window.height = fmt[0].height;
++		ipu_csi_set_window(ipucsi->csi, &window);
++
++		/* Is CSI data source MCT (MIPI)? */
++		mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
++
++		ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
++		if (mux_mct)
++			ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
++						  &fmt[0]);
++
++		ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
++					     &fmt[0]);
++		if (ret) {
++			dev_err(ipucsi->dev, "Failed to initialize CSI\n");
++			return ret;
++		}
++
++		ipu_csi_set_dest(ipucsi->csi, ipucsi->csi_dest);
++
++		ipu_csi_enable(ipucsi->csi);
++	} else {
++		ipu_csi_disable(ipucsi->csi);
++	}
++
++	return 0;
++}
++
++static int ipucsi_subdev_g_frame_interval(struct v4l2_subdev *subdev,
++					  struct v4l2_subdev_frame_interval *fi)
++{
++	struct ipucsi *ipucsi = container_of(subdev, struct ipucsi, subdev);
++
++	if (fi->pad > 4)
++		return -EINVAL;
++
++	fi->interval = ipucsi->timeperframe[(fi->pad == 0) ? 0 : 1];
++
++	return 0;
++}
++
++/*
++ * struct ipucsi_skip_desc - CSI frame skipping descriptor
++ * @keep - number of frames kept per max_ratio frames
++ * @max_ratio - width of skip_smfc, written to MAX_RATIO bitfield
++ * @skip_smfc - skip pattern written to the SKIP_SMFC bitfield
++ */
++struct ipucsi_skip_desc {
++	u8 keep;
++	u8 max_ratio;
++	u8 skip_smfc;
++};
++
++static const struct ipucsi_skip_desc ipucsi_skip[12] = {
++	{ 1, 1, 0x00 }, /* Keep all frames */
++	{ 5, 6, 0x10 }, /* Skip every sixth frame */
++	{ 4, 5, 0x08 }, /* Skip every fifth frame */
++	{ 3, 4, 0x04 }, /* Skip every fourth frame */
++	{ 2, 3, 0x02 }, /* Skip every third frame */
++	{ 3, 5, 0x0a }, /* Skip frames 1 and 3 of every 5 */
++	{ 1, 2, 0x01 }, /* Skip every second frame */
++	{ 2, 5, 0x0b }, /* Keep frames 1 and 4 of every 5 */
++	{ 1, 3, 0x03 }, /* Keep one in three frames */
++	{ 1, 4, 0x07 }, /* Keep one in four frames */
++	{ 1, 5, 0x0f }, /* Keep one in five frames */
++	{ 1, 6, 0x1f }, /* Keep one in six frames */
++};
++
++static int ipucsi_subdev_s_frame_interval(struct v4l2_subdev *subdev,
++					  struct v4l2_subdev_frame_interval *fi)
++{
++	struct ipucsi *ipucsi = container_of(subdev, struct ipucsi, subdev);
++	const struct ipucsi_skip_desc *skip;
++	struct v4l2_fract *want, *in;
++	u32 min_err = UINT_MAX;
++	int i, best_i = 0;
++	u64 want_us;
++
++	if (fi->pad > 4)
++		return -EINVAL;
++
++	if (fi->pad == 0) {
++		/* Believe what we are told about the input frame rate */
++		ipucsi->timeperframe[0] = fi->interval;
++		/* Reset output frame rate to input frame rate */
++		ipucsi->timeperframe[1] = fi->interval;
++		return 0;
++	}
++
++	want = &fi->interval;
++	in = &ipucsi->timeperframe[0];
++
++	if (want->numerator == 0 || want->denominator == 0 ||
++	    in->denominator == 0) {
++		ipucsi->timeperframe[1] = ipucsi->timeperframe[0];
++		fi->interval = ipucsi->timeperframe[1];
++		return 0;
++	}
++
++	want_us = 1000000ULL * want->numerator;
++	do_div(want_us, want->denominator);
++
++	/* Find the reduction closest to the requested timeperframe */
++	for (i = 0; i < ARRAY_SIZE(ipucsi_skip); i++) {
++		u64 tmp;
++		u32 err;
++
++		skip = &ipucsi_skip[i];
++		tmp = 1000000ULL * in->numerator * skip->max_ratio;
++		do_div(tmp, in->denominator * skip->keep);
++		err = (tmp > want_us) ? (tmp - want_us) : (want_us - tmp);
++		if (err < min_err) {
++			min_err = err;
++			best_i = i;
++		}
++	}
++
++	skip = &ipucsi_skip[best_i];
++
++	ipu_csi_set_skip_smfc(ipucsi->csi, skip->skip_smfc, skip->max_ratio - 1,
++			      0);
++
++	fi->interval.numerator = in->numerator * skip->max_ratio;
++	fi->interval.denominator = in->denominator * skip->keep;
++	ipucsi->timeperframe[1] = fi->interval;
++
++	dev_dbg(ipucsi->dev, "skip: %d/%d -> %d/%d frames:%d pattern:0x%x\n",
++	       in->numerator, in->denominator,
++	       fi->interval.numerator, fi->interval.denominator,
++	       skip->max_ratio, skip->skip_smfc);
++
++	return 0;
++}
++
++static struct v4l2_subdev_core_ops ipucsi_subdev_core_ops = {
++	.log_status = ipucsi_subdev_log_status,
++};
++
++static struct v4l2_subdev_pad_ops ipucsi_subdev_pad_ops = {
++	.get_fmt = ipucsi_subdev_get_format,
++	.set_fmt = ipucsi_subdev_set_format,
++};
++
++static struct v4l2_subdev_video_ops ipucsi_subdev_video_ops = {
++	.s_stream = ipucsi_subdev_s_stream,
++	.g_frame_interval = ipucsi_subdev_g_frame_interval,
++	.s_frame_interval = ipucsi_subdev_s_frame_interval,
++};
++
++static const struct v4l2_subdev_ops ipucsi_subdev_ops = {
++	.core   = &ipucsi_subdev_core_ops,
++	.pad    = &ipucsi_subdev_pad_ops,
++	.video  = &ipucsi_subdev_video_ops,
++};
++
++static int ipu_csi_link_setup(struct media_entity *entity,
++			      const struct media_pad *local,
++			      const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
++
++	ipucsi->csi_dest = IPU_CSI_DEST_IDMAC;
++
++	return 0;
++}
++
++struct media_entity_operations ipucsi_entity_ops = {
++	.link_setup = ipu_csi_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
++};
++
++static int ipu_csi_registered(struct v4l2_subdev *sd)
++{
++	struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
++	struct device_node *rpp;
++
++	/*
++	 * Add source subdevice to asynchronous subdevice waiting list.
++	 */
++	rpp = of_graph_get_remote_port_parent(ipucsi->endpoint.base.local_node);
++	if (rpp) {
++		struct v4l2_async_subdev *asd;
++
++		asd = devm_kzalloc(sd->dev, sizeof(*asd), GFP_KERNEL);
++		if (!asd) {
++			of_node_put(rpp);
++			return -ENOMEM;
++		}
++
++		asd->match_type = V4L2_ASYNC_MATCH_OF;
++		asd->match.of.node = rpp;
++
++		__v4l2_async_notifier_add_subdev(sd->notifier, asd);
++	}
++
++	return 0;
++}
++
++struct v4l2_subdev_internal_ops ipu_csi_internal_ops = {
++	.registered = ipu_csi_registered,
++};
++
++static int ipucsi_subdev_init(struct ipucsi *ipucsi, struct device_node *node)
++{
++	struct device_node *endpoint;
++	int ret;
++
++	v4l2_subdev_init(&ipucsi->subdev, &ipucsi_subdev_ops);
++	ipucsi->subdev.dev = ipucsi->dev;
++
++	snprintf(ipucsi->subdev.name, sizeof(ipucsi->subdev.name), "%s%d %s%d",
++		 "IPU", ipu_get_num(ipucsi->ipu), "CSI", ipucsi->id);
++
++	endpoint = of_get_next_child(node, NULL);
++	if (endpoint)
++		v4l2_of_parse_endpoint(endpoint, &ipucsi->endpoint);
++
++	ipucsi->subdev.entity.ops = &ipucsi_entity_ops;
++
++	ipucsi->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	ipucsi->subdev.of_node = node;
++
++	ipucsi->subdev_pad[0].flags = MEDIA_PAD_FL_SINK;
++	ipucsi->subdev_pad[1].flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_pads_init(&ipucsi->subdev.entity, 2,
++				     ipucsi->subdev_pad);
++	if (ret < 0)
++		return ret;
++
++	ipucsi->subdev.internal_ops = &ipu_csi_internal_ops;
++	ret = v4l2_async_register_subdev(&ipucsi->subdev);
++	if (ret < 0) {
++		dev_err(ipucsi->dev, "Failed to register CSI subdev \"%s\": %d\n",
++			ipucsi->subdev.name, ret);
++	}
++
++	return ret;
++}
++
++static u64 camera_mask = DMA_BIT_MASK(32);
++
++static int ipucsi_probe(struct platform_device *pdev)
++{
++	struct ipu_client_platformdata *pdata = pdev->dev.platform_data;
++	struct ipu_soc *ipu = dev_get_drvdata(pdev->dev.parent);
++	struct ipucsi *ipucsi;
++	int ret;
++	struct device_node *node;
++
++	pdev->dev.dma_mask = &camera_mask;
++	pdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
++
++	if (!pdata)
++		return -EINVAL;
++
++	ipucsi = devm_kzalloc(&pdev->dev, sizeof(*ipucsi), GFP_KERNEL);
++	if (!ipucsi)
++		return -ENOMEM;
++
++	ipucsi->ipu = ipu;
++	ipucsi->id = pdata->csi;
++	ipucsi->dev = &pdev->dev;
++
++	node = of_graph_get_port_by_id(pdev->dev.parent->of_node, ipucsi->id);
++	if (!node) {
++		dev_err(&pdev->dev, "cannot find node port@%d\n", ipucsi->id);
++		return -ENODEV;
++	}
++
++	ipucsi->csi = ipu_csi_get(ipu, ipucsi->id);
++	if (IS_ERR(ipucsi->csi))
++		return PTR_ERR(ipucsi->csi);
++
++	ret = ipucsi_subdev_init(ipucsi, node);
++	if (ret)
++		return ret;
++
++	of_node_put(node);
++
++	platform_set_drvdata(pdev, ipucsi);
++
++	dev_info(&pdev->dev, "loaded\n");
++
++	return 0;
++}
++
++static struct platform_driver ipucsi_driver = {
++	.driver = {
++		.name = DRIVER_NAME,
++	},
++	.probe = ipucsi_probe,
++};
++
++static int __init ipucsi_init(void)
++{
++	return platform_driver_register(&ipucsi_driver);
++}
++
++static void __exit ipucsi_exit(void)
++{
++	return platform_driver_unregister(&ipucsi_driver);
++}
++
++subsys_initcall(ipucsi_init);
++module_exit(ipucsi_exit);
++
++MODULE_DESCRIPTION("i.MX IPUv3 capture interface driver");
++MODULE_AUTHOR("Sascha Hauer, Pengutronix");
++MODULE_AUTHOR("Philipp Zabel, Pengutronix");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:" DRIVER_NAME);
 -- 
-Kind regards,
+2.9.3
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
