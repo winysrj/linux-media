@@ -1,73 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36318 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932277AbcJSRBd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 13:01:33 -0400
-Date: Wed, 19 Oct 2016 19:01:27 +0200
-From: Michal Hocko <mhocko@kernel.org>
-To: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
- pass FOLL_* flags
-Message-ID: <20161019170127.GN24393@dhcp22.suse.cz>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161018153050.GC13117@dhcp22.suse.cz>
- <20161019085815.GA22239@lucifer>
- <20161019090727.GE7517@dhcp22.suse.cz>
- <5807A427.7010200@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5807A427.7010200@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:46782 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936256AbcJGRYq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH 19/26] nova-t-usb2: don't do DMA on stack
+Date: Fri,  7 Oct 2016 14:24:29 -0300
+Message-Id: <feab21d551e08f3929d713483a50419ae48386a1.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 19-10-16 09:49:43, Dave Hansen wrote:
-> On 10/19/2016 02:07 AM, Michal Hocko wrote:
-> > On Wed 19-10-16 09:58:15, Lorenzo Stoakes wrote:
-> >> On Tue, Oct 18, 2016 at 05:30:50PM +0200, Michal Hocko wrote:
-> >>> I am wondering whether we can go further. E.g. it is not really clear to
-> >>> me whether we need an explicit FOLL_REMOTE when we can in fact check
-> >>> mm != current->mm and imply that. Maybe there are some contexts which
-> >>> wouldn't work, I haven't checked.
-> >>
-> >> This flag is set even when /proc/self/mem is used. I've not looked deeply into
-> >> this flag but perhaps accessing your own memory this way can be considered
-> >> 'remote' since you're not accessing it directly. On the other hand, perhaps this
-> >> is just mistaken in this case?
-> > 
-> > My understanding of the flag is quite limited as well. All I know it is
-> > related to protection keys and it is needed to bypass protection check.
-> > See arch_vma_access_permitted. See also 1b2ee1266ea6 ("mm/core: Do not
-> > enforce PKEY permissions on remote mm access").
-> 
-> Yeah, we need the flag to tell us when PKEYs should be applied or not.
-> The current task's PKRU (pkey rights register) should really only be
-> used to impact access to the task's memory, but has no bearing on how a
-> given task should access remote memory.
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-The question I had earlier was whether this has to be an explicit FOLL
-flag used by g-u-p users or we can just use it internally when mm !=
-current->mm
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/nova-t-usb2.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/media/usb/dvb-usb/nova-t-usb2.c b/drivers/media/usb/dvb-usb/nova-t-usb2.c
+index fc7569e2728d..26d7188a1163 100644
+--- a/drivers/media/usb/dvb-usb/nova-t-usb2.c
++++ b/drivers/media/usb/dvb-usb/nova-t-usb2.c
+@@ -74,22 +74,29 @@ static struct rc_map_table rc_map_haupp_table[] = {
+  */
+ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+-	u8 key[5],cmd[2] = { DIBUSB_REQ_POLL_REMOTE, 0x35 }, data,toggle,custom;
++	u8 *buf, data, toggle, custom;
+ 	u16 raw;
+ 	int i;
+ 	struct dibusb_device_state *st = d->priv;
+ 
+-	dvb_usb_generic_rw(d,cmd,2,key,5,0);
++	buf = kmalloc(5, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
++	buf[0] = DIBUSB_REQ_POLL_REMOTE;
++	buf[1] = 0x35;
++	dvb_usb_generic_rw(d, buf, 2, buf, 5, 0);
+ 
+ 	*state = REMOTE_NO_KEY_PRESSED;
+-	switch (key[0]) {
++	switch (buf[0]) {
+ 		case DIBUSB_RC_HAUPPAUGE_KEY_PRESSED:
+-			raw = ((key[1] << 8) | key[2]) >> 3;
++			raw = ((buf[1] << 8) | buf[2]) >> 3;
+ 			toggle = !!(raw & 0x800);
+ 			data = raw & 0x3f;
+ 			custom = (raw >> 6) & 0x1f;
+ 
+-			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x to c: %02x d: %02x toggle: %d\n",key[1],key[2],key[3],custom,data,toggle);
++			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x to c: %02x d: %02x toggle: %d\n",
++			       buf[1], buf[2], buf[3], custom, data, toggle);
+ 
+ 			for (i = 0; i < ARRAY_SIZE(rc_map_haupp_table); i++) {
+ 				if (rc5_data(&rc_map_haupp_table[i]) == data &&
+@@ -117,6 +124,7 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 			break;
+ 	}
+ 
++	kfree(buf);
+ 	return 0;
+ }
+ 
 -- 
-Michal Hocko
-SUSE Labs
+2.7.4
+
+
