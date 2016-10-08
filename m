@@ -1,112 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51531 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:36188 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934789AbcJRUqV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:21 -0400
+        with ESMTP id S1754693AbcJHKLs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 8 Oct 2016 06:11:48 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Amitoj Kaur Chawla <amitoj1606@gmail.com>,
-        Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH v2 10/58] ddbridge: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:22 -0200
-Message-Id: <6e959593ec17d60df17e8d2f0378962784c33857.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        =?UTF-8?q?J=EF=BF=BDrg=20Otte?= <jrg.otte@gmail.com>,
+        Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH v2 21/26] pctv452e: don't call BUG_ON() on non-fatal error
+Date: Sat,  8 Oct 2016 07:11:36 -0300
+Message-Id: <dcc194077b55a267430fc8eb886953f669ef34a8.1475921429.git.mchehab@s-opensource.com>
+In-Reply-To: <930024c357cd6ec079aee59f410734aad1d4be59.1475860773.git.mchehab@s-opensource.com>
+References: <930024c357cd6ec079aee59f410734aad1d4be59.1475860773.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+There are some conditions on this driver that are tested with
+BUG_ON() with are not serious enough to hang a machine.
 
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+So, just return an error if this happens.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/ddbridge/ddbridge-core.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 18e3a4deee64..a6c9fe235974 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -824,8 +824,7 @@ static int dvb_input_attach(struct ddb_input *input)
- 				   &input->port->dev->pdev->dev,
- 				   adapter_nr);
- 	if (ret < 0) {
--		printk(KERN_ERR "ddbridge: Could not register adapter."
--		       "Check if you enabled enough adapters in dvb-core!\n");
-+		printk(KERN_ERR "ddbridge: Could not register adapter.Check if you enabled enough adapters in dvb-core!\n");
- 		return ret;
- 	}
- 	input->attached = 1;
-@@ -1730,8 +1729,7 @@ static __init int module_init_ddbridge(void)
- {
+v2: simplify the logic and use its own error message.
+
+
+ drivers/media/usb/dvb-usb/pctv452e.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index 855fe9d34b59..f70202e6e3eb 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -109,9 +109,10 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
+ 	unsigned int rlen;
  	int ret;
  
--	printk(KERN_INFO "Digital Devices PCIE bridge driver, "
--	       "Copyright (C) 2010-11 Digital Devices GmbH\n");
-+	printk(KERN_INFO "Digital Devices PCIE bridge driver, Copyright (C) 2010-11 Digital Devices GmbH\n");
+-	BUG_ON(NULL == data && 0 != (write_len | read_len));
+-	BUG_ON(write_len > 64 - 4);
+-	BUG_ON(read_len > 64 - 4);
++	if (!data || (write_len > 64 - 4) || (read_len > 64 - 4)) {
++		err("%s: transfer data invalid", __func__);
++		return -EIO;
++	};
  
- 	ret = ddb_class_create();
- 	if (ret < 0)
+ 	id = state->c++;
+ 
 -- 
 2.7.4
 
