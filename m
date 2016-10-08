@@ -1,42 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51842 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933177AbcJXHz3 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33895 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751015AbcJHEGA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 03:55:29 -0400
-From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-To: Colin King <colin.king@canonical.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Mon, 24 Oct 2016 09:55:14 +0200
-Subject: Re: [PATCH] [media] st-hva: fix a copy-and-paste variable name error
-Message-ID: <bb8f2ff1-68af-9a04-6e6d-3a4a585b39c1@st.com>
-References: <20160919061928.6575-1-colin.king@canonical.com>
-In-Reply-To: <20160919061928.6575-1-colin.king@canonical.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Sat, 8 Oct 2016 00:06:00 -0400
+Message-ID: <31232bcf2cd0619f14aba9bffdc4b9fa@smtp-cloud3.xs4all.net>
+Date: Sat, 08 Oct 2016 06:05:56 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VGhhbmtzIChhbmQgc29ycnkgZm9yIHRoZSBkZWxheSBvZiBteSBhbnN3ZXIpLA0KDQpBY2tlZC1i
-eTogSmVhbi1DaHJpc3RvcGhlIFRyb3RpbiA8amVhbi1jaHJpc3RvcGhlLnRyb3RpbkBzdC5jb20+
-DQoNCk9uIDA5LzE5LzIwMTYgMDg6MTkgQU0sIENvbGluIEtpbmcgd3JvdGU6DQo+IEZyb206IENv
-bGluIElhbiBLaW5nIDxjb2xpbi5raW5nQGNhbm9uaWNhbC5jb20+DQo+DQo+IFRoZSBzZWNvbmQg
-Y2hlY2sgZm9yIGFuIGVycm9yIG9uIGh2YS0+bG1pX2Vycl9yZWcgYXBwZWFycw0KPiB0byBiZSBh
-IGNvcHktYW5kLXBhc3RlIGVycm9yLCBpdCBzaG91bGQgYmUgaHZhLT5lbWlfZXJyX3JlZw0KPiBp
-bnN0ZWFkLg0KPg0KPiBTaWduZWQtb2ZmLWJ5OiBDb2xpbiBJYW4gS2luZyA8Y29saW4ua2luZ0Bj
-YW5vbmljYWwuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2h2YS9o
-dmEtaHcuYyB8IDIgKy0NCj4gIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxl
-dGlvbigtKQ0KPg0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvaHZh
-L2h2YS1ody5jIGIvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvaHZhL2h2YS1ody5jDQo+IGlu
-ZGV4IGQzNDFkNDkuLmRjZjM2MmMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvbWVkaWEvcGxhdGZv
-cm0vc3RpL2h2YS9odmEtaHcuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9o
-dmEvaHZhLWh3LmMNCj4gQEAgLTI0NSw3ICsyNDUsNyBAQCBzdGF0aWMgaXJxcmV0dXJuX3QgaHZh
-X2h3X2Vycl9pcnFfdGhyZWFkKGludCBpcnEsIHZvaWQgKmFyZykNCj4gIAkJY3R4LT5od19lcnIg
-PSB0cnVlOw0KPiAgCX0NCj4NCj4gLQlpZiAoaHZhLT5sbWlfZXJyX3JlZykgew0KPiArCWlmICho
-dmEtPmVtaV9lcnJfcmVnKSB7DQo+ICAJCWRldl9lcnIoZGV2LCAiJXMgICAgIGV4dGVybmFsIG1l
-bW9yeSBpbnRlcmZhY2UgZXJyb3I6IDB4JTA4eFxuIiwNCj4gIAkJCWN0eC0+bmFtZSwgaHZhLT5l
-bWlfZXJyX3JlZyk7DQo+ICAJCWN0eC0+aHdfZXJyID0gdHJ1ZTsNCj4=
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
+
+Results of the daily build of media_tree:
+
+date:			Sat Oct  8 05:00:18 CEST 2016
+media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
+media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
+v4l-utils git hash:	2cd2699a8cfe8dce32dd35033a364c8375839d51
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
+
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
