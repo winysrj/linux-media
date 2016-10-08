@@ -1,55 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.133]:52006 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933572AbcJ0Hng (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 03:43:36 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sebastian Reichel <sre@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-pm@vger.kernel.org
-Subject: Re: [PATCH] [media] smiapp: make PM functions as __maybe_unused
-Date: Thu, 27 Oct 2016 09:43:16 +0200
-Message-ID: <3736433.WSCIHGPKQU@wuerfel>
-In-Reply-To: <20161027072818.GQ9460@valkosipuli.retiisi.org.uk>
-References: <20161026203814.1904690-1-arnd@arndb.de> <20161027072818.GQ9460@valkosipuli.retiisi.org.uk>
+Received: from mail.osadl.at ([92.243.35.153]:47852 "EHLO mail.osadl.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756866AbcJHOFD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 8 Oct 2016 10:05:03 -0400
+Date: Sat, 8 Oct 2016 13:57:14 +0000
+From: Nicholas Mc Guire <der.herr@hofr.at>
+To: Olivier Grenie <olivier.grenie@dibcom.fr>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: RFC - unclear change in "[media] DiBxxxx: Codingstype updates"
+Message-ID: <20161008135714.GA1239@osadl.at>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, October 27, 2016 10:28:18 AM CEST Sakari Ailus wrote:
-> 
-> On Wed, Oct 26, 2016 at 10:38:01PM +0200, Arnd Bergmann wrote:
-> > The rework of the PM support has caused two functions to
-> > be orphaned when CONFIG_PM is disabled:
-> > 
-> > media/i2c/smiapp/smiapp-core.c:1352:12: error: 'smiapp_power_off' defined but not used [-Werror=unused-function]
-> > media/i2c/smiapp/smiapp-core.c:1206:12: error: 'smiapp_power_on' defined but not used [-Werror=unused-function]
-> > 
-> > This changes all four PM entry points to __maybe_unused and
-> > removes the #ifdef markers for consistency. This avoids the
-> > warnings even when something changes again.
-> > 
-> > Fixes: cbba45d43631 ("[media] smiapp: Use runtime PM")
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> 
-> The power-on sequence is in fact mandatory as it involves writing the
-> initial configuration to the sensor as well.
-> 
-> Instead, I believe the correct fix is to make the driver depend on
-> CONFIG_PM.
 
-(adding linux-pm list)
+Hi Olivier !
 
-That would be a rather unusual dependency, though it's possible that
-a lot of drivers in fact need it but never listed this explictly in
-Kconfig.
+ in your commit 28fafca78797b ("[media] DiB0090: misc improvements")
 
-What do other drivers do that need to have their runtime_resume
-function called at probe time when CONFIG_PM is disabled?
+ with commit message:
+      This patch adds several performance improvements and prepares the
+      usage of firmware-based devices.
 
-	Arnd
+ it seems you changed the logic of an if/else in dib0090_tune() in a way
+ that I do not understand:
+
+-                 lo6 |= (1 << 2) | 2;
+-         else
+-                 lo6 |= (1 << 2) | 1;
++                 lo6 |= (1 << 2) | 2;    //SigmaDelta and Dither
++         else {
++                 if (state->identity.in_soc)
++                         lo6 |= (1 << 2) | 2;    //SigmaDelta and Dither
++                 else
++                         lo6 |= (1 << 2) | 2;    //SigmaDelta and Dither
++         }
+
+ resulting in the current code-base of:
+
+       if (Rest > 0) {
+               if (state->config->analog_output)
+                       lo6 |= (1 << 2) | 2;
+               else {
+                       if (state->identity.in_soc)
+                               lo6 |= (1 << 2) | 2;
+                       else
+                               lo6 |= (1 << 2) | 2;
+               }
+               Den = 255;
+       }
+
+ The problem now is that the if and the else(if/else) are
+ all the same and thus the conditions have no effect. Further
+ the origninal code actually had different if/else - so I 
+ wonder if this is a cut&past bug here ?
+
+ With no knowlege of the device providing a patch makes
+ no sense as it would just be guessing - in any case this looks 
+ wrong (or atleast should have a comment if it actually is correct)
+
+ What am I missing ?
+
+thx!
+hofrat
+
+
