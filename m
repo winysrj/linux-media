@@ -1,126 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35369 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752105AbcJYDoz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 23:44:55 -0400
-Message-ID: <cfda9f4620e631adac0ab37e60cd388a@smtp-cloud2.xs4all.net>
-Date: Tue, 25 Oct 2016 05:44:51 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59606 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751199AbcJIQdj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 9 Oct 2016 12:33:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
+Date: Sun, 09 Oct 2016 19:33:21 +0300
+Message-ID: <1645400.RKG9rcP36z@avalon>
+In-Reply-To: <20161009012939.GY18158@rob-hp-laptop>
+References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1475598210-26857-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20161009012939.GY18158@rob-hp-laptop>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Rob,
 
-Results of the daily build of media_tree:
+On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
+> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
+> > LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+> > Multiple incompatible data link layers have been used over time to
+> > transmit image data to LVDS panels. This binding supports display panels
+> > compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
+> > specifications.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  .../bindings/display/panel/panel-lvds.txt          | 119 ++++++++++++++++
+> >  1 file changed, 119 insertions(+)
+> >  create mode 100644
+> >  Documentation/devicetree/bindings/display/panel/panel-lvds.txt> 
+> > diff --git
+> > a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> > b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt new file
+> > mode 100644
+> > index 000000000000..250861f2673e
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> > @@ -0,0 +1,119 @@
+> > +Generic LVDS Panel
+> > +==================
+> > +
+> > +LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+> > Multiple
+> > +incompatible data link layers have been used over time to transmit image
+> > data
+> > +to LVDS panels. This bindings supports display panels compatible with the
+> > +following specifications.
+> > +
+> > +[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999,
+> > February
+> > +1999 (Version 1.0), Japan Electronic Industry Development Association
+> > (JEIDA)
+> > +[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95), National
+> > +Semiconductor
+> > +[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0), Video
+> > +Electronics Standards Association (VESA)
+> > +
+> > +Device compatible with those specifications have been marketed under the
+> > +FPD-Link and FlatLink brands.
+> > +
+> > +
+> > +Required properties:
+> > +- compatible: shall contain "panel-lvds"
+> 
+> Maybe as a fallback, but on its own, no way.
 
-date:			Tue Oct 25 05:00:15 CEST 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Which brings an interesting question: when designing generic DT bindings, 
+what's the rule regarding 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-multi
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for mips
-sparse: WARNINGS
+> > +- width-mm: panel display width in millimeters
+> > +- height-mm: panel display height in millimeters
+> 
+> This is already documented for all panels IIRC.
 
-Detailed results are available here:
+Note that this DT binding has nothing to do with the simple-panel binding. It 
+is instead similar to the panel-dpi and panel-dsi-cm bindings (which currently 
+don't but should specify the panel size in DT). The LVDS panel driver will 
+*not* include any panel-specific information such as size or timings, these 
+are specified in DT.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+> > +- data-mapping: the color signals mapping order, "jeida-18", "jeida-24"
+> > +  or "vesa-24"
+> 
+> Maybe this should be part of the compatible.
 
-Full logs are available here:
+I've thought about it, but given that some panels support selecting between 
+multiple modes (through a mode pin that is usually hardwired), I believe a 
+separate DT property makes sense.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Furthermore, LVDS data organization is controlled by the combination of both 
+data-mapping and data-mirror. It makes little sense from my point of view to 
+handle one as part of the compatible string and the other one as a separate 
+property.
 
-The Media Infrastructure API from this daily build is here:
+> > +Optional properties:
+> > +- label: a symbolic name for the panel
+> 
+> Could be for any panel or display connector.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Yes, but I'm not sure to understand how that's relevant :-)
+
+> > +- avdd-supply: reference to the regulator that powers the panel
+> analog supply
+> > +- dvdd-supply: reference to the regulator that powers the panel digital
+> > supply
+>
+> Which one has to be powered on first, what voltage, and with what time
+> in between? This is why "generic" or "simple" bindings don't work.
+
+The above-mentioned specifications also define connectors, pinouts and power 
+supplies, but many LVDS panels compatible with the LVDS physical and data 
+layers use a different connector with small differences in power supplies.
+
+I believe the voltage is irrelevant here, it doesn't need to be controlled by 
+the operating system. Power supplies order and timing is relevant, I'll 
+investigate the level of differences between panels. I'm also fine with 
+dropping those properties for now.
+
+> > +- data-mirror: if set, reverse the bit order on all data lanes (6 to 0
+> > instead
+> > +  of 0 to 6)
+> > +
+> > +Required nodes:
+> > +- One "panel-timing" node containing video timings, in accordance with
+> > the
+> > +  display timing bindings defined in
+> > +  Documentation/devicetree/bindings/display/display-timing.txt.
+> 
+> I'll let Thierry comment on this one.
+> 
+> > +- One "port" child node for the LVDS input port, in accordance with the
+> > +  video interface bindings defined in
+> > +  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > +
+> > +
+> > +LVDS data mappings are defined as follows.
+> > +
+> > +- "jeida-18" - 18-bit data mapping compatible with the [JEIDA], [LDI] and
+> > +  [VESA] specifications. Data are transferred as follows on 3 LVDS lanes.
+> > +
+> > +Slot	    0       1       2       3       4       5       6
+> > +	________________                         _________________
+> > +Clock	                \_______________________/
+> > +	  ______  ______  ______  ______  ______  ______  ______
+> > +DATA0	><__G0__><__R5__><__R4__><__R3__><__R2__><__R1__><__R0__><
+> > +DATA1	><__B1__><__B0__><__G5__><__G4__><__G3__><__G2__><__G1__><
+> > +DATA2	><_CTL2_><_CTL1_><_CTL0_><__B5__><__B4__><__B3__><__B2__><
+> > +
+> > +- "jeida-24" - 24-bit data mapping compatible with the [DSIM] and [LDI]
+> > +  specifications. Data are transferred as follows on 4 LVDS lanes.
+> > +
+> > +Slot	    0       1       2       3       4       5       6
+> > +	________________                         _________________
+> > +Clock	                \_______________________/
+> > +	  ______  ______  ______  ______  ______  ______  ______
+> > +DATA0	><__G2__><__R7__><__R6__><__R5__><__R4__><__R3__><__R2__><
+> > +DATA1	><__B3__><__B2__><__G7__><__G6__><__G5__><__G4__><__G3__><
+> > +DATA2	><_CTL2_><_CTL1_><_CTL0_><__B7__><__B6__><__B5__><__B4__><
+> > +DATA3	><_CTL3_><__B1__><__B0__><__G1__><__G0__><__R1__><__R0__><
+> > +
+> > +- "vesa-24" - 24-bit data mapping compatible with the [VESA]
+> > specification. +  Data are transferred as follows on 4 LVDS lanes.
+> > +
+> > +Slot	    0       1       2       3       4       5       6
+> > +	________________                         _________________
+> > +Clock	                \_______________________/
+> > +	  ______  ______  ______  ______  ______  ______  ______
+> > +DATA0	><__G0__><__R5__><__R4__><__R3__><__R2__><__R1__><__R0__><
+> > +DATA1	><__B1__><__B0__><__G5__><__G4__><__G3__><__G2__><__G1__><
+> > +DATA2	><_CTL2_><_CTL1_><_CTL0_><__B5__><__B4__><__B3__><__B2__><
+> > +DATA3	><_CTL3_><__B7__><__B6__><__G7__><__G6__><__R7__><__R6__><
+> > +
+> > +
+> > +Control signals are mapped as follows.
+> > +
+> > +CTL0: HSync
+> > +CTL1: VSync
+> > +CTL2: Data Enable
+> > +CTL3: 0
+> > +
+> > +
+> > +Example
+> > +-------
+> > +
+> > +panel {
+> > +	compatible = "mitsubishi,aa121td01", "panel-lvds";
+> > +	label = "lcd";
+> 
+> Kind of useless in your example.
+
+I can rename that to "LCD0" for instance.
+
+> > +
+> > +	width-mm = <261>;
+> > +	height-mm = <163>;
+> > +
+> > +	data-mapping = "jeida-24";
+> > +
+> > +	panel-timing {
+> > +		/* 1280x800 @60Hz */
+> > +		clock-frequency = <71000000>;
+> > +		hactive = <1280>;
+> > +		vactive = <800>;
+> > +		hsync-len = <70>;
+> > +		hfront-porch = <20>;
+> > +		hback-porch = <70>;
+> > +		vsync-len = <5>;
+> > +		vfront-porch = <3>;
+> > +		vback-porch = <15>;
+> > +	};
+> > +
+> > +	port {
+> > +		panel_in: endpoint {
+> > +			remote-endpoint = <&lvds_connector>;
+> > +		};
+> > +	};
+> > +};
+
+-- 
+Regards,
+
+Laurent Pinchart
+
