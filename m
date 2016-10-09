@@ -1,81 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-12v.sys.comcast.net ([96.114.154.171]:55728 "EHLO
-        resqmta-po-12v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S935057AbcJFX6F (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 6 Oct 2016 19:58:05 -0400
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: corbet@lwn.net, broonie@kernel.org, tglx@linutronix.de,
-        mmarek@suse.com, mchehab@kernel.org, davem@davemloft.net,
-        ecree@solarflare.com, arnd@arndb.de, j.anaszewski@samsung.com,
-        akpm@linux-foundation.org, keescook@chromium.org, mingo@kernel.org,
-        paulmck@linux.vnet.ibm.com, dan.j.williams@intel.com,
-        aryabinin@virtuozzo.com, tj@kernel.org, jpoimboe@redhat.com,
-        nikolay@cumulusnetworks.com, dvyukov@google.com, olof@lixom.net,
-        nab@linux-iscsi.org, rostedt@goodmis.org, hans.verkuil@cisco.com,
-        valentinrothberg@gmail.com, paul.gortmaker@windriver.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-doc@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-spi@vger.kernel.org,
-        linux-kbuild@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH v2 0/2] Moving runnable code from Documentation (last 2 patches)
-Date: Thu,  6 Oct 2016 17:48:50 -0600
-Message-Id: <cover.1475792538.git.shuahkh@osg.samsung.com>
+Received: from mout.web.de ([212.227.17.12]:56234 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750975AbcJIT47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 9 Oct 2016 15:56:59 -0400
+Subject: [PATCH 1/2] [media] blackfin-capture: Use kcalloc() in
+ bcap_init_sensor_formats()
+To: adi-buildroot-devel@lists.sourceforge.net,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Scott Jiang <scott.jiang.linux@gmail.com>
+References: <ae9a008f-35e2-e4e0-be18-635050c8277e@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <581af7b9-030d-9d65-02c5-53bf11d40716@users.sourceforge.net>
+Date: Sun, 9 Oct 2016 21:56:37 +0200
+MIME-Version: 1.0
+In-Reply-To: <ae9a008f-35e2-e4e0-be18-635050c8277e@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series contains the last 2 patches to complete moving runnable
-code from Documentation to selftests, samples, and tools.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 9 Oct 2016 21:12:13 +0200
 
-The first patch moves blackfin gptimers-example to samples, removes
-BUILD_DOCSRC and updates BUILD_DOCSRC dependencies.
+A multiplication for the size determination of a memory allocation
+indicated that an array data structure should be processed.
+Thus reuse the corresponding function "kcalloc".
 
-The second one updates 00-INDEX files under Documentation to reflect the
-move of runnable code from Documentation.
+This issue was detected by using the Coccinelle software.
 
-Patch 0001 Changes since v1:
-- Fixed make htmldocs and make distclean failures. Documentation/Makefile
-  is not deleted to avoid these failures. Makefile.sphinx could be renamed
-  to be the Documentation Makefile in a future patch.
-- Fixed samples/Kconfig error in v1 that preserved the 'CONFIG_'
-  prefix (i.e., depends on CONFIG_BLACKFIN && CONFIG_BFIN_GPTIMERS...),
-  rendering SAMPLE_BLACKFIN_GPTIMERS to be dead.
-- Updated rivers/media/v4l2-core/Kconfig (VIDEO_PCI_SKELETON) dependency
-  on BUILD_DOCSRC.
-- Added Acks from Jon Corbet, Michal Marek, and reviewed by from Kees Cook
-- Added Reported-by from Valentin Rothberg, and Paul Gortmaker.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Patch 0002 Changes since v1:
-- Updated Documentation/timers/00-INDEX to remove hpet_example.c. I missed
-  this change in v1.
-- Added Acks from Jon Corbet, Michal Marek, and reviewed by from Kees Cook
-
-Shuah Khan (2):
-  samples: move blackfin gptimers-example from Documentation
-  Doc: update 00-INDEX files to reflect the runnable code move
-
- Documentation/00-INDEX                    |  3 +-
- Documentation/Makefile                    |  2 +-
- Documentation/arm/00-INDEX                |  2 -
- Documentation/blackfin/00-INDEX           |  4 --
- Documentation/blackfin/Makefile           |  5 --
- Documentation/blackfin/gptimers-example.c | 91 -------------------------------
- Documentation/filesystems/00-INDEX        |  2 -
- Documentation/networking/00-INDEX         |  2 -
- Documentation/spi/00-INDEX                |  2 -
- Documentation/timers/00-INDEX             |  4 --
- Makefile                                  |  3 -
- drivers/media/v4l2-core/Kconfig           |  2 +-
- lib/Kconfig.debug                         |  9 ---
- samples/Kconfig                           |  6 ++
- samples/Makefile                          |  2 +-
- samples/blackfin/Makefile                 |  1 +
- samples/blackfin/gptimers-example.c       | 91 +++++++++++++++++++++++++++++++
- 17 files changed, 103 insertions(+), 128 deletions(-)
- delete mode 100644 Documentation/blackfin/Makefile
- delete mode 100644 Documentation/blackfin/gptimers-example.c
- create mode 100644 samples/blackfin/Makefile
- create mode 100644 samples/blackfin/gptimers-example.c
-
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 8eb0339..c5e1043 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -169,7 +169,7 @@ static int bcap_init_sensor_formats(struct bcap_device *bcap_dev)
+ 	if (!num_formats)
+ 		return -ENXIO;
+ 
+-	sf = kzalloc(num_formats * sizeof(*sf), GFP_KERNEL);
++	sf = kcalloc(num_formats, sizeof(*sf), GFP_KERNEL);
+ 	if (!sf)
+ 		return -ENOMEM;
+ 
 -- 
-2.7.4
+2.10.1
 
