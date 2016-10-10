@@ -1,52 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:14390 "EHLO mga11.intel.com"
+Received: from mout02.posteo.de ([185.67.36.66]:51372 "EHLO mout02.posteo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752372AbcJSRX5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 13:23:57 -0400
-Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
- pass FOLL_* flags
-To: Michal Hocko <mhocko@kernel.org>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161018153050.GC13117@dhcp22.suse.cz> <20161019085815.GA22239@lucifer>
- <20161019090727.GE7517@dhcp22.suse.cz> <5807A427.7010200@linux.intel.com>
- <20161019170127.GN24393@dhcp22.suse.cz>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Message-ID: <5807AC2B.4090208@linux.intel.com>
-Date: Wed, 19 Oct 2016 10:23:55 -0700
+        id S1751895AbcJJGfv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 02:35:51 -0400
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id E278720B17
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:35:49 +0200 (CEST)
+Date: Mon, 10 Oct 2016 08:35:47 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
+Subject: Re: [PATCH 19/26] nova-t-usb2: don't do DMA on stack
+Message-ID: <20161010083547.78996d0f@posteo.de>
+In-Reply-To: <feab21d551e08f3929d713483a50419ae48386a1.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+        <feab21d551e08f3929d713483a50419ae48386a1.1475860773.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <20161019170127.GN24393@dhcp22.suse.cz>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/19/2016 10:01 AM, Michal Hocko wrote:
-> The question I had earlier was whether this has to be an explicit FOLL
-> flag used by g-u-p users or we can just use it internally when mm !=
-> current->mm
+On Fri,  7 Oct 2016 14:24:29 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-The reason I chose not to do that was that deferred work gets run under
-a basically random 'current'.  If we just use 'mm != current->mm', then
-the deferred work will sometimes have pkeys enforced and sometimes not,
-basically randomly.
+> The USB control messages require DMA to work. We cannot pass
+> a stack-allocated buffer, as it is not warranted that the
+> stack would be into a DMA enabled area.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/dvb-usb/nova-t-usb2.c | 18 +++++++++++++-----
+>  1 file changed, 13 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/nova-t-usb2.c
+> b/drivers/media/usb/dvb-usb/nova-t-usb2.c index
+> fc7569e2728d..26d7188a1163 100644 ---
+> a/drivers/media/usb/dvb-usb/nova-t-usb2.c +++
+> b/drivers/media/usb/dvb-usb/nova-t-usb2.c @@ -74,22 +74,29 @@ static
+> struct rc_map_table rc_map_haupp_table[] = { */
+>  static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int
+> *state) {
+> -	u8 key[5],cmd[2] = { DIBUSB_REQ_POLL_REMOTE, 0x35 },
+> data,toggle,custom;
+> +	u8 *buf, data, toggle, custom;
+>  	u16 raw;
+>  	int i;
+>  	struct dibusb_device_state *st = d->priv;
+>  
+> -	dvb_usb_generic_rw(d,cmd,2,key,5,0);
+> +	buf = kmalloc(5, GFP_KERNEL);
+> +	if (!buf)
+> +		return -ENOMEM;
+> +
+> +	buf[0] = DIBUSB_REQ_POLL_REMOTE;
+> +	buf[1] = 0x35;
+> +	dvb_usb_generic_rw(d, buf, 2, buf, 5, 0);
+>  
+>  	*state = REMOTE_NO_KEY_PRESSED;
+> -	switch (key[0]) {
+> +	switch (buf[0]) {
+>  		case DIBUSB_RC_HAUPPAUGE_KEY_PRESSED:
+> -			raw = ((key[1] << 8) | key[2]) >> 3;
+> +			raw = ((buf[1] << 8) | buf[2]) >> 3;
+>  			toggle = !!(raw & 0x800);
+>  			data = raw & 0x3f;
+>  			custom = (raw >> 6) & 0x1f;
+>  
+> -			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x
+> to c: %02x d: %02x toggle:
+> %d\n",key[1],key[2],key[3],custom,data,toggle);
+> +			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x
+> to c: %02x d: %02x toggle: %d\n",
+> +			       buf[1], buf[2], buf[3], custom, data,
+> toggle); 
+>  			for (i = 0; i <
+> ARRAY_SIZE(rc_map_haupp_table); i++) { if
+> (rc5_data(&rc_map_haupp_table[i]) == data && @@ -117,6 +124,7 @@
+> static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int
+> *state) break; }
+>  
+> +	kfree(buf);
+>  	return 0;
+>  }
+>  
 
-We want to be consistent with whether they are enforced or not, so we
-explicitly indicate that by calling the remote variant vs. plain.
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
