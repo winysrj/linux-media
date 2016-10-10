@@ -1,56 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:29548 "EHLO mga04.intel.com"
+Received: from mout02.posteo.de ([185.67.36.66]:52429 "EHLO mout02.posteo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754627AbcJEIeB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Oct 2016 04:34:01 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id E603E2021E
-        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 11:33:29 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC 6/6] v4l2: async: Provide interoperability between OF and fwnode matching
-Date: Wed,  5 Oct 2016 11:32:11 +0300
-Message-Id: <1475656331-22497-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
+        id S1752100AbcJJGjx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 02:39:53 -0400
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id 073CE20B42
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:39:37 +0200 (CEST)
+Date: Mon, 10 Oct 2016 08:39:34 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
+Subject: Re: [PATCH 02/26] cinergyT2-core: don't do DMA on stack
+Message-ID: <20161010083934.34bacb3b@posteo.de>
+In-Reply-To: <9589abc05caa366003d399d6f3fe5a5ca2ab8c97.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+        <9589abc05caa366003d399d6f3fe5a5ca2ab8c97.1475860773.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Of and fwnode support are separated in V4L2 and individual drivers may
-implement one of them. Sub-devices do not match with a notifier
-expecting sub-devices with fwnodes, nor the other way around.
+On Fri,  7 Oct 2016 14:24:12 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-Fix this by checking for sub-device's of_node field in fwnode match and
-fwnode field in OF match.
+> The USB control messages require DMA to work. We cannot pass
+> a stack-allocated buffer, as it is not warranted that the
+> stack would be into a DMA enabled area.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/dvb-usb/cinergyT2-core.c | 45
+> ++++++++++++++++++------------ 1 file changed, 27 insertions(+), 18
+> deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c
+> b/drivers/media/usb/dvb-usb/cinergyT2-core.c index
+> 9fd1527494eb..91640c927776 100644 ---
+> a/drivers/media/usb/dvb-usb/cinergyT2-core.c +++
+> b/drivers/media/usb/dvb-usb/cinergyT2-core.c @@ -41,6 +41,7 @@
+> DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr); 
+>  struct cinergyt2_state {
+>  	u8 rc_counter;
+> +	unsigned char data[64];
+>  };
+>  
+>  /* We are missing a release hook with usb_device data */
+> @@ -50,29 +51,36 @@ static struct dvb_usb_device_properties
+> cinergyt2_properties; 
+>  static int cinergyt2_streaming_ctrl(struct dvb_usb_adapter *adap,
+> int enable) {
+> -	char buf[] = { CINERGYT2_EP1_CONTROL_STREAM_TRANSFER,
+> enable ? 1 : 0 };
+> -	char result[64];
+> -	return dvb_usb_generic_rw(adap->dev, buf, sizeof(buf),
+> result,
+> -				sizeof(result), 0);
+> +	struct dvb_usb_device *d = adap->dev;
+> +	struct cinergyt2_state *st = d->priv;
+> +
+> +	st->data[0] = CINERGYT2_EP1_CONTROL_STREAM_TRANSFER;
+> +	st->data[1] = enable ? 1 : 0;
+> +
+> +	return dvb_usb_generic_rw(d, st->data, 2, st->data, 64, 0);
+>  }
+>  
+>  static int cinergyt2_power_ctrl(struct dvb_usb_device *d, int enable)
+>  {
+> -	char buf[] = { CINERGYT2_EP1_SLEEP_MODE, enable ? 0 : 1 };
+> -	char state[3];
+> -	return dvb_usb_generic_rw(d, buf, sizeof(buf), state,
+> sizeof(state), 0);
+> +	struct cinergyt2_state *st = d->priv;
+> +
+> +	st->data[0] = CINERGYT2_EP1_SLEEP_MODE;
+> +	st->data[1] = enable ? 0 : 1;
+> +
+> +	return dvb_usb_generic_rw(d, st->data, 2, st->data, 3, 0);
+>  }
+>  
+>  static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+>  {
+> -	char query[] = { CINERGYT2_EP1_GET_FIRMWARE_VERSION };
+> -	char state[3];
+> +	struct dvb_usb_device *d = adap->dev;
+> +	struct cinergyt2_state *st = d->priv;
+>  	int ret;
+>  
+>  	adap->fe_adap[0].fe = cinergyt2_fe_attach(adap->dev);
+>  
+> -	ret = dvb_usb_generic_rw(adap->dev, query, sizeof(query),
+> state,
+> -				sizeof(state), 0);
+> +	st->data[0] = CINERGYT2_EP1_GET_FIRMWARE_VERSION;
+> +
+> +	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
+>  	if (ret < 0) {
+>  		deb_rc("cinergyt2_power_ctrl() Failed to retrieve
+> sleep " "state info\n");
+> @@ -141,13 +149,14 @@ static int repeatable_keys[] = {
+>  static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event,
+> int *state) {
+>  	struct cinergyt2_state *st = d->priv;
+> -	u8 key[5] = {0, 0, 0, 0, 0}, cmd =
+> CINERGYT2_EP1_GET_RC_EVENTS; int i;
+>  
+>  	*state = REMOTE_NO_KEY_PRESSED;
+>  
+> -	dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
+> -	if (key[4] == 0xff) {
+> +	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
+> +
+> +	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
+> +	if (st->data[4] == 0xff) {
+>  		/* key repeat */
+>  		st->rc_counter++;
+>  		if (st->rc_counter > RC_REPEAT_DELAY) {
+> @@ -166,13 +175,13 @@ static int cinergyt2_rc_query(struct
+> dvb_usb_device *d, u32 *event, int *state) }
+>  
+>  	/* hack to pass checksum on the custom field */
+> -	key[2] = ~key[1];
+> -	dvb_usb_nec_rc_key_to_event(d, key, event, state);
+> -	if (key[0] != 0) {
+> +	st->data[2] = ~st->data[1];
+> +	dvb_usb_nec_rc_key_to_event(d, st->data, event, state);
+> +	if (st->data[0] != 0) {
+>  		if (*event != d->last_event)
+>  			st->rc_counter = 0;
+>  
+> -		deb_rc("key: %*ph\n", 5, key);
+> +		deb_rc("key: %*ph\n", 5, st->data);
+>  	}
+>  	return 0;
+>  }
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-async.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 0dd5e85..984e6fa 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -42,12 +42,16 @@ static bool match_devname(struct v4l2_subdev *sd,
- 
- static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return sd->of_node == asd->match.of.node;
-+	return sd->of_node == asd->match.of.node ||
-+		(sd->fwnode && is_of_node(sd->fwnode) &&
-+		 sd->fwnode == of_fwnode_handle(asd->match.of.node));
- }
- 
- static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return sd->fwnode == asd->match.fwnode.fwn;
-+	return sd->fwnode == asd->match.fwnode.fwn ||
-+		(sd->of_node &&
-+		 of_fwnode_handle(sd->of_node) == asd->match.fwnode.fwn);
- }
- 
- static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
--- 
-2.7.4
-
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
