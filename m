@@ -1,74 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.goneo.de ([85.220.129.33]:51756 "EHLO smtp2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752980AbcJLHFJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 03:05:09 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <20161011134510.0afab942@vento.lan>
-Date: Wed, 12 Oct 2016 08:57:02 +0200
-Cc: Jani Nikula <jani.nikula@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Content-Transfer-Encoding: 7bit
-Message-Id: <A6E1514E-7011-4FB0-BAFB-C81E3CFA45A5@darmarit.de>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de> <87oa2xrhqx.fsf@intel.com> <20161006103132.3a56802a@vento.lan> <87lgy15zin.fsf@intel.com> <20161006135028.2880f5a5@vento.lan> <8737k8ya6f.fsf@intel.com> <8E74FF11-208D-4C76-8A8C-2B2102E5CB20@darmarit.de> <20161011112853.01e15632@vento.lan> <87vawyyk5v.fsf@intel.com> <E8B76D61-2072-431B-AAB0-E85475D7BFB6@darmarit.de> <20161011134510.0afab942@vento.lan>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42414 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750729AbcJJEFt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 00:05:49 -0400
+Message-ID: <538a2dab3e4685fde008ab51d1046823@smtp-cloud3.xs4all.net>
+Date: Mon, 10 Oct 2016 06:05:45 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Am 11.10.2016 um 18:45 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
+Results of the daily build of media_tree:
 
-> If we allow such scripts (and we do since day zero, due to
-> kernel-doc), then there are 3 options:
-> 
-> 1) use a single python script to run the scripts needed in the
->   build process (e. g. merging kernel-cmd extension upstream);
-> 
-> 2) use a dedicated python script for every non-phyton script;
-> 
-> 3) use only python scripts to extend Sphinx functionality.
-> 
-> The (2) scenario seems to be the worse case, as it will end by
-> having a perl(/shell?) script/python script pair for every 
-> non-python script we need to run, we're actually making it twice
-> worse.
-> 
-> For (3) to happen, we'll need to convert both kernel-doc and
-> parse-headers.pl to Python. This could be a long term goal,
-> but I prefer to not rewrite those scripts for a while, as
-> it is a lot easier to maintain them in perl, at least to me, and it
-> is less disruptive, as rewriting kernel-doc to Python can introduce
-> regressions.
-> 
+date:			Mon Oct 10 05:00:16 CEST 2016
+media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
+media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
+v4l-utils git hash:	2cd2699a8cfe8dce32dd35033a364c8375839d51
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-Hi Mauro,
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
-its a bit OT in this thread, but in the linuxdoc project,
-the kernel-doc is already converted to python.
+Detailed results are available here:
 
-  https://return42.github.io/linuxdoc/cmd-line.html#kernel-doc
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-and you have used it already, when you lint with kernel-lint.
-Hence I see more progressions than regression ;-)
+Full logs are available here:
 
-> So, the way I see, (1) is the best approach.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-agree
+The Media Infrastructure API from this daily build is here:
 
---Markus--
-
-> 
->> Anyway, these are only my 2cent. I'am interested in what Jon says
->> in general about using (Perl) scripts to generate reST content.
->> 
->> --Markus--
->> 
-> 
-> Regards,
-> Mauro
-
+http://www.xs4all.nl/~hverkuil/spec/index.html
