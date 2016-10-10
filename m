@@ -1,237 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:36360 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752417AbcJKQrt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 12:47:49 -0400
-Received: by mail-lf0-f67.google.com with SMTP id b75so4696906lfg.3
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 09:47:48 -0700 (PDT)
-Date: Tue, 11 Oct 2016 17:51:36 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, liviu.dudau@arm.com,
-        robdclark@gmail.com, hverkuil@xs4all.nl, eric@anholt.net,
-        ville.syrjala@linux.intel.com, daniel@ffwll.ch
-Subject: Re: [RFC PATCH 04/11] drm: Add __drm_framebuffer_remove_atomic
-Message-ID: <20161011155136.GG20761@phenom.ffwll.local>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
- <1476197648-24918-5-git-send-email-brian.starkey@arm.com>
+Received: from mout02.posteo.de ([185.67.36.66]:41098 "EHLO mout02.posteo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752044AbcJJGii (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 02:38:38 -0400
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id C90D020B44
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:38:22 +0200 (CEST)
+Date: Mon, 10 Oct 2016 08:38:18 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Sean Young <sean@mess.org>,
+        Nicolas Sugino <nsugino@3way.com.ar>,
+        Alejandro Torrado <aletorrado@gmail.com>
+Subject: Re: [PATCH 07/26] dib0700: be sure that dib0700_ctrl_rd() users can
+ do DMA
+Message-ID: <20161010083818.2d937db6@posteo.de>
+In-Reply-To: <30a00ca71aec4502905cbdf5d1ab11c2ae7b8562.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+        <30a00ca71aec4502905cbdf5d1ab11c2ae7b8562.1475860773.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1476197648-24918-5-git-send-email-brian.starkey@arm.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 11, 2016 at 03:54:01PM +0100, Brian Starkey wrote:
-> Implement the CRTC/Plane disable functionality of drm_framebuffer_remove
-> using the atomic API, and use it if possible.
-> 
-> For atomic drivers, this removes the possibility of several commits when
-> a framebuffer is in use by more than one CRTC/plane.
-> 
-> Additionally, this will provide a suitable place to support the removal
-> of a framebuffer from a writeback connector, in the case that a
-> writeback connector is still actively using a framebuffer when it is
-> removed by userspace.
-> 
-> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+On Fri,  7 Oct 2016 14:24:17 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-Just the small comment here: Last time around I wanted toland an atomic
-disable function for fb remove code it blew up. Need to check out git
-history to make sure we've addressed those isses.  Caveat emperor ;-)
--Daniel
-
+> dib0700_ctrl_rd() takes a RX and a TX pointer. Be sure that
+> both will point to a memory allocated via kmalloc().
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  drivers/gpu/drm/drm_framebuffer.c |  154 ++++++++++++++++++++++++++++++++++++-
->  1 file changed, 152 insertions(+), 2 deletions(-)
+>  drivers/media/usb/dvb-usb/dib0700_core.c    |  4 +++-
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 25
+> +++++++++++++------------ 2 files changed, 16 insertions(+), 13
+> deletions(-)
 > 
-> diff --git a/drivers/gpu/drm/drm_framebuffer.c b/drivers/gpu/drm/drm_framebuffer.c
-> index 528f75d..b02cf73 100644
-> --- a/drivers/gpu/drm/drm_framebuffer.c
-> +++ b/drivers/gpu/drm/drm_framebuffer.c
-> @@ -22,6 +22,7 @@
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c
+> b/drivers/media/usb/dvb-usb/dib0700_core.c index
+> f3196658fb70..515f89dba199 100644 ---
+> a/drivers/media/usb/dvb-usb/dib0700_core.c +++
+> b/drivers/media/usb/dvb-usb/dib0700_core.c @@ -292,13 +292,15 @@
+> static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap, 
+>  			/* special thing in the current firmware:
+> when length is zero the read-failed */ len = dib0700_ctrl_rd(d,
+> st->buf, msg[i].len + 2,
+> -					msg[i+1].buf, msg[i+1].len);
+> +					      st->buf, msg[i +
+> 1].len); if (len <= 0) {
+>  				deb_info("I2C read failed on address
+> 0x%02x\n", msg[i].addr);
+>  				break;
+>  			}
 >  
->  #include <linux/export.h>
->  #include <drm/drmP.h>
-> +#include <drm/drm_atomic.h>
->  #include <drm/drm_auth.h>
->  #include <drm/drm_framebuffer.h>
+> +			memcpy(msg[i + 1].buf, st->buf, msg[i +
+> 1].len); +
+>  			msg[i+1].len = len;
 >  
-> @@ -795,6 +796,148 @@ void drm_framebuffer_cleanup(struct drm_framebuffer *fb)
->  EXPORT_SYMBOL(drm_framebuffer_cleanup);
+>  			i++;
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> b/drivers/media/usb/dvb-usb/dib0700_devices.c index
+> 0857b56e652c..ef1b8ee75c57 100644 ---
+> a/drivers/media/usb/dvb-usb/dib0700_devices.c +++
+> b/drivers/media/usb/dvb-usb/dib0700_devices.c @@ -508,8 +508,6 @@
+> static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap) 
+>  #define DEFAULT_RC_INTERVAL 50
 >  
->  /**
-> + * __drm_framebuffer_remove_atomic - atomic version of __drm_framebuffer_remove
-> + * @dev: drm device
-> + * @fb: framebuffer to remove
-> + *
-> + * If the driver implements the atomic API, we can handle the disabling of all
-> + * CRTCs/planes which use a framebuffer which is going away in a single atomic
-> + * commit.
-> + *
-> + * This scans all CRTCs and planes in @dev's mode_config. If they're using @fb,
-> + * it is removed and the CRTC/plane disabled.
-> + * The legacy references are dropped and the ->fb pointers set to NULL
-> + * accordingly.
-> + *
-> + * Returns:
-> + * true if the framebuffer was successfully removed from use
-> + */
-> +static bool __drm_framebuffer_remove_atomic(struct drm_device *dev,
-> +		struct drm_framebuffer *fb)
-> +{
-> +	struct drm_modeset_acquire_ctx ctx;
-> +	struct drm_atomic_state *state;
-> +	struct drm_connector_state *conn_state;
-> +	struct drm_connector *connector;
-> +	struct drm_plane *plane;
-> +	struct drm_crtc *crtc;
-> +	unsigned plane_mask;
-> +	int i, ret;
-> +
-> +	drm_modeset_acquire_init(&ctx, 0);
-> +
-> +	state = drm_atomic_state_alloc(dev);
-> +	if (!state)
-> +		return false;
-> +
-> +	state->acquire_ctx = &ctx;
-> +
-> +retry:
-> +	drm_for_each_crtc(crtc, dev) {
-> +		struct drm_plane_state *primary_state;
-> +		struct drm_crtc_state *crtc_state;
-> +
-> +		primary_state = drm_atomic_get_plane_state(state, crtc->primary);
-> +		if (IS_ERR(primary_state)) {
-> +			ret = PTR_ERR(primary_state);
-> +			goto fail;
-> +		}
-> +
-> +		if (primary_state->fb != fb)
-> +			continue;
-> +
-> +		crtc_state = drm_atomic_get_crtc_state(state, crtc);
-> +		if (IS_ERR(crtc_state)) {
-> +			ret = PTR_ERR(crtc_state);
-> +			goto fail;
-> +		}
-> +
-> +		/* Only handle the CRTC itself here, handle the plane later */
-> +		ret = drm_atomic_set_mode_for_crtc(crtc_state, NULL);
-> +		if (ret != 0)
-> +			goto fail;
-> +
-> +		crtc_state->active = false;
-> +
-> +		/* Get the connectors in order to disable them */
-> +		ret = drm_atomic_add_affected_connectors(state, crtc);
-> +		if (ret)
-> +			goto fail;
-> +	}
-> +
-> +	plane_mask = 0;
-> +	drm_for_each_plane(plane, dev) {
-> +		struct drm_plane_state *plane_state;
-> +
-> +		plane_state = drm_atomic_get_plane_state(state, plane);
-> +		if (IS_ERR(plane_state)) {
-> +			ret = PTR_ERR(plane_state);
-> +			goto fail;
-> +		}
-> +
-> +		if (plane_state->fb != fb)
-> +			continue;
-> +
-> +		plane->old_fb = plane->fb;
-> +		plane_mask |= 1 << drm_plane_index(plane);
-> +
-> +		/*
-> +		 * Open-coded copy of __drm_atomic_helper_disable_plane to avoid
-> +		 * a dependency on atomic-helper
-> +		 */
-> +		ret = drm_atomic_set_crtc_for_plane(plane_state, NULL);
-> +		if (ret != 0)
-> +			goto fail;
-> +
-> +		drm_atomic_set_fb_for_plane(plane_state, NULL);
-> +		plane_state->crtc_x = 0;
-> +		plane_state->crtc_y = 0;
-> +		plane_state->crtc_w = 0;
-> +		plane_state->crtc_h = 0;
-> +		plane_state->src_x = 0;
-> +		plane_state->src_y = 0;
-> +		plane_state->src_w = 0;
-> +		plane_state->src_h = 0;
-> +	}
-> +
-> +	/* All of the connectors in state need disabling */
-> +	for_each_connector_in_state(state, connector, conn_state, i) {
-> +		ret = drm_atomic_set_crtc_for_connector(conn_state,
-> +							NULL);
-> +		if (ret)
-> +			goto fail;
-> +	}
-> +
-> +	if (WARN_ON(!plane_mask)) {
-> +		DRM_ERROR("Couldn't find any usage of [FB:%d]\n", fb->base.id);
-> +		ret = -ENOENT;
-> +		goto fail;
-> +	}
-> +
-> +	ret = drm_atomic_commit(state);
-> +
-> +fail:
-> +	drm_atomic_clean_old_fb(dev, plane_mask, ret);
-> +
-> +	if (ret == -EDEADLK)
-> +		goto backoff;
-> +
-> +	if (ret != 0)
-> +		drm_atomic_state_free(state);
-> +
-> +	drm_modeset_drop_locks(&ctx);
-> +	drm_modeset_acquire_fini(&ctx);
-> +
-> +	return ret ? false : true;
-> +
-> +backoff:
-> +	drm_atomic_state_clear(state);
-> +	drm_modeset_backoff(&ctx);
-> +
-> +	goto retry;
-> +}
-> +
-> +/**
->   * __drm_framebuffer_remove - remove all usage of a framebuffer object
->   * @dev: drm device
->   * @fb: framebuffer to remove
-> @@ -869,9 +1012,16 @@ void drm_framebuffer_remove(struct drm_framebuffer *fb)
->  	 * in-use fb with fb-id == 0. Userspace is allowed to shoot its own foot
->  	 * in this manner.
->  	 */
-> -	if (drm_framebuffer_read_refcount(fb) > 1)
-> -		if (!__drm_framebuffer_remove(dev, fb))
-> +	if (drm_framebuffer_read_refcount(fb) > 1) {
-> +		bool removed;
-> +		if (dev->mode_config.funcs->atomic_commit)
-> +			removed = __drm_framebuffer_remove_atomic(dev, fb);
-> +		else
-> +			removed = __drm_framebuffer_remove(dev, fb);
-> +
-> +		if (!removed)
->  			DRM_ERROR("failed to remove fb from active usage\n");
-> +	}
+> -static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
+> -
+>  /*
+>   * This function is used only when firmware is < 1.20 version. Newer
+>   * firmwares use bulk mode, with functions implemented at
+> dib0700_core, @@ -517,7 +515,6 @@ static u8 rc_request[] =
+> { REQUEST_POLL_RC, 0 }; */
+>  static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
+>  {
+> -	u8 key[4];
+>  	enum rc_type protocol;
+>  	u32 scancode;
+>  	u8 toggle;
+> @@ -532,39 +529,43 @@ static int dib0700_rc_query_old_firmware(struct
+> dvb_usb_device *d) return 0;
+>  	}
 >  
->  	drm_framebuffer_unreference(fb);
->  }
-> -- 
-> 1.7.9.5
-> 
+> -	i = dib0700_ctrl_rd(d, rc_request, 2, key, 4);
+> +	st->buf[0] = REQUEST_POLL_RC;
+> +	st->buf[1] = 0;
+> +
+> +	i = dib0700_ctrl_rd(d, st->buf, 2, st->buf, 4);
+>  	if (i <= 0) {
+>  		err("RC Query Failed");
+> -		return -1;
+> +		return -EIO;
+>  	}
+>  
+>  	/* losing half of KEY_0 events from Philipps rc5 remotes.. */
+> -	if (key[0] == 0 && key[1] == 0 && key[2] == 0 && key[3] == 0)
+> +	if (st->buf[0] == 0 && st->buf[1] == 0
+> +	    && st->buf[2] == 0 && st->buf[3] == 0)
+>  		return 0;
+>  
+> -	/* info("%d: %2X %2X %2X
+> %2X",dvb_usb_dib0700_ir_proto,(int)key[3-2],(int)key[3-3],(int)key[3-1],(int)key[3]);
+> */
+> +	/* info("%d: %2X %2X %2X
+> %2X",dvb_usb_dib0700_ir_proto,(int)st->buf[3 - 2],(int)st->buf[3 -
+> 3],(int)st->buf[3 - 1],(int)st->buf[3]);  */ dib0700_rc_setup(d,
+> NULL); /* reset ir sensor data to prevent false events */ 
+>  	switch (d->props.rc.core.protocol) {
+>  	case RC_BIT_NEC:
+>  		/* NEC protocol sends repeat code as 0 0 0 FF */
+> -		if ((key[3-2] == 0x00) && (key[3-3] == 0x00) &&
+> -		    (key[3] == 0xff)) {
+> +		if ((st->buf[3 - 2] == 0x00) && (st->buf[3 - 3] ==
+> 0x00) &&
+> +		    (st->buf[3] == 0xff)) {
+>  			rc_repeat(d->rc_dev);
+>  			return 0;
+>  		}
+>  
+>  		protocol = RC_TYPE_NEC;
+> -		scancode = RC_SCANCODE_NEC(key[3-2], key[3-3]);
+> +		scancode = RC_SCANCODE_NEC(st->buf[3 - 2], st->buf[3
+> - 3]); toggle = 0;
+>  		break;
+>  
+>  	default:
+>  		/* RC-5 protocol changes toggle bit on new keypress
+> */ protocol = RC_TYPE_RC5;
+> -		scancode = RC_SCANCODE_RC5(key[3-2], key[3-3]);
+> -		toggle = key[3-1];
+> +		scancode = RC_SCANCODE_RC5(st->buf[3 - 2], st->buf[3
+> - 3]);
+> +		toggle = st->buf[3 - 1];
+>  		break;
+>  	}
+>  
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
