@@ -1,50 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:6221 "EHLO mga01.intel.com"
+Received: from mout02.posteo.de ([185.67.36.66]:52888 "EHLO mout02.posteo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751608AbcJGF4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 01:56:13 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
-In-Reply-To: <20161006135028.2880f5a5@vento.lan>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de> <87oa2xrhqx.fsf@intel.com> <20161006103132.3a56802a@vento.lan> <87lgy15zin.fsf@intel.com> <20161006135028.2880f5a5@vento.lan>
-Date: Fri, 07 Oct 2016 08:56:08 +0300
-Message-ID: <8737k8ya6f.fsf@intel.com>
+        id S1751670AbcJJGbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 02:31:47 -0400
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id 0401320B17
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:31:16 +0200 (CEST)
+Date: Mon, 10 Oct 2016 08:31:12 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Nicholas Mc Guire <der.herr@hofr.at>
+Cc: Olivier Grenie <olivier.grenie@dibcom.fr>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: RFC - unclear change in "[media] DiBxxxx: Codingstype updates"
+Message-ID: <20161010083112.78aa2585@posteo.de>
+In-Reply-To: <20161008135714.GA1239@osadl.at>
+References: <20161008135714.GA1239@osadl.at>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 06 Oct 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> Em Thu, 06 Oct 2016 17:21:36 +0300
-> Jani Nikula <jani.nikula@intel.com> escreveu:
->> We've seen what happens when we make it easy to add random scripts to
->> build documentation. We've worked hard to get rid of that. In my books,
->> one of the bigger points in favor of Sphinx over AsciiDoc(tor) was
->> getting rid of all the hacks required in the build. Things that broke in
->> subtle ways.
->
-> I really can't see what scripts it get rids.
+Hi, der Herr Hofrat ;-)
 
-Really? You don't see why the DocBook build was so fragile and difficult
-to maintain? That scares me a bit, because then you will not have
-learned why we should at all costs avoid adding random scripts to
-produce documentation.
+On Sat, 8 Oct 2016 13:57:14 +0000
+Nicholas Mc Guire <der.herr@hofr.at> wrote:
+> -                 lo6 |= (1 << 2) | 2;
+> -         else
+> -                 lo6 |= (1 << 2) | 1;
+> +                 lo6 |= (1 << 2) | 2;    //SigmaDelta and Dither
+> +         else {
+> +                 if (state->identity.in_soc)
+> +                         lo6 |= (1 << 2) | 2;    //SigmaDelta and
+> Dither
+> +                 else
+> +                         lo6 |= (1 << 2) | 2;    //SigmaDelta and
+> Dither
+> +         }
+> 
+>  resulting in the current code-base of:
+> 
+>        if (Rest > 0) {
+>                if (state->config->analog_output)
+>                        lo6 |= (1 << 2) | 2;
+>                else {
+>                        if (state->identity.in_soc)
+>                                lo6 |= (1 << 2) | 2;
+>                        else
+>                                lo6 |= (1 << 2) | 2;
+>                }
+>                Den = 255;
+>        }
+> 
+>  The problem now is that the if and the else(if/else) are
+>  all the same and thus the conditions have no effect. Further
+>  the origninal code actually had different if/else - so I 
+>  wonder if this is a cut&past bug here ?
 
-The DocBook build was designed by Rube Goldberg, and this video
-accurately illustrates how it works:
-https://www.youtube.com/watch?v=qybUFnY7Y8w
+I may answer on behalf of Olivier (didn't his address bounce?).
 
-I don't want the Sphinx build to end up like that.
+I don't remember the details, this patch must date from 2011 or
+before, but at that time we generated the linux-driver from our/their
+internal sources.
 
+Updates in this area were achieved by a lot of thinking + a mix of trial
+and error (after hours/days/weeks of RF hardware validation). 
 
-BR,
-Jani.
+This logic above has 3 possibilities: 
 
+  - we use the analog-output, or 
+  - we are using the digital one, then there is whether we are being in
+    a SoC or not (SIP or sinlge chip).
 
--- 
-Jani Nikula, Intel Open Source Technology Center
+At some point in time all values have been different. In the end, they
+aren't anymore, but in case someone wants to try a different value,
+there are placeholders in the code to easily inject these values.
+
+Now the device is stable, maybe even obsolete. We could remove all the
+branches resulting in the same value for lo6.
+
+--
+Patrick.
