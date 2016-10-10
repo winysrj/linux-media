@@ -1,126 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57951 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751031AbcJXEDT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 00:03:19 -0400
-Message-ID: <1b1055a59b35cd85bf39d3da86266798@smtp-cloud3.xs4all.net>
-Date: Mon, 24 Oct 2016 06:03:16 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mout02.posteo.de ([185.67.36.66]:57220 "EHLO mout02.posteo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751704AbcJJGeV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 02:34:21 -0400
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id 6D16220A28
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:34:19 +0200 (CEST)
+Date: Mon, 10 Oct 2016 08:34:14 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 22/26] technisat-usb2: use DMA buffers for I2C transfers
+Message-ID: <20161010083414.1e191762@posteo.de>
+In-Reply-To: <2792fc0fbd2bb0366c6967c60184c93fecc828c3.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+        <2792fc0fbd2bb0366c6967c60184c93fecc828c3.1475860773.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri,  7 Oct 2016 14:24:32 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-Results of the daily build of media_tree:
+> The USB control messages require DMA to work. We cannot pass
+> a stack-allocated buffer, as it is not warranted that the
+> stack would be into a DMA enabled area.
+> 
+> On this driver, most of the transfers are OK, but the I2C
+> one was using stack.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/dvb-usb/technisat-usb2.c | 16 +++++++++++-----
+>  1 file changed, 11 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c
+> b/drivers/media/usb/dvb-usb/technisat-usb2.c index
+> d9f3262bf071..4706628a3ed5 100644 ---
+> a/drivers/media/usb/dvb-usb/technisat-usb2.c +++
+> b/drivers/media/usb/dvb-usb/technisat-usb2.c @@ -89,9 +89,13 @@
+> struct technisat_usb2_state { static int
+> technisat_usb2_i2c_access(struct usb_device *udev, u8 device_addr, u8
+> *tx, u8 txlen, u8 *rx, u8 rxlen) {
+> -	u8 b[64];
+> +	u8 *b;
+>  	int ret, actual_length;
+>  
+> +	b = kmalloc(64, GFP_KERNEL);
+> +	if (!b)
+> +		return -ENOMEM;
+> +
+>  	deb_i2c("i2c-access: %02x, tx: ", device_addr);
+>  	debug_dump(tx, txlen, deb_i2c);
+>  	deb_i2c(" ");
+> @@ -123,7 +127,7 @@ static int technisat_usb2_i2c_access(struct
+> usb_device *udev, 
+>  	if (ret < 0) {
+>  		err("i2c-error: out failed %02x = %d", device_addr,
+> ret);
+> -		return -ENODEV;
+> +		goto err;
+>  	}
+>  
+>  	ret = usb_bulk_msg(udev,
+> @@ -131,7 +135,7 @@ static int technisat_usb2_i2c_access(struct
+> usb_device *udev, b, 64, &actual_length, 1000);
+>  	if (ret < 0) {
+>  		err("i2c-error: in failed %02x = %d", device_addr,
+> ret);
+> -		return -ENODEV;
+> +		goto err;
+>  	}
+>  
+>  	if (b[0] != I2C_STATUS_OK) {
+> @@ -140,7 +144,7 @@ static int technisat_usb2_i2c_access(struct
+> usb_device *udev, if (!(b[0] == I2C_STATUS_NAK &&
+>  				device_addr == 0x60
+>  				/* && device_is_technisat_usb2 */))
+> -			return -ENODEV;
+> +			goto err;
+>  	}
+>  
+>  	deb_i2c("status: %d, ", b[0]);
+> @@ -154,7 +158,9 @@ static int technisat_usb2_i2c_access(struct
+> usb_device *udev, 
+>  	deb_i2c("\n");
+>  
+> -	return 0;
+> +err:
+> +	kfree(b);
+> +	return ret;
+>  }
+>  
+>  static int technisat_usb2_i2c_xfer(struct i2c_adapter *adap, struct
+> i2c_msg *msg,
 
-date:			Mon Oct 24 05:00:14 CEST 2016
-media-tree git hash:	bc9b91e6be38b54a7b245969d0a9247791705e6a
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	0bd4b277c452aa7cfd537799538b8e9b951c0d47
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-multi
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for mips
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
