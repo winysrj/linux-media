@@ -1,110 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34202 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752243AbcJZI4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 04:56:06 -0400
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [RFC PATCH v2 0/9] Introduce writeback connectors
-Date: Wed, 26 Oct 2016 09:54:59 +0100
-Message-Id: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39070
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751203AbcJJJhn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 05:37:43 -0400
+Date: Mon, 10 Oct 2016 06:30:35 -0300
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Nicholas Mc Guire <hofrat@osadl.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Alejandro Torrado <aletorrado@gmail.com>,
+        Nicolas Sugino <nsugino@3way.com.ar>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: Re: [PATCH RFC] [media] dib0700: remove redundant else
+Message-ID: <20161010063035.7b766b79@vento.lan>
+In-Reply-To: <1475928199-20315-1-git-send-email-hofrat@osadl.org>
+References: <1475928199-20315-1-git-send-email-hofrat@osadl.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Sat,  8 Oct 2016 14:03:19 +0200
+Nicholas Mc Guire <hofrat@osadl.org> escreveu:
 
-This is an updated RFC series introducing a new connector type:
- DRM_MODE_CONNECTOR_WRITEBACK
-See v1 here: [1]
+> The if and else are identical and can be consolidated here.
+> 
+> Fixes: commit 91be260faaf8 ("[media] dib8000: Add support for Mygica/Geniatech S2870")
+> 
+> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+> ---
+> 
+> Problem found by coccinelle script
+> 
+> Based only on reviewing this driver it seems that the dib0090_config
+> is not an array and thus this is a cut&past bug - but not having access
+> to the driver I can not say.  Other cases that have the
+> conditioning on (adap->id == 0) e.g. dib7070p_dib0070 actually have
+> a config array (dib7070p_dib0070_config[]). So the if/else here most
+> likely is unnecessary.
+> 
+> The patch is actually a partial revert of commit 91be260faaf8 ("[media]
+> dib8000: Add support for Mygica/Geniatech S2870") where this if/else
+> was deliberately introduced but without any specific comments.
+> 
+> This needs a review by someone that has access to the details of the driver.
+> 
+> Patch was compile tested with: x86_64_defconfig + CONFIG_MEDIA_SUPPORT=m,
+> CONFIG_MEDIA_USB_SUPPORT=y, CONFIG_MEDIA_DIGITAL_TV_SUPPORT=y,
+> CONFIG_DVB_USB=m, CONFIG_DVB_USB_V2=m, CONFIG_MEDIA_RC_SUPPORT=y,
+> CONFIG_DVB_USB_DIB0700=m
+> 
+> Patch is against 4.8.0 (localversion-next is -next-20161006)
+> 
+>  drivers/media/usb/dvb-usb/dib0700_devices.c | 10 +++-------
+>  1 file changed, 3 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> index 0857b56..3cd8566 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+> @@ -1736,13 +1736,9 @@ static int dib809x_tuner_attach(struct dvb_usb_adapter *adap)
+>  	struct dib0700_adapter_state *st = adap->priv;
+>  	struct i2c_adapter *tun_i2c = st->dib8000_ops.get_i2c_master(adap->fe_adap[0].fe, DIBX000_I2C_INTERFACE_TUNER, 1);
+>  
+> -	if (adap->id == 0) {
+> -		if (dvb_attach(dib0090_register, adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
+> -			return -ENODEV;
+> -	} else {
+> -		if (dvb_attach(dib0090_register, adap->fe_adap[0].fe, tun_i2c, &dib809x_dib0090_config) == NULL)
+> -			return -ENODEV;
+> -	}
+> +	if (dvb_attach(dib0090_register, adap->fe_adap[0].fe,
+> +		       tun_i2c, &dib809x_dib0090_config) == NULL)
+> +		return -ENODEV;
 
-Writeback connectors are used to expose the memory writeback engines
-found in some display controllers, which can write a CRTC's
-composition result to a memory buffer.
-This is useful e.g. for testing, screen-recording, screenshots,
-wireless display, display cloning, memory-to-memory composition.
 
-Writeback connectors are given a WRITEBACK_FB_ID property (which acts
-slightly differently to FB_ID, so gets a new name), as well as
-PIXEL_FORMATS and PIXEL_FORMATS_SIZE to list the supported writeback
-formats, and OUT_FENCE_PTR to be used for out-fences.
+I suspect that this patch is wrong. It should be, instead, using
+fe_adap[1] on the else.
 
-The semantics of writeback connectors have been changed significantly
-since v1, based largely on Daniel's feedback. Now, a writeback
-connector can only be attached to a CRTC if it has a framebuffer
-attached and vice-versa. The writeback framebuffer applies only to a
-single atomic commit, and userspace can never read back the value of
-WRITEBACK_FB_ID. This makes writeback a "one-shot" operation, it must
-be re-armed every time it is to be used.
+Patrick,
 
-Patch 1 introduces the actual connector type and the infrastructure
-around it. Patches 2-6 add a writeback connector for mali-dp.
+Could you please take a look?
 
-Patches 7-9 add support for writeback out-fences, based on Gustavo
-Padovan's v5 series [2] for adding explicit fencing.
-
-As always, I look forward to any comments.
+Regards,
 
 Thanks,
-Brian
-
-[1] http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1247574.html
-[2] http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1253822.html
-
-Changes since v1, based on Daniel and Eric's comments:
- - The writeback framebuffer is no longer persistent across commits
- - Removed the client cap, made the connector report disconnected
-   instead
- - Added drm_writeback.c for central connector initialization and
-   documentation
- - Added support for out-fences
- - Added core checks for writeback connectors, e.g. disallowing
-   a framebuffer with no CRTC
- - Mali-DP doesn't require a full modeset to enable/disable the
-   writeback connector
-
----
-
-Brian Starkey (8):
-  drm: Add writeback connector type
-  drm: mali-dp: Clear CVAL when leaving config mode
-  drm: mali-dp: Rename malidp_input_format
-  drm: mali-dp: Add RGB writeback formats for DP550/DP650
-  drm: mali-dp: Add writeback connector
-  drm: atomic: factor out common out-fence operations
-  drm: writeback: Add out-fences for writeback connectors
-  drm: mali-dp: Add writeback out-fence support
-
-Liviu Dudau (1):
-  drm: mali-dp: Add support for writeback on DP550/DP650
-
- Documentation/gpu/drm-kms.rst       |    9 +
- drivers/gpu/drm/Makefile            |    2 +-
- drivers/gpu/drm/arm/Makefile        |    1 +
- drivers/gpu/drm/arm/malidp_crtc.c   |   21 +++
- drivers/gpu/drm/arm/malidp_drv.c    |   28 +++-
- drivers/gpu/drm/arm/malidp_drv.h    |    7 +
- drivers/gpu/drm/arm/malidp_hw.c     |  149 +++++++++++++----
- drivers/gpu/drm/arm/malidp_hw.h     |   27 ++-
- drivers/gpu/drm/arm/malidp_mw.c     |  313 +++++++++++++++++++++++++++++++++++
- drivers/gpu/drm/arm/malidp_mw.h     |   28 ++++
- drivers/gpu/drm/arm/malidp_planes.c |    8 +-
- drivers/gpu/drm/arm/malidp_regs.h   |   15 ++
- drivers/gpu/drm/drm_atomic.c        |  218 +++++++++++++++++++++---
- drivers/gpu/drm/drm_atomic_helper.c |    8 +
- drivers/gpu/drm/drm_connector.c     |    4 +-
- drivers/gpu/drm/drm_writeback.c     |  237 ++++++++++++++++++++++++++
- include/drm/drm_atomic.h            |    3 +
- include/drm/drm_connector.h         |   26 +++
- include/drm/drm_crtc.h              |   20 +++
- include/drm/drm_writeback.h         |   21 +++
- include/uapi/drm/drm_mode.h         |    1 +
- 21 files changed, 1076 insertions(+), 70 deletions(-)
- create mode 100644 drivers/gpu/drm/arm/malidp_mw.c
- create mode 100644 drivers/gpu/drm/arm/malidp_mw.h
- create mode 100644 drivers/gpu/drm/drm_writeback.c
- create mode 100644 include/drm/drm_writeback.h
-
--- 
-1.7.9.5
-
+Mauro
