@@ -1,61 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f178.google.com ([209.85.220.178]:33228 "EHLO
-        mail-qk0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755455AbcJTT0u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 20 Oct 2016 15:26:50 -0400
-Date: Thu, 20 Oct 2016 21:26:47 +0200
-From: Michal Hocko <mhocko@kernel.org>
-To: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
- pass FOLL_* flags
-Message-ID: <20161020192646.GC27342@dhcp22.suse.cz>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161018153050.GC13117@dhcp22.suse.cz>
- <20161019085815.GA22239@lucifer>
- <20161019090727.GE7517@dhcp22.suse.cz>
- <5807A427.7010200@linux.intel.com>
- <20161019170127.GN24393@dhcp22.suse.cz>
- <5807AC2B.4090208@linux.intel.com>
+Received: from mout02.posteo.de ([185.67.36.66]:42325 "EHLO mout02.posteo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752548AbcJJGjT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 02:39:19 -0400
+Received: from submission (posteo.de [89.146.220.130])
+        by mout02.posteo.de (Postfix) with ESMTPS id 88AC420B36
+        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:39:17 +0200 (CEST)
+Date: Mon, 10 Oct 2016 08:39:15 +0200
+From: Patrick Boettcher <patrick.boettcher@posteo.de>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
+Subject: Re: [PATCH 05/26] cinergyT2-fe: don't do DMA on stack
+Message-ID: <20161010083915.392a6d95@posteo.de>
+In-Reply-To: <9d415b35135ba2d457df12859b64eacbc05bc2e4.1475860773.git.mchehab@s-opensource.com>
+References: <cover.1475860773.git.mchehab@s-opensource.com>
+        <9d415b35135ba2d457df12859b64eacbc05bc2e4.1475860773.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5807AC2B.4090208@linux.intel.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 19-10-16 10:23:55, Dave Hansen wrote:
-> On 10/19/2016 10:01 AM, Michal Hocko wrote:
-> > The question I had earlier was whether this has to be an explicit FOLL
-> > flag used by g-u-p users or we can just use it internally when mm !=
-> > current->mm
+On Fri,  7 Oct 2016 14:24:15 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+
+> The USB control messages require DMA to work. We cannot pass
+> a stack-allocated buffer, as it is not warranted that the
+> stack would be into a DMA enabled area.
 > 
-> The reason I chose not to do that was that deferred work gets run under
-> a basically random 'current'.  If we just use 'mm != current->mm', then
-> the deferred work will sometimes have pkeys enforced and sometimes not,
-> basically randomly.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/dvb-usb/cinergyT2-fe.c | 45
+> ++++++++++++++++---------------- 1 file changed, 23 insertions(+), 22
+> deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+> b/drivers/media/usb/dvb-usb/cinergyT2-fe.c index
+> fd8edcb56e61..03ba66ef1f28 100644 ---
+> a/drivers/media/usb/dvb-usb/cinergyT2-fe.c +++
+> b/drivers/media/usb/dvb-usb/cinergyT2-fe.c @@ -139,6 +139,9 @@ static
+> uint16_t compute_tps(struct dtv_frontend_properties *op) struct
+> cinergyt2_fe_state { struct dvb_frontend fe;
+>  	struct dvb_usb_device *d;
+> +
+> +	unsigned char data[64];
+> +
+>  	struct dvbt_get_status_msg status;
+>  };
+>  
+> @@ -146,28 +149,28 @@ static int cinergyt2_fe_read_status(struct
+> dvb_frontend *fe, enum fe_status *status)
+>  {
+>  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+> -	struct dvbt_get_status_msg result;
+> -	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+>  	int ret;
+>  
+> -	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8
+> *)&result,
+> -			sizeof(result), 0);
+> +	state->data[0] = CINERGYT2_EP1_GET_TUNER_STATUS;
+> +
+> +	ret = dvb_usb_generic_rw(state->d, state->data, 1,
+> +				 state->data, sizeof(state->status),
+> 0); if (ret < 0)
+>  		return ret;
+>  
+> -	state->status = result;
+> +	memcpy(&state->status, state->data, sizeof(state->status));
+>  
+>  	*status = 0;
+>  
+> -	if (0xffff - le16_to_cpu(result.gain) > 30)
+> +	if (0xffff - le16_to_cpu(state->status.gain) > 30)
+>  		*status |= FE_HAS_SIGNAL;
+> -	if (result.lock_bits & (1 << 6))
+> +	if (state->status.lock_bits & (1 << 6))
+>  		*status |= FE_HAS_LOCK;
+> -	if (result.lock_bits & (1 << 5))
+> +	if (state->status.lock_bits & (1 << 5))
+>  		*status |= FE_HAS_SYNC;
+> -	if (result.lock_bits & (1 << 4))
+> +	if (state->status.lock_bits & (1 << 4))
+>  		*status |= FE_HAS_CARRIER;
+> -	if (result.lock_bits & (1 << 1))
+> +	if (state->status.lock_bits & (1 << 1))
+>  		*status |= FE_HAS_VITERBI;
+>  
+>  	if ((*status & (FE_HAS_CARRIER | FE_HAS_VITERBI |
+> FE_HAS_SYNC)) != @@ -232,31 +235,29 @@ static int
+> cinergyt2_fe_set_frontend(struct dvb_frontend *fe) {
+>  	struct dtv_frontend_properties *fep =
+> &fe->dtv_property_cache; struct cinergyt2_fe_state *state =
+> fe->demodulator_priv;
+> -	struct dvbt_set_parameters_msg param;
+> -	char result[2];
+> +	struct dvbt_set_parameters_msg *param = (void *)state->data;
+>  	int err;
+>  
+> -	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
+> -	param.tps = cpu_to_le16(compute_tps(fep));
+> -	param.freq = cpu_to_le32(fep->frequency / 1000);
+> -	param.flags = 0;
+> +	param->cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
+> +	param->tps = cpu_to_le16(compute_tps(fep));
+> +	param->freq = cpu_to_le32(fep->frequency / 1000);
+> +	param->flags = 0;
+>  
+>  	switch (fep->bandwidth_hz) {
+>  	default:
+>  	case 8000000:
+> -		param.bandwidth = 8;
+> +		param->bandwidth = 8;
+>  		break;
+>  	case 7000000:
+> -		param.bandwidth = 7;
+> +		param->bandwidth = 7;
+>  		break;
+>  	case 6000000:
+> -		param.bandwidth = 6;
+> +		param->bandwidth = 6;
+>  		break;
+>  	}
+>  
+> -	err = dvb_usb_generic_rw(state->d,
+> -			(char *)&param, sizeof(param),
+> -			result, sizeof(result), 0);
+> +	err = dvb_usb_generic_rw(state->d, state->data,
+> sizeof(*param),
+> +				 state->data, 2, 0);
+>  	if (err < 0)
+>  		err("cinergyt2_fe_set_frontend() Failed! err=%d\n",
+> err); 
 
-OK, I see (async_pf_execute and ksm ). It makes more sense to me. Thanks
-for the clarification.
-
--- 
-Michal Hocko
-SUSE Labs
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
