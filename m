@@ -1,76 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43481 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941157AbcJSOvr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:51:47 -0400
-Date: Wed, 19 Oct 2016 13:15:07 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, robh+dt@kernel.org,
-        mark.rutland@arm.com, mchehab@kernel.org, davem@davemloft.net,
-        geert@linux-m68k.org, akpm@linux-foundation.org,
-        kvalo@codeaurora.org, linux@roeck-us.net, hverkuil@xs4all.nl,
-        lars@metafoo.de, robert.jarzmik@free.fr, slongerbeam@gmail.com,
-        dheitmueller@kernellabs.com, pali.rohar@gmail.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: Re: [PATCH v3 2/2] Add support for Omnivision OV5647
-Message-ID: <20161019111507.GJ1461@amd>
-References: <cover.1476286687.git.roliveir@synopsys.com>
- <17092ffede9eb8aff0d6a7f54ca771e81712b18e.1476286687.git.roliveir@synopsys.com>
- <20161018183133.GA26548@amd>
- <375952b7-7993-b23a-10e8-85cba64b2679@synopsys.com>
+Received: from bear.ext.ti.com ([198.47.19.11]:38409 "EHLO bear.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752640AbcJJRbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 13:31:01 -0400
+From: "Parrot, Benoit" <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: RE: [Patch 00/35] media: ti-vpe: fixes and enhancements
+Date: Mon, 10 Oct 2016 17:30:56 +0000
+Message-ID: <AAE35E953C746D4784A1A0C604EFEA714E44D29E@DLEE10.ent.ti.com>
+References: <20160928211643.26298-1-bparrot@ti.com>
+In-Reply-To: <20160928211643.26298-1-bparrot@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="DesjdUuHQDwS2t4N"
-Content-Disposition: inline
-In-Reply-To: <375952b7-7993-b23a-10e8-85cba64b2679@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans, Mauro,
 
---DesjdUuHQDwS2t4N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ping.
 
-Hi!
+Benoit
 
-> >> +struct regval_list {
-> >> +	uint16_t addr;
-> >> +	uint8_t data;
-> >> +};
-> > u8/u16?
->=20
-> This sensor uses 16 bits for addresses and 8 for data, so I think it make=
-s sense
-> to keep it this way.
+-----Original Message-----
+From: Parrot, Benoit 
+Sent: Wednesday, September 28, 2016 4:16 PM
+To: Hans Verkuil
+Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Parrot, Benoit
+Subject: [Patch 00/35] media: ti-vpe: fixes and enhancements
 
-Yes, you can do it. But please use u8/u16 types (also elsewhere in the
-driver), they are more common in ther kernel.
+This patch series is to publish a number of enhancements we have been carrying for a while.
 
-> Thanks for the feedback. I agree with most of your suggestions, and I com=
-mented
-> with the one I didn't agree.
+A number of bug fixes and feature enhancements have been included.
 
-You are welcome,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+We also need to prepare the way for the introduction of the VIP (Video Input Port) driver (coming soon) which has internal IP module in common with VPE.
 
---DesjdUuHQDwS2t4N
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+The relevant modules (vpdma, sc and csc) are therefore converted into individual kernel modules.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Archit Taneja (1):
+  media: ti-vpe: Use line average de-interlacing for first 2 frames
 
-iEYEARECAAYFAlgHVbsACgkQMOfwapXb+vIqRACaAq+7Hp9YvGuFu/wr/xv5tELL
-fXkAoJMjYem/ivW8JHsoikGWAnou1KZU
-=NJ5J
------END PGP SIGNATURE-----
+Benoit Parrot (16):
+  media: ti-vpe: vpdma: Make vpdma library into its own module
+  media: ti-vpe: vpdma: Add multi-instance and multi-client support
+  media: ti-vpe: vpdma: Add helper to set a background color
+  media: ti-vpe: vpdma: Fix bus error when vpdma is writing a descriptor
+  media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
+  media: ti-vpe: vpdma: Corrected YUV422 data type label.
+  media: ti-vpe: vpdma: RGB data type yield inverted data
+  media: ti-vpe: vpe: Fix vb2 buffer cleanup
+  media: ti-vpe: vpe: Enable DMABUF export
+  media: ti-vpe: Make scaler library into its own module
+  media: ti-vpe: scaler: Add debug support for multi-instance
+  media: ti-vpe: vpe: Make sure frame size dont exceed scaler capacity
+  media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
+  media: ti-vpe: Make colorspace converter library into its own module
+  media: ti-vpe: csc: Add debug support for multi-instance
+  media: ti-vpe: vpe: Add proper support single and multi-plane buffer
 
---DesjdUuHQDwS2t4N--
+Harinarayan Bhatta (2):
+  media: ti-vpe: Increasing max buffer height and width
+  media: ti-vpe: Free vpdma buffers in vpe_release
+
+Nikhil Devshatwar (16):
+  media: ti-vpe: vpe: Do not perform job transaction atomically
+  media: ti-vpe: Add support for SEQ_TB buffers
+  media: ti-vpe: vpe: Return NULL for invalid buffer type
+  media: ti-vpe: vpdma: Add support for setting max width height
+  media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
+  media: ti-vpe: vpdma: Make list post atomic operation
+  media: ti-vpe: vpdma: Clear IRQs for individual lists
+  media: ti-vpe: vpe: configure line mode separately
+  media: ti-vpe: vpe: Setup srcdst parameters in start_streaming
+  media: ti-vpe: vpe: Post next descriptor only for list complete IRQ
+  media: ti-vpe: vpe: Add RGB565 and RGB5551 support
+  media: ti-vpe: vpdma: allocate and maintain hwlist
+  media: ti-vpe: sc: Fix incorrect optimization
+  media: ti-vpe: vpdma: Fix race condition for firmware loading
+  media: ti-vpe: vpdma: Use bidirectional cached buffers
+  media: ti-vpe: vpe: Fix line stride for output motion vector
+
+ drivers/media/platform/Kconfig             |  14 +
+ drivers/media/platform/ti-vpe/Makefile     |  10 +-
+ drivers/media/platform/ti-vpe/csc.c        |  18 +-
+ drivers/media/platform/ti-vpe/csc.h        |   2 +-
+ drivers/media/platform/ti-vpe/sc.c         |  28 +-
+ drivers/media/platform/ti-vpe/sc.h         |  11 +-
+ drivers/media/platform/ti-vpe/vpdma.c      | 349 +++++++++++++++++++---
+ drivers/media/platform/ti-vpe/vpdma.h      |  85 +++++-
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 130 ++++-----
+ drivers/media/platform/ti-vpe/vpe.c        | 450 ++++++++++++++++++++++++-----
+ 10 files changed, 891 insertions(+), 206 deletions(-)
+
+--
+2.9.0
+
