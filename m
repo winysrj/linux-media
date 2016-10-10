@@ -1,153 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anholt.net ([50.246.234.109]:33171 "EHLO anholt.net"
+Received: from foss.arm.com ([217.140.101.70]:46710 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754942AbcJMRcY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 13:32:24 -0400
-From: Eric Anholt <eric@anholt.net>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, liviu.dudau@arm.com,
-        robdclark@gmail.com, hverkuil@xs4all.nl,
-        ville.syrjala@linux.intel.com, daniel@ffwll.ch
-Subject: Re: [RFC PATCH 00/11] Introduce writeback connectors
-In-Reply-To: <20161012072643.GA17390@localhost>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com> <87d1j6emmd.fsf@eliezer.anholt.net> <20161012072643.GA17390@localhost>
-Date: Thu, 13 Oct 2016 10:32:22 -0700
-Message-ID: <87k2dc9mu1.fsf@eliezer.anholt.net>
+        id S1752504AbcJJNB1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 10 Oct 2016 09:01:27 -0400
+Date: Mon, 10 Oct 2016 14:51:37 +0200
+From: John Einar Reitan <john.reitan@foss.arm.com>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Cc Ma <cc.ma@mediatek.com>,
+        Joakim Bech <joakim.bech@linaro.org>,
+        Burt Lien <burt.lien@linaro.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Linaro MM SIG Mailman List <linaro-mm-sig@lists.linaro.org>,
+        Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>
+Subject: Re: [PATCH v10 0/3] Secure Memory Allocation Framework
+Message-ID: <20161010125136.GA2844@e106921-lin.trondheim.arm.com>
+References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
+ <20161005131959.GE20761@phenom.ffwll.local>
+ <CA+M3ks5vZyrxzF84t2fX0CK33LWq2A-uM=6rDFru-AO0mAyKQA@mail.gmail.com>
+ <CAF6AEGto6iuNSG3Q3sBk1-wedhkPaJxM=Ru=ZcwfB63GwH7mhw@mail.gmail.com>
+ <CA+M3ks6BkGuwKMYZXHPBeawB-5m+O1HxZvPpfbjO6voyoVJyZg@mail.gmail.com>
+ <CAF6AEGtH+sgSHgmjK2-jCrsuV-Uz0bOz32s1w2Wy41RnTS0t1g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha512; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAF6AEGtH+sgSHgmjK2-jCrsuV-Uz0bOz32s1w2Wy41RnTS0t1g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
+On Fri, Oct 07, 2016 at 10:42:17AM -0400, Rob Clark wrote:
+> probably should keep the discussion on github (USAGE.md was updated a
+> bit more and merged into https://github.com/cubanismo/allocator so
+> look there for the latest)..
+> 
+> but briefly:
+> 
+> 1) my expectation is if the user is implementing some use-case, it
+> knows what devices and APIs are involved, otherwise it wouldn't be
+> able to pass a buffer to that device/API..
 
-Brian Starkey <brian.starkey@arm.com> writes:
+As I described at Linaro Connect late-connected devices could cause new
+constrains to appear. I.e. some (additonal) HDMI connection or WiFi Display etc.
+Including all the might-happen devices might lead to unoptimal buffers
+just to be able to handle some rarely-happen events.
 
-> Hi Eric,
->
-> On Tue, Oct 11, 2016 at 12:01:14PM -0700, Eric Anholt wrote:
->>Brian Starkey <brian.starkey@arm.com> writes:
->>
->>> Hi,
->>>
->>> This RFC series introduces a new connector type:
->>>  DRM_MODE_CONNECTOR_WRITEBACK
->>> It is a follow-on from a previous discussion: [1]
->>>
->>> Writeback connectors are used to expose the memory writeback engines
->>> found in some display controllers, which can write a CRTC's
->>> composition result to a memory buffer.
->>> This is useful e.g. for testing, screen-recording, screenshots,
->>> wireless display, display cloning, memory-to-memory composition.
->>>
->>> Patches 1-7 include the core framework changes required, and patches
->>> 8-11 implement a writeback connector for the Mali-DP writeback engine.
->>> The Mali-DP patches depend on this other series: [2].
->>>
->>> The connector is given the FB_ID property for the output framebuffer,
->>> and two new read-only properties: PIXEL_FORMATS and
->>> PIXEL_FORMATS_SIZE, which expose the supported framebuffer pixel
->>> formats of the engine.
->>>
->>> The EDID property is not exposed for writeback connectors.
->>>
->>> Writeback connector usage:
->>> --------------------------
->>> Due to connector routing changes being treated as "full modeset"
->>> operations, any client which wishes to use a writeback connector
->>> should include the connector in every modeset. The writeback will not
->>> actually become active until a framebuffer is attached.
->>>
->>> The writeback itself is enabled by attaching a framebuffer to the
->>> FB_ID property of the connector. The driver must then ensure that the
->>> CRTC content of that atomic commit is written into the framebuffer.
->>>
->>> The writeback works in a one-shot mode with each atomic commit. This
->>> prevents the same content from being written multiple times.
->>> In some cases (front-buffer rendering) there might be a desire for
->>> continuous operation - I think a property could be added later for
->>> this kind of control.
->>>
->>> Writeback can be disabled by setting FB_ID to zero.
->>
->>I think this sounds great, and the interface is just right IMO.
->>
->
-> Thanks, glad you like it! Hopefully you're equally agreeable with the
-> changes Daniel has been suggesting.
+I guess the easy resolve here is for the user to do a reallocation with
+the new constraints added and replace the buffer(s) in question, but
+with a slight lag in enabling the new device.
 
-Haven't seen anything objectionable there.
-
->>> Known issues:
->>> -------------
->>>  * I'm not sure what "DPMS" should mean for writeback connectors.
->>>    It could be used to disable writeback (even when a framebuffer is
->>>    attached), or it could be hidden entirely (which would break the
->>>    legacy DPMS call for writeback connectors).
->>>  * With Daniel's recent re-iteration of the userspace API rules, I
->>>    fully expect to provide some userspace code to support this. The
->>>    question is what, and where? We want to use writeback for testing,
->>>    so perhaps some tests in igt is suitable.
->>>  * Documentation. Probably some portion of this cover letter needs to
->>>    make it into Documentation/
->>>  * Synchronisation. Our hardware will finish the writeback by the next
->>>    vsync. I've not implemented fence support here, but it would be an
->>>    obvious addition.
->>
->>My hardware won't necessarily finish by the next vsync -- it trickles
->>out at whatever rate it can find memory bandwidth to get the job done,
->>and fires an interrupt when it's finished.
->>
->
-> Is it bounded? You presumably have to finish the write-out before you
-> can change any input buffers?
-
-Yeah, I'm not sure what it would mean to try to swap my display list
-while write-out was happening.  Each CRTC (each of which can only
-support one encoder at a time) has its own display list, though, so it
-could avoid blocking other modesets.
-
->>So I would like some definition for how syncing works.  One answer would
->>be that these flips don't trigger their pageflip events until the
->>writeback is done (so I need to collect both the vsync irq and the
->>writeback irq before sending).  Another would be that manage an
->>independent fence for the writeback fb, so that you still immediately
->>know when framebuffers from the previous scanout-only frame are idle.
->>
->
-> I much prefer the sound of the explicit fence approach.
->
-> Hopefully we can agree that a new atomic commit can't be completed
-> whilst there's a writeback ongoing, otherwise managing the fence and
-> framebuffer lifetime sounds really tricky - they'd need to be decoupled
-> from the atomic_state and outlive the commit that spawned them.
-
-Oh, good point.
-
-I'm fine with that, but then my anticipated usecases for writeback are
-testing (don't care about performance) and fallback plane-squashing when
-a complicated modeset exceeds limits (in which case you have no simpler
-plane config to modeset to until the writeback is completed, anyway).
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIcBAEBCgAGBQJX/8UmAAoJELXWKTbR/J7oLL0QALttl7goSK1yNzv/4Bdg1GNn
-dc43F1mVSazwgOTvmb4xr6tg2QHLNrAUPxmHqXZ2CToktI8tCE0msqMOgLeP+8N6
-pUKt2E44CwVN5MdPBKjrKezO/TVE2dHTmObTF6zxM/XfxRL6/ngcuJow7w+Fvsjr
-wPHPKHm1a9R60wJivWENPA1NtDRWP4oKja0cxo28oSpCXEVx8WA3gLUCpWcR4Bv2
-KK//CVKzA9tahKnVeup9+tPBv62V7Bg4nSaH9o7+aPfBnUNuxGHLlZ8OhKawcnhA
-bPU85E41T+JmkbQOEEK8Ktw0oOHw9LIL+27z7S069VTTviElayGApEa2fRTy/vPf
-WnhX5DIZaiJo011xtPgQmU18wzYFrDHAo2neeo5YhKzv/mYcJFSmm5PcS3SjbtVq
-ywk75VpFNOr62WNrxMF3z1qKHButKdF3VYW57oDFTycAKVy+gzbZlE2VyZKAIViP
-5OzxhAX7pMaF6oB4zgAGrcHW+VT42MYrculpb+lzOT2ZECkKP9l6THfom3NeurJ9
-xr8gkpsVDCi9ziCV3nIRuV9noYrICAPeSrVNaI843EJuEV+0dLY4XK/ZXBJQuO/i
-g84S9YIS8f4+l5m6pfHGnDJE1TLsFucQVuOcoAQl5ZJZi/QWD8oi/vVSQkPVnZwi
-Ki9JJir4v0pnclXferoS
-=4oVk
------END PGP SIGNATURE-----
---=-=-=--
+John
