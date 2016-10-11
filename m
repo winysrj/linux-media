@@ -1,122 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51432 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932372AbcJRUqS (ORCPT
+Received: from mail-pf0-f179.google.com ([209.85.192.179]:35812 "EHLO
+        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751615AbcJKXup (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 56/58] radio: don't break long lines
-Date: Tue, 18 Oct 2016 18:46:08 -0200
-Message-Id: <5a247d583f9b9a0433c577f8079feb97c8db3e8b.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Tue, 11 Oct 2016 19:50:45 -0400
+Received: by mail-pf0-f179.google.com with SMTP id s8so9416978pfj.2
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 16:50:28 -0700 (PDT)
+From: Ruchi Kandoi <kandoiruchi@google.com>
+To: kandoiruchi@google.com, gregkh@linuxfoundation.org,
+        arve@android.com, riandrews@android.com, sumit.semwal@linaro.org,
+        arnd@arndb.de, labbott@redhat.com, viro@zeniv.linux.org.uk,
+        jlayton@poochiereds.net, bfields@fieldses.org, mingo@redhat.com,
+        peterz@infradead.org, akpm@linux-foundation.org,
+        keescook@chromium.org, mhocko@suse.com, oleg@redhat.com,
+        john.stultz@linaro.org, mguzik@redhat.com, jdanis@google.com,
+        adobriyan@gmail.com, ghackmann@google.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz,
+        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, luto@kernel.org,
+        tj@kernel.org, vdavydov.dev@gmail.com, ebiederm@xmission.com,
+        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-fsdevel@vger.kernel.org,
+        linux-mm@kvack.org
+Subject: [RFC 0/6] Module for tracking/accounting shared memory buffers
+Date: Tue, 11 Oct 2016 16:50:04 -0700
+Message-Id: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+This patchstack introduces a new "memtrack" module for tracking and accounting
+memory exported to userspace as shared buffers, like dma-buf fds or GEM handles.
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+Any process holding a reference to these buffers will keep the kernel from
+reclaiming its backing pages.  mm counters don't provide a complete picture of
+these allocations, since they only account for pages that are mapped into a
+process's address space.  This problem is especially bad for systems like
+Android that use dma-buf fds to share graphics and multimedia buffers between
+processes: these allocations are often large, have complex sharing patterns,
+and are rarely mapped into every process that holds a reference to them.
 
-So, join those continuation lines.
+memtrack maintains a per-process list of shared buffer references, which is
+exported to userspace as /proc/[pid]/memtrack.  Buffers can be optionally
+"tagged" with a short string: for example, Android userspace would use this
+tag to identify whether buffers were allocated on behalf of the camera stack,
+GL, etc.  memtrack also exports the VMAs associated with these buffers so
+that pages already included in the process's mm counters aren't double-counted.
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+Shared-buffer allocators can hook into memtrack by embedding
+struct memtrack_buffer in their buffer metadata, calling
+memtrack_buffer_{init,remove} at buffer allocation and free time, and
+memtrack_buffer_{install,uninstall} when a userspace process takes or
+drops a reference to the buffer.  For fd-backed buffers like dma-bufs, hooks in
+fdtable.c and fork.c automatically notify memtrack when references are added or
+removed from a process's fd table.
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+This patchstack adds memtrack hooks into dma-buf and ion.  If there's upstream
+interest in memtrack, it can be extended to other memory allocators as well,
+such as GEM implementations.
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+Greg Hackmann (1):
+  drivers: staging: ion: add ION_IOC_TAG ioctl
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+Ruchi Kandoi (5):
+  fs: add installed and uninstalled file_operations
+  drivers: misc: add memtrack
+  dma-buf: add memtrack support
+  memtrack: Adds the accounting to keep track of all mmaped/unmapped
+    pages.
+  memtrack: Add memtrack accounting for forked processes.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/radio/radio-gemtek.c | 8 ++------
- drivers/media/radio/radio-wl1273.c | 3 +--
- 2 files changed, 3 insertions(+), 8 deletions(-)
+ drivers/android/binder.c                |   4 +-
+ drivers/dma-buf/dma-buf.c               |  37 +++
+ drivers/misc/Kconfig                    |  16 +
+ drivers/misc/Makefile                   |   1 +
+ drivers/misc/memtrack.c                 | 516 ++++++++++++++++++++++++++++++++
+ drivers/staging/android/ion/ion-ioctl.c |  17 ++
+ drivers/staging/android/ion/ion.c       |  60 +++-
+ drivers/staging/android/ion/ion_priv.h  |   2 +
+ drivers/staging/android/uapi/ion.h      |  25 ++
+ fs/file.c                               |  38 ++-
+ fs/open.c                               |   2 +-
+ fs/proc/base.c                          |   4 +
+ include/linux/dma-buf.h                 |   5 +
+ include/linux/fdtable.h                 |   4 +-
+ include/linux/fs.h                      |   2 +
+ include/linux/memtrack.h                | 130 ++++++++
+ include/linux/mm.h                      |   3 +
+ include/linux/sched.h                   |   3 +
+ kernel/fork.c                           |  23 +-
+ 19 files changed, 875 insertions(+), 17 deletions(-)
+ create mode 100644 drivers/misc/memtrack.c
+ create mode 100644 include/linux/memtrack.h
 
-diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
-index cff1eb144a5c..ca051ccbc3e4 100644
---- a/drivers/media/radio/radio-gemtek.c
-+++ b/drivers/media/radio/radio-gemtek.c
-@@ -67,14 +67,10 @@ module_param(probe, bool, 0444);
- MODULE_PARM_DESC(probe, "Enable automatic device probing.");
- 
- module_param(hardmute, bool, 0644);
--MODULE_PARM_DESC(hardmute, "Enable 'hard muting' by shutting down PLL, may "
--	 "reduce static noise.");
-+MODULE_PARM_DESC(hardmute, "Enable 'hard muting' by shutting down PLL, may reduce static noise.");
- 
- module_param_array(io, int, NULL, 0444);
--MODULE_PARM_DESC(io, "Force I/O ports for the GemTek Radio card if automatic "
--	 "probing is disabled or fails. The most common I/O ports are: 0x20c "
--	 "0x30c, 0x24c or 0x34c (0x20c, 0x248 and 0x28c have been reported to "
--	 "work for the combined sound/radiocard).");
-+MODULE_PARM_DESC(io, "Force I/O ports for the GemTek Radio card if automatic probing is disabled or fails. The most common I/O ports are: 0x20c 0x30c, 0x24c or 0x34c (0x20c, 0x248 and 0x28c have been reported to work for the combined sound/radiocard).");
- 
- module_param_array(radio_nr, int, NULL, 0444);
- MODULE_PARM_DESC(radio_nr, "Radio device numbers");
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index a93f681aa9d6..9ce4b12299b4 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -2068,8 +2068,7 @@ static int wl1273_fm_radio_probe(struct platform_device *pdev)
- 			goto err_request_irq;
- 		}
- 	} else {
--		dev_err(radio->dev, WL1273_FM_DRIVER_NAME ": Core WL1273 IRQ"
--			" not configured");
-+		dev_err(radio->dev, WL1273_FM_DRIVER_NAME ": Core WL1273 IRQ not configured");
- 		r = -EINVAL;
- 		goto pdata_err;
- 	}
 -- 
-2.7.4
-
+2.8.0.rc3.226.g39d4020
 
