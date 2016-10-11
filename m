@@ -1,99 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:33890 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752275AbcJ0Hn2 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39712 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752247AbcJKKfO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 03:43:28 -0400
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: "florent.revest@free-electrons.com"
-        <florent.revest@free-electrons.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "posciak@chromium.org" <posciak@chromium.org>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "randy.li@rock-chips.com" <randy.li@rock-chips.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 27 Oct 2016 09:42:34 +0200
-Subject: [RFC] V4L2 unified low-level decoder API
-Message-ID: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Tue, 11 Oct 2016 06:35:14 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 11/31] digitv: don't do DMA on stack
+Date: Tue, 11 Oct 2016 07:09:26 -0300
+Message-Id: <94cc64233e2cdb8291a6b3a0f03d12880bce27b6.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNClRoaXMgUkZDIGFpbXMgdG8gc3RhcnQgZGlzY3Vzc2lvbnMgaW4gb3JkZXIgdG8gZGVm
-aW5lIHRoZSBjb2RlYyBzcGVjaWZpYyANCmNvbnRyb2xzIHN0cnVjdHVyZXMgdG8gZnVsZmlsbCB0
-aGUgbG93LWxldmVsIGRlY29kZXIgQVBJIG5lZWRlZCBieSBub24gDQoiU3RyZWFtIEFQSSIgYmFz
-ZWQgZGVjb2RlcnMgKCJzdGF0ZWxlc3MiIG9yICJGcmFtZSBBUEkiIGJhc2VkIGRlY29kZXJzKS4N
-ClNldmVyYWwgaW1wbGVtZW50YXRpb24gZXhpc3RzIG5vdyB3aGljaCBydW5zIG9uIHNldmVyYWwg
-U29DIGFuZCB2YXJpb3VzIA0Kc29mdHdhcmUgZnJhbWV3b3Jrcy4NClRoZSBpZGVhIGlzIHRvIGZp
-bmQgdGhlIGNvbW11bmFsaXRpZXMgYmV0d2VlbiBhbGwgdGhvc2UgaW1wbGVtZW50YXRpb25zIA0K
-YW5kIFNvQyB0byBkZWZpbmUgYSBzaW5nbGUgdW5pZmllZCBpbnRlcmZhY2UgaW4gVjRMMiBpbmNs
-dWRlcy4NCkV2ZW4gaWYgIlJlcXVlc3QgQVBJIiBpcyBuZWVkZWQgdG8gcGFzcyB0aG9zZSBjb2Rl
-YyBzcGVjaWZpYyBjb250cm9scyANCmZyb20gdXNlcnNwYWNlIGRvd24gdG8ga2VybmVsIG9uIGEg
-cGVyLWJ1ZmZlciBiYXNpcywgd2UgY2FuIHN0YXJ0IA0KZGlzY3Vzc2lvbnMgYW5kIGRlZmluZSB0
-aGUgY29udHJvbHMgaW4gcGFyYWxsZWwgb2YgaXRzIGRldmVsb3BtZW50Lg0KV2UgY2FuIGV2ZW4g
-cHJvcG9zZSBzb21lIGltcGxlbWVudGF0aW9ucyBiYXNlZCBvbiBleGlzdGluZyBWNEwyIGNvbnRy
-b2wgDQpmcmFtZXdvcmsgKHdoaWNoIGRvZXNuJ3Qgc3VwcG9ydCAicGVyLWZyYW1lIiBiYXNpcykg
-YnkgZW5zdXJpbmcgDQphdG9taWNpdHkgb2Ygc2VxdWVuY2UgU19FWFRfQ1RSTChoZWFkZXJbaV0p
-L1FCVUYoc3RyZWFtW2ldKS4gQ29uc3RyYWludCANCmNhbiB0aGVuIGJlIHJlbGF4ZWQgd2hlbiAi
-UmVxdWVzdCBBUEkiIGlzIG1lcmdlZC4NCg0KSSB3b3VsZCBsaWtlIHRvIHByb3Bvc2UgdG8gd29y
-ayBvbiBhICJwZXItY29kZWMiIGJhc2lzLCBoYXZpbmcgYXQgbGVhc3QgDQoyIGRpZmZlcmVudCBT
-b0MgYW5kIDIgZGlmZmVyZW50IGZyYW1ld29ya3MgdG8gdGVzdCBhbmQgdmFsaWRhdGUgY29udHJv
-bHMuDQpUbyBkbyBzbywgSSBoYXZlIHRyaWVkIHRvIGlkZW50aWZ5IHNvbWUgcGVvcGxlIHRoYXQg
-aGF2ZSB3b3JrZWQgb24gdGhpcyANCnN1YmplY3QgYW5kIGhhdmUgcHJvcG9zZWQgc29tZSBpbXBs
-ZW1lbnRhdGlvbnMsIGZlZWwgZnJlZSB0byBjb3JyZWN0IG1lIA0KYW5kIGVuaGFuY2UgdGhlIGxp
-c3QgaWYgbmVlZGVkOg0KKiBNUEVHMi9NUEVHNA0KICAgIC0gRmxvcmVudCBSZXZlc3QgZm9yIEFs
-bHdpbm5lciBBMTMgQ2VkYXJYIHN1cHBvcnQgWzFdIHRlc3RlZCB3aXRoIA0KVkxDIC0+IGxpYlZB
-ICsgc3VueGktY2VkcnVzLWRydi12aWRlbyAtPiBWNEwyDQogICAgLSBNeXNlbGYgZm9yIFNUTWlj
-cm9lbGVjdHJvbmljcyBEZWx0YSBzdXBwb3J0IFsyXSB0ZXN0ZWQgd2l0aCANCkdTdHJlYW1lciBW
-NEwyIC0+IGxpYnY0bDIgKyBsaWJ2NGwtZGVsdGEgcGx1Z2luIC0+IFY0TDINCg0KKiBWUDgNCi0g
-UGF3ZWwgT3NjaWFrIGZvciBSb2NrY2hpcCBSSzMyODgsIFJLMzM5OT8gVlBVIFN1cHBvcnQgWzNd
-IHRlc3RlZCB3aXRoIA0KQ2hyb21pdW0gLT4gVjRMMg0KLSBKdW5nIFpoYW8gZm9yIFJvY2tjaGlw
-IFJLMzI4OCBWUFUgc3VwcG9ydCBbNF0gPGNhbm5vdCBmaW5kIHRoZSANCmZyYW1ld29yayB1c2Vk
-Pg0KDQoqIEgyNjQNCi0gUGF3ZWwgT3NjaWFrIGZvciBSb2NrY2hpcCBSSzMyODgsIFJLMzM5OT8g
-VlBVIFN1cHBvcnQgWzVdIHRlc3RlZCB3aXRoIA0KQ2hyb21pdW0gLT4gVjRMMg0KLSBSYW5keSBM
-aSBmb3IgUm9ja2NoaXAgUkszMjg4ICBWUFUgc3VwcG9ydCBbNl0gdGVzdGVkIHdpdGggVkxDPyAt
-PiANCmxpYlZBICsgcm9ja2NoaXAtdmEtZHJpdmVyIC0+IFY0TDINClZMQz8gLT4gbGliVkRQQVUg
-KyByb2NrY2hpcC12YS1kcml2ZXIgLT4gVjRMMg0KDQpJIGNhbiB3b3JrIHRvIGRlZmluZSBNUEVH
-Mi9NUEVHNCBjb250cm9scyBhbmQgcHJvcG9zZSBmdW5jdGlvbmFsIA0KaW1wbGVtZW50YXRpb25z
-IGZvciB0aG9zZSBjb2RlY3MsIGFuZCB3aWxsIGJlIGdsYWQgdG8gY28td29yayB3aXRoIHlvdSAN
-CkZsb3JlbnQuDQpJIGNhbiBoZWxwIG9uIEgyNjQgb24gYSBjb2RlIHJldmlldyBiYXNpcyBiYXNl
-ZCBvbiB0aGUgZnVuY3Rpb25hbCBIMjY0IA0Kc2V0dXAgSSBoYXZlIGluLWhvdXNlIGFuZCBjb2Rl
-YyBrbm93bGVkZ2UsIGJ1dCBJIGNhbm5vdCBwcm92aWRlIA0KaW1wbGVtZW50YXRpb24gaW4gYSBy
-ZWFzb25hYmxlIHRpbWVmcmFtZSwgc2FtZSBmb3IgVlA4Lg0KDQpBcGFydCBvZiB2ZXJ5IGRldGFp
-bHMgb2YgZWFjaCBjb2RlYywgd2UgaGF2ZSBhbHNvIHRvIHN0YXRlIGFib3V0IGdlbmVyaWMgDQpj
-b25jZXJucyBzdWNoIGFzOg0KLSBuZXcgcGl4ZWwgZm9ybWF0IGludHJvZHVjdGlvbiAoVlA4ID0+
-IFZQOEYsIEgyNjQgPT4gUzI2NCwgTVBHMiA9PiANCk1HMkYsIE1QRzQgPT4gTUc0RikNCi0gbmV3
-IGRldmljZSBjYXBzIHRvIGluZGljYXRlIHRoYXQgZHJpdmVyIHJlcXVpcmVzIGV4dHJhIGhlYWRl
-cnMgPyBtYXliZSANCm5vdCBuZWVkZWQgYmVjYXVzZSByZWR1bmRhbnQgd2l0aCBuZXcgcGl4ZWwg
-Zm9ybWF0DQotIGNvbnRpbnVlIHRvIG1vZGlmeSB2NGwyLWNvbnRyb2xzLmggPyBvciBkbyB3ZSBh
-ZGQgc29tZSBuZXcgc3BlY2lmaWMgDQpoZWFkZXIgZmlsZXMgKEgyNjQgaXMgaHVnZSEpID8NCi0g
-aG93IHRvIG1hbmFnZSBzZXF1ZW5jZSBoZWFkZXIgJiBwaWN0dXJlIGhlYWRlciwgb3B0aW9uYWwv
-ZXh0ZW5kZWQgDQpjb250cm9scyAoTVBFRzIgc2VxdWVuY2UvcGljdHVyZSBleHRlbnNpb25zLCBI
-MjY0IFNFSSwgLi4uKS4gUGVyc29uYWxseSANCkkgaGF2ZSBhZGRlZCBmbGFncyBpbnNpZGUgYSBz
-aW5nbGUgY29udHJvbCBzdHJ1Y3R1cmUsIEgyNjQgaXMgZG9uZSBpbiBhIA0KZGlmZmVyZW50IHdh
-eSB1c2luZyBzZXZlcmFsIGNvbnRyb2xzIChTUFMvUFBTL1NMSUNFL0RFQ09ERS8uLi4pDQoNClRo
-YW5rcyB5b3UgdG8gYWxsIG9mIHlvdSBmb3IgeW91ciBhdHRlbnRpb24gYW5kIGZlZWwgZnJlZSB0
-byByZWFjdCBvbiANCnRoaXMgdG9waWMgaWYgeW91IGFyZSBpbnRlcmVzdGVkIHRvIHdvcmsgb24g
-dGhpcyBzdWJqZWN0Lg0KDQpCZXN0IHJlZ2FyZHMsDQpIdWd1ZXMuDQoNClswXSBbQU5OXSBDb2Rl
-YyAmIFJlcXVlc3QgQVBJIEJyYWluc3Rvcm0gbWVldGluZyBPY3QgMTAgJiANCjExaHR0cHM6Ly93
-d3cuc3Bpbmljcy5uZXQvbGlzdHMvbGludXgtbWVkaWEvbXNnMTA2Njk5Lmh0bWwNClsxXSBNUEVH
-MiBBMTMgQ2VkYXJYaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51eC1tZWRpYS9tc2cx
-MDQ4MjMuaHRtbA0KWzFdIE1QRUc0IEExMyBDZWRhclhodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xp
-c3RzL2xpbnV4LW1lZGlhL21zZzEwNDgxNy5odG1sDQpbMl0gTVBFRzIgU1RpNHh4IA0KRGVsdGFo
-dHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4LW1lZGlhL21zZzEwNjI0MC5odG1sDQpb
-Ml0gTVBFRzQgU1RpNHh4IERlbHRhIGlzIGFsc28gc3VwcG9ydGVkIGJ1dCBub3QgeWV0IHB1c2hl
-ZA0KWzNdIFZQOCBSb2NrY2hpcCBSSzMyODgsIFJLMzM5OT8gDQpWUFVodHRwczovL2Nocm9taXVt
-Lmdvb2dsZXNvdXJjZS5jb20vY2hyb21pdW1vcy9vdmVybGF5cy9jaHJvbWl1bW9zLW92ZXJsYXkv
-Ky9yZWZzL2hlYWRzL21hc3Rlci9zeXMta2VybmVsL2xpbnV4LWhlYWRlcnMvZmlsZXMvMDAwMi1D
-SFJPTUlVTS12NGwtQWRkLVZQOC1sb3ctbGV2ZWwtZGVjb2Rlci1BUEktY29udHJvbHMucGF0Y2gg
-DQpbNF0gVlA4IFJvY2tjaGlwIFJLMzI4OCANClZQVWh0dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlz
-dHMvbGludXgtbWVkaWEvbXNnOTc5OTcuaHRtbA0KWzVdIEgyNjQgUm9ja2NoaXAgUkszMjg4LCBS
-SzMzOTk/IA0KVlBVaHR0cHM6Ly9jaHJvbWl1bS5nb29nbGVzb3VyY2UuY29tL2Nocm9taXVtb3Mv
-b3ZlcmxheXMvY2hyb21pdW1vcy1vdmVybGF5LysvcmVmcy9oZWFkcy9tYXN0ZXIvc3lzLWtlcm5l
-bC9saW51eC1oZWFkZXJzL2ZpbGVzLzAwMDEtQ0hST01JVU0tbWVkaWEtaGVhZGVycy1JbXBvcnQt
-VjRMMi1oZWFkZXJzLWZyb20tQ2hyby5wYXRjaA0KWzZdIEgyNjQgUm9ja2NoaXAgUkszMjg4IA0K
-VlBVaHR0cDovL3d3dy5zcGluaWNzLm5ldC9saXN0cy9saW51eC1tZWRpYS9tc2cxMDUwOTUuaHRt
-bA0K
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
+
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/digitv.c | 20 +++++++++++---------
+ drivers/media/usb/dvb-usb/digitv.h |  3 +++
+ 2 files changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/digitv.c b/drivers/media/usb/dvb-usb/digitv.c
+index 63134335c994..09f8c28bd4db 100644
+--- a/drivers/media/usb/dvb-usb/digitv.c
++++ b/drivers/media/usb/dvb-usb/digitv.c
+@@ -28,20 +28,22 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ static int digitv_ctrl_msg(struct dvb_usb_device *d,
+ 		u8 cmd, u8 vv, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+ {
++	struct digitv_state *st = d->priv;
+ 	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+-	u8 sndbuf[7],rcvbuf[7];
+-	memset(sndbuf,0,7); memset(rcvbuf,0,7);
+ 
+-	sndbuf[0] = cmd;
+-	sndbuf[1] = vv;
+-	sndbuf[2] = wo ? wlen : rlen;
++	memset(st->sndbuf, 0, 7);
++	memset(st->rcvbuf, 0, 7);
++
++	st->sndbuf[0] = cmd;
++	st->sndbuf[1] = vv;
++	st->sndbuf[2] = wo ? wlen : rlen;
+ 
+ 	if (wo) {
+-		memcpy(&sndbuf[3],wbuf,wlen);
+-		dvb_usb_generic_write(d,sndbuf,7);
++		memcpy(&st->sndbuf[3], wbuf, wlen);
++		dvb_usb_generic_write(d, st->sndbuf, 7);
+ 	} else {
+-		dvb_usb_generic_rw(d,sndbuf,7,rcvbuf,7,10);
+-		memcpy(rbuf,&rcvbuf[3],rlen);
++		dvb_usb_generic_rw(d, st->sndbuf, 7, st->rcvbuf, 7, 10);
++		memcpy(rbuf, &st->rcvbuf[3], rlen);
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/dvb-usb/digitv.h b/drivers/media/usb/dvb-usb/digitv.h
+index 908c09f4966b..cf104689bdff 100644
+--- a/drivers/media/usb/dvb-usb/digitv.h
++++ b/drivers/media/usb/dvb-usb/digitv.h
+@@ -6,6 +6,9 @@
+ 
+ struct digitv_state {
+     int is_nxt6000;
++
++    unsigned char sndbuf[7];
++    unsigned char rcvbuf[7];
+ };
+ 
+ /* protocol (from usblogging and the SDK:
+-- 
+2.7.4
+
+
