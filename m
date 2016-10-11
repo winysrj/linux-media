@@ -1,366 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:33503 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S946945AbcJaVNO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 17:13:14 -0400
-Date: Mon, 31 Oct 2016 21:13:11 +0000
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, Chris Dodge <chris@redrat.co.uk>
-Subject: Re: [PATCH 5/9] [media] redrat3: enable carrier reports using
- wideband receiver
-Message-ID: <20161031211311.GA10866@gofer.mess.org>
-References: <1477936347-9029-6-git-send-email-sean@mess.org>
- <201611010352.PDUa1g53%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201611010352.PDUa1g53%fengguang.wu@intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:39716 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752355AbcJKKfU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 06:35:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 02/31] cinergyT2-core: don't do DMA on stack
+Date: Tue, 11 Oct 2016 07:09:17 -0300
+Message-Id: <1220fd764d747f153c240e14812e1d2045e59b4e.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The wideband receiver is a little awkward on the redrat3. Data arrives
-on a different endpoint, and the learning command must be reissued
-every time data is learned.
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/rc/redrat3.c | 186 ++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 140 insertions(+), 46 deletions(-)
+ drivers/media/usb/dvb-usb/cinergyT2-core.c | 84 ++++++++++++++++++++++--------
+ 1 file changed, 61 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index eaf374d..1882712 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -81,6 +81,8 @@
- #define RR3_RC_DET_ENABLE	0xbb
- /* Stop capture with the RC receiver */
- #define RR3_RC_DET_DISABLE	0xbc
-+/* Start capture with the wideband receiver */
-+#define RR3_MODSIG_CAPTURE     0xb2
- /* Return the status of RC detector capture */
- #define RR3_RC_DET_STATUS	0xbd
- /* Reset redrat */
-@@ -105,8 +107,10 @@
- #define RR3_CLK_PER_COUNT	12
- /* (RR3_CLK / RR3_CLK_PER_COUNT) */
- #define RR3_CLK_CONV_FACTOR	2000000
--/* USB bulk-in IR data endpoint address */
--#define RR3_BULK_IN_EP_ADDR	0x82
-+/* USB bulk-in wideband IR data endpoint address */
-+#define RR3_WIDE_IN_EP_ADDR	0x81
-+/* USB bulk-in narrowband IR data endpoint address */
-+#define RR3_NARROW_IN_EP_ADDR	0x82
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+index 9fd1527494eb..d85c0c4d4042 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+@@ -41,6 +41,8 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
- /* Size of the fixed-length portion of the signal */
- #define RR3_DRIVER_MAXLENS	128
-@@ -207,15 +211,22 @@ struct redrat3_dev {
- 	struct urb *flash_urb;
- 	u8 flash_in_buf;
- 
-+	/* learning */
-+	bool wideband;
-+	struct usb_ctrlrequest learn_control;
-+	struct urb *learn_urb;
-+	u8 learn_buf;
-+
- 	/* save off the usb device pointer */
- 	struct usb_device *udev;
- 
- 	/* the receive endpoint */
--	struct usb_endpoint_descriptor *ep_in;
-+	struct usb_endpoint_descriptor *ep_narrow;
- 	/* the buffer to receive data */
- 	void *bulk_in_buf;
- 	/* urb used to read ir data */
--	struct urb *read_urb;
-+	struct urb *narrow_urb;
-+	struct urb *wide_urb;
- 
- 	/* the send endpoint */
- 	struct usb_endpoint_descriptor *ep_out;
-@@ -236,23 +247,6 @@ struct redrat3_dev {
- 	char phys[64];
+ struct cinergyt2_state {
+ 	u8 rc_counter;
++	unsigned char data[64];
++	struct mutex data_mutex;
  };
  
--/*
-- * redrat3_issue_async
-- *
-- *  Issues an async read to the ir data in port..
-- *  sets the callback to be redrat3_handle_async
-- */
--static void redrat3_issue_async(struct redrat3_dev *rr3)
--{
--	int res;
--
--	res = usb_submit_urb(rr3->read_urb, GFP_ATOMIC);
--	if (res)
--		dev_dbg(rr3->dev,
--			"%s: receive request FAILED! (res %d, len %d)\n",
--			__func__, res, rr3->read_urb->transfer_buffer_length);
--}
--
- static void redrat3_dump_fw_error(struct redrat3_dev *rr3, int code)
+ /* We are missing a release hook with usb_device data */
+@@ -50,33 +52,52 @@ static struct dvb_usb_device_properties cinergyt2_properties;
+ 
+ static int cinergyt2_streaming_ctrl(struct dvb_usb_adapter *adap, int enable)
  {
- 	if (!rr3->transmitting && (code != 0x40))
-@@ -367,6 +361,14 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 
- 	mod_freq = redrat3_val_to_mod_freq(&rr3->irdata);
- 	dev_dbg(dev, "Got mod_freq of %u\n", mod_freq);
-+	if (mod_freq && rr3->wideband) {
-+		DEFINE_IR_RAW_EVENT(ev);
+-	char buf[] = { CINERGYT2_EP1_CONTROL_STREAM_TRANSFER, enable ? 1 : 0 };
+-	char result[64];
+-	return dvb_usb_generic_rw(adap->dev, buf, sizeof(buf), result,
+-				sizeof(result), 0);
++	struct dvb_usb_device *d = adap->dev;
++	struct cinergyt2_state *st = d->priv;
++	int ret;
 +
-+		ev.carrier_report = 1;
-+		ev.carrier = mod_freq;
++	mutex_lock(&st->data_mutex);
++	st->data[0] = CINERGYT2_EP1_CONTROL_STREAM_TRANSFER;
++	st->data[1] = enable ? 1 : 0;
 +
-+		ir_raw_event_store(rr3->rc, &ev);
-+	}
++	ret = dvb_usb_generic_rw(d, st->data, 2, st->data, 64, 0);
++	mutex_unlock(&st->data_mutex);
++
++	return ret;
+ }
  
- 	/* process each rr3 encoded byte into an int */
- 	sig_size = be16_to_cpu(rr3->irdata.sig_size);
-@@ -449,19 +451,31 @@ static int redrat3_enable_detector(struct redrat3_dev *rr3)
- 		return -EIO;
+ static int cinergyt2_power_ctrl(struct dvb_usb_device *d, int enable)
+ {
+-	char buf[] = { CINERGYT2_EP1_SLEEP_MODE, enable ? 0 : 1 };
+-	char state[3];
+-	return dvb_usb_generic_rw(d, buf, sizeof(buf), state, sizeof(state), 0);
++	struct cinergyt2_state *st = d->priv;
++	int ret;
++
++	mutex_lock(&st->data_mutex);
++	st->data[0] = CINERGYT2_EP1_SLEEP_MODE;
++	st->data[1] = enable ? 0 : 1;
++
++	ret = dvb_usb_generic_rw(d, st->data, 2, st->data, 3, 0);
++	mutex_unlock(&st->data_mutex);
++
++	return ret;
+ }
+ 
+ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+-	char query[] = { CINERGYT2_EP1_GET_FIRMWARE_VERSION };
+-	char state[3];
++	struct dvb_usb_device *d = adap->dev;
++	struct cinergyt2_state *st = d->priv;
+ 	int ret;
+ 
+ 	adap->fe_adap[0].fe = cinergyt2_fe_attach(adap->dev);
+ 
+-	ret = dvb_usb_generic_rw(adap->dev, query, sizeof(query), state,
+-				sizeof(state), 0);
++	mutex_lock(&st->data_mutex);
++	st->data[0] = CINERGYT2_EP1_GET_FIRMWARE_VERSION;
++
++	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
+ 	if (ret < 0) {
+ 		deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
+ 			"state info\n");
+ 	}
++	mutex_unlock(&st->data_mutex);
+ 
+ 	/* Copy this pointer as we are gonna need it in the release phase */
+ 	cinergyt2_usb_device = adap->dev;
+@@ -141,13 +162,16 @@ static int repeatable_keys[] = {
+ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+ 	struct cinergyt2_state *st = d->priv;
+-	u8 key[5] = {0, 0, 0, 0, 0}, cmd = CINERGYT2_EP1_GET_RC_EVENTS;
+ 	int i;
+ 
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 
+-	dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
+-	if (key[4] == 0xff) {
++	mutex_lock(&st->data_mutex);
++	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
++
++	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
++
++	if (st->data[4] == 0xff) {
+ 		/* key repeat */
+ 		st->rc_counter++;
+ 		if (st->rc_counter > RC_REPEAT_DELAY) {
+@@ -157,31 +181,45 @@ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 					*event = d->last_event;
+ 					deb_rc("repeat key, event %x\n",
+ 						   *event);
+-					return 0;
++					goto ret;
+ 				}
+ 			}
+ 			deb_rc("repeated key (non repeatable)\n");
+ 		}
+-		return 0;
++		goto ret;
  	}
  
--	redrat3_issue_async(rr3);
-+	ret = usb_submit_urb(rr3->narrow_urb, GFP_KERNEL);
-+	if (ret) {
-+		dev_err(rr3->dev, "narrow band urb failed: %d", ret);
-+		return ret;
-+	}
+ 	/* hack to pass checksum on the custom field */
+-	key[2] = ~key[1];
+-	dvb_usb_nec_rc_key_to_event(d, key, event, state);
+-	if (key[0] != 0) {
++	st->data[2] = ~st->data[1];
++	dvb_usb_nec_rc_key_to_event(d, st->data, event, state);
++	if (st->data[0] != 0) {
+ 		if (*event != d->last_event)
+ 			st->rc_counter = 0;
  
+-		deb_rc("key: %*ph\n", 5, key);
++		deb_rc("key: %*ph\n", 5, st->data);
+ 	}
 -	return 0;
-+	ret = usb_submit_urb(rr3->wide_urb, GFP_KERNEL);
-+	if (ret)
-+		dev_err(rr3->dev, "wide band urb failed: %d", ret);
 +
++ret:
++	mutex_unlock(&st->data_mutex);
 +	return ret;
  }
  
- static inline void redrat3_delete(struct redrat3_dev *rr3,
- 				  struct usb_device *udev)
+ static int cinergyt2_usb_probe(struct usb_interface *intf,
+ 				const struct usb_device_id *id)
  {
--	usb_kill_urb(rr3->read_urb);
-+	usb_kill_urb(rr3->narrow_urb);
-+	usb_kill_urb(rr3->wide_urb);
- 	usb_kill_urb(rr3->flash_urb);
--	usb_free_urb(rr3->read_urb);
-+	usb_kill_urb(rr3->learn_urb);
-+	usb_free_urb(rr3->narrow_urb);
-+	usb_free_urb(rr3->wide_urb);
- 	usb_free_urb(rr3->flash_urb);
--	usb_free_coherent(udev, le16_to_cpu(rr3->ep_in->wMaxPacketSize),
-+	usb_free_urb(rr3->learn_urb);
-+	usb_free_coherent(udev, le16_to_cpu(rr3->ep_narrow->wMaxPacketSize),
- 			  rr3->bulk_in_buf, rr3->dma_in);
- 
- 	kfree(rr3);
-@@ -694,9 +708,19 @@ static void redrat3_handle_async(struct urb *urb)
- 	switch (urb->status) {
- 	case 0:
- 		ret = redrat3_get_ir_data(rr3, urb->actual_length);
-+		if (!ret && rr3->wideband && !rr3->learn_urb->hcpriv) {
-+			ret = usb_submit_urb(rr3->learn_urb, GFP_ATOMIC);
-+			if (ret)
-+				dev_err(rr3->dev, "Failed to submit learning urb: %d",
-+									ret);
-+		}
+-	return dvb_usb_device_init(intf, &cinergyt2_properties,
+-					THIS_MODULE, NULL, adapter_nr);
++	struct dvb_usb_device *d;
++	struct cinergyt2_state *st;
++	int ret;
 +
- 		if (!ret) {
- 			/* no error, prepare to read more */
--			redrat3_issue_async(rr3);
-+			ret = usb_submit_urb(urb, GFP_ATOMIC);
-+			if (ret)
-+				dev_err(rr3->dev, "Failed to resubmit urb: %d",
-+									ret);
- 		}
- 		break;
- 
-@@ -856,6 +880,42 @@ static void redrat3_brightness_set(struct led_classdev *led_dev, enum
- 	}
++	ret = dvb_usb_device_init(intf, &cinergyt2_properties,
++				  THIS_MODULE, &d, adapter_nr);
++	if (ret < 0)
++		return ret;
++
++	st = d->priv;
++	mutex_init(&st->data_mutex);
++
++	return 0;
  }
  
-+static int redrat3_wideband_receiver(struct rc_dev *rcdev, int enable)
-+{
-+	struct redrat3_dev *rr3 = rcdev->priv;
-+	int ret = 0;
-+
-+	rr3->wideband = enable != 0;
-+
-+	if (enable) {
-+		ret = usb_submit_urb(rr3->learn_urb, GFP_KERNEL);
-+		if (ret)
-+			dev_err(rr3->dev, "Failed to submit learning urb: %d",
-+									ret);
-+	}
-+
-+	return ret;
-+}
-+
-+static void redrat3_learn_complete(struct urb *urb)
-+{
-+	struct redrat3_dev *rr3 = urb->context;
-+
-+	switch (urb->status) {
-+	case 0:
-+		break;
-+	case -ECONNRESET:
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		usb_unlink_urb(urb);
-+		return;
-+	case -EPIPE:
-+	default:
-+		dev_err(rr3->dev, "Error: learn urb status = %d", urb->status);
-+		break;
-+	}
-+}
-+
- static void redrat3_led_complete(struct urb *urb)
- {
- 	struct redrat3_dev *rr3 = urb->context;
-@@ -910,6 +970,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
- 	rc->s_timeout = redrat3_set_timeout;
- 	rc->tx_ir = redrat3_transmit_ir;
- 	rc->s_tx_carrier = redrat3_set_tx_carrier;
-+	rc->s_carrier_report = redrat3_wideband_receiver;
- 	rc->driver_name = DRIVER_NAME;
- 	rc->rx_resolution = US_TO_NS(2);
- 	rc->map_name = RC_MAP_HAUPPAUGE;
-@@ -935,7 +996,8 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	struct usb_host_interface *uhi;
- 	struct redrat3_dev *rr3;
- 	struct usb_endpoint_descriptor *ep;
--	struct usb_endpoint_descriptor *ep_in = NULL;
-+	struct usb_endpoint_descriptor *ep_narrow = NULL;
-+	struct usb_endpoint_descriptor *ep_wide = NULL;
- 	struct usb_endpoint_descriptor *ep_out = NULL;
- 	u8 addr, attrs;
- 	int pipe, i;
-@@ -949,15 +1011,16 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 		addr = ep->bEndpointAddress;
- 		attrs = ep->bmAttributes;
  
--		if ((ep_in == NULL) &&
--		    ((addr & USB_ENDPOINT_DIR_MASK) == USB_DIR_IN) &&
-+		if (((addr & USB_ENDPOINT_DIR_MASK) == USB_DIR_IN) &&
- 		    ((attrs & USB_ENDPOINT_XFERTYPE_MASK) ==
- 		     USB_ENDPOINT_XFER_BULK)) {
- 			dev_dbg(dev, "found bulk-in endpoint at 0x%02x\n",
- 				ep->bEndpointAddress);
--			/* data comes in on 0x82, 0x81 is for other data... */
--			if (ep->bEndpointAddress == RR3_BULK_IN_EP_ADDR)
--				ep_in = ep;
-+			/* data comes in on 0x82, 0x81 is for learning */
-+			if (ep->bEndpointAddress == RR3_NARROW_IN_EP_ADDR)
-+				ep_narrow = ep;
-+			if (ep->bEndpointAddress == RR3_WIDE_IN_EP_ADDR)
-+				ep_wide = ep;
- 		}
- 
- 		if ((ep_out == NULL) &&
-@@ -970,8 +1033,8 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 		}
- 	}
- 
--	if (!ep_in || !ep_out) {
--		dev_err(dev, "Couldn't find both in and out endpoints\n");
-+	if (!ep_narrow || !ep_out || !ep_wide) {
-+		dev_err(dev, "Couldn't find all endpoints\n");
- 		retval = -ENODEV;
- 		goto no_endpoints;
- 	}
-@@ -982,25 +1045,38 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 		goto no_endpoints;
- 
- 	rr3->dev = &intf->dev;
--	rr3->ep_in = ep_in;
-+	rr3->ep_narrow = ep_narrow;
- 	rr3->ep_out = ep_out;
- 	rr3->udev = udev;
- 
- 	/* set up bulk-in endpoint */
--	rr3->read_urb = usb_alloc_urb(0, GFP_KERNEL);
--	if (!rr3->read_urb)
-+	rr3->narrow_urb = usb_alloc_urb(0, GFP_KERNEL);
-+	if (!rr3->narrow_urb)
-+		goto redrat_free;
-+
-+	rr3->wide_urb = usb_alloc_urb(0, GFP_KERNEL);
-+	if (!rr3->wide_urb)
- 		goto redrat_free;
- 
- 	rr3->bulk_in_buf = usb_alloc_coherent(udev,
--		le16_to_cpu(ep_in->wMaxPacketSize), GFP_KERNEL, &rr3->dma_in);
-+		le16_to_cpu(ep_narrow->wMaxPacketSize),
-+		GFP_KERNEL, &rr3->dma_in);
- 	if (!rr3->bulk_in_buf)
- 		goto redrat_free;
- 
--	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
--	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
--		le16_to_cpu(ep_in->wMaxPacketSize), redrat3_handle_async, rr3);
--	rr3->read_urb->transfer_dma = rr3->dma_in;
--	rr3->read_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-+	pipe = usb_rcvbulkpipe(udev, ep_narrow->bEndpointAddress);
-+	usb_fill_bulk_urb(rr3->narrow_urb, udev, pipe, rr3->bulk_in_buf,
-+		le16_to_cpu(ep_narrow->wMaxPacketSize),
-+		redrat3_handle_async, rr3);
-+	rr3->narrow_urb->transfer_dma = rr3->dma_in;
-+	rr3->narrow_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-+
-+	pipe = usb_rcvbulkpipe(udev, ep_wide->bEndpointAddress);
-+	usb_fill_bulk_urb(rr3->wide_urb, udev, pipe, rr3->bulk_in_buf,
-+		le16_to_cpu(ep_narrow->wMaxPacketSize),
-+		redrat3_handle_async, rr3);
-+	rr3->wide_urb->transfer_dma = rr3->dma_in;
-+	rr3->wide_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
- 	redrat3_reset(rr3);
- 	redrat3_get_firmware_rev(rr3);
-@@ -1013,6 +1089,21 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	if (!rr3->flash_urb)
- 		goto redrat_free;
- 
-+	/* learn urb */
-+	rr3->learn_urb = usb_alloc_urb(0, GFP_KERNEL);
-+	if (!rr3->learn_urb)
-+		goto redrat_free;
-+
-+	/* setup packet is 'c0 b2 0000 0000 0001' */
-+	rr3->learn_control.bRequestType = 0xc0;
-+	rr3->learn_control.bRequest = RR3_MODSIG_CAPTURE;
-+	rr3->learn_control.wLength = cpu_to_le16(1);
-+
-+	usb_fill_control_urb(rr3->learn_urb, udev, usb_rcvctrlpipe(udev, 0),
-+			(unsigned char *)&rr3->learn_control,
-+			&rr3->learn_buf, sizeof(rr3->learn_buf),
-+			redrat3_learn_complete, rr3);
-+
- 	/* setup packet is 'c0 b9 0000 0000 0001' */
- 	rr3->flash_control.bRequestType = 0xc0;
- 	rr3->flash_control.bRequest = RR3_BLINK_LED;
-@@ -1072,7 +1163,8 @@ static int redrat3_dev_suspend(struct usb_interface *intf, pm_message_t message)
- 	struct redrat3_dev *rr3 = usb_get_intfdata(intf);
- 
- 	led_classdev_suspend(&rr3->led);
--	usb_kill_urb(rr3->read_urb);
-+	usb_kill_urb(rr3->narrow_urb);
-+	usb_kill_urb(rr3->wide_urb);
- 	usb_kill_urb(rr3->flash_urb);
- 	return 0;
- }
-@@ -1081,7 +1173,9 @@ static int redrat3_dev_resume(struct usb_interface *intf)
- {
- 	struct redrat3_dev *rr3 = usb_get_intfdata(intf);
- 
--	if (usb_submit_urb(rr3->read_urb, GFP_ATOMIC))
-+	if (usb_submit_urb(rr3->narrow_urb, GFP_ATOMIC))
-+		return -EIO;
-+	if (usb_submit_urb(rr3->wide_urb, GFP_ATOMIC))
- 		return -EIO;
- 	led_classdev_resume(&rr3->led);
- 	return 0;
 -- 
 2.7.4
+
 
