@@ -1,43 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50561 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753210AbcJNMKy (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39803 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752132AbcJKKiC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 08:10:54 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 0/2] [media] DMA direction support in vb2_queue
-Date: Fri, 14 Oct 2016 14:08:12 +0200
-Message-Id: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Tue, 11 Oct 2016 06:38:02 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 24/31] dvb-usb: warn if return value for USB read/write routines is not checked
+Date: Tue, 11 Oct 2016 07:09:39 -0300
+Message-Id: <81bf337cfb66f34d6c7417cd363a11fd220bd284.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+the return values for dvb_usb_generic_rw() and dvb_usb_generic_write()
+should be checked, as otherwise the drivers won't be doing the right
+thing in the case of errors.
 
-This series adds a dma_dir field to the vb2_queue structure in order to
-store the DMA direction once for all in vb2_queue_init();
+So, add __must_check to both declarations.
 
-It also adds a new use_dma_bidirectional flag to the vb2_queue structure
-allowing the hardware to read from the CAPTURE buffer. This flag is
-ignored for OUTPUT queues. This is used on ChromeOS by the rockchip-vpu
-driver.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/dvb-usb.h | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Pawel Osciak (2):
-  [media] vb2: Store dma_dir in vb2_queue
-  [media] vb2: Add support for use_dma_bidirectional queue flag
-
- drivers/media/v4l2-core/videobuf2-core.c | 12 +++---------
- drivers/media/v4l2-core/videobuf2-v4l2.c |  6 ++++++
- include/media/videobuf2-core.h           |  6 ++++++
- 3 files changed, 15 insertions(+), 9 deletions(-)
-
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
+index 639c4678c65b..1448c3d27ea2 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb.h
++++ b/drivers/media/usb/dvb-usb/dvb-usb.h
+@@ -462,8 +462,10 @@ extern int dvb_usb_device_init(struct usb_interface *,
+ extern void dvb_usb_device_exit(struct usb_interface *);
+ 
+ /* the generic read/write method for device control */
+-extern int dvb_usb_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16,int);
+-extern int dvb_usb_generic_write(struct dvb_usb_device *, u8 *, u16);
++extern int __must_check
++dvb_usb_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16, int);
++extern int __must_check
++dvb_usb_generic_write(struct dvb_usb_device *, u8 *, u16);
+ 
+ /* commonly used remote control parsing */
+ extern int dvb_usb_nec_rc_key_to_event(struct dvb_usb_device *, u8[], u32 *, int *);
 -- 
 2.7.4
+
 
