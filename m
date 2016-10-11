@@ -1,72 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:58521 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965819AbcJ0OI4 (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:30323 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753232AbcJKUSb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 10:08:56 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+        Tue, 11 Oct 2016 16:18:31 -0400
+To: Christoph Hellwig <hch@lst.de>
+Cc: hans.verkuil@cisco.com, brking@us.ibm.com,
+        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
+        alex.williamson@redhat.com, kvm@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] dvb: avoid warning in dvb_net
-Date: Thu, 27 Oct 2016 15:57:41 +0200
-Message-Id: <20161027140835.2345937-1-arnd@arndb.de>
+Subject: Re: [PATCH 2/6] ipr: use pci_irq_allocate_vectors
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
+References: <1473600688-24043-1-git-send-email-hch@lst.de>
+        <1473600688-24043-3-git-send-email-hch@lst.de>
+Date: Tue, 11 Oct 2016 16:18:05 -0400
+In-Reply-To: <1473600688-24043-3-git-send-email-hch@lst.de> (Christoph
+        Hellwig's message of "Sun, 11 Sep 2016 15:31:24 +0200")
+Message-ID: <yq1twciod1e.fsf@sermon.lab.mkp.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With gcc-5 or higher on x86, we can get a bogus warning in the
-dvb-net code:
+>>>>> "Christoph" == Christoph Hellwig <hch@lst.de> writes:
 
-drivers/media/dvb-core/dvb_net.c: In function ‘dvb_net_ule’:
-arch/x86/include/asm/string_32.h:77:14: error: ‘dest_addr’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-drivers/media/dvb-core/dvb_net.c:633:8: note: ‘dest_addr’ was declared here
+Christoph> Switch the ipr driver to use pci_alloc_irq_vectors.  We need
+Christoph> to two calls to pci_alloc_irq_vectors as ipr only supports
+Christoph> multiple MSI-X vectors, but not multiple MSI vectors.
 
-The problem here is that gcc doesn't track all of the conditions
-to prove it can't end up copying uninitialized data.
-This changes the logic around so we zero out the destination
-address earlier when we determine that it is not set here.
-This allows the compiler to figure it out.
+Christoph> Otherwise this cleans up a lot of cruft and allows to use a
+Christoph> common request_irq loop for irq types, which happens to only
+Christoph> iterate over a single line in the non MSI-X case.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/dvb-core/dvb_net.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+Applied to 4.10/scsi-queue.
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index 088914c4623f..f1b416de9dab 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -688,6 +688,9 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 							      ETH_ALEN);
- 						skb_pull(priv->ule_skb, ETH_ALEN);
- 					}
-+				} else {
-+					 /* othersie use zero destination address */
-+					eth_zero_addr(dest_addr);
- 				}
- 
- 				/* Handle ULE Extension Headers. */
-@@ -715,13 +718,8 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 				if (!priv->ule_bridged) {
- 					skb_push(priv->ule_skb, ETH_HLEN);
- 					ethh = (struct ethhdr *)priv->ule_skb->data;
--					if (!priv->ule_dbit) {
--						 /* dest_addr buffer is only valid if priv->ule_dbit == 0 */
--						memcpy(ethh->h_dest, dest_addr, ETH_ALEN);
--						eth_zero_addr(ethh->h_source);
--					}
--					else /* zeroize source and dest */
--						memset( ethh, 0, ETH_ALEN*2 );
-+					memcpy(ethh->h_dest, dest_addr, ETH_ALEN);
-+					eth_zero_addr(ethh->h_source);
- 
- 					ethh->h_proto = htons(priv->ule_sndu_type);
- 				}
 -- 
-2.9.0
-
+Martin K. Petersen	Oracle Linux Engineering
