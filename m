@@ -1,62 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36032
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964819AbcJQPoh (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:33559 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753633AbcJKPox (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 11:44:37 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 2/5] [media] v4l: rcar-fcp: Fix module autoload for OF registration
-Date: Mon, 17 Oct 2016 12:44:09 -0300
-Message-Id: <1476719053-17600-3-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
-References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+        Tue, 11 Oct 2016 11:44:53 -0400
+Received: by mail-lf0-f67.google.com with SMTP id l131so1725024lfl.0
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 08:44:52 -0700 (PDT)
+Date: Tue, 11 Oct 2016 17:44:48 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, liviu.dudau@arm.com,
+        robdclark@gmail.com, hverkuil@xs4all.nl, eric@anholt.net,
+        ville.syrjala@linux.intel.com, daniel@ffwll.ch
+Subject: Re: [RFC PATCH 02/11] drm/fb-helper: Skip writeback connectors
+Message-ID: <20161011154448.GE20761@phenom.ffwll.local>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+ <1476197648-24918-3-git-send-email-brian.starkey@arm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1476197648-24918-3-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the driver is built as a module, autoload won't work because the module
-alias information is not filled. So user-space can't match the registered
-device with the corresponding module.
+On Tue, Oct 11, 2016 at 03:53:59PM +0100, Brian Starkey wrote:
+> Writeback connectors aren't much use to the fbdev helpers, as they won't
+> show anything to the user. Skip them when looking for candidate output
+> configurations.
+> 
+> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+> ---
+>  drivers/gpu/drm/drm_fb_helper.c |    4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+> index 03414bd..dedf6e7 100644
+> --- a/drivers/gpu/drm/drm_fb_helper.c
+> +++ b/drivers/gpu/drm/drm_fb_helper.c
+> @@ -2016,6 +2016,10 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
+>  	if (modes[n] == NULL)
+>  		return best_score;
+>  
+> +	/* Writeback connectors aren't much use for fbdev */
+> +	if (connector->connector_type == DRM_MODE_CONNECTOR_WRITEBACK)
+> +		return best_score;
 
-Export the module alias information using the MODULE_DEVICE_TABLE() macro.
+I think we could handle this by always marking writeback connectors as
+disconnected. Userspace and fbdev emulation should then avoid them,
+always.
+-Daniel
 
-Before this patch:
+> +
+>  	crtcs = kzalloc(fb_helper->connector_count *
+>  			sizeof(struct drm_fb_helper_crtc *), GFP_KERNEL);
+>  	if (!crtcs)
+> -- 
+> 1.7.9.5
+> 
 
-$ modinfo drivers/media/platform/rcar-fcp.ko | grep alias
-alias:          rcar-fcp
-
-After this patch:
-
-$ modinfo drivers/media/platform/rcar-fcp.ko | grep alias
-alias:          rcar-fcp
-alias:          of:N*T*Crenesas,fcpvC*
-alias:          of:N*T*Crenesas,fcpv
-alias:          of:N*T*Crenesas,fcpfC*
-alias:          of:N*T*Crenesas,fcpf
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- drivers/media/platform/rcar-fcp.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
-index f3a3f31cdfa9..7146fc5ef168 100644
---- a/drivers/media/platform/rcar-fcp.c
-+++ b/drivers/media/platform/rcar-fcp.c
-@@ -169,6 +169,7 @@ static const struct of_device_id rcar_fcp_of_match[] = {
- 	{ .compatible = "renesas,fcpv" },
- 	{ },
- };
-+MODULE_DEVICE_TABLE(of, rcar_fcp_of_match);
- 
- static struct platform_driver rcar_fcp_platform_driver = {
- 	.probe		= rcar_fcp_probe,
 -- 
-2.7.4
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
