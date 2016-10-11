@@ -1,191 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.140]:45619 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753115AbcJ0BIU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 21:08:20 -0400
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        "posciak@chromium.org" <posciak@chromium.org>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
-Cc: Florent Revest <florent.revest@free-electrons.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>,
-        "eddie.cai" <eddie.cai@rock-chips.com>,
-        "linux-rockchip@lists.infradead.org"
-        <linux-rockchip@lists.infradead.org>,
-        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
-        =?UTF-8?B?5p6X6YeR5Y+R?= <alpha.lin@rock-chips.com>
-From: Randy Li <randy.li@rock-chips.com>
-Message-ID: <aab23d5d-d41d-78e1-7324-77b9d98ee127@rock-chips.com>
-Date: Thu, 27 Oct 2016 09:08:08 +0800
-MIME-Version: 1.0
-In-Reply-To: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp1.goneo.de ([85.220.129.30]:38888 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752854AbcJKQHL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 12:07:11 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <87vawyyk5v.fsf@intel.com>
+Date: Tue, 11 Oct 2016 18:06:46 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <E8B76D61-2072-431B-AAB0-E85475D7BFB6@darmarit.de>
+References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de> <87oa2xrhqx.fsf@intel.com> <20161006103132.3a56802a@vento.lan> <87lgy15zin.fsf@intel.com> <20161006135028.2880f5a5@vento.lan> <8737k8ya6f.fsf@intel.com> <8E74FF11-208D-4C76-8A8C-2B2102E5CB20@darmarit.de> <20161011112853.01e15632@vento.lan> <87vawyyk5v.fsf@intel.com>
+To: Jani Nikula <jani.nikula@intel.com>,
+        Jonathan Corbet <corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Am 11.10.2016 um 17:34 schrieb Jani Nikula <jani.nikula@intel.com>:
 
-On 10/26/2016 11:09 PM, Hugues FRUCHET wrote:
-> Hi,
->
->
->
-> This RFC aims to start discussions in order to define the codec specific
-> controls structures to fulfill the low-level decoder API needed by non
-> “Stream API” based decoders (“stateless” or “Frame API” based decoders).
->
-> Several implementation exists now which runs on several SoC and various
-> software frameworks.
->
-> The idea is to find the communalities between all those implementations
-> and SoC to define a single unified interface in V4L2 includes.
->
-> Even if “Request API” is needed to pass those codec specific controls
-> from userspace down to kernel on a per-buffer basis, we can start
-> discussions and define the controls in parallel of its development.
-Yes, I have sent a one for H.264 decoder and JPEG encoder.
->
-> We can even propose some implementations based on existing V4L2 control
-> framework (which doesn’t support “per-frame” basis) by ensuring
-> atomicity of sequence S_EXT_CTRL(header[i])/QBUF(stream[i]). Constraint
-> can then be relaxed when “Request API” is merged.
->
->
->
-> I would like to propose to work on a “per-codec” basis, having at least
-> 2 different SoC and 2 different frameworks to test and validate controls.
->
-> To do so, I have tried to identify some people that have worked on this
-> subject and have proposed some implementations, feel free to correct me
-> and enhance the list if needed:
->
-> * MPEG2/MPEG4
->
->    - Florent Revest for Allwinner A13 CedarX support [1] tested with VLC
-> -> libVA + sunxi-cedrus-drv-video -> V4L2
->
->    - Myself for STMicroelectronics Delta support [2] tested with
-> GStreamer V4L2 -> libv4l2 + libv4l-delta plugin -> V4L2
->
->
->
-> * VP8
->
-> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [3] tested with
-> Chromium -> V4L2
->
-> - Jung Zhao for Rockchip RK3288 VPU support [4] <cannot find the
-> framework used>
-There is rockchip VDPAU driver supporting it, but it is .
->
->
->
-> * H264
->
-> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [5] tested with
-> Chromium -> V4L2
->
-> - Randy Li for Rockchip RK3288  VPU support [6] tested with VLC? ->
-> libVA + rockchip-va-driver -> V4L2
-I only tested it with Gstreamer -> VA-API element -> Rockchip VA-API 
-driver -> V4L2
->
->                                                                                                                          VLC?
-> -> libVDPAU + rockchip-va-driver -> V4L2
->
-> I can work to define MPEG2/MPEG4 controls and propose functional
-> implementations for those codecs, and will be glad to co-work with you
-> Florent.
-But it may not work with Rockchip's SoC, you may check the following branch
-https://github.com/hizukiayaka/rockchip-video-driver/tree/rk_v4l2_mix
->
-> I can help on H264 on a code review basis based on the functional H264
-> setup I have in-house and codec knowledge, but I cannot provide
-> implementation in a reasonable timeframe, same for VP8.
->
->
->
-> Apart of very details of each codec, we have also to state about generic
-> concerns such as:
->
-> -          new pixel format introduction (VP8 => VP8F, H264 => S264,
-> MPG2 => MG2F, MPG4 => MG4F)
-I don't think it is necessary.
->
-> -          new device caps to indicate that driver requires extra
-> headers ? maybe not needed because redundant with new pixel format
-I prefer this one.
->
-> -          continue to modify v4l2-controls.h ? or do we add some new
-> specific header files (H264 is huge!) ?
-Not huge. You could check rockchip's kernel.
->
-> -          how to manage sequence header & picture header,
-> optional/extended controls (MPEG2 sequence/picture extensions, H264 SEI,
-> …). Personally I have added flags inside a single control structure,
-> H264 is done in a different way using several controls
-> (SPS/PPS/SLICE/DECODE/…)
-the last one is dpb, except the dpb, it would have the same numbers of 
-controls to those structures defined in VA-API H264 decoder.
->
->
-> Thanks you to all of you for your attention and feel free to react on
-> this topic if you are interested to work on this subject.
-Currently, I have to pause the process of VA-API drive, and moving to 
-the other idea I have said before, creating a new API in userspace(but 
-won't archive the goal I set before in this step). There are some 
-shortages in VA-API I have said in last email making the performance in 
-4K video and extending the Gstreamer VA-API is a little difficult job 
-and need more time.
-And the development for the new VPU driver for rockchip would pause a 
-while as well.
+> On Tue, 11 Oct 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+>> Em Tue, 11 Oct 2016 09:26:48 +0200
+>> Markus Heiser <markus.heiser@darmarit.de> escreveu:
+>> 
+>>> Am 07.10.2016 um 07:56 schrieb Jani Nikula <jani.nikula@intel.com>:
+>>> 
+>>>> On Thu, 06 Oct 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:  
+>>>>> Em Thu, 06 Oct 2016 17:21:36 +0300
+>>>>> Jani Nikula <jani.nikula@intel.com> escreveu:  
+>>>>>> We've seen what happens when we make it easy to add random scripts to
+>>>>>> build documentation. We've worked hard to get rid of that. In my books,
+>>>>>> one of the bigger points in favor of Sphinx over AsciiDoc(tor) was
+>>>>>> getting rid of all the hacks required in the build. Things that broke in
+>>>>>> subtle ways.  
+>>>>> 
+>>>>> I really can't see what scripts it get rids.  
+>>>> 
+>>>> Really? You don't see why the DocBook build was so fragile and difficult
+>>>> to maintain? That scares me a bit, because then you will not have
+>>>> learned why we should at all costs avoid adding random scripts to
+>>>> produce documentation.  
+>>> 
+>>> For me, disassembling the DocBok build was hard and bothersome, I don't
+>>> want this back.
+>>> 
+>>> IMO: old hats are productive with perl and they won't adapt another
+>>> interpreter language (like python) for scripting. 
+>>> 
+>>> This series -- the kernel-cmd -- directive avoid that they build
+>>> fragile and difficult to maintain Makefile constructs, calling their
+>>> perl scripts.
+>>> 
+>>> Am 06.10.2016 um 16:21 schrieb Jani Nikula <jani.nikula@intel.com>:
+>>> 
+>>>> This is connected to the above: keeping documentation buildable with
+>>>> sphinx-build directly will force you to avoid the Makefile hacks.  
+>>> 
+>>> 
+>>> Thats why I think, that the kernel-cmd directive is a more *straight-
+>>> forward* solution, helps to **avoid** complexity while not everyone
+>>> has to script in python ... 
+>>> 
+>>>> Case in point, parse-headers.pl was added for a specific need of media
+>>>> documentation, and for the life of me I can't figure out by reading the
+>>>> script what good, if any, it would be for gpu documentation. I call
+>>>> *that* unmaintainable.  
+>>> 
+>>> 
+>>> If one adds a script like parse-headers.pl to the Documentation/sphinx 
+>>> folder, he/she also has to add a documentation to the kernel-documentation.rst
+>>> 
+>>> If the kernel-cmd directive gets acked, I will add a description to
+>>> kernel-documentation.rst and I request Mauro to document the parse-headers.pl
+>>> also.
+>> 
+>> I can write documentation for parse-headers.pl, either as a --help/--man
+>> option or at some ReST file (or both). I'll add this to my mental TODO
+>> list.
+> 
+> Thanks, documentation will help everyone else evaluate whether
+> parse-headers.pl is only useful for some corner case in media docs, or
+> perhaps more generally useful. Currently, it's hard to tell.
+> 
+> Anyway, documentation does not change my view on adding such scripts. As
+> I've said, I think they will make the documentation build more difficult
+> to maintain. They are likely to become special purpose hacks for corner
+> cases across documentation.
 
-It would not be a long time(a few weeks) and I am still available in my 
-free time(at home). It is good to know the wheel begin to roll. And do 
-feel free to assign job to me.
->
->
->
-> Best regards,
->
-> Hugues.
->
->
->
-> [0] [ANN] Codec & Request API Brainstorm meeting Oct 10 & 11
-> https://www.spinics.net/lists/linux-media/msg106699.html
->
-> [1] MPEG2 A13 CedarX http://www.spinics.net/lists/linux-media/msg104823.html
->
-> [1] MPEG4 A13 CedarX http://www.spinics.net/lists/linux-media/msg104817.html
->
-> [2] MPEG2 STi4xx Delta
-> http://www.spinics.net/lists/linux-media/msg106240.html
->
-> [2] MPEG4 STi4xx Delta is also supported but not yet pushed
->
-> [3] VP8 Rockchip RK3288, RK3399? VPU
-> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0002-CHROMIUM-v4l-Add-VP8-low-level-decoder-API-controls.patch
->
->
-> [4] VP8 Rockchip RK3288 VPU
-> http://www.spinics.net/lists/linux-media/msg97997.html
->
-> [5] H264 Rockchip RK3288, RK3399? VPU
-> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0001-CHROMIUM-media-headers-Import-V4L2-headers-from-Chro.patch
->
-> [6] H264 Rockchip RK3288 VPU
-> http://www.spinics.net/lists/linux-media/msg105095.html
->
->
->
+Hmm, why not generating reST content by (Perl) scripts? From my POV,
+the scripts/kernel-doc is such a script and parse-headers.pl
+is just another. The only difference of both is, that kernel-doc
+has its own integration (directive) while kernel-cmd is a simple
+solution to call scripts (e.g. parse-headers.pl) within sphinx-build.
 
--- 
-Randy Li
-The third produce department
+Joking: the kernel-doc directive could replaced by
+        the kernel-cmd directive ;-)
+
+> The rest of what you say is unrelated to the patches at hand.
+
+I think Mauro want's to address your (justifiable) fear about
+complexity and hacks. IMO he says (by examples); "there are a lot of
+other hard to maintain hacks required, especially when it comes
+to build PDF".
+
+IMO, complexity is not reduced by prohibit scripts, it is
+ongoing job of the maintainers to observe. 
+
+Anyway, these are only my 2cent. I'am interested in what Jon says
+in general about using (Perl) scripts to generate reST content.
+
+--Markus--
 
