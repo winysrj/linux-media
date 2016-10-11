@@ -1,98 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f42.google.com ([209.85.213.42]:35353 "EHLO
-        mail-vk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751201AbcJFIaR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2016 04:30:17 -0400
-MIME-Version: 1.0
-In-Reply-To: <20161005155532.682258e2@vento.lan>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
- <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
- <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm> <20161005093417.6e82bd97@vdr>
- <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm> <20161005060450.1b0f2152@vento.lan>
- <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org> <20161005155532.682258e2@vento.lan>
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-Date: Thu, 6 Oct 2016 10:30:15 +0200
-Message-ID: <CADDKRnCV7YhD5ErkvWSL8P3adymCLqzp5OePYmGp0L=9Dt_=UA@mail.gmail.com>
-Subject: Re: Problem with VMAP_STACK=y
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Johannes Stezenbach <js@linuxtv.org>,
+Received: from bombadil.infradead.org ([198.137.202.9]:39720 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752400AbcJKKfX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 06:35:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
         Jiri Kosina <jikos@kernel.org>,
         Patrick Boettcher <patrick.boettcher@posteo.de>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Andy Lutomirski <luto@kernel.org>,
         Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 04/31] cinergyT2-fe: cache stats at cinergyt2_fe_read_status()
+Date: Tue, 11 Oct 2016 07:09:19 -0300
+Message-Id: <c5bd4af5538b03cdc94a8ba24226e99f8592162e.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-10-05 20:55 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>=
-:
-> Hi Johannes,
->
-> Em Wed, 5 Oct 2016 20:29:45 +0200
-> Johannes Stezenbach <js@linuxtv.org> escreveu:
->
->> On Wed, Oct 05, 2016 at 06:04:50AM -0300, Mauro Carvalho Chehab wrote:
->> >  static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
->> >  {
->> > -   char query[] =3D { CINERGYT2_EP1_GET_FIRMWARE_VERSION };
->> > -   char state[3];
->> > +   struct dvb_usb_device *d =3D adap->dev;
->> > +   struct cinergyt2_state *st =3D d->priv;
->> >     int ret;
->> >
->> >     adap->fe_adap[0].fe =3D cinergyt2_fe_attach(adap->dev);
->> >
->> > -   ret =3D dvb_usb_generic_rw(adap->dev, query, sizeof(query), state,
->> > -                           sizeof(state), 0);
->>
->> it seems to miss this:
->>
->>       st->data[0] =3D CINERGYT2_EP1_GET_FIRMWARE_VERSION;
->>
->> > +   ret =3D dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
->> >     if (ret < 0) {
->> >             deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
->> >                     "state info\n");
->> > @@ -141,13 +147,14 @@ static int repeatable_keys[] =3D {
->> >  static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, i=
-nt *state)
->> >  {
->> >     struct cinergyt2_state *st =3D d->priv;
->> > -   u8 key[5] =3D {0, 0, 0, 0, 0}, cmd =3D CINERGYT2_EP1_GET_RC_EVENTS=
-;
->> >     int i;
->> >
->> >     *state =3D REMOTE_NO_KEY_PRESSED;
->> >
->> > -   dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
->> > -   if (key[4] =3D=3D 0xff) {
->> > +   st->data[0] =3D CINERGYT2_EP1_SLEEP_MODE;
->>
->> should probably be
->>
->>       st->data[0] =3D CINERGYT2_EP1_GET_RC_EVENTS;
->>
->> > +
->> > +   dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
->>
->>
->> HTH,
->> Johannes
->
->
-> Thanks for the review! Yeah, you're right: both firmware and remote
-> controller logic would be broken without the above fixes.
->
-> Just sent a version 2 of this patch to the ML with the above fixes.
->
-> Regards,
-> Mauro
+Instead of sending USB commands for every stats call, collect
+them once, when status is updated. As the frontend kthread
+will call it on every few seconds, the stats will still be
+collected.
 
-Applied V2 of the patch. Unfortunately no progress.
-No video, no error messages.
+Besides reducing the amount of USB/I2C transfers, this also
+warrants that all stats will be collected at the same time,
+and makes easier to convert it to DVBv5 stats in the future.
 
-J=C3=B6rg
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/cinergyT2-fe.c | 48 +++++---------------------------
+ 1 file changed, 7 insertions(+), 41 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+index b3ec743a7a2e..fd8edcb56e61 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+@@ -139,6 +139,7 @@ static uint16_t compute_tps(struct dtv_frontend_properties *op)
+ struct cinergyt2_fe_state {
+ 	struct dvb_frontend fe;
+ 	struct dvb_usb_device *d;
++	struct dvbt_get_status_msg status;
+ };
+ 
+ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
+@@ -154,6 +155,8 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
+ 	if (ret < 0)
+ 		return ret;
+ 
++	state->status = result;
++
+ 	*status = 0;
+ 
+ 	if (0xffff - le16_to_cpu(result.gain) > 30)
+@@ -177,34 +180,16 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
+ static int cinergyt2_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0)
+-		return ret;
+-
+-	*ber = le32_to_cpu(status.viterbi_error_rate);
++	*ber = le32_to_cpu(state->status.viterbi_error_rate);
+ 	return 0;
+ }
+ 
+ static int cinergyt2_fe_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0) {
+-		err("cinergyt2_fe_read_unc_blocks() Failed! (Error=%d)\n",
+-			ret);
+-		return ret;
+-	}
+-	*unc = le32_to_cpu(status.uncorrected_block_count);
++	*unc = le32_to_cpu(state->status.uncorrected_block_count);
+ 	return 0;
+ }
+ 
+@@ -212,35 +197,16 @@ static int cinergyt2_fe_read_signal_strength(struct dvb_frontend *fe,
+ 						u16 *strength)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0) {
+-		err("cinergyt2_fe_read_signal_strength() Failed!"
+-			" (Error=%d)\n", ret);
+-		return ret;
+-	}
+-	*strength = (0xffff - le16_to_cpu(status.gain));
++	*strength = (0xffff - le16_to_cpu(state->status.gain));
+ 	return 0;
+ }
+ 
+ static int cinergyt2_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	struct dvbt_get_status_msg status;
+-	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
+-	int ret;
+ 
+-	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
+-				sizeof(status), 0);
+-	if (ret < 0) {
+-		err("cinergyt2_fe_read_snr() Failed! (Error=%d)\n", ret);
+-		return ret;
+-	}
+-	*snr = (status.snr << 8) | status.snr;
++	*snr = (state->status.snr << 8) | state->status.snr;
+ 	return 0;
+ }
+ 
+-- 
+2.7.4
+
+
