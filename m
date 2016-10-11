@@ -1,52 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59251 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757077AbcJNUWn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH 13/57] [media] dm1105: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:01 -0300
-Message-Id: <3e6fd01ab1c2133dc0347be5b6b0f920d41971d5.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from foss.arm.com ([217.140.101.70]:35436 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752138AbcJKOyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 10:54:43 -0400
+From: Brian Starkey <brian.starkey@arm.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        liviu.dudau@arm.com, robdclark@gmail.com, hverkuil@xs4all.nl,
+        eric@anholt.net, ville.syrjala@linux.intel.com, daniel@ffwll.ch
+Subject: [RFC PATCH 02/11] drm/fb-helper: Skip writeback connectors
+Date: Tue, 11 Oct 2016 15:53:59 +0100
+Message-Id: <1476197648-24918-3-git-send-email-brian.starkey@arm.com>
+In-Reply-To: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Writeback connectors aren't much use to the fbdev helpers, as they won't
+show anything to the user. Skip them when looking for candidate output
+configurations.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Brian Starkey <brian.starkey@arm.com>
 ---
- drivers/media/pci/dm1105/dm1105.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/drm_fb_helper.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
-index 5dd504741b12..a589aa78d1d9 100644
---- a/drivers/media/pci/dm1105/dm1105.c
-+++ b/drivers/media/pci/dm1105/dm1105.c
-@@ -315,8 +315,7 @@ static void dm1105_card_list(struct pci_dev *pci)
- 			"dm1105: Updating to the latest version might help\n"
- 			"dm1105: as well.\n");
- 	}
--	printk(KERN_ERR "Here is a list of valid choices for the card=<n> "
--		   "insmod option:\n");
-+	printk(KERN_ERR "Here is a list of valid choices for the card=<n> insmod option:\n");
- 	for (i = 0; i < ARRAY_SIZE(dm1105_boards); i++)
- 		printk(KERN_ERR "dm1105:    card=%d -> %s\n",
- 				i, dm1105_boards[i].name);
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index 03414bd..dedf6e7 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -2016,6 +2016,10 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
+ 	if (modes[n] == NULL)
+ 		return best_score;
+ 
++	/* Writeback connectors aren't much use for fbdev */
++	if (connector->connector_type == DRM_MODE_CONNECTOR_WRITEBACK)
++		return best_score;
++
+ 	crtcs = kzalloc(fb_helper->connector_count *
+ 			sizeof(struct drm_fb_helper_crtc *), GFP_KERNEL);
+ 	if (!crtcs)
 -- 
-2.7.4
-
+1.7.9.5
 
