@@ -1,232 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39768 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752505AbcJKQpg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 12:45:36 -0400
-Date: Tue, 11 Oct 2016 17:43:06 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, liviu.dudau@arm.com,
-        robdclark@gmail.com, hverkuil@xs4all.nl, eric@anholt.net,
-        ville.syrjala@linux.intel.com
-Subject: Re: [RFC PATCH 00/11] Introduce writeback connectors
-Message-ID: <20161011164305.GA14337@e106950-lin.cambridge.arm.com>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
- <20161011154359.GD20761@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20161011154359.GD20761@phenom.ffwll.local>
+Received: from mail-pf0-f179.google.com ([209.85.192.179]:33131 "EHLO
+        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753013AbcJKXur (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 19:50:47 -0400
+Received: by mail-pf0-f179.google.com with SMTP id 128so9709167pfz.0
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 16:50:46 -0700 (PDT)
+From: Ruchi Kandoi <kandoiruchi@google.com>
+To: kandoiruchi@google.com, gregkh@linuxfoundation.org,
+        arve@android.com, riandrews@android.com, sumit.semwal@linaro.org,
+        arnd@arndb.de, labbott@redhat.com, viro@zeniv.linux.org.uk,
+        jlayton@poochiereds.net, bfields@fieldses.org, mingo@redhat.com,
+        peterz@infradead.org, akpm@linux-foundation.org,
+        keescook@chromium.org, mhocko@suse.com, oleg@redhat.com,
+        john.stultz@linaro.org, mguzik@redhat.com, jdanis@google.com,
+        adobriyan@gmail.com, ghackmann@google.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz,
+        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, luto@kernel.org,
+        tj@kernel.org, vdavydov.dev@gmail.com, ebiederm@xmission.com,
+        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-fsdevel@vger.kernel.org,
+        linux-mm@kvack.org
+Subject: [RFC 5/6] memtrack: Add memtrack accounting for forked processes.
+Date: Tue, 11 Oct 2016 16:50:09 -0700
+Message-Id: <1476229810-26570-6-git-send-email-kandoiruchi@google.com>
+In-Reply-To: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+References: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+When a process is forked, all the buffers are shared with the forked
+process too. Adds the functionality to add memtrack accounting for the
+forked processes.
 
-Firstly thanks very much for having a look.
+Forked process gets a copy of the mapped pages of the parent process.
+This patch makes sure that the new mapped pages are attributed to the
+child process instead of the parent.
 
-On Tue, Oct 11, 2016 at 05:43:59PM +0200, Daniel Vetter wrote:
->On Tue, Oct 11, 2016 at 03:53:57PM +0100, Brian Starkey wrote:
->> Hi,
->>
->> This RFC series introduces a new connector type:
->>  DRM_MODE_CONNECTOR_WRITEBACK
->> It is a follow-on from a previous discussion: [1]
->>
->> Writeback connectors are used to expose the memory writeback engines
->> found in some display controllers, which can write a CRTC's
->> composition result to a memory buffer.
->> This is useful e.g. for testing, screen-recording, screenshots,
->> wireless display, display cloning, memory-to-memory composition.
->>
->> Patches 1-7 include the core framework changes required, and patches
->> 8-11 implement a writeback connector for the Mali-DP writeback engine.
->> The Mali-DP patches depend on this other series: [2].
->>
->> The connector is given the FB_ID property for the output framebuffer,
->> and two new read-only properties: PIXEL_FORMATS and
->> PIXEL_FORMATS_SIZE, which expose the supported framebuffer pixel
->> formats of the engine.
->>
->> The EDID property is not exposed for writeback connectors.
->>
->> Writeback connector usage:
->> --------------------------
->> Due to connector routing changes being treated as "full modeset"
->> operations, any client which wishes to use a writeback connector
->> should include the connector in every modeset. The writeback will not
->> actually become active until a framebuffer is attached.
->
->Erhm, this is just the default, drivers can override this. And we could
->change the atomic helpers to not mark a modeset as a modeset if the
->connector that changed is a writeback one.
->
+Signed-off-by: Ruchi Kandoi <kandoiruchi@google.com>
+---
+ drivers/misc/memtrack.c           | 45 +++++++++++++++++++++++++++++++++++----
+ drivers/staging/android/ion/ion.c | 45 +++++++++++++++++++++++++++++++++++++--
+ include/linux/memtrack.h          | 19 +++++++++++------
+ include/linux/mm.h                |  3 +++
+ kernel/fork.c                     | 19 +++++++++++++++--
+ 5 files changed, 117 insertions(+), 14 deletions(-)
 
-Hmm, maybe. I don't think it's ideal - the driver would need to
-re-implement drm_atomic_helper_check_modeset, which is quite a chunk
-of code (along with exposing update_connector_routing, mode_fixup,
-maybe others), and even after that it would have to lie and set
-crtc_state->connectors_changed to false so that
-drm_crtc_needs_modeset returns false to drm_atomic_check_only.
+diff --git a/drivers/misc/memtrack.c b/drivers/misc/memtrack.c
+index 4b2d17f..fa2601a 100644
+--- a/drivers/misc/memtrack.c
++++ b/drivers/misc/memtrack.c
+@@ -204,12 +204,13 @@ EXPORT_SYMBOL(memtrack_buffer_uninstall);
+  * @buffer: the buffer's memtrack entry
+  *
+  * @vma: vma being opened
++ * @task: task which mapped the pages
+  */
+ void memtrack_buffer_vm_open(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma)
++		const struct vm_area_struct *vma, struct task_struct *task)
+ {
+ 	unsigned long flags;
+-	struct task_struct *leader = current->group_leader;
++	struct task_struct *leader = task->group_leader;
+ 	struct memtrack_vma_list *vma_list;
+ 
+ 	vma_list = kmalloc(sizeof(*vma_list), GFP_KERNEL);
+@@ -228,12 +229,13 @@ EXPORT_SYMBOL(memtrack_buffer_vm_open);
+  *
+  * @buffer: the buffer's memtrack entry
+  * @vma: the vma being closed
++ * @task: task that mmaped the pages
+  */
+ void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma)
++		const struct vm_area_struct *vma, struct task_struct *task)
+ {
+ 	unsigned long flags;
+-	struct task_struct *leader = current->group_leader;
++	struct task_struct *leader = task->group_leader;
+ 
+ 	write_lock_irqsave(&leader->memtrack_lock, flags);
+ 	memtrack_buffer_vm_close_locked(&leader->memtrack_rb, buffer, vma);
+@@ -241,6 +243,41 @@ void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
+ }
+ EXPORT_SYMBOL(memtrack_buffer_vm_close);
+ 
++/**
++ * memtrack_buffer_install_fork - Install all parent's handles into
++ *  child.
++ *
++ * @parent: parent task
++ * @child: child task
++ */
++void memtrack_buffer_install_fork(struct task_struct *parent,
++		struct task_struct *child)
++{
++	struct task_struct *leader, *leader_child;
++	struct rb_root *root;
++	struct rb_node *node;
++	unsigned long flags;
++
++	if (!child || !parent)
++		return;
++
++	leader = parent->group_leader;
++	leader_child = child->group_leader;
++	write_lock_irqsave(&leader->memtrack_lock, flags);
++	root = &leader->memtrack_rb;
++	node = rb_first(root);
++	while (node) {
++		struct memtrack_handle *handle;
++
++		handle = rb_entry(node, struct memtrack_handle, node);
++		memtrack_buffer_install_locked(&leader_child->memtrack_rb,
++				handle->buffer);
++		node = rb_next(node);
++	}
++	write_unlock_irqrestore(&leader->memtrack_lock, flags);
++}
++EXPORT_SYMBOL(memtrack_buffer_install_fork);
++
+ static int memtrack_id_alloc(struct memtrack_buffer *buffer)
+ {
+ 	int ret;
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index c32d520..451aa0f 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -906,7 +906,7 @@ static void ion_vm_open(struct vm_area_struct *vma)
+ 	list_add(&vma_list->list, &buffer->vmas);
+ 	mutex_unlock(&buffer->lock);
+ 	pr_debug("%s: adding %p\n", __func__, vma);
+-	memtrack_buffer_vm_open(&buffer->memtrack_buffer, vma);
++	memtrack_buffer_vm_open(&buffer->memtrack_buffer, vma, current);
+ }
+ 
+ static void ion_vm_close(struct vm_area_struct *vma)
+@@ -925,13 +925,51 @@ static void ion_vm_close(struct vm_area_struct *vma)
+ 		break;
+ 	}
+ 	mutex_unlock(&buffer->lock);
+-	memtrack_buffer_vm_close(&buffer->memtrack_buffer, vma);
++	memtrack_buffer_vm_close(&buffer->memtrack_buffer, vma, current);
++}
++
++void vm_track(struct vm_area_struct *vma, struct task_struct *task)
++{
++	struct ion_buffer *buffer = vma->vm_private_data;
++
++	memtrack_buffer_vm_open(&buffer->memtrack_buffer, vma, task);
++}
++
++void vm_untrack(struct vm_area_struct *vma, struct task_struct *task)
++{
++	struct ion_buffer *buffer = vma->vm_private_data;
++
++	memtrack_buffer_vm_close(&buffer->memtrack_buffer, vma, task);
+ }
+ 
+ static const struct vm_operations_struct ion_vma_ops = {
+ 	.open = ion_vm_open,
+ 	.close = ion_vm_close,
+ 	.fault = ion_vm_fault,
++	.track = vm_track,
++	.untrack = vm_untrack,
++};
++
++static void memtrack_vm_close(struct vm_area_struct *vma)
++{
++	struct ion_buffer *buffer = vma->vm_private_data;
++
++	memtrack_buffer_vm_close(&buffer->memtrack_buffer, vma, current);
++}
++
++static void memtrack_vm_open(struct vm_area_struct *vma)
++{
++	struct ion_buffer *buffer = vma->vm_private_data;
++
++	memtrack_buffer_vm_open(&buffer->memtrack_buffer, vma, current);
++}
++
++static struct vm_operations_struct memtrack_vma_ops = {
++	.open = memtrack_vm_open,
++	.close = memtrack_vm_close,
++	.fault = NULL,
++	.track = vm_track,
++	.untrack = vm_untrack,
+ };
+ 
+ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+@@ -952,6 +990,9 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ 		vma->vm_ops = &ion_vma_ops;
+ 		ion_vm_open(vma);
+ 		return 0;
++	} else {
++		vma->vm_private_data = buffer;
++		vma->vm_ops = &memtrack_vma_ops;
+ 	}
+ 
+ 	if (!(buffer->flags & ION_FLAG_CACHED))
+diff --git a/include/linux/memtrack.h b/include/linux/memtrack.h
+index 5a4c7ea..4595fb0 100644
+--- a/include/linux/memtrack.h
++++ b/include/linux/memtrack.h
+@@ -41,10 +41,12 @@ void memtrack_buffer_install(struct memtrack_buffer *buffer,
+ 		struct task_struct *tsk);
+ void memtrack_buffer_uninstall(struct memtrack_buffer *buffer,
+ 		struct task_struct *tsk);
++void memtrack_buffer_install_fork(struct task_struct *parent,
++		struct task_struct *child);
+ void memtrack_buffer_vm_open(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma);
++		const struct vm_area_struct *vma, struct task_struct *task);
+ void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma);
++		const struct vm_area_struct *vma, struct task_struct *task);
+ 
+ /**
+  * memtrack_buffer_set_tag - add a descriptive tag to a memtrack entry
+@@ -90,6 +92,11 @@ static inline void memtrack_buffer_uninstall(struct memtrack_buffer *buffer,
+ {
+ }
+ 
++static inline void memtrack_buffer_install_fork(struct task_struct *parent,
++		struct task_struct *child)
++{
++}
++
+ static inline int memtrack_buffer_set_tag(struct memtrack_buffer *buffer,
+ 		const char *tag)
+ {
+@@ -97,12 +104,12 @@ static inline int memtrack_buffer_set_tag(struct memtrack_buffer *buffer,
+ }
+ 
+ static inline void memtrack_buffer_vm_open(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma)
++		const struct vm_area_struct *vma, struct task_struct *task)
+ {
+ }
+ 
+ static inline void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma)
++		const struct vm_area_struct *vma, struct task_struct *task)
+ {
+ }
+ #endif /* CONFIG_MEMTRACK */
+@@ -115,9 +122,9 @@ static inline void memtrack_buffer_vm_close(struct memtrack_buffer *buffer,
+  * @vma: the vma passed to mmap()
+  */
+ static inline void memtrack_buffer_mmap(struct memtrack_buffer *buffer,
+-		const struct vm_area_struct *vma)
++		struct vm_area_struct *vma)
+ {
+-	memtrack_buffer_vm_open(buffer, vma);
++	memtrack_buffer_vm_open(buffer, vma, current);
+ }
+ 
+ #endif /* _MEMTRACK_ */
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index e9caec6..619ea7f 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -402,6 +402,9 @@ struct vm_operations_struct {
+ 	 */
+ 	struct page *(*find_special_page)(struct vm_area_struct *vma,
+ 					  unsigned long addr);
++
++	void (*track)(struct vm_area_struct *vma, struct task_struct *task);
++	void (*untrack)(struct vm_area_struct *vma, struct task_struct *task);
+ };
+ 
+ struct mmu_gather;
+diff --git a/kernel/fork.c b/kernel/fork.c
+index da8537a..43a2e73 100644
+--- a/kernel/fork.c
++++ b/kernel/fork.c
+@@ -76,6 +76,7 @@
+ #include <linux/compiler.h>
+ #include <linux/sysctl.h>
+ #include <linux/kcov.h>
++#include <linux/memtrack.h>
+ 
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -547,7 +548,8 @@ static struct task_struct *dup_task_struct(struct task_struct *orig, int node)
+ }
+ 
+ #ifdef CONFIG_MMU
+-static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
++static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm,
++		struct task_struct *tsk)
+ {
+ 	struct vm_area_struct *mpnt, *tmp, *prev, **pprev;
+ 	struct rb_node **rb_link, *rb_parent;
+@@ -660,6 +662,11 @@ static int dup_mmap(struct mm_struct *mm, struct mm_struct *oldmm)
+ 		if (tmp->vm_ops && tmp->vm_ops->open)
+ 			tmp->vm_ops->open(tmp);
+ 
++		if (tmp->vm_ops && tmp->vm_ops->track && tmp->vm_ops->untrack) {
++			tmp->vm_ops->untrack(tmp, current);
++			tmp->vm_ops->track(tmp, tsk);
++		}
++
+ 		if (retval)
+ 			goto out;
+ 	}
+@@ -1125,7 +1132,7 @@ static struct mm_struct *dup_mm(struct task_struct *tsk)
+ 	if (!mm_init(mm, tsk))
+ 		goto fail_nomem;
+ 
+-	err = dup_mmap(mm, oldmm);
++	err = dup_mmap(mm, oldmm, tsk);
+ 	if (err)
+ 		goto free_pt;
+ 
+@@ -1235,6 +1242,12 @@ static int copy_files(unsigned long clone_flags, struct task_struct *tsk)
+ 
+ 	tsk->files = newf;
+ 	error = 0;
++#ifdef CONFIG_MEMTRACK
++	if (!(clone_flags & CLONE_THREAD)) {
++		tsk->group_leader = tsk;
++		memtrack_buffer_install_fork(current, tsk);
++	}
++#endif
+ out:
+ 	return error;
+ }
+@@ -2153,6 +2166,8 @@ static int unshare_fd(unsigned long unshare_flags, struct files_struct **new_fdp
+ 		*new_fdp = dup_fd(fd, &error);
+ 		if (!*new_fdp)
+ 			return error;
++
++		memtrack_buffer_install_fork(current->parent, current);
+ 	}
+ 
+ 	return 0;
+-- 
+2.8.0.rc3.226.g39d4020
 
-I tried to keep special-casing of writeback connectors in the core to
-a bare minimum, because I think it will quickly get messy and fragile
-otherwise.
-
-Honestly, I don't see modesetting the writeback connectors at
-start-of-day as a big problem.
-
->> The writeback itself is enabled by attaching a framebuffer to the
->> FB_ID property of the connector. The driver must then ensure that the
->> CRTC content of that atomic commit is written into the framebuffer.
->>
->> The writeback works in a one-shot mode with each atomic commit. This
->> prevents the same content from being written multiple times.
->> In some cases (front-buffer rendering) there might be a desire for
->> continuous operation - I think a property could be added later for
->> this kind of control.
->>
->> Writeback can be disabled by setting FB_ID to zero.
->
->This seems to contradict itself: If it's one-shot, there's no need to
->disable it - it will auto-disable.
-
-I should have explained one-shot more clearly. What I mean is, one
-drmModeAtomicCommit == one write to memory. This is as opposed to
-writing the same thing to memory every vsync until it is stopped
-(which our HW is capable of doing).
-
-A subsequent drmModeAtomicCommit which doesn't touch the writeback 
-FB_ID will write (again - but with whatever scene updates) to the same
-framebuffer.
-
-This continues for every drmModeAtomicCommit until FB_ID is set to
-zero - to disable writing - or changed to a different framebuffer, in
-which case we write to the new one.
-
-IMO this behaviour makes sense in the context of the rest of Atomic,
-and as the FB_ID is indeed persistent across atomic commits, I think
-it should be read-able.
-
->
->In other cases where we write a property as a one-shot thing (fences for
->android). In that case when you read that property it's always 0 (well, -1
->for fences since file descriptor). That also avoids the issues when
->userspace unconditionally saves/restores all properties (this is needed
->for generic compositor switching).
->
->I think a better behaviour would be to do the same trick, with FB_ID on
->the connector always returning 0 as the current value. That encodes the
->one-shot behaviour directly.
->
->For one-shot vs continuous: Maybe we want to simply have a separate
->writeback property for continues, e.g. FB_WRITEBACK_ONE_SHOT_ID and
->FB_WRITEBACK_CONTINUOUS_ID.
->
->> Known issues:
->> -------------
->>  * I'm not sure what "DPMS" should mean for writeback connectors.
->>    It could be used to disable writeback (even when a framebuffer is
->>    attached), or it could be hidden entirely (which would break the
->>    legacy DPMS call for writeback connectors).
->
->dpms is legacy, in atomic land the only thing you have is "ACTIVE" on the
->crtc. it disables everything, i.e. also writeback.
->
-
-So removing the DPMS property is a viable option for writeback 
-connectors in your opinion?
-
->>  * With Daniel's recent re-iteration of the userspace API rules, I
->>    fully expect to provide some userspace code to support this. The
->>    question is what, and where? We want to use writeback for testing,
->>    so perhaps some tests in igt is suitable.
->
->Hm, testing would be better as a debugfs interface, but I understand the
->appeal of doing this with atomic (since semantics fit so well). Another
->use-case of this is compositing, but if the main goal is igt and testing,
->I think integration into igt crc based testcases is a perfectly fine
->userspace.
->
->>  * Documentation. Probably some portion of this cover letter needs 
->>  to
->>    make it into Documentation/
->
->Yeah, an overview DOC: section in a separate source file (with all the the
->infrastructure work) would be great - aka needed from my pov ;-)
->
-
-Sure, I'll a look at splitting into a drm_writeback.c
-
->>  * Synchronisation. Our hardware will finish the writeback by the next
->>    vsync. I've not implemented fence support here, but it would be an
->>    obvious addition.
->
->Probably just want an additional WRITEBACK_FENCE_ID property to signal
->completion. Some hw definitely will take longer to write back than just a
->vblank. But we can delay that until it's needed.
->-Daniel
->
->>
->> See Also:
->> ---------
->> [1] https://lists.freedesktop.org/archives/dri-devel/2016-July/113197.html
->> [2] https://lists.freedesktop.org/archives/dri-devel/2016-October/120486.html
->>
->> I welcome any comments, especially if this approach does/doesn't fit
->> well with anyone else's hardware.
->>
->> Thanks,
->>
->> -Brian
->>
->> ---
->>
->> Brian Starkey (10):
->>   drm: add writeback connector type
->>   drm/fb-helper: skip writeback connectors
->>   drm: extract CRTC/plane disable from drm_framebuffer_remove
->>   drm: add __drm_framebuffer_remove_atomic
->>   drm: add fb to connector state
->>   drm: expose fb_id property for writeback connectors
->>   drm: add writeback-connector pixel format properties
->>   drm: mali-dp: rename malidp_input_format
->>   drm: mali-dp: add RGB writeback formats for DP550/DP650
->>   drm: mali-dp: add writeback connector
->>
->> Liviu Dudau (1):
->>   drm: mali-dp: Add support for writeback on DP550/DP650
->>
->>  drivers/gpu/drm/arm/Makefile        |    1 +
->>  drivers/gpu/drm/arm/malidp_crtc.c   |   10 ++
->>  drivers/gpu/drm/arm/malidp_drv.c    |   25 +++-
->>  drivers/gpu/drm/arm/malidp_drv.h    |    5 +
->>  drivers/gpu/drm/arm/malidp_hw.c     |  104 ++++++++++----
->>  drivers/gpu/drm/arm/malidp_hw.h     |   27 +++-
->>  drivers/gpu/drm/arm/malidp_mw.c     |  268 +++++++++++++++++++++++++++++++++++
->>  drivers/gpu/drm/arm/malidp_planes.c |    8 +-
->>  drivers/gpu/drm/arm/malidp_regs.h   |   15 ++
->>  drivers/gpu/drm/drm_atomic.c        |   40 ++++++
->>  drivers/gpu/drm/drm_atomic_helper.c |    4 +
->>  drivers/gpu/drm/drm_connector.c     |   79 ++++++++++-
->>  drivers/gpu/drm/drm_crtc.c          |   14 +-
->>  drivers/gpu/drm/drm_fb_helper.c     |    4 +
->>  drivers/gpu/drm/drm_framebuffer.c   |  249 ++++++++++++++++++++++++++++----
->>  drivers/gpu/drm/drm_ioctl.c         |    7 +
->>  include/drm/drmP.h                  |    2 +
->>  include/drm/drm_atomic.h            |    3 +
->>  include/drm/drm_connector.h         |   15 ++
->>  include/drm/drm_crtc.h              |   12 ++
->>  include/uapi/drm/drm.h              |   10 ++
->>  include/uapi/drm/drm_mode.h         |    1 +
->>  22 files changed, 830 insertions(+), 73 deletions(-)
->>  create mode 100644 drivers/gpu/drm/arm/malidp_mw.c
->>
->> --
->> 1.7.9.5
->>
->
->-- 
->Daniel Vetter
->Software Engineer, Intel Corporation
->http://blog.ffwll.ch
->
