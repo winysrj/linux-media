@@ -1,48 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0084.outbound.protection.outlook.com ([104.47.40.84]:53600
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753237AbcJDP4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Oct 2016 11:56:41 -0400
-From: Fabio Estevam <fabio.estevam@nxp.com>
-To: <p.zabel@pengutronix.de>
-CC: <linux-media@vger.kernel.org>,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH] [media] coda: fix the error path in coda_probe()
-Date: Tue, 4 Oct 2016 12:41:37 -0300
-Message-ID: <1475595697-32680-1-git-send-email-fabio.estevam@nxp.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from bombadil.infradead.org ([198.137.202.9]:39714 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752323AbcJKKfU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 06:35:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH v2 10/31] dibusb: handle error code on RC query
+Date: Tue, 11 Oct 2016 07:09:25 -0300
+Message-Id: <0b195100070bf4ba74dce76362c851d49284d104.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the case of coda_firmware_request() failure, we should release the
-prevously acquired resources.
+There's no sense on decoding and generating a RC key code if
+there was an error on the URB control message.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/coda/coda-common.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/usb/dvb-usb/dibusb-common.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index c39718a..9e6bdaf 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -2295,8 +2295,13 @@ static int coda_probe(struct platform_device *pdev)
- 	pm_runtime_set_active(&pdev->dev);
- 	pm_runtime_enable(&pdev->dev);
+diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+index 951f3dac9082..b0fd9a609352 100644
+--- a/drivers/media/usb/dvb-usb/dibusb-common.c
++++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+@@ -366,6 +366,7 @@ EXPORT_SYMBOL(rc_map_dibusb_table);
+ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+ 	u8 *buf;
++	int ret;
  
--	return coda_firmware_request(dev);
-+	ret = coda_firmware_request(dev);
-+	if (ret)
-+		goto err_alloc_workqueue;
-+	return 0;
+ 	buf = kmalloc(5, GFP_KERNEL);
+ 	if (!buf)
+@@ -373,7 +374,9 @@ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
  
-+err_alloc_workqueue:
-+	destroy_workqueue(dev->workqueue);
- err_v4l2_register:
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 	return ret;
+ 	buf[0] = DIBUSB_REQ_POLL_REMOTE;
+ 
+-	dvb_usb_generic_rw(d, buf, 1, buf, 5, 0);
++	ret = dvb_usb_generic_rw(d, buf, 1, buf, 5, 0);
++	if (ret < 0)
++		goto ret;
+ 
+ 	dvb_usb_nec_rc_key_to_event(d, buf, event, state);
+ 
+@@ -382,6 +385,7 @@ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 
+ 	kfree(buf);
+ 
+-	return 0;
++ret:
++	return ret;
+ }
+ EXPORT_SYMBOL(dibusb_rc_query);
 -- 
 2.7.4
+
 
