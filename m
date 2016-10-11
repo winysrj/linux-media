@@ -1,71 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:57884 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933602AbcJLOao (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:30:44 -0400
-Subject: [PATCH 02/34] [media] DaVinci-VPBE: Delete two error messages for a
- failed memory allocation
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>,
-        Wolfram Sang <wsa@the-dreams.de>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <664f2619-1c7c-22de-775e-3af16e4203f8@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:30:28 +0200
-MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:39795 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752395AbcJKKhy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 06:37:54 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 27/31] digitv: handle error code on RC query
+Date: Tue, 11 Oct 2016 07:09:42 -0300
+Message-Id: <4f8d86cdd57303a915986e9d670312ca79e1bf7f.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Tue, 11 Oct 2016 09:56:13 +0200
+There's no sense on decoding and generating a RC key code if
+there was an error on the URB control message.
 
-The script "checkpatch.pl" pointed information out like the following.
-
-WARNING: Possible unnecessary 'out of memory' message
-
-Thus remove such a logging statement in two functions.
-
-Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/davinci/vpbe.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/media/usb/dvb-usb/digitv.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 8c062ff..b479747 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -680,8 +680,6 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 					   sizeof(*vpbe_dev->encoders),
- 					   GFP_KERNEL);
- 	if (NULL == vpbe_dev->encoders) {
--		v4l2_err(&vpbe_dev->v4l2_dev,
--			"unable to allocate memory for encoders sub devices");
- 		ret = -ENOMEM;
- 		goto fail_dev_unregister;
- 	}
-@@ -841,11 +839,9 @@ static int vpbe_probe(struct platform_device *pdev)
- 	}
- 
- 	vpbe_dev = kzalloc(sizeof(*vpbe_dev), GFP_KERNEL);
--	if (vpbe_dev == NULL) {
--		v4l2_err(pdev->dev.driver, "Unable to allocate memory"
--			 " for vpbe_device\n");
-+	if (!vpbe_dev)
- 		return -ENOMEM;
--	}
+diff --git a/drivers/media/usb/dvb-usb/digitv.c b/drivers/media/usb/dvb-usb/digitv.c
+index 09f8c28bd4db..4284f6984dc1 100644
+--- a/drivers/media/usb/dvb-usb/digitv.c
++++ b/drivers/media/usb/dvb-usb/digitv.c
+@@ -29,7 +29,9 @@ static int digitv_ctrl_msg(struct dvb_usb_device *d,
+ 		u8 cmd, u8 vv, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+ {
+ 	struct digitv_state *st = d->priv;
+-	int wo = (rbuf == NULL || rlen == 0); /* write-only */
++	int ret, wo;
 +
- 	vpbe_dev->cfg = cfg;
- 	vpbe_dev->ops = vpbe_dev_ops;
- 	vpbe_dev->pdev = &pdev->dev;
++	wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 
+ 	memset(st->sndbuf, 0, 7);
+ 	memset(st->rcvbuf, 0, 7);
+@@ -40,12 +42,12 @@ static int digitv_ctrl_msg(struct dvb_usb_device *d,
+ 
+ 	if (wo) {
+ 		memcpy(&st->sndbuf[3], wbuf, wlen);
+-		dvb_usb_generic_write(d, st->sndbuf, 7);
++		ret = dvb_usb_generic_write(d, st->sndbuf, 7);
+ 	} else {
+-		dvb_usb_generic_rw(d, st->sndbuf, 7, st->rcvbuf, 7, 10);
++		ret = dvb_usb_generic_rw(d, st->sndbuf, 7, st->rcvbuf, 7, 10);
+ 		memcpy(rbuf, &st->rcvbuf[3], rlen);
+ 	}
+-	return 0;
++	return ret;
+ }
+ 
+ /* I2C */
 -- 
-2.10.1
+2.7.4
+
 
