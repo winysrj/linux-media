@@ -1,106 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:45639 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933642AbcJLOqn (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:42550
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752718AbcJKVms (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:46:43 -0400
-Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OEX01FZBV7FY8A0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 12 Oct 2016 23:35:39 +0900 (KST)
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
-        mchehab@kernel.org, m.szyprowski@samsung.com,
-        s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
-Subject: [PATCH v4l-utils v7 3/7] mediactl: Add media_entity_get_backlinks()
-Date: Wed, 12 Oct 2016 16:35:18 +0200
-Message-id: <1476282922-11544-4-git-send-email-j.anaszewski@samsung.com>
-In-reply-to: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
-References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+        Tue, 11 Oct 2016 17:42:48 -0400
+Date: Tue, 11 Oct 2016 23:41:53 +0200 (CEST)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: Re: [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408
+ 3/31] drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on
+ line 169
+In-Reply-To: <20161011182844.12e00307.m.chehab@samsung.com>
+Message-ID: <alpine.DEB.2.10.1610112341380.3192@hadrien>
+References: <alpine.DEB.2.10.1610111515300.2883@hadrien> <CGME20161011131638uscas1p2f968a6dadabcf9b3c95eabe17116b3fd@uscas1p2.samsung.com> <alpine.DEB.2.10.1610111516130.2883@hadrien> <20161011182844.12e00307.m.chehab@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new graph helper useful for discovering video pipeline.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- utils/media-ctl/libmediactl.c | 21 +++++++++++++++++++++
- utils/media-ctl/mediactl.h    | 15 +++++++++++++++
- 2 files changed, 36 insertions(+)
 
-diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
-index 91ed003..155b65f 100644
---- a/utils/media-ctl/libmediactl.c
-+++ b/utils/media-ctl/libmediactl.c
-@@ -36,6 +36,7 @@
- #include <unistd.h>
- 
- #include <linux/media.h>
-+#include <linux/kdev_t.h>
- #include <linux/videodev2.h>
- 
- #include "mediactl.h"
-@@ -172,6 +173,26 @@ const struct media_entity_desc *media_entity_get_info(struct media_entity *entit
- 	return &entity->info;
- }
- 
-+int media_entity_get_backlinks(struct media_entity *entity,
-+				struct media_link **backlinks,
-+				unsigned int *num_backlinks)
-+{
-+	unsigned int num_bklinks = 0;
-+	int i;
-+
-+	if (entity == NULL || backlinks == NULL || num_backlinks == NULL)
-+		return -EINVAL;
-+
-+	for (i = 0; i < entity->num_links; ++i)
-+		if ((entity->links[i].flags & MEDIA_LNK_FL_ENABLED) &&
-+		    (entity->links[i].sink->entity == entity))
-+			backlinks[num_bklinks++] = &entity->links[i];
-+
-+	*num_backlinks = num_bklinks;
-+
-+	return 0;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Open/close
-  */
-diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
-index 336cbf9..b1f33cd 100644
---- a/utils/media-ctl/mediactl.h
-+++ b/utils/media-ctl/mediactl.h
-@@ -434,6 +434,20 @@ int media_parse_setup_link(struct media_device *media,
- int media_parse_setup_links(struct media_device *media, const char *p);
- 
- /**
-+ * @brief Get entity's enabled backlinks
-+ * @param entity - media entity.
-+ * @param backlinks - array of pointers to matching backlinks.
-+ * @param num_backlinks - number of matching backlinks.
-+ *
-+ * Get links that are connected to the entity sink pads.
-+ *
-+ * @return 0 on success, or a negative error code on failure.
-+ */
-+int media_entity_get_backlinks(struct media_entity *entity,
-+				struct media_link **backlinks,
-+				unsigned int *num_backlinks);
-+
-+/**
-  * @brief Get v4l2_subdev for the entity
-  * @param entity - media entity
-  *
-@@ -443,4 +457,5 @@ int media_parse_setup_links(struct media_device *media, const char *p);
-  */
- struct v4l2_subdev *media_entity_get_v4l2_subdev(struct media_entity *entity);
- 
-+
- #endif
--- 
-1.9.1
+On Tue, 11 Oct 2016, Mauro Carvalho Chehab wrote:
 
+> Em Tue, 11 Oct 2016 15:16:24 +0200 (CEST)
+> Julia Lawall <julia.lawall@lip6.fr> escreveu:
+>
+> > On Tue, 11 Oct 2016, Julia Lawall wrote:
+> >
+> > > It looks like a lock may be needed before line 174.
+> >
+> > Sorry, an unlock.
+>
+> I suspect that this is a false positive warning, as there is a
+> mutex unlock on the same routine, at line 203. All exit
+> conditions go to the unlock condition.
+
+There is a direct exit in line 174.
+
+julia
+
+>
+> Am I missing something?
+>
+> >
+> > >
+> > > julia
+> > >
+> > > ---------- Forwarded message ----------
+> > > Date: Tue, 11 Oct 2016 21:06:18 +0800
+> > > From: kbuild test robot <fengguang.wu@intel.com>
+> > > To: kbuild@01.org
+> > > Cc: Julia Lawall <julia.lawall@lip6.fr>
+> > > Subject:
+> > >     [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-medi
+> > >     a-usb-drivers/20161011-182408 3/31]
+> > >     drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line
+> > >     169
+> > >
+> > > CC: kbuild-all@01.org
+> > > TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > > CC: linux-media@vger.kernel.org
+> > > CC: 0day robot <fengguang.wu@intel.com>
+> > >
+> > > tree:   https://github.com/0day-ci/linux Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408
+> > > head:   ff49f775552fe4ebe2944527cf882073679cb1e5
+> > > commit: b38d98275e144aaea9db69ba2dcba58466046d9b [3/31] cinergyT2-core: handle error code on RC query
+> > > :::::: branch date: 3 hours ago
+> > > :::::: commit date: 3 hours ago
+> > >
+> > > >> drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line 169
+> > >
+> > > git remote add linux-review https://github.com/0day-ci/linux
+> > > git remote update linux-review
+> > > git checkout b38d98275e144aaea9db69ba2dcba58466046d9b
+> > > vim +174 drivers/media/usb/dvb-usb/cinergyT2-core.c
+> > >
+> > > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  163  {
+> > > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  164  	struct cinergyt2_state *st = d->priv;
+> > > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  165  	int i, ret;
+> > > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  166
+> > > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  167  	*state = REMOTE_NO_KEY_PRESSED;
+> > > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  168
+> > > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @169  	mutex_lock(&st->data_mutex);
+> > > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  170  	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
+> > > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  171
+> > > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  172  	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
+> > > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  173  	if (ret < 0)
+> > > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @174  		return ret;
+> > > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  175
+> > > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  176  	if (st->data[4] == 0xff) {
+> > > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  177  		/* key repeat */
+> > >
+> > > ---
+> > > 0-DAY kernel test infrastructure                Open Source Technology Center
+> > > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> > >
+> >
+> >
+>
+>
+> --
+> Thanks,
+> Mauro
+>
