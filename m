@@ -1,33 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f53.google.com ([209.85.213.53]:35607 "EHLO
-        mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755185AbcJLPeQ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:39721 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752355AbcJKKfX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 11:34:16 -0400
-Received: by mail-vk0-f53.google.com with SMTP id 192so48551877vkl.2
-        for <linux-media@vger.kernel.org>; Wed, 12 Oct 2016 08:33:37 -0700 (PDT)
-MIME-Version: 1.0
-From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?= <wuchengli@google.com>
-Date: Wed, 12 Oct 2016 23:33:16 +0800
-Message-ID: <CAOMLVLj9zwMCOCRawKZKDDtLkwHUN3VpLhpy2Qovn7Bv1X5SgA@mail.gmail.com>
-Subject: V4L2_DEC_CMD_STOP and last_buffer_dequeued
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        pawel@osciak.com
-Cc: Tiffany Lin <tiffany.lin@mediatek.com>
-Content-Type: text/plain; charset=UTF-8
+        Tue, 11 Oct 2016 06:35:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 06/31] cxusb: don't do DMA on stack
+Date: Tue, 11 Oct 2016 07:09:21 -0300
+Message-Id: <1a139aed3180ae56379f5663e57e90bf9a8a641a.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm trying to use V4L2_DEC_CMD_STOP to implement flush. First the
-userspace sent V4L2_DEC_CMD_STOP to initiate the flush. The driver set
-V4L2_BUF_FLAG_LAST on the last CAPTURE buffer. I thought implementing
-V4L2_DEC_CMD_START in the driver was enough to start the decoder. But
-last_buffer_dequeued had been set to true in v4l2 core. I couldn't
-clear last_buffer_dequeued without calling STREAMOFF from the
-userspace. If I need to call STREAMOFF/STREAMON after
-V4L2_DEC_CMD_STOP, it looks like V4L2_DEC_CMD_START is not useful. Did
-I miss anything?
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-Regards,
-Wu-Cheng
+Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/dvb-usb/cxusb.c | 62 ++++++++++++++++++++++-----------------
+ drivers/media/usb/dvb-usb/cxusb.h |  6 ++++
+ 2 files changed, 41 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 907ac01ae297..39772812269d 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -45,9 +45,6 @@
+ #include "si2168.h"
+ #include "si2157.h"
+ 
+-/* Max transfer size done by I2C transfer functions */
+-#define MAX_XFER_SIZE  80
+-
+ /* debug */
+ static int dvb_usb_cxusb_debug;
+ module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
+@@ -61,23 +58,27 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ static int cxusb_ctrl_msg(struct dvb_usb_device *d,
+ 			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
+ {
+-	int wo = (rbuf == NULL || rlen == 0); /* write-only */
+-	u8 sndbuf[MAX_XFER_SIZE];
++	struct cxusb_state *st = d->priv;
++	int ret, wo;
+ 
+-	if (1 + wlen > sizeof(sndbuf)) {
+-		warn("i2c wr: len=%d is too big!\n",
+-		     wlen);
++	if (1 + wlen > MAX_XFER_SIZE) {
++		warn("i2c wr: len=%d is too big!\n", wlen);
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+-	memset(sndbuf, 0, 1+wlen);
++	wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 
+-	sndbuf[0] = cmd;
+-	memcpy(&sndbuf[1], wbuf, wlen);
++	mutex_lock(&st->data_mutex);
++	st->data[0] = cmd;
++	memcpy(&st->data[1], wbuf, wlen);
+ 	if (wo)
+-		return dvb_usb_generic_write(d, sndbuf, 1+wlen);
++		ret = dvb_usb_generic_write(d, st->data, 1 + wlen);
+ 	else
+-		return dvb_usb_generic_rw(d, sndbuf, 1+wlen, rbuf, rlen, 0);
++		ret = dvb_usb_generic_rw(d, st->data, 1 + wlen,
++					 rbuf, rlen, 0);
++
++	mutex_unlock(&st->data_mutex);
++	return ret;
+ }
+ 
+ /* GPIO */
+@@ -1460,36 +1461,43 @@ static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
+ static int cxusb_probe(struct usb_interface *intf,
+ 		       const struct usb_device_id *id)
+ {
++	struct dvb_usb_device *d;
++	struct cxusb_state *st;
++
+ 	if (0 == dvb_usb_device_init(intf, &cxusb_medion_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgh064f_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dee1601_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgz201_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dtt7579_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dualdig4_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_nano2_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf,
+ 				&cxusb_bluebird_nano2_needsfirmware_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_aver_a868r_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf,
+ 				     &cxusb_bluebird_dualdig4_rev2_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_d680_dmb_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_d689_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
++				     THIS_MODULE, &d, adapter_nr) ||
+ 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230_properties,
+-				     THIS_MODULE, NULL, adapter_nr) ||
+-	    0)
++				     THIS_MODULE, &d, adapter_nr) ||
++	    0) {
++		st = d->priv;
++		mutex_init(&st->data_mutex);
++
+ 		return 0;
++	}
+ 
+ 	return -EINVAL;
+ }
+diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+index 527ff7905e15..9f3ee0e47d5c 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.h
++++ b/drivers/media/usb/dvb-usb/cxusb.h
+@@ -28,10 +28,16 @@
+ #define CMD_ANALOG        0x50
+ #define CMD_DIGITAL       0x51
+ 
++/* Max transfer size done by I2C transfer functions */
++#define MAX_XFER_SIZE  80
++
+ struct cxusb_state {
+ 	u8 gpio_write_state[3];
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
++
++	unsigned char data[MAX_XFER_SIZE];
++	struct mutex data_mutex;
+ };
+ 
+ #endif
+-- 
+2.7.4
+
+
