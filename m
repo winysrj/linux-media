@@ -1,128 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([198.47.19.12]:35601 "EHLO arroyo.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938936AbcJXQ53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 12:57:29 -0400
-Date: Mon, 24 Oct 2016 11:57:23 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [Patch 06/35] media: ti-vpe: vpe: Do not perform job transaction
- atomically
-Message-ID: <20161024165723.GO31296@ti.com>
-References: <20160928212040.26547-1-bparrot@ti.com>
- <e102942f-597e-9149-6216-a0c23f07405b@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <e102942f-597e-9149-6216-a0c23f07405b@xs4all.nl>
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:51242 "EHLO
+        usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754537AbcJKWAW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 18:00:22 -0400
+Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
+ by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OEW009KFJO0FN20@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Oct 2016 17:28:49 -0400 (EDT)
+Date: Tue, 11 Oct 2016 18:28:44 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: linux-media@vger.kernel.org, kbuild-all@01.org
+Subject: Re:
+ [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408 3/31]
+ drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line 169
+Message-id: <20161011182844.12e00307.m.chehab@samsung.com>
+In-reply-to: <alpine.DEB.2.10.1610111516130.2883@hadrien>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
+References: <alpine.DEB.2.10.1610111515300.2883@hadrien>
+ <CGME20161011131638uscas1p2f968a6dadabcf9b3c95eabe17116b3fd@uscas1p2.samsung.com>
+ <alpine.DEB.2.10.1610111516130.2883@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote on Mon [2016-Oct-17 16:17:15 +0200]:
-> On 09/28/2016 11:20 PM, Benoit Parrot wrote:
-> > From: Nikhil Devshatwar <nikhil.nd@ti.com>
-> > 
-> > Current VPE driver does not start the job until all the buffers for
-> > a transaction are not queued. When running in multiple context, this might
-> 
-> I think this should be: s/not queued/queued/, right?
+Em Tue, 11 Oct 2016 15:16:24 +0200 (CEST)
+Julia Lawall <julia.lawall@lip6.fr> escreveu:
 
-Yep, will fix that.
+> On Tue, 11 Oct 2016, Julia Lawall wrote:
+> 
+> > It looks like a lock may be needed before line 174.  
+> 
+> Sorry, an unlock.
+
+I suspect that this is a false positive warning, as there is a
+mutex unlock on the same routine, at line 203. All exit
+conditions go to the unlock condition.
+
+Am I missing something?
 
 > 
-> > increase the processing latency.
-> > 
-> > Alternate solution would be to try to continue the same context as long as
-> > buffers for the transaction are ready; else switch the context. This may
-> > increase number of context switches but it reduces latency significantly.
-> > 
-> > In this approach, the job_ready always succeeds as long as there are
-> > buffers on the CAPTURE and OUTPUT stream. Processing may start immediately
-> > as the first 2 iterations don't need extra source buffers. Shift all the
-> > source buffers after each iteration and remove the oldest buffer.
-> > 
-> > Also, with this removes the constraint of pre buffering 3 buffers before
-> > call to STREAMON in case of de-interlacing.
-> > 
-> > Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> >
+> > julia
+> >
+> > ---------- Forwarded message ----------
+> > Date: Tue, 11 Oct 2016 21:06:18 +0800
+> > From: kbuild test robot <fengguang.wu@intel.com>
+> > To: kbuild@01.org
+> > Cc: Julia Lawall <julia.lawall@lip6.fr>
+> > Subject:
+> >     [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-medi
+> >     a-usb-drivers/20161011-182408 3/31]
+> >     drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line
+> >     169
+> >
+> > CC: kbuild-all@01.org
+> > TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
+> > CC: linux-media@vger.kernel.org
+> > CC: 0day robot <fengguang.wu@intel.com>
+> >
+> > tree:   https://github.com/0day-ci/linux Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408
+> > head:   ff49f775552fe4ebe2944527cf882073679cb1e5
+> > commit: b38d98275e144aaea9db69ba2dcba58466046d9b [3/31] cinergyT2-core: handle error code on RC query
+> > :::::: branch date: 3 hours ago
+> > :::::: commit date: 3 hours ago
+> >  
+> > >> drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line 169  
+> >
+> > git remote add linux-review https://github.com/0day-ci/linux
+> > git remote update linux-review
+> > git checkout b38d98275e144aaea9db69ba2dcba58466046d9b
+> > vim +174 drivers/media/usb/dvb-usb/cinergyT2-core.c
+> >
+> > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  163  {
+> > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  164  	struct cinergyt2_state *st = d->priv;
+> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  165  	int i, ret;
+> > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  166
+> > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  167  	*state = REMOTE_NO_KEY_PRESSED;
+> > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  168
+> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @169  	mutex_lock(&st->data_mutex);
+> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  170  	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
+> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  171
+> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  172  	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
+> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  173  	if (ret < 0)
+> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @174  		return ret;
+> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  175
+> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  176  	if (st->data[4] == 0xff) {
+> > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  177  		/* key repeat */
+> >
 > > ---
-> >  drivers/media/platform/ti-vpe/vpe.c | 32 ++++++++++++++++----------------
-> >  1 file changed, 16 insertions(+), 16 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-> > index a0b29685fb69..9c38eff5df46 100644
-> > --- a/drivers/media/platform/ti-vpe/vpe.c
-> > +++ b/drivers/media/platform/ti-vpe/vpe.c
-> > @@ -898,15 +898,14 @@ static struct vpe_ctx *file2ctx(struct file *file)
-> >  static int job_ready(void *priv)
-> >  {
-> >  	struct vpe_ctx *ctx = priv;
-> > -	int needed = ctx->bufs_per_job;
+> > 0-DAY kernel test infrastructure                Open Source Technology Center
+> > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 > >  
-> > -	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL)
-> > -		needed += 2;	/* need additional two most recent fields */
-> > -
-> > -	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) < needed)
-> > -		return 0;
-> > -
-> > -	if (v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) < needed)
-> > +	/*
-> > +	 * This check is needed as this might be called directly from driver
-> > +	 * When called by m2m framework, this will always satisy, but when
 > 
-> typo: satisfy
+> 
 
-Will fix.
 
-> 
-> > +	 * called from vpe_irq, this might fail. (src stream with zero buffers)
-> > +	 */
-> > +	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) <= 0 ||
-> > +		v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) <= 0)
-> >  		return 0;
-> >  
-> >  	return 1;
-> > @@ -1116,19 +1115,20 @@ static void device_run(void *priv)
-> >  	struct sc_data *sc = ctx->dev->sc;
-> >  	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
-> >  
-> > -	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL) {
-> > -		ctx->src_vbs[2] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> > -		WARN_ON(ctx->src_vbs[2] == NULL);
-> > -		ctx->src_vbs[1] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> > -		WARN_ON(ctx->src_vbs[1] == NULL);
-> > -	}
-> > -
-> >  	ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> >  	WARN_ON(ctx->src_vbs[0] == NULL);
-> >  	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-> >  	WARN_ON(ctx->dst_vb == NULL);
-> >  
-> >  	if (ctx->deinterlacing) {
-> > +
-> > +		if (ctx->src_vbs[2] == NULL) {
-> > +			ctx->src_vbs[2] = ctx->src_vbs[0];
-> > +			WARN_ON(ctx->src_vbs[2] == NULL);
-> > +			ctx->src_vbs[1] = ctx->src_vbs[0];
-> > +			WARN_ON(ctx->src_vbs[1] == NULL);
-> > +		}
-> > +
-> >  		/*
-> >  		 * we have output the first 2 frames through line average, we
-> >  		 * now switch to EDI de-interlacer
-> > @@ -1349,7 +1349,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
-> >  	}
-> >  
-> >  	ctx->bufs_completed++;
-> > -	if (ctx->bufs_completed < ctx->bufs_per_job) {
-> > +	if (ctx->bufs_completed < ctx->bufs_per_job && job_ready(ctx)) {
-> >  		device_run(ctx);
-> >  		goto handled;
-> >  	}
-> > 
-> 
-> Regards,
-> 
-> 	Hans
+-- 
+Thanks,
+Mauro
