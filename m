@@ -1,101 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51566 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:39718 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935028AbcJRUqW (ORCPT
+        with ESMTP id S1752343AbcJKKfV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:22 -0400
+        Tue, 11 Oct 2016 06:35:21 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH v2 42/58] siano: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:54 -0200
-Message-Id: <3f1968f6c0f6cd30196af69999b412e898fd9915.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
+Subject: [PATCH v2 03/31] cinergyT2-core: handle error code on RC query
+Date: Tue, 11 Oct 2016 07:09:18 -0300
+Message-Id: <20c0b835583ef0a027bd9777a3419a4750f14b28.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
-
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
-
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+There's no sense on decoding and generating a RC key code if
+there was an error on the URB control message.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/siano/smsusb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/dvb-usb/cinergyT2-core.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index c2e25876e93b..a4dcaec31d02 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -604,8 +604,8 @@ static int smsusb_resume(struct usb_interface *intf)
- 				       intf->cur_altsetting->desc.
- 				       bInterfaceNumber, 0);
- 		if (rc < 0) {
--			printk(KERN_INFO "%s usb_set_interface failed, "
--			       "rc %d\n", __func__, rc);
-+			printk(KERN_INFO "%s usb_set_interface failed, rc %d\n",
-+			       __func__, rc);
- 			return rc;
- 		}
- 	}
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+index d85c0c4d4042..2520e30f5338 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+@@ -102,7 +102,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+ 	/* Copy this pointer as we are gonna need it in the release phase */
+ 	cinergyt2_usb_device = adap->dev;
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static struct rc_map_table rc_map_cinergyt2_table[] = {
+@@ -162,14 +162,16 @@ static int repeatable_keys[] = {
+ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ {
+ 	struct cinergyt2_state *st = d->priv;
+-	int i;
++	int i, ret;
+ 
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 
+ 	mutex_lock(&st->data_mutex);
+ 	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
+ 
+-	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
++	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (st->data[4] == 0xff) {
+ 		/* key repeat */
 -- 
 2.7.4
 
