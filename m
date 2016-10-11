@@ -1,79 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53854 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751230AbcJEHJN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Oct 2016 03:09:13 -0400
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 3FBE760096
-        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 10:09:04 +0300 (EEST)
-Date: Wed, 5 Oct 2016 10:08:33 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 FOR v4.10] smiapp cleanups, fixes and runtime PM support
-Message-ID: <20161005070833.GH3225@valkosipuli.retiisi.org.uk>
+Received: from foss.arm.com ([217.140.101.70]:39812 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752417AbcJKQrz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 12:47:55 -0400
+Date: Tue, 11 Oct 2016 17:47:52 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, liviu.dudau@arm.com,
+        robdclark@gmail.com, hverkuil@xs4all.nl, eric@anholt.net,
+        ville.syrjala@linux.intel.com
+Subject: Re: [RFC PATCH 02/11] drm/fb-helper: Skip writeback connectors
+Message-ID: <20161011164751.GB14337@e106950-lin.cambridge.arm.com>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+ <1476197648-24918-3-git-send-email-brian.starkey@arm.com>
+ <20161011154448.GE20761@phenom.ffwll.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
+In-Reply-To: <20161011154448.GE20761@phenom.ffwll.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tue, Oct 11, 2016 at 05:44:48PM +0200, Daniel Vetter wrote:
+>On Tue, Oct 11, 2016 at 03:53:59PM +0100, Brian Starkey wrote:
+>> Writeback connectors aren't much use to the fbdev helpers, as they won't
+>> show anything to the user. Skip them when looking for candidate output
+>> configurations.
+>>
+>> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+>> ---
+>>  drivers/gpu/drm/drm_fb_helper.c |    4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+>> index 03414bd..dedf6e7 100644
+>> --- a/drivers/gpu/drm/drm_fb_helper.c
+>> +++ b/drivers/gpu/drm/drm_fb_helper.c
+>> @@ -2016,6 +2016,10 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
+>>  	if (modes[n] == NULL)
+>>  		return best_score;
+>>
+>> +	/* Writeback connectors aren't much use for fbdev */
+>> +	if (connector->connector_type == DRM_MODE_CONNECTOR_WRITEBACK)
+>> +		return best_score;
+>
+>I think we could handle this by always marking writeback connectors as
+>disconnected. Userspace and fbdev emulation should then avoid them,
+>always.
+>-Daniel
+>
 
-Here are a number of cleanups and some fixes plus runtime PM support for the
-smiapp driver.
+Good idea; I'll need to take a closer look at how it would interact
+with the probe helper (connector->force etc).
 
-Since the previous pull request, the runtime PM support patches have been
-rewritten.
+Are you thinking instead-of or in-addition-to the client cap? I'd be
+worried about apps doing strange things and trying to use even
+disconnected connectors.
 
-Please pull.
-
-
-The following changes since commit e3ea5e94489bc8c711d422dfa311cfa310553a1b:
-
-  [media] si2165: switch to regmap (2016-09-22 12:56:35 -0300)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp
-
-for you to fetch changes up to b77aa18b2b132468dcc42c17926e5dcc7c6fe9a6:
-
-  smiapp: Implement support for autosuspend (2016-10-03 12:11:37 +0300)
-
-----------------------------------------------------------------
-Sakari Ailus (23):
-      smiapp: Move sub-device initialisation into a separate function
-      smiapp: Explicitly define number of pads in initialisation
-      smiapp: Initialise media entity after sensor init
-      smiapp: Split off sub-device registration into two
-      smiapp: Provide a common function to obtain native pixel array size
-      smiapp: Remove unnecessary BUG_ON()'s
-      smiapp: Always initialise the sensor in probe
-      smiapp: Fix resource management in registration failure
-      smiapp: Merge smiapp_init() with smiapp_probe()
-      smiapp: Read frame format earlier
-      smiapp: Unify setting up sub-devices
-      smiapp: Use SMIAPP_PADS when referring to number of pads
-      smiapp: Obtain frame layout from the frame descriptor
-      smiapp: Improve debug messages from frame layout reading
-      smiapp: Remove useless newlines and other small cleanups
-      smiapp: Obtain correct media bus code for try format
-      smiapp: Drop a debug print on frame size and bit depth
-      smiapp-pll: Don't complain aloud about failing PLL calculation
-      smiapp: Drop BUG_ON() in suspend path
-      smiapp: Set device for pixel array and binner
-      smiapp: Set use suspend and resume ops for other functions
-      smiapp: Use runtime PM
-      smiapp: Implement support for autosuspend
-
- drivers/media/i2c/smiapp-pll.c         |   3 +-
- drivers/media/i2c/smiapp/smiapp-core.c | 946 +++++++++++++++++----------------
- drivers/media/i2c/smiapp/smiapp.h      |  28 +-
- 3 files changed, 495 insertions(+), 482 deletions(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+>> +
+>>  	crtcs = kzalloc(fb_helper->connector_count *
+>>  			sizeof(struct drm_fb_helper_crtc *), GFP_KERNEL);
+>>  	if (!crtcs)
+>> --
+>> 1.7.9.5
+>>
+>
+>-- 
+>Daniel Vetter
+>Software Engineer, Intel Corporation
+>http://blog.ffwll.ch
+>
