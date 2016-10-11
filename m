@@ -1,54 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:64727 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756964AbcJMQbF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 12:31:05 -0400
-Subject: [PATCH 08/18] [media] RedRat3: Improve another size determination in
- redrat3_send_cmd()
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from bombadil.infradead.org ([198.137.202.9]:39786 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751736AbcJKKhu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 06:37:50 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <1bfa8542-0bcb-eea6-0dda-d1c7ffae89f1@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 18:29:41 +0200
-MIME-Version: 1.0
-In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 29/31] s2255drv: don't use stack for DMA
+Date: Tue, 11 Oct 2016 07:09:44 -0300
+Message-Id: <474df449f4368f552aaa52d7ef77d4500f681bb3.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 13:31:17 +0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-Replace the specification of a data type by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer.
+The USB control messages require DMA to work. We cannot pass
+a stack-allocated buffer, as it is not warranted that the
+stack would be into a DMA enabled area.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/rc/redrat3.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/s2255/s2255drv.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 5832e6f..f6c21a1 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -388,7 +388,7 @@ static int redrat3_send_cmd(int cmd, struct redrat3_dev *rr3)
- 	u8 *data;
- 	int res;
- 
--	data = kzalloc(sizeof(u8), GFP_KERNEL);
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
- 	if (!data)
- 		return -ENOMEM;
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index c3a0e87066eb..f7bb78c1873c 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1901,19 +1901,30 @@ static long s2255_vendor_req(struct s2255_dev *dev, unsigned char Request,
+ 			     s32 TransferBufferLength, int bOut)
+ {
+ 	int r;
++	unsigned char *buf;
++
++	buf = kmalloc(TransferBufferLength, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
+ 	if (!bOut) {
+ 		r = usb_control_msg(dev->udev, usb_rcvctrlpipe(dev->udev, 0),
+ 				    Request,
+ 				    USB_TYPE_VENDOR | USB_RECIP_DEVICE |
+ 				    USB_DIR_IN,
+-				    Value, Index, TransferBuffer,
++				    Value, Index, buf,
+ 				    TransferBufferLength, HZ * 5);
++
++		if (r >= 0)
++			memcpy(TransferBuffer, buf, TransferBufferLength);
+ 	} else {
++		memcpy(buf, TransferBuffer, TransferBufferLength);
+ 		r = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0),
+ 				    Request, USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				    Value, Index, TransferBuffer,
++				    Value, Index, buf,
+ 				    TransferBufferLength, HZ * 5);
+ 	}
++	kfree(buf);
+ 	return r;
+ }
  
 -- 
-2.10.1
+2.7.4
+
 
