@@ -1,133 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50563 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753274AbcJNMKz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 08:10:55 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 1/2] [media] vb2: Store dma_dir in vb2_queue
-Date: Fri, 14 Oct 2016 14:08:13 +0200
-Message-Id: <1476446894-4220-2-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
-References: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+Received: from foss.arm.com ([217.140.101.70]:35480 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752408AbcJKOyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 10:54:43 -0400
+From: Brian Starkey <brian.starkey@arm.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        liviu.dudau@arm.com, robdclark@gmail.com, hverkuil@xs4all.nl,
+        eric@anholt.net, ville.syrjala@linux.intel.com, daniel@ffwll.ch
+Subject: [RFC PATCH 04/11] drm: Add __drm_framebuffer_remove_atomic
+Date: Tue, 11 Oct 2016 15:54:01 +0100
+Message-Id: <1476197648-24918-5-git-send-email-brian.starkey@arm.com>
+In-Reply-To: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+Implement the CRTC/Plane disable functionality of drm_framebuffer_remove
+using the atomic API, and use it if possible.
 
-Store dma_dir in struct vb2_queue and reuse it, instead of recalculating
-it each time.
+For atomic drivers, this removes the possibility of several commits when
+a framebuffer is in use by more than one CRTC/plane.
 
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Tested-by: Pawel Osciak <posciak@chromium.org>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-Reviewed-by: Owen Lin <owenlin@chromium.org>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Additionally, this will provide a suitable place to support the removal
+of a framebuffer from a writeback connector, in the case that a
+writeback connector is still actively using a framebuffer when it is
+removed by userspace.
+
+Signed-off-by: Brian Starkey <brian.starkey@arm.com>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 12 +++---------
- drivers/media/v4l2-core/videobuf2-v4l2.c |  2 ++
- include/media/videobuf2-core.h           |  2 ++
- 3 files changed, 7 insertions(+), 9 deletions(-)
+ drivers/gpu/drm/drm_framebuffer.c |  154 ++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 152 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 21900202..f12103c 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -194,8 +194,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
- static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
--	enum dma_data_direction dma_dir =
--		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	void *mem_priv;
- 	int plane;
- 	int ret = -ENOMEM;
-@@ -209,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+diff --git a/drivers/gpu/drm/drm_framebuffer.c b/drivers/gpu/drm/drm_framebuffer.c
+index 528f75d..b02cf73 100644
+--- a/drivers/gpu/drm/drm_framebuffer.c
++++ b/drivers/gpu/drm/drm_framebuffer.c
+@@ -22,6 +22,7 @@
  
- 		mem_priv = call_ptr_memop(vb, alloc,
- 				q->alloc_devs[plane] ? : q->dev,
--				q->dma_attrs, size, dma_dir, q->gfp_flags);
-+				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
- 		if (IS_ERR(mem_priv)) {
- 			if (mem_priv)
- 				ret = PTR_ERR(mem_priv);
-@@ -978,8 +976,6 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 	void *mem_priv;
- 	unsigned int plane;
- 	int ret = 0;
--	enum dma_data_direction dma_dir =
--		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
+ #include <linux/export.h>
+ #include <drm/drmP.h>
++#include <drm/drm_atomic.h>
+ #include <drm/drm_auth.h>
+ #include <drm/drm_framebuffer.h>
  
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-@@ -1030,7 +1026,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- 		mem_priv = call_ptr_memop(vb, get_userptr,
- 				q->alloc_devs[plane] ? : q->dev,
- 				planes[plane].m.userptr,
--				planes[plane].length, dma_dir);
-+				planes[plane].length, q->dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed acquiring userspace "
- 						"memory for plane %d\n", plane);
-@@ -1096,8 +1092,6 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 	void *mem_priv;
- 	unsigned int plane;
- 	int ret = 0;
--	enum dma_data_direction dma_dir =
--		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
- 	bool reacquired = vb->planes[0].mem_priv == NULL;
+@@ -795,6 +796,148 @@ void drm_framebuffer_cleanup(struct drm_framebuffer *fb)
+ EXPORT_SYMBOL(drm_framebuffer_cleanup);
  
- 	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
-@@ -1156,7 +1150,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
- 		/* Acquire each plane's memory */
- 		mem_priv = call_ptr_memop(vb, attach_dmabuf,
- 				q->alloc_devs[plane] ? : q->dev,
--				dbuf, planes[plane].length, dma_dir);
-+				dbuf, planes[plane].length, q->dma_dir);
- 		if (IS_ERR(mem_priv)) {
- 			dprintk(1, "failed to attach dmabuf\n");
- 			ret = PTR_ERR(mem_priv);
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 52ef883..fde1e2d 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -659,6 +659,8 @@ int vb2_queue_init(struct vb2_queue *q)
- 	 * queues will always initialize waiting_for_buffers to false.
+ /**
++ * __drm_framebuffer_remove_atomic - atomic version of __drm_framebuffer_remove
++ * @dev: drm device
++ * @fb: framebuffer to remove
++ *
++ * If the driver implements the atomic API, we can handle the disabling of all
++ * CRTCs/planes which use a framebuffer which is going away in a single atomic
++ * commit.
++ *
++ * This scans all CRTCs and planes in @dev's mode_config. If they're using @fb,
++ * it is removed and the CRTC/plane disabled.
++ * The legacy references are dropped and the ->fb pointers set to NULL
++ * accordingly.
++ *
++ * Returns:
++ * true if the framebuffer was successfully removed from use
++ */
++static bool __drm_framebuffer_remove_atomic(struct drm_device *dev,
++		struct drm_framebuffer *fb)
++{
++	struct drm_modeset_acquire_ctx ctx;
++	struct drm_atomic_state *state;
++	struct drm_connector_state *conn_state;
++	struct drm_connector *connector;
++	struct drm_plane *plane;
++	struct drm_crtc *crtc;
++	unsigned plane_mask;
++	int i, ret;
++
++	drm_modeset_acquire_init(&ctx, 0);
++
++	state = drm_atomic_state_alloc(dev);
++	if (!state)
++		return false;
++
++	state->acquire_ctx = &ctx;
++
++retry:
++	drm_for_each_crtc(crtc, dev) {
++		struct drm_plane_state *primary_state;
++		struct drm_crtc_state *crtc_state;
++
++		primary_state = drm_atomic_get_plane_state(state, crtc->primary);
++		if (IS_ERR(primary_state)) {
++			ret = PTR_ERR(primary_state);
++			goto fail;
++		}
++
++		if (primary_state->fb != fb)
++			continue;
++
++		crtc_state = drm_atomic_get_crtc_state(state, crtc);
++		if (IS_ERR(crtc_state)) {
++			ret = PTR_ERR(crtc_state);
++			goto fail;
++		}
++
++		/* Only handle the CRTC itself here, handle the plane later */
++		ret = drm_atomic_set_mode_for_crtc(crtc_state, NULL);
++		if (ret != 0)
++			goto fail;
++
++		crtc_state->active = false;
++
++		/* Get the connectors in order to disable them */
++		ret = drm_atomic_add_affected_connectors(state, crtc);
++		if (ret)
++			goto fail;
++	}
++
++	plane_mask = 0;
++	drm_for_each_plane(plane, dev) {
++		struct drm_plane_state *plane_state;
++
++		plane_state = drm_atomic_get_plane_state(state, plane);
++		if (IS_ERR(plane_state)) {
++			ret = PTR_ERR(plane_state);
++			goto fail;
++		}
++
++		if (plane_state->fb != fb)
++			continue;
++
++		plane->old_fb = plane->fb;
++		plane_mask |= 1 << drm_plane_index(plane);
++
++		/*
++		 * Open-coded copy of __drm_atomic_helper_disable_plane to avoid
++		 * a dependency on atomic-helper
++		 */
++		ret = drm_atomic_set_crtc_for_plane(plane_state, NULL);
++		if (ret != 0)
++			goto fail;
++
++		drm_atomic_set_fb_for_plane(plane_state, NULL);
++		plane_state->crtc_x = 0;
++		plane_state->crtc_y = 0;
++		plane_state->crtc_w = 0;
++		plane_state->crtc_h = 0;
++		plane_state->src_x = 0;
++		plane_state->src_y = 0;
++		plane_state->src_w = 0;
++		plane_state->src_h = 0;
++	}
++
++	/* All of the connectors in state need disabling */
++	for_each_connector_in_state(state, connector, conn_state, i) {
++		ret = drm_atomic_set_crtc_for_connector(conn_state,
++							NULL);
++		if (ret)
++			goto fail;
++	}
++
++	if (WARN_ON(!plane_mask)) {
++		DRM_ERROR("Couldn't find any usage of [FB:%d]\n", fb->base.id);
++		ret = -ENOENT;
++		goto fail;
++	}
++
++	ret = drm_atomic_commit(state);
++
++fail:
++	drm_atomic_clean_old_fb(dev, plane_mask, ret);
++
++	if (ret == -EDEADLK)
++		goto backoff;
++
++	if (ret != 0)
++		drm_atomic_state_free(state);
++
++	drm_modeset_drop_locks(&ctx);
++	drm_modeset_acquire_fini(&ctx);
++
++	return ret ? false : true;
++
++backoff:
++	drm_atomic_state_clear(state);
++	drm_modeset_backoff(&ctx);
++
++	goto retry;
++}
++
++/**
+  * __drm_framebuffer_remove - remove all usage of a framebuffer object
+  * @dev: drm device
+  * @fb: framebuffer to remove
+@@ -869,9 +1012,16 @@ void drm_framebuffer_remove(struct drm_framebuffer *fb)
+ 	 * in-use fb with fb-id == 0. Userspace is allowed to shoot its own foot
+ 	 * in this manner.
  	 */
- 	q->quirk_poll_must_check_waiting_for_buffers = true;
-+	q->dma_dir = V4L2_TYPE_IS_OUTPUT(q->type)
-+		   ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+-	if (drm_framebuffer_read_refcount(fb) > 1)
+-		if (!__drm_framebuffer_remove(dev, fb))
++	if (drm_framebuffer_read_refcount(fb) > 1) {
++		bool removed;
++		if (dev->mode_config.funcs->atomic_commit)
++			removed = __drm_framebuffer_remove_atomic(dev, fb);
++		else
++			removed = __drm_framebuffer_remove(dev, fb);
++
++		if (!removed)
+ 			DRM_ERROR("failed to remove fb from active usage\n");
++	}
  
- 	return vb2_core_queue_init(q);
+ 	drm_framebuffer_unreference(fb);
  }
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ac5898a..38410dd 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -489,6 +489,7 @@ struct vb2_buf_ops {
-  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-+ * @dma_dir:	DMA direction to use for buffers on this queue
-  */
- struct vb2_queue {
- 	unsigned int			type;
-@@ -540,6 +541,7 @@ struct vb2_queue {
- 
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
-+	enum dma_data_direction		dma_dir;
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
 -- 
-2.7.4
+1.7.9.5
 
