@@ -1,118 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46229
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750764AbcJLCS0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 22:18:26 -0400
-Date: Tue, 11 Oct 2016 23:18:17 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        "Johannes Stezenbach" <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        "Patrick Boettcher" <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        "Michael Krufky" <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "jrg.otte@gmail.com" <jrg.otte@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
-Subject: [PATCH v2 .1 28/31] cpia2_usb: don't use stack for DMA
-Message-ID: <20161011231817.331f1244@vento.lan>
-In-Reply-To: <17EC94B0A072C34B8DCF0D30AD16044A028EFC0B@BPXM09GP.gisp.nec.co.jp>
-References: <c2dd60621e2e63076d4c7e250eed9cacb7d5bad3.1476179975.git.mchehab@s-opensource.com>
-        <17EC94B0A072C34B8DCF0D30AD16044A028EFC0B@BPXM09GP.gisp.nec.co.jp>
+Received: from anholt.net ([50.246.234.109]:56558 "EHLO anholt.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751352AbcJKTBb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 15:01:31 -0400
+From: Eric Anholt <eric@anholt.net>
+To: Brian Starkey <brian.starkey@arm.com>,
+        dri-devel@lists.freedesktop.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        liviu.dudau@arm.com, robdclark@gmail.com, hverkuil@xs4all.nl,
+        ville.syrjala@linux.intel.com, daniel@ffwll.ch
+Subject: Re: [RFC PATCH 00/11] Introduce writeback connectors
+In-Reply-To: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+Date: Tue, 11 Oct 2016 12:01:14 -0700
+Message-ID: <87d1j6emmd.fsf@eliezer.anholt.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha512; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+--=-=-=
+Content-Type: text/plain
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Brian Starkey <brian.starkey@arm.com> writes:
 
--- 
+> Hi,
+>
+> This RFC series introduces a new connector type:
+>  DRM_MODE_CONNECTOR_WRITEBACK
+> It is a follow-on from a previous discussion: [1]
+>
+> Writeback connectors are used to expose the memory writeback engines
+> found in some display controllers, which can write a CRTC's
+> composition result to a memory buffer.
+> This is useful e.g. for testing, screen-recording, screenshots,
+> wireless display, display cloning, memory-to-memory composition.
+>
+> Patches 1-7 include the core framework changes required, and patches
+> 8-11 implement a writeback connector for the Mali-DP writeback engine.
+> The Mali-DP patches depend on this other series: [2].
+>
+> The connector is given the FB_ID property for the output framebuffer,
+> and two new read-only properties: PIXEL_FORMATS and
+> PIXEL_FORMATS_SIZE, which expose the supported framebuffer pixel
+> formats of the engine.
+>
+> The EDID property is not exposed for writeback connectors.
+>
+> Writeback connector usage:
+> --------------------------
+> Due to connector routing changes being treated as "full modeset"
+> operations, any client which wishes to use a writeback connector
+> should include the connector in every modeset. The writeback will not
+> actually become active until a framebuffer is attached.
+>
+> The writeback itself is enabled by attaching a framebuffer to the
+> FB_ID property of the connector. The driver must then ensure that the
+> CRTC content of that atomic commit is written into the framebuffer.
+>
+> The writeback works in a one-shot mode with each atomic commit. This
+> prevents the same content from being written multiple times.
+> In some cases (front-buffer rendering) there might be a desire for
+> continuous operation - I think a property could be added later for
+> this kind of control.
+>
+> Writeback can be disabled by setting FB_ID to zero.
 
-v2.1: As pointed by Kosuke Tatsukawa, I forgot to replace "registers" var
-to "buf" at one of the usb_control_msg() calls.
+I think this sounds great, and the interface is just right IMO.
 
-diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
-index 13620cdf0599..e9100a235831 100644
---- a/drivers/media/usb/cpia2/cpia2_usb.c
-+++ b/drivers/media/usb/cpia2/cpia2_usb.c
-@@ -545,18 +545,30 @@ static void free_sbufs(struct camera_data *cam)
- static int write_packet(struct usb_device *udev,
- 			u8 request, u8 * registers, u16 start, size_t size)
- {
-+	unsigned char *buf;
-+	int ret;
-+
- 	if (!registers || size <= 0)
- 		return -EINVAL;
- 
--	return usb_control_msg(udev,
-+	buf = kmalloc(size, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	memcpy(buf, registers, size);
-+
-+	ret = usb_control_msg(udev,
- 			       usb_sndctrlpipe(udev, 0),
- 			       request,
- 			       USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			       start,	/* value */
- 			       0,	/* index */
--			       registers,	/* buffer */
-+			       buf,	/* buffer */
- 			       size,
- 			       HZ);
-+
-+	kfree(buf);
-+	return ret;
- }
- 
- /****************************************************************************
-@@ -567,18 +579,32 @@ static int write_packet(struct usb_device *udev,
- static int read_packet(struct usb_device *udev,
- 		       u8 request, u8 * registers, u16 start, size_t size)
- {
-+	unsigned char *buf;
-+	int ret;
-+
- 	if (!registers || size <= 0)
- 		return -EINVAL;
- 
--	return usb_control_msg(udev,
-+	buf = kmalloc(size, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	ret = usb_control_msg(udev,
- 			       usb_rcvctrlpipe(udev, 0),
- 			       request,
- 			       USB_DIR_IN|USB_TYPE_VENDOR|USB_RECIP_DEVICE,
- 			       start,	/* value */
- 			       0,	/* index */
--			       registers,	/* buffer */
-+			       buf,	/* buffer */
- 			       size,
- 			       HZ);
-+
-+	if (ret >= 0)
-+		memcpy(registers, buf, size);
-+
-+	kfree(buf);
-+
-+	return ret;
- }
- 
- /******************************************************************************
+I don't really see a use for continuous mode -- a sequence of one-shots
+makes a lot more sense because then you can know what data has changed,
+which anyone trying to use the writeback buffer would need to know.
+
+> Known issues:
+> -------------
+>  * I'm not sure what "DPMS" should mean for writeback connectors.
+>    It could be used to disable writeback (even when a framebuffer is
+>    attached), or it could be hidden entirely (which would break the
+>    legacy DPMS call for writeback connectors).
+>  * With Daniel's recent re-iteration of the userspace API rules, I
+>    fully expect to provide some userspace code to support this. The
+>    question is what, and where? We want to use writeback for testing,
+>    so perhaps some tests in igt is suitable.
+>  * Documentation. Probably some portion of this cover letter needs to
+>    make it into Documentation/
+>  * Synchronisation. Our hardware will finish the writeback by the next
+>    vsync. I've not implemented fence support here, but it would be an
+>    obvious addition.
+
+My hardware won't necessarily finish by the next vsync -- it trickles
+out at whatever rate it can find memory bandwidth to get the job done,
+and fires an interrupt when it's finished.
+
+So I would like some definition for how syncing works.  One answer would
+be that these flips don't trigger their pageflip events until the
+writeback is done (so I need to collect both the vsync irq and the
+writeback irq before sending).  Another would be that manage an
+independent fence for the writeback fb, so that you still immediately
+know when framebuffers from the previous scanout-only frame are idle.
+
+Also, tests for this in igt, please.  Writeback in igt will give us so
+much more ability to cover KMS functionality on non-Intel hardware.
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCgAGBQJX/Tb6AAoJELXWKTbR/J7oP3MP/17/Lu/wCv23lpIsZv8YdQo+
+RDNYcEFfmuwdI61WwbsDzYY4QdOiGSIeSxIQxb7U0GyRONK5OZbAKRgW4+PzRLWd
+1ABJA0579lAuvImRAjNbLNOd5XauQMN3O/lFjc01D4MTItpbGfCHJ1tu23QgU6Zh
+D6tHLjnZrtiFVg4WEdPG56Or5de3dCqxqxs4AxIv1bWTVdF4/HEr6ot2U1e3C7kN
+yuXTr/CMRaxizoEW3aooRg2MbM44/1GYHBmvJ0NokH5qZOnawOnVE/QDiPJLM7Qt
+VdMTcDCa62cTeXmMauwbW4SfPDBmB2J24ObV5U5J7TX1rAMl7Kj82at5cIaKkSvn
+e0RUG9sQzw9W+7RV42wtd6HNMHX4OQ0gsXp736ZiSFtXro+s2cE3McjJYDE1n4nA
+cdoFlMX7CwIiC/lVGqxRUYoSrNQslwowuvD6afclzu8c+uEeyoznEXXGqB/UvMoS
+GPs8piifP0vilfhYud4Aak5sc9kBQhgvjDE1W8G9AlUcjNKap2dclAE1E4XYSlXI
+gGTLi5ZG/VwviwD57ODhhXk+Tr1//f+I4sWY1pZ1G2J+9M/Z136A4FfaWHlR5xce
+06omSoUvf+/xgcb1GJsmiui8F57cbdVegfXPoKv2hFHA1vIwQYVjanNPgiZkUpWN
+sL+kRY45RKkYCKWuTo6D
+=8KAN
+-----END PGP SIGNATURE-----
+--=-=-=--
