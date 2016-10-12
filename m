@@ -1,123 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:60269 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751137AbcJFNbk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 6 Oct 2016 09:31:40 -0400
-Date: Thu, 6 Oct 2016 10:31:32 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from
- scripts
-Message-ID: <20161006103132.3a56802a@vento.lan>
-In-Reply-To: <87oa2xrhqx.fsf@intel.com>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
-        <87oa2xrhqx.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from relmlor2.renesas.com ([210.160.252.172]:38772 "EHLO
+        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933254AbcJLOZP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:25:15 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [RFC 4/5] media: Add new SDR formats SC16, SC18 & SC20
+Date: Wed, 12 Oct 2016 15:10:28 +0100
+Message-Id: <1476281429-27603-5-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 06 Oct 2016 11:42:14 +0300
-Jani Nikula <jani.nikula@intel.com> escreveu:
+This patch adds support for the three new SDR formats. These formats
+were prefixed with "sliced" indicating I data constitutes the top half and
+Q data constitutes the bottom half of the received buffer.
 
-> On Thu, 06 Oct 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> > with this series a reST-directive kernel-cmd is introduced. The kernel-cmd
-> > directive includes contend from the stdout of a command-line (@mchehab asked
-> > for).  
+V4L2_SDR_FMT_SCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+inside 16-bit. V4L2 FourCC: SC16
 
-Ok, I ran some tests here and it works as expected.
+V4L2_SDR_FMT_SCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+inside 18-bit. V4L2 FourCC: SC18
 
-> I like the fact that this removes Documentation/media/Makefile, and
-> cleans up the Sphinx build rule in Documentation/Makefile.sphinx.
+V4L2_SDR_FMT_SCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+inside 20-bit. V4L2 FourCC: SC20
 
-Yeah, that sounds great.
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+ include/uapi/linux/videodev2.h       | 3 +++
+ 2 files changed, 6 insertions(+)
 
-> Does
-> this also make the documentation buildable with sphinx-build directly,
-> without the kernel build system? If so, great.
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index cd3641b..2b9be1c 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1259,6 +1259,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+ 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+ 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
++	case V4L2_SDR_FMT_SCU16BE:	descr = "Sliced Complex U16BE"; break;
++	case V4L2_SDR_FMT_SCU18BE:	descr = "Sliced Complex U18BE"; break;
++	case V4L2_SDR_FMT_SCU20BE:	descr = "Sliced Complex U20BE"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2b12548..369a199 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -643,6 +643,9 @@ struct v4l2_pix_format {
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_SCU16BE	  v4l2_fourcc('S', 'C', '1', '6') /* sliced complex u16be */
++#define V4L2_SDR_FMT_SCU18BE	  v4l2_fourcc('S', 'C', '1', '8') /* sliced complex u18be */
++#define V4L2_SDR_FMT_SCU20BE	  v4l2_fourcc('S', 'C', '2', '0') /* sliced complex u20be */
+ 
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+-- 
+1.9.1
 
-I guess it probably allows that, if you include the extension on
-some other tree.
-
-Just curious here: what use case do you see by building the Kernel
-documentation without the Kernel tree?
-
-> However, I would have much preferred the approach I proposed months ago,
-> having the extension itself do specifically what parse-headers.pl does
-> now. While it may seem generic on the surface, I don't think it's a
-> clean or a secure approach to allow running of arbitrary scripts from
-> PATH while building documentation. It's certainly not an approach that
-> should be encouraged.
-
-Sorry, but I disagree. The security threat of having a random command
-doing something wrong is the same as we already have with the Kernel
-Makefiles, as they can also run a random command. All it is needed
-is to add this to a Makefile:
-
-subdir-y                     += run_some_evil_cmd
-
-If we accept the fact that we do need to run commands when running "make",
-it doesn't really matter if such command is at a makefile, inside a 
-perl/python script or called via some Sphinx directive. In all cases,
-patches need to be reviewed by the community, to be sure that they won't
-introduce any vulnerabilities.
-
-Btw, with regards to security, a way bigger threat is if someone
-introduces a vulnerable code inside the Kernel code, as this will
-affect a lot more systems than a vulnerability at the documentation
-build process.
-
-Yet, if you think security is still a high risk, my suggestion
-would be to restrict the kernel-cmd script to only run scripts
-inside trusted places, like Documentation/sphinx.
-
-
--
-
-The real issue here is that Sphinx itself doesn't provide what
-it is needed to build the Kernel documentation. Some extra
-scripts are required. Right now, we converted maybe 5% of the
-documentation to ReST, and we're using running two perl scripts:
-	- kernel-doc
-	- parse-headers.pl
-
-We also identified that, if we want to add the MAINTAINERS file to
-some documentation (or a parsed version of it), we would need an extra
-script to filter it[1].
-
-I can think on other use cases to run such scripts[2].
-
-What I'm saying is that, we can keep adding a Sphinx-specific
-extension for every such needs, with will result in code duplication
-and will make harder to maintain it, or we can use a generic
-solution like this kernel-cmd extension.
-
-IMO, a generic solution is a way better, as it sounds easier to
-maintain.
-
-Regards,
-Mauro
-
-[1] https://git.linuxtv.org/mchehab/experimental.git/commit/?h=lkml-books&id=c8b07684c0278d7f9d0e30f575eb4be3a2da4c3b
-
-[2] There's another possible usecase, with I'm not convinced yet
-whether should be addressed or not.
-
-At the media subsystem, we use 8 out-of-tree scripts that update
-the list of supported USB and PCI media boards, e. g. the files under:
-	Documentation/media/v4l-drivers/*cardlist.rst
-
-Such scripts used to be part of the mercurial tree, before we moved the 
-media development to git, like this one:
-	https://linuxtv.org/hg/v4l-dvb/file/3724e93f7af5/v4l/scripts/bttv.pl
-
-Currently, I'm using a local fork of the old scripts, and, when I
-notice a patch for a driver with a cardlist, if I remember, I run the
-scripts to add to update the cardlists. While it could be kept
-OOT forever, if moved it to the Kernel tree,  the documentation will 
-always reflect the Kernel status, with is, IMHO, a good thing.
