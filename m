@@ -1,160 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51517 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934504AbcJRUqU (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:35138 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933274AbcJLOrL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH v2 28/58] si470x: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:40 -0200
-Message-Id: <af20cd46211400ebe618194ebba2efe37666890d.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Wed, 12 Oct 2016 10:47:11 -0400
+Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OEX01FZBV7FY8A0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Oct 2016 23:35:42 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v4l-utils v7 4/7] mediactl: Add media_device creation helpers
+Date: Wed, 12 Oct 2016 16:35:19 +0200
+Message-id: <1476282922-11544-5-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Add helper functions that allow for easy instantiation of media_device
+object basing on whether the media device contains v4l2 subdev with
+given file descriptor.
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
-
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/radio/si470x/radio-si470x-i2c.c |  7 +++----
- drivers/media/radio/si470x/radio-si470x-usb.c | 15 +++++++--------
- 2 files changed, 10 insertions(+), 12 deletions(-)
+ utils/media-ctl/libmediactl.c | 131 +++++++++++++++++++++++++++++++++++++++++-
+ utils/media-ctl/mediactl.h    |  27 +++++++++
+ 2 files changed, 156 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-index ee0470a3196b..9b81969d76b5 100644
---- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-+++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-@@ -387,8 +387,8 @@ static int si470x_i2c_probe(struct i2c_client *client,
- 			radio->registers[DEVICEID], radio->registers[SI_CHIPID]);
- 	if ((radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
- 		dev_warn(&client->dev,
--			"This driver is known to work with "
--			"firmware version %hu,\n", RADIO_FW_VERSION);
-+			"This driver is known to work with firmware version %hu,\n",
-+			RADIO_FW_VERSION);
- 		dev_warn(&client->dev,
- 			"but the device has firmware version %hu.\n",
- 			radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE);
-@@ -400,8 +400,7 @@ static int si470x_i2c_probe(struct i2c_client *client,
- 		dev_warn(&client->dev,
- 			"If you have some trouble using this driver,\n");
- 		dev_warn(&client->dev,
--			"please report to V4L ML at "
--			"linux-media@vger.kernel.org\n");
-+			"please report to V4L ML at linux-media@vger.kernel.org\n");
- 	}
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 155b65f..d347a40 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -27,6 +27,7 @@
+ #include <sys/sysmacros.h>
  
- 	/* set initial frequency */
-diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
-index 4b132c29f290..1add136d37a3 100644
---- a/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -351,8 +351,8 @@ static int si470x_get_scratch_page_versions(struct si470x_device *radio)
- 	retval = si470x_get_report(radio, radio->usb_buf, SCRATCH_REPORT_SIZE);
+ #include <ctype.h>
++#include <dirent.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <stdbool.h>
+@@ -440,8 +441,9 @@ static int media_get_devname_udev(struct udev *udev,
+ 		return -EINVAL;
  
- 	if (retval < 0)
--		dev_warn(&radio->intf->dev, "si470x_get_scratch: "
--			"si470x_get_report returned %d\n", retval);
-+		dev_warn(&radio->intf->dev, "si470x_get_scratch: si470x_get_report returned %d\n",
-+			 retval);
- 	else {
- 		radio->software_version = radio->usb_buf[1];
- 		radio->hardware_version = radio->usb_buf[2];
-@@ -688,8 +688,8 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
- 			radio->registers[DEVICEID], radio->registers[SI_CHIPID]);
- 	if ((radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE) < RADIO_FW_VERSION) {
- 		dev_warn(&intf->dev,
--			"This driver is known to work with "
--			"firmware version %hu,\n", RADIO_FW_VERSION);
-+			"This driver is known to work with firmware version %hu,\n",
-+			RADIO_FW_VERSION);
- 		dev_warn(&intf->dev,
- 			"but the device has firmware version %hu.\n",
- 			radio->registers[SI_CHIPID] & SI_CHIPID_FIRMWARE);
-@@ -705,8 +705,8 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
- 			radio->software_version, radio->hardware_version);
- 	if (radio->hardware_version < RADIO_HW_VERSION) {
- 		dev_warn(&intf->dev,
--			"This driver is known to work with "
--			"hardware version %hu,\n", RADIO_HW_VERSION);
-+			"This driver is known to work with hardware version %hu,\n",
-+			RADIO_HW_VERSION);
- 		dev_warn(&intf->dev,
- 			"but the device has hardware version %hu.\n",
- 			radio->hardware_version);
-@@ -718,8 +718,7 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
- 		dev_warn(&intf->dev,
- 			"If you have some trouble using this driver,\n");
- 		dev_warn(&intf->dev,
--			"please report to V4L ML at "
--			"linux-media@vger.kernel.org\n");
-+			"please report to V4L ML at linux-media@vger.kernel.org\n");
- 	}
+ 	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
+-	media_dbg(entity->media, "looking up device: %u:%u\n",
+-		  major(devnum), minor(devnum));
++	if (entity->media)
++		media_dbg(entity->media, "looking up device: %u:%u\n",
++			  major(devnum), minor(devnum));
+ 	device = udev_device_new_from_devnum(udev, 'c', devnum);
+ 	if (device) {
+ 		p = udev_device_get_devnode(device);
+@@ -523,6 +525,7 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+ 	return 0;
+ }
  
- 	/* set led to connect state */
++
+ static int media_enum_entities(struct media_device *media)
+ {
+ 	struct media_entity *entity;
+@@ -707,6 +710,92 @@ struct media_device *media_device_new(const char *devnode)
+ 	return media;
+ }
+ 
++struct media_device *media_device_new_by_subdev_fd(int fd, struct media_entity **fd_entity)
++{
++	char video_devname[32], device_dir_path[256], media_dev_path[256], media_major_minor[10];
++	struct media_device *media = NULL;
++	struct dirent *entry;
++	struct media_entity tmp_entity;
++	DIR *device_dir;
++	struct udev *udev;
++	char *p;
++	int ret, i;
++
++	if (fd_entity == NULL)
++		return NULL;
++
++	ret = media_get_devname_by_fd(fd, video_devname);
++	if (ret < 0)
++		return NULL;
++
++	p = strrchr(video_devname, '/');
++	if (p == NULL)
++		return NULL;
++
++	ret = media_udev_open(&udev);
++	if (ret < 0)
++		return NULL;
++
++	sprintf(device_dir_path, "/sys/class/video4linux/%s/device/", p + 1);
++
++	device_dir = opendir(device_dir_path);
++	if (device_dir == NULL)
++		return NULL;
++
++	while ((entry = readdir(device_dir))) {
++		if (strncmp(entry->d_name, "media", 4))
++			continue;
++
++		sprintf(media_dev_path, "%s%s/dev", device_dir_path, entry->d_name);
++
++		fd = open(media_dev_path, O_RDONLY);
++		if (fd < 0)
++			continue;
++
++		ret = read(fd, media_major_minor, sizeof(media_major_minor));
++		if (ret < 0)
++			continue;
++
++		sscanf(media_major_minor, "%d:%d", &tmp_entity.info.dev.major, &tmp_entity.info.dev.minor);
++
++		/* Try to get the device name via udev */
++		if (media_get_devname_udev(udev, &tmp_entity)) {
++			/* Fall back to get the device name via sysfs */
++			if (media_get_devname_sysfs(&tmp_entity))
++				continue;
++		}
++
++		media = media_device_new(tmp_entity.devname);
++		if (media == NULL)
++			continue;
++
++		ret = media_device_enumerate(media);
++		if (ret < 0) {
++			media_dbg(media, "Failed to enumerate %s (%d)\n",
++				  tmp_entity.devname, ret);
++			media_device_unref(media);
++			media = NULL;
++			continue;
++		}
++
++		/* Get the entity associated with given fd */
++		for (i = 0; i < media->entities_count; i++) {
++			struct media_entity *entity = &media->entities[i];
++
++			if (!strcmp(entity->devname, video_devname)) {
++				*fd_entity = &media->entities[i];
++				break;
++			}
++		}
++
++		break;
++	}
++
++	media_udev_close(udev);
++
++	return media;
++}
++
+ struct media_device *media_device_new_emulated(struct media_device_info *info)
+ {
+ 	struct media_device *media;
+@@ -748,6 +837,44 @@ void media_device_unref(struct media_device *media)
+ 	free(media);
+ }
+ 
++int media_get_devname_by_fd(int fd, char *node_name)
++{
++	struct udev *udev;
++	struct media_entity tmp_entity;
++	struct stat stat;
++	int ret, ret_udev;
++
++	if (node_name == NULL)
++		return -EINVAL;
++
++	ret = fstat(fd, &stat);
++	if (ret < 0)
++		return -errno;
++
++	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
++	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
++
++	ret_udev = media_udev_open(&udev);
++	if (ret_udev < 0)
++		printf("Can't get udev context\n");
++
++	/* Try to get the device name via udev */
++	ret = media_get_devname_udev(udev, &tmp_entity);
++	if (!ret)
++		goto out;
++
++	ret = media_get_devname_sysfs(&tmp_entity);
++	if (ret < 0)
++		goto err_get_devname;
++
++out:
++	strncpy(node_name, tmp_entity.devname, sizeof(tmp_entity.devname));
++err_get_devname:
++	if (!ret_udev)
++		media_udev_close(udev);
++	return ret;
++}
++
+ int media_device_add_entity(struct media_device *media,
+ 			    const struct media_entity_desc *desc,
+ 			    const char *devnode)
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index b1f33cd..580a25a 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -76,6 +76,21 @@ struct media_device *media_device_new(const char *devnode);
+ struct media_device *media_device_new_emulated(struct media_device_info *info);
+ 
+ /**
++ * @brief Create a new media device contatning entity associated with v4l2 subdev fd.
++ * @param fd - file descriptor of a v4l2 subdev.
++ * @param fd_entity - media entity associated with the v4l2 subdev.
++ *
++ * Create a representation of the media device referenced by the v4l2-subdev.
++ * The media device instance is initialized with enumerated entities and links.
++ *
++ * Media devices are reference-counted, see media_device_ref() and
++ * media_device_unref() for more information.
++ *
++ * @return A pointer to the new media device or NULL if error occurred.
++ */
++struct media_device *media_device_new_by_subdev_fd(int fd, struct media_entity **fd_entity);
++
++/**
+  * @brief Take a reference to the device.
+  * @param media - device instance.
+  *
+@@ -231,6 +246,18 @@ const struct media_link *media_entity_get_link(struct media_entity *entity,
+ const char *media_entity_get_devname(struct media_entity *entity);
+ 
+ /**
++ * @brief Get the device node name by its file descriptor
++ * @param fd - file descriptor of a device.
++ * @param node_name - output device node name string.
++ *
++ * This function returns the full path and name to the device node corresponding
++ * to the given file descriptor.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_get_devname_by_fd(int fd, char *node_name);
++
++/**
+  * @brief Get the type of an entity.
+  * @param entity - the entity.
+  *
 -- 
-2.7.4
-
+1.9.1
 
