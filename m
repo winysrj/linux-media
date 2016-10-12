@@ -1,55 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:28807 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935146AbcJaKuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 06:50:06 -0400
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-To: Linux USB <linux-usb@vger.kernel.org>
-Cc: Felipe Balbi <felipe.balbi@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 14/82] media: usb: uvc: make use of new usb_endpoint_maxp_mult()
-Date: Mon, 31 Oct 2016 12:48:06 +0200
-Message-Id: <20161031104914.1990-15-felipe.balbi@linux.intel.com>
-In-Reply-To: <20161031104914.1990-1-felipe.balbi@linux.intel.com>
-References: <20161031104914.1990-1-felipe.balbi@linux.intel.com>
+Received: from zeniv.linux.org.uk ([195.92.253.2]:32778 "EHLO
+        ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750976AbcJLApB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 20:45:01 -0400
+Date: Wed, 12 Oct 2016 01:26:34 +0100
+From: Al Viro <viro@ZenIV.linux.org.uk>
+To: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: gregkh@linuxfoundation.org, arve@android.com,
+        riandrews@android.com, sumit.semwal@linaro.org, arnd@arndb.de,
+        labbott@redhat.com, jlayton@poochiereds.net, bfields@fieldses.org,
+        mingo@redhat.com, peterz@infradead.org, akpm@linux-foundation.org,
+        keescook@chromium.org, mhocko@suse.com, oleg@redhat.com,
+        john.stultz@linaro.org, mguzik@redhat.com, jdanis@google.com,
+        adobriyan@gmail.com, ghackmann@google.com,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz,
+        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
+        hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, luto@kernel.org,
+        tj@kernel.org, vdavydov.dev@gmail.com, ebiederm@xmission.com,
+        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, linux-fsdevel@vger.kernel.org,
+        linux-mm@kvack.org
+Subject: Re: [RFC 0/6] Module for tracking/accounting shared memory buffers
+Message-ID: <20161012002634.GN19539@ZenIV.linux.org.uk>
+References: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We have introduced a helper to calculate multiplier
-value from wMaxPacketSize. Start using it.
+On Tue, Oct 11, 2016 at 04:50:04PM -0700, Ruchi Kandoi wrote:
 
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
----
- drivers/media/usb/uvc/uvc_video.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+> memtrack maintains a per-process list of shared buffer references, which is
+> exported to userspace as /proc/[pid]/memtrack.  Buffers can be optionally
+> "tagged" with a short string: for example, Android userspace would use this
+> tag to identify whether buffers were allocated on behalf of the camera stack,
+> GL, etc.  memtrack also exports the VMAs associated with these buffers so
+> that pages already included in the process's mm counters aren't double-counted.
+> 
+> Shared-buffer allocators can hook into memtrack by embedding
+> struct memtrack_buffer in their buffer metadata, calling
+> memtrack_buffer_{init,remove} at buffer allocation and free time, and
+> memtrack_buffer_{install,uninstall} when a userspace process takes or
+> drops a reference to the buffer.  For fd-backed buffers like dma-bufs, hooks in
+> fdtable.c and fork.c automatically notify memtrack when references are added or
+> removed from a process's fd table.
+> 
+> This patchstack adds memtrack hooks into dma-buf and ion.  If there's upstream
+> interest in memtrack, it can be extended to other memory allocators as well,
+> such as GEM implementations.
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index b5589d5f5da4..11e0e5f4e1c2 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1467,6 +1467,7 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
- 					 struct usb_host_endpoint *ep)
- {
- 	u16 psize;
-+	u16 mult;
- 
- 	switch (dev->speed) {
- 	case USB_SPEED_SUPER:
-@@ -1474,7 +1475,8 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
- 		return le16_to_cpu(ep->ss_ep_comp.wBytesPerInterval);
- 	case USB_SPEED_HIGH:
- 		psize = usb_endpoint_maxp(&ep->desc);
--		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-+		mult = usb_endpoint_maxp_mult(&ep->desc);
-+		return (psize & 0x07ff) * mult;
- 	case USB_SPEED_WIRELESS:
- 		psize = usb_endpoint_maxp(&ep->desc);
- 		return psize;
--- 
-2.10.1
+No, with a side of Hell, No.  Not to mention anything else,
+	* descriptor tables do not belong to any specific task_struct and
+actions done by one show up in all who share that thing.
+	* shared descriptor table does not imply belonging to the same
+group.
+	* shared descriptor table can become unshared at any point, invisibly
+for that Fine Piece Of Software.
+	* while we are at it, blocking allocation under several spinlocks
+(and with interrupts disabled, for good measure) is generally considered
+a bloody bad idea.
 
+That - just from the quick look through that patchset.  Bringing task_struct
+into the API is already sufficient for a NAK.
