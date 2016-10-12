@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:47058 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S938757AbcJXW3N (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 18:29:13 -0400
-Date: Mon, 24 Oct 2016 23:28:44 +0100
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rafael =?iso-8859-1?Q?Louren=E7o?= de Lima Chehab
-        <chehabrafael@gmail.com>, Shuah Khan <shuah@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 1/3] [media] au0828-video: Use kcalloc() in
- au0828_init_isoc()
-Message-ID: <20161024222844.GD25320@dell-m4800.home>
-References: <c6a37822-c0f9-1f1e-6ebe-a1c88c6d9d0a@users.sourceforge.net>
- <68ad1aaa-c029-04b9-805a-e859f6c2d2d5@users.sourceforge.net>
+Received: from mail-co1nam03on0043.outbound.protection.outlook.com ([104.47.40.43]:22848
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932441AbcJLJYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 05:24:42 -0400
+Subject: Re: [RFC 0/6] Module for tracking/accounting shared memory buffers
+To: Ruchi Kandoi <kandoiruchi@google.com>,
+        <gregkh@linuxfoundation.org>, <arve@android.com>,
+        <riandrews@android.com>, <sumit.semwal@linaro.org>,
+        <arnd@arndb.de>, <labbott@redhat.com>, <viro@zeniv.linux.org.uk>,
+        <jlayton@poochiereds.net>, <bfields@fieldses.org>,
+        <mingo@redhat.com>, <peterz@infradead.org>,
+        <akpm@linux-foundation.org>, <keescook@chromium.org>,
+        <mhocko@suse.com>, <oleg@redhat.com>, <john.stultz@linaro.org>,
+        <mguzik@redhat.com>, <jdanis@google.com>, <adobriyan@gmail.com>,
+        <ghackmann@google.com>, <kirill.shutemov@linux.intel.com>,
+        <vbabka@suse.cz>, <dave.hansen@linux.intel.com>,
+        <dan.j.williams@intel.com>, <hannes@cmpxchg.org>,
+        <iamjoonsoo.kim@lge.com>, <luto@kernel.org>, <tj@kernel.org>,
+        <vdavydov.dev@gmail.com>, <ebiederm@xmission.com>,
+        <linux-kernel@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+        <linaro-mm-sig@lists.linaro.org>, <linux-fsdevel@vger.kernel.org>,
+        <linux-mm@kvack.org>
+References: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <a49e7aa1-d9c6-bb52-36b1-0f7538a8f960@amd.com>
+Date: Wed, 12 Oct 2016 11:09:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <68ad1aaa-c029-04b9-805a-e859f6c2d2d5@users.sourceforge.net>
+In-Reply-To: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 24, 2016 at 10:59:24PM +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 24 Oct 2016 22:08:47 +0200
-> 
-> * Multiplications for the size determination of memory allocations
->   indicated that array data structures should be processed.
->   Thus use the corresponding function "kcalloc".
-> 
->   This issue was detected by using the Coccinelle software.
-> 
-> * Replace the specification of data types by pointer dereferences
->   to make the corresponding size determination a bit safer according to
->   the Linux coding style convention.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/usb/au0828/au0828-video.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> index 85dd9a8..85b13c1 100644
-> --- a/drivers/media/usb/au0828/au0828-video.c
-> +++ b/drivers/media/usb/au0828/au0828-video.c
-> @@ -221,15 +221,18 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
->  
->  	dev->isoc_ctl.isoc_copy = isoc_copy;
->  	dev->isoc_ctl.num_bufs = num_bufs;
-> -
+Am 12.10.2016 um 01:50 schrieb Ruchi Kandoi:
+> This patchstack adds memtrack hooks into dma-buf and ion.  If there's upstream
+> interest in memtrack, it can be extended to other memory allocators as well,
+> such as GEM implementations.
+We have run into similar problems before. Because of this I already 
+proposed a solution for this quite a while ago, but never pushed on 
+upstreaming this since it was only done for a special use case.
 
-> -	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
-> +	dev->isoc_ctl.urb = kcalloc(num_bufs,
-> +				    sizeof(*dev->isoc_ctl.urb),
-> +				    GFP_KERNEL);
+Instead of keeping track of how much memory a process has bound (which 
+is very fragile) my solution  only added some more debugging info on a 
+per fd basis (e.g. how much memory is bound to this fd).
 
-What about this (for both hunks)?
+This information was then used by the OOM killer (for example) to make a 
+better decision on which process to reap.
 
--	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
-+	dev->isoc_ctl.urb =
-+		kcalloc(num_bufs, sizeof(*dev->isoc_ctl.urb), GFP_KERNEL);
+Shouldn't be to hard to expose this through debugfs or maybe a new fcntl 
+to userspace for debugging.
+
+I haven't looked at the code in detail, but messing with the per process 
+memory accounting like you did in this proposal is clearly not a good 
+idea if you ask me.
+
+Regards,
+Christian.
