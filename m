@@ -1,60 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46775 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935812AbcJGRYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 23/26] dvb-usb: warn if return value for USB read/write routines is not checked
-Date: Fri,  7 Oct 2016 14:24:33 -0300
-Message-Id: <ace9874a2d3bf1bcb4161086dc58b7b5a762ee1a.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.14]:51101 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933602AbcJLPE7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 11:04:59 -0400
+Subject: [PATCH 26/34] [media] DaVinci-VPIF-Capture: Delete an error message
+ for a failed memory allocation
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>,
+        Wolfram Sang <wsa@the-dreams.de>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <6ecc9791-df4d-ee71-8535-535b2def961c@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 17:04:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-the return values for dvb_usb_generic_rw() and dvb_usb_generic_write()
-should be checked, as otherwise the drivers won't be doing the right
-thing in the case of errors.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 15:18:45 +0200
 
-So, add __must_check to both declarations.
+Omit an extra message for a memory allocation failure in this function.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Link: http://events.linuxfoundation.org/sites/events/files/slides/LCJ16-Refactor_Strings-WSang_0.pdf
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/dvb-usb/dvb-usb.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/platform/davinci/vpif_capture.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
-index 639c4678c65b..1448c3d27ea2 100644
---- a/drivers/media/usb/dvb-usb/dvb-usb.h
-+++ b/drivers/media/usb/dvb-usb/dvb-usb.h
-@@ -462,8 +462,10 @@ extern int dvb_usb_device_init(struct usb_interface *,
- extern void dvb_usb_device_exit(struct usb_interface *);
- 
- /* the generic read/write method for device control */
--extern int dvb_usb_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16,int);
--extern int dvb_usb_generic_write(struct dvb_usb_device *, u8 *, u16);
-+extern int __must_check
-+dvb_usb_generic_rw(struct dvb_usb_device *, u8 *, u16, u8 *, u16, int);
-+extern int __must_check
-+dvb_usb_generic_write(struct dvb_usb_device *, u8 *, u16);
- 
- /* commonly used remote control parsing */
- extern int dvb_usb_nec_rc_key_to_event(struct dvb_usb_device *, u8[], u32 *, int *);
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index fb9e850..24d1f61 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1466,7 +1466,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	subdev_count = vpif_obj.config->subdev_count;
+ 	vpif_obj.sd = kcalloc(subdev_count, sizeof(*vpif_obj.sd), GFP_KERNEL);
+ 	if (vpif_obj.sd == NULL) {
+-		vpif_err("unable to allocate memory for subdevice pointers\n");
+ 		err = -ENOMEM;
+ 		goto vpif_unregister;
+ 	}
 -- 
-2.7.4
-
+2.10.1
 
