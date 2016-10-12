@@ -1,95 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f177.google.com ([209.85.217.177]:35517 "EHLO
-        mail-ua0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751288AbcJEQpG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 12:45:06 -0400
+Received: from mout.web.de ([212.227.15.14]:54204 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933547AbcJLOl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:41:58 -0400
+Subject: [PATCH 05/34] [media] DaVinci-VPBE: Return an error code only as a
+ constant in vpbe_probe()
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <a73b4879-7f45-f863-fb11-73878d40674d@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:35:12 +0200
 MIME-Version: 1.0
-In-Reply-To: <CALCETrVWYfijXeuKzk6FDDReaKXXP6Wck=80wtTohS8JpJND6A@mail.gmail.com>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
- <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
- <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm> <20161005093417.6e82bd97@vdr>
- <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm> <20161005060450.1b0f2152@vento.lan>
- <CADDKRnABN_PoUtXGv3Rnbcc8FmgUFyLRm27KzShyK+9UPM3mqQ@mail.gmail.com> <CALCETrVWYfijXeuKzk6FDDReaKXXP6Wck=80wtTohS8JpJND6A@mail.gmail.com>
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-Date: Wed, 5 Oct 2016 18:45:05 +0200
-Message-ID: <CADDKRnB13h4cZN7y_EumnbcxK_Bj6evntx56Ya9WuZ3fYCJTBg@mail.gmail.com>
-Subject: Re: Problem with VMAP_STACK=y
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-10-05 17:53 GMT+02:00 Andy Lutomirski <luto@amacapital.net>:
-> On Wed, Oct 5, 2016 at 8:21 AM, J=C3=B6rg Otte <jrg.otte@gmail.com> wrote=
-:
->> 2016-10-05 11:04 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.c=
-om>:
->>> Em Wed, 5 Oct 2016 09:50:42 +0200 (CEST)
->>> Jiri Kosina <jikos@kernel.org> escreveu:
->>>
->>>> On Wed, 5 Oct 2016, Patrick Boettcher wrote:
->>>>
->>>> > > > Thanks for the quick response.
->>>> > > > Drivers are:
->>>> > > > dvb_core, dvb_usb, dbv_usb_cynergyT2
->>>> > >
->>>> > > This dbv_usb_cynergyT2 is not from Linus' tree, is it? I don't see=
-m
->>>> > > to be able to find it, and the only google hit I am getting is you=
-r
->>>> > > very mail to LKML :)
->>>> >
->>>> > It's a typo, it should say dvb_usb_cinergyT2.
->>>>
->>>> Ah, thanks. Same issues there in
->>>>
->>>>       cinergyt2_frontend_attach()
->>>>       cinergyt2_rc_query()
->>>>
->>>> I think this would require more in-depth review of all the media drive=
-rs
->>>> and having all this fixed for 4.9. It should be pretty straightforward=
-;
->>>> all the instances I've seen so far should be just straightforward
->>>> conversion to kmalloc() + kfree(), as the buffer is not being embedded=
- in
->>>> any structure etc.
->>>
->>> What we're doing on most cases is to put a buffer (usually with 80
->>> chars for USB drivers) inside the "state" struct (on DVB drivers),
->>> in order to avoid doing kmalloc/kfree all the times. One such patch is
->>> changeset c4a98793a63c4.
->>>
->>> I'm enclosing a non-tested patch fixing it for the cinergyT2-core.c
->>> driver.
->>>
->>> Thanks,
->>> Mauro
->>>
->>> [PATCH] cinergyT2-core: don't do DMA on stack
->>>
->>
->> Tried the cinergyT2 patch. No success. When I select a TV channel
->> just nothing happens. There are no error messages.
->
-> Could you try compiling with CONFIG_DEBUG_VIRTUAL=3Dy and seeing if you
-> get a nice error message?
->
-> --Andy
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 11 Oct 2016 13:43:25 +0200
 
-Done. Still no error messages in dmesg and syslog.
+* Return an error code without storing it in an intermediate variable.
 
-DVB adapter signals it is tuned to the channel.
-For me it looks like there`s no data reaching the application
-(similar to if I forget to connect an antenna).
+* Delete the local variable "ret" which became unnecessary with
+  this refactoring.
 
-J=C3=B6rg
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/davinci/vpbe.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 625bddf..4c4cd81 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -821,7 +821,6 @@ static int vpbe_probe(struct platform_device *pdev)
+ {
+ 	struct vpbe_device *vpbe_dev;
+ 	struct vpbe_config *cfg;
+-	int ret = -EINVAL;
+ 
+ 	if (!pdev->dev.platform_data) {
+ 		v4l2_err(pdev->dev.driver, "No platform data\n");
+@@ -834,7 +833,7 @@ static int vpbe_probe(struct platform_device *pdev)
+ 	    !cfg->venc.module_name[0]) {
+ 		v4l2_err(pdev->dev.driver,
+ 			 "vpbe display module names not defined\n");
+-		return ret;
++		return -EINVAL;
+ 	}
+ 
+ 	vpbe_dev = kzalloc(sizeof(*vpbe_dev), GFP_KERNEL);
+-- 
+2.10.1
+
