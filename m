@@ -1,136 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46763 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935100AbcJGRYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33689 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932441AbcJLG4X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 02:56:23 -0400
+Received: by mail-wm0-f68.google.com with SMTP id o81so905590wma.0
+        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 23:56:22 -0700 (PDT)
+Date: Wed, 12 Oct 2016 08:56:18 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 05/26] cinergyT2-fe: don't do DMA on stack
-Date: Fri,  7 Oct 2016 14:24:15 -0300
-Message-Id: <9d415b35135ba2d457df12859b64eacbc05bc2e4.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Liviu Dudau <liviu.dudau@arm.com>,
+        "Clark, Rob" <robdclark@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Eric Anholt <eric@anholt.net>,
+        "Syrjala, Ville" <ville.syrjala@linux.intel.com>
+Subject: Re: [RFC PATCH 00/11] Introduce writeback connectors
+Message-ID: <20161012065618.GI20761@phenom.ffwll.local>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+ <20161011154359.GD20761@phenom.ffwll.local>
+ <20161011164305.GA14337@e106950-lin.cambridge.arm.com>
+ <CAKMK7uFqiLCCcCz154SU-ZG5rygSBz2_P7M29EkFh8pGMfXvOw@mail.gmail.com>
+ <20161011194422.GC14337@e106950-lin.cambridge.arm.com>
+ <CAKMK7uEQsiBLQGghdDvmPicc_F6+3Ra_sd7keSKTPAgsNKbdog@mail.gmail.com>
+ <20161011212423.GA10077@e106950-lin.cambridge.arm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161011212423.GA10077@e106950-lin.cambridge.arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+On Tue, Oct 11, 2016 at 10:24:23PM +0100, Brian Starkey wrote:
+> On Tue, Oct 11, 2016 at 10:02:43PM +0200, Daniel Vetter wrote:
+> > The problem with just that is that there's lots of different things
+> > that can feed into the overall needs_modeset variable. That's why we
+> > split it up into multiple booleans.
+> > 
+> > So yes you're supposed to clear connectors_changed if there is some
+> > change that you can handle without a full modeset. If you want, think
+> > of connectors_changed as
+> > needs_modeset_due_to_change_in_connnector_state, but that's cumbersome
+> > to type and too long ;-)
+> > 
+> 
+> All right, got it :-). This intention wasn't clear to me from the
+> comments in the code.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/cinergyT2-fe.c | 45 ++++++++++++++++----------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+A patch to update the kernel-doc to make it clearer (there's mode_changed,
+connectors_changed and active_changed, plus drm_crtc_needs_modeset) would
+be awesome. I'm trying to write useful docs, but since I designed this all
+I sometimes forget to make the non-obvious assumptions clear enough.
 
-diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-index fd8edcb56e61..03ba66ef1f28 100644
---- a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-+++ b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-@@ -139,6 +139,9 @@ static uint16_t compute_tps(struct dtv_frontend_properties *op)
- struct cinergyt2_fe_state {
- 	struct dvb_frontend fe;
- 	struct dvb_usb_device *d;
-+
-+	unsigned char data[64];
-+
- 	struct dvbt_get_status_msg status;
- };
- 
-@@ -146,28 +149,28 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
- 				    enum fe_status *status)
- {
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg result;
--	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
- 	int ret;
- 
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&result,
--			sizeof(result), 0);
-+	state->data[0] = CINERGYT2_EP1_GET_TUNER_STATUS;
-+
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1,
-+				 state->data, sizeof(state->status), 0);
- 	if (ret < 0)
- 		return ret;
- 
--	state->status = result;
-+	memcpy(&state->status, state->data, sizeof(state->status));
- 
- 	*status = 0;
- 
--	if (0xffff - le16_to_cpu(result.gain) > 30)
-+	if (0xffff - le16_to_cpu(state->status.gain) > 30)
- 		*status |= FE_HAS_SIGNAL;
--	if (result.lock_bits & (1 << 6))
-+	if (state->status.lock_bits & (1 << 6))
- 		*status |= FE_HAS_LOCK;
--	if (result.lock_bits & (1 << 5))
-+	if (state->status.lock_bits & (1 << 5))
- 		*status |= FE_HAS_SYNC;
--	if (result.lock_bits & (1 << 4))
-+	if (state->status.lock_bits & (1 << 4))
- 		*status |= FE_HAS_CARRIER;
--	if (result.lock_bits & (1 << 1))
-+	if (state->status.lock_bits & (1 << 1))
- 		*status |= FE_HAS_VITERBI;
- 
- 	if ((*status & (FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC)) !=
-@@ -232,31 +235,29 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_set_parameters_msg param;
--	char result[2];
-+	struct dvbt_set_parameters_msg *param = (void *)state->data;
- 	int err;
- 
--	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
--	param.tps = cpu_to_le16(compute_tps(fep));
--	param.freq = cpu_to_le32(fep->frequency / 1000);
--	param.flags = 0;
-+	param->cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
-+	param->tps = cpu_to_le16(compute_tps(fep));
-+	param->freq = cpu_to_le32(fep->frequency / 1000);
-+	param->flags = 0;
- 
- 	switch (fep->bandwidth_hz) {
- 	default:
- 	case 8000000:
--		param.bandwidth = 8;
-+		param->bandwidth = 8;
- 		break;
- 	case 7000000:
--		param.bandwidth = 7;
-+		param->bandwidth = 7;
- 		break;
- 	case 6000000:
--		param.bandwidth = 6;
-+		param->bandwidth = 6;
- 		break;
- 	}
- 
--	err = dvb_usb_generic_rw(state->d,
--			(char *)&param, sizeof(param),
--			result, sizeof(result), 0);
-+	err = dvb_usb_generic_rw(state->d, state->data, sizeof(*param),
-+				 state->data, 2, 0);
- 	if (err < 0)
- 		err("cinergyt2_fe_set_frontend() Failed! err=%d\n", err);
- 
+Volunteered?
+
+> > > > tbh I don't like that, I think it'd be better to make this truly
+> > > > one-shot. Otherwise we'll have real fun problems with hw where the
+> > > > writeback can take longer than a vblank (it happens ...). So one-shot,
+> > > > with auto-clearing to NULL/0 is imo the right approach.
+> > > 
+> > > That's an interesting point about hardware which won't finish within
+> > > one frame; but I don't see how "true one-shot" helps.
+> > > 
+> > > What's the expected behaviour if userspace makes a new atomic commit
+> > > with a writeback framebuffer whilst a previous writeback is ongoing?
+> > > 
+> > > In both cases, you either need to block or fail the commit - whether
+> > > the framebuffer gets removed when it's done is immaterial.
+> > 
+> > See Eric's question. We need to define that, and I think the simplest
+> > approach is a completion fence/sync_file. It's destaged now in 4.9, we
+> > can use them. I think the simplest uabi would be a pointer property
+> > (u64) where we write the fd of the fence we'll signal when write-out
+> > completes.
+> > 
+> 
+> That tells userspace that the previous writeback is finished, I agree that's
+> needed. It doesn't define any behaviour in case userspace asks for another
+> writeback before that fence fires though.
+
+Hm, good point. I guess we could just state that if userspace does a
+writeback, and issues a new writeback before both a) the atomic flip and
+b) the write back complete fence signalled will lead to undefined
+behaviour. Undefined as in: data corruption, rejected atomic commit or
+anything else than a kernel crash is allowed. This is similar to doing a
+page flip and starting to render to the old buffers before the flip event
+signalled completion: Userspace gets the mess it asked for ;-)
+-Daniel
 -- 
-2.7.4
-
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
