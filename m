@@ -1,70 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:65514 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756287AbcJMQTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 12:19:30 -0400
-Subject: [PATCH 01/18] [media] RedRat3: Use kcalloc() in two functions
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <21c57b39-25ac-2df1-030d-11c243a11ebc@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 18:18:57 +0200
+Received: from mail-vk0-f53.google.com ([209.85.213.53]:35607 "EHLO
+        mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755185AbcJLPeQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 11:34:16 -0400
+Received: by mail-vk0-f53.google.com with SMTP id 192so48551877vkl.2
+        for <linux-media@vger.kernel.org>; Wed, 12 Oct 2016 08:33:37 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: =?UTF-8?B?V3UtQ2hlbmcgTGkgKOadjuWLmeiqoCk=?= <wuchengli@google.com>
+Date: Wed, 12 Oct 2016 23:33:16 +0800
+Message-ID: <CAOMLVLj9zwMCOCRawKZKDDtLkwHUN3VpLhpy2Qovn7Bv1X5SgA@mail.gmail.com>
+Subject: V4L2_DEC_CMD_STOP and last_buffer_dequeued
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        pawel@osciak.com
+Cc: Tiffany Lin <tiffany.lin@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 08:35:57 +0200
+Hi,
+I'm trying to use V4L2_DEC_CMD_STOP to implement flush. First the
+userspace sent V4L2_DEC_CMD_STOP to initiate the flush. The driver set
+V4L2_BUF_FLAG_LAST on the last CAPTURE buffer. I thought implementing
+V4L2_DEC_CMD_START in the driver was enough to start the decoder. But
+last_buffer_dequeued had been set to true in v4l2 core. I couldn't
+clear last_buffer_dequeued without calling STREAMOFF from the
+userspace. If I need to call STREAMOFF/STREAMON after
+V4L2_DEC_CMD_STOP, it looks like V4L2_DEC_CMD_START is not useful. Did
+I miss anything?
 
-* Multiplications for the size determination of memory allocations
-  indicated that array data structures should be processed.
-  Thus use the corresponding function "kcalloc".
-
-  This issue was detected by using the Coccinelle software.
-
-* Replace the specification of data types by pointer dereferences
-  to make the corresponding size determination a bit safer according to
-  the Linux coding style convention.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/rc/redrat3.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 8d7df6d..d89958b 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -549,7 +549,7 @@ static void redrat3_get_firmware_rev(struct redrat3_dev *rr3)
- 	int rc = 0;
- 	char *buffer;
- 
--	buffer = kzalloc(sizeof(char) * (RR3_FW_VERSION_LEN + 1), GFP_KERNEL);
-+	buffer = kcalloc(RR3_FW_VERSION_LEN + 1, sizeof(*buffer), GFP_KERNEL);
- 	if (!buffer) {
- 		dev_err(rr3->dev, "Memory allocation failure\n");
- 		return;
-@@ -741,7 +741,9 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 	/* rr3 will disable rc detector on transmit */
- 	rr3->transmitting = true;
- 
--	sample_lens = kzalloc(sizeof(int) * RR3_DRIVER_MAXLENS, GFP_KERNEL);
-+	sample_lens = kcalloc(RR3_DRIVER_MAXLENS,
-+			      sizeof(*sample_lens),
-+			      GFP_KERNEL);
- 	if (!sample_lens) {
- 		ret = -ENOMEM;
- 		goto out;
--- 
-2.10.1
-
+Regards,
+Wu-Cheng
