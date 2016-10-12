@@ -1,108 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46770 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936228AbcJGRYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 17/26] gp8psk: don't do DMA on stack
-Date: Fri,  7 Oct 2016 14:24:27 -0300
-Message-Id: <9838f21cadaddf56402590ba62135c825960e330.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:49979 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933254AbcJLOiT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:38:19 -0400
+Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OEX01FZBV7FY8A0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Oct 2016 23:35:45 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v4l-utils v7 5/7] mediactl: libv4l2subdev: Add colorspace
+ logging
+Date: Wed, 12 Oct 2016 16:35:20 +0200
+Message-id: <1476282922-11544-6-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+Add a function for obtaining colorspace name by id.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/dvb-usb/gp8psk.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ utils/media-ctl/libv4l2subdev.c | 32 ++++++++++++++++++++++++++++++++
+ utils/media-ctl/v4l2subdev.h    | 10 ++++++++++
+ 2 files changed, 42 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index 5d0384dd45b5..fa215ad37f7b 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -24,6 +24,10 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DV
+diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
+index 4f8ee7f..31393bb 100644
+--- a/utils/media-ctl/libv4l2subdev.c
++++ b/utils/media-ctl/libv4l2subdev.c
+@@ -33,6 +33,7 @@
+ #include <unistd.h>
  
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ #include <linux/v4l2-subdev.h>
++#include <linux/videodev2.h>
  
-+struct gp8psk_state {
-+	unsigned char data[80];
+ #include "mediactl.h"
+ #include "mediactl-priv.h"
+@@ -831,6 +832,37 @@ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code)
+ 	return "unknown";
+ }
+ 
++static struct {
++	const char *name;
++	enum v4l2_colorspace cs;
++} colorspaces[] = {
++        { "DEFAULT", V4L2_COLORSPACE_DEFAULT },
++        { "SMPTE170M", V4L2_COLORSPACE_SMPTE170M },
++        { "SMPTE240M", V4L2_COLORSPACE_SMPTE240M },
++        { "REC709", V4L2_COLORSPACE_REC709 },
++        { "BT878", V4L2_COLORSPACE_BT878 },
++        { "470_SYSTEM_M", V4L2_COLORSPACE_470_SYSTEM_M },
++        { "470_SYSTEM_BG", V4L2_COLORSPACE_470_SYSTEM_BG },
++        { "JPEG", V4L2_COLORSPACE_JPEG },
++        { "SRGB", V4L2_COLORSPACE_SRGB },
++        { "ADOBERGB", V4L2_COLORSPACE_ADOBERGB },
++        { "BT2020", V4L2_COLORSPACE_BT2020 },
++        { "RAW", V4L2_COLORSPACE_RAW },
++        { "DCI_P3", V4L2_COLORSPACE_DCI_P3 },
 +};
 +
- static int gp8psk_get_fw_version(struct dvb_usb_device *d, u8 *fw_vers)
- {
- 	return (gp8psk_usb_in_op(d, GET_FW_VERS, 0, 0, fw_vers, 6));
-@@ -53,17 +57,19 @@ static void gp8psk_info(struct dvb_usb_device *d)
- 
- int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
- {
-+	struct gp8psk_state *st = d->priv;
- 	int ret = 0,try = 0;
- 
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
- 
- 	while (ret >= 0 && ret != blen && try < 3) {
-+		memcpy(st->data, b, blen);
- 		ret = usb_control_msg(d->udev,
- 			usb_rcvctrlpipe(d->udev,0),
- 			req,
- 			USB_TYPE_VENDOR | USB_DIR_IN,
--			value,index,b,blen,
-+			value, index, st->data, blen,
- 			2000);
- 		deb_info("reading number %d (ret: %d)\n",try,ret);
- 		try++;
-@@ -86,6 +92,7 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
- int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen)
- {
-+	struct gp8psk_state *st = d->priv;
- 	int ret;
- 
- 	deb_xfer("out: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
-@@ -94,11 +101,12 @@ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
- 
-+	memcpy(st->data, b, blen);
- 	if (usb_control_msg(d->udev,
- 			usb_sndctrlpipe(d->udev,0),
- 			req,
- 			USB_TYPE_VENDOR | USB_DIR_OUT,
--			value,index,b,blen,
-+			value,index, st->data, blen,
- 			2000) != blen) {
- 		warn("usb out operation failed.");
- 		ret = -EIO;
-@@ -265,6 +273,8 @@ static struct dvb_usb_device_properties gp8psk_properties = {
- 	.usb_ctrl = CYPRESS_FX2,
- 	.firmware = "dvb-usb-gp8psk-01.fw",
- 
-+	.size_of_priv = sizeof(struct gp8psk_state),
++const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace cs)
++{
++	unsigned int i;
 +
- 	.num_adapters = 1,
- 	.adapter = {
- 		{
++	for (i = 0; i < ARRAY_SIZE(colorspaces); ++i) {
++		if (colorspaces[i].cs == cs)
++			return colorspaces[i].name;
++	}
++
++	return "unknown";
++}
++
+ enum v4l2_mbus_pixelcode v4l2_subdev_string_to_pixelcode(const char *string)
+ {
+ 	unsigned int i;
+diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
+index 4dee6b1..cf1250d 100644
+--- a/utils/media-ctl/v4l2subdev.h
++++ b/utils/media-ctl/v4l2subdev.h
+@@ -278,6 +278,16 @@ int v4l2_subdev_parse_setup_formats(struct media_device *media, const char *p);
+ const char *v4l2_subdev_pixelcode_to_string(enum v4l2_mbus_pixelcode code);
+ 
+ /**
++ * @brief Convert colorspace to string.
++ * @param code - input string
++ *
++ * Convert colorspace @a to a human-readable string.
++ *
++ * @return A pointer to a string on success, NULL on failure.
++ */
++const char *v4l2_subdev_colorspace_to_string(enum v4l2_colorspace cs);
++
++/**
+  * @brief Parse string to media bus pixel code.
+  * @param string - nul terminalted string, textual media bus pixel code
+  *
 -- 
-2.7.4
-
+1.9.1
 
