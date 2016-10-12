@@ -1,71 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:47697 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932719AbcJGQBW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 12:01:22 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 18/22] [media] imx-ipuv3-csi: support downsizing
-Date: Fri,  7 Oct 2016 18:01:03 +0200
-Message-Id: <20161007160107.5074-19-p.zabel@pengutronix.de>
-In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+Received: from mout.web.de ([212.227.15.4]:61630 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932983AbcJLOeX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:34:23 -0400
+Subject: [PATCH 04/34] [media] DaVinci-VPBE: Combine substrings for four
+ messages
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <8d486002-839c-bfd8-557c-04bb32f3b76f@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:34:05 +0200
+MIME-Version: 1.0
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the CSI internal horizontal and vertical downsizing.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 11 Oct 2016 13:40:14 +0200
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+The script "checkpatch.pl" pointed information out like the following.
+
+WARNING: quoted string split across lines
+
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/platform/imx/imx-ipuv3-csi.c | 20 ++++++++++++++------
- 1 file changed, 14 insertions(+), 6 deletions(-)
+ drivers/media/platform/davinci/vpbe.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
-index 699460e6..e8a6a7b 100644
---- a/drivers/media/platform/imx/imx-ipuv3-csi.c
-+++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
-@@ -167,8 +167,16 @@ static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
- 		width = clamp_t(unsigned int, sdformat->format.width, 16, 8192);
- 		height = clamp_t(unsigned int, sdformat->format.height, 16, 4096);
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 496b27f..625bddf 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -702,15 +702,15 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 					  "v4l2 sub device %s registered\n",
+ 					  enc_info->module_name);
+ 			else {
+-				v4l2_err(&vpbe_dev->v4l2_dev, "encoder %s"
+-					 " failed to register",
++				v4l2_err(&vpbe_dev->v4l2_dev,
++					 "encoder %s failed to register",
+ 					 enc_info->module_name);
+ 				ret = -ENODEV;
+ 				goto fail_kfree_encoders;
+ 			}
+ 		} else
+-			v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c encoders"
+-				 " currently not supported");
++			v4l2_warn(&vpbe_dev->v4l2_dev,
++				 "non-i2c encoders currently not supported");
+ 	}
+ 	/* Add amplifier subdevice for dm365 */
+ 	if ((strcmp(vpbe_dev->cfg->module_name, "dm365-vpbe-display") == 0) &&
+@@ -731,9 +731,9 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 					  "v4l2 sub device %s registered\n",
+ 					  amp_info->module_name);
+ 		} else {
+-			    vpbe_dev->amp = NULL;
+-			    v4l2_warn(&vpbe_dev->v4l2_dev, "non-i2c amplifiers"
+-			    " currently not supported");
++			vpbe_dev->amp = NULL;
++			v4l2_warn(&vpbe_dev->v4l2_dev,
++				  "non-i2c amplifiers currently not supported");
+ 		}
  	} else {
--		width = ipucsi->format_mbus[0].width;
--		height = ipucsi->format_mbus[0].height;
-+		if (sdformat->format.width <
-+		    (ipucsi->format_mbus[0].width * 3 / 4))
-+			width = ipucsi->format_mbus[0].width / 2;
-+		else
-+			width = ipucsi->format_mbus[0].width;
-+		if (sdformat->format.height <
-+		    (ipucsi->format_mbus[0].height * 3 / 4))
-+			height = ipucsi->format_mbus[0].height / 2;
-+		else
-+			height = ipucsi->format_mbus[0].height;
+ 	    vpbe_dev->amp = NULL;
+@@ -832,8 +832,8 @@ static int vpbe_probe(struct platform_device *pdev)
+ 	if (!cfg->module_name[0] ||
+ 	    !cfg->osd.module_name[0] ||
+ 	    !cfg->venc.module_name[0]) {
+-		v4l2_err(pdev->dev.driver, "vpbe display module names not"
+-			 " defined\n");
++		v4l2_err(pdev->dev.driver,
++			 "vpbe display module names not defined\n");
+ 		return ret;
  	}
  
- 	mbusformat = __ipucsi_get_pad_format(sd, cfg, sdformat->pad,
-@@ -212,14 +220,14 @@ static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
- 		window.width = fmt[0].width;
- 		window.height = fmt[0].height;
- 		ipu_csi_set_window(ipucsi->csi, &window);
-+		ipu_csi_set_downsize(ipucsi->csi,
-+				     fmt[0].width == 2 * fmt[1].width,
-+				     fmt[0].height == 2 * fmt[1].height);
- 
- 		/* Is CSI data source MCT (MIPI)? */
- 		mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
--
- 		ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
--		if (mux_mct)
--			ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
--						  &fmt[0]);
-+		ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0, &fmt[0]);
- 
- 		ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
- 					     &fmt[0]);
 -- 
-2.9.3
+2.10.1
 
