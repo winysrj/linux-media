@@ -1,77 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52730 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936515AbcJXJDv (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:28485 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755117AbcJLOV3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 05:03:51 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v4 2/4] dt-bindings: Add Renesas R-Car FDP1 bindings
-Date: Mon, 24 Oct 2016 12:03:36 +0300
-Message-Id: <1477299818-31935-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        Wed, 12 Oct 2016 10:21:29 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [RFC 2/5] media: v4l2-ctrls: Reserve controls for MAX217X
+Date: Wed, 12 Oct 2016 15:10:26 +0100
+Message-Id: <1476281429-27603-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran+renesas@bingham.xyz>
+Reserve controls for MAX217X RF to Bits tuner (family) chips. These hybrid
+radio receiver chips are highly programmable and hence reserving 32
+controls.
 
-The FDP1 is a de-interlacing module which converts interlaced video to
-progressive video. It is also capable of performing pixel format conversion
-between YCbCr/YUV formats and RGB formats.
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Kieran Bingham <kieran+renesas@bingham.xyz>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
 ---
- .../devicetree/bindings/media/renesas,fdp1.txt     | 33 ++++++++++++++++++++++
- 1 file changed, 33 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,fdp1.txt
+ include/uapi/linux/v4l2-controls.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,fdp1.txt b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-new file mode 100644
-index 000000000000..e6abd2a17e66
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
-@@ -0,0 +1,33 @@
-+Renesas R-Car Fine Display Processor (FDP1)
-+-------------------------------------------
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index b6a357a..b7404c9 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -180,6 +180,11 @@ enum v4l2_colorfx {
+  * We reserve 16 controls for this driver. */
+ #define V4L2_CID_USER_TC358743_BASE		(V4L2_CID_USER_BASE + 0x1080)
+ 
++/* The base for the max217x driver controls.
++ * We reserve 32 controls for this driver
++ */
++#define V4L2_CID_USER_MAX217X_BASE		(V4L2_CID_USER_BASE + 0x1090)
 +
-+The FDP1 is a de-interlacing module which converts interlaced video to
-+progressive video. It is capable of performing pixel format conversion between
-+YCbCr/YUV formats and RGB formats. Only YCbCr/YUV formats are supported as
-+an input to the module.
-+
-+ - compatible: Must be the following
-+
-+   - "renesas,fdp1" for generic compatible
-+
-+ - reg: the register base and size for the device registers
-+ - interrupts : interrupt specifier for the FDP1 instance
-+ - clocks: reference to the functional clock
-+ - renesas,fcp: reference to the FCPF connected to the FDP1
-+
-+Optional properties:
-+ - power-domains : power-domain property defined with a power domain specifier
-+                            to respective power domain.
-+
-+
-+Device node example
-+-------------------
-+
-+	fdp1@fe940000 {
-+		compatible = "renesas,fdp1";
-+		reg = <0 0xfe940000 0 0x2400>;
-+		interrupts = <GIC_SPI 262 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cpg CPG_MOD 119>;
-+		power-domains = <&sysc R8A7795_PD_A3VP>;
-+		renesas,fcp = <&fcpf0>;
-+	};
+ /* MPEG-class control IDs */
+ /* The MPEG controls are applicable to all codec controls
+  * and the 'MPEG' part of the define is historical */
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
