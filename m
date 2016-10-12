@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39695 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751966AbcJKKeu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:34:50 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 19/31] gp8psk: don't go past the buffer size
-Date: Tue, 11 Oct 2016 07:09:34 -0300
-Message-Id: <0b4b9ad015d89927b6dce85bcd9a6e3d58bf2e36.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+Received: from mout.web.de ([212.227.15.3]:53637 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754954AbcJLO6s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:58:48 -0400
+Subject: [PATCH 19/34] [media] DaVinci-VPFE-Capture: Improve another size
+ determination in vpfe_open()
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <87108e91-1b2e-ec8f-4fed-4fb4eb105688@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:57:51 +0200
+MIME-Version: 1.0
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add checks to avoid going out of the buffer.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 10:44:05 +0200
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Replace the specification of a data structure by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/dvb-usb/gp8psk.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/platform/davinci/vpfe_capture.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index fa215ad37f7b..a745cf636846 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -60,6 +60,9 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
- 	struct gp8psk_state *st = d->priv;
- 	int ret = 0,try = 0;
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index ee7b3e3..e370400 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -511,7 +511,7 @@ static int vpfe_open(struct file *file)
+ 	}
  
-+	if (blen > sizeof(st->data))
-+		return -EIO;
-+
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
+ 	/* Allocate memory for the file handle object */
+-	fh = kmalloc(sizeof(struct vpfe_fh), GFP_KERNEL);
++	fh = kmalloc(sizeof(*fh), GFP_KERNEL);
+ 	if (!fh)
+ 		return -ENOMEM;
  
-@@ -98,6 +101,9 @@ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 	deb_xfer("out: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
- 	debug_dump(b,blen,deb_xfer);
- 
-+	if (blen > sizeof(st->data))
-+		return -EIO;
-+
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
- 
-@@ -151,6 +157,11 @@ static int gp8psk_load_bcm4500fw(struct dvb_usb_device *d)
- 			err("failed to load bcm4500 firmware.");
- 			goto out_free;
- 		}
-+		if (buflen > 64) {
-+			err("firmare chunk size bigger than 64 bytes.");
-+			goto out_free;
-+		}
-+
- 		memcpy(buf, ptr, buflen);
- 		if (dvb_usb_generic_write(d, buf, buflen)) {
- 			err("failed to load bcm4500 firmware.");
 -- 
-2.7.4
-
+2.10.1
 
