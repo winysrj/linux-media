@@ -1,67 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55248 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754663AbcJQORH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 10:17:07 -0400
-Message-ID: <1476713822.4684.80.camel@ndufresne.ca>
-Subject: Re: [ANN] Report of the V4L2 Request API brainstorm meeting
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-Reply-To: nicolas@ndufresne.ca
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: keith@kodi.tv
-Date: Mon, 17 Oct 2016 10:17:02 -0400
-In-Reply-To: <5518f06f-046f-98e8-05f3-5e9063df15e8@xs4all.nl>
-References: <5518f06f-046f-98e8-05f3-5e9063df15e8@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-rt/EX2DzLXE3lt+txXN+"
-Mime-Version: 1.0
+Received: from mout.web.de ([212.227.15.3]:52953 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933243AbcJLO7x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:59:53 -0400
+Subject: [PATCH 21/34] [media] DaVinci-VPFE-Capture: Delete an unnecessary
+ variable initialisation in 11 functions
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <a1904a63-329c-45e9-2c65-5d8d6b6be41c@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:59:43 +0200
+MIME-Version: 1.0
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 10:50:54 +0200
 
---=-rt/EX2DzLXE3lt+txXN+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+The local variable "ret" will be set to an appropriate value a bit later.
+Thus omit the explicit initialisation at the beginning.
 
-Le lundi 17 octobre 2016 =C3=A0 13:37 +0200, Hans Verkuil a =C3=A9crit=C2=
-=A0:
-> 1.5 Requests vs. w/o requests
->=20
-> There are three options for drivers w.r.t. the request API:
->=20
-> 1) The driver doesn't use the request API
-> 2) The driver requires the request API
-> 3) The request API is optional.
->=20
-> It is not clear at this stage if 3 is ever needed. So for now just
-> add a capability
-> flag for "requests required". And add a "requests supported with
-> legacy" flag later
-> on if needed.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/davinci/vpfe_capture.c | 22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-Simply adding a new flag will make both state-less and current CODEC
-M2M drivers look the same. This will likely trick existing generic code
-into trying those stateless decoder.
-
-For backward compatibility, we need to replace an existing
-categorization flag, like STREAMING or similar.
-
-regards,
-Nicolas
---=-rt/EX2DzLXE3lt+txXN+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlgE3V4ACgkQcVMCLawGqBzR9gCePbZjG2//ilPJ9cyT2s0l+xhA
-9MsAoIrnNwk0ByyWPJwXC0kNHD6W3h9b
-=kkDG
------END PGP SIGNATURE-----
-
---=-rt/EX2DzLXE3lt+txXN+--
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 9da353b..ba71310 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -384,7 +384,7 @@ static int vpfe_config_image_format(struct vpfe_device *vpfe_dev,
+ 	};
+ 	struct v4l2_mbus_framefmt *mbus_fmt = &fmt.format;
+ 	struct v4l2_pix_format *pix = &vpfe_dev->fmt.fmt.pix;
+-	int i, ret = 0;
++	int i, ret;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(vpfe_standards); i++) {
+ 		if (vpfe_standards[i].std_id & std_id) {
+@@ -453,7 +453,7 @@ static int vpfe_config_image_format(struct vpfe_device *vpfe_dev,
+ 
+ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	/* set first input of current subdevice as the current input */
+ 	vpfe_dev->current_input = 0;
+@@ -979,7 +979,7 @@ static int vpfe_s_fmt_vid_cap(struct file *file, void *priv,
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 	const struct vpfe_pixel_format *pix_fmts;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_fmt_vid_cap\n");
+ 
+@@ -1112,7 +1112,7 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
+ 	int subdev_index, inp_index;
+ 	struct vpfe_route *route;
+ 	u32 input = 0, output = 0;
+-	int ret = -EINVAL;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_input\n");
+ 
+@@ -1178,7 +1178,7 @@ static int vpfe_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 	struct vpfe_subdev_info *sdinfo;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_querystd\n");
+ 
+@@ -1197,7 +1197,7 @@ static int vpfe_s_std(struct file *file, void *priv, v4l2_std_id std_id)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 	struct vpfe_subdev_info *sdinfo;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_std\n");
+ 
+@@ -1346,7 +1346,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 	struct vpfe_fh *fh = file->private_data;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs\n");
+ 
+@@ -1478,7 +1478,7 @@ static int vpfe_streamon(struct file *file, void *priv,
+ 	struct vpfe_fh *fh = file->private_data;
+ 	struct vpfe_subdev_info *sdinfo;
+ 	unsigned long addr;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamon\n");
+ 
+@@ -1561,7 +1561,7 @@ static int vpfe_streamoff(struct file *file, void *priv,
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 	struct vpfe_fh *fh = file->private_data;
+ 	struct vpfe_subdev_info *sdinfo;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamoff\n");
+ 
+@@ -1647,7 +1647,7 @@ static int vpfe_s_selection(struct file *file, void *priv,
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+ 	struct v4l2_rect rect = sel->r;
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_selection\n");
+ 
+@@ -1705,7 +1705,7 @@ static long vpfe_param_handler(struct file *file, void *priv,
+ 		bool valid_prio, unsigned int cmd, void *param)
+ {
+ 	struct vpfe_device *vpfe_dev = video_drvdata(file);
+-	int ret = 0;
++	int ret;
+ 
+ 	v4l2_dbg(2, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
+ 
+-- 
+2.10.1
 
