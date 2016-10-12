@@ -1,254 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:32946 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753582AbcJGNum (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 09:50:42 -0400
-MIME-Version: 1.0
-In-Reply-To: <20161006152905.2f9a9b13@vento.lan>
-References: <20161005155805.27dc4d33@vento.lan> <CALCETrVg5FczwRaJuRe6G_FxX7yDsPS-L4JnR475UW4TwQWWzg@mail.gmail.com>
- <20161006152905.2f9a9b13@vento.lan>
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-Date: Fri, 7 Oct 2016 15:50:40 +0200
-Message-ID: <CADDKRnAXgBNFy_csDEB5veA=XXPnu=jY_rTOEun7f-QNyzr4uQ@mail.gmail.com>
-Subject: Re: [PATCH v2] cinergyT2-core: don't do DMA on stack
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from mailout1.samsung.com ([203.254.224.24]:45639 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933642AbcJLOqn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:46:43 -0400
+Received: from epcpsbgm1new.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OEX01FZBV7FY8A0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 12 Oct 2016 23:35:39 +0900 (KST)
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com, Jacek Anaszewski <j.anaszewski@samsung.com>
+Subject: [PATCH v4l-utils v7 3/7] mediactl: Add media_entity_get_backlinks()
+Date: Wed, 12 Oct 2016 16:35:18 +0200
+Message-id: <1476282922-11544-4-git-send-email-j.anaszewski@samsung.com>
+In-reply-to: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-10-06 20:29 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>=
-:
-> Em Thu, 6 Oct 2016 10:27:56 -0700
-> Andy Lutomirski <luto@amacapital.net> escreveu:
->
->> On Wed, Oct 5, 2016 at 11:58 AM, Mauro Carvalho Chehab
->> <mchehab@s-opensource.com> wrote:
->> > Sorry, forgot to C/C people that are at the "Re: Problem with VMAP_STA=
-CK=3Dy"
->> > thread.
->> >
->> > Forwarded message:
->> >
->> > Date: Wed,  5 Oct 2016 15:54:18 -0300
->> > From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> > To: Linux Doc Mailing List <linux-doc@vger.kernel.org>
->> > Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>, Mauro Carvalho C=
-hehab <mchehab@infradead.org>, Mauro Carvalho Chehab <mchehab@kernel.org>
->> > Subject: [PATCH v2] cinergyT2-core: don't do DMA on stack
->> >
->> >
->> > The USB control messages require DMA to work. We cannot pass
->> > a stack-allocated buffer, as it is not warranted that the
->> > stack would be into a DMA enabled area.
->> >
->> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->> > ---
->> >
->> > Added the fixups made by Johannes Stezenbach
->> >
->> >  drivers/media/usb/dvb-usb/cinergyT2-core.c | 45 ++++++++++++++++++---=
----------
->> >  1 file changed, 27 insertions(+), 18 deletions(-)
->> >
->> > diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/medi=
-a/usb/dvb-usb/cinergyT2-core.c
->> > index 9fd1527494eb..8267e3777af6 100644
->> > --- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
->> > +++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
->> > @@ -41,6 +41,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->> >
->> >  struct cinergyt2_state {
->> >         u8 rc_counter;
->> > +       unsigned char data[64];
->> >  };
->> >
->> >  /* We are missing a release hook with usb_device data */
->> > @@ -50,29 +51,36 @@ static struct dvb_usb_device_properties cinergyt2_=
-properties;
->> >
->> >  static int cinergyt2_streaming_ctrl(struct dvb_usb_adapter *adap, int=
- enable)
->> >  {
->> > -       char buf[] =3D { CINERGYT2_EP1_CONTROL_STREAM_TRANSFER, enable=
- ? 1 : 0 };
->> > -       char result[64];
->> > -       return dvb_usb_generic_rw(adap->dev, buf, sizeof(buf), result,
->> > -                               sizeof(result), 0);
->> > +       struct dvb_usb_device *d =3D adap->dev;
->> > +       struct cinergyt2_state *st =3D d->priv;
->> > +
->> > +       st->data[0] =3D CINERGYT2_EP1_CONTROL_STREAM_TRANSFER;
->> > +       st->data[1] =3D enable ? 1 : 0;
->> > +
->> > +       return dvb_usb_generic_rw(d, st->data, 2, st->data, 64, 0);
->> >  }
->> >
->> >  static int cinergyt2_power_ctrl(struct dvb_usb_device *d, int enable)
->> >  {
->>
->> This...
->>
->> > -       char buf[] =3D { CINERGYT2_EP1_SLEEP_MODE, enable ? 0 : 1 };
->> > -       char state[3];
->> > -       return dvb_usb_generic_rw(d, buf, sizeof(buf), state, sizeof(s=
-tate), 0);
->> > +       struct cinergyt2_state *st =3D d->priv;
->> > +
->> > +       st->data[0] =3D CINERGYT2_EP1_SLEEP_MODE;
->>
->> ...does not match this:
->>
->> > +       st->data[1] =3D enable ? 1 : 0;
->>
->> --Andy
->
-> Gah! Yes. This is what happens when coding using cut-and-paste ;)
->
-> J=C3=B6rg,
->
-> Please test it with the condition reversed with the enclosed patch.
->
-> if this doesn't work, you can enable dvb-usb debug at runtime,
-> by loading it with debug parameter:
->
-> parm:           debug:set debugging level (1=3Dinfo,xfer=3D2,pll=3D4,ts=
-=3D8,err=3D16,rc=3D32,fw=3D64,mem=3D128,uxfer=3D256  (or-able)). (debugging=
- is not enabled) (int)
->
-> debug=3D2 should show the control messages sent to the device on dmesg.
->
-> Regards,
-> Mauro
->
->
-> [PATCH] cinergyT2-core: don't do DMA on stack
->
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->
-> diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/u=
-sb/dvb-usb/cinergyT2-core.c
-> index 9fd1527494eb..91640c927776 100644
-> --- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
-> +++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
-> @@ -41,6 +41,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
->
->  struct cinergyt2_state {
->         u8 rc_counter;
-> +       unsigned char data[64];
->  };
->
->  /* We are missing a release hook with usb_device data */
-> @@ -50,29 +51,36 @@ static struct dvb_usb_device_properties cinergyt2_pro=
-perties;
->
->  static int cinergyt2_streaming_ctrl(struct dvb_usb_adapter *adap, int en=
-able)
->  {
-> -       char buf[] =3D { CINERGYT2_EP1_CONTROL_STREAM_TRANSFER, enable ? =
-1 : 0 };
-> -       char result[64];
-> -       return dvb_usb_generic_rw(adap->dev, buf, sizeof(buf), result,
-> -                               sizeof(result), 0);
-> +       struct dvb_usb_device *d =3D adap->dev;
-> +       struct cinergyt2_state *st =3D d->priv;
-> +
-> +       st->data[0] =3D CINERGYT2_EP1_CONTROL_STREAM_TRANSFER;
-> +       st->data[1] =3D enable ? 1 : 0;
-> +
-> +       return dvb_usb_generic_rw(d, st->data, 2, st->data, 64, 0);
->  }
->
->  static int cinergyt2_power_ctrl(struct dvb_usb_device *d, int enable)
->  {
-> -       char buf[] =3D { CINERGYT2_EP1_SLEEP_MODE, enable ? 0 : 1 };
-> -       char state[3];
-> -       return dvb_usb_generic_rw(d, buf, sizeof(buf), state, sizeof(stat=
-e), 0);
-> +       struct cinergyt2_state *st =3D d->priv;
-> +
-> +       st->data[0] =3D CINERGYT2_EP1_SLEEP_MODE;
-> +       st->data[1] =3D enable ? 0 : 1;
-> +
-> +       return dvb_usb_generic_rw(d, st->data, 2, st->data, 3, 0);
->  }
->
->  static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
->  {
-> -       char query[] =3D { CINERGYT2_EP1_GET_FIRMWARE_VERSION };
-> -       char state[3];
-> +       struct dvb_usb_device *d =3D adap->dev;
-> +       struct cinergyt2_state *st =3D d->priv;
->         int ret;
->
->         adap->fe_adap[0].fe =3D cinergyt2_fe_attach(adap->dev);
->
-> -       ret =3D dvb_usb_generic_rw(adap->dev, query, sizeof(query), state=
-,
-> -                               sizeof(state), 0);
-> +       st->data[0] =3D CINERGYT2_EP1_GET_FIRMWARE_VERSION;
-> +
-> +       ret =3D dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
->         if (ret < 0) {
->                 deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
->                         "state info\n");
-> @@ -141,13 +149,14 @@ static int repeatable_keys[] =3D {
->  static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int =
-*state)
->  {
->         struct cinergyt2_state *st =3D d->priv;
-> -       u8 key[5] =3D {0, 0, 0, 0, 0}, cmd =3D CINERGYT2_EP1_GET_RC_EVENT=
-S;
->         int i;
->
->         *state =3D REMOTE_NO_KEY_PRESSED;
->
-> -       dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
-> -       if (key[4] =3D=3D 0xff) {
-> +       st->data[0] =3D CINERGYT2_EP1_GET_RC_EVENTS;
-> +
-> +       dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-> +       if (st->data[4] =3D=3D 0xff) {
->                 /* key repeat */
->                 st->rc_counter++;
->                 if (st->rc_counter > RC_REPEAT_DELAY) {
-> @@ -166,13 +175,13 @@ static int cinergyt2_rc_query(struct dvb_usb_device=
- *d, u32 *event, int *state)
->         }
->
->         /* hack to pass checksum on the custom field */
-> -       key[2] =3D ~key[1];
-> -       dvb_usb_nec_rc_key_to_event(d, key, event, state);
-> -       if (key[0] !=3D 0) {
-> +       st->data[2] =3D ~st->data[1];
-> +       dvb_usb_nec_rc_key_to_event(d, st->data, event, state);
-> +       if (st->data[0] !=3D 0) {
->                 if (*event !=3D d->last_event)
->                         st->rc_counter =3D 0;
->
-> -               deb_rc("key: %*ph\n", 5, key);
-> +               deb_rc("key: %*ph\n", 5, st->data);
->         }
->         return 0;
->  }
->
->
->
-> Thanks,
-> Mauro
+Add a new graph helper useful for discovering video pipeline.
 
-Patch works for me!
-Thanks, J=C3=B6rg
+Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ utils/media-ctl/libmediactl.c | 21 +++++++++++++++++++++
+ utils/media-ctl/mediactl.h    | 15 +++++++++++++++
+ 2 files changed, 36 insertions(+)
+
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 91ed003..155b65f 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -36,6 +36,7 @@
+ #include <unistd.h>
+ 
+ #include <linux/media.h>
++#include <linux/kdev_t.h>
+ #include <linux/videodev2.h>
+ 
+ #include "mediactl.h"
+@@ -172,6 +173,26 @@ const struct media_entity_desc *media_entity_get_info(struct media_entity *entit
+ 	return &entity->info;
+ }
+ 
++int media_entity_get_backlinks(struct media_entity *entity,
++				struct media_link **backlinks,
++				unsigned int *num_backlinks)
++{
++	unsigned int num_bklinks = 0;
++	int i;
++
++	if (entity == NULL || backlinks == NULL || num_backlinks == NULL)
++		return -EINVAL;
++
++	for (i = 0; i < entity->num_links; ++i)
++		if ((entity->links[i].flags & MEDIA_LNK_FL_ENABLED) &&
++		    (entity->links[i].sink->entity == entity))
++			backlinks[num_bklinks++] = &entity->links[i];
++
++	*num_backlinks = num_bklinks;
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Open/close
+  */
+diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+index 336cbf9..b1f33cd 100644
+--- a/utils/media-ctl/mediactl.h
++++ b/utils/media-ctl/mediactl.h
+@@ -434,6 +434,20 @@ int media_parse_setup_link(struct media_device *media,
+ int media_parse_setup_links(struct media_device *media, const char *p);
+ 
+ /**
++ * @brief Get entity's enabled backlinks
++ * @param entity - media entity.
++ * @param backlinks - array of pointers to matching backlinks.
++ * @param num_backlinks - number of matching backlinks.
++ *
++ * Get links that are connected to the entity sink pads.
++ *
++ * @return 0 on success, or a negative error code on failure.
++ */
++int media_entity_get_backlinks(struct media_entity *entity,
++				struct media_link **backlinks,
++				unsigned int *num_backlinks);
++
++/**
+  * @brief Get v4l2_subdev for the entity
+  * @param entity - media entity
+  *
+@@ -443,4 +457,5 @@ int media_parse_setup_links(struct media_device *media, const char *p);
+  */
+ struct v4l2_subdev *media_entity_get_v4l2_subdev(struct media_entity *entity);
+ 
++
+ #endif
+-- 
+1.9.1
+
