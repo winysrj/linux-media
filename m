@@ -1,552 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40618 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964819AbcJRJAE (ORCPT
+Received: from relmlor2.renesas.com ([210.160.252.172]:49013 "EHLO
+        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933237AbcJLOZP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 05:00:04 -0400
-Date: Tue, 18 Oct 2016 06:59:54 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 1/4] doc-rst: reST-directive kernel-cmd / include
- contentent from scripts
-Message-ID: <20161018065954.548585b8@vento.lan>
-In-Reply-To: <BF4516DA-435D-4469-B968-D8F5858DC9CF@darmarit.de>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
-        <1475738420-8747-2-git-send-email-markus.heiser@darmarit.de>
-        <20161017144638.139491ad@vento.lan>
-        <BF4516DA-435D-4469-B968-D8F5858DC9CF@darmarit.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Wed, 12 Oct 2016 10:25:15 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [RFC 0/5] Add V4L2 SDR (DRIF & MAX2175) driver
+Date: Wed, 12 Oct 2016 15:10:24 +0100
+Message-Id: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 18 Oct 2016 09:03:28 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Hi All,
 
-> Am 17.10.2016 um 18:46 schrieb Mauro Carvalho Chehab <mchehab@infradead.org>:
-> 
-> > Hi Markus,
-> > 
-> > Em Thu,  6 Oct 2016 09:20:17 +0200
-> > Markus Heiser <markus.heiser@darmarit.de> escreveu:
-> >   
-> >> From: Markus Heiser <markus.heiser@darmarIT.de>
-> >> 
-> >> The ``kernel-cmd`` directive includes contend from the stdout of a
-> >> command-line. With the ``kernel-cmd`` directive we can include the
-> >> output of any (Perl or whatever) script. This is a more general solution
-> >> for other workarounds like the "kernel_include + parseheaders" solution.  
-> > 
-> > Unfortunately, there are some problems with kernel-cmd: it seems
-> > that it only partially parses the ReST file, not accepting several ReST tags.
-> > 
-> > See the enclosed patch and see the produced html file at:
-> > 	Documentation/output/user/MAINTAINERS.html
-> > 
-> > Then run the script manually with:
-> > 	./Documentation/sphinx/format_maintainers.pl MAINTAINERS >Documentation/user/MAINTAINERS.rst
-> > 
-> > And see the produced html output after re-building the user book.  
-> 
-> Hmm, I can't see what you mean ... the MAINTAINERS.html is formated
-> according to the markup in the MAINTAINERS.html ... could you 
-> be more precise?
+This RFC patch set contains two drivers
+ - Digital Radio Interface (DRIF) driver
+ - Maxim's MAX2175 RF to Bits tuner driver
 
-Look, for example, on how the tables will be formatted using the
-kernel-cmd extension, and how they appear if you create the
-MAINTAINERS.rst with:
-	./Documentation/sphinx/format_maintainers.pl MAINTAINERS >Documentation/user/MAINTAINERS.rst
+These patches were based on top of Mauro's media-next repo
+commit: 02a628e5c024cf67bf10bc822fb9169713f8ea74
 
-The .. attention:: is also not parsed by kernel-cmd script, nor
-the item lists.
+These two drivers combined together expose a V4L2 SDR device that is compliant
+with the V4L2 framework.
 
+Brief description of devices below
 
->  But before ... I added some comments in the patch
-> below to clarify.
-> 
-> OT but as I'am looking at:
-> 
-> /share/linux-docs-next/Documentation/user/BUG-HUNTING.rst:247: WARNING: undefined label: submittingpatches (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/MAINTAINERS.rst:42: WARNING: undefined label: codingstyle (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/MAINTAINERS.rst:47: WARNING: undefined label: submittingpatches (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/MAINTAINERS.rst:61: WARNING: undefined label: submittingpatches (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/README.rst:92: WARNING: undefined label: applying_patches (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/README.rst:121: WARNING: undefined label: changes (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/README.rst:256: WARNING: undefined label: changes (if the link has no caption the label must precede a section header)
-> /share/linux-docs-next/Documentation/user/devices.rst:9: WARNING: undefined label: submittingpatches (if the link has no caption the label must precede a section header)
-> 
-> .. this is why I think;  "links are the beginning of babylon" ;-)
+DRIF:
+-----
+This is a receive only slave controller that receives data into a FIFO from a
+master device and uses DMA engine to move it from device to memory. It is a
+serial I/O like controller with a design goal to act as digital radio receiver
+targeting SDR solutions.
 
-Yes. We need intersphinx to fix those if we build just one book, as those 
-links belong to other books.
+MAX2175:
+--------
+This is a RF front end tuner device that supports tuning to different bands &
+frequency. It supports I2S output with programmable word lengths & single/dual
+data lines usage based on selected receive mode. Each receive mode is
+designated with a sample rate.
 
++---------------------+                +---------------------+
+|                     |-----SCK------->|                     |
+| MAX2175 (master)    |-----SS-------->|  DRIF (slave)       |
+|                     |-----SD0------->|                     |
+|                     |-----SD1------->|                     |
++---------------------+                +---------------------+
 
-> 
-> 
-> > 
-> > PS.: You can test it on my git tree, with has the code to produce
-> > it at the lkml-books branch, at
-> > 	http:://git.linuxtv.org/mchehab/experimental.git
-> > 
-> > Regards,
-> > Mauro
-> > 
-> > 
-> > [PATCH] docs-rst: user: add MAINTAINERS
-> > 
-> > including MAINTAINERS using ReST is tricky, because all
-> > maintainer's entries are like:
-> > 
-> > FOO SUBSYSTEM:
-> > M: My Name <my@name>
-> > L: mailing@list
-> > S: Maintained
-> > F: foo/bar
-> > 
-> > On ReST, this would be displayed on a single line. Using
-> > alias, like |M|, |L|, ... won't solve, as an alias in
-> > Sphinx doesn't accept breaking lines.
-> > 
-> > So, instead of changing every line at MAINTAINERS, let's
-> > use kernel-cmd extension in order to parse it via a script.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > 
-> > diff --git a/Documentation/sphinx/format_maintainers.pl b/Documentation/sphinx/format_maintainers.pl
-> > new file mode 100755
-> > index 000000000000..fb3af2a30c36
-> > --- /dev/null
-> > +++ b/Documentation/sphinx/format_maintainers.pl
-> > @@ -0,0 +1,44 @@
-> > +#!/usr/bin/perl
-> > +
-> > +my $is_rst = 1;
-> > +
-> > +# For now, ignore file tags, like F, N, X, K.
-> > +my %tags = (
-> > +	'P' => 'Person',
-> > +	'M' => 'Mail',
-> > +	'R' => 'Designated reviewer',
-> > +	'L' => 'Mailing list',
-> > +	'W' => 'Web page',
-> > +	'Q' => 'Patchwork',
-> > +	'T' => 'Develoment tree',
-> > +	'S' => 'Status',
-> > +);
-> > +
-> > +while (<>) {
-> > +	if ($is_rst) {
-> > +		if (m/^\s+\-+$/) {
-> > +			$is_rst = 0;
-> > +			next;
-> > +		}
-> > +		print $_;
-> > +		next;
-> > +	}
-> > +
-> > +	next if (m/^$/);
-> > +
-> > +	if (m/^([A-Z])\:(.*)/) {
-> > +		my $tag = $1;
-> > +		my $value = $2;
-> > +
-> > +		my $meaning;
-> > +
-> > +		next if (!defined($tags{$tag}));
-> > +
-> > +		printf " - %s:\n   %s\n\n", $tags{$tag}, $value;
-> > +		next;
-> > +	}
-> > +
-> > +	print "\n$_";
-> > +}
-> > +
-> > +print "\n";  
-> 
-> OK, its a starting point, but it is IMO a bit poor.
+Driver design:
+--------------
 
-Yes, I know. This was just proof of concept, that took me no more than 10 
-mins to write, meant to test the idea of using kernel-cmd with MAINTAINERS,
-instead of using 'sphinxcontrib.programoutput' extension, as proposed
-originally on this patch:
-	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=lkml-books&id=b731eca3d5ba71605bedb64578cc82e986034139
+Some important design decisions are listed below
 
-> I missed the 'F' section and the markup arguable
-> 
-> |3C59X NETWORK DRIVER
-> | - Mail:
-> |   	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
-> |
-> | - Mailing list:
-> |   	netdev@vger.kernel.org
-> |
-> | - Status:
-> |   	Maintained
-> 
-> I prefer would prefer an indent of zero/two spaces and no tabs:
-> 
-> |3C59X NETWORK DRIVER
-> |--------------------
-> |
-> |- Mail:
-> |
-> |  * Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
-> |
-> |- Mailing list:
-> | 
-> |  * netdev@vger.kernel.org
-> |
-> |- Status:
-> | 
-> |  * Maintained
-> 
+- DRIF registers as main V4L2 SDR device & MAX2175 registers as V4L2 sub-device.
+- DRIF expects a tuner device to attach asynchronously at runtime and the module
+  loading order is independent of each other.
+- The tuner device can be provided by any third party vendor (in this case
+  MAX2175).
+- The mapping between DRIF & tuner device is achieved through device tree port
+  & endpoint configuration of the board.
 
-Maybe, it could do, instead:
+  e.g.
 
-3C59X NETWORK DRIVER
---------------------
+  drif node:
 
-- **Mail**: Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
-- **Mailing list**: netdev@vger.kernel.org
-- **Status**:  Maintained
+        port {
+                drif0_ep: endpoint {
+                     remote-endpoint = <&max2175_0_ep>;
+                };
+	};
 
-> Anyway, the first time I thought MAINTAINERS is a database,
-> I also thought, the scripts/get_maintainers.pl is "the parser".
-> But my perl is poor and I have not yet looked closer / did you?
+  max2175 node:
 
-Yes, but I didn't look into its code yet. At least for a PoC,
-I prefer to have a separate script. If we decide to go this way,
-whatever we do can be migrated to it.
+	port {
+		max2175_0_ep: endpoint {
+			remote-endpoint = <&drif0_ep>;
+		};
+	};
 
-Btw, one of the things that occurred to me is that the html output
-could come with javascript version of get_maintainers.pl, letting the
-user to provide a file name and such script would find the MAINTAINER's
-entry associated with a file.
+- The combined driver is V4L2 compliant as here [1]
+- In this RFC patch the MAX2175 tuner supports only DAB1.2 mode, which uses
+  16bit word length.
 
-> > diff --git a/Documentation/user/MAINTAINERS.rst b/Documentation/user/MAINTAINERS.rst
-> > new file mode 100644
-> > index 000000000000..9b01b51749bd
-> > --- /dev/null
-> > +++ b/Documentation/user/MAINTAINERS.rst
-> > @@ -0,0 +1 @@
-> > +.. kernel-cmd:: format_maintainers.pl $srctree/MAINTAINERS
-> > diff --git a/Documentation/user/index.rst b/Documentation/user/index.rst
-> > index 6fbb2dc4b3b7..c4bfd45f0649 100644
-> > --- a/Documentation/user/index.rst
-> > +++ b/Documentation/user/index.rst
-> > @@ -32,3 +32,4 @@ Contents:
-> >   java
-> >   bad_memory
-> >   basic_profiling
-> > +   MAINTAINERS
-> > diff --git a/MAINTAINERS b/MAINTAINERS
-> > index 1cd38a7e0064..d46ffec4e682 100644
-> > --- a/MAINTAINERS
-> > +++ b/MAINTAINERS
-> > @@ -1,12 +1,14 @@
-> > -
-> > -
-> > -	List of maintainers and how to submit kernel changes
-> > +List of maintainers and how to submit kernel changes
-> > +====================================================
-> > 
-> > Please try to follow the guidelines below.  This will make things
-> > easier on the maintainers.  Not all of these guidelines matter for every
-> > trivial patch so apply some common sense.
-> > 
-> > -1.	Always _test_ your changes, however small, on at least 4 or
-> > +Tips for patch submitters
-> > +-------------------------
-> > +
-> > +1.	Always **test** your changes, however small, on at least 4 or
-> > 	5 people, preferably many more.
-> > 
-> > 2.	Try to release a few ALPHA test versions to the net. Announce
-> > @@ -15,7 +17,7 @@ trivial patch so apply some common sense.
-> > 	you will find things like the fact version 3 firmware needs
-> > 	a magic fix you didn't know about, or some clown changed the
-> > 	chips on a board and not its name.  (Don't laugh!  Look at the
-> > -	SMC etherpower for that.)
-> > +	SMC ``etherpower`` for that.)
-> > 
-> > 3.	Make sure your changes compile correctly in multiple
-> > 	configurations. In particular check that changes work both as a
-> > @@ -25,7 +27,7 @@ trivial patch so apply some common sense.
-> > 	testing and await feedback.
-> > 
-> > 5.	Make a patch available to the relevant maintainer in the list. Use
-> > -	'diff -u' to make the patch easy to merge. Be prepared to get your
-> > +	``diff -u`` to make the patch easy to merge. Be prepared to get your
-> > 	changes sent back with seemingly silly requests about formatting
-> > 	and variable names.  These aren't as silly as they seem. One
-> > 	job the maintainers (and especially Linus) do is to keep things
-> > @@ -33,28 +35,34 @@ trivial patch so apply some common sense.
-> > 	your driver to get around a problem actually needs to become a
-> > 	generalized kernel feature ready for next time.
-> > 
-> > -	PLEASE check your patch with the automated style checker
-> > -	(scripts/checkpatch.pl) to catch trivial style violations.
-> > -	See Documentation/CodingStyle for guidance here.
-> > +	.. attention::
-> > +
-> > +	  **PLEASE:**
-> > +
-> > +	  - check your patch with the automated style checker
-> > +	    (``scripts/checkpatch.pl``) to catch trivial style violations.
-> > +	    See :ref:`Documentation/CodingStyle <codingstyle>` for guidance
-> > +	    here.
-> > 
-> > -	PLEASE CC: the maintainers and mailing lists that are generated
-> > -	by scripts/get_maintainer.pl.  The results returned by the
-> > -	script will be best if you have git installed and are making
-> > -	your changes in a branch derived from Linus' latest git tree.
-> > -	See Documentation/SubmittingPatches for details.
-> > +	  - CC: the maintainers and mailing lists that are generated
-> > +	    by ``scripts/get_maintainer.pl``.  The results returned by the
-> > +	    script will be best if you have git installed and are making
-> > +	    your changes in a branch derived from Linus' latest git tree.
-> > +	    See :ref:`Documentation/SubmittingPatches <submittingpatches>`
-> > +	    for details.
-> > 
-> > -	PLEASE try to include any credit lines you want added with the
-> > -	patch. It avoids people being missed off by mistake and makes
-> > -	it easier to know who wants adding and who doesn't.
-> > +	  - try to include any credit lines you want added with the
-> > +	    patch. It avoids people being missed off by mistake and makes
-> > +	    it easier to know who wants adding and who doesn't.
-> > 
-> > -	PLEASE document known bugs. If it doesn't work for everything
-> > -	or does something very odd once a month document it.
-> > +	  - document known bugs. If it doesn't work for everything
-> > +	    or does something very odd once a month document it.
-> > 
-> > -	PLEASE remember that submissions must be made under the terms
-> > -	of the Linux Foundation certificate of contribution and should
-> > -	include a Signed-off-by: line.  The current version of this
-> > -	"Developer's Certificate of Origin" (DCO) is listed in the file
-> > -	Documentation/SubmittingPatches.
-> > +	  - remember that submissions must be made under the terms
-> > +	    of the Linux Foundation certificate of contribution and should
-> > +	    include a Signed-off-by: line.  The current version of this
-> > +	    "Developer's Certificate of Origin" (DCO) is listed in the file
-> > +	    :ref:`Documentation/SubmittingPatches <submittingpatches>`.
-> > 
-> > 6.	Make sure you have the right to send any changes you make. If you
-> > 	do changes at work you may find your employer owns the patch
-> > @@ -66,64 +74,103 @@ trivial patch so apply some common sense.
-> > 
-> > 8.	Happy hacking.
-> > 
-> > -Descriptions of section entries:
-> > -
-> > -	P: Person (obsolete)
-> > -	M: Mail patches to: FullName <address@domain>
-> > -	R: Designated reviewer: FullName <address@domain>
-> > -	   These reviewers should be CCed on patches.
-> > -	L: Mailing list that is relevant to this area
-> > -	W: Web-page with status/info
-> > -	Q: Patchwork web based patch tracking system site
-> > -	T: SCM tree type and location.
-> > -	   Type is one of: git, hg, quilt, stgit, topgit
-> > -	S: Status, one of the following:
-> > -	   Supported:	Someone is actually paid to look after this.
-> > -	   Maintained:	Someone actually looks after it.
-> > -	   Odd Fixes:	It has a maintainer but they don't have time to do
-> > +Descriptions of section entries
-> > +-------------------------------
-> > +
-> > +-	``P:`` Person (obsolete)
-> > +-	``M:`` Mail patches to: FullName <address@domain>
-> > +-	``R:`` Designated reviewer: FullName <address@domain>
-> > +
-> > +	- These reviewers should be CCed on patches.
-> > +
-> > +-	``L:`` Mailing list that is relevant to this area
-> > +-	``W:`` Web-page with status/info
-> > +-	``Q:`` Patchwork web based patch tracking system site
-> > +-	``T:`` SCM tree type and location.
-> > +
-> > +	- Type is one of: **git**, **hg**, **quilt**, **stgit**, **topgit**
-> > +  
-> 
-> Hmm, why is the last line a bullet list, shouldn't it be:
-> 
-> +- ``T:`` SCM tree type and location
-> +  Type is one of: git, hg, quilt, stgit, topgit
-> 
-> 
-> > +-	``S:`` Status, one of the following:
-> > +
-> > +	   - Supported:
-> > +			Someone is actually paid to look after this.  
-> 
-> Sorry, but I will never understand why you using mixed tabs and space 
-> for the same thing ;-) ... what I mean; why is the top-list indented by 
-> a tab after the bullet and the sub-list by two spaces ... 
-> 
-> We had the tab discussion already ... and IMO calling the CodeStyle is not
-> helpful when using ASCII markup ... lets take the ASCI documentation compact
-> and forget the tab ;-)
-> 
-> > +	   - Maintained:
-> > +			Someone actually looks after it.
-> > +	   - Odd Fixes:
-> > +			It has a maintainer but they don't have time to do
-> > 			much other than throw the odd patch in. See below..
-> > -	   Orphan:	No current maintainer [but maybe you could take the
-> > +	   - Orphan:
-> > +			No current maintainer [but maybe you could take the
-> > 			role as you write your new code].
-> > -	   Obsolete:	Old code. Something tagged obsolete generally means
-> > +	   - Obsolete:
-> > +			Old code. Something tagged obsolete generally means
-> > 			it has been replaced by a better system and you
-> > 			should be using that.  
-> 
-> Hmm, here its the same with the indent. List, list-items, paragraphs etc. are all
-> "body elements". 
-> 
-> * http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#body-elements
-> 
-> A body element is always introduced by a leading empty line. E.g:
-> 
-> - ``S:`` Status, one of the following:
-> 
->  - Supported:
-> 
->    Someone is actually paid to look after this.
-> 
->  - Maintained:
-> 
->    Someone actually looks after it.
-> 
-> or even more compact (which I do prefer), without paragraphs in the list items:
-> 
-> - ``S:`` Status, one of the following:
-> 
->  - Supported: Someone is actually paid to look after this.
-> 
->  - Maintained: Someone actually looks after it.
-> 
-> > -	F: Files and directories with wildcard patterns.
-> > +-	``F:`` Files and directories with wildcard patterns.
-> > +
-> > 	   A trailing slash includes all files and subdirectory files.
-> > -	   F:	drivers/net/	all files in and below drivers/net
-> > -	   F:	drivers/net/*	all files in drivers/net, but not below
-> > -	   F:	*/net/*		all files in "any top level directory"/net
-> > -	   One pattern per line.  Multiple F: lines acceptable.
-> > -	N: Files and directories with regex patterns.
-> > -	   N:	[^a-z]tegra	all files whose path contains the word tegra
-> > -	   One pattern per line.  Multiple N: lines acceptable.
-> > -	   scripts/get_maintainer.pl has different behavior for files that
-> > -	   match F: pattern and matches of N: patterns.  By default,
-> > -	   get_maintainer will not look at git log history when an F: pattern
-> > -	   match occurs.  When an N: match occurs, git log history is used
-> > -	   to also notify the people that have git commit signatures.
-> > -	X: Files and directories that are NOT maintained, same rules as F:
-> > -	   Files exclusions are tested before file matches.
-> > -	   Can be useful for excluding a specific subdirectory, for instance:
-> > -	   F:	net/
-> > -	   X:	net/ipv6/
-> > -	   matches all files in and below net excluding net/ipv6/
-> > -	K: Keyword perl extended regex pattern to match content in a
-> > +
-> > +	   ============================== ======================================
-> > +	   ``F:``	``drivers/net/``	all files in and below
-> > +						``drivers/net``
-> > +	   ``F:``	``drivers/net/*``	all files in ``drivers/net``,
-> > +						but not below
-> > +	   ``F:``	``*/net/*``		all files in "any top level
-> > +						directory" ``/net``
-> > +	   ============================== ======================================
-> > +
-> > +	   One pattern per line.  Multiple ``F:`` lines acceptable.
-> > +-	``N:`` Files and directories with regex patterns.  
-> 
-> Between the last two lines, a empty line is required ... I fond this more times
-> (will not comment each).
-> 
-> OK, I will stop here, if you are interested in I can prepare a patch for
-> illustration ....
-> 
-> -- Markus --
-> 
-> 
-> > +
-> > +	   ============================ ========================================
-> > +	   ``N:``	``[^a-z]tegra``		all files whose path contains
-> > +						the word ``tegra``
-> > +	   ============================ ========================================
-> > +
-> > +	   One pattern per line.  Multiple ``N:`` lines acceptable.
-> > +	   ``scripts/get_maintainer.pl`` has different behavior for files that
-> > +	   match ``F:`` pattern and matches of ``N:`` patterns.  By default,
-> > +	   get_maintainer will not look at git log history when an ``F:``
-> > +	   pattern match occurs.  When an ``N:`` match occurs, git log history
-> > +	   is used to also notify the people that have git commit signatures.
-> > +-	``X:`` Files and directories that are NOT maintained, same rules as
-> > +	``F:`` Files exclusions are tested before file matches.
-> > +	Can be useful for excluding a specific subdirectory, for instance:
-> > +
-> > +	   ============================ ========================================
-> > +	   ``F:``	``net/``	matches all files in and below
-> > +					``net`` ...
-> > +	   ``X:``	``net/ipv6/``	... excluding ``net/ipv6/``
-> > +	   ============================ ========================================
-> > +
-> > +-	``K:`` Keyword perl extended regex pattern to match content in a
-> > 	   patch or file.  For instance:
-> > -	   K: of_get_profile
-> > -	      matches patches or files that contain "of_get_profile"
-> > -	   K: \b(printk|pr_(info|err))\b
-> > -	      matches patches or files that contain one or more of the words
-> > -	      printk, pr_info or pr_err
-> > -	   One regex pattern per line.  Multiple K: lines acceptable.
-> > 
-> > -Note: For the hard of thinking, this list is meant to remain in alphabetical
-> > -order. If you could add yourselves to it in alphabetical order that would be
-> > -so much easier [Ed]
-> > +	   =========================================== =========================
-> > +	   ``K:`` ``of_get_profile``			matches patches or files
-> > +							that contain
-> > +							``of_get_profile``
-> > +	   ``K:`` ``\b(printk|pr_(info|err))\b``	matches patches or
-> > +							files that contain one
-> > +							or more of the words
-> > +							``printk``, ``pr_info``
-> > +							or ``pr_err``
-> > +	   =========================================== =========================
-> > +
-> > +	   One regex pattern per line.  Multiple ``K:`` lines acceptable.
-> > +
-> > +.. note::
-> > +
-> > +  For the hard of thinking, this list is meant to remain in alphabetical
-> > +  order. If you could add yourselves to it in alphabetical order that would be
-> > +  so much easier [Ed]
-> > 
-> > Maintainers List (try to look for most precise areas first)
-> > +-----------------------------------------------------------
-> > 
-> > 		-----------------------------------
-> > 
-> > +
-> > 3C59X NETWORK DRIVER
-> > M:	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
-> > L:	netdev@vger.kernel.org
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-doc" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html  
-> 
+New SDR formats:
+----------------
+The combined driver exposes new SDR formats. DRIF as such requires the receive
+word length as the only programmable parameter in a normal case. Otherwise it is
+agnostic of the tuner.
+
+V4L2 framework requires publishing SDR formats about position of I & Q data
+within the buffers. I have published three such formats to give an example.
+
+Topic for discussion:
+---------------------
+One of the design goals is keep DRIF & tuner driver as much independent as
+possible. However, there are few things that are up for discussion
+
+- SDR formats:
+  --------------
+  For e.g. when MAX2175 is configured in one of the FM modes it can do 80bit
+  word length. By default only 18bits would be valid data in each data line
+  and 2 bits would be status bits and the rest are stuff bits (zeros typically).
+  However, it also supports a mode for some cases where it can do
+  I&Q multiplexing by using SD0 data line alone. In that case, the device
+  can send the samples in one of the following combinations
+
+  <-------------- 80 bits ---------------------------->
+  <--14I + 2Status + 14Q + 2Status--- 48 stuff bits --> I2S mode = 2
+  <--18I + 2Status + 18Q + 2Status--- 40 stuff bits --> I2S mode = 3
+  <--16I + 16Q ---------------------- 48 stuff bits --> I2S mode = 4
+
+  DRIF will receive these 80bit word as four 32bits each having 20bit of valid
+  data. Usually the 80bit word is received as
+
+  <---------------32bits----------->
+  <--20bits data---- 12bits zeros--> 0
+  <--20bits data---- 12bits zeros--> 1
+  <--20bits data---- 12bits zeros--> 2
+  <--20bits data---- 12bits zeros--> 3
+
+  For e.g. if MAX2175 uses 80bits=>14I+2+14Q+2 format, the placement of I & Q
+  bits in DRIF buffers would be as below
+
+  <-------------------------32bits---------------------->
+  <--- 20bits = I[13:0]+2+Q[13:10]---- 12bit zeros------> 0
+  <--- 20bits = Q[9:0]+2+ stuffbits[7:0]---12bit zeros--> 1
+  <--- 20bits = stuffbits  ----------- 12bit zeros------> 2
+  <--- 20bits = stuffbits  ----------- 12bit zeros------> 3
+
+  As you can see neither MAX2175 or DRIF alone can fully define the
+  V4L2 SDR format. It is a combination of both.
+
+  - Should we define a SDR format for each such possibility?
+  - If a new tuner vendors wants to add support, existing formats MAY still be
+    reusable and new formats may be needed based on the tuner capability.
+
+I would appreciate any feedback you may have?
 
 
+References:
+------------
+[1] v4l2-compliance test report
 
-Thanks,
-Mauro
+root@salvator-x:~# v4l2-compliance -S /dev/swradio0
+v4l2-compliance SHA   : 7c2664b9a9b411d8b183009146e4f8548ca1d81a
+
+Driver Info:
+        Driver name   : rcar_drif
+        Card type     : R-Car DRIF
+        Bus info      : platform:R-Car DRIF
+        Driver version: 4.8.0
+        Capabilities  : 0x85310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x05310000
+                SDR Capture
+                Tuner
+                Read/Write
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/swradio0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second sdr open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK
+        test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 1
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 5 Private Controls: 5
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK (Not Supported)
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+root@salvator-x:~#
+Ramesh Shanmugasundaram (5):
+  media: i2c: max2175: Add MAX2175 support
+  media: v4l2-ctrls: Reserve controls for MAX217X
+  media: platform: rcar_drif: Add DRIF support
+  media: Add new SDR formats SC16, SC18 & SC20
+  doc_rst: media: New SDR formats SC16, SC18 & SC20
+
+ .../devicetree/bindings/media/i2c/max2175.txt      |   60 +
+ .../devicetree/bindings/media/renesas,drif.txt     |  109 ++
+ .../media/uapi/v4l/pixfmt-sdr-scu16be.rst          |   44 +
+ .../media/uapi/v4l/pixfmt-sdr-scu18be.rst          |   48 +
+ .../media/uapi/v4l/pixfmt-sdr-scu20be.rst          |   48 +
+ Documentation/media/uapi/v4l/sdr-formats.rst       |    3 +
+ drivers/media/i2c/Kconfig                          |    4 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/max2175/Kconfig                  |    8 +
+ drivers/media/i2c/max2175/Makefile                 |    4 +
+ drivers/media/i2c/max2175/max2175.c                | 1624 ++++++++++++++++++++
+ drivers/media/i2c/max2175/max2175.h                |  124 ++
+ drivers/media/platform/Kconfig                     |   25 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rcar_drif.c                 | 1534 ++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    3 +
+ include/uapi/linux/v4l2-controls.h                 |    5 +
+ include/uapi/linux/videodev2.h                     |    3 +
+ 18 files changed, 3649 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-scu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-scu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-scu20be.rst
+ create mode 100644 drivers/media/i2c/max2175/Kconfig
+ create mode 100644 drivers/media/i2c/max2175/Makefile
+ create mode 100644 drivers/media/i2c/max2175/max2175.c
+ create mode 100644 drivers/media/i2c/max2175/max2175.h
+ create mode 100644 drivers/media/platform/rcar_drif.c
+
+-- 
+1.9.1
+
