@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bes.se.axis.com ([195.60.68.10]:34880 "EHLO bes.se.axis.com"
+Received: from mout.web.de ([212.227.15.3]:62679 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933711AbcJQJYZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 05:24:25 -0400
-Date: Mon, 17 Oct 2016 11:23:52 +0200
-From: Jesper Nilsson <jesper.nilsson@axis.com>
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: linux-mm@kvack.org, linux-mips@linux-mips.org,
-        linux-fbdev@vger.kernel.org, Jan Kara <jack@suse.cz>,
-        kvm@vger.kernel.org, linux-sh@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        dri-devel@lists.freedesktop.org, netdev@vger.kernel.org,
-        sparclinux@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org,
-        x86@kernel.org, Hugh Dickins <hughd@google.com>,
-        linux-media@vger.kernel.org, Rik van Riel <riel@redhat.com>,
-        intel-gfx@lists.freedesktop.org,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linuxppc-dev@lists.ozlabs.org, linux-kernel@vger.kernel.org,
-        linux-security-module@vger.kernel.org, linux-alpha@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mel Gorman <mgorman@techsingularity.net>
-Subject: Re: [PATCH 10/10] mm: replace access_process_vm() write parameter
- with gup_flags
-Message-ID: <20161017092352.GH30704@axis.com>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161013002020.3062-11-lstoakes@gmail.com>
+        id S1755042AbcJLO0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:26:23 -0400
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH 00/34] [media] DaVinci-Video Processing: Fine-tuning for
+ several function implementations
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Message-ID: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:26:09 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161013002020.3062-11-lstoakes@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 13, 2016 at 01:20:20AM +0100, Lorenzo Stoakes wrote:
-> This patch removes the write parameter from access_process_vm() and replaces it
-> with a gup_flags parameter as use of this function previously _implied_
-> FOLL_FORCE, whereas after this patch callers explicitly pass this flag.
-> 
-> We make this explicit as use of FOLL_FORCE can result in surprising behaviour
-> (and hence bugs) within the mm subsystem.
-> 
-> Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-> ---
->  arch/cris/arch-v32/kernel/ptrace.c |  4 ++--
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:20:02 +0200
 
-For the CRIS part:
+Several update suggestions were taken into account
+from static source code analysis.
 
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Markus Elfring (34):
+  Use kmalloc_array() in vpbe_initialize()
+  Delete two error messages for a failed memory allocation
+  Adjust 16 checks for null pointers
+  Combine substrings for four messages
+  Return an error code only as a constant in vpbe_probe()
+  Return an error code only by a single variable in vpbe_initialize()
+  Delete an unnecessary variable initialisation in vpbe_initialize()
+  Return the success indication only as a constant in vpbe_set_mode()
+  Reduce the scope for a variable in vpbe_set_default_output()
+  Check return value of a setup_if_config() call in vpbe_set_output()
+  Rename a jump label in vpbe_set_output()
+  Delete an unnecessary variable initialisation in vpbe_set_output()
+  Capture: Use kmalloc_array() in vpfe_probe()
+  Capture: Delete three error messages for a failed memory allocation
+  Capture: Improve another size determination in vpfe_probe()
+  Capture: Delete an unnecessary variable initialisation in vpfe_probe()
+  Capture: Improve another size determination in vpfe_enum_input()
+  Capture: Combine substrings for an error message in vpfe_enum_input()
+  Capture: Improve another size determination in vpfe_open()
+  Capture: Adjust 13 checks for null pointers
+  Capture: Delete an unnecessary variable initialisation in 11 functions
+  Capture: Move two assignments in vpfe_s_input()
+  Capture: Delete unnecessary braces in vpfe_isr()
+  Capture: Delete an unnecessary return statement in vpfe_unregister_ccdc_device()
+  Capture: Use kcalloc() in vpif_probe()
+  Capture: Delete an error message for a failed memory allocation
+  Capture: Adjust ten checks for null pointers
+  Capture: Delete an unnecessary variable initialisation in vpif_querystd()
+  Capture: Delete an unnecessary variable initialisation in vpif_channel_isr()
+  Display: Use kcalloc() in vpif_probe()
+  Display: Delete an error message for a failed memory allocation
+  Display: Adjust 11 checks for null pointers
+  Display: Delete an unnecessary variable initialisation in vpif_channel_isr()
+  Display: Delete an unnecessary variable initialisation in process_progressive_mode()
 
-/^JN - Jesper Nilsson
+ drivers/media/platform/davinci/vpbe.c         | 93 ++++++++++++---------------
+ drivers/media/platform/davinci/vpfe_capture.c | 88 ++++++++++++-------------
+ drivers/media/platform/davinci/vpif_capture.c | 28 ++++----
+ drivers/media/platform/davinci/vpif_display.c | 30 ++++-----
+ 4 files changed, 109 insertions(+), 130 deletions(-)
+
 -- 
-               Jesper Nilsson -- jesper.nilsson@axis.com
+2.10.1
+
