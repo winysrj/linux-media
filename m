@@ -1,138 +1,987 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23154 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751602AbcJXHVj (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.60.111]:38964 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753113AbcJLQCy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 03:21:39 -0400
-Subject: Re: [PATCH 1/5] lib/scatterlist: Fix offset type in
- sg_alloc_table_from_pages
-To: Tvrtko Ursulin <tursulin@ursulin.net>,
-        Intel-gfx@lists.freedesktop.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Chris Wilson <chris@chris-wilson.co.uk>,
-        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        Alexandre Bounine <alexandre.bounine@idt.com>
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <38b72c9f-e9a7-2d7e-dd93-2f79c7f6c2eb@samsung.com>
-Date: Mon, 24 Oct 2016 09:21:34 +0200
-MIME-version: 1.0
-In-reply-to: <1477059083-3500-2-git-send-email-tvrtko.ursulin@linux.intel.com>
-Content-type: text/plain; charset=utf-8; format=flowed
-Content-transfer-encoding: 7bit
-References: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
- <CGME20161021141144eucas1p24cd984476554d06e4d45683bc8a60d0d@eucas1p2.samsung.com>
- <1477059083-3500-2-git-send-email-tvrtko.ursulin@linux.intel.com>
+        Wed, 12 Oct 2016 12:02:54 -0400
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        davem@davemloft.net, geert@linux-m68k.org,
+        akpm@linux-foundation.org, kvalo@codeaurora.org,
+        linux@roeck-us.net, hverkuil@xs4all.nl, lars@metafoo.de,
+        pavel@ucw.cz, robert.jarzmik@free.fr, slongerbeam@gmail.com,
+        dheitmueller@kernellabs.com, pali.rohar@gmail.com,
+        CARLOS.PALMINHA@synopsys.com,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Subject: [PATCH v3 2/2] Add support for Omnivision OV5647
+Date: Wed, 12 Oct 2016 17:02:22 +0100
+Message-Id: <17092ffede9eb8aff0d6a7f54ca771e81712b18e.1476286687.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1476286687.git.roliveir@synopsys.com>
+References: <cover.1476286687.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1476286687.git.roliveir@synopsys.com>
+References: <cover.1476286687.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tvrtko,
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+---
+ MAINTAINERS                |   7 +
+ drivers/media/i2c/Kconfig  |  12 +
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/ov5647.c | 891 +++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 911 insertions(+)
+ create mode 100644 drivers/media/i2c/ov5647.c
 
-
-On 2016-10-21 16:11, Tvrtko Ursulin wrote:
-> From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
->
-> Scatterlist entries have an unsigned int for the offset so
-> correct the sg_alloc_table_from_pages function accordingly.
->
-> Since these are offsets withing a page, unsigned int is
-> wide enough.
->
-> Also converts callers which were using unsigned long locally
-> with the lower_32_bits annotation to make it explicitly
-> clear what is happening.
->
-> Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-> Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-> Cc: Pawel Osciak <pawel@osciak.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Cc: Matt Porter <mporter@kernel.crashing.org>
-> Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->   drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
->   drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
->   include/linux/scatterlist.h                    | 2 +-
->   lib/scatterlist.c                              | 2 +-
->   4 files changed, 6 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index fb6a177be461..a3aac7533241 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->   {
->   	struct vb2_dc_buf *buf;
->   	struct frame_vector *vec;
-> -	unsigned long offset;
-> +	unsigned int offset;
->   	int n_pages, i;
->   	int ret = 0;
->   	struct sg_table *sgt;
-> @@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->   	buf->dev = dev;
->   	buf->dma_dir = dma_dir;
->   
-> -	offset = vaddr & ~PAGE_MASK;
-> +	offset = lower_32_bits(vaddr & ~PAGE_MASK);
->   	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
->   	if (IS_ERR(vec)) {
->   		ret = PTR_ERR(vec);
-> diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
-> index 436dfe871d32..f545cf20561f 100644
-> --- a/drivers/rapidio/devices/rio_mport_cdev.c
-> +++ b/drivers/rapidio/devices/rio_mport_cdev.c
-> @@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
->   	 * offset within the internal buffer specified by handle parameter.
->   	 */
->   	if (xfer->loc_addr) {
-> -		unsigned long offset;
-> +		unsigned int offset;
->   		long pinned;
->   
-> -		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
-> +		offset = lower_32_bits(xfer->loc_addr & ~PAGE_MASK);
->   		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
->   
->   		page_list = kmalloc_array(nr_pages,
-> diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-> index cb3c8fe6acd7..c981bee1a3ae 100644
-> --- a/include/linux/scatterlist.h
-> +++ b/include/linux/scatterlist.h
-> @@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
->   int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
->   int sg_alloc_table_from_pages(struct sg_table *sgt,
->   	struct page **pages, unsigned int n_pages,
-> -	unsigned long offset, unsigned long size,
-> +	unsigned int offset, unsigned long size,
->   	gfp_t gfp_mask);
->   
->   size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
-> diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-> index 004fc70fc56a..e05e7fc98892 100644
-> --- a/lib/scatterlist.c
-> +++ b/lib/scatterlist.c
-> @@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
->    */
->   int sg_alloc_table_from_pages(struct sg_table *sgt,
->   	struct page **pages, unsigned int n_pages,
-> -	unsigned long offset, unsigned long size,
-> +	unsigned int offset, unsigned long size,
->   	gfp_t gfp_mask)
->   {
->   	unsigned int chunks;
-
-Best regards
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 0560911..11c414b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8661,6 +8661,13 @@ M:	Harald Welte <laforge@gnumonks.org>
+ S:	Maintained
+ F:	drivers/char/pcmcia/cm4040_cs.*
+ 
++OMNIVISION OV5647 SENSOR DRIVER
++M:	Ramiro Oliveira <roliveir@synopsys.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ov5647.c
++
+ OMNIVISION OV7670 SENSOR DRIVER
+ M:	Jonathan Corbet <corbet@lwn.net>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 2669b4b..4237165 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -531,6 +531,18 @@ config VIDEO_OV2659
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov2659.
+ 
++config VIDEO_OV5647
++	tristate "OmniVision OV5647 sensor support"
++	depends on OF
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV5647 camera.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov5647.
++
+ config VIDEO_OV7640
+ 	tristate "OmniVision OV7640 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 92773b2..0d9014c 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -82,3 +82,4 @@ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
++obj-$(CONFIG_VIDEO_OV5647)	+= ov5647.o
+diff --git a/drivers/media/i2c/ov5647.c b/drivers/media/i2c/ov5647.c
+new file mode 100644
+index 0000000..ba9a874
+--- /dev/null
++++ b/drivers/media/i2c/ov5647.c
+@@ -0,0 +1,891 @@
++/*
++ * A V4L2 driver for OmniVision OV5647 cameras.
++ *
++ * Based on Samsung S5K6AAFX SXGA 1/6" 1.3M CMOS Image Sensor driver
++ * Copyright (C) 2011 Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * Based on Omnivision OV7670 Camera Driver
++ * Copyright (C) 2006-7 Jonathan Corbet <corbet@lwn.net>
++ *
++ * Copyright (C) 2016, Synopsys, Inc.
++ *
++ */
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-mediabus.h>
++#include <media/v4l2-image-sizes.h>
++#include <media/v4l2-of.h>
++#include <linux/io.h>
++
++static bool debug;
++module_param(debug, bool, 0644);
++MODULE_PARM_DESC(debug, "Debug level (0-1)");
++
++/*
++ * The ov5647 sits on i2c with ID 0x6c
++ */
++#define OV5647_I2C_ADDR 0x6c
++#define SENSOR_NAME "ov5647"
++
++#define OV5647_REG_CHIPID_H	0x300A
++#define OV5647_REG_CHIPID_L	0x300B
++
++#define REG_TERM 0xfffe
++#define VAL_TERM 0xfe
++#define REG_DLY  0xffff
++
++/*define the voltage level of control signal*/
++#define CSI_STBY_ON		1
++#define CSI_STBY_OFF		0
++#define CSI_RST_ON		0
++#define CSI_RST_OFF		1
++#define CSI_PWR_ON		1
++#define CSI_PWR_OFF		0
++#define CSI_AF_PWR_ON		1
++#define CSI_AF_PWR_OFF		0
++
++
++#define OV5647_ROW_START		0x01
++#define OV5647_ROW_START_MIN		0
++#define OV5647_ROW_START_MAX		2004
++#define OV5647_ROW_START_DEF		54
++
++#define OV5647_COLUMN_START		0x02
++#define OV5647_COLUMN_START_MIN		0
++#define OV5647_COLUMN_START_MAX		2750
++#define OV5647_COLUMN_START_DEF		16
++
++#define OV5647_WINDOW_HEIGHT		0x03
++#define OV5647_WINDOW_HEIGHT_MIN	2
++#define OV5647_WINDOW_HEIGHT_MAX	2006
++#define OV5647_WINDOW_HEIGHT_DEF	1944
++
++#define OV5647_WINDOW_WIDTH		0x04
++#define OV5647_WINDOW_WIDTH_MIN		2
++#define OV5647_WINDOW_WIDTH_MAX		2752
++#define OV5647_WINDOW_WIDTH_DEF		2592
++
++enum power_seq_cmd {
++	CSI_SUBDEV_PWR_OFF = 0x00,
++	CSI_SUBDEV_PWR_ON = 0x01,
++};
++
++struct regval_list {
++	uint16_t addr;
++	uint8_t data;
++};
++
++struct cfg_array {
++	struct regval_list *regs;
++	int size;
++};
++
++struct sensor_win_size {
++	int width;
++	int height;
++	unsigned int hoffset;
++	unsigned int voffset;
++	unsigned int hts;
++	unsigned int vts;
++	unsigned int pclk;
++	unsigned int mipi_bps;
++	unsigned int fps_fixed;
++	unsigned int bin_factor;
++	unsigned int intg_min;
++	unsigned int intg_max;
++	void *regs;
++	int regs_size;
++	int (*set_size)(struct v4l2_subdev *subdev);
++};
++
++
++struct ov5647 {
++	struct device			*dev;
++	struct v4l2_subdev		subdev;
++	struct media_pad		pad;
++	struct mutex			lock;
++	struct v4l2_mbus_framefmt	format;
++	struct sensor_format_struct	*fmt;
++	unsigned int			width;
++	unsigned int			height;
++	unsigned int			capture_mode;
++	int				hue;
++	struct v4l2_fract		tpf;
++	struct sensor_win_size		*current_wins;
++};
++
++static inline struct ov5647 *to_state(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct ov5647, subdev);
++}
++
++static struct regval_list sensor_oe_disable_regs[] = {
++	{0x3000, 0x00},
++	{0x3001, 0x00},
++	{0x3002, 0x00},
++};
++
++static struct regval_list sensor_oe_enable_regs[] = {
++	{0x3000, 0x0f},
++	{0x3001, 0xff},
++	{0x3002, 0xe4},
++};
++
++static struct regval_list ov5647_640x480[] = {
++	{0x0100, 0x00},
++	{0x0103, 0x01},
++	{0x3034, 0x08},
++	{0x3035, 0x21},
++	{0x3036, 0x46},
++	{0x303c, 0x11},
++	{0x3106, 0xf5},
++	{0x3821, 0x07},
++	{0x3820, 0x41},
++	{0x3827, 0xec},
++	{0x370c, 0x0f},
++	{0x3612, 0x59},
++	{0x3618, 0x00},
++	{0x5000, 0x06},
++	{0x5001, 0x01},
++	{0x5002, 0x41},
++	{0x5003, 0x08},
++	{0x5a00, 0x08},
++	{0x3000, 0x00},
++	{0x3001, 0x00},
++	{0x3002, 0x00},
++	{0x3016, 0x08},
++	{0x3017, 0xe0},
++	{0x3018, 0x44},
++	{0x301c, 0xf8},
++	{0x301d, 0xf0},
++	{0x3a18, 0x00},
++	{0x3a19, 0xf8},
++	{0x3c01, 0x80},
++	{0x3b07, 0x0c},
++	{0x380c, 0x07},
++	{0x380d, 0x68},
++	{0x380e, 0x03},
++	{0x380f, 0xd8},
++	{0x3814, 0x31},
++	{0x3815, 0x31},
++	{0x3708, 0x64},
++	{0x3709, 0x52},
++	{0x3808, 0x02},
++	{0x3809, 0x80},
++	{0x380a, 0x01},
++	{0x380b, 0xE0},
++	{0x3801, 0x00},
++	{0x3802, 0x00},
++	{0x3803, 0x00},
++	{0x3804, 0x0a},
++	{0x3805, 0x3f},
++	{0x3806, 0x07},
++	{0x3807, 0xa1},
++	{0x3811, 0x08},
++	{0x3813, 0x02},
++	{0x3630, 0x2e},
++	{0x3632, 0xe2},
++	{0x3633, 0x23},
++	{0x3634, 0x44},
++	{0x3636, 0x06},
++	{0x3620, 0x64},
++	{0x3621, 0xe0},
++	{0x3600, 0x37},
++	{0x3704, 0xa0},
++	{0x3703, 0x5a},
++	{0x3715, 0x78},
++	{0x3717, 0x01},
++	{0x3731, 0x02},
++	{0x370b, 0x60},
++	{0x3705, 0x1a},
++	{0x3f05, 0x02},
++	{0x3f06, 0x10},
++	{0x3f01, 0x0a},
++	{0x3a08, 0x01},
++	{0x3a09, 0x27},
++	{0x3a0a, 0x00},
++	{0x3a0b, 0xf6},
++	{0x3a0d, 0x04},
++	{0x3a0e, 0x03},
++	{0x3a0f, 0x58},
++	{0x3a10, 0x50},
++	{0x3a1b, 0x58},
++	{0x3a1e, 0x50},
++	{0x3a11, 0x60},
++	{0x3a1f, 0x28},
++	{0x4001, 0x02},
++	{0x4004, 0x02},
++	{0x4000, 0x09},
++	{0x4837, 0x24},
++	{0x4050, 0x6e},
++	{0x4051, 0x8f},
++	{0x0100, 0x01},
++};
++
++struct sensor_format_struct;
++
++/**
++* @short I2C Write operation
++* @param[in] i2c_client I2C client
++* @param[in] reg register address
++* @param[in] val value to write
++* @return Error code
++*/
++static int ov5647_write(struct v4l2_subdev *sd, uint16_t reg, uint8_t val)
++{
++	int ret;
++	unsigned char data[3] = { reg >> 8, reg & 0xff, val};
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	ret = i2c_master_send(client, data, 3);
++	if (ret < 3) {
++		v4l2_dbg(1, debug, sd, "%s: i2c write error, reg: %x\n",
++				__func__, reg);
++		return ret < 0 ? ret : -EIO;
++	}
++	return 0;
++}
++
++/**
++* @short I2C Read operation
++* @param[in] i2c_client I2C client
++* @param[in] reg register address
++* @param[out] val value read
++* @return Error code
++*/
++static int ov5647_read(struct v4l2_subdev *sd, uint16_t reg, uint8_t *val)
++{
++	int ret;
++	unsigned char data_w[2] = { reg >> 8, reg & 0xff };
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++
++	ret = i2c_master_send(client, data_w, 2);
++
++	if (ret < 2) {
++		v4l2_dbg(1, debug, sd, "%s: i2c read error, reg: %x\n",
++			__func__, reg);
++		return ret < 0 ? ret : -EIO;
++	}
++
++
++	ret = i2c_master_recv(client, val, 1);
++
++	if (ret < 1) {
++		v4l2_dbg(1, debug, sd, "%s: i2c read error, reg: %x\n",
++				__func__, reg);
++		return ret < 0 ? ret : -EIO;
++	}
++	return 0;
++}
++
++static int ov5647_write_array(struct v4l2_subdev *subdev,
++				struct regval_list *regs, int array_size)
++{
++	int i = 0;
++	int ret = 0;
++
++	if (!regs)
++		return -EINVAL;
++
++	while (i < array_size) {
++		if (regs->addr == REG_DLY)
++			mdelay(regs->data);
++		else
++			ret = ov5647_write(subdev, regs->addr, regs->data);
++
++		if (ret == -EIO)
++			return ret;
++
++		i++;
++		regs++;
++	}
++	return 0;
++}
++
++static void ov5647_set_virtual_channel(struct v4l2_subdev *subdev, int channel)
++{
++	u8 channel_id;
++
++	ov5647_read(subdev, 0x4814, &channel_id);
++	channel_id &= ~(3 << 6);
++	ov5647_write(subdev, 0x4814, channel_id | (channel << 6));
++}
++
++/**
++* @short Stream ON
++* @param[in] subdev v4l2 subdev
++* @return Error code
++*/
++void ov5647_stream_on(struct v4l2_subdev *subdev)
++{
++	ov5647_write(subdev, 0x4202, 0x00);
++	v4l2_dbg(1, debug, subdev, "Stream on");
++	ov5647_write(subdev, 0x300D, 0x00);
++
++}
++
++/**
++* @short Stream OFF
++* @param[in] subdev v4l2 subdev
++* @return Error code
++*/
++void ov5647_stream_off(struct v4l2_subdev *subdev)
++{
++	ov5647_write(subdev, 0x4202, 0x0f);
++	v4l2_dbg(1, debug, subdev, "Stream off");
++	ov5647_write(subdev, 0x300D, 0x01);
++}
++
++/****************************************************************************/
++
++/**
++ * @short Set SW standby
++ * @param[in] subdev v4l2 subdev
++ * @param[in] on_off standby on or off
++ * @return Error code
++ */
++static int sensor_s_sw_stby(struct v4l2_subdev *subdev, int on_off)
++{
++	int ret;
++	unsigned char rdval;
++
++	ret = ov5647_read(subdev, 0x0100, &rdval);
++	if (ret != 0)
++		return ret;
++
++	if (on_off == CSI_STBY_ON)
++		ret = ov5647_write(subdev, 0x0100, rdval&0xfe);
++
++	else
++		ret = ov5647_write(subdev, 0x0100, rdval|0x01);
++
++	return ret;
++}
++
++/**
++ * @short Store information about the video data format.
++ */
++static struct sensor_format_struct {
++	__u8 *desc;
++	u32 mbus_code;
++	struct regval_list *regs;
++	int regs_size;
++	int bpp;
++} sensor_formats[] = {
++	{
++		.desc		= "Raw RGB Bayer",
++		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
++		.regs		= ov5647_640x480,
++		.regs_size	= ARRAY_SIZE(ov5647_640x480),
++		.bpp		= 1
++	},
++};
++#define N_FMTS ARRAY_SIZE(sensor_formats)
++
++/* ----------------------------------------------------------------------- */
++
++/**
++* @short Initialize sensor
++* @param[in] subdev v4l2 subdev
++* @param[in] val not used
++* @return Error code
++*/
++static int __sensor_init(struct v4l2_subdev *subdev)
++{
++	int ret;
++	uint8_t resetval;
++	unsigned char rdval;
++
++	v4l2_dbg(1, debug, subdev, "sensor init\n");
++
++	ret = ov5647_read(subdev, 0x0100, &rdval);
++	if (ret != 0)
++		return ret;
++
++	ov5647_write(subdev, 0x4800, 0x25);
++	ov5647_stream_off(subdev);
++
++	ret = ov5647_write_array(subdev, ov5647_640x480,
++					ARRAY_SIZE(ov5647_640x480));
++	if (ret < 0) {
++		v4l2_err(subdev, "write sensor_default_regs error\n");
++		return ret;
++	}
++
++	ov5647_set_virtual_channel(subdev, 0);
++
++	ov5647_read(subdev, 0x0100, &resetval);
++		if (!resetval&0x01) {
++			v4l2_dbg(1, debug, subdev,
++					"DEVICE WAS IN SOFTWARE STANDBY");
++			ov5647_write(subdev, 0x0100, 0x01);
++		}
++
++	ov5647_write(subdev, 0x4800, 0x04);
++	ov5647_stream_on(subdev);
++
++	return 0;
++}
++
++/**
++* @short Control sensor power state
++* @param[in] subdev v4l2 subdev
++* @param[in] on Sensor power
++* @return Error code
++*/
++static int sensor_power(struct v4l2_subdev *subdev, int on)
++{
++	int ret;
++	struct ov5647 *ov5647 = to_state(subdev);
++
++	ret = 0;
++	mutex_lock(&ov5647->lock);
++
++	switch (on) {
++	case CSI_SUBDEV_PWR_OFF:
++		v4l2_dbg(1, debug, subdev, "CSI SUBDEV PWR OFF!\n");
++
++		v4l2_dbg(1, debug, subdev, "disable oe!\n");
++		ret = ov5647_write_array(subdev, sensor_oe_disable_regs,
++				ARRAY_SIZE(sensor_oe_disable_regs));
++
++		if (ret < 0)
++			v4l2_dbg(1, debug, subdev, "disable oe failed!\n");
++
++		ret = sensor_s_sw_stby(subdev, CSI_STBY_ON);
++
++		if (ret < 0)
++			v4l2_dbg(1, debug, subdev, "soft stby failed!\n");
++
++		break;
++	case CSI_SUBDEV_PWR_ON:
++		v4l2_dbg(1, debug, subdev, "CSI SUBDEV PWR ON!\n");
++
++		ret = ov5647_write_array(subdev, sensor_oe_enable_regs,
++				ARRAY_SIZE(sensor_oe_enable_regs));
++
++		ret = __sensor_init(subdev);
++
++		if (ret < 0) {
++			v4l2_err(subdev,
++				"Camera not available! Check Power!\n");
++			break;
++		}
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	mutex_unlock(&ov5647->lock);
++
++	return 0;
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++/**
++* @short Get register value
++* @param[in] subdev v4l2 subdev
++* @param[in] reg register struct
++* @return Error code
++*/
++static int sensor_get_register(struct v4l2_subdev *subdev,
++				struct v4l2_dbg_register *reg)
++{
++	unsigned char val = 0;
++	int ret;
++
++	ret = ov5647_read(subdev, reg->reg & 0xff, &val);
++	reg->val = val;
++	reg->size = 1;
++	return ret;
++}
++
++/**
++* @short Set register value
++* @param[in] subdev v4l2 subdev
++* @param[in] reg register struct
++* @return Error code
++*/
++static int sensor_set_register(struct v4l2_subdev *subdev,
++				const struct v4l2_dbg_register *reg)
++{
++	ov5647_write(subdev, reg->reg & 0xff, reg->val & 0xff);
++	return 0;
++}
++#endif
++
++/* ----------------------------------------------------------------------- */
++
++/**
++ * @short Subdev core operations registration
++ */
++static const struct v4l2_subdev_core_ops sensor_core_ops = {
++	.s_power		= sensor_power,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register		= sensor_get_register,
++	.s_register		= sensor_set_register,
++#endif
++};
++
++/* ----------------------------------------------------------------------- */
++
++
++
++/**
++* @short Enumerate available image formats
++* @param[in] subdev v4l2 subdev
++* @param[in] index index
++* @param[in] code MBUS Pixel code
++* @return Error code
++*/
++static int sensor_enum_fmt(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->pad || code->index >= N_FMTS)
++		return -EINVAL;
++
++	code->code = sensor_formats[code->index].mbus_code;
++	return 0;
++}
++
++/**
++* @short Try frame format internal function
++* @param[in] subdev v4l2 subdev
++* @param[in] fmt frame format
++* @return Error code
++*/
++static int sensor_try_fmt_internal(struct v4l2_subdev *subdev,
++	struct v4l2_mbus_framefmt *fmt, struct sensor_format_struct **ret_fmt,
++	struct sensor_win_size **ret_wsize)
++{
++	int index;
++
++	for (index = 0; index < N_FMTS; index++)
++		if (sensor_formats[index].mbus_code == fmt->code)
++			break;
++
++	if (index >= N_FMTS)
++		return -EINVAL;
++
++	if (ret_fmt != NULL)
++		*ret_fmt = sensor_formats + index;
++
++	fmt->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++/**
++* @short Set frame format
++* @param[in] subdev v4l2 subdev
++* @param[in] fmt frame format
++* @return Error code
++*/
++static int sensor_s_fmt(struct v4l2_subdev *subdev,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *fmt)
++{
++	int ret;
++	struct sensor_format_struct *sensor_fmt;
++	struct sensor_win_size *wsize;
++	struct ov5647 *info = to_state(subdev);
++
++	ov5647_write_array(subdev, sensor_oe_disable_regs,
++					ARRAY_SIZE(sensor_oe_disable_regs));
++
++	ret = sensor_try_fmt_internal(subdev, &fmt->format,
++					&sensor_fmt, &wsize);
++	if (ret)
++		return ret;
++
++	ov5647_write_array(subdev, sensor_fmt->regs, sensor_fmt->regs_size);
++
++	ret = 0;
++
++	if (wsize->regs)
++		ov5647_write_array(subdev, wsize->regs, wsize->regs_size);
++
++	if (wsize->set_size)
++		wsize->set_size(subdev);
++
++	info->fmt = sensor_fmt;
++	info->width = wsize->width;
++	info->height = wsize->height;
++
++	ov5647_write_array(subdev, sensor_oe_enable_regs,
++				ARRAY_SIZE(sensor_oe_enable_regs));
++
++	return 0;
++}
++
++/**
++* @short Set stream parameters
++* @param[in] subdev v4l2 subdev
++* @param[in] parms stream parameters
++* @return Error code
++*/
++static int sensor_s_parm(struct v4l2_subdev *subdev,
++				struct v4l2_streamparm *parms)
++{
++	struct v4l2_captureparm *cp = &parms->parm.capture;
++	struct ov5647 *info = to_state(subdev);
++
++	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	if (info->tpf.numerator == 0)
++		return -EINVAL;
++
++	info->capture_mode = cp->capturemode;
++
++	return 0;
++}
++
++/**
++* @short Get stream parameters
++* @param[in] subdev v4l2 subdev
++* @param[in] parms stream parameters
++* @return Error code
++*/
++static int sensor_g_parm(struct v4l2_subdev *subdev,
++				struct v4l2_streamparm *parms)
++{
++	struct v4l2_captureparm *cp = &parms->parm.capture;
++	struct ov5647 *info = to_state(subdev);
++
++	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(cp, 0, sizeof(struct v4l2_captureparm));
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
++	cp->capturemode = info->capture_mode;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_pad_ops ov7670_pad_ops = {
++	.enum_mbus_code	= sensor_enum_fmt,
++	.set_fmt	= sensor_s_fmt,
++};
++
++/**
++ * @short Subdev video operations registration
++ *
++ */
++static const struct v4l2_subdev_video_ops sensor_video_ops = {
++	.s_parm		= sensor_s_parm,
++	.g_parm		= sensor_g_parm,
++};
++
++/* ----------------------------------------------------------------------- */
++
++/**
++ * @short Subdev operations registration
++ *
++ */
++static const struct v4l2_subdev_ops subdev_ops = {
++	.core			= &sensor_core_ops,
++	.video			= &sensor_video_ops,
++};
++
++/* -----------------------------------------------------------------------------
++ * V4L2 subdev internal operations
++ */
++
++/**
++* @short Detect camera version and model
++* @param[in] subdev v4l2 subdev
++* @return Error code
++*/
++int ov5647_detect(struct v4l2_subdev *sd)
++{
++	unsigned char v;
++	int ret;
++
++	ret = sensor_power(sd, 1);
++	if (ret < 0)
++		return ret;
++	ret = ov5647_read(sd, OV5647_REG_CHIPID_H, &v);
++	if (ret < 0)
++		return ret;
++	if (v != 0x56) /* OV manuf. id. */
++		return -ENODEV;
++	ret = ov5647_read(sd, OV5647_REG_CHIPID_L, &v);
++	if (ret < 0)
++		return ret;
++	if (v != 0x47)
++		return -ENODEV;
++
++	ret = sensor_power(sd, 0);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/**
++* @short Detect if camera is registered
++* @param[in] subdev v4l2 subdev
++* @return Error code
++*/
++static int ov5647_registered(struct v4l2_subdev *subdev)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(subdev);
++
++	v4l2_info(subdev, "OV5647 detected at address 0x%02x\n", client->addr);
++
++	return 0;
++}
++
++/**
++* @short Open device
++* @param[in] subdev v4l2 subdev
++* @param[in] fh v4l2 file handler
++* @return Error code
++*/
++static int ov5647_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *format =
++				v4l2_subdev_get_try_format(subdev, fh->pad, 0);
++	struct v4l2_rect *crop =
++				v4l2_subdev_get_try_crop(subdev, fh->pad, 0);
++
++	crop->left = OV5647_COLUMN_START_DEF;
++	crop->top = OV5647_ROW_START_DEF;
++	crop->width = OV5647_WINDOW_WIDTH_DEF;
++	crop->height = OV5647_WINDOW_HEIGHT_DEF;
++
++	format->code = MEDIA_BUS_FMT_SBGGR8_1X8;
++
++	format->width = OV5647_WINDOW_WIDTH_DEF;
++	format->height = OV5647_WINDOW_HEIGHT_DEF;
++	format->field = V4L2_FIELD_NONE;
++	format->colorspace = V4L2_COLORSPACE_SRGB;
++
++	return sensor_power(subdev, 1);
++}
++
++/**
++* @short Open device
++* @param[in] subdev v4l2 subdev
++* @param[in] fh v4l2 file handler
++* @return Error code
++*/
++static int ov5647_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
++{
++	return sensor_power(subdev, 0);
++}
++
++/**
++ * @short Subdev internal operations registration
++ *
++ */
++static const struct v4l2_subdev_internal_ops ov5647_subdev_internal_ops = {
++	.registered = ov5647_registered,
++	.open = ov5647_open,
++	.close = ov5647_close,
++};
++
++/**
++* @short Initialization routine - Entry point of the driver
++* @param[in] client pointer to the i2c client structure
++* @param[in] id pointer to the i2c device id structure
++* @return 0 on success and a negative number on failure
++* Refer to Linux errors.
++*/
++static int ov5647_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct ov5647 *sensor;
++	int ret = 0;
++	struct v4l2_subdev *sd;
++
++	pr_info("Installing OmniVision OV5647 camera driver\n");
++
++	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
++	if (sensor == NULL)
++		return -ENOMEM;
++
++	mutex_init(&sensor->lock);
++	sensor->dev = dev;
++
++	sd = &sensor->subdev;
++	v4l2_i2c_subdev_init(sd, client, &subdev_ops);
++	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&sd->entity, 1, &sensor->pad);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		media_entity_cleanup(&sd->entity);
++
++	return ret;
++}
++
++/**
++* @short Exit routine - Exit point of the driver
++* @param[in] client pointer to the i2c clietn structure
++* @return 0 on success and a negative number on failure
++* Refer to Linux errors.
++*/
++static int ov5647_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
++	struct ov5647 *ov5647 = to_state(subdev);
++
++	v4l2_async_unregister_subdev(&ov5647->subdev);
++	media_entity_cleanup(&ov5647->subdev.entity);
++	v4l2_device_unregister_subdev(subdev);
++
++	return 0;
++}
++
++/**
++* @short of_device_id structure
++*/
++static const struct i2c_device_id ov5647_id[] = {
++	{ "ov5647", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, ov5647_id);
++
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov5647_of_match[] = {
++	{ .compatible = "ovti,ov5647" },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov5647_of_match);
++#endif
++
++/**
++* @short i2c driver structure
++*/
++static struct i2c_driver ov5647_driver = {
++	.driver = {
++		.of_match_table = of_match_ptr(ov5647_of_match),
++		.owner	= THIS_MODULE,
++		.name	= "ov5647",
++	},
++	.probe		= ov5647_probe,
++	.remove		= ov5647_remove,
++	.id_table	= ov5647_id,
++};
++
++module_i2c_driver(ov5647_driver);
++
++MODULE_AUTHOR("Ramiro Oliveira <roliveir@synopsys.com>");
++MODULE_DESCRIPTION("A low-level driver for OmniVision ov5647 sensors");
++MODULE_LICENSE("GPL");
 -- 
-Marek Szyprowski, PhD
-Samsung R&D Institute Poland
+2.9.3
+
 
