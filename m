@@ -1,235 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:36581 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759591AbcJRKGh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 06:06:37 -0400
-Date: Tue, 18 Oct 2016 08:06:28 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Markus Heiser <markus.heiser@darmarit.de>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Jani Nikula <jani.nikula@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 1/4] doc-rst: reST-directive kernel-cmd / include
- contentent from scripts
-Message-ID: <20161018080628.439a0f40@vento.lan>
-In-Reply-To: <BF4516DA-435D-4469-B968-D8F5858DC9CF@darmarit.de>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
-        <1475738420-8747-2-git-send-email-markus.heiser@darmarit.de>
-        <20161017144638.139491ad@vento.lan>
-        <BF4516DA-435D-4469-B968-D8F5858DC9CF@darmarit.de>
+Received: from mout.web.de ([212.227.15.3]:63222 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754719AbcJLRRE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 13:17:04 -0400
+Subject: [PATCH resent 03/34] [media] DaVinci-VPBE: Adjust 16 checks for null
+ pointers
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+ <fdf72877-08a9-1a86-aec8-627a378258da@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <ea25141d-b337-94c8-970b-1289b8dfdefb@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 19:15:49 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <fdf72877-08a9-1a86-aec8-627a378258da@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, I missed part of your comments on my last reply...
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 11 Oct 2016 13:37:10 +0200
 
+The script "checkpatch.pl" pointed information out like the following.
 
-Em Tue, 18 Oct 2016 09:03:28 +0200
-Markus Heiser <markus.heiser@darmarit.de> escreveu:
+Comparison to NULL could be written ...
 
-> +-	``T:`` SCM tree type and location.
-> +
-> > +	- Type is one of: **git**, **hg**, **quilt**, **stgit**, **topgit**
-> > +  
+Thus fix the affected source code places.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+
+Another send try because of the following notification:
+
+Mailer Daemon wrote on 2016-10-12 at 16:39:
+> This message was created automatically by mail delivery software.
 > 
-> Hmm, why is the last line a bullet list, shouldn't it be:
+> A message that you sent could not be delivered to one or more of
+> its recipients. This is a permanent error. The following address(es)
+> failed:
 > 
-> +- ``T:`` SCM tree type and location
-> +  Type is one of: git, hg, quilt, stgit, topgit
-
-IMHO, it is better to output it as:
-
-	- T: SCM tree type and location.
-
-	  *  Type is one of: git, hg, quilt, stgit, topgit
-
-Putting the explanation on a separate line, then merging the description
-of the tag with the details about the valid values.
-
+> linux-kernel@vger.kernel.org:
+> SMTP error from remote server for TEXT command, host: vger.kernel.org (209.132.180.67) reason: 550 5.7.1 Content-Policy reject msg: Wrong MIME labeling on 8-bit characte
+> r texts. BF:<H 0>; S1755378AbcJLOjE
 > 
+> linux-media@vger.kernel.org:
+> SMTP error from remote server for TEXT command, host: vger.kernel.org (209.132.180.67) reason: 550 5.7.1 Content-Policy reject msg: Wrong MIME labeling on 8-bit characte
+> r texts. BF:<H 0>; S1755378AbcJLOjE
 > 
-> > +-	``S:`` Status, one of the following:
-> > +
-> > +	   - Supported:
-> > +			Someone is actually paid to look after this.  
-> 
-> Sorry, but I will never understand why you using mixed tabs and space 
-> for the same thing ;-) ... what I mean; why is the top-list indented by 
-> a tab after the bullet and the sub-list by two spaces ... 
-> 
-> We had the tab discussion already ... and IMO calling the CodeStyle is not
-> helpful when using ASCII markup ... lets take the ASCI documentation compact
-> and forget the tab ;-)
-
-Well, my text editor is set to replace 8 spaces by tabs, as this is the
-Kernel CodingStyle. I suspect other Kernel hackers do the same.
-Using a different style just for documentation is really odd and will
-cause problems, and make the maintainers life like hell if they would
-need to manually check if a documentation hunk is not using tabs.
-
-> 
-> > +	   - Maintained:
-> > +			Someone actually looks after it.
-> > +	   - Odd Fixes:
-> > +			It has a maintainer but they don't have time to do
-> > 			much other than throw the odd patch in. See below..
-> > -	   Orphan:	No current maintainer [but maybe you could take the
-> > +	   - Orphan:
-> > +			No current maintainer [but maybe you could take the
-> > 			role as you write your new code].
-> > -	   Obsolete:	Old code. Something tagged obsolete generally means
-> > +	   - Obsolete:
-> > +			Old code. Something tagged obsolete generally means
-> > 			it has been replaced by a better system and you
-> > 			should be using that.  
-> 
-> Hmm, here its the same with the indent. List, list-items, paragraphs etc. are all
-> "body elements". 
-> 
-> * http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html#body-elements
-> 
-> A body element is always introduced by a leading empty line. E.g:
-> 
-> - ``S:`` Status, one of the following:
-> 
->  - Supported:
-> 
->    Someone is actually paid to look after this.
-> 
->  - Maintained:
-> 
->    Someone actually looks after it.
-> 
-> or even more compact (which I do prefer), without paragraphs in the list items:
-> 
-> - ``S:`` Status, one of the following:
-> 
->  - Supported: Someone is actually paid to look after this.
-> 
->  - Maintained: Someone actually looks after it.
-
-Hmm... we actually use a lot of markups on the media books like:
-
-- foo
-  - bar
-
-when we want to put the first line in **bold**, as this seems to be the
-only way to make the first line bold if it contains a verbatim.
-
-There's an additional advantage of the above... it requires less typing
-than:
-
-- **foo**
-
-  - bar
-
-:-)
-
-> 
-> > -	F: Files and directories with wildcard patterns.
-> > +-	``F:`` Files and directories with wildcard patterns.
-> > +
-> > 	   A trailing slash includes all files and subdirectory files.
-> > -	   F:	drivers/net/	all files in and below drivers/net
-> > -	   F:	drivers/net/*	all files in drivers/net, but not below
-> > -	   F:	*/net/*		all files in "any top level directory"/net
-> > -	   One pattern per line.  Multiple F: lines acceptable.
-> > -	N: Files and directories with regex patterns.
-> > -	   N:	[^a-z]tegra	all files whose path contains the word tegra
-> > -	   One pattern per line.  Multiple N: lines acceptable.
-> > -	   scripts/get_maintainer.pl has different behavior for files that
-> > -	   match F: pattern and matches of N: patterns.  By default,
-> > -	   get_maintainer will not look at git log history when an F: pattern
-> > -	   match occurs.  When an N: match occurs, git log history is used
-> > -	   to also notify the people that have git commit signatures.
-> > -	X: Files and directories that are NOT maintained, same rules as F:
-> > -	   Files exclusions are tested before file matches.
-> > -	   Can be useful for excluding a specific subdirectory, for instance:
-> > -	   F:	net/
-> > -	   X:	net/ipv6/
-> > -	   matches all files in and below net excluding net/ipv6/
-> > -	K: Keyword perl extended regex pattern to match content in a
-> > +
-> > +	   ============================== ======================================
-> > +	   ``F:``	``drivers/net/``	all files in and below
-> > +						``drivers/net``
-> > +	   ``F:``	``drivers/net/*``	all files in ``drivers/net``,
-> > +						but not below
-> > +	   ``F:``	``*/net/*``		all files in "any top level
-> > +						directory" ``/net``
-> > +	   ============================== ======================================
-> > +
-> > +	   One pattern per line.  Multiple ``F:`` lines acceptable.
-> > +-	``N:`` Files and directories with regex patterns.  
-> 
-> Between the last two lines, a empty line is required ... I fond this more times
-> (will not comment each).
-
-Surely we can improve the markups here. Yet, the point is that the html
-produced via kernel-cmd is completely different than he one produced by
-calling the perl script directly. When kernel-cmd is used, lots of tags are 
-not parsed.
-
-That's said, if I add a logic at the script to expand the tabs before
-output (patch enclosed), everything looks OK.
-
-> 
-> OK, I will stop here, if you are interested in I can prepare a patch for
-> illustration ....
-> 
-
-Thanks,
-Mauro
+> kernel-janitors@vger.kernel.org:
+> SMTP error from remote server for TEXT command, host: vger.kernel.org (209.132.180.67) reason: 550 5.7.1 Content-Policy reject msg: Wrong MIME labeling on 8-bit characte
+> r texts. BF:<H 0>; S1755378AbcJLOjE
 
 
-diff --git a/Documentation/sphinx/format_maintainers.pl b/Documentation/sphinx/format_maintainers.pl
-index fb3af2a30c36..c3174c2b180a 100755
---- a/Documentation/sphinx/format_maintainers.pl
-+++ b/Documentation/sphinx/format_maintainers.pl
-@@ -1,4 +1,5 @@
- #!/usr/bin/perl
-+use Text::Tabs;
+ drivers/media/platform/davinci/vpbe.c | 29 ++++++++++++++---------------
+ 1 file changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index b479747..496b27f 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -107,7 +107,7 @@ static int vpbe_find_encoder_sd_index(struct vpbe_config *cfg,
+ static int vpbe_g_cropcap(struct vpbe_device *vpbe_dev,
+ 			  struct v4l2_cropcap *cropcap)
+ {
+-	if (NULL == cropcap)
++	if (!cropcap)
+ 		return -EINVAL;
+ 	cropcap->bounds.left = 0;
+ 	cropcap->bounds.top = 0;
+@@ -149,7 +149,7 @@ static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode,
+ 	int curr_output = output_index;
+ 	int i;
  
- my $is_rst = 1;
+-	if (NULL == mode)
++	if (!mode)
+ 		return -EINVAL;
  
-@@ -15,18 +16,20 @@ my %tags = (
- );
+ 	for (i = 0; i < cfg->outputs[curr_output].num_modes; i++) {
+@@ -166,7 +166,7 @@ static int vpbe_get_mode_info(struct vpbe_device *vpbe_dev, char *mode,
+ static int vpbe_get_current_mode_info(struct vpbe_device *vpbe_dev,
+ 				      struct vpbe_enc_mode_info *mode_info)
+ {
+-	if (NULL == mode_info)
++	if (!mode_info)
+ 		return -EINVAL;
  
- while (<>) {
-+	my $s = expand($_);
-+
- 	if ($is_rst) {
--		if (m/^\s+\-+$/) {
-+		if ($s =~ m/^\s+\-+$/) {
- 			$is_rst = 0;
- 			next;
- 		}
--		print $_;
-+		print $s;
- 		next;
+ 	*mode_info = vpbe_dev->current_timings;
+@@ -356,7 +356,7 @@ static int vpbe_s_dv_timings(struct vpbe_device *vpbe_dev,
+ 
+ 	ret = v4l2_subdev_call(vpbe_dev->encoders[sd_index], video,
+ 					s_dv_timings, dv_timings);
+-	if (!ret && (vpbe_dev->amp != NULL)) {
++	if (!ret && vpbe_dev->amp) {
+ 		/* Call amplifier subdevice */
+ 		ret = v4l2_subdev_call(vpbe_dev->amp, video,
+ 				s_dv_timings, dv_timings);
+@@ -512,7 +512,7 @@ static int vpbe_set_mode(struct vpbe_device *vpbe_dev,
+ 	int ret = 0;
+ 	int i;
+ 
+-	if ((NULL == mode_info) || (NULL == mode_info->name))
++	if (!mode_info || !mode_info->name)
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < cfg->outputs[out_index].num_modes; i++) {
+@@ -536,7 +536,7 @@ static int vpbe_set_mode(struct vpbe_device *vpbe_dev,
  	}
  
--	next if (m/^$/);
-+	next if ($s =~ m/^\s*$/);
+ 	/* Only custom timing should reach here */
+-	if (preset_mode == NULL)
++	if (!preset_mode)
+ 		return -EINVAL;
  
--	if (m/^([A-Z])\:(.*)/) {
-+	if ($s =~ m/^([A-Z])\:(.*)/) {
- 		my $tag = $1;
- 		my $value = $2;
+ 	mutex_lock(&vpbe_dev->lock);
+@@ -570,9 +570,9 @@ static int platform_device_get(struct device *dev, void *data)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct vpbe_device *vpbe_dev = data;
  
-@@ -38,7 +41,7 @@ while (<>) {
- 		next;
+-	if (strstr(pdev->name, "vpbe-osd") != NULL)
++	if (strstr(pdev->name, "vpbe-osd"))
+ 		vpbe_dev->osd_device = platform_get_drvdata(pdev);
+-	if (strstr(pdev->name, "vpbe-venc") != NULL)
++	if (strstr(pdev->name, "vpbe-venc"))
+ 		vpbe_dev->venc_device = dev_get_platdata(&pdev->dev);
+ 
+ 	return 0;
+@@ -606,7 +606,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	 * from the platform device by iteration of platform drivers and
+ 	 * matching with device name
+ 	 */
+-	if (NULL == vpbe_dev || NULL == dev) {
++	if (!vpbe_dev || !dev) {
+ 		printk(KERN_ERR "Null device pointers.\n");
+ 		return -ENODEV;
  	}
+@@ -652,7 +652,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	vpbe_dev->venc = venc_sub_dev_init(&vpbe_dev->v4l2_dev,
+ 					   vpbe_dev->cfg->venc.module_name);
+ 	/* register venc sub device */
+-	if (vpbe_dev->venc == NULL) {
++	if (!vpbe_dev->venc) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev,
+ 			"vpbe unable to init venc sub device\n");
+ 		ret = -ENODEV;
+@@ -660,8 +660,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	}
+ 	/* initialize osd device */
+ 	osd_device = vpbe_dev->osd_device;
+-
+-	if (NULL != osd_device->ops.initialize) {
++	if (osd_device->ops.initialize) {
+ 		err = osd_device->ops.initialize(osd_device);
+ 		if (err) {
+ 			v4l2_err(&vpbe_dev->v4l2_dev,
+@@ -679,7 +678,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	vpbe_dev->encoders = kmalloc_array(num_encoders,
+ 					   sizeof(*vpbe_dev->encoders),
+ 					   GFP_KERNEL);
+-	if (NULL == vpbe_dev->encoders) {
++	if (!vpbe_dev->encoders) {
+ 		ret = -ENOMEM;
+ 		goto fail_dev_unregister;
+ 	}
+@@ -715,7 +714,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	}
+ 	/* Add amplifier subdevice for dm365 */
+ 	if ((strcmp(vpbe_dev->cfg->module_name, "dm365-vpbe-display") == 0) &&
+-			vpbe_dev->cfg->amp != NULL) {
++	   vpbe_dev->cfg->amp) {
+ 		amp_info = vpbe_dev->cfg->amp;
+ 		if (amp_info->is_i2c) {
+ 			vpbe_dev->amp = v4l2_i2c_new_subdev_board(
+@@ -824,7 +823,7 @@ static int vpbe_probe(struct platform_device *pdev)
+ 	struct vpbe_config *cfg;
+ 	int ret = -EINVAL;
  
--	print "\n$_";
-+	print "\n$s";
- }
- 
- print "\n";
-
-
+-	if (pdev->dev.platform_data == NULL) {
++	if (!pdev->dev.platform_data) {
+ 		v4l2_err(pdev->dev.driver, "No platform data\n");
+ 		return -ENODEV;
+ 	}
+-- 
+2.10.1
 
