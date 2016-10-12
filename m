@@ -1,69 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:57150 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938902AbcJSOO5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:14:57 -0400
-Subject: Re: [PATCH 4/5] [media] winbond-cir: One variable and its check less
- in wbcir_shutdown() after error detection
-To: =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        linux-media@vger.kernel.org
-References: <7fe65702-ac76-39f2-edea-eba007a3ee96@users.sourceforge.net>
- <566ABCD9.1060404@users.sourceforge.net>
- <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
- <84757ae3-24d2-cf9b-2217-fd9793b86078@users.sourceforge.net>
- <20161015132956.GA3393@gofer.mess.org>
- <403be317930e0915cbe98c15cd6adf66@hardeman.nu>
-Cc: Sean Young <sean@mess.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <4e23f3bc-3185-862d-e2e5-5a54620fe5e5@users.sourceforge.net>
-Date: Wed, 19 Oct 2016 15:50:23 +0200
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:35500 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752343AbcJLBOy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 11 Oct 2016 21:14:54 -0400
 MIME-Version: 1.0
-In-Reply-To: <403be317930e0915cbe98c15cd6adf66@hardeman.nu>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+References: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
+From: Rob Clark <robdclark@gmail.com>
+Date: Tue, 11 Oct 2016 21:14:20 -0400
+Message-ID: <CAF6AEGvAqpxY4pguzGL9ztQvTCG-tOZhF093Odt0-gt1MM49iQ@mail.gmail.com>
+Subject: Re: [RFC 0/6] Module for tracking/accounting shared memory buffers
+To: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        =?UTF-8?B?QXJ2ZSBIasO4bm5ldsOlZw==?= <arve@android.com>,
+        Riley Andrews <riandrews@android.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>, labbott@redhat.com,
+        Al Viro <viro@zeniv.linux.org.uk>, jlayton@poochiereds.net,
+        bfields@fieldses.org, mingo@redhat.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        keescook@chromium.org, mhocko@suse.com, oleg@redhat.com,
+        John Stultz <john.stultz@linaro.org>, mguzik@redhat.com,
+        jdanis@google.com, adobriyan@gmail.com,
+        Greg Hackmann <ghackmann@google.com>,
+        kirill.shutemov@linux.intel.com, vbabka@suse.cz,
+        dave.hansen@linux.intel.com,
+        Dan Williams <dan.j.williams@intel.com>, hannes@cmpxchg.org,
+        iamjoonsoo.kim@lge.com, luto@kernel.org, tj@kernel.org,
+        vdavydov.dev@gmail.com, ebiederm@xmission.com,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+        linux-fsdevel@vger.kernel.org, linux-mm <linux-mm@kvack.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>>> + /* Set CEIR_EN */
->>>> + wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
->>>> +set_irqmask:
->>>> /*
->>>> * ACPI will set the HW disable bit for SP3 which means that the
->>>> * output signals are left in an undefined state which may cause
->>>> @@ -876,6 +858,14 @@ wbcir_shutdown(struct pnp_dev *device)
->>>> */
->>>> wbcir_set_irqmask(data, WBCIR_IRQ_NONE);
->>>> disable_irq(data->irq);
->>>> + return;
->>>> +clear_bits:
->>>> + /* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
->>>> + wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
->>>> +
->>>> + /* Clear CEIR_EN */
->>>> + wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
->>>> + goto set_irqmask;
->>>
->>> I'm not convinced that adding a goto which goes backwards is making this
->>> code any more readible, just so that a local variable can be dropped.
->>
->> Thanks for your feedback.
->>
->> Is such a "backward jump" usual and finally required when you would like
->> to move a bit of common error handling code to the end without using extra
->> local variables and a few statements should still be performed after it?
->>
-> 
-> I'm sorry, I can't parse this.
+On Tue, Oct 11, 2016 at 7:50 PM, Ruchi Kandoi <kandoiruchi@google.com> wrote:
+> This patchstack introduces a new "memtrack" module for tracking and accounting
+> memory exported to userspace as shared buffers, like dma-buf fds or GEM handles.
 
-Can an other update suggestion like "[PATCH 6/6] crypto-caamhash:
-Move common error handling code in two functions" explain this technique
-a bit better in principle?
-https://patchwork.kernel.org/patch/9333861/
-https://lkml.kernel.org/r/<baa5db91-27e7-ecab-f2c9-29e549b6e5f0@users.sourceforge.net>
+btw, I wouldn't care much about the non-dmabuf case.. dri2/flink is
+kind of legacy and the sharing patterns there are not so complex that
+we have found the need for any more elaborate debug infrastructure
+than what we already have.
 
-Regards,
-Markus
+Between existing dmabuf debugfs, and /proc/*/maps (and /proc/*/fd?), I
+wonder what is missing?  Maybe there is a less intrusive way to get at
+the debugging info you want?
+
+BR,
+-R
+
+> Any process holding a reference to these buffers will keep the kernel from
+> reclaiming its backing pages.  mm counters don't provide a complete picture of
+> these allocations, since they only account for pages that are mapped into a
+> process's address space.  This problem is especially bad for systems like
+> Android that use dma-buf fds to share graphics and multimedia buffers between
+> processes: these allocations are often large, have complex sharing patterns,
+> and are rarely mapped into every process that holds a reference to them.
+>
+> memtrack maintains a per-process list of shared buffer references, which is
+> exported to userspace as /proc/[pid]/memtrack.  Buffers can be optionally
+> "tagged" with a short string: for example, Android userspace would use this
+> tag to identify whether buffers were allocated on behalf of the camera stack,
+> GL, etc.  memtrack also exports the VMAs associated with these buffers so
+> that pages already included in the process's mm counters aren't double-counted.
+>
+> Shared-buffer allocators can hook into memtrack by embedding
+> struct memtrack_buffer in their buffer metadata, calling
+> memtrack_buffer_{init,remove} at buffer allocation and free time, and
+> memtrack_buffer_{install,uninstall} when a userspace process takes or
+> drops a reference to the buffer.  For fd-backed buffers like dma-bufs, hooks in
+> fdtable.c and fork.c automatically notify memtrack when references are added or
+> removed from a process's fd table.
+>
+> This patchstack adds memtrack hooks into dma-buf and ion.  If there's upstream
+> interest in memtrack, it can be extended to other memory allocators as well,
+> such as GEM implementations.
+>
+> Greg Hackmann (1):
+>   drivers: staging: ion: add ION_IOC_TAG ioctl
+>
+> Ruchi Kandoi (5):
+>   fs: add installed and uninstalled file_operations
+>   drivers: misc: add memtrack
+>   dma-buf: add memtrack support
+>   memtrack: Adds the accounting to keep track of all mmaped/unmapped
+>     pages.
+>   memtrack: Add memtrack accounting for forked processes.
+>
+>  drivers/android/binder.c                |   4 +-
+>  drivers/dma-buf/dma-buf.c               |  37 +++
+>  drivers/misc/Kconfig                    |  16 +
+>  drivers/misc/Makefile                   |   1 +
+>  drivers/misc/memtrack.c                 | 516 ++++++++++++++++++++++++++++++++
+>  drivers/staging/android/ion/ion-ioctl.c |  17 ++
+>  drivers/staging/android/ion/ion.c       |  60 +++-
+>  drivers/staging/android/ion/ion_priv.h  |   2 +
+>  drivers/staging/android/uapi/ion.h      |  25 ++
+>  fs/file.c                               |  38 ++-
+>  fs/open.c                               |   2 +-
+>  fs/proc/base.c                          |   4 +
+>  include/linux/dma-buf.h                 |   5 +
+>  include/linux/fdtable.h                 |   4 +-
+>  include/linux/fs.h                      |   2 +
+>  include/linux/memtrack.h                | 130 ++++++++
+>  include/linux/mm.h                      |   3 +
+>  include/linux/sched.h                   |   3 +
+>  kernel/fork.c                           |  23 +-
+>  19 files changed, 875 insertions(+), 17 deletions(-)
+>  create mode 100644 drivers/misc/memtrack.c
+>  create mode 100644 include/linux/memtrack.h
+>
+> --
+> 2.8.0.rc3.226.g39d4020
+>
