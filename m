@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52731 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938541AbcJXJDx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 05:03:53 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v4 4/4] arm64: dts: renesas: r8a7796: Add FDP1 instance
-Date: Mon, 24 Oct 2016 12:03:38 +0300
-Message-Id: <1477299818-31935-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mout.web.de ([212.227.15.3]:59602 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933326AbcJLPAg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 11:00:36 -0400
+Subject: [PATCH 22/34] [media] DaVinci-VPFE-Capture: Move two assignments in
+ vpfe_s_input()
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <bd43de6a-827d-7ec6-8b9b-1dc08875cf87@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 17:00:27 +0200
+MIME-Version: 1.0
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The r8a7796 has a single FDP1 instance.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 11:22:23 +0200
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Move assignments for two local variables into an else branch so that
+their setting will only be performed after corresponding data processing
+succeeded by this function.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- arch/arm64/boot/dts/renesas/r8a7796.dtsi | 9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/media/platform/davinci/vpfe_capture.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/arch/arm64/boot/dts/renesas/r8a7796.dtsi b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-index 9217da983525..fbec7a29121a 100644
---- a/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-+++ b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
-@@ -251,5 +251,14 @@
- 			power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
- 			status = "disabled";
- 		};
-+
-+		fdp1@fe940000 {
-+			compatible = "renesas,fdp1";
-+			reg = <0 0xfe940000 0 0x2400>;
-+			interrupts = <GIC_SPI 262 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&cpg CPG_MOD 119>;
-+			power-domains = <&sysc R8A7796_PD_A3VC>;
-+			renesas,fcp = <&fcpf0>;
-+		};
- 	};
- };
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index ba71310..f0467fe 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -1111,7 +1111,7 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
+ 	struct vpfe_subdev_info *sdinfo;
+ 	int subdev_index, inp_index;
+ 	struct vpfe_route *route;
+-	u32 input = 0, output = 0;
++	u32 input, output;
+ 	int ret;
+ 
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_s_input\n");
+@@ -1144,6 +1144,9 @@ static int vpfe_s_input(struct file *file, void *priv, unsigned int index)
+ 	if (route && sdinfo->can_route) {
+ 		input = route->input;
+ 		output = route->output;
++	} else {
++		input = 0;
++		output = 0;
+ 	}
+ 
+ 	if (sd)
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.1
 
