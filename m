@@ -1,73 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:30618 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756858AbcJXL7R (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 07:59:17 -0400
-Message-ID: <1477310350.12745.1.camel@mtksdaap41>
-Subject: Re: [PATCH 2/4] mtk_mdp_vpu: remove a double unlock at the error
- path
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>
-Date: Mon, 24 Oct 2016 19:59:10 +0800
-In-Reply-To: <768767961c64dea3fdd86132c9eba87ae652d588.1477058332.git.mchehab@s-opensource.com>
-References: <cd14afdb178cf490e257368bc899c7a0c690d140.1477058332.git.mchehab@s-opensource.com>
-         <768767961c64dea3fdd86132c9eba87ae652d588.1477058332.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mout.web.de ([212.227.15.14]:60100 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933302AbcJLO3X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 10:29:23 -0400
+Subject: [PATCH 01/34] [media] DaVinci-VPBE: Use kmalloc_array() in
+ vpbe_initialize()
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <ca927405-77a0-b6c2-d626-fa27e584664a@users.sourceforge.net>
+Date: Wed, 12 Oct 2016 16:29:01 +0200
 MIME-Version: 1.0
+In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2016-10-21 at 11:59 -0200, Mauro Carvalho Chehab wrote:
-> As warned by smatch:
-> 	drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c:98 mtk_mdp_vpu_send_msg() error: double unlock 'mutex:&ctx->mdp_dev->vpulock'
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c b/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
-> index b38d29e99f7a..5c8caa864e32 100644
-> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
-> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
-> @@ -91,7 +91,6 @@ static int mtk_mdp_vpu_send_msg(void *msg, int len, struct mtk_mdp_vpu *vpu,
->  	mutex_lock(&ctx->mdp_dev->vpulock);
->  	err = vpu_ipi_send(vpu->pdev, (enum ipi_id)id, msg, len);
->  	if (err) {
-> -		mutex_unlock(&ctx->mdp_dev->vpulock);
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Tue, 11 Oct 2016 09:40:41 +0200
 
-Hi Mauro,
+* A multiplication for the size determination of a memory allocation
+  indicated that an array data structure should be processed.
+  Thus use the corresponding function "kmalloc_array".
 
-It has been fixed by Hans in the later patch.
+  This issue was detected by using the Coccinelle software.
 
-Author: Hans Verkuil <hverkuil@xs4all.nl>
-Date:   Mon Sep 19 05:00:34 2016 -0300
+* Replace the specification of a data type by a pointer dereference
+  to make the corresponding size determination a bit safer according to
+  the Linux coding style convention.
 
-    [media] mtk-mdp: fix double mutex_unlock
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/platform/davinci/vpbe.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-    Fix smatch error:
-
-    media-git/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c:100
-mtk_mdp_vpu_send_msg() error: double unlock 'mutex:&ctx->
-
-    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-
-
-minghsiu
-
->  		dev_err(&ctx->mdp_dev->pdev->dev,
->  			"vpu_ipi_send fail status %d\n", err);
->  	}
-
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 9a6c2cc..8c062ff 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -676,9 +676,9 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	 * store venc sd index.
+ 	 */
+ 	num_encoders = vpbe_dev->cfg->num_ext_encoders + 1;
+-	vpbe_dev->encoders = kmalloc(
+-				sizeof(struct v4l2_subdev *)*num_encoders,
+-				GFP_KERNEL);
++	vpbe_dev->encoders = kmalloc_array(num_encoders,
++					   sizeof(*vpbe_dev->encoders),
++					   GFP_KERNEL);
+ 	if (NULL == vpbe_dev->encoders) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev,
+ 			"unable to allocate memory for encoders sub devices");
+-- 
+2.10.1
 
