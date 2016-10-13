@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33488
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932982AbcJGRaM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:30:12 -0400
-Date: Fri, 7 Oct 2016 14:30:03 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
-Cc: Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
+Received: from mout.web.de ([212.227.15.3]:61716 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933248AbcJMQqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Oct 2016 12:46:21 -0400
+Subject: [PATCH 16/18] [media] RedRat3: Move a variable assignment in
+ redrat3_set_timeout()
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2] cinergyT2-core: don't do DMA on stack
-Message-ID: <20161007143003.67b90018@vento.lan>
-In-Reply-To: <CADDKRnAXgBNFy_csDEB5veA=XXPnu=jY_rTOEun7f-QNyzr4uQ@mail.gmail.com>
-References: <20161005155805.27dc4d33@vento.lan>
-        <CALCETrVg5FczwRaJuRe6G_FxX7yDsPS-L4JnR475UW4TwQWWzg@mail.gmail.com>
-        <20161006152905.2f9a9b13@vento.lan>
-        <CADDKRnAXgBNFy_csDEB5veA=XXPnu=jY_rTOEun7f-QNyzr4uQ@mail.gmail.com>
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <1877a803-14b2-b064-f051-841b82fb2076@users.sourceforge.net>
+Date: Thu, 13 Oct 2016 18:45:44 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 7 Oct 2016 15:50:40 +0200
-Jörg Otte <jrg.otte@gmail.com> escreveu:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 13 Oct 2016 17:13:41 +0200
 
-> 2016-10-06 20:29 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> > Em Thu, 6 Oct 2016 10:27:56 -0700
-> > Andy Lutomirski <luto@amacapital.net> escreveu:
-> >  
+Move the assignment for the local variable "rr3" behind the source code
+for a memory allocation by this function.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/rc/redrat3.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index e46a92a..06c9eea 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -475,7 +475,7 @@ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
  
-> Patch works for me!
-> Thanks, Jörg
+ static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
+ {
+-	struct redrat3_dev *rr3 = rc_dev->priv;
++	struct redrat3_dev *rr3;
+ 	__be32 *timeout;
+ 	int ret;
+ 
+@@ -484,6 +484,7 @@ static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
+ 		return -ENOMEM;
+ 
+ 	*timeout = cpu_to_be32(redrat3_us_to_len(timeoutns / 1000));
++	rr3 = rc_dev->priv;
+ 	ret = usb_control_msg(rr3->udev,
+ 			      usb_sndctrlpipe(rr3->udev, 0),
+ 			      RR3_SET_IR_PARAM,
+-- 
+2.10.1
 
-Thanks for testing!
-
-I just sent a 26 patch series to address this issue. There are 4 patches
-on it that affects cinergyT2 (one is this patch, but the other ones
-should be addressing other problems there).
-
-Could you please test them, and if they're ok, reply to me with a
-Tested-by: tag?
-
-PS.: I'm also putting those patches on my development tree, at:
-	git://git.linuxtv.org/mchehab/experimental.git media_dmastack_fixes
-
-(please notice that my tree is based on Kernel 4.8 - so, to test with
-VMAP_STACK, you'll likely need to pull also from Linus tree)
-
-Thanks,
-Mauro
