@@ -1,77 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:59123 "EHLO mail.sig21.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752197AbcJESaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Oct 2016 14:30:03 -0400
-Date: Wed, 5 Oct 2016 20:29:45 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        =?iso-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problem with VMAP_STACK=y
-Message-ID: <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
- <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
- <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
- <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
- <20161005093417.6e82bd97@vdr>
- <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm>
- <20161005060450.1b0f2152@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161005060450.1b0f2152@vento.lan>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:34177 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933061AbcJMAZI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 12 Oct 2016 20:25:08 -0400
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+To: linux-mm@kvack.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org,
+        Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: [PATCH 01/10] mm: remove write/force parameters from __get_user_pages_locked()
+Date: Thu, 13 Oct 2016 01:20:11 +0100
+Message-Id: <20161013002020.3062-2-lstoakes@gmail.com>
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 05, 2016 at 06:04:50AM -0300, Mauro Carvalho Chehab wrote:
->  static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
->  {
-> -	char query[] = { CINERGYT2_EP1_GET_FIRMWARE_VERSION };
-> -	char state[3];
-> +	struct dvb_usb_device *d = adap->dev;
-> +	struct cinergyt2_state *st = d->priv;
->  	int ret;
->  
->  	adap->fe_adap[0].fe = cinergyt2_fe_attach(adap->dev);
->  
-> -	ret = dvb_usb_generic_rw(adap->dev, query, sizeof(query), state,
-> -				sizeof(state), 0);
+This patch removes the write and force parameters from __get_user_pages_locked()
+to make the use of FOLL_FORCE explicit in callers as use of this flag can result
+in surprising behaviour (and hence bugs) within the mm subsystem.
 
-it seems to miss this:
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+---
+ mm/gup.c | 47 +++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 33 insertions(+), 14 deletions(-)
 
-	st->data[0] = CINERGYT2_EP1_GET_FIRMWARE_VERSION;
+diff --git a/mm/gup.c b/mm/gup.c
+index 96b2b2f..ba83942 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -729,7 +729,6 @@ static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
+ 						struct mm_struct *mm,
+ 						unsigned long start,
+ 						unsigned long nr_pages,
+-						int write, int force,
+ 						struct page **pages,
+ 						struct vm_area_struct **vmas,
+ 						int *locked, bool notify_drop,
+@@ -747,10 +746,6 @@ static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
+ 
+ 	if (pages)
+ 		flags |= FOLL_GET;
+-	if (write)
+-		flags |= FOLL_WRITE;
+-	if (force)
+-		flags |= FOLL_FORCE;
+ 
+ 	pages_done = 0;
+ 	lock_dropped = false;
+@@ -846,9 +841,15 @@ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+ 			   int write, int force, struct page **pages,
+ 			   int *locked)
+ {
++	unsigned int flags = FOLL_TOUCH;
++
++	if (write)
++		flags |= FOLL_WRITE;
++	if (force)
++		flags |= FOLL_FORCE;
++
+ 	return __get_user_pages_locked(current, current->mm, start, nr_pages,
+-				       write, force, pages, NULL, locked, true,
+-				       FOLL_TOUCH);
++				       pages, NULL, locked, true, flags);
+ }
+ EXPORT_SYMBOL(get_user_pages_locked);
+ 
+@@ -869,9 +870,15 @@ __always_inline long __get_user_pages_unlocked(struct task_struct *tsk, struct m
+ {
+ 	long ret;
+ 	int locked = 1;
++
++	if (write)
++		gup_flags |= FOLL_WRITE;
++	if (force)
++		gup_flags |= FOLL_FORCE;
++
+ 	down_read(&mm->mmap_sem);
+-	ret = __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
+-				      pages, NULL, &locked, false, gup_flags);
++	ret = __get_user_pages_locked(tsk, mm, start, nr_pages, pages, NULL,
++				      &locked, false, gup_flags);
+ 	if (locked)
+ 		up_read(&mm->mmap_sem);
+ 	return ret;
+@@ -963,9 +970,15 @@ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
+ 		int write, int force, struct page **pages,
+ 		struct vm_area_struct **vmas)
+ {
+-	return __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
+-				       pages, vmas, NULL, false,
+-				       FOLL_TOUCH | FOLL_REMOTE);
++	unsigned int flags = FOLL_TOUCH | FOLL_REMOTE;
++
++	if (write)
++		flags |= FOLL_WRITE;
++	if (force)
++		flags |= FOLL_FORCE;
++
++	return __get_user_pages_locked(tsk, mm, start, nr_pages, pages, vmas,
++				       NULL, false, flags);
+ }
+ EXPORT_SYMBOL(get_user_pages_remote);
+ 
+@@ -979,9 +992,15 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 		int write, int force, struct page **pages,
+ 		struct vm_area_struct **vmas)
+ {
++	unsigned int flags = FOLL_TOUCH;
++
++	if (write)
++		flags |= FOLL_WRITE;
++	if (force)
++		flags |= FOLL_FORCE;
++
+ 	return __get_user_pages_locked(current, current->mm, start, nr_pages,
+-				       write, force, pages, vmas, NULL, false,
+-				       FOLL_TOUCH);
++				       pages, vmas, NULL, false, flags);
+ }
+ EXPORT_SYMBOL(get_user_pages);
+ 
+-- 
+2.10.0
 
-> +	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
->  	if (ret < 0) {
->  		deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
->  			"state info\n");
-> @@ -141,13 +147,14 @@ static int repeatable_keys[] = {
->  static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
->  {
->  	struct cinergyt2_state *st = d->priv;
-> -	u8 key[5] = {0, 0, 0, 0, 0}, cmd = CINERGYT2_EP1_GET_RC_EVENTS;
->  	int i;
->  
->  	*state = REMOTE_NO_KEY_PRESSED;
->  
-> -	dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
-> -	if (key[4] == 0xff) {
-> +	st->data[0] = CINERGYT2_EP1_SLEEP_MODE;
-
-should probably be
-
-	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
-
-> +
-> +	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-
-
-HTH,
-Johannes
