@@ -1,103 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42960 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753574AbcJNPsi (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:27166 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932331AbcJMOXh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 11:48:38 -0400
-Message-ID: <1476460116.11834.42.camel@pengutronix.de>
-Subject: Re: [PATCH 02/22] [media] v4l2-async: allow subdevices to add
- further subdevices to the notifier waiting list
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de
-Date: Fri, 14 Oct 2016 17:48:36 +0200
-In-Reply-To: <20161007224321.GC9460@valkosipuli.retiisi.org.uk>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
-         <20161007160107.5074-3-p.zabel@pengutronix.de>
-         <20161007224321.GC9460@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Thu, 13 Oct 2016 10:23:37 -0400
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OEZ00CXOP8TVS20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 13 Oct 2016 15:22:05 +0100 (BST)
+Subject: Re: [PATCH v4l-utils 7/7 v7.1] Add a libv4l plugin for Exynos4 camera
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com, hverkuil@xs4all.nl,
+        mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Message-id: <b7410bd3-4033-3fae-f879-cdec46da625d@samsung.com>
+Date: Thu, 13 Oct 2016 16:22:02 +0200
+MIME-version: 1.0
+In-reply-to: <1476368363-18841-1-git-send-email-j.anaszewski@samsung.com>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
+References: <CGME20161013141953epcas1p279e6e44c3d998bffc12d79db52b4757a@epcas1p2.samsung.com>
+ <1476368363-18841-1-git-send-email-j.anaszewski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 08.10.2016, 01:43 +0300 schrieb Sakari Ailus:
-[...]
-> >  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  {
-> >  	struct v4l2_subdev *sd, *tmp;
-> > -	unsigned int notif_n_subdev = notifier->num_subdevs;
-> > -	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> > +	unsigned int notif_n_subdev = 0;
-> > +	unsigned int n_subdev;
-> > +	struct list_head *list;
-> >  	struct device **dev;
-> >  	int i = 0;
-> >  
-> > @@ -218,6 +273,10 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> >  
-> >  	list_del(&notifier->list);
-> >  
-> > +	list_for_each(list, &notifier->done)
-> > +		++notif_n_subdev;
-> > +	n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
-> > +
-> 
-> Shouldn't this change go to a separate patch? It seems unrelated.
+Forgot to add changelog:
 
-Thanks, this was intended to count the notifier done list instead of
-relying on notifier->num_subdevs because of the additional asynchronous
-subdevs added to the notifier that are not part of the original array.
-Unfortunately this change is a few lines too late, it belongs before the
-device cache is allocated. I'll fix this and add a comment.
+Changes since v7:
 
-I don't want to increment notifier->num_subdevs in
-__v4l2_async_notifier_add_subdev because the caller of
-v4l2_async_notifier_register might still use it to measure the original
-array.
+- fixed and improved ctrl ioctl handlers
 
-> >  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> >  		struct device *d;
-> >  
-> > @@ -294,8 +353,19 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
-> >  	list_for_each_entry(notifier, &notifier_list, list) {
-> >  		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> >  		if (asd) {
-> > +			struct list_head *tail = notifier->waiting.prev;
-> >  			int ret = v4l2_async_test_notify(notifier, sd, asd);
-> > +
-> > +			/*
-> > +			 * If entries were added to the notifier waiting list,
-> > +			 * check if the corresponding subdevices are already
-> > +			 * available.
-> > +			 */
-> > +			if (tail != notifier->waiting.prev)
-> > +				ret = v4l2_async_test_notify_all(notifier);
-> > +
-> >  			mutex_unlock(&list_lock);
-> > +
-> >  			return ret;
-> >  		}
-> >  	}
-> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> > index 8e2a236..e4e4b11 100644
-> > --- a/include/media/v4l2-async.h
-> > +++ b/include/media/v4l2-async.h
-> > @@ -114,6 +114,18 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >  				 struct v4l2_async_notifier *notifier);
-> >  
-> >  /**
-> > + * __v4l2_async_notifier_add_subdev - adds a subdevice to the notifier waitlist
-> > + *
-> > + * @v4l2_notifier: notifier the calling subdev is bound to
-> 
-> s/v4l2_//
+Best regards,
+Jacek Anaszewski
 
-I'd be happy to, but why should the v4l2 prefix be removed?
-
-regards
-Philipp
-
+On 10/13/2016 04:19 PM, Jacek Anaszewski wrote:
+> The plugin provides support for the media device on Exynos4 SoC.
+> It performs single plane <-> multi plane API conversion,
+> video pipeline linking and takes care of automatic data format
+> negotiation for the whole pipeline, after intercepting
+> VIDIOC_S_FMT or VIDIOC_TRY_FMT ioctls.
+>
+> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
