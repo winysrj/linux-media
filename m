@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59169 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757045AbcJNUWn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+Received: from mout.web.de ([212.227.15.14]:52352 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756893AbcJMQbF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Oct 2016 12:31:05 -0400
+Subject: [PATCH 07/18] [media] RedRat3: Improve another size determination in
+ redrat3_reset()
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 43/57] [media] siano: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:31 -0300
-Message-Id: <556a0e18ec8b0f557d781a0f1409968c09bedc0b.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <35a71a36-7542-68a9-c33c-55df256efc57@users.sourceforge.net>
+Date: Thu, 13 Oct 2016 18:28:32 +0200
+MIME-Version: 1.0
+In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 13 Oct 2016 13:23:22 +0200
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Replace the specification of a data type by a pointer dereference
+as the parameter for the operator "sizeof" to make the corresponding size
+determination a bit safer.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- drivers/media/usb/siano/smsusb.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/rc/redrat3.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index c2e25876e93b..feace863e8d5 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -604,8 +604,7 @@ static int smsusb_resume(struct usb_interface *intf)
- 				       intf->cur_altsetting->desc.
- 				       bInterfaceNumber, 0);
- 		if (rc < 0) {
--			printk(KERN_INFO "%s usb_set_interface failed, "
--			       "rc %d\n", __func__, rc);
-+			printk(KERN_INFO "%s usb_set_interface failed, rc %d\n", __func__, rc);
- 			return rc;
- 		}
- 	}
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 0ac96a4..5832e6f 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -510,7 +510,7 @@ static void redrat3_reset(struct redrat3_dev *rr3)
+ 	struct device *dev = rr3->dev;
+ 	int rc, rxpipe, txpipe;
+ 	u8 *val;
+-	int len = sizeof(u8);
++	size_t const len = sizeof(*val);
+ 
+ 	rxpipe = usb_rcvctrlpipe(udev, 0);
+ 	txpipe = usb_sndctrlpipe(udev, 0);
 -- 
-2.7.4
-
+2.10.1
 
