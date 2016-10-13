@@ -1,126 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:47900 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750750AbcJWEDI (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:36152 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755307AbcJMGGN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 00:03:08 -0400
-Message-ID: <764ae4367bd5ae8aa7248c526a3e7bc0@smtp-cloud3.xs4all.net>
-Date: Sun, 23 Oct 2016 06:03:05 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 13 Oct 2016 02:06:13 -0400
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+To: linux-mm@kvack.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org,
+        Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: [PATCH 04/10] mm: replace get_user_pages_locked() write/force parameters with gup_flags
+Date: Thu, 13 Oct 2016 01:20:14 +0100
+Message-Id: <20161013002020.3062-5-lstoakes@gmail.com>
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch removes the write and force parameters from get_user_pages_locked()
+and replaces them with a gup_flags parameter to make the use of FOLL_FORCE
+explicit in callers as use of this flag can result in surprising behaviour (and
+hence bugs) within the mm subsystem.
 
-Results of the daily build of media_tree:
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+---
+ include/linux/mm.h |  2 +-
+ mm/frame_vector.c  |  8 +++++++-
+ mm/gup.c           | 12 +++---------
+ mm/nommu.c         |  5 ++++-
+ 4 files changed, 15 insertions(+), 12 deletions(-)
 
-date:			Sun Oct 23 05:00:14 CEST 2016
-media-tree git hash:	bc9b91e6be38b54a7b245969d0a9247791705e6a
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	0bd4b277c452aa7cfd537799538b8e9b951c0d47
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 6adc4bc..27ab538 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -1282,7 +1282,7 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ 			    int write, int force, struct page **pages,
+ 			    struct vm_area_struct **vmas);
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-		    int write, int force, struct page **pages, int *locked);
++		    unsigned int gup_flags, struct page **pages, int *locked);
+ long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
+ 			       unsigned long start, unsigned long nr_pages,
+ 			       struct page **pages, unsigned int gup_flags);
+diff --git a/mm/frame_vector.c b/mm/frame_vector.c
+index 381bb07..81b6749 100644
+--- a/mm/frame_vector.c
++++ b/mm/frame_vector.c
+@@ -41,10 +41,16 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+ 	int ret = 0;
+ 	int err;
+ 	int locked;
++	unsigned int gup_flags = 0;
+ 
+ 	if (nr_frames == 0)
+ 		return 0;
+ 
++	if (write)
++		gup_flags |= FOLL_WRITE;
++	if (force)
++		gup_flags |= FOLL_FORCE;
++
+ 	if (WARN_ON_ONCE(nr_frames > vec->nr_allocated))
+ 		nr_frames = vec->nr_allocated;
+ 
+@@ -59,7 +65,7 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
+ 		vec->got_ref = true;
+ 		vec->is_pfns = false;
+ 		ret = get_user_pages_locked(start, nr_frames,
+-			write, force, (struct page **)(vec->ptrs), &locked);
++			gup_flags, (struct page **)(vec->ptrs), &locked);
+ 		goto out;
+ 	}
+ 
+diff --git a/mm/gup.c b/mm/gup.c
+index cfcb014..7a0d033 100644
+--- a/mm/gup.c
++++ b/mm/gup.c
+@@ -838,18 +838,12 @@ static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
+  *          up_read(&mm->mmap_sem);
+  */
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-			   int write, int force, struct page **pages,
++			   unsigned int gup_flags, struct page **pages,
+ 			   int *locked)
+ {
+-	unsigned int flags = FOLL_TOUCH;
+-
+-	if (write)
+-		flags |= FOLL_WRITE;
+-	if (force)
+-		flags |= FOLL_FORCE;
+-
+ 	return __get_user_pages_locked(current, current->mm, start, nr_pages,
+-				       pages, NULL, locked, true, flags);
++				       pages, NULL, locked, true,
++				       gup_flags | FOLL_TOUCH);
+ }
+ EXPORT_SYMBOL(get_user_pages_locked);
+ 
+diff --git a/mm/nommu.c b/mm/nommu.c
+index 7e27add..842cfdd 100644
+--- a/mm/nommu.c
++++ b/mm/nommu.c
+@@ -176,9 +176,12 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
+ EXPORT_SYMBOL(get_user_pages);
+ 
+ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-			    int write, int force, struct page **pages,
++			    unsigned int gup_flags, struct page **pages,
+ 			    int *locked)
+ {
++	int write = gup_flags & FOLL_WRITE;
++	int force = gup_flags & FOLL_FORCE;
++
+ 	return get_user_pages(start, nr_pages, write, force, pages, NULL);
+ }
+ EXPORT_SYMBOL(get_user_pages_locked);
+-- 
+2.10.0
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-multi
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for mips
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
