@@ -1,74 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:53947 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934883AbcJ0PJL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 11:09:11 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2] [media] dvb: avoid warning in dvb_net
-Date: Thu, 27 Oct 2016 17:08:34 +0200
-Message-Id: <20161027150848.3623829-1-arnd@arndb.de>
+Received: from gofer.mess.org ([80.229.237.210]:48919 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755240AbcJMVQe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Oct 2016 17:16:34 -0400
+Date: Thu, 13 Oct 2016 22:14:07 +0100
+From: Sean Young <sean@mess.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] dib0700: Fix uninitialized protocol for NEC
+ repeat codes
+Message-ID: <20161013211407.GB21731@gofer.mess.org>
+References: <1476366699-21611-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1476366699-21611-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With gcc-5 or higher on x86, we can get a bogus warning in the
-dvb-net code:
+On Thu, Oct 13, 2016 at 03:51:39PM +0200, Geert Uytterhoeven wrote:
+>     drivers/media/usb/dvb-usb/dib0700_core.c: In function ‘dib0700_rc_urb_completion’:
+>     drivers/media/usb/dvb-usb/dib0700_core.c:679: warning: ‘protocol’ may be used uninitialized in this function
+> 
+> When receiving an NEC repeat code, protocol is indeed not initialized.
+> Set it to RC_TYPE_NECX to fix this.
+> 
+> Fixes: 2ceeca0499d74521 ("[media] rc: split nec protocol into its three variants")
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> ---
+> Is RC_TYPE_NECX correct, or should it be RC_TYPE_NEC?
+> I used RC_TYPE_NECX based on the checks for {,not_}data and
+> {,not_}system for the other cases.
 
-drivers/media/dvb-core/dvb_net.c: In function ‘dvb_net_ule’:
-arch/x86/include/asm/string_32.h:77:14: error: ‘dest_addr’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-drivers/media/dvb-core/dvb_net.c:633:8: note: ‘dest_addr’ was declared here
+It should be the protocol that the last scancode was received with. This
+code path is very broken; it calls:
 
-The problem here is that gcc doesn't track all of the conditions
-to prove it can't end up copying uninitialized data.
-This changes the logic around so we zero out the destination
-address earlier when we determine that it is not set here.
-This allows the compiler to figure it out.
+	rc_keydown(d->rc_dev, protocol, keycode, toggle);
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v2: fix typo pointed out by Jarod Wilson <jarod@redhat.com>
+But keycode in this codepath is never set. Luckily keycode is declared as:
 
- drivers/media/dvb-core/dvb_net.c | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+	u32 uninitialized_var(keycode);
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index 088914c4623f..c32156426463 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -688,6 +688,9 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 							      ETH_ALEN);
- 						skb_pull(priv->ule_skb, ETH_ALEN);
- 					}
-+				} else {
-+					 /* otherwise use zero destination address */
-+					eth_zero_addr(dest_addr);
- 				}
- 
- 				/* Handle ULE Extension Headers. */
-@@ -715,13 +718,8 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 				if (!priv->ule_bridged) {
- 					skb_push(priv->ule_skb, ETH_HLEN);
- 					ethh = (struct ethhdr *)priv->ule_skb->data;
--					if (!priv->ule_dbit) {
--						 /* dest_addr buffer is only valid if priv->ule_dbit == 0 */
--						memcpy(ethh->h_dest, dest_addr, ETH_ALEN);
--						eth_zero_addr(ethh->h_source);
--					}
--					else /* zeroize source and dest */
--						memset( ethh, 0, ETH_ALEN*2 );
-+					memcpy(ethh->h_dest, dest_addr, ETH_ALEN);
-+					eth_zero_addr(ethh->h_source);
- 
- 					ethh->h_proto = htons(priv->ule_sndu_type);
- 				}
--- 
-2.9.0
+I've got another patch for this which I'll send as a reply to this.
 
+
+Sean
+
+
+> ---
+>  drivers/media/usb/dvb-usb/dib0700_core.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+> index f3196658fb700706..5878ae4d20ad27ed 100644
+> --- a/drivers/media/usb/dvb-usb/dib0700_core.c
+> +++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+> @@ -718,6 +718,7 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+>  		    poll_reply->nec.data       == 0x00 &&
+>  		    poll_reply->nec.not_data   == 0xff) {
+>  			poll_reply->data_state = 2;
+> +			protocol = RC_TYPE_NECX;
+>  			break;
+>  		}
+>  
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
