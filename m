@@ -1,132 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:40684 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752203AbcJZLJH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 07:09:07 -0400
-Received: by mail-wm0-f66.google.com with SMTP id b80so3306768wme.7
-        for <linux-media@vger.kernel.org>; Wed, 26 Oct 2016 04:09:06 -0700 (PDT)
-Date: Wed, 26 Oct 2016 13:09:02 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2 8/9] drm: writeback: Add out-fences for writeback
- connectors
-Message-ID: <20161026110902.5mvtfbbtgjqbr7hj@phenom.ffwll.local>
-References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
- <1477472108-27222-9-git-send-email-brian.starkey@arm.com>
+Received: from mail-by2nam03on0077.outbound.protection.outlook.com ([104.47.42.77]:59645
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755001AbcJMNKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Oct 2016 09:10:06 -0400
+Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
+ pass FOLL_* flags
+To: Lorenzo Stoakes <lstoakes@gmail.com>, <linux-mm@kvack.org>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+CC: <linux-mips@linux-mips.org>, <linux-fbdev@vger.kernel.org>,
+        Jan Kara <jack@suse.cz>, <kvm@vger.kernel.org>,
+        <linux-sh@vger.kernel.org>,
+        "Dave Hansen" <dave.hansen@linux.intel.com>,
+        <dri-devel@lists.freedesktop.org>, <netdev@vger.kernel.org>,
+        <sparclinux@vger.kernel.org>, <linux-ia64@vger.kernel.org>,
+        <linux-s390@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
+        <linux-scsi@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
+        <x86@kernel.org>, Hugh Dickins <hughd@google.com>,
+        <linux-media@vger.kernel.org>, Rik van Riel <riel@redhat.com>,
+        <intel-gfx@lists.freedesktop.org>,
+        <adi-buildroot-devel@lists.sourceforge.net>,
+        <ceph-devel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-cris-kernel@axis.com>,
+        "Linus Torvalds" <torvalds@linux-foundation.org>,
+        <linuxppc-dev@lists.ozlabs.org>, <linux-kernel@vger.kernel.org>,
+        <linux-security-module@vger.kernel.org>,
+        <linux-alpha@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mel Gorman <mgorman@techsingularity.net>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <914b917f-6871-2ba3-95ba-981dd2855743@amd.com>
+Date: Thu, 13 Oct 2016 09:32:51 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1477472108-27222-9-git-send-email-brian.starkey@arm.com>
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 26, 2016 at 09:55:07AM +0100, Brian Starkey wrote:
-> Add the OUT_FENCE_PTR property to writeback connectors, to enable
-> userspace to get a fence which will signal once the writeback is
-> complete.
-> 
-> A timeline is added to drm_connector for use by the writeback
-> out-fences. It is up to drivers to check for a fence in the
-> connector_state and signal the it appropriately when their writeback has
-> finished.
-> 
-> It is not allowed to request an out-fence without a framebuffer attached
-> to the connector.
-> 
-> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+Am 13.10.2016 um 02:20 schrieb Lorenzo Stoakes:
+> This patch series adjusts functions in the get_user_pages* family such that
+> desired FOLL_* flags are passed as an argument rather than implied by flags.
+>
+> The purpose of this change is to make the use of FOLL_FORCE explicit so it is
+> easier to grep for and clearer to callers that this flag is being used. The use
+> of FOLL_FORCE is an issue as it overrides missing VM_READ/VM_WRITE flags for the
+> VMA whose pages we are reading from/writing to, which can result in surprising
+> behaviour.
+>
+> The patch series came out of the discussion around commit 38e0885, which
+> addressed a BUG_ON() being triggered when a page was faulted in with PROT_NONE
+> set but having been overridden by FOLL_FORCE. do_numa_page() was run on the
+> assumption the page _must_ be one marked for NUMA node migration as an actual
+> PROT_NONE page would have been dealt with prior to this code path, however
+> FOLL_FORCE introduced a situation where this assumption did not hold.
+>
+> See https://marc.info/?l=linux-mm&m=147585445805166 for the patch proposal.
+>
+> Lorenzo Stoakes (10):
+>    mm: remove write/force parameters from __get_user_pages_locked()
+>    mm: remove write/force parameters from __get_user_pages_unlocked()
+>    mm: replace get_user_pages_unlocked() write/force parameters with gup_flags
+>    mm: replace get_user_pages_locked() write/force parameters with gup_flags
+>    mm: replace get_vaddr_frames() write/force parameters with gup_flags
+>    mm: replace get_user_pages() write/force parameters with gup_flags
+>    mm: replace get_user_pages_remote() write/force parameters with gup_flags
+>    mm: replace __access_remote_vm() write parameter with gup_flags
+>    mm: replace access_remote_vm() write parameter with gup_flags
+>    mm: replace access_process_vm() write parameter with gup_flags
 
-Ah, here it is, so much for reading patches strictly in-order ;-) One
-small comment below, otherwise I think this looks good. Again review from
-Gustavo for the out fences stuff would be really good (so pls cc him). And
-I think some igt testcases to exercise all the corner-cases in here.
+Patch number 6 in this series (which touches drivers I co-maintain) is 
+Acked-by: Christian König <christian.koenig@amd.com>.
 
-> diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
-> index a5e3778..7d40537 100644
-> --- a/include/drm/drm_connector.h
-> +++ b/include/drm/drm_connector.h
-> @@ -199,6 +199,7 @@ int drm_display_info_set_bus_formats(struct drm_display_info *info,
->   * @best_encoder: can be used by helpers and drivers to select the encoder
->   * @state: backpointer to global drm_atomic_state
->   * @fb: Writeback framebuffer, for DRM_MODE_CONNECTOR_WRITEBACK
-> + * @out_fence: Fence which will clear when the framebuffer write has finished
->   */
->  struct drm_connector_state {
->  	struct drm_connector *connector;
-> @@ -216,6 +217,9 @@ struct drm_connector_state {
->  	struct drm_atomic_state *state;
->  
->  	struct drm_framebuffer *fb;  /* do not write directly, use drm_atomic_set_fb_for_connector() */
+In general looks like a very nice cleanup to me, but I'm not enlightened 
+enough to full judge.
 
-btw if you feel like adding a 2nd comment in-line like above, then that's
-a clear signal that you should move your kerneldoc struct member comments
-to the inline style. You can freely mix&match inline with top-level struct
-member documentation, so no need to change them all. You also missed the
-doc for out_fence_ptr, 0day won't like that.
+Regards,
+Christian.
 
-> +
-> +	struct fence *out_fence;
-> +	u64 __user *out_fence_ptr;
-
-writeback_ prefix for both imo, like in patch 1.
-
->  };
->  
->  /**
-> @@ -546,6 +550,10 @@ struct drm_cmdline_mode {
->   * @tile_v_loc: vertical location of this tile
->   * @tile_h_size: horizontal size of this tile.
->   * @tile_v_size: vertical size of this tile.
-> + * @fence_context: context for fence signalling
-> + * @fence_lock: fence lock for the fence context
-> + * @fence_seqno: seqno variable to create fences
-> + * @timeline_name: fence timeline name
->   *
->   * Each connector may be connected to one or more CRTCs, or may be clonable by
->   * another connector if they can share a CRTC.  Each connector also has a specific
-> @@ -694,6 +702,12 @@ struct drm_connector {
->  	uint8_t num_h_tile, num_v_tile;
->  	uint8_t tile_h_loc, tile_v_loc;
->  	uint16_t tile_h_size, tile_v_size;
-> +
-> +	/* fence timelines info for DRM out-fences */
-> +	unsigned int fence_context;
-> +	spinlock_t fence_lock;
-> +	unsigned long fence_seqno;
-> +	char timeline_name[32];
-
-Should all have writeout_ prefix. And at that point I wonder a bit whether
-we shouldn't just go ahead and create a struct drm_writeout_connector, to
-keep this stuff nicely separate. Only change visible to drivers would be
-the type of drm_writeback_connector_init, and they'd need to
-allocate/embedd a different struct. Worth it imo.
--Daniel
-
->  };
->  
->  #define obj_to_connector(x) container_of(x, struct drm_connector, base)
-> diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
-> index afdc2742..01f33bc 100644
-> --- a/include/drm/drm_writeback.h
-> +++ b/include/drm/drm_writeback.h
-> @@ -16,4 +16,6 @@ int drm_writeback_connector_init(struct drm_device *dev,
->  				 const struct drm_connector_funcs *funcs,
->  				 u32 *formats, int n_formats);
->  
-> +struct fence *drm_writeback_get_out_fence(struct drm_connector *connector,
-> +					  struct drm_connector_state *conn_state);
->  #endif
-> -- 
-> 1.7.9.5
-> 
+>
+>   arch/alpha/kernel/ptrace.c                         |  9 ++--
+>   arch/blackfin/kernel/ptrace.c                      |  5 ++-
+>   arch/cris/arch-v32/drivers/cryptocop.c             |  4 +-
+>   arch/cris/arch-v32/kernel/ptrace.c                 |  4 +-
+>   arch/ia64/kernel/err_inject.c                      |  2 +-
+>   arch/ia64/kernel/ptrace.c                          | 14 +++---
+>   arch/m32r/kernel/ptrace.c                          | 15 ++++---
+>   arch/mips/kernel/ptrace32.c                        |  5 ++-
+>   arch/mips/mm/gup.c                                 |  2 +-
+>   arch/powerpc/kernel/ptrace32.c                     |  5 ++-
+>   arch/s390/mm/gup.c                                 |  3 +-
+>   arch/score/kernel/ptrace.c                         | 10 +++--
+>   arch/sh/mm/gup.c                                   |  3 +-
+>   arch/sparc/kernel/ptrace_64.c                      | 24 +++++++----
+>   arch/sparc/mm/gup.c                                |  3 +-
+>   arch/x86/kernel/step.c                             |  3 +-
+>   arch/x86/mm/gup.c                                  |  2 +-
+>   arch/x86/mm/mpx.c                                  |  5 +--
+>   arch/x86/um/ptrace_32.c                            |  3 +-
+>   arch/x86/um/ptrace_64.c                            |  3 +-
+>   drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c            |  7 ++-
+>   drivers/gpu/drm/etnaviv/etnaviv_gem.c              |  7 ++-
+>   drivers/gpu/drm/exynos/exynos_drm_g2d.c            |  3 +-
+>   drivers/gpu/drm/i915/i915_gem_userptr.c            |  6 ++-
+>   drivers/gpu/drm/radeon/radeon_ttm.c                |  3 +-
+>   drivers/gpu/drm/via/via_dmablit.c                  |  4 +-
+>   drivers/infiniband/core/umem.c                     |  6 ++-
+>   drivers/infiniband/core/umem_odp.c                 |  7 ++-
+>   drivers/infiniband/hw/mthca/mthca_memfree.c        |  2 +-
+>   drivers/infiniband/hw/qib/qib_user_pages.c         |  3 +-
+>   drivers/infiniband/hw/usnic/usnic_uiom.c           |  5 ++-
+>   drivers/media/pci/ivtv/ivtv-udma.c                 |  4 +-
+>   drivers/media/pci/ivtv/ivtv-yuv.c                  |  5 ++-
+>   drivers/media/platform/omap/omap_vout.c            |  2 +-
+>   drivers/media/v4l2-core/videobuf-dma-sg.c          |  7 ++-
+>   drivers/media/v4l2-core/videobuf2-memops.c         |  6 ++-
+>   drivers/misc/mic/scif/scif_rma.c                   |  3 +-
+>   drivers/misc/sgi-gru/grufault.c                    |  2 +-
+>   drivers/platform/goldfish/goldfish_pipe.c          |  3 +-
+>   drivers/rapidio/devices/rio_mport_cdev.c           |  3 +-
+>   drivers/scsi/st.c                                  |  5 +--
+>   .../interface/vchiq_arm/vchiq_2835_arm.c           |  3 +-
+>   .../vc04_services/interface/vchiq_arm/vchiq_arm.c  |  3 +-
+>   drivers/video/fbdev/pvr2fb.c                       |  4 +-
+>   drivers/virt/fsl_hypervisor.c                      |  4 +-
+>   fs/exec.c                                          |  9 +++-
+>   fs/proc/base.c                                     | 19 +++++---
+>   include/linux/mm.h                                 | 18 ++++----
+>   kernel/events/uprobes.c                            |  6 ++-
+>   kernel/ptrace.c                                    | 16 ++++---
+>   mm/frame_vector.c                                  |  9 ++--
+>   mm/gup.c                                           | 50 ++++++++++------------
+>   mm/memory.c                                        | 16 ++++---
+>   mm/mempolicy.c                                     |  2 +-
+>   mm/nommu.c                                         | 38 +++++++---------
+>   mm/process_vm_access.c                             |  7 ++-
+>   mm/util.c                                          |  8 ++--
+>   net/ceph/pagevec.c                                 |  2 +-
+>   security/tomoyo/domain.c                           |  2 +-
+>   virt/kvm/async_pf.c                                |  3 +-
+>   virt/kvm/kvm_main.c                                | 11 +++--
+>   61 files changed, 260 insertions(+), 187 deletions(-)
 > _______________________________________________
 > dri-devel mailing list
 > dri-devel@lists.freedesktop.org
 > https://lists.freedesktop.org/mailman/listinfo/dri-devel
 
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+
