@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:36328 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752582AbcJ1KkS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Oct 2016 06:40:18 -0400
-Received: by mail-oi0-f68.google.com with SMTP id e12so9387601oib.3
-        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2016 03:40:18 -0700 (PDT)
+Received: from mout.web.de ([212.227.17.11]:61342 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933351AbcJMQqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 13 Oct 2016 12:46:21 -0400
+Subject: [PATCH 12/18] [media] RedRat3: Move a variable assignment in
+ redrat3_init_rc_dev()
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <b51ed26a-4a89-4e58-9fcc-3f4b4fa0987f@users.sourceforge.net>
+Date: Thu, 13 Oct 2016 18:39:23 +0200
 MIME-Version: 1.0
-In-Reply-To: <CAOJOY2MwyX++KbGLBXpf5nKihmrP+Qx5JgYJ==q-41t-znVwKQ@mail.gmail.com>
-References: <20161028085224.GA9826@arch-desktop> <CAOJOY2MwyX++KbGLBXpf5nKihmrP+Qx5JgYJ==q-41t-znVwKQ@mail.gmail.com>
-From: Marcel Hasler <mahasler@gmail.com>
-Date: Fri, 28 Oct 2016 12:39:37 +0200
-Message-ID: <CAOJOY2PVf8QVyzzeErUD21FMenNSGWDaY4jh4xPBp25rW6Vfvg@mail.gmail.com>
-Subject: Fwd: [PATCH] stk1160: Give the chip some time to retrieve data from
- AC97 codec.
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch might need some explaining. I actually noticed this problem
-early on while trying to fix the sound problem, but it was only this
-morning that I realized the (trivial) cause of it.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Thu, 13 Oct 2016 14:50:05 +0200
 
-I first noticed something strange going on when I read the AC97
-registers from /proc/asound/cardX/codec97#0/ac97#0-0+regs using the
-current version of the driver. Every time I read that file I would get
-slightly different values, not only for one register but for several
-of them. Also, every time I plugged in the device and opened alsamixer
-I would be presented with a different set of mixer controls. So
-obviously something was going wrong while talking to the AC97 chip.
+Move the assignment for the local variable "prod" behind the source code
+for a memory allocation by this function.
 
-When analyzing the USB trace I took from Windows (on VirtualBox) I
-found long delays (2 ms) between control packets and wondered whether
-those might be set by the driver on purpose. So I tried adding delays
-in stk1160_[read|write]_reg, and sure enough, the problem disappeared.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/rc/redrat3.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-In retrospective I suspect those long delays to really be the result
-of virtualization overhead. I actually tried getting a native trace
-using USBpcap, but unfortunately its timer resolution is so low that
-it's impossible to get any useful data.
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index b23a8bb..002030f 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -856,12 +856,13 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ {
+ 	struct rc_dev *rc;
+ 	int ret;
+-	u16 prod = le16_to_cpu(rr3->udev->descriptor.idProduct);
++	u16 prod;
+ 
+ 	rc = rc_allocate_device();
+ 	if (!rc)
+ 		goto out;
+ 
++	prod = le16_to_cpu(rr3->udev->descriptor.idProduct);
+ 	snprintf(rr3->name, sizeof(rr3->name), "RedRat3%s "
+ 		 "Infrared Remote Transceiver (%04x:%04x)",
+ 		 prod == USB_RR3IIUSB_PRODUCT_ID ? "-II" : "",
+-- 
+2.10.1
 
-Once I realized what the actual problem was I removed the delays in
-stk1160_[read|write]_reg and instead experimented with different
-delays in stk1160_read_ac97 and found 20 us to be perfectly sufficient
-to get reliable reads.
-
-Now the strange thing about this problem is that it occurs on both of
-my notebooks, but not on my desktop computer. I can only speculate
-about the reason for this. My theory is that is has something to do
-with the way different USB host controllers handle/buffer outgoing
-control packets. Both of my notebooks are recent models by Acer (a
-normal notebook and a cloudbook) and most likely use the same host
-controller. My desktop motherboard on the other hand is a bit older.
-
-So I wonder, have you experienced this problem on your own systems?
-
-Best regards
-Marcel
-
-2016-10-28 10:52 GMT+02:00 Marcel Hasler <mahasler@gmail.com>:
-> The STK1160 needs some time to transfer data from the AC97 registers into its own. On some
-> systems reading the chip's own registers to soon will return wrong values. The "proper" way to
-> handle this would be to poll STK1160_AC97CTL_0 after every read or write command until the
-> command bit has been cleared, but this may not be worth the hassle.
->
-> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
-> ---
->  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
-> index 31bdd60d..caa65a8 100644
-> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
-> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-> @@ -20,6 +20,7 @@
->   *
->   */
->
-> +#include <linux/delay.h>
->  #include <linux/module.h>
->
->  #include "stk1160.h"
-> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
->          */
->         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
->
-> +       /* Give the chip some time to transfer data */
-> +       usleep_range(20, 40);
-> +
->         /* Retrieve register value */
->         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
->         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
-> --
-> 2.10.1
->
