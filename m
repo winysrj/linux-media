@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f44.google.com ([209.85.218.44]:36428 "EHLO
-        mail-oi0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030205AbcJQQkb (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54054 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755043AbcJNRfE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 12:40:31 -0400
-Received: by mail-oi0-f44.google.com with SMTP id m72so218957595oik.3
-        for <linux-media@vger.kernel.org>; Mon, 17 Oct 2016 09:40:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1476719053-17600-4-git-send-email-javier@osg.samsung.com>
-References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com> <1476719053-17600-4-git-send-email-javier@osg.samsung.com>
-From: Kevin Hilman <khilman@baylibre.com>
-Date: Mon, 17 Oct 2016 09:40:30 -0700
-Message-ID: <CAOi56cWAaQ51mQG2LrQEg5B4aRcLFzOZAn9hPtGK06xXj0sHmg@mail.gmail.com>
-Subject: Re: [PATCH 3/5] [media] rc: meson-ir: Fix module autoload
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: lkml <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Carlo Caione <carlo@caione.org>,
-        linux-amlogic <linux-amlogic@lists.infradead.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+        Fri, 14 Oct 2016 13:35:04 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 14/21] ARM: dts: imx6qdl: Add MIPI CSI-2 D-PHY compatible and clocks
+Date: Fri, 14 Oct 2016 19:34:34 +0200
+Message-Id: <1476466481-24030-15-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 17, 2016 at 8:44 AM, Javier Martinez Canillas
-<javier@osg.samsung.com> wrote:
-> If the driver is built as a module, autoload won't work because the module
-> alias information is not filled. So user-space can't match the registered
-> device with the corresponding module.
->
-> Export the module alias information using the MODULE_DEVICE_TABLE() macro.
->
-> Before this patch:
->
-> $ modinfo drivers/media/rc/meson-ir.ko | grep alias
-> $
->
-> After this patch:
->
-> $ modinfo drivers/media/rc/meson-ir.ko | grep alias
-> alias:          of:N*T*Camlogic,meson-gxbb-irC*
-> alias:          of:N*T*Camlogic,meson-gxbb-ir
-> alias:          of:N*T*Camlogic,meson8b-irC*
-> alias:          of:N*T*Camlogic,meson8b-ir
-> alias:          of:N*T*Camlogic,meson6-irC*
-> alias:          of:N*T*Camlogic,meson6-ir
->
-> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>From the data sheets it is not quite clear what the clock inputs should
+be named, but freescale code calls them "dphy_clk" (would that be per?)
+and "pixel_clk" and connects them to the mipi_core_cfg and emi_podf
+clocks, respectively.  The mipi_core_cfg control is called hsi_tx
+currently, but it really gates a whole lot of other clocks, too.
 
-Acked-by: Kevin Hilman <khilman@baylibre.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ arch/arm/boot/dts/imx6qdl.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index cd325bd..2be6de4 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1123,9 +1123,16 @@
+ 			};
+ 
+ 			mipi_csi: mipi@021dc000 {
++				compatible = "fsl,imx6q-mipi-csi2", "dw-mipi-csi2";
+ 				reg = <0x021dc000 0x4000>;
++				clocks = <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/ipg_clk_root */
++					 <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/video_27m_clk_root */
++					 <&clks IMX6QDL_CLK_HSI_TX>,	/* mipi_core_cfg/video_27m_clk_root */
++					 <&clks IMX6QDL_CLK_EIM_PODF>;	/* shoid be ipu1_ipu_hsp_clk_root on S/DL, axi_clk_root on D/Q */
++				clock-names = "pclk", "cfg", "ref", "pixel";
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
++				status = "disabled";
+ 			};
+ 
+ 			mipi_dsi: mipi@021e0000 {
+-- 
+2.9.3
+
