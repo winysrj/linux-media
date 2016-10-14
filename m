@@ -1,586 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:55931 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936360AbcJGQBS (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59108 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757006AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 12:01:18 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
-        Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH 10/22] [media] platform: add video-multiplexer subdevice driver
-Date: Fri,  7 Oct 2016 18:00:55 +0200
-Message-Id: <20161007160107.5074-11-p.zabel@pengutronix.de>
-In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Kees Cook <keescook@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Alejandro Torrado <aletorrado@gmail.com>,
+        Nicolas Sugino <nsugino@3way.com.ar>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Olli Salonen <olli.salonen@iki.fi>,
+        Jonathan McDowell <noodles@earth.li>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Sudip Mukherjee <sudipm.mukherjee@gmail.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 37/57] [media] dvb-usb: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:25 -0300
+Message-Id: <4f8e20ec8f685dc29e5c695857115c2e6c85547d.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver can handle SoC internal and external video bus multiplexers,
-controlled either by register bit fields or by a GPIO. The subdevice
-passes through frame interval and mbus configuration of the active input
-to the output side.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../bindings/media/video-multiplexer.txt           |  59 +++
- drivers/media/platform/Kconfig                     |   8 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/video-multiplexer.c         | 444 +++++++++++++++++++++
- 4 files changed, 513 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
- create mode 100644 drivers/media/platform/video-multiplexer.c
+ drivers/media/usb/dvb-usb/cinergyT2-core.c   |  6 ++----
+ drivers/media/usb/dvb-usb/dib0700_core.c     |  5 +----
+ drivers/media/usb/dvb-usb/dib0700_devices.c  |  3 +--
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c      |  3 +--
+ drivers/media/usb/dvb-usb/dvb-usb-firmware.c |  6 ++----
+ drivers/media/usb/dvb-usb/dw2102.c           | 10 ++--------
+ drivers/media/usb/dvb-usb/friio.c            |  3 +--
+ drivers/media/usb/dvb-usb/gp8psk.c           |  3 +--
+ drivers/media/usb/dvb-usb/opera1.c           |  3 +--
+ drivers/media/usb/dvb-usb/technisat-usb2.c   |  3 +--
+ 10 files changed, 13 insertions(+), 32 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-new file mode 100644
-index 0000000..9d133d9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
-@@ -0,0 +1,59 @@
-+Video Multiplexer
-+=================
-+
-+Video multiplexers allow to select between multiple input ports. Video received
-+on the active input port is passed through to the output port. Muxes described
-+by this binding may be controlled by a syscon register bitfield or by a GPIO.
-+
-+Required properties:
-+- compatible : should be "video-multiplexer"
-+- reg: should be register base of the register containing the control bitfield
-+- bit-mask: bitmask of the control bitfield in the control register
-+- bit-shift: bit offset of the control bitfield in the control register
-+- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
-+  may be given to switch between two inputs
-+- #address-cells: should be <1>
-+- #size-cells: should be <0>
-+- port@*: at least three port nodes containing endpoints connecting to the
-+  source and sink devices according to of_graph bindings. The last port is
-+  the output port, all others are inputs.
-+
-+Example:
-+
-+syscon {
-+	compatible = "syscon", "simple-mfd";
-+
-+	mux {
-+		compatible = "video-multiplexer";
-+		/* Single bit (1 << 19) in syscon register 0x04: */
-+		reg = <0x04>;
-+		bit-mask = <1>;
-+		bit-shift = <19>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			mux_in0: endpoint {
-+				remote-endpoint = <&video_source0_out>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			mux_in1: endpoint {
-+				remote-endpoint = <&video_source1_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			mux_out: endpoint {
-+				remote-endpoint = <&capture_interface_in>;
-+			};
-+		};
-+	};
-+};
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 105bf57..92680f6 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -76,6 +76,14 @@ config VIDEO_M32R_AR_M64278
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called arv.
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+index 9fd1527494eb..f4d9122245ac 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+@@ -34,8 +34,7 @@
+ int dvb_usb_cinergyt2_debug;
  
-+config VIDEO_MULTIPLEXER
-+	tristate "Video Multiplexer"
-+	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
-+	help
-+	  This driver provides support for SoC internal N:1 video bus
-+	  multiplexers controlled by register bitfields as well as external
-+	  2:1 video multiplexers controlled by a single GPIO.
-+
- config VIDEO_OMAP3
- 	tristate "OMAP 3 Camera support"
- 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index f7f9008..a251755a 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -27,6 +27,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
+ module_param_named(debug, dvb_usb_cinergyt2_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "set debugging level (1=info, xfer=2, rc=4 "
+-		"(or-able)).");
++MODULE_PARM_DESC(debug, "set debugging level (1=info, xfer=2, rc=4 (or-able)).");
  
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
  
-+obj-$(CONFIG_VIDEO_MULTIPLEXER)		+= video-multiplexer.o
-+
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
-diff --git a/drivers/media/platform/video-multiplexer.c b/drivers/media/platform/video-multiplexer.c
-new file mode 100644
-index 0000000..e9137ba
---- /dev/null
-+++ b/drivers/media/platform/video-multiplexer.c
-@@ -0,0 +1,444 @@
-+/*
-+ * video stream multiplexer controlled via gpio or syscon
-+ *
-+ * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
-+ * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/mfd/syscon.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_graph.h>
-+#include <linux/platform_device.h>
-+#include <linux/regmap.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/v4l2-of.h>
-+
-+struct vidsw {
-+	struct v4l2_subdev subdev;
-+	unsigned int num_pads;
-+	struct media_pad *pads;
-+	struct v4l2_mbus_framefmt *format_mbus;
-+	struct v4l2_fract timeperframe;
-+	struct v4l2_of_endpoint *endpoint;
-+	struct regmap_field *field;
-+	struct gpio_desc *gpio;
-+	int active;
-+};
-+
-+static inline struct vidsw *v4l2_subdev_to_vidsw(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct vidsw, subdev);
-+}
-+
-+static void vidsw_set_active(struct vidsw *vidsw, int active)
-+{
-+	vidsw->active = active;
-+	if (active < 0)
-+		return;
-+
-+	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
-+
-+	if (vidsw->field)
-+		regmap_field_write(vidsw->field, active);
-+	else if (vidsw->gpio)
-+		gpiod_set_value(vidsw->gpio, active);
-+}
-+
-+static int vidsw_link_setup(struct media_entity *entity,
-+			    const struct media_pad *local,
-+			    const struct media_pad *remote, u32 flags)
-+{
-+	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	/* We have no limitations on enabling or disabling our output link */
-+	if (local->index == vidsw->num_pads - 1)
-+		return 0;
-+
-+	dev_dbg(sd->dev, "link setup %s -> %s", remote->entity->name,
-+		local->entity->name);
-+
-+	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-+		if (local->index == vidsw->active) {
-+			dev_dbg(sd->dev, "going inactive\n");
-+			vidsw->active = -1;
-+		}
-+		return 0;
-+	}
-+
-+	if (vidsw->active >= 0) {
-+		struct media_pad *pad;
-+
-+		if (vidsw->active == local->index)
-+			return 0;
-+
-+		pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-+		if (pad) {
-+			struct media_link *link;
-+			int ret;
-+
-+			link = media_entity_find_link(pad,
-+						&vidsw->pads[vidsw->active]);
-+			if (link) {
-+				ret = __media_entity_setup_link(link, 0);
-+				if (ret)
-+					return ret;
-+			}
-+		}
-+	}
-+
-+	vidsw_set_active(vidsw, local->index);
-+
-+	return 0;
-+}
-+
-+static struct media_entity_operations vidsw_ops = {
-+	.link_setup = vidsw_link_setup,
-+};
-+
-+static bool vidsw_endpoint_disabled(struct device_node *ep)
-+{
-+	struct device_node *rpp;
-+
-+	if (!of_device_is_available(ep))
-+		return true;
-+
-+	rpp = of_graph_get_remote_port_parent(ep);
-+	if (!rpp)
-+		return true;
-+
-+	return !of_device_is_available(rpp);
-+}
-+
-+static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
-+{
-+	struct device_node *ep;
-+	u32 portno;
-+	int numports;
-+	int ret;
-+	int i;
-+	bool active_link = false;
-+
-+	numports = vidsw->num_pads;
-+
-+	for (i = 0; i < numports - 1; i++)
-+		vidsw->pads[i].flags = MEDIA_PAD_FL_SINK;
-+	vidsw->pads[numports - 1].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	ret = media_entity_pads_init(&vidsw->subdev.entity, numports,
-+				     vidsw->pads);
-+	if (ret < 0)
-+		return ret;
-+
-+	vidsw->subdev.entity.ops = &vidsw_ops;
-+
-+	for_each_endpoint_of_node(node, ep) {
-+		struct v4l2_of_endpoint endpoint;
-+
-+		v4l2_of_parse_endpoint(ep, &endpoint);
-+
-+		portno = endpoint.base.port;
-+		if (portno >= numports - 1)
-+			continue;
-+
-+		if (vidsw_endpoint_disabled(ep)) {
-+			dev_dbg(vidsw->subdev.dev, "port %d disabled\n", portno);
-+			continue;
-+		}
-+
-+		vidsw->endpoint[portno] = endpoint;
-+
-+		if (portno == vidsw->active)
-+			active_link = true;
-+	}
-+
-+	for (portno = 0; portno < numports - 1; portno++) {
-+		if (!vidsw->endpoint[portno].base.local_node)
-+			continue;
-+
-+		/* If the active input is not connected, use another */
-+		if (!active_link) {
-+			vidsw_set_active(vidsw, portno);
-+			active_link = true;
-+		}
-+	}
-+
-+	return v4l2_async_register_subdev(&vidsw->subdev);
-+}
-+
-+int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+	struct media_pad *pad;
-+	int ret;
-+
-+	if (vidsw->active == -1) {
-+		dev_err(sd->dev, "no configuration for inactive mux\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Retrieve media bus configuration from the entity connected to the
-+	 * active input
-+	 */
-+	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
-+	if (pad) {
-+		sd = media_entity_to_v4l2_subdev(pad->entity);
-+		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
-+		if (ret == -ENOIOCTLCMD)
-+			pad = NULL;
-+		else if (ret < 0) {
-+			dev_err(sd->dev, "failed to get source configuration\n");
-+			return ret;
-+		}
-+	}
-+	if (!pad) {
-+		/* Mirror the input side on the output side */
-+		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
-+		if (cfg->type == V4L2_MBUS_PARALLEL ||
-+		    cfg->type == V4L2_MBUS_BT656)
-+			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vidsw_g_frame_interval(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	fi->interval = vidsw->timeperframe;
-+
-+	return 0;
-+}
-+
-+static int vidsw_s_frame_interval(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	vidsw->timeperframe = fi->interval;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
-+	.g_mbus_config = vidsw_g_mbus_config,
-+	.g_frame_interval = vidsw_g_frame_interval,
-+	.s_frame_interval = vidsw_s_frame_interval,
-+};
-+
-+static struct v4l2_mbus_framefmt *
-+__vidsw_get_pad_format(struct v4l2_subdev *sd,
-+		       struct v4l2_subdev_pad_config *cfg,
-+		       unsigned int pad, u32 which)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(sd, cfg, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &vidsw->format_mbus[pad];
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int vidsw_get_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	sdformat->format = *__vidsw_get_pad_format(sd, cfg, sdformat->pad,
-+						   sdformat->which);
-+	return 0;
-+}
-+
-+static int vidsw_set_format(struct v4l2_subdev *sd,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *sdformat)
-+{
-+	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
-+	struct v4l2_mbus_framefmt *mbusformat;
-+
-+	if (sdformat->pad >= vidsw->num_pads)
-+		return -EINVAL;
-+
-+	mbusformat = __vidsw_get_pad_format(sd, cfg, sdformat->pad,
-+					    sdformat->which);
-+	if (!mbusformat)
-+		return -EINVAL;
-+
-+	/* Output pad mirrors active input pad, no limitations on input pads */
-+	if (sdformat->pad == (vidsw->num_pads - 1) && vidsw->active >= 0)
-+		sdformat->format = vidsw->format_mbus[vidsw->active];
-+
-+	*mbusformat = sdformat->format;
-+
-+	return 0;
-+}
-+
-+static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
-+	.get_fmt = vidsw_get_format,
-+	.set_fmt = vidsw_set_format,
-+};
-+
-+static struct v4l2_subdev_ops vidsw_subdev_ops = {
-+	.pad = &vidsw_pad_ops,
-+	.video = &vidsw_subdev_video_ops,
-+};
-+
-+static struct v4l2_subdev_internal_ops vidsw_internal_ops = {
-+	.registered = v4l2_of_subdev_registered,
-+};
-+
-+static int of_get_reg_field(struct device_node *node, struct reg_field *field)
-+{
-+	u32 bit_mask;
-+	int ret;
-+
-+	ret = of_property_read_u32(node, "reg", &field->reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = of_property_read_u32(node, "bit-mask", &bit_mask);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = of_property_read_u32(node, "bit-shift", &field->lsb);
-+	if (ret < 0)
-+		return ret;
-+
-+	field->msb = field->lsb + fls(bit_mask) - 1;
-+
-+	return 0;
-+}
-+
-+static int vidsw_probe(struct platform_device *pdev)
-+{
-+	struct device_node *np = pdev->dev.of_node;
-+	struct of_endpoint endpoint;
-+	struct device_node *ep;
-+	struct reg_field field;
-+	struct vidsw *vidsw;
-+	struct regmap *map;
-+	unsigned int num_pads;
-+	int ret;
-+
-+	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
-+	if (!vidsw)
-+		return -ENOMEM;
-+
-+	platform_set_drvdata(pdev, vidsw);
-+
-+	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
-+	vidsw->subdev.internal_ops = &vidsw_internal_ops;
-+	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
-+			np->name);
-+	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	vidsw->subdev.dev = &pdev->dev;
-+
-+	/*
-+	 * The largest numbered port is the output port. It determines
-+	 * total number of pads
-+	 */
-+	for_each_endpoint_of_node(np, ep) {
-+		of_graph_parse_endpoint(ep, &endpoint);
-+		num_pads = max(num_pads, endpoint.port + 1);
-+	}
-+
-+	num_pads = of_get_child_count(np);
-+	if (num_pads < 2) {
-+		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
-+		return -EINVAL;
-+	}
-+
-+	ret = of_get_reg_field(np, &field);
-+	if (ret == 0) {
-+		map = syscon_node_to_regmap(np->parent);
-+		if (!map) {
-+			dev_err(&pdev->dev, "Failed to get syscon register map\n");
-+			return PTR_ERR(map);
-+		}
-+
-+		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
-+		if (IS_ERR(vidsw->field)) {
-+			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
-+			return PTR_ERR(vidsw->field);
-+		}
-+
-+		regmap_field_read(vidsw->field, &vidsw->active);
-+	} else {
-+		if (num_pads > 3) {
-+			dev_err(&pdev->dev, "Too many ports %d\n", num_pads);
-+			return -EINVAL;
-+		}
-+
-+		vidsw->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
-+		if (IS_ERR(vidsw->gpio)) {
-+			dev_warn(&pdev->dev,
-+				 "could not request control gpio: %d\n", ret);
-+			vidsw->gpio = NULL;
-+		}
-+
-+		vidsw->active = gpiod_get_value(vidsw->gpio) ? 1 : 0;
-+	}
-+
-+	vidsw->num_pads = num_pads;
-+	vidsw->pads = devm_kzalloc(&pdev->dev, sizeof(*vidsw->pads) * num_pads,
-+			GFP_KERNEL);
-+	vidsw->format_mbus = devm_kzalloc(&pdev->dev,
-+			sizeof(*vidsw->format_mbus) * num_pads, GFP_KERNEL);
-+	vidsw->endpoint = devm_kzalloc(&pdev->dev,
-+			sizeof(*vidsw->endpoint) * (num_pads - 1), GFP_KERNEL);
-+
-+	ret = vidsw_async_init(vidsw, np);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int vidsw_remove(struct platform_device *pdev)
-+{
-+	struct vidsw *vidsw = platform_get_drvdata(pdev);
-+
-+	v4l2_async_register_subdev(&vidsw->subdev);
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id vidsw_dt_ids[] = {
-+	{ .compatible = "video-multiplexer", },
-+	{ /* sentinel */ }
-+};
-+
-+static struct platform_driver vidsw_driver = {
-+	.probe		= vidsw_probe,
-+	.remove		= vidsw_remove,
-+	.driver		= {
-+		.of_match_table = vidsw_dt_ids,
-+		.name = "video-multiplexer",
-+	},
-+};
-+
-+module_platform_driver(vidsw_driver);
-+
-+MODULE_DESCRIPTION("video stream multiplexer");
-+MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-+MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-+MODULE_LICENSE("GPL");
+@@ -74,8 +73,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+ 	ret = dvb_usb_generic_rw(adap->dev, query, sizeof(query), state,
+ 				sizeof(state), 0);
+ 	if (ret < 0) {
+-		deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
+-			"state info\n");
++		deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep state info\n");
+ 	}
+ 
+ 	/* Copy this pointer as we are gonna need it in the release phase */
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index f3196658fb70..855cfc7bf309 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -16,10 +16,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,2=fw,4=fwdata,8=data (or-ab
+ static int nb_packet_buffer_size = 21;
+ module_param(nb_packet_buffer_size, int, 0644);
+ MODULE_PARM_DESC(nb_packet_buffer_size,
+-	"Set the dib0700 driver data buffer size. This parameter "
+-	"corresponds to the number of TS packets. The actual size of "
+-	"the data buffer corresponds to this parameter "
+-	"multiplied by 188 (default: 21)");
++	"Set the dib0700 driver data buffer size. This parameter corresponds to the number of TS packets. The actual size of the data buffer corresponds to this parameter multiplied by 188 (default: 21)");
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 0857b56e652c..5668d8d69917 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -26,8 +26,7 @@
+ 
+ static int force_lna_activation;
+ module_param(force_lna_activation, int, 0644);
+-MODULE_PARM_DESC(force_lna_activation, "force the activation of Low-Noise-Amplifyer(s) (LNA), "
+-		"if applicable for the device (default: 0=automatic/off).");
++MODULE_PARM_DESC(force_lna_activation, "force the activation of Low-Noise-Amplifyer(s) (LNA), if applicable for the device (default: 0=automatic/off).");
+ 
+ struct dib0700_adapter_state {
+ 	int (*set_param_save) (struct dvb_frontend *);
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+index a04c0a250625..e5675da286cb 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+@@ -277,8 +277,7 @@ int dvb_usb_adapter_frontend_init(struct dvb_usb_adapter *adap)
+ 	for (i = 0; i < adap->props.num_frontends; i++) {
+ 
+ 		if (adap->props.fe[i].frontend_attach == NULL) {
+-			err("strange: '%s' #%d,%d "
+-			    "doesn't want to attach a frontend.",
++			err("strange: '%s' #%d,%d doesn't want to attach a frontend.",
+ 			    adap->dev->desc->name, adap->id, i);
+ 
+ 			return 0;
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-firmware.c b/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
+index dd048a7c461c..f0023dbb7276 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-firmware.c
+@@ -49,8 +49,7 @@ int usb_cypress_load_firmware(struct usb_device *udev, const struct firmware *fw
+ 		ret = usb_cypress_writemem(udev,hx.addr,hx.data,hx.len);
+ 
+ 		if (ret != hx.len) {
+-			err("error while transferring firmware "
+-				"(transferred size: %d, block size: %d)",
++			err("error while transferring firmware (transferred size: %d, block size: %d)",
+ 				ret,hx.len);
+ 			ret = -EINVAL;
+ 			break;
+@@ -81,8 +80,7 @@ int dvb_usb_download_firmware(struct usb_device *udev, struct dvb_usb_device_pro
+ 	const struct firmware *fw = NULL;
+ 
+ 	if ((ret = request_firmware(&fw, props->firmware, &udev->dev)) != 0) {
+-		err("did not find the firmware file. (%s) "
+-			"Please see linux/Documentation/dvb/ for more details on firmware-problems. (%d)",
++		err("did not find the firmware file. (%s) Please see linux/Documentation/dvb/ for more details on firmware-problems. (%d)",
+ 			props->firmware,ret);
+ 		return ret;
+ 	}
+diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
+index 5fb0c650926e..008d71905f2e 100644
+--- a/drivers/media/usb/dvb-usb/dw2102.c
++++ b/drivers/media/usb/dvb-usb/dw2102.c
+@@ -86,8 +86,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info 2=xfer 4=rc(or-able))."
+ /* demod probe */
+ static int demod_probe = 1;
+ module_param_named(demod, demod_probe, int, 0644);
+-MODULE_PARM_DESC(demod, "demod to probe (1=cx24116 2=stv0903+stv6110 "
+-			"4=stv0903+stb6100(or-able)).");
++MODULE_PARM_DESC(demod, "demod to probe (1=cx24116 2=stv0903+stv6110 4=stv0903+stb6100(or-able)).");
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+@@ -2343,12 +2342,7 @@ static struct usb_driver dw2102_driver = {
+ module_usb_driver(dw2102_driver);
+ 
+ MODULE_AUTHOR("Igor M. Liplianin (c) liplianin@me.by");
+-MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104,"
+-			" DVB-C 3101 USB2.0,"
+-			" TeVii S421, S480, S482, S600, S630, S632, S650,"
+-			" TeVii S660, S662, Prof 1100, 7500 USB2.0,"
+-			" Geniatech SU3000, T220,"
+-			" TechnoTrend S2-4600, Terratec Cinergy S2 devices");
++MODULE_DESCRIPTION("Driver for DVBWorld DVB-S 2101, 2102, DVB-S2 2104, DVB-C 3101 USB2.0, TeVii S421, S480, S482, S600, S630, S632, S650, TeVii S660, S662, Prof 1100, 7500 USB2.0, Geniatech SU3000, T220, TechnoTrend S2-4600, Terratec Cinergy S2 devices");
+ MODULE_VERSION("0.1");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(DW2101_FIRMWARE);
+diff --git a/drivers/media/usb/dvb-usb/friio.c b/drivers/media/usb/dvb-usb/friio.c
+index 474a17e4db0c..4ab0b04234cd 100644
+--- a/drivers/media/usb/dvb-usb/friio.c
++++ b/drivers/media/usb/dvb-usb/friio.c
+@@ -320,8 +320,7 @@ static int friio_initialize(struct dvb_usb_device *d)
+  */
+ 	if (rbuf[0] & 0x80) {	/* still in PowerOnReset state? */
+ 		if (++retry > 3) {
+-			deb_info("failed to get the correct"
+-				 " FE demod status:0x%02x\n", rbuf[0]);
++			deb_info("failed to get the correct FE demod status:0x%02x\n", rbuf[0]);
+ 			goto error;
+ 		}
+ 		msleep(100);
+diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+index 5d0384dd45b5..1587dc7c4eb3 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk.c
++++ b/drivers/media/usb/dvb-usb/gp8psk.c
+@@ -117,8 +117,7 @@ static int gp8psk_load_bcm4500fw(struct dvb_usb_device *d)
+ 	u8 *buf;
+ 	if ((ret = request_firmware(&fw, bcm4500_firmware,
+ 					&d->udev->dev)) != 0) {
+-		err("did not find the bcm4500 firmware file. (%s) "
+-			"Please see linux/Documentation/dvb/ for more details on firmware-problems. (%d)",
++		err("did not find the bcm4500 firmware file. (%s) Please see linux/Documentation/dvb/ for more details on firmware-problems. (%d)",
+ 			bcm4500_firmware,ret);
+ 		return ret;
+ 	}
+diff --git a/drivers/media/usb/dvb-usb/opera1.c b/drivers/media/usb/dvb-usb/opera1.c
+index 2566d2f1c2ad..946a5ccc8f1a 100644
+--- a/drivers/media/usb/dvb-usb/opera1.c
++++ b/drivers/media/usb/dvb-usb/opera1.c
+@@ -453,8 +453,7 @@ static int opera1_xilinx_load_firmware(struct usb_device *dev,
+ 	info("start downloading fpga firmware %s",filename);
+ 
+ 	if ((ret = request_firmware(&fw, filename, &dev->dev)) != 0) {
+-		err("did not find the firmware file. (%s) "
+-			"Please see linux/Documentation/dvb/ for more details on firmware-problems.",
++		err("did not find the firmware file. (%s) Please see linux/Documentation/dvb/ for more details on firmware-problems.",
+ 			filename);
+ 		return ret;
+ 	} else {
+diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
+index d9f3262bf071..fbfcabc52f76 100644
+--- a/drivers/media/usb/dvb-usb/technisat-usb2.c
++++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
+@@ -50,8 +50,7 @@ MODULE_PARM_DESC(debug,
+ static int disable_led_control;
+ module_param(disable_led_control, int, 0444);
+ MODULE_PARM_DESC(disable_led_control,
+-		"disable LED control of the device "
+-		"(default: 0 - LED control is active).");
++		"disable LED control of the device (default: 0 - LED control is active).");
+ 
+ /* device private data */
+ struct technisat_usb2_state {
 -- 
-2.9.3
+2.7.4
+
 
