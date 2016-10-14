@@ -1,134 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51577 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935137AbcJRUqW (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48938 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755615AbcJNRfG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:22 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH v2 41/58] pwc: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:53 -0200
-Message-Id: <a15b62dccdbada04c01f966593f07357da8affc6.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Fri, 14 Oct 2016 13:35:06 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 17/21] [media] imx-ipuv3-csi: support downsizing
+Date: Fri, 14 Oct 2016 19:34:37 +0200
+Message-Id: <1476466481-24030-18-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Add support for the CSI internal horizontal and vertical downsizing.
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
-
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/pwc/pwc-if.c  | 4 ++--
- drivers/media/usb/pwc/pwc-v4l.c | 6 ++----
- 2 files changed, 4 insertions(+), 6 deletions(-)
+Changes since v1:
+ - Rebased onto CSI changes.
+---
+ drivers/media/platform/imx/imx-ipuv3-csi.c | 18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/usb/pwc/pwc-if.c b/drivers/media/usb/pwc/pwc-if.c
-index ff657644b6b3..22420c14ac98 100644
---- a/drivers/media/usb/pwc/pwc-if.c
-+++ b/drivers/media/usb/pwc/pwc-if.c
-@@ -238,8 +238,8 @@ static void pwc_frame_complete(struct pwc_device *pdev)
+diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
+index 7837978..c65f02c 100644
+--- a/drivers/media/platform/imx/imx-ipuv3-csi.c
++++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
+@@ -175,8 +175,14 @@ static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
  	} else {
- 		/* Check for underflow first */
- 		if (fbuf->filled < pdev->frame_total_size) {
--			PWC_DEBUG_FLOW("Frame buffer underflow (%d bytes);"
--				       " discarded.\n", fbuf->filled);
-+			PWC_DEBUG_FLOW("Frame buffer underflow (%d bytes); discarded.\n",
-+				       fbuf->filled);
- 		} else {
- 			fbuf->vb.field = V4L2_FIELD_NONE;
- 			fbuf->vb.sequence = pdev->vframe_count;
-diff --git a/drivers/media/usb/pwc/pwc-v4l.c b/drivers/media/usb/pwc/pwc-v4l.c
-index 3d987984602f..92f04db6bbae 100644
---- a/drivers/media/usb/pwc/pwc-v4l.c
-+++ b/drivers/media/usb/pwc/pwc-v4l.c
-@@ -406,8 +406,7 @@ static void pwc_vidioc_fill_fmt(struct v4l2_format *f,
- 	f->fmt.pix.bytesperline = f->fmt.pix.width;
- 	f->fmt.pix.sizeimage	= f->fmt.pix.height * f->fmt.pix.width * 3 / 2;
- 	f->fmt.pix.colorspace	= V4L2_COLORSPACE_SRGB;
--	PWC_DEBUG_IOCTL("pwc_vidioc_fill_fmt() "
--			"width=%d, height=%d, bytesperline=%d, sizeimage=%d, pixelformat=%c%c%c%c\n",
-+	PWC_DEBUG_IOCTL("pwc_vidioc_fill_fmt() width=%d, height=%d, bytesperline=%d, sizeimage=%d, pixelformat=%c%c%c%c\n",
- 			f->fmt.pix.width,
- 			f->fmt.pix.height,
- 			f->fmt.pix.bytesperline,
-@@ -473,8 +472,7 @@ static int pwc_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f)
+ 		struct v4l2_mbus_framefmt *infmt = &ipucsi->format_mbus[0];
  
- 	pixelformat = f->fmt.pix.pixelformat;
+-		width = infmt->width;
+-		height = infmt->height;
++		if (sdformat->format.width < (infmt->width * 3 / 4))
++			width = infmt->width / 2;
++		else
++			width = infmt->width;
++		if (sdformat->format.height < (infmt->height * 3 / 4))
++			height = infmt->height / 2;
++		else
++			height = infmt->height;
+ 		mbusformat->field = infmt->field;
+ 		mbusformat->colorspace = infmt->colorspace;
+ 	}
+@@ -237,14 +243,14 @@ static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
+ 		window.width = fmt[0].width;
+ 		window.height = fmt[0].height;
+ 		ipu_csi_set_window(ipucsi->csi, &window);
++		ipu_csi_set_downsize(ipucsi->csi,
++				     fmt[0].width == 2 * fmt[1].width,
++				     fmt[0].height == 2 * fmt[1].height);
  
--	PWC_DEBUG_IOCTL("Trying to set format to: width=%d height=%d fps=%d "
--			"format=%c%c%c%c\n",
-+	PWC_DEBUG_IOCTL("Trying to set format to: width=%d height=%d fps=%d format=%c%c%c%c\n",
- 			f->fmt.pix.width, f->fmt.pix.height, pdev->vframes,
- 			(pixelformat)&255,
- 			(pixelformat>>8)&255,
+ 		/* Is CSI data source MCT (MIPI)? */
+ 		mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
+-
+ 		ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
+-		if (mux_mct)
+-			ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
+-						  &fmt[0]);
++		ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0, &fmt[0]);
+ 
+ 		ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
+ 					     &fmt[0]);
 -- 
-2.7.4
-
+2.9.3
 
