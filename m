@@ -1,66 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:63327 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbcJMOk3 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59079 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756600AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 10:40:29 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] s5p-cec: mark PM functions as __maybe_unused again
-Date: Thu, 13 Oct 2016 16:39:04 +0200
-Message-Id: <20161013143939.3977105-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH 34/57] [media] b2c2: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:22 -0300
+Message-Id: <efca44b8c9f5aebc1e8a9e2f291dcfc72152771a.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A bugfix removed the two callers of s5p_cec_runtime_suspend
-and s5p_cec_runtime_resume, leading to the return of a harmless
-warning that I had previously fixed in commit aee8937089b1
-("[media] s5p_cec: mark suspend/resume as __maybe_unused"):
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-staging/media/s5p-cec/s5p_cec.c:234:12: error: ‘s5p_cec_runtime_suspend’ defined but not used [-Werror=unused-function]
-staging/media/s5p-cec/s5p_cec.c:242:12: error: ‘s5p_cec_runtime_resume’ defined but not used [-Werror=unused-function]
-
-This adds the __maybe_unused annotations to the function that
-were not removed and that are now unused when CONFIG_PM
-is disabled.
-
-Fixes: 57b978ada073 ("[media] s5p-cec: fix system and runtime PM integration")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/s5p-cec/s5p_cec.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/b2c2/flexcop-usb.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
-index 1780a08b73c9..58d756231136 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/staging/media/s5p-cec/s5p_cec.c
-@@ -231,7 +231,7 @@ static int s5p_cec_remove(struct platform_device *pdev)
- 	return 0;
- }
+diff --git a/drivers/media/usb/b2c2/flexcop-usb.c b/drivers/media/usb/b2c2/flexcop-usb.c
+index d4bdba60b0f7..f9b07649a862 100644
+--- a/drivers/media/usb/b2c2/flexcop-usb.c
++++ b/drivers/media/usb/b2c2/flexcop-usb.c
+@@ -33,8 +33,7 @@
  
--static int s5p_cec_runtime_suspend(struct device *dev)
-+static int __maybe_unused s5p_cec_runtime_suspend(struct device *dev)
- {
- 	struct s5p_cec_dev *cec = dev_get_drvdata(dev);
+ static int debug;
+ module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug, "set debugging level (1=info,ts=2,"
+-		"ctrl=4,i2c=8,v8mem=16 (or-able))." DEBSTATUS);
++MODULE_PARM_DESC(debug, "set debugging level (1=info,ts=2,ctrl=4,i2c=8,v8mem=16 (or-able))." DEBSTATUS);
+ #undef DEBSTATUS
  
-@@ -239,7 +239,7 @@ static int s5p_cec_runtime_suspend(struct device *dev)
- 	return 0;
- }
+ #define deb_info(args...) dprintk(0x01, args)
+@@ -403,8 +402,7 @@ static int flexcop_usb_transfer_init(struct flexcop_usb *fc_usb)
+ 		frame_size, i, j, ret;
+ 	int buffer_offset = 0;
  
--static int s5p_cec_runtime_resume(struct device *dev)
-+static int __maybe_unused s5p_cec_runtime_resume(struct device *dev)
- {
- 	struct s5p_cec_dev *cec = dev_get_drvdata(dev);
- 	int ret;
+-	deb_ts("creating %d iso-urbs with %d frames "
+-			"each of %d bytes size = %d.\n", B2C2_USB_NUM_ISO_URB,
++	deb_ts("creating %d iso-urbs with %d frames each of %d bytes size = %d.\n", B2C2_USB_NUM_ISO_URB,
+ 			B2C2_USB_FRAMES_PER_ISO, frame_size, bufsize);
+ 
+ 	fc_usb->iso_buffer = usb_alloc_coherent(fc_usb->udev,
+@@ -429,8 +427,7 @@ static int flexcop_usb_transfer_init(struct flexcop_usb *fc_usb)
+ 	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++) {
+ 		int frame_offset = 0;
+ 		struct urb *urb = fc_usb->iso_urb[i];
+-		deb_ts("initializing and submitting urb no. %d "
+-			"(buf_offset: %d).\n", i, buffer_offset);
++		deb_ts("initializing and submitting urb no. %d (buf_offset: %d).\n", i, buffer_offset);
+ 
+ 		urb->dev = fc_usb->udev;
+ 		urb->context = fc_usb;
 -- 
-2.9.0
+2.7.4
+
 
