@@ -1,46 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33633 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932255AbcJ2QaF (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59073 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756547AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Oct 2016 12:30:05 -0400
-Received: by mail-pf0-f194.google.com with SMTP id a136so885148pfa.0
-        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2016 09:30:04 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-Subject: [PATCH -next] dma-buf/sw_sync: fix non static symbol warning
-Date: Sat, 29 Oct 2016 16:29:58 +0000
-Message-Id: <1477758598-6054-1-git-send-email-weiyj.lk@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Stefan Richter <stefanr@s5r6.in-berlin.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux1394-devel@lists.sourceforge.net
+Subject: [PATCH 03/57] [media] firewire: don't break long lines
+Date: Fri, 14 Oct 2016 17:19:51 -0300
+Message-Id: <9ef158ab98e90748612c9294fff02a621a1accea.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Fixes the following sparse warning:
-
-drivers/dma-buf/sw_sync.c:87:22: warning:
- symbol 'sync_timeline_create' was not declared. Should it be static?
-
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/dma-buf/sw_sync.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/firewire/firedtv-avc.c | 5 +++--
+ drivers/media/firewire/firedtv-rc.c  | 5 +++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-index 82e0ca4..7aa4d7b 100644
---- a/drivers/dma-buf/sw_sync.c
-+++ b/drivers/dma-buf/sw_sync.c
-@@ -84,7 +84,7 @@ static inline struct sync_pt *dma_fence_to_sync_pt(struct dma_fence *fence)
-  * Creates a new sync_timeline. Returns the sync_timeline object or NULL in
-  * case of error.
-  */
--struct sync_timeline *sync_timeline_create(const char *name)
-+static struct sync_timeline *sync_timeline_create(const char *name)
- {
- 	struct sync_timeline *obj;
+diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
+index 251a556112a9..e04235ea23fb 100644
+--- a/drivers/media/firewire/firedtv-avc.c
++++ b/drivers/media/firewire/firedtv-avc.c
+@@ -1181,8 +1181,9 @@ int avc_ca_pmt(struct firedtv *fdtv, char *msg, int length)
+ 		if (es_info_length > 0) {
+ 			pmt_cmd_id = msg[read_pos++];
+ 			if (pmt_cmd_id != 1 && pmt_cmd_id != 4)
+-				dev_err(fdtv->device, "invalid pmt_cmd_id %d "
+-					"at stream level\n", pmt_cmd_id);
++				dev_err(fdtv->device,
++					"invalid pmt_cmd_id %d at stream level\n",
++					pmt_cmd_id);
+ 
+ 			if (es_info_length > sizeof(c->operand) - 4 -
+ 					     write_pos) {
+diff --git a/drivers/media/firewire/firedtv-rc.c b/drivers/media/firewire/firedtv-rc.c
+index f82d4a93feb3..babfb9cee20e 100644
+--- a/drivers/media/firewire/firedtv-rc.c
++++ b/drivers/media/firewire/firedtv-rc.c
+@@ -184,8 +184,9 @@ void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code)
+ 	else if (code >= 0x4540 && code <= 0x4542)
+ 		code = oldtable[code - 0x4521];
+ 	else {
+-		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x "
+-		       "from remote control\n", code);
++		printk(KERN_DEBUG
++		       "firedtv: invalid key code 0x%04x from remote control\n",
++		       code);
+ 		return;
+ 	}
+ 
+-- 
+2.7.4
+
 
