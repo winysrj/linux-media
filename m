@@ -1,59 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36008
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932930AbcJQPob (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57897 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754163AbcJNRfH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 11:44:31 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        kernel@stlinux.com,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        devel@driverdev.osuosl.org, Kevin Hilman <khilman@baylibre.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Carlo Caione <carlo@caione.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-amlogic@lists.infradead.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 0/5] [media] Fix module autoload for media platform drivers
-Date: Mon, 17 Oct 2016 12:44:07 -0300
-Message-Id: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+        Fri, 14 Oct 2016 13:35:07 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 19/21] [media] video-multiplexer: set entity function to mux
+Date: Fri, 14 Oct 2016 19:34:39 +0200
+Message-Id: <1476466481-24030-20-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/video-multiplexer.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-I noticed that module autoload won't be working in a bunch of media
-platform drivers because the module alias information is not filled
-in the modules. This patch series contains the fixes for them.
-
-Best regards,
-Javier
-
-
-Javier Martinez Canillas (5):
-  [media] v4l: vsp1: Fix module autoload for OF registration
-  [media] v4l: rcar-fcp: Fix module autoload for OF registration
-  [media] rc: meson-ir: Fix module autoload
-  [media] s5p-cec: Fix module autoload
-  [media] st-cec: Fix module autoload
-
- drivers/media/platform/rcar-fcp.c       | 1 +
- drivers/media/platform/vsp1/vsp1_drv.c  | 1 +
- drivers/media/rc/meson-ir.c             | 1 +
- drivers/staging/media/s5p-cec/s5p_cec.c | 1 +
- drivers/staging/media/st-cec/stih-cec.c | 1 +
- 5 files changed, 5 insertions(+)
-
+diff --git a/drivers/media/platform/video-multiplexer.c b/drivers/media/platform/video-multiplexer.c
+index f79b90e..466d9d0 100644
+--- a/drivers/media/platform/video-multiplexer.c
++++ b/drivers/media/platform/video-multiplexer.c
+@@ -138,6 +138,7 @@ static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
+ 		vidsw->pads[i].flags = MEDIA_PAD_FL_SINK;
+ 	vidsw->pads[numports - 1].flags = MEDIA_PAD_FL_SOURCE;
+ 
++	vidsw->subdev.entity.function = MEDIA_ENT_F_MUX;
+ 	ret = media_entity_pads_init(&vidsw->subdev.entity, numports,
+ 				     vidsw->pads);
+ 	if (ret < 0)
 -- 
-2.7.4
+2.9.3
 
