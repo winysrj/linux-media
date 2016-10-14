@@ -1,79 +1,336 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34159
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754819AbcJGUju (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 16:39:50 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 2/3] [media] exynos-gsc: unregister video device node on driver removal
-Date: Fri,  7 Oct 2016 17:39:18 -0300
-Message-Id: <1475872759-17969-3-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1475872759-17969-1-git-send-email-javier@osg.samsung.com>
-References: <1475872759-17969-1-git-send-email-javier@osg.samsung.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:48627 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754653AbcJNRrG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 13:47:06 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 25/25] [media] nxt6000: use pr_foo() macros instead of printk()
+Date: Fri, 14 Oct 2016 14:46:03 -0300
+Message-Id: <1f22b75d204b912d67f8e3a2dea4a47cbe222ace.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver doesn't unregister the video device node when the driver is
-removed, this keeps video device nodes that makes the machine to crash
-with a NULL pointer dereference when nodes are attempted to be opened:
+Replace printk() macros by their pr_foo() counterparts and
+use pr_cont() for the continuation lines.
 
-[   36.530006] Unable to handle kernel paging request at virtual address bf1f8200
-[   36.535985] pgd = edbbc000
-[   36.538486] [bf1f8200] *pgd=6d99a811, *pte=00000000, *ppte=00000000
-[   36.544727] Internal error: Oops: 7 [#1] PREEMPT SMP ARM
-[   36.550016] Modules linked in: s5p_jpeg s5p_mfc v4l2_mem2mem videobuf2_dma_contig
-[   36.566303] CPU: 6 PID: 533 Comm: v4l2-ctl Not tainted 4.8.0
-[   36.574466] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[   36.580526] task: ee3cc600 task.stack: ed626000
-[   36.585046] PC is at try_module_get+0x1c/0xac
-[   36.589364] LR is at try_module_get+0x1c/0xac
-[   36.593698] pc : [<c0187a60>]    lr : [<c0187a60>]    psr: 80070013
-[   36.593698] sp : ed627de0  ip : a0070013  fp : 00000000
-[   36.605156] r10: 00000002  r9 : ed627ed0  r8 : 00000000
-[   36.610331] r7 : c01e5f14  r6 : ed57be00  r5 : bf1f8200  r4 : bf1f8200
-[   36.616834] r3 : 00000002  r2 : 00000002  r1 : 01930192  r0 : 00000001
-..
-[   36.785004] [<c0187a60>] (try_module_get) from [<c01e5c10>] (cdev_get+0x1c/0x4c)
-[   36.792362] [<c01e5c10>] (cdev_get) from [<c01e5f40>] (chrdev_open+0x2c/0x178)
-[   36.799555] [<c01e5f40>] (chrdev_open) from [<c01df5d4>] (do_dentry_open+0x1e0/0x300)
-[   36.807360] [<c01df5d4>] (do_dentry_open) from [<c01eecdc>] (path_openat+0x35c/0xf58)
-[   36.815154] [<c01eecdc>] (path_openat) from [<c01f0668>] (do_filp_open+0x5c/0xc0)
-[   36.822606] [<c01f0668>] (do_filp_open) from [<c01e09ac>] (do_sys_open+0x10c/0x1bc)
-[   36.830235] [<c01e09ac>] (do_sys_open) from [<c01078c0>] (ret_fast_syscall+0x0/0x3c)
-[   36.837942] Code: 0a00001c e1a04000 e3a00001 ebfec92d (e5943000)
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
+ drivers/media/dvb-frontends/nxt6000.c | 136 +++++++++++++++++++---------------
+ 1 file changed, 76 insertions(+), 60 deletions(-)
 
- drivers/media/platform/exynos-gsc/gsc-m2m.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index a1cac52ea230..c8c0bcec35ed 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -781,6 +781,8 @@ err_m2m_release:
+diff --git a/drivers/media/dvb-frontends/nxt6000.c b/drivers/media/dvb-frontends/nxt6000.c
+index 73f9505367ac..1545d898b125 100644
+--- a/drivers/media/dvb-frontends/nxt6000.c
++++ b/drivers/media/dvb-frontends/nxt6000.c
+@@ -19,6 +19,8 @@
+     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
  
- void gsc_unregister_m2m_device(struct gsc_dev *gsc)
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -39,7 +41,11 @@ struct nxt6000_state {
+ };
+ 
+ static int debug;
+-#define dprintk if (debug) printk
++#define dprintk(fmt, arg...) do {					\
++	if (debug)							\
++		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
++		       __func__, ##arg);				\
++} while (0)
+ 
+ static int nxt6000_writereg(struct nxt6000_state* state, u8 reg, u8 data)
  {
--	if (gsc)
-+	if (gsc) {
- 		v4l2_m2m_release(gsc->m2m.m2m_dev);
-+		video_unregister_device(&gsc->vdev);
-+	}
+@@ -215,119 +221,129 @@ static void nxt6000_dump_status(struct nxt6000_state *state)
+ {
+ 	u8 val;
+ 
+-/*
+-	printk("RS_COR_STAT: 0x%02X\n", nxt6000_readreg(fe, RS_COR_STAT));
+-	printk("VIT_SYNC_STATUS: 0x%02X\n", nxt6000_readreg(fe, VIT_SYNC_STATUS));
+-	printk("OFDM_COR_STAT: 0x%02X\n", nxt6000_readreg(fe, OFDM_COR_STAT));
+-	printk("OFDM_SYR_STAT: 0x%02X\n", nxt6000_readreg(fe, OFDM_SYR_STAT));
+-	printk("OFDM_TPS_RCVD_1: 0x%02X\n", nxt6000_readreg(fe, OFDM_TPS_RCVD_1));
+-	printk("OFDM_TPS_RCVD_2: 0x%02X\n", nxt6000_readreg(fe, OFDM_TPS_RCVD_2));
+-	printk("OFDM_TPS_RCVD_3: 0x%02X\n", nxt6000_readreg(fe, OFDM_TPS_RCVD_3));
+-	printk("OFDM_TPS_RCVD_4: 0x%02X\n", nxt6000_readreg(fe, OFDM_TPS_RCVD_4));
+-	printk("OFDM_TPS_RESERVED_1: 0x%02X\n", nxt6000_readreg(fe, OFDM_TPS_RESERVED_1));
+-	printk("OFDM_TPS_RESERVED_2: 0x%02X\n", nxt6000_readreg(fe, OFDM_TPS_RESERVED_2));
+-*/
+-	printk("NXT6000 status:");
++#if 0
++	pr_info("RS_COR_STAT: 0x%02X\n",
++		nxt6000_readreg(fe, RS_COR_STAT));
++	pr_info("VIT_SYNC_STATUS: 0x%02X\n",
++		nxt6000_readreg(fe, VIT_SYNC_STATUS));
++	pr_info("OFDM_COR_STAT: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_COR_STAT));
++	pr_info("OFDM_SYR_STAT: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_SYR_STAT));
++	pr_info("OFDM_TPS_RCVD_1: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_TPS_RCVD_1));
++	pr_info("OFDM_TPS_RCVD_2: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_TPS_RCVD_2));
++	pr_info("OFDM_TPS_RCVD_3: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_TPS_RCVD_3));
++	pr_info("OFDM_TPS_RCVD_4: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_TPS_RCVD_4));
++	pr_info("OFDM_TPS_RESERVED_1: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_TPS_RESERVED_1));
++	pr_info("OFDM_TPS_RESERVED_2: 0x%02X\n",
++		nxt6000_readreg(fe, OFDM_TPS_RESERVED_2));
++#endif
++	pr_info("NXT6000 status:");
+ 
+ 	val = nxt6000_readreg(state, RS_COR_STAT);
+ 
+-	printk(" DATA DESCR LOCK: %d,", val & 0x01);
+-	printk(" DATA SYNC LOCK: %d,", (val >> 1) & 0x01);
++	pr_cont(" DATA DESCR LOCK: %d,", val & 0x01);
++	pr_cont(" DATA SYNC LOCK: %d,", (val >> 1) & 0x01);
+ 
+ 	val = nxt6000_readreg(state, VIT_SYNC_STATUS);
+ 
+-	printk(" VITERBI LOCK: %d,", (val >> 7) & 0x01);
++	pr_cont(" VITERBI LOCK: %d,", (val >> 7) & 0x01);
+ 
+ 	switch ((val >> 4) & 0x07) {
+ 
+ 	case 0x00:
+-		printk(" VITERBI CODERATE: 1/2,");
++		pr_cont(" VITERBI CODERATE: 1/2,");
+ 		break;
+ 
+ 	case 0x01:
+-		printk(" VITERBI CODERATE: 2/3,");
++		pr_cont(" VITERBI CODERATE: 2/3,");
+ 		break;
+ 
+ 	case 0x02:
+-		printk(" VITERBI CODERATE: 3/4,");
++		pr_cont(" VITERBI CODERATE: 3/4,");
+ 		break;
+ 
+ 	case 0x03:
+-		printk(" VITERBI CODERATE: 5/6,");
++		pr_cont(" VITERBI CODERATE: 5/6,");
+ 		break;
+ 
+ 	case 0x04:
+-		printk(" VITERBI CODERATE: 7/8,");
++		pr_cont(" VITERBI CODERATE: 7/8,");
+ 		break;
+ 
+ 	default:
+-		printk(" VITERBI CODERATE: Reserved,");
++		pr_cont(" VITERBI CODERATE: Reserved,");
+ 
+ 	}
+ 
+ 	val = nxt6000_readreg(state, OFDM_COR_STAT);
+ 
+-	printk(" CHCTrack: %d,", (val >> 7) & 0x01);
+-	printk(" TPSLock: %d,", (val >> 6) & 0x01);
+-	printk(" SYRLock: %d,", (val >> 5) & 0x01);
+-	printk(" AGCLock: %d,", (val >> 4) & 0x01);
++	pr_cont(" CHCTrack: %d,", (val >> 7) & 0x01);
++	pr_cont(" TPSLock: %d,", (val >> 6) & 0x01);
++	pr_cont(" SYRLock: %d,", (val >> 5) & 0x01);
++	pr_cont(" AGCLock: %d,", (val >> 4) & 0x01);
+ 
+ 	switch (val & 0x0F) {
+ 
+ 	case 0x00:
+-		printk(" CoreState: IDLE,");
++		pr_cont(" CoreState: IDLE,");
+ 		break;
+ 
+ 	case 0x02:
+-		printk(" CoreState: WAIT_AGC,");
++		pr_cont(" CoreState: WAIT_AGC,");
+ 		break;
+ 
+ 	case 0x03:
+-		printk(" CoreState: WAIT_SYR,");
++		pr_cont(" CoreState: WAIT_SYR,");
+ 		break;
+ 
+ 	case 0x04:
+-		printk(" CoreState: WAIT_PPM,");
++		pr_cont(" CoreState: WAIT_PPM,");
+ 		break;
+ 
+ 	case 0x01:
+-		printk(" CoreState: WAIT_TRL,");
++		pr_cont(" CoreState: WAIT_TRL,");
+ 		break;
+ 
+ 	case 0x05:
+-		printk(" CoreState: WAIT_TPS,");
++		pr_cont(" CoreState: WAIT_TPS,");
+ 		break;
+ 
+ 	case 0x06:
+-		printk(" CoreState: MONITOR_TPS,");
++		pr_cont(" CoreState: MONITOR_TPS,");
+ 		break;
+ 
+ 	default:
+-		printk(" CoreState: Reserved,");
++		pr_cont(" CoreState: Reserved,");
+ 
+ 	}
+ 
+ 	val = nxt6000_readreg(state, OFDM_SYR_STAT);
+ 
+-	printk(" SYRLock: %d,", (val >> 4) & 0x01);
+-	printk(" SYRMode: %s,", (val >> 2) & 0x01 ? "8K" : "2K");
++	pr_cont(" SYRLock: %d,", (val >> 4) & 0x01);
++	pr_cont(" SYRMode: %s,", (val >> 2) & 0x01 ? "8K" : "2K");
+ 
+ 	switch ((val >> 4) & 0x03) {
+ 
+ 	case 0x00:
+-		printk(" SYRGuard: 1/32,");
++		pr_cont(" SYRGuard: 1/32,");
+ 		break;
+ 
+ 	case 0x01:
+-		printk(" SYRGuard: 1/16,");
++		pr_cont(" SYRGuard: 1/16,");
+ 		break;
+ 
+ 	case 0x02:
+-		printk(" SYRGuard: 1/8,");
++		pr_cont(" SYRGuard: 1/8,");
+ 		break;
+ 
+ 	case 0x03:
+-		printk(" SYRGuard: 1/4,");
++		pr_cont(" SYRGuard: 1/4,");
+ 		break;
+ 	}
+ 
+@@ -336,77 +352,77 @@ static void nxt6000_dump_status(struct nxt6000_state *state)
+ 	switch ((val >> 4) & 0x07) {
+ 
+ 	case 0x00:
+-		printk(" TPSLP: 1/2,");
++		pr_cont(" TPSLP: 1/2,");
+ 		break;
+ 
+ 	case 0x01:
+-		printk(" TPSLP: 2/3,");
++		pr_cont(" TPSLP: 2/3,");
+ 		break;
+ 
+ 	case 0x02:
+-		printk(" TPSLP: 3/4,");
++		pr_cont(" TPSLP: 3/4,");
+ 		break;
+ 
+ 	case 0x03:
+-		printk(" TPSLP: 5/6,");
++		pr_cont(" TPSLP: 5/6,");
+ 		break;
+ 
+ 	case 0x04:
+-		printk(" TPSLP: 7/8,");
++		pr_cont(" TPSLP: 7/8,");
+ 		break;
+ 
+ 	default:
+-		printk(" TPSLP: Reserved,");
++		pr_cont(" TPSLP: Reserved,");
+ 
+ 	}
+ 
+ 	switch (val & 0x07) {
+ 
+ 	case 0x00:
+-		printk(" TPSHP: 1/2,");
++		pr_cont(" TPSHP: 1/2,");
+ 		break;
+ 
+ 	case 0x01:
+-		printk(" TPSHP: 2/3,");
++		pr_cont(" TPSHP: 2/3,");
+ 		break;
+ 
+ 	case 0x02:
+-		printk(" TPSHP: 3/4,");
++		pr_cont(" TPSHP: 3/4,");
+ 		break;
+ 
+ 	case 0x03:
+-		printk(" TPSHP: 5/6,");
++		pr_cont(" TPSHP: 5/6,");
+ 		break;
+ 
+ 	case 0x04:
+-		printk(" TPSHP: 7/8,");
++		pr_cont(" TPSHP: 7/8,");
+ 		break;
+ 
+ 	default:
+-		printk(" TPSHP: Reserved,");
++		pr_cont(" TPSHP: Reserved,");
+ 
+ 	}
+ 
+ 	val = nxt6000_readreg(state, OFDM_TPS_RCVD_4);
+ 
+-	printk(" TPSMode: %s,", val & 0x01 ? "8K" : "2K");
++	pr_cont(" TPSMode: %s,", val & 0x01 ? "8K" : "2K");
+ 
+ 	switch ((val >> 4) & 0x03) {
+ 
+ 	case 0x00:
+-		printk(" TPSGuard: 1/32,");
++		pr_cont(" TPSGuard: 1/32,");
+ 		break;
+ 
+ 	case 0x01:
+-		printk(" TPSGuard: 1/16,");
++		pr_cont(" TPSGuard: 1/16,");
+ 		break;
+ 
+ 	case 0x02:
+-		printk(" TPSGuard: 1/8,");
++		pr_cont(" TPSGuard: 1/8,");
+ 		break;
+ 
+ 	case 0x03:
+-		printk(" TPSGuard: 1/4,");
++		pr_cont(" TPSGuard: 1/4,");
+ 		break;
+ 
+ 	}
+@@ -416,8 +432,8 @@ static void nxt6000_dump_status(struct nxt6000_state *state)
+ 	val = nxt6000_readreg(state, RF_AGC_STATUS);
+ 	val = nxt6000_readreg(state, RF_AGC_STATUS);
+ 
+-	printk(" RF AGC LOCK: %d,", (val >> 4) & 0x01);
+-	printk("\n");
++	pr_cont(" RF AGC LOCK: %d,", (val >> 4) & 0x01);
++	pr_cont("\n");
  }
+ 
+ static int nxt6000_read_status(struct dvb_frontend *fe, enum fe_status *status)
 -- 
 2.7.4
+
 
