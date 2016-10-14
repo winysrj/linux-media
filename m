@@ -1,89 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:50572 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753660AbcJNMKy (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:55449 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755782AbcJNRfI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 08:10:54 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 2/2] [media] vb2: Add support for use_dma_bidirectional queue flag
-Date: Fri, 14 Oct 2016 14:08:14 +0200
-Message-Id: <1476446894-4220-3-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
-References: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Fri, 14 Oct 2016 13:35:08 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 20/21] [media] imx: Set i.MX MIPI CSI-2 entity function to bridge
+Date: Fri, 14 Oct 2016 19:34:40 +0200
+Message-Id: <1476466481-24030-21-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pawel Osciak <posciak@chromium.org>
+The i.MX6 MIPI CSI2 bridge converts the external MIPI CSI2 input into
+a SoC internal parallel bus connected to the IPU CSIs via the CSI2IPU
+gasket.
 
-When this flag is set for CAPTURE queues by the driver on calling
-vb2_queue_init(), it forces the buffers on the queue to be
-allocated/mapped with DMA_BIDIRECTIONAL direction flag, instead of
-DMA_FROM_DEVICE. This allows the device not only to write to the
-buffers, but also read out from them. This may be useful e.g. for codec
-hardware, which may be using CAPTURE buffers as reference to decode
-other buffers.
-
-This flag is ignored for OUTPUT queues, as we don't want to allow HW to
-be able to write to OUTPUT buffers.
-
-Signed-off-by: Pawel Osciak <posciak@chromium.org>
-Tested-by: Pawel Osciak <posciak@chromium.org>
-Reviewed-by: Tomasz Figa <tfiga@chromium.org>
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/v4l2-core/videobuf2-v4l2.c | 8 ++++++--
- include/media/videobuf2-core.h           | 4 ++++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ drivers/media/platform/imx/imx-mipi-csi2.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index fde1e2d..9255291 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -659,8 +659,12 @@ int vb2_queue_init(struct vb2_queue *q)
- 	 * queues will always initialize waiting_for_buffers to false.
- 	 */
- 	q->quirk_poll_must_check_waiting_for_buffers = true;
--	q->dma_dir = V4L2_TYPE_IS_OUTPUT(q->type)
--		   ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
-+
-+	if (V4L2_TYPE_IS_OUTPUT(q->type))
-+		q->dma_dir = DMA_TO_DEVICE;
-+	else
-+		q->dma_dir = q->use_dma_bidirectional
-+			   ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
- 
- 	return vb2_core_queue_init(q);
- }
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 38410dd..e613c74 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -433,6 +433,9 @@ struct vb2_buf_ops {
-  * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
-  *              has not been called. This is a vb1 idiom that has been adopted
-  *              also by vb2.
-+ * @use_dma_bidirectional:	use DMA_BIDIRECTIONAL for CAPTURE buffers; this
-+ *				allows HW to read from the CAPTURE buffers in
-+ *				addition to writing; ignored for OUTPUT queues
-  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
-  *		driver can set this to a mutex to let the v4l2 core serialize
-  *		the queuing ioctls. If the driver wants to handle locking
-@@ -500,6 +503,7 @@ struct vb2_queue {
- 	unsigned			fileio_write_immediately:1;
- 	unsigned			allow_zero_bytesused:1;
- 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
-+	unsigned			use_dma_bidirectional:1;
- 
- 	struct mutex			*lock;
- 	void				*owner;
+diff --git a/drivers/media/platform/imx/imx-mipi-csi2.c b/drivers/media/platform/imx/imx-mipi-csi2.c
+index 7b289cc..6b00a67 100644
+--- a/drivers/media/platform/imx/imx-mipi-csi2.c
++++ b/drivers/media/platform/imx/imx-mipi-csi2.c
+@@ -606,6 +606,7 @@ static int mipi_csi2_probe(struct platform_device *pdev)
+ 	csi2->pads[2].flags = MEDIA_PAD_FL_SOURCE;
+ 	csi2->pads[3].flags = MEDIA_PAD_FL_SOURCE;
+ 	csi2->pads[4].flags = MEDIA_PAD_FL_SOURCE;
++	csi2->subdev.entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
+ 	ret = media_entity_pads_init(&csi2->subdev.entity, MIPI_CSI2_PADS,
+ 				csi2->pads);
+ 	if (ret < 0)
 -- 
-2.7.4
+2.9.3
 
