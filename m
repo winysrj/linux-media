@@ -1,98 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:37228 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933655AbcJXQKI (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48650 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755105AbcJNRrH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 12:10:08 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 1/2] [media] videobuf2-dc: Move vb2_dc_get_base_sgt() above mmap callbacks
-Date: Mon, 24 Oct 2016 18:09:59 +0200
-Message-Id: <1477325400-26450-2-git-send-email-thierry.escande@collabora.com>
-In-Reply-To: <1477325400-26450-1-git-send-email-thierry.escande@collabora.com>
-References: <1477325400-26450-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Fri, 14 Oct 2016 13:47:07 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 13/25] [media] dvb_demux: uncomment a packet loss check code
+Date: Fri, 14 Oct 2016 14:45:51 -0300
+Message-Id: <80f91bcddf727c2bb50b3fc378d9b5640dd2f239.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch moves vb2_dc_get_base_sgt() function above mmap buffers
-callbacks, particularly vb2_dc_alloc() and vb2_dc_mmap() from where it
-will be called for cacheable MMAP support introduced in the next patch.
+There is a commented code that also detects packet loss.
+Uncomment it and put into the DVB_DEMUX_SECTION_LOSS_LOG
+debug Kconfig option.
 
-Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c | 44 +++++++++++++-------------
- 1 file changed, 22 insertions(+), 22 deletions(-)
+ drivers/media/dvb-core/dvb_demux.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index a44e383..0d9665d 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -61,6 +61,28 @@ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
- 	return size;
- }
- 
-+static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-+{
-+	int ret;
-+	struct sg_table *sgt;
-+
-+	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt) {
-+		dev_err(buf->dev, "failed to alloc sg table\n");
-+		return NULL;
-+	}
-+
-+	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
-+		buf->size, buf->attrs);
-+	if (ret < 0) {
-+		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
-+		kfree(sgt);
-+		return NULL;
-+	}
-+
-+	return sgt;
-+}
-+
- /*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
-@@ -363,28 +385,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.release = vb2_dc_dmabuf_ops_release,
- };
- 
--static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
--{
--	int ret;
--	struct sg_table *sgt;
--
--	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
--	if (!sgt) {
--		dev_err(buf->dev, "failed to alloc sg table\n");
--		return NULL;
--	}
--
--	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
--		buf->size, buf->attrs);
--	if (ret < 0) {
--		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
--		kfree(sgt);
--		return NULL;
--	}
--
--	return sgt;
--}
--
- static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
+index 5a69b0bda4bb..51bf5eb2df49 100644
+--- a/drivers/media/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb-core/dvb_demux.c
+@@ -110,21 +110,23 @@ static inline int dvb_dmx_swfilter_payload(struct dvb_demux_feed *feed,
  {
- 	struct vb2_dc_buf *buf = buf_priv;
+ 	int count = payload(buf);
+ 	int p;
+-	//int ccok;
+-	//u8 cc;
++#ifdef CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
++	int ccok;
++	u8 cc;
++#endif
+ 
+ 	if (count == 0)
+ 		return -1;
+ 
+ 	p = 188 - count;
+ 
+-	/*
++#ifdef CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
+ 	cc = buf[3] & 0x0f;
+ 	ccok = ((feed->cc + 1) & 0x0f) == cc;
+ 	feed->cc = cc;
+ 	if (!ccok)
+ 		dprintk("missed packet!\n");
+-	*/
++#endif
+ 
+ 	if (buf[1] & 0x40)	// PUSI ?
+ 		feed->peslen = 0xfffa;
 -- 
 2.7.4
+
 
