@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yb0-f181.google.com ([209.85.213.181]:33628 "EHLO
-        mail-yb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752415AbcJJPsj (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:50561 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753210AbcJNMKy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 11:48:39 -0400
-Received: by mail-yb0-f181.google.com with SMTP id e20so39450805ybb.0
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:48:38 -0700 (PDT)
-Date: Mon, 10 Oct 2016 17:48:31 +0200
-From: Gary Bisson <gary.bisson@boundarydevices.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de
-Subject: Re: [16/22] ARM: dts: nitrogen6x: Add dtsi for BD_HDMI_MIPI HDMI to
- MIPI CSI-2 receiver board
-Message-ID: <20161010154831.gyopknmklf4sxdt6@t450s.lan>
-References: <20161007160107.5074-17-p.zabel@pengutronix.de>
+        Fri, 14 Oct 2016 08:10:54 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 0/2] [media] DMA direction support in vb2_queue
+Date: Fri, 14 Oct 2016 14:08:12 +0200
+Message-Id: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161007160107.5074-17-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp, All,
+Hi,
 
-On Fri, Oct 07, 2016 at 06:01:01PM +0200, Philipp Zabel wrote:
-> Add device tree nodes for the BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver
-> board with a TC358743 connected to the Nitrogen6X MIPI CSI-2 input
-> connector.
+This series adds a dma_dir field to the vb2_queue structure in order to
+store the DMA direction once for all in vb2_queue_init();
 
-I've tested this series on my Nitrogen6x + BD_HDMI_MIPI daughter board
-and have a few questions.
+It also adds a new use_dma_bidirectional flag to the vb2_queue structure
+allowing the hardware to read from the CAPTURE buffer. This flag is
+ignored for OUTPUT queues. This is used on ChromeOS by the rockchip-vpu
+driver.
 
-First, why is the tc358743 node in a separate dtsi file? Is this in
-order to avoid a failed probe during bootup if the daughter board is
-not present? Is this what should be done for every capture device that
-targets this platform (like the OV5640 or OV5642)?
+Pawel Osciak (2):
+  [media] vb2: Store dma_dir in vb2_queue
+  [media] vb2: Add support for use_dma_bidirectional queue flag
 
-Can you provide some details on your testing procedure? In my case I've
-reached a point where I get the same 'media-ctl --print-dot' output as
-the one from your cover letter but I can't seem to set the EDID nor to
-have a gstreamer pipeline (to fakesink). All the EDID v4l2-ctl commands
-return "Inappropriate ioctl for device".
+ drivers/media/v4l2-core/videobuf2-core.c | 12 +++---------
+ drivers/media/v4l2-core/videobuf2-v4l2.c |  6 ++++++
+ include/media/videobuf2-core.h           |  6 ++++++
+ 3 files changed, 15 insertions(+), 9 deletions(-)
 
-Do not hesitate to CC me to Boundary Devices related patches so I can
-test them and give some feedback.
+-- 
+2.7.4
 
-Regards,
-Gary
