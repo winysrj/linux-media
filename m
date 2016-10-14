@@ -1,104 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:51242 "EHLO
-        usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754537AbcJKWAW (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59042 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756294AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 18:00:22 -0400
-Received: from uscas1p1.samsung.com (unknown [182.198.245.206])
- by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OEW009KFJO0FN20@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 11 Oct 2016 17:28:49 -0400 (EDT)
-Date: Tue, 11 Oct 2016 18:28:44 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: Re:
- [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408 3/31]
- drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line 169
-Message-id: <20161011182844.12e00307.m.chehab@samsung.com>
-In-reply-to: <alpine.DEB.2.10.1610111516130.2883@hadrien>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-References: <alpine.DEB.2.10.1610111515300.2883@hadrien>
- <CGME20161011131638uscas1p2f968a6dadabcf9b3c95eabe17116b3fd@uscas1p2.samsung.com>
- <alpine.DEB.2.10.1610111516130.2883@hadrien>
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Takashi Iwai <tiwai@suse.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geliang Tang <geliangtang@163.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 08/57] [media] bt8xx: don't break long lines
+Date: Fri, 14 Oct 2016 17:19:56 -0300
+Message-Id: <eb1d210b4f04e9a675790dfc69f26f78c3ea8a79.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 11 Oct 2016 15:16:24 +0200 (CEST)
-Julia Lawall <julia.lawall@lip6.fr> escreveu:
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-> On Tue, 11 Oct 2016, Julia Lawall wrote:
-> 
-> > It looks like a lock may be needed before line 174.  
-> 
-> Sorry, an unlock.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/bt8xx/bttv-cards.c  | 9 +++------
+ drivers/media/pci/bt8xx/bttv-driver.c | 6 ++----
+ drivers/media/pci/bt8xx/bttv-i2c.c    | 6 ++----
+ drivers/media/pci/bt8xx/bttv-input.c  | 3 +--
+ 4 files changed, 8 insertions(+), 16 deletions(-)
 
-I suspect that this is a false positive warning, as there is a
-mutex unlock on the same routine, at line 203. All exit
-conditions go to the unlock condition.
-
-Am I missing something?
-
-> 
-> >
-> > julia
-> >
-> > ---------- Forwarded message ----------
-> > Date: Tue, 11 Oct 2016 21:06:18 +0800
-> > From: kbuild test robot <fengguang.wu@intel.com>
-> > To: kbuild@01.org
-> > Cc: Julia Lawall <julia.lawall@lip6.fr>
-> > Subject:
-> >     [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-medi
-> >     a-usb-drivers/20161011-182408 3/31]
-> >     drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line
-> >     169
-> >
-> > CC: kbuild-all@01.org
-> > TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-> > CC: linux-media@vger.kernel.org
-> > CC: 0day robot <fengguang.wu@intel.com>
-> >
-> > tree:   https://github.com/0day-ci/linux Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408
-> > head:   ff49f775552fe4ebe2944527cf882073679cb1e5
-> > commit: b38d98275e144aaea9db69ba2dcba58466046d9b [3/31] cinergyT2-core: handle error code on RC query
-> > :::::: branch date: 3 hours ago
-> > :::::: commit date: 3 hours ago
-> >  
-> > >> drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line 169  
-> >
-> > git remote add linux-review https://github.com/0day-ci/linux
-> > git remote update linux-review
-> > git checkout b38d98275e144aaea9db69ba2dcba58466046d9b
-> > vim +174 drivers/media/usb/dvb-usb/cinergyT2-core.c
-> >
-> > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  163  {
-> > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  164  	struct cinergyt2_state *st = d->priv;
-> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  165  	int i, ret;
-> > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  166
-> > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  167  	*state = REMOTE_NO_KEY_PRESSED;
-> > 986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  168
-> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @169  	mutex_lock(&st->data_mutex);
-> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  170  	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
-> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  171
-> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  172  	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  173  	if (ret < 0)
-> > b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @174  		return ret;
-> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  175
-> > 48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  176  	if (st->data[4] == 0xff) {
-> > 7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  177  		/* key repeat */
-> >
-> > ---
-> > 0-DAY kernel test infrastructure                Open Source Technology Center
-> > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> >  
-> 
-> 
-
-
+diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
+index 8a17cc0bfa07..4ad50f978e0e 100644
+--- a/drivers/media/pci/bt8xx/bttv-cards.c
++++ b/drivers/media/pci/bt8xx/bttv-cards.c
+@@ -125,10 +125,8 @@ module_param_array(remote,   int, NULL, 0444);
+ module_param_array(audiodev, int, NULL, 0444);
+ module_param_array(audiomux, int, NULL, 0444);
+ 
+-MODULE_PARM_DESC(triton1,"set ETBF pci config bit "
+-		 "[enable bug compatibility for triton1 + others]");
+-MODULE_PARM_DESC(vsfx,"set VSFX pci config bit "
+-		 "[yet another chipset flaw workaround]");
++MODULE_PARM_DESC(triton1,"set ETBF pci config bit [enable bug compatibility for triton1 + others]");
++MODULE_PARM_DESC(vsfx,"set VSFX pci config bit [yet another chipset flaw workaround]");
+ MODULE_PARM_DESC(latency,"pci latency timer");
+ MODULE_PARM_DESC(card,"specify TV/grabber card model, see CARDLIST file for a list");
+ MODULE_PARM_DESC(pll, "specify installed crystal (0=none, 28=28 MHz, 35=35 MHz, 14=14 MHz)");
+@@ -141,8 +139,7 @@ MODULE_PARM_DESC(audiodev, "specify audio device:\n"
+ 		"\t\t 2 = tda7432\n"
+ 		"\t\t 3 = tvaudio");
+ MODULE_PARM_DESC(saa6588, "if 1, then load the saa6588 RDS module, default (0) is to use the card definition.");
+-MODULE_PARM_DESC(no_overlay,"allow override overlay default (0 disables, 1 enables)"
+-		" [some VIA/SIS chipsets are known to have problem with overlay]");
++MODULE_PARM_DESC(no_overlay,"allow override overlay default (0 disables, 1 enables) [some VIA/SIS chipsets are known to have problem with overlay]");
+ 
+ /* ----------------------------------------------------------------------- */
+ /* list of card IDs for bt878+ cards                                       */
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 97b91a9f9fa9..fb4aefbcc8f8 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -148,8 +148,7 @@ MODULE_PARM_DESC(irq_debug, "irq handler debug messages, default is 0 (no)");
+ MODULE_PARM_DESC(disable_ir, "disable infrared remote support");
+ MODULE_PARM_DESC(gbuffers, "number of capture buffers. range 2-32, default 8");
+ MODULE_PARM_DESC(gbufsize, "size of the capture buffers, default is 0x208000");
+-MODULE_PARM_DESC(reset_crop, "reset cropping parameters at open(), default "
+-		 "is 1 (yes) for compatibility with older applications");
++MODULE_PARM_DESC(reset_crop, "reset cropping parameters at open(), default is 1 (yes) for compatibility with older applications");
+ MODULE_PARM_DESC(automute, "mute audio on bad/missing video signal, default is 1 (yes)");
+ MODULE_PARM_DESC(chroma_agc, "enables the AGC of chroma signal, default is 0 (no)");
+ MODULE_PARM_DESC(agc_crush, "enables the luminance AGC crush, default is 1 (yes)");
+@@ -3506,8 +3505,7 @@ static void bttv_irq_debug_low_latency(struct bttv *btv, u32 rc)
+ 		(unsigned long)rc);
+ 
+ 	if (0 == (btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC)) {
+-		pr_notice("%d: Oh, there (temporarily?) is no input signal. "
+-			  "Ok, then this is harmless, don't worry ;)\n",
++		pr_notice("%d: Oh, there (temporarily?) is no input signal. Ok, then this is harmless, don't worry ;)\n",
+ 			  btv->c.nr);
+ 		return;
+ 	}
+diff --git a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
+index d43911deb617..830437471038 100644
+--- a/drivers/media/pci/bt8xx/bttv-i2c.c
++++ b/drivers/media/pci/bt8xx/bttv-i2c.c
+@@ -44,15 +44,13 @@ static int i2c_scan;
+ module_param(i2c_debug, int, 0644);
+ MODULE_PARM_DESC(i2c_debug, "configure i2c debug level");
+ module_param(i2c_hw,    int, 0444);
+-MODULE_PARM_DESC(i2c_hw,"force use of hardware i2c support, "
+-			"instead of software bitbang");
++MODULE_PARM_DESC(i2c_hw,"force use of hardware i2c support, instead of software bitbang");
+ module_param(i2c_scan,  int, 0444);
+ MODULE_PARM_DESC(i2c_scan,"scan i2c bus at insmod time");
+ 
+ static unsigned int i2c_udelay = 5;
+ module_param(i2c_udelay, int, 0444);
+-MODULE_PARM_DESC(i2c_udelay,"soft i2c delay at insmod time, in usecs "
+-		"(should be 5 or higher). Lower value means higher bus speed.");
++MODULE_PARM_DESC(i2c_udelay,"soft i2c delay at insmod time, in usecs (should be 5 or higher). Lower value means higher bus speed.");
+ 
+ /* ----------------------------------------------------------------------- */
+ /* I2C functions - bitbanging adapter (software i2c)                       */
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index a75c53da224a..de2270e1ccc3 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -185,8 +185,7 @@ static u32 bttv_rc5_decode(unsigned int code)
+ 			return 0;
+ 		}
+ 	}
+-	dprintk("code=%x, rc5=%x, start=%x, toggle=%x, address=%x, "
+-		"instr=%x\n", rc5, org_code, RC5_START(rc5),
++	dprintk("code=%x, rc5=%x, start=%x, toggle=%x, address=%x, instr=%x\n", rc5, org_code, RC5_START(rc5),
+ 		RC5_TOGGLE(rc5), RC5_ADDR(rc5), RC5_INSTR(rc5));
+ 	return rc5;
+ }
 -- 
-Thanks,
-Mauro
+2.7.4
+
+
