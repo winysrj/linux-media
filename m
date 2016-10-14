@@ -1,345 +1,544 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51411 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:48636 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754659AbcJRUqQ (ORCPT
+        with ESMTP id S1754941AbcJNRrG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:16 -0400
+        Fri, 14 Oct 2016 13:47:06 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Stephen Backway <stev391@gmail.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Olli Salonen <olli.salonen@iki.fi>,
-        Inki Dae <inki.dae@samsung.com>,
-        Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH v2 08/58] cx23885: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:20 -0200
-Message-Id: <c801fa6742874da6f3b72804dcb9d32dae5bc2e9.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 16/25] [media] dvb_filter: get rid of dead code
+Date: Fri, 14 Oct 2016 14:45:54 -0300
+Message-Id: <6f7b17092454cdbcd82c478b5ac168388ef75e79.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
-
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
-
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+There are lots of stuff here commented out for a really
+long time. Get rid of them. If one wants it again, it
+could always use git log.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/cx23885/cimax2.c        |  5 ++---
- drivers/media/pci/cx23885/cx23885-417.c   | 17 +++++++----------
- drivers/media/pci/cx23885/cx23885-alsa.c  | 15 +++++++--------
- drivers/media/pci/cx23885/cx23885-cards.c |  8 +++-----
- drivers/media/pci/cx23885/cx23885-core.c  | 15 +++++++--------
- drivers/media/pci/cx23885/cx23885-dvb.c   |  3 +--
- drivers/media/pci/cx23885/cx23885-video.c |  3 +--
- drivers/media/pci/cx23885/cx23888-ir.c    |  7 +++----
- 8 files changed, 31 insertions(+), 42 deletions(-)
+ drivers/media/pci/ttpci/dvb_filter.c | 485 -----------------------------------
+ 1 file changed, 485 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cimax2.c b/drivers/media/pci/cx23885/cimax2.c
-index 631e4f24aea6..43febef2f649 100644
---- a/drivers/media/pci/cx23885/cimax2.c
-+++ b/drivers/media/pci/cx23885/cimax2.c
-@@ -365,9 +365,8 @@ static void netup_read_ci_status(struct work_struct *work)
- 		if (ret != 0)
- 			return;
+diff --git a/drivers/media/pci/ttpci/dvb_filter.c b/drivers/media/pci/ttpci/dvb_filter.c
+index 6395812ed1f1..227f93e2ef10 100644
+--- a/drivers/media/pci/ttpci/dvb_filter.c
++++ b/drivers/media/pci/ttpci/dvb_filter.c
+@@ -3,13 +3,6 @@
+ #include <linux/string.h>
+ #include "dvb_filter.h"
  
--		ci_dbg_print("%s: Slot Status Addr=[0x%04x], "
--				"Reg=[0x%02x], data=%02x, "
--				"TS config = %02x\n", __func__,
-+		ci_dbg_print("%s: Slot Status Addr=[0x%04x], Reg=[0x%02x], data=%02x, TS config = %02x\n",
-+			     __func__,
- 				state->ci_i2c_addr, 0, buf[0],
- 				buf[0]);
+-#if 0
+-static unsigned int bitrates[3][16] =
+-{{0,32,64,96,128,160,192,224,256,288,320,352,384,416,448,0},
+- {0,32,48,56,64,80,96,112,128,160,192,224,256,320,384,0},
+- {0,32,40,48,56,64,80,96,112,128,160,192,224,256,320,0}};
+-#endif
+-
+ static u32 freq[4] = {480, 441, 320, 0};
  
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index da892f3e3c29..0444db081b5c 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -770,8 +770,8 @@ static int cx23885_mbox_func(void *priv,
- 	mc417_memory_read(dev, dev->cx23417_mailbox - 4, &value);
- 	if (value != 0x12345678) {
- 		printk(KERN_ERR
--			"Firmware and/or mailbox pointer not initialized "
--			"or corrupted, signature = 0x%x, cmd = %s\n", value,
-+			"Firmware and/or mailbox pointer not initialized or corrupted, signature = 0x%x, cmd = %s\n",
-+value,
- 			cmd_to_str(command));
- 		return -1;
- 	}
-@@ -781,8 +781,8 @@ static int cx23885_mbox_func(void *priv,
- 	 */
- 	mc417_memory_read(dev, dev->cx23417_mailbox, &flag);
- 	if (flag) {
--		printk(KERN_ERR "ERROR: Mailbox appears to be in use "
--			"(%x), cmd = %s\n", flag, cmd_to_str(command));
-+		printk(KERN_ERR "ERROR: Mailbox appears to be in use (%x), cmd = %s\n",
-+		       flag, cmd_to_str(command));
- 		return -1;
- 	}
+ static unsigned int ac3_bitrates[32] =
+@@ -25,323 +18,6 @@ static u32 ac3_frames[3][32] =
+       1536,1728,1920,0,0,0,0,0,0,0,0,0,0,0,0,0}};
  
-@@ -935,14 +935,12 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
- 		printk(KERN_ERR
- 			"ERROR: Hotplug firmware request failed (%s).\n",
- 			CX23885_FIRM_IMAGE_NAME);
--		printk(KERN_ERR "Please fix your hotplug setup, the board will "
--			"not work without firmware loaded!\n");
-+		printk(KERN_ERR "Please fix your hotplug setup, the board will not work without firmware loaded!\n");
- 		return -1;
- 	}
  
- 	if (firmware->size != CX23885_FIRM_IMAGE_SIZE) {
--		printk(KERN_ERR "ERROR: Firmware size mismatch "
--			"(have %zu, expected %d)\n",
-+		printk(KERN_ERR "ERROR: Firmware size mismatch (have %zu, expected %d)\n",
- 			firmware->size, CX23885_FIRM_IMAGE_SIZE);
- 		release_firmware(firmware);
- 		return -1;
-@@ -1077,8 +1075,7 @@ static int cx23885_initialize_codec(struct cx23885_dev *dev, int startencoder)
- 		retval = cx23885_api_cmd(dev, CX2341X_ENC_GET_VERSION, 0, 1,
- 			&version);
- 		if (retval < 0) {
--			printk(KERN_ERR "ERROR: cx23417 firmware get encoder :"
--				"version failed!\n");
-+			printk(KERN_ERR "ERROR: cx23417 firmware get encoder :version failed!\n");
- 			return -1;
- 		}
- 		dprintk(1, "cx23417 firmware version is 0x%08x\n", version);
-diff --git a/drivers/media/pci/cx23885/cx23885-alsa.c b/drivers/media/pci/cx23885/cx23885-alsa.c
-index 6115d4e148ba..9d2a4e2dc54f 100644
---- a/drivers/media/pci/cx23885/cx23885-alsa.c
-+++ b/drivers/media/pci/cx23885/cx23885-alsa.c
-@@ -186,8 +186,8 @@ static int cx23885_start_audio_dma(struct cx23885_audio_dev *chip)
- 	cx_write(AUD_INT_A_GPCNT_CTL, GP_COUNT_CONTROL_RESET);
- 	atomic_set(&chip->count, 0);
- 
--	dprintk(1, "Start audio DMA, %d B/line, %d lines/FIFO, %d periods, %d "
--		"byte buffer\n", buf->bpl, cx_read(audio_ch->cmds_start+12)>>1,
-+	dprintk(1, "Start audio DMA, %d B/line, %d lines/FIFO, %d periods, %d byte buffer\n",
-+		buf->bpl, cx_read(audio_ch->cmds_start+12)>>1,
- 		chip->num_periods, buf->bpl * chip->num_periods);
- 
- 	/* Enables corresponding bits at AUD_INT_STAT */
-@@ -327,8 +327,7 @@ static int snd_cx23885_pcm_open(struct snd_pcm_substream *substream)
- 	int err;
- 
- 	if (!chip) {
--		printk(KERN_ERR "BUG: cx23885 can't find device struct."
--				" Can't proceed with open\n");
-+		printk(KERN_ERR "BUG: cx23885 can't find device struct. Can't proceed with open\n");
- 		return -ENODEV;
- 	}
- 
-@@ -555,8 +554,8 @@ struct cx23885_audio_dev *cx23885_audio_register(struct cx23885_dev *dev)
- 		return NULL;
- 
- 	if (dev->sram_channels[AUDIO_SRAM_CHANNEL].cmds_start == 0) {
--		printk(KERN_WARNING "%s(): Missing SRAM channel configuration "
--			"for analog TV Audio\n", __func__);
-+		printk(KERN_WARNING "%s(): Missing SRAM channel configuration for analog TV Audio\n",
-+		       __func__);
- 		return NULL;
- 	}
- 
-@@ -590,8 +589,8 @@ struct cx23885_audio_dev *cx23885_audio_register(struct cx23885_dev *dev)
- 
- error:
- 	snd_card_free(card);
--	printk(KERN_ERR "%s(): Failed to register analog "
--			"audio adapter\n", __func__);
-+	printk(KERN_ERR "%s(): Failed to register analog audio adapter\n",
-+	       __func__);
- 
- 	return NULL;
+-
+-#if 0
+-static void setup_ts2pes(ipack *pa, ipack *pv, u16 *pida, u16 *pidv,
+-		  void (*pes_write)(u8 *buf, int count, void *data),
+-		  void *priv)
+-{
+-	dvb_filter_ipack_init(pa, IPACKS, pes_write);
+-	dvb_filter_ipack_init(pv, IPACKS, pes_write);
+-	pa->pid = pida;
+-	pv->pid = pidv;
+-	pa->data = priv;
+-	pv->data = priv;
+-}
+-#endif
+-
+-#if 0
+-static void ts_to_pes(ipack *p, u8 *buf) // don't need count (=188)
+-{
+-	u8 off = 0;
+-
+-	if (!buf || !p ){
+-		printk("NULL POINTER IDIOT\n");
+-		return;
+-	}
+-	if (buf[1]&PAY_START) {
+-		if (p->plength == MMAX_PLENGTH-6 && p->found>6){
+-			p->plength = p->found-6;
+-			p->found = 0;
+-			send_ipack(p);
+-			dvb_filter_ipack_reset(p);
+-		}
+-	}
+-	if (buf[3] & ADAPT_FIELD) {  // adaptation field?
+-		off = buf[4] + 1;
+-		if (off+4 > 187) return;
+-	}
+-	dvb_filter_instant_repack(buf+4+off, TS_SIZE-4-off, p);
+-}
+-#endif
+-
+-#if 0
+-/* needs 5 byte input, returns picture coding type*/
+-static int read_picture_header(u8 *headr, struct mpg_picture *pic, int field, int pr)
+-{
+-	u8 pct;
+-
+-	if (pr) printk( "Pic header: ");
+-	pic->temporal_reference[field] = (( headr[0] << 2 ) |
+-					  (headr[1] & 0x03) )& 0x03ff;
+-	if (pr) printk( " temp ref: 0x%04x", pic->temporal_reference[field]);
+-
+-	pct = ( headr[1] >> 2 ) & 0x07;
+-	pic->picture_coding_type[field] = pct;
+-	if (pr) {
+-		switch(pct){
+-			case I_FRAME:
+-				printk( "  I-FRAME");
+-				break;
+-			case B_FRAME:
+-				printk( "  B-FRAME");
+-				break;
+-			case P_FRAME:
+-				printk( "  P-FRAME");
+-				break;
+-		}
+-	}
+-
+-
+-	pic->vinfo.vbv_delay  = (( headr[1] >> 5 ) | ( headr[2] << 3) |
+-				 ( (headr[3] & 0x1F) << 11) ) & 0xffff;
+-
+-	if (pr) printk( " vbv delay: 0x%04x", pic->vinfo.vbv_delay);
+-
+-	pic->picture_header_parameter = ( headr[3] & 0xe0 ) |
+-		((headr[4] & 0x80) >> 3);
+-
+-	if ( pct == B_FRAME ){
+-		pic->picture_header_parameter |= ( headr[4] >> 3 ) & 0x0f;
+-	}
+-	if (pr) printk( " pic head param: 0x%x",
+-			pic->picture_header_parameter);
+-
+-	return pct;
+-}
+-#endif
+-
+-#if 0
+-/* needs 4 byte input */
+-static int read_gop_header(u8 *headr, struct mpg_picture *pic, int pr)
+-{
+-	if (pr) printk("GOP header: ");
+-
+-	pic->time_code  = (( headr[0] << 17 ) | ( headr[1] << 9) |
+-			   ( headr[2] << 1 ) | (headr[3] &0x01)) & 0x1ffffff;
+-
+-	if (pr) printk(" time: %d:%d.%d ", (headr[0]>>2)& 0x1F,
+-		       ((headr[0]<<4)& 0x30)| ((headr[1]>>4)& 0x0F),
+-		       ((headr[1]<<3)& 0x38)| ((headr[2]>>5)& 0x0F));
+-
+-	if ( ( headr[3] & 0x40 ) != 0 ){
+-		pic->closed_gop = 1;
+-	} else {
+-		pic->closed_gop = 0;
+-	}
+-	if (pr) printk("closed: %d", pic->closed_gop);
+-
+-	if ( ( headr[3] & 0x20 ) != 0 ){
+-		pic->broken_link = 1;
+-	} else {
+-		pic->broken_link = 0;
+-	}
+-	if (pr) printk(" broken: %d\n", pic->broken_link);
+-
+-	return 0;
+-}
+-#endif
+-
+-#if 0
+-/* needs 8 byte input */
+-static int read_sequence_header(u8 *headr, struct dvb_video_info *vi, int pr)
+-{
+-	int sw;
+-	int form = -1;
+-
+-	if (pr) printk("Reading sequence header\n");
+-
+-	vi->horizontal_size	= ((headr[1] &0xF0) >> 4) | (headr[0] << 4);
+-	vi->vertical_size	= ((headr[1] &0x0F) << 8) | (headr[2]);
+-
+-	sw = (int)((headr[3]&0xF0) >> 4) ;
+-
+-	switch( sw ){
+-	case 1:
+-		if (pr)
+-			printk("Videostream: ASPECT: 1:1");
+-		vi->aspect_ratio = 100;
+-		break;
+-	case 2:
+-		if (pr)
+-			printk("Videostream: ASPECT: 4:3");
+-		vi->aspect_ratio = 133;
+-		break;
+-	case 3:
+-		if (pr)
+-			printk("Videostream: ASPECT: 16:9");
+-		vi->aspect_ratio = 177;
+-		break;
+-	case 4:
+-		if (pr)
+-			printk("Videostream: ASPECT: 2.21:1");
+-		vi->aspect_ratio = 221;
+-		break;
+-
+-	case 5 ... 15:
+-		if (pr)
+-			printk("Videostream: ASPECT: reserved");
+-		vi->aspect_ratio = 0;
+-		break;
+-
+-	default:
+-		vi->aspect_ratio = 0;
+-		return -1;
+-	}
+-
+-	if (pr)
+-		printk("  Size = %dx%d",vi->horizontal_size,vi->vertical_size);
+-
+-	sw = (int)(headr[3]&0x0F);
+-
+-	switch ( sw ) {
+-	case 1:
+-		if (pr)
+-			printk("  FRate: 23.976 fps");
+-		vi->framerate = 23976;
+-		form = -1;
+-		break;
+-	case 2:
+-		if (pr)
+-			printk("  FRate: 24 fps");
+-		vi->framerate = 24000;
+-		form = -1;
+-		break;
+-	case 3:
+-		if (pr)
+-			printk("  FRate: 25 fps");
+-		vi->framerate = 25000;
+-		form = VIDEO_MODE_PAL;
+-		break;
+-	case 4:
+-		if (pr)
+-			printk("  FRate: 29.97 fps");
+-		vi->framerate = 29970;
+-		form = VIDEO_MODE_NTSC;
+-		break;
+-	case 5:
+-		if (pr)
+-			printk("  FRate: 30 fps");
+-		vi->framerate = 30000;
+-		form = VIDEO_MODE_NTSC;
+-		break;
+-	case 6:
+-		if (pr)
+-			printk("  FRate: 50 fps");
+-		vi->framerate = 50000;
+-		form = VIDEO_MODE_PAL;
+-		break;
+-	case 7:
+-		if (pr)
+-			printk("  FRate: 60 fps");
+-		vi->framerate = 60000;
+-		form = VIDEO_MODE_NTSC;
+-		break;
+-	}
+-
+-	vi->bit_rate = (headr[4] << 10) | (headr[5] << 2) | (headr[6] & 0x03);
+-
+-	vi->vbv_buffer_size
+-		= (( headr[6] & 0xF8) >> 3 ) | (( headr[7] & 0x1F )<< 5);
+-
+-	if (pr){
+-		printk("  BRate: %d Mbit/s",4*(vi->bit_rate)/10000);
+-		printk("  vbvbuffer %d",16*1024*(vi->vbv_buffer_size));
+-		printk("\n");
+-	}
+-
+-	vi->video_format = form;
+-
+-	return 0;
+-}
+-#endif
+-
+-
+-#if 0
+-static int get_vinfo(u8 *mbuf, int count, struct dvb_video_info *vi, int pr)
+-{
+-	u8 *headr;
+-	int found = 0;
+-	int c = 0;
+-
+-	while (found < 4 && c+4 < count){
+-		u8 *b;
+-
+-		b = mbuf+c;
+-		if ( b[0] == 0x00 && b[1] == 0x00 && b[2] == 0x01
+-		     && b[3] == 0xb3) found = 4;
+-		else {
+-			c++;
+-		}
+-	}
+-
+-	if (! found) return -1;
+-	c += 4;
+-	if (c+12 >= count) return -1;
+-	headr = mbuf+c;
+-	if (read_sequence_header(headr, vi, pr) < 0) return -1;
+-	vi->off = c-4;
+-	return 0;
+-}
+-#endif
+-
+-
+-#if 0
+-static int get_ainfo(u8 *mbuf, int count, struct dvb_audio_info *ai, int pr)
+-{
+-	u8 *headr;
+-	int found = 0;
+-	int c = 0;
+-	int fr = 0;
+-
+-	while (found < 2 && c < count){
+-		u8 b[2];
+-		memcpy( b, mbuf+c, 2);
+-
+-		if ( b[0] == 0xff && (b[1] & 0xf8) == 0xf8)
+-			found = 2;
+-		else {
+-			c++;
+-		}
+-	}
+-
+-	if (!found) return -1;
+-
+-	if (c+3 >= count) return -1;
+-	headr = mbuf+c;
+-
+-	ai->layer = (headr[1] & 0x06) >> 1;
+-
+-	if (pr)
+-		printk("Audiostream: Layer: %d", 4-ai->layer);
+-
+-
+-	ai->bit_rate = bitrates[(3-ai->layer)][(headr[2] >> 4 )]*1000;
+-
+-	if (pr){
+-		if (ai->bit_rate == 0)
+-			printk("  Bit rate: free");
+-		else if (ai->bit_rate == 0xf)
+-			printk("  BRate: reserved");
+-		else
+-			printk("  BRate: %d kb/s", ai->bit_rate/1000);
+-	}
+-
+-	fr = (headr[2] & 0x0c ) >> 2;
+-	ai->frequency = freq[fr]*100;
+-	if (pr){
+-		if (ai->frequency == 3)
+-			printk("  Freq: reserved\n");
+-		else
+-			printk("  Freq: %d kHz\n",ai->frequency);
+-
+-	}
+-	ai->off = c;
+-	return 0;
+-}
+-#endif
+-
+-
+ int dvb_filter_get_ac3info(u8 *mbuf, int count, struct dvb_audio_info *ai, int pr)
+ {
+ 	u8 *headr;
+@@ -391,167 +67,6 @@ int dvb_filter_get_ac3info(u8 *mbuf, int count, struct dvb_audio_info *ai, int p
+ 	return 0;
  }
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 99ba8d6328f0..e2c4edbfbdb7 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -1304,8 +1304,7 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
- 		 */
- 		break;
- 	default:
--		printk(KERN_WARNING "%s: warning: "
--			"unknown hauppauge model #%d\n",
-+		printk(KERN_WARNING "%s: warning: unknown hauppauge model #%d\n",
- 			dev->name, tv.model);
- 		break;
- 	}
-@@ -2342,9 +2341,8 @@ void cx23885_card_setup(struct cx23885_dev *dev)
  
- 		ret = request_firmware(&fw, filename, &dev->pci->dev);
- 		if (ret != 0)
--			printk(KERN_ERR "did not find the firmware file. (%s) "
--			"Please see linux/Documentation/dvb/ for more details "
--			"on firmware-problems.", filename);
-+			printk(KERN_ERR "did not find the firmware file. (%s) Please see linux/Documentation/dvb/ for more details on firmware-problems.",
-+			       filename);
- 		else
- 			altera_init(&netup_config, fw);
- 
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index c86b1093ab99..5020a60a4f1f 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -915,8 +915,7 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 		cx23885_init_tsport(dev, &dev->ts2, 2);
- 
- 	if (get_resources(dev) < 0) {
--		printk(KERN_ERR "CORE %s No more PCIe resources for "
--		       "subsystem: %04x:%04x\n",
-+		printk(KERN_ERR "CORE %s No more PCIe resources for subsystem: %04x:%04x\n",
- 		       dev->name, dev->pci->subsystem_vendor,
- 		       dev->pci->subsystem_device);
- 
-@@ -980,8 +979,8 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 
- 	if (cx23885_boards[dev->board].porta == CX23885_ANALOG_VIDEO) {
- 		if (cx23885_video_register(dev) < 0) {
--			printk(KERN_ERR "%s() Failed to register analog "
--				"video adapters on VID_A\n", __func__);
-+			printk(KERN_ERR "%s() Failed to register analog video adapters on VID_A\n",
-+			       __func__);
- 		}
- 	}
- 
-@@ -1579,8 +1578,8 @@ int cx23885_irq_417(struct cx23885_dev *dev, u32 status)
- 		(status & VID_B_MSK_VBI_SYNC)    ||
- 		(status & VID_B_MSK_OF)          ||
- 		(status & VID_B_MSK_VBI_OF)) {
--		printk(KERN_ERR "%s: V4L mpeg risc op code error, status "
--			"= 0x%x\n", dev->name, status);
-+		printk(KERN_ERR "%s: V4L mpeg risc op code error, status = 0x%x\n",
-+		       dev->name, status);
- 		if (status & VID_B_MSK_BAD_PKT)
- 			dprintk(1, "        VID_B_MSK_BAD_PKT\n");
- 		if (status & VID_B_MSK_OPC_ERR)
-@@ -1995,8 +1994,8 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	/* print pci info */
- 	dev->pci_rev = pci_dev->revision;
- 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
--	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
--	       "latency: %d, mmio: 0x%llx\n", dev->name,
-+	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n",
-+	       dev->name,
- 	       pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
- 	       dev->pci_lat,
- 		(unsigned long long)pci_resource_start(pci_dev, 0));
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 818f3c2fc98d..42413fa423b4 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -2482,8 +2482,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		break;
- 
- 	default:
--		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
--		       " isn't supported yet\n",
-+		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card  isn't supported yet\n",
- 		       dev->name);
- 		break;
- 	}
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 33d168ef278d..92ff452e5886 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -1065,8 +1065,7 @@ int cx23885_video_irq(struct cx23885_dev *dev, u32 status)
- 		}
- 
- 		if (status & VID_BC_MSK_SYNC)
--			dprintk(7, " (VID_BC_MSK_SYNC 0x%08x) "
--				"video lines miss-match\n",
-+			dprintk(7, " (VID_BC_MSK_SYNC 0x%08x) video lines miss-match\n",
- 				VID_BC_MSK_SYNC);
- 
- 		if (status & VID_BC_MSK_OF)
-diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
-index c1aa888af705..3115cfddab95 100644
---- a/drivers/media/pci/cx23885/cx23888-ir.c
-+++ b/drivers/media/pci/cx23885/cx23888-ir.c
-@@ -1015,8 +1015,8 @@ static int cx23888_ir_log_status(struct v4l2_subdev *sd)
- 			j = 0;
- 			break;
- 		}
--		v4l2_info(sd, "\tNext carrier edge window:          16 clocks "
--			  "-%1d/+%1d, %u to %u Hz\n", i, j,
-+		v4l2_info(sd, "\tNext carrier edge window:	    16 clocks -%1d/+%1d, %u to %u Hz\n",
-+			  i, j,
- 			  clock_divider_to_freq(rxclk, 16 + j),
- 			  clock_divider_to_freq(rxclk, 16 - i));
- 	}
-@@ -1026,8 +1026,7 @@ static int cx23888_ir_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "\tLow pass filter:                   %s\n",
- 		  filtr ? "enabled" : "disabled");
- 	if (filtr)
--		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, "
--			  "%u ns\n",
-+		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, %u ns\n",
- 			  lpf_count_to_us(filtr),
- 			  lpf_count_to_ns(filtr));
- 	v4l2_info(sd, "\tPulse width timer timed-out:       %s\n",
+-
+-#if 0
+-static u8 *skip_pes_header(u8 **bufp)
+-{
+-	u8 *inbuf = *bufp;
+-	u8 *buf = inbuf;
+-	u8 *pts = NULL;
+-	int skip = 0;
+-
+-	static const int mpeg1_skip_table[16] = {
+-		1, 0xffff,      5,     10, 0xffff, 0xffff, 0xffff, 0xffff,
+-		0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff
+-	};
+-
+-
+-	if ((inbuf[6] & 0xc0) == 0x80){ /* mpeg2 */
+-		if (buf[7] & PTS_ONLY)
+-			pts = buf+9;
+-		else pts = NULL;
+-		buf = inbuf + 9 + inbuf[8];
+-	} else {        /* mpeg1 */
+-		for (buf = inbuf + 6; *buf == 0xff; buf++)
+-			if (buf == inbuf + 6 + 16) {
+-				break;
+-			}
+-		if ((*buf & 0xc0) == 0x40)
+-			buf += 2;
+-		skip = mpeg1_skip_table [*buf >> 4];
+-		if (skip == 5 || skip == 10) pts = buf;
+-		else pts = NULL;
+-
+-		buf += mpeg1_skip_table [*buf >> 4];
+-	}
+-
+-	*bufp = buf;
+-	return pts;
+-}
+-#endif
+-
+-#if 0
+-static void initialize_quant_matrix( u32 *matrix )
+-{
+-	int i;
+-
+-	matrix[0]  = 0x08101013;
+-	matrix[1]  = 0x10131616;
+-	matrix[2]  = 0x16161616;
+-	matrix[3]  = 0x1a181a1b;
+-	matrix[4]  = 0x1b1b1a1a;
+-	matrix[5]  = 0x1a1a1b1b;
+-	matrix[6]  = 0x1b1d1d1d;
+-	matrix[7]  = 0x2222221d;
+-	matrix[8]  = 0x1d1d1b1b;
+-	matrix[9]  = 0x1d1d2020;
+-	matrix[10] = 0x22222526;
+-	matrix[11] = 0x25232322;
+-	matrix[12] = 0x23262628;
+-	matrix[13] = 0x28283030;
+-	matrix[14] = 0x2e2e3838;
+-	matrix[15] = 0x3a454553;
+-
+-	for ( i = 16 ; i < 32 ; i++ )
+-		matrix[i] = 0x10101010;
+-}
+-#endif
+-
+-#if 0
+-static void initialize_mpg_picture(struct mpg_picture *pic)
+-{
+-	int i;
+-
+-	/* set MPEG1 */
+-	pic->mpeg1_flag = 1;
+-	pic->profile_and_level = 0x4A ;        /* MP@LL */
+-	pic->progressive_sequence = 1;
+-	pic->low_delay = 0;
+-
+-	pic->sequence_display_extension_flag = 0;
+-	for ( i = 0 ; i < 4 ; i++ ){
+-		pic->frame_centre_horizontal_offset[i] = 0;
+-		pic->frame_centre_vertical_offset[i] = 0;
+-	}
+-	pic->last_frame_centre_horizontal_offset = 0;
+-	pic->last_frame_centre_vertical_offset = 0;
+-
+-	pic->picture_display_extension_flag[0] = 0;
+-	pic->picture_display_extension_flag[1] = 0;
+-	pic->sequence_header_flag = 0;
+-	pic->gop_flag = 0;
+-	pic->sequence_end_flag = 0;
+-}
+-#endif
+-
+-#if 0
+-static void mpg_set_picture_parameter( int32_t field_type, struct mpg_picture *pic )
+-{
+-	int16_t last_h_offset;
+-	int16_t last_v_offset;
+-
+-	int16_t *p_h_offset;
+-	int16_t *p_v_offset;
+-
+-	if ( pic->mpeg1_flag ){
+-		pic->picture_structure[field_type] = VIDEO_FRAME_PICTURE;
+-		pic->top_field_first = 0;
+-		pic->repeat_first_field = 0;
+-		pic->progressive_frame = 1;
+-		pic->picture_coding_parameter = 0x000010;
+-	}
+-
+-	/* Reset flag */
+-	pic->picture_display_extension_flag[field_type] = 0;
+-
+-	last_h_offset = pic->last_frame_centre_horizontal_offset;
+-	last_v_offset = pic->last_frame_centre_vertical_offset;
+-	if ( field_type == FIRST_FIELD ){
+-		p_h_offset = pic->frame_centre_horizontal_offset;
+-		p_v_offset = pic->frame_centre_vertical_offset;
+-		*p_h_offset = last_h_offset;
+-		*(p_h_offset + 1) = last_h_offset;
+-		*(p_h_offset + 2) = last_h_offset;
+-		*p_v_offset = last_v_offset;
+-		*(p_v_offset + 1) = last_v_offset;
+-		*(p_v_offset + 2) = last_v_offset;
+-	} else {
+-		pic->frame_centre_horizontal_offset[3] = last_h_offset;
+-		pic->frame_centre_vertical_offset[3] = last_v_offset;
+-	}
+-}
+-#endif
+-
+-#if 0
+-static void init_mpg_picture( struct mpg_picture *pic, int chan, int32_t field_type)
+-{
+-	pic->picture_header = 0;
+-	pic->sequence_header_data
+-		= ( INIT_HORIZONTAL_SIZE << 20 )
+-			| ( INIT_VERTICAL_SIZE << 8 )
+-			| ( INIT_ASPECT_RATIO << 4 )
+-			| ( INIT_FRAME_RATE );
+-	pic->mpeg1_flag = 0;
+-	pic->vinfo.horizontal_size
+-		= INIT_DISP_HORIZONTAL_SIZE;
+-	pic->vinfo.vertical_size
+-		= INIT_DISP_VERTICAL_SIZE;
+-	pic->picture_display_extension_flag[field_type]
+-		= 0;
+-	pic->pts_flag[field_type] = 0;
+-
+-	pic->sequence_gop_header = 0;
+-	pic->picture_header = 0;
+-	pic->sequence_header_flag = 0;
+-	pic->gop_flag = 0;
+-	pic->sequence_end_flag = 0;
+-	pic->sequence_display_extension_flag = 0;
+-	pic->last_frame_centre_horizontal_offset = 0;
+-	pic->last_frame_centre_vertical_offset = 0;
+-	pic->channel = chan;
+-}
+-#endif
+-
+ void dvb_filter_pes2ts_init(struct dvb_filter_pes2ts *p2ts, unsigned short pid,
+ 			    dvb_filter_pes2ts_cb_t *cb, void *priv)
+ {
 -- 
 2.7.4
 
