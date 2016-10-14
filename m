@@ -1,120 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34204 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750866AbcJGEGZ (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48890 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753679AbcJNRew (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 00:06:25 -0400
-Message-ID: <0c2d8767759b6bcc702ba52e4e936b0a@smtp-cloud2.xs4all.net>
-Date: Fri, 07 Oct 2016 06:06:22 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Fri, 14 Oct 2016 13:34:52 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+Date: Fri, 14 Oct 2016 19:34:20 +0200
+Message-Id: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+the second round removes the prepare_stream callback and instead lets the
+intermediate subdevices propagate s_stream calls to their sources rather
+than individually calling s_stream on each subdevice from the bridge driver.
+This is similar to how drm bridges recursively call into their next neighbor.
+It makes it easier to do bringup ordering on a per-link level, as long as the
+source preparation can be done at s_power, and the sink can just prepare, call
+s_stream on its source, and then enable itself inside s_stream. Obviously this
+would only work in a generic fashion if all asynchronous subdevices with both
+inputs and outputs would propagate s_stream to their source subdevices.
 
-date:			Fri Oct  7 05:00:24 CEST 2016
-media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
-media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
-v4l-utils git hash:	2cd2699a8cfe8dce32dd35033a364c8375839d51
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Changes since v1:
+ - Propagate field and colorspace in ipucsi_subdev_set_format.
+ - Remove v4l2_media_subdev_prepare_stream and v4l2_media_subdev_s_stream,
+   let subdevices propagate s_stream calls to their upstream subdevices
+   themselves.
+ - Various fixes (see individual patches for details)
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+regards
+Philipp
 
-Detailed results are available here:
+Philipp Zabel (20):
+  [media] v4l2-async: move code out of v4l2_async_notifier_register into
+    v4l2_async_test_nofity_all
+  [media] v4l2-async: allow subdevices to add further subdevices to the
+    notifier waiting list
+  [media] v4l: of: add v4l2_of_subdev_registered
+  [media] v4l2-async: add new subdevices to the tail of subdev_list
+  [media] imx: Add i.MX SoC wide media device driver
+  [media] imx-ipu: Add i.MX IPUv3 CSI subdevice driver
+  [media] imx: Add i.MX IPUv3 capture driver
+  [media] platform: add video-multiplexer subdevice driver
+  [media] imx: Add i.MX MIPI CSI-2 subdevice driver
+  [media] tc358743: put lanes in STOP state before starting streaming
+  ARM: dts: imx6qdl: Add capture-subsystem node
+  ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their
+    connections
+  ARM: dts: imx6qdl: Add MIPI CSI-2 D-PHY compatible and clocks
+  ARM: dts: nitrogen6x: Add dtsi for BD_HDMI_MIPI HDMI to MIPI CSI-2
+    receiver board
+  gpu: ipuv3: add ipu_csi_set_downsize
+  [media] imx-ipuv3-csi: support downsizing
+  [media] add mux and video interface bridge entity functions
+  [media] video-multiplexer: set entity function to mux
+  [media] imx: Set i.MX MIPI CSI-2 entity function to bridge
+  [media] tc358743: set entity function to video interface bridge
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Sascha Hauer (1):
+  [media] imx: Add IPUv3 media common code
 
-Full logs are available here:
+ .../devicetree/bindings/media/fsl-imx-capture.txt  |   92 ++
+ .../bindings/media/video-multiplexer.txt           |   59 ++
+ Documentation/media/uapi/mediactl/media-types.rst  |   22 +
+ arch/arm/boot/dts/imx6dl.dtsi                      |  187 ++++
+ arch/arm/boot/dts/imx6q.dtsi                       |  123 +++
+ .../boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi  |   73 ++
+ arch/arm/boot/dts/imx6qdl.dtsi                     |   17 +-
+ drivers/gpu/ipu-v3/ipu-csi.c                       |   16 +
+ drivers/media/i2c/tc358743.c                       |    5 +
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    3 +
+ drivers/media/platform/imx/Kconfig                 |   33 +
+ drivers/media/platform/imx/Makefile                |    5 +
+ drivers/media/platform/imx/imx-ipu-capture.c       | 1015 ++++++++++++++++++++
+ drivers/media/platform/imx/imx-ipu.c               |  321 +++++++
+ drivers/media/platform/imx/imx-ipu.h               |   43 +
+ drivers/media/platform/imx/imx-ipuv3-csi.c         |  578 +++++++++++
+ drivers/media/platform/imx/imx-media.c             |  249 +++++
+ drivers/media/platform/imx/imx-mipi-csi2.c         |  698 ++++++++++++++
+ drivers/media/platform/video-multiplexer.c         |  473 +++++++++
+ drivers/media/v4l2-core/v4l2-async.c               |  102 +-
+ drivers/media/v4l2-core/v4l2-of.c                  |   69 ++
+ include/media/v4l2-async.h                         |   12 +
+ include/media/v4l2-of.h                            |   15 +
+ include/uapi/linux/media.h                         |    6 +
+ include/video/imx-ipu-v3.h                         |    1 +
+ 26 files changed, 4214 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/fsl-imx-capture.txt
+ create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
+ create mode 100644 arch/arm/boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi
+ create mode 100644 drivers/media/platform/imx/Kconfig
+ create mode 100644 drivers/media/platform/imx/Makefile
+ create mode 100644 drivers/media/platform/imx/imx-ipu-capture.c
+ create mode 100644 drivers/media/platform/imx/imx-ipu.c
+ create mode 100644 drivers/media/platform/imx/imx-ipu.h
+ create mode 100644 drivers/media/platform/imx/imx-ipuv3-csi.c
+ create mode 100644 drivers/media/platform/imx/imx-media.c
+ create mode 100644 drivers/media/platform/imx/imx-mipi-csi2.c
+ create mode 100644 drivers/media/platform/video-multiplexer.c
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+-- 
+2.9.3
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
