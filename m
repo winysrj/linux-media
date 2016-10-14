@@ -1,111 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33262
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934778AbcJXJFz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 05:05:55 -0400
-Date: Mon, 24 Oct 2016 07:05:42 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Subject: Re: [PATCH v5 3/9] vcodec: mediatek: Add Mediatek V4L2 Video
- Decoder Driver
-Message-ID: <20161024070542.65e11e37@vento.lan>
-In-Reply-To: <1477279328.10501.10.camel@mtksdaap41>
-References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
-        <1472818800-22558-2-git-send-email-tiffany.lin@mediatek.com>
-        <1472818800-22558-3-git-send-email-tiffany.lin@mediatek.com>
-        <1472818800-22558-4-git-send-email-tiffany.lin@mediatek.com>
-        <20161021110104.5733240e@vento.lan>
-        <1477279328.10501.10.camel@mtksdaap41>
+Received: from mout.web.de ([212.227.15.14]:51736 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754641AbcJNLpk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 07:45:40 -0400
+Subject: [PATCH 5/5] [media] winbond-cir: Move a variable assignment in two
+ functions
+To: linux-media@vger.kernel.org,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <0b6de919-35a0-8ee3-9ea7-907c9b9a36f2@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 13:45:32 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Oct 2016 11:22:08 +0800
-Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 13:13:11 +0200
 
-> Hi Mauro,
-> 
-> On Fri, 2016-10-21 at 11:01 -0200, Mauro Carvalho Chehab wrote:
-> > Em Fri, 2 Sep 2016 20:19:54 +0800
-> > Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
-> >   
-> > > Add v4l2 layer decoder driver for MT8173
-> > > 
-> > > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>  
-> >   
-> > > +int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
-> > > +{
-> > > +	int ret = 0;
-> > > +
-> > > +	switch (fourcc) {
-> > > +	case V4L2_PIX_FMT_H264:
-> > > +	case V4L2_PIX_FMT_VP8:
-> > > +	default:
-> > > +		return -EINVAL;
-> > > +	}  
-> > 
-> > Did you ever test this driver? The above code will *always* return
-> > -EINVAL, with will cause vidioc_vdec_s_fmt() to always fail!
-> > 
-> > I suspect that what you wanted to do, instead, is:
-> > 
-> > 	switch (fourcc) {
-> > 	case V4L2_PIX_FMT_H264:
-> > 	case V4L2_PIX_FMT_VP8:
-> > 		break;
-> > 	default:
-> > 		return -EINVAL;
-> >   
-> 
-> The original idea here is that vp8 and h264 are added in later patches.
-> If get this patch without later patches, it should return -EINVAL.
+Move the assignment for the local variable "data" behind the source code
+for condition checks by these functions.
 
-I noticed your idea, but next time, don't add dead code like that.
-Reviewers check patch by patch at the order they're present at the
-patch series.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/rc/winbond-cir.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-So, don't add something broken by purpose, assuming that it would
-be fixed later.
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 3d286b9..716b1fe 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -566,7 +566,7 @@ wbcir_set_carrier_report(struct rc_dev *dev, int enable)
+ static int
+ wbcir_txcarrier(struct rc_dev *dev, u32 carrier)
+ {
+-	struct wbcir_data *data = dev->priv;
++	struct wbcir_data *data;
+ 	unsigned long flags;
+ 	u8 val;
+ 	u32 freq;
+@@ -592,6 +592,7 @@ wbcir_txcarrier(struct rc_dev *dev, u32 carrier)
+ 		break;
+ 	}
+ 
++	data = dev->priv;
+ 	spin_lock_irqsave(&data->spinlock, flags);
+ 	if (data->txstate != WBCIR_TXSTATE_INACTIVE) {
+ 		spin_unlock_irqrestore(&data->spinlock, flags);
+@@ -611,7 +612,7 @@ wbcir_txcarrier(struct rc_dev *dev, u32 carrier)
+ static int
+ wbcir_txmask(struct rc_dev *dev, u32 mask)
+ {
+-	struct wbcir_data *data = dev->priv;
++	struct wbcir_data *data;
+ 	unsigned long flags;
+ 	u8 val;
+ 
+@@ -637,6 +638,7 @@ wbcir_txmask(struct rc_dev *dev, u32 mask)
+ 		return -EINVAL;
+ 	}
+ 
++	data = dev->priv;
+ 	spin_lock_irqsave(&data->spinlock, flags);
+ 	if (data->txstate != WBCIR_TXSTATE_INACTIVE) {
+ 		spin_unlock_irqrestore(&data->spinlock, flags);
+-- 
+2.10.1
 
-> 
-> 
-> > Btw, this patch series has also several issues that were pointed by
-> > checkpatch. Please *always* run checkpatch when submitting your work.
-> > 
-> > You should take a look at the Kernel documentation about how to
-> > submit patches, at:
-> > 	https://mchehab.fedorapeople.org/kernel_docs/process/index.html
-> > 
-> > PS.: this time, I fixed the checkpatch issues for you. So, let me know
-> > if the patch below is OK, and I'll merge it at media upstream,
-> > assuming that the other patches in this series are ok.
-> >   
-> 
-> I did run checkpatch, but I don't know why these issues missed.
-> probably I run checkpatch for all files not for patches.
-> I will take a look at the documentation and keep this in mind for future
-> upstream.
-> Appreciated for your help.
-
-Checkpatch should be run patch by patch, as we expect that all patches
-will follow the coding style and will compile fine, without introducing
-warnings.
-
-I do compile the Kernel for every single patch I merge.
-
-Regards,
-Mauro
