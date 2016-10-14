@@ -1,69 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:30190 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755300AbcJUMYS (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34657 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751359AbcJNRas (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Oct 2016 08:24:18 -0400
-Subject: Re: [PATCH] [media] c8sectpfe: Remove clk_disable_unprepare hacks
-To: Peter Griffin <peter.griffin@linaro.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>, <kernel@stlinux.com>,
-        <mchehab@kernel.org>
-References: <1477040132-31442-1-git-send-email-peter.griffin@linaro.org>
-CC: <lee.jones@linaro.org>, <linux-media@vger.kernel.org>
-From: Patrice Chotard <patrice.chotard@st.com>
-Message-ID: <08965415-3573-c588-25c8-ae48fde9470f@st.com>
-Date: Fri, 21 Oct 2016 14:23:46 +0200
-MIME-Version: 1.0
-In-Reply-To: <1477040132-31442-1-git-send-email-peter.griffin@linaro.org>
-Content-Type: text/plain; charset="windows-1252"
+        Fri, 14 Oct 2016 13:30:48 -0400
+Message-ID: <1476466227.11834.84.camel@pengutronix.de>
+Subject: Re: [PATCH 02/22] [media] v4l2-async: allow subdevices to add
+ further subdevices to the notifier waiting list
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Ian Arkver <ian.arkver.dev@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de
+Date: Fri, 14 Oct 2016 19:30:27 +0200
+In-Reply-To: <01c2f0df-6485-9427-c25f-69ac447653d8@gmail.com>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+         <20161007160107.5074-3-p.zabel@pengutronix.de>
+         <20161007224321.GC9460@valkosipuli.retiisi.org.uk>
+         <1476460116.11834.42.camel@pengutronix.de>
+         <01c2f0df-6485-9427-c25f-69ac447653d8@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/21/2016 10:55 AM, Peter Griffin wrote:
-> Now that CLK_PROC_STFE is defined as a critical clock in
-> DT, we can remove the commented clk_disable_unprepare from
-> the c8sectpfe driver. This means we now have balanced
-> clk*enable/disable calls in the driver, but on STiH407
-> family the clock in reality will never actually be disabled.
-> 
-> This is due to a HW bug where once the IP has been configured
-> and the SLIM core is running, disabling the clock causes a
-> unrecoverable bus lockup.
-> 
-> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
-> ---
->  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 6 +-----
->  1 file changed, 1 insertion(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> index 30c148b..79d793b 100644
-> --- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> +++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> @@ -888,8 +888,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
->  	return 0;
->  
->  err_clk_disable:
-> -	/* TODO uncomment when upstream has taken a reference on this clk */
-> -	/*clk_disable_unprepare(fei->c8sectpfeclk);*/
-> +	clk_disable_unprepare(fei->c8sectpfeclk);
->  	return ret;
->  }
->  
-> @@ -924,11 +923,8 @@ static int c8sectpfe_remove(struct platform_device *pdev)
->  	if (readl(fei->io + SYS_OTHER_CLKEN))
->  		writel(0, fei->io + SYS_OTHER_CLKEN);
->  
-> -	/* TODO uncomment when upstream has taken a reference on this clk */
-> -	/*
->  	if (fei->c8sectpfeclk)
->  		clk_disable_unprepare(fei->c8sectpfeclk);
-> -	*/
->  
->  	return 0;
->  }
-> 
+Am Freitag, den 14.10.2016, 18:06 +0100 schrieb Ian Arkver:
+> On 14/10/16 16:48, Philipp Zabel wrote:
+> > Am Samstag, den 08.10.2016, 01:43 +0300 schrieb Sakari Ailus:
+> > [...]
+> > [...]
+> >>> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> >>> index 8e2a236..e4e4b11 100644
+> >>> --- a/include/media/v4l2-async.h
+> >>> +++ b/include/media/v4l2-async.h
+> >>> @@ -114,6 +114,18 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >>>   				 struct v4l2_async_notifier *notifier);
+> >>>   
+> >>>   /**
+> >>> + * __v4l2_async_notifier_add_subdev - adds a subdevice to the notifier waitlist
+> >>> + *
+> >>> + * @v4l2_notifier: notifier the calling subdev is bound to
+> >> s/v4l2_//
+> > I'd be happy to, but why should the v4l2 prefix be removed?
+> >
+> > regards
+> > Philipp
+> I think Sakari is just pointing out that the comment doesn't match the 
+> function argument name.
 
-Acked-by: Patrice Chotard <patrice.chotard@st.com>
+Ouch, that's very obvious now that I understand :)
+Thank you for pointing this out.
+
+regards
+Philipp
 
