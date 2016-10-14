@@ -1,52 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:62572 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932268AbcJGRAF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 13:00:05 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 0/2] Add MPEG2 support to STMicroelectronics DELTA video decoder
-Date: Fri, 7 Oct 2016 18:59:53 +0200
-Message-ID: <1475859595-732-1-git-send-email-hugues.fruchet@st.com>
+Received: from mout.web.de ([212.227.15.3]:57635 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752103AbcJNSXi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 14:23:38 -0400
+Subject: Re: [PATCH 11/25] [media] dvb-core: use pr_foo() instead of printk()
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+ <1d5040384c93e1cb37dd41e780e44a88b1e63ce4.1476466574.git.mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Max Kellermann <max@duempel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Malcolm Priestley <tvboxspy@gmail.com>,
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Abhilash Jindal <klock.android@gmail.com>,
+        Xiubo Li <lixiubo@cmss.chinamobile.com>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <ad6e8052-d9e2-e5bd-1c19-f402c04007ea@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 20:22:40 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1d5040384c93e1cb37dd41e780e44a88b1e63ce4.1476466574.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset adds MPEG2 support to STMicroelectronics DELTA driver [1].
-MPEG2 support requires V4L2 "frame API" in order that MPEG2 parsed metadata
-are received in addition to MPEG2 video bitstream buffers.
-To do so those patchset are based on work from Florent Revest on MPEG2 low
-level decoder [2], which have been enhanced to support more MPEG2 features
-(see additional patchset on subject). This work also needs the V4L2 "request
-API" [3].
-A reference libv4l-delta plugin implementation is sent separately which embeds
-a MPEG2 parser generating the headers metadata needed by DELTA video decoder.
+> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+> index 7b67e1dd97fd..1e96a6f1b6f0 100644
+> --- a/drivers/media/dvb-core/dmxdev.c
+> +++ b/drivers/media/dvb-core/dmxdev.c
+> @@ -20,6 +20,8 @@
+>   *
+>   */
+>  
+> +#define pr_fmt(fmt) "dmxdev: " fmt
+> +
+>  #include <linux/sched.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/slab.h>
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg102894.html
-[2] http://www.spinics.net/lists/linux-media/msg104824.html
-[3] https://lwn.net/Articles/641204/
+How do you think to use an approach like the following there?
 
-Hugues Fruchet (2):
-  [media] st-delta: add parser meta controls
-  [media] st-delta: add mpeg2 support
 
- drivers/media/platform/Kconfig                     |    6 +
- drivers/media/platform/sti/delta/Makefile          |    3 +
- drivers/media/platform/sti/delta/delta-cfg.h       |    5 +
- drivers/media/platform/sti/delta/delta-mpeg2-dec.c | 1412 ++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-mpeg2-fw.h  |  415 ++++++
- drivers/media/platform/sti/delta/delta-v4l2.c      |   96 +-
- drivers/media/platform/sti/delta/delta.h           |    8 +-
- 7 files changed, 1943 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-dec.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mpeg2-fw.h
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
--- 
-1.9.1
 
+   or eventually
+
+
++#define MY_LOG_PREFIX KBUILD_MODNAME ": "
++#define pr_fmt(fmt) MY_LOG_PREFIX fmt
+
+
+Regards,
+Markus
