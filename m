@@ -1,120 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33895 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751015AbcJHEGA (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35699 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755024AbcJNQpJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 8 Oct 2016 00:06:00 -0400
-Message-ID: <31232bcf2cd0619f14aba9bffdc4b9fa@smtp-cloud3.xs4all.net>
-Date: Sat, 08 Oct 2016 06:05:56 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 14 Oct 2016 12:45:09 -0400
+Message-ID: <1476463506.11834.78.camel@pengutronix.de>
+Subject: Re: [16/22] ARM: dts: nitrogen6x: Add dtsi for BD_HDMI_MIPI HDMI to
+ MIPI CSI-2 receiver board
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Gary Bisson <gary.bisson@boundarydevices.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, kernel@pengutronix.de
+Date: Fri, 14 Oct 2016 18:45:06 +0200
+In-Reply-To: <20161010154831.gyopknmklf4sxdt6@t450s.lan>
+References: <20161007160107.5074-17-p.zabel@pengutronix.de>
+         <20161010154831.gyopknmklf4sxdt6@t450s.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Gary,
 
-Results of the daily build of media_tree:
+Am Montag, den 10.10.2016, 17:48 +0200 schrieb Gary Bisson:
+> Hi Philipp, All,
+> 
+> On Fri, Oct 07, 2016 at 06:01:01PM +0200, Philipp Zabel wrote:
+> > Add device tree nodes for the BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver
+> > board with a TC358743 connected to the Nitrogen6X MIPI CSI-2 input
+> > connector.
+> 
+> I've tested this series on my Nitrogen6x + BD_HDMI_MIPI daughter board
+> and have a few questions.
+> 
+> First, why is the tc358743 node in a separate dtsi file? Is this in
+> order to avoid a failed probe during bootup if the daughter board is
+> not present? Is this what should be done for every capture device that
+> targets this platform (like the OV5640 or OV5642)?
+> 
+> Can you provide some details on your testing procedure? In my case I've
+> reached a point where I get the same 'media-ctl --print-dot' output as
+> the one from your cover letter but I can't seem to set the EDID nor to
+> have a gstreamer pipeline (to fakesink).
 
-date:			Sat Oct  8 05:00:18 CEST 2016
-media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
-media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
-v4l-utils git hash:	2cd2699a8cfe8dce32dd35033a364c8375839d51
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+If I force EDID on the sender, it also works without setting EDID on the
+tc358743:
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+# Make the detected dv timings current on TC358743
+media-ctl --set-dv '"tc358743 1-000f":0'
 
-Detailed results are available here:
+# Enable link between TC358743 and MIPI CSI-2 receiver, set format
+media-ctl --links '"tc358743 1-000f":0->"mipi-csi2":0[1]'
+media-ctl --set-v4l2 '"tc358743 1-000f":0[fmt:UYVY/1920x1080]'
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+# Enable link between MIPI CSI-2 receiver and mux, set format,
+# this switches the mux input to MIPI CSI-2
+media-ctl --links '"mipi-csi2":1->"mipi_ipu1_mux":0[1]'
+media-ctl --set-v4l2 '"mipi-csi2":1[fmt:UYVY/1920x1080]'
 
-Full logs are available here:
+# Enable link between mux and CSI, set format
+media-ctl --links '"mipi_ipu1_mux":2->"IPU0 CSI0":0[1]'
+media-ctl --set-v4l2 '"mipi_ipu1_mux":2[fmt:UYVY/1920x1080]'
+# this disables frame skipping and sets the nominal frame interval
+# that will be returned by v4l2-ctl --get-parm
+media-ctl --set-v4l2 '"IPU0 CSI0":0[fmt:UYVY/1920x1080@1/60]'
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+# Set capture format at CSI output
+media-ctl --set-v4l2 '"IPU0 CSI0":1[fmt:UYVY2X8/960x540]'
 
-The Media Infrastructure API from this daily build is here:
+I'd like to handle this format propagation in libv4l2.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+# Capture
+gst-launch-1.0 v4l2src device=/dev/video0 io-mode=dmabuf ! video/x-raw,format=YUY2,framerate=30/1 ! kmssink
+
+>  All the EDID v4l2-ctl commands
+> return "Inappropriate ioctl for device".
+
+The capture driver currently does not collect its subdevices' controls
+to present them on the main video device. Also this would only work for
+controls that appear only once in the configured pipeline.
+
+I once hacked v4l2-ctl to allow it to directly set subdev controls on
+the /dev/v4l2-subdev nodes: https://patchwork.kernel.org/patch/6097201/
+but the correct solution seems to be to have a subdevice specific
+QUERYCAP alternative.
+
+> Do not hesitate to CC me to Boundary Devices related patches so I can
+> test them and give some feedback.
+
+I'll do that, thanks in advance for testing.
+
+regards
+Philipp
+
