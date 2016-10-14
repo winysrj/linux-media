@@ -1,153 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:36031 "EHLO
-        mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753509AbcJGSH3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 14:07:29 -0400
-Received: by mail-oi0-f41.google.com with SMTP id m72so65745053oik.3
-        for <linux-media@vger.kernel.org>; Fri, 07 Oct 2016 11:07:29 -0700 (PDT)
-MIME-Version: 1.0
-From: Joseph Zik <josephzik@gmail.com>
-Date: Fri, 7 Oct 2016 21:07:28 +0300
-Message-ID: <CAPWx8vsfPmcK44OEAy918ae6txa9uYuP+coeNRERuoOW=-nocQ@mail.gmail.com>
-Subject: DVB-T2 for ug-All, Kampala
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001a1134f5ac843f85053e4a4883
+Received: from bombadil.infradead.org ([198.137.202.9]:59062 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756515AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH 07/57] [media] b2c2: don't break long lines
+Date: Fri, 14 Oct 2016 17:19:55 -0300
+Message-Id: <368fcfffb6688e35a6ac10d5576a172b89ad5baf.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001a1134f5ac843f85053e4a4883
-Content-Type: text/plain; charset=UTF-8
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Hi Oliver,
-Here's a patch for DVB-T2 ug-All for Kampala, Uganda
-Thanks
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/b2c2/flexcop-dma.c | 6 ++----
+ drivers/media/pci/b2c2/flexcop-pci.c | 6 ++----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/dvb-t/ug-All b/dvb-t/ug-All
-index ce2a286..2d29959 100644
---- a/dvb-t/ug-All
-+++ b/dvb-t/ug-All
-@@ -1,45 +1,55 @@
- # location and provider : Kampala-Uganda
--# date : 2013-11-01
-+# date : 2016-10-07
- # provided by : Joseph Zikusooka
- #               : http://joseph.zikusooka.com
--#               : joseph@zikusooka.com
-+#               : josephzik@gmail.com
- #
- #------------------------------------------------------------------------------
--[UCC Primary]
-- DELIVERY_SYSTEM = DVBT
-+
-+[CHANNEL]
-+ DELIVERY_SYSTEM = DVBT2
-  FREQUENCY = 474000000
-  BANDWIDTH_HZ = 8000000
-- CODE_RATE_HP = 2/3
-+ CODE_RATE_HP = 1/2
-  CODE_RATE_LP = NONE
-  MODULATION = QPSK
-- TRANSMISSION_MODE = 8K
-- GUARD_INTERVAL = 1/4
-+ TRANSMISSION_MODE = 2K
-+ GUARD_INTERVAL = 1/32
-  HIERARCHY = NONE
-  INVERSION = AUTO
-
- [CHANNEL]
-  DELIVERY_SYSTEM = DVBT2
-- FREQUENCY = 538000000
-+ FREQUENCY = 594000000
-  BANDWIDTH_HZ = 8000000
-- CODE_RATE_HP = AUTO
-- CODE_RATE_LP = AUTO
-- MODULATION = QAM/AUTO
-- TRANSMISSION_MODE = 32K
-- GUARD_INTERVAL = 1/16
-- HIERARCHY = AUTO
-- STREAM_ID = 1
-+ CODE_RATE_HP = 1/2
-+ CODE_RATE_LP = NONE
-+ MODULATION = QPSK
-+ TRANSMISSION_MODE = 2K
-+ GUARD_INTERVAL = 1/32
-+ HIERARCHY = NONE
-  INVERSION = AUTO
-
- [CHANNEL]
-  DELIVERY_SYSTEM = DVBT2
-- FREQUENCY = 586000000
-+ FREQUENCY = 714000000
-  BANDWIDTH_HZ = 8000000
-- CODE_RATE_HP = AUTO
-- CODE_RATE_LP = AUTO
-- MODULATION = QAM/AUTO
-- TRANSMISSION_MODE = 32K
-- GUARD_INTERVAL = 1/16
-- HIERARCHY = AUTO
-- STREAM_ID = 9
-+ CODE_RATE_HP = 1/2
-+ CODE_RATE_LP = NONE
-+ MODULATION = QPSK
-+ TRANSMISSION_MODE = 2K
-+ GUARD_INTERVAL = 1/32
-+ HIERARCHY = NONE
-  INVERSION = AUTO
-
-+[CHANNEL]
-+ DELIVERY_SYSTEM = DVBT2
-+ FREQUENCY = 730000000
-+ BANDWIDTH_HZ = 8000000
-+ CODE_RATE_HP = 1/2
-+ CODE_RATE_LP = NONE
-+ MODULATION = QPSK
-+ TRANSMISSION_MODE = 2K
-+ GUARD_INTERVAL = 1/32
-+ HIERARCHY = NONE
-+ INVERSION = AUTO
-
+diff --git a/drivers/media/pci/b2c2/flexcop-dma.c b/drivers/media/pci/b2c2/flexcop-dma.c
+index 2881e0d956ad..913dc97f8b49 100644
+--- a/drivers/media/pci/b2c2/flexcop-dma.c
++++ b/drivers/media/pci/b2c2/flexcop-dma.c
+@@ -57,8 +57,7 @@ int flexcop_dma_config(struct flexcop_device *fc,
+ 		fc->write_ibi_reg(fc,dma2_014,v0x4);
+ 		fc->write_ibi_reg(fc,dma2_01c,v0xc);
+ 	} else {
+-		err("either DMA1 or DMA2 can be configured within one "
+-			"flexcop_dma_config call.");
++		err("either DMA1 or DMA2 can be configured within one flexcop_dma_config call.");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -82,8 +81,7 @@ int flexcop_dma_xfer_control(struct flexcop_device *fc,
+ 		r0x0 = dma2_010;
+ 		r0xc = dma2_01c;
+ 	} else {
+-		err("either transfer DMA1 or DMA2 can be started within one "
+-			"flexcop_dma_xfer_control call.");
++		err("either transfer DMA1 or DMA2 can be started within one flexcop_dma_xfer_control call.");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
+index 4cac1fc233f2..f0d127e640bb 100644
+--- a/drivers/media/pci/b2c2/flexcop-pci.c
++++ b/drivers/media/pci/b2c2/flexcop-pci.c
+@@ -185,8 +185,7 @@ static irqreturn_t flexcop_pci_isr(int irq, void *dev_id)
+ 			fc->read_ibi_reg(fc,dma1_008).dma_0x8.dma_cur_addr << 2;
+ 		u32 cur_pos = cur_addr - fc_pci->dma[0].dma_addr0;
+ 
+-		deb_irq("%u irq: %08x cur_addr: %llx: cur_pos: %08x, "
+-			"last_cur_pos: %08x ",
++		deb_irq("%u irq: %08x cur_addr: %llx: cur_pos: %08x, last_cur_pos: %08x ",
+ 				jiffies_to_usecs(jiffies - fc_pci->last_irq),
+ 				v.raw, (unsigned long long)cur_addr, cur_pos,
+ 				fc_pci->last_dma1_cur_pos);
+@@ -220,8 +219,7 @@ static irqreturn_t flexcop_pci_isr(int irq, void *dev_id)
+ 		fc_pci->last_dma1_cur_pos = cur_pos;
+ 		fc_pci->count++;
+ 	} else {
+-		deb_irq("isr for flexcop called, "
+-			"apparently without reason (%08x)\n", v.raw);
++		deb_irq("isr for flexcop called, apparently without reason (%08x)\n", v.raw);
+ 		ret = IRQ_NONE;
+ 	}
+ 
 -- 
-Joseph Zik
+2.7.4
 
---001a1134f5ac843f85053e4a4883
-Content-Type: text/x-patch; charset=US-ASCII; name="dvbt.ug_All.patch"
-Content-Disposition: attachment; filename="dvbt.ug_All.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_iu0334x90
 
-ZGlmZiAtLWdpdCBhL2R2Yi10L3VnLUFsbCBiL2R2Yi10L3VnLUFsbAppbmRleCBjZTJhMjg2Li4y
-ZDI5OTU5IDEwMDY0NAotLS0gYS9kdmItdC91Zy1BbGwKKysrIGIvZHZiLXQvdWctQWxsCkBAIC0x
-LDQ1ICsxLDU1IEBACiAjIGxvY2F0aW9uIGFuZCBwcm92aWRlcgk6IEthbXBhbGEtVWdhbmRhCi0j
-IGRhdGUJCQk6IDIwMTMtMTEtMDEKKyMgZGF0ZQkJCTogMjAxNi0xMC0wNwogIyBwcm92aWRlZCBi
-eQkJOiBKb3NlcGggWmlrdXNvb2thCiAjIAkgICAgICAgICAgICAgICAJOiBodHRwOi8vam9zZXBo
-Lnppa3Vzb29rYS5jb20KLSMgCSAgICAgICAgICAgICAgIAk6IGpvc2VwaEB6aWt1c29va2EuY29t
-CisjIAkgICAgICAgICAgICAgICAJOiBqb3NlcGh6aWtAZ21haWwuY29tCiAjCiAjLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCi1bVUNDIFByaW1hcnldCi0JREVMSVZFUllfU1lTVEVNID0gRFZCVAorCitb
-Q0hBTk5FTF0KKwlERUxJVkVSWV9TWVNURU0gPSBEVkJUMgogCUZSRVFVRU5DWSA9IDQ3NDAwMDAw
-MAogCUJBTkRXSURUSF9IWiA9IDgwMDAwMDAKLQlDT0RFX1JBVEVfSFAgPSAyLzMKKwlDT0RFX1JB
-VEVfSFAgPSAxLzIKIAlDT0RFX1JBVEVfTFAgPSBOT05FCiAJTU9EVUxBVElPTiA9IFFQU0sKLQlU
-UkFOU01JU1NJT05fTU9ERSA9IDhLCi0JR1VBUkRfSU5URVJWQUwgPSAxLzQKKwlUUkFOU01JU1NJ
-T05fTU9ERSA9IDJLCisJR1VBUkRfSU5URVJWQUwgPSAxLzMyCiAJSElFUkFSQ0hZID0gTk9ORQog
-CUlOVkVSU0lPTiA9IEFVVE8KIAogW0NIQU5ORUxdCiAJREVMSVZFUllfU1lTVEVNID0gRFZCVDIK
-LQlGUkVRVUVOQ1kgPSA1MzgwMDAwMDAKKwlGUkVRVUVOQ1kgPSA1OTQwMDAwMDAKIAlCQU5EV0lE
-VEhfSFogPSA4MDAwMDAwCi0JQ09ERV9SQVRFX0hQID0gQVVUTwotCUNPREVfUkFURV9MUCA9IEFV
-VE8KLQlNT0RVTEFUSU9OID0gUUFNL0FVVE8KLQlUUkFOU01JU1NJT05fTU9ERSA9IDMySwotCUdV
-QVJEX0lOVEVSVkFMID0gMS8xNgotCUhJRVJBUkNIWSA9IEFVVE8KLQlTVFJFQU1fSUQgPSAxCisJ
-Q09ERV9SQVRFX0hQID0gMS8yCisJQ09ERV9SQVRFX0xQID0gTk9ORQorCU1PRFVMQVRJT04gPSBR
-UFNLCisJVFJBTlNNSVNTSU9OX01PREUgPSAySworCUdVQVJEX0lOVEVSVkFMID0gMS8zMgorCUhJ
-RVJBUkNIWSA9IE5PTkUKIAlJTlZFUlNJT04gPSBBVVRPCiAKIFtDSEFOTkVMXQogCURFTElWRVJZ
-X1NZU1RFTSA9IERWQlQyCi0JRlJFUVVFTkNZID0gNTg2MDAwMDAwCisJRlJFUVVFTkNZID0gNzE0
-MDAwMDAwCiAJQkFORFdJRFRIX0haID0gODAwMDAwMAotCUNPREVfUkFURV9IUCA9IEFVVE8KLQlD
-T0RFX1JBVEVfTFAgPSBBVVRPCi0JTU9EVUxBVElPTiA9IFFBTS9BVVRPCi0JVFJBTlNNSVNTSU9O
-X01PREUgPSAzMksKLQlHVUFSRF9JTlRFUlZBTCA9IDEvMTYKLQlISUVSQVJDSFkgPSBBVVRPCi0J
-U1RSRUFNX0lEID0gOQorCUNPREVfUkFURV9IUCA9IDEvMgorCUNPREVfUkFURV9MUCA9IE5PTkUK
-KwlNT0RVTEFUSU9OID0gUVBTSworCVRSQU5TTUlTU0lPTl9NT0RFID0gMksKKwlHVUFSRF9JTlRF
-UlZBTCA9IDEvMzIKKwlISUVSQVJDSFkgPSBOT05FCiAJSU5WRVJTSU9OID0gQVVUTwogCitbQ0hB
-Tk5FTF0KKwlERUxJVkVSWV9TWVNURU0gPSBEVkJUMgorCUZSRVFVRU5DWSA9IDczMDAwMDAwMAor
-CUJBTkRXSURUSF9IWiA9IDgwMDAwMDAKKwlDT0RFX1JBVEVfSFAgPSAxLzIKKwlDT0RFX1JBVEVf
-TFAgPSBOT05FCisJTU9EVUxBVElPTiA9IFFQU0sKKwlUUkFOU01JU1NJT05fTU9ERSA9IDJLCisJ
-R1VBUkRfSU5URVJWQUwgPSAxLzMyCisJSElFUkFSQ0hZID0gTk9ORQorCUlOVkVSU0lPTiA9IEFV
-VE8K
---001a1134f5ac843f85053e4a4883--
