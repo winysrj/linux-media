@@ -1,41 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f171.google.com ([209.85.220.171]:34418 "EHLO
-        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750752AbcJQGlI (ORCPT
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:36133 "EHLO
+        mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754366AbcJNMBO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 02:41:08 -0400
-Received: by mail-qk0-f171.google.com with SMTP id f128so207432619qkb.1
-        for <linux-media@vger.kernel.org>; Sun, 16 Oct 2016 23:41:07 -0700 (PDT)
-Date: Mon, 17 Oct 2016 07:41:02 +0100
-From: Peter Griffin <peter.griffin@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: kernel@stlinux.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [STLinux Kernel] [PATCH 28/57] [media] c8sectpfe: don't break
- long lines
-Message-ID: <20161017064102.GA8788@griffinp-ThinkPad-X1-Carbon-2nd>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
- <b82cb64c6328c81104143d8a509d4ab6f77873a2.1476475771.git.mchehab@s-opensource.com>
+        Fri, 14 Oct 2016 08:01:14 -0400
+Received: by mail-lf0-f45.google.com with SMTP id b75so191904802lfg.3
+        for <linux-media@vger.kernel.org>; Fri, 14 Oct 2016 05:01:13 -0700 (PDT)
+Subject: Re: [PATCH v6 1/2] media: i2c/ov5645: add the device tree binding
+ document
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org>
+ <1473326035-25228-2-git-send-email-todor.tomov@linaro.org>
+ <5464790.La2jRYUjpB@avalon>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <5800C904.8080002@linaro.org>
+Date: Fri, 14 Oct 2016 15:01:08 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b82cb64c6328c81104143d8a509d4ab6f77873a2.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <5464790.La2jRYUjpB@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 14 Oct 2016, Mauro Carvalho Chehab wrote:
+Hi Laurent,
 
-> Due to the 80-cols checkpatch warnings, several strings
-> were broken into multiple lines. This is not considered
-> a good practice anymore, as it makes harder to grep for
-> strings at the source code. So, join those continuation
-> lines.
+Thank you for the review.
+
+On 09/08/2016 03:22 PM, Laurent Pinchart wrote:
+> Hi Todor,
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 15 +++++----------
+> Thank you for the patch.
+> 
+> On Thursday 08 Sep 2016 12:13:54 Todor Tomov wrote:
+>> Add the document for ov5645 device tree binding.
+>>
+>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>> ---
+>>  .../devicetree/bindings/media/i2c/ov5645.txt       | 52 +++++++++++++++++++
+>>  1 file changed, 52 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+>> b/Documentation/devicetree/bindings/media/i2c/ov5645.txt new file mode
+>> 100644
+>> index 0000000..bcf6dba
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+>> @@ -0,0 +1,52 @@
+>> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
+>> +
+>> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor
+>> with +an active array size of 2592H x 1944V. It is programmable through a
+>> serial I2C +interface.
+>> +
+>> +Required Properties:
+>> +- compatible: Value should be "ovti,ov5645".
+>> +- clocks: Reference to the xclk clock.
+>> +- clock-names: Should be "xclk".
+>> +- clock-frequency: Frequency of the xclk clock.
+>> +- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
+>> +- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW.
+> 
+> Shouldn't the enable and reset GPIOs be optional ?
+I don't think so. The operations on the GPIOs are part of the power up sequence
+of the sensor so we must have control over them to execute the exact sequence.
 
-Acked-by: Peter Griffin <peter.griffin@linaro.org>
+> 
+>> +- vdddo-supply: Chip digital IO regulator.
+>> +- vdda-supply: Chip analog regulator.
+>> +- vddd-supply: Chip digital core regulator.
+>> +
+>> +The device node must contain one 'port' child node for its digital output
+>> +video port, in accordance with the video interface bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +	&i2c1 {
+>> +		...
+>> +
+>> +		ov5645: ov5645@78 {
+>> +			compatible = "ovti,ov5645";
+>> +			reg = <0x78>;
+>> +
+>> +			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+>> +			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
+>> +			pinctrl-names = "default";
+>> +			pinctrl-0 = <&camera_rear_default>;
+>> +
+>> +			clocks = <&clks 200>;
+>> +			clock-names = "xclk";
+>> +			clock-frequency = <23880000>;
+>> +
+>> +			vdddo-supply = <&camera_dovdd_1v8>;
+>> +			vdda-supply = <&camera_avdd_2v8>;
+>> +			vddd-supply = <&camera_dvdd_1v2>;
+>> +
+>> +			port {
+>> +				ov5645_ep: endpoint {
+>> +					clock-lanes = <1>;
+>> +					data-lanes = <0 2>;
+>> +					remote-endpoint = <&csi0_ep>;
+>> +				};
+>> +			};
+>> +		};
+>> +	};
+> 
 
+-- 
+Best regards,
+Todor Tomov
