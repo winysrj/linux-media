@@ -1,206 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36780 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933072AbcJMAZI (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59142 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757038AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 20:25:08 -0400
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-To: linux-mm@kvack.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org,
-        Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: [PATCH 02/10] mm: remove write/force parameters from __get_user_pages_unlocked()
-Date: Thu, 13 Oct 2016 01:20:12 +0100
-Message-Id: <20161013002020.3062-3-lstoakes@gmail.com>
-In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 54/57] [media] platform: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:42 -0300
+Message-Id: <68fc2da43db37e66ec6a3e1ff0e750b73c3b0f42.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the write and force parameters from
-__get_user_pages_unlocked() to make the use of FOLL_FORCE explicit in callers as
-use of this flag can result in surprising behaviour (and hence bugs) within the
-mm subsystem.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/linux/mm.h     |  3 +--
- mm/gup.c               | 17 +++++++++--------
- mm/nommu.c             | 12 +++++++++---
- mm/process_vm_access.c |  7 +++++--
- virt/kvm/async_pf.c    |  3 ++-
- virt/kvm/kvm_main.c    | 11 ++++++++---
- 6 files changed, 34 insertions(+), 19 deletions(-)
+ drivers/media/platform/mx2_emmaprp.c | 3 +--
+ drivers/media/platform/pxa_camera.c  | 6 ++----
+ drivers/media/platform/via-camera.c  | 7 ++-----
+ 3 files changed, 5 insertions(+), 11 deletions(-)
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index e9caec6..2db98b6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1285,8 +1285,7 @@ long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
- 		    int write, int force, struct page **pages, int *locked);
- long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
- 			       unsigned long start, unsigned long nr_pages,
--			       int write, int force, struct page **pages,
--			       unsigned int gup_flags);
-+			       struct page **pages, unsigned int gup_flags);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 		    int write, int force, struct page **pages);
- int get_user_pages_fast(unsigned long start, int nr_pages, int write,
-diff --git a/mm/gup.c b/mm/gup.c
-index ba83942..3d620dd 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -865,17 +865,11 @@ EXPORT_SYMBOL(get_user_pages_locked);
-  */
- __always_inline long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
- 					       unsigned long start, unsigned long nr_pages,
--					       int write, int force, struct page **pages,
--					       unsigned int gup_flags)
-+					       struct page **pages, unsigned int gup_flags)
- {
- 	long ret;
- 	int locked = 1;
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index e68d271b10af..ea572718a638 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -724,8 +724,7 @@ static int emmaprp_buf_prepare(struct vb2_buffer *vb)
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
  
--	if (write)
--		gup_flags |= FOLL_WRITE;
--	if (force)
--		gup_flags |= FOLL_FORCE;
--
- 	down_read(&mm->mmap_sem);
- 	ret = __get_user_pages_locked(tsk, mm, start, nr_pages, pages, NULL,
- 				      &locked, false, gup_flags);
-@@ -905,8 +899,15 @@ EXPORT_SYMBOL(__get_user_pages_unlocked);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 			     int write, int force, struct page **pages)
- {
-+	unsigned int flags = FOLL_TOUCH;
-+
-+	if (write)
-+		flags |= FOLL_WRITE;
-+	if (force)
-+		flags |= FOLL_FORCE;
-+
- 	return __get_user_pages_unlocked(current, current->mm, start, nr_pages,
--					 write, force, pages, FOLL_TOUCH);
-+					 pages, flags);
- }
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
-diff --git a/mm/nommu.c b/mm/nommu.c
-index 95daf81..925dcc1 100644
---- a/mm/nommu.c
-+++ b/mm/nommu.c
-@@ -185,8 +185,7 @@ EXPORT_SYMBOL(get_user_pages_locked);
- 
- long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
- 			       unsigned long start, unsigned long nr_pages,
--			       int write, int force, struct page **pages,
--			       unsigned int gup_flags)
-+			       struct page **pages, unsigned int gup_flags)
- {
- 	long ret;
- 	down_read(&mm->mmap_sem);
-@@ -200,8 +199,15 @@ EXPORT_SYMBOL(__get_user_pages_unlocked);
- long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
- 			     int write, int force, struct page **pages)
- {
-+	unsigned int flags = 0;
-+
-+	if (write)
-+		flags |= FOLL_WRITE;
-+	if (force)
-+		flags |= FOLL_FORCE;
-+
- 	return __get_user_pages_unlocked(current, current->mm, start, nr_pages,
--					 write, force, pages, 0);
-+					 pages, flags);
- }
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
-diff --git a/mm/process_vm_access.c b/mm/process_vm_access.c
-index 07514d4..be8dc8d 100644
---- a/mm/process_vm_access.c
-+++ b/mm/process_vm_access.c
-@@ -88,12 +88,16 @@ static int process_vm_rw_single_vec(unsigned long addr,
- 	ssize_t rc = 0;
- 	unsigned long max_pages_per_loop = PVM_MAX_KMALLOC_PAGES
- 		/ sizeof(struct pages *);
-+	unsigned int flags = FOLL_REMOTE;
- 
- 	/* Work out address and page range required */
- 	if (len == 0)
- 		return 0;
- 	nr_pages = (addr + len - 1) / PAGE_SIZE - addr / PAGE_SIZE + 1;
- 
-+	if (vm_write)
-+		flags |= FOLL_WRITE;
-+
- 	while (!rc && nr_pages && iov_iter_count(iter)) {
- 		int pages = min(nr_pages, max_pages_per_loop);
- 		size_t bytes;
-@@ -104,8 +108,7 @@ static int process_vm_rw_single_vec(unsigned long addr,
- 		 * current/current->mm
+ 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
+-		dprintk(ctx->dev, "%s data will not fit into plane"
+-				  "(%lu < %lu)\n", __func__,
++		dprintk(ctx->dev, "%s data will not fit into plane(%lu < %lu)\n", __func__,
+ 				  vb2_plane_size(vb, 0),
+ 				  (long)q_data->sizeimage);
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index c12209c701d3..bcdac4932fb1 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -2347,8 +2347,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		 * Platform hasn't set available data widths. This is bad.
+ 		 * Warn and use a default.
  		 */
- 		pages = __get_user_pages_unlocked(task, mm, pa, pages,
--						  vm_write, 0, process_pages,
--						  FOLL_REMOTE);
-+						  process_pages, flags);
- 		if (pages <= 0)
- 			return -EFAULT;
+-		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available "
+-			 "data widths, using default 10 bit\n");
++		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available data widths, using default 10 bit\n");
+ 		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
+ 	}
+ 	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)
+@@ -2359,8 +2358,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		pcdev->width_flags |= 1 << 9;
+ 	if (!pcdev->mclk) {
+ 		dev_warn(&pdev->dev,
+-			 "mclk == 0! Please, fix your platform data. "
+-			 "Using default 20MHz\n");
++			 "mclk == 0! Please, fix your platform data. Using default 20MHz\n");
+ 		pcdev->mclk = 20000000;
+ 	}
  
-diff --git a/virt/kvm/async_pf.c b/virt/kvm/async_pf.c
-index db96688..8035cc1 100644
---- a/virt/kvm/async_pf.c
-+++ b/virt/kvm/async_pf.c
-@@ -84,7 +84,8 @@ static void async_pf_execute(struct work_struct *work)
- 	 * mm and might be done in another context, so we must
- 	 * use FOLL_REMOTE.
- 	 */
--	__get_user_pages_unlocked(NULL, mm, addr, 1, 1, 0, NULL, FOLL_REMOTE);
-+	__get_user_pages_unlocked(NULL, mm, addr, 1, NULL,
-+			FOLL_WRITE | FOLL_REMOTE);
+diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+index 7ca12deba89c..e16f70a5df1d 100644
+--- a/drivers/media/platform/via-camera.c
++++ b/drivers/media/platform/via-camera.c
+@@ -39,15 +39,12 @@ MODULE_LICENSE("GPL");
+ static bool flip_image;
+ module_param(flip_image, bool, 0444);
+ MODULE_PARM_DESC(flip_image,
+-		"If set, the sensor will be instructed to flip the image "
+-		"vertically.");
++		"If set, the sensor will be instructed to flip the image vertically.");
  
- 	kvm_async_page_present_sync(vcpu, apf);
+ static bool override_serial;
+ module_param(override_serial, bool, 0444);
+ MODULE_PARM_DESC(override_serial,
+-		"The camera driver will normally refuse to load if "
+-		"the XO 1.5 serial port is enabled.  Set this option "
+-		"to force-enable the camera.");
++		"The camera driver will normally refuse to load if the XO 1.5 serial port is enabled.  Set this option to force-enable the camera.");
  
-diff --git a/virt/kvm/kvm_main.c b/virt/kvm/kvm_main.c
-index 81dfc73..28510e7 100644
---- a/virt/kvm/kvm_main.c
-+++ b/virt/kvm/kvm_main.c
-@@ -1416,10 +1416,15 @@ static int hva_to_pfn_slow(unsigned long addr, bool *async, bool write_fault,
- 		down_read(&current->mm->mmap_sem);
- 		npages = get_user_page_nowait(addr, write_fault, page);
- 		up_read(&current->mm->mmap_sem);
--	} else
-+	} else {
-+		unsigned int flags = FOLL_TOUCH | FOLL_HWPOISON;
-+
-+		if (write_fault)
-+			flags |= FOLL_WRITE;
-+
- 		npages = __get_user_pages_unlocked(current, current->mm, addr, 1,
--						   write_fault, 0, page,
--						   FOLL_TOUCH|FOLL_HWPOISON);
-+						   page, flags);
-+	}
- 	if (npages != 1)
- 		return npages;
- 
+ /*
+  * The structure describing our camera.
 -- 
-2.10.0
+2.7.4
+
 
