@@ -1,111 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49194 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S936471AbcJGQBV (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59166 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757049AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 12:01:21 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 16/22] ARM: dts: nitrogen6x: Add dtsi for BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver board
-Date: Fri,  7 Oct 2016 18:01:01 +0200
-Message-Id: <20161007160107.5074-17-p.zabel@pengutronix.de>
-In-Reply-To: <20161007160107.5074-1-p.zabel@pengutronix.de>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 45/57] [media] tm6000: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:33 -0300
+Message-Id: <2c06e624347b535a8fb68ec4189869b132d8d83e.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree nodes for the BD_HDMI_MIPI HDMI to MIPI CSI-2 receiver
-board with a TC358743 connected to the Nitrogen6X MIPI CSI-2 input
-connector.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- .../boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi  | 73 ++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
- create mode 100644 arch/arm/boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi
+ drivers/media/usb/tm6000/tm6000-alsa.c  |  4 +---
+ drivers/media/usb/tm6000/tm6000-core.c  | 11 +++--------
+ drivers/media/usb/tm6000/tm6000-dvb.c   | 16 +++++-----------
+ drivers/media/usb/tm6000/tm6000-i2c.c   |  3 +--
+ drivers/media/usb/tm6000/tm6000-stds.c  |  3 +--
+ drivers/media/usb/tm6000/tm6000-video.c | 15 +++++----------
+ 6 files changed, 16 insertions(+), 36 deletions(-)
 
-diff --git a/arch/arm/boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi b/arch/arm/boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi
-new file mode 100644
-index 0000000..e110874
---- /dev/null
-+++ b/arch/arm/boot/dts/imx6qdl-nitrogen6x-bd-hdmi-mipi.dtsi
-@@ -0,0 +1,73 @@
-+/*
-+ * Copyright 2015 Philipp Zabel, Pengutronix
-+ *
-+ * The code contained herein is licensed under the GNU General Public
-+ * License. You may obtain a copy of the GNU General Public License
-+ * Version 2 or later at the following locations:
-+ *
-+ * http://www.opensource.org/licenses/gpl-license.html
-+ * http://www.gnu.org/copyleft/gpl.html
-+ */
-+#include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/interrupt-controller/irq.h>
-+
-+/ {
-+	hdmi_osc: hdmi-osc {
-+		compatible = "fixed-clock";
-+		clock-output-names = "hdmi-osc";
-+		clock-frequency = <27000000>;
-+		#clock-cells = <0>;
-+	};
-+};
-+
-+&i2c2 {
-+	tc358743: tc358743@0f {
-+		compatible = "toshiba,tc358743";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tc358743>;
-+		reg = <0x0f>;
-+		clocks = <&hdmi_osc>;
-+		clock-names = "refclk";
-+		reset-gpios = <&gpio6 9 GPIO_ACTIVE_LOW>;
-+		interrupt-parent = <&gpio2>;
-+		interrupts = <5 IRQ_TYPE_LEVEL_HIGH>;
-+
-+		port@0 {
-+			tc358743_out: endpoint {
-+				remote-endpoint = <&mipi_csi2_in>;
-+				data-lanes = <1 2 3 4>;
-+				clock-lanes = <0>;
-+				clock-noncontinuous;
-+				link-frequencies = /bits/ 64 <297000000>;
-+			};
-+		};
-+	};
-+};
-+
-+&iomuxc {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_hog>;
-+
-+	imx6q-nitrogen6x-tc358743 {
-+		pinctrl_tc358743: tc358743grp {
-+			fsl,pins = <
-+				MX6QDL_PAD_NANDF_WP_B__GPIO6_IO09 0x4000b0b0	/* RESETN */
-+				MX6QDL_PAD_NANDF_D5__GPIO2_IO05   0x400130b0	/* INT */
-+			>;
-+		};
-+	};
-+};
-+
-+&mipi_csi {
-+	status = "okay";
-+
-+	port@0 {
-+		mipi_csi2_in: endpoint {
-+			remote-endpoint = <&tc358743_out>;
-+			data-lanes = <1 2 3 4>;
-+			clock-lanes = <0>;
-+			clock-noncontinuous;
-+			link-frequencies = /bits/ 64 <297000000>;
-+		};
-+	};
-+};
+diff --git a/drivers/media/usb/tm6000/tm6000-alsa.c b/drivers/media/usb/tm6000/tm6000-alsa.c
+index f16fbd1f9f51..422322541af6 100644
+--- a/drivers/media/usb/tm6000/tm6000-alsa.c
++++ b/drivers/media/usb/tm6000/tm6000-alsa.c
+@@ -58,9 +58,7 @@ MODULE_PARM_DESC(index, "Index value for tm6000x capture interface(s).");
+ MODULE_DESCRIPTION("ALSA driver module for tm5600/tm6000/tm6010 based TV cards");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_LICENSE("GPL");
+-MODULE_SUPPORTED_DEVICE("{{Trident,tm5600},"
+-			"{{Trident,tm6000},"
+-			"{{Trident,tm6010}");
++MODULE_SUPPORTED_DEVICE("{{Trident,tm5600},{{Trident,tm6000},{{Trident,tm6010}");
+ static unsigned int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "enable debug messages");
+diff --git a/drivers/media/usb/tm6000/tm6000-core.c b/drivers/media/usb/tm6000/tm6000-core.c
+index 7c32353c59db..0dfef52acd12 100644
+--- a/drivers/media/usb/tm6000/tm6000-core.c
++++ b/drivers/media/usb/tm6000/tm6000-core.c
+@@ -602,8 +602,7 @@ int tm6000_init(struct tm6000_core *dev)
+ 	for (i = 0; i < size; i++) {
+ 		rc = tm6000_set_reg(dev, tab[i].req, tab[i].reg, tab[i].val);
+ 		if (rc < 0) {
+-			printk(KERN_ERR "Error %i while setting req %d, "
+-					"reg %d to value %d\n", rc,
++			printk(KERN_ERR "Error %i while setting req %d, reg %d to value %d\n", rc,
+ 					tab[i].req, tab[i].reg, tab[i].val);
+ 			return rc;
+ 		}
+@@ -761,9 +760,7 @@ int tm6000_tvaudio_set_mute(struct tm6000_core *dev, u8 mute)
+ 		if (dev->dev_type == TM6010)
+ 			tm6010_set_mute_sif(dev, mute);
+ 		else {
+-			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
+-					" SIF audio inputs. Please check the %s"
+-					" configuration.\n", dev->name);
++			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has SIF audio inputs. Please check the %s configuration.\n", dev->name);
+ 			return -EINVAL;
+ 		}
+ 		break;
+@@ -822,9 +819,7 @@ void tm6000_set_volume(struct tm6000_core *dev, int vol)
+ 		if (dev->dev_type == TM6010)
+ 			tm6010_set_volume_sif(dev, vol);
+ 		else
+-			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
+-					" SIF audio inputs. Please check the %s"
+-					" configuration.\n", dev->name);
++			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has SIF audio inputs. Please check the %s configuration.\n", dev->name);
+ 		break;
+ 	case TM6000_AMUX_ADC1:
+ 	case TM6000_AMUX_ADC2:
+diff --git a/drivers/media/usb/tm6000/tm6000-dvb.c b/drivers/media/usb/tm6000/tm6000-dvb.c
+index 0426b210383b..70dbaec1219e 100644
+--- a/drivers/media/usb/tm6000/tm6000-dvb.c
++++ b/drivers/media/usb/tm6000/tm6000-dvb.c
+@@ -35,9 +35,7 @@ MODULE_DESCRIPTION("DVB driver extension module for tm5600/6000/6010 based TV ca
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_LICENSE("GPL");
+ 
+-MODULE_SUPPORTED_DEVICE("{{Trident, tm5600},"
+-			"{{Trident, tm6000},"
+-			"{{Trident, tm6010}");
++MODULE_SUPPORTED_DEVICE("{{Trident, tm5600},{{Trident, tm6000},{{Trident, tm6010}");
+ 
+ static int debug;
+ 
+@@ -292,13 +290,11 @@ static int register_dvb(struct tm6000_core *dev)
+ 			}
+ 
+ 			if (!dvb_attach(xc2028_attach, dvb->frontend, &cfg)) {
+-				printk(KERN_ERR "tm6000: couldn't register "
+-						"frontend (xc3028)\n");
++				printk(KERN_ERR "tm6000: couldn't register frontend (xc3028)\n");
+ 				ret = -EINVAL;
+ 				goto frontend_err;
+ 			}
+-			printk(KERN_INFO "tm6000: XC2028/3028 asked to be "
+-					 "attached to frontend!\n");
++			printk(KERN_INFO "tm6000: XC2028/3028 asked to be attached to frontend!\n");
+ 			break;
+ 			}
+ 		case TUNER_XC5000: {
+@@ -315,13 +311,11 @@ static int register_dvb(struct tm6000_core *dev)
+ 			}
+ 
+ 			if (!dvb_attach(xc5000_attach, dvb->frontend, &dev->i2c_adap, &cfg)) {
+-				printk(KERN_ERR "tm6000: couldn't register "
+-						"frontend (xc5000)\n");
++				printk(KERN_ERR "tm6000: couldn't register frontend (xc5000)\n");
+ 				ret = -EINVAL;
+ 				goto frontend_err;
+ 			}
+-			printk(KERN_INFO "tm6000: XC5000 asked to be "
+-					 "attached to frontend!\n");
++			printk(KERN_INFO "tm6000: XC5000 asked to be attached to frontend!\n");
+ 			break;
+ 			}
+ 		}
+diff --git a/drivers/media/usb/tm6000/tm6000-i2c.c b/drivers/media/usb/tm6000/tm6000-i2c.c
+index c7e23e3dd75e..b01d3ee56e77 100644
+--- a/drivers/media/usb/tm6000/tm6000-i2c.c
++++ b/drivers/media/usb/tm6000/tm6000-i2c.c
+@@ -173,8 +173,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			 * immediately after a 1 or 2 byte write to select
+ 			 * a register.  We cannot fulfil this request.
+ 			 */
+-			i2c_dprintk(2, " read without preceding write not"
+-				       " supported");
++			i2c_dprintk(2, " read without preceding write not supported");
+ 			rc = -EOPNOTSUPP;
+ 			goto err;
+ 		} else if (i + 1 < num && msgs[i].len <= 2 &&
+diff --git a/drivers/media/usb/tm6000/tm6000-stds.c b/drivers/media/usb/tm6000/tm6000-stds.c
+index 93a4b2434b6e..4064a5e8fae1 100644
+--- a/drivers/media/usb/tm6000/tm6000-stds.c
++++ b/drivers/media/usb/tm6000/tm6000-stds.c
+@@ -464,8 +464,7 @@ static int tm6000_load_std(struct tm6000_core *dev, struct tm6000_reg_settings *
+ 	for (i = 0; set[i].req; i++) {
+ 		rc = tm6000_set_reg(dev, set[i].req, set[i].reg, set[i].value);
+ 		if (rc < 0) {
+-			printk(KERN_ERR "Error %i while setting "
+-			       "req %d, reg %d to value %d\n",
++			printk(KERN_ERR "Error %i while setting req %d, reg %d to value %d\n",
+ 			       rc, set[i].req, set[i].reg, set[i].value);
+ 			return rc;
+ 		}
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index dee7e7d3d47d..7cdf030d7071 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -615,8 +615,7 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	dprintk(dev, V4L2_DEBUG_QUEUE, "Allocating %d x %d packets"
+-		    " (%d bytes) of %d bytes each to handle %u size\n",
++	dprintk(dev, V4L2_DEBUG_QUEUE, "Allocating %d x %d packets (%d bytes) of %d bytes each to handle %u size\n",
+ 		    max_packets, num_bufs, sb_size,
+ 		    dev->isoc_in.maxsize, size);
+ 
+@@ -939,8 +938,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+ 	if (NULL == fmt) {
+-		dprintk(dev, 2, "Fourcc format (0x%08x)"
+-				" invalid.\n", f->fmt.pix.pixelformat);
++		dprintk(dev, 2, "Fourcc format (0x%08x) invalid.\n", f->fmt.pix.pixelformat);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1366,14 +1364,11 @@ static int __tm6000_open(struct file *file)
+ 	fh->width = dev->width;
+ 	fh->height = dev->height;
+ 
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=0x%08lx, dev=0x%08lx, "
+-						"dev->vidq=0x%08lx\n",
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=0x%08lx, dev=0x%08lx, dev->vidq=0x%08lx\n",
+ 			(unsigned long)fh, (unsigned long)dev,
+ 			(unsigned long)&dev->vidq);
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty "
+-				"queued=%d\n", list_empty(&dev->vidq.queued));
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty "
+-				"active=%d\n", list_empty(&dev->vidq.active));
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty queued=%d\n", list_empty(&dev->vidq.queued));
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty active=%d\n", list_empty(&dev->vidq.active));
+ 
+ 	/* initialize hardware on analog mode */
+ 	rc = tm6000_init_analog_mode(dev);
 -- 
-2.9.3
+2.7.4
+
 
