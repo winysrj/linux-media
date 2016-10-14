@@ -1,117 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:14129
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932674AbcJYFv4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48603 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754187AbcJNRrE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Oct 2016 01:51:56 -0400
-Date: Tue, 25 Oct 2016 07:51:51 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-cc: Andrey Utkin <andrey_utkin@fastmail.com>,
-        SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?ISO-8859-15?Q?Rafael_Louren=E7o_de_Lima_Chehab?=
-        <chehabrafael@gmail.com>, Shuah Khan <shuah@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 1/3] [media] au0828-video: Use kcalloc() in
- au0828_init_isoc()
-In-Reply-To: <20161024221115.3632aa5c@vento.lan>
-Message-ID: <alpine.DEB.2.20.1610250750450.2084@hadrien>
-References: <c6a37822-c0f9-1f1e-6ebe-a1c88c6d9d0a@users.sourceforge.net>        <68ad1aaa-c029-04b9-805a-e859f6c2d2d5@users.sourceforge.net>        <20161024222844.GD25320@dell-m4800.home> <20161024221115.3632aa5c@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Fri, 14 Oct 2016 13:47:04 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 02/25] [media] tuner-xc2028: don't break long lines
+Date: Fri, 14 Oct 2016 14:45:40 -0300
+Message-Id: <9bf38507a2f5d397ef6b8d67f9e405170d6999c9.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/tuners/tuner-xc2028.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index 55f6c858b9c3..e07c5fb59cc6 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -56,8 +56,7 @@ MODULE_PARM_DESC(no_poweroff, "0 (default) powers device off when not used.\n"
+ static char audio_std[8];
+ module_param_string(audio_std, audio_std, sizeof(audio_std), 0);
+ MODULE_PARM_DESC(audio_std,
+-	"Audio standard. XC3028 audio decoder explicitly "
+-	"needs to know what audio\n"
++	"Audio standard. XC3028 audio decoder explicitly needs to know what audio\n"
+ 	"standard is needed for some video standards with audio A2 or NICAM.\n"
+ 	"The valid values are:\n"
+ 	"A2\n"
+@@ -69,8 +68,8 @@ MODULE_PARM_DESC(audio_std,
+ 
+ static char firmware_name[30];
+ module_param_string(firmware_name, firmware_name, sizeof(firmware_name), 0);
+-MODULE_PARM_DESC(firmware_name, "Firmware file name. Allows overriding the "
+-				"default firmware name\n");
++MODULE_PARM_DESC(firmware_name,
++		 "Firmware file name. Allows overriding the default firmware name\n");
+ 
+ static LIST_HEAD(hybrid_tuner_instance_list);
+ static DEFINE_MUTEX(xc2028_list_mutex);
+@@ -346,8 +345,7 @@ static int load_all_firmwares(struct dvb_frontend *fe,
+ 
+ 		n++;
+ 		if (n >= n_array) {
+-			tuner_err("More firmware images in file than "
+-				  "were expected!\n");
++			tuner_err("More firmware images in file than were expected!\n");
+ 			goto corrupt;
+ 		}
+ 
+@@ -496,8 +494,8 @@ static int seek_firmware(struct dvb_frontend *fe, unsigned int type,
+ 	}
+ 
+ 	if (best_nr_matches > 0) {
+-		tuner_dbg("Selecting best matching firmware (%d bits) for "
+-			  "type=", best_nr_matches);
++		tuner_dbg("Selecting best matching firmware (%d bits) for type=",
++			  best_nr_matches);
+ 		dump_firm_type(type);
+ 		printk(KERN_CONT
+ 		       "(%x), id %016llx:\n", type, (unsigned long long)*id);
+@@ -840,8 +838,7 @@ static int check_firmware(struct dvb_frontend *fe, unsigned int type,
+ 		goto fail;
+ 	}
+ 
+-	tuner_dbg("Device is Xceive %d version %d.%d, "
+-		  "firmware version %d.%d\n",
++	tuner_dbg("Device is Xceive %d version %d.%d, firmware version %d.%d\n",
+ 		  hwmodel, (version & 0xf000) >> 12, (version & 0xf00) >> 8,
+ 		  (version & 0xf0) >> 4, version & 0xf);
+ 
+@@ -855,8 +852,7 @@ static int check_firmware(struct dvb_frontend *fe, unsigned int type,
+ 			tuner_err("Incorrect readback of firmware version.\n");
+ 			goto fail;
+ 		} else {
+-			tuner_err("Returned an incorrect version. However, "
+-				  "read is not reliable enough. Ignoring it.\n");
++			tuner_err("Returned an incorrect version. However, read is not reliable enough. Ignoring it.\n");
+ 			hwmodel = 3028;
+ 		}
+ 	}
+@@ -867,8 +863,7 @@ static int check_firmware(struct dvb_frontend *fe, unsigned int type,
+ 		priv->hwvers  = version & 0xff00;
+ 	} else if (priv->hwmodel == 0 || priv->hwmodel != hwmodel ||
+ 		   priv->hwvers != (version & 0xff00)) {
+-		tuner_err("Read invalid device hardware information - tuner "
+-			  "hung?\n");
++		tuner_err("Read invalid device hardware information - tuner hung?\n");
+ 		goto fail;
+ 	}
+ 
+-- 
+2.7.4
 
 
-On Mon, 24 Oct 2016, Mauro Carvalho Chehab wrote:
-
-> Em Mon, 24 Oct 2016 23:28:44 +0100
-> Andrey Utkin <andrey_utkin@fastmail.com> escreveu:
->
-> > On Mon, Oct 24, 2016 at 10:59:24PM +0200, SF Markus Elfring wrote:
-> > > From: Markus Elfring <elfring@users.sourceforge.net>
-> > > Date: Mon, 24 Oct 2016 22:08:47 +0200
-> > >
-> > > * Multiplications for the size determination of memory allocations
-> > >   indicated that array data structures should be processed.
-> > >   Thus use the corresponding function "kcalloc".
-> > >
-> > >   This issue was detected by using the Coccinelle software.
-> > >
-> > > * Replace the specification of data types by pointer dereferences
-> > >   to make the corresponding size determination a bit safer according to
-> > >   the Linux coding style convention.
-> > >
-> > > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> > > ---
-> > >  drivers/media/usb/au0828/au0828-video.c | 11 +++++++----
-> > >  1 file changed, 7 insertions(+), 4 deletions(-)
-> > >
-> > > diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-> > > index 85dd9a8..85b13c1 100644
-> > > --- a/drivers/media/usb/au0828/au0828-video.c
-> > > +++ b/drivers/media/usb/au0828/au0828-video.c
-> > > @@ -221,15 +221,18 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
-> > >
-> > >  	dev->isoc_ctl.isoc_copy = isoc_copy;
-> > >  	dev->isoc_ctl.num_bufs = num_bufs;
-> > > -
-> >
-> > > -	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
-> > > +	dev->isoc_ctl.urb = kcalloc(num_bufs,
-> > > +				    sizeof(*dev->isoc_ctl.urb),
-> > > +				    GFP_KERNEL);
-> >
-> > What about this (for both hunks)?
-> >
-> > -	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
-> > +	dev->isoc_ctl.urb =
-> > +		kcalloc(num_bufs, sizeof(*dev->isoc_ctl.urb), GFP_KERNEL);
->
->
-> That's worse :)
->
-> The usual Kernel style is:
->
-> 		var = foo(bar1,
-> 		          bar2,
-> 		          bar3);
-
-Isn't it more like
-
-var = foo(bar1, bar2,
-          bar3)
-
-Otherwise, Markus is going to send millions of patches to put every
-function argument on its own line...
-
-julia
-
->
-> instead of something like:
->
-> 		var =
-> 		    foo(bar1,
-> 			bar2,
-> 			bar3);
->
-> The places where it is different than that is because people ran
-> ./scripts/Lindent to try to follow the Kernel coding style.
->
-> On my experiences, at the end, using it caused more harm than
-> good, IMHO, and cause very weird indentation on lines with
-> more than 80 columns like the above.
->
-> Thanks,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
