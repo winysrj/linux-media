@@ -1,173 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:33319 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1764396AbcJaKCy (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:45700 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751497AbcJNEGk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 06:02:54 -0400
-From: Lorenzo Stoakes <lstoakes@gmail.com>
-To: linux-mm@kvack.org
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>,
-        Hugh Dickins <hughd@google.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Paolo Bonzini <pbonzini@redhat.com>,
-        linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com,
-        linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Lorenzo Stoakes <lstoakes@gmail.com>
-Subject: [PATCH 2/2] mm: remove get_user_pages_locked()
-Date: Mon, 31 Oct 2016 10:02:28 +0000
-Message-Id: <20161031100228.17917-3-lstoakes@gmail.com>
-In-Reply-To: <20161031100228.17917-1-lstoakes@gmail.com>
-References: <20161031100228.17917-1-lstoakes@gmail.com>
+        Fri, 14 Oct 2016 00:06:40 -0400
+Message-ID: <5df24ecbce5c00179584c2064f3bf283@smtp-cloud3.xs4all.net>
+Date: Fri, 14 Oct 2016 06:06:36 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-get_user_pages() now has an int *locked parameter which renders
-get_user_pages_locked() redundant, so remove it.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch should not introduce any functional changes.
+Results of the daily build of media_tree:
 
-Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
----
- include/linux/mm.h |  2 --
- mm/frame_vector.c  |  4 ++--
- mm/gup.c           | 56 +++++++++++++++++++-----------------------------------
- mm/nommu.c         |  8 --------
- 4 files changed, 22 insertions(+), 48 deletions(-)
+date:			Fri Oct 14 05:00:14 CEST 2016
+media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
+media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
+v4l-utils git hash:	79186f9d3d9d3b6bee44444a611bd92435d11807
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index 396984e..4db3147 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -1278,8 +1278,6 @@ long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- long get_user_pages(unsigned long start, unsigned long nr_pages,
- 			    unsigned int gup_flags, struct page **pages,
- 			    struct vm_area_struct **vmas, int *locked);
--long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
--		    unsigned int gup_flags, struct page **pages, int *locked);
- long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
- 			       unsigned long start, unsigned long nr_pages,
- 			       struct page **pages, unsigned int gup_flags);
-diff --git a/mm/frame_vector.c b/mm/frame_vector.c
-index db77dcb..c5ce1b1 100644
---- a/mm/frame_vector.c
-+++ b/mm/frame_vector.c
-@@ -55,8 +55,8 @@ int get_vaddr_frames(unsigned long start, unsigned int nr_frames,
- 	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP))) {
- 		vec->got_ref = true;
- 		vec->is_pfns = false;
--		ret = get_user_pages_locked(start, nr_frames,
--			gup_flags, (struct page **)(vec->ptrs), &locked);
-+		ret = get_user_pages(start, nr_frames,
-+			gup_flags, (struct page **)(vec->ptrs), NULL, &locked);
- 		goto out;
- 	}
- 
-diff --git a/mm/gup.c b/mm/gup.c
-index 6b5539e..6cec693 100644
---- a/mm/gup.c
-+++ b/mm/gup.c
-@@ -826,37 +826,6 @@ static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
- }
- 
- /*
-- * We can leverage the VM_FAULT_RETRY functionality in the page fault
-- * paths better by using either get_user_pages_locked() or
-- * get_user_pages_unlocked().
-- *
-- * get_user_pages_locked() is suitable to replace the form:
-- *
-- *      down_read(&mm->mmap_sem);
-- *      do_something()
-- *      get_user_pages(tsk, mm, ..., pages, NULL, NULL);
-- *      up_read(&mm->mmap_sem);
-- *
-- *  to:
-- *
-- *      int locked = 1;
-- *      down_read(&mm->mmap_sem);
-- *      do_something()
-- *      get_user_pages_locked(tsk, mm, ..., pages, &locked);
-- *      if (locked)
-- *          up_read(&mm->mmap_sem);
-- */
--long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
--			   unsigned int gup_flags, struct page **pages,
--			   int *locked)
--{
--	return __get_user_pages_locked(current, current->mm, start, nr_pages,
--				       pages, NULL, locked, true,
--				       gup_flags | FOLL_TOUCH);
--}
--EXPORT_SYMBOL(get_user_pages_locked);
--
--/*
-  * Same as get_user_pages_unlocked(...., FOLL_TOUCH) but it allows to
-  * pass additional gup_flags as last parameter (like FOLL_HWPOISON).
-  *
-@@ -954,11 +923,6 @@ EXPORT_SYMBOL(get_user_pages_unlocked);
-  * use the correct cache flushing APIs.
-  *
-  * See also get_user_pages_fast, for performance critical applications.
-- *
-- * get_user_pages should be phased out in favor of
-- * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
-- * should use get_user_pages because it cannot pass
-- * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
-  */
- long get_user_pages_remote(struct task_struct *tsk, struct mm_struct *mm,
- 		unsigned long start, unsigned long nr_pages,
-@@ -976,6 +940,26 @@ EXPORT_SYMBOL(get_user_pages_remote);
-  * less-flexible calling convention where we assume that the task
-  * and mm being operated on are the current task's.  We also
-  * obviously don't pass FOLL_REMOTE in here.
-+ *
-+ * We can leverage the VM_FAULT_RETRY functionality in the page fault
-+ * paths better by using either get_user_pages()'s locked parameter or
-+ * get_user_pages_unlocked().
-+ *
-+ * get_user_pages()'s locked parameter is suitable to replace the form:
-+ *
-+ *      down_read(&mm->mmap_sem);
-+ *      do_something()
-+ *      get_user_pages(tsk, mm, ..., pages, NULL, NULL);
-+ *      up_read(&mm->mmap_sem);
-+ *
-+ *  to:
-+ *
-+ *      int locked = 1;
-+ *      down_read(&mm->mmap_sem);
-+ *      do_something()
-+ *      get_user_pages(tsk, mm, ..., pages, NULL, &locked);
-+ *      if (locked)
-+ *          up_read(&mm->mmap_sem);
-  */
- long get_user_pages(unsigned long start, unsigned long nr_pages,
- 		unsigned int gup_flags, struct page **pages,
-diff --git a/mm/nommu.c b/mm/nommu.c
-index 82aaa33..3d38d40 100644
---- a/mm/nommu.c
-+++ b/mm/nommu.c
-@@ -168,14 +168,6 @@ long get_user_pages(unsigned long start, unsigned long nr_pages,
- }
- EXPORT_SYMBOL(get_user_pages);
- 
--long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
--			    unsigned int gup_flags, struct page **pages,
--			    int *locked)
--{
--	return get_user_pages(start, nr_pages, gup_flags, pages, NULL, NULL);
--}
--EXPORT_SYMBOL(get_user_pages_locked);
--
- long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
- 			       unsigned long start, unsigned long nr_pages,
- 			       struct page **pages, unsigned int gup_flags)
--- 
-2.10.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
