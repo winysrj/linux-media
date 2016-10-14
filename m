@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:35296 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756602AbcJPPU0 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48643 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754945AbcJNRrG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Oct 2016 11:20:26 -0400
-From: Hector Roussille <hector.roussille@gmail.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Hector Roussille <hector.roussille@gmail.com>
-Subject: [PATCH] Staging: media: omap4iss: fixed coding style issues
-Date: Sun, 16 Oct 2016 17:18:56 +0200
-Message-Id: <20161016151856.19209-1-hector.roussille@gmail.com>
+        Fri, 14 Oct 2016 13:47:06 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 19/25] [media] imon: use %*ph to do small hexa dumps
+Date: Fri, 14 Oct 2016 14:45:57 -0300
+Message-Id: <d101010f63f0296d5cdebed32da5339aabd6afae.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed coding style issues
+Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
+continuation lines require KERN_CONT. Instead, let's just
+use %*ph to print the buffer.
 
-Signed-off-by: Hector Roussille <hector.roussille@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/omap4iss/iss_video.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/media/rc/imon.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index c16927a..8f2d374 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -297,8 +297,10 @@ iss_video_check_format(struct iss_video *video, struct iss_video_fh *vfh)
-  */
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 86cc70fe2534..d62b1f38292c 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1593,7 +1593,6 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	struct device *dev = ictx->dev;
+ 	unsigned long flags;
+ 	u32 kc;
+-	int i;
+ 	u64 scancode;
+ 	int press_type = 0;
+ 	int msec;
+@@ -1664,10 +1663,8 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	}
  
- static int iss_video_queue_setup(struct vb2_queue *vq,
--				 unsigned int *count, unsigned int *num_planes,
--				 unsigned int sizes[], struct device *alloc_devs[])
-+				 unsigned int *count,
-+				 unsigned int *num_planes,
-+				 unsigned int sizes[],
-+				 struct device *alloc_devs[])
- {
- 	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
- 	struct iss_video *video = vfh->video;
-@@ -678,9 +680,10 @@ iss_video_get_selection(struct file *file, void *fh, struct v4l2_selection *sel)
- 	if (subdev == NULL)
- 		return -EINVAL;
+ 	if (debug) {
+-		printk(KERN_INFO "intf%d decoded packet: ", intf);
+-		for (i = 0; i < len; ++i)
+-			printk("%02x ", buf[i]);
+-		printk("\n");
++		printk(KERN_INFO "intf%d decoded packet: %*ph\n",
++		       intf, len, buf);
+ 	}
  
--	/* Try the get selection operation first and fallback to get format if not
--	 * implemented.
-+	/* Try the get selection operation first and fallback to
-+	 * get format if not implemented.
- 	 */
-+
- 	sdsel.pad = pad;
- 	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
- 	if (!ret)
+ 	press_type = imon_parse_press_type(ictx, buf, ktype);
 -- 
-2.10.0
+2.7.4
+
 
