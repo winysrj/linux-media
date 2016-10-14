@@ -1,118 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:36315 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752208AbcJCPAe (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59218 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757071AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 3 Oct 2016 11:00:34 -0400
-Message-ID: <555d3aa35c4d2dd901b9fbcfdfdacce8@smtp-cloud3.xs4all.net>
-Date: Mon, 03 Oct 2016 17:00:30 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 16/57] [media] pt1: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:04 -0300
+Message-Id: <059df061f27e313ded63b230bb849e3c792bd226.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/pt1/pt1.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-date:		Mon Oct  3 16:00:11 CEST 2016
-git branch:	test
-git hash:	e3ea5e94489bc8c711d422dfa311cfa310553a1b
-gcc version:	i686-linux-gcc (GCC) 6.2.0
-sparse version:	smatch version:	host hardware:	x86_64
-host os:	4.7.0-164
+diff --git a/drivers/media/pci/pt1/pt1.c b/drivers/media/pci/pt1/pt1.c
+index e7e4428109c3..aad2acf90177 100644
+--- a/drivers/media/pci/pt1/pt1.c
++++ b/drivers/media/pci/pt1/pt1.c
+@@ -282,13 +282,11 @@ static int pt1_filter(struct pt1 *pt1, struct pt1_buffer_page *page)
+ 			continue;
+ 
+ 		if (upacket >> 24 & 1)
+-			printk_ratelimited(KERN_INFO "earth-pt1: device "
+-				"buffer overflowing. table[%d] buf[%d]\n",
++			printk_ratelimited(KERN_INFO "earth-pt1: device buffer overflowing. table[%d] buf[%d]\n",
+ 				pt1->table_index, pt1->buf_index);
+ 		sc = upacket >> 26 & 0x7;
+ 		if (adap->st_count != -1 && sc != ((adap->st_count + 1) & 0x7))
+-			printk_ratelimited(KERN_INFO "earth-pt1: data loss"
+-				" in streamID(adapter)[%d]\n", index);
++			printk_ratelimited(KERN_INFO "earth-pt1: data loss in streamID(adapter)[%d]\n", index);
+ 		adap->st_count = sc;
+ 
+ 		buf = adap->buf;
+-- 
+2.7.4
 
-linux-git-Module.symvers: ERRORS
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0.9-i686: OK
-linux-4.1.33-i686: OK
-linux-4.2.8-i686: OK
-linux-4.3.6-i686: OK
-linux-4.4.22-i686: OK
-linux-4.5.7-i686: OK
-linux-4.6.7-i686: OK
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.33-x86_64: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.22-x86_64: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-smatch: OK
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
