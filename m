@@ -1,141 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37592 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753971AbcJZLKT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 07:10:19 -0400
-Date: Wed, 26 Oct 2016 12:10:12 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2 7/9] drm: atomic: factor out common out-fence
- operations
-Message-ID: <20161026111012.GA30071@e106950-lin.cambridge.arm.com>
-References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
- <1477472108-27222-8-git-send-email-brian.starkey@arm.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <1477472108-27222-8-git-send-email-brian.starkey@arm.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:59169 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757045AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 43/57] [media] siano: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:31 -0300
+Message-Id: <556a0e18ec8b0f557d781a0f1409968c09bedc0b.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gustavo,
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-As Daniel rightly pointed out you would likely be interested in this
-patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/siano/smsusb.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-This is on-top of your v5 patch-set, with the bug-fixes I mentioned
-before. I haven't dropped the fence_get(), as I figured you're
-probably going to rebase your patches on top of the fence_get() in
-sync_file_create(), and then I will do the same.
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index c2e25876e93b..feace863e8d5 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -604,8 +604,7 @@ static int smsusb_resume(struct usb_interface *intf)
+ 				       intf->cur_altsetting->desc.
+ 				       bInterfaceNumber, 0);
+ 		if (rc < 0) {
+-			printk(KERN_INFO "%s usb_set_interface failed, "
+-			       "rc %d\n", __func__, rc);
++			printk(KERN_INFO "%s usb_set_interface failed, rc %d\n", __func__, rc);
+ 			return rc;
+ 		}
+ 	}
+-- 
+2.7.4
 
-Thanks,
-Brian
 
-On Wed, Oct 26, 2016 at 09:55:06AM +0100, Brian Starkey wrote:
->Some parts of setting up the CRTC out-fence can be re-used for
->writeback out-fences. Factor this out into a separate function.
->
->Signed-off-by: Brian Starkey <brian.starkey@arm.com>
->---
-> drivers/gpu/drm/drm_atomic.c |   64 +++++++++++++++++++++++++++---------------
-> 1 file changed, 42 insertions(+), 22 deletions(-)
->
->diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
->index f434f34..3f8fc97 100644
->--- a/drivers/gpu/drm/drm_atomic.c
->+++ b/drivers/gpu/drm/drm_atomic.c
->@@ -1693,37 +1693,46 @@ void drm_atomic_clean_old_fb(struct drm_device *dev,
-> }
-> EXPORT_SYMBOL(drm_atomic_clean_old_fb);
->
->-static int crtc_setup_out_fence(struct drm_crtc *crtc,
->-				struct drm_crtc_state *crtc_state,
->-				struct drm_out_fence_state *fence_state)
->+static struct fence *get_crtc_fence(struct drm_crtc *crtc,
->+				    struct drm_crtc_state *crtc_state)
-> {
-> 	struct fence *fence;
->
->-	fence_state->fd = get_unused_fd_flags(O_CLOEXEC);
->-	if (fence_state->fd < 0) {
->-		return fence_state->fd;
->-	}
->-
->-	fence_state->out_fence_ptr = crtc_state->out_fence_ptr;
->-	crtc_state->out_fence_ptr = NULL;
->-
->-	if (put_user(fence_state->fd, fence_state->out_fence_ptr))
->-		return -EFAULT;
->-
-> 	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
-> 	if (!fence)
->-		return -ENOMEM;
->+		return NULL;
->
-> 	fence_init(fence, &drm_crtc_fence_ops, &crtc->fence_lock,
-> 		   crtc->fence_context, ++crtc->fence_seqno);
->
->+	crtc_state->event->base.fence = fence_get(fence);
->+
->+	return fence;
->+}
->+
->+static int setup_out_fence(struct drm_out_fence_state *fence_state,
->+			   u64 __user *out_fence_ptr,
->+			   struct fence *fence)
->+{
->+	int ret;
->+
->+	DRM_DEBUG_ATOMIC("Putting out-fence %p into user ptr: %p\n",
->+			 fence, out_fence_ptr);
->+
->+	fence_state->fd = get_unused_fd_flags(O_CLOEXEC);
->+	if (fence_state->fd < 0)
->+		return fence_state->fd;
->+
->+	ret = put_user(fence_state->fd, out_fence_ptr);
->+	if (ret)
->+		return ret;
->+
->+	fence_state->out_fence_ptr = out_fence_ptr;
->+
-> 	fence_state->sync_file = sync_file_create(fence);
->-	if(!fence_state->sync_file) {
->-		fence_put(fence);
->+	if (!fence_state->sync_file)
-> 		return -ENOMEM;
->-	}
->
->-	crtc_state->event->base.fence = fence_get(fence);
-> 	return 0;
-> }
->
->@@ -1896,10 +1905,21 @@ retry:
-> 		}
->
-> 		if (crtc_state->out_fence_ptr) {
->-			ret = crtc_setup_out_fence(crtc, crtc_state,
->-						   &fence_state[fence_idx++]);
->-			if (ret)
->+			struct fence *fence = get_crtc_fence(crtc, crtc_state);
->+			if (!fence) {
->+				ret = -ENOMEM;
->+				goto out;
->+			}
->+
->+			ret = setup_out_fence(&fence_state[fence_idx++],
->+					      crtc_state->out_fence_ptr,
->+					      fence);
->+			if (ret) {
->+				fence_put(fence);
-> 				goto out;
->+			}
->+
->+			crtc_state->out_fence_ptr = NULL;
-> 		}
-> 	}
->
->-- 
->1.7.9.5
->
