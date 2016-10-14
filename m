@@ -1,74 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:58627 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933642AbcJLOzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:55:24 -0400
-Subject: [PATCH 11/34] [media] DaVinci-VPBE: Rename a jump label in
- vpbe_set_output()
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <0fb1a9a0-cf02-51a1-6fe7-6d7be501e0d9@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:48:38 +0200
-MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:59209 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757101AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Subject: [PATCH 23/57] [media] exynos4-is: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:11 -0300
+Message-Id: <b46229c0703d42350a23b7fa661bd3a762d27930.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 10:10:19 +0200
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Adjust jump labels according to the Linux coding style convention.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/davinci/vpbe.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/platform/exynos4-is/media-dev.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 6e7b0df..e68a792 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -253,20 +253,20 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 		sd_index = vpbe_find_encoder_sd_index(cfg, index);
- 		if (sd_index < 0) {
- 			ret = -EINVAL;
--			goto out;
-+			goto unlock;
- 		}
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 1a1154a9dfa4..e3a8709138fa 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -938,8 +938,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
  
- 		ret = venc_device->setup_if_config(cfg
- 						   ->outputs[index].if_params);
- 		if (ret)
--			goto out;
-+			goto unlock;
- 	}
+ 			csis = fmd->csis[pdata->mux_id].sd;
+ 			if (WARN(csis == NULL,
+-				 "MIPI-CSI interface specified "
+-				 "but s5p-csis module is not loaded!\n"))
++				 "MIPI-CSI interface specified but s5p-csis module is not loaded!\n"))
+ 				return -EINVAL;
  
- 	/* Set output at the encoder */
- 	ret = v4l2_subdev_call(vpbe_dev->encoders[sd_index], video,
- 				       s_routing, 0, enc_out_index, 0);
- 	if (ret)
--		goto out;
-+		goto unlock;
- 
- 	/*
- 	 * It is assumed that venc or extenal encoder will set a default
-@@ -288,7 +288,7 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 		vpbe_dev->current_sd_index = sd_index;
- 		vpbe_dev->current_out_index = index;
- 	}
--out:
-+unlock:
- 	mutex_unlock(&vpbe_dev->lock);
- 	return ret;
- }
+ 			pad = sensor->entity.num_pads - 1;
 -- 
-2.10.1
+2.7.4
+
 
