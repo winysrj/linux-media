@@ -1,62 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36022
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934704AbcJQPoe (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:39612 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753574AbcJNPtH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 11:44:34 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 1/5] [media] v4l: vsp1: Fix module autoload for OF registration
-Date: Mon, 17 Oct 2016 12:44:08 -0300
-Message-Id: <1476719053-17600-2-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
-References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+        Fri, 14 Oct 2016 11:49:07 -0400
+Message-ID: <1476460145.11834.47.camel@pengutronix.de>
+Subject: Re: [PATCH 12/22] [media] tc358743: put lanes in STOP state before
+ starting streaming
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Marek Vasut <marex@denx.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, kernel@pengutronix.de
+Date: Fri, 14 Oct 2016 17:49:05 +0200
+In-Reply-To: <70746e61-ac7d-a773-35a2-8296d0119efb@denx.de>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+         <20161007160107.5074-13-p.zabel@pengutronix.de>
+         <70746e61-ac7d-a773-35a2-8296d0119efb@denx.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the driver is built as a module, autoload won't work because the module
-alias information is not filled. So user-space can't match the registered
-device with the corresponding module.
+Am Freitag, den 07.10.2016, 21:02 +0200 schrieb Marek Vasut:
+> On 10/07/2016 06:00 PM, Philipp Zabel wrote:
+> > Without calling tc358743_set_csi from the new prepare_stream callback
+> > (or calling tc358743_s_dv_timings or tc358743_set_fmt from userspace
+> > after stopping the stream), the i.MX6 MIPI CSI2 input fails waiting
+> > for lanes to enter STOP state when streaming is started again.
+> 
+> What is the impact of that failure ? How does it manifest itself ?
 
-Export the module alias information using the MODULE_DEVICE_TABLE() macro.
+The i.MX MIPI CSI-2 driver fails waiting for the lanes to enter stop
+state. If the error is ignored, stream startup is not reliable.
 
-Before this patch:
+I'll handle this a bit differently in the next version.
 
-$ modinfo drivers/media/platform/vsp1/vsp1.ko | grep alias
-alias:          vsp1
-
-After this patch:
-
-$ modinfo drivers/media/platform/vsp1/vsp1.ko | grep alias
-alias:          vsp1
-alias:          of:N*T*Crenesas,vsp2C*
-alias:          of:N*T*Crenesas,vsp2
-alias:          of:N*T*Crenesas,vsp1C*
-alias:          of:N*T*Crenesas,vsp1
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- drivers/media/platform/vsp1/vsp1_drv.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 57c713a4e1df..aa237b48ad55 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -770,6 +770,7 @@ static const struct of_device_id vsp1_of_match[] = {
- 	{ .compatible = "renesas,vsp2" },
- 	{ },
- };
-+MODULE_DEVICE_TABLE(of, vsp1_of_match);
- 
- static struct platform_driver vsp1_platform_driver = {
- 	.probe		= vsp1_probe,
--- 
-2.7.4
+regards
+Philipp
 
