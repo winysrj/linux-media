@@ -1,57 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34136
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754296AbcJGUju (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 16:39:50 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        linux-media@vger.kernel.org,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 0/3] [media] exynos-gsc: Another round of cleanup and fixes
-Date: Fri,  7 Oct 2016 17:39:16 -0300
-Message-Id: <1475872759-17969-1-git-send-email-javier@osg.samsung.com>
+Received: from mout.web.de ([212.227.15.14]:58628 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754725AbcJNLm0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 07:42:26 -0400
+Subject: [PATCH 2/5] [media] winbond-cir: Move a variable assignment in
+ wbcir_tx()
+To: linux-media@vger.kernel.org,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <26ee4adb-2637-52c3-ac83-ae121bed5eff@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 13:42:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 07:34:46 +0200
 
-This series contains another set of cleanup and fixes for the exynos-gsc
-driver. The patches are on top of the previous posted set [0], although
-there's no dependency and the patch-sets can be applied in any order.
+Move the assignment for the local variable "data" behind the source code
+for a memory allocation by this function.
 
-Patch 1/3 is a cleanup for the gsc_register_m2m_device() error path
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/rc/winbond-cir.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Patch 2/3 fixes a NULL pointer deference that happens when the driver
-module is removed due the video device node not being unregistered.
-
-Patch 3/3 fixes a warning due the driver not doing proper cleanup of
-the m2m source and destination queues.
-
-[0]: https://lkml.org/lkml/2016/9/30/413
-
-Best regards,
-Javier
-
-
-Javier Martinez Canillas (3):
-  [media] exynos-gsc: don't release a non-dynamically allocated
-    video_device
-  [media] exynos-gsc: unregister video device node on driver removal
-  [media] exynos-gsc: cleanup m2m src and dst vb2 queues on STREAMOFF
-
- drivers/media/platform/exynos-gsc/gsc-m2m.c | 30 ++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
-
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 59050f5..fd997f0 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -655,7 +655,7 @@ wbcir_txmask(struct rc_dev *dev, u32 mask)
+ static int
+ wbcir_tx(struct rc_dev *dev, unsigned *b, unsigned count)
+ {
+-	struct wbcir_data *data = dev->priv;
++	struct wbcir_data *data;
+ 	unsigned *buf;
+ 	unsigned i;
+ 	unsigned long flags;
+@@ -668,6 +668,7 @@ wbcir_tx(struct rc_dev *dev, unsigned *b, unsigned count)
+ 	for (i = 0; i < count; i++)
+ 		buf[i] = DIV_ROUND_CLOSEST(b[i], 10);
+ 
++	data = dev->priv;
+ 	/* Not sure if this is possible, but better safe than sorry */
+ 	spin_lock_irqsave(&data->spinlock, flags);
+ 	if (data->txstate != WBCIR_TXSTATE_INACTIVE) {
 -- 
-2.7.4
+2.10.1
 
