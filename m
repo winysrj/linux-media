@@ -1,310 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eumx.net ([91.82.101.43]:52433 "EHLO owm.eumx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752060AbcJZL3I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 07:29:08 -0400
-Subject: Re: [PATCH v2 08/21] [media] imx: Add i.MX IPUv3 capture driver
-To: Marek Vasut <marex@denx.de>, Philipp Zabel <p.zabel@pengutronix.de>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
- <1476466481-24030-9-git-send-email-p.zabel@pengutronix.de>
- <a5a06050-f6e7-2031-4b14-312f085c5644@embed.me.uk>
- <1476706359.2488.13.camel@pengutronix.de>
- <fe21681b-0b92-c983-b14a-daf6504a9000@embed.me.uk>
- <9550fc48-8bbd-181a-c6d5-5403c7088ac0@denx.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Marc Kleine-Budde <mkl@pengutronix.de>
-From: Jack Mitchell <ml@embed.me.uk>
-Message-ID: <ba71dd6d-9000-e52d-a7ba-00608e31a7fd@embed.me.uk>
-Date: Wed, 26 Oct 2016 12:29:44 +0100
-MIME-Version: 1.0
-In-Reply-To: <9550fc48-8bbd-181a-c6d5-5403c7088ac0@denx.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:59228 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757095AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 20/57] [media] ttpci: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:08 -0300
+Message-Id: <9c52d21c85d8797dc041f9b234056485f367e088.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-On 19/10/16 20:25, Marek Vasut wrote:
-> On 10/19/2016 06:22 PM, Jack Mitchell wrote:
->> Hi Philipp,
->>
->> On 17/10/16 13:12, Philipp Zabel wrote:
->>> Hi Jack,
->>>
->>> Am Montag, den 17.10.2016, 12:32 +0100 schrieb Jack Mitchell:
->>>> Hi Philipp,
->>>>
->>>> I'm looking at how I would enable a parallel greyscale camera using this
->>>> set of drivers and am a little bit confused. Do you have an example
->>>> somewhere of a devicetree with an input node.
->>>
->>> In your board device tree it should look somewhat like this:
->>>
->>> &i2c1 {
->>>     sensor@48 {
->>>         compatible = "aptina,mt9v032m";
->>>         /* ... */
->>>
->>>         port {
->>>             cam_out: endpoint {
->>>                 remote-endpoint = <&csi_in>;
->>>             }
->>>         };
->>>     };
->>> };
->>>
->>> /*
->>>  * This is the input port node corresponding to the 'CSI0' pad group,
->>>  * not necessarily the CSI0 port of IPU1 or IPU2. On i.MX6Q it's port@1
->>>  * of the mipi_ipu1_mux, on i.MX6DL it's port@4 of the ipu_csi0_mux,
->>>  * the csi0 label is added in patch 13/21.
->>>  */
->>> &csi0 {
->>>     #address-cells = <1>;
->>>     #size-cells = <0>;
->>>
->>>     csi_in: endpoint@0 {
->>>         bus-width = <8>;
->>>         data-shift = <12>;
->>>         hsync-active = <1>;
->>>         vsync-active = <1>;
->>>         pclk-sample = <1>;
->>>         remote-endpoint = <&cam_out>;
->>>     };
->>> };
->>>
->>>>  I also have a further note below:
->>> [...]
->>>>> +    if (raw && priv->smfc) {
->>>>
->>
->> Thank you, I think I have something which is kind of right.
->>
->> (Apologies in advance for the formatting)
->>
->> diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts
->> b/arch/arm/boot/dts/imx6q-sabrelite.dts
->> index 66d10d8..90e6b92 100644
->> --- a/arch/arm/boot/dts/imx6q-sabrelite.dts
->> +++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
->> @@ -52,3 +52,62 @@
->>  &sata {
->>      status = "okay";
->>  };
->> +
->> +&i2c2 {
->> +    sensor@10 {
->> +        compatible = "onsemi,ar0135";
->> +        reg = <0x10>;
->> +
->> +        pinctrl-names = "default";
->> +        pinctrl-0 = <&pinctrl_ar0135>;
->> +
->> +        reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
->> +
->> +        clocks = <&clks IMX6QDL_CLK_CKO2>;
->> +        clock-names = "xclk";
->> +
->> +        xclk = <24000000>;
->> +
->> +        port {
->> +            parallel_camera_output: endpoint {
->> +                remote-endpoint = <&csi_in_from_parallel_camera>;
->> +            };
->> +        };
->> +    };
->> +};
->> +
->> +&csi0 {
->> +    csi_in_from_parallel_camera: endpoint@0 {
->> +        bus-width = <8>;
->> +        data-shift = <12>;
->> +        hsync-active = <1>;
->> +        vsync-active = <1>;
->> +        pclk-sample = <1>;
->> +        remote-endpoint = <&parallel_camera_output>;
->> +    };
->> +};
->> +
->> +&iomuxc {
->> +
->> +        imx6q-sabrelite {
->> +
->> +        pinctrl_ar0135: ar0135grp {
->> +            fsl,pins = <
->> +                MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
->> +                MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
->> +                MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
->> +                MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
->> +                MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
->> +                MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
->> +                MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
->> +            >;
->> +        };
->> +    };
->> +};
->>
->>
->> However, I can't seem to link the entities together properly, am I
->> missing something obvious?
->>
->> root@vicon:~# media-ctl -p
->> Media controller API version 0.1.0
->>
->> Media device information
->> ------------------------
->> driver          imx-media
->> model           i.MX IPUv3
->> serial
->> bus info
->> hw revision     0x0
->> driver version  0.0.0
->>
->> Device topology
->> - entity 1: IPU0 CSI0 (2 pads, 1 link)
->>             type V4L2 subdev subtype Unknown flags 0
->>     pad0: Sink
->>     pad1: Source
->>         -> "imx-ipuv3-capture.0":0 [ENABLED]
->>
->> - entity 4: imx-ipuv3-capture.0 (1 pad, 1 link)
->>             type Node subtype V4L flags 0
->>             device node name /dev/video0
->>     pad0: Sink
->>         <- "IPU0 CSI0":1 [ENABLED]
->>
->> - entity 10: IPU0 CSI1 (2 pads, 1 link)
->>              type V4L2 subdev subtype Unknown flags 0
->>     pad0: Sink
->>     pad1: Source
->>         -> "imx-ipuv3-capture.1":0 [ENABLED]
->>
->> - entity 13: imx-ipuv3-capture.1 (1 pad, 1 link)
->>              type Node subtype V4L flags 0
->>              device node name /dev/video1
->>     pad0: Sink
->>         <- "IPU0 CSI1":1 [ENABLED]
->>
->> - entity 19: IPU1 CSI0 (2 pads, 1 link)
->>              type V4L2 subdev subtype Unknown flags 0
->>     pad0: Sink
->>     pad1: Source
->>         -> "imx-ipuv3-capture.0":0 [ENABLED]
->>
->> - entity 22: imx-ipuv3-capture.0 (1 pad, 1 link)
->>              type Node subtype V4L flags 0
->>              device node name /dev/video2
->>     pad0: Sink
->>         <- "IPU1 CSI0":1 [ENABLED]
->>
->> - entity 28: IPU1 CSI1 (2 pads, 1 link)
->>              type V4L2 subdev subtype Unknown flags 0
->>     pad0: Sink
->>     pad1: Source
->>         -> "imx-ipuv3-capture.1":0 [ENABLED]
->>
->> - entity 31: imx-ipuv3-capture.1 (1 pad, 1 link)
->>              type Node subtype V4L flags 0
->>              device node name /dev/video3
->>     pad0: Sink
->>         <- "IPU1 CSI1":1 [ENABLED]
->>
->> - entity 37: mipi_ipu1_mux (3 pads, 0 link)
->>              type V4L2 subdev subtype Unknown flags 0
->>     pad0: Sink
->>     pad1: Sink
->>     pad2: Source
->>
->> - entity 41: mipi_ipu2_mux (3 pads, 0 link)
->>              type V4L2 subdev subtype Unknown flags 0
->>     pad0: Sink
->>     pad1: Sink
->>     pad2: Source
->>
->> - entity 45: ar0135 1-0010 (1 pad, 0 link)
->>              type V4L2 subdev subtype Unknown flags 0
->>     pad0: Source
->>
->>
->>
->>
->> root@imx6:~# media-ctl -v --links '"ar01351-0010":0->"mipi_ipu1_mux":0[1]'
->>
->> Opening media device /dev/media0
->> Enumerating entities
->> Found 11 entities
->> Enumerating pads and links
->> No link between "ar0135 1-0010":0 and "mipi_ipu1_mux":0
->> media_parse_setup_link: Unable to parse link
->>
->>  "ar0135 1-0010":0->"mipi_ipu1_mux":0[1]
->>                                      ^
->> Unable to parse link: Invalid argument (22)
->>
->> If you have something in the works with a camera example then just tell
->> me to be patient and I'll wait for a v3 ;)
->
-> Check whether you have something along these lines in your camera driver
-> in the probe() function:
->
->         priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->         priv->subdev.dev = &client->dev;
->         priv->pad.flags = MEDIA_PAD_FL_SOURCE;
->
->         ret = media_entity_init(&priv->subdev.entity, 1, &priv->pad, 0);
->         if (ret < 0) {
->                 v4l2_clk_put(priv->clk);
->                 return ret;
->         }
->
->         ret = v4l2_async_register_subdev(&priv->subdev);
->         if (ret < 0) {
->                 v4l2_clk_put(priv->clk);
->                 return ret;
->         }
->
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/ttpci/av7110.c       | 27 +++++++++------------------
+ drivers/media/pci/ttpci/av7110_hw.c    | 12 ++++--------
+ drivers/media/pci/ttpci/budget-av.c    |  3 +--
+ drivers/media/pci/ttpci/budget-ci.c    |  4 +---
+ drivers/media/pci/ttpci/budget-patch.c |  3 +--
+ drivers/media/pci/ttpci/budget.c       |  3 +--
+ drivers/media/pci/ttpci/ttpci-eeprom.c |  3 +--
+ 7 files changed, 18 insertions(+), 37 deletions(-)
 
-Yes, I have stripped the driver down to do nothing[1] apart from probe, 
-and allow me to try to link the pipeline together. I still have no luck.
-
-- entity 1: IPU0 CSI0 (2 pads, 1 link)
-             type V4L2 subdev subtype Unknown flags 0
-         pad0: Sink
-         pad1: Source
-                 -> "imx-ipuv3-capture.0":0 [ENABLED]
-
-- entity 45: ar0135 1-0010 (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown flags 0
-         pad0: Source
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index 382caf200ba1..155a46001631 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -100,8 +100,7 @@ MODULE_PARM_DESC(adac,"audio DAC type: 0 TI, 1 CRYSTAL, 2 MSP (use if autodetect
+ module_param(hw_sections, int, 0444);
+ MODULE_PARM_DESC(hw_sections, "0 use software section filter, 1 use hardware");
+ module_param(rgb_on, int, 0444);
+-MODULE_PARM_DESC(rgb_on, "For Siemens DVB-C cards only: Enable RGB control"
+-		" signal on SCART pin 16 to switch SCART video mode from CVBS to RGB");
++MODULE_PARM_DESC(rgb_on, "For Siemens DVB-C cards only: Enable RGB control signal on SCART pin 16 to switch SCART video mode from CVBS to RGB");
+ module_param(volume, int, 0444);
+ MODULE_PARM_DESC(volume, "initial volume: default 255 (range 0-255)");
+ module_param(budgetpatch, int, 0444);
+@@ -833,8 +832,7 @@ static int StartHWFilter(struct dvb_demux_filter *dvbdmxfilter)
+ 
+ 	ret = av7110_fw_request(av7110, buf, 20, &handle, 1);
+ 	if (ret != 0 || handle >= 32) {
+-		printk("dvb-ttpci: %s error  buf %04x %04x %04x %04x  "
+-				"ret %d  handle %04x\n",
++		printk("dvb-ttpci: %s error  buf %04x %04x %04x %04x  ret %d  handle %04x\n",
+ 				__func__, buf[0], buf[1], buf[2], buf[3],
+ 				ret, handle);
+ 		dvbdmxfilter->hw_handle = 0xffff;
+@@ -876,8 +874,7 @@ static int StopHWFilter(struct dvb_demux_filter *dvbdmxfilter)
+ 	buf[2] = handle;
+ 	ret = av7110_fw_request(av7110, buf, 3, answ, 2);
+ 	if (ret != 0 || answ[1] != handle) {
+-		printk("dvb-ttpci: %s error  cmd %04x %04x %04x  ret %x  "
+-				"resp %04x %04x  pid %d\n",
++		printk("dvb-ttpci: %s error  cmd %04x %04x %04x  ret %x  resp %04x %04x  pid %d\n",
+ 				__func__, buf[0], buf[1], buf[2], ret,
+ 				answ[0], answ[1], dvbdmxfilter->feed->pid);
+ 		if (!ret)
+@@ -1532,15 +1529,11 @@ static int get_firmware(struct av7110* av7110)
+ 	ret = request_firmware(&fw, "dvb-ttpci-01.fw", &av7110->dev->pci->dev);
+ 	if (ret) {
+ 		if (ret == -ENOENT) {
+-			printk(KERN_ERR "dvb-ttpci: could not load firmware,"
+-			       " file not found: dvb-ttpci-01.fw\n");
+-			printk(KERN_ERR "dvb-ttpci: usually this should be in "
+-			       "/usr/lib/hotplug/firmware or /lib/firmware\n");
+-			printk(KERN_ERR "dvb-ttpci: and can be downloaded from"
+-			       " https://linuxtv.org/download/dvb/firmware/\n");
++			printk(KERN_ERR "dvb-ttpci: could not load firmware, file not found: dvb-ttpci-01.fw\n");
++			printk(KERN_ERR "dvb-ttpci: usually this should be in /usr/lib/hotplug/firmware or /lib/firmware\n");
++			printk(KERN_ERR "dvb-ttpci: and can be downloaded from https://linuxtv.org/download/dvb/firmware/\n");
+ 		} else
+-			printk(KERN_ERR "dvb-ttpci: cannot request firmware"
+-			       " (error %i)\n", ret);
++			printk(KERN_ERR "dvb-ttpci: cannot request firmware (error %i)\n", ret);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2700,8 +2693,7 @@ static int av7110_attach(struct saa7146_dev* dev,
+ 		goto err_stop_arm_9;
+ 
+ 	if (FW_VERSION(av7110->arm_app)<0x2501)
+-		printk ("dvb-ttpci: Warning, firmware version 0x%04x is too old. "
+-			"System might be unstable!\n", FW_VERSION(av7110->arm_app));
++		printk ("dvb-ttpci: Warning, firmware version 0x%04x is too old. System might be unstable!\n", FW_VERSION(av7110->arm_app));
+ 
+ 	thread = kthread_run(arm_thread, (void *) av7110, "arm_mon");
+ 	if (IS_ERR(thread)) {
+@@ -2944,7 +2936,6 @@ static void __exit av7110_exit(void)
+ module_init(av7110_init);
+ module_exit(av7110_exit);
+ 
+-MODULE_DESCRIPTION("driver for the SAA7146 based AV110 PCI DVB cards by "
+-		   "Siemens, Technotrend, Hauppauge");
++MODULE_DESCRIPTION("driver for the SAA7146 based AV110 PCI DVB cards by Siemens, Technotrend, Hauppauge");
+ MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, others");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/pci/ttpci/av7110_hw.c b/drivers/media/pci/ttpci/av7110_hw.c
+index 0583d56ef5ef..520414cbe087 100644
+--- a/drivers/media/pci/ttpci/av7110_hw.c
++++ b/drivers/media/pci/ttpci/av7110_hw.c
+@@ -235,8 +235,7 @@ int av7110_bootarm(struct av7110 *av7110)
+ 	iwdebi(av7110, DEBISWAP, DPRAM_BASE, 0x76543210, 4);
+ 
+ 	if ((ret=irdebi(av7110, DEBINOSWAP, DPRAM_BASE, 0, 4)) != 0x10325476) {
+-		printk(KERN_ERR "dvb-ttpci: debi test in av7110_bootarm() failed: "
+-		       "%08x != %08x (check your BIOS 'Plug&Play OS' settings)\n",
++		printk(KERN_ERR "dvb-ttpci: debi test in av7110_bootarm() failed: %08x != %08x (check your BIOS 'Plug&Play OS' settings)\n",
+ 		       ret, 0x10325476);
+ 		return -1;
+ 	}
+@@ -262,8 +261,7 @@ int av7110_bootarm(struct av7110 *av7110)
+ 	iwdebi(av7110, DEBINOSWAP, AV7110_BOOT_STATE, BOOTSTATE_BUFFER_FULL, 2);
+ 
+ 	if (saa7146_wait_for_debi_done(av7110->dev, 1)) {
+-		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): "
+-		       "saa7146_wait_for_debi_done() timed out\n");
++		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): saa7146_wait_for_debi_done() timed out\n");
+ 		return -ETIMEDOUT;
+ 	}
+ 	saa7146_setgpio(dev, RESET_LINE, SAA7146_GPIO_OUTHI);
+@@ -271,8 +269,7 @@ int av7110_bootarm(struct av7110 *av7110)
+ 
+ 	dprintk(1, "load dram code\n");
+ 	if (load_dram(av7110, (u32 *)av7110->bin_root, av7110->size_root) < 0) {
+-		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): "
+-		       "load_dram() failed\n");
++		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): load_dram() failed\n");
+ 		return -1;
+ 	}
+ 
+@@ -283,8 +280,7 @@ int av7110_bootarm(struct av7110 *av7110)
+ 	mwdebi(av7110, DEBISWAB, DPRAM_BASE, av7110->bin_dpram, av7110->size_dpram);
+ 
+ 	if (saa7146_wait_for_debi_done(av7110->dev, 1)) {
+-		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): "
+-		       "saa7146_wait_for_debi_done() timed out after loading DRAM\n");
++		printk(KERN_ERR "dvb-ttpci: av7110_bootarm(): saa7146_wait_for_debi_done() timed out after loading DRAM\n");
+ 		return -ETIMEDOUT;
+ 	}
+ 	saa7146_setgpio(dev, RESET_LINE, SAA7146_GPIO_OUTHI);
+diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
+index 6f0d0161970e..896c66d4b3ae 100644
+--- a/drivers/media/pci/ttpci/budget-av.c
++++ b/drivers/media/pci/ttpci/budget-av.c
+@@ -1636,5 +1636,4 @@ module_exit(budget_av_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, Michael Hunold, others");
+-MODULE_DESCRIPTION("driver for the SAA7146 based so-called "
+-		   "budget PCI DVB w/ analog input and CI-module (e.g. the KNC cards)");
++MODULE_DESCRIPTION("driver for the SAA7146 based so-called budget PCI DVB w/ analog input and CI-module (e.g. the KNC cards)");
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 7b27af4d9658..20ad93bf0f54 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -1586,6 +1586,4 @@ module_exit(budget_ci_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Michael Hunold, Jack Thomasson, Andrew de Quincey, others");
+-MODULE_DESCRIPTION("driver for the SAA7146 based so-called "
+-		   "budget PCI DVB cards w/ CI-module produced by "
+-		   "Siemens, Technotrend, Hauppauge");
++MODULE_DESCRIPTION("driver for the SAA7146 based so-called budget PCI DVB cards w/ CI-module produced by Siemens, Technotrend, Hauppauge");
+diff --git a/drivers/media/pci/ttpci/budget-patch.c b/drivers/media/pci/ttpci/budget-patch.c
+index 591dbdfa2a13..f152eda0123a 100644
+--- a/drivers/media/pci/ttpci/budget-patch.c
++++ b/drivers/media/pci/ttpci/budget-patch.c
+@@ -679,5 +679,4 @@ module_exit(budget_patch_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Emard, Roberto Deza, Holger Waechtler, Michael Hunold, others");
+-MODULE_DESCRIPTION("Driver for full TS modified DVB-S SAA7146+AV7110 "
+-		   "based so-called Budget Patch cards");
++MODULE_DESCRIPTION("Driver for full TS modified DVB-S SAA7146+AV7110 based so-called Budget Patch cards");
+diff --git a/drivers/media/pci/ttpci/budget.c b/drivers/media/pci/ttpci/budget.c
+index fb8ede5a1531..3091b480ce22 100644
+--- a/drivers/media/pci/ttpci/budget.c
++++ b/drivers/media/pci/ttpci/budget.c
+@@ -897,5 +897,4 @@ module_exit(budget_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, Michael Hunold, others");
+-MODULE_DESCRIPTION("driver for the SAA7146 based so-called "
+-		   "budget PCI DVB cards by Siemens, Technotrend, Hauppauge");
++MODULE_DESCRIPTION("driver for the SAA7146 based so-called budget PCI DVB cards by Siemens, Technotrend, Hauppauge");
+diff --git a/drivers/media/pci/ttpci/ttpci-eeprom.c b/drivers/media/pci/ttpci/ttpci-eeprom.c
+index 079ee098b7e3..9534f29c1ffd 100644
+--- a/drivers/media/pci/ttpci/ttpci-eeprom.c
++++ b/drivers/media/pci/ttpci/ttpci-eeprom.c
+@@ -171,5 +171,4 @@ EXPORT_SYMBOL(ttpci_eeprom_parse_mac);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Ralph Metzler, Marcus Metzler, others");
+-MODULE_DESCRIPTION("Decode dvb_net MAC address from EEPROM of PCI DVB cards "
+-		"made by Siemens, Technotrend, Hauppauge");
++MODULE_DESCRIPTION("Decode dvb_net MAC address from EEPROM of PCI DVB cards made by Siemens, Technotrend, Hauppauge");
+-- 
+2.7.4
 
 
-root@sabrelite:~# media-ctl -v --links '"ar0135 1-0010":0->"IPU0 CSI0":0[1]'
-Opening media device /dev/media0
-Enumerating entities
-Found 11 entities
-Enumerating pads and links
-No link between "ar0135 1-0010":0 and "IPU0 CSI0":0
-media_parse_setup_link: Unable to parse link
-
-  "ar0135 1-0010":0->"IPU0 CSI0":0[1]
-                                  ^
-Unable to parse link: Invalid argument (22)
-
-It's possible I'm attempting to go about this the wrong way, the whole 
-v4l2 subsystem is a bit of a maze.
-
-Cheers,
-Jack.
-
-[1] http://pastebin.com/EXZKq4jZ
