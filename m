@@ -1,40 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:30323 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753232AbcJKUSb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 16:18:31 -0400
-To: Christoph Hellwig <hch@lst.de>
-Cc: hans.verkuil@cisco.com, brking@us.ibm.com,
-        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
-        alex.williamson@redhat.com, kvm@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/6] ipr: use pci_irq_allocate_vectors
-From: "Martin K. Petersen" <martin.petersen@oracle.com>
-References: <1473600688-24043-1-git-send-email-hch@lst.de>
-        <1473600688-24043-3-git-send-email-hch@lst.de>
-Date: Tue, 11 Oct 2016 16:18:05 -0400
-In-Reply-To: <1473600688-24043-3-git-send-email-hch@lst.de> (Christoph
-        Hellwig's message of "Sun, 11 Sep 2016 15:31:24 +0200")
-Message-ID: <yq1twciod1e.fsf@sermon.lab.mkp.net>
+Received: from mout.web.de ([212.227.15.4]:52826 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753866AbcJNLkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 07:40:25 -0400
+Subject: [PATCH 0/5] [media] winbond-cir: Fine-tuning for four function
+ implementations
+References: <566ABCD9.1060404@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+To: linux-media@vger.kernel.org,
+        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 13:40:09 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>>>> "Christoph" == Christoph Hellwig <hch@lst.de> writes:
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Fri, 14 Oct 2016 13:24:35 +0200
 
-Christoph> Switch the ipr driver to use pci_alloc_irq_vectors.  We need
-Christoph> to two calls to pci_alloc_irq_vectors as ipr only supports
-Christoph> multiple MSI-X vectors, but not multiple MSI vectors.
+A few update suggestions were taken into account
+from static source code analysis.
 
-Christoph> Otherwise this cleans up a lot of cruft and allows to use a
-Christoph> common request_irq loop for irq types, which happens to only
-Christoph> iterate over a single line in the non MSI-X case.
+Markus Elfring (5):
+  Use kmalloc_array() in wbcir_tx()
+  Move a variable assignment in wbcir_tx()
+  Move assignments for three variables in wbcir_shutdown()
+  One variable and its check less in wbcir_shutdown() after error detection
+  Move a variable assignment in two functions
 
-Applied to 4.10/scsi-queue.
+ drivers/media/rc/winbond-cir.c | 95 +++++++++++++++++++-----------------------
+ 1 file changed, 44 insertions(+), 51 deletions(-)
 
 -- 
-Martin K. Petersen	Oracle Linux Engineering
+2.10.1
+
