@@ -1,280 +1,618 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:32870 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1030256AbcJ0Uem (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:57792 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754307AbcJNRfB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 16:34:42 -0400
-Received: by mail-wm0-f67.google.com with SMTP id m83so4410855wmc.0
-        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 13:34:41 -0700 (PDT)
-Date: Thu, 27 Oct 2016 22:34:34 +0200
-From: Marcel Hasler <mahasler@gmail.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 1/3] stk1160: Remove stk1160-mixer and setup internal AC97
- codec automatically.
-Message-ID: <20161027203434.GA31859@arch-desktop>
-References: <cover.1477592284.git.mahasler@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1477592284.git.mahasler@gmail.com>
+        Fri, 14 Oct 2016 13:35:01 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>,
+        Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH v2 09/21] [media] platform: add video-multiplexer subdevice driver
+Date: Fri, 14 Oct 2016 19:34:29 +0200
+Message-Id: <1476466481-24030-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exposing all the channels of the device's internal AC97 codec to userspace is unnecessary and
-confusing. Instead the driver should setup the codec with proper values. This patch removes the
-mixer and sets up the codec using optimal values, i.e. the same values set by the Windows
-driver. This also makes the device work out-of-the-box, without the need for the user to
-reconfigure the device every time it's plugged in.
+This driver can handle SoC internal and external video bus multiplexers,
+controlled either by register bit fields or by a GPIO. The subdevice
+passes through frame interval and mbus configuration of the active input
+to the output side.
 
-Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/usb/stk1160/Kconfig        |  10 +--
- drivers/media/usb/stk1160/Makefile       |   4 +-
- drivers/media/usb/stk1160/stk1160-ac97.c | 121 +++++++++++--------------------
- drivers/media/usb/stk1160/stk1160-core.c |   5 +-
- drivers/media/usb/stk1160/stk1160.h      |   9 +--
- 5 files changed, 47 insertions(+), 102 deletions(-)
+Changes since v1:
+ - Propagate s_stream to selected upstream subdevice.
+---
+ .../bindings/media/video-multiplexer.txt           |  59 +++
+ drivers/media/platform/Kconfig                     |   8 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/video-multiplexer.c         | 472 +++++++++++++++++++++
+ 4 files changed, 541 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/video-multiplexer.txt
+ create mode 100644 drivers/media/platform/video-multiplexer.c
 
-diff --git a/drivers/media/usb/stk1160/Kconfig b/drivers/media/usb/stk1160/Kconfig
-index 95584c1..22dff4f 100644
---- a/drivers/media/usb/stk1160/Kconfig
-+++ b/drivers/media/usb/stk1160/Kconfig
-@@ -8,17 +8,9 @@ config VIDEO_STK1160_COMMON
+diff --git a/Documentation/devicetree/bindings/media/video-multiplexer.txt b/Documentation/devicetree/bindings/media/video-multiplexer.txt
+new file mode 100644
+index 0000000..9d133d9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/video-multiplexer.txt
+@@ -0,0 +1,59 @@
++Video Multiplexer
++=================
++
++Video multiplexers allow to select between multiple input ports. Video received
++on the active input port is passed through to the output port. Muxes described
++by this binding may be controlled by a syscon register bitfield or by a GPIO.
++
++Required properties:
++- compatible : should be "video-multiplexer"
++- reg: should be register base of the register containing the control bitfield
++- bit-mask: bitmask of the control bitfield in the control register
++- bit-shift: bit offset of the control bitfield in the control register
++- gpios: alternatively to reg, bit-mask, and bit-shift, a single GPIO phandle
++  may be given to switch between two inputs
++- #address-cells: should be <1>
++- #size-cells: should be <0>
++- port@*: at least three port nodes containing endpoints connecting to the
++  source and sink devices according to of_graph bindings. The last port is
++  the output port, all others are inputs.
++
++Example:
++
++syscon {
++	compatible = "syscon", "simple-mfd";
++
++	mux {
++		compatible = "video-multiplexer";
++		/* Single bit (1 << 19) in syscon register 0x04: */
++		reg = <0x04>;
++		bit-mask = <1>;
++		bit-shift = <19>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			mux_in0: endpoint {
++				remote-endpoint = <&video_source0_out>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			mux_in1: endpoint {
++				remote-endpoint = <&video_source1_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			mux_out: endpoint {
++				remote-endpoint = <&capture_interface_in>;
++			};
++		};
++	};
++};
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 105bf57..92680f6 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -76,6 +76,14 @@ config VIDEO_M32R_AR_M64278
  	  To compile this driver as a module, choose M here: the
- 	  module will be called stk1160
+ 	  module will be called arv.
  
--config VIDEO_STK1160_AC97
--	bool "STK1160 AC97 codec support"
--	depends on VIDEO_STK1160_COMMON && SND
--
--	---help---
--	  Enables AC97 codec support for stk1160 driver.
--
- config VIDEO_STK1160
- 	tristate
--	depends on (!VIDEO_STK1160_AC97 || (SND='n') || SND) && VIDEO_STK1160_COMMON
-+	depends on VIDEO_STK1160_COMMON
- 	default y
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEO_SAA711X
--	select SND_AC97_CODEC if SND
-diff --git a/drivers/media/usb/stk1160/Makefile b/drivers/media/usb/stk1160/Makefile
-index dfe3e90..42d0546 100644
---- a/drivers/media/usb/stk1160/Makefile
-+++ b/drivers/media/usb/stk1160/Makefile
-@@ -1,10 +1,8 @@
--obj-stk1160-ac97-$(CONFIG_VIDEO_STK1160_AC97) := stk1160-ac97.o
--
- stk1160-y := 	stk1160-core.o \
- 		stk1160-v4l.o \
- 		stk1160-video.o \
- 		stk1160-i2c.o \
--		$(obj-stk1160-ac97-y)
-+		stk1160-ac97.o
- 
- obj-$(CONFIG_VIDEO_STK1160) += stk1160.o
- 
-diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
-index 2dd308f..d3665ce 100644
---- a/drivers/media/usb/stk1160/stk1160-ac97.c
-+++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-@@ -21,19 +21,12 @@
-  */
- 
- #include <linux/module.h>
--#include <sound/core.h>
--#include <sound/initval.h>
--#include <sound/ac97_codec.h>
- 
- #include "stk1160.h"
- #include "stk1160-reg.h"
- 
--static struct snd_ac97 *stk1160_ac97;
--
--static void stk1160_write_ac97(struct snd_ac97 *ac97, u16 reg, u16 value)
-+static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
- {
--	struct stk1160 *dev = ac97->private_data;
--
- 	/* Set codec register address */
- 	stk1160_write_reg(dev, STK1160_AC97_ADDR, reg);
- 
-@@ -48,9 +41,9 @@ static void stk1160_write_ac97(struct snd_ac97 *ac97, u16 reg, u16 value)
- 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
- }
- 
--static u16 stk1160_read_ac97(struct snd_ac97 *ac97, u16 reg)
-+#ifdef DEBUG
-+static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
- {
--	struct stk1160 *dev = ac97->private_data;
- 	u8 vall = 0;
- 	u8 valh = 0;
- 
-@@ -70,81 +63,53 @@ static u16 stk1160_read_ac97(struct snd_ac97 *ac97, u16 reg)
- 	return (valh << 8) | vall;
- }
- 
--static void stk1160_reset_ac97(struct snd_ac97 *ac97)
-+void stk1160_ac97_dump_regs(struct stk1160 *dev)
- {
--	struct stk1160 *dev = ac97->private_data;
--	/* Two-step reset AC97 interface and hardware codec */
--	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
--	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x88);
-+	u16 value;
- 
--	/* Set 16-bit audio data and choose L&R channel*/
--	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
--}
-+	value = stk1160_read_ac97(dev, 0x12); /* CD volume */
-+	stk1160_dbg("0x12 == 0x%04x", value);
- 
--static struct snd_ac97_bus_ops stk1160_ac97_ops = {
--	.read	= stk1160_read_ac97,
--	.write	= stk1160_write_ac97,
--	.reset	= stk1160_reset_ac97,
--};
-+	value = stk1160_read_ac97(dev, 0x10); /* Line-in volume */
-+	stk1160_dbg("0x10 == 0x%04x", value);
- 
--int stk1160_ac97_register(struct stk1160 *dev)
--{
--	struct snd_card *card = NULL;
--	struct snd_ac97_bus *ac97_bus;
--	struct snd_ac97_template ac97_template;
--	int rc;
-+	value = stk1160_read_ac97(dev, 0x0e); /* MIC volume (mono) */
-+	stk1160_dbg("0x0e == 0x%04x", value);
- 
--	/*
--	 * Just want a card to access ac96 controls,
--	 * the actual capture interface will be handled by snd-usb-audio
--	 */
--	rc = snd_card_new(dev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
--			  THIS_MODULE, 0, &card);
--	if (rc < 0)
--		return rc;
--
--	/* TODO: I'm not sure where should I get these names :-( */
--	snprintf(card->shortname, sizeof(card->shortname),
--		 "stk1160-mixer");
--	snprintf(card->longname, sizeof(card->longname),
--		 "stk1160 ac97 codec mixer control");
--	strlcpy(card->driver, dev->dev->driver->name, sizeof(card->driver));
--
--	rc = snd_ac97_bus(card, 0, &stk1160_ac97_ops, NULL, &ac97_bus);
--	if (rc)
--		goto err;
--
--	/* We must set private_data before calling snd_ac97_mixer */
--	memset(&ac97_template, 0, sizeof(ac97_template));
--	ac97_template.private_data = dev;
--	ac97_template.scaps = AC97_SCAP_SKIP_MODEM;
--	rc = snd_ac97_mixer(ac97_bus, &ac97_template, &stk1160_ac97);
--	if (rc)
--		goto err;
--
--	dev->snd_card = card;
--	rc = snd_card_register(card);
--	if (rc)
--		goto err;
--
--	return 0;
--
--err:
--	dev->snd_card = NULL;
--	snd_card_free(card);
--	return rc;
-+	value = stk1160_read_ac97(dev, 0x16); /* Aux volume */
-+	stk1160_dbg("0x16 == 0x%04x", value);
++config VIDEO_MULTIPLEXER
++	tristate "Video Multiplexer"
++	depends on VIDEO_V4L2_SUBDEV_API && MEDIA_CONTROLLER
++	help
++	  This driver provides support for SoC internal N:1 video bus
++	  multiplexers controlled by register bitfields as well as external
++	  2:1 video multiplexers controlled by a single GPIO.
 +
-+	value = stk1160_read_ac97(dev, 0x1a); /* Record select */
-+	stk1160_dbg("0x1a == 0x%04x", value);
+ config VIDEO_OMAP3
+ 	tristate "OMAP 3 Camera support"
+ 	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API && ARCH_OMAP3
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index f7f9008..a251755a 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -27,6 +27,8 @@ obj-$(CONFIG_VIDEO_SH_VEU)		+= sh_veu.o
+ 
+ obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
+ 
++obj-$(CONFIG_VIDEO_MULTIPLEXER)		+= video-multiplexer.o
 +
-+	value = stk1160_read_ac97(dev, 0x02); /* Master volume */
-+	stk1160_dbg("0x02 == 0x%04x", value);
+ obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
+ obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
+diff --git a/drivers/media/platform/video-multiplexer.c b/drivers/media/platform/video-multiplexer.c
+new file mode 100644
+index 0000000..f79b90e
+--- /dev/null
++++ b/drivers/media/platform/video-multiplexer.c
+@@ -0,0 +1,472 @@
++/*
++ * video stream multiplexer controlled via gpio or syscon
++ *
++ * Copyright (C) 2013 Pengutronix, Sascha Hauer <kernel@pengutronix.de>
++ * Copyright (C) 2016 Pengutronix, Philipp Zabel <kernel@pengutronix.de>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
-+	value = stk1160_read_ac97(dev, 0x1c); /* Record gain */
-+	stk1160_dbg("0x1c == 0x%04x", value);
- }
-+#endif
- 
--int stk1160_ac97_unregister(struct stk1160 *dev)
-+void stk1160_ac97_setup(struct stk1160 *dev)
- {
--	struct snd_card *card = dev->snd_card;
--
--	/*
--	 * We need to check usb_device,
--	 * because ac97 release attempts to communicate with codec
--	 */
--	if (card && dev->udev)
--		snd_card_free(card);
-+	/* Two-step reset AC97 interface and hardware codec */
-+	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
-+	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
- 
--	return 0;
-+	/* Set 16-bit audio data and choose L&R channel*/
-+	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
-+	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 3, 0x00);
++#include <linux/err.h>
++#include <linux/gpio/consumer.h>
++#include <linux/mfd/syscon.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_graph.h>
++#include <linux/platform_device.h>
++#include <linux/regmap.h>
++#include <media/v4l2-async.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-of.h>
 +
-+	/* Setup channels */
-+	stk1160_write_ac97(dev, 0x12, 0x8808); /* CD volume */
-+	stk1160_write_ac97(dev, 0x10, 0x0808); /* Line-in volume */
-+	stk1160_write_ac97(dev, 0x0e, 0x0008); /* MIC volume (mono) */
-+	stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
-+	stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
-+	stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
-+	stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
++struct vidsw {
++	struct v4l2_subdev subdev;
++	unsigned int num_pads;
++	struct media_pad *pads;
++	struct v4l2_mbus_framefmt *format_mbus;
++	struct v4l2_fract timeperframe;
++	struct v4l2_of_endpoint *endpoint;
++	struct regmap_field *field;
++	struct gpio_desc *gpio;
++	int active;
++};
 +
-+#ifdef DEBUG
-+	stk1160_ac97_dump_regs(dev);
-+#endif
- }
-diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-index bc02947..f3c9b8a 100644
---- a/drivers/media/usb/stk1160/stk1160-core.c
-+++ b/drivers/media/usb/stk1160/stk1160-core.c
-@@ -373,7 +373,7 @@ static int stk1160_probe(struct usb_interface *interface,
- 	/* select default input */
- 	stk1160_select_input(dev);
- 
--	stk1160_ac97_register(dev);
-+	stk1160_ac97_setup(dev);
- 
- 	rc = stk1160_video_register(dev);
- 	if (rc < 0)
-@@ -411,9 +411,6 @@ static void stk1160_disconnect(struct usb_interface *interface)
- 	/* Here is the only place where isoc get released */
- 	stk1160_uninit_isoc(dev);
- 
--	/* ac97 unregister needs to be done before usb_device is cleared */
--	stk1160_ac97_unregister(dev);
--
- 	stk1160_clear_queue(dev);
- 
- 	video_unregister_device(&dev->vdev);
-diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-index 1ed1cc4..e85e12e 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -197,11 +197,4 @@ int stk1160_read_reg_req_len(struct stk1160 *dev, u8 req, u16 reg,
- void stk1160_select_input(struct stk1160 *dev);
- 
- /* Provided by stk1160-ac97.c */
--#ifdef CONFIG_VIDEO_STK1160_AC97
--int stk1160_ac97_register(struct stk1160 *dev);
--int stk1160_ac97_unregister(struct stk1160 *dev);
--#else
--static inline int stk1160_ac97_register(struct stk1160 *dev) { return 0; }
--static inline int stk1160_ac97_unregister(struct stk1160 *dev) { return 0; }
--#endif
--
-+void stk1160_ac97_setup(struct stk1160 *dev);
++static inline struct vidsw *v4l2_subdev_to_vidsw(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct vidsw, subdev);
++}
++
++static void vidsw_set_active(struct vidsw *vidsw, int active)
++{
++	vidsw->active = active;
++	if (active < 0)
++		return;
++
++	dev_dbg(vidsw->subdev.dev, "setting %d active\n", active);
++
++	if (vidsw->field)
++		regmap_field_write(vidsw->field, active);
++	else if (vidsw->gpio)
++		gpiod_set_value(vidsw->gpio, active);
++}
++
++static int vidsw_link_setup(struct media_entity *entity,
++			    const struct media_pad *local,
++			    const struct media_pad *remote, u32 flags)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++
++	/* We have no limitations on enabling or disabling our output link */
++	if (local->index == vidsw->num_pads - 1)
++		return 0;
++
++	dev_dbg(sd->dev, "link setup %s -> %s", remote->entity->name,
++		local->entity->name);
++
++	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
++		if (local->index == vidsw->active) {
++			dev_dbg(sd->dev, "going inactive\n");
++			vidsw->active = -1;
++		}
++		return 0;
++	}
++
++	if (vidsw->active >= 0) {
++		struct media_pad *pad;
++
++		if (vidsw->active == local->index)
++			return 0;
++
++		pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
++		if (pad) {
++			struct media_link *link;
++			int ret;
++
++			link = media_entity_find_link(pad,
++						&vidsw->pads[vidsw->active]);
++			if (link) {
++				ret = __media_entity_setup_link(link, 0);
++				if (ret)
++					return ret;
++			}
++		}
++	}
++
++	vidsw_set_active(vidsw, local->index);
++
++	return 0;
++}
++
++static struct media_entity_operations vidsw_ops = {
++	.link_setup = vidsw_link_setup,
++};
++
++static bool vidsw_endpoint_disabled(struct device_node *ep)
++{
++	struct device_node *rpp;
++
++	if (!of_device_is_available(ep))
++		return true;
++
++	rpp = of_graph_get_remote_port_parent(ep);
++	if (!rpp)
++		return true;
++
++	return !of_device_is_available(rpp);
++}
++
++static int vidsw_async_init(struct vidsw *vidsw, struct device_node *node)
++{
++	struct device_node *ep;
++	u32 portno;
++	int numports;
++	int ret;
++	int i;
++	bool active_link = false;
++
++	numports = vidsw->num_pads;
++
++	for (i = 0; i < numports - 1; i++)
++		vidsw->pads[i].flags = MEDIA_PAD_FL_SINK;
++	vidsw->pads[numports - 1].flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_pads_init(&vidsw->subdev.entity, numports,
++				     vidsw->pads);
++	if (ret < 0)
++		return ret;
++
++	vidsw->subdev.entity.ops = &vidsw_ops;
++
++	for_each_endpoint_of_node(node, ep) {
++		struct v4l2_of_endpoint endpoint;
++
++		v4l2_of_parse_endpoint(ep, &endpoint);
++
++		portno = endpoint.base.port;
++		if (portno >= numports - 1)
++			continue;
++
++		if (vidsw_endpoint_disabled(ep)) {
++			dev_dbg(vidsw->subdev.dev, "port %d disabled\n", portno);
++			continue;
++		}
++
++		vidsw->endpoint[portno] = endpoint;
++
++		if (portno == vidsw->active)
++			active_link = true;
++	}
++
++	for (portno = 0; portno < numports - 1; portno++) {
++		if (!vidsw->endpoint[portno].base.local_node)
++			continue;
++
++		/* If the active input is not connected, use another */
++		if (!active_link) {
++			vidsw_set_active(vidsw, portno);
++			active_link = true;
++		}
++	}
++
++	return v4l2_async_register_subdev(&vidsw->subdev);
++}
++
++int vidsw_g_mbus_config(struct v4l2_subdev *sd, struct v4l2_mbus_config *cfg)
++{
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++	struct media_pad *pad;
++	int ret;
++
++	if (vidsw->active == -1) {
++		dev_err(sd->dev, "no configuration for inactive mux\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Retrieve media bus configuration from the entity connected to the
++	 * active input
++	 */
++	pad = media_entity_remote_pad(&vidsw->pads[vidsw->active]);
++	if (pad) {
++		sd = media_entity_to_v4l2_subdev(pad->entity);
++		ret = v4l2_subdev_call(sd, video, g_mbus_config, cfg);
++		if (ret == -ENOIOCTLCMD)
++			pad = NULL;
++		else if (ret < 0) {
++			dev_err(sd->dev, "failed to get source configuration\n");
++			return ret;
++		}
++	}
++	if (!pad) {
++		/* Mirror the input side on the output side */
++		cfg->type = vidsw->endpoint[vidsw->active].bus_type;
++		if (cfg->type == V4L2_MBUS_PARALLEL ||
++		    cfg->type == V4L2_MBUS_BT656)
++			cfg->flags = vidsw->endpoint[vidsw->active].bus.parallel.flags;
++	}
++
++	return 0;
++}
++
++static int vidsw_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++	struct v4l2_subdev *upstream_sd;
++	struct media_pad *pad;
++
++	if (vidsw->active == -1) {
++		dev_err(sd->dev, "Can not start streaming on inactive mux\n");
++		return -EINVAL;
++	}
++
++	pad = media_entity_remote_pad(&sd->entity.pads[vidsw->active]);
++	if (!pad) {
++		dev_err(sd->dev, "Failed to find remote source pad\n");
++		return -ENOLINK;
++	}
++
++	if (!is_media_entity_v4l2_subdev(pad->entity)) {
++		dev_err(sd->dev, "Upstream entity is not a v4l2 subdev\n");
++		return -ENODEV;
++	}
++
++	upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
++
++	return v4l2_subdev_call(upstream_sd, video, s_stream, enable);
++}
++
++static int vidsw_g_frame_interval(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_frame_interval *fi)
++{
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++
++	fi->interval = vidsw->timeperframe;
++
++	return 0;
++}
++
++static int vidsw_s_frame_interval(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_frame_interval *fi)
++{
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++
++	vidsw->timeperframe = fi->interval;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops vidsw_subdev_video_ops = {
++	.g_mbus_config = vidsw_g_mbus_config,
++	.s_stream = vidsw_s_stream,
++	.g_frame_interval = vidsw_g_frame_interval,
++	.s_frame_interval = vidsw_s_frame_interval,
++};
++
++static struct v4l2_mbus_framefmt *
++__vidsw_get_pad_format(struct v4l2_subdev *sd,
++		       struct v4l2_subdev_pad_config *cfg,
++		       unsigned int pad, u32 which)
++{
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++
++	switch (which) {
++	case V4L2_SUBDEV_FORMAT_TRY:
++		return v4l2_subdev_get_try_format(sd, cfg, pad);
++	case V4L2_SUBDEV_FORMAT_ACTIVE:
++		return &vidsw->format_mbus[pad];
++	default:
++		return NULL;
++	}
++}
++
++static int vidsw_get_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *sdformat)
++{
++	sdformat->format = *__vidsw_get_pad_format(sd, cfg, sdformat->pad,
++						   sdformat->which);
++	return 0;
++}
++
++static int vidsw_set_format(struct v4l2_subdev *sd,
++			    struct v4l2_subdev_pad_config *cfg,
++			    struct v4l2_subdev_format *sdformat)
++{
++	struct vidsw *vidsw = v4l2_subdev_to_vidsw(sd);
++	struct v4l2_mbus_framefmt *mbusformat;
++
++	if (sdformat->pad >= vidsw->num_pads)
++		return -EINVAL;
++
++	mbusformat = __vidsw_get_pad_format(sd, cfg, sdformat->pad,
++					    sdformat->which);
++	if (!mbusformat)
++		return -EINVAL;
++
++	/* Output pad mirrors active input pad, no limitations on input pads */
++	if (sdformat->pad == (vidsw->num_pads - 1) && vidsw->active >= 0)
++		sdformat->format = vidsw->format_mbus[vidsw->active];
++
++	*mbusformat = sdformat->format;
++
++	return 0;
++}
++
++static struct v4l2_subdev_pad_ops vidsw_pad_ops = {
++	.get_fmt = vidsw_get_format,
++	.set_fmt = vidsw_set_format,
++};
++
++static struct v4l2_subdev_ops vidsw_subdev_ops = {
++	.pad = &vidsw_pad_ops,
++	.video = &vidsw_subdev_video_ops,
++};
++
++static struct v4l2_subdev_internal_ops vidsw_internal_ops = {
++	.registered = v4l2_of_subdev_registered,
++};
++
++static int of_get_reg_field(struct device_node *node, struct reg_field *field)
++{
++	u32 bit_mask;
++	int ret;
++
++	ret = of_property_read_u32(node, "reg", &field->reg);
++	if (ret < 0)
++		return ret;
++
++	ret = of_property_read_u32(node, "bit-mask", &bit_mask);
++	if (ret < 0)
++		return ret;
++
++	ret = of_property_read_u32(node, "bit-shift", &field->lsb);
++	if (ret < 0)
++		return ret;
++
++	field->msb = field->lsb + fls(bit_mask) - 1;
++
++	return 0;
++}
++
++static int vidsw_probe(struct platform_device *pdev)
++{
++	struct device_node *np = pdev->dev.of_node;
++	struct of_endpoint endpoint;
++	struct device_node *ep;
++	struct reg_field field;
++	struct vidsw *vidsw;
++	struct regmap *map;
++	unsigned int num_pads;
++	int ret;
++
++	vidsw = devm_kzalloc(&pdev->dev, sizeof(*vidsw), GFP_KERNEL);
++	if (!vidsw)
++		return -ENOMEM;
++
++	platform_set_drvdata(pdev, vidsw);
++
++	v4l2_subdev_init(&vidsw->subdev, &vidsw_subdev_ops);
++	vidsw->subdev.internal_ops = &vidsw_internal_ops;
++	snprintf(vidsw->subdev.name, sizeof(vidsw->subdev.name), "%s",
++			np->name);
++	vidsw->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	vidsw->subdev.dev = &pdev->dev;
++
++	/*
++	 * The largest numbered port is the output port. It determines
++	 * total number of pads
++	 */
++	for_each_endpoint_of_node(np, ep) {
++		of_graph_parse_endpoint(ep, &endpoint);
++		num_pads = max(num_pads, endpoint.port + 1);
++	}
++
++	num_pads = of_get_child_count(np);
++	if (num_pads < 2) {
++		dev_err(&pdev->dev, "Not enough ports %d\n", num_pads);
++		return -EINVAL;
++	}
++
++	ret = of_get_reg_field(np, &field);
++	if (ret == 0) {
++		map = syscon_node_to_regmap(np->parent);
++		if (!map) {
++			dev_err(&pdev->dev, "Failed to get syscon register map\n");
++			return PTR_ERR(map);
++		}
++
++		vidsw->field = devm_regmap_field_alloc(&pdev->dev, map, field);
++		if (IS_ERR(vidsw->field)) {
++			dev_err(&pdev->dev, "Failed to allocate regmap field\n");
++			return PTR_ERR(vidsw->field);
++		}
++
++		regmap_field_read(vidsw->field, &vidsw->active);
++	} else {
++		if (num_pads > 3) {
++			dev_err(&pdev->dev, "Too many ports %d\n", num_pads);
++			return -EINVAL;
++		}
++
++		vidsw->gpio = devm_gpiod_get(&pdev->dev, NULL, GPIOD_OUT_LOW);
++		if (IS_ERR(vidsw->gpio)) {
++			dev_warn(&pdev->dev,
++				 "could not request control gpio: %d\n", ret);
++			vidsw->gpio = NULL;
++		}
++
++		vidsw->active = gpiod_get_value(vidsw->gpio) ? 1 : 0;
++	}
++
++	vidsw->num_pads = num_pads;
++	vidsw->pads = devm_kzalloc(&pdev->dev, sizeof(*vidsw->pads) * num_pads,
++			GFP_KERNEL);
++	vidsw->format_mbus = devm_kzalloc(&pdev->dev,
++			sizeof(*vidsw->format_mbus) * num_pads, GFP_KERNEL);
++	vidsw->endpoint = devm_kzalloc(&pdev->dev,
++			sizeof(*vidsw->endpoint) * (num_pads - 1), GFP_KERNEL);
++
++	ret = vidsw_async_init(vidsw, np);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++static int vidsw_remove(struct platform_device *pdev)
++{
++	struct vidsw *vidsw = platform_get_drvdata(pdev);
++
++	v4l2_async_register_subdev(&vidsw->subdev);
++
++	return 0;
++}
++
++static const struct of_device_id vidsw_dt_ids[] = {
++	{ .compatible = "video-multiplexer", },
++	{ /* sentinel */ }
++};
++
++static struct platform_driver vidsw_driver = {
++	.probe		= vidsw_probe,
++	.remove		= vidsw_remove,
++	.driver		= {
++		.of_match_table = vidsw_dt_ids,
++		.name = "video-multiplexer",
++	},
++};
++
++module_platform_driver(vidsw_driver);
++
++MODULE_DESCRIPTION("video stream multiplexer");
++MODULE_AUTHOR("Sascha Hauer, Pengutronix");
++MODULE_AUTHOR("Philipp Zabel, Pengutronix");
++MODULE_LICENSE("GPL");
 -- 
-2.10.1
+2.9.3
 
