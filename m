@@ -1,355 +1,295 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49754 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752796AbcJKV0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 17:26:09 -0400
-Date: Tue, 11 Oct 2016 22:24:23 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Liviu Dudau <liviu.dudau@arm.com>,
-        "Clark, Rob" <robdclark@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Eric Anholt <eric@anholt.net>,
-        "Syrjala, Ville" <ville.syrjala@linux.intel.com>
-Subject: Re: [RFC PATCH 00/11] Introduce writeback connectors
-Message-ID: <20161011212423.GA10077@e106950-lin.cambridge.arm.com>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
- <20161011154359.GD20761@phenom.ffwll.local>
- <20161011164305.GA14337@e106950-lin.cambridge.arm.com>
- <CAKMK7uFqiLCCcCz154SU-ZG5rygSBz2_P7M29EkFh8pGMfXvOw@mail.gmail.com>
- <20161011194422.GC14337@e106950-lin.cambridge.arm.com>
- <CAKMK7uEQsiBLQGghdDvmPicc_F6+3Ra_sd7keSKTPAgsNKbdog@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <CAKMK7uEQsiBLQGghdDvmPicc_F6+3Ra_sd7keSKTPAgsNKbdog@mail.gmail.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:59061 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756477AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>
+Subject: [PATCH 11/57] [media] cx88: don't break long lines
+Date: Fri, 14 Oct 2016 17:19:59 -0300
+Message-Id: <7b0269b8ea30e093df42a48c711cfcec47a8403a.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 11, 2016 at 10:02:43PM +0200, Daniel Vetter wrote:
->On Tue, Oct 11, 2016 at 9:44 PM, Brian Starkey <brian.starkey@arm.com> wrote:
->> Hi,
->>
->>
->> On Tue, Oct 11, 2016 at 07:01:33PM +0200, Daniel Vetter wrote:
->>>
->>> On Tue, Oct 11, 2016 at 6:43 PM, Brian Starkey <brian.starkey@arm.com>
->>> wrote:
->>>>
->>>> Hi Daniel,
->>>>
->>>> Firstly thanks very much for having a look.
->>>>
->>>>
->>>> On Tue, Oct 11, 2016 at 05:43:59PM +0200, Daniel Vetter wrote:
->>>>>
->>>>>
->>>>> On Tue, Oct 11, 2016 at 03:53:57PM +0100, Brian Starkey wrote:
->>>>>>
->>>>>>
->>>>>> Hi,
->>>>>>
->>>>>> This RFC series introduces a new connector type:
->>>>>>  DRM_MODE_CONNECTOR_WRITEBACK
->>>>>> It is a follow-on from a previous discussion: [1]
->>>>>>
->>>>>> Writeback connectors are used to expose the memory writeback engines
->>>>>> found in some display controllers, which can write a CRTC's
->>>>>> composition result to a memory buffer.
->>>>>> This is useful e.g. for testing, screen-recording, screenshots,
->>>>>> wireless display, display cloning, memory-to-memory composition.
->>>>>>
->>>>>> Patches 1-7 include the core framework changes required, and patches
->>>>>> 8-11 implement a writeback connector for the Mali-DP writeback engine.
->>>>>> The Mali-DP patches depend on this other series: [2].
->>>>>>
->>>>>> The connector is given the FB_ID property for the output framebuffer,
->>>>>> and two new read-only properties: PIXEL_FORMATS and
->>>>>> PIXEL_FORMATS_SIZE, which expose the supported framebuffer pixel
->>>>>> formats of the engine.
->>>>>>
->>>>>> The EDID property is not exposed for writeback connectors.
->>>>>>
->>>>>> Writeback connector usage:
->>>>>> --------------------------
->>>>>> Due to connector routing changes being treated as "full modeset"
->>>>>> operations, any client which wishes to use a writeback connector
->>>>>> should include the connector in every modeset. The writeback will not
->>>>>> actually become active until a framebuffer is attached.
->>>>>
->>>>>
->>>>>
->>>>> Erhm, this is just the default, drivers can override this. And we could
->>>>> change the atomic helpers to not mark a modeset as a modeset if the
->>>>> connector that changed is a writeback one.
->>>>>
->>>>
->>>> Hmm, maybe. I don't think it's ideal - the driver would need to
->>>> re-implement drm_atomic_helper_check_modeset, which is quite a chunk
->>>> of code (along with exposing update_connector_routing, mode_fixup,
->>>> maybe others), and even after that it would have to lie and set
->>>> crtc_state->connectors_changed to false so that
->>>> drm_crtc_needs_modeset returns false to drm_atomic_check_only.
->>>
->>>
->>> You only need to update the property in your encoders's ->atomic_check
->>> function. No need for more, and I think being consistent with
->>> computing when you need a modeset is really a crucial part of the
->>> atomic ioctl that we should imo try to implement correctly as much as
->>> possible.
->>>
->>
->> Sorry I really don't follow. Which property? CRTC_ID?
->>
->> Userspace changing CRTC_ID will change connector_state->crtc (before
->> we even get to a driver callback).
->>
->> After that, drm_atomic_helper_check_modeset derives connectors_changed
->> based on the ->crtc pointers.
->>
->> After that, my encoder ->atomic_check *could* clear
->> connectors_changed (or I could achieve the same thing by wrapping
->> drm_atomic_helper_check), but it seems wrong to do so, considering
->> that the connector routing *has* changed.
->>
->> If you think changing CRTC_ID shouldn't require a full modeset, I'd
->> rather give drivers a ->needs_modeset callback to override the default
->> drm_atomic_crtc_needs_modeset behaviour, instead of "tricking" it into
->> returning false.
->
->The problem with just that is that there's lots of different things
->that can feed into the overall needs_modeset variable. That's why we
->split it up into multiple booleans.
->
->So yes you're supposed to clear connectors_changed if there is some
->change that you can handle without a full modeset. If you want, think
->of connectors_changed as
->needs_modeset_due_to_change_in_connnector_state, but that's cumbersome
->to type and too long ;-)
->
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-All right, got it :-). This intention wasn't clear to me from the
-comments in the code.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/cx88/cx88-alsa.c    | 13 ++++---------
+ drivers/media/pci/cx88/cx88-cards.c   | 12 ++++--------
+ drivers/media/pci/cx88/cx88-dsp.c     |  9 +++------
+ drivers/media/pci/cx88/cx88-dvb.c     |  6 ++----
+ drivers/media/pci/cx88/cx88-i2c.c     |  3 +--
+ drivers/media/pci/cx88/cx88-mpeg.c    | 12 ++++--------
+ drivers/media/pci/cx88/cx88-tvaudio.c |  6 ++----
+ drivers/media/pci/cx88/cx88-video.c   |  3 +--
+ 8 files changed, 21 insertions(+), 43 deletions(-)
 
->> I can imagine some hardware will need a full modeset to changed the
->> writeback CRTC binding anyway.
->
->Yup, and then they can upgrade this again. With all these flow-control
->booleans the idea is very much that helpers give a default that works
->for 90% of all cases, and driver callbacks can then change it for the
->other 10%.
->
->>>> I tried to keep special-casing of writeback connectors in the 
->>>> core to
->>>> a bare minimum, because I think it will quickly get messy and fragile
->>>> otherwise.
->>>
->>>
->>> Please always make the disdinction between core and shared drm
->>> helpers. Special cases in core == probably not good. Special cases in
->>> helpers == perfectly fine imo.
->>>
->>>> Honestly, I don't see modesetting the writeback connectors at
->>>> start-of-day as a big problem.
->>>
->>>
->>> It's inconsistent. Claiming it needs a modeset when it doesn't isn't
->>> great. Making that more discoverable to userspace is the entire point
->>> of atomic. And there might be hw where reconfiguring for writeback
->>> might need a full modeset.
->>>
->>
->> I'm a little confused - what bit exactly is inconsistent?
->
->Not being truthful for when you need a modeset and when not.
->
->> My implementation here is consistent with other connectors.
->> Updating the writeback connector CRTC_ID property requires a full
->> modeset, the same as other connectors.
->
->It's not about consistency with other implementations, it's about
->consistency with what your hw can do. E.g. i915 clears
->crtc_state->mode_changed when we can do a mode change without a full
->modeset. The goal of atomic is to expose the full features of each hw
->(including all quirks), not reduce it all to a least common set of
->shared features.
->
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index 723f06462104..099f14173cb4 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -120,9 +120,7 @@ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(CX88_VERSION);
+ 
+-MODULE_SUPPORTED_DEVICE("{{Conexant,23881},"
+-			"{{Conexant,23882},"
+-			"{{Conexant,23883}");
++MODULE_SUPPORTED_DEVICE("{{Conexant,23881},{{Conexant,23882},{{Conexant,23883}");
+ static unsigned int debug;
+ module_param(debug,int,0644);
+ MODULE_PARM_DESC(debug,"enable debug messages");
+@@ -154,8 +152,7 @@ static int _cx88_start_audio_dma(snd_cx88_card_t *chip)
+ 	cx_write(MO_AUDD_GPCNTRL, GP_COUNT_CONTROL_RESET);
+ 	atomic_set(&chip->count, 0);
+ 
+-	dprintk(1, "Start audio DMA, %d B/line, %d lines/FIFO, %d periods, %d "
+-		"byte buffer\n", buf->bpl, cx_read(audio_ch->cmds_start + 8)>>1,
++	dprintk(1, "Start audio DMA, %d B/line, %d lines/FIFO, %d periods, %d byte buffer\n", buf->bpl, cx_read(audio_ch->cmds_start + 8)>>1,
+ 		chip->num_periods, buf->bpl * chip->num_periods);
+ 
+ 	/* Enables corresponding bits at AUD_INT_STAT */
+@@ -425,8 +422,7 @@ static int snd_cx88_pcm_open(struct snd_pcm_substream *substream)
+ 	int err;
+ 
+ 	if (!chip) {
+-		printk(KERN_ERR "BUG: cx88 can't find device struct."
+-				" Can't proceed with open\n");
++		printk(KERN_ERR "BUG: cx88 can't find device struct. Can't proceed with open\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -914,8 +910,7 @@ static int snd_cx88_create(struct snd_card *card, struct pci_dev *pci,
+ 	/* print pci info */
+ 	pci_read_config_byte(pci, PCI_LATENCY_TIMER, &pci_lat);
+ 
+-	dprintk(1,"ALSA %s/%i: found at %s, rev: %d, irq: %d, "
+-	       "latency: %d, mmio: 0x%llx\n", core->name, devno,
++	dprintk(1,"ALSA %s/%i: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n", core->name, devno,
+ 	       pci_name(pci), pci->revision, pci->irq,
+ 	       pci_lat, (unsigned long long)pci_resource_start(pci,0));
+ 
+diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
+index 8f2556ec3971..286d6e2aa590 100644
+--- a/drivers/media/pci/cx88/cx88-cards.c
++++ b/drivers/media/pci/cx88/cx88-cards.c
+@@ -2847,8 +2847,7 @@ static void leadtek_eeprom(struct cx88_core *core, u8 *eeprom_data)
+ 		break;
+ 	}
+ 
+-	info_printk(core, "Leadtek Winfast 2000XP Expert config: "
+-		    "tuner=%d, eeprom[0]=0x%02x\n",
++	info_printk(core, "Leadtek Winfast 2000XP Expert config: tuner=%d, eeprom[0]=0x%02x\n",
+ 		    core->board.tuner_type, eeprom_data[0]);
+ }
+ 
+@@ -3107,8 +3106,7 @@ static void dvico_fusionhdtv_hybrid_init(struct cx88_core *core)
+ 		msg.len = (i != 12 ? 5 : 2);
+ 		err = i2c_transfer(&core->i2c_adap, &msg, 1);
+ 		if (err != 1) {
+-			warn_printk(core, "dvico_fusionhdtv_hybrid_init buf %d "
+-					  "failed (err = %d)!\n", i, err);
++			warn_printk(core, "dvico_fusionhdtv_hybrid_init buf %d failed (err = %d)!\n", i, err);
+ 			return;
+ 		}
+ 	}
+@@ -3284,8 +3282,7 @@ static void cx88_card_list(struct cx88_core *core, struct pci_dev *pci)
+ 		       "%s: version might help as well.\n",
+ 		       core->name,core->name,core->name,core->name);
+ 	}
+-	err_printk(core, "Here is a list of valid choices for the card=<n> "
+-		   "insmod option:\n");
++	err_printk(core, "Here is a list of valid choices for the card=<n> insmod option:\n");
+ 	for (i = 0; i < ARRAY_SIZE(cx88_boards); i++)
+ 		printk(KERN_ERR "%s:    card=%d -> %s\n",
+ 		       core->name, i, cx88_boards[i].name);
+@@ -3510,8 +3507,7 @@ static void cx88_card_setup(struct cx88_core *core)
+ 			for (i = 0; i < ARRAY_SIZE(buffer); i++)
+ 				if (2 != i2c_master_send(&core->i2c_client,
+ 							buffer[i],2))
+-					warn_printk(core, "Unable to enable "
+-						    "tuner(%i).\n", i);
++					warn_printk(core, "Unable to enable tuner(%i).\n", i);
+ 		}
+ 		break;
+ 	case CX88_BOARD_MSI_TVANYWHERE_MASTER:
+diff --git a/drivers/media/pci/cx88/cx88-dsp.c b/drivers/media/pci/cx88/cx88-dsp.c
+index a9907265ff66..0de1eebf8ebe 100644
+--- a/drivers/media/pci/cx88/cx88-dsp.c
++++ b/drivers/media/pci/cx88/cx88-dsp.c
+@@ -186,8 +186,7 @@ static s32 detect_a2_a2m_eiaj(struct cx88_core *core, s16 x[], u32 N)
+ 	dual    = freq_magnitude(x, N, dual_freq);
+ 	noise   = noise_magnitude(x, N, FREQ_NOISE_START, FREQ_NOISE_END);
+ 
+-	dprintk(1, "detect a2/a2m/eiaj: carrier=%d, stereo=%d, dual=%d, "
+-		   "noise=%d\n", carrier, stereo, dual, noise);
++	dprintk(1, "detect a2/a2m/eiaj: carrier=%d, stereo=%d, dual=%d, noise=%d\n", carrier, stereo, dual, noise);
+ 
+ 	if (stereo > dual)
+ 		ret = V4L2_TUNER_SUB_STEREO;
+@@ -222,8 +221,7 @@ static s32 detect_btsc(struct cx88_core *core, s16 x[], u32 N)
+ 	s32 sap = freq_magnitude(x, N, FREQ_BTSC_SAP);
+ 	s32 dual_ref = freq_magnitude(x, N, FREQ_BTSC_DUAL_REF);
+ 	s32 dual = freq_magnitude(x, N, FREQ_BTSC_DUAL);
+-	dprintk(1, "detect btsc: dual_ref=%d, dual=%d, sap_ref=%d, sap=%d"
+-		   "\n", dual_ref, dual, sap_ref, sap);
++	dprintk(1, "detect btsc: dual_ref=%d, dual=%d, sap_ref=%d, sap=%d\n", dual_ref, dual, sap_ref, sap);
+ 	/* FIXME: Currently not supported */
+ 	return UNSET;
+ }
+@@ -241,8 +239,7 @@ static s16 *read_rds_samples(struct cx88_core *core, u32 *N)
+ 	u32 current_address = cx_read(srch->ptr1_reg);
+ 	u32 offset = (current_address - srch->fifo_start + bpl);
+ 
+-	dprintk(1, "read RDS samples: current_address=%08x (offset=%08x), "
+-		"sample_count=%d, aud_intstat=%08x\n", current_address,
++	dprintk(1, "read RDS samples: current_address=%08x (offset=%08x), sample_count=%d, aud_intstat=%08x\n", current_address,
+ 		current_address - srch->fifo_start, sample_count,
+ 		cx_read(MO_AUD_INTSTAT));
+ 
+diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
+index ac2392d8887a..fe5fd2a4650b 100644
+--- a/drivers/media/pci/cx88/cx88-dvb.c
++++ b/drivers/media/pci/cx88/cx88-dvb.c
+@@ -625,8 +625,7 @@ static int attach_xc3028(u8 addr, struct cx8802_dev *dev)
+ 		return -EINVAL;
+ 
+ 	if (!fe0->dvb.frontend) {
+-		printk(KERN_ERR "%s/2: dvb frontend not attached. "
+-				"Can't attach xc3028\n",
++		printk(KERN_ERR "%s/2: dvb frontend not attached. Can't attach xc3028\n",
+ 		       dev->core->name);
+ 		return -EINVAL;
+ 	}
+@@ -665,8 +664,7 @@ static int attach_xc4000(struct cx8802_dev *dev, struct xc4000_config *cfg)
+ 		return -EINVAL;
+ 
+ 	if (!fe0->dvb.frontend) {
+-		printk(KERN_ERR "%s/2: dvb frontend not attached. "
+-				"Can't attach xc4000\n",
++		printk(KERN_ERR "%s/2: dvb frontend not attached. Can't attach xc4000\n",
+ 		       dev->core->name);
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/pci/cx88/cx88-i2c.c b/drivers/media/pci/cx88/cx88-i2c.c
+index cf2d69615838..8ee9b9802683 100644
+--- a/drivers/media/pci/cx88/cx88-i2c.c
++++ b/drivers/media/pci/cx88/cx88-i2c.c
+@@ -45,8 +45,7 @@ MODULE_PARM_DESC(i2c_scan,"scan i2c bus at insmod time");
+ 
+ static unsigned int i2c_udelay = 5;
+ module_param(i2c_udelay, int, 0644);
+-MODULE_PARM_DESC(i2c_udelay,"i2c delay at insmod time, in usecs "
+-		"(should be 5 or higher). Lower value means higher bus speed.");
++MODULE_PARM_DESC(i2c_udelay,"i2c delay at insmod time, in usecs (should be 5 or higher). Lower value means higher bus speed.");
+ 
+ #define dprintk(level,fmt, arg...)	if (i2c_debug >= level) \
+ 	printk(KERN_DEBUG "%s: " fmt, core->name , ## arg)
+diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+index 245357adbc25..7ee7bcfe377d 100644
+--- a/drivers/media/pci/cx88/cx88-mpeg.c
++++ b/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -401,8 +401,7 @@ static int cx8802_init_common(struct cx8802_dev *dev)
+ 
+ 	dev->pci_rev = dev->pci->revision;
+ 	pci_read_config_byte(dev->pci, PCI_LATENCY_TIMER,  &dev->pci_lat);
+-	printk(KERN_INFO "%s/2: found at %s, rev: %d, irq: %d, "
+-	       "latency: %d, mmio: 0x%llx\n", dev->core->name,
++	printk(KERN_INFO "%s/2: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n", dev->core->name,
+ 	       pci_name(dev->pci), dev->pci_rev, dev->pci->irq,
+ 	       dev->pci_lat,(unsigned long long)pci_resource_start(dev->pci,0));
+ 
+@@ -690,8 +689,7 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
+ 				list_del(&d->drvlist);
+ 				kfree(d);
+ 			} else
+-				printk(KERN_ERR "%s/2: cx8802 driver remove "
+-				       "failed (%d)\n", dev->core->name, err);
++				printk(KERN_ERR "%s/2: cx8802 driver remove failed (%d)\n", dev->core->name, err);
+ 		}
+ 
+ 		mutex_unlock(&dev->core->lock);
+@@ -768,8 +766,7 @@ static void cx8802_remove(struct pci_dev *pci_dev)
+ 		struct cx8802_driver *drv, *tmp;
+ 		int err;
+ 
+-		printk(KERN_WARNING "%s/2: Trying to remove cx8802 driver "
+-		       "while cx8802 sub-drivers still loaded?!\n",
++		printk(KERN_WARNING "%s/2: Trying to remove cx8802 driver while cx8802 sub-drivers still loaded?!\n",
+ 		       dev->core->name);
+ 
+ 		list_for_each_entry_safe(drv, tmp, &dev->drvlist, drvlist) {
+@@ -777,8 +774,7 @@ static void cx8802_remove(struct pci_dev *pci_dev)
+ 			if (err == 0) {
+ 				list_del(&drv->drvlist);
+ 			} else
+-				printk(KERN_ERR "%s/2: cx8802 driver remove "
+-				       "failed (%d)\n", dev->core->name, err);
++				printk(KERN_ERR "%s/2: cx8802 driver remove failed (%d)\n", dev->core->name, err);
+ 			kfree(drv);
+ 		}
+ 	}
+diff --git a/drivers/media/pci/cx88/cx88-tvaudio.c b/drivers/media/pci/cx88/cx88-tvaudio.c
+index 6bbce6ad6295..dd8e6f324204 100644
+--- a/drivers/media/pci/cx88/cx88-tvaudio.c
++++ b/drivers/media/pci/cx88/cx88-tvaudio.c
+@@ -62,8 +62,7 @@ MODULE_PARM_DESC(always_analog,"force analog audio out");
+ 
+ static unsigned int radio_deemphasis;
+ module_param(radio_deemphasis,int,0644);
+-MODULE_PARM_DESC(radio_deemphasis, "Radio deemphasis time constant, "
+-		 "0=None, 1=50us (elsewhere), 2=75us (USA)");
++MODULE_PARM_DESC(radio_deemphasis, "Radio deemphasis time constant, 0=None, 1=50us (elsewhere), 2=75us (USA)");
+ 
+ #define dprintk(fmt, arg...)	if (audio_debug) \
+ 	printk(KERN_DEBUG "%s/0: " fmt, core->name , ## arg)
+@@ -976,8 +975,7 @@ void cx88_set_stereo(struct cx88_core *core, u32 mode, int manual)
+ 	}
+ 
+ 	if (UNSET != ctl) {
+-		dprintk("cx88_set_stereo: mask 0x%x, ctl 0x%x "
+-			"[status=0x%x,ctl=0x%x,vol=0x%x]\n",
++		dprintk("cx88_set_stereo: mask 0x%x, ctl 0x%x [status=0x%x,ctl=0x%x,vol=0x%x]\n",
+ 			mask, ctl, cx_read(AUD_STATUS),
+ 			cx_read(AUD_CTL), cx_sread(SHADOW_AUD_VOL_CTL));
+ 		cx_andor(AUD_CTL, mask, ctl);
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index d83eb3b10f54..214cd68d7fd4 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1307,8 +1307,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 	/* print pci info */
+ 	dev->pci_rev = pci_dev->revision;
+ 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
+-	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
+-	       "latency: %d, mmio: 0x%llx\n", core->name,
++	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n", core->name,
+ 	       pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+ 	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
+ 
+-- 
+2.7.4
 
-Understood, I will make sure that we don't require a modeset unless
-absolutely necessary.
 
->> Changing the FB_ID does *not* require a full modeset, because our
->> hardware has no such restriction. This is analogous to updating the
->> FB_ID on our planes, and is consistent with the other instances of the
->> FB_ID property.
->
->Well that's inconsistent with connector properties, because in general
->they all do require a full modeset to change ;-) I.e. consistency with
->other drivers really isn't a good argument.
->
->> If there is hardware which does have a restriction on changing FB_ID, I
->> think that driver must be responsible for handling it in the same
->> way as drivers which can't handle plane updates without a full
->> modeset.
->>
->> Are you saying that because setting CRTC_ID on Mali-DP is a no-op, it
->> shouldn't require a full modeset? I'd rather somehow hard-code the
->> CRTC_ID for our writeback connector to have it always attached to
->> the CRTC in that case.
->
->Yup, I think if changing the CRTC_ID of the writeback connector
->doesn't require a modeset, then your driver better not require a full
->modeset to do that change. Maybe there's only one writeback port, and
->userspace wants to move it around. And if the hw supports that without
->a full modeset, then I think we should allow that. I also think that
->most hw will get away with changing the writeback routing without
->doing a full modeset. I might be mistaken about that though. And if
->it's not clear-cut we could add a new writeback_changed boolean to
->track this.
->
->And from a user experience pov I really think we should avoid modesets
->like the plague. Plugging in a chromecast stick and then watching how
->your panel flickers is just not nice.
->
-
-Yup, makes sense. I think my mindset is still a bit stuck in SETCRTC-
-land.
-
->>>>>> The writeback itself is enabled by attaching a framebuffer to the
->>>>>> FB_ID property of the connector. The driver must then ensure that the
->>>>>> CRTC content of that atomic commit is written into the framebuffer.
->>>>>>
->>>>>> The writeback works in a one-shot mode with each atomic commit. This
->>>>>> prevents the same content from being written multiple times.
->>>>>> In some cases (front-buffer rendering) there might be a desire for
->>>>>> continuous operation - I think a property could be added later for
->>>>>> this kind of control.
->>>>>>
->>>>>> Writeback can be disabled by setting FB_ID to zero.
->>>>>
->>>>>
->>>>>
->>>>> This seems to contradict itself: If it's one-shot, there's no need to
->>>>> disable it - it will auto-disable.
->>>>
->>>>
->>>>
->>>> I should have explained one-shot more clearly. What I mean is, one
->>>> drmModeAtomicCommit == one write to memory. This is as opposed to
->>>> writing the same thing to memory every vsync until it is stopped
->>>> (which our HW is capable of doing).
->>>>
->>>> A subsequent drmModeAtomicCommit which doesn't touch the writeback FB_ID
->>>> will write (again - but with whatever scene updates) to the same
->>>> framebuffer.
->>>>
->>>> This continues for every drmModeAtomicCommit until FB_ID is set to
->>>> zero - to disable writing - or changed to a different framebuffer, in
->>>> which case we write to the new one.
->>>>
->>>> IMO this behaviour makes sense in the context of the rest of Atomic,
->>>> and as the FB_ID is indeed persistent across atomic commits, I think
->>>> it should be read-able.
->>>
->>>
->>> tbh I don't like that, I think it'd be better to make this truly
->>> one-shot. Otherwise we'll have real fun problems with hw where the
->>> writeback can take longer than a vblank (it happens ...). So one-shot,
->>> with auto-clearing to NULL/0 is imo the right approach.
->>>
->>
->> That's an interesting point about hardware which won't finish within
->> one frame; but I don't see how "true one-shot" helps.
->>
->> What's the expected behaviour if userspace makes a new atomic commit
->> with a writeback framebuffer whilst a previous writeback is ongoing?
->>
->> In both cases, you either need to block or fail the commit - whether
->> the framebuffer gets removed when it's done is immaterial.
->
->See Eric's question. We need to define that, and I think the simplest
->approach is a completion fence/sync_file. It's destaged now in 4.9, we
->can use them. I think the simplest uabi would be a pointer property
->(u64) where we write the fd of the fence we'll signal when write-out
->completes.
->
-
-That tells userspace that the previous writeback is finished, I agree 
-that's needed. It doesn't define any behaviour in case userspace asks 
-for another writeback before that fence fires though.
-
->>>>> In other cases where we write a property as a one-shot thing (fences for
->>>>> android). In that case when you read that property it's always 0 (well,
->>>>> -1
->>>>> for fences since file descriptor). That also avoids the issues when
->>>>> userspace unconditionally saves/restores all properties (this is needed
->>>>> for generic compositor switching).
->>>>>
->>>>> I think a better behaviour would be to do the same trick, with FB_ID on
->>>>> the connector always returning 0 as the current value. That encodes the
->>>>> one-shot behaviour directly.
->>>>>
-
-I had more of a think about this. I think you're right that
-one-shot-write-only makes sense for the framebuffer - at least I can't
-think of a decent use case needing the persistent behaviour which
-couldn't easily be achieved using the one-shot style.
-
-Thanks!
--Brian
-
->>>>> For one-shot vs continuous: Maybe we want to simply have a separate
->>>>> writeback property for continues, e.g. FB_WRITEBACK_ONE_SHOT_ID and
->>>>> FB_WRITEBACK_CONTINUOUS_ID.
->>>>>
->>>>>> Known issues:
->>>>>> -------------
->>>>>>  * I'm not sure what "DPMS" should mean for writeback connectors.
->>>>>>    It could be used to disable writeback (even when a framebuffer is
->>>>>>    attached), or it could be hidden entirely (which would break the
->>>>>>    legacy DPMS call for writeback connectors).
->>>>>
->>>>>
->>>>>
->>>>> dpms is legacy, in atomic land the only thing you have is "ACTIVE" on
->>>>> the
->>>>> crtc. it disables everything, i.e. also writeback.
->>>>>
->>>>
->>>> So removing the DPMS property is a viable option for writeback connectors
->>>> in
->>>> your opinion?
->>>
->>>
->>> Nah, that's part of the abi now. But atomic internally remaps it to
->>> "ACTIVE", in short you don't need to care (as long as you fill out the
->>> dpms hook with the provided helper. drm_writeback_connector_init
->>> should probably do that).
->>>
->>
->> A connector can still be DPMS-ed individually, so a CRTC can be
->> "ACTIVE", attached to an "OFF" writeback connector, and the writeback
->> connector would still be able to actively write to memory.
->
->Yes, but atomic drivers ignore that. You should too. I won't take
->patches which create special behaviour for dpms on the writeback
->connector. If you want to change the writeback separately, then we can
->change the CRTC_ID of the writeback connector. And the driver should
->report correctly whether that needs a modeset or not.
->
->> I'm OK with that, and it's what I already implemented, but I thought
->> that userspace might reasonably expect a writeback connector with DPMS
->> set to "OFF" to be completely inert.
->
->Nope, DPMS turned out to be a mistake in kms (no one supports the
->intermediate stages, they don't make sense) and we nerfed it in
->atomic. Please don't resurrect zombies ;-)
->-Daniel
->-- 
->Daniel Vetter
->Software Engineer, Intel Corporation
->+41 (0) 79 365 57 48 - http://blog.ffwll.ch
->
