@@ -1,131 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46493
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S943175AbcJSO6k (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48634 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754874AbcJNRrG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:58:40 -0400
-Date: Wed, 19 Oct 2016 08:10:13 -0200
+        Fri, 14 Oct 2016 13:47:06 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux1394-devel@lists.sourceforge.net
-Subject: Re: [PATCH v2 53/58] firewire: don't break long lines
-Message-ID: <20161019081013.641450f4@vento.lan>
-In-Reply-To: <20161019100113.077e60f1@kant>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-        <bce754e03eef20b560c05a33d7cf68f6030e68e7.1476822925.git.mchehab@s-opensource.com>
-        <20161019100113.077e60f1@kant>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 17/25] [media] dvb_filter: use KERN_CONT where needed
+Date: Fri, 14 Oct 2016 14:45:55 -0300
+Message-Id: <7d355ee603b141724ae44d16ebb3723acfc3b468.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
+References: <cover.1476466574.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 19 Oct 2016 10:01:13 +0200
-Stefan Richter <stefanr@s5r6.in-berlin.de> escreveu:
+Some continuation messages are not using KERN_CONT.
 
-> On Oct 18 Mauro Carvalho Chehab wrote:
-> [...]
-> > The patch was generated via the script below, and manually
-> > adjusted if needed.  
-> [...]
-> > Reviewed-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-> > Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/firewire/firedtv-rc.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)  
-> [...]
-> 
-> Patch v1 also had a hunk in drivers/media/firewire/firedtv-avc.c.
-> What happened to it?
+Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
+this won't work as expected anymore. So, let's add KERN_CONT
+to those lines.
 
-There was some mistake when I manipulated it manually, after re-run
-the script.
+While here, add missing log level annotations.
 
-Btw, I liked more the Takashi's dev_dbg() patch for firedtv-rc.c.
-
-So, I guess the better would be to apply his patch and the one
-enclosed here, with just the firedtv-avc.c change.
-
-Thanks,
-Mauro
-
-[PATCH] firewire: don't break long lines
-
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
-
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
-
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Reviewed-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/ttpci/dvb_filter.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
-index 251a556112a9..5bde6c209cd7 100644
---- a/drivers/media/firewire/firedtv-avc.c
-+++ b/drivers/media/firewire/firedtv-avc.c
-@@ -1181,8 +1181,8 @@ int avc_ca_pmt(struct firedtv *fdtv, char *msg, int length)
- 		if (es_info_length > 0) {
- 			pmt_cmd_id = msg[read_pos++];
- 			if (pmt_cmd_id != 1 && pmt_cmd_id != 4)
--				dev_err(fdtv->device, "invalid pmt_cmd_id %d "
--					"at stream level\n", pmt_cmd_id);
-+				dev_err(fdtv->device, "invalid pmt_cmd_id %d at stream level\n",
-+					pmt_cmd_id);
+diff --git a/drivers/media/pci/ttpci/dvb_filter.c b/drivers/media/pci/ttpci/dvb_filter.c
+index 227f93e2ef10..b67127b67d4e 100644
+--- a/drivers/media/pci/ttpci/dvb_filter.c
++++ b/drivers/media/pci/ttpci/dvb_filter.c
+@@ -17,7 +17,6 @@ static u32 ac3_frames[3][32] =
+      {96,120,144,168,192,240,288,336,384,480,576,672,768,960,1152,1344,
+       1536,1728,1920,0,0,0,0,0,0,0,0,0,0,0,0,0}};
  
- 			if (es_info_length > sizeof(c->operand) - 4 -
- 					     write_pos) {
+-
+ int dvb_filter_get_ac3info(u8 *mbuf, int count, struct dvb_audio_info *ai, int pr)
+ {
+ 	u8 *headr;
+@@ -38,7 +37,7 @@ int dvb_filter_get_ac3info(u8 *mbuf, int count, struct dvb_audio_info *ai, int p
+ 
+ 	if (!found) return -1;
+ 	if (pr)
+-		printk("Audiostream: AC3");
++		printk(KERN_DEBUG "Audiostream: AC3");
+ 
+ 	ai->off = c;
+ 	if (c+5 >= count) return -1;
+@@ -50,19 +49,19 @@ int dvb_filter_get_ac3info(u8 *mbuf, int count, struct dvb_audio_info *ai, int p
+ 	ai->bit_rate = ac3_bitrates[frame >> 1]*1000;
+ 
+ 	if (pr)
+-		printk("  BRate: %d kb/s", (int) ai->bit_rate/1000);
++		printk(KERN_CONT "  BRate: %d kb/s", (int) ai->bit_rate/1000);
+ 
+ 	ai->frequency = (headr[2] & 0xc0 ) >> 6;
+ 	fr = (headr[2] & 0xc0 ) >> 6;
+ 	ai->frequency = freq[fr]*100;
+-	if (pr) printk ("  Freq: %d Hz\n", (int) ai->frequency);
+-
++	if (pr)
++		printk(KERN_CONT "  Freq: %d Hz\n", (int) ai->frequency);
+ 
+ 	ai->framesize = ac3_frames[fr][frame >> 1];
+ 	if ((frame & 1) &&  (fr == 1)) ai->framesize++;
+ 	ai->framesize = ai->framesize << 1;
+-	if (pr) printk ("  Framesize %d\n",(int) ai->framesize);
+-
++	if (pr)
++		printk(KERN_DEBUG "  Framesize %d\n", (int) ai->framesize);
+ 
+ 	return 0;
+ }
+-- 
+2.7.4
+
+
