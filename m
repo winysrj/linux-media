@@ -1,89 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from TYO201.gate.nec.co.jp ([210.143.35.51]:46717 "EHLO
-        tyo201.gate.nec.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754373AbcJKW4g (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46254 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755824AbcJNRfI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 18:56:36 -0400
-From: Kosuke Tatsukawa <tatsu@ab.jp.nec.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        "Johannes Stezenbach" <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        "Patrick Boettcher" <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        "Michael Krufky" <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "jrg.otte@gmail.com" <jrg.otte@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-Subject: Re: [PATCH v2 28/31] cpia2_usb: don't use stack for DMA 
-Date: Tue, 11 Oct 2016 22:56:06 +0000
-Message-ID: <17EC94B0A072C34B8DCF0D30AD16044A028EFC0B@BPXM09GP.gisp.nec.co.jp>
-In-Reply-To: <c2dd60621e2e63076d4c7e250eed9cacb7d5bad3.1476179975.git.mchehab@s-opensource.com>
-Content-Language: ja-JP
-Content-Type: text/plain; charset="iso-2022-jp"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        Fri, 14 Oct 2016 13:35:08 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 21/21] [media] tc358743: set entity function to video interface bridge
+Date: Fri, 14 Oct 2016 19:34:41 +0200
+Message-Id: <1476466481-24030-22-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The TC358743 is an HDMI to MIPI CSI2-2 bridge.
 
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/usb/cpia2/cpia2_usb.c | 32 +++++++++++++++++++++++++++++---
->  1 file changed, 29 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
-> index 13620cdf0599..417d683b237d 100644
-> --- a/drivers/media/usb/cpia2/cpia2_usb.c
-> +++ b/drivers/media/usb/cpia2/cpia2_usb.c
-> @@ -545,10 +545,19 @@ static void free_sbufs(struct camera_data *cam)
->  static int write_packet(struct usb_device *udev,
->  			u8 request, u8 * registers, u16 start, size_t size)
->  {
-> +	unsigned char *buf;
-> +	int ret;
-> +
->  	if (!registers || size <= 0)
->  		return -EINVAL;
->  
-> -	return usb_control_msg(udev,
-> +	buf = kmalloc(size, GFP_KERNEL);
-> +	if (!buf)
-> +		return -ENOMEM;
-> +
-> +	memcpy(buf, registers, size);
-> +
-> +	ret = usb_control_msg(udev,
->  			       usb_sndctrlpipe(udev, 0),
->  			       request,
->  			       USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> @@ -557,6 +566,9 @@ static int write_packet(struct usb_device *udev,
->  			       registers,	/* buffer */
-                               =========
-
-I think you also want to change the argument to usb_control_msg() from
-"registers" to "buf" in write_packet().
-
-
->  			       size,
->  			       HZ);
-> +
-> +	kfree(buf);
-> +	return ret;
->  }
-..
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
-Kosuke TATSUKAWA  | 1st Platform Software Division
-                  | NEC Solution Innovators
-                  | tatsu@ab.jp.nec.com
+ drivers/media/i2c/tc358743.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index 7f82932..259ccf6 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -1886,6 +1886,7 @@ static int tc358743_probe(struct i2c_client *client,
+ 	}
+ 
+ 	state->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_VID_IF_BRIDGE;
+ 	err = media_entity_pads_init(&sd->entity, 1, &state->pad);
+ 	if (err < 0)
+ 		goto err_hdl;
+-- 
+2.9.3
+
