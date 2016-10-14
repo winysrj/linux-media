@@ -1,59 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33372
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936515AbcJXJnD (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59236 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757055AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 05:43:03 -0400
-Date: Mon, 24 Oct 2016 07:42:56 -0200
+        Fri, 14 Oct 2016 16:22:43 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jani Nikula <jani.nikula@intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org,
-        Markus Heiser <markus.heiser@darmarit.de>
-Subject: Re: Documentation/media/uapi/cec/ sporadically unnecessarily
- rebuilding
-Message-ID: <20161024074256.3a2eb697@vento.lan>
-In-Reply-To: <871sz6p17k.fsf@intel.com>
-References: <871sz6p17k.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Mel Gorman <mgorman@techsingularity.net>
+Subject: [PATCH 21/57] [media] tw68: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:09 -0300
+Message-Id: <6f28934c9970793589ad705fc445fa2914fc3b25.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 Oct 2016 12:04:31 +0300
-Jani Nikula <jani.nikula@intel.com> escreveu:
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-> I think I saw some of this in the past [1], but then couldn't reproduce
-> it after all. Now I'm seeing it again. Sporadically
-> Documentation/media/uapi/cec/ gets rebuilt on successive runs of make
-> htmldocs, even when nothing has changed.
-> 
-> Output of 'make SPHINXOPTS="-v -v" htmldocs' attached for both cases.
-> 
-> Using Sphinx (sphinx-build) 1.4.6
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/tw68/tw68-video.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-I notice some erratic behavior like that too, when I was writing the
-admin-guide and process books... Sometimes, Sphinx decide to rebuild
-everything (media, gpu, etc) without a good reason. Also, sometimes,
-I was forced to run make cleandocs, as just touching at an rst file 
-or at a file parsed by kernel-doc is not enough.
+diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
+index a45e02367321..165d54925506 100644
+--- a/drivers/media/pci/tw68/tw68-video.c
++++ b/drivers/media/pci/tw68/tw68-video.c
+@@ -279,8 +279,7 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
+ 		height /= 2;		/* we must set for 1-frame */
+ 
+ 	pr_debug("%s: width=%d, height=%d, both=%d\n"
+-		 "  tvnorm h_delay=%d, h_start=%d, h_stop=%d, "
+-		 "v_delay=%d, v_start=%d, v_stop=%d\n" , __func__,
++		 "  tvnorm h_delay=%d, h_start=%d, h_stop=%d, v_delay=%d, v_start=%d, v_stop=%d\n" , __func__,
+ 		width, height, V4L2_FIELD_HAS_BOTH(field),
+ 		norm->h_delay, norm->h_start, norm->h_stop,
+ 		norm->v_delay, norm->video_v_start,
+@@ -309,16 +308,14 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
+ 		V4L2_FIELD_HAS_TOP(field)    ? "T" : "",
+ 		V4L2_FIELD_HAS_BOTTOM(field) ? "B" : "",
+ 		v4l2_norm_to_name(dev->tvnorm->id));
+-	pr_debug("%s: hactive=%d, hdelay=%d, hscale=%d; "
+-		"vactive=%d, vdelay=%d, vscale=%d\n", __func__,
++	pr_debug("%s: hactive=%d, hdelay=%d, hscale=%d; vactive=%d, vdelay=%d, vscale=%d\n", __func__,
+ 		hactive, hdelay, hscale, vactive, vdelay, vscale);
+ 
+ 	comb =	((vdelay & 0x300)  >> 2) |
+ 		((vactive & 0x300) >> 4) |
+ 		((hdelay & 0x300)  >> 6) |
+ 		((hactive & 0x300) >> 8);
+-	pr_debug("%s: setting CROP_HI=%02x, VDELAY_LO=%02x, "
+-		"VACTIVE_LO=%02x, HDELAY_LO=%02x, HACTIVE_LO=%02x\n",
++	pr_debug("%s: setting CROP_HI=%02x, VDELAY_LO=%02x, VACTIVE_LO=%02x, HDELAY_LO=%02x, HACTIVE_LO=%02x\n",
+ 		__func__, comb, vdelay, vactive, hdelay, hactive);
+ 	tw_writeb(TW68_CROP_HI, comb);
+ 	tw_writeb(TW68_VDELAY_LO, vdelay & 0xff);
+@@ -327,8 +324,7 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
+ 	tw_writeb(TW68_HACTIVE_LO, hactive & 0xff);
+ 
+ 	comb = ((vscale & 0xf00) >> 4) | ((hscale & 0xf00) >> 8);
+-	pr_debug("%s: setting SCALE_HI=%02x, VSCALE_LO=%02x, "
+-		"HSCALE_LO=%02x\n", __func__, comb, vscale, hscale);
++	pr_debug("%s: setting SCALE_HI=%02x, VSCALE_LO=%02x, HSCALE_LO=%02x\n", __func__, comb, vscale, hscale);
+ 	tw_writeb(TW68_SCALE_HI, comb);
+ 	tw_writeb(TW68_VSCALE_LO, vscale);
+ 	tw_writeb(TW68_HSCALE_LO, hscale);
+-- 
+2.7.4
 
-The only safe way to be sure that the documentation will be OK and
-won't take too long to build is to use:
 
-	make cleandocs; make DOCBOOKS="" SPHINXDIRS="admin-guide process" SPHINXOPTS="-j11" htmldocs
-
-It will generate warnings, though, due to the cross-references between
-admin-guide and process books. Due to that, after testing for individual
-changes, I run:
-
-	make cleandocs; make DOCBOOKS="" SPHINXOPTS="-j11" htmldocs
-
-To check those references.
-
-I didn't see any improvement for that on Sphinx 1.4.7 or 1.4.8.
-
-Thanks,
-Mauro
