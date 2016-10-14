@@ -1,66 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:36938 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S940018AbcJ0Nzj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 09:55:39 -0400
-Date: Thu, 27 Oct 2016 11:18:47 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: Gustavo Padovan <gustavo@padovan.org>,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2 9/9] drm: mali-dp: Add writeback out-fence support
-Message-ID: <20161027101847.GC18708@e106950-lin.cambridge.arm.com>
-References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
- <1477472108-27222-10-git-send-email-brian.starkey@arm.com>
- <20161026214357.GH12629@joana>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Disposition: inline
-In-Reply-To: <20161026214357.GH12629@joana>
+Received: from bombadil.infradead.org ([198.137.202.9]:59251 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757077AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH 13/57] [media] dm1105: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:01 -0300
+Message-Id: <3e6fd01ab1c2133dc0347be5b6b0f920d41971d5.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Oct 26, 2016 at 07:43:57PM -0200, Gustavo Padovan wrote:
->2016-10-26 Brian Starkey <brian.starkey@arm.com>:
->
->> If userspace has asked for an out-fence for the writeback, we add a
->> fence to malidp_mw_job, to be signaled when the writeback job has
->> completed.
->>
->> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
->> ---
->>  drivers/gpu/drm/arm/malidp_hw.c |    5 ++++-
->>  drivers/gpu/drm/arm/malidp_mw.c |   18 +++++++++++++++++-
->>  drivers/gpu/drm/arm/malidp_mw.h |    3 +++
->>  3 files changed, 24 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
->> index 1689547..3032226 100644
->> --- a/drivers/gpu/drm/arm/malidp_hw.c
->> +++ b/drivers/gpu/drm/arm/malidp_hw.c
->> @@ -707,8 +707,11 @@ static irqreturn_t malidp_se_irq(int irq, void *arg)
->>  		unsigned long irqflags;
->>  		/*
->>  		 * We can't unreference the framebuffer here, so we queue it
->> -		 * up on our threaded handler.
->> +		 * up on our threaded handler. However, signal the fence
->> +		 * as soon as possible
->>  		 */
->> +		malidp_mw_job_signal(drm, malidp->current_mw, 0);
->
->Drivers should not deal with fences directly. We need some sort of
->drm_writeback_finished() that will do the signalling for you.
->
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-With a signature like this?
-	drm_writeback_finished(struct drm_connector_state *state);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/dm1105/dm1105.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-I'll have to think about how to achieve that. The state isn't
-refcounted and the driver isn't in charge of it's lifetime. I'm not
-sure how/where to ensure the state doesn't get destroyed before its
-been signaled.
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index 5dd504741b12..a589aa78d1d9 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -315,8 +315,7 @@ static void dm1105_card_list(struct pci_dev *pci)
+ 			"dm1105: Updating to the latest version might help\n"
+ 			"dm1105: as well.\n");
+ 	}
+-	printk(KERN_ERR "Here is a list of valid choices for the card=<n> "
+-		   "insmod option:\n");
++	printk(KERN_ERR "Here is a list of valid choices for the card=<n> insmod option:\n");
+ 	for (i = 0; i < ARRAY_SIZE(dm1105_boards); i++)
+ 		printk(KERN_ERR "dm1105:    card=%d -> %s\n",
+ 				i, dm1105_boards[i].name);
+-- 
+2.7.4
 
--Brian
 
->Gustavo
->
