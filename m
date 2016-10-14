@@ -1,39 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:47922 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935258AbcJ0OqA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 10:46:00 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 9378720699
-        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 13:52:28 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: videodev2: Include linux/time.h for timeval and timespec structs
-Date: Thu, 27 Oct 2016 13:50:51 +0300
-Message-Id: <1477565451-3621-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:59095 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756780AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+        <chehabrafael@gmail.com>
+Subject: [PATCH 33/57] [media] au0828: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:21 -0300
+Message-Id: <308bf6b8e61030d4170589b58c0567c00ff9fd62.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct timeval and struct timespec are defined in linux/time.h. Explicitly
-include the header if __KERNEL__ is defined.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- include/uapi/linux/videodev2.h | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/usb/au0828/au0828-video.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 4364ce6..bbab50c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -61,6 +61,7 @@
- #endif
- #include <linux/compiler.h>
- #include <linux/ioctl.h>
-+#include <linux/time.h>
- #include <linux/types.h>
- #include <linux/v4l2-common.h>
- #include <linux/v4l2-controls.h>
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 85dd9a8e83ff..7a10eaa38f67 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -253,8 +253,7 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
+ 		dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->usbdev,
+ 			sb_size, GFP_KERNEL, &urb->transfer_dma);
+ 		if (!dev->isoc_ctl.transfer_buffer[i]) {
+-			printk("unable to allocate %i bytes for transfer"
+-					" buffer %i%s\n",
++			printk("unable to allocate %i bytes for transfer buffer %i%s\n",
+ 					sb_size, i,
+ 					in_interrupt() ? " while in int" : "");
+ 			au0828_uninit_isoc(dev);
 -- 
 2.7.4
+
 
