@@ -1,174 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39721 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:59182 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752355AbcJKKfX (ORCPT
+        with ESMTP id S1757064AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:35:23 -0400
+        Fri, 14 Oct 2016 16:22:43 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 06/31] cxusb: don't do DMA on stack
-Date: Tue, 11 Oct 2016 07:09:21 -0300
-Message-Id: <1a139aed3180ae56379f5663e57e90bf9a8a641a.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 26/57] [media] omap3isp: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:14 -0300
+Message-Id: <126092c44821c1987bf798e777ef738616c2d19d.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/dvb-usb/cxusb.c | 62 ++++++++++++++++++++++-----------------
- drivers/media/usb/dvb-usb/cxusb.h |  6 ++++
- 2 files changed, 41 insertions(+), 27 deletions(-)
+ drivers/media/platform/omap3isp/isp.c         |  3 +--
+ drivers/media/platform/omap3isp/ispccdc.c     |  6 ++---
+ drivers/media/platform/omap3isp/ispcsi2.c     | 11 ++------
+ drivers/media/platform/omap3isp/ispcsiphy.c   |  3 +--
+ drivers/media/platform/omap3isp/isph3a_aewb.c |  6 ++---
+ drivers/media/platform/omap3isp/isph3a_af.c   |  6 ++---
+ drivers/media/platform/omap3isp/ispstat.c     | 36 +++++++++------------------
+ 7 files changed, 22 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index 907ac01ae297..39772812269d 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -45,9 +45,6 @@
- #include "si2168.h"
- #include "si2157.h"
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 0321d84addc7..a9d4347bf100 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -480,8 +480,7 @@ void omap3isp_hist_dma_done(struct isp_device *isp)
+ 	    omap3isp_stat_pcr_busy(&isp->isp_hist)) {
+ 		/* Histogram cannot be enabled in this frame anymore */
+ 		atomic_set(&isp->isp_hist.buf_err, 1);
+-		dev_dbg(isp->dev, "hist: Out of synchronization with "
+-				  "CCDC. Ignoring next buffer.\n");
++		dev_dbg(isp->dev, "hist: Out of synchronization with CCDC. Ignoring next buffer.\n");
+ 	}
+ }
  
--/* Max transfer size done by I2C transfer functions */
--#define MAX_XFER_SIZE  80
--
- /* debug */
- static int dvb_usb_cxusb_debug;
- module_param_named(debug, dvb_usb_cxusb_debug, int, 0644);
-@@ -61,23 +58,27 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- static int cxusb_ctrl_msg(struct dvb_usb_device *d,
- 			  u8 cmd, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
- {
--	int wo = (rbuf == NULL || rlen == 0); /* write-only */
--	u8 sndbuf[MAX_XFER_SIZE];
-+	struct cxusb_state *st = d->priv;
-+	int ret, wo;
- 
--	if (1 + wlen > sizeof(sndbuf)) {
--		warn("i2c wr: len=%d is too big!\n",
--		     wlen);
-+	if (1 + wlen > MAX_XFER_SIZE) {
-+		warn("i2c wr: len=%d is too big!\n", wlen);
- 		return -EOPNOTSUPP;
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 882310eb45cc..3f8e71c8ea48 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -151,8 +151,7 @@ static int ccdc_lsc_validate_config(struct isp_ccdc_device *ccdc,
  	}
  
--	memset(sndbuf, 0, 1+wlen);
-+	wo = (rbuf == NULL || rlen == 0); /* write-only */
+ 	if (lsc_cfg->offset & 3) {
+-		dev_dbg(isp->dev, "CCDC: LSC: Offset must be a multiple of "
+-			"4\n");
++		dev_dbg(isp->dev, "CCDC: LSC: Offset must be a multiple of 4\n");
+ 		return -EINVAL;
+ 	}
  
--	sndbuf[0] = cmd;
--	memcpy(&sndbuf[1], wbuf, wlen);
-+	mutex_lock(&st->data_mutex);
-+	st->data[0] = cmd;
-+	memcpy(&st->data[1], wbuf, wlen);
- 	if (wo)
--		return dvb_usb_generic_write(d, sndbuf, 1+wlen);
-+		ret = dvb_usb_generic_write(d, st->data, 1 + wlen);
- 	else
--		return dvb_usb_generic_rw(d, sndbuf, 1+wlen, rbuf, rlen, 0);
-+		ret = dvb_usb_generic_rw(d, st->data, 1 + wlen,
-+					 rbuf, rlen, 0);
-+
-+	mutex_unlock(&st->data_mutex);
-+	return ret;
- }
- 
- /* GPIO */
-@@ -1460,36 +1461,43 @@ static struct dvb_usb_device_properties cxusb_mygica_t230_properties;
- static int cxusb_probe(struct usb_interface *intf,
- 		       const struct usb_device_id *id)
- {
-+	struct dvb_usb_device *d;
-+	struct cxusb_state *st;
-+
- 	if (0 == dvb_usb_device_init(intf, &cxusb_medion_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgh064f_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dee1601_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_lgz201_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dtt7579_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_dualdig4_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_bluebird_nano2_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf,
- 				&cxusb_bluebird_nano2_needsfirmware_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_aver_a868r_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf,
- 				     &cxusb_bluebird_dualdig4_rev2_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_d680_dmb_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_d689_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
-+				     THIS_MODULE, &d, adapter_nr) ||
- 	    0 == dvb_usb_device_init(intf, &cxusb_mygica_t230_properties,
--				     THIS_MODULE, NULL, adapter_nr) ||
--	    0)
-+				     THIS_MODULE, &d, adapter_nr) ||
-+	    0) {
-+		st = d->priv;
-+		mutex_init(&st->data_mutex);
-+
+@@ -416,8 +415,7 @@ static int ccdc_lsc_config(struct isp_ccdc_device *ccdc,
  		return 0;
-+	}
  
- 	return -EINVAL;
- }
-diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
-index 527ff7905e15..9f3ee0e47d5c 100644
---- a/drivers/media/usb/dvb-usb/cxusb.h
-+++ b/drivers/media/usb/dvb-usb/cxusb.h
-@@ -28,10 +28,16 @@
- #define CMD_ANALOG        0x50
- #define CMD_DIGITAL       0x51
+ 	if (update != (OMAP3ISP_CCDC_CONFIG_LSC | OMAP3ISP_CCDC_TBL_LSC)) {
+-		dev_dbg(to_device(ccdc), "%s: Both LSC configuration and table "
+-			"need to be supplied\n", __func__);
++		dev_dbg(to_device(ccdc), "%s: Both LSC configuration and table need to be supplied\n", __func__);
+ 		return -EINVAL;
+ 	}
  
-+/* Max transfer size done by I2C transfer functions */
-+#define MAX_XFER_SIZE  80
-+
- struct cxusb_state {
- 	u8 gpio_write_state[3];
- 	struct i2c_client *i2c_client_demod;
- 	struct i2c_client *i2c_client_tuner;
-+
-+	unsigned char data[MAX_XFER_SIZE];
-+	struct mutex data_mutex;
- };
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index f75a1be29d84..53a7573ed2a5 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -753,8 +753,7 @@ void omap3isp_csi2_isr(struct isp_csi2_device *csi2)
+ 						 ISPCSI2_PHY_IRQSTATUS);
+ 		isp_reg_writel(isp, cpxio1_irqstatus,
+ 			       csi2->regs1, ISPCSI2_PHY_IRQSTATUS);
+-		dev_dbg(isp->dev, "CSI2: ComplexIO Error IRQ "
+-			"%x\n", cpxio1_irqstatus);
++		dev_dbg(isp->dev, "CSI2: ComplexIO Error IRQ %x\n", cpxio1_irqstatus);
+ 		pipe->error = true;
+ 	}
  
- #endif
+@@ -763,13 +762,7 @@ void omap3isp_csi2_isr(struct isp_csi2_device *csi2)
+ 			      ISPCSI2_IRQSTATUS_ECC_NO_CORRECTION_IRQ |
+ 			      ISPCSI2_IRQSTATUS_COMPLEXIO2_ERR_IRQ |
+ 			      ISPCSI2_IRQSTATUS_FIFO_OVF_IRQ)) {
+-		dev_dbg(isp->dev, "CSI2 Err:"
+-			" OCP:%d,"
+-			" Short_pack:%d,"
+-			" ECC:%d,"
+-			" CPXIO2:%d,"
+-			" FIFO_OVF:%d,"
+-			"\n",
++		dev_dbg(isp->dev, "CSI2 Err: OCP:%d, Short_pack:%d, ECC:%d, CPXIO2:%d, FIFO_OVF:%d,\n",
+ 			(csi2_irqstatus &
+ 			 ISPCSI2_IRQSTATUS_OCP_ERR_IRQ) ? 1 : 0,
+ 			(csi2_irqstatus &
+diff --git a/drivers/media/platform/omap3isp/ispcsiphy.c b/drivers/media/platform/omap3isp/ispcsiphy.c
+index 495447d66cfd..f67fd2f09f00 100644
+--- a/drivers/media/platform/omap3isp/ispcsiphy.c
++++ b/drivers/media/platform/omap3isp/ispcsiphy.c
+@@ -267,8 +267,7 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+ 	int rval;
+ 
+ 	if (phy->vdd == NULL) {
+-		dev_err(phy->isp->dev, "Power regulator for CSI PHY not "
+-			"available\n");
++		dev_err(phy->isp->dev, "Power regulator for CSI PHY not available\n");
+ 		return -ENODEV;
+ 	}
+ 
+diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c b/drivers/media/platform/omap3isp/isph3a_aewb.c
+index ccaf92f39236..de9bb3ea032e 100644
+--- a/drivers/media/platform/omap3isp/isph3a_aewb.c
++++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
+@@ -304,8 +304,7 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
+ 	aewb_recover_cfg = devm_kzalloc(isp->dev, sizeof(*aewb_recover_cfg),
+ 					GFP_KERNEL);
+ 	if (!aewb_recover_cfg) {
+-		dev_err(aewb->isp->dev, "AEWB: cannot allocate memory for "
+-					"recover configuration.\n");
++		dev_err(aewb->isp->dev, "AEWB: cannot allocate memory for recover configuration.\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -321,8 +320,7 @@ int omap3isp_h3a_aewb_init(struct isp_device *isp)
+ 	aewb_recover_cfg->subsample_hor_inc = OMAP3ISP_AEWB_MIN_SUB_INC;
+ 
+ 	if (h3a_aewb_validate_params(aewb, aewb_recover_cfg)) {
+-		dev_err(aewb->isp->dev, "AEWB: recover configuration is "
+-					"invalid.\n");
++		dev_err(aewb->isp->dev, "AEWB: recover configuration is invalid.\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/drivers/media/platform/omap3isp/isph3a_af.c b/drivers/media/platform/omap3isp/isph3a_af.c
+index 92937f7eecef..42607bda8e86 100644
+--- a/drivers/media/platform/omap3isp/isph3a_af.c
++++ b/drivers/media/platform/omap3isp/isph3a_af.c
+@@ -367,8 +367,7 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
+ 	af_recover_cfg = devm_kzalloc(isp->dev, sizeof(*af_recover_cfg),
+ 				      GFP_KERNEL);
+ 	if (!af_recover_cfg) {
+-		dev_err(af->isp->dev, "AF: cannot allocate memory for recover "
+-				      "configuration.\n");
++		dev_err(af->isp->dev, "AF: cannot allocate memory for recover configuration.\n");
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -379,8 +378,7 @@ int omap3isp_h3a_af_init(struct isp_device *isp)
+ 	af_recover_cfg->paxel.v_cnt = OMAP3ISP_AF_PAXEL_VERTICAL_COUNT_MIN;
+ 	af_recover_cfg->paxel.line_inc = OMAP3ISP_AF_PAXEL_INCREMENT_MIN;
+ 	if (h3a_af_validate_params(af, af_recover_cfg)) {
+-		dev_err(af->isp->dev, "AF: recover configuration is "
+-				      "invalid.\n");
++		dev_err(af->isp->dev, "AF: recover configuration is invalid.\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 1b9217d3b1b6..220a9224271b 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -113,8 +113,7 @@ static int isp_stat_buf_check_magic(struct ispstat *stat,
+ 			ret = 0;
+ 
+ 	if (ret) {
+-		dev_dbg(stat->isp->dev, "%s: beginning magic check does not "
+-					"match.\n", stat->subdev.name);
++		dev_dbg(stat->isp->dev, "%s: beginning magic check does not match.\n", stat->subdev.name);
+ 		return ret;
+ 	}
+ 
+@@ -122,8 +121,7 @@ static int isp_stat_buf_check_magic(struct ispstat *stat,
+ 	for (w = buf->virt_addr + buf_size, end = w + MAGIC_SIZE;
+ 	     w < end; w++) {
+ 		if (unlikely(*w != MAGIC_NUM)) {
+-			dev_dbg(stat->isp->dev, "%s: ending magic check does "
+-				"not match.\n", stat->subdev.name);
++			dev_dbg(stat->isp->dev, "%s: ending magic check does not match.\n", stat->subdev.name);
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -256,8 +254,7 @@ static void isp_stat_buf_next(struct ispstat *stat)
+ {
+ 	if (unlikely(stat->active_buf))
+ 		/* Overwriting unused active buffer */
+-		dev_dbg(stat->isp->dev, "%s: new buffer requested without "
+-					"queuing active one.\n",
++		dev_dbg(stat->isp->dev, "%s: new buffer requested without queuing active one.\n",
+ 					stat->subdev.name);
+ 	else
+ 		stat->active_buf = isp_stat_buf_find_oldest_or_empty(stat);
+@@ -292,8 +289,7 @@ static struct ispstat_buffer *isp_stat_buf_get(struct ispstat *stat,
+ 			return ERR_PTR(-EBUSY);
+ 		}
+ 		if (isp_stat_buf_check_magic(stat, buf)) {
+-			dev_dbg(stat->isp->dev, "%s: current buffer has "
+-				"corrupted data\n.", stat->subdev.name);
++			dev_dbg(stat->isp->dev, "%s: current buffer has corrupted data\n.", stat->subdev.name);
+ 			/* Mark empty because it doesn't have valid data. */
+ 			buf->empty = 1;
+ 		} else {
+@@ -307,8 +303,7 @@ static struct ispstat_buffer *isp_stat_buf_get(struct ispstat *stat,
+ 	spin_unlock_irqrestore(&stat->isp->stat_lock, flags);
+ 
+ 	if (buf->buf_size > data->buf_size) {
+-		dev_warn(stat->isp->dev, "%s: userspace's buffer size is "
+-					 "not enough.\n", stat->subdev.name);
++		dev_warn(stat->isp->dev, "%s: userspace's buffer size is not enough.\n", stat->subdev.name);
+ 		isp_stat_buf_release(stat);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+@@ -531,20 +526,17 @@ int omap3isp_stat_config(struct ispstat *stat, void *new_conf)
+ 
+ 	mutex_lock(&stat->ioctl_lock);
+ 
+-	dev_dbg(stat->isp->dev, "%s: configuring module with buffer "
+-		"size=0x%08lx\n", stat->subdev.name, (unsigned long)buf_size);
++	dev_dbg(stat->isp->dev, "%s: configuring module with buffer size=0x%08lx\n", stat->subdev.name, (unsigned long)buf_size);
+ 
+ 	ret = stat->ops->validate_params(stat, new_conf);
+ 	if (ret) {
+ 		mutex_unlock(&stat->ioctl_lock);
+-		dev_dbg(stat->isp->dev, "%s: configuration values are "
+-					"invalid.\n", stat->subdev.name);
++		dev_dbg(stat->isp->dev, "%s: configuration values are invalid.\n", stat->subdev.name);
+ 		return ret;
+ 	}
+ 
+ 	if (buf_size != user_cfg->buf_size)
+-		dev_dbg(stat->isp->dev, "%s: driver has corrected buffer size "
+-			"request to 0x%08lx\n", stat->subdev.name,
++		dev_dbg(stat->isp->dev, "%s: driver has corrected buffer size request to 0x%08lx\n", stat->subdev.name,
+ 			(unsigned long)user_cfg->buf_size);
+ 
+ 	/*
+@@ -595,8 +587,7 @@ int omap3isp_stat_config(struct ispstat *stat, void *new_conf)
+ 
+ 	/* Module has a valid configuration. */
+ 	stat->configured = 1;
+-	dev_dbg(stat->isp->dev, "%s: module has been successfully "
+-		"configured.\n", stat->subdev.name);
++	dev_dbg(stat->isp->dev, "%s: module has been successfully configured.\n", stat->subdev.name);
+ 
+ 	mutex_unlock(&stat->ioctl_lock);
+ 
+@@ -762,8 +753,7 @@ int omap3isp_stat_enable(struct ispstat *stat, u8 enable)
+ 	if (!stat->configured && enable) {
+ 		spin_unlock_irqrestore(&stat->isp->stat_lock, irqflags);
+ 		mutex_unlock(&stat->ioctl_lock);
+-		dev_dbg(stat->isp->dev, "%s: cannot enable module as it's "
+-			"never been successfully configured so far.\n",
++		dev_dbg(stat->isp->dev, "%s: cannot enable module as it's never been successfully configured so far.\n",
+ 			stat->subdev.name);
+ 		return -EINVAL;
+ 	}
+@@ -859,8 +849,7 @@ static void __stat_isr(struct ispstat *stat, int from_dma)
+ 		if (stat->state == ISPSTAT_ENABLED) {
+ 			spin_unlock_irqrestore(&stat->isp->stat_lock, irqflags);
+ 			dev_err(stat->isp->dev,
+-				"%s: interrupt occurred when module was still "
+-				"processing a buffer.\n", stat->subdev.name);
++				"%s: interrupt occurred when module was still processing a buffer.\n", stat->subdev.name);
+ 			ret = STAT_NO_BUF;
+ 			goto out;
+ 		} else {
+@@ -964,8 +953,7 @@ static void __stat_isr(struct ispstat *stat, int from_dma)
+ 			atomic_set(&stat->buf_err, 1);
+ 
+ 		ret = STAT_NO_BUF;
+-		dev_dbg(stat->isp->dev, "%s: cannot process buffer, "
+-					"device is busy.\n", stat->subdev.name);
++		dev_dbg(stat->isp->dev, "%s: cannot process buffer, device is busy.\n", stat->subdev.name);
+ 	}
+ 
+ out:
 -- 
 2.7.4
 
