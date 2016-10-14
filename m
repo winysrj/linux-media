@@ -1,67 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:44478 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932719AbcJGRAZ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59136 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757029AbcJNUWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 13:00:25 -0400
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v1 0/3] Add a libv4l mpeg2 parser plugin for st-delta video decoder
-Date: Fri, 7 Oct 2016 19:00:15 +0200
-Message-ID: <1475859618-829-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Vladis Dronov <vdronov@redhat.com>,
+        Insu Yun <wuninsu@gmail.com>,
+        Geliang Tang <geliangtang@163.com>,
+        Oliver Neukum <oneukum@suse.com>
+Subject: [PATCH 48/57] [media] usbvision: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:36 -0300
+Message-Id: <7beaef595646ec4d57339654c1d7be273ba25ee0.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ST DELTA video decoder is a frame API based decoder which requires
-headers metadata in addition to compressed video bitstream data.
-This libv4l plugin aims to abstract DELTA frame API under
-usual stream API, so compatibility with existing V4L2-based
-frameworks such as GStreamer V4L2 video decoder plugin is ensured.
-As a proof of concept, MPEG2 video decoding is covered relying
-on GStreamer codecparser codebase.
-This proof of concept aims to help to standardize the MPEG2 frame
-API controls in V4L2 headers by showing a functional reference implementation.
-Second aim of this prototype is to show the premice of a libv4l2 plugin
-infrastructure allowing to use any appropriate proprietary or open-source
-bitstream parser needed by frame API based video hardware accelerators.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Hugues Fruchet (1):
-  add a libv4l plugin for st-delta video decoder
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/usbvision/usbvision-core.c  | 15 +++++----------
+ drivers/media/usb/usbvision/usbvision-video.c |  3 +--
+ 2 files changed, 6 insertions(+), 12 deletions(-)
 
-Tiphaine Inguere (2):
-  libv4l-delta: add GStreamer mpeg codecparser
-  libv4l-delta: add mpeg header parser
-
- configure.ac                                       |    3 +
- lib/Makefile.am                                    |    3 +-
- lib/libv4l-delta/Makefile.am                       |   23 +
- lib/libv4l-delta/codecparsers/Makefile.am          |   40 +
- lib/libv4l-delta/codecparsers/gstmpegvideoparser.c | 1304 ++++++++++++++++++++
- lib/libv4l-delta/codecparsers/gstmpegvideoparser.h |  560 +++++++++
- lib/libv4l-delta/codecparsers/parserutils.c        |   57 +
- lib/libv4l-delta/codecparsers/parserutils.h        |  108 ++
- lib/libv4l-delta/libv4l-delta-mpeg2.c              |  211 ++++
- lib/libv4l-delta/libv4l-delta.c                    |  348 ++++++
- lib/libv4l-delta/libv4l-delta.h                    |   97 ++
- lib/libv4l-delta/libv4l-delta.pc.in                |   12 +
- 12 files changed, 2765 insertions(+), 1 deletion(-)
- create mode 100644 lib/libv4l-delta/Makefile.am
- create mode 100644 lib/libv4l-delta/codecparsers/Makefile.am
- create mode 100644 lib/libv4l-delta/codecparsers/gstmpegvideoparser.c
- create mode 100644 lib/libv4l-delta/codecparsers/gstmpegvideoparser.h
- create mode 100644 lib/libv4l-delta/codecparsers/parserutils.c
- create mode 100644 lib/libv4l-delta/codecparsers/parserutils.h
- create mode 100644 lib/libv4l-delta/libv4l-delta-mpeg2.c
- create mode 100644 lib/libv4l-delta/libv4l-delta.c
- create mode 100644 lib/libv4l-delta/libv4l-delta.h
- create mode 100644 lib/libv4l-delta/libv4l-delta.pc.in
-
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index c23bf73a68ea..4aed365da61d 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1656,8 +1656,7 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
+ 			     (__u16) USBVISION_FILT_CONT, value, 2, HZ);
+ 
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n", proc, rc);
+ 	}
+ 	usbvision->isoc_mode = format;
+ 	return rc;
+@@ -1890,8 +1889,7 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ 			     (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
+ 
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n", proc, rc);
+ 		return rc;
+ 	}
+ 
+@@ -1921,8 +1919,7 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ 			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
+ 
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n", proc, rc);
+ 	}
+ 	return rc;
+ }
+@@ -1960,8 +1957,7 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 
+ 	rc = usbvision_write_reg(usbvision, USBVISION_VIN_REG1, value[0]);
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n", proc, rc);
+ 		return rc;
+ 	}
+ 
+@@ -2026,8 +2022,7 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 			     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0,
+ 			     (__u16) USBVISION_LXSIZE_I, value, 8, HZ);
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n", proc, rc);
+ 		return rc;
+ 	}
+ 
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index c8b4eb2ee7a2..74d3fb6a48ba 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -1456,8 +1456,7 @@ static int usbvision_probe(struct usb_interface *intf,
+ 	}
+ 
+ 	if (interface->desc.bNumEndpoints < 2) {
+-		dev_err(&intf->dev, "interface %d has %d endpoints, but must"
+-		    " have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
++		dev_err(&intf->dev, "interface %d has %d endpoints, but must have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
+ 		ret = -ENODEV;
+ 		goto err_usb;
+ 	}
 -- 
-1.9.1
+2.7.4
+
 
