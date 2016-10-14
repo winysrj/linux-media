@@ -1,259 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34415 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942563AbcJ0OYi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 10:24:38 -0400
-Received: by mail-wm0-f68.google.com with SMTP id y138so2973731wme.1
-        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 07:24:24 -0700 (PDT)
-Received: from arch-desktop ([2a02:908:672:a420:922b:34ff:fe11:2b9f])
-        by smtp.gmail.com with ESMTPSA id p9sm7082451wjs.11.2016.10.27.01.19.47
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 27 Oct 2016 01:19:48 -0700 (PDT)
-Date: Thu, 27 Oct 2016 10:19:42 +0200
-From: Marcel Hasler <mahasler@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] stk1160: Remove stk1160-mixer and setup AC97 codec
- automatically.
-Message-ID: <20161027081942.GA1511@arch-desktop>
+Received: from foss.arm.com ([217.140.101.70]:36280 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750822AbcJNMjX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 08:39:23 -0400
+Date: Fri, 14 Oct 2016 13:39:15 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Archit Taneja <architt@codeaurora.org>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, liviu.dudau@arm.com,
+        robdclark@gmail.com, hverkuil@xs4all.nl, eric@anholt.net,
+        ville.syrjala@linux.intel.com, daniel@ffwll.ch
+Subject: Re: [RFC PATCH 00/11] Introduce writeback connectors
+Message-ID: <20161014123914.GA10745@e106950-lin.cambridge.arm.com>
+References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+ <6e794da8-49de-0440-ea70-272bfe47332b@codeaurora.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Disposition: inline
+In-Reply-To: <6e794da8-49de-0440-ea70-272bfe47332b@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exposing the device's internal AC97 codec to userspace seems rather pointless. Instead the driver
-should setup the codec with proper values. This patch removes the mixer and sets up the codec using
-optimal values, i.e. the same values set by the Windows driver. This also makes the device work
-out-of-the-box, without the need for the user to reconfigure the device every time it's plugged
-in.
+Hi Archit,
 
-Signed-off-by: Marcel Hasler <mahasler@gmail.com>
----
- drivers/media/usb/stk1160/Kconfig        |   7 --
- drivers/media/usb/stk1160/stk1160-ac97.c | 121 +++++++++++--------------------
- drivers/media/usb/stk1160/stk1160-core.c |   5 +-
- drivers/media/usb/stk1160/stk1160.h      |   9 +--
- 4 files changed, 45 insertions(+), 97 deletions(-)
+On Fri, Oct 14, 2016 at 04:20:14PM +0530, Archit Taneja wrote:
+>Hi Brian,
+>
+>On 10/11/2016 08:23 PM, Brian Starkey wrote:
+>>Hi,
+>>
+>>This RFC series introduces a new connector type:
+>> DRM_MODE_CONNECTOR_WRITEBACK
+>>It is a follow-on from a previous discussion: [1]
+>>
+>>Writeback connectors are used to expose the memory writeback engines
+>>found in some display controllers, which can write a CRTC's
+>>composition result to a memory buffer.
+>>This is useful e.g. for testing, screen-recording, screenshots,
+>>wireless display, display cloning, memory-to-memory composition.
+>>
+>>Patches 1-7 include the core framework changes required, and patches
+>>8-11 implement a writeback connector for the Mali-DP writeback engine.
+>>The Mali-DP patches depend on this other series: [2].
+>>
+>>The connector is given the FB_ID property for the output framebuffer,
+>>and two new read-only properties: PIXEL_FORMATS and
+>>PIXEL_FORMATS_SIZE, which expose the supported framebuffer pixel
+>>formats of the engine.
+>>
+>>The EDID property is not exposed for writeback connectors.
+>>
+>>Writeback connector usage:
+>>--------------------------
+>>Due to connector routing changes being treated as "full modeset"
+>>operations, any client which wishes to use a writeback connector
+>>should include the connector in every modeset. The writeback will not
+>>actually become active until a framebuffer is attached.
+>>
+>>The writeback itself is enabled by attaching a framebuffer to the
+>>FB_ID property of the connector. The driver must then ensure that the
+>>CRTC content of that atomic commit is written into the framebuffer.
+>>
+>>The writeback works in a one-shot mode with each atomic commit. This
+>>prevents the same content from being written multiple times.
+>>In some cases (front-buffer rendering) there might be a desire for
+>>continuous operation - I think a property could be added later for
+>>this kind of control.
+>>
+>>Writeback can be disabled by setting FB_ID to zero.
+>>
+>>Known issues:
+>>-------------
+>> * I'm not sure what "DPMS" should mean for writeback connectors.
+>>   It could be used to disable writeback (even when a framebuffer is
+>>   attached), or it could be hidden entirely (which would break the
+>>   legacy DPMS call for writeback connectors).
+>> * With Daniel's recent re-iteration of the userspace API rules, I
+>>   fully expect to provide some userspace code to support this. The
+>>   question is what, and where? We want to use writeback for testing,
+>>   so perhaps some tests in igt is suitable.
+>> * Documentation. Probably some portion of this cover letter needs to
+>>   make it into Documentation/
+>> * Synchronisation. Our hardware will finish the writeback by the next
+>>   vsync. I've not implemented fence support here, but it would be an
+>>   obvious addition.
+>>
+>>See Also:
+>>---------
+>>[1] https://lists.freedesktop.org/archives/dri-devel/2016-July/113197.html
+>>[2] https://lists.freedesktop.org/archives/dri-devel/2016-October/120486.html
+>>
+>>I welcome any comments, especially if this approach does/doesn't fit
+>>well with anyone else's hardware.
+>
+>Thanks for working on this! Some points below.
+>
+>- Writeback hardware generally allows us to specify the region within
+>the framebuffer we want to write to. It's analogous to the SRC_X/Y/W/H
+>plane properties. We could have similar props for the writeback
+>connectors, and maybe set them to the FB_ID dimensions if they aren't
+>configured by userspace.
+>
+>- Besides the above property, writeback hardware can have provisions
+>for scaling, color space conversion and rotation. This would mean that
+>we'd eventually add more writeback specific props/params in
+>drm_connector/drm_connector_state. Would we be okay adding more such
+>props for connectors?
 
-diff --git a/drivers/media/usb/stk1160/Kconfig b/drivers/media/usb/stk1160/Kconfig
-index 95584c1..53617da 100644
---- a/drivers/media/usb/stk1160/Kconfig
-+++ b/drivers/media/usb/stk1160/Kconfig
-@@ -8,13 +8,6 @@ config VIDEO_STK1160_COMMON
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called stk1160
- 
--config VIDEO_STK1160_AC97
--	bool "STK1160 AC97 codec support"
--	depends on VIDEO_STK1160_COMMON && SND
--
--	---help---
--	  Enables AC97 codec support for stk1160 driver.
--
- config VIDEO_STK1160
- 	tristate
- 	depends on (!VIDEO_STK1160_AC97 || (SND='n') || SND) && VIDEO_STK1160_COMMON
-diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
-index 2dd308f..d3665ce 100644
---- a/drivers/media/usb/stk1160/stk1160-ac97.c
-+++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-@@ -21,19 +21,12 @@
-  */
- 
- #include <linux/module.h>
--#include <sound/core.h>
--#include <sound/initval.h>
--#include <sound/ac97_codec.h>
- 
- #include "stk1160.h"
- #include "stk1160-reg.h"
- 
--static struct snd_ac97 *stk1160_ac97;
--
--static void stk1160_write_ac97(struct snd_ac97 *ac97, u16 reg, u16 value)
-+static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
- {
--	struct stk1160 *dev = ac97->private_data;
--
- 	/* Set codec register address */
- 	stk1160_write_reg(dev, STK1160_AC97_ADDR, reg);
- 
-@@ -48,9 +41,9 @@ static void stk1160_write_ac97(struct snd_ac97 *ac97, u16 reg, u16 value)
- 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
- }
- 
--static u16 stk1160_read_ac97(struct snd_ac97 *ac97, u16 reg)
-+#ifdef DEBUG
-+static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
- {
--	struct stk1160 *dev = ac97->private_data;
- 	u8 vall = 0;
- 	u8 valh = 0;
- 
-@@ -70,81 +63,53 @@ static u16 stk1160_read_ac97(struct snd_ac97 *ac97, u16 reg)
- 	return (valh << 8) | vall;
- }
- 
--static void stk1160_reset_ac97(struct snd_ac97 *ac97)
-+void stk1160_ac97_dump_regs(struct stk1160 *dev)
- {
--	struct stk1160 *dev = ac97->private_data;
--	/* Two-step reset AC97 interface and hardware codec */
--	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
--	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x88);
-+	u16 value;
- 
--	/* Set 16-bit audio data and choose L&R channel*/
--	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
--}
-+	value = stk1160_read_ac97(dev, 0x12); /* CD volume */
-+	stk1160_dbg("0x12 == 0x%04x", value);
- 
--static struct snd_ac97_bus_ops stk1160_ac97_ops = {
--	.read	= stk1160_read_ac97,
--	.write	= stk1160_write_ac97,
--	.reset	= stk1160_reset_ac97,
--};
-+	value = stk1160_read_ac97(dev, 0x10); /* Line-in volume */
-+	stk1160_dbg("0x10 == 0x%04x", value);
- 
--int stk1160_ac97_register(struct stk1160 *dev)
--{
--	struct snd_card *card = NULL;
--	struct snd_ac97_bus *ac97_bus;
--	struct snd_ac97_template ac97_template;
--	int rc;
-+	value = stk1160_read_ac97(dev, 0x0e); /* MIC volume (mono) */
-+	stk1160_dbg("0x0e == 0x%04x", value);
- 
--	/*
--	 * Just want a card to access ac96 controls,
--	 * the actual capture interface will be handled by snd-usb-audio
--	 */
--	rc = snd_card_new(dev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1,
--			  THIS_MODULE, 0, &card);
--	if (rc < 0)
--		return rc;
--
--	/* TODO: I'm not sure where should I get these names :-( */
--	snprintf(card->shortname, sizeof(card->shortname),
--		 "stk1160-mixer");
--	snprintf(card->longname, sizeof(card->longname),
--		 "stk1160 ac97 codec mixer control");
--	strlcpy(card->driver, dev->dev->driver->name, sizeof(card->driver));
--
--	rc = snd_ac97_bus(card, 0, &stk1160_ac97_ops, NULL, &ac97_bus);
--	if (rc)
--		goto err;
--
--	/* We must set private_data before calling snd_ac97_mixer */
--	memset(&ac97_template, 0, sizeof(ac97_template));
--	ac97_template.private_data = dev;
--	ac97_template.scaps = AC97_SCAP_SKIP_MODEM;
--	rc = snd_ac97_mixer(ac97_bus, &ac97_template, &stk1160_ac97);
--	if (rc)
--		goto err;
--
--	dev->snd_card = card;
--	rc = snd_card_register(card);
--	if (rc)
--		goto err;
--
--	return 0;
--
--err:
--	dev->snd_card = NULL;
--	snd_card_free(card);
--	return rc;
-+	value = stk1160_read_ac97(dev, 0x16); /* Aux volume */
-+	stk1160_dbg("0x16 == 0x%04x", value);
-+
-+	value = stk1160_read_ac97(dev, 0x1a); /* Record select */
-+	stk1160_dbg("0x1a == 0x%04x", value);
-+
-+	value = stk1160_read_ac97(dev, 0x02); /* Master volume */
-+	stk1160_dbg("0x02 == 0x%04x", value);
-+
-+	value = stk1160_read_ac97(dev, 0x1c); /* Record gain */
-+	stk1160_dbg("0x1c == 0x%04x", value);
- }
-+#endif
- 
--int stk1160_ac97_unregister(struct stk1160 *dev)
-+void stk1160_ac97_setup(struct stk1160 *dev)
- {
--	struct snd_card *card = dev->snd_card;
--
--	/*
--	 * We need to check usb_device,
--	 * because ac97 release attempts to communicate with codec
--	 */
--	if (card && dev->udev)
--		snd_card_free(card);
-+	/* Two-step reset AC97 interface and hardware codec */
-+	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
-+	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
- 
--	return 0;
-+	/* Set 16-bit audio data and choose L&R channel*/
-+	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
-+	stk1160_write_reg(dev, STK1160_AC97CTL_1 + 3, 0x00);
-+
-+	/* Setup channels */
-+	stk1160_write_ac97(dev, 0x12, 0x8808); /* CD volume */
-+	stk1160_write_ac97(dev, 0x10, 0x0808); /* Line-in volume */
-+	stk1160_write_ac97(dev, 0x0e, 0x0008); /* MIC volume (mono) */
-+	stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
-+	stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
-+	stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
-+	stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
-+
-+#ifdef DEBUG
-+	stk1160_ac97_dump_regs(dev);
-+#endif
- }
-diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-index bc02947..f3c9b8a 100644
---- a/drivers/media/usb/stk1160/stk1160-core.c
-+++ b/drivers/media/usb/stk1160/stk1160-core.c
-@@ -373,7 +373,7 @@ static int stk1160_probe(struct usb_interface *interface,
- 	/* select default input */
- 	stk1160_select_input(dev);
- 
--	stk1160_ac97_register(dev);
-+	stk1160_ac97_setup(dev);
- 
- 	rc = stk1160_video_register(dev);
- 	if (rc < 0)
-@@ -411,9 +411,6 @@ static void stk1160_disconnect(struct usb_interface *interface)
- 	/* Here is the only place where isoc get released */
- 	stk1160_uninit_isoc(dev);
- 
--	/* ac97 unregister needs to be done before usb_device is cleared */
--	stk1160_ac97_unregister(dev);
--
- 	stk1160_clear_queue(dev);
- 
- 	video_unregister_device(&dev->vdev);
-diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-index 1ed1cc4..e85e12e 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -197,11 +197,4 @@ int stk1160_read_reg_req_len(struct stk1160 *dev, u8 req, u16 reg,
- void stk1160_select_input(struct stk1160 *dev);
- 
- /* Provided by stk1160-ac97.c */
--#ifdef CONFIG_VIDEO_STK1160_AC97
--int stk1160_ac97_register(struct stk1160 *dev);
--int stk1160_ac97_unregister(struct stk1160 *dev);
--#else
--static inline int stk1160_ac97_register(struct stk1160 *dev) { return 0; }
--static inline int stk1160_ac97_unregister(struct stk1160 *dev) { return 0; }
--#endif
--
-+void stk1160_ac97_setup(struct stk1160 *dev);
--- 
-2.10.1
+I've wondered the same thing about bloating non-writeback connectors
+with writeback-specific stuff. If it does become significant, maybe
+we should subclass drm_connector and add a drm_writeback_state pointer
+to drm_connector_state.
 
+Ville touched on scaling support previously, suggesting adding a
+fixed_mode property (for all types of connectors) - on writeback this
+would represent scaling the framebuffer, and on normal connectors it
+could control output scaling (like panel-fitting).
+
+Certainly destination coords, color-space converstion etc. are things
+that are worth adding, but IMO I'd rather keep this initial
+implementation small so we can enable the basic case right away. For
+the most part, the additional things are "just properties" which
+should be easily added later without impacting the overall interface.
+
+Cheers,
+Brian
+>
+>Thanks,
+>Archit
+>
+>>
+>>Thanks,
+>>
+>>-Brian
+>>
+>>---
+>>
+>>Brian Starkey (10):
+>>  drm: add writeback connector type
+>>  drm/fb-helper: skip writeback connectors
+>>  drm: extract CRTC/plane disable from drm_framebuffer_remove
+>>  drm: add __drm_framebuffer_remove_atomic
+>>  drm: add fb to connector state
+>>  drm: expose fb_id property for writeback connectors
+>>  drm: add writeback-connector pixel format properties
+>>  drm: mali-dp: rename malidp_input_format
+>>  drm: mali-dp: add RGB writeback formats for DP550/DP650
+>>  drm: mali-dp: add writeback connector
+>>
+>>Liviu Dudau (1):
+>>  drm: mali-dp: Add support for writeback on DP550/DP650
+>>
+>> drivers/gpu/drm/arm/Makefile        |    1 +
+>> drivers/gpu/drm/arm/malidp_crtc.c   |   10 ++
+>> drivers/gpu/drm/arm/malidp_drv.c    |   25 +++-
+>> drivers/gpu/drm/arm/malidp_drv.h    |    5 +
+>> drivers/gpu/drm/arm/malidp_hw.c     |  104 ++++++++++----
+>> drivers/gpu/drm/arm/malidp_hw.h     |   27 +++-
+>> drivers/gpu/drm/arm/malidp_mw.c     |  268 +++++++++++++++++++++++++++++++++++
+>> drivers/gpu/drm/arm/malidp_planes.c |    8 +-
+>> drivers/gpu/drm/arm/malidp_regs.h   |   15 ++
+>> drivers/gpu/drm/drm_atomic.c        |   40 ++++++
+>> drivers/gpu/drm/drm_atomic_helper.c |    4 +
+>> drivers/gpu/drm/drm_connector.c     |   79 ++++++++++-
+>> drivers/gpu/drm/drm_crtc.c          |   14 +-
+>> drivers/gpu/drm/drm_fb_helper.c     |    4 +
+>> drivers/gpu/drm/drm_framebuffer.c   |  249 ++++++++++++++++++++++++++++----
+>> drivers/gpu/drm/drm_ioctl.c         |    7 +
+>> include/drm/drmP.h                  |    2 +
+>> include/drm/drm_atomic.h            |    3 +
+>> include/drm/drm_connector.h         |   15 ++
+>> include/drm/drm_crtc.h              |   12 ++
+>> include/uapi/drm/drm.h              |   10 ++
+>> include/uapi/drm/drm_mode.h         |    1 +
+>> 22 files changed, 830 insertions(+), 73 deletions(-)
+>> create mode 100644 drivers/gpu/drm/arm/malidp_mw.c
+>>
+>
+>-- 
+>Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+>a Linux Foundation Collaborative Project
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
