@@ -1,148 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35458 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752263AbcJKOyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 10:54:43 -0400
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        liviu.dudau@arm.com, robdclark@gmail.com, hverkuil@xs4all.nl,
-        eric@anholt.net, ville.syrjala@linux.intel.com, daniel@ffwll.ch
-Subject: [RFC PATCH 03/11] drm: Extract CRTC/plane disable from drm_framebuffer_remove
-Date: Tue, 11 Oct 2016 15:54:00 +0100
-Message-Id: <1476197648-24918-4-git-send-email-brian.starkey@arm.com>
-In-Reply-To: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:59179 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757097AbcJNUWn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 16:22:43 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 29/57] [media] ti-vpe: don't break long lines
+Date: Fri, 14 Oct 2016 17:20:17 -0300
+Message-Id: <c3f436701af70b46f884a4dad4989176cec5e0c3.1476475771.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for adding an atomic version of the disable code, extract
-the actual disable operation into a separate function.
+Due to the 80-cols checkpatch warnings, several strings
+were broken into multiple lines. This is not considered
+a good practice anymore, as it makes harder to grep for
+strings at the source code. So, join those continuation
+lines.
 
-Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/gpu/drm/drm_framebuffer.c |   87 +++++++++++++++++++++++--------------
- 1 file changed, 54 insertions(+), 33 deletions(-)
+ drivers/media/platform/ti-vpe/vpdma.c | 12 ++++--------
+ drivers/media/platform/ti-vpe/vpe.c   |  3 +--
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/gpu/drm/drm_framebuffer.c b/drivers/gpu/drm/drm_framebuffer.c
-index 398efd6..528f75d 100644
---- a/drivers/gpu/drm/drm_framebuffer.c
-+++ b/drivers/gpu/drm/drm_framebuffer.c
-@@ -795,22 +795,61 @@ void drm_framebuffer_cleanup(struct drm_framebuffer *fb)
- EXPORT_SYMBOL(drm_framebuffer_cleanup);
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 3e2e3a33e6ed..079a0c894d02 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -466,8 +466,7 @@ static void dump_cfd(struct vpdma_cfd *cfd)
  
- /**
-- * drm_framebuffer_remove - remove and unreference a framebuffer object
-+ * __drm_framebuffer_remove - remove all usage of a framebuffer object
-+ * @dev: drm device
-  * @fb: framebuffer to remove
-  *
-  * Scans all the CRTCs and planes in @dev's mode_config.  If they're
-- * using @fb, removes it, setting it to NULL. Then drops the reference to the
-- * passed-in framebuffer. Might take the modeset locks.
-+ * using @fb, removes it, setting it to NULL. Takes the modeset locks.
-  *
-- * Note that this function optimizes the cleanup away if the caller holds the
-- * last reference to the framebuffer. It is also guaranteed to not take the
-- * modeset locks in this case.
-+ * Returns:
-+ * true if the framebuffer was successfully removed from use
-  */
--void drm_framebuffer_remove(struct drm_framebuffer *fb)
-+static bool __drm_framebuffer_remove(struct drm_device *dev, struct drm_framebuffer *fb)
- {
--	struct drm_device *dev;
- 	struct drm_crtc *crtc;
- 	struct drm_plane *plane;
-+	bool ret = true;
-+
-+	drm_modeset_lock_all(dev);
-+	/* remove from any CRTC */
-+	drm_for_each_crtc(crtc, dev) {
-+		if (crtc->primary->fb == fb) {
-+			/* should turn off the crtc */
-+			if (drm_crtc_force_disable(crtc))
-+				ret = false;
-+		}
-+	}
-+
-+	drm_for_each_plane(plane, dev) {
-+		if (plane->fb == fb)
-+			/* TODO: Propagate error here? */
-+			drm_plane_force_disable(plane);
-+	}
-+	drm_modeset_unlock_all(dev);
-+
-+	return ret;
-+}
-+
-+/**
-+ * drm_framebuffer_remove - remove and unreference a framebuffer object
-+ * @fb: framebuffer to remove
-+ *
-+ * drm ABI mandates that we remove any deleted framebuffers from active usage.
-+ * This function takes care of this detail, disabling any CRTCs/Planes which
-+ * are using the framebuffer being removed.
-+ *
-+ * Since most sane clients only remove framebuffers they no longer need, we
-+ * skip the disable step if the caller holds the last reference to the
-+ * framebuffer. It is also guaranteed to not take the modeset locks in
-+ * this case.
-+ *
-+ * Before returning this function drops (what should be) the last reference
-+ * on the framebuffer.
-+ */
-+void drm_framebuffer_remove(struct drm_framebuffer *fb)
-+{
-+	struct drm_device *dev;
+ 	pr_debug("word2: payload_addr = 0x%08x\n", cfd->payload_addr);
  
- 	if (!fb)
- 		return;
-@@ -820,37 +859,19 @@ void drm_framebuffer_remove(struct drm_framebuffer *fb)
- 	WARN_ON(!list_empty(&fb->filp_head));
- 
- 	/*
--	 * drm ABI mandates that we remove any deleted framebuffers from active
--	 * useage. But since most sane clients only remove framebuffers they no
--	 * longer need, try to optimize this away.
--	 *
- 	 * Since we're holding a reference ourselves, observing a refcount of 1
--	 * means that we're the last holder and can skip it. Also, the refcount
--	 * can never increase from 1 again, so we don't need any barriers or
--	 * locks.
-+	 * means that we're the last holder and can skip the disable. Also, the
-+	 * refcount can never increase from 1 again, so we don't need any
-+	 * barriers or locks.
- 	 *
--	 * Note that userspace could try to race with use and instate a new
-+	 * Note that userspace could try to race with us and instate a new
- 	 * usage _after_ we've cleared all current ones. End result will be an
- 	 * in-use fb with fb-id == 0. Userspace is allowed to shoot its own foot
- 	 * in this manner.
- 	 */
--	if (drm_framebuffer_read_refcount(fb) > 1) {
--		drm_modeset_lock_all(dev);
--		/* remove from any CRTC */
--		drm_for_each_crtc(crtc, dev) {
--			if (crtc->primary->fb == fb) {
--				/* should turn off the crtc */
--				if (drm_crtc_force_disable(crtc))
--					DRM_ERROR("failed to reset crtc %p when fb was deleted\n", crtc);
--			}
--		}
--
--		drm_for_each_plane(plane, dev) {
--			if (plane->fb == fb)
--				drm_plane_force_disable(plane);
--		}
--		drm_modeset_unlock_all(dev);
--	}
-+	if (drm_framebuffer_read_refcount(fb) > 1)
-+		if (!__drm_framebuffer_remove(dev, fb))
-+			DRM_ERROR("failed to remove fb from active usage\n");
- 
- 	drm_framebuffer_unreference(fb);
+-	pr_debug("word3: pkt_type = %d, direct = %d, class = %d, dest = %d, "
+-		"payload_len = %d\n", cfd_get_pkt_type(cfd),
++	pr_debug("word3: pkt_type = %d, direct = %d, class = %d, dest = %d, payload_len = %d\n", cfd_get_pkt_type(cfd),
+ 		cfd_get_direct(cfd), class, cfd_get_dest(cfd),
+ 		cfd_get_payload_len(cfd));
  }
+@@ -574,8 +573,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+ 	pr_debug("%s data transfer descriptor for channel %d\n",
+ 		dir == DTD_DIR_OUT ? "outbound" : "inbound", chan);
+ 
+-	pr_debug("word0: data_type = %d, notify = %d, field = %d, 1D = %d, "
+-		"even_ln_skp = %d, odd_ln_skp = %d, line_stride = %d\n",
++	pr_debug("word0: data_type = %d, notify = %d, field = %d, 1D = %d, even_ln_skp = %d, odd_ln_skp = %d, line_stride = %d\n",
+ 		dtd_get_data_type(dtd), dtd_get_notify(dtd), dtd_get_field(dtd),
+ 		dtd_get_1d(dtd), dtd_get_even_line_skip(dtd),
+ 		dtd_get_odd_line_skip(dtd), dtd_get_line_stride(dtd));
+@@ -586,8 +584,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+ 
+ 	pr_debug("word2: start_addr = %pad\n", &dtd->start_addr);
+ 
+-	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, "
+-		"pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
++	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
+ 		dtd_get_mode(dtd), dir, chan, dtd_get_priority(dtd),
+ 		dtd_get_next_chan(dtd));
+ 
+@@ -595,8 +592,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+ 		pr_debug("word4: frame_width = %d, frame_height = %d\n",
+ 			dtd_get_frame_width(dtd), dtd_get_frame_height(dtd));
+ 	else
+-		pr_debug("word4: desc_write_addr = 0x%08x, write_desc = %d, "
+-			"drp_data = %d, use_desc_reg = %d\n",
++		pr_debug("word4: desc_write_addr = 0x%08x, write_desc = %d, drp_data = %d, use_desc_reg = %d\n",
+ 			dtd_get_desc_write_addr(dtd), dtd_get_write_desc(dtd),
+ 			dtd_get_drop_data(dtd), dtd_get_use_desc(dtd));
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 0189f7f7cb03..1cf4a4c1b899 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1263,8 +1263,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 	}
+ 
+ 	if (irqst0 | irqst1) {
+-		dev_warn(dev->v4l2_dev.dev, "Unexpected interrupt: "
+-			"INT0_STATUS0 = 0x%08x, INT0_STATUS1 = 0x%08x\n",
++		dev_warn(dev->v4l2_dev.dev, "Unexpected interrupt: INT0_STATUS0 = 0x%08x, INT0_STATUS1 = 0x%08x\n",
+ 			irqst0, irqst1);
+ 	}
+ 
 -- 
-1.7.9.5
+2.7.4
+
 
