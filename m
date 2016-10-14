@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:58902 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754985AbcJLOye (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:54:34 -0400
-Subject: [PATCH 16/34] [media] DaVinci-VPFE-Capture: Delete an unnecessary
- variable initialisation in vpfe_probe()
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <e2e1411e-711d-97b3-8280-5caafbead30b@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:54:17 +0200
+Received: from userp1040.oracle.com ([156.151.31.81]:20048 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757397AbcJNHc5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 14 Oct 2016 03:32:57 -0400
+Date: Fri, 14 Oct 2016 10:32:24 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] st-hva: fix some error handling in hva_hw_probe()
+Message-ID: <20161014072928.GB15168@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 10:30:28 +0200
+The devm_ioremap_resource() returns error pointers, never NULL.  The
+platform_get_resource() returns NULL on error, never error pointers.
+The error code needs to be set, as well.  The current code returns
+PTR_ERR(NULL) which is success.
 
-* Return an error code as a constant after a failed call of
-  the function "vpfe_initialize".
+Fixes: 57b2c0628b60 ("[media] st-hva: multi-format video encoder V4L2 driver")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-* The local variable "ret" will be set then to an appropriate value
-  a bit later. Thus omit the explicit initialisation at the beginning.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpfe_capture.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index 4db3212..8314c39 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1819,7 +1819,7 @@ static int vpfe_probe(struct platform_device *pdev)
- 	struct vpfe_device *vpfe_dev;
- 	struct i2c_adapter *i2c_adap;
- 	struct video_device *vfd;
--	int ret = -ENOMEM, i, j;
-+	int ret, i, j;
- 	int num_subdevs = 0;
- 
- 	/* Get the pointer to the device object */
-@@ -1828,7 +1828,7 @@ static int vpfe_probe(struct platform_device *pdev)
- 	if (!vpfe_dev) {
- 		v4l2_err(pdev->dev.driver,
- 			"Failed to allocate memory for vpfe_dev\n");
--		return ret;
-+		return -ENOMEM;
+diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+index d341d49..cf2a8d8 100644
+--- a/drivers/media/platform/sti/hva/hva-hw.c
++++ b/drivers/media/platform/sti/hva/hva-hw.c
+@@ -305,16 +305,16 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
+ 	/* get memory for registers */
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	hva->regs = devm_ioremap_resource(dev, regs);
+-	if (IS_ERR_OR_NULL(hva->regs)) {
++	if (IS_ERR(hva->regs)) {
+ 		dev_err(dev, "%s     failed to get regs\n", HVA_PREFIX);
+ 		return PTR_ERR(hva->regs);
  	}
  
- 	vpfe_dev->pdev = &pdev->dev;
--- 
-2.10.1
-
+ 	/* get memory for esram */
+ 	esram = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+-	if (IS_ERR_OR_NULL(esram)) {
++	if (!esram) {
+ 		dev_err(dev, "%s     failed to get esram\n", HVA_PREFIX);
+-		return PTR_ERR(esram);
++		return -ENODEV;
+ 	}
+ 	hva->esram_addr = esram->start;
+ 	hva->esram_size = resource_size(esram);
