@@ -1,51 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:20048 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757397AbcJNHc5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 03:32:57 -0400
-Date: Fri, 14 Oct 2016 10:32:24 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] st-hva: fix some error handling in hva_hw_probe()
-Message-ID: <20161014072928.GB15168@mwanda>
+Received: from gofer.mess.org ([80.229.237.210]:43199 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753027AbcJONau (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Oct 2016 09:30:50 -0400
+Date: Sat, 15 Oct 2016 14:29:56 +0100
+From: Sean Young <sean@mess.org>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org,
+        David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 4/5] [media] winbond-cir: One variable and its check less
+ in wbcir_shutdown() after error detection
+Message-ID: <20161015132956.GA3393@gofer.mess.org>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+ <84757ae3-24d2-cf9b-2217-fd9793b86078@users.sourceforge.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <84757ae3-24d2-cf9b-2217-fd9793b86078@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The devm_ioremap_resource() returns error pointers, never NULL.  The
-platform_get_resource() returns NULL on error, never error pointers.
-The error code needs to be set, as well.  The current code returns
-PTR_ERR(NULL) which is success.
+On Fri, Oct 14, 2016 at 01:44:02PM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Fri, 14 Oct 2016 12:48:41 +0200
+> 
+> The local variable "do_wake" was set to "false" after an invalid system
+> setting was detected so that a bit of error handling was triggered.
+> 
+> * Replace these assignments by direct jumps to the source code with the
+> desired exception handling.
+> 
+> * Delete this status variable and a corresponding check which became
+>   unnecessary with this refactoring.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/rc/winbond-cir.c | 78 ++++++++++++++++++------------------------
+>  1 file changed, 34 insertions(+), 44 deletions(-)
+> 
+> diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+> index 9d05e17..3d286b9 100644
+> --- a/drivers/media/rc/winbond-cir.c
+> +++ b/drivers/media/rc/winbond-cir.c
+> @@ -699,16 +699,13 @@ wbcir_shutdown(struct pnp_dev *device)
+>  {
+>  	struct device *dev = &device->dev;
+>  	struct wbcir_data *data = pnp_get_drvdata(device);
+> -	bool do_wake = true;
+>  	u8 match[11];
+>  	u8 mask[11];
+>  	u8 rc6_csl;
+>  	int i;
+>  
+> -	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
+> -		do_wake = false;
+> -		goto finish;
+> -	}
+> +	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev))
+> +		goto clear_bits;
+>  
+>  	rc6_csl = 0;
+>  	memset(match, 0, sizeof(match));
+> @@ -716,9 +713,8 @@ wbcir_shutdown(struct pnp_dev *device)
+>  	switch (protocol) {
+>  	case IR_PROTOCOL_RC5:
+>  		if (wake_sc > 0xFFF) {
+> -			do_wake = false;
+>  			dev_err(dev, "RC5 - Invalid wake scancode\n");
+> -			break;
+> +			goto clear_bits;
+>  		}
+>  
+>  		/* Mask = 13 bits, ex toggle */
+> @@ -735,9 +731,8 @@ wbcir_shutdown(struct pnp_dev *device)
+>  
+>  	case IR_PROTOCOL_NEC:
+>  		if (wake_sc > 0xFFFFFF) {
+> -			do_wake = false;
+>  			dev_err(dev, "NEC - Invalid wake scancode\n");
+> -			break;
+> +			goto clear_bits;
+>  		}
+>  
+>  		mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
+> @@ -757,9 +752,8 @@ wbcir_shutdown(struct pnp_dev *device)
+>  
+>  		if (wake_rc6mode == 0) {
+>  			if (wake_sc > 0xFFFF) {
+> -				do_wake = false;
+>  				dev_err(dev, "RC6 - Invalid wake scancode\n");
+> -				break;
+> +				goto clear_bits;
+>  			}
+>  
+>  			/* Command */
+> @@ -813,9 +807,8 @@ wbcir_shutdown(struct pnp_dev *device)
+>  			} else if (wake_sc <= 0x007FFFFF) {
+>  				rc6_csl = 60;
+>  			} else {
+> -				do_wake = false;
+>  				dev_err(dev, "RC6 - Invalid wake scancode\n");
+> -				break;
+> +				goto clear_bits;
+>  			}
+>  
+>  			/* Header */
+> @@ -825,49 +818,38 @@ wbcir_shutdown(struct pnp_dev *device)
+>  			mask[i++] = 0x0F;
+>  
+>  		} else {
+> -			do_wake = false;
+>  			dev_err(dev, "RC6 - Invalid wake mode\n");
+> +			goto clear_bits;
+>  		}
+>  
+>  		break;
+>  
+>  	default:
+> -		do_wake = false;
+> -		break;
+> +		goto clear_bits;
+>  	}
+>  
+> -finish:
+> -	if (do_wake) {
+> -		/* Set compare and compare mask */
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
+> -			       WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
+> -			       0x3F);
+> -		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, match, 11);
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
+> -			       WBCIR_REGSEL_MASK | WBCIR_REG_ADDR0,
+> -			       0x3F);
+> -		outsb(data->wbase + WBCIR_REG_WCEIR_DATA, mask, 11);
+> -
+> -		/* RC6 Compare String Len */
+> -		outb(rc6_csl, data->wbase + WBCIR_REG_WCEIR_CSL);
+> -
+> -		/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
+> +	/* Set compare and compare mask */
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
+> +		       WBCIR_REGSEL_COMPARE | WBCIR_REG_ADDR0,
+> +		       0x3F);
+> +	outsb(data->wbase + WBCIR_REG_WCEIR_DATA, match, 11);
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_INDEX,
+> +		       WBCIR_REGSEL_MASK | WBCIR_REG_ADDR0,
+> +		       0x3F);
+> +	outsb(data->wbase + WBCIR_REG_WCEIR_DATA, mask, 11);
+>  
+> -		/* Clear BUFF_EN, Clear END_EN, Set MATCH_EN */
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
+> +	/* RC6 Compare String Len */
+> +	outb(rc6_csl, data->wbase + WBCIR_REG_WCEIR_CSL);
+>  
+> -		/* Set CEIR_EN */
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
+> -
+> -	} else {
+> -		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
+> +	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
+>  
+> -		/* Clear CEIR_EN */
+> -		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
+> -	}
+> +	/* Clear BUFF_EN, Clear END_EN, Set MATCH_EN */
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
+>  
+> +	/* Set CEIR_EN */
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
+> +set_irqmask:
+>  	/*
+>  	 * ACPI will set the HW disable bit for SP3 which means that the
+>  	 * output signals are left in an undefined state which may cause
+> @@ -876,6 +858,14 @@ wbcir_shutdown(struct pnp_dev *device)
+>  	 */
+>  	wbcir_set_irqmask(data, WBCIR_IRQ_NONE);
+>  	disable_irq(data->irq);
+> +	return;
+> +clear_bits:
+> +	/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
+> +
+> +	/* Clear CEIR_EN */
+> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
+> +	goto set_irqmask;
 
-Fixes: 57b2c0628b60 ("[media] st-hva: multi-format video encoder V4L2 driver")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+I'm not convinced that adding a goto which goes backwards is making this
+code any more readible, just so that a local variable can be dropped.
 
-diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
-index d341d49..cf2a8d8 100644
---- a/drivers/media/platform/sti/hva/hva-hw.c
-+++ b/drivers/media/platform/sti/hva/hva-hw.c
-@@ -305,16 +305,16 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
- 	/* get memory for registers */
- 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	hva->regs = devm_ioremap_resource(dev, regs);
--	if (IS_ERR_OR_NULL(hva->regs)) {
-+	if (IS_ERR(hva->regs)) {
- 		dev_err(dev, "%s     failed to get regs\n", HVA_PREFIX);
- 		return PTR_ERR(hva->regs);
- 	}
- 
- 	/* get memory for esram */
- 	esram = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--	if (IS_ERR_OR_NULL(esram)) {
-+	if (!esram) {
- 		dev_err(dev, "%s     failed to get esram\n", HVA_PREFIX);
--		return PTR_ERR(esram);
-+		return -ENODEV;
- 	}
- 	hva->esram_addr = esram->start;
- 	hva->esram_size = resource_size(esram);
+
+Sean
+
+>  }
+>  
+>  static int
+> -- 
+> 2.10.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
