@@ -1,62 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60297
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752430AbcJGLLo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 07:11:44 -0400
-Date: Fri, 7 Oct 2016 08:11:36 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jiri Kosina <jikos@kernel.org>
-Cc: =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problem with VMAP_STACK=y
-Message-ID: <20161007081136.1eb8fae9@vento.lan>
-In-Reply-To: <alpine.LNX.2.00.1610070952010.31629@cbobk.fhfr.pm>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
-        <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
-        <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
-        <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
-        <20161005093417.6e82bd97@vdr>
-        <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm>
-        <20161005060450.1b0f2152@vento.lan>
-        <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org>
-        <20161005155532.682258e2@vento.lan>
-        <CADDKRnCV7YhD5ErkvWSL8P3adymCLqzp5OePYmGp0L=9Dt_=UA@mail.gmail.com>
-        <20161006141734.4b2e4880@vento.lan>
-        <alpine.LNX.2.00.1610070952010.31629@cbobk.fhfr.pm>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:36227 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750919AbcJOT0E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Oct 2016 15:26:04 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAJs94EaNwOiqTASzr2LQDWeCHnzoQQWndDsSg75YUuHLQhcuUw@mail.gmail.com>
+References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
+ <20160830183039.GA20056@uda0271908> <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
+ <20160912032826.GB18340@uda0271908> <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
+ <20160912185709.GL18340@uda0271908> <CAJs94EaNwOiqTASzr2LQDWeCHnzoQQWndDsSg75YUuHLQhcuUw@mail.gmail.com>
+From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
+Date: Sat, 15 Oct 2016 22:25:42 +0300
+Message-ID: <CAJs94EZXjETQGj44hphs61g9W1r-o9vJc+yy+9CeaxBy7Sa0Tg@mail.gmail.com>
+Subject: Re: musb: isoc pkt loss with pwc
+To: Bin Liu <b-liu@ti.com>, "Matwey V. Kornilov" <matwey@sai.msu.ru>,
+        Alan Stern <stern@rowland.harvard.edu>, hdegoede@redhat.com,
+        linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 7 Oct 2016 09:52:56 +0200 (CEST)
-Jiri Kosina <jikos@kernel.org> escreveu:
+2016-09-12 22:38 GMT+03:00 Matwey V. Kornilov <matwey@sai.msu.ru>:
+> 2016-09-12 21:57 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>> Hi,
+>>
+>> On Mon, Sep 12, 2016 at 11:52:46AM +0300, Matwey V. Kornilov wrote:
+>>> 2016-09-12 6:28 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>> > Hi,
+>>> >
+>>> > On Tue, Aug 30, 2016 at 11:44:33PM +0300, Matwey V. Kornilov wrote:
+>>> >> 2016-08-30 21:30 GMT+03:00 Bin Liu <b-liu@ti.com>:
+>>> >> > Hi,
+>>> >> >
+>>> >> > On Sun, Aug 28, 2016 at 01:13:55PM +0300, Matwey V. Kornilov wrote:
+>>> >> >> Hello Bin,
+>>> >> >>
+>>> >> >> I would like to start new thread on my issue. Let me recall where the issue is:
+>>> >> >> There is 100% frame lost in pwc webcam driver due to lots of
+>>> >> >> zero-length packages coming from musb driver.
+>>> >> >
+>>> >> > What is the video resolution and fps?
+>>> >>
+>>> >> 640x480 YUV420 10 frames per second.
+>>> >> pwc uses proprietary compression during device-host transmission, but
+>>> >> I don't know how effective it is.
+>>> >
+>>> > The data rate for VGA YUV420 @10fps is 640x480*1.5*10 = 4.6MB/s, which
+>>> > is much higher than full-speed 12Mbps.  So the video data on the bus is
+>>> > compressed, not YUV420, I believe.
+>>> >
+>>> >>
+>>> >> >
+>>> >> >> The issue is present in all kernels (including 4.8) starting from the commit:
+>>> >> >>
+>>> >> >> f551e13529833e052f75ec628a8af7b034af20f9 ("Revert "usb: musb:
+>>> >> >> musb_host: Enable HCD_BH flag to handle urb return in bottom half"")
+>>> >> >
+>>> >> > What is the behavior without this commit?
+>>> >>
+>>> >> Without this commit all frames are being received correctly. Single
+>>> >
+>>> > Which means without this commit your camera has been working without
+>>> > issues, and this is a regression with this commit, right?
+>>> >
+>>>
+>>> Right
+>>
+>> Okay, thanks for confirming.
+>>
+>> But we cannot just simply add this flag, as it breaks many other use
+>> cases. I will continue work on this to find a solution which works on
+>> all use cases.
+>>
+>
+> Ok, thank you.
+>
 
-> On Thu, 6 Oct 2016, Mauro Carvalho Chehab wrote:
-> 
-> > I can't see any other obvious error on the conversion. You could try to 
-> > enable debug options at DVB core/dvb-usb and/or add some printk's to the 
-> > driver and see what's happening.
-> 
-> Mauro, also please don't forget that there are many more places in 
-> drivers/media that still perform DMA on stack, and so have to be fixed for 
-> 4.9 (as VMAP_STACK makes that to be immediately visible problem even on 
-> x86_64, which it wasn't the case before).
+Excuse me. Any news?
 
-Yes, I'm aware of that. I'm doing the conversion of drivers under dvb-usb,
-at:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=media_dmastack_fixes
+>> Regards,
+>> -Bin.
+>>
+>
+>
+>
+> --
+> With best regards,
+> Matwey V. Kornilov.
+> Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+> 119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
 
-I'll be sending the patches to the ML after ready.
 
-I'll then take a look on other USB drivers that use the stack. I guess
-the non-USB media drivers are safe from this issue.
 
-Thanks,
-Mauro
+-- 
+With best regards,
+Matwey V. Kornilov.
+Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
+119991, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
