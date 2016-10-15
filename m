@@ -1,142 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46766 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938780AbcJGRYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
+Received: from gofer.mess.org ([80.229.237.210]:48695 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753523AbcJONn2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 15 Oct 2016 09:43:28 -0400
+Date: Sat, 15 Oct 2016 14:33:39 +0100
+From: Sean Young <sean@mess.org>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 04/26] cinergyT2-fe: cache stats at cinergyt2_fe_read_status()
-Date: Fri,  7 Oct 2016 14:24:14 -0300
-Message-Id: <d0f1f4bc344b1e0a09d476adf747cc38d66f91c3.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 04/18] [media] RedRat3: One function call less in
+ redrat3_transmit_ir() after error detection
+Message-ID: <20161015133339.GB3393@gofer.mess.org>
+References: <566ABCD9.1060404@users.sourceforge.net>
+ <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+ <7878868c-bc54-5577-b808-ed096bbf3759@users.sourceforge.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7878868c-bc54-5577-b808-ed096bbf3759@users.sourceforge.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of sending USB commands for every stats call, collect
-them once, when status is updated. As the frontend kthread
-will call it on every few seconds, the stats will still be
-collected.
+On Thu, Oct 13, 2016 at 06:24:46PM +0200, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 13 Oct 2016 10:50:24 +0200
+> 
+> The kfree() function was called in one case by the
+> redrat3_transmit_ir() function during error handling
+> even if the passed variable contained a null pointer.
+> 
+> * Adjust jump targets according to the Linux coding style convention.
+> 
+> * Move the resetting for the data structure member "transmitting"
+>   at the end.
+> 
+> * Delete initialisations for the variables "irdata" and "sample_lens"
+>   at the beginning which became unnecessary with this refactoring.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/rc/redrat3.c | 18 ++++++++----------
+>  1 file changed, 8 insertions(+), 10 deletions(-)
+> 
+> diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+> index 7ae2ced..71e901d 100644
+> --- a/drivers/media/rc/redrat3.c
+> +++ b/drivers/media/rc/redrat3.c
+> @@ -723,10 +723,10 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+>  {
+>  	struct redrat3_dev *rr3 = rcdev->priv;
+>  	struct device *dev = rr3->dev;
+> -	struct redrat3_irdata *irdata = NULL;
+> +	struct redrat3_irdata *irdata;
+>  	int ret, ret_len;
+>  	int lencheck, cur_sample_len, pipe;
+> -	int *sample_lens = NULL;
+> +	int *sample_lens;
+>  	u8 curlencheck;
+>  	unsigned i, sendbuf_len;
+>  
+> @@ -747,7 +747,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+>  	irdata = kzalloc(sizeof(*irdata), GFP_KERNEL);
+>  	if (!irdata) {
+>  		ret = -ENOMEM;
+> -		goto out;
+> +		goto free_sample;
+>  	}
+>  
+>  	/* rr3 will disable rc detector on transmit */
+> @@ -776,7 +776,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+>  				curlencheck++;
+>  			} else {
+>  				ret = -EINVAL;
+> -				goto out;
+> +				goto reset_member;
+>  			}
+>  		}
+>  		irdata->sigdata[i] = lencheck;
+> @@ -811,14 +811,12 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+>  		dev_err(dev, "Error: control msg send failed, rc %d\n", ret);
+>  	else
+>  		ret = count;
+> -
+> -out:
+> -	kfree(irdata);
+> -	kfree(sample_lens);
+> -
+> +reset_member:
+>  	rr3->transmitting = false;
+>  	/* rr3 re-enables rc detector because it was enabled before */
+> -
+> +	kfree(irdata);
+> +free_sample:
+> +	kfree(sample_lens);
 
-Besides reducing the amount of USB/I2C transfers, this also
-warrants that all stats will be collected at the same time,
-and makes easier to convert it to DVBv5 stats in the future.
+In this error path, rr3->transmitting is not set to false so now the driver
+will never allow you transmit again.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/cinergyT2-fe.c | 48 +++++---------------------------
- 1 file changed, 7 insertions(+), 41 deletions(-)
+Also this patch does not apply against latest.
 
-diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-index b3ec743a7a2e..fd8edcb56e61 100644
---- a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-+++ b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-@@ -139,6 +139,7 @@ static uint16_t compute_tps(struct dtv_frontend_properties *op)
- struct cinergyt2_fe_state {
- 	struct dvb_frontend fe;
- 	struct dvb_usb_device *d;
-+	struct dvbt_get_status_msg status;
- };
- 
- static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
-@@ -154,6 +155,8 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
- 	if (ret < 0)
- 		return ret;
- 
-+	state->status = result;
-+
- 	*status = 0;
- 
- 	if (0xffff - le16_to_cpu(result.gain) > 30)
-@@ -177,34 +180,16 @@ static int cinergyt2_fe_read_status(struct dvb_frontend *fe,
- static int cinergyt2_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
--	int ret;
- 
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
--				sizeof(status), 0);
--	if (ret < 0)
--		return ret;
--
--	*ber = le32_to_cpu(status.viterbi_error_rate);
-+	*ber = le32_to_cpu(state->status.viterbi_error_rate);
- 	return 0;
- }
- 
- static int cinergyt2_fe_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
- {
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
--	int ret;
- 
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&status,
--				sizeof(status), 0);
--	if (ret < 0) {
--		err("cinergyt2_fe_read_unc_blocks() Failed! (Error=%d)\n",
--			ret);
--		return ret;
--	}
--	*unc = le32_to_cpu(status.uncorrected_block_count);
-+	*unc = le32_to_cpu(state->status.uncorrected_block_count);
- 	return 0;
- }
- 
-@@ -212,35 +197,16 @@ static int cinergyt2_fe_read_signal_strength(struct dvb_frontend *fe,
- 						u16 *strength)
- {
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
--	int ret;
- 
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
--				sizeof(status), 0);
--	if (ret < 0) {
--		err("cinergyt2_fe_read_signal_strength() Failed!"
--			" (Error=%d)\n", ret);
--		return ret;
--	}
--	*strength = (0xffff - le16_to_cpu(status.gain));
-+	*strength = (0xffff - le16_to_cpu(state->status.gain));
- 	return 0;
- }
- 
- static int cinergyt2_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
--	int ret;
- 
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
--				sizeof(status), 0);
--	if (ret < 0) {
--		err("cinergyt2_fe_read_snr() Failed! (Error=%d)\n", ret);
--		return ret;
--	}
--	*snr = (status.snr << 8) | status.snr;
-+	*snr = (state->status.snr << 8) | state->status.snr;
- 	return 0;
- }
- 
--- 
-2.7.4
+Sean
 
-
+>  	return ret;
+>  }
+>  
+> -- 
+> 2.10.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
