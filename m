@@ -1,96 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46877 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941182AbcJGRYv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:51 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH 15/26] dtt200u: handle USB control message errors
-Date: Fri,  7 Oct 2016 14:24:25 -0300
-Message-Id: <9d890361120bf2a60800248f57636a982fb3e396.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52582 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754773AbcJPXJK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Oct 2016 19:09:10 -0400
+Date: Mon, 17 Oct 2016 01:59:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de
+Subject: Re: [PATCH 04/22] [media] v4l2-subdev.h: add prepare_stream op
+Message-ID: <20161016225915.GL9460@valkosipuli.retiisi.org.uk>
+References: <20161007160107.5074-1-p.zabel@pengutronix.de>
+ <20161007160107.5074-5-p.zabel@pengutronix.de>
+ <20161007231620.GE9460@valkosipuli.retiisi.org.uk>
+ <1476460123.11834.43.camel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1476460123.11834.43.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If something bad happens while an USB control message is
-transfered, return an error code.
+On Fri, Oct 14, 2016 at 05:48:43PM +0200, Philipp Zabel wrote:
+> Am Samstag, den 08.10.2016, 02:16 +0300 schrieb Sakari Ailus:
+> > Hi Philipp,
+> > 
+> > On Fri, Oct 07, 2016 at 06:00:49PM +0200, Philipp Zabel wrote:
+> > > In some cases, for example MIPI CSI-2 input on i.MX6, the sending and
+> > > receiving subdevice need to be prepared in lock-step before the actual
+> > > streaming can start. In the i.MX6 MIPI CSI-2 case, the sender needs to
+> > > put its MIPI CSI-2 transmitter lanes into stop state, and the receiver
+> > > needs to configure its D-PHY and detect the stop state on all active
+> > > lanes. Only then the sender can be enabled to stream data and the
+> > > receiver can lock its PLL to the clock lane.
+> > 
+> > Is there a need to explicitly control this? Shouldn't this already be the
+> > case when the transmitting device is powered on and is not streaming?
+> 
+> Even if the transmitter is expected to keep the lanes in this stop state
+> all the time while the subdevice is powered but not streaming, I still
+> have to wait for stop state detection before enabling the transmitter,
+> and only then enable the reciever.
+> I'll remove the prepare_streaming callback in the next version and
+> instead let the subdevices propagate s_stream upstream instead in the
+> next version.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/dtt200u.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+Ack.
 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u.c b/drivers/media/usb/dvb-usb/dtt200u.c
-index d6023fb6a1d4..ca8965b8b610 100644
---- a/drivers/media/usb/dvb-usb/dtt200u.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u.c
-@@ -31,7 +31,7 @@ static int dtt200u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 	st->data[0] = SET_INIT;
- 
- 	if (onoff)
--		dvb_usb_generic_write(d, st->data, 2);
-+		return dvb_usb_generic_write(d, st->data, 2);
- 
- 	return 0;
- }
-@@ -39,19 +39,20 @@ static int dtt200u_power_ctrl(struct dvb_usb_device *d, int onoff)
- static int dtt200u_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
- 	struct dtt200u_state *st = adap->dev->priv;
-+	int ret;
- 
- 	st->data[0] = SET_STREAMING;
- 	st->data[1] = onoff;
- 
--	dvb_usb_generic_write(adap->dev, st->data, 2);
-+	ret = dvb_usb_generic_write(adap->dev, st->data, 2);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (onoff)
- 		return 0;
- 
- 	st->data[0] = RESET_PID_FILTER;
--	dvb_usb_generic_write(adap->dev, st->data, 1);
--
--	return 0;
-+	return dvb_usb_generic_write(adap->dev, st->data, 1);
- }
- 
- static int dtt200u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
-@@ -72,10 +73,14 @@ static int dtt200u_rc_query(struct dvb_usb_device *d)
- {
- 	struct dtt200u_state *st = d->priv;
- 	u32 scancode;
-+	int ret;
- 
- 	st->data[0] = GET_RC_CODE;
- 
--	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-+	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-+	if (ret < 0)
-+		return ret;
-+
- 	if (st->data[0] == 1) {
- 		enum rc_type proto = RC_TYPE_NEC;
- 
+As discussed, I'll provide a patch to document this behaviour on CSI-2. I
+believe the current drivers implicitly implement it but you're the first one
+to ask the question. :-)
+
 -- 
-2.7.4
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
