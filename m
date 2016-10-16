@@ -1,56 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:54773 "EHLO mout.web.de"
+Received: from parrot.pmhahn.de ([88.198.50.102]:57385 "EHLO parrot.pmhahn.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932826AbcJLO4t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:56:49 -0400
-Subject: [PATCH 18/34] [media] DaVinci-VPFE-Capture: Combine substrings for an
- error message in vpfe_enum_input()
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <b7c95ade-7001-809d-eb2c-62f488a11f0b@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:56:39 +0200
+        id S1753943AbcJPVw0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 16 Oct 2016 17:52:26 -0400
+Date: Sun, 16 Oct 2016 23:52:19 +0200
+From: Philipp Matthias Hahn <pmhahn+video@pmhahn.de>
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH] Potential fix for "[BUG] process stuck when closing
+ saa7146 [dvb_ttpci]"
+Message-ID: <20161016215219.4xob7nrbmrr7uxlj@pmhahn.de>
+References: <20160911133317.whw3j2pok4sktkeo@pmhahn.de>
+ <20160916100028.8856-1-andrey_utkin@fastmail.com>
+ <41790808-9100-2999-3d92-921d2076be3e@pmhahn.de>
 MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <41790808-9100-2999-3d92-921d2076be3e@pmhahn.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 10:40:10 +0200
+Hello Andrey,
 
-The script "checkpatch.pl" pointed information out like the following.
+On Mon, Sep 19, 2016 at 07:08:52AM +0200, Philipp Hahn wrote:
+> Am 16.09.2016 um 12:00 schrieb Andrey Utkin:
+> > Please try this patch. It is purely speculative as I don't have the hardware,
+> > but I hope my approach is right.
+> 
+> Thanks you for the patch; I've built a new kernel but didn't have the
+> time to test it yet; I'll mail you again as soon as I have tested it.
 
-WARNING: quoted string split across lines
+I tested your patch and during my limites testing I wan't able to
+reproduce the previous problem. Seems you fixed it.
 
-Thus fix an affected source code place.
+Tested-by: Philipp Matthias Hahn <pmhahn@pmhahn.de>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpfe_capture.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thanks you again for looking into that issues.
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index 87ee35d..ee7b3e3 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1086,8 +1086,8 @@ static int vpfe_enum_input(struct file *file, void *priv,
- 					&subdev,
- 					&index,
- 					inp->index) < 0) {
--		v4l2_err(&vpfe_dev->v4l2_dev, "input information not found"
--			 " for the subdev\n");
-+		v4l2_err(&vpfe_dev->v4l2_dev,
-+			 "input information not found for the subdev\n");
- 		return -EINVAL;
- 	}
- 	sdinfo = &vpfe_dev->cfg->sub_devs[subdev];
+Philipp
 -- 
-2.10.1
-
+  / /  (_)__  __ ____  __ Philipp Hahn
+ / /__/ / _ \/ // /\ \/ /
+/____/_/_//_/\_,_/ /_/\_\ pmhahn@pmhahn.de
