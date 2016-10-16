@@ -1,63 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52725 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43206 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936457AbcJXJDo (ORCPT
+        with ESMTP id S1755640AbcJPPcy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 05:03:44 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran@ksquared.org.uk>
-Subject: [PATCH v4 0/4] v4l: platform: Add Renesas R-Car FDP1 Driver
-Date: Mon, 24 Oct 2016 12:03:34 +0300
-Message-Id: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+        Sun, 16 Oct 2016 11:32:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hector Roussille <hector.roussille@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: omap4iss: fixed coding style issues
+Date: Sun, 16 Oct 2016 18:30:36 +0300
+Message-ID: <1923076.kU1We4cU9n@avalon>
+In-Reply-To: <20161016151856.19209-1-hector.roussille@gmail.com>
+References: <20161016151856.19209-1-hector.roussille@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Hector,
 
-Here's the fourth version of the Renesas R-Car FDP1 driver.
+Thank you for the patch.
 
-The FDP1 (Fine Display Processor) is a hardware memory-to-memory de-interlacer
-device, with capability to convert from various YCbCr/YUV formats to both
-YCbCr/YUV and RGB formats at the same time as converting interlaced content to
-progressive.
+On Sunday 16 Oct 2016 17:18:56 Hector Roussille wrote:
+> Fixed coding style issues
 
-Patch 01/04 adds a new standard V4L2 menu control for the deinterlacing mode.
-The menu items are driver specific.
+What coding style issues ?
 
-Patches 02/04 and 03/04 add DT bindings and a new driver for the FDP1.
-Compared to v3, all FDP1 patches have been squashed together after being
-reviewed by Kieran, and Kieran's e-mail address has been updated to
-'kieran+renesas@bingham.xyz' in all Signed-off-by and authorship lines.
+> 
+> Signed-off-by: Hector Roussille <hector.roussille@gmail.com>
+> ---
+>  drivers/staging/media/omap4iss/iss_video.c | 11 +++++++----
+>  1 file changed, 7 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/staging/media/omap4iss/iss_video.c
+> b/drivers/staging/media/omap4iss/iss_video.c index c16927a..8f2d374 100644
+> --- a/drivers/staging/media/omap4iss/iss_video.c
+> +++ b/drivers/staging/media/omap4iss/iss_video.c
+> @@ -297,8 +297,10 @@ iss_video_check_format(struct iss_video *video, struct
+> iss_video_fh *vfh) */
+> 
+>  static int iss_video_queue_setup(struct vb2_queue *vq,
+> -				 unsigned int *count, unsigned int 
+*num_planes,
 
-Patch 04/04 then adds an FDP1 instance to the R-Car M3-W SoC DT. It will be
-merged separately through the ARM-SoC tree and depends on patch "arm64: dts:
-renesas: r8a7796: Add FCPF and FCPV instances" scheduled for merge in v4.10.
+This line doesn't exceed the 80 columns limit, no need to split it.
 
-Kieran Bingham (2):
-  dt-bindings: Add Renesas R-Car FDP1 bindings
-  v4l: Add Renesas R-Car FDP1 Driver
+> -				 unsigned int sizes[], struct device 
+*alloc_devs[])
+> +				 unsigned int *count,
+> +				 unsigned int *num_planes,
+> +				 unsigned int sizes[],
+> +				 struct device *alloc_devs[])
+>  {
+>  	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
+>  	struct iss_video *video = vfh->video;
+> @@ -678,9 +680,10 @@ iss_video_get_selection(struct file *file, void *fh,
+> struct v4l2_selection *sel) if (subdev == NULL)
+>  		return -EINVAL;
+> 
+> -	/* Try the get selection operation first and fallback to get format if 
+not
+> -	 * implemented.
+> +	/* Try the get selection operation first and fallback to
 
-Laurent Pinchart (2):
-  v4l: ctrls: Add deinterlacing mode control
-  arm64: dts: renesas: r8a7796: Add FDP1 instance
+while do you split the line here and not right before the 80 columns limit ?
 
- .../devicetree/bindings/media/renesas,fdp1.txt     |   33 +
- Documentation/media/uapi/v4l/extended-controls.rst |    4 +
- Documentation/media/v4l-drivers/index.rst          |    3 +
- Documentation/media/v4l-drivers/rcar-fdp1.rst      |   37 +
- MAINTAINERS                                        |    9 +
- arch/arm64/boot/dts/renesas/r8a7796.dtsi           |    9 +
- drivers/media/platform/Kconfig                     |   13 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rcar_fdp1.c                 | 2446 ++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c               |    2 +
- include/uapi/linux/v4l2-controls.h                 |    1 +
- 11 files changed, 2558 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,fdp1.txt
- create mode 100644 Documentation/media/v4l-drivers/rcar-fdp1.rst
- create mode 100644 drivers/media/platform/rcar_fdp1.c
+> +	 * get format if not implemented.
+>  	 */
+
+This isn't the preferred comment style for the kernel, see 
+http://lkml.iu.edu/hypermail/linux/kernel/1607.1/00627.html. The problem 
+doesn't predate your patch, but while at it you might want to fix it through 
+the driver.
+
+> +
+
+How does adding a blank line here fix a coding style issue ?
+
+>  	sdsel.pad = pad;
+>  	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
+>  	if (!ret)
 
 -- 
 Regards,
