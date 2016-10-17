@@ -1,62 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36059
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935206AbcJQPos (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46399 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934553AbcJQMld (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 11:44:48 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        devel@driverdev.osuosl.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        kernel@stlinux.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 5/5] [media] st-cec: Fix module autoload
-Date: Mon, 17 Oct 2016 12:44:12 -0300
-Message-Id: <1476719053-17600-6-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
-References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+        Mon, 17 Oct 2016 08:41:33 -0400
+Message-ID: <1476708091.2488.29.camel@pengutronix.de>
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Gary Bisson <gary.bisson@boundarydevices.com>,
+        Lucas Stach <l.stach@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de
+Date: Mon, 17 Oct 2016 14:41:31 +0200
+In-Reply-To: <20161017101820.stfboaeqncadlvfz@t450s.lan>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+         <20161017101820.stfboaeqncadlvfz@t450s.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the driver is built as a module, autoload won't work because the module
-alias information is not filled. So user-space can't match the registered
-device with the corresponding module.
+Hi Gary,
 
-Export the module alias information using the MODULE_DEVICE_TABLE() macro.
+Am Montag, den 17.10.2016, 12:18 +0200 schrieb Gary Bisson:
+[...]
+> For the whole series:
+> Tested-by: Gary Bisson <gary.bisson@boundarydevices.com>
+> 
+> Tested on Nitrogen6x + BD_HDMI_MIPI daughter board on linux-next
+> 20161016.
+>
+> This required using your v4l2-ctl patch to set the EDID if the source
+> output can't be forced:
+> https://patchwork.kernel.org/patch/6097201/
+> BTW, do you have any update on this? Because it looks like the
+> VIDIOC_SUBDEV_QUERYCAP hasn't been implemented since your patch (March
+> 2015).
+> 
+> Then I followed the procedure you gave here:
+> https://patchwork.kernel.org/patch/9366503/
+> 
+> For those interested in trying it out, note that kmssink requires to use
+> Gstreamer 1.9.x.
+> 
+> I have a few remarks:
+> - I believe it would help having a patch that sets imx_v6_v7_defconfig
+>   with the proper options in this series
 
-Before this patch:
+I can add that in the next round.
 
-$ modinfo drivers/staging/media//st-cec/stih-cec.ko | grep alias
-$
+> - Not related to this series, I couldn't boot the board unless I disable
+>   the PCIe driver, have you experienced the same issue?
 
-After this patch:
+I had not enabled the PCIe driver, but a quick boot test with
+CONFIG_PCIE_DW enabled hangs after these messages:
 
-$ modinfo drivers/staging/media//st-cec/stih-cec.ko | grep alias
-alias:          of:N*T*Cst,stih-cecC*
-alias:          of:N*T*Cst,stih-cec
+[    1.314298] OF: PCI: host bridge /soc/pcie@0x01000000 ranges:
+[    1.317199] OF: PCI:   No bus range found for /soc/pcie@0x01000000, using [bus 00-ff]
+[    1.325171] OF: PCI:    IO 0x01f80000..0x01f8ffff -> 0x00000000
+[    1.331029] OF: PCI:   MEM 0x01000000..0x01efffff -> 0x01000000
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+I've asked Lucas to have a look.
 
----
+> - Is there a way not to set all the links manually using media-ctl? I
+>   expected all the formats to be negotiated automatically once a stream
+>   is properly detected.
 
- drivers/staging/media/st-cec/stih-cec.c | 1 +
- 1 file changed, 1 insertion(+)
+This should be done in userspace, probably libv4l2.
 
-diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/media/st-cec/stih-cec.c
-index 214344866a6b..19d3ff30c8f8 100644
---- a/drivers/staging/media/st-cec/stih-cec.c
-+++ b/drivers/staging/media/st-cec/stih-cec.c
-@@ -363,6 +363,7 @@ static const struct of_device_id stih_cec_match[] = {
- 	},
- 	{},
- };
-+MODULE_DEVICE_TABLE(of, stih_cec_match);
- 
- static struct platform_driver stih_cec_pdrv = {
- 	.probe	= stih_cec_probe,
--- 
-2.7.4
+> - As discussed last week, the Nitrogen6x dtsi file shouldn't be
+>   included, instead an overlay would be more appropriate. Maybe the log
+>   should contain a comment about this.
+
+Ok.
+
+> Let me know if I need to add that Tested-by to every single patch so it
+> appears on Patchwork.
+
+It's fine as is, thank you.
+
+regards
+Philipp
 
