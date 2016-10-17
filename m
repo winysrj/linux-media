@@ -1,38 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50212 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932407AbcJUJO0 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56734 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933347AbcJQPRu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Oct 2016 05:14:26 -0400
-Date: Fri, 21 Oct 2016 12:13:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Thierry Escande <thierry.escande@collabora.com>
+        Mon, 17 Oct 2016 11:17:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH v3] [media] vb2: Add support for
- capture_dma_bidirectional queue flag
-Message-ID: <20161021091347.GB9460@valkosipuli.retiisi.org.uk>
-References: <1477034705-5829-1-git-send-email-thierry.escande@collabora.com>
- <20161021074845.GZ9460@valkosipuli.retiisi.org.uk>
- <f3a6dbd1-62d6-826c-e89a-282ce51eeab4@collabora.com>
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL] HSV formats
+Date: Mon, 17 Oct 2016 18:17:46 +0300
+Message-ID: <1812718.1esSreebLg@avalon>
+In-Reply-To: <1531311.hugUGhIeXb@avalon>
+References: <CAPybu_0jjiX6OXuesz0EyNq_XH7+XY33NWY6qERAZk5w1AE51g@mail.gmail.com> <1531311.hugUGhIeXb@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <f3a6dbd1-62d6-826c-e89a-282ce51eeab4@collabora.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thierry,
+Hi Ricardo,
 
-On Fri, Oct 21, 2016 at 10:53:22AM +0200, Thierry Escande wrote:
-> #define VB2_DMA_DIR_CAPTURE(d) \
-> 		((d) == DMA_FROM_DEVICE || (d) == DMA_BIDIRECTIONAL)
+I've rebased your branch on top of the latest linuxtv/master, fixed the 
+documentation conflicts, and tested compilation of the documentation. You'll 
+find the result at
 
-That looks good to me.
+	git://linuxtv.org/pinchartl/media.git vsp1/hsv
+
+Could you please check it and submit another pull request if everything looks 
+correct to you ?
+
+On Wednesday 05 Oct 2016 17:40:14 Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> I don't see the patches below in your tree. Is there a specific reason why
+> this pull request hasn't been processed, or did it just fall through the
+> cracks ?
+> 
+> On Wednesday 07 Sep 2016 10:44:09 Ricardo Ribalda Delgado wrote:
+> > Hi Mauro,
+> > 
+> > 
+> > These patches add support for HSV.
+> > 
+> > HSV formats are extremely useful for image segmentation. This set of
+> > patches makes v4l2 aware of this kind of formats.
+> > 
+> > Vivid changes have been divided to ease the reviewing process.
+> > 
+> > We are working on patches for Gstreamer and OpenCV that will make use
+> > of these formats.
+> > 
+> > This pull request contains [PATCH v5 00/12] Add HSV format, plus the
+> > following chanes:
+> > 
+> > -It has been rebased to media/master
+> > -Laurent patch to add support for vsp1
+> > -Hans Ack-by
+> > -Documentation now make use of tabularcolumn (latex)
+> > 
+> > This is my first pull request :)
+> > 
+> > Please pull
+> > 
+> > The following changes since commit 
+036bbb8213ecca49799217f30497dc0484178e53:
+> >   [media] cobalt: update EDID (2016-09-06 16:46:39 -0300)
+> > 
+> > are available in the git repository at:
+> >   https://github.com/ribalda/linux.git vivid-hsv-v6
+> > 
+> > for you to fetch changes up to 1242d7e43b9053cd649ac5ec81aad8597e88ab46:
+> >   [media] vsp1: Add support for capture and output in HSV formats
+> > 
+> > (2016-09-07 10:41:52 +0200)
+> > 
+> > ----------------------------------------------------------------
+> > 
+> > Laurent Pinchart (1):
+> >       [media] vsp1: Add support for capture and output in HSV formats
+> > 
+> > Ricardo Ribalda Delgado (12):
+> >       [media] videodev2.h Add HSV formats
+> >       [media] Documentation: Add HSV format
+> >       [media] Documentation: Add Ricardo Ribalda
+> >       [media] vivid: Code refactor for color encoding
+> >       [media] vivid: Add support for HSV formats
+> >       [media] vivid: Rename variable
+> >       [media] vivid: Introduce TPG_COLOR_ENC_LUMA
+> >       [media] vivid: Fix YUV555 and YUV565 handling
+> >       [media] vivid: Local optimization
+> >       [media] videodev2.h Add HSV encoding
+> >       [media] Documentation: Add HSV encodings
+> >       [media] vivid: Add support for HSV encoding
+> >  
+> >  Documentation/media/uapi/v4l/hsv-formats.rst       |  19 ++++
+> >  Documentation/media/uapi/v4l/pixfmt-002.rst        |  12 +-
+> >  Documentation/media/uapi/v4l/pixfmt-003.rst        |  14 ++-
+> >  Documentation/media/uapi/v4l/pixfmt-006.rst        |  43 ++++++-
+> >  Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 164 +++++++++
+> >  Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+> >  Documentation/media/uapi/v4l/v4l2.rst              |   9 ++
+> >  Documentation/media/videodev2.h.rst.exceptions     |   4 +
+> >  drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      | 411 ++++++++++++----
+> >  drivers/media/platform/vivid/vivid-core.h          |   3 +-
+> >  drivers/media/platform/vivid/vivid-ctrls.c         |  25 +++++
+> >  drivers/media/platform/vivid/vivid-vid-cap.c       |  17 ++-
+> >  drivers/media/platform/vivid/vivid-vid-common.c    |  68 ++++++-----
+> >  drivers/media/platform/vivid/vivid-vid-out.c       |   1 +
+> >  drivers/media/platform/vsp1/vsp1_pipe.c            |   8 ++
+> >  drivers/media/platform/vsp1/vsp1_rwpf.c            |   2 +
+> >  drivers/media/platform/vsp1/vsp1_video.c           |   5 +
+> >  drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
+> >  include/media/v4l2-tpg.h                           |  24 +++-
+> >  include/uapi/linux/videodev2.h                     |  36 +++++-
+> >  20 files changed, 685 insertions(+), 183 deletions(-)
+> >  create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+> >  create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
