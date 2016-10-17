@@ -1,93 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60556 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755088AbcJWSR4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 14:17:56 -0400
-Date: Sun, 23 Oct 2016 20:17:52 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 0/2] media: add et8ek8 camera sensor driver and
- documentation
-Message-ID: <20161023181752.GA11728@amd>
-References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
- <20161023073322.GA3523@amd>
- <53284bf5-9a36-fbcb-5cac-4a64823c3516@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
-Content-Disposition: inline
-In-Reply-To: <53284bf5-9a36-fbcb-5cac-4a64823c3516@gmail.com>
+Received: from smtp1.goneo.de ([85.220.129.30]:44308 "EHLO smtp1.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932692AbcJQMZV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Oct 2016 08:25:21 -0400
+From: Markus Heiser <markus.heiser@darmarit.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Chris Mayo <aklhfex@gmail.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Markus Heiser <markus.heiser@darmarIT.de>
+Subject: [PATCH 1/2] v4l-utils: fixed dvbv5 vdr format
+Date: Mon, 17 Oct 2016 14:24:31 +0200
+Message-Id: <1476707072-21985-2-git-send-email-markus.heiser@darmarit.de>
+In-Reply-To: <1476707072-21985-1-git-send-email-markus.heiser@darmarit.de>
+References: <7C627C3A-DF3F-4E50-9876-7130D9221D96@darmarit.de>
+ <1476707072-21985-1-git-send-email-markus.heiser@darmarit.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Markus Heiser <markus.heiser@darmarIT.de>
 
---bp/iNruPH9dso1Pn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Heiser, Markus <markus.heiser@darmarIT.de>
 
-Hi!
+The vdr format was broken, I got '(null)' entries
 
-> >>This series adds driver for Toshiba et8ek8 camera sensor found in Nokia=
- N900
-> >>
-> >>Changes from v2:
-> >>
-> >> - fix build when CONFIG_PM is not defined
-> >>
-> >>Changes from v1:
-> >>
-> >> - driver and documentation split into separate patches
-> >> - removed custom controls
-> >> - code changed according to the comments on v1
-> >
-> >>Ivaylo Dimitrov (2):
-> >>  media: Driver for Toshiba et8ek8 5MP sensor
-> >>  media: et8ek8: Add documentation
-> >
-> >Is there any progress here? Is there any way I could help?
-> >
->=20
-> There were some notes I need to address, unfortunately no spare time late=
-ly
-> :( . Feel free to fix those for me and resend the patches. If not, I real=
-ly
-> don't know when I will have the time needed to focus on it.
+HD:11494:S1HC23I0M5N1O35:S:(null):22000:5101:5102,5103,5106,5108:0:0:10301:0:0:0:
+0-:1----:2--------------:3:4-----:
 
-So good start would be taking these two, address the comments, and try
-to merge them?
+refering to the VDR Wikis ...
 
-Date: Sat, 11 Jun 2016 18:39:52 +0300
-Subject: [PATCH v3 1/2] media: Driver for Toshiba et8ek8 5MP sensor
+* LinuxTV: http://www.linuxtv.org/vdrwiki/index.php/Syntax_of_channels.conf
+* german comunity Wiki: http://www.vdr-wiki.de/wiki/index.php/Channels.conf#Parameter_ab_VDR-1.7.4
 
-Date: Wed, 15 Jun 2016 22:24:40 +0300
-Subject: Re: [PATCH v3 2/2] media: et8ek8: Add documentation
+There is no field at position 4 / in between "Source" and "SRate" which
+might have a value. I suppose the '(null):' is the result of pointing
+to *nothing*.
 
-Thanks and best regards,
-									Pavel
+An other mistake is the ending colon (":") at the line. It is not
+explicit specified but adding an collon to the end of an channel entry
+will prevent players (like mpv or mplayer) from parsing the line (they
+will ignore these lines).
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+At least: generating a channel list with
 
---bp/iNruPH9dso1Pn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+  dvbv5-scan --output-format=vdr ...
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+will result in the same defective channel entry, containing "(null):"
+and the leading collon ":".
 
-iEYEARECAAYFAlgM/tAACgkQMOfwapXb+vLXZwCgkKFaHLnibgr1W/pCPbJD31au
-UUcAoKJtDjhWyrtd6HuxxOtAYKUv9x4X
-=dR7m
------END PGP SIGNATURE-----
+Signed-off-by: Markus Heiser <markus.heiser@darmarIT.de>
+---
+ lib/libdvbv5/dvb-vdr-format.c | 45 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
 
---bp/iNruPH9dso1Pn--
+diff --git a/lib/libdvbv5/dvb-vdr-format.c b/lib/libdvbv5/dvb-vdr-format.c
+index a4bd26b..ab0e5cf 100644
+--- a/lib/libdvbv5/dvb-vdr-format.c
++++ b/lib/libdvbv5/dvb-vdr-format.c
+@@ -309,13 +309,14 @@ int dvb_write_format_vdr(const char *fname,
+ 		fprintf(fp, "%s", entry->channel);
+ 		if (entry->vchannel)
+ 			fprintf(fp, ",%s", entry->vchannel);
++		fprintf(fp, ":");
+ 
+ 		/*
+ 		 * Output frequency:
+ 		 *	in kHz for terrestrial/cable
+ 		 *	in MHz for satellite
+ 		 */
+-		fprintf(fp, ":%i:", freq / 1000);
++		fprintf(fp, "%i:", freq / 1000);
+ 
+ 		/* Output modulation parameters */
+ 		fmt = &formats[i];
+@@ -349,20 +350,30 @@ int dvb_write_format_vdr(const char *fname,
+ 
+ 			fprintf(fp, "%s", table->table[data]);
+ 		}
+-
+-		/* Output format type */
+-		fprintf(fp, ":%s:", id);
++		fprintf(fp, ":");
+ 
+ 		/*
+-		 * Output satellite location
+-		 * FIXME: probably require some adjustments to match the
+-		 *	  format expected by VDR.
++		 * Output sources configuration for VDR
++		 *
++		 *   S (satellite) xy.z (orbital position in degrees) E or W (east or west)
++		 *
++		 *   FIXME: in case of ATSC we use "A", this is what w_scan does
+ 		 */
+-		switch(delsys) {
+-		case SYS_DVBS:
+-		case SYS_DVBS2:
+-			fprintf(fp, "%s:", entry->location);
++
++		if (entry->location) {
++			switch(delsys) {
++			case SYS_DVBS:
++			case SYS_DVBS2:
++				fprintf(fp, "%s", entry->location);
++				break;
++			default:
++				fprintf(fp, "%s", id);
++				break;
++			}
++		} else {
++			fprintf(fp, "%s", id);
+ 		}
++		fprintf(fp, ":");
+ 
+ 		/* Output symbol rate */
+ 		srate = 27500000;
+@@ -407,10 +418,16 @@ int dvb_write_format_vdr(const char *fname,
+ 		/* Output Service ID */
+ 		fprintf(fp, "%d:", entry->service_id);
+ 
+-		/* Output SID, NID, TID and RID */
+-		fprintf(fp, "0:0:0:");
++		/* Output Network ID */
++		fprintf(fp, "0:");
+ 
+-		fprintf(fp, "\n");
++		/* Output Transport Stream ID */
++		fprintf(fp, "0:");
++
++		/* Output Radio ID
++		 * this is the last entry, tagged bei a new line (not a colon!)
++		 */
++		fprintf(fp, "0\n");
+ 		line++;
+ 	};
+ 	fclose (fp);
+-- 
+2.7.4
+
