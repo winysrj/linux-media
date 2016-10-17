@@ -1,90 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39698 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751966AbcJKKex (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36039
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932930AbcJQPol (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:34:53 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
+        Mon, 17 Oct 2016 11:44:41 -0400
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 20/31] nova-t-usb2: don't do DMA on stack
-Date: Tue, 11 Oct 2016 07:09:35 -0300
-Message-Id: <50d3ec288ca29ab06c8a5439c4da14674ed75f8d.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
+        Kevin Hilman <khilman@baylibre.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        Carlo Caione <carlo@caione.org>,
+        linux-amlogic@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: [PATCH 3/5] [media] rc: meson-ir: Fix module autoload
+Date: Mon, 17 Oct 2016 12:44:10 -0300
+Message-Id: <1476719053-17600-4-git-send-email-javier@osg.samsung.com>
+In-Reply-To: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+If the driver is built as a module, autoload won't work because the module
+alias information is not filled. So user-space can't match the registered
+device with the corresponding module.
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Export the module alias information using the MODULE_DEVICE_TABLE() macro.
+
+Before this patch:
+
+$ modinfo drivers/media/rc/meson-ir.ko | grep alias
+$
+
+After this patch:
+
+$ modinfo drivers/media/rc/meson-ir.ko | grep alias
+alias:          of:N*T*Camlogic,meson-gxbb-irC*
+alias:          of:N*T*Camlogic,meson-gxbb-ir
+alias:          of:N*T*Camlogic,meson8b-irC*
+alias:          of:N*T*Camlogic,meson8b-ir
+alias:          of:N*T*Camlogic,meson6-irC*
+alias:          of:N*T*Camlogic,meson6-ir
+
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 ---
- drivers/media/usb/dvb-usb/nova-t-usb2.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/nova-t-usb2.c b/drivers/media/usb/dvb-usb/nova-t-usb2.c
-index fc7569e2728d..26d7188a1163 100644
---- a/drivers/media/usb/dvb-usb/nova-t-usb2.c
-+++ b/drivers/media/usb/dvb-usb/nova-t-usb2.c
-@@ -74,22 +74,29 @@ static struct rc_map_table rc_map_haupp_table[] = {
-  */
- static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- {
--	u8 key[5],cmd[2] = { DIBUSB_REQ_POLL_REMOTE, 0x35 }, data,toggle,custom;
-+	u8 *buf, data, toggle, custom;
- 	u16 raw;
- 	int i;
- 	struct dibusb_device_state *st = d->priv;
+ drivers/media/rc/meson-ir.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index 003fff07ade2..7eb3f4f1ddcd 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -218,6 +218,7 @@ static const struct of_device_id meson_ir_match[] = {
+ 	{ .compatible = "amlogic,meson-gxbb-ir" },
+ 	{ },
+ };
++MODULE_DEVICE_TABLE(of, meson_ir_match);
  
--	dvb_usb_generic_rw(d,cmd,2,key,5,0);
-+	buf = kmalloc(5, GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	buf[0] = DIBUSB_REQ_POLL_REMOTE;
-+	buf[1] = 0x35;
-+	dvb_usb_generic_rw(d, buf, 2, buf, 5, 0);
- 
- 	*state = REMOTE_NO_KEY_PRESSED;
--	switch (key[0]) {
-+	switch (buf[0]) {
- 		case DIBUSB_RC_HAUPPAUGE_KEY_PRESSED:
--			raw = ((key[1] << 8) | key[2]) >> 3;
-+			raw = ((buf[1] << 8) | buf[2]) >> 3;
- 			toggle = !!(raw & 0x800);
- 			data = raw & 0x3f;
- 			custom = (raw >> 6) & 0x1f;
- 
--			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x to c: %02x d: %02x toggle: %d\n",key[1],key[2],key[3],custom,data,toggle);
-+			deb_rc("raw key code 0x%02x, 0x%02x, 0x%02x to c: %02x d: %02x toggle: %d\n",
-+			       buf[1], buf[2], buf[3], custom, data, toggle);
- 
- 			for (i = 0; i < ARRAY_SIZE(rc_map_haupp_table); i++) {
- 				if (rc5_data(&rc_map_haupp_table[i]) == data &&
-@@ -117,6 +124,7 @@ static int nova_t_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 			break;
- 	}
- 
-+	kfree(buf);
- 	return 0;
- }
- 
+ static struct platform_driver meson_ir_driver = {
+ 	.probe		= meson_ir_probe,
 -- 
 2.7.4
-
 
