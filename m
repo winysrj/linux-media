@@ -1,78 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:55207 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754106AbcJQNqg (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:56816 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757570AbcJQMMn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:46:36 -0400
-Message-ID: <1476711990.4684.75.camel@ndufresne.ca>
-Subject: Re: V4L2_DEC_CMD_STOP and last_buffer_dequeued
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-Reply-To: nicolas@ndufresne.ca
-To: Wu-Cheng Li =?UTF-8?Q?=28=E6=9D=8E=E5=8B=99=E8=AA=A0=29?=
-        <wuchengli@google.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        pawel@osciak.com, Tiffany Lin <tiffany.lin@mediatek.com>
-Date: Mon, 17 Oct 2016 09:46:30 -0400
-In-Reply-To: <CAOMLVLhM006pYiP7xEmZoVFzwV4Zzw25wS1e1EPDDLXps873Mw@mail.gmail.com>
-References: <CAOMLVLj9zwMCOCRawKZKDDtLkwHUN3VpLhpy2Qovn7Bv1X5SgA@mail.gmail.com>
-         <1476469229.4684.70.camel@gmail.com>
-         <CAOMLVLhM006pYiP7xEmZoVFzwV4Zzw25wS1e1EPDDLXps873Mw@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-cLU8MkXEGKAPSA0u3NFw"
+        Mon, 17 Oct 2016 08:12:43 -0400
+Message-ID: <1476706359.2488.13.camel@pengutronix.de>
+Subject: Re: [PATCH v2 08/21] [media] imx: Add i.MX IPUv3 capture driver
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Jack Mitchell <ml@embed.me.uk>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Marc Kleine-Budde <mkl@pengutronix.de>
+Date: Mon, 17 Oct 2016 14:12:39 +0200
+In-Reply-To: <a5a06050-f6e7-2031-4b14-312f085c5644@embed.me.uk>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+         <1476466481-24030-9-git-send-email-p.zabel@pengutronix.de>
+         <a5a06050-f6e7-2031-4b14-312f085c5644@embed.me.uk>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Jack,
 
---=-cLU8MkXEGKAPSA0u3NFw
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Am Montag, den 17.10.2016, 12:32 +0100 schrieb Jack Mitchell:
+> Hi Philipp,
+> 
+> I'm looking at how I would enable a parallel greyscale camera using this 
+> set of drivers and am a little bit confused. Do you have an example 
+> somewhere of a devicetree with an input node.
 
-Le samedi 15 octobre 2016 =C3=A0 08:16 +0800, Wu-Cheng Li (=E6=9D=8E=E5=8B=
-=99=E8=AA=A0) a =C3=A9crit=C2=A0:
-> last_buffer_dequeued is only cleared to false when CAPTURE queue is
-> STREAMOFF (#1). Queuing a header to OUTPUT queue won't clear
-> last_buffer_dequeued of CAPTURE queue. It looks to me that v4l2 core
-> needs to intercept CMD_START and clear last_buffer_dequeued. What do
-> you think?
->=20
-> http://lxr.free-electrons.com/source/drivers/media/v4l2-core/videobuf2-co=
-re.c#L1951
+In your board device tree it should look somewhat like this:
 
-That sounds reasonable, assuming it does not break drivers.
+&i2c1 {
+	sensor@48 {
+		compatible = "aptina,mt9v032m";
+		/* ... */
 
-> >
-> >
-> > Note that for many a flush is the action of getting rid of the pending
-> > images and achieve by using STREAMOFF. While the effect of CMD_STOP is
-> > to signal the decoder that no more encoded image will be queued, hence
-> > remaining images should be delivered to userspace. They will
-> > differentiate as a flush operation vs as drain operation. This is no
-> > rocket science of course.
->=20
-> I see. What I want is drain operation. In Chromium terms, CMD_STOP
-> maps to flush and STREAMOFF maps to reset.
+		port {
+			cam_out: endpoint {
+				remote-endpoint = <&csi_in>;
+			}
+		};
+	};
+};
 
-Yes, that's the reason I was mentioning. This was a great source of
-confusion during a workshop with some Google/Chromium folks.
+/*
+ * This is the input port node corresponding to the 'CSI0' pad group,
+ * not necessarily the CSI0 port of IPU1 or IPU2. On i.MX6Q it's port@1
+ * of the mipi_ipu1_mux, on i.MX6DL it's port@4 of the ipu_csi0_mux,
+ * the csi0 label is added in patch 13/21.
+ */
+&csi0 {
+	#address-cells = <1>;
+	#size-cells = <0>;
 
-A question on top of this, what are the use cases for you to drain
-without flushing afteward ? Is it really needed ?
+	csi_in: endpoint@0 {
+		bus-width = <8>;
+		data-shift = <12>;
+		hsync-active = <1>;
+		vsync-active = <1>;
+		pclk-sample = <1>;
+		remote-endpoint = <&cam_out>;
+	};
+};
 
-regards,
-Nicolas
---=-cLU8MkXEGKAPSA0u3NFw
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+>  I also have a further note below:
+[...]
+> > +	if (raw && priv->smfc) {
+> 
+> How does this ever get used? If I were to set 1X8 greyscale it wouldn't 
+> ever take this path, correct?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Thank you, that is a leftover from stripping down the driver to the
+basics. I'll test with a grayscale camera and fix this in the next
+version.
 
-iEYEABECAAYFAlgE1jYACgkQcVMCLawGqBxezwCfTFKs3qubcbEiZRxHmPNURfQh
-5XEAmgIjco1HtDBgyzaNAbL7pm5jIdHq
-=PenQ
------END PGP SIGNATURE-----
-
---=-cLU8MkXEGKAPSA0u3NFw--
+regards
+Philipp
 
