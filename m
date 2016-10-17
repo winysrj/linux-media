@@ -1,121 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:57704 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1031000AbcJRQI7 (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:36248 "EHLO
+        mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752923AbcJQLgd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 12:08:59 -0400
-Subject: Re: [PATCH 2/2] [media] vb2: Add support for use_dma_bidirectional
- queue flag
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1476446894-4220-1-git-send-email-thierry.escande@collabora.com>
- <1476446894-4220-3-git-send-email-thierry.escande@collabora.com>
- <20161017100632.GM9460@valkosipuli.retiisi.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-From: Thierry Escande <thierry.escande@collabora.com>
-Message-ID: <664b9541-e7ab-f1b3-b12c-677db0e63fc0@collabora.com>
-Date: Tue, 18 Oct 2016 18:08:53 +0200
+        Mon, 17 Oct 2016 07:36:33 -0400
+Subject: Re: [PATCH v2 08/21] [media] imx: Add i.MX IPUv3 capture driver
+To: Jack Mitchell <ml@embed.me.uk>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        linux-media@vger.kernel.org
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <1476466481-24030-9-git-send-email-p.zabel@pengutronix.de>
+ <a5a06050-f6e7-2031-4b14-312f085c5644@embed.me.uk>
+Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Marc Kleine-Budde <mkl@pengutronix.de>
+From: Marek Vasut <marex@denx.de>
+Message-ID: <e4b47417-781d-7553-b14d-e76d18b0c707@denx.de>
+Date: Mon, 17 Oct 2016 13:35:45 +0200
 MIME-Version: 1.0
-In-Reply-To: <20161017100632.GM9460@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+In-Reply-To: <a5a06050-f6e7-2031-4b14-312f085c5644@embed.me.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 10/17/2016 01:32 PM, Jack Mitchell wrote:
+> Hi Philipp,
 
-On 17/10/2016 12:06, Sakari Ailus wrote:
-> Hi Thierry,
->
-> Thanks for the set. A few comments below.
->
-> On Fri, Oct 14, 2016 at 02:08:14PM +0200, Thierry Escande wrote:
->> From: Pawel Osciak <posciak@chromium.org>
->>
->> When this flag is set for CAPTURE queues by the driver on calling
->> vb2_queue_init(), it forces the buffers on the queue to be
->> allocated/mapped with DMA_BIDIRECTIONAL direction flag, instead of
->> DMA_FROM_DEVICE. This allows the device not only to write to the
->> buffers, but also read out from them. This may be useful e.g. for codec
->> hardware, which may be using CAPTURE buffers as reference to decode
->> other buffers.
->
-> Just out of curiosity --- when do you return these buffers back to the user?
-> Once they're no longer needed as reference frames?
-Tbh, I don't now. This is used by a rockchip vpu driver not yet 
-upstreamed in the chromeos v4.4 kernel tree. Pawel might answer this 
-question I guess.
+Hi,
 
->
->>
->> This flag is ignored for OUTPUT queues, as we don't want to allow HW to
->> be able to write to OUTPUT buffers.
->>
->> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->> Tested-by: Pawel Osciak <posciak@chromium.org>
->> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
->> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
->> ---
->>  drivers/media/v4l2-core/videobuf2-v4l2.c | 8 ++++++--
->>  include/media/videobuf2-core.h           | 4 ++++
->>  2 files changed, 10 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
->> index fde1e2d..9255291 100644
->> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
->> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
->> @@ -659,8 +659,12 @@ int vb2_queue_init(struct vb2_queue *q)
->>  	 * queues will always initialize waiting_for_buffers to false.
->>  	 */
->>  	q->quirk_poll_must_check_waiting_for_buffers = true;
->> -	q->dma_dir = V4L2_TYPE_IS_OUTPUT(q->type)
->> -		   ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->> +
->> +	if (V4L2_TYPE_IS_OUTPUT(q->type))
->> +		q->dma_dir = DMA_TO_DEVICE;
->> +	else
->> +		q->dma_dir = q->use_dma_bidirectional
->> +			   ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE;
->>
->>  	return vb2_core_queue_init(q);
->>  }
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index 38410dd..e613c74 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -433,6 +433,9 @@ struct vb2_buf_ops {
->>   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
->>   *              has not been called. This is a vb1 idiom that has been adopted
->>   *              also by vb2.
->> + * @use_dma_bidirectional:	use DMA_BIDIRECTIONAL for CAPTURE buffers; this
->> + *				allows HW to read from the CAPTURE buffers in
->> + *				addition to writing; ignored for OUTPUT queues
->>   * @lock:	pointer to a mutex that protects the vb2_queue struct. The
->>   *		driver can set this to a mutex to let the v4l2 core serialize
->>   *		the queuing ioctls. If the driver wants to handle locking
->> @@ -500,6 +503,7 @@ struct vb2_queue {
->>  	unsigned			fileio_write_immediately:1;
->>  	unsigned			allow_zero_bytesused:1;
->>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
->> +	unsigned			use_dma_bidirectional:1;
->
-> This field is in the same struct as dma_dir which it directly affects.
->
-> How about adding a macro instead to give you the queue DMA direction
-> instead?
->
-> E.g.
->
-> #define vb2_dma_dir(q) \
-> 	(V4L2_TYPE_IS_OUTPUT((q)->type) ? DMA_TO_DEVICE : \
-> 	 (q)->use_dma_bidirectional ? DMA_BIDIRECTIONAL : DMA_FROM_DEVICE)
->
-> I would call this capture_dma_bidirectional as it only affects capture. Or
-> simply choose DMA_BIDIRECTIONAL whenever the flag is set.
-Sure. Will do.
+> I'm looking at how I would enable a parallel greyscale camera using this
+> set of drivers and am a little bit confused. Do you have an example
+> somewhere of a devicetree with an input node. I also have a further note
+> below:
 
-Regards,
-  Thierry
+Which sensor do you use ?
+
+[...]
+
+-- 
+Best regards,
+Marek Vasut
