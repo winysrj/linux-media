@@ -1,91 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43206 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755640AbcJPPcy (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:40930 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932163AbcJQSuc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Oct 2016 11:32:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hector Roussille <hector.roussille@gmail.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Staging: media: omap4iss: fixed coding style issues
-Date: Sun, 16 Oct 2016 18:30:36 +0300
-Message-ID: <1923076.kU1We4cU9n@avalon>
-In-Reply-To: <20161016151856.19209-1-hector.roussille@gmail.com>
-References: <20161016151856.19209-1-hector.roussille@gmail.com>
+        Mon, 17 Oct 2016 14:50:32 -0400
+Date: Mon, 17 Oct 2016 20:50:25 +0100
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH 54/57] [media] platform: don't break long lines
+Message-ID: <20161017195025.GC21569@stationary.pb.com>
+References: <cover.1476475770.git.mchehab@s-opensource.com>
+ <3227277.L9jDJkdF0E@avalon>
+ <20161017193945.GA21569@stationary.pb.com>
+ <1555833.ll1z87MvFR@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1555833.ll1z87MvFR@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hector,
-
-Thank you for the patch.
-
-On Sunday 16 Oct 2016 17:18:56 Hector Roussille wrote:
-> Fixed coding style issues
-
-What coding style issues ?
-
+On Mon, Oct 17, 2016 at 09:44:19PM +0300, Laurent Pinchart wrote:
+> Hi Andrey,
 > 
-> Signed-off-by: Hector Roussille <hector.roussille@gmail.com>
-> ---
->  drivers/staging/media/omap4iss/iss_video.c | 11 +++++++----
->  1 file changed, 7 insertions(+), 4 deletions(-)
+> On Monday 17 Oct 2016 20:39:45 Andrey Utkin wrote:
+> > Maybe the remaining manual work may be outsourced to seekers of janitor
+> > tasks?
 > 
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c
-> b/drivers/staging/media/omap4iss/iss_video.c index c16927a..8f2d374 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -297,8 +297,10 @@ iss_video_check_format(struct iss_video *video, struct
-> iss_video_fh *vfh) */
-> 
->  static int iss_video_queue_setup(struct vb2_queue *vq,
-> -				 unsigned int *count, unsigned int 
-*num_planes,
+> I'm fine with that, but we should rework the original patches, not merge fixes 
+> on top of them.
 
-This line doesn't exceed the 80 columns limit, no need to split it.
-
-> -				 unsigned int sizes[], struct device 
-*alloc_devs[])
-> +				 unsigned int *count,
-> +				 unsigned int *num_planes,
-> +				 unsigned int sizes[],
-> +				 struct device *alloc_devs[])
->  {
->  	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
->  	struct iss_video *video = vfh->video;
-> @@ -678,9 +680,10 @@ iss_video_get_selection(struct file *file, void *fh,
-> struct v4l2_selection *sel) if (subdev == NULL)
->  		return -EINVAL;
-> 
-> -	/* Try the get selection operation first and fallback to get format if 
-not
-> -	 * implemented.
-> +	/* Try the get selection operation first and fallback to
-
-while do you split the line here and not right before the 80 columns limit ?
-
-> +	 * get format if not implemented.
->  	 */
-
-This isn't the preferred comment style for the kernel, see 
-http://lkml.iu.edu/hypermail/linux/kernel/1607.1/00627.html. The problem 
-doesn't predate your patch, but while at it you might want to fix it through 
-the driver.
-
-> +
-
-How does adding a blank line here fix a coding style issue ?
-
->  	sdsel.pad = pad;
->  	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
->  	if (!ret)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+I haven't meant that :) What I had in mind was a singular patchset with
+combination of automated and manual work, just as you say, I just didn't
+state it clearly.
