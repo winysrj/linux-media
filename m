@@ -1,53 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.133]:53979 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.134]:54607 "EHLO
         mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933709AbcJ0QEO (ORCPT
+        with ESMTP id S1758191AbcJQWOH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 12:04:14 -0400
+        Mon, 17 Oct 2016 18:14:07 -0400
 From: Arnd Bergmann <arnd@arndb.de>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] rc: print correct variable for z8f0811
-Date: Thu, 27 Oct 2016 18:03:37 +0200
-Message-Id: <20161027160349.557473-1-arnd@arndb.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Kees Cook <keescook@chromium.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 13/28] [media] dib0700: fix uninitialized data on 'repeat' event
+Date: Tue, 18 Oct 2016 00:13:34 +0200
+Message-Id: <20161017221355.1861551-1-arnd@arndb.de>
+In-Reply-To: <20161017220342.1627073-1-arnd@arndb.de>
+References: <20161017220342.1627073-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent rework accidentally left a debugging printk untouched
-while changing the meaning of the variables, leading to an
-uninitialized variable being printed:
+After a recent cleanup patch, "gcc -Wmaybe-uninitialized" reports a new
+warning about an existing bug:
 
-drivers/media/i2c/ir-kbd-i2c.c: In function 'get_key_haup_common':
-drivers/media/i2c/ir-kbd-i2c.c:62:2: error: 'toggle' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+drivers/media/usb/dvb-usb/dib0700_core.c: In function ‘dib0700_rc_urb_completion’:
+drivers/media/usb/dvb-usb/dib0700_core.c:763:2: error: ‘protocol’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-This prints the correct one instead, as we did before the patch.
+It turns out that the "0 0 0 FF" sequence of input data has already
+caused an uninitialized data use for the keycode variable, but that
+was hidden with the 'uninitialized_var()' macro. Now, the protocol
+is also uninitialized.
 
-Fixes: 00bb820755ed ("[media] rc: Hauppauge z8f0811 can decode RC6")
+This changes the code to not report any key for this sequence, which
+fixes both problems, and allows us to also remove the misleading
+uninitialized_var() annotation.
+
+It is possible that we should call rc_repeat() here, but I'm not
+sure about that.
+
+Fixes: 2ceeca0499d7 ("[media] rc: split nec protocol into its three variants")
+Fixes: d3c501d1938c ("V4L/DVB: dib0700: Fix RC protocol logic to properly handle NEC/NECx and RC-5")
+Cc: Sean Young <sean@mess.org>
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/i2c/ir-kbd-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/dvb-usb/dib0700_core.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-I'd like to see this patch make it into v4.9 so we can enable the warning
-again by default. Can you give me an Ack for it or apply it to the
-fixes tree?
-
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index f95a6bc..cede397 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -118,7 +118,7 @@ static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
- 			*protocol = RC_TYPE_RC6_MCE;
- 			dev &= 0x7f;
- 			dprintk(1, "ir hauppauge (rc6-mce): t%d vendor=%d dev=%d code=%d\n",
--						toggle, vendor, dev, code);
-+						*ptoggle, vendor, dev, code);
- 		} else {
- 			*ptoggle = 0;
- 			*protocol = RC_TYPE_RC6_6A_32;
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index f319665..3678ebf 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -677,7 +677,7 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 	struct dvb_usb_device *d = purb->context;
+ 	struct dib0700_rc_response *poll_reply;
+ 	enum rc_type protocol;
+-	u32 uninitialized_var(keycode);
++	u32 keycode;
+ 	u8 toggle;
+ 
+ 	deb_info("%s()\n", __func__);
+@@ -742,11 +742,10 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 			protocol = RC_TYPE_NEC;
+ 		}
+ 
++		rc_keydown(d->rc_dev, protocol, keycode, toggle);
+ 		break;
+ 	default:
+ 		deb_data("RC5 protocol\n");
+-		protocol = RC_TYPE_RC5;
+-		toggle = poll_reply->report_id;
+ 		keycode = RC_SCANCODE_RC5(poll_reply->rc5.system, poll_reply->rc5.data);
+ 
+ 		if ((poll_reply->rc5.data ^ poll_reply->rc5.not_data) != 0xff) {
+@@ -754,14 +753,13 @@ static void dib0700_rc_urb_completion(struct urb *purb)
+ 			err("key failed integrity check: %02x %02x %02x %02x",
+ 			    poll_reply->rc5.not_used, poll_reply->rc5.system,
+ 			    poll_reply->rc5.data, poll_reply->rc5.not_data);
+-			goto resubmit;
++			break;
+ 		}
+ 
++		rc_keydown(d->rc_dev, RC_TYPE_RC5, keycode, poll_reply->report_id);
+ 		break;
+ 	}
+ 
+-	rc_keydown(d->rc_dev, protocol, keycode, toggle);
+-
+ resubmit:
+ 	/* Clean the buffer before we requeue */
+ 	memset(purb->transfer_buffer, 0, RC_MSG_SIZE_V1_20);
 -- 
 2.9.0
 
