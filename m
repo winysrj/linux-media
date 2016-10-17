@@ -1,40 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:31279 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932807AbcJUNBH (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47139 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934238AbcJQOfJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Oct 2016 09:01:07 -0400
-Subject: Re: [GIT PULL] Samsung fixes for 4.8
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <07acb5a4-50c3-ad2b-77ee-4929801d082c@samsung.com>
-Date: Fri, 21 Oct 2016 15:01:00 +0200
-MIME-version: 1.0
-In-reply-to: <20161021102607.2df96630@vento.lan>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
- <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
- <20161021102607.2df96630@vento.lan>
+        Mon, 17 Oct 2016 10:35:09 -0400
+Subject: Re: [Patch 00/35] media: ti-vpe: fixes and enhancements
+To: Benoit Parrot <bparrot@ti.com>
+References: <20160928211643.26298-1-bparrot@ti.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <46c23700-5c4f-e379-846a-604cacc17f4f@xs4all.nl>
+Date: Mon, 17 Oct 2016 16:35:01 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160928211643.26298-1-bparrot@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/21/2016 02:26 PM, Mauro Carvalho Chehab wrote:
->> Sylwester Nawrocki (1):
->> >       exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag
->
-> This patch didn't apply fine. Could you please rebase it?
+On 09/28/2016 11:16 PM, Benoit Parrot wrote:
+> This patch series is to publish a number of enhancements
+> we have been carrying for a while.
 > 
-> Applying patch patches/0002-exynos4-is-Clear-I2C_ISP-adapter-s-power.ignore_chil.patch
-> patching file drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> Hunk #1 NOT MERGED at 74-99, already applied at 101-104, already applied at 111.
+> A number of bug fixes and feature enhancements have been
+> included.
+> 
+> We also need to prepare the way for the introduction of
+> the VIP (Video Input Port) driver (coming soon) which
+> has internal IP module in common with VPE.
+> 
+> The relevant modules (vpdma, sc and csc) are therefore converted
+> into individual kernel modules.
 
-It seems no further actions are needed since the patch is somehow already 
-applied in Linus' tree:
-http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/media/platform/exynos4-is/fimc-is-i2c.c?id=056c61eb0da4d7181fc7072567dc1931cb0e1cbb
+Other than the few comments I made this patch series looks OK.
 
---
-Regards, 
-Sylwester
+You can add my
+
+	Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+to those patches where I didn't make any comments.
+
+Regards,
+
+	Hans
+
+> 
+> Archit Taneja (1):
+>   media: ti-vpe: Use line average de-interlacing for first 2 frames
+> 
+> Benoit Parrot (16):
+>   media: ti-vpe: vpdma: Make vpdma library into its own module
+>   media: ti-vpe: vpdma: Add multi-instance and multi-client support
+>   media: ti-vpe: vpdma: Add helper to set a background color
+>   media: ti-vpe: vpdma: Fix bus error when vpdma is writing a descriptor
+>   media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
+>   media: ti-vpe: vpdma: Corrected YUV422 data type label.
+>   media: ti-vpe: vpdma: RGB data type yield inverted data
+>   media: ti-vpe: vpe: Fix vb2 buffer cleanup
+>   media: ti-vpe: vpe: Enable DMABUF export
+>   media: ti-vpe: Make scaler library into its own module
+>   media: ti-vpe: scaler: Add debug support for multi-instance
+>   media: ti-vpe: vpe: Make sure frame size dont exceed scaler capacity
+>   media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
+>   media: ti-vpe: Make colorspace converter library into its own module
+>   media: ti-vpe: csc: Add debug support for multi-instance
+>   media: ti-vpe: vpe: Add proper support single and multi-plane buffer
+> 
+> Harinarayan Bhatta (2):
+>   media: ti-vpe: Increasing max buffer height and width
+>   media: ti-vpe: Free vpdma buffers in vpe_release
+> 
+> Nikhil Devshatwar (16):
+>   media: ti-vpe: vpe: Do not perform job transaction atomically
+>   media: ti-vpe: Add support for SEQ_TB buffers
+>   media: ti-vpe: vpe: Return NULL for invalid buffer type
+>   media: ti-vpe: vpdma: Add support for setting max width height
+>   media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
+>   media: ti-vpe: vpdma: Make list post atomic operation
+>   media: ti-vpe: vpdma: Clear IRQs for individual lists
+>   media: ti-vpe: vpe: configure line mode separately
+>   media: ti-vpe: vpe: Setup srcdst parameters in start_streaming
+>   media: ti-vpe: vpe: Post next descriptor only for list complete IRQ
+>   media: ti-vpe: vpe: Add RGB565 and RGB5551 support
+>   media: ti-vpe: vpdma: allocate and maintain hwlist
+>   media: ti-vpe: sc: Fix incorrect optimization
+>   media: ti-vpe: vpdma: Fix race condition for firmware loading
+>   media: ti-vpe: vpdma: Use bidirectional cached buffers
+>   media: ti-vpe: vpe: Fix line stride for output motion vector
+> 
+>  drivers/media/platform/Kconfig             |  14 +
+>  drivers/media/platform/ti-vpe/Makefile     |  10 +-
+>  drivers/media/platform/ti-vpe/csc.c        |  18 +-
+>  drivers/media/platform/ti-vpe/csc.h        |   2 +-
+>  drivers/media/platform/ti-vpe/sc.c         |  28 +-
+>  drivers/media/platform/ti-vpe/sc.h         |  11 +-
+>  drivers/media/platform/ti-vpe/vpdma.c      | 349 +++++++++++++++++++---
+>  drivers/media/platform/ti-vpe/vpdma.h      |  85 +++++-
+>  drivers/media/platform/ti-vpe/vpdma_priv.h | 130 ++++-----
+>  drivers/media/platform/ti-vpe/vpe.c        | 450 ++++++++++++++++++++++++-----
+>  10 files changed, 891 insertions(+), 206 deletions(-)
+> 
