@@ -1,74 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39714 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752323AbcJKKfU (ORCPT
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:33866 "EHLO
+        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932964AbcJQKSa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:35:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH v2 10/31] dibusb: handle error code on RC query
-Date: Tue, 11 Oct 2016 07:09:25 -0300
-Message-Id: <0b195100070bf4ba74dce76362c851d49284d104.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Mon, 17 Oct 2016 06:18:30 -0400
+Received: by mail-qk0-f177.google.com with SMTP id f128so216501562qkb.1
+        for <linux-media@vger.kernel.org>; Mon, 17 Oct 2016 03:18:29 -0700 (PDT)
+Date: Mon, 17 Oct 2016 12:18:20 +0200
+From: Gary Bisson <gary.bisson@boundarydevices.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@pengutronix.de
+Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
+Message-ID: <20161017101820.stfboaeqncadlvfz@t450s.lan>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no sense on decoding and generating a RC key code if
-there was an error on the URB control message.
+Hi Philipp,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/dibusb-common.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+On Fri, Oct 14, 2016 at 07:34:20PM +0200, Philipp Zabel wrote:
+> Hi,
+> 
+> the second round removes the prepare_stream callback and instead lets the
+> intermediate subdevices propagate s_stream calls to their sources rather
+> than individually calling s_stream on each subdevice from the bridge driver.
+> This is similar to how drm bridges recursively call into their next neighbor.
+> It makes it easier to do bringup ordering on a per-link level, as long as the
+> source preparation can be done at s_power, and the sink can just prepare, call
+> s_stream on its source, and then enable itself inside s_stream. Obviously this
+> would only work in a generic fashion if all asynchronous subdevices with both
+> inputs and outputs would propagate s_stream to their source subdevices.
+> 
+> Changes since v1:
+>  - Propagate field and colorspace in ipucsi_subdev_set_format.
+>  - Remove v4l2_media_subdev_prepare_stream and v4l2_media_subdev_s_stream,
+>    let subdevices propagate s_stream calls to their upstream subdevices
+>    themselves.
+>  - Various fixes (see individual patches for details)
 
-diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-index 951f3dac9082..b0fd9a609352 100644
---- a/drivers/media/usb/dvb-usb/dibusb-common.c
-+++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-@@ -366,6 +366,7 @@ EXPORT_SYMBOL(rc_map_dibusb_table);
- int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- {
- 	u8 *buf;
-+	int ret;
- 
- 	buf = kmalloc(5, GFP_KERNEL);
- 	if (!buf)
-@@ -373,7 +374,9 @@ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 
- 	buf[0] = DIBUSB_REQ_POLL_REMOTE;
- 
--	dvb_usb_generic_rw(d, buf, 1, buf, 5, 0);
-+	ret = dvb_usb_generic_rw(d, buf, 1, buf, 5, 0);
-+	if (ret < 0)
-+		goto ret;
- 
- 	dvb_usb_nec_rc_key_to_event(d, buf, event, state);
- 
-@@ -382,6 +385,7 @@ int dibusb_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
- 
- 	kfree(buf);
- 
--	return 0;
-+ret:
-+	return ret;
- }
- EXPORT_SYMBOL(dibusb_rc_query);
--- 
-2.7.4
+For the whole series:
+Tested-by: Gary Bisson <gary.bisson@boundarydevices.com>
 
+Tested on Nitrogen6x + BD_HDMI_MIPI daughter board on linux-next
+20161016.
 
+This required using your v4l2-ctl patch to set the EDID if the source
+output can't be forced:
+https://patchwork.kernel.org/patch/6097201/
+BTW, do you have any update on this? Because it looks like the
+VIDIOC_SUBDEV_QUERYCAP hasn't been implemented since your patch (March
+2015).
+
+Then I followed the procedure you gave here:
+https://patchwork.kernel.org/patch/9366503/
+
+For those interested in trying it out, note that kmssink requires to use
+Gstreamer 1.9.x.
+
+I have a few remarks:
+- I believe it would help having a patch that sets imx_v6_v7_defconfig
+  with the proper options in this series
+- Not related to this series, I couldn't boot the board unless I disable
+  the PCIe driver, have you experienced the same issue?
+- Is there a way not to set all the links manually using media-ctl? I
+  expected all the formats to be negotiated automatically once a stream
+  is properly detected.
+- As discussed last week, the Nitrogen6x dtsi file shouldn't be
+  included, instead an overlay would be more appropriate. Maybe the log
+  should contain a comment about this.
+
+Let me know if I need to add that Tested-by to every single patch so it
+appears on Patchwork.
+
+Regards,
+Gary
