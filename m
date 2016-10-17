@@ -1,104 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27127 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752915AbcJEHXU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Oct 2016 03:23:20 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 2973320F9C
-        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 10:23:17 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC 5/5] smiapp: Switch to fwnode API
-Date: Wed,  5 Oct 2016 10:21:49 +0300
-Message-Id: <1475652109-22164-6-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1475652109-22164-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:35130 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932340AbcJQVcZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 17 Oct 2016 17:32:25 -0400
+Received: by mail-qt0-f193.google.com with SMTP id g49so6696994qtc.2
+        for <linux-media@vger.kernel.org>; Mon, 17 Oct 2016 14:32:25 -0700 (PDT)
+MIME-Version: 1.0
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Mon, 17 Oct 2016 23:32:03 +0200
+Message-ID: <CAPybu_1cpNz0HCKXjiYkJaf87SxL+rmTtrtCdw-CdczijSF-5Q@mail.gmail.com>
+Subject: [GIT PULL] HSV formats v2
+To: linux-media <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/smiapp/smiapp-core.c | 29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+Hi Mauro,
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index e0d7586..e07d38e 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -27,12 +27,13 @@
- #include <linux/gpio/consumer.h>
- #include <linux/module.h>
- #include <linux/pm_runtime.h>
-+#include <linux/property.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/smiapp.h>
- #include <linux/v4l2-mediabus.h>
-+#include <media/v4l2-fwnode.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-of.h>
- 
- #include "smiapp.h"
- 
-@@ -2793,19 +2794,20 @@ static int smiapp_resume(struct device *dev)
- static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- {
- 	struct smiapp_hwconfig *hwcfg;
--	struct v4l2_of_endpoint *bus_cfg;
--	struct device_node *ep;
-+	struct v4l2_fwnode_endpoint *bus_cfg;
-+	struct fwnode_handle *ep;
-+	struct fwnode_handle *fwn = device_fwnode_handle(dev);
- 	int i;
- 	int rval;
- 
--	if (!dev->of_node)
-+	if (!fwn)
- 		return dev->platform_data;
- 
--	ep = of_graph_get_next_endpoint(dev->of_node, NULL);
-+	ep = fwnode_graph_get_next_endpoint(fwn, NULL);
- 	if (!ep)
- 		return NULL;
- 
--	bus_cfg = v4l2_of_alloc_parse_endpoint(ep);
-+	bus_cfg = v4l2_fwnode_endpoint_alloc_parse(ep);
- 	if (IS_ERR(bus_cfg))
- 		goto out_err;
- 
-@@ -2826,11 +2828,10 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 	dev_dbg(dev, "lanes %u\n", hwcfg->lanes);
- 
- 	/* NVM size is not mandatory */
--	of_property_read_u32(dev->of_node, "nokia,nvm-size",
--				    &hwcfg->nvm_size);
-+	fwnode_property_read_u32(fwn, "nokia,nvm-size", &hwcfg->nvm_size);
- 
--	rval = of_property_read_u32(dev->of_node, "clock-frequency",
--				    &hwcfg->ext_clk);
-+	rval = fwnode_property_read_u32(fwn, "clock-frequency",
-+					&hwcfg->ext_clk);
- 	if (rval) {
- 		dev_warn(dev, "can't get clock-frequency\n");
- 		goto out_err;
-@@ -2855,13 +2856,13 @@ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- 		dev_dbg(dev, "freq %d: %lld\n", i, hwcfg->op_sys_clock[i]);
- 	}
- 
--	v4l2_of_free_endpoint(bus_cfg);
--	of_node_put(ep);
-+	v4l2_fwnode_endpoint_free(bus_cfg);
-+	fwnode_handle_put(ep);
- 	return hwcfg;
- 
- out_err:
--	v4l2_of_free_endpoint(bus_cfg);
--	of_node_put(ep);
-+	v4l2_fwnode_endpoint_free(bus_cfg);
-+	fwnode_handle_put(ep);
- 	return NULL;
- }
- 
+These is the last PULL request rebased to your last master thanks to Laurent :)
+
+
+These patches add support for HSV.
+
+HSV formats are extremely useful for image segmentation. This set of
+patches makes v4l2 aware of this kind of formats.
+
+Vivid changes have been divided to ease the reviewing process.
+
+We are working on patches for Gstreamer and OpenCV that will make use
+of these formats.
+
+This pull request contains [PATCH v5 00/12] Add HSV format, plus the
+following chanes:
+
+-It has been rebased to media/master
+-Laurent patch to add support for vsp1
+-Hans Ack-by
+-Documentation now make use of tabularcolumn (latex)
+
+Please pull:
+
+The following changes since commit 11a1e0ed7908f04c896e69d0eb65e478c12f8519:
+
+  [media] dvb-usb: warn if return value for USB read/write routines is
+not checked (2016-10-14 12:52:31 -0300)
+
+are available in the git repository at:
+
+  https://github.com/ribalda/linux.git vivid-hsv-v7
+
+for you to fetch changes up to 7cb9d88402c4f674887af165e1425f1fd347583f:
+
+  v4l: vsp1: Add support for capture and output in HSV formats
+(2016-10-17 23:20:10 +0200)
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      v4l: vsp1: Add support for capture and output in HSV formats
+
+Ricardo Ribalda Delgado (12):
+      videodev2.h Add HSV formats
+      Documentation: Add HSV format
+      Documentation: Add Ricardo Ribalda
+      vivid: Code refactor for color encoding
+      vivid: Add support for HSV formats
+      vivid: Rename variable
+      vivid: Introduce TPG_COLOR_ENC_LUMA
+      vivid: Fix YUV555 and YUV565 handling
+      vivid: Local optimization
+      videodev2.h Add HSV encoding
+      Documentation: Add HSV encodings
+      vivid: Add support for HSV encoding
+
+ Documentation/media/uapi/v4l/hsv-formats.rst       |  19 +
+ Documentation/media/uapi/v4l/pixfmt-002.rst        |   5 +
+ Documentation/media/uapi/v4l/pixfmt-003.rst        |   5 +
+ Documentation/media/uapi/v4l/pixfmt-006.rst        |  31 +-
+ Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst | 157 ++++++++
+ Documentation/media/uapi/v4l/pixfmt.rst            |   1 +
+ Documentation/media/uapi/v4l/v4l2.rst              |   9 +
+ Documentation/media/videodev2.h.rst.exceptions     |   4 +
+ drivers/media/common/v4l2-tpg/v4l2-tpg-core.c      | 411 ++++++++++++++-------
+ drivers/media/platform/vivid/vivid-core.h          |   3 +-
+ drivers/media/platform/vivid/vivid-ctrls.c         |  25 ++
+ drivers/media/platform/vivid/vivid-vid-cap.c       |  17 +-
+ drivers/media/platform/vivid/vivid-vid-common.c    |  68 ++--
+ drivers/media/platform/vivid/vivid-vid-out.c       |   1 +
+ drivers/media/platform/vsp1/vsp1_pipe.c            |   8 +
+ drivers/media/platform/vsp1/vsp1_rwpf.c            |   2 +
+ drivers/media/platform/vsp1/vsp1_video.c           |   5 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |   2 +
+ include/media/v4l2-tpg.h                           |  24 +-
+ include/uapi/linux/videodev2.h                     |  36 +-
+ 20 files changed, 653 insertions(+), 180 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/hsv-formats.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-packed-hsv.rst
+
 -- 
-2.7.4
-
+Ricardo Ribalda
