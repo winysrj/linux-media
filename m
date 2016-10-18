@@ -1,44 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:52826 "EHLO mout.web.de"
+Received: from mx2.suse.de ([195.135.220.15]:44453 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753866AbcJNLkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 07:40:25 -0400
-Subject: [PATCH 0/5] [media] winbond-cir: Fine-tuning for four function
- implementations
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
-Date: Fri, 14 Oct 2016 13:40:09 +0200
+        id S1750703AbcJRMqd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 08:46:33 -0400
+Date: Tue, 18 Oct 2016 14:46:28 +0200
+From: Jan Kara <jack@suse.cz>
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 02/10] mm: remove write/force parameters from
+ __get_user_pages_unlocked()
+Message-ID: <20161018124628.GB29967@quack2.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161013002020.3062-3-lstoakes@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161013002020.3062-3-lstoakes@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 14 Oct 2016 13:24:35 +0200
+On Thu 13-10-16 01:20:12, Lorenzo Stoakes wrote:
+> This patch removes the write and force parameters from
+> __get_user_pages_unlocked() to make the use of FOLL_FORCE explicit in callers as
+> use of this flag can result in surprising behaviour (and hence bugs) within the
+> mm subsystem.
+> 
+> Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 
-A few update suggestions were taken into account
-from static source code analysis.
+The patch looks good. You can add:
 
-Markus Elfring (5):
-  Use kmalloc_array() in wbcir_tx()
-  Move a variable assignment in wbcir_tx()
-  Move assignments for three variables in wbcir_shutdown()
-  One variable and its check less in wbcir_shutdown() after error detection
-  Move a variable assignment in two functions
+Reviewed-by: Jan Kara <jack@suse.cz>
 
- drivers/media/rc/winbond-cir.c | 95 +++++++++++++++++++-----------------------
- 1 file changed, 44 insertions(+), 51 deletions(-)
-
+								Honza
 -- 
-2.10.1
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
