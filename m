@@ -1,255 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:35832 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753228AbcJDLrp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2016 07:47:45 -0400
-Received: by mail-wm0-f47.google.com with SMTP id f193so162799255wmg.0
-        for <linux-media@vger.kernel.org>; Tue, 04 Oct 2016 04:47:44 -0700 (PDT)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, cc.ma@mediatek.com,
-        joakim.bech@linaro.org, burt.lien@linaro.org,
-        linus.walleij@linaro.org
-Cc: linaro-mm-sig@lists.linaro.org, linaro-kernel@lists.linaro.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v10 2/3] SMAF: add CMA allocator
-Date: Tue,  4 Oct 2016 13:47:23 +0200
-Message-Id: <1475581644-10600-3-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:32895 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936195AbcJRPa4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 11:30:56 -0400
+Date: Tue, 18 Oct 2016 17:30:50 +0200
+From: Michal Hocko <mhocko@kernel.org>
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
+ pass FOLL_* flags
+Message-ID: <20161018153050.GC13117@dhcp22.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SMAF CMA allocator implement helpers functions to allow SMAF
-to allocate contiguous memory.
+On Thu 13-10-16 01:20:10, Lorenzo Stoakes wrote:
+> This patch series adjusts functions in the get_user_pages* family such that
+> desired FOLL_* flags are passed as an argument rather than implied by flags.
+> 
+> The purpose of this change is to make the use of FOLL_FORCE explicit so it is
+> easier to grep for and clearer to callers that this flag is being used. The use
+> of FOLL_FORCE is an issue as it overrides missing VM_READ/VM_WRITE flags for the
+> VMA whose pages we are reading from/writing to, which can result in surprising
+> behaviour.
+> 
+> The patch series came out of the discussion around commit 38e0885, which
+> addressed a BUG_ON() being triggered when a page was faulted in with PROT_NONE
+> set but having been overridden by FOLL_FORCE. do_numa_page() was run on the
+> assumption the page _must_ be one marked for NUMA node migration as an actual
+> PROT_NONE page would have been dealt with prior to this code path, however
+> FOLL_FORCE introduced a situation where this assumption did not hold.
+> 
+> See https://marc.info/?l=linux-mm&m=147585445805166 for the patch proposal.
 
-match() each if at least one of the attached devices have coherent_dma_mask
-set to DMA_BIT_MASK(32).
+I like this cleanup. Tracking FOLL_FORCE users was always a nightmare
+and the flag behavior is really subtle so we should better be explicit
+about it. I haven't gone through each patch separately but rather
+applied the whole series and checked the resulting diff. This all seems
+OK to me and feel free to add
+Acked-by: Michal Hocko <mhocko@suse.com>
 
-For allocation it use dma_alloc_attrs() with DMA_ATTR_WRITE_COMBINE and not
-dma_alloc_writecombine to be compatible with ARM 64bits architecture
+I am wondering whether we can go further. E.g. it is not really clear to
+me whether we need an explicit FOLL_REMOTE when we can in fact check
+mm != current->mm and imply that. Maybe there are some contexts which
+wouldn't work, I haven't checked.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- drivers/smaf/Kconfig    |   6 ++
- drivers/smaf/Makefile   |   1 +
- drivers/smaf/smaf-cma.c | 186 ++++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 193 insertions(+)
- create mode 100644 drivers/smaf/smaf-cma.c
+Then I am also wondering about FOLL_TOUCH behavior.
+__get_user_pages_unlocked has only few callers which used to be
+get_user_pages_unlocked before 1e9877902dc7e ("mm/gup: Introduce
+get_user_pages_remote()"). To me a dropped FOLL_TOUCH seems
+unintentional. Now that get_user_pages_unlocked has gup_flags argument I
+guess we might want to get rid of the __g-u-p-u version altogether, no?
 
-diff --git a/drivers/smaf/Kconfig b/drivers/smaf/Kconfig
-index d36651a..cfdfffd 100644
---- a/drivers/smaf/Kconfig
-+++ b/drivers/smaf/Kconfig
-@@ -3,3 +3,9 @@ config SMAF
- 	depends on DMA_SHARED_BUFFER
- 	help
- 	  Choose this option to enable Secure Memory Allocation Framework
-+
-+config SMAF_CMA
-+	tristate "SMAF CMA allocator"
-+	depends on SMAF
-+	help
-+	  Choose this option to enable CMA allocation within SMAF
-diff --git a/drivers/smaf/Makefile b/drivers/smaf/Makefile
-index 40cd882..05bab01b 100644
---- a/drivers/smaf/Makefile
-+++ b/drivers/smaf/Makefile
-@@ -1 +1,2 @@
- obj-$(CONFIG_SMAF) += smaf-core.o
-+obj-$(CONFIG_SMAF_CMA) += smaf-cma.o
-diff --git a/drivers/smaf/smaf-cma.c b/drivers/smaf/smaf-cma.c
-new file mode 100644
-index 0000000..6c9840b
---- /dev/null
-+++ b/drivers/smaf/smaf-cma.c
-@@ -0,0 +1,186 @@
-+/*
-+ * smaf-cma.c
-+ *
-+ * Copyright (C) Linaro SA 2015
-+ * Author: Benjamin Gaignard <benjamin.gaignard@linaro.org> for Linaro.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include <linux/dma-mapping.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/smaf-allocator.h>
-+
-+struct smaf_cma_buffer_info {
-+	struct device *dev;
-+	size_t size;
-+	void *vaddr;
-+	dma_addr_t paddr;
-+};
-+
-+/**
-+ * find_matching_device - iterate over the attached devices to find one
-+ * with coherent_dma_mask correctly set to DMA_BIT_MASK(32).
-+ * Matching device (if any) will be used to aim CMA area.
-+ */
-+static struct device *find_matching_device(struct dma_buf *dmabuf)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		if (attach_obj->dev->coherent_dma_mask == DMA_BIT_MASK(32))
-+			return attach_obj->dev;
-+	}
-+
-+	return NULL;
-+}
-+
-+/**
-+ * smaf_cma_match - return true if at least one device has been found
-+ */
-+static bool smaf_cma_match(struct dma_buf *dmabuf)
-+{
-+	return !!find_matching_device(dmabuf);
-+}
-+
-+static void smaf_cma_release(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	dma_free_attrs(info->dev, info->size, info->vaddr,
-+		       info->paddr, DMA_ATTR_WRITE_COMBINE);
-+
-+	kfree(info);
-+}
-+
-+static struct sg_table *smaf_cma_map(struct dma_buf_attachment *attachment,
-+				     enum dma_data_direction direction)
-+{
-+	struct smaf_cma_buffer_info *info = attachment->dmabuf->priv;
-+	struct sg_table *sgt;
-+	int ret;
-+
-+	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
-+	if (!sgt)
-+		return NULL;
-+
-+	ret = dma_get_sgtable(info->dev, sgt, info->vaddr,
-+			      info->paddr, info->size);
-+	if (ret < 0)
-+		goto out;
-+
-+	sg_dma_address(sgt->sgl) = info->paddr;
-+	return sgt;
-+
-+out:
-+	kfree(sgt);
-+	return NULL;
-+}
-+
-+static void smaf_cma_unmap(struct dma_buf_attachment *attachment,
-+			   struct sg_table *sgt,
-+			   enum dma_data_direction direction)
-+{
-+	/* do nothing */
-+}
-+
-+static int smaf_cma_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	if (info->size < vma->vm_end - vma->vm_start)
-+		return -EINVAL;
-+
-+	vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND | VM_DONTDUMP;
-+	return dma_mmap_attrs(info->dev, vma, info->vaddr, info->paddr,
-+			      info->size, DMA_ATTR_WRITE_COMBINE);
-+}
-+
-+static void *smaf_cma_vmap(struct dma_buf *dmabuf)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return info->vaddr;
-+}
-+
-+static void *smaf_kmap_atomic(struct dma_buf *dmabuf, unsigned long offset)
-+{
-+	struct smaf_cma_buffer_info *info = dmabuf->priv;
-+
-+	return (void *)info->vaddr + offset;
-+}
-+
-+static const struct dma_buf_ops smaf_cma_ops = {
-+	.map_dma_buf = smaf_cma_map,
-+	.unmap_dma_buf = smaf_cma_unmap,
-+	.mmap = smaf_cma_mmap,
-+	.release = smaf_cma_release,
-+	.kmap_atomic = smaf_kmap_atomic,
-+	.kmap = smaf_kmap_atomic,
-+	.vmap = smaf_cma_vmap,
-+};
-+
-+static struct dma_buf *smaf_cma_allocate(struct dma_buf *dmabuf, size_t length)
-+{
-+	struct dma_buf_attachment *attach_obj;
-+	struct smaf_cma_buffer_info *info;
-+	struct dma_buf *cma_dmabuf;
-+
-+	DEFINE_DMA_BUF_EXPORT_INFO(export);
-+
-+	info = kzalloc(sizeof(*info), GFP_KERNEL);
-+	if (!info)
-+		return NULL;
-+
-+	info->dev = find_matching_device(dmabuf);
-+	info->size = length;
-+	info->vaddr = dma_alloc_attrs(info->dev, info->size, &info->paddr,
-+				      GFP_KERNEL | __GFP_NOWARN,
-+				      DMA_ATTR_WRITE_COMBINE);
-+	if (!info->vaddr)
-+		goto alloc_error;
-+
-+	export.ops = &smaf_cma_ops;
-+	export.size = info->size;
-+	export.priv = info;
-+
-+	cma_dmabuf = dma_buf_export(&export);
-+	if (IS_ERR(cma_dmabuf))
-+		goto export_error;
-+
-+	list_for_each_entry(attach_obj, &dmabuf->attachments, node) {
-+		dma_buf_attach(cma_dmabuf, attach_obj->dev);
-+	}
-+
-+	return cma_dmabuf;
-+
-+export_error:
-+	dma_free_attrs(info->dev, info->size, &info->paddr,
-+		       GFP_KERNEL | __GFP_NOWARN, DMA_ATTR_WRITE_COMBINE);
-+alloc_error:
-+	kfree(info);
-+	return NULL;
-+}
-+
-+static struct smaf_allocator smaf_cma = {
-+	.match = smaf_cma_match,
-+	.allocate = smaf_cma_allocate,
-+	.name = "smaf-cma",
-+	.ranking = 0,
-+};
-+
-+static int __init smaf_cma_init(void)
-+{
-+	return smaf_register_allocator(&smaf_cma);
-+}
-+module_init(smaf_cma_init);
-+
-+static void __exit smaf_cma_deinit(void)
-+{
-+	smaf_unregister_allocator(&smaf_cma);
-+}
-+module_exit(smaf_cma_deinit);
-+
-+MODULE_DESCRIPTION("SMAF CMA module");
-+MODULE_LICENSE("GPL v2");
-+MODULE_AUTHOR("Benjamin Gaignard <benjamin.gaignard@linaro.org>");
+__get_user_pages is quite low level and imho shouldn't be exported. It's
+only user - kvm - should rather pull those two functions to gup instead
+and export them. There is nothing really KVM specific in them.
+
+I also cannot say I would be entirely thrilled about get_user_pages_locked,
+we only have one user which can simply do lock g-u-p unlock AFAICS.
+
+I guess there is more work in that area and I do not want to impose all
+that work on you, but I couldn't resist once I saw you playing in that
+area ;) Definitely a good start!
 -- 
-1.9.1
-
+Michal Hocko
+SUSE Labs
