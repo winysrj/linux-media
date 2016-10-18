@@ -1,101 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([198.47.19.11]:38409 "EHLO bear.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752640AbcJJRbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 13:31:01 -0400
-From: "Parrot, Benoit" <bparrot@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: RE: [Patch 00/35] media: ti-vpe: fixes and enhancements
-Date: Mon, 10 Oct 2016 17:30:56 +0000
-Message-ID: <AAE35E953C746D4784A1A0C604EFEA714E44D29E@DLEE10.ent.ti.com>
-References: <20160928211643.26298-1-bparrot@ti.com>
-In-Reply-To: <20160928211643.26298-1-bparrot@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([198.137.202.9]:51399 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754129AbcJRUqQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:16 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 02/58] cx25840: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:14 -0200
+Message-Id: <c418ddf18cf90f17a3011ef07117aabe3a2fa2c4.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans, Mauro,
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Ping.
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-Benoit
+So, join those continuation lines.
 
------Original Message-----
-From: Parrot, Benoit 
-Sent: Wednesday, September 28, 2016 4:16 PM
-To: Hans Verkuil
-Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Parrot, Benoit
-Subject: [Patch 00/35] media: ti-vpe: fixes and enhancements
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-This patch series is to publish a number of enhancements we have been carrying for a while.
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
-A number of bug fixes and feature enhancements have been included.
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
 
-We also need to prepare the way for the introduction of the VIP (Video Input Port) driver (coming soon) which has internal IP module in common with VPE.
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
-The relevant modules (vpdma, sc and csc) are therefore converted into individual kernel modules.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/i2c/cx25840/cx25840-core.c | 11 +++--------
+ drivers/media/i2c/cx25840/cx25840-ir.c   |  7 +++----
+ 2 files changed, 6 insertions(+), 12 deletions(-)
 
-Archit Taneja (1):
-  media: ti-vpe: Use line average de-interlacing for first 2 frames
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+index 142ae28803bb..0dcf450052ac 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.c
++++ b/drivers/media/i2c/cx25840/cx25840-core.c
+@@ -873,10 +873,7 @@ void cx25840_std_setup(struct i2c_client *client)
+ 					"Chroma sub-carrier freq = %d.%06d MHz\n",
+ 					fsc / 1000000, fsc % 1000000);
+ 
+-			v4l_dbg(1, cx25840_debug, client, "hblank %i, hactive %i, "
+-				"vblank %i, vactive %i, vblank656 %i, src_dec %i, "
+-				"burst 0x%02x, luma_lpf %i, uv_lpf %i, comb 0x%02x, "
+-				"sc 0x%06x\n",
++			v4l_dbg(1, cx25840_debug, client, "hblank %i, hactive %i, vblank %i, vactive %i, vblank656 %i, src_dec %i, burst 0x%02x, luma_lpf %i, uv_lpf %i, comb 0x%02x, sc 0x%06x\n",
+ 				hblank, hactive, vblank, vactive, vblank656,
+ 				src_decimation, burst, luma_lpf, uv_lpf, comb, sc);
+ 		}
+@@ -5169,11 +5166,9 @@ static int cx25840_probe(struct i2c_client *client,
+ 		id = CX2310X_AV;
+ 	} else if ((device_id & 0xff) == (device_id >> 8)) {
+ 		v4l_err(client,
+-			"likely a confused/unresponsive cx2388[578] A/V decoder"
+-			" found @ 0x%x (%s)\n",
++			"likely a confused/unresponsive cx2388[578] A/V decoder found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+-		v4l_err(client, "A method to reset it from the cx25840 driver"
+-			" software is not known at this time\n");
++		v4l_err(client, "A method to reset it from the cx25840 driver software is not known at this time\n");
+ 		return -ENODEV;
+ 	} else {
+ 		v4l_dbg(1, cx25840_debug, client, "cx25840 not found\n");
+diff --git a/drivers/media/i2c/cx25840/cx25840-ir.c b/drivers/media/i2c/cx25840/cx25840-ir.c
+index 4b782012cadc..15fbd9607cee 100644
+--- a/drivers/media/i2c/cx25840/cx25840-ir.c
++++ b/drivers/media/i2c/cx25840/cx25840-ir.c
+@@ -1113,8 +1113,8 @@ int cx25840_ir_log_status(struct v4l2_subdev *sd)
+ 			j = 0;
+ 			break;
+ 		}
+-		v4l2_info(sd, "\tNext carrier edge window:          16 clocks "
+-			  "-%1d/+%1d, %u to %u Hz\n", i, j,
++		v4l2_info(sd, "\tNext carrier edge window:	    16 clocks -%1d/+%1d, %u to %u Hz\n",
++			  i, j,
+ 			  clock_divider_to_freq(rxclk, 16 + j),
+ 			  clock_divider_to_freq(rxclk, 16 - i));
+ 	}
+@@ -1124,8 +1124,7 @@ int cx25840_ir_log_status(struct v4l2_subdev *sd)
+ 	v4l2_info(sd, "\tLow pass filter:                   %s\n",
+ 		  filtr ? "enabled" : "disabled");
+ 	if (filtr)
+-		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, "
+-			  "%u ns\n",
++		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, %u ns\n",
+ 			  lpf_count_to_us(filtr),
+ 			  lpf_count_to_ns(filtr));
+ 	v4l2_info(sd, "\tPulse width timer timed-out:       %s\n",
+-- 
+2.7.4
 
-Benoit Parrot (16):
-  media: ti-vpe: vpdma: Make vpdma library into its own module
-  media: ti-vpe: vpdma: Add multi-instance and multi-client support
-  media: ti-vpe: vpdma: Add helper to set a background color
-  media: ti-vpe: vpdma: Fix bus error when vpdma is writing a descriptor
-  media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
-  media: ti-vpe: vpdma: Corrected YUV422 data type label.
-  media: ti-vpe: vpdma: RGB data type yield inverted data
-  media: ti-vpe: vpe: Fix vb2 buffer cleanup
-  media: ti-vpe: vpe: Enable DMABUF export
-  media: ti-vpe: Make scaler library into its own module
-  media: ti-vpe: scaler: Add debug support for multi-instance
-  media: ti-vpe: vpe: Make sure frame size dont exceed scaler capacity
-  media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
-  media: ti-vpe: Make colorspace converter library into its own module
-  media: ti-vpe: csc: Add debug support for multi-instance
-  media: ti-vpe: vpe: Add proper support single and multi-plane buffer
-
-Harinarayan Bhatta (2):
-  media: ti-vpe: Increasing max buffer height and width
-  media: ti-vpe: Free vpdma buffers in vpe_release
-
-Nikhil Devshatwar (16):
-  media: ti-vpe: vpe: Do not perform job transaction atomically
-  media: ti-vpe: Add support for SEQ_TB buffers
-  media: ti-vpe: vpe: Return NULL for invalid buffer type
-  media: ti-vpe: vpdma: Add support for setting max width height
-  media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
-  media: ti-vpe: vpdma: Make list post atomic operation
-  media: ti-vpe: vpdma: Clear IRQs for individual lists
-  media: ti-vpe: vpe: configure line mode separately
-  media: ti-vpe: vpe: Setup srcdst parameters in start_streaming
-  media: ti-vpe: vpe: Post next descriptor only for list complete IRQ
-  media: ti-vpe: vpe: Add RGB565 and RGB5551 support
-  media: ti-vpe: vpdma: allocate and maintain hwlist
-  media: ti-vpe: sc: Fix incorrect optimization
-  media: ti-vpe: vpdma: Fix race condition for firmware loading
-  media: ti-vpe: vpdma: Use bidirectional cached buffers
-  media: ti-vpe: vpe: Fix line stride for output motion vector
-
- drivers/media/platform/Kconfig             |  14 +
- drivers/media/platform/ti-vpe/Makefile     |  10 +-
- drivers/media/platform/ti-vpe/csc.c        |  18 +-
- drivers/media/platform/ti-vpe/csc.h        |   2 +-
- drivers/media/platform/ti-vpe/sc.c         |  28 +-
- drivers/media/platform/ti-vpe/sc.h         |  11 +-
- drivers/media/platform/ti-vpe/vpdma.c      | 349 +++++++++++++++++++---
- drivers/media/platform/ti-vpe/vpdma.h      |  85 +++++-
- drivers/media/platform/ti-vpe/vpdma_priv.h | 130 ++++-----
- drivers/media/platform/ti-vpe/vpe.c        | 450 ++++++++++++++++++++++++-----
- 10 files changed, 891 insertions(+), 206 deletions(-)
-
---
-2.9.0
 
