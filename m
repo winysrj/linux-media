@@ -1,146 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51518 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934737AbcJRUqU (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:40581 "EHLO
+        smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932810AbcJRG4p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH v2 46/58] ttusb-dec: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:58 -0200
-Message-Id: <56d9fdb2cbd9b92c961b6ea1a6af3a5efdf1d948.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Tue, 18 Oct 2016 02:56:45 -0400
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] media: platform: pxa_camera: add missing sensor power on
+References: <1474656100-7415-1-git-send-email-robert.jarzmik@free.fr>
+Date: Tue, 18 Oct 2016 08:56:42 +0200
+In-Reply-To: <1474656100-7415-1-git-send-email-robert.jarzmik@free.fr> (Robert
+        Jarzmik's message of "Fri, 23 Sep 2016 20:41:39 +0200")
+Message-ID: <874m4a5emt.fsf@belgarion.home>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Robert Jarzmik <robert.jarzmik@free.fr> writes:
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+> During sensors binding, there is a window where the sensor is switched
+> off, while there is a call it to set a new format, which can end up in
+> an access to the sensor, especially an I2C based sensor.
+>
+> Remove this window by activating the sensor.
+Hi guys,
 
-So, join those continuation lines.
+I can't remember if I have review issues I have to address for this serie or
+not. My mailer seems to tell no, but let's check again.
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+This serie is adding back the "power on" of the sensors through the generic
+regulator API, and is my prequisite for pxa submitted changes, which were
+formerly a "hook" in soc_camera_link structure, see:
+         https://www.spinics.net/lists/kernel/msg2350167.html
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+Cheers.
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+--
+Robert
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+[1] Remaining of the patch for reference
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/ttusb-dec/ttusb_dec.c | 20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+> ---
+>  drivers/media/platform/pxa_camera.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+> index 2978cd6efa63..794c41d24d9f 100644
+> --- a/drivers/media/platform/pxa_camera.c
+> +++ b/drivers/media/platform/pxa_camera.c
+> @@ -2128,17 +2128,22 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
+>  				    pix->bytesperline, pix->height);
+>  	pix->pixelformat = pcdev->current_fmt->host_fmt->fourcc;
+>  	v4l2_fill_mbus_format(mf, pix, pcdev->current_fmt->code);
+> -	err = sensor_call(pcdev, pad, set_fmt, NULL, &format);
+> +
+> +	err = sensor_call(pcdev, core, s_power, 1);
+>  	if (err)
+>  		goto out;
+>  
+> +	err = sensor_call(pcdev, pad, set_fmt, NULL, &format);
+> +	if (err)
+> +		goto out_sensor_poweroff;
+> +
+>  	v4l2_fill_pix_format(pix, mf);
+>  	pr_info("%s(): colorspace=0x%x pixfmt=0x%x\n",
+>  		__func__, pix->colorspace, pix->pixelformat);
+>  
+>  	err = pxa_camera_init_videobuf2(pcdev);
+>  	if (err)
+> -		goto out;
+> +		goto out_sensor_poweroff;
+>  
+>  	err = video_register_device(&pcdev->vdev, VFL_TYPE_GRABBER, -1);
+>  	if (err) {
+> @@ -2149,6 +2154,9 @@ static int pxa_camera_sensor_bound(struct v4l2_async_notifier *notifier,
+>  			 "PXA Camera driver attached to camera %s\n",
+>  			 subdev->name);
+>  	}
+> +
+> +out_sensor_poweroff:
+> +	err = sensor_call(pcdev, core, s_power, 0);
+>  out:
+>  	mutex_unlock(&pcdev->mlock);
+>  	return err;
 
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index 35d5003ff809..559c823a4fe8 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -708,8 +708,8 @@ static void ttusb_dec_process_urb_frame(struct ttusb_dec *dec, u8 *b,
- 					dec->packet_payload_length = 2;
- 					dec->packet_state = 7;
- 				} else {
--					printk("%s: unknown packet type: "
--					       "%02x%02x\n", __func__,
-+					printk("%s: unknown packet type: %02x%02x\n",
-+					       __func__,
- 					       dec->packet[0], dec->packet[1]);
- 					dec->packet_state = 0;
- 				}
-@@ -961,8 +961,8 @@ static int ttusb_dec_start_iso_xfer(struct ttusb_dec *dec)
- 		for (i = 0; i < ISO_BUF_COUNT; i++) {
- 			if ((result = usb_submit_urb(dec->iso_urb[i],
- 						     GFP_ATOMIC))) {
--				printk("%s: failed urb submission %d: "
--				       "error %d\n", __func__, i, result);
-+				printk("%s: failed urb submission %d: error %d\n",
-+				       __func__, i, result);
- 
- 				while (i) {
- 					usb_kill_urb(dec->iso_urb[i - 1]);
-@@ -1375,8 +1375,7 @@ static int ttusb_dec_boot_dsp(struct ttusb_dec *dec)
- 	memcpy(&tmp, &firmware[56], 4);
- 	crc32_check = ntohl(tmp);
- 	if (crc32_csum != crc32_check) {
--		printk("%s: crc32 check of DSP code failed (calculated "
--		       "0x%08x != 0x%08x in file), file invalid.\n",
-+		printk("%s: crc32 check of DSP code failed (calculated 0x%08x != 0x%08x in file), file invalid.\n",
- 			__func__, crc32_csum, crc32_check);
- 		release_firmware(fw_entry);
- 		return -ENOENT;
-@@ -1453,11 +1452,9 @@ static int ttusb_dec_init_stb(struct ttusb_dec *dec)
- 
- 	if (!mode) {
- 		if (version == 0xABCDEFAB)
--			printk(KERN_INFO "ttusb_dec: no version "
--			       "info in Firmware\n");
-+			printk(KERN_INFO "ttusb_dec: no version info in Firmware\n");
- 		else
--			printk(KERN_INFO "ttusb_dec: Firmware "
--			       "%x.%02x%c%c\n",
-+			printk(KERN_INFO "ttusb_dec: Firmware %x.%02x%c%c\n",
- 			       version >> 24, (version >> 16) & 0xff,
- 			       (version >> 8) & 0xff, version & 0xff);
- 
-@@ -1481,8 +1478,7 @@ static int ttusb_dec_init_stb(struct ttusb_dec *dec)
- 			ttusb_dec_set_model(dec, TTUSB_DEC2540T);
- 			break;
- 		default:
--			printk(KERN_ERR "%s: unknown model returned "
--			       "by firmware (%08x) - please report\n",
-+			printk(KERN_ERR "%s: unknown model returned by firmware (%08x) - please report\n",
- 			       __func__, model);
- 			return -ENOENT;
- 		}
 -- 
-2.7.4
-
-
+Robert
