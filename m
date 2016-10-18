@@ -1,120 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58345 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750721AbcJLEKu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 00:10:50 -0400
-Message-ID: <fd90f3d3c5719e268da1b4f8f3d9f5e8@smtp-cloud3.xs4all.net>
-Date: Wed, 12 Oct 2016 06:06:29 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga09.intel.com ([134.134.136.24]:45406 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755282AbcJRMwF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 08:52:05 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: [PATCH 1/1] v4l: Document that m2m devices have a file handle specific context
+Date: Tue, 18 Oct 2016 15:48:33 +0300
+Message-Id: <1476794913-22870-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Memory-to-memory V4L2 devices all have file handle specific context.
+Say this in the API documentation so that the user space may rely on it
+being the case.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/v4l/dev-codec.rst | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-date:			Wed Oct 12 05:00:22 CEST 2016
-media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
-media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
-v4l-utils git hash:	7c2664b9a9b411d8b183009146e4f8548ca1d81a
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+diff --git a/Documentation/media/uapi/v4l/dev-codec.rst b/Documentation/media/uapi/v4l/dev-codec.rst
+index d9f2184..c61e938 100644
+--- a/Documentation/media/uapi/v4l/dev-codec.rst
++++ b/Documentation/media/uapi/v4l/dev-codec.rst
+@@ -26,7 +26,7 @@ parameters
+    The MPEG controls actually support many more codecs than
+    just MPEG. See :ref:`mpeg-controls`.
+ 
+-Memory-to-memory devices can often be used as a shared resource: you can
++Memory-to-memory devices function as a shared resource: you can
+ open the video node multiple times, each application setting up their
+ own codec properties that are local to the file handle, and each can use
+ it independently from the others. The driver will arbitrate access to
+-- 
+2.7.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
