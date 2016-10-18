@@ -1,168 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51499 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:47497 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934391AbcJRUqU (ORCPT
+        with ESMTP id S1750749AbcJRJNz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Vladis Dronov <vdronov@redhat.com>,
-        Insu Yun <wuninsu@gmail.com>,
-        Geliang Tang <geliangtang@163.com>,
-        Oliver Neukum <oneukum@suse.com>
-Subject: [PATCH v2 47/58] usbvision: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:59 -0200
-Message-Id: <87b118ef41f12b64ada5bc1cecde774fa0d49efa.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Tue, 18 Oct 2016 05:13:55 -0400
+Date: Tue, 18 Oct 2016 07:13:48 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-doc@vger.kernel.org, Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 1/4] doc-rst: reST-directive kernel-cmd / include
+ contentent from scripts
+Message-ID: <20161018071348.64550345@vento.lan>
+In-Reply-To: <87lgxmxkag.fsf@intel.com>
+References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de>
+        <1475738420-8747-2-git-send-email-markus.heiser@darmarit.de>
+        <20161017144638.139491ad@vento.lan>
+        <87lgxmxkag.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Em Tue, 18 Oct 2016 09:07:03 +0300
+Jani Nikula <jani.nikula@intel.com> escreveu:
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+> On Mon, 17 Oct 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> > [PATCH] docs-rst: user: add MAINTAINERS
+> >
+> > including MAINTAINERS using ReST is tricky, because all
+> > maintainer's entries are like:
+> >
+> > FOO SUBSYSTEM:
+> > M: My Name <my@name>
+> > L: mailing@list
+> > S: Maintained
+> > F: foo/bar
+> >
+> > On ReST, this would be displayed on a single line. Using
+> > alias, like |M|, |L|, ... won't solve, as an alias in
+> > Sphinx doesn't accept breaking lines.
+> >
+> > So, instead of changing every line at MAINTAINERS, let's
+> > use kernel-cmd extension in order to parse it via a script.  
+> 
+> Soon I'm going to stop fighting the windmills...
+> 
+> If you're going to insist on getting kernel-cmd upstream (and I haven't
+> changed my opinion on that) 
 
-So, join those continuation lines.
+I also didn't change my mind that maintaining just one python script is
+easier than maintaining a plead of python scripts with almost identical
+contents.
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+In any case, if we're willing to have one Python script per each
+different non-Python parser, it helps if the source code of such extensions
+would be identical, except for the command line that will run the script,
+as, if we find a bug on one such script, the same bug fix could be applied
+to the other almost identical ones.
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+> please at least have the sense to have just
+> *one* perl script to parse MAINTAINERS, not many. The one script should
+> be scripts/get_maintainer.pl.
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+Agreed. get_maintainer.pl is indeed the best place to put it. I wrote
+it this separate script just for a proof of concept, whose goal is to test
+if the kernel-cmd extension would be properly parsing the ReST output,
+and to identify what sort of output would fit best for the MAINTAINERS
+database.
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/usbvision/usbvision-core.c  | 20 ++++++++++----------
- drivers/media/usb/usbvision/usbvision-video.c |  4 ++--
- 2 files changed, 12 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
-index c23bf73a68ea..bf041a9e69db 100644
---- a/drivers/media/usb/usbvision/usbvision-core.c
-+++ b/drivers/media/usb/usbvision/usbvision-core.c
-@@ -1656,8 +1656,8 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
- 			     (__u16) USBVISION_FILT_CONT, value, 2, HZ);
- 
- 	if (rc < 0) {
--		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - "
--		       "reconnect or reload driver.\n", proc, rc);
-+		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
-+		       proc, rc);
- 	}
- 	usbvision->isoc_mode = format;
- 	return rc;
-@@ -1890,8 +1890,8 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
- 			     (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
- 
- 	if (rc < 0) {
--		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
--		       "reconnect or reload driver.\n", proc, rc);
-+		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
-+		       proc, rc);
- 		return rc;
- 	}
- 
-@@ -1921,8 +1921,8 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
- 			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
- 
- 	if (rc < 0) {
--		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
--		       "reconnect or reload driver.\n", proc, rc);
-+		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
-+		       proc, rc);
- 	}
- 	return rc;
- }
-@@ -1960,8 +1960,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
- 
- 	rc = usbvision_write_reg(usbvision, USBVISION_VIN_REG1, value[0]);
- 	if (rc < 0) {
--		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
--		       "reconnect or reload driver.\n", proc, rc);
-+		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
-+		       proc, rc);
- 		return rc;
- 	}
- 
-@@ -2026,8 +2026,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
- 			     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0,
- 			     (__u16) USBVISION_LXSIZE_I, value, 8, HZ);
- 	if (rc < 0) {
--		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
--		       "reconnect or reload driver.\n", proc, rc);
-+		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
-+		       proc, rc);
- 		return rc;
- 	}
- 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index c8b4eb2ee7a2..a7529196c327 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1456,8 +1456,8 @@ static int usbvision_probe(struct usb_interface *intf,
- 	}
- 
- 	if (interface->desc.bNumEndpoints < 2) {
--		dev_err(&intf->dev, "interface %d has %d endpoints, but must"
--		    " have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
-+		dev_err(&intf->dev, "interface %d has %d endpoints, but must have minimum 2\n",
-+			ifnum, interface->desc.bNumEndpoints);
- 		ret = -ENODEV;
- 		goto err_usb;
- 	}
--- 
-2.7.4
-
-
+Thanks,
+Mauro
