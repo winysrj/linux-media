@@ -1,47 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60058 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933718AbcJSONA (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51499 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934391AbcJRUqU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:13:00 -0400
-From: Thierry Escande <thierry.escande@collabora.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 0/2] [media] DMA direction support in vb2_queue
-Date: Wed, 19 Oct 2016 10:24:15 +0200
-Message-Id: <1476865457-506-1-git-send-email-thierry.escande@collabora.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset = "utf-8"
-Content-Transfert-Encoding: 8bit
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Vladis Dronov <vdronov@redhat.com>,
+        Insu Yun <wuninsu@gmail.com>,
+        Geliang Tang <geliangtang@163.com>,
+        Oliver Neukum <oneukum@suse.com>
+Subject: [PATCH v2 47/58] usbvision: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:59 -0200
+Message-Id: <87b118ef41f12b64ada5bc1cecde774fa0d49efa.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-This series adds a dma_dir field to the vb2_queue structure in order to
-store the DMA direction once for all in vb2_queue_init();
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-It also adds a new capture_dma_bidirectional flag to the vb2_queue
-structure allowing the hardware to read from the CAPTURE buffer. This
-flag is ignored for OUTPUT queues. This is used on ChromeOS by the
-rockchip-vpu driver.
+So, join those continuation lines.
 
-Changes since v1:
-- Renamed use_dma_bidirectional field as capture_dma_bidirectional
-- Added a VB2_DMA_DIR() macro
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-Pawel Osciak (2):
-  [media] vb2: Store dma_dir in vb2_queue
-  [media] vb2: Add support for capture_dma_bidirectional queue flag
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
- drivers/media/v4l2-core/videobuf2-core.c | 12 +++---------
- drivers/media/v4l2-core/videobuf2-v4l2.c |  6 ++++++
- include/media/videobuf2-core.h           |  6 ++++++
- 3 files changed, 15 insertions(+), 9 deletions(-)
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
 
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/usbvision/usbvision-core.c  | 20 ++++++++++----------
+ drivers/media/usb/usbvision/usbvision-video.c |  4 ++--
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/usb/usbvision/usbvision-core.c b/drivers/media/usb/usbvision/usbvision-core.c
+index c23bf73a68ea..bf041a9e69db 100644
+--- a/drivers/media/usb/usbvision/usbvision-core.c
++++ b/drivers/media/usb/usbvision/usbvision-core.c
+@@ -1656,8 +1656,8 @@ static int usbvision_set_video_format(struct usb_usbvision *usbvision, int forma
+ 			     (__u16) USBVISION_FILT_CONT, value, 2, HZ);
+ 
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%s: ERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++		       proc, rc);
+ 	}
+ 	usbvision->isoc_mode = format;
+ 	return rc;
+@@ -1890,8 +1890,8 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ 			     (__u16) USBVISION_INTRA_CYC, value, 5, HZ);
+ 
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++		       proc, rc);
+ 		return rc;
+ 	}
+ 
+@@ -1921,8 +1921,8 @@ static int usbvision_set_compress_params(struct usb_usbvision *usbvision)
+ 			     (__u16) USBVISION_PCM_THR1, value, 6, HZ);
+ 
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++		       proc, rc);
+ 	}
+ 	return rc;
+ }
+@@ -1960,8 +1960,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 
+ 	rc = usbvision_write_reg(usbvision, USBVISION_VIN_REG1, value[0]);
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++		       proc, rc);
+ 		return rc;
+ 	}
+ 
+@@ -2026,8 +2026,8 @@ int usbvision_set_input(struct usb_usbvision *usbvision)
+ 			     USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0,
+ 			     (__u16) USBVISION_LXSIZE_I, value, 8, HZ);
+ 	if (rc < 0) {
+-		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - "
+-		       "reconnect or reload driver.\n", proc, rc);
++		printk(KERN_ERR "%sERROR=%d. USBVISION stopped - reconnect or reload driver.\n",
++		       proc, rc);
+ 		return rc;
+ 	}
+ 
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index c8b4eb2ee7a2..a7529196c327 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -1456,8 +1456,8 @@ static int usbvision_probe(struct usb_interface *intf,
+ 	}
+ 
+ 	if (interface->desc.bNumEndpoints < 2) {
+-		dev_err(&intf->dev, "interface %d has %d endpoints, but must"
+-		    " have minimum 2\n", ifnum, interface->desc.bNumEndpoints);
++		dev_err(&intf->dev, "interface %d has %d endpoints, but must have minimum 2\n",
++			ifnum, interface->desc.bNumEndpoints);
+ 		ret = -ENODEV;
+ 		goto err_usb;
+ 	}
 -- 
 2.7.4
+
 
