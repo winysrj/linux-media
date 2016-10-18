@@ -1,152 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34226 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753089AbcJZI4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 04:56:06 -0400
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [RFC PATCH v2 3/9] drm: mali-dp: Rename malidp_input_format
-Date: Wed, 26 Oct 2016 09:55:02 +0100
-Message-Id: <1477472108-27222-4-git-send-email-brian.starkey@arm.com>
-In-Reply-To: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
-References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:51608 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934901AbcJRUqX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:23 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-arm-kernel@lists.infradead.org, kernel@stlinux.com
+Subject: [PATCH v2 26/58] c8sectpfe: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:38 -0200
+Message-Id: <4c96ee7fef4b5d93e9dd239f4925ae23dad2478c.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We're going to use the same format list for output formats, so rename
-everything related to input formats to avoid confusion.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Signed-off-by: Brian Starkey <brian.starkey@arm.com>
-Reviewed-by: Liviu Dudau <Liviu.Dudau@arm.com>
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
+
+So, join those continuation lines.
+
+The patch was generated via the script below, and manually
+adjusted if needed.
+
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Acked-by: Peter Griffin <peter.griffin@linaro.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/gpu/drm/arm/malidp_hw.c     |   24 ++++++++++++------------
- drivers/gpu/drm/arm/malidp_hw.h     |    8 ++++----
- drivers/gpu/drm/arm/malidp_planes.c |    8 ++++----
- 3 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 16 ++++++----------
+ 1 file changed, 6 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
-index 65e667b..eb8a4bf 100644
---- a/drivers/gpu/drm/arm/malidp_hw.c
-+++ b/drivers/gpu/drm/arm/malidp_hw.c
-@@ -21,7 +21,7 @@
- #include "malidp_drv.h"
- #include "malidp_hw.h"
+diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+index 30c148b9d65e..42b123ff2953 100644
+--- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
++++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+@@ -112,8 +112,7 @@ static void channel_swdemux_tsklet(unsigned long data)
+ 	buf = (u8 *) channel->back_buffer_aligned;
  
--static const struct malidp_input_format malidp500_de_formats[] = {
-+static const struct malidp_format_id malidp500_de_formats[] = {
- 	/*    fourcc,   layers supporting the format,     internal id  */
- 	{ DRM_FORMAT_ARGB2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_GRAPHICS2,  0 },
- 	{ DRM_FORMAT_ABGR2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_GRAPHICS2,  1 },
-@@ -69,7 +69,7 @@ static const struct malidp_input_format malidp500_de_formats[] = {
- 	{ DRM_FORMAT_NV12, DE_VIDEO1 | DE_VIDEO2, MALIDP_ID(5, 6) },	\
- 	{ DRM_FORMAT_YUV420, DE_VIDEO1 | DE_VIDEO2, MALIDP_ID(5, 7) }
+ 	dev_dbg(fei->dev,
+-		"chan=%d channel=%p num_packets = %d, buf = %p, pos = 0x%x\n\t"
+-		"rp=0x%lx, wp=0x%lx\n",
++		"chan=%d channel=%p num_packets = %d, buf = %p, pos = 0x%x\n\trp=0x%lx, wp=0x%lx\n",
+ 		channel->tsin_id, channel, num_packets, buf, pos, rp, wp);
  
--static const struct malidp_input_format malidp550_de_formats[] = {
-+static const struct malidp_format_id malidp550_de_formats[] = {
- 	MALIDP_COMMON_FORMATS,
- };
+ 	for (n = 0; n < num_packets; n++) {
+@@ -789,8 +788,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
+ 		/* sanity check value */
+ 		if (tsin->tsin_id > fei->hw_stats.num_ib) {
+ 			dev_err(&pdev->dev,
+-				"tsin-num %d specified greater than number\n\t"
+-				"of input block hw in SoC! (%d)",
++				"tsin-num %d specified greater than number\n\tof input block hw in SoC! (%d)",
+ 				tsin->tsin_id, fei->hw_stats.num_ib);
+ 			ret = -EINVAL;
+ 			goto err_clk_disable;
+@@ -855,8 +853,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
+ 		tsin->demux_mapping = index;
  
-@@ -441,8 +441,8 @@ const struct malidp_hw_device malidp_device[MALIDP_MAX_DEVICES] = {
- 				.irq_mask = MALIDP500_DE_IRQ_CONF_VALID,
- 				.vsync_irq = MALIDP500_DE_IRQ_CONF_VALID,
- 			},
--			.input_formats = malidp500_de_formats,
--			.n_input_formats = ARRAY_SIZE(malidp500_de_formats),
-+			.pixel_formats = malidp500_de_formats,
-+			.n_pixel_formats = ARRAY_SIZE(malidp500_de_formats),
- 			.bus_align_bytes = 8,
- 		},
- 		.query_hw = malidp500_query_hw,
-@@ -474,8 +474,8 @@ const struct malidp_hw_device malidp_device[MALIDP_MAX_DEVICES] = {
- 				.irq_mask = MALIDP550_DC_IRQ_CONF_VALID,
- 				.vsync_irq = MALIDP550_DC_IRQ_CONF_VALID,
- 			},
--			.input_formats = malidp550_de_formats,
--			.n_input_formats = ARRAY_SIZE(malidp550_de_formats),
-+			.pixel_formats = malidp550_de_formats,
-+			.n_pixel_formats = ARRAY_SIZE(malidp550_de_formats),
- 			.bus_align_bytes = 8,
- 		},
- 		.query_hw = malidp550_query_hw,
-@@ -508,8 +508,8 @@ const struct malidp_hw_device malidp_device[MALIDP_MAX_DEVICES] = {
- 				.irq_mask = MALIDP550_DC_IRQ_CONF_VALID,
- 				.vsync_irq = MALIDP550_DC_IRQ_CONF_VALID,
- 			},
--			.input_formats = malidp550_de_formats,
--			.n_input_formats = ARRAY_SIZE(malidp550_de_formats),
-+			.pixel_formats = malidp550_de_formats,
-+			.n_pixel_formats = ARRAY_SIZE(malidp550_de_formats),
- 			.bus_align_bytes = 16,
- 		},
- 		.query_hw = malidp650_query_hw,
-@@ -527,10 +527,10 @@ u8 malidp_hw_get_format_id(const struct malidp_hw_regmap *map,
- {
- 	unsigned int i;
+ 		dev_dbg(fei->dev,
+-			"channel=%p n=%d tsin_num=%d, invert-ts-clk=%d\n\t"
+-			"serial-not-parallel=%d pkt-clk-valid=%d dvb-card=%d\n",
++			"channel=%p n=%d tsin_num=%d, invert-ts-clk=%d\n\tserial-not-parallel=%d pkt-clk-valid=%d dvb-card=%d\n",
+ 			fei->channel_data[index], index,
+ 			tsin->tsin_id, tsin->invert_ts_clk,
+ 			tsin->serial_not_parallel, tsin->async_not_sync,
+@@ -1045,8 +1042,8 @@ static void load_imem_segment(struct c8sectpfei *fei, Elf32_Phdr *phdr,
+ 	 */
  
--	for (i = 0; i < map->n_input_formats; i++) {
--		if (((map->input_formats[i].layer & layer_id) == layer_id) &&
--		    (map->input_formats[i].format == format))
--			return map->input_formats[i].id;
-+	for (i = 0; i < map->n_pixel_formats; i++) {
-+		if (((map->pixel_formats[i].layer & layer_id) == layer_id) &&
-+		    (map->pixel_formats[i].format == format))
-+			return map->pixel_formats[i].id;
- 	}
+ 	dev_dbg(fei->dev,
+-		"Loading IMEM segment %d 0x%08x\n\t"
+-		" (0x%x bytes) -> 0x%p (0x%x bytes)\n", seg_num,
++		"Loading IMEM segment %d 0x%08x\n\t (0x%x bytes) -> 0x%p (0x%x bytes)\n",
++seg_num,
+ 		phdr->p_paddr, phdr->p_filesz,
+ 		dest, phdr->p_memsz + phdr->p_memsz / 3);
  
- 	return MALIDP_INVALID_FORMAT_ID;
-diff --git a/drivers/gpu/drm/arm/malidp_hw.h b/drivers/gpu/drm/arm/malidp_hw.h
-index 087e1202..4f8c884 100644
---- a/drivers/gpu/drm/arm/malidp_hw.h
-+++ b/drivers/gpu/drm/arm/malidp_hw.h
-@@ -35,7 +35,7 @@ enum {
- 	DE_SMART = BIT(4),
- };
+@@ -1075,8 +1072,7 @@ static void load_dmem_segment(struct c8sectpfei *fei, Elf32_Phdr *phdr,
+ 	 */
  
--struct malidp_input_format {
-+struct malidp_format_id {
- 	u32 format;		/* DRM fourcc */
- 	u8 layer;		/* bitmask of layers supporting it */
- 	u8 id;			/* used internally */
-@@ -85,9 +85,9 @@ struct malidp_hw_regmap {
- 	const struct malidp_irq_map se_irq_map;
- 	const struct malidp_irq_map dc_irq_map;
+ 	dev_dbg(fei->dev,
+-		"Loading DMEM segment %d 0x%08x\n\t"
+-		"(0x%x bytes) -> 0x%p (0x%x bytes)\n",
++		"Loading DMEM segment %d 0x%08x\n\t(0x%x bytes) -> 0x%p (0x%x bytes)\n",
+ 		seg_num, phdr->p_paddr, phdr->p_filesz,
+ 		dst, phdr->p_memsz);
  
--	/* list of supported input formats for each layer */
--	const struct malidp_input_format *input_formats;
--	const u8 n_input_formats;
-+	/* list of supported pixel formats for each layer */
-+	const struct malidp_format_id *pixel_formats;
-+	const u8 n_pixel_formats;
- 
- 	/* pitch alignment requirement in bytes */
- 	const u8 bus_align_bytes;
-diff --git a/drivers/gpu/drm/arm/malidp_planes.c b/drivers/gpu/drm/arm/malidp_planes.c
-index 9020c0d..f44a1cb 100644
---- a/drivers/gpu/drm/arm/malidp_planes.c
-+++ b/drivers/gpu/drm/arm/malidp_planes.c
-@@ -255,7 +255,7 @@ int malidp_de_planes_init(struct drm_device *drm)
- 	u32 *formats;
- 	int ret, i, j, n;
- 
--	formats = kcalloc(map->n_input_formats, sizeof(*formats), GFP_KERNEL);
-+	formats = kcalloc(map->n_pixel_formats, sizeof(*formats), GFP_KERNEL);
- 	if (!formats) {
- 		ret = -ENOMEM;
- 		goto cleanup;
-@@ -271,9 +271,9 @@ int malidp_de_planes_init(struct drm_device *drm)
- 		}
- 
- 		/* build the list of DRM supported formats based on the map */
--		for (n = 0, j = 0;  j < map->n_input_formats; j++) {
--			if ((map->input_formats[j].layer & id) == id)
--				formats[n++] = map->input_formats[j].format;
-+		for (n = 0, j = 0;  j < map->n_pixel_formats; j++) {
-+			if ((map->pixel_formats[j].layer & id) == id)
-+				formats[n++] = map->pixel_formats[j].format;
- 		}
- 
- 		plane_type = (i == 0) ? DRM_PLANE_TYPE_PRIMARY :
 -- 
-1.7.9.5
+2.7.4
+
 
