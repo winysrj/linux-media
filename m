@@ -1,83 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:52888 "EHLO mout02.posteo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751670AbcJJGbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 02:31:47 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id 0401320B17
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:31:16 +0200 (CEST)
-Date: Mon, 10 Oct 2016 08:31:12 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Nicholas Mc Guire <der.herr@hofr.at>
-Cc: Olivier Grenie <olivier.grenie@dibcom.fr>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: RFC - unclear change in "[media] DiBxxxx: Codingstype updates"
-Message-ID: <20161010083112.78aa2585@posteo.de>
-In-Reply-To: <20161008135714.GA1239@osadl.at>
-References: <20161008135714.GA1239@osadl.at>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([198.137.202.9]:51490 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934430AbcJRUqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>
+Subject: [PATCH v2 11/58] dm1105: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:23 -0200
+Message-Id: <c6fab96b1ad7fbd546c7aff2e9646411aded5b37.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, der Herr Hofrat ;-)
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-On Sat, 8 Oct 2016 13:57:14 +0000
-Nicholas Mc Guire <der.herr@hofr.at> wrote:
-> -                 lo6 |= (1 << 2) | 2;
-> -         else
-> -                 lo6 |= (1 << 2) | 1;
-> +                 lo6 |= (1 << 2) | 2;    //SigmaDelta and Dither
-> +         else {
-> +                 if (state->identity.in_soc)
-> +                         lo6 |= (1 << 2) | 2;    //SigmaDelta and
-> Dither
-> +                 else
-> +                         lo6 |= (1 << 2) | 2;    //SigmaDelta and
-> Dither
-> +         }
-> 
->  resulting in the current code-base of:
-> 
->        if (Rest > 0) {
->                if (state->config->analog_output)
->                        lo6 |= (1 << 2) | 2;
->                else {
->                        if (state->identity.in_soc)
->                                lo6 |= (1 << 2) | 2;
->                        else
->                                lo6 |= (1 << 2) | 2;
->                }
->                Den = 255;
->        }
-> 
->  The problem now is that the if and the else(if/else) are
->  all the same and thus the conditions have no effect. Further
->  the origninal code actually had different if/else - so I 
->  wonder if this is a cut&past bug here ?
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-I may answer on behalf of Olivier (didn't his address bounce?).
+So, join those continuation lines.
 
-I don't remember the details, this patch must date from 2011 or
-before, but at that time we generated the linux-driver from our/their
-internal sources.
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-Updates in this area were achieved by a lot of thinking + a mix of trial
-and error (after hours/days/weeks of RF hardware validation). 
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
-This logic above has 3 possibilities: 
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
 
-  - we use the analog-output, or 
-  - we are using the digital one, then there is whether we are being in
-    a SoC or not (SIP or sinlge chip).
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
-At some point in time all values have been different. In the end, they
-aren't anymore, but in case someone wants to try a different value,
-there are placeholders in the code to easily inject these values.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/dm1105/dm1105.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Now the device is stable, maybe even obsolete. We could remove all the
-branches resulting in the same value for lo6.
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index 5dd504741b12..a589aa78d1d9 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -315,8 +315,7 @@ static void dm1105_card_list(struct pci_dev *pci)
+ 			"dm1105: Updating to the latest version might help\n"
+ 			"dm1105: as well.\n");
+ 	}
+-	printk(KERN_ERR "Here is a list of valid choices for the card=<n> "
+-		   "insmod option:\n");
++	printk(KERN_ERR "Here is a list of valid choices for the card=<n> insmod option:\n");
+ 	for (i = 0; i < ARRAY_SIZE(dm1105_boards); i++)
+ 		printk(KERN_ERR "dm1105:    card=%d -> %s\n",
+ 				i, dm1105_boards[i].name);
+-- 
+2.7.4
 
---
-Patrick.
+
