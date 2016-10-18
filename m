@@ -1,169 +1,461 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42808 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754480AbcJPMSw (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51493 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934362AbcJRUqU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 16 Oct 2016 08:18:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: lars@metafoo.de, mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v4 3/8] media: adv7180: add support for NEWAVMODE
-Date: Sun, 16 Oct 2016 15:18:45 +0300
-Message-ID: <3171592.lqAHMF38Fl@avalon>
-In-Reply-To: <1470247430-11168-4-git-send-email-steve_longerbeam@mentor.com>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com> <1470247430-11168-4-git-send-email-steve_longerbeam@mentor.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Maxim Levitsky <maximlevitsky@gmail.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+        Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>, Olli Salonen <olli.salonen@iki.fi>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Russell King <rmk+kernel@arm.linux.org.uk>,
+        Max Kellermann <max@duempel.org>, Ole Ernst <olebowle@gmx.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Colin Ian King <colin.king@canonical.com>,
+        Tina Ruchandani <ruchandani.tina@gmail.com>
+Subject: [PATCH v2 57/58] rc: don't break long lines
+Date: Tue, 18 Oct 2016 18:46:09 -0200
+Message-Id: <ecfcb5907704ef429677209534ec660fbbd1e557.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Thank you for the patch.
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-On Wednesday 03 Aug 2016 11:03:45 Steve Longerbeam wrote:
-> Parse the optional v4l2 endpoint DT node. If the bus type is
-> V4L2_MBUS_BT656 and the endpoint node specifies "newavmode",
-> configure the BT.656 bus in NEWAVMODE.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> 
-> ---
-> 
-> v4: no changes
-> v3:
-> - the newavmode endpoint property is now private to adv7180.
-> ---
->  .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++
->  drivers/media/i2c/adv7180.c                        | 46 +++++++++++++++++--
->  2 files changed, 47 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-> b/Documentation/devicetree/bindings/media/i2c/adv7180.txt index
-> 0d50115..6c175d2 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
-> @@ -15,6 +15,10 @@ Required Properties :
->  		"adi,adv7282"
->  		"adi,adv7282-m"
-> 
-> +Optional Endpoint Properties :
-> +- newavmode: a boolean property to indicate the BT.656 bus is operating
-> +  in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
+So, join those continuation lines.
 
-This is a vendor-specific property, it should be prefixed with "adi,". Could 
-you also explain how this mode works ? I'd like to make sure it qualifies for 
-a DT property.
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-> +
->  Example:
-> 
->  	i2c0@1c22000 {
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index 6e093c22..467953e 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -31,6 +31,7 @@
->  #include <media/v4l2-event.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-of.h>
->  #include <linux/mutex.h>
->  #include <linux/delay.h>
-> 
-> @@ -106,6 +107,7 @@
->  #define ADV7180_REG_SHAP_FILTER_CTL_1	0x0017
->  #define ADV7180_REG_CTRL_2		0x001d
->  #define ADV7180_REG_VSYNC_FIELD_CTL_1	0x0031
-> +#define ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE 0x02
->  #define ADV7180_REG_MANUAL_WIN_CTL_1	0x003d
->  #define ADV7180_REG_MANUAL_WIN_CTL_2	0x003e
->  #define ADV7180_REG_MANUAL_WIN_CTL_3	0x003f
-> @@ -214,6 +216,7 @@ struct adv7180_state {
->  	struct mutex		mutex; /* mutual excl. when accessing chip */
->  	int			irq;
->  	v4l2_std_id		curr_norm;
-> +	bool			newavmode;
->  	bool			powered;
->  	bool			streaming;
->  	u8			input;
-> @@ -864,9 +867,15 @@ static int adv7180_init(struct adv7180_state *state)
->  	if (ret < 0)
->  		return ret;
-> 
-> -	/* Manually set V bit end position in NTSC mode */
-> -	return adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
-> -					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-> +	if (!state->newavmode) {
-> +		/* Manually set V bit end position in NTSC mode */
-> +		ret = adv7180_write(state, ADV7180_REG_NTSC_V_BIT_END,
-> +				    ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
-> +		if (ret < 0)
-> +			return ret;
-> +	}
-> +
-> +	return 0;
->  }
-> 
->  static int adv7180_set_std(struct adv7180_state *state, unsigned int std)
-> @@ -1217,6 +1226,13 @@ static int init_device(struct adv7180_state *state)
->  	if (ret)
->  		goto out_unlock;
-> 
-> +	if (state->newavmode) {
-> +		ret = adv7180_write(state, ADV7180_REG_VSYNC_FIELD_CTL_1,
-> +				    ADV7180_VSYNC_FIELD_CTL_1_NEWAVMODE);
-> +		if (ret < 0)
-> +			goto out_unlock;
-> +	}
-> +
->  	ret = adv7180_program_std(state);
->  	if (ret)
->  		goto out_unlock;
-> @@ -1257,6 +1273,28 @@ out_unlock:
->  	return ret;
->  }
-> 
-> +static void adv7180_of_parse(struct adv7180_state *state)
-> +{
-> +	struct i2c_client *client = state->client;
-> +	struct device_node *np = client->dev.of_node;
-> +	struct device_node *endpoint;
-> +	struct v4l2_of_endpoint	ep;
-> +
-> +	endpoint = of_graph_get_next_endpoint(np, NULL);
-> +	if (!endpoint) {
-> +		v4l_warn(client, "endpoint node not found\n");
-> +		return;
-> +	}
-> +
-> +	v4l2_of_parse_endpoint(endpoint, &ep);
-> +	if (ep.bus_type == V4L2_MBUS_BT656) {
-> +		if (of_property_read_bool(endpoint, "newavmode"))
-> +			state->newavmode = true;
-> +	}
-> +
-> +	of_node_put(endpoint);
-> +}
-> +
->  static int adv7180_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *id)
->  {
-> @@ -1279,6 +1317,8 @@ static int adv7180_probe(struct i2c_client *client,
->  	state->field = V4L2_FIELD_ALTERNATE;
->  	state->chip_info = (struct adv7180_chip_info *)id->driver_data;
-> 
-> +	adv7180_of_parse(state);
-> +
->  	if (state->chip_info->flags & ADV7180_FLAG_MIPI_CSI2) {
->  		state->csi_client = i2c_new_dummy(client->adapter,
->  				ADV7180_DEFAULT_CSI_I2C_ADDR);
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/rc/ati_remote.c  |  3 +--
+ drivers/media/rc/ene_ir.c      |  3 +--
+ drivers/media/rc/imon.c        | 48 +++++++++++++++++-------------------------
+ drivers/media/rc/ite-cir.c     |  9 +++-----
+ drivers/media/rc/mceusb.c      |  4 +---
+ drivers/media/rc/rc-main.c     |  3 +--
+ drivers/media/rc/redrat3.c     | 18 ++++++----------
+ drivers/media/rc/streamzap.c   | 11 +++++-----
+ drivers/media/rc/winbond-cir.c |  9 +++-----
+ 9 files changed, 40 insertions(+), 68 deletions(-)
+
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 9f5b59706741..0884b7dc0e71 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -527,8 +527,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 	remote_num = (data[3] >> 4) & 0x0f;
+ 	if (channel_mask & (1 << (remote_num + 1))) {
+ 		dbginfo(&ati_remote->interface->dev,
+-			"Masked input from channel 0x%02x: data %02x, "
+-			"mask= 0x%02lx\n",
++			"Masked input from channel 0x%02x: data %02x, mask= 0x%02lx\n",
+ 			remote_num, data[2], channel_mask);
+ 		return;
+ 	}
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index d1c61cd035f6..bd5512e64aea 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -1210,8 +1210,7 @@ MODULE_PARM_DESC(txsim,
+ 
+ MODULE_DEVICE_TABLE(pnp, ene_ids);
+ MODULE_DESCRIPTION
+-	("Infrared input driver for KB3926B/C/D/E/F "
+-	"(aka ENE0100/ENE0200/ENE0201/ENE0202) CIR port");
++	("Infrared input driver for KB3926B/C/D/E/F (aka ENE0100/ENE0200/ENE0201/ENE0202) CIR port");
+ 
+ MODULE_AUTHOR("Maxim Levitsky");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index d62b1f38292c..bd807fa4cb9f 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -441,13 +441,11 @@ MODULE_PARM_DESC(debug, "Debug messages: 0=no, 1=yes (default: no)");
+ /* lcd, vfd, vga or none? should be auto-detected, but can be overridden... */
+ static int display_type;
+ module_param(display_type, int, S_IRUGO);
+-MODULE_PARM_DESC(display_type, "Type of attached display. 0=autodetect, "
+-		 "1=vfd, 2=lcd, 3=vga, 4=none (default: autodetect)");
++MODULE_PARM_DESC(display_type, "Type of attached display. 0=autodetect, 1=vfd, 2=lcd, 3=vga, 4=none (default: autodetect)");
+ 
+ static int pad_stabilize = 1;
+ module_param(pad_stabilize, int, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(pad_stabilize, "Apply stabilization algorithm to iMON PAD "
+-		 "presses in arrow key mode. 0=disable, 1=enable (default).");
++MODULE_PARM_DESC(pad_stabilize, "Apply stabilization algorithm to iMON PAD presses in arrow key mode. 0=disable, 1=enable (default).");
+ 
+ /*
+  * In certain use cases, mouse mode isn't really helpful, and could actually
+@@ -455,14 +453,12 @@ MODULE_PARM_DESC(pad_stabilize, "Apply stabilization algorithm to iMON PAD "
+  */
+ static bool nomouse;
+ module_param(nomouse, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(nomouse, "Disable mouse input device mode when IR device is "
+-		 "open. 0=don't disable, 1=disable. (default: don't disable)");
++MODULE_PARM_DESC(nomouse, "Disable mouse input device mode when IR device is open. 0=don't disable, 1=disable. (default: don't disable)");
+ 
+ /* threshold at which a pad push registers as an arrow key in kbd mode */
+ static int pad_thresh;
+ module_param(pad_thresh, int, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(pad_thresh, "Threshold at which a pad push registers as an "
+-		 "arrow key in kbd mode (default: 28)");
++MODULE_PARM_DESC(pad_thresh, "Threshold at which a pad push registers as an arrow key in kbd mode (default: 28)");
+ 
+ 
+ static void free_imon_context(struct imon_context *ictx)
+@@ -785,9 +781,7 @@ static ssize_t show_associate_remote(struct device *d,
+ 	else
+ 		strcpy(buf, "closed\n");
+ 
+-	dev_info(d, "Visit http://www.lirc.org/html/imon-24g.html for "
+-		 "instructions on how to associate your iMON 2.4G DT/LT "
+-		 "remote\n");
++	dev_info(d, "Visit http://www.lirc.org/html/imon-24g.html for instructions on how to associate your iMON 2.4G DT/LT remote\n");
+ 	mutex_unlock(&ictx->lock);
+ 	return strlen(buf);
+ }
+@@ -1115,8 +1109,7 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 *rc_type)
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86 };
+ 
+ 	if (*rc_type && !(*rc_type & rc->allowed_protocols))
+-		dev_warn(dev, "Looks like you're trying to use an IR protocol "
+-			 "this device does not support\n");
++		dev_warn(dev, "Looks like you're trying to use an IR protocol this device does not support\n");
+ 
+ 	if (*rc_type & RC_BIT_RC6_MCE) {
+ 		dev_dbg(dev, "Configuring IR receiver for MCE protocol\n");
+@@ -1129,8 +1122,7 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 *rc_type)
+ 		/* ir_proto_packet[0] = 0x00; // already the default */
+ 		*rc_type = RC_BIT_OTHER;
+ 	} else {
+-		dev_warn(dev, "Unsupported IR protocol specified, overriding "
+-			 "to iMON IR protocol\n");
++		dev_warn(dev, "Unsupported IR protocol specified, overriding to iMON IR protocol\n");
+ 		if (!pad_stabilize)
+ 			dev_dbg(dev, "PAD stabilize functionality disabled\n");
+ 		/* ir_proto_packet[0] = 0x00; // already the default */
+@@ -1719,8 +1711,8 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 
+ not_input_data:
+ 	if (len != 8) {
+-		dev_warn(dev, "imon %s: invalid incoming packet "
+-			 "size (len = %d, intf%d)\n", __func__, len, intf);
++		dev_warn(dev, "imon %s: invalid incoming packet size (len = %d, intf%d)\n",
++			 __func__, len, intf);
+ 		return;
+ 	}
+ 
+@@ -1876,8 +1868,7 @@ static void imon_get_ffdc_type(struct imon_context *ictx)
+ 		allowed_protos = RC_BIT_RC6_MCE;
+ 		break;
+ 	default:
+-		dev_info(ictx->dev, "Unknown 0xffdc device, "
+-			 "defaulting to VFD and iMON IR");
++		dev_info(ictx->dev, "Unknown 0xffdc device, defaulting to VFD and iMON IR");
+ 		detected_display_type = IMON_DISPLAY_TYPE_VFD;
+ 		/* We don't know which one it is, allow user to set the
+ 		 * RC6 one from userspace if OTHER wasn't correct. */
+@@ -1934,8 +1925,8 @@ static void imon_set_display_type(struct imon_context *ictx)
+ 			ictx->display_supported = false;
+ 		else
+ 			ictx->display_supported = true;
+-		dev_info(ictx->dev, "%s: overriding display type to %d via "
+-			 "modparam\n", __func__, display_type);
++		dev_info(ictx->dev, "%s: overriding display type to %d via modparam\n",
++			 __func__, display_type);
+ 	}
+ 
+ 	ictx->display_type = configured_display_type;
+@@ -2156,8 +2147,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 	if (!display_ep_found) {
+ 		tx_control = true;
+ 		display_ep_found = true;
+-		dev_dbg(ictx->dev, "%s: device uses control endpoint, not "
+-			"interface OUT endpoint\n", __func__);
++		dev_dbg(ictx->dev, "%s: device uses control endpoint, not interface OUT endpoint\n",
++			__func__);
+ 	}
+ 
+ 	/*
+@@ -2366,8 +2357,8 @@ static void imon_init_display(struct imon_context *ictx,
+ 	/* set up sysfs entry for built-in clock */
+ 	ret = sysfs_create_group(&intf->dev.kobj, &imon_display_attr_group);
+ 	if (ret)
+-		dev_err(ictx->dev, "Could not create display sysfs "
+-			"entries(%d)", ret);
++		dev_err(ictx->dev, "Could not create display sysfs entries(%d)",
++			ret);
+ 
+ 	if (ictx->display_type == IMON_DISPLAY_TYPE_LCD)
+ 		ret = usb_register_dev(intf, &imon_lcd_class);
+@@ -2375,8 +2366,7 @@ static void imon_init_display(struct imon_context *ictx,
+ 		ret = usb_register_dev(intf, &imon_vfd_class);
+ 	if (ret)
+ 		/* Not a fatal error, so ignore */
+-		dev_info(ictx->dev, "could not get a minor number for "
+-			 "display\n");
++		dev_info(ictx->dev, "could not get a minor number for display\n");
+ 
+ }
+ 
+@@ -2456,8 +2446,8 @@ static int imon_probe(struct usb_interface *interface,
+ 		mutex_unlock(&ictx->lock);
+ 	}
+ 
+-	dev_info(dev, "iMON device (%04x:%04x, intf%d) on "
+-		 "usb<%d:%d> initialized\n", vendor, product, ifnum,
++	dev_info(dev, "iMON device (%04x:%04x, intf%d) on usb<%d:%d> initialized\n",
++		 vendor, product, ifnum,
+ 		 usbdev->bus->busnum, usbdev->devnum);
+ 
+ 	mutex_unlock(&driver_lock);
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 0f301903aa6f..c5e8e3885766 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -55,14 +55,12 @@ MODULE_PARM_DESC(debug, "Enable debugging output");
+ /* low limit for RX carrier freq, Hz, 0 for no RX demodulation */
+ static int rx_low_carrier_freq;
+ module_param(rx_low_carrier_freq, int, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(rx_low_carrier_freq, "Override low RX carrier frequency, Hz, "
+-		 "0 for no RX demodulation");
++MODULE_PARM_DESC(rx_low_carrier_freq, "Override low RX carrier frequency, Hz, 0 for no RX demodulation");
+ 
+ /* high limit for RX carrier freq, Hz, 0 for no RX demodulation */
+ static int rx_high_carrier_freq;
+ module_param(rx_high_carrier_freq, int, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(rx_high_carrier_freq, "Override high RX carrier frequency, "
+-		 "Hz, 0 for no RX demodulation");
++MODULE_PARM_DESC(rx_high_carrier_freq, "Override high RX carrier frequency, Hz, 0 for no RX demodulation");
+ 
+ /* override tx carrier frequency */
+ static int tx_carrier_freq;
+@@ -1484,8 +1482,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 
+ 	if (model_number >= 0 && model_number < ARRAY_SIZE(ite_dev_descs)) {
+ 		model_no = model_number;
+-		ite_pr(KERN_NOTICE, "The model has been fixed by a module "
+-			"parameter.");
++		ite_pr(KERN_NOTICE, "The model has been fixed by a module parameter.");
+ 	}
+ 
+ 	ite_pr(KERN_NOTICE, "Using model: %s\n", ite_dev_descs[model_no].model);
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 4f8c7effdcee..f813b77c595d 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -604,9 +604,7 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
+ 			break;
+ 		case MCE_RSP_EQWAKEVERSION:
+ 			if (!out)
+-				dev_dbg(dev, "Wake version, proto: 0x%02x, "
+-					 "payload: 0x%02x, address: 0x%02x, "
+-					 "version: 0x%02x",
++				dev_dbg(dev, "Wake version, proto: 0x%02x, payload: 0x%02x, address: 0x%02x, version: 0x%02x",
+ 					 data1, data2, data3, data4);
+ 			break;
+ 		case MCE_RSP_GETPORTSTATUS:
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index d9c1f2ff7119..b241e5f569ef 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -660,8 +660,7 @@ static void ir_do_keydown(struct rc_dev *dev, enum rc_type protocol,
+ 		dev->last_toggle = toggle;
+ 		dev->last_keycode = keycode;
+ 
+-		IR_dprintk(1, "%s: key down event, "
+-			   "key 0x%04x, protocol 0x%04x, scancode 0x%08x\n",
++		IR_dprintk(1, "%s: key down event, key 0x%04x, protocol 0x%04x, scancode 0x%08x\n",
+ 			   dev->input_name, keycode, protocol, scancode);
+ 		input_report_key(dev->input_dev, keycode, 1);
+ 
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 05ba47bc0b61..3b0ed1c3f2d8 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -265,8 +265,7 @@ static void redrat3_dump_fw_error(struct redrat3_dev *rr3, int code)
+ 
+ 	/* Codes 0x20 through 0x2f are IR Firmware Errors */
+ 	case 0x20:
+-		pr_cont("Initial signal pulse not long enough "
+-			"to measure carrier frequency\n");
++		pr_cont("Initial signal pulse not long enough to measure carrier frequency\n");
+ 		break;
+ 	case 0x21:
+ 		pr_cont("Not enough length values allocated for signal\n");
+@@ -278,18 +277,15 @@ static void redrat3_dump_fw_error(struct redrat3_dev *rr3, int code)
+ 		pr_cont("Too many signal repeats\n");
+ 		break;
+ 	case 0x28:
+-		pr_cont("Insufficient memory available for IR signal "
+-			"data memory allocation\n");
++		pr_cont("Insufficient memory available for IR signal data memory allocation\n");
+ 		break;
+ 	case 0x29:
+-		pr_cont("Insufficient memory available "
+-			"for IrDa signal data memory allocation\n");
++		pr_cont("Insufficient memory available for IrDa signal data memory allocation\n");
+ 		break;
+ 
+ 	/* Codes 0x30 through 0x3f are USB Firmware Errors */
+ 	case 0x30:
+-		pr_cont("Insufficient memory available for bulk "
+-			"transfer structure\n");
++		pr_cont("Insufficient memory available for bulk transfer structure\n");
+ 		break;
+ 
+ 	/*
+@@ -301,8 +297,7 @@ static void redrat3_dump_fw_error(struct redrat3_dev *rr3, int code)
+ 			pr_cont("Signal capture has been terminated\n");
+ 		break;
+ 	case 0x41:
+-		pr_cont("Attempt to set/get and unknown signal I/O "
+-			"algorithm parameter\n");
++		pr_cont("Attempt to set/get and unknown signal I/O algorithm parameter\n");
+ 		break;
+ 	case 0x42:
+ 		pr_cont("Signal capture already started\n");
+@@ -917,8 +912,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ 		goto out;
+ 	}
+ 
+-	snprintf(rr3->name, sizeof(rr3->name), "RedRat3%s "
+-		 "Infrared Remote Transceiver (%04x:%04x)",
++	snprintf(rr3->name, sizeof(rr3->name), "RedRat3%s Infrared Remote Transceiver (%04x:%04x)",
+ 		 prod == USB_RR3IIUSB_PRODUCT_ID ? "-II" : "",
+ 		 le16_to_cpu(rr3->udev->descriptor.idVendor), prod);
+ 
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index 4004260a7c69..53f9b0af358a 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -297,8 +297,7 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
+ 		goto out;
+ 	}
+ 
+-	snprintf(sz->name, sizeof(sz->name), "Streamzap PC Remote Infrared "
+-		 "Receiver (%04x:%04x)",
++	snprintf(sz->name, sizeof(sz->name), "Streamzap PC Remote Infrared Receiver (%04x:%04x)",
+ 		 le16_to_cpu(sz->usbdev->descriptor.idVendor),
+ 		 le16_to_cpu(sz->usbdev->descriptor.idProduct));
+ 	usb_make_path(sz->usbdev, sz->phys, sizeof(sz->phys));
+@@ -364,15 +363,15 @@ static int streamzap_probe(struct usb_interface *intf,
+ 
+ 	sz->endpoint = &(iface_host->endpoint[0].desc);
+ 	if (!usb_endpoint_dir_in(sz->endpoint)) {
+-		dev_err(&intf->dev, "%s: endpoint doesn't match input device "
+-			"02%02x\n", __func__, sz->endpoint->bEndpointAddress);
++		dev_err(&intf->dev, "%s: endpoint doesn't match input device 02%02x\n",
++			__func__, sz->endpoint->bEndpointAddress);
+ 		retval = -ENODEV;
+ 		goto free_sz;
+ 	}
+ 
+ 	if (!usb_endpoint_xfer_int(sz->endpoint)) {
+-		dev_err(&intf->dev, "%s: endpoint attributes don't match xfer "
+-			"02%02x\n", __func__, sz->endpoint->bmAttributes);
++		dev_err(&intf->dev, "%s: endpoint attributes don't match xfer 02%02x\n",
++			__func__, sz->endpoint->bmAttributes);
+ 		retval = -ENODEV;
+ 		goto free_sz;
+ 	}
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 95ae60e659a1..cdcd6e38b295 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -227,8 +227,7 @@ struct wbcir_data {
+ 
+ static enum wbcir_protocol protocol = IR_PROTOCOL_RC6;
+ module_param(protocol, uint, 0444);
+-MODULE_PARM_DESC(protocol, "IR protocol to use for the power-on command "
+-		 "(0 = RC5, 1 = NEC, 2 = RC6A, default)");
++MODULE_PARM_DESC(protocol, "IR protocol to use for the power-on command (0 = RC5, 1 = NEC, 2 = RC6A, default)");
+ 
+ static bool invert; /* default = 0 */
+ module_param(invert, bool, 0444);
+@@ -244,8 +243,7 @@ MODULE_PARM_DESC(wake_sc, "Scancode of the power-on IR command");
+ 
+ static unsigned int wake_rc6mode = 6;
+ module_param(wake_rc6mode, uint, 0644);
+-MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command "
+-		 "(0 = 0, 6 = 6A, default)");
++MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command (0 = 0, 6 = 6A, default)");
+ 
+ 
+ 
+@@ -1050,8 +1048,7 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 		goto exit_free_data;
+ 	}
+ 
+-	dev_dbg(&device->dev, "Found device "
+-		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
++	dev_dbg(&device->dev, "Found device (w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
+ 		data->wbase, data->ebase, data->sbase, data->irq);
+ 
+ 	data->led.name = "cir::activity";
 -- 
-Regards,
+2.7.4
 
-Laurent Pinchart
 
