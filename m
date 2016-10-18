@@ -1,81 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59056 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:51482 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756467AbcJNUWn (ORCPT
+        with ESMTP id S934325AbcJRUqU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
+        Tue, 18 Oct 2016 16:46:20 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 06/57] [media] soc_camera: don't break long lines
-Date: Fri, 14 Oct 2016 17:19:54 -0300
-Message-Id: <b43d1aa0ccb026534774b21cf5ec61950f4f1517.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH v2 32/58] b2c2: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:44 -0200
+Message-Id: <b30d41a26b3c2189aaa281d9c9a8ed6f61c2d23a.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
+
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
+
+So, join those continuation lines.
+
+The patch was generated via the script below, and manually
+adjusted if needed.
+
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/soc_camera/ov772x.c | 3 +--
- drivers/media/i2c/soc_camera/ov9740.c | 3 +--
- drivers/media/i2c/soc_camera/tw9910.c | 3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
+ drivers/media/usb/b2c2/flexcop-usb.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
-index 7e68762b3a4b..985a3672b243 100644
---- a/drivers/media/i2c/soc_camera/ov772x.c
-+++ b/drivers/media/i2c/soc_camera/ov772x.c
-@@ -1064,8 +1064,7 @@ static int ov772x_probe(struct i2c_client *client,
+diff --git a/drivers/media/usb/b2c2/flexcop-usb.c b/drivers/media/usb/b2c2/flexcop-usb.c
+index d4bdba60b0f7..086afe25df76 100644
+--- a/drivers/media/usb/b2c2/flexcop-usb.c
++++ b/drivers/media/usb/b2c2/flexcop-usb.c
+@@ -33,8 +33,7 @@
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&adapter->dev,
--			"I2C-Adapter doesn't support "
--			"I2C_FUNC_SMBUS_BYTE_DATA\n");
-+			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
- 		return -EIO;
- 	}
+ static int debug;
+ module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug, "set debugging level (1=info,ts=2,"
+-		"ctrl=4,i2c=8,v8mem=16 (or-able))." DEBSTATUS);
++MODULE_PARM_DESC(debug, "set debugging level (1=info,ts=2,ctrl=4,i2c=8,v8mem=16 (or-able))." DEBSTATUS);
+ #undef DEBSTATUS
  
-diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
-index 0da632d7d33a..f11f76cdacad 100644
---- a/drivers/media/i2c/soc_camera/ov9740.c
-+++ b/drivers/media/i2c/soc_camera/ov9740.c
-@@ -881,8 +881,7 @@ static int ov9740_video_probe(struct i2c_client *client)
- 		goto done;
- 	}
+ #define deb_info(args...) dprintk(0x01, args)
+@@ -403,8 +402,8 @@ static int flexcop_usb_transfer_init(struct flexcop_usb *fc_usb)
+ 		frame_size, i, j, ret;
+ 	int buffer_offset = 0;
  
--	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, "
--		 "Manufacturer 0x%02x, SMIA Version 0x%02x\n",
-+	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, Manufacturer 0x%02x, SMIA Version 0x%02x\n",
- 		 priv->model, priv->revision, priv->manid, priv->smiaver);
+-	deb_ts("creating %d iso-urbs with %d frames "
+-			"each of %d bytes size = %d.\n", B2C2_USB_NUM_ISO_URB,
++	deb_ts("creating %d iso-urbs with %d frames each of %d bytes size = %d.\n",
++	       B2C2_USB_NUM_ISO_URB,
+ 			B2C2_USB_FRAMES_PER_ISO, frame_size, bufsize);
  
- 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
-diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
-index 4002c07f3857..c9c49ed707b8 100644
---- a/drivers/media/i2c/soc_camera/tw9910.c
-+++ b/drivers/media/i2c/soc_camera/tw9910.c
-@@ -947,8 +947,7 @@ static int tw9910_probe(struct i2c_client *client,
+ 	fc_usb->iso_buffer = usb_alloc_coherent(fc_usb->udev,
+@@ -429,8 +428,8 @@ static int flexcop_usb_transfer_init(struct flexcop_usb *fc_usb)
+ 	for (i = 0; i < B2C2_USB_NUM_ISO_URB; i++) {
+ 		int frame_offset = 0;
+ 		struct urb *urb = fc_usb->iso_urb[i];
+-		deb_ts("initializing and submitting urb no. %d "
+-			"(buf_offset: %d).\n", i, buffer_offset);
++		deb_ts("initializing and submitting urb no. %d (buf_offset: %d).\n",
++		       i, buffer_offset);
  
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&client->dev,
--			"I2C-Adapter doesn't support "
--			"I2C_FUNC_SMBUS_BYTE_DATA\n");
-+			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
- 		return -EIO;
- 	}
- 
+ 		urb->dev = fc_usb->udev;
+ 		urb->context = fc_usb;
 -- 
 2.7.4
 
