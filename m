@@ -1,339 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:35004 "EHLO
-        mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755414AbcJaNm4 (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51561 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934993AbcJRUqW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 09:42:56 -0400
-Received: by mail-oi0-f53.google.com with SMTP id i127so229634773oia.2
-        for <linux-media@vger.kernel.org>; Mon, 31 Oct 2016 06:42:56 -0700 (PDT)
-MIME-Version: 1.0
-From: =?UTF-8?Q?Niels_M=C3=B6ller?= <nisse@google.com>
-Date: Mon, 31 Oct 2016 14:42:54 +0100
-Message-ID: <CANKQH8jiPypkgJ30KAjedjJvfDASZ6V9sZXKHN54xpv1=i9XbA@mail.gmail.com>
-Subject: Problem with uvcvideo timestamps
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=94eb2c03562a95e2b70540296285
+        Tue, 18 Oct 2016 16:46:22 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH v2 44/58] tm6000: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:56 -0200
+Message-Id: <79d35ee9b553127adb8c9f08bba91216dbd59043.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---94eb2c03562a95e2b70540296285
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Hi,
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-I'm tracking down a problem in Chrome, where video streams captured
-from a Logitech c930e camera get bogus timestamps. Chrome started
-using camera timestamps on linux a few months ago. I've noted commit
+So, join those continuation lines.
 
-  https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?i=
-d=3D5d0fd3c806b9e932010931ae67dbb482020e0882
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-  "[media] uvcvideo: Disable hardware timestamps by default"
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
-but I'm running with a kernel which doesn't have that change.
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
 
-First, let me say that for our purposes, the hairy syncing to the
-"SOF" clock done by uvc_video_clock_update is not that useful.
-Ideally, I would prefer if the v4l2_buffer of a captured frame
-included both
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
-  * untranslated pts timestamp from the camera device (if I've
-    understood this correctly, and there is a pts sent over the wire),
-    and
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/tm6000/tm6000-alsa.c  |  4 +---
+ drivers/media/usb/tm6000/tm6000-core.c  | 14 ++++++--------
+ drivers/media/usb/tm6000/tm6000-dvb.c   | 16 +++++-----------
+ drivers/media/usb/tm6000/tm6000-i2c.c   |  3 +--
+ drivers/media/usb/tm6000/tm6000-stds.c  |  3 +--
+ drivers/media/usb/tm6000/tm6000-video.c | 18 ++++++++----------
+ 6 files changed, 22 insertions(+), 36 deletions(-)
 
-  * the value of system monotonic clock at the point when the frame
-    was received by the kernel.
+diff --git a/drivers/media/usb/tm6000/tm6000-alsa.c b/drivers/media/usb/tm6000/tm6000-alsa.c
+index f16fbd1f9f51..422322541af6 100644
+--- a/drivers/media/usb/tm6000/tm6000-alsa.c
++++ b/drivers/media/usb/tm6000/tm6000-alsa.c
+@@ -58,9 +58,7 @@ MODULE_PARM_DESC(index, "Index value for tm6000x capture interface(s).");
+ MODULE_DESCRIPTION("ALSA driver module for tm5600/tm6000/tm6010 based TV cards");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_LICENSE("GPL");
+-MODULE_SUPPORTED_DEVICE("{{Trident,tm5600},"
+-			"{{Trident,tm6000},"
+-			"{{Trident,tm6010}");
++MODULE_SUPPORTED_DEVICE("{{Trident,tm5600},{{Trident,tm6000},{{Trident,tm6010}");
+ static unsigned int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "enable debug messages");
+diff --git a/drivers/media/usb/tm6000/tm6000-core.c b/drivers/media/usb/tm6000/tm6000-core.c
+index 7c32353c59db..8d104e5c4be3 100644
+--- a/drivers/media/usb/tm6000/tm6000-core.c
++++ b/drivers/media/usb/tm6000/tm6000-core.c
+@@ -602,8 +602,8 @@ int tm6000_init(struct tm6000_core *dev)
+ 	for (i = 0; i < size; i++) {
+ 		rc = tm6000_set_reg(dev, tab[i].req, tab[i].reg, tab[i].val);
+ 		if (rc < 0) {
+-			printk(KERN_ERR "Error %i while setting req %d, "
+-					"reg %d to value %d\n", rc,
++			printk(KERN_ERR "Error %i while setting req %d, reg %d to value %d\n",
++			       rc,
+ 					tab[i].req, tab[i].reg, tab[i].val);
+ 			return rc;
+ 		}
+@@ -761,9 +761,8 @@ int tm6000_tvaudio_set_mute(struct tm6000_core *dev, u8 mute)
+ 		if (dev->dev_type == TM6010)
+ 			tm6010_set_mute_sif(dev, mute);
+ 		else {
+-			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
+-					" SIF audio inputs. Please check the %s"
+-					" configuration.\n", dev->name);
++			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has SIF audio inputs. Please check the %s configuration.\n",
++			       dev->name);
+ 			return -EINVAL;
+ 		}
+ 		break;
+@@ -822,9 +821,8 @@ void tm6000_set_volume(struct tm6000_core *dev, int vol)
+ 		if (dev->dev_type == TM6010)
+ 			tm6010_set_volume_sif(dev, vol);
+ 		else
+-			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has"
+-					" SIF audio inputs. Please check the %s"
+-					" configuration.\n", dev->name);
++			printk(KERN_INFO "ERROR: TM5600 and TM6000 don't has SIF audio inputs. Please check the %s configuration.\n",
++			       dev->name);
+ 		break;
+ 	case TM6000_AMUX_ADC1:
+ 	case TM6000_AMUX_ADC2:
+diff --git a/drivers/media/usb/tm6000/tm6000-dvb.c b/drivers/media/usb/tm6000/tm6000-dvb.c
+index 0426b210383b..70dbaec1219e 100644
+--- a/drivers/media/usb/tm6000/tm6000-dvb.c
++++ b/drivers/media/usb/tm6000/tm6000-dvb.c
+@@ -35,9 +35,7 @@ MODULE_DESCRIPTION("DVB driver extension module for tm5600/6000/6010 based TV ca
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_LICENSE("GPL");
+ 
+-MODULE_SUPPORTED_DEVICE("{{Trident, tm5600},"
+-			"{{Trident, tm6000},"
+-			"{{Trident, tm6010}");
++MODULE_SUPPORTED_DEVICE("{{Trident, tm5600},{{Trident, tm6000},{{Trident, tm6010}");
+ 
+ static int debug;
+ 
+@@ -292,13 +290,11 @@ static int register_dvb(struct tm6000_core *dev)
+ 			}
+ 
+ 			if (!dvb_attach(xc2028_attach, dvb->frontend, &cfg)) {
+-				printk(KERN_ERR "tm6000: couldn't register "
+-						"frontend (xc3028)\n");
++				printk(KERN_ERR "tm6000: couldn't register frontend (xc3028)\n");
+ 				ret = -EINVAL;
+ 				goto frontend_err;
+ 			}
+-			printk(KERN_INFO "tm6000: XC2028/3028 asked to be "
+-					 "attached to frontend!\n");
++			printk(KERN_INFO "tm6000: XC2028/3028 asked to be attached to frontend!\n");
+ 			break;
+ 			}
+ 		case TUNER_XC5000: {
+@@ -315,13 +311,11 @@ static int register_dvb(struct tm6000_core *dev)
+ 			}
+ 
+ 			if (!dvb_attach(xc5000_attach, dvb->frontend, &dev->i2c_adap, &cfg)) {
+-				printk(KERN_ERR "tm6000: couldn't register "
+-						"frontend (xc5000)\n");
++				printk(KERN_ERR "tm6000: couldn't register frontend (xc5000)\n");
+ 				ret = -EINVAL;
+ 				goto frontend_err;
+ 			}
+-			printk(KERN_INFO "tm6000: XC5000 asked to be "
+-					 "attached to frontend!\n");
++			printk(KERN_INFO "tm6000: XC5000 asked to be attached to frontend!\n");
+ 			break;
+ 			}
+ 		}
+diff --git a/drivers/media/usb/tm6000/tm6000-i2c.c b/drivers/media/usb/tm6000/tm6000-i2c.c
+index c7e23e3dd75e..b01d3ee56e77 100644
+--- a/drivers/media/usb/tm6000/tm6000-i2c.c
++++ b/drivers/media/usb/tm6000/tm6000-i2c.c
+@@ -173,8 +173,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			 * immediately after a 1 or 2 byte write to select
+ 			 * a register.  We cannot fulfil this request.
+ 			 */
+-			i2c_dprintk(2, " read without preceding write not"
+-				       " supported");
++			i2c_dprintk(2, " read without preceding write not supported");
+ 			rc = -EOPNOTSUPP;
+ 			goto err;
+ 		} else if (i + 1 < num && msgs[i].len <= 2 &&
+diff --git a/drivers/media/usb/tm6000/tm6000-stds.c b/drivers/media/usb/tm6000/tm6000-stds.c
+index 93a4b2434b6e..4064a5e8fae1 100644
+--- a/drivers/media/usb/tm6000/tm6000-stds.c
++++ b/drivers/media/usb/tm6000/tm6000-stds.c
+@@ -464,8 +464,7 @@ static int tm6000_load_std(struct tm6000_core *dev, struct tm6000_reg_settings *
+ 	for (i = 0; set[i].req; i++) {
+ 		rc = tm6000_set_reg(dev, set[i].req, set[i].reg, set[i].value);
+ 		if (rc < 0) {
+-			printk(KERN_ERR "Error %i while setting "
+-			       "req %d, reg %d to value %d\n",
++			printk(KERN_ERR "Error %i while setting req %d, reg %d to value %d\n",
+ 			       rc, set[i].req, set[i].reg, set[i].value);
+ 			return rc;
+ 		}
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index dee7e7d3d47d..d9f3fa5db8dd 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -615,8 +615,7 @@ static int tm6000_prepare_isoc(struct tm6000_core *dev)
+ 		return -ENOMEM;
+ 	}
+ 
+-	dprintk(dev, V4L2_DEBUG_QUEUE, "Allocating %d x %d packets"
+-		    " (%d bytes) of %d bytes each to handle %u size\n",
++	dprintk(dev, V4L2_DEBUG_QUEUE, "Allocating %d x %d packets (%d bytes) of %d bytes each to handle %u size\n",
+ 		    max_packets, num_bufs, sb_size,
+ 		    dev->isoc_in.maxsize, size);
+ 
+@@ -939,8 +938,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+ 	if (NULL == fmt) {
+-		dprintk(dev, 2, "Fourcc format (0x%08x)"
+-				" invalid.\n", f->fmt.pix.pixelformat);
++		dprintk(dev, 2, "Fourcc format (0x%08x) invalid.\n",
++			f->fmt.pix.pixelformat);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -1366,14 +1365,13 @@ static int __tm6000_open(struct file *file)
+ 	fh->width = dev->width;
+ 	fh->height = dev->height;
+ 
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=0x%08lx, dev=0x%08lx, "
+-						"dev->vidq=0x%08lx\n",
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: fh=0x%08lx, dev=0x%08lx, dev->vidq=0x%08lx\n",
+ 			(unsigned long)fh, (unsigned long)dev,
+ 			(unsigned long)&dev->vidq);
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty "
+-				"queued=%d\n", list_empty(&dev->vidq.queued));
+-	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty "
+-				"active=%d\n", list_empty(&dev->vidq.active));
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty queued=%d\n",
++		list_empty(&dev->vidq.queued));
++	dprintk(dev, V4L2_DEBUG_OPEN, "Open: list_empty active=%d\n",
++		list_empty(&dev->vidq.active));
+ 
+ 	/* initialize hardware on analog mode */
+ 	rc = tm6000_init_analog_mode(dev);
+-- 
+2.7.4
 
-Is there any reasonable way to get this information out from the
-driver? We could then do estimation of the camera's epoch and clock
-drift in the application. The raw pts is the most important piece of
-information.
 
-Second, I'd like to try to provide some logs to help track down the
-bug. To reproduce, I'm using the example program at
-https://gist.github.com/maxlapshin/1253534, modified to print out
-camera timestamp and gettimeofday for each frame. Log attached as
-time-2.log.
-
-I also enabled tracing of the clock translation logic using
-
-  echo 4096 > /sys/module/uvcvideo/parameters/trace
-
-The corresponding kernel log messages are attached as trace-2.log.
-
-In time-2.log (i.e., the application log), I see that camera
-timestamps move backwards in time,
-
-  TIMESTAMP_MONOTONIC
-     cam: 2321521.085372
-     sys: 1477913910.983620
-  TIMESTAMP_MONOTONIC
-     cam: 2321520.879272
-     sys: 1477913911.051628
-
-In trace-2.log (i.e., kernel log messages) I see
-
-  uvcvideo: Logitech Webcam C930e: PTS 219483992 y 4084.798004 SOF
-4084.798004 (x1 2064310082 x2 2148397132 y1 218759168 y2 268238848 SOF
-offset 170)
-  uvcvideo: Logitech Webcam C930e: SOF 4084.798004 y 3105900702 ts
-2321520.879272 buf ts 2321521.153372 (x1 218759168/1546/1290 x2
-274071552/1878/2045 y1 1000000000 y2 3380001263)
-  uvcvideo: Logitech Webcam C930e: PTS 221480532 y 4156.709564 SOF
-4156.709564 (x1 2079524156 x2 2148397450 y1 256376832 y2 272629760 SOF
-offset 170)
-  uvcvideo: Logitech Webcam C930e: SOF 4156.709564 y 2453257742 ts
-2321520.378627 buf ts 2321521.217373 (x1 262275072/1698/1864 x2
-278265856/1942/64 y1 1000000000 y2 3292003672)
-  uvcvideo: Logitech Webcam C930e: PTS 223477044 y 4223.428085 SOF
-4223.428085 (x1 2081269216 x2 2148397122 y1 264568832 y2 276955136 SOF
-offset 170)
-  uvcvideo: Logitech Webcam C930e: SOF 2175.428085 y 2158773894 ts
-2321520.208143 buf ts 2321521.285373 (x1 136183808/1822/1989 x2
-148504576/2010/130 y1 1000000000 y2 3236003012)
-
-I don't know the details of the usb protocol, but it looks like the
-"SOF" value is usually increasing. But close to the bogus output
-timestamp of 2321520.879272, it goes through some kind of wraparound,
-with the sequence of values
-
-  4156.709564
-  4223.428085
-  2175.428085    # 2048 less than previous value
-  2243.169921
-
-I hope the attached logs provide enough information to analyze where
-uvc_video_clock_update gets this wrong.
-
-Best regards,
-/Niels M=C3=B6ller
-
---94eb2c03562a95e2b70540296285
-Content-Type: text/x-log; charset=US-ASCII; name="time-2.log"
-Content-Disposition: attachment; filename="time-2.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_iuy3bm7u0
-
-VElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTguNzczMzcyCiAgIHN5czogMTQ3Nzkx
-MzkwOC42NzE2MDcKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTguOTI1MzY5CiAg
-IHN5czogMTQ3NzkxMzkwOC44MjM1OTQKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1
-MTkuMDQ5MzY5CiAgIHN5czogMTQ3NzkxMzkwOC45NDc2MDAKVElNRVNUQU1QX01PTk9UT05JQwog
-ICBjYW06IDIzMjE1MTkuMTczMzcwCiAgIHN5czogMTQ3NzkxMzkwOS4wNzE2MTAKVElNRVNUQU1Q
-X01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuMjk3MzY5CiAgIHN5czogMTQ3NzkxMzkwOS4xOTU2
-MDMKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuNDIxMzcwCiAgIHN5czogMTQ3
-NzkxMzkwOS4zMTk2MDcKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuNDg5MzY5
-CiAgIHN5czogMTQ3NzkxMzkwOS4zODc1OTQKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIz
-MjE1MTkuNTUzMzcwCiAgIHN5czogMTQ3NzkxMzkwOS40NTU1ODYKVElNRVNUQU1QX01PTk9UT05J
-QwogICBjYW06IDIzMjE1MTkuNjIxMzY5CiAgIHN5czogMTQ3NzkxMzkwOS41MTk2MDEKVElNRVNU
-QU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuNjg5MzY5CiAgIHN5czogMTQ3NzkxMzkwOS41
-ODc1OTQKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuNzUzMzcwCiAgIHN5czog
-MTQ3NzkxMzkwOS42NTU1ODcKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuODIx
-MzcwCiAgIHN5czogMTQ3NzkxMzkwOS43MTk2MDAKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06
-IDIzMjE1MTkuODg5MzcwCiAgIHN5czogMTQ3NzkxMzkwOS43ODc1OTQKVElNRVNUQU1QX01PTk9U
-T05JQwogICBjYW06IDIzMjE1MTkuOTUzMzcxCiAgIHN5czogMTQ3NzkxMzkwOS44NTU1ODUKVElN
-RVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuMDIxMzcwCiAgIHN5czogMTQ3NzkxMzkw
-OS45MTk2MDIKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuMDg5MzcwCiAgIHN5
-czogMTQ3NzkxMzkwOS45ODc1OTQKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAu
-MTUzMzcwCiAgIHN5czogMTQ3NzkxMzkxMC4wNTE2MDkKVElNRVNUQU1QX01PTk9UT05JQwogICBj
-YW06IDIzMjE1MjAuMjIxMzcxCiAgIHN5czogMTQ3NzkxMzkxMC4xMTk1OTcKVElNRVNUQU1QX01P
-Tk9UT05JQwogICBjYW06IDIzMjE1MjAuMjg5MzcxCiAgIHN5czogMTQ3NzkxMzkxMC4xODc1OTkK
-VElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuMzUzMzcxCiAgIHN5czogMTQ3Nzkx
-MzkxMC4yNTE2MDkKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuNDIxMzcxCiAg
-IHN5czogMTQ3NzkxMzkxMC4zMTk1OTcKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1
-MjAuNDg1MzcyCiAgIHN5czogMTQ3NzkxMzkxMC4zODc1ODgKVElNRVNUQU1QX01PTk9UT05JQwog
-ICBjYW06IDIzMjE1MjAuNTUzMzcxCiAgIHN5czogMTQ3NzkxMzkxMC40NTE2MDQKVElNRVNUQU1Q
-X01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuNjIxMzcxCiAgIHN5czogMTQ3NzkxMzkxMC41MTk1
-OTUKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuNjg1MzcyCiAgIHN5czogMTQ3
-NzkxMzkxMC41ODc1ODgKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuNzUzMzcy
-CiAgIHN5czogMTQ3NzkxMzkxMC42NTE2MDMKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIz
-MjE1MjAuODIxMzc0CiAgIHN5czogMTQ3NzkxMzkxMC43MTk1OTUKVElNRVNUQU1QX01PTk9UT05J
-QwogICBjYW06IDIzMjE1MjAuODg1MzcyCiAgIHN5czogMTQ3NzkxMzkxMC43ODM2MDkKVElNRVNU
-QU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuOTUzMzcyCiAgIHN5czogMTQ3NzkxMzkxMC44
-NTE2MDAKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjEuMDIxMzczCiAgIHN5czog
-MTQ3NzkxMzkxMC45MTk2MDIKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjEuMDg1
-MzcyCiAgIHN5czogMTQ3NzkxMzkxMC45ODM2MjAKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06
-IDIzMjE1MjAuODc5MjcyCiAgIHN5czogMTQ3NzkxMzkxMS4wNTE2MjgKVElNRVNUQU1QX01PTk9U
-T05JQwogICBjYW06IDIzMjE1MjAuMzc4NjI3CiAgIHN5czogMTQ3NzkxMzkxMS4xMTk2MDUKVElN
-RVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MjAuMjA4MTQzCiAgIHN5czogMTQ3NzkxMzkx
-MS4xODM2MTgKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTkuODUzMjk3CiAgIHN5
-czogMTQ3NzkxMzkxMS4yNTE2MDkKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMjE1MTgu
-ODI0ODUxCiAgIHN5czogMTQ3NzkxMzkxMS4zMTk2MDAKVElNRVNUQU1QX01PTk9UT05JQwogICBj
-YW06IDIzMzkxMDIuMjkwODM4CiAgIHN5czogMTQ3NzkxMzkxMS4zODM2MTUKVElNRVNUQU1QX01P
-Tk9UT05JQwogICBjYW06IDIzMzkxMDIuMjI5ODM3CiAgIHN5czogMTQ3NzkxMzkxMS40NTE2MDgK
-VElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMzkxMDIuNTUxODM2CiAgIHN5czogMTQ3Nzkx
-MzkxMS41MTU2MjQKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMzkxMDIuNDkwODM2CiAg
-IHN5czogMTQ3NzkxMzkxMS41ODM2MTIKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMzkx
-MDIuMzAwODI4CiAgIHN5czogMTQ3NzkxMzkxMS42NTE2MDYKVElNRVNUQU1QX01PTk9UT05JQwog
-ICBjYW06IDIzMzkxMDIuNzUxODQ1CiAgIHN5czogMTQ3NzkxMzkxMS43MTU2MjIKVElNRVNUQU1Q
-X01PTk9UT05JQwogICBjYW06IDIzMzkxMDIuNTYxODM2CiAgIHN5czogMTQ3NzkxMzkxMS43ODM2
-MTYKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzNDQ5NjMuMzk2MDUxCiAgIHN5czogMTQ3
-NzkxMzkxMS44NTE2MDMKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMzkxMDIuODIyODQ3
-CiAgIHN5czogMTQ3NzkxMzkxMS45MTU2MjIKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIz
-MzkxMDIuNzYxODM4CiAgIHN5czogMTQ3NzkxMzkxMS45ODM2MTAKVElNRVNUQU1QX01PTk9UT05J
-QwogICBjYW06IDIzNDQ5NjMuNDI0NDA3CiAgIHN5czogMTQ3NzkxMzkxMi4wNTE2MDEKVElNRVNU
-QU1QX01PTk9UT05JQwogICBjYW06IDIzMzkxMDMuMDIyODM2CiAgIHN5czogMTQ3NzkxMzkxMi4x
-MTU2MjUKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzMzkxMDIuOTYxODM1CiAgIHN5czog
-MTQ3NzkxMzkxMi4xODM2MDcKVElNRVNUQU1QX01PTk9UT05JQwogICBjYW06IDIzNDQ5NjMuNjI0
-NDAzCiAgIHN5czogMTQ3NzkxMzkxMi4yNDc2MjcKCg==
---94eb2c03562a95e2b70540296285
-Content-Type: text/x-log; charset=US-ASCII; name="trace-2.log"
-Content-Disposition: attachment; filename="trace-2.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_iuy3gos51
-
-T2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0
-MS4xMzk3ODldIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFBUUyAyMTk0ODM5OTIg
-eSA0MDg0Ljc5ODAwNCBTT0YgNDA4NC43OTgwMDQgKHgxIDIwNjQzMTAwODIgeDIgMjE0ODM5NzEz
-MiB5MSAyMTg3NTkxNjggeTIgMjY4MjM4ODQ4IFNPRiBvZmZzZXQgMTcwKQpPY3QgMzEgMTI6Mzg6
-MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQxLjEzOTc5OF0gdXZj
-dmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogU09GIDQwODQuNzk4MDA0IHkgMzEwNTkwMDcw
-MiB0cyAyMzIxNTIwLjg3OTI3MiBidWYgdHMgMjMyMTUyMS4xNTMzNzIgKHgxIDIxODc1OTE2OC8x
-NTQ2LzEyOTAgeDIgMjc0MDcxNTUyLzE4NzgvMjA0NSB5MSAxMDAwMDAwMDAwIHkyIDMzODAwMDEy
-NjMpCk9jdCAzMSAxMjozODozMSBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIz
-MjI5NDEuMjA3ODExXSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBQVFMgMjIxNDgw
-NTMyIHkgNDE1Ni43MDk1NjQgU09GIDQxNTYuNzA5NTY0ICh4MSAyMDc5NTI0MTU2IHgyIDIxNDgz
-OTc0NTAgeTEgMjU2Mzc2ODMyIHkyIDI3MjYyOTc2MCBTT0Ygb2Zmc2V0IDE3MCkKT2N0IDMxIDEy
-OjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0MS4yMDc4MTdd
-IHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFNPRiA0MTU2LjcwOTU2NCB5IDI0NTMy
-NTc3NDIgdHMgMjMyMTUyMC4zNzg2MjcgYnVmIHRzIDIzMjE1MjEuMjE3MzczICh4MSAyNjIyNzUw
-NzIvMTY5OC8xODY0IHgyIDI3ODI2NTg1Ni8xOTQyLzY0IHkxIDEwMDAwMDAwMDAgeTIgMzI5MjAw
-MzY3MikKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBb
-MjMyMjk0MS4yNzE4NjRdIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFBUUyAyMjM0
-NzcwNDQgeSA0MjIzLjQyODA4NSBTT0YgNDIyMy40MjgwODUgKHgxIDIwODEyNjkyMTYgeDIgMjE0
-ODM5NzEyMiB5MSAyNjQ1Njg4MzIgeTIgMjc2OTU1MTM2IFNPRiBvZmZzZXQgMTcwKQpPY3QgMzEg
-MTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQxLjI3MTg2
-OV0gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogU09GIDIxNzUuNDI4MDg1IHkgMjE1
-ODc3Mzg5NCB0cyAyMzIxNTIwLjIwODE0MyBidWYgdHMgMjMyMTUyMS4yODUzNzMgKHgxIDEzNjE4
-MzgwOC8xODIyLzE5ODkgeDIgMTQ4NTA0NTc2LzIwMTAvMTMwIHkxIDEwMDAwMDAwMDAgeTIgMzIz
-NjAwMzAxMikKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVs
-OiBbMjMyMjk0MS4zMzk4OTZdIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFBUUyAy
-MjU0NzM1NzYgeSAyMjQzLjE2OTkyMSBTT0YgMjI0My4xNjk5MjEgKHgxIDIwODMwMTQ0MzggeDIg
-MjE0ODM5NzA0MiB5MSAxMzg1NDMxMDQgeTIgMTQ3MTI4MzIwIFNPRiBvZmZzZXQgMTcwKQpPY3Qg
-MzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQxLjMz
-OTkwMl0gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogU09GIDIyNDMuMTY5OTIxIHkg
-MTY3OTkyODQxMyB0cyAyMzIxNTE5Ljg1MzI5NyBidWYgdHMgMjMyMTUyMS4zNTMzNzMgKHgxIDE0
-NDMxMDI3Mi8xOTQ2LzY2IHgyIDE1Mjk2MTAyNC8zMC8xOTcgeTEgMTAwMDAwMDAwMCB5MiAzMTgw
-MDAyOTM3KQpPY3QgMzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6
-IFsyMzIyOTQxLjQwNzkyOF0gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogUFRTIDIy
-NzQ3MDA5OCB5IDIzMDkuOTUyMjU1IFNPRiAyMzA5Ljk1MjI1NSAoeDEgMjA4NDc1OTUxNiB4MiAy
-MTQ4Mzk3MDE0IHkxIDE0NjY2OTU2OCB5MiAxNTE0NTM2OTYgU09GIG9mZnNldCAxNzApCk9jdCAz
-MSAxMjozODozMSBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDEuNDA3
-OTM0XSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBTT0YgMjMwOS45NTIyNTUgeSA1
-Mjc0ODIxNjcgdHMgMjMyMTUxOC44MjQ4NTEgYnVmIHRzIDIzMjE1MjEuNDE3MzczICh4MSAxNTI0
-MzY3MzYvMjIvMTkwIHgyIDE1NzE1NTMyOC85NC8yNjMgeTEgMTAwMDAwMDAwMCB5MiAzMTIwMDA0
-MDU2KQpPY3QgMzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsy
-MzIyOTQxLjQ3MTk4M10gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogUFRTIDIyOTQ2
-NjYxNiB5IDIzNzcuNzc4NTk0IFNPRiAyMzc3Ljc3ODU5NCAoeDEgMjA4NjUwNDU5NiB4MiAyMTQ4
-Mzk3MTQ2IHkxIDE1NDg2MTU2OCB5MiAxNTU4NDQ2MDggU09GIG9mZnNldCAxNzApCk9jdCAzMSAx
-MjozODozMSBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDEuNDcxOTg5
-XSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBTT0YgMjM3Ny43Nzg1OTQgeSAxNzU4
-Mzg2OTQ2ODUxOSB0cyAyMzM5MTAyLjI5MDgzOCBidWYgdHMgMjMyMTUyMS40ODUzNzMgKHgxIDE2
-MDU2MzIwMC8xNDYvMzE1IHgyIDE2MTYxMTc3Ni8xNjIvMzMwIHkxIDEwMDAwMDAwMDAgeTIgMzA2
-NDAwMzI0NSkKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVs
-OiBbMjMyMjk0MS41NDAwMTddIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFBUUyAy
-MzE0NjMxNTYgeSAyNDQ0Ljc3ODYyNSBTT0YgMjQ0NC43Nzg2MjUgKHgxIDIwODY1MDQ3NjIgeDIg
-MjE0ODM5NzA0MCB5MSAxNTkyNTI0ODAgeTIgMTYwMjM1NTIwIFNPRiBvZmZzZXQgMTcwKQpPY3Qg
-MzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQxLjU0
-MDAyM10gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogU09GIDI0NDQuNzc4NjI1IHkg
-MTc1ODM3NDA0NjgxODkgdHMgMjMzOTEwMi4yMjk4MzcgYnVmIHRzIDIzMjE1MjEuNTUzMzczICh4
-MSAxNjUwMTk2NDgvMjE0LzM4MiB4MiAxNjYwNjgyMjQvMjMwLzM5NyB5MSAxMDAwMDAwMDAwIHky
-IDMwNjQwMDQxMzMpCk9jdCAzMSAxMjozODozMSBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtl
-cm5lbDogWzIzMjI5NDEuNjA0MDcyXSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBQ
-VFMgMjMzNDU5NjY2IHkgMjUxMC43Nzg2MjUgU09GIDI1MTAuNzc4NjI1ICh4MSAyMDg2NTA0NjE0
-IHgyIDIxNDgzOTcwNTggeTEgMTYzNTc3ODU2IHkyIDE2NDU2MDg5NiBTT0Ygb2Zmc2V0IDE3MCkK
-T2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0
-MS42MDQwNzhdIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFNPRiAyNTEwLjc3ODYy
-NSB5IDE3NTgzOTk4NDY3NTQ5IHRzIDIzMzkxMDIuNTUxODM2IGJ1ZiB0cyAyMzIxNTIxLjYxNzM3
-NCAoeDEgMTY5MjEzOTUyLzI3OC80NDggeDIgMTcwMjYyNTI4LzI5NC80NjMgeTEgMTAwMDAwMDAw
-MCB5MiAzMDY0MDA0MzkzKQpPY3QgMzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNv
-bSBrZXJuZWw6IFsyMzIyOTQxLjY3MjEwM10gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMw
-ZTogUFRTIDIzNTQ1NjIxOCB5IDI1NzcuNzc4NTk0IFNPRiAyNTc3Ljc3ODU5NCAoeDEgMjA4NjUw
-NDY5NCB4MiAyMTQ4Mzk3MTYyIHkxIDE2Nzk2ODc2OCB5MiAxNjg5NTE4MDggU09GIG9mZnNldCAx
-NzApCk9jdCAzMSAxMjozODozMSBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIz
-MjI5NDEuNjcyMTA5XSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBTT0YgMjU3Ny43
-Nzg1OTQgeSAxNzU4Mzg2OTQ2NzI0MiB0cyAyMzM5MTAyLjQ5MDgzNiBidWYgdHMgMjMyMTUyMS42
-ODUzNzMgKHgxIDE3MzY3MDQwMC8zNDYvNTE1IHgyIDE3NDcxODk3Ni8zNjIvNTMwIHkxIDEwMDAw
-MDAwMDAgeTIgMzA2NDAwMzUyOCkKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2ds
-ZS5jb20ga2VybmVsOiBbMjMyMjk0MS43NDAxMzddIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0g
-QzkzMGU6IFBUUyAyMzc0NTI3NTQgeSAyNjQzLjc3ODU3OSBTT0YgMjY0My43Nzg1NzkgKHgxIDIw
-ODY1MDQ4MTIgeDIgMjE0ODM5NzIyMCB5MSAxNzIyOTQxNDQgeTIgMTczMjc3MTg0IFNPRiBvZmZz
-ZXQgMTcwKQpPY3QgMzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6
-IFsyMzIyOTQxLjc0MDE0NF0gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogU09GIDI2
-NDMuNzc4NTc5IHkgMTc1ODM2MTE0NTk1NTggdHMgMjMzOTEwMi4zMDA4MjggYnVmIHRzIDIzMjE1
-MjEuNzUzMzc0ICh4MSAxNzgxMjY4NDgvNDE0LzU4MSB4MiAxNzkxNzU0MjQvNDMwLzU5NiB5MSAx
-MDAwMDAwMDAwIHkyIDMwNjQwMDQ2NjUpCk9jdCAzMSAxMjozODozMSBuaXNzZS5sdWwuY29ycC5n
-b29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDEuODA0MTkzXSB1dmN2aWRlbzogTG9naXRlY2ggV2Vi
-Y2FtIEM5MzBlOiBQVFMgMjM5NDQ5MjQ4IHkgMjcxMC43Nzg2NDAgU09GIDI3MTAuNzc4NjQwICh4
-MSAyMDg2NTA0NjIwIHgyIDIxNDgzOTcwMDQgeTEgMTc2Njg1MDU2IHkyIDE3NzY2ODA5NiBTT0Yg
-b2Zmc2V0IDE3MCkKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2Vy
-bmVsOiBbMjMyMjk0MS44MDQxOTldIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFNP
-RiAyNzEwLjc3ODY0MCB5IDE3NTgzOTk4NDc1NTA0IHRzIDIzMzkxMDIuNzUxODQ1IGJ1ZiB0cyAy
-MzIxNTIxLjgxNzM3NCAoeDEgMTgyMzIxMTUyLzQ3OC82NDggeDIgMTgzMzY5NzI4LzQ5NC82NjMg
-eTEgMTAwMDAwMDAwMCB5MiAzMDY0MDAzMDQ4KQpPY3QgMzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNv
-cnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQxLjg3MjIyN10gdXZjdmlkZW86IExvZ2l0ZWNo
-IFdlYmNhbSBDOTMwZTogUFRTIDI0MTQ0NTc5NCB5IDI3NzYuNzc4NjEwIFNPRiAyNzc2Ljc3ODYx
-MCAoeDEgMjA4NjUwNDY4NiB4MiAyMTQ4Mzk3MTEwIHkxIDE4MTAxMDQzMiB5MiAxODE5OTM0NzIg
-U09GIG9mZnNldCAxNzApCk9jdCAzMSAxMjozODozMSBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29t
-IGtlcm5lbDogWzIzMjI5NDEuODcyMjM0XSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBl
-OiBTT0YgMjc3Ni43Nzg2MTAgeSAxNzU4Mzc0MDQ2NzQ2MSB0cyAyMzM5MTAyLjU2MTgzNiBidWYg
-dHMgMjMyMTUyMS44ODUzNzQgKHgxIDE4Njc3NzYwMC81NDYvNzE0IHgyIDE4NzgyNjE3Ni81NjIv
-NzI5IHkxIDEwMDAwMDAwMDAgeTIgMzA2NDAwMzg2MikKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1
-bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0MS45NDAyNThdIHV2Y3ZpZGVvOiBMb2dp
-dGVjaCBXZWJjYW0gQzkzMGU6IFBUUyAyNDM0NDIzMjYgeSAyODQzLjc3ODU2NCBTT0YgMjg0My43
-Nzg1NjQgKHgxIDIwODY1MDQ3MzQgeDIgMjE0ODM5NzI5OCB5MSAxODU0MDEzNDQgeTIgMTg2Mzg0
-Mzg0IFNPRiBvZmZzZXQgMTcwKQpPY3QgMzEgMTI6Mzg6MzEgbmlzc2UubHVsLmNvcnAuZ29vZ2xl
-LmNvbSBrZXJuZWw6IFsyMzIyOTQxLjk0MDI2M10gdXZjdmlkZW86IExvZ2l0ZWNoIFdlYmNhbSBD
-OTMwZTogU09GIDI4NDMuNzc4NTY0IHkgMjM0NDQ1MDY2ODEyMjMgdHMgMjM0NDk2My4zOTYwNTEg
-YnVmIHRzIDIzMjE1MjEuOTQ5Mzc1ICh4MSAxOTEyMzQwNDgvNjE0Lzc4MSB4MiAxOTIwMjA0ODAv
-NjI2Lzc5NiB5MSAxMDAwMDAwMDAwIHkyIDMwNjAwMDUxMDMpCk9jdCAzMSAxMjozODozMSBuaXNz
-ZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDIuMDA0MzE1XSB1dmN2aWRlbzog
-TG9naXRlY2ggV2ViY2FtIEM5MzBlOiBQVFMgMjQ1NDM4ODU0IHkgMjkwOS43Nzg2NDAgU09GIDI5
-MDkuNzc4NjQwICh4MSAyMDg2NTA0NzM2IHgyIDIxNDgzOTY5OTYgeTEgMTg5NzI2NzIwIHkyIDE5
-MDcwOTc2MCBTT0Ygb2Zmc2V0IDE3MCkKT2N0IDMxIDEyOjM4OjMxIG5pc3NlLmx1bC5jb3JwLmdv
-b2dsZS5jb20ga2VybmVsOiBbMjMyMjk0Mi4wMDQzMjFdIHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJj
-YW0gQzkzMGU6IFNPRiAyOTA5Ljc3ODY0MCB5IDE3NTgzODY5NDc2ODA4IHRzIDIzMzkxMDIuODIy
-ODQ3IGJ1ZiB0cyAyMzIxNTIyLjAxNzM3NCAoeDEgMTk1NDI4MzUyLzY3OC84NDcgeDIgMTk2NDc2
-OTI4LzY5NC84NjIgeTEgMTAwMDAwMDAwMCB5MiAzMDY0MDAyNzE3KQpPY3QgMzEgMTI6Mzg6MzEg
-bmlzc2UubHVsLmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQyLjA3MjM0NV0gdXZjdmlk
-ZW86IExvZ2l0ZWNoIFdlYmNhbSBDOTMwZTogUFRTIDI0NzQzNTM3OCB5IDI5NzYuNzc4NjEwIFNP
-RiAyOTc2Ljc3ODYxMCAoeDEgMjA4NjUwNTAxNiB4MiAyMTQ4Mzk3MDk0IHkxIDE5NDExNzYzMiB5
-MiAxOTUxMDA2NzIgU09GIG9mZnNldCAxNzApCk9jdCAzMSAxMjozODozMSBuaXNzZS5sdWwuY29y
-cC5nb29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDIuMDcyMzUxXSB1dmN2aWRlbzogTG9naXRlY2gg
-V2ViY2FtIEM5MzBlOiBTT0YgMjk3Ni43Nzg2MTAgeSAxNzU4Mzc0MDQ2NzY3MiB0cyAyMzM5MTAy
-Ljc2MTgzOCBidWYgdHMgMjMyMTUyMi4wODUzNzQgKHgxIDE5OTg4NDgwMC83NDYvOTE0IHgyIDIw
-MDkzMzM3Ni83NjIvOTI5IHkxIDEwMDAwMDAwMDAgeTIgMzA2NDAwMzgxNikKT2N0IDMxIDEyOjM4
-OjMyIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0Mi4xNDAzNzddIHV2
-Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFBUUyAyNDk0MzE5MDggeSAzMDQyLjc3ODYy
-NSBTT0YgMzA0Mi43Nzg2MjUgKHgxIDIwODY1MDQ4MTIgeDIgMjE0ODM5NzA0OCB5MSAxOTg0NDMw
-MDggeTIgMTk5NDI2MDQ4IFNPRiBvZmZzZXQgMTcwKQpPY3QgMzEgMTI6Mzg6MzIgbmlzc2UubHVs
-LmNvcnAuZ29vZ2xlLmNvbSBrZXJuZWw6IFsyMzIyOTQyLjE0MDM4M10gdXZjdmlkZW86IExvZ2l0
-ZWNoIFdlYmNhbSBDOTMwZTogU09GIDMwNDIuNzc4NjI1IHkgMjM0NDQzMzUwMzY3NTAgdHMgMjM0
-NDk2My40MjQ0MDcgYnVmIHRzIDIzMjE1MjIuMTQ5Mzc0ICh4MSAyMDQzNDEyNDgvODE0Lzk4MCB4
-MiAyMDUxMjc2ODAvODI2Lzk5NSB5MSAxMDAwMDAwMDAwIHkyIDMwNjAwMDMxNjYpCk9jdCAzMSAx
-MjozODozMiBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDIuMjA0NDQw
-XSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBQVFMgMjUxNDI4NDUwIHkgMzEwOS43
-Nzg2NDAgU09GIDMxMDkuNzc4NjQwICh4MSAyMDg2NTA0NjU2IHgyIDIxNDgzOTcwMDYgeTEgMjAy
-ODMzOTIwIHkyIDIwMzgxNjk2MCBTT0Ygb2Zmc2V0IDE3MCkKT2N0IDMxIDEyOjM4OjMyIG5pc3Nl
-Lmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0Mi4yMDQ0NDddIHV2Y3ZpZGVvOiBM
-b2dpdGVjaCBXZWJjYW0gQzkzMGU6IFNPRiAzMTA5Ljc3ODY0MCB5IDE3NTgzODY5NDY2NzgzIHRz
-IDIzMzkxMDMuMDIyODM2IGJ1ZiB0cyAyMzIxNTIyLjIxNzM3NSAoeDEgMjA4NTM1NTUyLzg3OC8x
-MDQ3IHgyIDIwOTU4NDEyOC84OTQvMTA2MiB5MSAxMDAwMDAwMDAwIHkyIDMwNjQwMDQ5MzgpCk9j
-dCAzMSAxMjozODozMiBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIzMjI5NDIu
-MjcyNDY0XSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBQVFMgMjUzNDI0OTY4IHkg
-MzE3Ni43Nzg1NzkgU09GIDMxNzYuNzc4NTc5ICh4MSAyMDg2NTA0Njg0IHgyIDIxNDgzOTcyMjIg
-eTEgMjA3MjI0ODMyIHkyIDIwODIwNzg3MiBTT0Ygb2Zmc2V0IDE3MCkKT2N0IDMxIDEyOjM4OjMy
-IG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0Mi4yNzI0NzBdIHV2Y3Zp
-ZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFNPRiAzMTc2Ljc3ODU3OSB5IDE3NTgzNzQwNDY0
-NjA5IHRzIDIzMzkxMDIuOTYxODM1IGJ1ZiB0cyAyMzIxNTIyLjI4NTM3NSAoeDEgMjEyOTkyMDAw
-Lzk0Ni8xMTE0IHgyIDIxNDA0MDU3Ni85NjIvMTEyOSB5MSAxMDAwMDAwMDAwIHkyIDMwNjQwMDM2
-MjUpCk9jdCAzMSAxMjozODozMiBuaXNzZS5sdWwuY29ycC5nb29nbGUuY29tIGtlcm5lbDogWzIz
-MjI5NDIuMzM2NTIyXSB1dmN2aWRlbzogTG9naXRlY2ggV2ViY2FtIEM5MzBlOiBQVFMgMjU1NDIx
-NDkyIHkgMzI0Mi43Nzg2MjUgU09GIDMyNDIuNzc4NjI1ICh4MSAyMDg2NTA0NzI2IHgyIDIxNDgz
-OTcwNjIgeTEgMjExNTUwMjA4IHkyIDIxMjUzMzI0OCBTT0Ygb2Zmc2V0IDE3MCkKT2N0IDMxIDEy
-OjM4OjMyIG5pc3NlLmx1bC5jb3JwLmdvb2dsZS5jb20ga2VybmVsOiBbMjMyMjk0Mi4zMzY1Mjhd
-IHV2Y3ZpZGVvOiBMb2dpdGVjaCBXZWJjYW0gQzkzMGU6IFNPRiAzMjQyLjc3ODYyNSB5IDIzNDQ0
-MzM1MDMzMDY1IHRzIDIzNDQ5NjMuNjI0NDAzIGJ1ZiB0cyAyMzIxNTIyLjM0OTM3NCAoeDEgMjE3
-NDQ4NDQ4LzEwMTQvMTE4MCB4MiAyMTgyMzQ4ODAvMTAyNi8xMTk1IHkxIDEwMDAwMDAwMDAgeTIg
-MzA2MDAwMzc1NCkK
---94eb2c03562a95e2b70540296285--
