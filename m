@@ -1,71 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor2.renesas.com ([210.160.252.172]:38772 "EHLO
-        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933254AbcJLOZP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51498 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934366AbcJRUqU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:25:15 -0400
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert@linux-m68k.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [RFC 4/5] media: Add new SDR formats SC16, SC18 & SC20
-Date: Wed, 12 Oct 2016 15:10:28 +0100
-Message-Id: <1476281429-27603-5-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 29/58] si4713: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:41 -0200
+Message-Id: <aebdc05a8e78ca12328245ad7f022659e7f53ea9.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for the three new SDR formats. These formats
-were prefixed with "sliced" indicating I data constitutes the top half and
-Q data constitutes the bottom half of the received buffer.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-V4L2_SDR_FMT_SCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
-inside 16-bit. V4L2 FourCC: SC16
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-V4L2_SDR_FMT_SCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
-inside 18-bit. V4L2 FourCC: SC18
+So, join those continuation lines.
 
-V4L2_SDR_FMT_SCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
-inside 20-bit. V4L2 FourCC: SC20
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
- include/uapi/linux/videodev2.h       | 3 +++
- 2 files changed, 6 insertions(+)
+ drivers/media/radio/si4713/si4713.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index cd3641b..2b9be1c 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1259,6 +1259,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
- 	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
- 	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
-+	case V4L2_SDR_FMT_SCU16BE:	descr = "Sliced Complex U16BE"; break;
-+	case V4L2_SDR_FMT_SCU18BE:	descr = "Sliced Complex U18BE"; break;
-+	case V4L2_SDR_FMT_SCU20BE:	descr = "Sliced Complex U20BE"; break;
- 	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
- 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 2b12548..369a199 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -643,6 +643,9 @@ struct v4l2_pix_format {
- #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
- #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
- #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
-+#define V4L2_SDR_FMT_SCU16BE	  v4l2_fourcc('S', 'C', '1', '6') /* sliced complex u16be */
-+#define V4L2_SDR_FMT_SCU18BE	  v4l2_fourcc('S', 'C', '1', '8') /* sliced complex u18be */
-+#define V4L2_SDR_FMT_SCU20BE	  v4l2_fourcc('S', 'C', '2', '0') /* sliced complex u20be */
+diff --git a/drivers/media/radio/si4713/si4713.c b/drivers/media/radio/si4713/si4713.c
+index 0b04b56571da..bc2a8b5442ae 100644
+--- a/drivers/media/radio/si4713/si4713.c
++++ b/drivers/media/radio/si4713/si4713.c
+@@ -716,9 +716,9 @@ static int si4713_tx_tune_status(struct si4713_device *sdev, u8 intack,
+ 		*power = val[5];
+ 		*antcap = val[6];
+ 		*noise = val[7];
+-		v4l2_dbg(1, debug, &sdev->sd, "%s: response: %d x 10 kHz "
+-				"(power %d, antcap %d, rnl %d)\n", __func__,
+-				*frequency, *power, *antcap, *noise);
++		v4l2_dbg(1, debug, &sdev->sd,
++			 "%s: response: %d x 10 kHz (power %d, antcap %d, rnl %d)\n",
++			 __func__, *frequency, *power, *antcap, *noise);
+ 	}
  
- /* Touch formats - used for Touch devices */
- #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+ 	return err;
+@@ -758,10 +758,9 @@ static int si4713_tx_rds_buff(struct si4713_device *sdev, u8 mode, u16 rdsb,
+ 		v4l2_dbg(1, debug, &sdev->sd,
+ 			"%s: status=0x%02x\n", __func__, val[0]);
+ 		*cbleft = (s8)val[2] - val[3];
+-		v4l2_dbg(1, debug, &sdev->sd, "%s: response: interrupts"
+-				" 0x%02x cb avail: %d cb used %d fifo avail"
+-				" %d fifo used %d\n", __func__, val[1],
+-				val[2], val[3], val[4], val[5]);
++		v4l2_dbg(1, debug, &sdev->sd,
++			 "%s: response: interrupts 0x%02x cb avail: %d cb used %d fifo avail %d fifo used %d\n",
++			 __func__, val[1], val[2], val[3], val[4], val[5]);
+ 	}
+ 
+ 	return err;
 -- 
-1.9.1
+2.7.4
+
 
