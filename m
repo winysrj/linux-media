@@ -1,52 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:53637 "EHLO mout.web.de"
+Received: from mx2.suse.de ([195.135.220.15]:44730 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754954AbcJLO6s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:58:48 -0400
-Subject: [PATCH 19/34] [media] DaVinci-VPFE-Capture: Improve another size
- determination in vpfe_open()
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <87108e91-1b2e-ec8f-4fed-4fb4eb105688@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:57:51 +0200
+        id S1754062AbcJRMub (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 08:50:31 -0400
+Date: Tue, 18 Oct 2016 14:50:26 +0200
+From: Jan Kara <jack@suse.cz>
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 03/10] mm: replace get_user_pages_unlocked() write/force
+ parameters with gup_flags
+Message-ID: <20161018125026.GC29967@quack2.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161013002020.3062-4-lstoakes@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161013002020.3062-4-lstoakes@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 10:44:05 +0200
+On Thu 13-10-16 01:20:13, Lorenzo Stoakes wrote:
+> This patch removes the write and force parameters from get_user_pages_unlocked()
+> and replaces them with a gup_flags parameter to make the use of FOLL_FORCE
+> explicit in callers as use of this flag can result in surprising behaviour (and
+> hence bugs) within the mm subsystem.
+> 
+> Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
 
-Replace the specification of a data structure by a pointer dereference
-as the parameter for the operator "sizeof" to make the corresponding size
-determination a bit safer.
+Looks good. You can add:
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpfe_capture.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Jan Kara <jack@suse.cz>
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index ee7b3e3..e370400 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -511,7 +511,7 @@ static int vpfe_open(struct file *file)
- 	}
- 
- 	/* Allocate memory for the file handle object */
--	fh = kmalloc(sizeof(struct vpfe_fh), GFP_KERNEL);
-+	fh = kmalloc(sizeof(*fh), GFP_KERNEL);
- 	if (!fh)
- 		return -ENOMEM;
- 
+								Honza
 -- 
-2.10.1
-
+Jan Kara <jack@suse.com>
+SUSE Labs, CR
