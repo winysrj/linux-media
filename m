@@ -1,67 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:63350 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938631AbcJSTI1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 15:08:27 -0400
-Received: from PatrickLaptop ([91.6.177.199]) by smtp.web.de (mrweb103) with
- ESMTPSA (Nemesis) id 0MEmgA-1cBqiz425S-00G3Ta for
- <linux-media@vger.kernel.org>; Wed, 19 Oct 2016 21:08:24 +0200
-Reply-To: <ps00de@yahoo.de>
-From: <ps00de@yahoo.de>
-To: "'Mauro Carvalho Chehab'" <mchehab@s-opensource.com>
-Cc: <linux-media@vger.kernel.org>
-References: <003101d2298a$48b12400$da136c00$@yahoo.de> <20161019133552.72880aed@vento.lan>
-In-Reply-To: <20161019133552.72880aed@vento.lan>
-Subject: AW: em28xx WinTV dualHD in Raspbian
-Date: Wed, 19 Oct 2016 21:08:22 +0200
-Message-ID: <000a01d22a3c$29821140$7c8633c0$@yahoo.de>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60353 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751476AbcJRS0o (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 14:26:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Antti Palosaari <crope@iki.fi>,
+        Chris Paterson <chris.paterson2@renesas.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [RFC 3/5] media: platform: rcar_drif: Add DRIF support
+Date: Tue, 18 Oct 2016 21:26:40 +0300
+Message-ID: <6004562.7prnSznmMM@avalon>
+In-Reply-To: <CAMuHMdXvGEm3bdNOsa6Q1FLB9yMSTAzO4nHcCb-pnYYwg6f6Cg@mail.gmail.com>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1476281429-27603-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <CAMuHMdXvGEm3bdNOsa6Q1FLB9yMSTAzO4nHcCb-pnYYwg6f6Cg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: de
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Based on this log:
+Hello,
+
+On Tuesday 18 Oct 2016 16:29:24 Geert Uytterhoeven wrote:
+> On Wed, Oct 12, 2016 at 4:10 PM, Ramesh Shanmugasundaram wrote:
+> > This patch adds Digital Radio Interface (DRIF) support to R-Car Gen3 SoCs.
+> > The driver exposes each instance of DRIF as a V4L2 SDR device. A DRIF
+> > device represents a channel and each channel can have one or two
+> > sub-channels respectively depending on the target board.
+> > 
+> > DRIF supports only Rx functionality. It receives samples from a RF
+> > frontend tuner chip it is interfaced with. The combination of DRIF and the
+> > tuner device, which is registered as a sub-device, determines the receive
+> > sample rate and format.
+> > 
+> > In order to be compliant as a V4L2 SDR device, DRIF needs to bind with
+> > the tuner device, which can be provided by a third party vendor. DRIF acts
+> > as a slave device and the tuner device acts as a master transmitting the
+> > samples. The driver allows asynchronous binding of a tuner device that
+> > is registered as a v4l2 sub-device. The driver can learn about the tuner
+> > it is interfaced with based on port endpoint properties of the device in
+> > device tree. The V4L2 SDR device inherits the controls exposed by the
+> > tuner device.
+> > 
+> > The device can also be configured to use either one or both of the data
+> > pins at runtime based on the master (tuner) configuration.
 > 
-> Oct 18 23:08:01 mediapi kernel: [ 7590.369200] em28xx_dvb: disagrees about version of symbol dvb_dmxdev_init Oct 18 23:08:01 mediapi kernel: [ 7590.369228] em28xx_dvb: Unknown symbol dvb_dmxdev_init (err -22)
+> Thanks for your patch!
+> 
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+> > @@ -0,0 +1,109 @@
+> > +Renesas R-Car Gen3 DRIF controller (DRIF)
+> > +-----------------------------------------
+> > +
+> > +Required properties:
+> > +--------------------
+> > +- compatible: "renesas,drif-r8a7795" if DRIF controller is a part of
+> > R8A7795 SoC.
 >
-> It seems you messed the modules install or you have the V4L2 stack compiled builtin with a different version. 
+> "renesas,r8a7795-drif", as Rob already pointed out.
+> 
+> > +             "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible
+> > device.
+> > +             When compatible with the generic version, nodes must list
+> > the
+> > +             SoC-specific version corresponding to the platform first
+> > +             followed by the generic version.
+> > +
+> > +- reg: offset and length of each sub-channel.
+> > +- interrupts: associated with each sub-channel.
+> > +- clocks: phandles and clock specifiers for each sub-channel.
+> > +- clock-names: clock input name strings: "fck0", "fck1".
+> > +- pinctrl-0: pin control group to be used for this controller.
+> > +- pinctrl-names: must be "default".
+> > +- dmas: phandles to the DMA channels for each sub-channel.
+> > +- dma-names: names for the DMA channels: "rx0", "rx1".
+> > +
+> > +Required child nodes:
+> > +---------------------
+> > +- Each DRIF channel can have one or both of the sub-channels enabled in a
+> > +  setup. The sub-channels are represented as a child node. The name of
+> > the
+> > +  child nodes are "sub-channel0" and "sub-channel1" respectively. Each
+> > child
+> > +  node supports the "status" property only, which is used to
+> > enable/disable
+> > +  the respective sub-channel.
+> > 
+> > +Example
+> > +--------
+> > +
+> > +SoC common dtsi file
+> > +
+> > +drif0: rif@e6f40000 {
+> > +       compatible = "renesas,drif-r8a7795",
+> > +                  "renesas,rcar-gen3-drif";
+> > +       reg = <0 0xe6f40000 0 0x64>, <0 0xe6f50000 0 0x64>;
+> > +       interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+> > +                  <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
+> > +       clocks = <&cpg CPG_MOD 515>, <&cpg CPG_MOD 514>;
+> > +       clock-names = "fck0", "fck1";
+> > +       dmas = <&dmac1 0x20>, <&dmac1 0x22>;
+> > +       dma-names = "rx0", "rx1";
+> 
+> I could not find the DMAC channels in the datasheet?
+> Most modules are either tied to dmac0, or two both dmac1 and dmac2.
+> In the latter case, you want to list two sets of dmas, one for each DMAC.
+> 
+> > +       power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
+> > +       status = "disabled";
+> > +
+> > +       sub-channel0 {
+> > +               status = "disabled";
+> > +       };
+> > +
+> > +       sub-channel1 {
+> > +               status = "disabled";
+> > +       };
+> > +
+> > +};
+> 
+> As you're modelling this in DT under a single device node, this means you
+> cannot use runtime PM to manage the module clocks of the individual
+> channels.
+> 
+> An alternative could be to have two separate nodes for each channel,
+> and tie them together using a phandle.
 
-I've done a cleanup: sudo rm -rf /lib/modules/`uname -r`/kernel/drivers/media/
-And reinstalled v4l (make install) again.
+A quick glance at the documentation shows no dependency between the two 
+channels at a software level. They both share the same clock and 
+synchronization input pins, but from a hardware point of view that seems to be 
+it. It thus looks like we could indeed model the two channels as separate 
+nodes, without tying them together.
 
-Same result (no /dev/dvb), but other log:
-Oct 19 20:59:54 mediapi kernel: [    7.515009] media: Linux media interface: v0.10
-Oct 19 20:59:54 mediapi kernel: [    7.537922] Linux video capture interface: v2.00
-Oct 19 20:59:54 mediapi kernel: [    7.554643] em28xx: New device HCW dualHD @ 480 Mbps (2040:0265, interface 0, class 0)
-Oct 19 20:59:54 mediapi kernel: [    7.554666] em28xx: DVB interface 0 found: isoc
-Oct 19 20:59:54 mediapi kernel: [    7.554959] em28xx: chip ID is em28174
-Oct 19 20:59:54 mediapi kernel: [    8.752360] em28174 #0: EEPROM ID = 26 00 01 00, EEPROM hash = 0x7ee3cbc8
-Oct 19 20:59:54 mediapi kernel: [    8.752378] em28174 #0: EEPROM info:
-Oct 19 20:59:54 mediapi kernel: [    8.752387] em28174 #0: 	microcode start address = 0x0004, boot configuration = 0x01
-Oct 19 20:59:54 mediapi kernel: [    8.758923] em28174 #0: 	AC97 audio (5 sample rates)
-Oct 19 20:59:54 mediapi kernel: [    8.758936] em28174 #0: 	500mA max power
-Oct 19 20:59:54 mediapi kernel: [    8.758946] em28174 #0: 	Table at offset 0x27, strings=0x0e6a, 0x1888, 0x087e
-Oct 19 20:59:54 mediapi kernel: [    8.759389] em28174 #0: Identified as Hauppauge WinTV-dualHD DVB (card=99)
-Oct 19 20:59:54 mediapi kernel: [    8.764360] tveeprom 4-0050: Hauppauge model 204109, rev B2I6, serial# 11540068
-Oct 19 20:59:54 mediapi kernel: [    8.764381] tveeprom 4-0050: tuner model is SiLabs Si2157 (idx 186, type 4)
-Oct 19 20:59:54 mediapi kernel: [    8.764394] tveeprom 4-0050: TV standards PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xfc)
-Oct 19 20:59:54 mediapi kernel: [    8.764404] tveeprom 4-0050: audio processor is None (idx 0)
-Oct 19 20:59:54 mediapi kernel: [    8.764414] tveeprom 4-0050: has no radio, has IR receiver, has no IR transmitter
-Oct 19 20:59:54 mediapi kernel: [    8.764424] em28174 #0: dvb set to isoc mode.
-Oct 19 20:59:54 mediapi kernel: [    8.764854] usbcore: registered new interface driver em28xx
-Oct 19 20:59:54 mediapi kernel: [    8.800215] em28174 #0: Registering input extension
-Oct 19 20:59:54 mediapi kernel: [    8.835377] Registered IR keymap rc-hauppauge
-Oct 19 20:59:54 mediapi kernel: [    8.836063] input: em28xx IR (em28174 #0) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/rc/rc0/input0
-Oct 19 20:59:54 mediapi kernel: [    8.836345] rc rc0: em28xx IR (em28174 #0) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/rc/rc0
-Oct 19 20:59:54 mediapi kernel: [    8.838384] em28174 #0: Input extension successfully initalized
-Oct 19 20:59:54 mediapi kernel: [    8.838406] em28xx: Registered (Em28xx Input Extension) extension
-Oct 19 20:59:54 mediapi kernel: [    9.612549] Adding 102396k swap on /var/swap.  Priority:-1 extents:3 across:200700k SSFS
+-- 
+Regards,
 
-Any idea?
-
-Thanks,
-Patrick
+Laurent Pinchart
 
