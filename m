@@ -1,120 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:42414 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750729AbcJJEFt (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:32935 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754884AbcJRNNQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 00:05:49 -0400
-Message-ID: <538a2dab3e4685fde008ab51d1046823@smtp-cloud3.xs4all.net>
-Date: Mon, 10 Oct 2016 06:05:45 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 18 Oct 2016 09:13:16 -0400
+Date: Tue, 18 Oct 2016 08:13:14 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Cc: mark.rutland@arm.com, mchehab@kernel.org, hverkuil@xs4all.nl,
+        sakari.ailus@linux.intel.com, crope@iki.fi,
+        chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert@linux-m68k.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [RFC 3/5] media: platform: rcar_drif: Add DRIF support
+Message-ID: <20161018131314.gn6hpxwzevpcatll@rob-hp-laptop>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1476281429-27603-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1476281429-27603-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Wed, Oct 12, 2016 at 03:10:27PM +0100, Ramesh Shanmugasundaram wrote:
+> This patch adds Digital Radio Interface (DRIF) support to R-Car Gen3 SoCs.
+> The driver exposes each instance of DRIF as a V4L2 SDR device. A DRIF
+> device represents a channel and each channel can have one or two
+> sub-channels respectively depending on the target board.
+> 
+> DRIF supports only Rx functionality. It receives samples from a RF
+> frontend tuner chip it is interfaced with. The combination of DRIF and the
+> tuner device, which is registered as a sub-device, determines the receive
+> sample rate and format.
+> 
+> In order to be compliant as a V4L2 SDR device, DRIF needs to bind with
+> the tuner device, which can be provided by a third party vendor. DRIF acts
+> as a slave device and the tuner device acts as a master transmitting the
+> samples. The driver allows asynchronous binding of a tuner device that
+> is registered as a v4l2 sub-device. The driver can learn about the tuner
+> it is interfaced with based on port endpoint properties of the device in
+> device tree. The V4L2 SDR device inherits the controls exposed by the
+> tuner device.
+> 
+> The device can also be configured to use either one or both of the data
+> pins at runtime based on the master (tuner) configuration.
+> 
+> Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+> ---
+>  .../devicetree/bindings/media/renesas,drif.txt     |  109 ++
+>  drivers/media/platform/Kconfig                     |   25 +
+>  drivers/media/platform/Makefile                    |    1 +
+>  drivers/media/platform/rcar_drif.c                 | 1534 ++++++++++++++++++++
+>  4 files changed, 1669 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+>  create mode 100644 drivers/media/platform/rcar_drif.c
+> 
+> diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
+> new file mode 100644
+> index 0000000..24239d9
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
+> @@ -0,0 +1,109 @@
+> +Renesas R-Car Gen3 DRIF controller (DRIF)
 
-Results of the daily build of media_tree:
+Define what is DRIF here, not just in the commit text.
 
-date:			Mon Oct 10 05:00:16 CEST 2016
-media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
-media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
-v4l-utils git hash:	2cd2699a8cfe8dce32dd35033a364c8375839d51
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+> +-----------------------------------------
+> +
+> +Required properties:
+> +--------------------
+> +- compatible: "renesas,drif-r8a7795" if DRIF controller is a part of R8A7795 SoC.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+renesas,r8a7795-drif would be the normal ordering.
 
-Detailed results are available here:
+> +	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
+> +	      When compatible with the generic version, nodes must list the
+> +	      SoC-specific version corresponding to the platform first
+> +	      followed by the generic version.
+> +
+> +- reg: offset and length of each sub-channel.
+> +- interrupts: associated with each sub-channel.
+> +- clocks: phandles and clock specifiers for each sub-channel.
+> +- clock-names: clock input name strings: "fck0", "fck1".
+> +- pinctrl-0: pin control group to be used for this controller.
+> +- pinctrl-names: must be "default".
+> +- dmas: phandles to the DMA channels for each sub-channel.
+> +- dma-names: names for the DMA channels: "rx0", "rx1".
+> +
+> +Required child nodes:
+> +---------------------
+> +- Each DRIF channel can have one or both of the sub-channels enabled in a
+> +  setup. The sub-channels are represented as a child node. The name of the
+> +  child nodes are "sub-channel0" and "sub-channel1" respectively. Each child
+> +  node supports the "status" property only, which is used to enable/disable
+> +  the respective sub-channel.
+> +
+> +Optional properties:
+> +--------------------
+> +- port: video interface child port node of a channel that defines the local
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+This is an audio device, why does it have a video port?
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> +  and remote endpoints. The remote endpoint is assumed to a tuner subdevice
+> +  endpoint.
+> +- power-domains: phandle to respective power domain.
+> +- renesas,syncmd       : sync mode
+> +			 0 (Frame start sync pulse mode. 1-bit width pulse
+> +			    indicates start of a frame)
+> +			 1 (L/R sync or I2S mode) (default)
+> +- renesas,lsb-first    : empty property indicates lsb bit is received first.
+> +			 When not defined msb bit is received first (default)
+> +- renesas,syncac-pol-high  : empty property indicates sync signal polarity.
+> +			 When defined, active high or high->low sync signal.
+> +			 When not defined, active low or low->high sync signal
+> +			 (default)
+> +- renesas,dtdl         : delay between sync signal and start of reception.
+> +			 Must contain one of the following values:
+> +			 0   (no bit delay)
+> +			 50  (0.5-clock-cycle delay)
+> +			 100 (1-clock-cycle delay) (default)
+> +			 150 (1.5-clock-cycle delay)
+> +			 200 (2-clock-cycle delay)
+> +- renesas,syncdl       : delay between end of reception and sync signal edge.
+> +			 Must contain one of the following values:
+> +			 0   (no bit delay) (default)
+> +			 50  (0.5-clock-cycle delay)
+> +			 100 (1-clock-cycle delay)
+> +			 150 (1.5-clock-cycle delay)
+> +			 200 (2-clock-cycle delay)
+> +			 300 (3-clock-cycle delay)
+> +
+> +Example
+> +--------
+> +
+> +SoC common dtsi file
+> +
+> +drif0: rif@e6f40000 {
+> +	compatible = "renesas,drif-r8a7795",
+> +		   "renesas,rcar-gen3-drif";
+> +	reg = <0 0xe6f40000 0 0x64>, <0 0xe6f50000 0 0x64>;
+> +	interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>,
+> +		   <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
+> +	clocks = <&cpg CPG_MOD 515>, <&cpg CPG_MOD 514>;
+> +	clock-names = "fck0", "fck1";
+> +	dmas = <&dmac1 0x20>, <&dmac1 0x22>;
+> +	dma-names = "rx0", "rx1";
+> +	power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
+> +	status = "disabled";
+> +
+> +	sub-channel0 {
+> +		status = "disabled";
+> +	};
+> +
+> +	sub-channel1 {
+> +		status = "disabled";
+> +	};
+> +
+> +};
+> +
+> +Board specific dts file
+> +
+> +&drif0 {
+> +	pinctrl-0 = <&drif0_pins>;
+> +	pinctrl-names = "default";
+> +	status = "okay";
+> +
+> +	sub-channel0 {
+> +		status = "okay";
+> +	};
+> +
+> +	sub-channel1 {
+> +		status = "okay";
+> +	};
+> +
+> +	port {
+> +		drif0_ep: endpoint {
+> +		     remote-endpoint = <&tuner_subdev_ep>;
+> +		};
+> +	};
+> +};
