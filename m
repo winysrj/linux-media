@@ -1,107 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59075 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:51557 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756557AbcJNUWn (ORCPT
+        with ESMTP id S935002AbcJRUqW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
+        Tue, 18 Oct 2016 16:46:22 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 38/57] [media] dvb-usb-v2: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:26 -0300
-Message-Id: <4d9d911d653b33d5f0a9e014fb07dd7aad8633a9.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>
+Subject: [PATCH v2 23/58] omap: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:35 -0200
+Message-Id: <a17578581d094e95c95baf83f20b712fd913c0f5.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
+
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
+
+So, join those continuation lines.
+
+The patch was generated via the script below, and manually
+adjusted if needed.
+
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c | 10 +++-------
- drivers/media/usb/dvb-usb-v2/mxl111sf.c     |  9 +++------
- 2 files changed, 6 insertions(+), 13 deletions(-)
+ drivers/media/platform/omap/omap_vout.c      | 24 +++++++++++++-----------
+ drivers/media/platform/omap/omap_vout_vrfb.c |  5 +++--
+ 2 files changed, 16 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-index 283495c84ba3..ea39056412c5 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-i2c.c
-@@ -666,8 +666,7 @@ static int mxl111sf_i2c_hw_xfer_msg(struct mxl111sf_state *state,
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index e668dde6d857..c39b5463e0b3 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -408,8 +408,8 @@ static int omapvid_setup_overlay(struct omap_vout_device *vout,
+ 	v4l2_dbg(1, debug, &vout->vid_dev->v4l2_dev,
+ 		"%s enable=%d addr=%pad width=%d\n height=%d color_mode=%d\n"
+ 		"rotation=%d mirror=%d posx=%d posy=%d out_width = %d \n"
+-		"out_height=%d rotation_type=%d screen_width=%d\n",
+-		__func__, ovl->is_enabled(ovl), &info.paddr, info.width, info.height,
++		"out_height=%d rotation_type=%d screen_width=%d\n", __func__,
++		ovl->is_enabled(ovl), &info.paddr, info.width, info.height,
+ 		info.color_mode, info.rotation, info.mirror, info.pos_x,
+ 		info.pos_y, info.out_width, info.out_height, info.rotation_type,
+ 		info.screen_width);
+@@ -791,7 +791,8 @@ static int omap_vout_buffer_prepare(struct videobuf_queue *q,
+ 		dma_addr = dma_map_single(vout->vid_dev->v4l2_dev.dev, (void *) addr,
+ 				size, DMA_TO_DEVICE);
+ 		if (dma_mapping_error(vout->vid_dev->v4l2_dev.dev, dma_addr))
+-			v4l2_err(&vout->vid_dev->v4l2_dev, "dma_map_single failed\n");
++			v4l2_err(&vout->vid_dev->v4l2_dev,
++				 "dma_map_single failed\n");
  
- 				if (rd_status[i] == 0x04) {
- 					if (i < 7) {
--						mxl_i2c("i2c fifo empty!"
--							" @ %d", i);
-+						mxl_i2c("i2c fifo empty! @ %d", i);
- 						msg->buf[(index*8)+i] =
- 							i2c_r_data[(i*3)+1];
- 						/* read again */
-@@ -692,8 +691,7 @@ static int mxl111sf_i2c_hw_xfer_msg(struct mxl111sf_state *state,
- 							}
- 							goto stop_copy;
- 						} else {
--							mxl_i2c("readagain "
--								"ERROR!");
-+							mxl_i2c("readagain ERROR!");
- 						}
- 					} else {
- 						msg->buf[(index*8)+i] =
-@@ -827,9 +825,7 @@ int mxl111sf_i2c_xfer(struct i2c_adapter *adap,
- 			mxl111sf_i2c_hw_xfer_msg(state, &msg[i]) :
- 			mxl111sf_i2c_sw_xfer_msg(state, &msg[i]);
- 		if (mxl_fail(ret)) {
--			mxl_debug_adv("failed with error %d on i2c "
--				      "transaction %d of %d, %sing %d bytes "
--				      "to/from 0x%02x", ret, i+1, num,
-+			mxl_debug_adv("failed with error %d on i2c transaction %d of %d, %sing %d bytes to/from 0x%02x", ret, i+1, num,
- 				      (msg[i].flags & I2C_M_RD) ?
- 				      "read" : "writ",
- 				      msg[i].len, msg[i].addr);
-diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf.c b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-index 5d676b533a3a..58da619b7c59 100644
---- a/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-+++ b/drivers/media/usb/dvb-usb-v2/mxl111sf.c
-@@ -29,8 +29,7 @@
- 
- int dvb_usb_mxl111sf_debug;
- module_param_named(debug, dvb_usb_mxl111sf_debug, int, 0644);
--MODULE_PARM_DESC(debug, "set debugging level "
--		 "(1=info, 2=xfer, 4=i2c, 8=reg, 16=adv (or-able)).");
-+MODULE_PARM_DESC(debug, "set debugging level (1=info, 2=xfer, 4=i2c, 8=reg, 16=adv (or-able)).");
- 
- static int dvb_usb_mxl111sf_isoc;
- module_param_named(isoc, dvb_usb_mxl111sf_isoc, int, 0644);
-@@ -137,8 +136,7 @@ int mxl111sf_write_reg_mask(struct mxl111sf_state *state,
- #if 1
- 		/* dont know why this usually errors out on the first try */
- 		if (mxl_fail(ret))
--			pr_err("error writing addr: 0x%02x, mask: 0x%02x, "
--			    "data: 0x%02x, retrying...", addr, mask, data);
-+			pr_err("error writing addr: 0x%02x, mask: 0x%02x, data: 0x%02x, retrying...", addr, mask, data);
- 
- 		ret = mxl111sf_read_reg(state, addr, &val);
- #endif
-@@ -946,8 +944,7 @@ static int mxl111sf_init(struct dvb_usb_device *d)
- 	case 138001:
- 		break;
- 	default:
--		printk(KERN_WARNING "%s: warning: "
--		       "unknown hauppauge model #%d\n",
-+		printk(KERN_WARNING "%s: warning: unknown hauppauge model #%d\n",
- 		       __func__, state->tv.model);
+ 		vout->queued_buf_addr[vb->i] = (u8 *)vout->buf_phy_addr[vb->i];
  	}
- #endif
+@@ -1657,8 +1658,8 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ 	/* Turn of the pipeline */
+ 	ret = omapvid_apply_changes(vout);
+ 	if (ret)
+-		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode in"
+-				" streamoff\n");
++		v4l2_err(&vout->vid_dev->v4l2_dev,
++			 "failed to change mode in streamoff\n");
+ 
+ 	INIT_LIST_HEAD(&vout->dma_queue);
+ 	ret = videobuf_streamoff(&vout->vbq);
+@@ -1858,8 +1859,8 @@ static int __init omap_vout_setup_video_data(struct omap_vout_device *vout)
+ 	vfd = vout->vfd = video_device_alloc();
+ 
+ 	if (!vfd) {
+-		printk(KERN_ERR VOUT_NAME ": could not allocate"
+-				" video device struct\n");
++		printk(KERN_ERR VOUT_NAME
++		       ": could not allocate video device struct\n");
+ 		v4l2_ctrl_handler_free(hdl);
+ 		return -ENOMEM;
+ 	}
+@@ -1984,16 +1985,17 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+ 		 */
+ 		vfd = vout->vfd;
+ 		if (video_register_device(vfd, VFL_TYPE_GRABBER, -1) < 0) {
+-			dev_err(&pdev->dev, ": Could not register "
+-					"Video for Linux device\n");
++			dev_err(&pdev->dev,
++				": Could not register Video for Linux device\n");
+ 			vfd->minor = -1;
+ 			ret = -ENODEV;
+ 			goto error2;
+ 		}
+ 		video_set_drvdata(vfd, vout);
+ 
+-		dev_info(&pdev->dev, ": registered and initialized"
+-				" video device %d\n", vfd->minor);
++		dev_info(&pdev->dev,
++			 ": registered and initialized video device %d\n",
++			 vfd->minor);
+ 		if (k == (pdev->num_resources - 1))
+ 			return 0;
+ 
+diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
+index b8638e4e1627..92c4e1826356 100644
+--- a/drivers/media/platform/omap/omap_vout_vrfb.c
++++ b/drivers/media/platform/omap/omap_vout_vrfb.c
+@@ -139,8 +139,9 @@ int omap_vout_setup_vrfb_bufs(struct platform_device *pdev, int vid_num,
+ 			(void *) &vout->vrfb_dma_tx, &vout->vrfb_dma_tx.dma_ch);
+ 	if (ret < 0) {
+ 		vout->vrfb_dma_tx.req_status = DMA_CHAN_NOT_ALLOTED;
+-		dev_info(&pdev->dev, ": failed to allocate DMA Channel for"
+-				" video%d\n", vfd->minor);
++		dev_info(&pdev->dev,
++			 ": failed to allocate DMA Channel for video%d\n",
++			 vfd->minor);
+ 	}
+ 	init_waitqueue_head(&vout->vrfb_dma_tx.wait);
+ 
 -- 
 2.7.4
 
