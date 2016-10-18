@@ -1,32 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:27787 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752865AbcJLIUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 04:20:20 -0400
-From: Jani Nikula <jani.nikula@intel.com>
-To: Markus Heiser <markus.heiser@darmarit.de>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc\@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
-In-Reply-To: <E8B76D61-2072-431B-AAB0-E85475D7BFB6@darmarit.de>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de> <87oa2xrhqx.fsf@intel.com> <20161006103132.3a56802a@vento.lan> <87lgy15zin.fsf@intel.com> <20161006135028.2880f5a5@vento.lan> <8737k8ya6f.fsf@intel.com> <8E74FF11-208D-4C76-8A8C-2B2102E5CB20@darmarit.de> <20161011112853.01e15632@vento.lan> <87vawyyk5v.fsf@intel.com> <E8B76D61-2072-431B-AAB0-E85475D7BFB6@darmarit.de>
-Date: Wed, 12 Oct 2016 11:20:15 +0300
-Message-ID: <87shs2x9kw.fsf@intel.com>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:35728 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755097AbcJRNOg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 09:14:36 -0400
+Date: Tue, 18 Oct 2016 08:14:34 -0500
+From: Rob Herring <robh@kernel.org>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, mark.rutland@arm.com,
+        mchehab@kernel.org, davem@davemloft.net, geert@linux-m68k.org,
+        akpm@linux-foundation.org, kvalo@codeaurora.org,
+        linux@roeck-us.net, hverkuil@xs4all.nl, lars@metafoo.de,
+        pavel@ucw.cz, robert.jarzmik@free.fr, slongerbeam@gmail.com,
+        dheitmueller@kernellabs.com, pali.rohar@gmail.com,
+        CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH v3 1/2] Add OV5647 device tree documentation
+Message-ID: <20161018131434.2bbk2evxkv7mutfo@rob-hp-laptop>
+References: <cover.1476286687.git.roliveir@synopsys.com>
+ <0f85bdabe4951533e6fe7a842cc5dfa0f2cd8a6c.1476286687.git.roliveir@synopsys.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <0f85bdabe4951533e6fe7a842cc5dfa0f2cd8a6c.1476286687.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 11 Oct 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> Anyway, these are only my 2cent. I'am interested in what Jon says
-> in general about using (Perl) scripts to generate reST content.
+On Wed, Oct 12, 2016 at 05:02:21PM +0100, Ramiro Oliveira wrote:
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> new file mode 100644
+> index 0000000..4c91b3b
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> @@ -0,0 +1,19 @@
+> +Omnivision OV5647 raw image sensor
+> +---------------------------------
+> +
+> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+> +and CCI (I2C compatible) control bus.
+> +
+> +Required properties:
+> +
+> +- compatible	: "ovti,ov5647";
+> +- reg		: I2C slave address of the sensor;
+> +
+> +The common video interfaces bindings (see video-interfaces.txt) should be
+> +used to specify link to the image data receiver. The OV5647 device
+> +node should contain one 'port' child node with an 'endpoint' subnode.
+> +
+> +Following properties are valid for the endpoint node:
+> +
+> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+> +  video-interfaces.txt.  The sensor supports only two data lanes.
 
-I think I've said all that I have to say on the subject. Up to Jon.
+What's the default if not present?
 
-BR,
-Jani.
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+> -- 
+> 2.9.3
+> 
+> 
