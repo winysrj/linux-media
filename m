@@ -1,47 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vader.hardeman.nu ([95.142.160.32]:52886 "EHLO hardeman.nu"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941831AbcJSO0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:26:20 -0400
-Mime-Version: 1.0
-Date: Wed, 19 Oct 2016 13:10:31 +0000
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Message-ID: <403be317930e0915cbe98c15cd6adf66@hardeman.nu>
-From: "=?utf-8?B?RGF2aWQgSMOkcmRlbWFu?=" <david@hardeman.nu>
-Subject: Re: [PATCH 4/5] [media] winbond-cir: One variable and its check
- less in wbcir_shutdown() after error detection
-To: "SF Markus Elfring" <elfring@users.sourceforge.net>,
-        "Sean Young" <sean@mess.org>
-Cc: linux-media@vger.kernel.org,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        "LKML" <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        "Julia Lawall" <julia.lawall@lip6.fr>
-In-Reply-To: <7fe65702-ac76-39f2-edea-eba007a3ee96@users.sourceforge.net>
-References: <7fe65702-ac76-39f2-edea-eba007a3ee96@users.sourceforge.net>
- <566ABCD9.1060404@users.sourceforge.net>
- <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
- <84757ae3-24d2-cf9b-2217-fd9793b86078@users.sourceforge.net>
- <20161015132956.GA3393@gofer.mess.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:51518 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934737AbcJRUqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH v2 46/58] ttusb-dec: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:58 -0200
+Message-Id: <56d9fdb2cbd9b92c961b6ea1a6af3a5efdf1d948.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-October 15, 2016 6:42 PM, "SF Markus Elfring" <elfring@users.sourceforge.=
-net> wrote:=0A>>> + /* Set CEIR_EN */=0A>>> + wbcir_set_bits(data->wbase =
-+ WBCIR_REG_WCEIR_CTL, 0x01, 0x01);=0A>>> +set_irqmask:=0A>>> /*=0A>>> * =
-ACPI will set the HW disable bit for SP3 which means that the=0A>>> * out=
-put signals are left in an undefined state which may cause=0A>>> @@ -876,=
-6 +858,14 @@ wbcir_shutdown(struct pnp_dev *device)=0A>>> */=0A>>> wbcir_=
-set_irqmask(data, WBCIR_IRQ_NONE);=0A>>> disable_irq(data->irq);=0A>>> + =
-return;=0A>>> +clear_bits:=0A>>> + /* Clear BUFF_EN, Clear END_EN, Clear =
-MATCH_EN */=0A>>> + wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0=
-x00, 0x07);=0A>>> +=0A>>> + /* Clear CEIR_EN */=0A>>> + wbcir_set_bits(da=
-ta->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);=0A>>> + goto set_irqmask;=
-=0A>> =0A>> I'm not convinced that adding a goto which goes backwards is =
-making this=0A>> code any more readible, just so that a local variable ca=
-n be dropped.=0A> =0A> Thanks for your feedback.=0A> =0A> Is such a "back=
-ward jump" usual and finally required when you would like=0A> to move a b=
-it of common error handling code to the end without using extra=0A> local=
- variables and a few statements should still be performed after it?=0A> =
-=0A=0AI'm sorry, I can't parse this.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
+
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
+
+So, join those continuation lines.
+
+The patch was generated via the script below, and manually
+adjusted if needed.
+
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/ttusb-dec/ttusb_dec.c | 20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+index 35d5003ff809..559c823a4fe8 100644
+--- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
++++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+@@ -708,8 +708,8 @@ static void ttusb_dec_process_urb_frame(struct ttusb_dec *dec, u8 *b,
+ 					dec->packet_payload_length = 2;
+ 					dec->packet_state = 7;
+ 				} else {
+-					printk("%s: unknown packet type: "
+-					       "%02x%02x\n", __func__,
++					printk("%s: unknown packet type: %02x%02x\n",
++					       __func__,
+ 					       dec->packet[0], dec->packet[1]);
+ 					dec->packet_state = 0;
+ 				}
+@@ -961,8 +961,8 @@ static int ttusb_dec_start_iso_xfer(struct ttusb_dec *dec)
+ 		for (i = 0; i < ISO_BUF_COUNT; i++) {
+ 			if ((result = usb_submit_urb(dec->iso_urb[i],
+ 						     GFP_ATOMIC))) {
+-				printk("%s: failed urb submission %d: "
+-				       "error %d\n", __func__, i, result);
++				printk("%s: failed urb submission %d: error %d\n",
++				       __func__, i, result);
+ 
+ 				while (i) {
+ 					usb_kill_urb(dec->iso_urb[i - 1]);
+@@ -1375,8 +1375,7 @@ static int ttusb_dec_boot_dsp(struct ttusb_dec *dec)
+ 	memcpy(&tmp, &firmware[56], 4);
+ 	crc32_check = ntohl(tmp);
+ 	if (crc32_csum != crc32_check) {
+-		printk("%s: crc32 check of DSP code failed (calculated "
+-		       "0x%08x != 0x%08x in file), file invalid.\n",
++		printk("%s: crc32 check of DSP code failed (calculated 0x%08x != 0x%08x in file), file invalid.\n",
+ 			__func__, crc32_csum, crc32_check);
+ 		release_firmware(fw_entry);
+ 		return -ENOENT;
+@@ -1453,11 +1452,9 @@ static int ttusb_dec_init_stb(struct ttusb_dec *dec)
+ 
+ 	if (!mode) {
+ 		if (version == 0xABCDEFAB)
+-			printk(KERN_INFO "ttusb_dec: no version "
+-			       "info in Firmware\n");
++			printk(KERN_INFO "ttusb_dec: no version info in Firmware\n");
+ 		else
+-			printk(KERN_INFO "ttusb_dec: Firmware "
+-			       "%x.%02x%c%c\n",
++			printk(KERN_INFO "ttusb_dec: Firmware %x.%02x%c%c\n",
+ 			       version >> 24, (version >> 16) & 0xff,
+ 			       (version >> 8) & 0xff, version & 0xff);
+ 
+@@ -1481,8 +1478,7 @@ static int ttusb_dec_init_stb(struct ttusb_dec *dec)
+ 			ttusb_dec_set_model(dec, TTUSB_DEC2540T);
+ 			break;
+ 		default:
+-			printk(KERN_ERR "%s: unknown model returned "
+-			       "by firmware (%08x) - please report\n",
++			printk(KERN_ERR "%s: unknown model returned by firmware (%08x) - please report\n",
+ 			       __func__, model);
+ 			return -ENOENT;
+ 		}
+-- 
+2.7.4
+
+
