@@ -1,80 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([85.220.129.30]:59614 "EHLO smtp1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751635AbcJKHhA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 03:37:00 -0400
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
-Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <8737k8ya6f.fsf@intel.com>
-Date: Tue, 11 Oct 2016 09:26:48 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <8E74FF11-208D-4C76-8A8C-2B2102E5CB20@darmarit.de>
-References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de> <87oa2xrhqx.fsf@intel.com> <20161006103132.3a56802a@vento.lan> <87lgy15zin.fsf@intel.com> <20161006135028.2880f5a5@vento.lan> <8737k8ya6f.fsf@intel.com>
-To: Jani Nikula <jani.nikula@intel.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:51505 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934457AbcJRUqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        =?UTF-8?q?Rafael=20Louren=C3=A7o=20de=20Lima=20Chehab?=
+        <chehabrafael@gmail.com>
+Subject: [PATCH v2 31/58] au0828: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:43 -0200
+Message-Id: <cd079313b76aa17567b0f094bb1bc336acd06c8d.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Am 07.10.2016 um 07:56 schrieb Jani Nikula <jani.nikula@intel.com>:
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-> On Thu, 06 Oct 2016, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
->> Em Thu, 06 Oct 2016 17:21:36 +0300
->> Jani Nikula <jani.nikula@intel.com> escreveu:
->>> We've seen what happens when we make it easy to add random scripts to
->>> build documentation. We've worked hard to get rid of that. In my books,
->>> one of the bigger points in favor of Sphinx over AsciiDoc(tor) was
->>> getting rid of all the hacks required in the build. Things that broke in
->>> subtle ways.
->> 
->> I really can't see what scripts it get rids.
-> 
-> Really? You don't see why the DocBook build was so fragile and difficult
-> to maintain? That scares me a bit, because then you will not have
-> learned why we should at all costs avoid adding random scripts to
-> produce documentation.
+So, join those continuation lines.
 
-For me, disassembling the DocBok build was hard and bothersome, I don't
-want this back.
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-IMO: old hats are productive with perl and they won't adapt another
-interpreter language (like python) for scripting. 
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
-This series -- the kernel-cmd -- directive avoid that they build
-fragile and difficult to maintain Makefile constructs, calling their
-perl scripts.
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
 
-Am 06.10.2016 um 16:21 schrieb Jani Nikula <jani.nikula@intel.com>:
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
-> This is connected to the above: keeping documentation buildable with
-> sphinx-build directly will force you to avoid the Makefile hacks.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/au0828/au0828-video.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-
-Thats why I think, that the kernel-cmd directive is a more *straight-
-forward* solution, helps to **avoid** complexity while not everyone
-has to script in python ... 
-
-> Case in point, parse-headers.pl was added for a specific need of media
-> documentation, and for the life of me I can't figure out by reading the
-> script what good, if any, it would be for gpu documentation. I call
-> *that* unmaintainable.
-
-
-If one adds a script like parse-headers.pl to the Documentation/sphinx 
-folder, he/she also has to add a documentation to the kernel-documentation.rst
-
-If the kernel-cmd directive gets acked, I will add a description to
-kernel-documentation.rst and I request Mauro to document the parse-headers.pl
-also.
-
-But, let's hear what Jon says.
-
--- Markus --
-
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 85dd9a8e83ff..7a10eaa38f67 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -253,8 +253,7 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
+ 		dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->usbdev,
+ 			sb_size, GFP_KERNEL, &urb->transfer_dma);
+ 		if (!dev->isoc_ctl.transfer_buffer[i]) {
+-			printk("unable to allocate %i bytes for transfer"
+-					" buffer %i%s\n",
++			printk("unable to allocate %i bytes for transfer buffer %i%s\n",
+ 					sb_size, i,
+ 					in_interrupt() ? " while in int" : "");
+ 			au0828_uninit_isoc(dev);
+-- 
+2.7.4
 
 
