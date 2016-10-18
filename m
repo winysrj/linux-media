@@ -1,123 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39707 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:51391 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751966AbcJKKfH (ORCPT
+        with ESMTP id S1752113AbcJRUqQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:35:07 -0400
+        Tue, 18 Oct 2016 16:46:16 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Jonathan McDowell <noodles@earth.li>
-Subject: [PATCH v2 16/31] dtt200u: handle USB control message errors
-Date: Tue, 11 Oct 2016 07:09:31 -0300
-Message-Id: <5c82c97cddb18682b549fcc3a9066ee2e2579fda.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 04/58] soc_camera: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:16 -0200
+Message-Id: <dbfe42b1ee7eb5c11229d081dcc15c6f9d3caa66.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If something bad happens while an USB control message is
-transfered, return an error code.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
+
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
+
+So, join those continuation lines.
+
+The patch was generated via the script below, and manually
+adjusted if needed.
+
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/dvb-usb/dtt200u.c | 26 ++++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+ drivers/media/i2c/soc_camera/ov772x.c | 3 +--
+ drivers/media/i2c/soc_camera/ov9740.c | 3 +--
+ drivers/media/i2c/soc_camera/tw9910.c | 3 +--
+ 3 files changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u.c b/drivers/media/usb/dvb-usb/dtt200u.c
-index 7706938b5167..f88572c7ae7c 100644
---- a/drivers/media/usb/dvb-usb/dtt200u.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u.c
-@@ -28,37 +28,42 @@ struct dtt200u_state {
- static int dtt200u_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	struct dtt200u_state *st = d->priv;
-+	int ret = 0;
+diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
+index 7e68762b3a4b..985a3672b243 100644
+--- a/drivers/media/i2c/soc_camera/ov772x.c
++++ b/drivers/media/i2c/soc_camera/ov772x.c
+@@ -1064,8 +1064,7 @@ static int ov772x_probe(struct i2c_client *client,
  
- 	mutex_lock(&st->data_mutex);
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+ 		dev_err(&adapter->dev,
+-			"I2C-Adapter doesn't support "
+-			"I2C_FUNC_SMBUS_BYTE_DATA\n");
++			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
+ 		return -EIO;
+ 	}
  
- 	st->data[0] = SET_INIT;
+diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
+index 0da632d7d33a..f11f76cdacad 100644
+--- a/drivers/media/i2c/soc_camera/ov9740.c
++++ b/drivers/media/i2c/soc_camera/ov9740.c
+@@ -881,8 +881,7 @@ static int ov9740_video_probe(struct i2c_client *client)
+ 		goto done;
+ 	}
  
- 	if (onoff)
--		dvb_usb_generic_write(d, st->data, 2);
-+		ret = dvb_usb_generic_write(d, st->data, 2);
+-	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, "
+-		 "Manufacturer 0x%02x, SMIA Version 0x%02x\n",
++	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, Manufacturer 0x%02x, SMIA Version 0x%02x\n",
+ 		 priv->model, priv->revision, priv->manid, priv->smiaver);
  
- 	mutex_unlock(&st->data_mutex);
--	return 0;
-+	return ret;
- }
+ 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
+diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+index 4002c07f3857..c9c49ed707b8 100644
+--- a/drivers/media/i2c/soc_camera/tw9910.c
++++ b/drivers/media/i2c/soc_camera/tw9910.c
+@@ -947,8 +947,7 @@ static int tw9910_probe(struct i2c_client *client,
  
- static int dtt200u_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
- 	struct dtt200u_state *st = adap->dev->priv;
-+	int ret;
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+ 		dev_err(&client->dev,
+-			"I2C-Adapter doesn't support "
+-			"I2C_FUNC_SMBUS_BYTE_DATA\n");
++			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
+ 		return -EIO;
+ 	}
  
- 	mutex_lock(&st->data_mutex);
- 	st->data[0] = SET_STREAMING;
- 	st->data[1] = onoff;
- 
--	dvb_usb_generic_write(adap->dev, st->data, 2);
-+	ret = dvb_usb_generic_write(adap->dev, st->data, 2);
-+	if (ret < 0)
-+		goto ret;
- 
- 	if (onoff)
--		return 0;
-+		goto ret;
- 
- 	st->data[0] = RESET_PID_FILTER;
--	dvb_usb_generic_write(adap->dev, st->data, 1);
-+	ret = dvb_usb_generic_write(adap->dev, st->data, 1);
- 
-+ret:
- 	mutex_unlock(&st->data_mutex);
- 
--	return 0;
-+	return ret;
- }
- 
- static int dtt200u_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid, int onoff)
-@@ -84,11 +89,15 @@ static int dtt200u_rc_query(struct dvb_usb_device *d)
- {
- 	struct dtt200u_state *st = d->priv;
- 	u32 scancode;
-+	int ret;
- 
- 	mutex_lock(&st->data_mutex);
- 	st->data[0] = GET_RC_CODE;
- 
--	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-+	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-+	if (ret < 0)
-+		goto ret;
-+
- 	if (st->data[0] == 1) {
- 		enum rc_type proto = RC_TYPE_NEC;
- 
-@@ -116,8 +125,9 @@ static int dtt200u_rc_query(struct dvb_usb_device *d)
- 	if (st->data[0] != 0)
- 		deb_info("st->data: %*ph\n", 5, st->data);
- 
-+ret:
- 	mutex_unlock(&st->data_mutex);
--	return 0;
-+	return ret;
- }
- 
- static int dtt200u_frontend_attach(struct dvb_usb_adapter *adap)
 -- 
 2.7.4
 
