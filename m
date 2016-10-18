@@ -1,130 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51391 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752113AbcJRUqQ (ORCPT
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:42056 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753969AbcJRNie (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:16 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 04/58] soc_camera: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:16 -0200
-Message-Id: <dbfe42b1ee7eb5c11229d081dcc15c6f9d3caa66.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Tue, 18 Oct 2016 09:38:34 -0400
+Subject: Re: [PATCH v3 1/2] Add OV5647 device tree documentation
+To: Rob Herring <robh@kernel.org>
+References: <cover.1476286687.git.roliveir@synopsys.com>
+ <0f85bdabe4951533e6fe7a842cc5dfa0f2cd8a6c.1476286687.git.roliveir@synopsys.com>
+ <20161018131434.2bbk2evxkv7mutfo@rob-hp-laptop>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <mark.rutland@arm.com>,
+        <mchehab@kernel.org>, <davem@davemloft.net>,
+        <geert@linux-m68k.org>, <akpm@linux-foundation.org>,
+        <kvalo@codeaurora.org>, <linux@roeck-us.net>, <hverkuil@xs4all.nl>,
+        <lars@metafoo.de>, <pavel@ucw.cz>, <robert.jarzmik@free.fr>,
+        <slongerbeam@gmail.com>, <dheitmueller@kernellabs.com>,
+        <pali.rohar@gmail.com>, <CARLOS.PALMINHA@synopsys.com>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Message-ID: <7a228213-bbd1-8eb4-6d8b-123b3b6e215f@synopsys.com>
+Date: Tue, 18 Oct 2016 14:38:20 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161018131434.2bbk2evxkv7mutfo@rob-hp-laptop>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+On 10/18/2016 2:14 PM, Rob Herring wrote:
+> On Wed, Oct 12, 2016 at 05:02:21PM +0100, Ramiro Oliveira wrote:
+>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+>> ---
+>>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+>>  1 file changed, 19 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>> new file mode 100644
+>> index 0000000..4c91b3b
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>> @@ -0,0 +1,19 @@
+>> +Omnivision OV5647 raw image sensor
+>> +---------------------------------
+>> +
+>> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+>> +and CCI (I2C compatible) control bus.
+>> +
+>> +Required properties:
+>> +
+>> +- compatible	: "ovti,ov5647";
+>> +- reg		: I2C slave address of the sensor;
+>> +
+>> +The common video interfaces bindings (see video-interfaces.txt) should be
+>> +used to specify link to the image data receiver. The OV5647 device
+>> +node should contain one 'port' child node with an 'endpoint' subnode.
+>> +
+>> +Following properties are valid for the endpoint node:
+>> +
+>> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+>> +  video-interfaces.txt.  The sensor supports only two data lanes.
+> What's the default if not present?
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+Since the sensor only supports 2 data lanes, this information will not be used,
+even if it is available in the DT. So the default will be 2.
 
-So, join those continuation lines.
-
-The patch was generated via the script below, and manually
-adjusted if needed.
-
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/i2c/soc_camera/ov772x.c | 3 +--
- drivers/media/i2c/soc_camera/ov9740.c | 3 +--
- drivers/media/i2c/soc_camera/tw9910.c | 3 +--
- 3 files changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
-index 7e68762b3a4b..985a3672b243 100644
---- a/drivers/media/i2c/soc_camera/ov772x.c
-+++ b/drivers/media/i2c/soc_camera/ov772x.c
-@@ -1064,8 +1064,7 @@ static int ov772x_probe(struct i2c_client *client,
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&adapter->dev,
--			"I2C-Adapter doesn't support "
--			"I2C_FUNC_SMBUS_BYTE_DATA\n");
-+			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
- 		return -EIO;
- 	}
- 
-diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
-index 0da632d7d33a..f11f76cdacad 100644
---- a/drivers/media/i2c/soc_camera/ov9740.c
-+++ b/drivers/media/i2c/soc_camera/ov9740.c
-@@ -881,8 +881,7 @@ static int ov9740_video_probe(struct i2c_client *client)
- 		goto done;
- 	}
- 
--	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, "
--		 "Manufacturer 0x%02x, SMIA Version 0x%02x\n",
-+	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, Manufacturer 0x%02x, SMIA Version 0x%02x\n",
- 		 priv->model, priv->revision, priv->manid, priv->smiaver);
- 
- 	ret = v4l2_ctrl_handler_setup(&priv->hdl);
-diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
-index 4002c07f3857..c9c49ed707b8 100644
---- a/drivers/media/i2c/soc_camera/tw9910.c
-+++ b/drivers/media/i2c/soc_camera/tw9910.c
-@@ -947,8 +947,7 @@ static int tw9910_probe(struct i2c_client *client,
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&client->dev,
--			"I2C-Adapter doesn't support "
--			"I2C_FUNC_SMBUS_BYTE_DATA\n");
-+			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
- 		return -EIO;
- 	}
- 
--- 
-2.7.4
-
+>
+>> -- 
+>> 2.9.3
+>>
+>>
 
