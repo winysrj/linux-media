@@ -1,138 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43893 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S941509AbcJSOYV (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51432 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932372AbcJRUqS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:24:21 -0400
-Message-ID: <1476887059.3054.42.camel@pengutronix.de>
-Subject: Re: [PATCH v2 1/1] doc-rst: v4l: Add documentation on CSI-2 bus
- configuration
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Date: Wed, 19 Oct 2016 16:24:19 +0200
-In-Reply-To: <1476881994-32118-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1476870150.3054.28.camel@pengutronix.de>
-         <1476881994-32118-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 18 Oct 2016 16:46:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 56/58] radio: don't break long lines
+Date: Tue, 18 Oct 2016 18:46:08 -0200
+Message-Id: <5a247d583f9b9a0433c577f8079feb97c8db3e8b.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 19.10.2016, 15:59 +0300 schrieb Sakari Ailus:
-> Document the interface between the CSI-2 transmitter and receiver drivers.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Philipp,
-> 
-> Indeed the pixel rate is used by some driver as well.
-> 
-> How about this one instead?
-> 
-> The HTML page is available here (without CCS unfortunately):
-> 
-> <URL:http://www.retiisi.org.uk/v4l2/tmp/csi2.html>
-> 
-> since v1:
->  
-> - Add PIXEL_RATE to the required controls.
-> 
-> - Document how pixel rate is calculated from the link frequency.
-> 
->  Documentation/media/kapi/csi2.rst  | 59 ++++++++++++++++++++++++++++++++++++++
->  Documentation/media/media_kapi.rst |  1 +
->  2 files changed, 60 insertions(+)
->  create mode 100644 Documentation/media/kapi/csi2.rst
-> 
-> diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
-> new file mode 100644
-> index 0000000..31f927d
-> --- /dev/null
-> +++ b/Documentation/media/kapi/csi2.rst
-> @@ -0,0 +1,59 @@
-> +MIPI CSI-2
-> +==========
-> +
-> +CSI-2 is a data bus intended for transferring images from cameras to
-> +the host SoC. It is defined by the `MIPI alliance`_.
-> +
-> +.. _`MIPI alliance`: http://www.mipi.org/
-> +
-> +Transmitter drivers
-> +-------------------
-> +
-> +CSI-2 transmitter, such as a sensor or a TV tuner, drivers need to
-> +provide the CSI-2 receiver with information on the CSI-2 bus
-> +configuration. These include the V4L2_CID_LINK_FREQ and
-> +V4L2_CID_PIXEL_RATE controls and
-> +(:c:type:`v4l2_subdev_video_ops`->s_stream() callback). These
-> +interface elements must be present on the sub-device represents the
-> +CSI-2 transmitter.
-> +
-> +The V4L2_CID_LINK_FREQ control is used to tell the receiver driver the
-> +frequency (and not the symbol rate) of the link. The
-> +V4L2_CID_PIXEL_RATE is may be used by the receiver to obtain the pixel
-> +rate the transmitter uses. The
-> +:c:type:`v4l2_subdev_video_ops`->s_stream() callback provides an
-> +ability to start and stop the stream.
-> +
-> +The value of the V4L2_CID_PIXEL_RATE is calculated as follows::
-> +
-> +	pixel_rate = link_freq * 2 * nr_of_lanes
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-This is the total bps, which must be divided by the bits per pixel
-depending on the selected MEDIA_BUS_FMT, for example
-/16 for MEDIA_BUS_FMT_UYVY8_1X16, or /24 for MEDIA_BUS_FMT_RGB888_1X24,
-to obtain pixel_rate.
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-> +where
-> +
-> +.. list-table:: variables in pixel rate calculation
-> +   :header-rows: 1
-> +
-> +   * - variable or constant
-> +     - description
-> +   * - link_freq
-> +     - The value of the V4L2_CID_LINK_FREQ integer64 menu item.
-> +   * - nr_of_lanes
-> +     - Number of data lanes used on the CSI-2 link. This can
-> +       be obtained from the OF endpoint configuration.
+So, join those continuation lines.
 
-I suppose the number of lanes should be calculated as
-	nr_of_lanes = DIV_ROUND_UP(pixel_rate * bpp, link_freq * 2)
-in the receiver driver? Not all lanes configured in the device tree have
-to be used, depending on the configured link frequencies and bus format.
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-> +   * - 2
-> +     - Two bits are transferred per clock cycle per lane.
-> +
-> +The transmitter drivers must configure the CSI-2 transmitter to *LP-11
-> +mode* whenever the transmitter is powered on but not active. Some
-> +transmitters do this automatically but some have to be explicitly
-> +programmed to do so.
-> +
-> +Receiver drivers
-> +----------------
-> +
-> +Before the receiver driver may enable the CSI-2 transmitter by using
-> +the :c:type:`v4l2_subdev_video_ops`->s_stream(), it must have powered
-> +the transmitter up by using the
-> +:c:type:`v4l2_subdev_core_ops`->s_power() callback. This may take
-> +place either indirectly by using :c:func:`v4l2_pipeline_pm_use` or
-> +directly.
-> diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
-> index f282ca2..bc06389 100644
-> --- a/Documentation/media/media_kapi.rst
-> +++ b/Documentation/media/media_kapi.rst
-> @@ -33,3 +33,4 @@ For more details see the file COPYING in the source distribution of Linux.
->      kapi/rc-core
->      kapi/mc-core
->      kapi/cec-core
-> +    kapi/csi2
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
-regards
-Philipp
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/radio/radio-gemtek.c | 8 ++------
+ drivers/media/radio/radio-wl1273.c | 3 +--
+ 2 files changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
+index cff1eb144a5c..ca051ccbc3e4 100644
+--- a/drivers/media/radio/radio-gemtek.c
++++ b/drivers/media/radio/radio-gemtek.c
+@@ -67,14 +67,10 @@ module_param(probe, bool, 0444);
+ MODULE_PARM_DESC(probe, "Enable automatic device probing.");
+ 
+ module_param(hardmute, bool, 0644);
+-MODULE_PARM_DESC(hardmute, "Enable 'hard muting' by shutting down PLL, may "
+-	 "reduce static noise.");
++MODULE_PARM_DESC(hardmute, "Enable 'hard muting' by shutting down PLL, may reduce static noise.");
+ 
+ module_param_array(io, int, NULL, 0444);
+-MODULE_PARM_DESC(io, "Force I/O ports for the GemTek Radio card if automatic "
+-	 "probing is disabled or fails. The most common I/O ports are: 0x20c "
+-	 "0x30c, 0x24c or 0x34c (0x20c, 0x248 and 0x28c have been reported to "
+-	 "work for the combined sound/radiocard).");
++MODULE_PARM_DESC(io, "Force I/O ports for the GemTek Radio card if automatic probing is disabled or fails. The most common I/O ports are: 0x20c 0x30c, 0x24c or 0x34c (0x20c, 0x248 and 0x28c have been reported to work for the combined sound/radiocard).");
+ 
+ module_param_array(radio_nr, int, NULL, 0444);
+ MODULE_PARM_DESC(radio_nr, "Radio device numbers");
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index a93f681aa9d6..9ce4b12299b4 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -2068,8 +2068,7 @@ static int wl1273_fm_radio_probe(struct platform_device *pdev)
+ 			goto err_request_irq;
+ 		}
+ 	} else {
+-		dev_err(radio->dev, WL1273_FM_DRIVER_NAME ": Core WL1273 IRQ"
+-			" not configured");
++		dev_err(radio->dev, WL1273_FM_DRIVER_NAME ": Core WL1273 IRQ not configured");
+ 		r = -EINVAL;
+ 		goto pdata_err;
+ 	}
+-- 
+2.7.4
+
 
