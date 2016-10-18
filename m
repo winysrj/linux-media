@@ -1,88 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43037 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752455AbcJCJfE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 3 Oct 2016 05:35:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Harman Kalra <harman4linux@gmail.com>
-Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] : Removing warnings caught by checkpatch.pl
-Date: Mon, 03 Oct 2016 12:34:58 +0300
-Message-ID: <295099868.3eYuVXyQ9F@avalon>
-In-Reply-To: <1475355646-6378-1-git-send-email-harman4linux@gmail.com>
-References: <1475355646-6378-1-git-send-email-harman4linux@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from bombadil.infradead.org ([198.137.202.9]:51508 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934473AbcJRUqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Terry Heo <terryheo@google.com>, Peter Rosin <peda@axentia.se>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Matthias Schwarzott <zzam@gentoo.org>
+Subject: [PATCH v2 34/58] cx231xx: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:46 -0200
+Message-Id: <0ba434ef9b8ec5d4b19ae1744932441169647374.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Harman,
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Thank you for the patch.
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-The subject of your commit message should at least contain the name of the 
-driver. Furthermore, you can mention that the patch originates from warnings 
-output by checkpatch.pl, but the subject should describe what you fix (in this 
-case what type of warning).
+So, join those continuation lines.
 
-On Sunday 02 Oct 2016 02:30:45 Harman Kalra wrote:
-> Removing warnings caught by checkpatch.pl
+The patch was generated via the script below, and manually
+adjusted if needed.
 
-If the purpose of commit message bodies was to repeat the subject line, we 
-wouldn't use them :-) Here you should describe why this change is needed, and 
-possibly how it is performed when the patch is complex (which isn't the case 
-of this patch).
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
 
-> Signed-off-by: Harman Kalra <harman4linux@gmail.com>
-> ---
->  drivers/staging/media/omap4iss/iss_video.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/staging/media/omap4iss/iss_video.c
-> b/drivers/staging/media/omap4iss/iss_video.c index c16927a..7cc1691 100644
-> --- a/drivers/staging/media/omap4iss/iss_video.c
-> +++ b/drivers/staging/media/omap4iss/iss_video.c
-> @@ -297,8 +297,8 @@ static void iss_video_pix_to_mbus(const struct
-> v4l2_pix_format *pix, */
-> 
->  static int iss_video_queue_setup(struct vb2_queue *vq,
-> -				 unsigned int *count, unsigned int 
-*num_planes,
-> -				 unsigned int sizes[], struct device 
-*alloc_devs[])
-> +			unsigned int *count, unsigned int *num_planes,
-> +			unsigned int sizes[], struct device *alloc_devs[])
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
 
-This breaks the coding style of the driver which aligns function arguments to 
-the opening parenthesis. You can instead wrap the last line to shorten it.
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
->  {
->  	struct iss_video_fh *vfh = vb2_get_drv_priv(vq);
->  	struct iss_video *video = vfh->video;
-> @@ -678,8 +678,8 @@ void omap4iss_video_cancel_stream(struct iss_video
-> *video) if (subdev == NULL)
->  		return -EINVAL;
-> 
-> -	/* Try the get selection operation first and fallback to get format if 
-not
-> -	 * implemented.
-> +	/* Try the get selection operation first and
-> +	 * fallback to get format if not implemented.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-core.c | 10 ++++------
+ drivers/media/usb/cx231xx/cx231xx-dvb.c  |  4 ++--
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-Lines can be up to 80 characters long, there's no need to wrap them after 52 
-characters only.
-
->  	 */
->  	sdsel.pad = pad;
->  	ret = v4l2_subdev_call(subdev, pad, get_selection, NULL, &sdsel);
-> --
-> 1.7.9.5
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index 8b099fe1d592..550ec932f931 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -241,8 +241,7 @@ static int __usb_control_msg(struct cx231xx *dev, unsigned int pipe,
+ 	int rc, i;
+ 
+ 	if (reg_debug) {
+-		printk(KERN_DEBUG "%s: (pipe 0x%08x): "
+-				"%s:  %02x %02x %02x %02x %02x %02x %02x %02x ",
++		printk(KERN_DEBUG "%s: (pipe 0x%08x): %s:  %02x %02x %02x %02x %02x %02x %02x %02x ",
+ 				dev->name,
+ 				pipe,
+ 				(requesttype & USB_DIR_IN) ? "IN" : "OUT",
+@@ -441,8 +440,7 @@ int cx231xx_write_ctrl_reg(struct cx231xx *dev, u8 req, u16 reg, char *buf,
+ 	if (reg_debug) {
+ 		int byte;
+ 
+-		cx231xx_isocdbg("(pipe 0x%08x): "
+-			"OUT: %02x %02x %02x %02x %02x %02x %02x %02x >>>",
++		cx231xx_isocdbg("(pipe 0x%08x): OUT: %02x %02x %02x %02x %02x %02x %02x %02x >>>",
+ 			pipe,
+ 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+ 			req, 0, val, reg & 0xff,
+@@ -600,8 +598,8 @@ int cx231xx_set_alt_setting(struct cx231xx *dev, u8 index, u8 alt)
+ 			return -1;
+ 	}
+ 
+-	cx231xx_coredbg("setting alternate %d with wMaxPacketSize=%u,"
+-			"Interface = %d\n", alt, max_pkt_size,
++	cx231xx_coredbg("setting alternate %d with wMaxPacketSize=%u,Interface = %d\n",
++			alt, max_pkt_size,
+ 			usb_interface_index);
+ 
+ 	if (usb_interface_index > 0) {
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 1417515d30eb..2868546999ca 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -377,8 +377,8 @@ static int attach_xc5000(u8 addr, struct cx231xx *dev)
+ 	cfg.i2c_addr = addr;
+ 
+ 	if (!dev->dvb->frontend) {
+-		dev_err(dev->dev, "%s/2: dvb frontend not attached. "
+-		       "Can't attach xc5000\n", dev->name);
++		dev_err(dev->dev, "%s/2: dvb frontend not attached. Can't attach xc5000\n",
++			dev->name);
+ 		return -EINVAL;
+ 	}
+ 
 -- 
-Regards,
+2.7.4
 
-Laurent Pinchart
 
