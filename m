@@ -1,71 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46754 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935727AbcJGRYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 26/26] digitv: handle error code on RC query
-Date: Fri,  7 Oct 2016 14:24:36 -0300
-Message-Id: <9191b3e28e65ea9f3bae7b7b01441ff748f94998.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59959 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934237AbcJRPun (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 11:50:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: horms@verge.net.au, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        geert@linux-m68k.org, sergei.shtylyov@cogentembedded.com,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] ARM: dts: gose: add composite video input
+Date: Tue, 18 Oct 2016 18:50:39 +0300
+Message-ID: <2343930.U8AiEBNJBl@avalon>
+In-Reply-To: <1476802943-5189-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1476802943-5189-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1476802943-5189-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no sense on decoding and generating a RC key code if
-there was an error on the URB control message.
+Hi Ulrich,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/digitv.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+(CC'ing the device tree mailing list - for real this time)
 
-diff --git a/drivers/media/usb/dvb-usb/digitv.c b/drivers/media/usb/dvb-usb/digitv.c
-index 09f8c28bd4db..4284f6984dc1 100644
---- a/drivers/media/usb/dvb-usb/digitv.c
-+++ b/drivers/media/usb/dvb-usb/digitv.c
-@@ -29,7 +29,9 @@ static int digitv_ctrl_msg(struct dvb_usb_device *d,
- 		u8 cmd, u8 vv, u8 *wbuf, int wlen, u8 *rbuf, int rlen)
- {
- 	struct digitv_state *st = d->priv;
--	int wo = (rbuf == NULL || rlen == 0); /* write-only */
-+	int ret, wo;
-+
-+	wo = (rbuf == NULL || rlen == 0); /* write-only */
- 
- 	memset(st->sndbuf, 0, 7);
- 	memset(st->rcvbuf, 0, 7);
-@@ -40,12 +42,12 @@ static int digitv_ctrl_msg(struct dvb_usb_device *d,
- 
- 	if (wo) {
- 		memcpy(&st->sndbuf[3], wbuf, wlen);
--		dvb_usb_generic_write(d, st->sndbuf, 7);
-+		ret = dvb_usb_generic_write(d, st->sndbuf, 7);
- 	} else {
--		dvb_usb_generic_rw(d, st->sndbuf, 7, st->rcvbuf, 7, 10);
-+		ret = dvb_usb_generic_rw(d, st->sndbuf, 7, st->rcvbuf, 7, 10);
- 		memcpy(rbuf, &st->rcvbuf[3], rlen);
- 	}
--	return 0;
-+	return ret;
- }
- 
- /* I2C */
+Thank you for the patch.
+
+On Tuesday 18 Oct 2016 17:02:23 Ulrich Hecht wrote:
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  arch/arm/boot/dts/r8a7793-gose.dts | 36 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/r8a7793-gose.dts
+> b/arch/arm/boot/dts/r8a7793-gose.dts index a47ea4b..2606021 100644
+> --- a/arch/arm/boot/dts/r8a7793-gose.dts
+> +++ b/arch/arm/boot/dts/r8a7793-gose.dts
+> @@ -390,6 +390,11 @@
+>  		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", 
+"vin0_clk";
+>  		function = "vin0";
+>  	};
+> +
+> +	vin1_pins: vin1 {
+> +		groups = "vin1_data8", "vin1_clk";
+> +		function = "vin1";
+> +	};
+>  };
+> 
+>  &ether {
+> @@ -515,6 +520,19 @@
+>  		reg = <0x12>;
+>  	};
+> 
+> +	composite-in@20 {
+> +		compatible = "adi,adv7180";
+> +		reg = <0x20>;
+> +		remote = <&vin1>;
+> +
+> +		port {
+> +			adv7180: endpoint {
+> +				bus-width = <8>;
+> +				remote-endpoint = <&vin1ep>;
+> +			};
+> +		};
+
+As explained before, you need to update the ADV7180 DT bindings first to 
+document ports. I've discussed this with Hans last week, and we agreed that DT 
+should model physical ports. Unfortunately the ADV7180 comes in four different 
+packages with different feature sets that affect ports.
+
+ADV7180  K CP32 Z               32-Lead Lead Frame Chip Scale Package
+ADV7180  B CP32 Z               32-Lead Lead Frame Chip Scale Package
+ADV7180 WB CP32 Z               32-Lead Lead Frame Chip Scale Package
+
+ADV7180  B CP   Z               40-Lead Lead Frame Chip Scale Package
+ADV7180 WB CP   Z               40-Lead Lead Frame Chip Scale Package
+
+ADV7180  K ST48 Z               48-Lead Low Profile Quad Flat Package
+ADV7180  B ST48 Z               48-Lead Low Profile Quad Flat Package
+ADV7180 WB ST48 Z               48-Lead Low Profile Quad Flat Package
+
+ADV7180  B ST   Z               64-Lead Low Profile Quad Flat Package
+ADV7180 WB ST   Z               64-Lead Low Profile Quad Flat Package
+
+W tells whether the part is qualified for automotive applications. It has no 
+impact from a software point of view. K and B indicate the temperature range, 
+and also have no software impact. The Z suffix indicates that the part is RoHS 
+compliant (they all are) and also has no impact.
+
+Unfortunately the W and K/B qualifiers come before the package qualifier. I'm 
+not sure whether we could simply drop W, K/B and W and specify the following 
+compatible strings
+
+- adv7180cp32
+- adv7180cp
+- adv7180st48
+- adv7180st
+
+or if we need more compatible strings that would match the full chip name. 
+Feedback on that from the device tree maintainers would be appreciated.
+
+Regardless of what compatible strings end up being used, the bindings should 
+document 3 or 6 input ports depending on the model, and one output port. You 
+can number the input ports from 0 to 2 or 0 to 5 depending on the model and 
+the output port 3 or 6. Another option would be to number the output port 0 
+and the input ports 1 to 3 or 1 to 6 depending on the model. That would give a 
+fixed number for the output port across all models, but might be a bit 
+consuming as most bindings number input ports before output ports.
+
+For the Gose board you should then add one composite connector to the device 
+tree ("composite-video-connector") and connect it to port 0 of the 
+ADV7180WBCP32.
+
+> +	};
+> +
+>  	hdmi@39 {
+>  		compatible = "adi,adv7511w";
+>  		reg = <0x39>;
+> @@ -622,3 +640,21 @@
+>  		};
+>  	};
+>  };
+> +
+> +/* composite video input */
+> +&vin1 {
+> +	pinctrl-0 = <&vin1_pins>;
+> +	pinctrl-names = "default";
+> +
+> +	status = "okay";
+> +
+> +	port {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		vin1ep: endpoint {
+> +			remote-endpoint = <&adv7180>;
+> +			bus-width = <8>;
+> +		};
+> +	};
+> +};
+
 -- 
-2.7.4
+Regards,
 
-
+Laurent Pinchart
