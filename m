@@ -1,150 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0077.outbound.protection.outlook.com ([104.47.42.77]:59645
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755001AbcJMNKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 09:10:06 -0400
-Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
- pass FOLL_* flags
-To: Lorenzo Stoakes <lstoakes@gmail.com>, <linux-mm@kvack.org>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
-CC: <linux-mips@linux-mips.org>, <linux-fbdev@vger.kernel.org>,
-        Jan Kara <jack@suse.cz>, <kvm@vger.kernel.org>,
-        <linux-sh@vger.kernel.org>,
-        "Dave Hansen" <dave.hansen@linux.intel.com>,
-        <dri-devel@lists.freedesktop.org>, <netdev@vger.kernel.org>,
-        <sparclinux@vger.kernel.org>, <linux-ia64@vger.kernel.org>,
-        <linux-s390@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
-        <linux-scsi@vger.kernel.org>, <linux-rdma@vger.kernel.org>,
-        <x86@kernel.org>, Hugh Dickins <hughd@google.com>,
-        <linux-media@vger.kernel.org>, Rik van Riel <riel@redhat.com>,
-        <intel-gfx@lists.freedesktop.org>,
-        <adi-buildroot-devel@lists.sourceforge.net>,
-        <ceph-devel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-cris-kernel@axis.com>,
-        "Linus Torvalds" <torvalds@linux-foundation.org>,
-        <linuxppc-dev@lists.ozlabs.org>, <linux-kernel@vger.kernel.org>,
-        <linux-security-module@vger.kernel.org>,
-        <linux-alpha@vger.kernel.org>, <linux-fsdevel@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mel Gorman <mgorman@techsingularity.net>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <914b917f-6871-2ba3-95ba-981dd2855743@amd.com>
-Date: Thu, 13 Oct 2016 09:32:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <20161013002020.3062-1-lstoakes@gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from bombadil.infradead.org ([198.137.202.9]:51438 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755212AbcJRUqS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:18 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Wei Yongjun <weiyongjun1@huawei.com>
+Subject: [PATCH v2 55/58] platform: don't break long lines
+Date: Tue, 18 Oct 2016 18:46:07 -0200
+Message-Id: <04f307c4e4aabde34f02c010f3441983eeaf0096.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.10.2016 um 02:20 schrieb Lorenzo Stoakes:
-> This patch series adjusts functions in the get_user_pages* family such that
-> desired FOLL_* flags are passed as an argument rather than implied by flags.
->
-> The purpose of this change is to make the use of FOLL_FORCE explicit so it is
-> easier to grep for and clearer to callers that this flag is being used. The use
-> of FOLL_FORCE is an issue as it overrides missing VM_READ/VM_WRITE flags for the
-> VMA whose pages we are reading from/writing to, which can result in surprising
-> behaviour.
->
-> The patch series came out of the discussion around commit 38e0885, which
-> addressed a BUG_ON() being triggered when a page was faulted in with PROT_NONE
-> set but having been overridden by FOLL_FORCE. do_numa_page() was run on the
-> assumption the page _must_ be one marked for NUMA node migration as an actual
-> PROT_NONE page would have been dealt with prior to this code path, however
-> FOLL_FORCE introduced a situation where this assumption did not hold.
->
-> See https://marc.info/?l=linux-mm&m=147585445805166 for the patch proposal.
->
-> Lorenzo Stoakes (10):
->    mm: remove write/force parameters from __get_user_pages_locked()
->    mm: remove write/force parameters from __get_user_pages_unlocked()
->    mm: replace get_user_pages_unlocked() write/force parameters with gup_flags
->    mm: replace get_user_pages_locked() write/force parameters with gup_flags
->    mm: replace get_vaddr_frames() write/force parameters with gup_flags
->    mm: replace get_user_pages() write/force parameters with gup_flags
->    mm: replace get_user_pages_remote() write/force parameters with gup_flags
->    mm: replace __access_remote_vm() write parameter with gup_flags
->    mm: replace access_remote_vm() write parameter with gup_flags
->    mm: replace access_process_vm() write parameter with gup_flags
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Patch number 6 in this series (which touches drivers I co-maintain) is 
-Acked-by: Christian König <christian.koenig@amd.com>.
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-In general looks like a very nice cleanup to me, but I'm not enlightened 
-enough to full judge.
+So, join those continuation lines.
 
-Regards,
-Christian.
+The patch was generated via the script below, and manually
+adjusted if needed.
 
->
->   arch/alpha/kernel/ptrace.c                         |  9 ++--
->   arch/blackfin/kernel/ptrace.c                      |  5 ++-
->   arch/cris/arch-v32/drivers/cryptocop.c             |  4 +-
->   arch/cris/arch-v32/kernel/ptrace.c                 |  4 +-
->   arch/ia64/kernel/err_inject.c                      |  2 +-
->   arch/ia64/kernel/ptrace.c                          | 14 +++---
->   arch/m32r/kernel/ptrace.c                          | 15 ++++---
->   arch/mips/kernel/ptrace32.c                        |  5 ++-
->   arch/mips/mm/gup.c                                 |  2 +-
->   arch/powerpc/kernel/ptrace32.c                     |  5 ++-
->   arch/s390/mm/gup.c                                 |  3 +-
->   arch/score/kernel/ptrace.c                         | 10 +++--
->   arch/sh/mm/gup.c                                   |  3 +-
->   arch/sparc/kernel/ptrace_64.c                      | 24 +++++++----
->   arch/sparc/mm/gup.c                                |  3 +-
->   arch/x86/kernel/step.c                             |  3 +-
->   arch/x86/mm/gup.c                                  |  2 +-
->   arch/x86/mm/mpx.c                                  |  5 +--
->   arch/x86/um/ptrace_32.c                            |  3 +-
->   arch/x86/um/ptrace_64.c                            |  3 +-
->   drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c            |  7 ++-
->   drivers/gpu/drm/etnaviv/etnaviv_gem.c              |  7 ++-
->   drivers/gpu/drm/exynos/exynos_drm_g2d.c            |  3 +-
->   drivers/gpu/drm/i915/i915_gem_userptr.c            |  6 ++-
->   drivers/gpu/drm/radeon/radeon_ttm.c                |  3 +-
->   drivers/gpu/drm/via/via_dmablit.c                  |  4 +-
->   drivers/infiniband/core/umem.c                     |  6 ++-
->   drivers/infiniband/core/umem_odp.c                 |  7 ++-
->   drivers/infiniband/hw/mthca/mthca_memfree.c        |  2 +-
->   drivers/infiniband/hw/qib/qib_user_pages.c         |  3 +-
->   drivers/infiniband/hw/usnic/usnic_uiom.c           |  5 ++-
->   drivers/media/pci/ivtv/ivtv-udma.c                 |  4 +-
->   drivers/media/pci/ivtv/ivtv-yuv.c                  |  5 ++-
->   drivers/media/platform/omap/omap_vout.c            |  2 +-
->   drivers/media/v4l2-core/videobuf-dma-sg.c          |  7 ++-
->   drivers/media/v4l2-core/videobuf2-memops.c         |  6 ++-
->   drivers/misc/mic/scif/scif_rma.c                   |  3 +-
->   drivers/misc/sgi-gru/grufault.c                    |  2 +-
->   drivers/platform/goldfish/goldfish_pipe.c          |  3 +-
->   drivers/rapidio/devices/rio_mport_cdev.c           |  3 +-
->   drivers/scsi/st.c                                  |  5 +--
->   .../interface/vchiq_arm/vchiq_2835_arm.c           |  3 +-
->   .../vc04_services/interface/vchiq_arm/vchiq_arm.c  |  3 +-
->   drivers/video/fbdev/pvr2fb.c                       |  4 +-
->   drivers/virt/fsl_hypervisor.c                      |  4 +-
->   fs/exec.c                                          |  9 +++-
->   fs/proc/base.c                                     | 19 +++++---
->   include/linux/mm.h                                 | 18 ++++----
->   kernel/events/uprobes.c                            |  6 ++-
->   kernel/ptrace.c                                    | 16 ++++---
->   mm/frame_vector.c                                  |  9 ++--
->   mm/gup.c                                           | 50 ++++++++++------------
->   mm/memory.c                                        | 16 ++++---
->   mm/mempolicy.c                                     |  2 +-
->   mm/nommu.c                                         | 38 +++++++---------
->   mm/process_vm_access.c                             |  7 ++-
->   mm/util.c                                          |  8 ++--
->   net/ceph/pagevec.c                                 |  2 +-
->   security/tomoyo/domain.c                           |  2 +-
->   virt/kvm/async_pf.c                                |  3 +-
->   virt/kvm/kvm_main.c                                | 11 +++--
->   61 files changed, 260 insertions(+), 187 deletions(-)
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/mx2_emmaprp.c | 10 +++++-----
+ drivers/media/platform/pxa_camera.c  |  6 ++----
+ drivers/media/platform/via-camera.c  |  7 ++-----
+ 3 files changed, 9 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index e68d271b10af..03e47e0f778d 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -724,10 +724,10 @@ static int emmaprp_buf_prepare(struct vb2_buffer *vb)
+ 	q_data = get_q_data(ctx, vb->vb2_queue->type);
+ 
+ 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
+-		dprintk(ctx->dev, "%s data will not fit into plane"
+-				  "(%lu < %lu)\n", __func__,
+-				  vb2_plane_size(vb, 0),
+-				  (long)q_data->sizeimage);
++		dprintk(ctx->dev,
++			"%s data will not fit into plane(%lu < %lu)\n",
++			__func__, vb2_plane_size(vb, 0),
++			(long)q_data->sizeimage);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -937,7 +937,7 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
+ 	pcdev->vfd = vfd;
+ 	v4l2_info(&pcdev->v4l2_dev, EMMAPRP_MODULE_NAME
+-			" Device registered as /dev/video%d\n", vfd->num);
++		  " Device registered as /dev/video%d\n", vfd->num);
+ 
+ 	platform_set_drvdata(pdev, pcdev);
+ 
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index c12209c701d3..bcdac4932fb1 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -2347,8 +2347,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		 * Platform hasn't set available data widths. This is bad.
+ 		 * Warn and use a default.
+ 		 */
+-		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available "
+-			 "data widths, using default 10 bit\n");
++		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available data widths, using default 10 bit\n");
+ 		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
+ 	}
+ 	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)
+@@ -2359,8 +2358,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
+ 		pcdev->width_flags |= 1 << 9;
+ 	if (!pcdev->mclk) {
+ 		dev_warn(&pdev->dev,
+-			 "mclk == 0! Please, fix your platform data. "
+-			 "Using default 20MHz\n");
++			 "mclk == 0! Please, fix your platform data. Using default 20MHz\n");
+ 		pcdev->mclk = 20000000;
+ 	}
+ 
+diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+index 7ca12deba89c..e16f70a5df1d 100644
+--- a/drivers/media/platform/via-camera.c
++++ b/drivers/media/platform/via-camera.c
+@@ -39,15 +39,12 @@ MODULE_LICENSE("GPL");
+ static bool flip_image;
+ module_param(flip_image, bool, 0444);
+ MODULE_PARM_DESC(flip_image,
+-		"If set, the sensor will be instructed to flip the image "
+-		"vertically.");
++		"If set, the sensor will be instructed to flip the image vertically.");
+ 
+ static bool override_serial;
+ module_param(override_serial, bool, 0444);
+ MODULE_PARM_DESC(override_serial,
+-		"The camera driver will normally refuse to load if "
+-		"the XO 1.5 serial port is enabled.  Set this option "
+-		"to force-enable the camera.");
++		"The camera driver will normally refuse to load if the XO 1.5 serial port is enabled.  Set this option to force-enable the camera.");
+ 
+ /*
+  * The structure describing our camera.
+-- 
+2.7.4
 
 
