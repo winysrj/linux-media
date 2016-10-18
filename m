@@ -1,63 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36049
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935237AbcJQPou (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:34462 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935006AbcJRPBn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 11:44:50 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>, devel@driverdev.osuosl.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 4/5] [media] s5p-cec: Fix module autoload
-Date: Mon, 17 Oct 2016 12:44:11 -0300
-Message-Id: <1476719053-17600-5-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
-References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+        Tue, 18 Oct 2016 11:01:43 -0400
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: horms@verge.net.au
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
+        hans.verkuil@cisco.com, william.towle@codethink.co.uk,
+        niklas.soderlund@ragnatech.se, geert@linux-m68k.org,
+        sergei.shtylyov@cogentembedded.com,
+        Rob Taylor <rob.taylor@codethink.co.uk>,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v2 1/2] ARM: dts: lager: Add entries for VIN HDMI input support
+Date: Tue, 18 Oct 2016 17:01:33 +0200
+Message-Id: <1476802894-5105-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the driver is built as a module, autoload won't work because the module
-alias information is not filled. So user-space can't match the registered
-device with the corresponding module.
+From: William Towle <william.towle@codethink.co.uk>
 
-Export the module alias information using the MODULE_DEVICE_TABLE() macro.
+Add DT entries for vin0, vin0_pins, and adv7612.
 
-Before this patch:
+Sets the 'default-input' property for ADV7612, enabling image and video
+capture without the need to have userspace specifying routing.
 
-$ modinfo drivers/staging/media/s5p-cec/s5p-cec.ko | grep alias
-$
-
-After this patch:
-
-$ modinfo drivers/staging/media/s5p-cec/s5p-cec.ko | grep alias
-alias:          of:N*T*Csamsung,s5p-cecC*
-alias:          of:N*T*Csamsung,s5p-cec
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+Signed-off-by: William Towle <william.towle@codethink.co.uk>
+Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
+[uli: added interrupt, renamed endpoint, merged default-input]
+Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 ---
+ arch/arm/boot/dts/r8a7790-lager.dts | 66 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 64 insertions(+), 2 deletions(-)
 
- drivers/staging/media/s5p-cec/s5p_cec.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
-index 1780a08b73c9..4e41f72dbfaa 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/staging/media/s5p-cec/s5p_cec.c
-@@ -263,6 +263,7 @@ static const struct of_device_id s5p_cec_match[] = {
- 	},
- 	{},
- };
-+MODULE_DEVICE_TABLE(of, s5p_cec_match);
+diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
+index 52b56fc..4342682 100644
+--- a/arch/arm/boot/dts/r8a7790-lager.dts
++++ b/arch/arm/boot/dts/r8a7790-lager.dts
+@@ -231,12 +231,23 @@
+ 		};
+ 	};
  
- static struct platform_driver s5p_cec_pdrv = {
- 	.probe	= s5p_cec_probe,
++	hdmi-in {
++		compatible = "hdmi-connector";
++		type = "a";
++
++		port {
++			hdmi_con_in: endpoint {
++				remote-endpoint = <&adv7612_in>;
++			};
++		};
++	};
++
+ 	hdmi-out {
+ 		compatible = "hdmi-connector";
+ 		type = "a";
+ 
+ 		port {
+-			hdmi_con: endpoint {
++			hdmi_con_out: endpoint {
+ 				remote-endpoint = <&adv7511_out>;
+ 			};
+ 		};
+@@ -427,6 +438,11 @@
+ 		function = "usb2";
+ 	};
+ 
++	vin0_pins: vin0 {
++		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
++		function = "vin0";
++	};
++
+ 	vin1_pins: vin1 {
+ 		groups = "vin1_data8", "vin1_clk";
+ 		function = "vin1";
+@@ -646,7 +662,34 @@
+ 			port@1 {
+ 				reg = <1>;
+ 				adv7511_out: endpoint {
+-					remote-endpoint = <&hdmi_con>;
++					remote-endpoint = <&hdmi_con_out>;
++				};
++			};
++		};
++	};
++
++	hdmi-in@4c {
++		compatible = "adi,adv7612";
++		reg = <0x4c>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
++		default-input = <0>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				adv7612_in: endpoint {
++					remote-endpoint = <&hdmi_con_in>;
++				};
++			};
++
++			port@2 {
++				reg = <2>;
++				adv7612_out: endpoint {
++					remote-endpoint = <&vin0ep2>;
+ 				};
+ 			};
+ 		};
+@@ -722,6 +765,25 @@
+ 	status = "okay";
+ };
+ 
++/* HDMI video input */
++&vin0 {
++	pinctrl-0 = <&vin0_pins>;
++	pinctrl-names = "default";
++
++	status = "okay";
++
++	port {
++		vin0ep2: endpoint {
++			remote-endpoint = <&adv7612_out>;
++			bus-width = <24>;
++			hsync-active = <0>;
++			vsync-active = <0>;
++			pclk-sample = <1>;
++			data-active = <1>;
++		};
++	};
++};
++
+ /* composite video input */
+ &vin1 {
+ 	pinctrl-0 = <&vin1_pins>;
 -- 
 2.7.4
 
