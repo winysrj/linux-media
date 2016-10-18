@@ -1,57 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:55216 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933426AbcJMQwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 12:52:49 -0400
-Subject: [PATCH 00/18] [media] RedRat3: Fine-tuning for several function
- implementations
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from bombadil.infradead.org ([198.137.202.9]:51488 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934347AbcJRUqU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 16:46:20 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 18:15:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kosuke Tatsukawa <tatsu@ab.jp.nec.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH v2 33/58] cpia2: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:45 -0200
+Message-Id: <bd54b4f87434cfc8c80a6447d45ae61d48273c63.1476822925.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 18:06:18 +0200
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
 
-Several update suggestions were taken into account
-from static source code analysis.
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
 
-Markus Elfring (18):
-  Use kcalloc() in two functions
-  Move two assignments in redrat3_transmit_ir()
-  Return directly after a failed kcalloc() in redrat3_transmit_ir()
-  One function call less in redrat3_transmit_ir() after error detection
-  Delete six messages for a failed memory allocation
-  Delete an unnecessary variable initialisation in redrat3_get_firmware_rev()
-  Improve another size determination in redrat3_reset()
-  Improve another size determination in redrat3_send_cmd()
-  Move a variable assignment in redrat3_dev_probe()
-  Delete an unnecessary variable initialisation in redrat3_init_rc_dev()
-  Delete the variable "dev" in redrat3_init_rc_dev()
-  Move a variable assignment in redrat3_init_rc_dev()
-  Return directly after a failed rc_allocate_device() in redrat3_init_rc_dev()
-  Rename a jump label in redrat3_init_rc_dev()
-  Delete two variables in redrat3_set_timeout()
-  Move a variable assignment in redrat3_set_timeout()
-  Adjust two checks for null pointers in redrat3_dev_probe()
-  Combine substrings for six messages
+So, join those continuation lines.
 
- drivers/media/rc/redrat3.c | 146 +++++++++++++++++++++------------------------
- 1 file changed, 67 insertions(+), 79 deletions(-)
+The patch was generated via the script below, and manually
+adjusted if needed.
 
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/cpia2/cpia2_usb.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
+index 13620cdf0599..2e03f244c59f 100644
+--- a/drivers/media/usb/cpia2/cpia2_usb.c
++++ b/drivers/media/usb/cpia2/cpia2_usb.c
+@@ -733,9 +733,7 @@ int cpia2_usb_stream_start(struct camera_data *cam, unsigned int alternate)
+ 		cam->params.camera_state.stream_mode = old_alt;
+ 		ret2 = set_alternate(cam, USBIF_CMDONLY);
+ 		if (ret2 < 0) {
+-			ERR("cpia2_usb_change_streaming_alternate(%d) =%d has already "
+-			    "failed. Then tried to call "
+-			    "set_alternate(USBIF_CMDONLY) = %d.\n",
++			ERR("cpia2_usb_change_streaming_alternate(%d) =%d has already failed. Then tried to call set_alternate(USBIF_CMDONLY) = %d.\n",
+ 			    alternate, ret, ret2);
+ 		}
+ 	} else {
 -- 
-2.10.1
+2.7.4
+
 
