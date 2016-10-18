@@ -1,157 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39711 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:51580 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752215AbcJKKfK (ORCPT
+        with ESMTP id S935154AbcJRUqW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:35:10 -0400
+        Tue, 18 Oct 2016 16:46:22 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 14/31] dtt200u-fe: handle errors on USB control messages
-Date: Tue, 11 Oct 2016 07:09:29 -0300
-Message-Id: <d81adeaab5f7520860fd78f4e90ae8024defea3d.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 22/58] marvell-ccic: don't break long lines
+Date: Tue, 18 Oct 2016 18:45:34 -0200
+Message-Id: <4d5302fb158e1e2c2cafbf69c63bb70be7997f9a.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
+References: <cover.1476822924.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If something goes wrong, return an error code, instead of
-assuming that everything went fine.
+Due to the 80-cols restrictions, and latter due to checkpatch
+warnings, several strings were broken into multiple lines. This
+is not considered a good practice anymore, as it makes harder
+to grep for strings at the source code.
+
+As we're right now fixing other drivers due to KERN_CONT, we need
+to be able to identify what printk strings don't end with a "\n".
+It is a way easier to detect those if we don't break long lines.
+
+So, join those continuation lines.
+
+The patch was generated via the script below, and manually
+adjusted if needed.
+
+</script>
+use Text::Tabs;
+while (<>) {
+	if ($next ne "") {
+		$c=$_;
+		if ($c =~ /^\s+\"(.*)/) {
+			$c2=$1;
+			$next =~ s/\"\n$//;
+			$n = expand($next);
+			$funpos = index($n, '(');
+			$pos = index($c2, '",');
+			if ($funpos && $pos > 0) {
+				$s1 = substr $c2, 0, $pos + 2;
+				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
+				$s2 =~ s/^\s+//;
+
+				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+
+				print unexpand("$next$s1\n");
+				print unexpand("$s2\n") if ($s2 ne "");
+			} else {
+				print "$next$c2\n";
+			}
+			$next="";
+			next;
+		} else {
+			print $next;
+		}
+		$next="";
+	} else {
+		if (m/\"$/) {
+			if (!m/\\n\"$/) {
+				$next=$_;
+				next;
+			}
+		}
+	}
+	print $_;
+}
+</script>
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/dvb-usb/dtt200u-fe.c | 40 ++++++++++++++++++++++++++--------
- 1 file changed, 31 insertions(+), 9 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c | 26 +++++++------------------
+ 1 file changed, 7 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u-fe.c b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-index 7f7f64be6353..f5c042baa254 100644
---- a/drivers/media/usb/dvb-usb/dtt200u-fe.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-@@ -27,11 +27,17 @@ static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- 				  enum fe_status *stat)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index af59bf4dca2d..a8bda6679422 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -49,24 +49,17 @@
+ static bool alloc_bufs_at_read;
+ module_param(alloc_bufs_at_read, bool, 0444);
+ MODULE_PARM_DESC(alloc_bufs_at_read,
+-		"Non-zero value causes DMA buffers to be allocated when the "
+-		"video capture device is read, rather than at module load "
+-		"time.  This saves memory, but decreases the chances of "
+-		"successfully getting those buffers.  This parameter is "
+-		"only used in the vmalloc buffer mode");
++		"Non-zero value causes DMA buffers to be allocated when the video capture device is read, rather than at module load time.  This saves memory, but decreases the chances of successfully getting those buffers.  This parameter is only used in the vmalloc buffer mode");
  
- 	mutex_lock(&state->data_mutex);
- 	state->data[0] = GET_TUNE_STATUS;
+ static int n_dma_bufs = 3;
+ module_param(n_dma_bufs, uint, 0644);
+ MODULE_PARM_DESC(n_dma_bufs,
+-		"The number of DMA buffers to allocate.  Can be either two "
+-		"(saves memory, makes timing tighter) or three.");
++		"The number of DMA buffers to allocate.  Can be either two (saves memory, makes timing tighter) or three.");
  
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	if (ret < 0) {
-+		*stat = 0;
-+		mutex_unlock(&state->data_mutex);
-+		return ret;
-+	}
+ static int dma_buf_size = VGA_WIDTH * VGA_HEIGHT * 2;  /* Worst case */
+ module_param(dma_buf_size, uint, 0444);
+ MODULE_PARM_DESC(dma_buf_size,
+-		"The size of the allocated DMA buffers.  If actual operating "
+-		"parameters require larger buffers, an attempt to reallocate "
+-		"will be made.");
++		"The size of the allocated DMA buffers.  If actual operating parameters require larger buffers, an attempt to reallocate will be made.");
+ #else /* MCAM_MODE_VMALLOC */
+ static const bool alloc_bufs_at_read;
+ static const int n_dma_bufs = 3;  /* Used by S/G_PARM */
+@@ -75,15 +68,12 @@ static const int n_dma_bufs = 3;  /* Used by S/G_PARM */
+ static bool flip;
+ module_param(flip, bool, 0444);
+ MODULE_PARM_DESC(flip,
+-		"If set, the sensor will be instructed to flip the image "
+-		"vertically.");
++		"If set, the sensor will be instructed to flip the image vertically.");
  
- 	switch (state->data[0]) {
- 		case 0x01:
-@@ -53,25 +59,30 @@ static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- static int dtt200u_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
+ static int buffer_mode = -1;
+ module_param(buffer_mode, int, 0444);
+ MODULE_PARM_DESC(buffer_mode,
+-		"Set the buffer mode to be used; default is to go with what "
+-		"the platform driver asks for.  Set to 0 for vmalloc, 1 for "
+-		"DMA contiguous.");
++		"Set the buffer mode to be used; default is to go with what the platform driver asks for.  Set to 0 for vmalloc, 1 for DMA contiguous.");
  
- 	mutex_lock(&state->data_mutex);
- 	state->data[0] = GET_VIT_ERR_CNT;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
--	*ber = (state->data[0] << 16) | (state->data[1] << 8) | state->data[2];
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	if (ret >= 0)
-+		*ber = (state->data[0] << 16) | (state->data[1] << 8) | state->data[2];
- 
- 	mutex_unlock(&state->data_mutex);
--	return 0;
-+	return ret;
- }
- 
- static int dtt200u_fe_read_unc_blocks(struct dvb_frontend* fe, u32 *unc)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	mutex_lock(&state->data_mutex);
- 	state->data[0] = GET_RS_UNCOR_BLK_CNT;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 2, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 2, 0);
-+	if (ret >= 0)
-+		*unc = (state->data[0] << 8) | state->data[1];
- 
- 	mutex_unlock(&state->data_mutex);
- 	return ret;
-@@ -80,11 +91,14 @@ static int dtt200u_fe_read_unc_blocks(struct dvb_frontend* fe, u32 *unc)
- static int dtt200u_fe_read_signal_strength(struct dvb_frontend* fe, u16 *strength)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	mutex_lock(&state->data_mutex);
- 	state->data[0] = GET_AGC;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	if (ret >= 0)
-+		*strength = (state->data[0] << 8) | state->data[0];
- 
- 	mutex_unlock(&state->data_mutex);
- 	return ret;
-@@ -93,11 +107,14 @@ static int dtt200u_fe_read_signal_strength(struct dvb_frontend* fe, u16 *strengt
- static int dtt200u_fe_read_snr(struct dvb_frontend* fe, u16 *snr)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	mutex_lock(&state->data_mutex);
- 	state->data[0] = GET_SNR;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	if (ret >= 0)
-+		*snr = ~((state->data[0] << 8) | state->data[0]);
- 
- 	mutex_unlock(&state->data_mutex);
- 	return ret;
-@@ -134,6 +151,7 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 	u16 freq = fep->frequency / 250000;
- 
- 	mutex_lock(&state->data_mutex);
-@@ -153,12 +171,16 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend *fe)
- 		goto ret;
+ /*
+  * Status flags.  Always manipulated with bit operations.
+@@ -1759,8 +1749,7 @@ int mccic_register(struct mcam_camera *cam)
+ 		cam->buffer_mode = buffer_mode;
+ 	if (cam->buffer_mode == B_DMA_sg &&
+ 			cam->chip_id == MCAM_CAFE) {
+-		printk(KERN_ERR "marvell-cam: Cafe can't do S/G I/O, "
+-			"attempting vmalloc mode instead\n");
++		printk(KERN_ERR "marvell-cam: Cafe can't do S/G I/O, attempting vmalloc mode instead\n");
+ 		cam->buffer_mode = B_vmalloc;
+ 	}
+ 	if (!mcam_buffer_mode_supported(cam->buffer_mode)) {
+@@ -1828,8 +1817,7 @@ int mccic_register(struct mcam_camera *cam)
+ 	 */
+ 	if (cam->buffer_mode == B_vmalloc && !alloc_bufs_at_read) {
+ 		if (mcam_alloc_dma_bufs(cam, 1))
+-			cam_warn(cam, "Unable to alloc DMA buffers at load"
+-					" will try again later.");
++			cam_warn(cam, "Unable to alloc DMA buffers at load will try again later.");
  	}
  
--	dvb_usb_generic_write(state->d, state->data, 2);
-+	ret = dvb_usb_generic_write(state->d, state->data, 2);
-+	if (ret < 0)
-+		goto ret;
- 
- 	state->data[0] = SET_RF_FREQ;
- 	state->data[1] = freq & 0xff;
- 	state->data[2] = (freq >> 8) & 0xff;
--	dvb_usb_generic_write(state->d, state->data, 3);
-+	ret = dvb_usb_generic_write(state->d, state->data, 3);
-+	if (ret < 0)
-+		goto ret;
- 
- ret:
- 	mutex_unlock(&state->data_mutex);
+ 	mutex_unlock(&cam->s_mutex);
 -- 
 2.7.4
 
