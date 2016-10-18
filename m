@@ -1,81 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:65058 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933289AbcJMQob (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 12:44:31 -0400
-Subject: [PATCH 15/18] [media] RedRat3: Delete two variables in
- redrat3_set_timeout()
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <13722bff-ec67-0282-b779-52c78b5667f8@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 18:43:58 +0200
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59951 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936005AbcJRPts (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 11:49:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: horms@verge.net.au, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        geert@linux-m68k.org, sergei.shtylyov@cogentembedded.com,
+        devicetree@kernel.org
+Subject: Re: [PATCH v2 3/3] ARM: dts: gose: add composite video input
+Date: Tue, 18 Oct 2016 18:49:44 +0300
+Message-ID: <2915584.0t40ytsv7y@avalon>
+In-Reply-To: <1476802943-5189-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1476802943-5189-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1476802943-5189-4-git-send-email-ulrich.hecht+renesas@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 15:40:33 +0200
+Hi Ulrich,
 
-* Use the data structure members "dev" and "udev" directly
-  without assigning them to intermediate variables.
-  Thus delete the extra variable definitions at the beginning.
+(CC'ing the device tree mailing list)
 
-* Fix indentation for the parameters of two function calls.
+Thank you for the patch.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/rc/redrat3.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+On Tuesday 18 Oct 2016 17:02:23 Ulrich Hecht wrote:
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> ---
+>  arch/arm/boot/dts/r8a7793-gose.dts | 36 ++++++++++++++++++++++++++++++++++
+>  1 file changed, 36 insertions(+)
+> 
+> diff --git a/arch/arm/boot/dts/r8a7793-gose.dts
+> b/arch/arm/boot/dts/r8a7793-gose.dts index a47ea4b..2606021 100644
+> --- a/arch/arm/boot/dts/r8a7793-gose.dts
+> +++ b/arch/arm/boot/dts/r8a7793-gose.dts
+> @@ -390,6 +390,11 @@
+>  		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", 
+"vin0_clk";
+>  		function = "vin0";
+>  	};
+> +
+> +	vin1_pins: vin1 {
+> +		groups = "vin1_data8", "vin1_clk";
+> +		function = "vin1";
+> +	};
+>  };
+> 
+>  &ether {
+> @@ -515,6 +520,19 @@
+>  		reg = <0x12>;
+>  	};
+> 
+> +	composite-in@20 {
+> +		compatible = "adi,adv7180";
+> +		reg = <0x20>;
+> +		remote = <&vin1>;
+> +
+> +		port {
+> +			adv7180: endpoint {
+> +				bus-width = <8>;
+> +				remote-endpoint = <&vin1ep>;
+> +			};
+> +		};
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 055f214..e46a92a 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -476,8 +476,6 @@ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
- static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
- {
- 	struct redrat3_dev *rr3 = rc_dev->priv;
--	struct usb_device *udev = rr3->udev;
--	struct device *dev = rr3->dev;
- 	__be32 *timeout;
- 	int ret;
- 
-@@ -486,13 +484,17 @@ static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
- 		return -ENOMEM;
- 
- 	*timeout = cpu_to_be32(redrat3_us_to_len(timeoutns / 1000));
--	ret = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), RR3_SET_IR_PARAM,
--		     USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
--		     RR3_IR_IO_SIG_TIMEOUT, 0, timeout, sizeof(*timeout),
--		     HZ * 25);
--	dev_dbg(dev, "set ir parm timeout %d ret 0x%02x\n",
--						be32_to_cpu(*timeout), ret);
--
-+	ret = usb_control_msg(rr3->udev,
-+			      usb_sndctrlpipe(rr3->udev, 0),
-+			      RR3_SET_IR_PARAM,
-+			      USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
-+			      RR3_IR_IO_SIG_TIMEOUT,
-+			      0,
-+			      timeout,
-+			      sizeof(*timeout),
-+			      HZ * 25);
-+	dev_dbg(rr3->dev, "set ir parm timeout %d ret 0x%02x\n",
-+		be32_to_cpu(*timeout), ret);
- 	if (ret == sizeof(*timeout)) {
- 		rr3->hw_timeout = timeoutns / 1000;
- 		ret = 0;
+As explained before, you need to update the ADV7180 DT bindings first to 
+document ports. I've discussed this with Hans last week, and we agreed that DT 
+should model physical ports. Unfortunately the ADV7180 comes in four different 
+packages with different feature sets that affect ports.
+
+ADV7180  K CP32 Z               32-Lead Lead Frame Chip Scale Package
+ADV7180  B CP32 Z               32-Lead Lead Frame Chip Scale Package
+ADV7180 WB CP32 Z               32-Lead Lead Frame Chip Scale Package
+
+ADV7180  B CP   Z               40-Lead Lead Frame Chip Scale Package
+ADV7180 WB CP   Z               40-Lead Lead Frame Chip Scale Package
+
+ADV7180  K ST48 Z               48-Lead Low Profile Quad Flat Package
+ADV7180  B ST48 Z               48-Lead Low Profile Quad Flat Package
+ADV7180 WB ST48 Z               48-Lead Low Profile Quad Flat Package
+
+ADV7180  B ST   Z               64-Lead Low Profile Quad Flat Package
+ADV7180 WB ST   Z               64-Lead Low Profile Quad Flat Package
+
+W tells whether the part is qualified for automotive applications. It has no 
+impact from a software point of view. K and B indicate the temperature range, 
+and also have no software impact. The Z suffix indicates that the part is RoHS 
+compliant (they all are) and also has no impact.
+
+Unfortunately the W and K/B qualifiers come before the package qualifier. I'm 
+not sure whether we could simply drop W, K/B and W and specify the following 
+compatible strings
+
+- adv7180cp32
+- adv7180cp
+- adv7180st48
+- adv7180st
+
+or if we need more compatible strings that would match the full chip name. 
+Feedback on that from the device tree maintainers would be appreciated.
+
+Regardless of what compatible strings end up being used, the bindings should 
+document 3 or 6 input ports depending on the model, and one output port. You 
+can number the input ports from 0 to 2 or 0 to 5 depending on the model and 
+the output port 3 or 6. Another option would be to number the output port 0 
+and the input ports 1 to 3 or 1 to 6 depending on the model. That would give a 
+fixed number for the output port across all models, but might be a bit 
+consuming as most bindings number input ports before output ports.
+
+For the Gose board you should then add one composite connector to the device 
+tree ("composite-video-connector") and connect it to port 0 of the 
+ADV7180WBCP32.
+
+> +	};
+> +
+>  	hdmi@39 {
+>  		compatible = "adi,adv7511w";
+>  		reg = <0x39>;
+> @@ -622,3 +640,21 @@
+>  		};
+>  	};
+>  };
+> +
+> +/* composite video input */
+> +&vin1 {
+> +	pinctrl-0 = <&vin1_pins>;
+> +	pinctrl-names = "default";
+> +
+> +	status = "okay";
+> +
+> +	port {
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		vin1ep: endpoint {
+> +			remote-endpoint = <&adv7180>;
+> +			bus-width = <8>;
+> +		};
+> +	};
+> +};
+
 -- 
-2.10.1
+Regards,
+
+Laurent Pinchart
 
