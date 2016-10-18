@@ -1,128 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:65399 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932539AbcJQWFF (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:58309 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1759834AbcJRK6M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 18:05:05 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        x86@kernel.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        linux-s390@vger.kernel.org, Ilya Dryomov <idryomov@gmail.com>,
-        dri-devel@lists.freedesktop.org, linux-mtd@lists.infradead.org,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        linux-crypto@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        ceph-devel@vger.kernel.org, linux-f2fs-devel@lists.sourceforge.net,
-        linux-ext4@vger.kernel.org, netfilter-devel@vger.kernel.org
-Subject: [PATCH 00/28] Reenable maybe-uninitialized warnings
-Date: Tue, 18 Oct 2016 00:03:28 +0200
-Message-Id: <20161017220342.1627073-1-arnd@arndb.de>
+        Tue, 18 Oct 2016 06:58:12 -0400
+Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
+ framework
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        linux-media@vger.kernel.org
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
+ <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
+ <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
+ <f929eb2f-05a4-e674-c90b-b9141de04153@microchip.com>
+ <ad11ae23-402f-6e20-6201-af466ff7da2e@microchip.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <86371d6b-3549-0d75-201e-53a0226872db@xs4all.nl>
+Date: Tue, 18 Oct 2016 12:58:03 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <ad11ae23-402f-6e20-6201-af466ff7da2e@microchip.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a set of patches that I hope to get into v4.9 in some form
-in order to turn on the -Wmaybe-uninitialized warnings again.
+On 10/18/16 11:21, Wu, Songjun wrote:
+> Hi Hans,
+>
+> Do you have any issue on this patch?
 
-After talking to Linus in person at Linaro Connect about this, I
-spent some time on finding all the remaining warnings, and this
-is the resulting patch series. More details are in the description
-of the last patch that actually enables the warning.
+ENOTIME :-(
 
-Let me know if there are other warnings that I missed, and whether
-you think these are still appropriate for v4.9 or not.
-A couple of patches are non-obvious, and could use some more
-detailed review.
+> Could I give you some help? :)
 
-	Arnd
+I would certainly help if you can make the requested change to this patch.
 
-Arnd Bergmann (28):
-  [v2] netfilter: nf_tables: avoid uninitialized variable warning
-  [v2] mtd: mtk: avoid warning in mtk_ecc_encode
-  [v2] infiniband: shut up a maybe-uninitialized warning
-  f2fs: replace a build-time warning with runtime WARN_ON
-  ext2: avoid bogus -Wmaybe-uninitialized warning
-  NFSv4.1: work around -Wmaybe-uninitialized warning
-  ceph: avoid false positive maybe-uninitialized warning
-  staging: lustre: restore initialization of return code
-  staging: lustre: remove broken dead code in
-    cfs_cpt_table_create_pattern
-  UBI: fix uninitialized access of vid_hdr pointer
-  block: rdb: false-postive gcc-4.9 -Wmaybe-uninitialized
-  [media] rc: print correct variable for z8f0811
-  [media] dib0700: fix uninitialized data on 'repeat' event
-  iio: accel: sca3000_core: avoid potentially uninitialized variable
-  crypto: aesni: avoid -Wmaybe-uninitialized warning
-  pcmcia: fix return value of soc_pcmcia_regulator_set
-  spi: fsl-espi: avoid processing uninitalized data on error
-  drm: avoid uninitialized timestamp use in wait_vblank
-  brcmfmac: avoid maybe-uninitialized warning in brcmf_cfg80211_start_ap
-  net: bcm63xx: avoid referencing uninitialized variable
-  net/hyperv: avoid uninitialized variable
-  x86: apm: avoid uninitialized data
-  x86: mark target address as output in 'insb' asm
-  x86: math-emu: possible uninitialized variable use
-  s390: pci: don't print uninitialized data for debugging
-  nios2: fix timer initcall return value
-  rocker: fix maybe-uninitialized warning
-  Kbuild: bring back -Wmaybe-uninitialized warning
+Let me know if you want to do that, because in that case I'll rebase my tree
+to the latest media_tree master.
 
- Makefile                                           |  10 +-
- arch/arc/Makefile                                  |   4 +-
- arch/nios2/kernel/time.c                           |   1 +
- arch/s390/pci/pci_dma.c                            |   2 +-
- arch/x86/crypto/aesni-intel_glue.c                 | 121 +++++++++++++--------
- arch/x86/include/asm/io.h                          |   4 +-
- arch/x86/kernel/apm_32.c                           |   5 +-
- arch/x86/math-emu/Makefile                         |   4 +-
- arch/x86/math-emu/reg_compare.c                    |  16 +--
- drivers/block/rbd.c                                |   1 +
- drivers/gpu/drm/drm_irq.c                          |   4 +-
- drivers/infiniband/core/cma.c                      |  56 +++++-----
- drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
- drivers/media/usb/dvb-usb/dib0700_core.c           |  10 +-
- drivers/mtd/nand/mtk_ecc.c                         |  19 ++--
- drivers/mtd/ubi/eba.c                              |   2 +-
- drivers/net/ethernet/broadcom/bcm63xx_enet.c       |   3 +-
- drivers/net/ethernet/rocker/rocker_ofdpa.c         |   4 +-
- drivers/net/hyperv/netvsc_drv.c                    |   2 +-
- .../broadcom/brcm80211/brcmfmac/cfg80211.c         |   2 +-
- drivers/pcmcia/soc_common.c                        |   2 +-
- drivers/spi/spi-fsl-espi.c                         |   2 +-
- drivers/staging/iio/accel/sca3000_core.c           |   2 +
- .../staging/lustre/lnet/libcfs/linux/linux-cpu.c   |   7 --
- drivers/staging/lustre/lustre/lov/lov_pack.c       |   2 +
- fs/ceph/super.c                                    |   3 +-
- fs/ext2/inode.c                                    |   7 +-
- fs/f2fs/data.c                                     |   7 ++
- fs/nfs/nfs4session.c                               |  10 +-
- net/netfilter/nft_range.c                          |  10 +-
- scripts/Makefile.ubsan                             |   4 +
- 31 files changed, 187 insertions(+), 141 deletions(-)
+Regards,
 
--- 
-Cc: x86@kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: linux-s390@vger.kernel.org
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-mtd@lists.infradead.org
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: linux-crypto@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: netdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: ceph-devel@vger.kernel.org
-Cc: linux-f2fs-devel@lists.sourceforge.net
-Cc: linux-ext4@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-2.9.0
+	Hans
 
+>
+> On 9/23/2016 14:05, Wu, Songjun wrote:
+>>
+>>
+>> On 9/21/2016 15:04, Hans Verkuil wrote:
+>>> On 08/18/2016 07:53 AM, Wu, Songjun wrote:
+>>>> Hi Hans,
+>>>>
+>>>> Thank you for the patch.
+>>>>
+>>>> On 8/17/2016 14:29, Hans Verkuil wrote:
+>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>
+>>>>> This patch converts the atmel-isi driver from a soc-camera driver to
+>>>>> a driver
+>>>>> that is stand-alone.
+>>>>>
+>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>> ---
+>>>>>  drivers/media/platform/soc_camera/Kconfig     |    3 +-
+>>>>>  drivers/media/platform/soc_camera/atmel-isi.c | 1216
+>>>>> +++++++++++++++----------
+>>>>>  2 files changed, 721 insertions(+), 498 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/soc_camera/Kconfig
+>>>>> b/drivers/media/platform/soc_camera/Kconfig
+>>>>> index 39f6641..f74e358 100644
+>>>>> --- a/drivers/media/platform/soc_camera/Kconfig
+>>>>> +++ b/drivers/media/platform/soc_camera/Kconfig
+>>>>> @@ -54,9 +54,8 @@ config VIDEO_SH_MOBILE_CEU
+>>>>>
+>>>>>  config VIDEO_ATMEL_ISI
+>>>>>      tristate "ATMEL Image Sensor Interface (ISI) support"
+>>>>> -    depends on VIDEO_DEV && SOC_CAMERA
+>>>>> +    depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
+>>>>>      depends on ARCH_AT91 || COMPILE_TEST
+>>>>> -    depends on HAS_DMA
+>>>>>      select VIDEOBUF2_DMA_CONTIG
+>>>>>      ---help---
+>>>>>        This module makes the ATMEL Image Sensor Interface available
+>>>>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c
+>>>>> b/drivers/media/platform/soc_camera/atmel-isi.c
+>>>>> index 30211f6..9947acb 100644
+>>>>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>>>>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>>>
+>>>
+>>>>> +
+>>>>>  static int atmel_isi_probe(struct platform_device *pdev)
+>>>>>  {
+>>>>>      int irq;
+>>>>>      struct atmel_isi *isi;
+>>>>> +    struct vb2_queue *q;
+>>>>>      struct resource *regs;
+>>>>>      int ret, i;
+>>>>> -    struct soc_camera_host *soc_host;
+>>>>>
+>>>>>      isi = devm_kzalloc(&pdev->dev, sizeof(struct atmel_isi),
+>>>>> GFP_KERNEL);
+>>>>>      if (!isi) {
+>>>>> @@ -1044,20 +1216,65 @@ static int atmel_isi_probe(struct
+>>>>> platform_device *pdev)
+>>>>>          return ret;
+>>>>>
+>>>>>      isi->active = NULL;
+>>>>> -    spin_lock_init(&isi->lock);
+>>>>> +    isi->dev = &pdev->dev;
+>>>>> +    mutex_init(&isi->lock);
+>>>>> +    spin_lock_init(&isi->irqlock);
+>>>>>      INIT_LIST_HEAD(&isi->video_buffer_list);
+>>>>>      INIT_LIST_HEAD(&isi->dma_desc_head);
+>>>>>
+>>>>> +    q = &isi->queue;
+>>>>> +
+>>>>> +    /* Initialize the top-level structure */
+>>>>> +    ret = v4l2_device_register(&pdev->dev, &isi->v4l2_dev);
+>>>>> +    if (ret)
+>>>>> +        return ret;
+>>>>> +
+>>>>> +    isi->vdev = video_device_alloc();
+>>>>> +    if (isi->vdev == NULL) {
+>>>>> +        ret = -ENOMEM;
+>>>>> +        goto err_vdev_alloc;
+>>>>> +    }
+>>>> If video device is unregistered, the ISI driver must be reloaded when
+>>>> registering a new video device.
+>>>> So '*vdev' can be replaced by 'vdev', or move the code above to
+>>>> isi_graph_notify_complete.
+>>>
+>>> I'm afraid I don't understand what you mean. Can you clarify?
+>>>
+>>
+>> If the sensor driver is defined as a module, e.g. ov7670.ko. 'insmod
+>> ov7670.ko' and 'rmmod ov7670', video_device_release will be called, and
+>> '*vdev' will be freed, when 'insmod ov7670.ko' is run again, the error
+>> will will occur, if the code above is moved to
+>> isi_graph_notify_complete, there will be no error.
+>>
+>>> Regards,
+>>>
+>>>     Hans
+>>>
+>>>>
+>>>>> +
+>>>>> +    /* video node */
+>>>>> +    isi->vdev->fops = &isi_fops;
+>>>>> +    isi->vdev->v4l2_dev = &isi->v4l2_dev;
+>>>>> +    isi->vdev->queue = &isi->queue;
+>>>>> +    strlcpy(isi->vdev->name, KBUILD_MODNAME,
+>>>>> sizeof(isi->vdev->name));
+>>>>> +    isi->vdev->release = video_device_release;
+>>>>> +    isi->vdev->ioctl_ops = &isi_ioctl_ops;
+>>>>> +    isi->vdev->lock = &isi->lock;
+>>>>> +    isi->vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE |
+>>>>> V4L2_CAP_STREAMING |
+>>>>> +        V4L2_CAP_READWRITE;
+>>>>> +    video_set_drvdata(isi->vdev, isi);
+>>>>> +
+>>>>> +    /* buffer queue */
+>>>>> +    q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>>>>> +    q->io_modes = VB2_MMAP | VB2_READ | VB2_DMABUF;
+>>>>> +    q->lock = &isi->lock;
+>>>>> +    q->drv_priv = isi;
+>>>>> +    q->buf_struct_size = sizeof(struct frame_buffer);
+>>>>> +    q->ops = &isi_video_qops;
+>>>>> +    q->mem_ops = &vb2_dma_contig_memops;
+>>>>> +    q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+>>>>> +    q->min_buffers_needed = 2;
+>>>>> +    q->dev = &pdev->dev;
+>>>>> +
+>>>>> +    ret = vb2_queue_init(q);
+>>>>> +    if (ret < 0) {
+>>>>> +        dev_err(&pdev->dev, "failed to initialize VB2 queue\n");
+>>>>> +        goto err_vb2_queue;
+>>>>> +    }
+>>>>
+>>>> Regards,
+>>>>     Songjun Wu
+>>>>
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>> linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
