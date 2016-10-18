@@ -1,40 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:51321 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752123AbcJGTob (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 15:44:31 -0400
-Subject: [PATCH 0/2] [media] dvb-tc90522: Fine-tuning for two function
- implementations
-References: <566ABCD9.1060404@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-To: linux-media@vger.kernel.org, Akihiro Tsukada <tskd08@gmail.com>,
+Received: from smtpout.microchip.com ([198.175.253.82]:42938 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1758272AbcJRGPg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 18 Oct 2016 02:15:36 -0400
+From: Songjun Wu <songjun.wu@microchip.com>
+To: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+        Songjun Wu <songjun.wu@microchip.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <906cc86f-bac0-fd47-8a6f-d3310b10fd08@users.sourceforge.net>
-Date: Fri, 7 Oct 2016 21:43:56 +0200
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: [RESEND][PATCH] [media] atmel-isc: start dma in some scenario
+Date: Tue, 18 Oct 2016 14:12:14 +0800
+Message-ID: <1476771134-30075-1-git-send-email-songjun.wu@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <566ABCD9.1060404@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 7 Oct 2016 21:38:12 +0200
+If a new vb buf is added to vb queue, the queue is
+empty and steaming, dma should be started.
 
-A few update suggestions were taken into account
-from static source code analysis.
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+---
 
-Markus Elfring (2):
-  Use kmalloc_array()
-  Rename a jump label
+ drivers/media/platform/atmel/atmel-isc.c | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
- drivers/media/dvb-frontends/tc90522.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index ccfe13b..ff403d5 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -617,7 +617,14 @@ static void isc_buffer_queue(struct vb2_buffer *vb)
+ 	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&isc->dma_queue_lock, flags);
+-	list_add_tail(&buf->list, &isc->dma_queue);
++	if (!isc->cur_frm && list_empty(&isc->dma_queue) &&
++		vb2_is_streaming(vb->vb2_queue)) {
++		isc->cur_frm = buf;
++		isc_start_dma(isc->regmap, isc->cur_frm,
++			isc->current_fmt->reg_dctrl_dview);
++	} else {
++		list_add_tail(&buf->list, &isc->dma_queue);
++	}
+ 	spin_unlock_irqrestore(&isc->dma_queue_lock, flags);
+ }
+ 
 -- 
-2.10.1
+2.7.4
 
