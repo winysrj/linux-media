@@ -1,142 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:39937 "EHLO gofer.mess.org"
+Received: from mout.web.de ([212.227.15.14]:50218 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S945226AbcJaRwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 13:52:31 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/9] [media] redrat3: remove dead code and pointless messages
-Date: Mon, 31 Oct 2016 17:52:21 +0000
-Message-Id: <1477936347-9029-4-git-send-email-sean@mess.org>
-In-Reply-To: <1477936347-9029-1-git-send-email-sean@mess.org>
-References: <1477936347-9029-1-git-send-email-sean@mess.org>
+        id S938725AbcJSOOW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Oct 2016 10:14:22 -0400
+Subject: Re: [media] winbond-cir: Move assignments for three variables in
+ wbcir_shutdown()
+To: =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
+        linux-media@vger.kernel.org
+References: <3c96d0bf-62fa-6b02-2a2d-2a097709271a@users.sourceforge.net>
+ <285954ec-280f-8a5a-5189-eb2471b4339c@users.sourceforge.net>
+ <566ABCD9.1060404@users.sourceforge.net>
+ <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
+ <327f6034db9ce0c0a72947e47daf344a@hardeman.nu>
+ <10715e71c46bda76f6c8654675062f61@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <213df5d7-1c5a-496d-9928-bdafefce8781@users.sourceforge.net>
+Date: Wed, 19 Oct 2016 16:14:12 +0200
+MIME-Version: 1.0
+In-Reply-To: <10715e71c46bda76f6c8654675062f61@hardeman.nu>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No need to log kmalloc failures.
+>>>> Move the setting for the local variables "mask", "match" and "rc6_csl"
+>>>> behind the source code for a condition check by this function
+>>>> at the beginning.
+>>>
+>>> Again, I can't see what the point is?
+>>
+>> * How do you think about to set these variables only after the initial
+>> check succeded?
+> 
+> I prefer setting variables early so that no thinking about
+> whether they're initialized or not is necessary later.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/redrat3.c | 42 ++++++------------------------------------
- 1 file changed, 6 insertions(+), 36 deletions(-)
+* How do you think about to reduce the scope for these variables then?
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index de40e58..23180ec 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -363,11 +363,6 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 	unsigned int i, sig_size, single_len, offset, val;
- 	u32 mod_freq;
- 
--	if (!rr3) {
--		pr_err("%s called with no context!\n", __func__);
--		return;
--	}
--
- 	dev = rr3->dev;
- 
- 	mod_freq = redrat3_val_to_mod_freq(&rr3->irdata);
-@@ -480,10 +475,8 @@ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
- 
- 	len = sizeof(*tmp);
- 	tmp = kzalloc(len, GFP_KERNEL);
--	if (!tmp) {
--		dev_warn(rr3->dev, "Memory allocation faillure\n");
-+	if (!tmp)
- 		return timeout;
--	}
- 
- 	pipe = usb_rcvctrlpipe(rr3->udev, 0);
- 	ret = usb_control_msg(rr3->udev, pipe, RR3_GET_IR_PARAM,
-@@ -544,10 +537,8 @@ static void redrat3_reset(struct redrat3_dev *rr3)
- 	txpipe = usb_sndctrlpipe(udev, 0);
- 
- 	val = kmalloc(len, GFP_KERNEL);
--	if (!val) {
--		dev_err(dev, "Memory allocation failure\n");
-+	if (!val)
- 		return;
--	}
- 
- 	*val = 0x01;
- 	rc = usb_control_msg(udev, rxpipe, RR3_RESET,
-@@ -589,10 +580,8 @@ static void redrat3_get_firmware_rev(struct redrat3_dev *rr3)
- 	char *buffer;
- 
- 	buffer = kzalloc(sizeof(char) * (RR3_FW_VERSION_LEN + 1), GFP_KERNEL);
--	if (!buffer) {
--		dev_err(rr3->dev, "Memory allocation failure\n");
-+	if (!buffer)
- 		return;
--	}
- 
- 	rc = usb_control_msg(rr3->udev, usb_rcvctrlpipe(rr3->udev, 0),
- 			     RR3_FW_VERSION,
-@@ -699,19 +688,9 @@ static int redrat3_get_ir_data(struct redrat3_dev *rr3, unsigned len)
- /* callback function from USB when async USB request has completed */
- static void redrat3_handle_async(struct urb *urb)
- {
--	struct redrat3_dev *rr3;
-+	struct redrat3_dev *rr3 = urb->context;
- 	int ret;
- 
--	if (!urb)
--		return;
--
--	rr3 = urb->context;
--	if (!rr3) {
--		pr_err("%s called with invalid context!\n", __func__);
--		usb_unlink_urb(urb);
--		return;
--	}
--
- 	switch (urb->status) {
- 	case 0:
- 		ret = redrat3_get_ir_data(rr3, urb->actual_length);
-@@ -999,10 +978,8 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 
- 	/* allocate memory for our device state and initialize it */
- 	rr3 = kzalloc(sizeof(*rr3), GFP_KERNEL);
--	if (rr3 == NULL) {
--		dev_err(dev, "Memory allocation failure\n");
-+	if (rr3 == NULL)
- 		goto no_endpoints;
--	}
- 
- 	rr3->dev = &intf->dev;
- 
-@@ -1014,10 +991,8 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	rr3->ep_in = ep_in;
- 	rr3->bulk_in_buf = usb_alloc_coherent(udev,
- 		le16_to_cpu(ep_in->wMaxPacketSize), GFP_KERNEL, &rr3->dma_in);
--	if (!rr3->bulk_in_buf) {
--		dev_err(dev, "Read buffer allocation failure\n");
-+	if (!rr3->bulk_in_buf)
- 		goto error;
--	}
- 
- 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
- 	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
-@@ -1081,8 +1056,6 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	redrat3_delete(rr3, rr3->udev);
- 
- no_endpoints:
--	dev_err(dev, "%s: retval = %x", __func__, retval);
--
- 	return retval;
- }
- 
-@@ -1091,9 +1064,6 @@ static void redrat3_dev_disconnect(struct usb_interface *intf)
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	struct redrat3_dev *rr3 = usb_get_intfdata(intf);
- 
--	if (!rr3)
--		return;
--
- 	usb_set_intfdata(intf, NULL);
- 	rc_unregister_device(rr3->rc);
- 	led_classdev_unregister(&rr3->led);
--- 
-2.7.4
+* Would you dare to move the corresponding source code into a separate function?
 
+Regards,
+Markus
