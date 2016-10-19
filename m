@@ -1,269 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f177.google.com ([209.85.192.177]:34775 "EHLO
-        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754163AbcJYXzo (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46688
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932188AbcJSPf7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Oct 2016 19:55:44 -0400
-Received: by mail-pf0-f177.google.com with SMTP id n85so11119830pfi.1
-        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2016 16:55:44 -0700 (PDT)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [RFC PATCH 6/6] [media] davinci: vpif_capture: get subdevs from DT
-Date: Tue, 25 Oct 2016 16:55:36 -0700
-Message-Id: <20161025235536.7342-7-khilman@baylibre.com>
-In-Reply-To: <20161025235536.7342-1-khilman@baylibre.com>
-References: <20161025235536.7342-1-khilman@baylibre.com>
+        Wed, 19 Oct 2016 11:35:59 -0400
+Date: Wed, 19 Oct 2016 13:35:52 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: <ps00de@yahoo.de>
+Cc: <linux-media@vger.kernel.org>
+Subject: Re: em28xx WinTV dualHD in Raspbian
+Message-ID: <20161019133552.72880aed@vento.lan>
+In-Reply-To: <003101d2298a$48b12400$da136c00$@yahoo.de>
+References: <003101d2298a$48b12400$da136c00$@yahoo.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-First pass at getting subdevs from DT ports and endpoints.
+Em Tue, 18 Oct 2016 23:55:04 +0200
+<ps00de@yahoo.de> escreveu:
 
-The _get_pdata() function was larely inspired by (i.e. stolen from)
-am437x-vpfe.c
+> Hi there,
+> 
+> I am running an updated raspbian image with kernel 4.4.23-v7+, matching
+> linux-headers-4.4.23-v7+_4.4.23-v7+-2_armhf from here:
+> https://www.niksula.hut.fi/~mhiienka/Rpi/linux-headers-rpi/ and
+> dvb-demod-si2168-b40-01.fw (see linuxtv-wiki).
+> 
+> Before the last apt-get upgrade this works great, but now, it ends up in
+> recognizing the device but not create /dev/dvb.
+> 
+> Log: 
+> Oct 18 23:07:59 mediapi kernel: [ 7587.975803] usb 1-1.3: new high-speed USB
+> device number 6 using dwc_otg
+> Oct 18 23:07:59 mediapi kernel: [ 7588.076796] usb 1-1.3: New USB device
+> found, idVendor=2040, idProduct=0265
+> Oct 18 23:07:59 mediapi kernel: [ 7588.076817] usb 1-1.3: New USB device
+> strings: Mfr=3, Product=1, SerialNumber=2
+> Oct 18 23:07:59 mediapi kernel: [ 7588.076842] usb 1-1.3: Product: dualHD
+> Oct 18 23:07:59 mediapi kernel: [ 7588.076853] usb 1-1.3: Manufacturer: HCW
+> Oct 18 23:07:59 mediapi kernel: [ 7588.076864] usb 1-1.3: SerialNumber:
+> 0011540068
+> Oct 18 23:08:00 mediapi kernel: [ 7589.111483] media: Linux media interface:
+> v0.10
+> Oct 18 23:08:00 mediapi kernel: [ 7589.121622] Linux video capture
+> interface: v2.00
+> Oct 18 23:08:00 mediapi kernel: [ 7589.126137] em28xx: New device HCW dualHD
+> @ 480 Mbps (2040:0265, interface 0, class 0)
+> Oct 18 23:08:00 mediapi kernel: [ 7589.126157] em28xx: DVB interface 0
+> found: isoc
+> Oct 18 23:08:00 mediapi kernel: [ 7589.127012] em28xx: chip ID is em28174
+> Oct 18 23:08:01 mediapi kernel: [ 7590.338459] em28174 #0: EEPROM ID = 26 00
+> 01 00, EEPROM hash = 0x7ee3cbc8
+> Oct 18 23:08:01 mediapi kernel: [ 7590.338482] em28174 #0: EEPROM info:
+> Oct 18 23:08:01 mediapi kernel: [ 7590.338496] em28174 #0:     microcode
+> start address = 0x0004, boot configuration = 0x01
+> Oct 18 23:08:01 mediapi kernel: [ 7590.346046] em28174 #0:     AC97 audio (5
+> sample rates)
+> Oct 18 23:08:01 mediapi kernel: [ 7590.346064] em28174 #0:     500mA max
+> power
+> Oct 18 23:08:01 mediapi kernel: [ 7590.346079] em28174 #0:     Table at
+> offset 0x27, strings=0x0e6a, 0x1888, 0x087e
+> Oct 18 23:08:01 mediapi kernel: [ 7590.347683] em28174 #0: Identified as
+> Hauppauge WinTV-dualHD DVB (card=99)
+> Oct 18 23:08:01 mediapi kernel: [ 7590.355143] tveeprom 4-0050: Hauppauge
+> model 204109, rev B2I6, serial# 11540068
+> Oct 18 23:08:01 mediapi kernel: [ 7590.355170] tveeprom 4-0050: tuner model
+> is SiLabs Si2157 (idx 186, type 4)
+> Oct 18 23:08:01 mediapi kernel: [ 7590.355188] tveeprom 4-0050: TV standards
+> PAL(B/G) NTSC(M) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB Digital (eeprom
+> 0xfc)
+> Oct 18 23:08:01 mediapi kernel: [ 7590.355204] tveeprom 4-0050: audio
+> processor is None (idx 0)
+> Oct 18 23:08:01 mediapi kernel: [ 7590.355219] tveeprom 4-0050: has no
+> radio, has IR receiver, has no IR transmitter
+> Oct 18 23:08:01 mediapi kernel: [ 7590.355233] em28174 #0: dvb set to isoc
+> mode.
+> Oct 18 23:08:01 mediapi rsyslogd-2007: action 'action 17' suspended, next
+> retry is Tue Oct 18 23:08:31 2016 [try http://www.rsyslog.com/e/2007 ]
+> Oct 18 23:08:01 mediapi kernel: [ 7590.357918] usbcore: registered new
+> interface driver em28xx
+> Oct 18 23:08:01 mediapi kernel: [ 7590.369200] em28xx_dvb: disagrees about
+> version of symbol dvb_dmxdev_init
+> Oct 18 23:08:01 mediapi kernel: [ 7590.369228] em28xx_dvb: Unknown symbol
+> dvb_dmxdev_init (err -22)
+> […] (multiple „disagrees“ and „unknown symbol“)
+> ct 18 23:08:01 mediapi kernel: [ 7590.417607] em28174 #0: Registering input
+> extension
+> Oct 18 23:08:01 mediapi kernel: [ 7590.455841] Registered IR keymap
+> rc-hauppauge
+> Oct 18 23:08:01 mediapi kernel: [ 7590.456798] input: em28xx IR (em28174 #0)
+> as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/rc/rc0/input0
+> Oct 18 23:08:01 mediapi kernel: [ 7590.457059] rc rc0: em28xx IR (em28174
+> #0) as /devices/platform/soc/3f980000.usb/usb1/1-1/1-1.3/rc/rc0
+> Oct 18 23:08:01 mediapi kernel: [ 7590.457715] em28174 #0: Input extension
+> successfully initalized
+> Oct 18 23:08:01 mediapi kernel: [ 7590.457734] em28xx: Registered (Em28xx
+> Input Extension) extension
+> 
+> 
+> Before it stopped working, I have executed the apt upgrade, installed the
+> new kernel header and run 
+> git clone git://linuxtv.org/media_build.git
+> cd media_build 
+> ./build
+> sudo make install
+> 
+> No errors appeared.
+> 
+> What I am doing wrong? The last git clone was approx. in August.
 
-Questions:
-- Legacy board file passes subdev input & output routes via pdata
-  (e.g. tvp514x svideo or composite selection.)  How is this supposed
-  to be done via DT?
+Based on this log:
 
-Not-Yet-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 132 +++++++++++++++++++++++++-
- include/media/davinci/vpif_types.h            |   9 +-
- 2 files changed, 134 insertions(+), 7 deletions(-)
+Oct 18 23:08:01 mediapi kernel: [ 7590.369200] em28xx_dvb: disagrees about version of symbol dvb_dmxdev_init
+Oct 18 23:08:01 mediapi kernel: [ 7590.369228] em28xx_dvb: Unknown symbol dvb_dmxdev_init (err -22)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index becc3e63b472..df2af5cda37a 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -26,6 +26,8 @@
- #include <linux/slab.h>
- 
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-of.h>
-+#include <media/i2c/tvp514x.h> /* FIXME: how to pass the INPUT_* OUTPUT* fields? */
- 
- #include "vpif.h"
- #include "vpif_capture.h"
-@@ -651,6 +653,10 @@ static int vpif_input_to_subdev(
- 
- 	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
- 
-+	if (!chan_cfg)
-+		return -1;
-+	if (input_index >= chan_cfg->input_count)
-+		return -1;
- 	subdev_name = chan_cfg->inputs[input_index].subdev_name;
- 	if (subdev_name == NULL)
- 		return -1;
-@@ -658,7 +664,7 @@ static int vpif_input_to_subdev(
- 	/* loop through the sub device list to get the sub device info */
- 	for (i = 0; i < vpif_cfg->subdev_count; i++) {
- 		subdev_info = &vpif_cfg->subdev_info[i];
--		if (!strcmp(subdev_info->name, subdev_name))
-+		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
- 			return i;
- 	}
- 	return -1;
-@@ -1328,13 +1334,25 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
- {
- 	int i;
- 
-+	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
-+		const struct device_node *node = vpif_obj.config->asd[i]->match.of.node;
-+
-+		if (node == subdev->of_node) {
-+			vpif_obj.sd[i] = subdev;
-+			vpif_obj.config->chan_config->inputs[i].subdev_name = subdev->of_node->full_name;
-+			vpif_dbg(2, debug, "%s: setting input %d subdev_name = %s\n", __func__,
-+				 i, subdev->of_node->full_name);
-+			return 0;
-+		}
-+	}
-+
- 	for (i = 0; i < vpif_obj.config->subdev_count; i++)
- 		if (!strcmp(vpif_obj.config->subdev_info[i].name,
- 			    subdev->name)) {
- 			vpif_obj.sd[i] = subdev;
- 			return 0;
- 		}
--
-+	
- 	return -EINVAL;
- }
- 
-@@ -1423,6 +1441,113 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
- 	return vpif_probe_complete();
- }
- 
-+static struct vpif_capture_config *
-+vpif_capture_get_pdata(struct platform_device *pdev)
-+{
-+	struct device_node *endpoint = NULL;
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct vpif_capture_config *pdata;
-+	struct vpif_subdev_info *sdinfo;
-+	struct vpif_capture_chan_config *chan;
-+	unsigned int i;
-+
-+	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
-+		return pdev->dev.platform_data;
-+
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+	pdata->subdev_info = devm_kzalloc(&pdev->dev,
-+					  sizeof(*pdata->subdev_info) *
-+					  VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
-+	if (!pdata->subdev_info)
-+		return NULL;
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	for (i = 0; ; i++) {
-+		struct device_node *rem;
-+		unsigned int flags;
-+		int err;
-+		
-+		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
-+						      endpoint);
-+		if (!endpoint)
-+			break;
-+
-+		dev_dbg(&pdev->dev, "found endpoint %s, %s\n",
-+			endpoint->name, endpoint->full_name);
-+
-+		sdinfo = &pdata->subdev_info[i];
-+		chan = &pdata->chan_config[i];
-+		chan->inputs = devm_kzalloc(&pdev->dev,
-+					    sizeof(*chan->inputs) *
-+					    VPIF_DISPLAY_MAX_CHANNELS,
-+					    GFP_KERNEL);
-+		
-+		/* sdinfo->name = devm_kzalloc(&pdev->dev, 16, GFP_KERNEL); */
-+		/* snprintf(sdinfo->name, 16, "VPIF input %d", i); */
-+		chan->input_count++;
-+		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
-+		chan->inputs[i].input.std = V4L2_STD_ALL;
-+		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
-+		
-+		/* FIXME: need a new property? ch0:composite ch1: s-video */
-+		if (i == 0)
-+			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
-+		else
-+			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
-+		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
-+				
-+		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		if (err) {
-+			dev_err(&pdev->dev, "Could not parse the endpoint\n");
-+			goto done;
-+		}
-+		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
-+			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
-+		flags = bus_cfg.bus.parallel.flags;
-+
-+		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+			chan->vpif_if.hd_pol = 1;
-+
-+		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+			chan->vpif_if.vd_pol = 1;
-+
-+		chan->vpif_if.if_type = VPIF_IF_BT656;
-+		rem = of_graph_get_remote_port_parent(endpoint);
-+		if (!rem) {
-+			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
-+				endpoint->full_name);
-+			goto done;
-+		}
-+
-+		dev_dbg(&pdev->dev, "Remote device %s, %s found\n", rem->name, rem->full_name);
-+		sdinfo->name = rem->full_name;
-+
-+		pdata->asd[i] = devm_kzalloc(&pdev->dev,
-+					     sizeof(struct v4l2_async_subdev),
-+					     GFP_KERNEL);
-+		if (!pdata->asd[i]) {
-+			of_node_put(rem);
-+			pdata = NULL;
-+			goto done;
-+		}
-+
-+		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
-+		pdata->asd[i]->match.of.node = rem;
-+		of_node_put(rem);
-+	}
-+
-+done:
-+	pdata->asd_sizes[0] = i;
-+	pdata->subdev_count = i;
-+	pdata->card_name = "DA850/OMAP-L138 Video Capture";
-+
-+	return pdata;
-+}
-+
- /**
-  * vpif_probe : This function probes the vpif capture driver
-  * @pdev: platform device pointer
-@@ -1439,6 +1564,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int res_idx = 0;
- 	int i, err;
- 
-+	pdev->dev.platform_data = vpif_capture_get_pdata(pdev);;
- 	if (!pdev->dev.platform_data) {
- 		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
- 		return -EINVAL;
-@@ -1481,7 +1607,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		goto vpif_unregister;
- 	}
- 
--	if (!vpif_obj.config->asd_sizes) {
-+	if (!vpif_obj.config->asd_sizes[0]) {
- 		i2c_adap = i2c_get_adapter(1);
- 		for (i = 0; i < subdev_count; i++) {
- 			subdevdata = &vpif_obj.config->subdev_info[i];
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3cb1704a0650..4ee3b41975db 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -65,14 +65,14 @@ struct vpif_display_config {
- 
- struct vpif_input {
- 	struct v4l2_input input;
--	const char *subdev_name;
-+	char *subdev_name;
- 	u32 input_route;
- 	u32 output_route;
- };
- 
- struct vpif_capture_chan_config {
- 	struct vpif_interface vpif_if;
--	const struct vpif_input *inputs;
-+	struct vpif_input *inputs;
- 	int input_count;
- };
- 
-@@ -83,7 +83,8 @@ struct vpif_capture_config {
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
- 	const char *card_name;
--	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
--	int *asd_sizes;		/* 0-terminated array of asd group sizes */
-+
-+	struct v4l2_async_subdev *asd[VPIF_CAPTURE_MAX_CHANNELS];
-+	int asd_sizes[VPIF_CAPTURE_MAX_CHANNELS];
- };
- #endif /* _VPIF_TYPES_H */
--- 
-2.9.3
+it seems you messed the modules install or you have the V4L2 stack
+compiled builtin with a different version. 
 
+
+Thanks,
+Mauro
