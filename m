@@ -1,87 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59062 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756515AbcJNUWn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35233 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S944560AbcJSPTD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>
-Subject: [PATCH 07/57] [media] b2c2: don't break long lines
-Date: Fri, 14 Oct 2016 17:19:55 -0300
-Message-Id: <368fcfffb6688e35a6ac10d5576a172b89ad5baf.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Wed, 19 Oct 2016 11:19:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v6 1/2] media: i2c/ov5645: add the device tree binding document
+Date: Wed, 19 Oct 2016 12:21:12 +0300
+Message-ID: <7858186.8cvAlZeXi2@avalon>
+In-Reply-To: <5807398F.9060802@linaro.org>
+References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org> <5771512.gQUqkxEut4@avalon> <5807398F.9060802@linaro.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Hi Todor,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/b2c2/flexcop-dma.c | 6 ++----
- drivers/media/pci/b2c2/flexcop-pci.c | 6 ++----
- 2 files changed, 4 insertions(+), 8 deletions(-)
+On Wednesday 19 Oct 2016 12:14:55 Todor Tomov wrote:
+> On 10/19/2016 11:49 AM, Laurent Pinchart wrote:
+> > On Friday 14 Oct 2016 15:01:08 Todor Tomov wrote:
+> >> On 09/08/2016 03:22 PM, Laurent Pinchart wrote:
+> >>> On Thursday 08 Sep 2016 12:13:54 Todor Tomov wrote:
+> >>>> Add the document for ov5645 device tree binding.
+> >>>> 
+> >>>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> >>>> ---
+> >>>> 
+> >>>>  .../devicetree/bindings/media/i2c/ov5645.txt       | 52 ++++++++++++++
+> >>>>  1 file changed, 52 insertions(+)
+> >>>>  create mode 100644
+> >>>>  Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> >>>> 
+> >>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> >>>> b/Documentation/devicetree/bindings/media/i2c/ov5645.txt new file mode
+> >>>> 100644
+> >>>> index 0000000..bcf6dba
+> >>>> --- /dev/null
+> >>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+> >>>> @@ -0,0 +1,52 @@
+> >>>> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
+> >>>> +
+> >>>> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image
+> >>>> sensor with
+> >>>> +an active array size of 2592H x 1944V. It is programmable through a
+> >>>> serial I2C
+> >>>> +interface.
+> >>>> +
+> >>>> +Required Properties:
+> >>>> +- compatible: Value should be "ovti,ov5645".
+> >>>> +- clocks: Reference to the xclk clock.
+> >>>> +- clock-names: Should be "xclk".
+> >>>> +- clock-frequency: Frequency of the xclk clock.
+> >>>> +- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
+> > 
+> > By the way, isn't the pin called pwdnb and isn't it active low ?
+> 
+> Yes, the pin is called "pwdnb" and is active low (must be up for power to be
+> up). I have changed the name to "enable" as it is more generally used -
+> this change was suggested by Rob Herring. As the logic switches with this
+> change of the name I have stated it is active high which ends up in the
+> same condition (enable must be up for the power to be up). I think this is
+> correct, isn't it?
 
-diff --git a/drivers/media/pci/b2c2/flexcop-dma.c b/drivers/media/pci/b2c2/flexcop-dma.c
-index 2881e0d956ad..913dc97f8b49 100644
---- a/drivers/media/pci/b2c2/flexcop-dma.c
-+++ b/drivers/media/pci/b2c2/flexcop-dma.c
-@@ -57,8 +57,7 @@ int flexcop_dma_config(struct flexcop_device *fc,
- 		fc->write_ibi_reg(fc,dma2_014,v0x4);
- 		fc->write_ibi_reg(fc,dma2_01c,v0xc);
- 	} else {
--		err("either DMA1 or DMA2 can be configured within one "
--			"flexcop_dma_config call.");
-+		err("either DMA1 or DMA2 can be configured within one flexcop_dma_config call.");
- 		return -EINVAL;
- 	}
- 
-@@ -82,8 +81,7 @@ int flexcop_dma_xfer_control(struct flexcop_device *fc,
- 		r0x0 = dma2_010;
- 		r0xc = dma2_01c;
- 	} else {
--		err("either transfer DMA1 or DMA2 can be started within one "
--			"flexcop_dma_xfer_control call.");
-+		err("either transfer DMA1 or DMA2 can be started within one flexcop_dma_xfer_control call.");
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
-index 4cac1fc233f2..f0d127e640bb 100644
---- a/drivers/media/pci/b2c2/flexcop-pci.c
-+++ b/drivers/media/pci/b2c2/flexcop-pci.c
-@@ -185,8 +185,7 @@ static irqreturn_t flexcop_pci_isr(int irq, void *dev_id)
- 			fc->read_ibi_reg(fc,dma1_008).dma_0x8.dma_cur_addr << 2;
- 		u32 cur_pos = cur_addr - fc_pci->dma[0].dma_addr0;
- 
--		deb_irq("%u irq: %08x cur_addr: %llx: cur_pos: %08x, "
--			"last_cur_pos: %08x ",
-+		deb_irq("%u irq: %08x cur_addr: %llx: cur_pos: %08x, last_cur_pos: %08x ",
- 				jiffies_to_usecs(jiffies - fc_pci->last_irq),
- 				v.raw, (unsigned long long)cur_addr, cur_pos,
- 				fc_pci->last_dma1_cur_pos);
-@@ -220,8 +219,7 @@ static irqreturn_t flexcop_pci_isr(int irq, void *dev_id)
- 		fc_pci->last_dma1_cur_pos = cur_pos;
- 		fc_pci->count++;
- 	} else {
--		deb_irq("isr for flexcop called, "
--			"apparently without reason (%08x)\n", v.raw);
-+		deb_irq("isr for flexcop called, apparently without reason (%08x)\n", v.raw);
- 		ret = IRQ_NONE;
- 	}
- 
+I thought that the rule was to name the GPIO properties based on the name of 
+the pin. I could be wrong though. Rob, what's your opinion ?
+
+> >>>> +- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW.
+> >>> 
+> >>> Shouldn't the enable and reset GPIOs be optional ?
+> >> 
+> >> I don't think so. The operations on the GPIOs are part of the power up
+> >> sequence of the sensor so we must have control over them to execute the
+> >> exact sequence.
+> > 
+> > Right, let's keep them mandatory. If we later have to make them optional
+> > for a board that pulls one of those signals up (assuming this can work at
+> > all) we'll revisit the bindings.
+> 
+> Ok.
+> 
+> >>>> +- vdddo-supply: Chip digital IO regulator.
+> >>>> +- vdda-supply: Chip analog regulator.
+> >>>> +- vddd-supply: Chip digital core regulator.
+> >>>> +
+> >>>> +The device node must contain one 'port' child node for its digital
+> >>>> output
+> >>>> +video port, in accordance with the video interface bindings defined in
+> >>>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> >>>> +
+> >>>> +Example:
+> >>>> +
+> >>>> +	&i2c1 {
+> >>>> +		...
+> >>>> +
+> >>>> +		ov5645: ov5645@78 {
+> >>>> +			compatible = "ovti,ov5645";
+> >>>> +			reg = <0x78>;
+> >>>> +
+> >>>> +			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+> >>>> +			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
+> >>>> +			pinctrl-names = "default";
+> >>>> +			pinctrl-0 = <&camera_rear_default>;
+> >>>> +
+> >>>> +			clocks = <&clks 200>;
+> >>>> +			clock-names = "xclk";
+> >>>> +			clock-frequency = <23880000>;
+> >>>> +
+> >>>> +			vdddo-supply = <&camera_dovdd_1v8>;
+> >>>> +			vdda-supply = <&camera_avdd_2v8>;
+> >>>> +			vddd-supply = <&camera_dvdd_1v2>;
+> >>>> +
+> >>>> +			port {
+> >>>> +				ov5645_ep: endpoint {
+> >>>> +					clock-lanes = <1>;
+> >>>> +					data-lanes = <0 2>;
+> >>>> +					remote-endpoint = <&csi0_ep>;
+> >>>> +				};
+> >>>> +			};
+> >>>> +		};
+> >>>> +	};
+
 -- 
-2.7.4
+Regards,
 
+Laurent Pinchart
 
