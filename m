@@ -1,61 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59500 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755573AbcJROOH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 10:14:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Greg KH <greg@kroah.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        stable@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l: rcar-fcp: Don't force users to check for disabled FCP support
-Date: Tue, 18 Oct 2016 17:14:03 +0300
-Message-ID: <3662992.dtXaQ41t4g@avalon>
-In-Reply-To: <20161018140521.GA5102@kroah.com>
-References: <1476797060-8535-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20161018140521.GA5102@kroah.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga07.intel.com ([134.134.136.100]:23886 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932806AbcJSObe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Oct 2016 10:31:34 -0400
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+        p.zabel@pengutronix.de, niklas.soderlund@ragnatech.se
+Subject: [PATCH v3 1/1] doc-rst: v4l: Add documentation on CSI-2 bus configuration
+Date: Wed, 19 Oct 2016 17:28:45 +0300
+Message-Id: <1476887325-328-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1476887059.3054.42.camel@pengutronix.de>
+References: <1476887059.3054.42.camel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Document the interface between the CSI-2 transmitter and receiver drivers.
 
-On Tuesday 18 Oct 2016 16:05:21 Greg KH wrote:
-> On Tue, Oct 18, 2016 at 04:24:20PM +0300, Laurent Pinchart wrote:
-> > commit fd44aa9a254b18176ec3792a18e7de6977030ca8 upstream.
-> > 
-> > The rcar_fcp_enable() function immediately returns successfully when the
-> > FCP device pointer is NULL to avoid forcing the users to check the FCP
-> > device manually before every call. However, the stub version of the
-> > function used when the FCP driver is disabled returns -ENOSYS
-> > unconditionally, resulting in a different API contract for the two
-> > versions of the function.
-> > 
-> > As a user that requires FCP support will fail at probe time when calling
-> > rcar_fcp_get() if the FCP driver is disabled, the stub version of the
-> > rcar_fcp_enable() function will only be called with a NULL FCP device.
-> > We can thus return 0 unconditionally to align the behaviour with the
-> > normal version of the function.
-> > 
-> > Fixes: 94fcdf829793 ("[media] v4l: vsp1: Add FCP support")
-> > Reported-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> > 
-> >  include/media/rcar-fcp.h | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> What stable kernel(s) do you want this applied to?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v2:
 
-That's for v4.8, sorry for not having mentioned it.
+- Add bits_per_sample variable to the formula. It should be correct now.
 
+ Documentation/media/kapi/csi2.rst  | 61 ++++++++++++++++++++++++++++++++++++++
+ Documentation/media/media_kapi.rst |  1 +
+ 2 files changed, 62 insertions(+)
+ create mode 100644 Documentation/media/kapi/csi2.rst
+
+diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
+new file mode 100644
+index 0000000..2004db0
+--- /dev/null
++++ b/Documentation/media/kapi/csi2.rst
+@@ -0,0 +1,61 @@
++MIPI CSI-2
++==========
++
++CSI-2 is a data bus intended for transferring images from cameras to
++the host SoC. It is defined by the `MIPI alliance`_.
++
++.. _`MIPI alliance`: http://www.mipi.org/
++
++Transmitter drivers
++-------------------
++
++CSI-2 transmitter, such as a sensor or a TV tuner, drivers need to
++provide the CSI-2 receiver with information on the CSI-2 bus
++configuration. These include the V4L2_CID_LINK_FREQ and
++V4L2_CID_PIXEL_RATE controls and
++(:c:type:`v4l2_subdev_video_ops`->s_stream() callback). These
++interface elements must be present on the sub-device represents the
++CSI-2 transmitter.
++
++The V4L2_CID_LINK_FREQ control is used to tell the receiver driver the
++frequency (and not the symbol rate) of the link. The
++V4L2_CID_PIXEL_RATE is may be used by the receiver to obtain the pixel
++rate the transmitter uses. The
++:c:type:`v4l2_subdev_video_ops`->s_stream() callback provides an
++ability to start and stop the stream.
++
++The value of the V4L2_CID_PIXEL_RATE is calculated as follows::
++
++	pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample
++
++where
++
++.. list-table:: variables in pixel rate calculation
++   :header-rows: 1
++
++   * - variable or constant
++     - description
++   * - link_freq
++     - The value of the V4L2_CID_LINK_FREQ integer64 menu item.
++   * - nr_of_lanes
++     - Number of data lanes used on the CSI-2 link. This can
++       be obtained from the OF endpoint configuration.
++   * - 2
++     - Two bits are transferred per clock cycle per lane.
++   * - bits_per_sample
++     - Number of bits per sample.
++
++The transmitter drivers must configure the CSI-2 transmitter to *LP-11
++mode* whenever the transmitter is powered on but not active. Some
++transmitters do this automatically but some have to be explicitly
++programmed to do so.
++
++Receiver drivers
++----------------
++
++Before the receiver driver may enable the CSI-2 transmitter by using
++the :c:type:`v4l2_subdev_video_ops`->s_stream(), it must have powered
++the transmitter up by using the
++:c:type:`v4l2_subdev_core_ops`->s_power() callback. This may take
++place either indirectly by using :c:func:`v4l2_pipeline_pm_use` or
++directly.
+diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
+index f282ca2..bc06389 100644
+--- a/Documentation/media/media_kapi.rst
++++ b/Documentation/media/media_kapi.rst
+@@ -33,3 +33,4 @@ For more details see the file COPYING in the source distribution of Linux.
+     kapi/rc-core
+     kapi/mc-core
+     kapi/cec-core
++    kapi/csi2
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
