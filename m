@@ -1,48 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.abbadie.fr ([37.187.122.32]:53306 "EHLO mail.abbadie.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941030AbcJSR1Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 13:27:16 -0400
-From: Jean-Baptiste Abbadie <jb@abbadie.fr>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org
-Cc: Jean-Baptiste Abbadie <jb@abbadie.fr>
-Subject: [PATCH 2/3] Staging: media: radio-bcm2048: Fix alignment issues
-Date: Wed, 19 Oct 2016 19:17:12 +0200
-Message-Id: <20161019171713.19181-2-jb@abbadie.fr>
-In-Reply-To: <20161019171713.19181-1-jb@abbadie.fr>
-References: <20161019171713.19181-1-jb@abbadie.fr>
+Received: from smtpout.microchip.com ([198.175.253.82]:39331 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755271AbcJSJDS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Oct 2016 05:03:18 -0400
+Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
+ framework
+To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+        "Nicolas Ferre" <nicolas.ferre@microchip.com>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
+ <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
+ <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
+ <f929eb2f-05a4-e674-c90b-b9141de04153@microchip.com>
+ <ad11ae23-402f-6e20-6201-af466ff7da2e@microchip.com>
+ <86371d6b-3549-0d75-201e-53a0226872db@xs4all.nl>
+ <1a034eb2-4d2f-5640-54c4-ed3702ae7202@microchip.com>
+ <38cace16-a523-857c-4081-0f5e28550bc5@xs4all.nl>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <9f054ac5-0891-869b-c5fb-5652bd49fa30@microchip.com>
+Date: Wed, 19 Oct 2016 15:48:20 +0800
+MIME-Version: 1.0
+In-Reply-To: <38cace16-a523-857c-4081-0f5e28550bc5@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jean-Baptiste Abbadie <jb@abbadie.fr>
----
- drivers/staging/media/bcm2048/radio-bcm2048.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 188d045d44ad..f66bea631e8e 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -997,7 +997,7 @@ static int bcm2048_set_fm_search_tune_mode(struct bcm2048_device *bdev,
- 		timeout = BCM2048_AUTO_SEARCH_TIMEOUT;
- 
- 	if (!wait_for_completion_timeout(&bdev->compl,
--		msecs_to_jiffies(timeout)))
-+					 msecs_to_jiffies(timeout)))
- 		dev_err(&bdev->client->dev, "IRQ timeout.\n");
- 
- 	if (value)
-@@ -2202,7 +2202,7 @@ static ssize_t bcm2048_fops_read(struct file *file, char __user *buf,
- 		}
- 		/* interruptible_sleep_on(&bdev->read_queue); */
- 		if (wait_event_interruptible(bdev->read_queue,
--		    bdev->rds_data_available) < 0) {
-+					     bdev->rds_data_available) < 0) {
- 			retval = -EINTR;
- 			goto done;
- 		}
--- 
-2.10.0
 
+On 10/19/2016 15:46, Hans Verkuil wrote:
+> On 10/19/2016 09:36 AM, Wu, Songjun wrote:
+>>
+>>
+>> On 10/18/2016 18:58, Hans Verkuil wrote:
+>>> On 10/18/16 11:21, Wu, Songjun wrote:
+>>>> Hi Hans,
+>>>>
+>>>> Do you have any issue on this patch?
+>>>
+>>> ENOTIME :-(
+>>>
+>>>> Could I give you some help? :)
+>>>
+>>> I would certainly help if you can make the requested change to this patch.
+>>>
+>>> Let me know if you want to do that, because in that case I'll rebase my
+>>> tree
+>>> to the latest media_tree master.
+>>>
+>> Yes, I would like to make the requested change to this patch. :)
+>> It seems the patch is not based on the latest media_tree master.
+>> Will you rebase this patch to the latest media_tree, or let me move it
+>> and make the requested change based on the media_tree?
+>
+> I've rebased my branch:
+>
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=sama5d3-2
+>
+Thank you very much.
+I will make the requested change based on your branch.
+
+> Regards,
+>
+> 	Hans
+>
