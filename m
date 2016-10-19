@@ -1,150 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46781 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938911AbcJGRYq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 7 Oct 2016 13:24:46 -0400
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48330
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752113AbcJSVJn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Oct 2016 17:09:43 -0400
+Date: Wed, 19 Oct 2016 19:09:38 -0200
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH 13/26] dtt200u-fe: handle errors on USB control messages
-Date: Fri,  7 Oct 2016 14:24:23 -0300
-Message-Id: <0a881bb73f490906c7023630c1a32bfea80c95a9.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
+To: Jean-Baptiste Abbadie <jb@abbadie.fr>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] Staging: media: radio-bcm2048: Fix indentation
+Message-ID: <20161019190938.617ad346@vento.lan>
+In-Reply-To: <20161019204714.11645-3-jb@abbadie.fr>
+References: <20161019204714.11645-1-jb@abbadie.fr>
+        <20161019204714.11645-3-jb@abbadie.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If something goes wrong, return an error code, instead of
-assuming that everything went fine.
+Em Wed, 19 Oct 2016 22:47:13 +0200
+Jean-Baptiste Abbadie <jb@abbadie.fr> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/dtt200u-fe.c | 38 +++++++++++++++++++++++++++-------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+> Align multiple lines statement with parentheses
 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u-fe.c b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-index 9ed68429e950..ede6e1bc7315 100644
---- a/drivers/media/usb/dvb-usb/dtt200u-fe.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-@@ -26,10 +26,15 @@ static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- 				  enum fe_status *stat)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	state->data[0] = GET_TUNE_STATUS;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	if (ret < 0) {
-+		*stat = 0;
-+		return ret;
-+	}
- 
- 	switch (state->data[0]) {
- 		case 0x01:
-@@ -50,10 +55,14 @@ static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- static int dtt200u_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	state->data[0] = GET_VIT_ERR_CNT;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	if (ret < 0)
-+		return ret;
-+
- 	*ber = (state->data[0] << 16) | (state->data[1] << 8) | state->data[2];
- 	return 0;
- }
-@@ -61,10 +70,13 @@ static int dtt200u_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
- static int dtt200u_fe_read_unc_blocks(struct dvb_frontend* fe, u32 *unc)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	state->data[0] = GET_RS_UNCOR_BLK_CNT;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 2, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 2, 0);
-+	if (ret < 0)
-+		return ret;
- 
- 	*unc = (state->data[0] << 8) | state->data[1];
- 	return 0;
-@@ -73,10 +85,13 @@ static int dtt200u_fe_read_unc_blocks(struct dvb_frontend* fe, u32 *unc)
- static int dtt200u_fe_read_signal_strength(struct dvb_frontend* fe, u16 *strength)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	state->data[0] = GET_AGC;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	if (ret < 0)
-+		return ret;
- 
- 	*strength = (state->data[0] << 8) | state->data[0];
- 	return 0;
-@@ -85,10 +100,13 @@ static int dtt200u_fe_read_signal_strength(struct dvb_frontend* fe, u16 *strengt
- static int dtt200u_fe_read_snr(struct dvb_frontend* fe, u16 *snr)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
-+	int ret;
- 
- 	state->data[0] = GET_SNR;
- 
--	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	ret = dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+	if (ret < 0)
-+		return ret;
- 
- 	*snr = ~((state->data[0] << 8) | state->data[0]);
- 	return 0;
-@@ -120,7 +138,7 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	int i;
-+	int i, ret;
- 	enum fe_status st;
- 	u16 freq = fep->frequency / 250000;
- 
-@@ -139,12 +157,16 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend *fe)
- 		return -EINVAL;
- 	}
- 
--	dvb_usb_generic_write(state->d, state->data, 2);
-+	ret = dvb_usb_generic_write(state->d, state->data, 2);
-+	if (ret < 0)
-+		return ret;
- 
- 	state->data[0] = SET_RF_FREQ;
- 	state->data[1] = freq & 0xff;
- 	state->data[2] = (freq >> 8) & 0xff;
--	dvb_usb_generic_write(state->d, state->data, 3);
-+	ret = dvb_usb_generic_write(state->d, state->data, 3);
-+	if (ret < 0)
-+		return ret;
- 
- 	for (i = 0; i < 30; i++) {
- 		msleep(20);
--- 
-2.7.4
+Looks OK to me. Greg, do you want to pick it on your tree or do you
+prefer if I pick myself?
+
+If you prefer to pick it:
+
+Acked-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+> 
+> Signed-off-by: Jean-Baptiste Abbadie <jb@abbadie.fr>
+> ---
+>  drivers/staging/media/bcm2048/radio-bcm2048.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> index 188d045d44ad..f66bea631e8e 100644
+> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
+> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+> @@ -997,7 +997,7 @@ static int bcm2048_set_fm_search_tune_mode(struct bcm2048_device *bdev,
+>  		timeout = BCM2048_AUTO_SEARCH_TIMEOUT;
+>  
+>  	if (!wait_for_completion_timeout(&bdev->compl,
+> -		msecs_to_jiffies(timeout)))
+> +					 msecs_to_jiffies(timeout)))
+>  		dev_err(&bdev->client->dev, "IRQ timeout.\n");
+>  
+>  	if (value)
+> @@ -2202,7 +2202,7 @@ static ssize_t bcm2048_fops_read(struct file *file, char __user *buf,
+>  		}
+>  		/* interruptible_sleep_on(&bdev->read_queue); */
+>  		if (wait_event_interruptible(bdev->read_queue,
+> -		    bdev->rds_data_available) < 0) {
+> +					     bdev->rds_data_available) < 0) {
+>  			retval = -EINTR;
+>  			goto done;
+>  		}
 
 
+
+Thanks,
+Mauro
