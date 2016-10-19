@@ -1,171 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51438 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755212AbcJRUqS (ORCPT
+Received: from mail-vk0-f53.google.com ([209.85.213.53]:32821 "EHLO
+        mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S942902AbcJSOm1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Wei Yongjun <weiyongjun1@huawei.com>
-Subject: [PATCH v2 55/58] platform: don't break long lines
-Date: Tue, 18 Oct 2016 18:46:07 -0200
-Message-Id: <04f307c4e4aabde34f02c010f3441983eeaf0096.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Wed, 19 Oct 2016 10:42:27 -0400
+Received: by mail-vk0-f53.google.com with SMTP id 83so29257504vkd.0
+        for <linux-media@vger.kernel.org>; Wed, 19 Oct 2016 07:42:26 -0700 (PDT)
+Subject: Re: [PATCH v6 1/2] media: i2c/ov5645: add the device tree binding
+ document
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org>
+ <5464790.La2jRYUjpB@avalon> <5800C904.8080002@linaro.org>
+ <5771512.gQUqkxEut4@avalon>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <5807398F.9060802@linaro.org>
+Date: Wed, 19 Oct 2016 12:14:55 +0300
+MIME-Version: 1.0
+In-Reply-To: <5771512.gQUqkxEut4@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Hi Laurent,
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+Thank you for the review.
 
-So, join those continuation lines.
+On 10/19/2016 11:49 AM, Laurent Pinchart wrote:
+> Hi Todor,
+> 
+> On Friday 14 Oct 2016 15:01:08 Todor Tomov wrote:
+>> On 09/08/2016 03:22 PM, Laurent Pinchart wrote:
+>>> On Thursday 08 Sep 2016 12:13:54 Todor Tomov wrote:
+>>>> Add the document for ov5645 device tree binding.
+>>>>
+>>>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>>>> ---
+>>>>
+>>>>  .../devicetree/bindings/media/i2c/ov5645.txt       | 52 ++++++++++++++++
+>>>>  1 file changed, 52 insertions(+)
+>>>>  create mode 100644
+>>>>  Documentation/devicetree/bindings/media/i2c/ov5645.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+>>>> b/Documentation/devicetree/bindings/media/i2c/ov5645.txt new file mode
+>>>> 100644
+>>>> index 0000000..bcf6dba
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+>>>> @@ -0,0 +1,52 @@
+>>>> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
+>>>> +
+>>>> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image
+>>>> sensor with
+>>>> +an active array size of 2592H x 1944V. It is programmable through a
+>>>> serial I2C
+>>>> +interface.
+>>>> +
+>>>> +Required Properties:
+>>>> +- compatible: Value should be "ovti,ov5645".
+>>>> +- clocks: Reference to the xclk clock.
+>>>> +- clock-names: Should be "xclk".
+>>>> +- clock-frequency: Frequency of the xclk clock.
+>>>> +- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
+> 
+> By the way, isn't the pin called pwdnb and isn't it active low ?
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+Yes, the pin is called "pwdnb" and is active low (must be up for power to be up).
+I have changed the name to "enable" as it is more generally used - this change
+was suggested by Rob Herring. As the logic switches with this change of the name
+I have stated it is active high which ends up in the same condition (enable
+must be up for the power to be up). I think this is correct, isn't it?
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+> 
+>>>> +- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW.
+>>>
+>>> Shouldn't the enable and reset GPIOs be optional ?
+>>
+>> I don't think so. The operations on the GPIOs are part of the power up
+>> sequence of the sensor so we must have control over them to execute the
+>> exact sequence.
+> 
+> Right, let's keep them mandatory. If we later have to make them optional for a 
+> board that pulls one of those signals up (assuming this can work at all) we'll 
+> revisit the bindings.
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+Ok.
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+> 
+>>>> +- vdddo-supply: Chip digital IO regulator.
+>>>> +- vdda-supply: Chip analog regulator.
+>>>> +- vddd-supply: Chip digital core regulator.
+>>>> +
+>>>> +The device node must contain one 'port' child node for its digital
+>>>> output
+>>>> +video port, in accordance with the video interface bindings defined in
+>>>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>>>> +
+>>>> +Example:
+>>>> +
+>>>> +	&i2c1 {
+>>>> +		...
+>>>> +
+>>>> +		ov5645: ov5645@78 {
+>>>> +			compatible = "ovti,ov5645";
+>>>> +			reg = <0x78>;
+>>>> +
+>>>> +			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+>>>> +			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
+>>>> +			pinctrl-names = "default";
+>>>> +			pinctrl-0 = <&camera_rear_default>;
+>>>> +
+>>>> +			clocks = <&clks 200>;
+>>>> +			clock-names = "xclk";
+>>>> +			clock-frequency = <23880000>;
+>>>> +
+>>>> +			vdddo-supply = <&camera_dovdd_1v8>;
+>>>> +			vdda-supply = <&camera_avdd_2v8>;
+>>>> +			vddd-supply = <&camera_dvdd_1v2>;
+>>>> +
+>>>> +			port {
+>>>> +				ov5645_ep: endpoint {
+>>>> +					clock-lanes = <1>;
+>>>> +					data-lanes = <0 2>;
+>>>> +					remote-endpoint = <&csi0_ep>;
+>>>> +				};
+>>>> +			};
+>>>> +		};
+>>>> +	};
+> 
 
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/mx2_emmaprp.c | 10 +++++-----
- drivers/media/platform/pxa_camera.c  |  6 ++----
- drivers/media/platform/via-camera.c  |  7 ++-----
- 3 files changed, 9 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index e68d271b10af..03e47e0f778d 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -724,10 +724,10 @@ static int emmaprp_buf_prepare(struct vb2_buffer *vb)
- 	q_data = get_q_data(ctx, vb->vb2_queue->type);
- 
- 	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
--		dprintk(ctx->dev, "%s data will not fit into plane"
--				  "(%lu < %lu)\n", __func__,
--				  vb2_plane_size(vb, 0),
--				  (long)q_data->sizeimage);
-+		dprintk(ctx->dev,
-+			"%s data will not fit into plane(%lu < %lu)\n",
-+			__func__, vb2_plane_size(vb, 0),
-+			(long)q_data->sizeimage);
- 		return -EINVAL;
- 	}
- 
-@@ -937,7 +937,7 @@ static int emmaprp_probe(struct platform_device *pdev)
- 	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
- 	pcdev->vfd = vfd;
- 	v4l2_info(&pcdev->v4l2_dev, EMMAPRP_MODULE_NAME
--			" Device registered as /dev/video%d\n", vfd->num);
-+		  " Device registered as /dev/video%d\n", vfd->num);
- 
- 	platform_set_drvdata(pdev, pcdev);
- 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index c12209c701d3..bcdac4932fb1 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -2347,8 +2347,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 		 * Platform hasn't set available data widths. This is bad.
- 		 * Warn and use a default.
- 		 */
--		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available "
--			 "data widths, using default 10 bit\n");
-+		dev_warn(&pdev->dev, "WARNING! Platform hasn't set available data widths, using default 10 bit\n");
- 		pcdev->platform_flags |= PXA_CAMERA_DATAWIDTH_10;
- 	}
- 	if (pcdev->platform_flags & PXA_CAMERA_DATAWIDTH_8)
-@@ -2359,8 +2358,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 		pcdev->width_flags |= 1 << 9;
- 	if (!pcdev->mclk) {
- 		dev_warn(&pdev->dev,
--			 "mclk == 0! Please, fix your platform data. "
--			 "Using default 20MHz\n");
-+			 "mclk == 0! Please, fix your platform data. Using default 20MHz\n");
- 		pcdev->mclk = 20000000;
- 	}
- 
-diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
-index 7ca12deba89c..e16f70a5df1d 100644
---- a/drivers/media/platform/via-camera.c
-+++ b/drivers/media/platform/via-camera.c
-@@ -39,15 +39,12 @@ MODULE_LICENSE("GPL");
- static bool flip_image;
- module_param(flip_image, bool, 0444);
- MODULE_PARM_DESC(flip_image,
--		"If set, the sensor will be instructed to flip the image "
--		"vertically.");
-+		"If set, the sensor will be instructed to flip the image vertically.");
- 
- static bool override_serial;
- module_param(override_serial, bool, 0444);
- MODULE_PARM_DESC(override_serial,
--		"The camera driver will normally refuse to load if "
--		"the XO 1.5 serial port is enabled.  Set this option "
--		"to force-enable the camera.");
-+		"The camera driver will normally refuse to load if the XO 1.5 serial port is enabled.  Set this option to force-enable the camera.");
- 
- /*
-  * The structure describing our camera.
 -- 
-2.7.4
-
-
+Best regards,
+Todor Tomov
