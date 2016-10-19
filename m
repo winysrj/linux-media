@@ -1,295 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59061 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756477AbcJNUWn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mga14.intel.com ([192.55.52.115]:42885 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751790AbcJSQtr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Oct 2016 12:49:47 -0400
+Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
+ pass FOLL_* flags
+To: Michal Hocko <mhocko@kernel.org>,
+        Lorenzo Stoakes <lstoakes@gmail.com>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161018153050.GC13117@dhcp22.suse.cz> <20161019085815.GA22239@lucifer>
+ <20161019090727.GE7517@dhcp22.suse.cz>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH 11/57] [media] cx88: don't break long lines
-Date: Fri, 14 Oct 2016 17:19:59 -0300
-Message-Id: <7b0269b8ea30e093df42a48c711cfcec47a8403a.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Message-ID: <5807A427.7010200@linux.intel.com>
+Date: Wed, 19 Oct 2016 09:49:43 -0700
+MIME-Version: 1.0
+In-Reply-To: <20161019090727.GE7517@dhcp22.suse.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+On 10/19/2016 02:07 AM, Michal Hocko wrote:
+> On Wed 19-10-16 09:58:15, Lorenzo Stoakes wrote:
+>> On Tue, Oct 18, 2016 at 05:30:50PM +0200, Michal Hocko wrote:
+>>> I am wondering whether we can go further. E.g. it is not really clear to
+>>> me whether we need an explicit FOLL_REMOTE when we can in fact check
+>>> mm != current->mm and imply that. Maybe there are some contexts which
+>>> wouldn't work, I haven't checked.
+>>
+>> This flag is set even when /proc/self/mem is used. I've not looked deeply into
+>> this flag but perhaps accessing your own memory this way can be considered
+>> 'remote' since you're not accessing it directly. On the other hand, perhaps this
+>> is just mistaken in this case?
+> 
+> My understanding of the flag is quite limited as well. All I know it is
+> related to protection keys and it is needed to bypass protection check.
+> See arch_vma_access_permitted. See also 1b2ee1266ea6 ("mm/core: Do not
+> enforce PKEY permissions on remote mm access").
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/cx88/cx88-alsa.c    | 13 ++++---------
- drivers/media/pci/cx88/cx88-cards.c   | 12 ++++--------
- drivers/media/pci/cx88/cx88-dsp.c     |  9 +++------
- drivers/media/pci/cx88/cx88-dvb.c     |  6 ++----
- drivers/media/pci/cx88/cx88-i2c.c     |  3 +--
- drivers/media/pci/cx88/cx88-mpeg.c    | 12 ++++--------
- drivers/media/pci/cx88/cx88-tvaudio.c |  6 ++----
- drivers/media/pci/cx88/cx88-video.c   |  3 +--
- 8 files changed, 21 insertions(+), 43 deletions(-)
-
-diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
-index 723f06462104..099f14173cb4 100644
---- a/drivers/media/pci/cx88/cx88-alsa.c
-+++ b/drivers/media/pci/cx88/cx88-alsa.c
-@@ -120,9 +120,7 @@ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(CX88_VERSION);
- 
--MODULE_SUPPORTED_DEVICE("{{Conexant,23881},"
--			"{{Conexant,23882},"
--			"{{Conexant,23883}");
-+MODULE_SUPPORTED_DEVICE("{{Conexant,23881},{{Conexant,23882},{{Conexant,23883}");
- static unsigned int debug;
- module_param(debug,int,0644);
- MODULE_PARM_DESC(debug,"enable debug messages");
-@@ -154,8 +152,7 @@ static int _cx88_start_audio_dma(snd_cx88_card_t *chip)
- 	cx_write(MO_AUDD_GPCNTRL, GP_COUNT_CONTROL_RESET);
- 	atomic_set(&chip->count, 0);
- 
--	dprintk(1, "Start audio DMA, %d B/line, %d lines/FIFO, %d periods, %d "
--		"byte buffer\n", buf->bpl, cx_read(audio_ch->cmds_start + 8)>>1,
-+	dprintk(1, "Start audio DMA, %d B/line, %d lines/FIFO, %d periods, %d byte buffer\n", buf->bpl, cx_read(audio_ch->cmds_start + 8)>>1,
- 		chip->num_periods, buf->bpl * chip->num_periods);
- 
- 	/* Enables corresponding bits at AUD_INT_STAT */
-@@ -425,8 +422,7 @@ static int snd_cx88_pcm_open(struct snd_pcm_substream *substream)
- 	int err;
- 
- 	if (!chip) {
--		printk(KERN_ERR "BUG: cx88 can't find device struct."
--				" Can't proceed with open\n");
-+		printk(KERN_ERR "BUG: cx88 can't find device struct. Can't proceed with open\n");
- 		return -ENODEV;
- 	}
- 
-@@ -914,8 +910,7 @@ static int snd_cx88_create(struct snd_card *card, struct pci_dev *pci,
- 	/* print pci info */
- 	pci_read_config_byte(pci, PCI_LATENCY_TIMER, &pci_lat);
- 
--	dprintk(1,"ALSA %s/%i: found at %s, rev: %d, irq: %d, "
--	       "latency: %d, mmio: 0x%llx\n", core->name, devno,
-+	dprintk(1,"ALSA %s/%i: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n", core->name, devno,
- 	       pci_name(pci), pci->revision, pci->irq,
- 	       pci_lat, (unsigned long long)pci_resource_start(pci,0));
- 
-diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
-index 8f2556ec3971..286d6e2aa590 100644
---- a/drivers/media/pci/cx88/cx88-cards.c
-+++ b/drivers/media/pci/cx88/cx88-cards.c
-@@ -2847,8 +2847,7 @@ static void leadtek_eeprom(struct cx88_core *core, u8 *eeprom_data)
- 		break;
- 	}
- 
--	info_printk(core, "Leadtek Winfast 2000XP Expert config: "
--		    "tuner=%d, eeprom[0]=0x%02x\n",
-+	info_printk(core, "Leadtek Winfast 2000XP Expert config: tuner=%d, eeprom[0]=0x%02x\n",
- 		    core->board.tuner_type, eeprom_data[0]);
- }
- 
-@@ -3107,8 +3106,7 @@ static void dvico_fusionhdtv_hybrid_init(struct cx88_core *core)
- 		msg.len = (i != 12 ? 5 : 2);
- 		err = i2c_transfer(&core->i2c_adap, &msg, 1);
- 		if (err != 1) {
--			warn_printk(core, "dvico_fusionhdtv_hybrid_init buf %d "
--					  "failed (err = %d)!\n", i, err);
-+			warn_printk(core, "dvico_fusionhdtv_hybrid_init buf %d failed (err = %d)!\n", i, err);
- 			return;
- 		}
- 	}
-@@ -3284,8 +3282,7 @@ static void cx88_card_list(struct cx88_core *core, struct pci_dev *pci)
- 		       "%s: version might help as well.\n",
- 		       core->name,core->name,core->name,core->name);
- 	}
--	err_printk(core, "Here is a list of valid choices for the card=<n> "
--		   "insmod option:\n");
-+	err_printk(core, "Here is a list of valid choices for the card=<n> insmod option:\n");
- 	for (i = 0; i < ARRAY_SIZE(cx88_boards); i++)
- 		printk(KERN_ERR "%s:    card=%d -> %s\n",
- 		       core->name, i, cx88_boards[i].name);
-@@ -3510,8 +3507,7 @@ static void cx88_card_setup(struct cx88_core *core)
- 			for (i = 0; i < ARRAY_SIZE(buffer); i++)
- 				if (2 != i2c_master_send(&core->i2c_client,
- 							buffer[i],2))
--					warn_printk(core, "Unable to enable "
--						    "tuner(%i).\n", i);
-+					warn_printk(core, "Unable to enable tuner(%i).\n", i);
- 		}
- 		break;
- 	case CX88_BOARD_MSI_TVANYWHERE_MASTER:
-diff --git a/drivers/media/pci/cx88/cx88-dsp.c b/drivers/media/pci/cx88/cx88-dsp.c
-index a9907265ff66..0de1eebf8ebe 100644
---- a/drivers/media/pci/cx88/cx88-dsp.c
-+++ b/drivers/media/pci/cx88/cx88-dsp.c
-@@ -186,8 +186,7 @@ static s32 detect_a2_a2m_eiaj(struct cx88_core *core, s16 x[], u32 N)
- 	dual    = freq_magnitude(x, N, dual_freq);
- 	noise   = noise_magnitude(x, N, FREQ_NOISE_START, FREQ_NOISE_END);
- 
--	dprintk(1, "detect a2/a2m/eiaj: carrier=%d, stereo=%d, dual=%d, "
--		   "noise=%d\n", carrier, stereo, dual, noise);
-+	dprintk(1, "detect a2/a2m/eiaj: carrier=%d, stereo=%d, dual=%d, noise=%d\n", carrier, stereo, dual, noise);
- 
- 	if (stereo > dual)
- 		ret = V4L2_TUNER_SUB_STEREO;
-@@ -222,8 +221,7 @@ static s32 detect_btsc(struct cx88_core *core, s16 x[], u32 N)
- 	s32 sap = freq_magnitude(x, N, FREQ_BTSC_SAP);
- 	s32 dual_ref = freq_magnitude(x, N, FREQ_BTSC_DUAL_REF);
- 	s32 dual = freq_magnitude(x, N, FREQ_BTSC_DUAL);
--	dprintk(1, "detect btsc: dual_ref=%d, dual=%d, sap_ref=%d, sap=%d"
--		   "\n", dual_ref, dual, sap_ref, sap);
-+	dprintk(1, "detect btsc: dual_ref=%d, dual=%d, sap_ref=%d, sap=%d\n", dual_ref, dual, sap_ref, sap);
- 	/* FIXME: Currently not supported */
- 	return UNSET;
- }
-@@ -241,8 +239,7 @@ static s16 *read_rds_samples(struct cx88_core *core, u32 *N)
- 	u32 current_address = cx_read(srch->ptr1_reg);
- 	u32 offset = (current_address - srch->fifo_start + bpl);
- 
--	dprintk(1, "read RDS samples: current_address=%08x (offset=%08x), "
--		"sample_count=%d, aud_intstat=%08x\n", current_address,
-+	dprintk(1, "read RDS samples: current_address=%08x (offset=%08x), sample_count=%d, aud_intstat=%08x\n", current_address,
- 		current_address - srch->fifo_start, sample_count,
- 		cx_read(MO_AUD_INTSTAT));
- 
-diff --git a/drivers/media/pci/cx88/cx88-dvb.c b/drivers/media/pci/cx88/cx88-dvb.c
-index ac2392d8887a..fe5fd2a4650b 100644
---- a/drivers/media/pci/cx88/cx88-dvb.c
-+++ b/drivers/media/pci/cx88/cx88-dvb.c
-@@ -625,8 +625,7 @@ static int attach_xc3028(u8 addr, struct cx8802_dev *dev)
- 		return -EINVAL;
- 
- 	if (!fe0->dvb.frontend) {
--		printk(KERN_ERR "%s/2: dvb frontend not attached. "
--				"Can't attach xc3028\n",
-+		printk(KERN_ERR "%s/2: dvb frontend not attached. Can't attach xc3028\n",
- 		       dev->core->name);
- 		return -EINVAL;
- 	}
-@@ -665,8 +664,7 @@ static int attach_xc4000(struct cx8802_dev *dev, struct xc4000_config *cfg)
- 		return -EINVAL;
- 
- 	if (!fe0->dvb.frontend) {
--		printk(KERN_ERR "%s/2: dvb frontend not attached. "
--				"Can't attach xc4000\n",
-+		printk(KERN_ERR "%s/2: dvb frontend not attached. Can't attach xc4000\n",
- 		       dev->core->name);
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/pci/cx88/cx88-i2c.c b/drivers/media/pci/cx88/cx88-i2c.c
-index cf2d69615838..8ee9b9802683 100644
---- a/drivers/media/pci/cx88/cx88-i2c.c
-+++ b/drivers/media/pci/cx88/cx88-i2c.c
-@@ -45,8 +45,7 @@ MODULE_PARM_DESC(i2c_scan,"scan i2c bus at insmod time");
- 
- static unsigned int i2c_udelay = 5;
- module_param(i2c_udelay, int, 0644);
--MODULE_PARM_DESC(i2c_udelay,"i2c delay at insmod time, in usecs "
--		"(should be 5 or higher). Lower value means higher bus speed.");
-+MODULE_PARM_DESC(i2c_udelay,"i2c delay at insmod time, in usecs (should be 5 or higher). Lower value means higher bus speed.");
- 
- #define dprintk(level,fmt, arg...)	if (i2c_debug >= level) \
- 	printk(KERN_DEBUG "%s: " fmt, core->name , ## arg)
-diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
-index 245357adbc25..7ee7bcfe377d 100644
---- a/drivers/media/pci/cx88/cx88-mpeg.c
-+++ b/drivers/media/pci/cx88/cx88-mpeg.c
-@@ -401,8 +401,7 @@ static int cx8802_init_common(struct cx8802_dev *dev)
- 
- 	dev->pci_rev = dev->pci->revision;
- 	pci_read_config_byte(dev->pci, PCI_LATENCY_TIMER,  &dev->pci_lat);
--	printk(KERN_INFO "%s/2: found at %s, rev: %d, irq: %d, "
--	       "latency: %d, mmio: 0x%llx\n", dev->core->name,
-+	printk(KERN_INFO "%s/2: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n", dev->core->name,
- 	       pci_name(dev->pci), dev->pci_rev, dev->pci->irq,
- 	       dev->pci_lat,(unsigned long long)pci_resource_start(dev->pci,0));
- 
-@@ -690,8 +689,7 @@ int cx8802_unregister_driver(struct cx8802_driver *drv)
- 				list_del(&d->drvlist);
- 				kfree(d);
- 			} else
--				printk(KERN_ERR "%s/2: cx8802 driver remove "
--				       "failed (%d)\n", dev->core->name, err);
-+				printk(KERN_ERR "%s/2: cx8802 driver remove failed (%d)\n", dev->core->name, err);
- 		}
- 
- 		mutex_unlock(&dev->core->lock);
-@@ -768,8 +766,7 @@ static void cx8802_remove(struct pci_dev *pci_dev)
- 		struct cx8802_driver *drv, *tmp;
- 		int err;
- 
--		printk(KERN_WARNING "%s/2: Trying to remove cx8802 driver "
--		       "while cx8802 sub-drivers still loaded?!\n",
-+		printk(KERN_WARNING "%s/2: Trying to remove cx8802 driver while cx8802 sub-drivers still loaded?!\n",
- 		       dev->core->name);
- 
- 		list_for_each_entry_safe(drv, tmp, &dev->drvlist, drvlist) {
-@@ -777,8 +774,7 @@ static void cx8802_remove(struct pci_dev *pci_dev)
- 			if (err == 0) {
- 				list_del(&drv->drvlist);
- 			} else
--				printk(KERN_ERR "%s/2: cx8802 driver remove "
--				       "failed (%d)\n", dev->core->name, err);
-+				printk(KERN_ERR "%s/2: cx8802 driver remove failed (%d)\n", dev->core->name, err);
- 			kfree(drv);
- 		}
- 	}
-diff --git a/drivers/media/pci/cx88/cx88-tvaudio.c b/drivers/media/pci/cx88/cx88-tvaudio.c
-index 6bbce6ad6295..dd8e6f324204 100644
---- a/drivers/media/pci/cx88/cx88-tvaudio.c
-+++ b/drivers/media/pci/cx88/cx88-tvaudio.c
-@@ -62,8 +62,7 @@ MODULE_PARM_DESC(always_analog,"force analog audio out");
- 
- static unsigned int radio_deemphasis;
- module_param(radio_deemphasis,int,0644);
--MODULE_PARM_DESC(radio_deemphasis, "Radio deemphasis time constant, "
--		 "0=None, 1=50us (elsewhere), 2=75us (USA)");
-+MODULE_PARM_DESC(radio_deemphasis, "Radio deemphasis time constant, 0=None, 1=50us (elsewhere), 2=75us (USA)");
- 
- #define dprintk(fmt, arg...)	if (audio_debug) \
- 	printk(KERN_DEBUG "%s/0: " fmt, core->name , ## arg)
-@@ -976,8 +975,7 @@ void cx88_set_stereo(struct cx88_core *core, u32 mode, int manual)
- 	}
- 
- 	if (UNSET != ctl) {
--		dprintk("cx88_set_stereo: mask 0x%x, ctl 0x%x "
--			"[status=0x%x,ctl=0x%x,vol=0x%x]\n",
-+		dprintk("cx88_set_stereo: mask 0x%x, ctl 0x%x [status=0x%x,ctl=0x%x,vol=0x%x]\n",
- 			mask, ctl, cx_read(AUD_STATUS),
- 			cx_read(AUD_CTL), cx_sread(SHADOW_AUD_VOL_CTL));
- 		cx_andor(AUD_CTL, mask, ctl);
-diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-index d83eb3b10f54..214cd68d7fd4 100644
---- a/drivers/media/pci/cx88/cx88-video.c
-+++ b/drivers/media/pci/cx88/cx88-video.c
-@@ -1307,8 +1307,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
- 	/* print pci info */
- 	dev->pci_rev = pci_dev->revision;
- 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
--	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, "
--	       "latency: %d, mmio: 0x%llx\n", core->name,
-+	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n", core->name,
- 	       pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
- 	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
- 
--- 
-2.7.4
-
+Yeah, we need the flag to tell us when PKEYs should be applied or not.
+The current task's PKRU (pkey rights register) should really only be
+used to impact access to the task's memory, but has no bearing on how a
+given task should access remote memory.
 
