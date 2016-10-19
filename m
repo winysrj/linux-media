@@ -1,63 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:50964 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756077AbcJVWwK (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:34786 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938790AbcJSOOj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Oct 2016 18:52:10 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 2/5] stv06xx: store device name after the USB_DEVICE line
-Date: Sat, 22 Oct 2016 20:52:01 -0200
-Message-Id: <abe0321eec3d2ff4c71c041d3cc1feee5e430bef.1477176498.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1477176498.git.mchehab@s-opensource.com>
-References: <cover.1477176498.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1477176498.git.mchehab@s-opensource.com>
-References: <cover.1477176498.git.mchehab@s-opensource.com>
+        Wed, 19 Oct 2016 10:14:39 -0400
+Date: Wed, 19 Oct 2016 10:13:52 +0200
+From: Michal Hocko <mhocko@kernel.org>
+To: Jan Kara <jack@suse.cz>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 08/10] mm: replace __access_remote_vm() write parameter
+ with gup_flags
+Message-ID: <20161019081352.GB7562@dhcp22.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161013002020.3062-9-lstoakes@gmail.com>
+ <20161019075903.GP29967@quack2.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161019075903.GP29967@quack2.suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That makes easier to parse the names, in order to sync it
-with gspca-cardlist.rst.
+On Wed 19-10-16 09:59:03, Jan Kara wrote:
+> On Thu 13-10-16 01:20:18, Lorenzo Stoakes wrote:
+> > This patch removes the write parameter from __access_remote_vm() and replaces it
+> > with a gup_flags parameter as use of this function previously _implied_
+> > FOLL_FORCE, whereas after this patch callers explicitly pass this flag.
+> > 
+> > We make this explicit as use of FOLL_FORCE can result in surprising behaviour
+> > (and hence bugs) within the mm subsystem.
+> > 
+> > Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+> 
+> So I'm not convinced this (and the following two patches) is actually
+> helping much. By grepping for FOLL_FORCE we will easily see that any caller
+> of access_remote_vm() gets that semantics and can thus continue search
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/gspca/stv06xx/stv06xx.c | 18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+I am really wondering. Is there anything inherent that would require
+FOLL_FORCE for access_remote_vm? I mean FOLL_FORCE is a really
+non-trivial thing. It doesn't obey vma permissions so we should really
+minimize its usage. Do all of those users really need FOLL_FORCE?
 
-diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-index 6ac93d8db427..d12fb2b8324e 100644
---- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
-+++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-@@ -582,18 +582,12 @@ static int stv06xx_config(struct gspca_dev *gspca_dev,
- 
- /* -- module initialisation -- */
- static const struct usb_device_id device_table[] = {
--	/* QuickCam Express */
--	{USB_DEVICE(0x046d, 0x0840), .driver_info = BRIDGE_STV600 },
--	/* LEGO cam / QuickCam Web */
--	{USB_DEVICE(0x046d, 0x0850), .driver_info = BRIDGE_STV610 },
--	/* Dexxa WebCam USB */
--	{USB_DEVICE(0x046d, 0x0870), .driver_info = BRIDGE_STV602 },
--	/* QuickCam Messenger */
--	{USB_DEVICE(0x046D, 0x08F0), .driver_info = BRIDGE_ST6422 },
--	/* QuickCam Communicate */
--	{USB_DEVICE(0x046D, 0x08F5), .driver_info = BRIDGE_ST6422 },
--	/* QuickCam Messenger (new) */
--	{USB_DEVICE(0x046D, 0x08F6), .driver_info = BRIDGE_ST6422 },
-+	{USB_DEVICE(0x046d, 0x0840), .driver_info = BRIDGE_STV600 }, 	/* QuickCam Express */
-+	{USB_DEVICE(0x046d, 0x0850), .driver_info = BRIDGE_STV610 },	/* LEGO cam / QuickCam Web */
-+	{USB_DEVICE(0x046d, 0x0870), .driver_info = BRIDGE_STV602 },	/* Dexxa WebCam USB */
-+	{USB_DEVICE(0x046D, 0x08F0), .driver_info = BRIDGE_ST6422 },	/* QuickCam Messenger */
-+	{USB_DEVICE(0x046D, 0x08F5), .driver_info = BRIDGE_ST6422 },	/* QuickCam Communicate */
-+	{USB_DEVICE(0x046D, 0x08F6), .driver_info = BRIDGE_ST6422 },	/* QuickCam Messenger (new) */
- 	{}
- };
- MODULE_DEVICE_TABLE(usb, device_table);
+Anyway I would rather see the flag explicit and used at more places than
+hidden behind a helper function.
 -- 
-2.7.4
-
-
+Michal Hocko
+SUSE Labs
