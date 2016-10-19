@@ -1,126 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57144 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750847AbcJZDlD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Oct 2016 23:41:03 -0400
-Message-ID: <a56ac3380e5af09443c15f58c0a3808c@smtp-cloud2.xs4all.net>
-Date: Wed, 26 Oct 2016 05:40:58 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga11.intel.com ([192.55.52.93]:14390 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752372AbcJSRX5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 19 Oct 2016 13:23:57 -0400
+Subject: Re: [PATCH 00/10] mm: adjust get_user_pages* functions to explicitly
+ pass FOLL_* flags
+To: Michal Hocko <mhocko@kernel.org>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161018153050.GC13117@dhcp22.suse.cz> <20161019085815.GA22239@lucifer>
+ <20161019090727.GE7517@dhcp22.suse.cz> <5807A427.7010200@linux.intel.com>
+ <20161019170127.GN24393@dhcp22.suse.cz>
+Cc: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Jan Kara <jack@suse.cz>, Hugh Dickins <hughd@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Message-ID: <5807AC2B.4090208@linux.intel.com>
+Date: Wed, 19 Oct 2016 10:23:55 -0700
+MIME-Version: 1.0
+In-Reply-To: <20161019170127.GN24393@dhcp22.suse.cz>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 10/19/2016 10:01 AM, Michal Hocko wrote:
+> The question I had earlier was whether this has to be an explicit FOLL
+> flag used by g-u-p users or we can just use it internally when mm !=
+> current->mm
 
-Results of the daily build of media_tree:
+The reason I chose not to do that was that deferred work gets run under
+a basically random 'current'.  If we just use 'mm != current->mm', then
+the deferred work will sometimes have pkeys enforced and sometimes not,
+basically randomly.
 
-date:			Wed Oct 26 05:00:15 CEST 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-multi
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for mips
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+We want to be consistent with whether they are enforced or not, so we
+explicitly indicate that by calling the remote variant vs. plain.
