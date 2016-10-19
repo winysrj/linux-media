@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36039
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932930AbcJQPol (ORCPT
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:33426 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S941725AbcJSQEB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 11:44:41 -0400
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Martin Blumenstingl <martin.blumenstingl@googlemail.com>,
-        Kevin Hilman <khilman@baylibre.com>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        Carlo Caione <carlo@caione.org>,
-        linux-amlogic@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: [PATCH 3/5] [media] rc: meson-ir: Fix module autoload
-Date: Mon, 17 Oct 2016 12:44:10 -0300
-Message-Id: <1476719053-17600-4-git-send-email-javier@osg.samsung.com>
-In-Reply-To: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
-References: <1476719053-17600-1-git-send-email-javier@osg.samsung.com>
+        Wed, 19 Oct 2016 12:04:01 -0400
+Date: Wed, 19 Oct 2016 11:23:51 +0200
+From: Michal Hocko <mhocko@kernel.org>
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        adi-buildroot-devel@lists.sourceforge.net,
+        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
+        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
+        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
+        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
+Subject: Re: [PATCH 08/10] mm: replace __access_remote_vm() write parameter
+ with gup_flags
+Message-ID: <20161019092350.GF7517@dhcp22.suse.cz>
+References: <20161013002020.3062-1-lstoakes@gmail.com>
+ <20161013002020.3062-9-lstoakes@gmail.com>
+ <20161019075903.GP29967@quack2.suse.cz>
+ <20161019081352.GB7562@dhcp22.suse.cz>
+ <20161019084045.GA19441@lucifer>
+ <20161019085204.GD7517@dhcp22.suse.cz>
+ <20161019090646.GA24243@lucifer>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161019090646.GA24243@lucifer>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the driver is built as a module, autoload won't work because the module
-alias information is not filled. So user-space can't match the registered
-device with the corresponding module.
+On Wed 19-10-16 10:06:46, Lorenzo Stoakes wrote:
+> On Wed, Oct 19, 2016 at 10:52:05AM +0200, Michal Hocko wrote:
+> > yes this is the desirable and expected behavior.
+> >
+> > > wonder if this is desirable behaviour or whether this ought to be limited to
+> > > ptrace system calls. Regardless, by making the flag more visible it makes it
+> > > easier to see that this is happening.
+> >
+> > mem_open already enforces PTRACE_MODE_ATTACH
+> 
+> Ah I missed this, that makes a lot of sense, thanks!
+> 
+> I still wonder whether other invocations of access_remote_vm() in fs/proc/base.c
+> (the principle caller of this function) need FOLL_FORCE, for example the various
+> calls that simply read data from other processes, so I think the point stands
+> about keeping this explicit.
 
-Export the module alias information using the MODULE_DEVICE_TABLE() macro.
+I do agree. Making them explicit will help to clean them up later,
+should there be a need.
 
-Before this patch:
-
-$ modinfo drivers/media/rc/meson-ir.ko | grep alias
-$
-
-After this patch:
-
-$ modinfo drivers/media/rc/meson-ir.ko | grep alias
-alias:          of:N*T*Camlogic,meson-gxbb-irC*
-alias:          of:N*T*Camlogic,meson-gxbb-ir
-alias:          of:N*T*Camlogic,meson8b-irC*
-alias:          of:N*T*Camlogic,meson8b-ir
-alias:          of:N*T*Camlogic,meson6-irC*
-alias:          of:N*T*Camlogic,meson6-ir
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
----
-
- drivers/media/rc/meson-ir.c | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
-index 003fff07ade2..7eb3f4f1ddcd 100644
---- a/drivers/media/rc/meson-ir.c
-+++ b/drivers/media/rc/meson-ir.c
-@@ -218,6 +218,7 @@ static const struct of_device_id meson_ir_match[] = {
- 	{ .compatible = "amlogic,meson-gxbb-ir" },
- 	{ },
- };
-+MODULE_DEVICE_TABLE(of, meson_ir_match);
- 
- static struct platform_driver meson_ir_driver = {
- 	.probe		= meson_ir_probe,
 -- 
-2.7.4
-
+Michal Hocko
+SUSE Labs
