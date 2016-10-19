@@ -1,218 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39693 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751027AbcJKKeq (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44673 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S942717AbcJSOnC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:34:46 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 13/31] dtt200u-fe: don't do DMA on stack
-Date: Tue, 11 Oct 2016 07:09:28 -0300
-Message-Id: <15fcc12dc8fe547116decedc20ef87398c640dee.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Wed, 19 Oct 2016 10:43:02 -0400
+Message-ID: <1476888179.3054.47.camel@pengutronix.de>
+Subject: Re: [PATCH v2 1/1] doc-rst: v4l: Add documentation on CSI-2 bus
+ configuration
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Date: Wed, 19 Oct 2016 16:42:59 +0200
+In-Reply-To: <580782D8.9080906@linux.intel.com>
+References: <1476870150.3054.28.camel@pengutronix.de>
+         <1476881994-32118-1-git-send-email-sakari.ailus@linux.intel.com>
+         <1476887059.3054.42.camel@pengutronix.de>
+         <580782D8.9080906@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+Am Mittwoch, den 19.10.2016, 17:27 +0300 schrieb Sakari Ailus:
+> On 10/19/16 17:24, Philipp Zabel wrote:
+> > Am Mittwoch, den 19.10.2016, 15:59 +0300 schrieb Sakari Ailus:
+> >> Document the interface between the CSI-2 transmitter and receiver drivers.
+> >>
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >> Hi Philipp,
+> >>
+> >> Indeed the pixel rate is used by some driver as well.
+> >>
+> >> How about this one instead?
+> >>
+> >> The HTML page is available here (without CCS unfortunately):
+> >>
+> >> <URL:http://www.retiisi.org.uk/v4l2/tmp/csi2.html>
+> >>
+> >> since v1:
+> >>  
+> >> - Add PIXEL_RATE to the required controls.
+> >>
+> >> - Document how pixel rate is calculated from the link frequency.
+> >>
+> >>  Documentation/media/kapi/csi2.rst  | 59 ++++++++++++++++++++++++++++++++++++++
+> >>  Documentation/media/media_kapi.rst |  1 +
+> >>  2 files changed, 60 insertions(+)
+> >>  create mode 100644 Documentation/media/kapi/csi2.rst
+> >>
+> >> diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
+> >> new file mode 100644
+> >> index 0000000..31f927d
+> >> --- /dev/null
+> >> +++ b/Documentation/media/kapi/csi2.rst
+> >> @@ -0,0 +1,59 @@
+> >> +MIPI CSI-2
+> >> +==========
+> >> +
+> >> +CSI-2 is a data bus intended for transferring images from cameras to
+> >> +the host SoC. It is defined by the `MIPI alliance`_.
+> >> +
+> >> +.. _`MIPI alliance`: http://www.mipi.org/
+> >> +
+> >> +Transmitter drivers
+> >> +-------------------
+> >> +
+> >> +CSI-2 transmitter, such as a sensor or a TV tuner, drivers need to
+> >> +provide the CSI-2 receiver with information on the CSI-2 bus
+> >> +configuration. These include the V4L2_CID_LINK_FREQ and
+> >> +V4L2_CID_PIXEL_RATE controls and
+> >> +(:c:type:`v4l2_subdev_video_ops`->s_stream() callback). These
+> >> +interface elements must be present on the sub-device represents the
+> >> +CSI-2 transmitter.
+> >> +
+> >> +The V4L2_CID_LINK_FREQ control is used to tell the receiver driver the
+> >> +frequency (and not the symbol rate) of the link. The
+> >> +V4L2_CID_PIXEL_RATE is may be used by the receiver to obtain the pixel
+> >> +rate the transmitter uses. The
+> >> +:c:type:`v4l2_subdev_video_ops`->s_stream() callback provides an
+> >> +ability to start and stop the stream.
+> >> +
+> >> +The value of the V4L2_CID_PIXEL_RATE is calculated as follows::
+> >> +
+> >> +	pixel_rate = link_freq * 2 * nr_of_lanes
+> > 
+> > This is the total bps, which must be divided by the bits per pixel
+> > depending on the selected MEDIA_BUS_FMT, for example
+> > /16 for MEDIA_BUS_FMT_UYVY8_1X16, or /24 for MEDIA_BUS_FMT_RGB888_1X24,
+> > to obtain pixel_rate.
+> 
+> Uh, indeed. I'll change this.
+> 
+> > 
+> >> +where
+> >> +
+> >> +.. list-table:: variables in pixel rate calculation
+> >> +   :header-rows: 1
+> >> +
+> >> +   * - variable or constant
+> >> +     - description
+> >> +   * - link_freq
+> >> +     - The value of the V4L2_CID_LINK_FREQ integer64 menu item.
+> >> +   * - nr_of_lanes
+> >> +     - Number of data lanes used on the CSI-2 link. This can
+> >> +       be obtained from the OF endpoint configuration.
+> > 
+> > I suppose the number of lanes should be calculated as
+> > 	nr_of_lanes = DIV_ROUND_UP(pixel_rate * bpp, link_freq * 2)
+> > in the receiver driver? Not all lanes configured in the device tree have
+> > to be used, depending on the configured link frequencies and bus format.
+> 
+> Do we have any user for that yet?
+> 
+> I know there's hardware where this would be necessary in order to
+> support all image sizes and formats for instance, but there's no driver yet.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/dtt200u-fe.c | 95 +++++++++++++++++++++++-----------
- 1 file changed, 65 insertions(+), 30 deletions(-)
+The TC358743 driver is currently hardcoded to 297 MHz link frequency and
+scales via the number of data lanes in use (1-4). Should the receiver
+just ask it directly about the number of lanes in use via the
+g_mbus_config video op?
 
-diff --git a/drivers/media/usb/dvb-usb/dtt200u-fe.c b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-index 9bb15f7b48db..7f7f64be6353 100644
---- a/drivers/media/usb/dvb-usb/dtt200u-fe.c
-+++ b/drivers/media/usb/dvb-usb/dtt200u-fe.c
-@@ -18,17 +18,22 @@ struct dtt200u_fe_state {
- 
- 	struct dtv_frontend_properties fep;
- 	struct dvb_frontend frontend;
-+
-+	unsigned char data[80];
-+	struct mutex data_mutex;
- };
- 
- static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- 				  enum fe_status *stat)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 st = GET_TUNE_STATUS, b[3];
- 
--	dvb_usb_generic_rw(state->d,&st,1,b,3,0);
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = GET_TUNE_STATUS;
- 
--	switch (b[0]) {
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+
-+	switch (state->data[0]) {
- 		case 0x01:
- 			*stat = FE_HAS_SIGNAL | FE_HAS_CARRIER |
- 				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
-@@ -41,51 +46,75 @@ static int dtt200u_fe_read_status(struct dvb_frontend *fe,
- 			*stat = 0;
- 			break;
- 	}
-+	mutex_unlock(&state->data_mutex);
- 	return 0;
- }
- 
- static int dtt200u_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_VIT_ERR_CNT,b[3];
--	dvb_usb_generic_rw(state->d,&bw,1,b,3,0);
--	*ber = (b[0] << 16) | (b[1] << 8) | b[2];
-+
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = GET_VIT_ERR_CNT;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 3, 0);
-+	*ber = (state->data[0] << 16) | (state->data[1] << 8) | state->data[2];
-+
-+	mutex_unlock(&state->data_mutex);
- 	return 0;
- }
- 
- static int dtt200u_fe_read_unc_blocks(struct dvb_frontend* fe, u32 *unc)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_RS_UNCOR_BLK_CNT,b[2];
- 
--	dvb_usb_generic_rw(state->d,&bw,1,b,2,0);
--	*unc = (b[0] << 8) | b[1];
--	return 0;
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = GET_RS_UNCOR_BLK_CNT;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 2, 0);
-+
-+	mutex_unlock(&state->data_mutex);
-+	return ret;
- }
- 
- static int dtt200u_fe_read_signal_strength(struct dvb_frontend* fe, u16 *strength)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_AGC, b;
--	dvb_usb_generic_rw(state->d,&bw,1,&b,1,0);
--	*strength = (b << 8) | b;
--	return 0;
-+
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = GET_AGC;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+
-+	mutex_unlock(&state->data_mutex);
-+	return ret;
- }
- 
- static int dtt200u_fe_read_snr(struct dvb_frontend* fe, u16 *snr)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 bw = GET_SNR,br;
--	dvb_usb_generic_rw(state->d,&bw,1,&br,1,0);
--	*snr = ~((br << 8) | br);
--	return 0;
-+
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = GET_SNR;
-+
-+	dvb_usb_generic_rw(state->d, state->data, 1, state->data, 1, 0);
-+
-+	mutex_unlock(&state->data_mutex);
-+	return ret;
- }
- 
- static int dtt200u_fe_init(struct dvb_frontend* fe)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	u8 b = SET_INIT;
--	return dvb_usb_generic_write(state->d,&b,1);
-+	int ret;
-+
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = SET_INIT;
-+
-+	ret = dvb_usb_generic_write(state->d, state->data, 1);
-+	mutex_unlock(&state->data_mutex);
-+
-+	return ret;
- }
- 
- static int dtt200u_fe_sleep(struct dvb_frontend* fe)
-@@ -106,29 +135,34 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
- 	u16 freq = fep->frequency / 250000;
--	u8 bwbuf[2] = { SET_BANDWIDTH, 0 },freqbuf[3] = { SET_RF_FREQ, 0, 0 };
- 
-+	mutex_lock(&state->data_mutex);
-+	state->data[0] = SET_BANDWIDTH;
- 	switch (fep->bandwidth_hz) {
- 	case 8000000:
--		bwbuf[1] = 8;
-+		state->data[1] = 8;
- 		break;
- 	case 7000000:
--		bwbuf[1] = 7;
-+		state->data[1] = 7;
- 		break;
- 	case 6000000:
--		bwbuf[1] = 6;
-+		state->data[1] = 6;
- 		break;
- 	default:
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto ret;
- 	}
- 
--	dvb_usb_generic_write(state->d,bwbuf,2);
-+	dvb_usb_generic_write(state->d, state->data, 2);
- 
--	freqbuf[1] = freq & 0xff;
--	freqbuf[2] = (freq >> 8) & 0xff;
--	dvb_usb_generic_write(state->d,freqbuf,3);
-+	state->data[0] = SET_RF_FREQ;
-+	state->data[1] = freq & 0xff;
-+	state->data[2] = (freq >> 8) & 0xff;
-+	dvb_usb_generic_write(state->d, state->data, 3);
- 
--	return 0;
-+ret:
-+	mutex_unlock(&state->data_mutex);
-+	return ret;
- }
- 
- static int dtt200u_fe_get_frontend(struct dvb_frontend* fe,
-@@ -160,6 +194,7 @@ struct dvb_frontend* dtt200u_fe_attach(struct dvb_usb_device *d)
- 	deb_info("attaching frontend dtt200u\n");
- 
- 	state->d = d;
-+	mutex_init(&state->data_mutex);
- 
- 	memcpy(&state->frontend.ops,&dtt200u_fe_ops,sizeof(struct dvb_frontend_ops));
- 	state->frontend.demodulator_priv = state;
--- 
-2.7.4
-
+regards
+Philipp
 
