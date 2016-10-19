@@ -1,69 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59092 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756646AbcJNUWn (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:34454 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935038AbcJSONc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 44/57] [media] stkwebcam: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:32 -0300
-Message-Id: <1e3fde872244db085494880cae4c95128217b7de.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Wed, 19 Oct 2016 10:13:32 -0400
+Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
+ framework
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        linux-media@vger.kernel.org,
+        Nicolas Ferre <nicolas.ferre@microchip.com>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
+ <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
+ <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
+ <f929eb2f-05a4-e674-c90b-b9141de04153@microchip.com>
+ <ad11ae23-402f-6e20-6201-af466ff7da2e@microchip.com>
+ <86371d6b-3549-0d75-201e-53a0226872db@xs4all.nl>
+ <1a034eb2-4d2f-5640-54c4-ed3702ae7202@microchip.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <38cace16-a523-857c-4081-0f5e28550bc5@xs4all.nl>
+Date: Wed, 19 Oct 2016 09:46:16 +0200
+MIME-Version: 1.0
+In-Reply-To: <1a034eb2-4d2f-5640-54c4-ed3702ae7202@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+On 10/19/2016 09:36 AM, Wu, Songjun wrote:
+> 
+> 
+> On 10/18/2016 18:58, Hans Verkuil wrote:
+>> On 10/18/16 11:21, Wu, Songjun wrote:
+>>> Hi Hans,
+>>>
+>>> Do you have any issue on this patch?
+>>
+>> ENOTIME :-(
+>>
+>>> Could I give you some help? :)
+>>
+>> I would certainly help if you can make the requested change to this patch.
+>>
+>> Let me know if you want to do that, because in that case I'll rebase my
+>> tree
+>> to the latest media_tree master.
+>>
+> Yes, I would like to make the requested change to this patch. :)
+> It seems the patch is not based on the latest media_tree master.
+> Will you rebase this patch to the latest media_tree, or let me move it 
+> and make the requested change based on the media_tree?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/stkwebcam/stk-sensor.c | 3 +--
- drivers/media/usb/stkwebcam/stk-webcam.c | 3 +--
- 2 files changed, 2 insertions(+), 4 deletions(-)
+I've rebased my branch:
 
-diff --git a/drivers/media/usb/stkwebcam/stk-sensor.c b/drivers/media/usb/stkwebcam/stk-sensor.c
-index e546b014d7ad..65334a00e3b3 100644
---- a/drivers/media/usb/stkwebcam/stk-sensor.c
-+++ b/drivers/media/usb/stkwebcam/stk-sensor.c
-@@ -391,8 +391,7 @@ int stk_sensor_init(struct stk_camera *dev)
- 	}
- 	stk_sensor_write_regvals(dev, ov_initvals);
- 	msleep(10);
--	STK_INFO("OmniVision sensor detected, id %02X%02X"
--		" at address %x\n", idh, idl, SENSOR_ADDRESS);
-+	STK_INFO("OmniVision sensor detected, id %02X%02X at address %x\n", idh, idl, SENSOR_ADDRESS);
- 	return 0;
- }
- 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index db200c9d796d..267a22f24f82 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -366,8 +366,7 @@ static void stk_isoc_handler(struct urb *urb)
- 			if (fb->v4lbuf.bytesused != 0
- 				&& fb->v4lbuf.bytesused != dev->frame_size) {
- 				(void) (printk_ratelimit() &&
--				STK_ERROR("frame %d, "
--					"bytesused=%d, skipping\n",
-+				STK_ERROR("frame %d, bytesused=%d, skipping\n",
- 					i, fb->v4lbuf.bytesused));
- 				fb->v4lbuf.bytesused = 0;
- 				fill = fb->buffer;
--- 
-2.7.4
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=sama5d3-2
 
+Regards,
 
+	Hans
