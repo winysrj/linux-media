@@ -1,80 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36049 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753574AbcJNPtF (ORCPT
+Received: from mail-io0-f171.google.com ([209.85.223.171]:36729 "EHLO
+        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S943361AbcJSO7i (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 11:49:05 -0400
-Message-ID: <1476460143.11834.46.camel@pengutronix.de>
-Subject: Re: [PATCH 03/22] [media] v4l: of: add v4l2_of_subdev_registered
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de
-Date: Fri, 14 Oct 2016 17:49:03 +0200
-In-Reply-To: <20161007225018.GD9460@valkosipuli.retiisi.org.uk>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
-         <20161007160107.5074-4-p.zabel@pengutronix.de>
-         <20161007225018.GD9460@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 19 Oct 2016 10:59:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <1476802943-5189-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1476802943-5189-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1476802943-5189-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 19 Oct 2016 09:36:08 +0200
+Message-ID: <CAMuHMdUUsMfoZOWvt=4aDEZYO=pJ=_VRnUFgeYGXdStAtr5kmg@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] ARM: dts: r8a7793: Enable VIN0-VIN2
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: Simon Horman <horms@verge.net.au>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 08.10.2016, 01:50 +0300 schrieb Sakari Ailus:
-> Hi Philipp,
-> 
-> On Fri, Oct 07, 2016 at 06:00:48PM +0200, Philipp Zabel wrote:
-> > Provide a default registered callback for device tree probed subdevices
-> > that use OF graph bindings to add still missing source subdevices to
-> > the async notifier waiting list.
-> > This is only necessary for subdevices that have input ports to which
-> > other subdevices are connected that are not initially known to the
-> > master/bridge device when it sets up the notifier.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-of.c | 68 +++++++++++++++++++++++++++++++++++++++
-> >  include/media/v4l2-of.h           | 12 +++++++
-> >  2 files changed, 80 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> > index 93b3368..fbdd6b4 100644
-> > --- a/drivers/media/v4l2-core/v4l2-of.c
-> > +++ b/drivers/media/v4l2-core/v4l2-of.c
-> > @@ -19,6 +19,7 @@
-> >  #include <linux/types.h>
-> >  
-> >  #include <media/v4l2-of.h>
-> > +#include <media/v4l2-device.h>
-> 
-> Alphabetical order, please.
+On Tue, Oct 18, 2016 at 5:02 PM, Ulrich Hecht
+<ulrich.hecht+renesas@gmail.com> wrote:
+> Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
 
-Will fix, thanks.
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-> >  static int v4l2_of_parse_csi_bus(const struct device_node *node,
-> >  				 struct v4l2_of_endpoint *endpoint)
-> > @@ -314,3 +315,70 @@ void v4l2_of_put_link(struct v4l2_of_link *link)
-> >  	of_node_put(link->remote_node);
-> >  }
-> >  EXPORT_SYMBOL(v4l2_of_put_link);
-> > +
-> > +struct v4l2_subdev *v4l2_find_subdev_by_node(struct v4l2_device *v4l2_dev,
-> > +					     struct device_node *node)
-> > +{
-> > +	struct v4l2_subdev *sd;
-> > +
-> > +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> > +		if (sd->of_node == node)
-> > +			return sd;
-> > +	}
-> 
-> The braces aren't really needed. Up to you.
+Gr{oetje,eeting}s,
 
-I'll remove them in the next version.
+                        Geert
 
-regards
-Philipp
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
