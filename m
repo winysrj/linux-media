@@ -1,43 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59784
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750778AbcJOQiq (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:44773 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933274AbcJTJQT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Oct 2016 12:38:46 -0400
-Date: Sat, 15 Oct 2016 13:38:40 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 00/57] don't break long lines on strings
-Message-ID: <20161015133840.7b5755a2@vento.lan>
-In-Reply-To: <20161015154614.67f97a81@kant>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-        <20161015154614.67f97a81@kant>
+        Thu, 20 Oct 2016 05:16:19 -0400
+Date: Thu, 20 Oct 2016 10:46:46 +0200
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        magnus.damm@gmail.com, hans.verkuil@cisco.com,
+        william.towle@codethink.co.uk, niklas.soderlund@ragnatech.se,
+        geert@linux-m68k.org, sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH v2 0/2] Renesas Lager/Koelsch HDMI input
+Message-ID: <20161020084645.GG4612@verge.net.au>
+References: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+ <3208320.rNl1JGvzBF@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3208320.rNl1JGvzBF@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 15 Oct 2016 15:46:14 +0200
-Stefan Richter <stefanr@s5r6.in-berlin.de> escreveu:
-
-> On Oct 14 Mauro Carvalho Chehab wrote:
-> > There are lots of drivers on media that breaks long line strings in order to
-> > fit into 80 columns. This was an usual practice to make checkpatch happy.  
+On Tue, Oct 18, 2016 at 06:17:25PM +0300, Laurent Pinchart wrote:
+> Hi Ulrich,
 > 
-> This was practice even before checkpatch existed.
+> Thank you for the patches.
+> 
+> For the whole series,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-True, but before checkpatch, we didn't care much to enforce breaking
-long string lines, letting up to the patch author to decide. As far
-as I remember, on media subsystem, only a handful drivers were actually
-breaking long strings (or even respecting the 80 cols limit). 
-
-After checkpatch, we started to enforce such practice, until some discussions 
-on LKML arguing that breaking long strings actually make more harm than good,
-as it makes harder to use grep to identify what part of the Kernel produced
-a certain log message.
-
-Thanks,
-Mauro
+Thanks, series applied with Laurent's tag.
