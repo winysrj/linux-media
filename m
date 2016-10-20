@@ -1,52 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:35280 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932186AbcJRPBm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 11:01:42 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: horms@verge.net.au
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, william.towle@codethink.co.uk,
-        niklas.soderlund@ragnatech.se, geert@linux-m68k.org,
-        sergei.shtylyov@cogentembedded.com,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2 0/2] Renesas Lager/Koelsch HDMI input
-Date: Tue, 18 Oct 2016 17:01:32 +0200
-Message-Id: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from [103.248.223.91] ([103.248.223.91]:44416 "EHLO a.qihu360.org"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S1752385AbcJTUcJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 20 Oct 2016 16:32:09 -0400
+Received: from ahnubjqx (unknown [122.246.217.194])
+        by a.qihu360.org (Postfix) with ESMTPA id E419847BD2
+        for <linux-media@vger.kernel.org>; Fri, 21 Oct 2016 03:46:58 +0800 (CST)
+Date: Fri, 21 Oct 2016 03:51:54 +0800
+From: "Bob" <alu_casting@163.com>
+Reply-To: alu_casting@163.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: China Large  Aluminum castings supplier.
+Message-ID: <201610210351540465813@a.qihu360.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-
-This series enables HDMI input on the Lager and Koelsch boards.
-It sits on renesas-next-20161017-v4.9-rc1.
-
-I have tried to address all concerns raised by reviewers (correctly, I hope),
-see below for details.
-
-CU
-Uli
-
-
-Changes since v1:
-- modeled decoder inputs/outputs and connectors
-- removed unnecessary "remote" nodes
-- r8a7790-lager.dts: "ok" -> "okay"
-- r8a7791-koelsch.dts: set ADV7612 interrupt to GP4_2
-
-
-Hans Verkuil (1):
-  ARM: dts: koelsch: add HDMI input
-
-William Towle (1):
-  ARM: dts: lager: Add entries for VIN HDMI input support
-
- arch/arm/boot/dts/r8a7790-lager.dts   | 66 ++++++++++++++++++++++++++++++++--
- arch/arm/boot/dts/r8a7791-koelsch.dts | 68 +++++++++++++++++++++++++++++++++--
- 2 files changed, 130 insertions(+), 4 deletions(-)
-
--- 
-2.7.4
-
+SGVsbG8sIA0KDQpIZXJlIGlzIHRoZSBleHBlcmllbmNlZCBtYW51ZmFjdHVlciBvZiBhbHVtaW51
+bSBjYXN0aW5ncyB3aXRoIGFkdmFuY2VkIG1hY2hpbmluZyBlcXVpcG1lbnRzLg0KDQpUbyByZWR1
+Y2UgY29zdCwgbWFudWZhY3R1cmVycyBpbiB5b3VyIG1hcmtldCBhcmUgYnV5aW5nIGNhc3Rpbmcg
+cGFydHMgYW5kIGNvbXBvbmVudCBmcm9tIHVzLiBXZSBjYW4gc3VwcGx5IGFsdW1pbnVtIGRpZSBh
+bGxveSwgZ3Jhdml0eSBjYXN0aW5nIGFuZCBzYW5kIGNhc3RpbmcgdG8gbWVldCB5b3VyIGRpZmZl
+cmVudCBkZW1hbmQuIEFsbCBtb2xkcyBtYWRlIGJ5IG91cnNlbGYgdG8gcmVkdWNlIHlvdXIgY29z
+dC4gNDAlIG9mIG91ciBzaGlwbWVudCBhcmUgZm9yIHlvdXIgbWFya2V0LCB3aGljaCBhcmUgcHJv
+dmluZyBvdXIgY29tcGV0aXRpdmUgaW4gcHJpY2luZyBhbmQgcXVhbGl0eS4gDQoNClNoYWxsIHlv
+dSBoYXZlIGFueSBpbnRlcmVzdCwgcGxzIGNvbnRhY3QgZm9yIHBvc3NpYmxlIGRlYWwuIA0KDQpi
+LnJnZHMgDQpCb2IgSHUgDQpOaW5nYm8gWWluemhvdSBYdXNoZW5nIE1hY2hpbmVyeSBGYWN0b3J5
+IA0KU2t5cGU6IGJvYmh1MQ0KQ2VsbDogMDA4Ni0xMzk1ODMyIDc3NzQgDQpUZWw6IDAwODYtNTc0
+LTg4MTI4NjAzIA0KYm9iQHhzLWFsdW1pbnVtY2FzdGluZy5jb20gDQp3d3cueHMtYWx1bWludW1j
+YXN0aW5nLmNvbQ==
