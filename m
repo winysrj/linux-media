@@ -1,72 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:52910 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754101AbcJNPrw (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:33224 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754410AbcJTIUM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 11:47:52 -0400
-Message-ID: <1476460046.11834.40.camel@pengutronix.de>
-Subject: Re: [PATCH 02/22] [media] v4l2-async: allow subdevices to add
- further subdevices to the notifier waiting list
-From: Philipp Zabel <p.zabel@pengutronix.de>
+        Thu, 20 Oct 2016 04:20:12 -0400
+Subject: Re: [PATCH 1/2] [media] vb2: Store dma_dir in vb2_queue
 To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Philipp Zabel <philipp.zabel@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sascha Hauer <kernel@pengutronix.de>
-Date: Fri, 14 Oct 2016 17:47:26 +0200
-In-Reply-To: <20161013115617.GJ9460@valkosipuli.retiisi.org.uk>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
-         <20161007160107.5074-3-p.zabel@pengutronix.de>
-         <20161007215216.GB9460@valkosipuli.retiisi.org.uk>
-         <CA+gwMcft-E2n-hMre70Uj3u=PFPYpCbOYo9uOaCayve1ec1m-A@mail.gmail.com>
-         <20161013115617.GJ9460@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+References: <1476865457-506-1-git-send-email-thierry.escande@collabora.com>
+ <1476865457-506-2-git-send-email-thierry.escande@collabora.com>
+ <20161019212907.GT9460@valkosipuli.retiisi.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+From: Thierry Escande <thierry.escande@collabora.com>
+Message-ID: <aefee886-3aed-b72f-b1c4-722b3f213399@collabora.com>
+Date: Thu, 20 Oct 2016 10:20:05 +0200
+MIME-Version: 1.0
+In-Reply-To: <20161019212907.GT9460@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 13.10.2016, 14:56 +0300 schrieb Sakari Ailus:
-> Hi Philipp,
-> 
-> On Wed, Oct 12, 2016 at 03:26:48PM +0200, Philipp Zabel wrote:
-> > On Fri, Oct 7, 2016 at 11:52 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > > Hi Philipp,
-> > >
-> > > On Fri, Oct 07, 2016 at 06:00:47PM +0200, Philipp Zabel wrote:
-> > >> Currently the v4l2_async_notifier needs to be given a list of matches
-> > >> for all expected subdevices on creation. When chaining subdevices that
-> > >> are asynchronously probed via device tree, the bridge device that sets
-> > >> up the notifier does not know the complete list of subdevices, as it
-> > >> can only parse its own device tree node to obtain information about
-> > >> the nearest neighbor subdevices.
-> > >> To support indirectly connected subdevices, we need to support amending
-> > >> the existing notifier waiting list with newly found neighbor subdevices
-> > >> with each registered subdevice.
-> > >
-> > > Could you elaborate a little what's the exact use case for this? What kind
-> > > of a device?
-> > 
-> > On i.MX6 there's a
-> > 
-> > DW MIPI CSI2 host -> Mux -> IPU/CSI
-> > 
-> > path and all three are asynchronous subdevices in my patchset and only
-> > the last one is directly known to the media device from the device
-> > tree, since each driver should only parse its own device tree node an
-> > can not follow the of_graph over multiple steps.
-> 
-> Ok. Are all these devices part of the SoC? Is the mux doing something else
-> than just sitting in between the two? :-)
+Hi Sakari,
 
-Yes, in this case the muxes are part of the SoC. Depending on the SoC
-variant they have a different number of inputs, and they are controlled
-via the IOMUXC block that also controls the pin configuration. They
-don't have any additional functionality beyond selecting one active
-input.
+On 19/10/2016 23:29, Sakari Ailus wrote:
+> Hi Thierry,
+>
+> On Wed, Oct 19, 2016 at 10:24:16AM +0200, Thierry Escande wrote:
+>> From: Pawel Osciak <posciak@chromium.org>
+>>
+>> Store dma_dir in struct vb2_queue and reuse it, instead of recalculating
+>> it each time.
+>>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> Tested-by: Pawel Osciak <posciak@chromium.org>
+>> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+>> Reviewed-by: Owen Lin <owenlin@chromium.org>
+>> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+>> ---
+>>  drivers/media/v4l2-core/videobuf2-core.c | 12 +++---------
+>>  drivers/media/v4l2-core/videobuf2-v4l2.c |  2 ++
+>>  include/media/videobuf2-core.h           |  2 ++
+>>  3 files changed, 7 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>> index 21900202..f12103c 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -194,8 +194,6 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
+>>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>>  {
+>>  	struct vb2_queue *q = vb->vb2_queue;
+>> -	enum dma_data_direction dma_dir =
+>> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+>>  	void *mem_priv;
+>>  	int plane;
+>>  	int ret = -ENOMEM;
+>> @@ -209,7 +207,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>>
+>>  		mem_priv = call_ptr_memop(vb, alloc,
+>>  				q->alloc_devs[plane] ? : q->dev,
+>> -				q->dma_attrs, size, dma_dir, q->gfp_flags);
+>> +				q->dma_attrs, size, q->dma_dir, q->gfp_flags);
+>
+> My bad, I guess I expressed myself unclearly.
+>
+> Could you introduce the macro in this patch? You can then remove q->dma_dir
+> altogether.
+My bad. Sorry for the confusion...
 
-regards
-Philipp
+The v3 is on its way.
 
+Regards,
+  Thierry
 
