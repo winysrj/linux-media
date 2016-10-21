@@ -1,72 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59073 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756547AbcJNUWn (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55756
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932807AbcJUNBO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Stefan Richter <stefanr@s5r6.in-berlin.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux1394-devel@lists.sourceforge.net
-Subject: [PATCH 03/57] [media] firewire: don't break long lines
-Date: Fri, 14 Oct 2016 17:19:51 -0300
-Message-Id: <9ef158ab98e90748612c9294fff02a621a1accea.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Fri, 21 Oct 2016 09:01:14 -0400
+Date: Fri, 21 Oct 2016 11:01:04 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Tiffany Lin <tiffany.lin@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
+Subject: Re: [PATCH v5 3/9] vcodec: mediatek: Add Mediatek V4L2 Video
+ Decoder Driver
+Message-ID: <20161021110104.5733240e@vento.lan>
+In-Reply-To: <1472818800-22558-4-git-send-email-tiffany.lin@mediatek.com>
+References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
+        <1472818800-22558-2-git-send-email-tiffany.lin@mediatek.com>
+        <1472818800-22558-3-git-send-email-tiffany.lin@mediatek.com>
+        <1472818800-22558-4-git-send-email-tiffany.lin@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Em Fri, 2 Sep 2016 20:19:54 +0800
+Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
+
+> Add v4l2 layer decoder driver for MT8173
+> 
+> Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+
+> +int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
+> +{
+> +	int ret = 0;
+> +
+> +	switch (fourcc) {
+> +	case V4L2_PIX_FMT_H264:
+> +	case V4L2_PIX_FMT_VP8:
+> +	default:
+> +		return -EINVAL;
+> +	}
+
+Did you ever test this driver? The above code will *always* return
+-EINVAL, with will cause vidioc_vdec_s_fmt() to always fail!
+
+I suspect that what you wanted to do, instead, is:
+
+	switch (fourcc) {
+	case V4L2_PIX_FMT_H264:
+	case V4L2_PIX_FMT_VP8:
+		break;
+	default:
+		return -EINVAL;
+
+Btw, this patch series has also several issues that were pointed by
+checkpatch. Please *always* run checkpatch when submitting your work.
+
+You should take a look at the Kernel documentation about how to
+submit patches, at:
+	https://mchehab.fedorapeople.org/kernel_docs/process/index.html
+
+PS.: this time, I fixed the checkpatch issues for you. So, let me know
+if the patch below is OK, and I'll merge it at media upstream,
+assuming that the other patches in this series are ok.
+
+-- 
+Thanks,
+Mauro
+
+[PATCH] mtk-vcodec: fix some smatch warnings
+
+Fix this bug:
+	drivers/media/platform/mtk-vcodec/vdec_drv_if.c:38 vdec_if_init() info: ignoring unreachable code.
+
+With is indeed a real problem that prevents the driver to work!
+
+While here, also remove an used var, as reported by smatch:
+
+	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c: In function 'mtk_vcodec_init_dec_pm':
+	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c:29:17: warning: variable 'dev' set but not used [-Wunused-but-set-variable]
+	  struct device *dev;
+	                 ^~~
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/firewire/firedtv-avc.c | 5 +++--
- drivers/media/firewire/firedtv-rc.c  | 5 +++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/firewire/firedtv-avc.c b/drivers/media/firewire/firedtv-avc.c
-index 251a556112a9..e04235ea23fb 100644
---- a/drivers/media/firewire/firedtv-avc.c
-+++ b/drivers/media/firewire/firedtv-avc.c
-@@ -1181,8 +1181,9 @@ int avc_ca_pmt(struct firedtv *fdtv, char *msg, int length)
- 		if (es_info_length > 0) {
- 			pmt_cmd_id = msg[read_pos++];
- 			if (pmt_cmd_id != 1 && pmt_cmd_id != 4)
--				dev_err(fdtv->device, "invalid pmt_cmd_id %d "
--					"at stream level\n", pmt_cmd_id);
-+				dev_err(fdtv->device,
-+					"invalid pmt_cmd_id %d at stream level\n",
-+					pmt_cmd_id);
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
+index 18182f5676d8..79ca03ac449c 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
+@@ -26,14 +26,12 @@ int mtk_vcodec_init_dec_pm(struct mtk_vcodec_dev *mtkdev)
+ {
+ 	struct device_node *node;
+ 	struct platform_device *pdev;
+-	struct device *dev;
+ 	struct mtk_vcodec_pm *pm;
+ 	int ret = 0;
  
- 			if (es_info_length > sizeof(c->operand) - 4 -
- 					     write_pos) {
-diff --git a/drivers/media/firewire/firedtv-rc.c b/drivers/media/firewire/firedtv-rc.c
-index f82d4a93feb3..babfb9cee20e 100644
---- a/drivers/media/firewire/firedtv-rc.c
-+++ b/drivers/media/firewire/firedtv-rc.c
-@@ -184,8 +184,9 @@ void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code)
- 	else if (code >= 0x4540 && code <= 0x4542)
- 		code = oldtable[code - 0x4521];
- 	else {
--		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x "
--		       "from remote control\n", code);
-+		printk(KERN_DEBUG
-+		       "firedtv: invalid key code 0x%04x from remote control\n",
-+		       code);
- 		return;
+ 	pdev = mtkdev->plat_dev;
+ 	pm = &mtkdev->pm;
+ 	pm->mtkdev = mtkdev;
+-	dev = &pdev->dev;
+ 	node = of_parse_phandle(pdev->dev.of_node, "mediatek,larb", 0);
+ 	if (!node) {
+ 		mtk_v4l2_err("of_parse_phandle mediatek,larb fail!");
+diff --git a/drivers/media/platform/mtk-vcodec/vdec_drv_if.c b/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
+index 3cb04ef45144..9813b2ffd5fa 100644
+--- a/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
++++ b/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
+@@ -31,6 +31,7 @@ int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
+ 	switch (fourcc) {
+ 	case V4L2_PIX_FMT_H264:
+ 	case V4L2_PIX_FMT_VP8:
++		break;
+ 	default:
+ 		return -EINVAL;
  	}
- 
--- 
-2.7.4
 
 
