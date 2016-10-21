@@ -1,72 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39812 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752417AbcJKQrz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 12:47:55 -0400
-Date: Tue, 11 Oct 2016 17:47:52 +0100
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, liviu.dudau@arm.com,
-        robdclark@gmail.com, hverkuil@xs4all.nl, eric@anholt.net,
-        ville.syrjala@linux.intel.com
-Subject: Re: [RFC PATCH 02/11] drm/fb-helper: Skip writeback connectors
-Message-ID: <20161011164751.GB14337@e106950-lin.cambridge.arm.com>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
- <1476197648-24918-3-git-send-email-brian.starkey@arm.com>
- <20161011154448.GE20761@phenom.ffwll.local>
+Received: from mail.fireflyinternet.com ([109.228.58.192]:62938 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932814AbcJUO2G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Oct 2016 10:28:06 -0400
+Date: Fri, 21 Oct 2016 15:27:57 +0100
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: Tvrtko Ursulin <tursulin@ursulin.net>
+Cc: Intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Subject: Re: [PATCH 4/5] drm/i915: Use __sg_alloc_table_from_pages for
+ allocating object backing store
+Message-ID: <20161021142757.GP25629@nuc-i3427.alporthouse.com>
+References: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
+ <1477059083-3500-5-git-send-email-tvrtko.ursulin@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161011154448.GE20761@phenom.ffwll.local>
+In-Reply-To: <1477059083-3500-5-git-send-email-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 11, 2016 at 05:44:48PM +0200, Daniel Vetter wrote:
->On Tue, Oct 11, 2016 at 03:53:59PM +0100, Brian Starkey wrote:
->> Writeback connectors aren't much use to the fbdev helpers, as they won't
->> show anything to the user. Skip them when looking for candidate output
->> configurations.
->>
->> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
->> ---
->>  drivers/gpu/drm/drm_fb_helper.c |    4 ++++
->>  1 file changed, 4 insertions(+)
->>
->> diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
->> index 03414bd..dedf6e7 100644
->> --- a/drivers/gpu/drm/drm_fb_helper.c
->> +++ b/drivers/gpu/drm/drm_fb_helper.c
->> @@ -2016,6 +2016,10 @@ static int drm_pick_crtcs(struct drm_fb_helper *fb_helper,
->>  	if (modes[n] == NULL)
->>  		return best_score;
->>
->> +	/* Writeback connectors aren't much use for fbdev */
->> +	if (connector->connector_type == DRM_MODE_CONNECTOR_WRITEBACK)
->> +		return best_score;
->
->I think we could handle this by always marking writeback connectors as
->disconnected. Userspace and fbdev emulation should then avoid them,
->always.
->-Daniel
->
+On Fri, Oct 21, 2016 at 03:11:22PM +0100, Tvrtko Ursulin wrote:
+> @@ -2236,18 +2233,16 @@ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
+>  	BUG_ON(obj->base.read_domains & I915_GEM_GPU_DOMAINS);
+>  	BUG_ON(obj->base.write_domain & I915_GEM_GPU_DOMAINS);
+>  
+> -	max_segment = swiotlb_max_size();
+> -	if (!max_segment)
+> -		max_segment = rounddown(UINT_MAX, PAGE_SIZE);
+> -
+> -	st = kmalloc(sizeof(*st), GFP_KERNEL);
+> -	if (st == NULL)
+> -		return -ENOMEM;
+> -
+>  	page_count = obj->base.size / PAGE_SIZE;
+> -	if (sg_alloc_table(st, page_count, GFP_KERNEL)) {
+> -		kfree(st);
+> +	pages = drm_malloc_gfp(page_count, sizeof(struct page *),
+> +			       GFP_TEMPORARY | __GFP_ZERO);
+> +	if (!pages)
+>  		return -ENOMEM;
 
-Good idea; I'll need to take a closer look at how it would interact
-with the probe helper (connector->force etc).
+Full circle! The whole reason this exists was to avoid that vmalloc. I
+don't really want it back...
+-Chris
 
-Are you thinking instead-of or in-addition-to the client cap? I'd be
-worried about apps doing strange things and trying to use even
-disconnected connectors.
-
->> +
->>  	crtcs = kzalloc(fb_helper->connector_count *
->>  			sizeof(struct drm_fb_helper_crtc *), GFP_KERNEL);
->>  	if (!crtcs)
->> --
->> 1.7.9.5
->>
->
->-- 
->Daniel Vetter
->Software Engineer, Intel Corporation
->http://blog.ffwll.ch
->
+-- 
+Chris Wilson, Intel Open Source Technology Centre
