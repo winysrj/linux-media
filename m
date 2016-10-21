@@ -1,154 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:52841 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755427AbcJLRRE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 13:17:04 -0400
-Subject: [PATCH resent 27/34] [media] DaVinci-VPIF-Capture: Adjust ten checks
- for null pointers
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
- <73a8bc6c-3dc5-c152-7b59-fd1a5e84f61c@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <a4f74e62-dfd2-5804-da5e-9a6dcd355d6d@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 19:16:15 +0200
-MIME-Version: 1.0
-In-Reply-To: <73a8bc6c-3dc5-c152-7b59-fd1a5e84f61c@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:36184 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933813AbcJUOLo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Oct 2016 10:11:44 -0400
+Received: by mail-lf0-f68.google.com with SMTP id b75so6115977lfg.3
+        for <linux-media@vger.kernel.org>; Fri, 21 Oct 2016 07:11:43 -0700 (PDT)
+From: Tvrtko Ursulin <tursulin@ursulin.net>
+To: Intel-gfx@lists.freedesktop.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Subject: [PATCH 5/5] drm/i915: Use __sg_alloc_table_from_pages for userptr allocations
+Date: Fri, 21 Oct 2016 15:11:23 +0100
+Message-Id: <1477059083-3500-6-git-send-email-tvrtko.ursulin@linux.intel.com>
+In-Reply-To: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
+References: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 15:20:34 +0200
+From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 
-The script "checkpatch.pl" pointed information out like the following.
+With the addition of __sg_alloc_table_from_pages we can control
+the maximum coallescing size and eliminate a separate path for
+allocating backing store here.
 
-Comparison to NULL could be written ...
+This also makes the tables as compact as possible in all cases.
 
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 ---
+ drivers/gpu/drm/i915/i915_drv.h         |  9 +++++++++
+ drivers/gpu/drm/i915/i915_gem.c         | 11 +----------
+ drivers/gpu/drm/i915/i915_gem_userptr.c | 29 +++++++----------------------
+ 3 files changed, 17 insertions(+), 32 deletions(-)
 
-Another send try because of the following notification:
-
-Mailer Daemon wrote on 2016-10-12 at 17:06:
-> This message was created automatically by mail delivery software.
-> 
-> A message that you sent could not be delivered to one or more of
-> its recipients. This is a permanent error. The following address(es)
-> failed:
-> 
-> linux-media@vger.kernel.org:
-> SMTP error from remote server for TEXT command, host: vger.kernel.org (209.132.180.67) reason: 550 5.7.1 Content-Policy reject msg: Wrong MIME labeling on 8-bit characte
-> r texts. BF:<H 0>; S933375AbcJLPGr
-> 
-> kernel-janitors@vger.kernel.org:
-> SMTP error from remote server for TEXT command, host: vger.kernel.org (209.132.180.67) reason: 550 5.7.1 Content-Policy reject msg: Wrong MIME labeling on 8-bit characte
-> r texts. BF:<H 0>; S933375AbcJLPGr
-> 
-> linux-kernel@vger.kernel.org:
-> SMTP error from remote server for TEXT command, host: vger.kernel.org (209.132.180.67) reason: 550 5.7.1 Content-Policy reject msg: Wrong MIME labeling on 8-bit characte
-> r texts. BF:<H 0>; S933375AbcJLPGr
-
-
- drivers/media/platform/davinci/vpif_capture.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 24d1f61..d9fc591 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -291,10 +291,10 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 		vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
- 				VB2_BUF_STATE_ERROR);
- 	} else {
--		if (common->cur_frm != NULL)
-+		if (common->cur_frm)
- 			vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
--		if (common->next_frm != NULL)
-+		if (common->next_frm)
- 			vb2_buffer_done(&common->next_frm->vb.vb2_buf,
- 					VB2_BUF_STATE_ERROR);
- 	}
-@@ -648,7 +648,7 @@ static int vpif_input_to_subdev(
- 	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index 5b2b7f3c6e76..577a3a87f680 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -4001,4 +4001,13 @@ int remap_io_mapping(struct vm_area_struct *vma,
+ 	__T;								\
+ })
  
- 	subdev_name = chan_cfg->inputs[input_index].subdev_name;
--	if (subdev_name == NULL)
-+	if (!subdev_name)
- 		return -1;
++static inline unsigned int i915_swiotlb_max_size(void)
++{
++#if IS_ENABLED(CONFIG_SWIOTLB)
++	return swiotlb_nr_tbl() << IO_TLB_SHIFT;
++#else
++	return UINT_MAX;
++#endif
++}
++
+ #endif
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 4bf675568a37..18125d7279c6 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -2205,15 +2205,6 @@ i915_gem_object_put_pages(struct drm_i915_gem_object *obj)
+ 	return 0;
+ }
  
- 	/* loop through the sub device list to get the sub device info */
-@@ -764,7 +764,7 @@ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
- 
- 	vpif_dbg(2, debug, "vpif_g_std\n");
- 
--	if (config->chan_config[ch->channel_id].inputs == NULL)
-+	if (!config->chan_config[ch->channel_id].inputs)
- 		return -ENODATA;
- 
- 	chan_cfg = &config->chan_config[ch->channel_id];
-@@ -794,7 +794,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id std_id)
- 
- 	vpif_dbg(2, debug, "vpif_s_std\n");
- 
--	if (config->chan_config[ch->channel_id].inputs == NULL)
-+	if (!config->chan_config[ch->channel_id].inputs)
- 		return -ENODATA;
- 
- 	chan_cfg = &config->chan_config[ch->channel_id];
-@@ -1050,7 +1050,7 @@ vpif_enum_dv_timings(struct file *file, void *priv,
- 	struct v4l2_input input;
+-static unsigned int swiotlb_max_size(void)
+-{
+-#if IS_ENABLED(CONFIG_SWIOTLB)
+-	return swiotlb_nr_tbl() << IO_TLB_SHIFT;
+-#else
+-	return UINT_MAX;
+-#endif
+-}
+-
+ static int
+ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
+ {
+@@ -2222,7 +2213,7 @@ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
+ 	struct address_space *mapping;
+ 	struct sg_table *st;
+ 	struct page *page, **pages;
+-	unsigned int max_segment = swiotlb_max_size();
++	unsigned int max_segment = i915_swiotlb_max_size();
  	int ret;
+ 	gfp_t gfp;
  
--	if (config->chan_config[ch->channel_id].inputs == NULL)
-+	if (!config->chan_config[ch->channel_id].inputs)
- 		return -ENODATA;
+diff --git a/drivers/gpu/drm/i915/i915_gem_userptr.c b/drivers/gpu/drm/i915/i915_gem_userptr.c
+index e537930c64b5..17dca225a3e0 100644
+--- a/drivers/gpu/drm/i915/i915_gem_userptr.c
++++ b/drivers/gpu/drm/i915/i915_gem_userptr.c
+@@ -397,36 +397,21 @@ struct get_pages_work {
+ 	struct task_struct *task;
+ };
  
- 	chan_cfg = &config->chan_config[ch->channel_id];
-@@ -1084,7 +1084,7 @@ vpif_query_dv_timings(struct file *file, void *priv,
- 	struct v4l2_input input;
- 	int ret;
+-#if IS_ENABLED(CONFIG_SWIOTLB)
+-#define swiotlb_active() swiotlb_nr_tbl()
+-#else
+-#define swiotlb_active() 0
+-#endif
+-
+ static int
+ st_set_pages(struct sg_table **st, struct page **pvec, int num_pages)
+ {
+-	struct scatterlist *sg;
+-	int ret, n;
++	unsigned int max_segment = i915_swiotlb_max_size();
++	int ret;
  
--	if (config->chan_config[ch->channel_id].inputs == NULL)
-+	if (!config->chan_config[ch->channel_id].inputs)
- 		return -ENODATA;
+ 	*st = kmalloc(sizeof(**st), GFP_KERNEL);
+ 	if (*st == NULL)
+ 		return -ENOMEM;
  
- 	chan_cfg = &config->chan_config[ch->channel_id];
-@@ -1120,7 +1120,7 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
- 	struct v4l2_input input;
- 	int ret;
+-	if (swiotlb_active()) {
+-		ret = sg_alloc_table(*st, num_pages, GFP_KERNEL);
+-		if (ret)
+-			goto err;
+-
+-		for_each_sg((*st)->sgl, sg, num_pages, n)
+-			sg_set_page(sg, pvec[n], PAGE_SIZE, 0);
+-	} else {
+-		ret = sg_alloc_table_from_pages(*st, pvec, num_pages,
+-						0, num_pages << PAGE_SHIFT,
+-						GFP_KERNEL);
+-		if (ret)
+-			goto err;
+-	}
++	ret = __sg_alloc_table_from_pages(*st, pvec, num_pages, 0,
++					  num_pages << PAGE_SHIFT,
++					  GFP_KERNEL, max_segment);
++	if (ret)
++		goto err;
  
--	if (config->chan_config[ch->channel_id].inputs == NULL)
-+	if (!config->chan_config[ch->channel_id].inputs)
- 		return -ENODATA;
+ 	return 0;
  
- 	chan_cfg = &config->chan_config[ch->channel_id];
-@@ -1218,7 +1218,7 @@ static int vpif_g_dv_timings(struct file *file, void *priv,
- 	struct vpif_capture_chan_config *chan_cfg;
- 	struct v4l2_input input;
- 
--	if (config->chan_config[ch->channel_id].inputs == NULL)
-+	if (!config->chan_config[ch->channel_id].inputs)
- 		return -ENODATA;
- 
- 	chan_cfg = &config->chan_config[ch->channel_id];
-@@ -1465,7 +1465,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 
- 	subdev_count = vpif_obj.config->subdev_count;
- 	vpif_obj.sd = kcalloc(subdev_count, sizeof(*vpif_obj.sd), GFP_KERNEL);
--	if (vpif_obj.sd == NULL) {
-+	if (!vpif_obj.sd) {
- 		err = -ENOMEM;
- 		goto vpif_unregister;
- 	}
 -- 
-2.10.1
+2.7.4
 
