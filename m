@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:61901 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933264AbcJLOnn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 10:43:43 -0400
-Subject: [PATCH 08/34] [media] DaVinci-VPBE: Return the success indication
- only as a constant in vpbe_set_mode()
-To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <bcd9c829-4a3b-22d8-e5fa-c530615a8921@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 16:43:27 +0200
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:30190 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755300AbcJUMYS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Oct 2016 08:24:18 -0400
+Subject: Re: [PATCH] [media] c8sectpfe: Remove clk_disable_unprepare hacks
+To: Peter Griffin <peter.griffin@linaro.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <kernel@stlinux.com>,
+        <mchehab@kernel.org>
+References: <1477040132-31442-1-git-send-email-peter.griffin@linaro.org>
+CC: <lee.jones@linaro.org>, <linux-media@vger.kernel.org>
+From: Patrice Chotard <patrice.chotard@st.com>
+Message-ID: <08965415-3573-c588-25c8-ae48fde9470f@st.com>
+Date: Fri, 21 Oct 2016 14:23:46 +0200
 MIME-Version: 1.0
-In-Reply-To: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
-Content-Type: text/plain; charset=iso-8859-15
+In-Reply-To: <1477040132-31442-1-git-send-email-peter.griffin@linaro.org>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 12 Oct 2016 09:51:29 +0200
+On 10/21/2016 10:55 AM, Peter Griffin wrote:
+> Now that CLK_PROC_STFE is defined as a critical clock in
+> DT, we can remove the commented clk_disable_unprepare from
+> the c8sectpfe driver. This means we now have balanced
+> clk*enable/disable calls in the driver, but on STiH407
+> family the clock in reality will never actually be disabled.
+> 
+> This is due to a HW bug where once the IP has been configured
+> and the SLIM core is running, disabling the clock causes a
+> unrecoverable bus lockup.
+> 
+> Signed-off-by: Peter Griffin <peter.griffin@linaro.org>
+> ---
+>  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 6 +-----
+>  1 file changed, 1 insertion(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+> index 30c148b..79d793b 100644
+> --- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+> +++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
+> @@ -888,8 +888,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
+>  	return 0;
+>  
+>  err_clk_disable:
+> -	/* TODO uncomment when upstream has taken a reference on this clk */
+> -	/*clk_disable_unprepare(fei->c8sectpfeclk);*/
+> +	clk_disable_unprepare(fei->c8sectpfeclk);
+>  	return ret;
+>  }
+>  
+> @@ -924,11 +923,8 @@ static int c8sectpfe_remove(struct platform_device *pdev)
+>  	if (readl(fei->io + SYS_OTHER_CLKEN))
+>  		writel(0, fei->io + SYS_OTHER_CLKEN);
+>  
+> -	/* TODO uncomment when upstream has taken a reference on this clk */
+> -	/*
+>  	if (fei->c8sectpfeclk)
+>  		clk_disable_unprepare(fei->c8sectpfeclk);
+> -	*/
+>  
+>  	return 0;
+>  }
+> 
 
-* Return a success code without storing it in an intermediate variable.
-
-* Delete the local variable "ret" which became unnecessary with
-  this refactoring.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpbe.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 9fdd8c0..d6a0221 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -509,7 +509,6 @@ static int vpbe_set_mode(struct vpbe_device *vpbe_dev,
- 	struct v4l2_dv_timings dv_timings;
- 	struct osd_state *osd_device;
- 	int out_index = vpbe_dev->current_out_index;
--	int ret = 0;
- 	int i;
- 
- 	if (!mode_info || !mode_info->name)
-@@ -549,8 +548,7 @@ static int vpbe_set_mode(struct vpbe_device *vpbe_dev,
- 		vpbe_dev->current_timings.upper_margin);
- 
- 	mutex_unlock(&vpbe_dev->lock);
--
--	return ret;
-+	return 0;
- }
- 
- static int vpbe_set_default_mode(struct vpbe_device *vpbe_dev)
--- 
-2.10.1
+Acked-by: Patrice Chotard <patrice.chotard@st.com>
 
