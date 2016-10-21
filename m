@@ -1,102 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:47139 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934238AbcJQOfJ (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:59887 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750859AbcJUIx1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 10:35:09 -0400
-Subject: Re: [Patch 00/35] media: ti-vpe: fixes and enhancements
-To: Benoit Parrot <bparrot@ti.com>
-References: <20160928211643.26298-1-bparrot@ti.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <46c23700-5c4f-e379-846a-604cacc17f4f@xs4all.nl>
-Date: Mon, 17 Oct 2016 16:35:01 +0200
+        Fri, 21 Oct 2016 04:53:27 -0400
+Subject: Re: [PATCH v3] [media] vb2: Add support for capture_dma_bidirectional
+ queue flag
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <1477034705-5829-1-git-send-email-thierry.escande@collabora.com>
+ <20161021074845.GZ9460@valkosipuli.retiisi.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+From: Thierry Escande <thierry.escande@collabora.com>
+Message-ID: <f3a6dbd1-62d6-826c-e89a-282ce51eeab4@collabora.com>
+Date: Fri, 21 Oct 2016 10:53:22 +0200
 MIME-Version: 1.0
-In-Reply-To: <20160928211643.26298-1-bparrot@ti.com>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <20161021074845.GZ9460@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/28/2016 11:16 PM, Benoit Parrot wrote:
-> This patch series is to publish a number of enhancements
-> we have been carrying for a while.
-> 
-> A number of bug fixes and feature enhancements have been
-> included.
-> 
-> We also need to prepare the way for the introduction of
-> the VIP (Video Input Port) driver (coming soon) which
-> has internal IP module in common with VPE.
-> 
-> The relevant modules (vpdma, sc and csc) are therefore converted
-> into individual kernel modules.
+Hi Sakari,
 
-Other than the few comments I made this patch series looks OK.
+On 21/10/2016 09:48, Sakari Ailus wrote:
+> Hi Thierry,
+>
+> On Fri, Oct 21, 2016 at 09:25:05AM +0200, Thierry Escande wrote:
+>> From: Pawel Osciak <posciak@chromium.org>
+>>
+>> When this flag is set for CAPTURE queues by the driver on calling
+>> vb2_queue_init(), it forces the buffers on the queue to be
+>> allocated/mapped with DMA_BIDIRECTIONAL direction flag instead of
+>> DMA_FROM_DEVICE. This allows the device not only to write to the
+>> buffers, but also read out from them. This may be useful e.g. for codec
+>> hardware which may be using CAPTURE buffers as reference to decode
+>> other buffers.
+>>
+>> This flag is ignored for OUTPUT queues as we don't want to allow HW to
+>> be able to write to OUTPUT buffers.
+>>
+>> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+>> Tested-by: Pawel Osciak <posciak@chromium.org>
+>> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+>>
+>
+> Please also check where dma_dir is being used especially in memory type
+> implementation. There are several comparisons to DMA_FROM_DEVICE which will
+> have a different result if DMA_BIDIRECTIONAL is used instead.
+Nice catch, thanks.
 
-You can add my
+How about a macro like this:
 
-	Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-to those patches where I didn't make any comments.
+#define VB2_DMA_DIR_CAPTURE(d) \
+		((d) == DMA_FROM_DEVICE || (d) == DMA_BIDIRECTIONAL)
 
 Regards,
+  Thierry
 
-	Hans
-
-> 
-> Archit Taneja (1):
->   media: ti-vpe: Use line average de-interlacing for first 2 frames
-> 
-> Benoit Parrot (16):
->   media: ti-vpe: vpdma: Make vpdma library into its own module
->   media: ti-vpe: vpdma: Add multi-instance and multi-client support
->   media: ti-vpe: vpdma: Add helper to set a background color
->   media: ti-vpe: vpdma: Fix bus error when vpdma is writing a descriptor
->   media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
->   media: ti-vpe: vpdma: Corrected YUV422 data type label.
->   media: ti-vpe: vpdma: RGB data type yield inverted data
->   media: ti-vpe: vpe: Fix vb2 buffer cleanup
->   media: ti-vpe: vpe: Enable DMABUF export
->   media: ti-vpe: Make scaler library into its own module
->   media: ti-vpe: scaler: Add debug support for multi-instance
->   media: ti-vpe: vpe: Make sure frame size dont exceed scaler capacity
->   media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
->   media: ti-vpe: Make colorspace converter library into its own module
->   media: ti-vpe: csc: Add debug support for multi-instance
->   media: ti-vpe: vpe: Add proper support single and multi-plane buffer
-> 
-> Harinarayan Bhatta (2):
->   media: ti-vpe: Increasing max buffer height and width
->   media: ti-vpe: Free vpdma buffers in vpe_release
-> 
-> Nikhil Devshatwar (16):
->   media: ti-vpe: vpe: Do not perform job transaction atomically
->   media: ti-vpe: Add support for SEQ_TB buffers
->   media: ti-vpe: vpe: Return NULL for invalid buffer type
->   media: ti-vpe: vpdma: Add support for setting max width height
->   media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
->   media: ti-vpe: vpdma: Make list post atomic operation
->   media: ti-vpe: vpdma: Clear IRQs for individual lists
->   media: ti-vpe: vpe: configure line mode separately
->   media: ti-vpe: vpe: Setup srcdst parameters in start_streaming
->   media: ti-vpe: vpe: Post next descriptor only for list complete IRQ
->   media: ti-vpe: vpe: Add RGB565 and RGB5551 support
->   media: ti-vpe: vpdma: allocate and maintain hwlist
->   media: ti-vpe: sc: Fix incorrect optimization
->   media: ti-vpe: vpdma: Fix race condition for firmware loading
->   media: ti-vpe: vpdma: Use bidirectional cached buffers
->   media: ti-vpe: vpe: Fix line stride for output motion vector
-> 
->  drivers/media/platform/Kconfig             |  14 +
->  drivers/media/platform/ti-vpe/Makefile     |  10 +-
->  drivers/media/platform/ti-vpe/csc.c        |  18 +-
->  drivers/media/platform/ti-vpe/csc.h        |   2 +-
->  drivers/media/platform/ti-vpe/sc.c         |  28 +-
->  drivers/media/platform/ti-vpe/sc.h         |  11 +-
->  drivers/media/platform/ti-vpe/vpdma.c      | 349 +++++++++++++++++++---
->  drivers/media/platform/ti-vpe/vpdma.h      |  85 +++++-
->  drivers/media/platform/ti-vpe/vpdma_priv.h | 130 ++++-----
->  drivers/media/platform/ti-vpe/vpe.c        | 450 ++++++++++++++++++++++++-----
->  10 files changed, 891 insertions(+), 206 deletions(-)
-> 
