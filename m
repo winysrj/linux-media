@@ -1,86 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59236 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757055AbcJNUWn (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50212 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932407AbcJUJO0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Mel Gorman <mgorman@techsingularity.net>
-Subject: [PATCH 21/57] [media] tw68: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:09 -0300
-Message-Id: <6f28934c9970793589ad705fc445fa2914fc3b25.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Fri, 21 Oct 2016 05:14:26 -0400
+Date: Fri, 21 Oct 2016 12:13:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Thierry Escande <thierry.escande@collabora.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v3] [media] vb2: Add support for
+ capture_dma_bidirectional queue flag
+Message-ID: <20161021091347.GB9460@valkosipuli.retiisi.org.uk>
+References: <1477034705-5829-1-git-send-email-thierry.escande@collabora.com>
+ <20161021074845.GZ9460@valkosipuli.retiisi.org.uk>
+ <f3a6dbd1-62d6-826c-e89a-282ce51eeab4@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f3a6dbd1-62d6-826c-e89a-282ce51eeab4@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Hi Thierry,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/tw68/tw68-video.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+On Fri, Oct 21, 2016 at 10:53:22AM +0200, Thierry Escande wrote:
+> #define VB2_DMA_DIR_CAPTURE(d) \
+> 		((d) == DMA_FROM_DEVICE || (d) == DMA_BIDIRECTIONAL)
 
-diff --git a/drivers/media/pci/tw68/tw68-video.c b/drivers/media/pci/tw68/tw68-video.c
-index a45e02367321..165d54925506 100644
---- a/drivers/media/pci/tw68/tw68-video.c
-+++ b/drivers/media/pci/tw68/tw68-video.c
-@@ -279,8 +279,7 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
- 		height /= 2;		/* we must set for 1-frame */
- 
- 	pr_debug("%s: width=%d, height=%d, both=%d\n"
--		 "  tvnorm h_delay=%d, h_start=%d, h_stop=%d, "
--		 "v_delay=%d, v_start=%d, v_stop=%d\n" , __func__,
-+		 "  tvnorm h_delay=%d, h_start=%d, h_stop=%d, v_delay=%d, v_start=%d, v_stop=%d\n" , __func__,
- 		width, height, V4L2_FIELD_HAS_BOTH(field),
- 		norm->h_delay, norm->h_start, norm->h_stop,
- 		norm->v_delay, norm->video_v_start,
-@@ -309,16 +308,14 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
- 		V4L2_FIELD_HAS_TOP(field)    ? "T" : "",
- 		V4L2_FIELD_HAS_BOTTOM(field) ? "B" : "",
- 		v4l2_norm_to_name(dev->tvnorm->id));
--	pr_debug("%s: hactive=%d, hdelay=%d, hscale=%d; "
--		"vactive=%d, vdelay=%d, vscale=%d\n", __func__,
-+	pr_debug("%s: hactive=%d, hdelay=%d, hscale=%d; vactive=%d, vdelay=%d, vscale=%d\n", __func__,
- 		hactive, hdelay, hscale, vactive, vdelay, vscale);
- 
- 	comb =	((vdelay & 0x300)  >> 2) |
- 		((vactive & 0x300) >> 4) |
- 		((hdelay & 0x300)  >> 6) |
- 		((hactive & 0x300) >> 8);
--	pr_debug("%s: setting CROP_HI=%02x, VDELAY_LO=%02x, "
--		"VACTIVE_LO=%02x, HDELAY_LO=%02x, HACTIVE_LO=%02x\n",
-+	pr_debug("%s: setting CROP_HI=%02x, VDELAY_LO=%02x, VACTIVE_LO=%02x, HDELAY_LO=%02x, HACTIVE_LO=%02x\n",
- 		__func__, comb, vdelay, vactive, hdelay, hactive);
- 	tw_writeb(TW68_CROP_HI, comb);
- 	tw_writeb(TW68_VDELAY_LO, vdelay & 0xff);
-@@ -327,8 +324,7 @@ static int tw68_set_scale(struct tw68_dev *dev, unsigned int width,
- 	tw_writeb(TW68_HACTIVE_LO, hactive & 0xff);
- 
- 	comb = ((vscale & 0xf00) >> 4) | ((hscale & 0xf00) >> 8);
--	pr_debug("%s: setting SCALE_HI=%02x, VSCALE_LO=%02x, "
--		"HSCALE_LO=%02x\n", __func__, comb, vscale, hscale);
-+	pr_debug("%s: setting SCALE_HI=%02x, VSCALE_LO=%02x, HSCALE_LO=%02x\n", __func__, comb, vscale, hscale);
- 	tw_writeb(TW68_SCALE_HI, comb);
- 	tw_writeb(TW68_VSCALE_LO, vscale);
- 	tw_writeb(TW68_HSCALE_LO, hscale);
+That looks good to me.
+
 -- 
-2.7.4
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
