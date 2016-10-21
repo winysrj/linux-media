@@ -1,95 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:51607 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756976AbcJXDWR (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55646
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932726AbcJUM0N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 23:22:17 -0400
-Message-ID: <1477279328.10501.10.camel@mtksdaap41>
-Subject: Re: [PATCH v5 3/9] vcodec: mediatek: Add Mediatek V4L2 Video
- Decoder Driver
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, "Rob Herring" <robh+dt@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Mon, 24 Oct 2016 11:22:08 +0800
-In-Reply-To: <20161021110104.5733240e@vento.lan>
-References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
-         <1472818800-22558-2-git-send-email-tiffany.lin@mediatek.com>
-         <1472818800-22558-3-git-send-email-tiffany.lin@mediatek.com>
-         <1472818800-22558-4-git-send-email-tiffany.lin@mediatek.com>
-         <20161021110104.5733240e@vento.lan>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        Fri, 21 Oct 2016 08:26:13 -0400
+Date: Fri, 21 Oct 2016 10:26:07 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: [GIT PULL] Samsung fixes for 4.8
+Message-ID: <20161021102607.2df96630@vento.lan>
+In-Reply-To: <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
+References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
+        <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Fri, 16 Sep 2016 15:33:33 +0200
+Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
 
-On Fri, 2016-10-21 at 11:01 -0200, Mauro Carvalho Chehab wrote:
-> Em Fri, 2 Sep 2016 20:19:54 +0800
-> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
+> Hi Mauro,
 > 
-> > Add v4l2 layer decoder driver for MT8173
-> > 
-> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>
+> The following changes since commit 7892a1f64a447b6f65fe2888688883b7c26d81d3:
 > 
-> > +int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
-> > +{
-> > +	int ret = 0;
-> > +
-> > +	switch (fourcc) {
-> > +	case V4L2_PIX_FMT_H264:
-> > +	case V4L2_PIX_FMT_VP8:
-> > +	default:
-> > +		return -EINVAL;
-> > +	}
+>   [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0 on success (2016-09-15 09:02:16 -0300)
 > 
-> Did you ever test this driver? The above code will *always* return
-> -EINVAL, with will cause vidioc_vdec_s_fmt() to always fail!
+> are available in the git repository at:
 > 
-> I suspect that what you wanted to do, instead, is:
+>   git://linuxtv.org/snawrocki/samsung.git for-v4.9/media/fixes
 > 
-> 	switch (fourcc) {
-> 	case V4L2_PIX_FMT_H264:
-> 	case V4L2_PIX_FMT_VP8:
-> 		break;
-> 	default:
-> 		return -EINVAL;
+> for you to fetch changes up to 8beaa9d0595aa2ae1f63be364c80189e53cbfe15:
 > 
+>   exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag (2016-09-16 15:25:55 +0200)
+> 
+> ----------------------------------------------------------------
+> Marek Szyprowski (1):
+>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()
+> 
+> Sylwester Nawrocki (1):
+>       exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag
 
-The original idea here is that vp8 and h264 are added in later patches.
-If get this patch without later patches, it should return -EINVAL.
+This patch didn't apply fine. Could you please rebase it?
 
+Applying patch patches/0002-exynos4-is-Clear-I2C_ISP-adapter-s-power.ignore_chil.patch
+patching file drivers/media/platform/exynos4-is/fimc-is-i2c.c
+Hunk #1 NOT MERGED at 74-99, already applied at 101-104, already applied at 111.
+Applied patch patches/0002-exynos4-is-Clear-I2C_ISP-adapter-s-power.ignore_chil.patch (forced; needs refresh)
 
-> Btw, this patch series has also several issues that were pointed by
-> checkpatch. Please *always* run checkpatch when submitting your work.
-> 
-> You should take a look at the Kernel documentation about how to
-> submit patches, at:
-> 	https://mchehab.fedorapeople.org/kernel_docs/process/index.html
-> 
-> PS.: this time, I fixed the checkpatch issues for you. So, let me know
-> if the patch below is OK, and I'll merge it at media upstream,
-> assuming that the other patches in this series are ok.
-> 
-
-I did run checkpatch, but I don't know why these issues missed.
-probably I run checkpatch for all files not for patches.
-I will take a look at the documentation and keep this in mind for future
-upstream.
-Appreciated for your help.
-
-
-best regards,
-Tiffany
-
+Thanks,
+Mauro
