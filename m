@@ -1,59 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:62224 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752123AbcJGTqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 15:46:34 -0400
-Subject: [PATCH 2/2] [media] dvb-tc90522: Rename a jump label in
- tc90522_probe()
-To: linux-media@vger.kernel.org, Akihiro Tsukada <tskd08@gmail.com>,
+Received: from bombadil.infradead.org ([198.137.202.9]:36062 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755380AbcJUOAa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 21 Oct 2016 10:00:30 -0400
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <906cc86f-bac0-fd47-8a6f-d3310b10fd08@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <7cee472f-4dad-7306-ed14-098bef5f862c@users.sourceforge.net>
-Date: Fri, 7 Oct 2016 21:46:21 +0200
-MIME-Version: 1.0
-In-Reply-To: <906cc86f-bac0-fd47-8a6f-d3310b10fd08@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org
+Subject: [PATCH 1/4] mtk_mdp_vpu: fix build with COMPILE_TEST for 32 bits
+Date: Fri, 21 Oct 2016 11:59:16 -0200
+Message-Id: <cd14afdb178cf490e257368bc899c7a0c690d140.1477058332.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Fri, 7 Oct 2016 21:13:57 +0200
+When building on i386 in 32 bits, several new warnings appear:
 
-Adjust a jump label according to the Linux coding style convention.
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c: In function 'mtk_mdp_vpu_handle_init_ack':
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c:28:28: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)msg->ap_inst;
+                            ^
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c: In function 'mtk_mdp_vpu_ipi_handler':
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c:40:28: warning: cast to pointer from integer of different size [-Wint-to-pointer-cast]
+  struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)msg->ap_inst;
+                            ^
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c: In function 'mtk_mdp_vpu_send_ap_ipi':
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c:111:16: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+  msg.ap_inst = (uint64_t)vpu;
+                ^
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c: In function 'mtk_mdp_vpu_init':
+drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c:129:16: warning: cast from pointer to integer of different size [-Wpointer-to-int-cast]
+  msg.ap_inst = (uint64_t)vpu;
+                ^
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+That's because the driver assumes that it will be built only on
+64 bits. As we don't want extra warnings when building with 32
+bits, we need to double-cast.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-frontends/tc90522.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/tc90522.c b/drivers/media/dvb-frontends/tc90522.c
-index c2d45f0..4687e15 100644
---- a/drivers/media/dvb-frontends/tc90522.c
-+++ b/drivers/media/dvb-frontends/tc90522.c
-@@ -794,14 +794,13 @@ static int tc90522_probe(struct i2c_client *client,
- 	i2c_set_adapdata(adap, state);
- 	ret = i2c_add_adapter(adap);
- 	if (ret < 0)
--		goto err;
-+		goto free_state;
- 	cfg->tuner_i2c = state->cfg.tuner_i2c = adap;
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c b/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
+index fb07bf3dbd8b..b38d29e99f7a 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_vpu.c
+@@ -25,7 +25,7 @@ static inline struct mtk_mdp_ctx *vpu_to_ctx(struct mtk_mdp_vpu *vpu)
  
- 	i2c_set_clientdata(client, &state->cfg);
- 	dev_info(&client->dev, "Toshiba TC90522 attached.\n");
- 	return 0;
--
--err:
-+free_state:
- 	kfree(state);
- 	return ret;
- }
+ static void mtk_mdp_vpu_handle_init_ack(struct mdp_ipi_comm_ack *msg)
+ {
+-	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)msg->ap_inst;
++	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)(long)msg->ap_inst;
+ 
+ 	/* mapping VPU address to kernel virtual address */
+ 	vpu->vsi = (struct mdp_process_vsi *)
+@@ -37,7 +37,7 @@ static void mtk_mdp_vpu_ipi_handler(void *data, unsigned int len, void *priv)
+ {
+ 	unsigned int msg_id = *(unsigned int *)data;
+ 	struct mdp_ipi_comm_ack *msg = (struct mdp_ipi_comm_ack *)data;
+-	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)msg->ap_inst;
++	struct mtk_mdp_vpu *vpu = (struct mtk_mdp_vpu *)(long)msg->ap_inst;
+ 	struct mtk_mdp_ctx *ctx;
+ 
+ 	vpu->failure = msg->status;
+@@ -108,7 +108,7 @@ static int mtk_mdp_vpu_send_ap_ipi(struct mtk_mdp_vpu *vpu, uint32_t msg_id)
+ 	msg.msg_id = msg_id;
+ 	msg.ipi_id = IPI_MDP;
+ 	msg.vpu_inst_addr = vpu->inst_addr;
+-	msg.ap_inst = (uint64_t)vpu;
++	msg.ap_inst = (uint64_t)(long)vpu;
+ 	err = mtk_mdp_vpu_send_msg((void *)&msg, sizeof(msg), vpu, IPI_MDP);
+ 	if (!err && vpu->failure)
+ 		err = -EINVAL;
+@@ -126,7 +126,7 @@ int mtk_mdp_vpu_init(struct mtk_mdp_vpu *vpu)
+ 
+ 	msg.msg_id = AP_MDP_INIT;
+ 	msg.ipi_id = IPI_MDP;
+-	msg.ap_inst = (uint64_t)vpu;
++	msg.ap_inst = (uint64_t)(long)vpu;
+ 	err = mtk_mdp_vpu_send_msg((void *)&msg, sizeof(msg), vpu, IPI_MDP);
+ 	if (!err && vpu->failure)
+ 		err = -EINVAL;
 -- 
-2.10.1
+2.7.4
 
