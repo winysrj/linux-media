@@ -1,117 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33543 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754123AbcJWTRK (ORCPT
+Received: from forward3h.cmail.yandex.net ([87.250.230.18]:37890 "EHLO
+        forward3h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934695AbcJUTo2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 15:17:10 -0400
-Date: Sun, 23 Oct 2016 21:17:06 +0200
-From: Pavel Machek <pavel@ucw.cz>
-To: ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v4] media: et8ek8: add device tree binding documentation
-Message-ID: <20161023191706.GA25754@amd>
+        Fri, 21 Oct 2016 15:44:28 -0400
+Received: from smtp3m.mail.yandex.net (smtp3m.mail.yandex.net [IPv6:2a02:6b8:0:2519::125])
+        by forward3h.cmail.yandex.net (Yandex) with ESMTP id C43F32101F
+        for <linux-media@vger.kernel.org>; Fri, 21 Oct 2016 22:36:53 +0300 (MSK)
+Received: from smtp3m.mail.yandex.net (localhost.localdomain [127.0.0.1])
+        by smtp3m.mail.yandex.net (Yandex) with ESMTP id 9DBC2284048E
+        for <linux-media@vger.kernel.org>; Fri, 21 Oct 2016 22:36:53 +0300 (MSK)
+From: CrazyCat <crazycat69@narod.ru>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] dvb-usb-cxusb: Geniatech T230 - resync TS FIFO after lock
+Date: Fri, 21 Oct 2016 22:35:40 +0300
+Message-ID: <1819823.msPEjJElp3@computer>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="ReaqsoxgOBHFXBhH"
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch fix streaming issue for Geniatech T230/PT360.
 
---ReaqsoxgOBHFXBhH
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-
-Add device tree binding documentation for toshiba et8ek8 sensor.
-
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
+Signed-off-by: CrazyCat <crazycat69@narod.ru>
 ---
+ drivers/media/usb/dvb-usb/cxusb.c | 26 ++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb/cxusb.h |  5 +++++
+ 2 files changed, 31 insertions(+)
 
-diff from v3: explain what clock-frequency means
+diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
+index 3701f59..46b59c3 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.c
++++ b/drivers/media/usb/dvb-usb/cxusb.c
+@@ -368,6 +368,26 @@ static int cxusb_aver_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 	return 0;
+ }
+ 
++static int cxusb_read_status(struct dvb_frontend *fe,
++				  enum fe_status *status)
++{
++	struct dvb_usb_adapter *adap = (struct dvb_usb_adapter *)fe->dvb->priv;
++	struct cxusb_state *state = (struct cxusb_state *)adap->dev->priv;
++	int ret;
++
++	ret = state->fe_read_status(fe, status);
++
++	/* it need resync slave fifo when signal change from unlock to lock.*/
++	if ((*status & FE_HAS_LOCK) && (!state->last_lock)) {
++		mutex_lock(&state->stream_mutex);
++		cxusb_streaming_ctrl(adap, 1);
++		mutex_unlock(&state->stream_mutex);
++	}
++
++	state->last_lock = (*status & FE_HAS_LOCK) ? 1 : 0;
++	return ret;
++}
++
+ static void cxusb_d680_dmb_drain_message(struct dvb_usb_device *d)
+ {
+ 	int       ep = d->props.generic_bulk_ctrl_endpoint;
+@@ -1370,6 +1390,12 @@ static int cxusb_mygica_t230_frontend_attach(struct dvb_usb_adapter *adap)
+ 	st->i2c_client_demod = client_demod;
+ 	st->i2c_client_tuner = client_tuner;
+ 
++	/* hook fe: need to resync the slave fifo when signal locks. */
++	mutex_init(&st->stream_mutex);
++	st->last_lock = 0;
++	st->fe_read_status = adap->fe_adap[0].fe->ops.read_status;
++	adap->fe_adap[0].fe->ops.read_status = cxusb_read_status;
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/dvb-usb/cxusb.h b/drivers/media/usb/dvb-usb/cxusb.h
+index 527ff79..22b3253 100644
+--- a/drivers/media/usb/dvb-usb/cxusb.h
++++ b/drivers/media/usb/dvb-usb/cxusb.h
+@@ -32,6 +32,11 @@ struct cxusb_state {
+ 	u8 gpio_write_state[3];
+ 	struct i2c_client *i2c_client_demod;
+ 	struct i2c_client *i2c_client_tuner;
++
++	struct mutex stream_mutex;
++	u8 last_lock;
++	int (*fe_read_status)(struct dvb_frontend *fe,
++		enum fe_status *status);
+ };
+ 
+ #endif
+-- 
+1.9.1
 
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt=
- b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-new file mode 100644
-index 0000000..54863cf
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-@@ -0,0 +1,51 @@
-+Toshiba et8ek8 5MP sensor
-+
-+Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
-+
-+More detailed documentation can be found in
-+Documentation/devicetree/bindings/media/video-interfaces.txt .
-+
-+
-+Mandatory properties
-+--------------------
-+
-+- compatible: "toshiba,et8ek8"
-+- reg: I2C address (0x3e, or an alternative address)
-+- vana-supply: Analogue voltage supply (VANA), 2.8 volts
-+- clocks: External clock to the sensor
-+- clock-frequency: Frequency of the external clock to the sensor. Camera
-+  driver will set this frequency on the external clock.
-+- reset-gpios: XSHUTDOWN GPIO
-+
-+
-+Endpoint node mandatory properties
-+----------------------------------
-+
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
-+
-+Endpoint node optional properties
-+----------------------------------
-+
-+- clock-lanes: <0>
-+- data-lanes: <1..n>
-+
-+Example
-+-------
-+
-+&i2c3 {
-+	clock-frequency =3D <400000>;
-+
-+	cam1: camera@3e {
-+		compatible =3D "toshiba,et8ek8";
-+		reg =3D <0x3e>;
-+		vana-supply =3D <&vaux4>;
-+		clocks =3D <&isp 0>;
-+		clock-frequency =3D <9600000>;
-+		reset-gpio =3D <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
-+		port {
-+			csi_cam1: endpoint {
-+				remote-endpoint =3D <&csi_out1>;
-+			};
-+		};
-+	};
-+};
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---ReaqsoxgOBHFXBhH
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgNDLIACgkQMOfwapXb+vLvQgCfYTGtJtNyl/jnlA44XmrZMDMB
-yooAoLNW2Vbkq2+hPKFhY1Ik8W9kBSp5
-=6pFh
------END PGP SIGNATURE-----
-
---ReaqsoxgOBHFXBhH--
