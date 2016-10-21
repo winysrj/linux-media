@@ -1,97 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59179 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757097AbcJNUWn (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46962 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754323AbcJUGeD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 29/57] [media] ti-vpe: don't break long lines
-Date: Fri, 14 Oct 2016 17:20:17 -0300
-Message-Id: <c3f436701af70b46f884a4dad4989176cec5e0c3.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Fri, 21 Oct 2016 02:34:03 -0400
+Date: Fri, 21 Oct 2016 09:33:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Thierry Escande <thierry.escande@collabora.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v3] [media] vb2: Add support for
+ capture_dma_bidirectional queue flag
+Message-ID: <20161021063324.GY9460@valkosipuli.retiisi.org.uk>
+References: <1476953764-25145-1-git-send-email-thierry.escande@collabora.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1476953764-25145-1-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Hi Thierry,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 12 ++++--------
- drivers/media/platform/ti-vpe/vpe.c   |  3 +--
- 2 files changed, 5 insertions(+), 10 deletions(-)
+On Thu, Oct 20, 2016 at 10:56:04AM +0200, Thierry Escande wrote:
+> From: Pawel Osciak <posciak@chromium.org>
+> 
+> When this flag is set for CAPTURE queues by the driver on calling
+> vb2_queue_init(), it forces the buffers on the queue to be
+> allocated/mapped with DMA_BIDIRECTIONAL direction flag instead of
+> DMA_FROM_DEVICE. This allows the device not only to write to the
+> buffers, but also read out from them. This may be useful e.g. for codec
+> hardware which may be using CAPTURE buffers as reference to decode
+> other buffers.
+> 
+> This flag is ignored for OUTPUT queues as we don't want to allow HW to
+> be able to write to OUTPUT buffers.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Tested-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+> 
+> Changes since v1:
+> - Renamed use_dma_bidirectional field as capture_dma_bidirectional
+> - Added a VB2_DMA_DIR() macro
+> 
+> Changes since v2:
+> - Get rid of dma_dir field and therefore squashed the previous patch
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c |  9 +++------
+>  include/media/videobuf2-core.h           | 15 +++++++++++++++
+>  2 files changed, 18 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 21900202..22d6105 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -194,8 +194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
+>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>  	void *mem_priv;
+>  	int plane;
+>  	int ret = -ENOMEM;
+> @@ -978,8 +977,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+>  
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> @@ -1096,8 +1094,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+>  
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index ac5898a..631f08b 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -433,6 +433,9 @@ struct vb2_buf_ops {
+>   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
+>   *              has not been called. This is a vb1 idiom that has been adopted
+>   *              also by vb2.
+> + * @capture_dma_bidirectional:	use DMA_BIDIRECTIONAL for CAPTURE buffers; this
+> + *				allows HW to read from the CAPTURE buffers in
+> + *				addition to writing; ignored for OUTPUT queues.
+>   * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+>   *		driver can set this to a mutex to let the v4l2 core serialize
+>   *		the queuing ioctls. If the driver wants to handle locking
+> @@ -499,6 +502,7 @@ struct vb2_queue {
+>  	unsigned			fileio_write_immediately:1;
+>  	unsigned			allow_zero_bytesused:1;
+>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+> +	unsigned			capture_dma_bidirectional:1;
+>  
+>  	struct mutex			*lock;
+>  	void				*owner;
+> @@ -554,6 +558,17 @@ struct vb2_queue {
+>  #endif
+>  };
+>  
+> +/*
+> + * Return the corresponding DMA direction given the vb2_queue type (capture or
+> + * output). returns DMA_BIRECTIONAL for capture buffers if the vb2_queue field
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 3e2e3a33e6ed..079a0c894d02 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -466,8 +466,7 @@ static void dump_cfd(struct vpdma_cfd *cfd)
- 
- 	pr_debug("word2: payload_addr = 0x%08x\n", cfd->payload_addr);
- 
--	pr_debug("word3: pkt_type = %d, direct = %d, class = %d, dest = %d, "
--		"payload_len = %d\n", cfd_get_pkt_type(cfd),
-+	pr_debug("word3: pkt_type = %d, direct = %d, class = %d, dest = %d, payload_len = %d\n", cfd_get_pkt_type(cfd),
- 		cfd_get_direct(cfd), class, cfd_get_dest(cfd),
- 		cfd_get_payload_len(cfd));
- }
-@@ -574,8 +573,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- 	pr_debug("%s data transfer descriptor for channel %d\n",
- 		dir == DTD_DIR_OUT ? "outbound" : "inbound", chan);
- 
--	pr_debug("word0: data_type = %d, notify = %d, field = %d, 1D = %d, "
--		"even_ln_skp = %d, odd_ln_skp = %d, line_stride = %d\n",
-+	pr_debug("word0: data_type = %d, notify = %d, field = %d, 1D = %d, even_ln_skp = %d, odd_ln_skp = %d, line_stride = %d\n",
- 		dtd_get_data_type(dtd), dtd_get_notify(dtd), dtd_get_field(dtd),
- 		dtd_get_1d(dtd), dtd_get_even_line_skip(dtd),
- 		dtd_get_odd_line_skip(dtd), dtd_get_line_stride(dtd));
-@@ -586,8 +584,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- 
- 	pr_debug("word2: start_addr = %pad\n", &dtd->start_addr);
- 
--	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, "
--		"pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
-+	pr_debug("word3: pkt_type = %d, mode = %d, dir = %d, chan = %d, pri = %d, next_chan = %d\n", dtd_get_pkt_type(dtd),
- 		dtd_get_mode(dtd), dir, chan, dtd_get_priority(dtd),
- 		dtd_get_next_chan(dtd));
- 
-@@ -595,8 +592,7 @@ static void dump_dtd(struct vpdma_dtd *dtd)
- 		pr_debug("word4: frame_width = %d, frame_height = %d\n",
- 			dtd_get_frame_width(dtd), dtd_get_frame_height(dtd));
- 	else
--		pr_debug("word4: desc_write_addr = 0x%08x, write_desc = %d, "
--			"drp_data = %d, use_desc_reg = %d\n",
-+		pr_debug("word4: desc_write_addr = 0x%08x, write_desc = %d, drp_data = %d, use_desc_reg = %d\n",
- 			dtd_get_desc_write_addr(dtd), dtd_get_write_desc(dtd),
- 			dtd_get_drop_data(dtd), dtd_get_use_desc(dtd));
- 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 0189f7f7cb03..1cf4a4c1b899 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1263,8 +1263,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 	}
- 
- 	if (irqst0 | irqst1) {
--		dev_warn(dev->v4l2_dev.dev, "Unexpected interrupt: "
--			"INT0_STATUS0 = 0x%08x, INT0_STATUS1 = 0x%08x\n",
-+		dev_warn(dev->v4l2_dev.dev, "Unexpected interrupt: INT0_STATUS0 = 0x%08x, INT0_STATUS1 = 0x%08x\n",
- 			irqst0, irqst1);
- 	}
- 
+DMA_BIDIRECTIONAL
+
+With that fixed,
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> + * capture_dma_bidirectional is set by the driver.
+> + */
+> +#define VB2_DMA_DIR(q) (V4L2_TYPE_IS_OUTPUT((q)->type)   \
+> +			? DMA_TO_DEVICE                  \
+> +			: (q)->capture_dma_bidirectional \
+> +			  ? DMA_BIDIRECTIONAL            \
+> +			  : DMA_FROM_DEVICE)
+> +
+>  /**
+>   * vb2_plane_vaddr() - Return a kernel virtual address of a given plane
+>   * @vb:		vb2_buffer to which the plane in question belongs to
+
 -- 
-2.7.4
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
