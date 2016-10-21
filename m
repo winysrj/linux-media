@@ -1,53 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48619 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:35616 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754319AbcJNRrF (ORCPT
+        with ESMTP id S1754584AbcJUN7u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:47:05 -0400
+        Fri, 21 Oct 2016 09:59:50 -0400
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 07/25] [media] dvb-core: don't break long lines
-Date: Fri, 14 Oct 2016 14:45:45 -0300
-Message-Id: <d2c088d970c8c2fbe3c3ae6ccec3217adf7a05b3.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org
+Subject: [PATCH] mtk-vcodec: fix some smatch warnings
+Date: Fri, 21 Oct 2016 11:58:42 -0200
+Message-Id: <066110a3574ef835ba47a0996343474288da72cc.1477058315.git.mchehab@s-opensource.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Fix this bug:
+	drivers/media/platform/mtk-vcodec/vdec_drv_if.c:38 vdec_if_init() info: ignoring unreachable code.
+
+With is indeed a real problem that prevents the driver to work!
+
+While here, also remove an used var, as reported by smatch:
+
+	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c: In function 'mtk_vcodec_init_dec_pm':
+	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c:29:17: warning: variable 'dev' set but not used [-Wunused-but-set-variable]
+	  struct device *dev;
+	                 ^~~
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/dvb-core/dvb_demux.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c | 2 --
+ drivers/media/platform/mtk-vcodec/vdec_drv_if.c       | 1 +
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index a0cf7b0d03e8..280716f1cc46 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -426,8 +426,7 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
- 	}
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
+index 18182f5676d8..79ca03ac449c 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
+@@ -26,14 +26,12 @@ int mtk_vcodec_init_dec_pm(struct mtk_vcodec_dev *mtkdev)
+ {
+ 	struct device_node *node;
+ 	struct platform_device *pdev;
+-	struct device *dev;
+ 	struct mtk_vcodec_pm *pm;
+ 	int ret = 0;
  
- 	if (buf[1] & 0x80) {
--		dprintk_tscheck("TEI detected. "
--				"PID=0x%x data1=0x%x\n",
-+		dprintk_tscheck("TEI detected. PID=0x%x data1=0x%x\n",
- 				pid, buf[1]);
- 		/* data in this packet can't be trusted - drop it unless
- 		 * module option dvb_demux_feed_err_pkts is set */
+ 	pdev = mtkdev->plat_dev;
+ 	pm = &mtkdev->pm;
+ 	pm->mtkdev = mtkdev;
+-	dev = &pdev->dev;
+ 	node = of_parse_phandle(pdev->dev.of_node, "mediatek,larb", 0);
+ 	if (!node) {
+ 		mtk_v4l2_err("of_parse_phandle mediatek,larb fail!");
+diff --git a/drivers/media/platform/mtk-vcodec/vdec_drv_if.c b/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
+index 3cb04ef45144..9813b2ffd5fa 100644
+--- a/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
++++ b/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
+@@ -31,6 +31,7 @@ int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
+ 	switch (fourcc) {
+ 	case V4L2_PIX_FMT_H264:
+ 	case V4L2_PIX_FMT_VP8:
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
 -- 
 2.7.4
-
 
