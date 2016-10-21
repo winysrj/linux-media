@@ -1,60 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46596
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942678AbcJSPIe (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:36148 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932861AbcJUOLl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 11:08:34 -0400
-Date: Wed, 19 Oct 2016 08:20:45 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Takashi Sakamoto <o-takashi@sakamocchi.jp>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux1394-devel@lists.sourceforge.net,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2 53/58] firewire: don't break long lines
-Message-ID: <20161019082045.00576ed0@vento.lan>
-In-Reply-To: <20161019095625.4f3579ad@kant>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-        <bce754e03eef20b560c05a33d7cf68f6030e68e7.1476822925.git.mchehab@s-opensource.com>
-        <84c06fb2-d147-689d-8d42-ce6b1f400a1f@sakamocchi.jp>
-        <20161019095625.4f3579ad@kant>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 21 Oct 2016 10:11:41 -0400
+Received: by mail-lf0-f67.google.com with SMTP id b75so6115752lfg.3
+        for <linux-media@vger.kernel.org>; Fri, 21 Oct 2016 07:11:40 -0700 (PDT)
+From: Tvrtko Ursulin <tursulin@ursulin.net>
+To: Intel-gfx@lists.freedesktop.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Chris Wilson <chris@chris-wilson.co.uk>,
+        Tvrtko Ursulin <tvrtko.ursulin@intel.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Tomasz Stanislawski <t.stanislaws@samsung.com>,
+        Matt Porter <mporter@kernel.crashing.org>,
+        Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: [PATCH 1/5] lib/scatterlist: Fix offset type in sg_alloc_table_from_pages
+Date: Fri, 21 Oct 2016 15:11:19 +0100
+Message-Id: <1477059083-3500-2-git-send-email-tvrtko.ursulin@linux.intel.com>
+In-Reply-To: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
+References: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 19 Oct 2016 09:56:25 +0200
-Stefan Richter <stefanr@s5r6.in-berlin.de> escreveu:
+From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
 
-> On Oct 19 Takashi Sakamoto wrote:
-> > --- a/drivers/media/firewire/firedtv-rc.c
-> > +++ b/drivers/media/firewire/firedtv-rc.c
-> > @@ -184,8 +184,9 @@ void fdtv_handle_rc(struct firedtv *fdtv, unsigned
-> > int code)
-> >  	else if (code >= 0x4540 && code <= 0x4542)
-> >  		code = oldtable[code - 0x4521];
-> >  	else {
-> > -		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x "
-> > -		       "from remote control\n", code);
-> > +		dev_dbg(fdtv->device,
-> > +			"invalid key code 0x%04x from remote control\n",
-> > +			code);
-> >  		return;
-> >  	}
-> >   
-> 
-> Yes, dev_XYZ(fdtv->device, ...) is better here and is already used this
-> way throughout the firedtv driver.  firedtv-rc.c somehow fell through the
-> cracks when firedtv was made to use dev_XYZ().
-> 
-> (On an unrelated note, this reminds me that I still need to take care of
-> Mauro's patches "Add a keymap for FireDTV board" and "firedtv: Port it to
-> use rc_core" from May 28, 2012.)
+Scatterlist entries have an unsigned int for the offset so
+correct the sg_alloc_table_from_pages function accordingly.
 
-Oh! I forgot about those a long time ago ;) Yeah, it would be great if
-you could look into those patches when you have some time.
+Since these are offsets withing a page, unsigned int is
+wide enough.
 
-Thanks,
-Mauro
+Also converts callers which were using unsigned long locally
+with the lower_32_bits annotation to make it explicitly
+clear what is happening.
+
+Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 4 ++--
+ drivers/rapidio/devices/rio_mport_cdev.c       | 4 ++--
+ include/linux/scatterlist.h                    | 2 +-
+ lib/scatterlist.c                              | 2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index fb6a177be461..a3aac7533241 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -478,7 +478,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ {
+ 	struct vb2_dc_buf *buf;
+ 	struct frame_vector *vec;
+-	unsigned long offset;
++	unsigned int offset;
+ 	int n_pages, i;
+ 	int ret = 0;
+ 	struct sg_table *sgt;
+@@ -506,7 +506,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+ 	buf->dev = dev;
+ 	buf->dma_dir = dma_dir;
+ 
+-	offset = vaddr & ~PAGE_MASK;
++	offset = lower_32_bits(vaddr & ~PAGE_MASK);
+ 	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+ 	if (IS_ERR(vec)) {
+ 		ret = PTR_ERR(vec);
+diff --git a/drivers/rapidio/devices/rio_mport_cdev.c b/drivers/rapidio/devices/rio_mport_cdev.c
+index 436dfe871d32..f545cf20561f 100644
+--- a/drivers/rapidio/devices/rio_mport_cdev.c
++++ b/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -876,10 +876,10 @@ rio_dma_transfer(struct file *filp, u32 transfer_mode,
+ 	 * offset within the internal buffer specified by handle parameter.
+ 	 */
+ 	if (xfer->loc_addr) {
+-		unsigned long offset;
++		unsigned int offset;
+ 		long pinned;
+ 
+-		offset = (unsigned long)(uintptr_t)xfer->loc_addr & ~PAGE_MASK;
++		offset = lower_32_bits(xfer->loc_addr & ~PAGE_MASK);
+ 		nr_pages = PAGE_ALIGN(xfer->length + offset) >> PAGE_SHIFT;
+ 
+ 		page_list = kmalloc_array(nr_pages,
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index cb3c8fe6acd7..c981bee1a3ae 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -263,7 +263,7 @@ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int,
+ int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
+ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+-	unsigned long offset, unsigned long size,
++	unsigned int offset, unsigned long size,
+ 	gfp_t gfp_mask);
+ 
+ size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 004fc70fc56a..e05e7fc98892 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -391,7 +391,7 @@ EXPORT_SYMBOL(sg_alloc_table);
+  */
+ int sg_alloc_table_from_pages(struct sg_table *sgt,
+ 	struct page **pages, unsigned int n_pages,
+-	unsigned long offset, unsigned long size,
++	unsigned int offset, unsigned long size,
+ 	gfp_t gfp_mask)
+ {
+ 	unsigned int chunks;
+-- 
+2.7.4
+
