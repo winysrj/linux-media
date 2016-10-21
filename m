@@ -1,120 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:47895 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752237AbcJMEGl (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56925
+        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751271AbcJUQ4L (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 00:06:41 -0400
-Message-ID: <e4ed6be56374c84e8f82f33cd9a5cc9f@smtp-cloud6.xs4all.net>
-Date: Thu, 13 Oct 2016 06:06:37 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 21 Oct 2016 12:56:11 -0400
+Date: Fri, 21 Oct 2016 14:55:59 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+        Stefan =?UTF-8?B?UMO2c2NoZWw=?= <basic.master@gmx.de>
+Subject: Re: [GIT PULL STABLE 4.6] af9035 regression
+Message-ID: <20161021145559.23b80d7b@vento.lan>
+In-Reply-To: <943812ea-cec5-46a1-8652-a468ebb2cb42@iki.fi>
+References: <1e077824-104b-4665-96c8-de46c1a63a5d@iki.fi>
+        <20160909114906.66c77b1b@vento.lan>
+        <943812ea-cec5-46a1-8652-a468ebb2cb42@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Fri, 9 Sep 2016 18:04:07 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Results of the daily build of media_tree:
+> On 09/09/2016 05:49 PM, Mauro Carvalho Chehab wrote:
+> > Hi Antti,
+> >
+> > Em Sat, 3 Sep 2016 02:40:52 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >  
+> >> The following changes since commit 2dcd0af568b0cf583645c8a317dd12e344b1c72a:
+> >>
+> >>    Linux 4.6 (2016-05-15 15:43:13 -0700)  
+> >
+> > Is this patchset really meant to Kernel 4.6? if so, you should send
+> > the path to stable@vger.kernel.org, c/c the mailing list.
+> >
+> > It helps to point the original patch that fixed the issue upstream,
+> > as they won't apply the fix if it was not fixed upstream yet.  
+> 
+> I think you already applied upstream patch, that one is just back-ported 
+> to 4.6.
 
-date:			Thu Oct 13 05:00:16 CEST 2016
-media-tree git hash:	9fce0c226536fc36c7fb0a80000ca38a995be43e
-media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
-v4l-utils git hash:	79186f9d3d9d3b6bee44444a611bd92435d11807
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Ah!
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+> It is that patch:
+> https://patchwork.linuxtv.org/patch/36795/
+> 
+> and it contains all the needed tags including Cc stable. Could you send 
+> it to stable?
 
-Detailed results are available here:
+Just send the patch directly to stable@vger.kernel.org. if you
+C/C me, I'll add my acked-by.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> 
+> Antti
+> 
+> >
+> > Regards,
+> > Mauro
+> >  
+> >>
+> >> are available in the git repository at:
+> >>
+> >>    git://linuxtv.org/anttip/media_tree.git af9035_fix
+> >>
+> >> for you to fetch changes up to 7bb87ff5255defe87916f32cd1fcef163a489339:
+> >>
+> >>    af9035: fix dual tuner detection with PCTV 79e (2016-09-03 02:23:44
+> >> +0300)
+> >>
+> >> ----------------------------------------------------------------
+> >> Stefan Pöschel (1):
+> >>        af9035: fix dual tuner detection with PCTV 79e
+> >>
+> >>   drivers/media/usb/dvb-usb-v2/af9035.c | 53
+> >> +++++++++++++++++++++++++++++++++++------------------
+> >>   drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
+> >>   2 files changed, 36 insertions(+), 19 deletions(-)
+> >>  
+> >
+> >
+> >
+> > Thanks,
+> > Mauro
+> >  
+> 
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Mauro
