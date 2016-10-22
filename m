@@ -1,71 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f67.google.com ([209.85.213.67]:33404 "EHLO
-        mail-vk0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755700AbcJ0Oqf (ORCPT
+Received: from elasmtp-banded.atl.sa.earthlink.net ([209.86.89.70]:37888 "EHLO
+        elasmtp-banded.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S935664AbcJVR3g (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 10:46:35 -0400
-Date: Thu, 27 Oct 2016 09:25:19 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2 9/9] drm: mali-dp: Add writeback out-fence support
-Message-ID: <20161027112519.GJ12629@joana>
-References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
- <1477472108-27222-10-git-send-email-brian.starkey@arm.com>
- <20161026214357.GH12629@joana>
- <20161027101847.GC18708@e106950-lin.cambridge.arm.com>
+        Sat, 22 Oct 2016 13:29:36 -0400
+Received: from [24.144.93.62] (helo=localhost.localdomain)
+        by elasmtp-banded.atl.sa.earthlink.net with esmtpa (Exim 4.67)
+        (envelope-from <jonathan.625266@earthlink.net>)
+        id 1by06s-0007w2-FE
+        for linux-media@vger.kernel.org; Sat, 22 Oct 2016 13:29:30 -0400
+Date: Sat, 22 Oct 2016 13:29:30 -0400
+From: Jonathan Sims <jonathan.625266@earthlink.net>
+To: linux-media@vger.kernel.org
+Subject: [RFCv2 PATCH 1/1] hdpvr: fix interrupted recording
+Message-ID: <20161022132930.4bc79a7a@earthlink.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161027101847.GC18708@e106950-lin.cambridge.arm.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-10-27 Brian Starkey <brian.starkey@arm.com>:
+This is a reworking of a patch originally submitted by Ryley Angus, modified by Hans Verkuil and then seemingly forgotten before changes suggested by Keith Pyle here:
 
-> On Wed, Oct 26, 2016 at 07:43:57PM -0200, Gustavo Padovan wrote:
-> > 2016-10-26 Brian Starkey <brian.starkey@arm.com>:
-> > 
-> > > If userspace has asked for an out-fence for the writeback, we add a
-> > > fence to malidp_mw_job, to be signaled when the writeback job has
-> > > completed.
-> > > 
-> > > Signed-off-by: Brian Starkey <brian.starkey@arm.com>
-> > > ---
-> > >  drivers/gpu/drm/arm/malidp_hw.c |    5 ++++-
-> > >  drivers/gpu/drm/arm/malidp_mw.c |   18 +++++++++++++++++-
-> > >  drivers/gpu/drm/arm/malidp_mw.h |    3 +++
-> > >  3 files changed, 24 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
-> > > index 1689547..3032226 100644
-> > > --- a/drivers/gpu/drm/arm/malidp_hw.c
-> > > +++ b/drivers/gpu/drm/arm/malidp_hw.c
-> > > @@ -707,8 +707,11 @@ static irqreturn_t malidp_se_irq(int irq, void *arg)
-> > >  		unsigned long irqflags;
-> > >  		/*
-> > >  		 * We can't unreference the framebuffer here, so we queue it
-> > > -		 * up on our threaded handler.
-> > > +		 * up on our threaded handler. However, signal the fence
-> > > +		 * as soon as possible
-> > >  		 */
-> > > +		malidp_mw_job_signal(drm, malidp->current_mw, 0);
-> > 
-> > Drivers should not deal with fences directly. We need some sort of
-> > drm_writeback_finished() that will do the signalling for you.
-> > 
-> 
-> With a signature like this?
-> 	drm_writeback_finished(struct drm_connector_state *state);
-> 
-> I'll have to think about how to achieve that. The state isn't
-> refcounted and the driver isn't in charge of it's lifetime. I'm not
-> sure how/where to ensure the state doesn't get destroyed before its
-> been signaled.
+http://linux-media.vger.kernel.narkive.com/vkxuOKwi/patch-hdpvr-fix-interrupted-recording#post3
 
-Maybe we should do something similar to the crtc vblank handlers and
-even hide the connector_state. Those helpers only take the crtc.
-They are able to hold ref to the event as well.
+were made and tested.
 
-Gustavo
+I have implemented the suggested changes and have been testing for the last 2 months. I am no longer experiencing lockups while recording (with blue light on, requiring power cycling) which had been a long standing problem with the HD-PVR. I have not noticed any other problems since applying the patch.
+
+- Jon
+
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -454,6 +454,7 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 
+ 		if (buf->status != BUFSTAT_READY &&
+ 		    dev->status != STATUS_DISCONNECTED) {
++			int err;
+ 			/* return nonblocking */
+ 			if (file->f_flags & O_NONBLOCK) {
+ 				if (!ret)
+@@ -461,9 +462,24 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 				goto err;
+ 			}
+ 
+-			if (wait_event_interruptible(dev->wait_data,
+-					      buf->status == BUFSTAT_READY))
+-				return -ERESTARTSYS;
++			err = wait_event_interruptible_timeout(dev->wait_data,
++				buf->status == BUFSTAT_READY,
++				msecs_to_jiffies(1000));
++			if (err < 0) {
++				ret = err;
++				goto err;
++			}
++			if (!err) {
++				v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
++					"timeout: restart streaming\n");
++				hdpvr_stop_streaming(dev);
++				msecs_to_jiffies(4000);
++				err = hdpvr_start_streaming(dev);
++				if (err) {
++					ret = err;
++					goto err;
++				}
++			}
+ 		}
+ 
+ 		if (buf->status != BUFSTAT_READY)
+-- 
+2.10.0
