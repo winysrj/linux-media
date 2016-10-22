@@ -1,128 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:44673 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S942717AbcJSOnC (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35011 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752111AbcJVH0m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:43:02 -0400
-Message-ID: <1476888179.3054.47.camel@pengutronix.de>
-Subject: Re: [PATCH v2 1/1] doc-rst: v4l: Add documentation on CSI-2 bus
- configuration
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Date: Wed, 19 Oct 2016 16:42:59 +0200
-In-Reply-To: <580782D8.9080906@linux.intel.com>
-References: <1476870150.3054.28.camel@pengutronix.de>
-         <1476881994-32118-1-git-send-email-sakari.ailus@linux.intel.com>
-         <1476887059.3054.42.camel@pengutronix.de>
-         <580782D8.9080906@linux.intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Sat, 22 Oct 2016 03:26:42 -0400
+From: Masanari Iida <standby24x7@gmail.com>
+To: linux-kernel@vger.kernel.org, mchehab@s-opensource.com,
+        corbet@lwn.net, linux-doc@vger.kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org
+Cc: Masanari Iida <standby24x7@gmail.com>
+Subject: [PATCH] [linux-next] v4l: doc: Fix typo in vidioc-g-tuner.rst
+Date: Sat, 22 Oct 2016 16:26:37 +0900
+Message-Id: <20161022072637.14840-1-standby24x7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 19.10.2016, 17:27 +0300 schrieb Sakari Ailus:
-> On 10/19/16 17:24, Philipp Zabel wrote:
-> > Am Mittwoch, den 19.10.2016, 15:59 +0300 schrieb Sakari Ailus:
-> >> Document the interface between the CSI-2 transmitter and receiver drivers.
-> >>
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >> Hi Philipp,
-> >>
-> >> Indeed the pixel rate is used by some driver as well.
-> >>
-> >> How about this one instead?
-> >>
-> >> The HTML page is available here (without CCS unfortunately):
-> >>
-> >> <URL:http://www.retiisi.org.uk/v4l2/tmp/csi2.html>
-> >>
-> >> since v1:
-> >>  
-> >> - Add PIXEL_RATE to the required controls.
-> >>
-> >> - Document how pixel rate is calculated from the link frequency.
-> >>
-> >>  Documentation/media/kapi/csi2.rst  | 59 ++++++++++++++++++++++++++++++++++++++
-> >>  Documentation/media/media_kapi.rst |  1 +
-> >>  2 files changed, 60 insertions(+)
-> >>  create mode 100644 Documentation/media/kapi/csi2.rst
-> >>
-> >> diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
-> >> new file mode 100644
-> >> index 0000000..31f927d
-> >> --- /dev/null
-> >> +++ b/Documentation/media/kapi/csi2.rst
-> >> @@ -0,0 +1,59 @@
-> >> +MIPI CSI-2
-> >> +==========
-> >> +
-> >> +CSI-2 is a data bus intended for transferring images from cameras to
-> >> +the host SoC. It is defined by the `MIPI alliance`_.
-> >> +
-> >> +.. _`MIPI alliance`: http://www.mipi.org/
-> >> +
-> >> +Transmitter drivers
-> >> +-------------------
-> >> +
-> >> +CSI-2 transmitter, such as a sensor or a TV tuner, drivers need to
-> >> +provide the CSI-2 receiver with information on the CSI-2 bus
-> >> +configuration. These include the V4L2_CID_LINK_FREQ and
-> >> +V4L2_CID_PIXEL_RATE controls and
-> >> +(:c:type:`v4l2_subdev_video_ops`->s_stream() callback). These
-> >> +interface elements must be present on the sub-device represents the
-> >> +CSI-2 transmitter.
-> >> +
-> >> +The V4L2_CID_LINK_FREQ control is used to tell the receiver driver the
-> >> +frequency (and not the symbol rate) of the link. The
-> >> +V4L2_CID_PIXEL_RATE is may be used by the receiver to obtain the pixel
-> >> +rate the transmitter uses. The
-> >> +:c:type:`v4l2_subdev_video_ops`->s_stream() callback provides an
-> >> +ability to start and stop the stream.
-> >> +
-> >> +The value of the V4L2_CID_PIXEL_RATE is calculated as follows::
-> >> +
-> >> +	pixel_rate = link_freq * 2 * nr_of_lanes
-> > 
-> > This is the total bps, which must be divided by the bits per pixel
-> > depending on the selected MEDIA_BUS_FMT, for example
-> > /16 for MEDIA_BUS_FMT_UYVY8_1X16, or /24 for MEDIA_BUS_FMT_RGB888_1X24,
-> > to obtain pixel_rate.
-> 
-> Uh, indeed. I'll change this.
-> 
-> > 
-> >> +where
-> >> +
-> >> +.. list-table:: variables in pixel rate calculation
-> >> +   :header-rows: 1
-> >> +
-> >> +   * - variable or constant
-> >> +     - description
-> >> +   * - link_freq
-> >> +     - The value of the V4L2_CID_LINK_FREQ integer64 menu item.
-> >> +   * - nr_of_lanes
-> >> +     - Number of data lanes used on the CSI-2 link. This can
-> >> +       be obtained from the OF endpoint configuration.
-> > 
-> > I suppose the number of lanes should be calculated as
-> > 	nr_of_lanes = DIV_ROUND_UP(pixel_rate * bpp, link_freq * 2)
-> > in the receiver driver? Not all lanes configured in the device tree have
-> > to be used, depending on the configured link frequencies and bus format.
-> 
-> Do we have any user for that yet?
-> 
-> I know there's hardware where this would be necessary in order to
-> support all image sizes and formats for instance, but there's no driver yet.
+This patch fix spelling typos found in vidioc-g-tuner.xml.
+This xml file was created from vidioc-g-tuner.rst,
+I have to fix typos in vidioc-g-tuner.rst.
 
-The TC358743 driver is currently hardcoded to 297 MHz link frequency and
-scales via the number of data lanes in use (1-4). Should the receiver
-just ask it directly about the number of lanes in use via the
-g_mbus_config video op?
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ Documentation/media/uapi/v4l/vidioc-g-tuner.rst | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-regards
-Philipp
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-tuner.rst b/Documentation/media/uapi/v4l/vidioc-g-tuner.rst
+index e8aa8cd7065f..57c79fa43866 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-tuner.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-tuner.rst
+@@ -201,10 +201,10 @@ To change the radio frequency the
+     * - ``V4L2_TUNER_SDR``
+       - 4
+       - Tuner controls the A/D and/or D/A block of a
+-	Sofware Digital Radio (SDR)
++	Software Digital Radio (SDR)
+     * - ``V4L2_TUNER_RF``
+       - 5
+-      - Tuner controls the RF part of a Sofware Digital Radio (SDR)
++      - Tuner controls the RF part of a Software Digital Radio (SDR)
+ 
+ 
+ .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+-- 
+2.10.1.502.g6598894
 
