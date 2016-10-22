@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f47.google.com ([209.85.213.47]:35808 "EHLO
-        mail-vk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752289AbcJDQLv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 4 Oct 2016 12:11:51 -0400
-MIME-Version: 1.0
-In-Reply-To: <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
- <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
-From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
-Date: Tue, 4 Oct 2016 18:11:50 +0200
-Message-ID: <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
-Subject: Re: Problem with VMAP_STACK=y
-To: Jiri Kosina <jikos@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from smtp2.goneo.de ([85.220.129.33]:38578 "EHLO smtp2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935812AbcJVQqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 22 Oct 2016 12:46:34 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [PATCH 0/4] reST-directive kernel-cmd / include contentent from scripts
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <20161022090421.722a6851@lwn.net>
+Date: Sat, 22 Oct 2016 18:46:00 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "linux-doc@vger.kernel.org Mailing List" <linux-doc@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Message-Id: <93A0CA1D-65D7-4C1D-8C76-B613826DF428@darmarit.de>
+References: <1475738420-8747-1-git-send-email-markus.heiser@darmarit.de> <87oa2xrhqx.fsf@intel.com> <20161006103132.3a56802a@vento.lan> <87lgy15zin.fsf@intel.com> <20161006135028.2880f5a5@vento.lan> <8737k8ya6f.fsf@intel.com> <8E74FF11-208D-4C76-8A8C-2B2102E5CB20@darmarit.de> <20161021160543.264b8cf2@lwn.net> <20161022085629.6ebbc4f6@vento.lan> <20161022090421.722a6851@lwn.net>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jani Nikula <jani.nikula@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-10-04 15:26 GMT+02:00 Jiri Kosina <jikos@kernel.org>:
-> On Tue, 4 Oct 2016, J=C3=B6rg Otte wrote:
->
->> With kernel 4.8.0-01558-g21f54dd I get thousands of
->> "dvb-usb: bulk message failed: -11 (1/0)"
->> messages in the logs and the DVB adapter is not working.
->>
->> It tourned out the new config option VMAP_STACK=3Dy (which is the defaul=
-t)
->> is the culprit.
->> No problems for me with VMAP_STACK=3Dn.
->
-> I'd guess that this is EAGAIN coming from usb_hcd_map_urb_for_dma() as th=
-e
-> DVB driver is trying to perform on-stack DMA.
->
-> Not really knowing which driver exactly you're using, I quickly skimmed
-> through DVB sources, and it turns out this indeed seems to be rather
-> common antipattern, and it should be fixed nevertheless. See
->
->         cxusb_ctrl_msg()
->         dibusb_power_ctrl()
->         dibusb2_0_streaming_ctrl()
->         dibusb2_0_power_ctrl()
->         digitv_ctrl_msg()
->         dtt200u_fe_init()
->         dtt200u_fe_set_frontend()
->         dtt200u_power_ctrl()
->         dtt200u_streaming_ctrl()
->         dtt200u_pid_filter()
->
-> Adding relevant CCs.
->
-> --
-> Jiri Kosina
-> SUSE Labs
 
-Thanks for the quick response.
-Drivers are:
-dvb_core, dvb_usb, dbv_usb_cynergyT2
+Am 22.10.2016 um 17:04 schrieb Jonathan Corbet <corbet@lwn.net>:
 
+> On Sat, 22 Oct 2016 08:56:29 -0200
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+>> The security implications will be the same if either coded as an
+>> "ioctl()" or as "syscall", the scripts should be audited. Actually,
+>> if we force the need of a "syscall" for every such script, we have
+>> twice the code to audit, as both the Sphinx extension and the perl
+>> script will need to audit, increasing the attack surface.
+> 
+> Just addressing this one part for the moment.  Clearly I've not explained
+> my concern well.
+> 
+> The kernel-cmd directive makes it possible for *any* RST file to run
+> arbitrary shell commands.  I'm not concerned about the scripts we add, I
+> hope we can get those right.  I'm worried about what slips in via a tweak
+> to some obscure .rst file somewhere.
 
-J=C3=B6rg
+> 
+> A quick check says that 932 commits touched Documentation/ since 4.8.  A
+> lot of those did not come from either my tree or yours; *everybody* messes
+> around in the docs tree.  People know to look closely at changes to
+> makefiles and such; nobody thinks to examine documentation changes for
+> such things. I think there are attackers out there who would like the
+> opportunity to run commands in the settings where kernels are built; we
+> need to think pretty hard before we make that easier to do.
+
+Hmm, I understand, it would not be good, if every .rst (and c-file with
+kernel-doc in) becomes the potential to be a *executable* ...
+
+Might it be a compromise, if we reduce kernel-cmd to start only selected
+scripts from Documentation/sphinx ?
+
+-- Markus --
+
