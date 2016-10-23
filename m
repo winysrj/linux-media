@@ -1,145 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:42325 "EHLO mout02.posteo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752548AbcJJGjT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 02:39:19 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id 88AC420B36
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:39:17 +0200 (CEST)
-Date: Mon, 10 Oct 2016 08:39:15 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>
-Subject: Re: [PATCH 05/26] cinergyT2-fe: don't do DMA on stack
-Message-ID: <20161010083915.392a6d95@posteo.de>
-In-Reply-To: <9d415b35135ba2d457df12859b64eacbc05bc2e4.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-        <9d415b35135ba2d457df12859b64eacbc05bc2e4.1475860773.git.mchehab@s-opensource.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60556 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755088AbcJWSR4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Oct 2016 14:17:56 -0400
+Date: Sun, 23 Oct 2016 20:17:52 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 0/2] media: add et8ek8 camera sensor driver and
+ documentation
+Message-ID: <20161023181752.GA11728@amd>
+References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20161023073322.GA3523@amd>
+ <53284bf5-9a36-fbcb-5cac-4a64823c3516@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="bp/iNruPH9dso1Pn"
+Content-Disposition: inline
+In-Reply-To: <53284bf5-9a36-fbcb-5cac-4a64823c3516@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  7 Oct 2016 14:24:15 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/usb/dvb-usb/cinergyT2-fe.c | 45
-> ++++++++++++++++---------------- 1 file changed, 23 insertions(+), 22
-> deletions(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
-> b/drivers/media/usb/dvb-usb/cinergyT2-fe.c index
-> fd8edcb56e61..03ba66ef1f28 100644 ---
-> a/drivers/media/usb/dvb-usb/cinergyT2-fe.c +++
-> b/drivers/media/usb/dvb-usb/cinergyT2-fe.c @@ -139,6 +139,9 @@ static
-> uint16_t compute_tps(struct dtv_frontend_properties *op) struct
-> cinergyt2_fe_state { struct dvb_frontend fe;
->  	struct dvb_usb_device *d;
-> +
-> +	unsigned char data[64];
-> +
->  	struct dvbt_get_status_msg status;
->  };
->  
-> @@ -146,28 +149,28 @@ static int cinergyt2_fe_read_status(struct
-> dvb_frontend *fe, enum fe_status *status)
->  {
->  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
-> -	struct dvbt_get_status_msg result;
-> -	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
->  	int ret;
->  
-> -	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8
-> *)&result,
-> -			sizeof(result), 0);
-> +	state->data[0] = CINERGYT2_EP1_GET_TUNER_STATUS;
-> +
-> +	ret = dvb_usb_generic_rw(state->d, state->data, 1,
-> +				 state->data, sizeof(state->status),
-> 0); if (ret < 0)
->  		return ret;
->  
-> -	state->status = result;
-> +	memcpy(&state->status, state->data, sizeof(state->status));
->  
->  	*status = 0;
->  
-> -	if (0xffff - le16_to_cpu(result.gain) > 30)
-> +	if (0xffff - le16_to_cpu(state->status.gain) > 30)
->  		*status |= FE_HAS_SIGNAL;
-> -	if (result.lock_bits & (1 << 6))
-> +	if (state->status.lock_bits & (1 << 6))
->  		*status |= FE_HAS_LOCK;
-> -	if (result.lock_bits & (1 << 5))
-> +	if (state->status.lock_bits & (1 << 5))
->  		*status |= FE_HAS_SYNC;
-> -	if (result.lock_bits & (1 << 4))
-> +	if (state->status.lock_bits & (1 << 4))
->  		*status |= FE_HAS_CARRIER;
-> -	if (result.lock_bits & (1 << 1))
-> +	if (state->status.lock_bits & (1 << 1))
->  		*status |= FE_HAS_VITERBI;
->  
->  	if ((*status & (FE_HAS_CARRIER | FE_HAS_VITERBI |
-> FE_HAS_SYNC)) != @@ -232,31 +235,29 @@ static int
-> cinergyt2_fe_set_frontend(struct dvb_frontend *fe) {
->  	struct dtv_frontend_properties *fep =
-> &fe->dtv_property_cache; struct cinergyt2_fe_state *state =
-> fe->demodulator_priv;
-> -	struct dvbt_set_parameters_msg param;
-> -	char result[2];
-> +	struct dvbt_set_parameters_msg *param = (void *)state->data;
->  	int err;
->  
-> -	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
-> -	param.tps = cpu_to_le16(compute_tps(fep));
-> -	param.freq = cpu_to_le32(fep->frequency / 1000);
-> -	param.flags = 0;
-> +	param->cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
-> +	param->tps = cpu_to_le16(compute_tps(fep));
-> +	param->freq = cpu_to_le32(fep->frequency / 1000);
-> +	param->flags = 0;
->  
->  	switch (fep->bandwidth_hz) {
->  	default:
->  	case 8000000:
-> -		param.bandwidth = 8;
-> +		param->bandwidth = 8;
->  		break;
->  	case 7000000:
-> -		param.bandwidth = 7;
-> +		param->bandwidth = 7;
->  		break;
->  	case 6000000:
-> -		param.bandwidth = 6;
-> +		param->bandwidth = 6;
->  		break;
->  	}
->  
-> -	err = dvb_usb_generic_rw(state->d,
-> -			(char *)&param, sizeof(param),
-> -			result, sizeof(result), 0);
-> +	err = dvb_usb_generic_rw(state->d, state->data,
-> sizeof(*param),
-> +				 state->data, 2, 0);
->  	if (err < 0)
->  		err("cinergyt2_fe_set_frontend() Failed! err=%d\n",
-> err); 
+--bp/iNruPH9dso1Pn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+Hi!
+
+> >>This series adds driver for Toshiba et8ek8 camera sensor found in Nokia=
+ N900
+> >>
+> >>Changes from v2:
+> >>
+> >> - fix build when CONFIG_PM is not defined
+> >>
+> >>Changes from v1:
+> >>
+> >> - driver and documentation split into separate patches
+> >> - removed custom controls
+> >> - code changed according to the comments on v1
+> >
+> >>Ivaylo Dimitrov (2):
+> >>  media: Driver for Toshiba et8ek8 5MP sensor
+> >>  media: et8ek8: Add documentation
+> >
+> >Is there any progress here? Is there any way I could help?
+> >
+>=20
+> There were some notes I need to address, unfortunately no spare time late=
+ly
+> :( . Feel free to fix those for me and resend the patches. If not, I real=
+ly
+> don't know when I will have the time needed to focus on it.
+
+So good start would be taking these two, address the comments, and try
+to merge them?
+
+Date: Sat, 11 Jun 2016 18:39:52 +0300
+Subject: [PATCH v3 1/2] media: Driver for Toshiba et8ek8 5MP sensor
+
+Date: Wed, 15 Jun 2016 22:24:40 +0300
+Subject: Re: [PATCH v3 2/2] media: et8ek8: Add documentation
+
+Thanks and best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--bp/iNruPH9dso1Pn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgM/tAACgkQMOfwapXb+vLXZwCgkKFaHLnibgr1W/pCPbJD31au
+UUcAoKJtDjhWyrtd6HuxxOtAYKUv9x4X
+=dR7m
+-----END PGP SIGNATURE-----
+
+--bp/iNruPH9dso1Pn--
