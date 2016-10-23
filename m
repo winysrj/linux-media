@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48623 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754187AbcJNRrG (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:33541 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752092AbcJWKOb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:47:06 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 22/25] [media] flexcop-i2c: mark printk continuation lines as such
-Date: Fri, 14 Oct 2016 14:46:00 -0300
-Message-Id: <39002b3c6e3aa873614da7b0617f0001020ab5ef.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Sun, 23 Oct 2016 06:14:31 -0400
+Received: by mail-qk0-f195.google.com with SMTP id f128so10703323qkb.0
+        for <linux-media@vger.kernel.org>; Sun, 23 Oct 2016 03:14:31 -0700 (PDT)
+Received: from mail-qk0-f178.google.com (mail-qk0-f178.google.com. [209.85.220.178])
+        by smtp.gmail.com with ESMTPSA id b12sm7220632qta.4.2016.10.23.03.14.29
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Sun, 23 Oct 2016 03:14:30 -0700 (PDT)
+Received: by mail-qk0-f178.google.com with SMTP id f128so196745960qkb.1
+        for <linux-media@vger.kernel.org>; Sun, 23 Oct 2016 03:14:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20161023100312.GA6792@dell-m4800.home>
+References: <000901d22a39$9de21e70$d9a65b50$@yahoo.de> <20161019171419.3343cdd5@vento.lan>
+ <009201d22c8a$c93b9580$5bb2c080$@yahoo.de> <20161023100312.GA6792@dell-m4800.home>
+From: Olli Salonen <olli.salonen@iki.fi>
+Date: Sun, 23 Oct 2016 13:14:29 +0300
+Message-ID: <CAAZRmGzT_8LUB8-gJPfwMS0m2VME5Frp-FBugbnr-YCsQ+VE=A@mail.gmail.com>
+Subject: Re: em28xx WinTV dualHD in Raspbian
+To: Andrey Utkin <andrey_utkin@fastmail.com>
+Cc: ps00de@yahoo.de, Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has printk continuation lines for debugging purposes.
+Hi Andrey,
 
-Since commit 563873318d32 ("Merge branch 'printk-cleanups'"),
-this won't work as expected anymore. So, let's add KERN_CONT to
-those lines.
+When I submitted the original patch to add support for this device I
+stated that it only supports the first tuner. The em28xx driver is not
+built with dual-tuner support in mind and I had not enough interest to
+start changing it (the driver supports like 100 devices and is quite
+massive). There should not be many issues in using the second tuner
+itself on this device, it's just another I2C bus...
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/common/b2c2/flexcop-i2c.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/common/b2c2/flexcop-i2c.c b/drivers/media/common/b2c2/flexcop-i2c.c
-index 965d5eb33752..e41cd23f8e45 100644
---- a/drivers/media/common/b2c2/flexcop-i2c.c
-+++ b/drivers/media/common/b2c2/flexcop-i2c.c
-@@ -124,10 +124,10 @@ int flexcop_i2c_request(struct flexcop_i2c_adapter *i2c,
- #ifdef DUMP_I2C_MESSAGES
- 	printk(KERN_DEBUG "%d ", i2c->port);
- 	if (op == FC_READ)
--		printk("rd(");
-+		printk(KERN_CONT "rd(");
- 	else
--		printk("wr(");
--	printk("%02x): %02x ", chipaddr, addr);
-+		printk(KERN_CONT "wr(");
-+	printk(KERN_CONT "%02x): %02x ", chipaddr, addr);
- #endif
- 
- 	/* in that case addr is the only value ->
-@@ -151,7 +151,7 @@ int flexcop_i2c_request(struct flexcop_i2c_adapter *i2c,
- 
- #ifdef DUMP_I2C_MESSAGES
- 		for (i = 0; i < bytes_to_transfer; i++)
--			printk("%02x ", buf[i]);
-+			printk(KERN_CONT "%02x ", buf[i]);
- #endif
- 
- 		if (ret < 0)
-@@ -163,7 +163,7 @@ int flexcop_i2c_request(struct flexcop_i2c_adapter *i2c,
- 	}
- 
- #ifdef DUMP_I2C_MESSAGES
--	printk("\n");
-+	printk(KERN_CONT "\n");
- #endif
- 
- 	return 0;
--- 
-2.7.4
+Cheers,
+-olli
 
 
+On 23 October 2016 at 13:03, Andrey Utkin <andrey_utkin@fastmail.com> wrote:
+> On Sat, Oct 22, 2016 at 07:36:13PM +0200, ps00de@yahoo.de wrote:
+>> Hopefully some driver expert can get the second tuner working, that would be
+>> awesome
+>
+> What's the problem? I don't see it described in this discussion thread.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
