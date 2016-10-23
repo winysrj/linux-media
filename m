@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:61716 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933248AbcJMQqV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 12:46:21 -0400
-Subject: [PATCH 16/18] [media] RedRat3: Move a variable assignment in
- redrat3_set_timeout()
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34353 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754925AbcJWRG3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Oct 2016 13:06:29 -0400
+Subject: Re: [PATCH 1/1] [media] ite-cir: initialize use_demodulator before
+ using it
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <1877a803-14b2-b064-f051-841b82fb2076@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 18:45:44 +0200
+        linux-media@vger.kernel.org
+References: <20160910165949.3507-1-nicolas.iooss_linux@m4x.org>
+Cc: linux-kernel@vger.kernel.org
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Message-ID: <6c5b02a0-dff7-0244-657f-61621b73c66a@m4x.org>
+Date: Sun, 23 Oct 2016 19:06:24 +0200
 MIME-Version: 1.0
-In-Reply-To: <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20160910165949.3507-1-nicolas.iooss_linux@m4x.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 13 Oct 2016 17:13:41 +0200
+Hello,
 
-Move the assignment for the local variable "rr3" behind the source code
-for a memory allocation by this function.
+I sent the following patch (available on
+https://patchwork.kernel.org/patch/9325039/) a few weeks ago and got no
+feedback even though the bug it fixes seems to still exist in
+linux-next. Did I do something wrong, like sending to the wrong maintainers?
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/rc/redrat3.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Thanks,
+Nicolas
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index e46a92a..06c9eea 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -475,7 +475,7 @@ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
- 
- static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
- {
--	struct redrat3_dev *rr3 = rc_dev->priv;
-+	struct redrat3_dev *rr3;
- 	__be32 *timeout;
- 	int ret;
- 
-@@ -484,6 +484,7 @@ static int redrat3_set_timeout(struct rc_dev *rc_dev, unsigned int timeoutns)
- 		return -ENOMEM;
- 
- 	*timeout = cpu_to_be32(redrat3_us_to_len(timeoutns / 1000));
-+	rr3 = rc_dev->priv;
- 	ret = usb_control_msg(rr3->udev,
- 			      usb_sndctrlpipe(rr3->udev, 0),
- 			      RR3_SET_IR_PARAM,
--- 
-2.10.1
+On 10/09/16 18:59, Nicolas Iooss wrote:
+> Function ite_set_carrier_params() uses variable use_demodulator after
+> having initialized it to false in some if branches, but this variable is
+> never set to true otherwise.
+> 
+> This bug has been found using clang -Wsometimes-uninitialized warning
+> flag.
+> 
+> Fixes: 620a32bba4a2 ("[media] rc: New rc-based ite-cir driver for
+> several ITE CIRs")
+> Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+> ---
+>  drivers/media/rc/ite-cir.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+> index 0f301903aa6f..63165d324fff 100644
+> --- a/drivers/media/rc/ite-cir.c
+> +++ b/drivers/media/rc/ite-cir.c
+> @@ -263,6 +263,8 @@ static void ite_set_carrier_params(struct ite_dev *dev)
+>  
+>  			if (allowance > ITE_RXDCR_MAX)
+>  				allowance = ITE_RXDCR_MAX;
+> +
+> +			use_demodulator = true;
+>  		}
+>  	}
+>  
+> 
 
