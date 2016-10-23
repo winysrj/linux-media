@@ -1,94 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:33096 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755392AbcJ0JO2 (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:40016 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752339AbcJWUGC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 05:14:28 -0400
-Received: by mail-wm0-f67.google.com with SMTP id m83so1653030wmc.0
-        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 02:14:27 -0700 (PDT)
-Received: from arch-desktop ([2a02:908:672:a420:922b:34ff:fe11:2b9f])
-        by smtp.gmail.com with ESMTPSA id n6sm7033717wjg.30.2016.10.27.01.20.30
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Thu, 27 Oct 2016 01:20:30 -0700 (PDT)
-Date: Thu, 27 Oct 2016 10:20:24 +0200
-From: Marcel Hasler <mahasler@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] stk1160: Check whether to use AC97 codec or internal ADC.
-Message-ID: <20161027082024.GA3576@arch-desktop>
+        Sun, 23 Oct 2016 16:06:02 -0400
+Date: Sun, 23 Oct 2016 21:05:58 +0100
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/1] [media] mb86a20s: always initialize a return value
+Message-ID: <20161023200558.GA14624@dell-m4800.home>
+References: <20160910164901.2901-1-nicolas.iooss_linux@m4x.org>
+ <93d6d621-88eb-a573-40a8-94571f95b327@m4x.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <93d6d621-88eb-a573-40a8-94571f95b327@m4x.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some STK1160-based devices use the chip's internal 8-bit ADC. This is configured through a strap
-pin. The value of this and other pins can be read through the POSVA register. If the internal
-ADC is used, there's no point trying to setup the unavailable AC97 codec.
+On Sun, Oct 23, 2016 at 07:09:10PM +0200, Nicolas Iooss wrote:
+> Hello,
+> 
+> I sent the following patch (available on
+> https://patchwork.kernel.org/patch/9325035/) a few weeks ago and got no
+> feedback even though the bug it fixes seems to still exist in
+> linux-next. Did I do something wrong? Should I consider this patch to be
+> rejected?
 
-Signed-off-by: Marcel Hasler <mahasler@gmail.com>
----
- drivers/media/usb/stk1160/stk1160-ac97.c | 15 +++++++++++++++
- drivers/media/usb/stk1160/stk1160-core.c |  3 +--
- drivers/media/usb/stk1160/stk1160-reg.h  |  3 +++
- 3 files changed, 19 insertions(+), 2 deletions(-)
+No, it's extremely unlikely that bug fixing patches get silently
+rejected by being ignored. Most probably the time of your submission is
+unfortunate, being at the time when submissions are not merged.
+I am in same situation with a couple of patches. I asked Mauro yesterday
+on IRC and he replied:
 
-diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
-index d3665ce..0199fad 100644
---- a/drivers/media/usb/stk1160/stk1160-ac97.c
-+++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-@@ -90,8 +90,23 @@ void stk1160_ac97_dump_regs(struct stk1160 *dev)
- }
- #endif
- 
-+int stk1160_has_ac97(struct stk1160 *dev)
-+{
-+	u8 value;
-+
-+	stk1160_read_reg(dev, STK1160_POSVA, &value);
-+
-+	/* Bit 2 high means internal ADC */
-+	return !(value & 0x04);
-+}
-+
- void stk1160_ac97_setup(struct stk1160 *dev)
- {
-+	if (!stk1160_has_ac97(dev)) {
-+		stk1160_dbg("Device uses internal ADC, skipping AC97 setup.");
-+		return;
-+	}
-+
- 	/* Two-step reset AC97 interface and hardware codec */
- 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
- 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
-diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb/stk1160/stk1160-core.c
-index f3c9b8a..c86eb61 100644
---- a/drivers/media/usb/stk1160/stk1160-core.c
-+++ b/drivers/media/usb/stk1160/stk1160-core.c
-@@ -20,8 +20,7 @@
-  *
-  * TODO:
-  *
-- * 1. (Try to) detect if we must register ac97 mixer
-- * 2. Support stream at lower speed: lower frame rate or lower frame size.
-+ * 1. Support stream at lower speed: lower frame rate or lower frame size.
-  *
-  */
- 
-diff --git a/drivers/media/usb/stk1160/stk1160-reg.h b/drivers/media/usb/stk1160/stk1160-reg.h
-index 81ff3a1..a4ab586 100644
---- a/drivers/media/usb/stk1160/stk1160-reg.h
-+++ b/drivers/media/usb/stk1160/stk1160-reg.h
-@@ -26,6 +26,9 @@
- /* Remote Wakup Control */
- #define STK1160_RMCTL			0x00c
- 
-+/* Power-on Strapping Data */
-+#define STK1160_POSVA			0x010
-+
- /*
-  * Decoder Control Register:
-  * This byte controls capture start/stop
--- 
-2.10.1
+I don't handle submissions during 3 weeks, during the merge window
+one week before, and the two weeks after that
+except when it is a bug that would affect the merge window
+(end  of quote)
 
+So unless you make it clear about which "release branches" are affected,
+your submission is to be delayed - possibly up to 6 weeks or so.
+
+I was suggested to add tags Fixes: buggy-commit-id and
+Cc: stable@vger.kernel.org
