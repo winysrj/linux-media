@@ -1,144 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39789 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752313AbcJKKhw (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34677 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754925AbcJWRJN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:37:52 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
+        Sun, 23 Oct 2016 13:09:13 -0400
+Subject: Re: [PATCH 1/1] [media] mb86a20s: always initialize a return value
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kees Cook <keescook@chromium.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Nicolas Sugino <nsugino@3way.com.ar>,
-        Alejandro Torrado <aletorrado@gmail.com>
-Subject: [PATCH v2 07/31] dib0700: be sure that dib0700_ctrl_rd() users can do DMA
-Date: Tue, 11 Oct 2016 07:09:22 -0300
-Message-Id: <73fbb9abc0daf5f733781ba77ff741e4f6bc3a01.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        linux-media@vger.kernel.org
+References: <20160910164901.2901-1-nicolas.iooss_linux@m4x.org>
+Cc: linux-kernel@vger.kernel.org
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Message-ID: <93d6d621-88eb-a573-40a8-94571f95b327@m4x.org>
+Date: Sun, 23 Oct 2016 19:09:10 +0200
+MIME-Version: 1.0
+In-Reply-To: <20160910164901.2901-1-nicolas.iooss_linux@m4x.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dib0700_ctrl_rd() takes a RX and a TX pointer. Be sure that
-both will point to a memory allocated via kmalloc().
+Hello,
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/dib0700_core.c    |  4 +++-
- drivers/media/usb/dvb-usb/dib0700_devices.c | 25 +++++++++++++------------
- 2 files changed, 16 insertions(+), 13 deletions(-)
+I sent the following patch (available on
+https://patchwork.kernel.org/patch/9325035/) a few weeks ago and got no
+feedback even though the bug it fixes seems to still exist in
+linux-next. Did I do something wrong? Should I consider this patch to be
+rejected?
 
-diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
-index f3196658fb70..515f89dba199 100644
---- a/drivers/media/usb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_core.c
-@@ -292,13 +292,15 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 
- 			/* special thing in the current firmware: when length is zero the read-failed */
- 			len = dib0700_ctrl_rd(d, st->buf, msg[i].len + 2,
--					msg[i+1].buf, msg[i+1].len);
-+					      st->buf, msg[i + 1].len);
- 			if (len <= 0) {
- 				deb_info("I2C read failed on address 0x%02x\n",
- 						msg[i].addr);
- 				break;
- 			}
- 
-+			memcpy(msg[i + 1].buf, st->buf, msg[i + 1].len);
-+
- 			msg[i+1].len = len;
- 
- 			i++;
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index 0857b56e652c..ef1b8ee75c57 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -508,8 +508,6 @@ static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap)
- 
- #define DEFAULT_RC_INTERVAL 50
- 
--static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
--
- /*
-  * This function is used only when firmware is < 1.20 version. Newer
-  * firmwares use bulk mode, with functions implemented at dib0700_core,
-@@ -517,7 +515,6 @@ static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
-  */
- static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
- {
--	u8 key[4];
- 	enum rc_type protocol;
- 	u32 scancode;
- 	u8 toggle;
-@@ -532,39 +529,43 @@ static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
- 		return 0;
- 	}
- 
--	i = dib0700_ctrl_rd(d, rc_request, 2, key, 4);
-+	st->buf[0] = REQUEST_POLL_RC;
-+	st->buf[1] = 0;
-+
-+	i = dib0700_ctrl_rd(d, st->buf, 2, st->buf, 4);
- 	if (i <= 0) {
- 		err("RC Query Failed");
--		return -1;
-+		return -EIO;
- 	}
- 
- 	/* losing half of KEY_0 events from Philipps rc5 remotes.. */
--	if (key[0] == 0 && key[1] == 0 && key[2] == 0 && key[3] == 0)
-+	if (st->buf[0] == 0 && st->buf[1] == 0
-+	    && st->buf[2] == 0 && st->buf[3] == 0)
- 		return 0;
- 
--	/* info("%d: %2X %2X %2X %2X",dvb_usb_dib0700_ir_proto,(int)key[3-2],(int)key[3-3],(int)key[3-1],(int)key[3]);  */
-+	/* info("%d: %2X %2X %2X %2X",dvb_usb_dib0700_ir_proto,(int)st->buf[3 - 2],(int)st->buf[3 - 3],(int)st->buf[3 - 1],(int)st->buf[3]);  */
- 
- 	dib0700_rc_setup(d, NULL); /* reset ir sensor data to prevent false events */
- 
- 	switch (d->props.rc.core.protocol) {
- 	case RC_BIT_NEC:
- 		/* NEC protocol sends repeat code as 0 0 0 FF */
--		if ((key[3-2] == 0x00) && (key[3-3] == 0x00) &&
--		    (key[3] == 0xff)) {
-+		if ((st->buf[3 - 2] == 0x00) && (st->buf[3 - 3] == 0x00) &&
-+		    (st->buf[3] == 0xff)) {
- 			rc_repeat(d->rc_dev);
- 			return 0;
- 		}
- 
- 		protocol = RC_TYPE_NEC;
--		scancode = RC_SCANCODE_NEC(key[3-2], key[3-3]);
-+		scancode = RC_SCANCODE_NEC(st->buf[3 - 2], st->buf[3 - 3]);
- 		toggle = 0;
- 		break;
- 
- 	default:
- 		/* RC-5 protocol changes toggle bit on new keypress */
- 		protocol = RC_TYPE_RC5;
--		scancode = RC_SCANCODE_RC5(key[3-2], key[3-3]);
--		toggle = key[3-1];
-+		scancode = RC_SCANCODE_RC5(st->buf[3 - 2], st->buf[3 - 3]);
-+		toggle = st->buf[3 - 1];
- 		break;
- 	}
- 
--- 
-2.7.4
+Thanks,
+Nicolas
 
+On 10/09/16 18:49, Nicolas Iooss wrote:
+> In mb86a20s_read_status_and_stats(), when mb86a20s_read_status() fails,
+> the function returns the value in variable rc without initializing it
+> first. Fix this by propagating the error code from variable status_nr.
+> 
+> This bug has been found using clang and -Wsometimes-uninitialized
+> warning flag.
+> 
+> Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+> ---
+>  drivers/media/dvb-frontends/mb86a20s.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+> index 41325328a22e..eca07432645e 100644
+> --- a/drivers/media/dvb-frontends/mb86a20s.c
+> +++ b/drivers/media/dvb-frontends/mb86a20s.c
+> @@ -1971,6 +1971,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+>  	if (status_nr < 0) {
+>  		dev_err(&state->i2c->dev,
+>  			"%s: Can't read frontend lock status\n", __func__);
+> +		rc = status_nr;
+>  		goto error;
+>  	}
+>  
+> 
 
