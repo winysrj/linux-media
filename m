@@ -1,73 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:33863 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753431AbcJEHOh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 5 Oct 2016 03:14:37 -0400
-Received: from nauris.fi.intel.com (nauris.localdomain [192.168.240.2])
-        by paasikivi.fi.intel.com (Postfix) with ESMTP id 3A48420077
-        for <linux-media@vger.kernel.org>; Wed,  5 Oct 2016 10:14:29 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: flash led class: Fix of_node release in probe() error path
-Date: Wed,  5 Oct 2016 10:13:10 +0300
-Message-Id: <1475651590-22111-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:47836 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751664AbcJWHd1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 23 Oct 2016 03:33:27 -0400
+Date: Sun, 23 Oct 2016 09:33:22 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 0/2] media: add et8ek8 camera sensor driver and
+ documentation
+Message-ID: <20161023073322.GA3523@amd>
+References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="azLHFNyN32YCQGCU"
+Content-Disposition: inline
+In-Reply-To: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sub-device's OF node was used (of_node_get()) if it was set, but
-device's OF node was always put. Fix this.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-flash-led-class.c | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+--azLHFNyN32YCQGCU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/v4l2-core/v4l2-flash-led-class.c b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-index ae7544d..6b31c0a 100644
---- a/drivers/media/v4l2-core/v4l2-flash-led-class.c
-+++ b/drivers/media/v4l2-core/v4l2-flash-led-class.c
-@@ -638,7 +638,7 @@ struct v4l2_flash *v4l2_flash_init(
- 	v4l2_flash->iled_cdev = iled_cdev;
- 	v4l2_flash->ops = ops;
- 	sd->dev = dev;
--	sd->of_node = of_node;
-+	sd->of_node = of_node ? of_node : led_cdev->dev->of_node;
- 	v4l2_subdev_init(sd, &v4l2_flash_subdev_ops);
- 	sd->internal_ops = &v4l2_flash_subdev_internal_ops;
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-@@ -654,10 +654,7 @@ struct v4l2_flash *v4l2_flash_init(
- 	if (ret < 0)
- 		goto err_init_controls;
- 
--	if (sd->of_node)
--		of_node_get(sd->of_node);
--	else
--		of_node_get(led_cdev->dev->of_node);
-+	of_node_get(sd->of_node);
- 
- 	ret = v4l2_async_register_subdev(sd);
- 	if (ret < 0)
-@@ -666,7 +663,7 @@ struct v4l2_flash *v4l2_flash_init(
- 	return v4l2_flash;
- 
- err_async_register_sd:
--	of_node_put(led_cdev->dev->of_node);
-+	of_node_put(sd->of_node);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- err_init_controls:
- 	media_entity_cleanup(&sd->entity);
-@@ -688,10 +685,7 @@ void v4l2_flash_release(struct v4l2_flash *v4l2_flash)
- 
- 	v4l2_async_unregister_subdev(sd);
- 
--	if (sd->of_node)
--		of_node_put(sd->of_node);
--	else
--		of_node_put(led_cdev->dev->of_node);
-+	of_node_put(sd->of_node);
- 
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	media_entity_cleanup(&sd->entity);
--- 
-2.7.4
+Hi!
 
+> This series adds driver for Toshiba et8ek8 camera sensor found in Nokia N=
+900
+>=20
+> Changes from v2:
+>=20
+>  - fix build when CONFIG_PM is not defined
+>=20
+> Changes from v1:
+>=20
+>  - driver and documentation split into separate patches
+>  - removed custom controls
+>  - code changed according to the comments on v1
+
+> Ivaylo Dimitrov (2):
+>   media: Driver for Toshiba et8ek8 5MP sensor
+>   media: et8ek8: Add documentation
+
+Is there any progress here? Is there any way I could help?
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--azLHFNyN32YCQGCU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgMZ8IACgkQMOfwapXb+vInogCgo65ufs9kfNt2pJcu2fi2m64q
+B3IAnRwuS54epBTT/fB/GhgFkicCewbm
+=KnTx
+-----END PGP SIGNATURE-----
+
+--azLHFNyN32YCQGCU--
