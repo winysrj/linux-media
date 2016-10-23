@@ -1,104 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51488 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934347AbcJRUqU (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:60849 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755088AbcJWSdi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Kosuke Tatsukawa <tatsu@ab.jp.nec.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH v2 33/58] cpia2: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:45 -0200
-Message-Id: <bd54b4f87434cfc8c80a6447d45ae61d48273c63.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Sun, 23 Oct 2016 14:33:38 -0400
+Date: Sun, 23 Oct 2016 20:33:34 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: v4.9-rc1: smiapp divides by zero
+Message-ID: <20161023183334.GA11216@amd>
+References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20161023073322.GA3523@amd>
+ <20161023102213.GA13705@amd>
+ <20161023140911.GF9460@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Content-Disposition: inline
+In-Reply-To: <20161023140911.GF9460@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So, join those continuation lines.
+Hi!
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+> > +#define DEBUG
+> > +
+> >  #include <linux/device.h>
+> >  #include <linux/gcd.h>
+> >  #include <linux/lcm.h>
+> > @@ -457,6 +459,10 @@ int smiapp_pll_calculate(struct device *dev,
+> >  	i =3D gcd(pll->pll_op_clk_freq_hz, pll->ext_clk_freq_hz);
+> >  	mul =3D div_u64(pll->pll_op_clk_freq_hz, i);
+> >  	div =3D pll->ext_clk_freq_hz / i;
+> > +	if (!mul) {
+>=20
+> Something must be very wrong if you get here.
+>=20
+> What are the values of pll->pll_op_clk_freq_hz and pll->ext_clk_freq_hz?
+> Or... what does dmesg say?
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+Yep, it was very wrong. I mismerged the stuff, and hwcfg->lanes
+initialization was missing. Now it appears to work.
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+(I have pushed the changes to camera-v4.9 branch).
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/cpia2/cpia2_usb.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-diff --git a/drivers/media/usb/cpia2/cpia2_usb.c b/drivers/media/usb/cpia2/cpia2_usb.c
-index 13620cdf0599..2e03f244c59f 100644
---- a/drivers/media/usb/cpia2/cpia2_usb.c
-+++ b/drivers/media/usb/cpia2/cpia2_usb.c
-@@ -733,9 +733,7 @@ int cpia2_usb_stream_start(struct camera_data *cam, unsigned int alternate)
- 		cam->params.camera_state.stream_mode = old_alt;
- 		ret2 = set_alternate(cam, USBIF_CMDONLY);
- 		if (ret2 < 0) {
--			ERR("cpia2_usb_change_streaming_alternate(%d) =%d has already "
--			    "failed. Then tried to call "
--			    "set_alternate(USBIF_CMDONLY) = %d.\n",
-+			ERR("cpia2_usb_change_streaming_alternate(%d) =%d has already failed. Then tried to call set_alternate(USBIF_CMDONLY) = %d.\n",
- 			    alternate, ret, ret2);
- 		}
- 	} else {
--- 
-2.7.4
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iEYEARECAAYFAlgNAn4ACgkQMOfwapXb+vLdbgCeL69GwEB22IKzJZf2O9mmgIAU
+NaIAn1aSClb7PcBKCNiCwbHXUgU+LUdW
+=nbZx
+-----END PGP SIGNATURE-----
 
+--Qxx1br4bt0+wmkIi--
