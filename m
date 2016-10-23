@@ -1,716 +1,2398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51447 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756243AbcJRUqS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33622 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751476AbcJWUUf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:18 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Malcolm Priestley <tvboxspy@gmail.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Olli Salonen <olli.salonen@iki.fi>,
-        Abhilash Jindal <klock.android@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH v2 51/58] dvb-frontends: don't break long lines
-Date: Tue, 18 Oct 2016 18:46:03 -0200
-Message-Id: <5a161efb18ab62ff24ae1fabbd23bd3877c6d88d.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Sun, 23 Oct 2016 16:20:35 -0400
+Date: Sun, 23 Oct 2016 23:19:54 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
+References: <20161023200355.GA5391@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161023200355.GA5391@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Hi Pavel,
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+Thanks, this answered half of my questions already. ;-)
 
-So, join those continuation lines.
+Do all the modes work for you currently btw.?
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+On Sun, Oct 23, 2016 at 10:03:55PM +0200, Pavel Machek wrote:
+> 
+> Add driver for et8ek8 sensor, found in Nokia N900 main camera. Can be
+> used for taking photos in 2.5MP resolution with fcam-dev.
+> 
+> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> ---
+> From v4 I did cleanups to coding style and removed various oddities.
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 2669b4b..6d01e15 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -667,6 +667,7 @@ config VIDEO_S5K5BAF
+>  	  camera sensor with an embedded SoC image signal processor.
+>  
+>  source "drivers/media/i2c/smiapp/Kconfig"
+> +source "drivers/media/i2c/et8ek8/Kconfig"
+>  
+>  config VIDEO_S5C73M3
+>  	tristate "Samsung S5C73M3 sensor support"
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index 92773b2..5bc7bbe 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -2,6 +2,7 @@ msp3400-objs	:=	msp3400-driver.o msp3400-kthreads.o
+>  obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
+>  
+>  obj-$(CONFIG_VIDEO_SMIAPP)	+= smiapp/
+> +obj-$(CONFIG_VIDEO_ET8EK8)	+= et8ek8/
+>  obj-$(CONFIG_VIDEO_CX25840) += cx25840/
+>  obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
+>  obj-y				+= soc_camera/
+> diff --git a/drivers/media/i2c/et8ek8/Kconfig b/drivers/media/i2c/et8ek8/Kconfig
+> new file mode 100644
+> index 0000000..1439936
+> --- /dev/null
+> +++ b/drivers/media/i2c/et8ek8/Kconfig
+> @@ -0,0 +1,6 @@
+> +config VIDEO_ET8EK8
+> +	tristate "ET8EK8 camera sensor support"
+> +	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> +	---help---
+> +	  This is a driver for the Toshiba ET8EK8 5 MP camera sensor.
+> +	  It is used for example in Nokia N900 (RX-51).
+> diff --git a/drivers/media/i2c/et8ek8/Makefile b/drivers/media/i2c/et8ek8/Makefile
+> new file mode 100644
+> index 0000000..66d1b7d
+> --- /dev/null
+> +++ b/drivers/media/i2c/et8ek8/Makefile
+> @@ -0,0 +1,2 @@
+> +et8ek8-objs			+= et8ek8_mode.o et8ek8_driver.o
+> +obj-$(CONFIG_VIDEO_ET8EK8)	+= et8ek8.o
+> diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+> new file mode 100644
+> index 0000000..0301e81
+> --- /dev/null
+> +++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+> @@ -0,0 +1,1588 @@
+> +/*
+> + * et8ek8_driver.c
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> + *          Tuukka Toivonen <tuukkat76@gmail.com>
+> + *
+> + * Based on code from Toni Leinonen <toni.leinonen@offcode.fi>.
+> + *
+> + * This driver is based on the Micron MT9T012 camera imager driver
+> + * (C) Texas Instruments.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/delay.h>
+> +#include <linux/gpio/consumer.h>
+> +#include <linux/i2c.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/regulator/consumer.h>
+> +#include <linux/slab.h>
+> +#include <linux/sort.h>
+> +#include <linux/v4l2-mediabus.h>
+> +
+> +#include <media/media-entity.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +#include "et8ek8_reg.h"
+> +
+> +#define ET8EK8_NAME		"et8ek8"
+> +#define ET8EK8_PRIV_MEM_SIZE	128
+> +#define ET8EK8_MAX_MSG		48
+> +
+> +struct et8ek8_sensor {
+> +	struct v4l2_subdev subdev;
+> +	struct media_pad pad;
+> +	struct v4l2_mbus_framefmt format;
+> +	struct gpio_desc *reset;
+> +	struct regulator *vana;
+> +	struct clk *ext_clk;
+> +	u32 xclk_freq;
+> +
+> +	u16 version;
+> +
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +	struct v4l2_ctrl *exposure;
+> +	struct v4l2_ctrl *pixel_rate;
+> +	struct et8ek8_reglist *current_reglist;
+> +
+> +	u8 priv_mem[ET8EK8_PRIV_MEM_SIZE];
+> +
+> +	struct mutex power_lock;
+> +	int power_count;
+> +};
+> +
+> +#define to_et8ek8_sensor(sd)	container_of(sd, struct et8ek8_sensor, subdev)
+> +
+> +enum et8ek8_versions {
+> +	ET8EK8_REV_1 = 0x0001,
+> +	ET8EK8_REV_2,
+> +};
+> +
+> +/*
+> + * This table describes what should be written to the sensor register
+> + * for each gain value. The gain(index in the table) is in terms of
+> + * 0.1EV, i.e. 10 indexes in the table give 2 time more gain [0] in
+> + * the *analog gain, [1] in the digital gain
+> + *
+> + * Analog gain [dB] = 20*log10(regvalue/32); 0x20..0x100
+> + */
+> +static struct et8ek8_gain {
+> +	u16 analog;
+> +	u16 digital;
+> +} const et8ek8_gain_table[] = {
+> +	{ 32,    0},  /* x1 */
+> +	{ 34,    0},
+> +	{ 37,    0},
+> +	{ 39,    0},
+> +	{ 42,    0},
+> +	{ 45,    0},
+> +	{ 49,    0},
+> +	{ 52,    0},
+> +	{ 56,    0},
+> +	{ 60,    0},
+> +	{ 64,    0},  /* x2 */
+> +	{ 69,    0},
+> +	{ 74,    0},
+> +	{ 79,    0},
+> +	{ 84,    0},
+> +	{ 91,    0},
+> +	{ 97,    0},
+> +	{104,    0},
+> +	{111,    0},
+> +	{119,    0},
+> +	{128,    0},  /* x4 */
+> +	{137,    0},
+> +	{147,    0},
+> +	{158,    0},
+> +	{169,    0},
+> +	{181,    0},
+> +	{194,    0},
+> +	{208,    0},
+> +	{223,    0},
+> +	{239,    0},
+> +	{256,    0},  /* x8 */
+> +	{256,   73},
+> +	{256,  152},
+> +	{256,  236},
+> +	{256,  327},
+> +	{256,  424},
+> +	{256,  528},
+> +	{256,  639},
+> +	{256,  758},
+> +	{256,  886},
+> +	{256, 1023},  /* x16 */
+> +};
+> +
+> +/* Register definitions */
+> +#define REG_REVISION_NUMBER_L	0x1200
+> +#define REG_REVISION_NUMBER_H	0x1201
+> +
+> +#define PRIV_MEM_START_REG	0x0008
+> +#define PRIV_MEM_WIN_SIZE	8
+> +
+> +#define ET8EK8_I2C_DELAY	3	/* msec delay b/w accesses */
+> +
+> +#define USE_CRC			1
+> +
+> +/*
+> + * Register access helpers
+> + *
+> + * Read a 8/16/32-bit i2c register.  The value is returned in 'val'.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +static int et8ek8_i2c_read_reg(struct i2c_client *client, u16 data_length,
+> +			       u16 reg, u32 *val)
+> +{
+> +	int r;
+> +	struct i2c_msg msg;
+> +	unsigned char data[4];
+> +
+> +	if (!client->adapter)
+> +		return -ENODEV;
+> +	if (data_length != ET8EK8_REG_8BIT && data_length != ET8EK8_REG_16BIT)
+> +		return -EINVAL;
+> +
+> +	msg.addr = client->addr;
+> +	msg.flags = 0;
+> +	msg.len = 2;
+> +	msg.buf = data;
+> +
+> +	/* high byte goes out first */
+> +	data[0] = (u8) (reg >> 8);
+> +	data[1] = (u8) (reg & 0xff);
+> +	r = i2c_transfer(client->adapter, &msg, 1);
+> +	if (r < 0)
+> +		goto err;
+> +
+> +	msg.len = data_length;
+> +	msg.flags = I2C_M_RD;
+> +	r = i2c_transfer(client->adapter, &msg, 1);
+> +	if (r < 0)
+> +		goto err;
+> +
+> +	*val = 0;
+> +	/* high byte comes first */
+> +	if (data_length == ET8EK8_REG_8BIT)
+> +		*val = data[0];
+> +	else
+> +		*val = (data[0] << 8) + data[1];
+> +
+> +	return 0;
+> +
+> +err:
+> +	dev_err(&client->dev, "read from offset 0x%x error %d\n", reg, r);
+> +
+> +	return r;
+> +}
+> +
+> +static void et8ek8_i2c_create_msg(struct i2c_client *client, u16 len, u16 reg,
+> +				  u32 val, struct i2c_msg *msg,
+> +				  unsigned char *buf)
+> +{
+> +	msg->addr = client->addr;
+> +	msg->flags = 0; /* Write */
+> +	msg->len = 2 + len;
+> +	msg->buf = buf;
+> +
+> +	/* high byte goes out first */
+> +	buf[0] = (u8) (reg >> 8);
+> +	buf[1] = (u8) (reg & 0xff);
+> +
+> +	switch (len) {
+> +	case ET8EK8_REG_8BIT:
+> +		buf[2] = (u8) (val) & 0xff;
+> +		break;
+> +	case ET8EK8_REG_16BIT:
+> +		buf[2] = (u8) (val >> 8) & 0xff;
+> +		buf[3] = (u8) (val & 0xff);
+> +		break;
+> +	default:
+> +		WARN_ONCE(1, ET8EK8_NAME ": %s: invalid message length.\n",
+> +			  __func__);
+> +	}
+> +}
+> +
+> +/*
+> + * A buffered write method that puts the wanted register write
+> + * commands in a message list and passes the list to the i2c framework
+> + */
+> +static int et8ek8_i2c_buffered_write_regs(struct i2c_client *client,
+> +					  const struct et8ek8_reg *wnext,
+> +					  int cnt)
+> +{
+> +	struct i2c_msg msg[ET8EK8_MAX_MSG];
+> +	unsigned char data[ET8EK8_MAX_MSG][6];
+> +	int wcnt = 0;
+> +	u16 reg, data_length;
+> +	u32 val;
+> +
+> +	if (WARN_ONCE(cnt > ET8EK8_MAX_MSG,
+> +		      ET8EK8_NAME ": %s: too many messages.\n", __func__)) {
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Create new write messages for all writes */
+> +	while (wcnt < cnt) {
+> +		data_length = wnext->type;
+> +		reg = wnext->reg;
+> +		val = wnext->val;
+> +		wnext++;
+> +
+> +		et8ek8_i2c_create_msg(client, data_length, reg,
+> +				    val, &msg[wcnt], &data[wcnt][0]);
+> +
+> +		/* Update write count */
+> +		wcnt++;
+> +	}
+> +
+> +	/* Now we send everything ... */
+> +	return i2c_transfer(client->adapter, msg, wcnt);
+> +}
+> +
+> +/*
+> + * Write a list of registers to i2c device.
+> + *
+> + * The list of registers is terminated by ET8EK8_REG_TERM.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +static int et8ek8_i2c_write_regs(struct i2c_client *client,
+> +				 const struct et8ek8_reg *regs)
+> +{
+> +	int r, cnt = 0;
+> +	const struct et8ek8_reg *next;
+> +
+> +	if (!client->adapter)
+> +		return -ENODEV;
+> +
+> +	if (!regs)
+> +		return -EINVAL;
+> +
+> +	/* Initialize list pointers to the start of the list */
+> +	next = regs;
+> +
+> +	do {
+> +		/*
+> +		 * We have to go through the list to figure out how
+> +		 * many regular writes we have in a row
+> +		 */
+> +		while (next->type != ET8EK8_REG_TERM &&
+> +		       next->type != ET8EK8_REG_DELAY) {
+> +			/*
+> +			 * Here we check that the actual length fields
+> +			 * are valid
+> +			 */
+> +			if (WARN(next->type != ET8EK8_REG_8BIT &&
+> +				 next->type != ET8EK8_REG_16BIT,
+> +				 "Invalid type = %d", next->type)) {
+> +				return -EINVAL;
+> +			}
+> +			/*
+> +			 * Increment count of successive writes and
+> +			 * read pointer
+> +			 */
+> +			cnt++;
+> +			next++;
+> +		}
+> +
+> +		/* Now we start writing ... */
+> +		r = et8ek8_i2c_buffered_write_regs(client, regs, cnt);
+> +
+> +		/* ... and then check that everything was OK */
+> +		if (r < 0) {
+> +			dev_err(&client->dev, "i2c transfer error!\n");
+> +			return r;
+> +		}
+> +
+> +		/*
+> +		 * If we ran into a sleep statement when going through
+> +		 * the list, this is where we snooze for the required time
+> +		 */
+> +		if (next->type == ET8EK8_REG_DELAY) {
+> +			msleep(next->val);
+> +			/*
+> +			 * ZZZ ...
+> +			 * Update list pointers and cnt and start over ...
+> +			 */
+> +			next++;
+> +			regs = next;
+> +			cnt = 0;
+> +		}
+> +	} while (next->type != ET8EK8_REG_TERM);
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Write to a 8/16-bit register.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +static int et8ek8_i2c_write_reg(struct i2c_client *client, u16 data_length,
+> +				u16 reg, u32 val)
+> +{
+> +	int r;
+> +	struct i2c_msg msg;
+> +	unsigned char data[6];
+> +
+> +	if (!client->adapter)
+> +		return -ENODEV;
+> +	if (data_length != ET8EK8_REG_8BIT && data_length != ET8EK8_REG_16BIT)
+> +		return -EINVAL;
+> +
+> +	et8ek8_i2c_create_msg(client, data_length, reg, val, &msg, data);
+> +
+> +	r = i2c_transfer(client->adapter, &msg, 1);
+> +	if (r < 0)
+> +		dev_err(&client->dev,
+> +			"wrote 0x%x to offset 0x%x error %d\n", val, reg, r);
+> +	else
+> +		r = 0; /* on success i2c_transfer() returns messages trasfered */
+> +
+> +	return r;
+> +}
+> +
+> +static struct et8ek8_reglist *et8ek8_reglist_find_type(
+> +		struct et8ek8_meta_reglist *meta,
+> +		u16 type)
+> +{
+> +	struct et8ek8_reglist **next = &meta->reglist[0].ptr;
+> +
+> +	while (*next) {
+> +		if ((*next)->type == type)
+> +			return *next;
+> +
+> +		next++;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static int et8ek8_i2c_reglist_find_write(struct i2c_client *client,
+> +					 struct et8ek8_meta_reglist *meta,
+> +					 u16 type)
+> +{
+> +	struct et8ek8_reglist *reglist;
+> +
+> +	reglist = et8ek8_reglist_find_type(meta, type);
+> +	if (!reglist)
+> +		return -EINVAL;
+> +
+> +	return et8ek8_i2c_write_regs(client, reglist->regs);
+> +}
+> +
+> +static struct et8ek8_reglist **et8ek8_reglist_first(
+> +		struct et8ek8_meta_reglist *meta)
+> +{
+> +	return &meta->reglist[0].ptr;
+> +}
+> +
+> +static void et8ek8_reglist_to_mbus(const struct et8ek8_reglist *reglist,
+> +				   struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	fmt->width = reglist->mode.window_width;
+> +	fmt->height = reglist->mode.window_height;
+> +
+> +	if (reglist->mode.pixel_format == V4L2_PIX_FMT_SGRBG10DPCM8)
+> +		fmt->code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8;
+> +	else
+> +		fmt->code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> +}
+> +
+> +static struct et8ek8_reglist *et8ek8_reglist_find_mode_fmt(
+> +		struct et8ek8_meta_reglist *meta,
+> +		struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct et8ek8_reglist **list = et8ek8_reglist_first(meta);
+> +	struct et8ek8_reglist *best_match = NULL;
+> +	struct et8ek8_reglist *best_other = NULL;
+> +	struct v4l2_mbus_framefmt format;
+> +	unsigned int max_dist_match = (unsigned int)-1;
+> +	unsigned int max_dist_other = (unsigned int)-1;
+> +
+> +	/*
+> +	 * Find the mode with the closest image size. The distance between
+> +	 * image sizes is the size in pixels of the non-overlapping regions
+> +	 * between the requested size and the frame-specified size.
+> +	 *
+> +	 * Store both the closest mode that matches the requested format, and
+> +	 * the closest mode for all other formats. The best match is returned
+> +	 * if found, otherwise the best mode with a non-matching format is
+> +	 * returned.
+> +	 */
+> +	for (; *list; list++) {
+> +		unsigned int dist;
+> +
+> +		if ((*list)->type != ET8EK8_REGLIST_MODE)
+> +			continue;
+> +
+> +		et8ek8_reglist_to_mbus(*list, &format);
+> +
+> +		dist = min(fmt->width, format.width)
+> +		     * min(fmt->height, format.height);
+> +		dist = format.width * format.height
+> +		     + fmt->width * fmt->height - 2 * dist;
+> +
+> +
+> +		if (fmt->code == format.code) {
+> +			if (dist < max_dist_match || !best_match) {
+> +				best_match = *list;
+> +				max_dist_match = dist;
+> +			}
+> +		} else {
+> +			if (dist < max_dist_other || !best_other) {
+> +				best_other = *list;
+> +				max_dist_other = dist;
+> +			}
+> +		}
+> +	}
+> +
+> +	return best_match ? best_match : best_other;
+> +}
+> +
+> +#define TIMEPERFRAME_AVG_FPS(t)						\
+> +	(((t).denominator + ((t).numerator >> 1)) / (t).numerator)
+> +
+> +static struct et8ek8_reglist *et8ek8_reglist_find_mode_ival(
+> +		struct et8ek8_meta_reglist *meta,
+> +		struct et8ek8_reglist *current_reglist,
+> +		struct v4l2_fract *timeperframe)
+> +{
+> +	int fps = TIMEPERFRAME_AVG_FPS(*timeperframe);
+> +	struct et8ek8_reglist **list = et8ek8_reglist_first(meta);
+> +	struct et8ek8_mode *current_mode = &current_reglist->mode;
+> +
+> +	for (; *list; list++) {
+> +		struct et8ek8_mode *mode = &(*list)->mode;
+> +
+> +		if ((*list)->type != ET8EK8_REGLIST_MODE)
+> +			continue;
+> +
+> +		if (mode->window_width != current_mode->window_width ||
+> +		    mode->window_height != current_mode->window_height)
+> +			continue;
+> +
+> +		if (TIMEPERFRAME_AVG_FPS(mode->timeperframe) == fps)
+> +			return *list;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +static int et8ek8_reglist_cmp(const void *a, const void *b)
+> +{
+> +	const struct et8ek8_reglist **list1 = (const struct et8ek8_reglist **)a,
+> +		**list2 = (const struct et8ek8_reglist **)b;
+> +
+> +	/* Put real modes in the beginning. */
+> +	if ((*list1)->type == ET8EK8_REGLIST_MODE &&
+> +	    (*list2)->type != ET8EK8_REGLIST_MODE)
+> +		return -1;
+> +	if ((*list1)->type != ET8EK8_REGLIST_MODE &&
+> +	    (*list2)->type == ET8EK8_REGLIST_MODE)
+> +		return 1;
+> +
+> +	/* Descending width. */
+> +	if ((*list1)->mode.window_width > (*list2)->mode.window_width)
+> +		return -1;
+> +	if ((*list1)->mode.window_width < (*list2)->mode.window_width)
+> +		return 1;
+> +
+> +	if ((*list1)->mode.window_height > (*list2)->mode.window_height)
+> +		return -1;
+> +	if ((*list1)->mode.window_height < (*list2)->mode.window_height)
+> +		return 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int et8ek8_reglist_import(struct i2c_client *client,
+> +				 struct et8ek8_meta_reglist *meta)
+> +{
+> +	int nlists = 0, i;
+> +
+> +	dev_info(&client->dev, "meta_reglist version %s\n", meta->version);
+> +
+> +	while (meta->reglist[nlists].ptr)
+> +		nlists++;
+> +
+> +	if (!nlists)
+> +		return -EINVAL;
+> +
+> +	sort(&meta->reglist[0].ptr, nlists, sizeof(meta->reglist[0].ptr),
+> +	     et8ek8_reglist_cmp, NULL);
+> +
+> +	i = nlists;
+> +	nlists = 0;
+> +
+> +	while (i--) {
+> +		struct et8ek8_reglist *list;
+> +
+> +		list = meta->reglist[nlists].ptr;
+> +
+> +		dev_dbg(&client->dev,
+> +		       "%s: type %d\tw %d\th %d\tfmt %x\tival %d/%d\tptr %p\n",
+> +		       __func__,
+> +		       list->type,
+> +		       list->mode.window_width, list->mode.window_height,
+> +		       list->mode.pixel_format,
+> +		       list->mode.timeperframe.numerator,
+> +		       list->mode.timeperframe.denominator,
+> +		       (void *)meta->reglist[nlists].ptr);
+> +
+> +		nlists++;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +typedef unsigned int fixpoint8; /* .8 fixed point format. */
+> +
+> +/*
+> + * Return time of one row in microseconds
+> + * If the sensor is not set to any mode, return zero.
+> + */
+> +fixpoint8 et8ek8_get_row_time(struct et8ek8_sensor *sensor)
+> +{
+> +	unsigned int clock;	/* Pixel clock in Hz>>10 fixed point */
+> +	fixpoint8 rt;	/* Row time in .8 fixed point */
+> +
+> +	if (!sensor->current_reglist)
+> +		return 0;
+> +
+> +	clock = sensor->current_reglist->mode.pixel_clock;
+> +	clock = (clock + (1 << 9)) >> 10;
+> +	rt = sensor->current_reglist->mode.width * (1000000 >> 2);
+> +	rt = (rt + (clock >> 1)) / clock;
+> +
+> +	return rt;
+> +}
+> +
+> +/*
+> + * Convert exposure time `us' to rows. Modify `us' to make it to
+> + * correspond to the actual exposure time.
+> + */
+> +static int et8ek8_exposure_us_to_rows(struct et8ek8_sensor *sensor, u32 *us)
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+Should a driver do something like this to begin with?
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+The smiapp driver does use the native unit of exposure (lines) for the
+control and I think the et8ek8 driver should do so as well.
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
+The HBLANK, VBLANK and PIXEL_RATE controls are used to provide the user with
+enough information to perform the conversion (if necessary).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-frontends/au8522_common.c |  4 ++--
- drivers/media/dvb-frontends/cx24110.c       |  4 ++--
- drivers/media/dvb-frontends/cx24113.c       |  4 ++--
- drivers/media/dvb-frontends/cx24116.c       |  8 ++++----
- drivers/media/dvb-frontends/cx24117.c       |  4 ++--
- drivers/media/dvb-frontends/cx24123.c       |  4 ++--
- drivers/media/dvb-frontends/ds3000.c        | 15 +++++++--------
- drivers/media/dvb-frontends/lgdt330x.c      |  3 +--
- drivers/media/dvb-frontends/m88rs2000.c     |  7 +++----
- drivers/media/dvb-frontends/mt312.c         |  7 +++----
- drivers/media/dvb-frontends/nxt200x.c       | 11 +++++------
- drivers/media/dvb-frontends/or51132.c       |  6 ++----
- drivers/media/dvb-frontends/or51211.c       |  3 +--
- drivers/media/dvb-frontends/s5h1409.c       |  4 ++--
- drivers/media/dvb-frontends/s5h1411.c       |  4 ++--
- drivers/media/dvb-frontends/s5h1432.c       |  4 ++--
- drivers/media/dvb-frontends/s921.c          |  4 ++--
- drivers/media/dvb-frontends/si21xx.c        |  8 ++++----
- drivers/media/dvb-frontends/sp887x.c        |  3 +--
- drivers/media/dvb-frontends/stv0288.c       |  7 +++----
- drivers/media/dvb-frontends/stv0297.c       |  4 ++--
- drivers/media/dvb-frontends/stv0299.c       |  7 +++----
- drivers/media/dvb-frontends/stv0900_sw.c    |  3 +--
- drivers/media/dvb-frontends/tda10021.c      |  3 +--
- drivers/media/dvb-frontends/tda10023.c      |  6 ++----
- drivers/media/dvb-frontends/tda10048.c      | 12 ++++--------
- drivers/media/dvb-frontends/ves1820.c       |  8 ++++----
- drivers/media/dvb-frontends/zl10036.c       |  4 ++--
- drivers/media/dvb-frontends/zl10039.c       |  3 +--
- 29 files changed, 72 insertions(+), 92 deletions(-)
+> +{
+> +	unsigned int rows;	/* Exposure value as written to HW (ie. rows) */
+> +	fixpoint8 rt;	/* Row time in .8 fixed point */
+> +
+> +	/* Assume that the maximum exposure time is at most ~8 s,
+> +	 * and the maximum width (with blanking) ~8000 pixels.
+> +	 * The formula here is in principle as simple as
+> +	 *    rows = exptime / 1e6 / width * pixel_clock
+> +	 * but to get accurate results while coping with value ranges,
+> +	 * have to do some fixed point math.
+> +	 */
+> +
+> +	rt = et8ek8_get_row_time(sensor);
+> +	rows = ((*us << 8) + (rt >> 1)) / rt;
+> +
+> +	if (rows > sensor->current_reglist->mode.max_exp)
+> +		rows = sensor->current_reglist->mode.max_exp;
+> +
+> +	/* Set the exposure time to the rounded value */
+> +	*us = (rt * rows + (1 << 7)) >> 8;
+> +
+> +	return rows;
+> +}
+> +
+> +/*
+> + * Convert exposure time in rows to microseconds
+> + */
+> +static int et8ek8_exposure_rows_to_us(struct et8ek8_sensor *sensor, int rows)
+> +{
+> +	return (et8ek8_get_row_time(sensor) * rows + (1 << 7)) >> 8;
+> +}
+> +
+> +/* Called to change the V4L2 gain control value. This function
+> + * rounds and clamps the given value and updates the V4L2 control value.
+> + * If power is on, also updates the sensor analog and digital gains.
+> + * gain is in 0.1 EV (exposure value) units.
+> + */
+> +static int et8ek8_set_gain(struct et8ek8_sensor *sensor, s32 gain)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> +	struct et8ek8_gain new;
+> +	int r;
+> +
+> +	new = et8ek8_gain_table[gain];
+> +
+> +	/* FIXME: optimise I2C writes! */
+> +	r = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT,
+> +				0x124a, new.analog >> 8);
+> +	if (r)
+> +		return r;
+> +	r = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT,
+> +				0x1249, new.analog & 0xff);
+> +	if (r)
+> +		return r;
+> +
+> +	r = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT,
+> +				0x124d, new.digital >> 8);
+> +	if (r)
+> +		return r;
+> +	r = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT,
+> +				0x124c, new.digital & 0xff);
+> +
+> +	return r;
+> +}
+> +
+> +static int et8ek8_set_test_pattern(struct et8ek8_sensor *sensor, s32 mode)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> +	int cbh_mode, cbv_mode, tp_mode, din_sw, r1420, rval;
+> +
+> +	/* Values for normal mode */
+> +	cbh_mode = 0;
+> +	cbv_mode = 0;
+> +	tp_mode  = 0;
+> +	din_sw   = 0x00;
+> +	r1420    = 0xF0;
+> +
+> +	if (mode) {
+> +		/* Test pattern mode */
+> +		if (mode < 5) {
+> +			cbh_mode = 1;
+> +			cbv_mode = 1;
+> +			tp_mode  = mode + 3;
+> +		} else {
+> +			cbh_mode = 0;
+> +			cbv_mode = 0;
+> +			tp_mode  = mode - 4 + 3;
+> +		}
+> +
+> +		din_sw   = 0x01;
+> +		r1420    = 0xE0;
+> +	}
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x111B,
+> +				    tp_mode << 4);
+> +	if (rval)
+> +		return rval;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1121,
+> +				    cbh_mode << 7);
+> +	if (rval)
+> +		return rval;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1124,
+> +				    cbv_mode << 7);
+> +	if (rval)
+> +		return rval;		
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x112C, din_sw);
+> +	if (rval)
+> +		return rval;
+> +
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1420, r1420);
+> +	return rval;
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * V4L2 controls
+> + */
+> +
+> +static int et8ek8_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct et8ek8_sensor *sensor =
+> +		container_of(ctrl->handler, struct et8ek8_sensor, ctrl_handler);
+> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> +	int uninitialized_var(rows);
+> +
+> +	if (ctrl->id == V4L2_CID_EXPOSURE)
+> +		rows = et8ek8_exposure_us_to_rows(sensor, (u32 *)&ctrl->val);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_GAIN:
+> +		return et8ek8_set_gain(sensor, ctrl->val);
+> +
+> +	case V4L2_CID_EXPOSURE:
+> +		return et8ek8_i2c_write_reg(client, ET8EK8_REG_16BIT, 0x1243,
+> +					    swab16(rows));
+> +
+> +	case V4L2_CID_TEST_PATTERN:
+> +		return et8ek8_set_test_pattern(sensor, ctrl->val);
+> +
+> +	case V4L2_CID_PIXEL_RATE:
+> +		/* For v4l2_ctrl_s_ctrl_int64() used internally. */
+> +		return 0;
+> +
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static const struct v4l2_ctrl_ops et8ek8_ctrl_ops = {
+> +	.s_ctrl = et8ek8_set_ctrl,
+> +};
+> +
+> +static const char * const et8ek8_test_pattern_menu[] = {
+> +	"Normal",
+> +	"Vertical colorbar",
+> +	"Horizontal colorbar",
+> +	"Scale",
+> +	"Ramp",
+> +	"Small vertical colorbar",
+> +	"Small horizontal colorbar",
+> +	"Small scale",
+> +	"Small ramp",
+> +};
+> +
+> +static int et8ek8_init_controls(struct et8ek8_sensor *sensor)
+> +{
+> +	u32 min, max;
+> +
+> +	v4l2_ctrl_handler_init(&sensor->ctrl_handler, 4);
+> +
+> +	/* V4L2_CID_GAIN */
+> +	v4l2_ctrl_new_std(&sensor->ctrl_handler, &et8ek8_ctrl_ops,
+> +			  V4L2_CID_GAIN, 0, ARRAY_SIZE(et8ek8_gain_table) - 1,
+> +			  1, 0);
+> +
+> +	/* V4L2_CID_EXPOSURE */
+> +	min = et8ek8_exposure_rows_to_us(sensor, 1);
+> +	max = et8ek8_exposure_rows_to_us(sensor,
+> +				sensor->current_reglist->mode.max_exp);
+> +	sensor->exposure =
+> +		v4l2_ctrl_new_std(&sensor->ctrl_handler, &et8ek8_ctrl_ops,
+> +				  V4L2_CID_EXPOSURE, min, max, min, max);
+> +
+> +	/* V4L2_CID_PIXEL_RATE */
+> +	sensor->pixel_rate =
+> +		v4l2_ctrl_new_std(&sensor->ctrl_handler, &et8ek8_ctrl_ops,
+> +		V4L2_CID_PIXEL_RATE, 1, INT_MAX, 1, 1);
+> +
+> +	/* V4L2_CID_TEST_PATTERN */
+> +	v4l2_ctrl_new_std_menu_items(&sensor->ctrl_handler,
+> +				     &et8ek8_ctrl_ops, V4L2_CID_TEST_PATTERN,
+> +				     ARRAY_SIZE(et8ek8_test_pattern_menu) - 1,
+> +				     0, 0, et8ek8_test_pattern_menu);
+> +
+> +	if (sensor->ctrl_handler.error)
+> +		return sensor->ctrl_handler.error;
+> +
+> +	sensor->subdev.ctrl_handler = &sensor->ctrl_handler;
+> +
+> +	return 0;
+> +}
+> +
+> +static void et8ek8_update_controls(struct et8ek8_sensor *sensor)
+> +{
+> +	struct v4l2_ctrl *ctrl = sensor->exposure;
+> +	struct et8ek8_mode *mode = &sensor->current_reglist->mode;
+> +	u32 min, max, pixel_rate;
+> +	static const int S = 8;
+> +
+> +	min = et8ek8_exposure_rows_to_us(sensor, 1);
+> +	max = et8ek8_exposure_rows_to_us(sensor, mode->max_exp);
+> +
+> +	/*
+> +	 * Calculate average pixel clock per line. Assume buffers can spread
+> +	 * the data over horizontal blanking time. Rounding upwards.
+> +	 * Formula taken from stock Nokia N900 kernel.
+> +	 */
+> +	pixel_rate = ((mode->pixel_clock + (1 << S) - 1) >> S) + mode->width;
+> +	pixel_rate = mode->window_width * (pixel_rate - 1) / mode->width;
+> +
+> +	v4l2_ctrl_lock(ctrl);
+> +	ctrl->minimum = min;
+> +	ctrl->maximum = max;
+> +	ctrl->step = min;
+> +	ctrl->default_value = max;
+> +	ctrl->val = max;
+> +	ctrl->cur.val = max;
+> +	__v4l2_ctrl_s_ctrl_int64(sensor->pixel_rate, pixel_rate << S);
+> +	v4l2_ctrl_unlock(ctrl);
+> +}
+> +
+> +static int et8ek8_configure(struct et8ek8_sensor *sensor)
+> +{
+> +	struct v4l2_subdev *subdev = &sensor->subdev;
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	int rval;
+> +
+> +	rval = et8ek8_i2c_write_regs(client, sensor->current_reglist->regs);
+> +	if (rval)
+> +		goto fail;
+> +
+> +	/* Controls set while the power to the sensor is turned off are saved
+> +	 * but not applied to the hardware. Now that we're about to start
+> +	 * streaming apply all the current values to the hardware.
+> +	 */
+> +	rval = v4l2_ctrl_handler_setup(&sensor->ctrl_handler);
+> +	if (rval)
+> +		goto fail;
+> +
+> +	return 0;
+> +
+> +fail:
+> +	dev_err(&client->dev, "sensor configuration failed\n");
+> +
+> +	return rval;
+> +}
+> +
+> +static int et8ek8_stream_on(struct et8ek8_sensor *sensor)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> +
+> +	return et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1252, 0xb0);
+> +}
+> +
+> +static int et8ek8_stream_off(struct et8ek8_sensor *sensor)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> +
+> +	return et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1252, 0x30);
+> +}
+> +
+> +static int et8ek8_s_stream(struct v4l2_subdev *subdev, int streaming)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	int ret;
+> +
+> +	if (!streaming)
+> +		return et8ek8_stream_off(sensor);
+> +
+> +	ret = et8ek8_configure(sensor);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return et8ek8_stream_on(sensor);
+> +}
+> +
+> +/* --------------------------------------------------------------------------
+> + * V4L2 subdev operations
+> + */
+> +
+> +static int et8ek8_power_off(struct et8ek8_sensor *sensor)
+> +{
+> +	gpiod_set_value(sensor->reset, 0);
+> +	udelay(1);
+> +
+> +	clk_disable_unprepare(sensor->ext_clk);
+> +
+> +	return regulator_disable(sensor->vana);
+> +}
+> +
+> +static int et8ek8_power_on(struct et8ek8_sensor *sensor)
+> +{
+> +	struct v4l2_subdev *subdev = &sensor->subdev;
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	unsigned int xclk_freq;
+> +	int val, rval;
+> +
+> +	rval = regulator_enable(sensor->vana);
+> +	if (rval) {
+> +		dev_err(&client->dev, "failed to enable vana regulator\n");
+> +		return rval;
+> +	}
+> +
+> +	if (sensor->current_reglist)
+> +		xclk_freq = sensor->current_reglist->mode.ext_clock;
+> +	else
+> +		xclk_freq = sensor->xclk_freq;
+> +
+> +	rval = clk_set_rate(sensor->ext_clk, xclk_freq);
+> +	if (rval < 0) {
+> +		dev_err(&client->dev, "unable to set extclk clock freq to %u\n",
+> +			xclk_freq);
+> +		goto out;
+> +	}
+> +	rval = clk_prepare_enable(sensor->ext_clk);
+> +	if (rval < 0) {
+> +		dev_err(&client->dev, "failed to enable extclk\n");
+> +		goto out;
+> +	}
+> +
+> +	if (rval)
+> +		goto out;
+> +
+> +	udelay(10); /* I wish this is a good value */
+> +
+> +	gpiod_set_value(sensor->reset, 1);
+> +
+> +	msleep(5000 * 1000 / xclk_freq + 1); /* Wait 5000 cycles */
+> +
+> +	rval = et8ek8_i2c_reglist_find_write(client, &meta_reglist,
+> +					     ET8EK8_REGLIST_POWERON);
+> +	if (rval)
+> +		goto out;
+> +
+> +#ifdef USE_CRC
+> +	rval = et8ek8_i2c_read_reg(client, ET8EK8_REG_8BIT, 0x1263, &val);
+> +	if (rval)
+> +		goto out;
+> +#if USE_CRC /* TODO get crc setting from DT */
+> +	val |= BIT(4);
+> +#else
+> +	val &= ~BIT(4);
+> +#endif
+> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1263, val);
+> +	if (rval)
+> +		goto out;
+> +#endif
+> +
+> +out:
+> +	if (rval)
+> +		et8ek8_power_off(sensor);
+> +
+> +	return rval;
+> +}
+> +
+> +/* --------------------------------------------------------------------------
+> + * V4L2 subdev video operations
+> + */
+> +#define MAX_FMTS 4
+> +static int et8ek8_enum_mbus_code(struct v4l2_subdev *subdev,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_mbus_code_enum *code)
+> +{
+> +	struct et8ek8_reglist **list =
+> +			et8ek8_reglist_first(&meta_reglist);
+> +	u32 pixelformat[MAX_FMTS];
+> +	int npixelformat = 0;
+> +
+> +	if (code->index >= MAX_FMTS)
+> +		return -EINVAL;
+> +
+> +	for (; *list; list++) {
+> +		struct et8ek8_mode *mode = &(*list)->mode;
+> +		int i;
+> +
+> +		if ((*list)->type != ET8EK8_REGLIST_MODE)
+> +			continue;
+> +
+> +		for (i = 0; i < npixelformat; i++) {
+> +			if (pixelformat[i] == mode->pixel_format)
+> +				break;
+> +		}
+> +		if (i != npixelformat)
+> +			continue;
+> +
+> +		if (code->index == npixelformat) {
+> +			if (mode->pixel_format == V4L2_PIX_FMT_SGRBG10DPCM8)
+> +				code->code = MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8;
+> +			else
+> +				code->code = MEDIA_BUS_FMT_SGRBG10_1X10;
+> +			return 0;
+> +		}
+> +
+> +		pixelformat[npixelformat] = mode->pixel_format;
+> +		npixelformat++;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int et8ek8_enum_frame_size(struct v4l2_subdev *subdev,
+> +				  struct v4l2_subdev_pad_config *cfg,
+> +				  struct v4l2_subdev_frame_size_enum *fse)
+> +{
+> +	struct et8ek8_reglist **list =
+> +			et8ek8_reglist_first(&meta_reglist);
+> +	struct v4l2_mbus_framefmt format;
+> +	int cmp_width = INT_MAX;
+> +	int cmp_height = INT_MAX;
+> +	int index = fse->index;
+> +
+> +	for (; *list; list++) {
+> +		if ((*list)->type != ET8EK8_REGLIST_MODE)
+> +			continue;
+> +
+> +		et8ek8_reglist_to_mbus(*list, &format);
+> +		if (fse->code != format.code)
+> +			continue;
+> +
+> +		/* Assume that the modes are grouped by frame size. */
+> +		if (format.width == cmp_width && format.height == cmp_height)
+> +			continue;
+> +
+> +		cmp_width = format.width;
+> +		cmp_height = format.height;
+> +
+> +		if (index-- == 0) {
+> +			fse->min_width = format.width;
+> +			fse->min_height = format.height;
+> +			fse->max_width = format.width;
+> +			fse->max_height = format.height;
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int et8ek8_enum_frame_ival(struct v4l2_subdev *subdev,
+> +				  struct v4l2_subdev_pad_config *cfg,
+> +				  struct v4l2_subdev_frame_interval_enum *fie)
+> +{
+> +	struct et8ek8_reglist **list =
+> +			et8ek8_reglist_first(&meta_reglist);
+> +	struct v4l2_mbus_framefmt format;
+> +	int index = fie->index;
+> +
+> +	for (; *list; list++) {
+> +		struct et8ek8_mode *mode = &(*list)->mode;
+> +
+> +		if ((*list)->type != ET8EK8_REGLIST_MODE)
+> +			continue;
+> +
+> +		et8ek8_reglist_to_mbus(*list, &format);
+> +		if (fie->code != format.code)
+> +			continue;
+> +
+> +		if (fie->width != format.width || fie->height != format.height)
+> +			continue;
+> +
+> +		if (index-- == 0) {
+> +			fie->interval = mode->timeperframe;
+> +			return 0;
+> +		}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static struct v4l2_mbus_framefmt *
+> +__et8ek8_get_pad_format(struct et8ek8_sensor *sensor,
+> +			struct v4l2_subdev_pad_config *cfg,
+> +			unsigned int pad, enum v4l2_subdev_format_whence which)
+> +{
+> +	switch (which) {
+> +	case V4L2_SUBDEV_FORMAT_TRY:
+> +		return v4l2_subdev_get_try_format(&sensor->subdev, cfg, pad);
+> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
+> +		return &sensor->format;
+> +	default:
+> +		return NULL;
+> +	}
+> +}
+> +
+> +static int et8ek8_get_pad_format(struct v4l2_subdev *subdev,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_format *fmt)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct v4l2_mbus_framefmt *format;
+> +
+> +	format = __et8ek8_get_pad_format(sensor, cfg, fmt->pad, fmt->which);
+> +	if (!format)
+> +		return -EINVAL;
+> +
+> +	fmt->format = *format;
+> +
+> +	return 0;
+> +}
+> +
+> +static int et8ek8_set_pad_format(struct v4l2_subdev *subdev,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_format *fmt)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct v4l2_mbus_framefmt *format;
+> +	struct et8ek8_reglist *reglist;
+> +
+> +	format = __et8ek8_get_pad_format(sensor, cfg, fmt->pad, fmt->which);
+> +	if (!format)
+> +		return -EINVAL;
+> +
+> +	reglist = et8ek8_reglist_find_mode_fmt(&meta_reglist, &fmt->format);
+> +	et8ek8_reglist_to_mbus(reglist, &fmt->format);
+> +	*format = fmt->format;
+> +
+> +	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> +		sensor->current_reglist = reglist;
+> +		et8ek8_update_controls(sensor);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int et8ek8_get_frame_interval(struct v4l2_subdev *subdev,
+> +				     struct v4l2_subdev_frame_interval *fi)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +
+> +	memset(fi, 0, sizeof(*fi));
+> +	fi->interval = sensor->current_reglist->mode.timeperframe;
+> +
+> +	return 0;
+> +}
+> +
+> +static int et8ek8_set_frame_interval(struct v4l2_subdev *subdev,
+> +				     struct v4l2_subdev_frame_interval *fi)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct et8ek8_reglist *reglist;
+> +
+> +	reglist = et8ek8_reglist_find_mode_ival(&meta_reglist,
+> +						sensor->current_reglist,
+> +						&fi->interval);
+> +
+> +	if (!reglist)
+> +		return -EINVAL;
+> +
+> +	if (sensor->current_reglist->mode.ext_clock != reglist->mode.ext_clock)
+> +		return -EINVAL;
+> +
+> +	sensor->current_reglist = reglist;
+> +	et8ek8_update_controls(sensor);
+> +
+> +	return 0;
+> +}
+> +
+> +static int et8ek8_g_priv_mem(struct v4l2_subdev *subdev)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	unsigned int length = ET8EK8_PRIV_MEM_SIZE;
+> +	unsigned int offset = 0;
+> +	u8 *ptr  = sensor->priv_mem;
+> +	int rval = 0;
+> +
+> +	/* Read the EEPROM window-by-window, each window 8 bytes */
+> +	do {
+> +		u8 buffer[PRIV_MEM_WIN_SIZE];
+> +		struct i2c_msg msg;
+> +		int bytes, i;
+> +		int ofs;
+> +
+> +		/* Set the current window */
+> +		rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x0001,
+> +					    0xe0 | (offset >> 3));
+> +		if (rval < 0)
+> +			return rval;
+> +
+> +		/* Wait for status bit */
+> +		for (i = 0; i < 1000; ++i) {
+> +			u32 status;
+> +
+> +			rval = et8ek8_i2c_read_reg(client, ET8EK8_REG_8BIT,
+> +						   0x0003, &status);
+> +			if (rval < 0)
+> +				return rval;
+> +			if (!(status & 0x08))
+> +				break;
+> +			usleep_range(1000, 2000);
+> +		};
+> +
+> +		if (i == 1000)
+> +			return -EIO;
+> +
+> +		/* Read window, 8 bytes at once, and copy to user space */
+> +		ofs = offset & 0x07;	/* Offset within this window */
+> +		bytes = length + ofs > 8 ? 8-ofs : length;
+> +		msg.addr = client->addr;
+> +		msg.flags = 0;
+> +		msg.len = 2;
+> +		msg.buf = buffer;
+> +		ofs += PRIV_MEM_START_REG;
+> +		buffer[0] = (u8)(ofs >> 8);
+> +		buffer[1] = (u8)(ofs & 0xFF);
+> +
+> +		rval = i2c_transfer(client->adapter, &msg, 1);
+> +		if (rval < 0)
+> +			return rval;
+> +
+> +		mdelay(ET8EK8_I2C_DELAY);
+> +		msg.addr = client->addr;
+> +		msg.len = bytes;
+> +		msg.flags = I2C_M_RD;
+> +		msg.buf = buffer;
+> +		memset(buffer, 0, sizeof(buffer));
+> +
+> +		rval = i2c_transfer(client->adapter, &msg, 1);
+> +		if (rval < 0)
+> +			return rval;
+> +
+> +		rval = 0;
+> +		memcpy(ptr, buffer, bytes);
+> +
+> +		length -= bytes;
+> +		offset += bytes;
+> +		ptr += bytes;
+> +	} while (length > 0);
+> +
+> +	return rval;
+> +}
+> +
+> +static int et8ek8_dev_init(struct v4l2_subdev *subdev)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	int rval, rev_l, rev_h;
+> +
+> +	rval = et8ek8_power_on(sensor);
+> +	if (rval) {
+> +		dev_err(&client->dev, "could not power on\n");
+> +		return rval;
+> +	}
+> +
+> +	rval = et8ek8_i2c_read_reg(client, ET8EK8_REG_8BIT,
+> +				   REG_REVISION_NUMBER_L, &rev_l);
+> +	if (!rval)
+> +		rval = et8ek8_i2c_read_reg(client, ET8EK8_REG_8BIT,
+> +					   REG_REVISION_NUMBER_H, &rev_h);
+> +	if (rval) {
+> +		dev_err(&client->dev, "no et8ek8 sensor detected\n");
+> +		goto out_poweroff;
+> +	}
+> +
+> +	sensor->version = (rev_h << 8) + rev_l;
+> +	if (sensor->version != ET8EK8_REV_1 && sensor->version != ET8EK8_REV_2)
+> +		dev_info(&client->dev,
+> +			 "unknown version 0x%x detected, continuing anyway\n",
+> +			 sensor->version);
+> +
+> +	rval = et8ek8_reglist_import(client, &meta_reglist);
+> +	if (rval) {
+> +		dev_err(&client->dev,
+> +			"invalid register list %s, import failed\n",
+> +			ET8EK8_NAME);
+> +		goto out_poweroff;
+> +	}
+> +
+> +	sensor->current_reglist = et8ek8_reglist_find_type(&meta_reglist,
+> +							   ET8EK8_REGLIST_MODE);
+> +	if (!sensor->current_reglist) {
+> +		dev_err(&client->dev,
+> +			"invalid register list %s, no mode found\n",
+> +			ET8EK8_NAME);
+> +		rval = -ENODEV;
+> +		goto out_poweroff;
+> +	}
+> +
+> +	et8ek8_reglist_to_mbus(sensor->current_reglist, &sensor->format);
+> +
+> +	rval = et8ek8_i2c_reglist_find_write(client, &meta_reglist,
+> +					     ET8EK8_REGLIST_POWERON);
+> +	if (rval) {
+> +		dev_err(&client->dev,
+> +			"invalid register list %s, no POWERON mode found\n",
+> +			ET8EK8_NAME);
+> +		goto out_poweroff;
+> +	}
+> +	rval = et8ek8_stream_on(sensor); /* Needed to be able to read EEPROM */
+> +	if (rval)
+> +		goto out_poweroff;
+> +	rval = et8ek8_g_priv_mem(subdev);
+> +	if (rval)
+> +		dev_warn(&client->dev,
+> +			"can not read OTP (EEPROM) memory from sensor\n");
+> +	rval = et8ek8_stream_off(sensor);
+> +	if (rval)
+> +		goto out_poweroff;
+> +
+> +	rval = et8ek8_power_off(sensor);
+> +	if (rval)
+> +		goto out_poweroff;
+> +
+> +	return 0;
+> +
+> +out_poweroff:
+> +	et8ek8_power_off(sensor);
+> +
+> +	return rval;
+> +}
+> +
+> +/* --------------------------------------------------------------------------
+> + * sysfs attributes
+> + */
+> +static ssize_t
+> +et8ek8_priv_mem_read(struct device *dev, struct device_attribute *attr,
+> +		     char *buf)
+> +{
+> +	struct v4l2_subdev *subdev = i2c_get_clientdata(to_i2c_client(dev));
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +
+> +#if PAGE_SIZE < ET8EK8_PRIV_MEM_SIZE
+> +#error PAGE_SIZE too small!
+> +#endif
+> +
+> +	memcpy(buf, sensor->priv_mem, ET8EK8_PRIV_MEM_SIZE);
+> +
+> +	return ET8EK8_PRIV_MEM_SIZE;
+> +}
+> +static DEVICE_ATTR(priv_mem, S_IRUGO, et8ek8_priv_mem_read, NULL);
+> +
+> +/* --------------------------------------------------------------------------
+> + * V4L2 subdev core operations
+> + */
+> +
+> +static int
+> +et8ek8_registered(struct v4l2_subdev *subdev)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> +	struct v4l2_mbus_framefmt *format;
+> +	int rval;
+> +
+> +	dev_dbg(&client->dev, "registered!");
+> +
+> +	rval = device_create_file(&client->dev, &dev_attr_priv_mem);
+> +	if (rval) {
+> +		dev_err(&client->dev, "could not register sysfs entry\n");
+> +		return rval;
+> +	}
+> +
+> +	rval = et8ek8_dev_init(subdev);
+> +	if (rval)
+> +		goto err_file;
+> +
+> +	rval = et8ek8_init_controls(sensor);
+> +	if (rval) {
+> +		dev_err(&client->dev, "controls initialization failed\n");
+> +		goto err_file;
+> +	}
+> +
+> +	format = __et8ek8_get_pad_format(sensor, NULL, 0,
+> +					 V4L2_SUBDEV_FORMAT_ACTIVE);
+> +	return 0;
+> +
+> +err_file:
+> +	device_remove_file(&client->dev, &dev_attr_priv_mem);
+> +
+> +	return rval;
+> +}
+> +
+> +static int __et8ek8_set_power(struct et8ek8_sensor *sensor, bool on)
+> +{
+> +	return on ? et8ek8_power_on(sensor) : et8ek8_power_off(sensor);
+> +}
+> +
+> +static int et8ek8_set_power(struct v4l2_subdev *subdev, int on)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +	int ret = 0;
+> +
+> +	mutex_lock(&sensor->power_lock);
+> +
+> +	/* If the power count is modified from 0 to != 0 or from != 0 to 0,
+> +	 * update the power state.
+> +	 */
+> +	if (sensor->power_count == !on) {
+> +		ret = __et8ek8_set_power(sensor, !!on);
+> +		if (ret < 0)
+> +			goto done;
+> +	}
+> +
+> +	/* Update the power count. */
+> +	sensor->power_count += on ? 1 : -1;
+> +	WARN_ON(sensor->power_count < 0);
+> +
+> +done:
+> +	mutex_unlock(&sensor->power_lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static int et8ek8_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(sd);
+> +	struct v4l2_mbus_framefmt *format;
+> +	struct et8ek8_reglist *reglist;
+> +
+> +	reglist = et8ek8_reglist_find_type(&meta_reglist, ET8EK8_REGLIST_MODE);
+> +	format = __et8ek8_get_pad_format(sensor, fh->pad, 0,
+> +					 V4L2_SUBDEV_FORMAT_TRY);
+> +	et8ek8_reglist_to_mbus(reglist, format);
+> +
+> +	return et8ek8_set_power(sd, true);
+> +}
+> +
+> +static int et8ek8_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	return et8ek8_set_power(sd, false);
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops et8ek8_video_ops = {
+> +	.s_stream = et8ek8_s_stream,
+> +	.g_frame_interval = et8ek8_get_frame_interval,
+> +	.s_frame_interval = et8ek8_set_frame_interval,
+> +};
+> +
+> +static const struct v4l2_subdev_core_ops et8ek8_core_ops = {
+> +	.s_power = et8ek8_set_power,
+> +};
+> +
+> +static const struct v4l2_subdev_pad_ops et8ek8_pad_ops = {
+> +	.enum_mbus_code = et8ek8_enum_mbus_code,
+> +	.enum_frame_size = et8ek8_enum_frame_size,
+> +	.enum_frame_interval = et8ek8_enum_frame_ival,
+> +	.get_fmt = et8ek8_get_pad_format,
+> +	.set_fmt = et8ek8_set_pad_format,
+> +};
+> +
+> +static const struct v4l2_subdev_ops et8ek8_ops = {
+> +	.core = &et8ek8_core_ops,
+> +	.video = &et8ek8_video_ops,
+> +	.pad = &et8ek8_pad_ops,
+> +};
+> +
+> +static const struct v4l2_subdev_internal_ops et8ek8_internal_ops = {
+> +	.registered = et8ek8_registered,
+> +	.open = et8ek8_open,
+> +	.close = et8ek8_close,
+> +};
+> +
+> +/* --------------------------------------------------------------------------
+> + * I2C driver
+> + */
+> +#ifdef CONFIG_PM
+> +
+> +static int et8ek8_suspend(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +
+> +	if (!sensor->power_count)
+> +		return 0;
+> +
+> +	return __et8ek8_set_power(sensor, false);
+> +}
+> +
+> +static int et8ek8_resume(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +
+> +	if (!sensor->power_count)
+> +		return 0;
+> +
+> +	return __et8ek8_set_power(sensor, true);
+> +}
+> +
+> +#else
+> +
+> +#define et8ek8_suspend NULL
+> +#define et8ek8_resume NULL
+> +
+> +#endif /* CONFIG_PM */
+> +
+> +static int et8ek8_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *devid)
+> +{
+> +	struct et8ek8_sensor *sensor;
+> +	struct device *dev = &client->dev;
+> +	int ret;
+> +
+> +	sensor = devm_kzalloc(&client->dev, sizeof(*sensor), GFP_KERNEL);
+> +	if (!sensor)
+> +		return -ENOMEM;
+> +
+> +	sensor->reset = devm_gpiod_get(dev, "reset", GPIOD_OUT_LOW);
+> +	if (IS_ERR(sensor->reset)) {
+> +		dev_dbg(&client->dev, "could not request reset gpio\n");
+> +		return PTR_ERR(sensor->reset);
+> +	}
+> +
+> +	sensor->vana = devm_regulator_get(dev, "vana");
+> +	if (IS_ERR(sensor->vana)) {
+> +		dev_err(&client->dev, "could not get regulator for vana\n");
+> +		return PTR_ERR(sensor->vana);
+> +	}
+> +
+> +	sensor->ext_clk = devm_clk_get(dev, NULL);
+> +	if (IS_ERR(sensor->ext_clk)) {
+> +		dev_err(&client->dev, "could not get clock\n");
+> +		return PTR_ERR(sensor->ext_clk);
+> +	}
+> +
+> +	ret = of_property_read_u32(dev->of_node, "clock-frequency",
+> +				   &sensor->xclk_freq);
+> +	if (ret) {
+> +		dev_warn(dev, "can't get clock-frequency\n");
+> +		return ret;
+> +	}
+> +
+> +	mutex_init(&sensor->power_lock);
 
-diff --git a/drivers/media/dvb-frontends/au8522_common.c b/drivers/media/dvb-frontends/au8522_common.c
-index f135126bc373..cf4ac240a01f 100644
---- a/drivers/media/dvb-frontends/au8522_common.c
-+++ b/drivers/media/dvb-frontends/au8522_common.c
-@@ -50,8 +50,8 @@ int au8522_writereg(struct au8522_state *state, u16 reg, u8 data)
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk("%s: writereg error (reg == 0x%02x, val == 0x%04x, "
--		       "ret == %i)\n", __func__, reg, data, ret);
-+		printk("%s: writereg error (reg == 0x%02x, val == 0x%04x, ret == %i)\n",
-+		       __func__, reg, data, ret);
- 
- 	return (ret != 1) ? -1 : 0;
- }
-diff --git a/drivers/media/dvb-frontends/cx24110.c b/drivers/media/dvb-frontends/cx24110.c
-index 6cb81ec12847..cbac5e6c47d3 100644
---- a/drivers/media/dvb-frontends/cx24110.c
-+++ b/drivers/media/dvb-frontends/cx24110.c
-@@ -120,8 +120,8 @@ static int cx24110_writereg (struct cx24110_state* state, int reg, int data)
- 	int err;
- 
- 	if ((err = i2c_transfer(state->i2c, &msg, 1)) != 1) {
--		dprintk ("%s: writereg error (err == %i, reg == 0x%02x,"
--			 " data == 0x%02x)\n", __func__, err, reg, data);
-+		dprintk ("%s: writereg error (err == %i, reg == 0x%02x, data == 0x%02x)\n",
-+			 __func__, err, reg, data);
- 		return -EREMOTEIO;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/cx24113.c b/drivers/media/dvb-frontends/cx24113.c
-index 3883c3b31aef..3812ef8cac08 100644
---- a/drivers/media/dvb-frontends/cx24113.c
-+++ b/drivers/media/dvb-frontends/cx24113.c
-@@ -108,8 +108,8 @@ static int cx24113_writereg(struct cx24113_state *state, int reg, int data)
- 		.flags = 0, .buf = buf, .len = 2 };
- 	int err = i2c_transfer(state->i2c, &msg, 1);
- 	if (err != 1) {
--		printk(KERN_DEBUG "%s: writereg error(err == %i, reg == 0x%02x,"
--			 " data == 0x%02x)\n", __func__, err, reg, data);
-+		printk(KERN_DEBUG "%s: writereg error(err == %i, reg == 0x%02x, data == 0x%02x)\n",
-+		       __func__, err, reg, data);
- 		return err;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/cx24116.c b/drivers/media/dvb-frontends/cx24116.c
-index 8814f36d53fb..ae5a7f9f5a72 100644
---- a/drivers/media/dvb-frontends/cx24116.c
-+++ b/drivers/media/dvb-frontends/cx24116.c
-@@ -209,8 +209,8 @@ static int cx24116_writereg(struct cx24116_state *state, int reg, int data)
- 
- 	err = i2c_transfer(state->i2c, &msg, 1);
- 	if (err != 1) {
--		printk(KERN_ERR "%s: writereg error(err == %i, reg == 0x%02x,"
--			 " value == 0x%02x)\n", __func__, err, reg, data);
-+		printk(KERN_ERR "%s: writereg error(err == %i, reg == 0x%02x, value == 0x%02x)\n",
-+		       __func__, err, reg, data);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -498,8 +498,8 @@ static int cx24116_firmware_ondemand(struct dvb_frontend *fe)
- 		printk(KERN_INFO "%s: Waiting for firmware upload(2)...\n",
- 			__func__);
- 		if (ret) {
--			printk(KERN_ERR "%s: No firmware uploaded "
--				"(timeout or file not found?)\n", __func__);
-+			printk(KERN_ERR "%s: No firmware uploaded (timeout or file not found?)\n",
-+			       __func__);
- 			return ret;
- 		}
- 
-diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
-index a3f7eb4e609d..bc3cd698303f 100644
---- a/drivers/media/dvb-frontends/cx24117.c
-+++ b/drivers/media/dvb-frontends/cx24117.c
-@@ -474,8 +474,8 @@ static int cx24117_firmware_ondemand(struct dvb_frontend *fe)
- 			"%s: Waiting for firmware upload(2)...\n", __func__);
- 		if (ret) {
- 			dev_err(&state->priv->i2c->dev,
--				"%s: No firmware uploaded "
--				"(timeout or file not found?)\n", __func__);
-+				"%s: No firmware uploaded (timeout or file not found?)\n",
-+__func__);
- 			return ret;
- 		}
- 
-diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
-index 113b0949408a..b1287de98e86 100644
---- a/drivers/media/dvb-frontends/cx24123.c
-+++ b/drivers/media/dvb-frontends/cx24123.c
-@@ -255,8 +255,8 @@ static int cx24123_i2c_writereg(struct cx24123_state *state,
- 
- 	err = i2c_transfer(state->i2c, &msg, 1);
- 	if (err != 1) {
--		printk("%s: writereg error(err == %i, reg == 0x%02x,"
--			 " data == 0x%02x)\n", __func__, err, reg, data);
-+		printk("%s: writereg error(err == %i, reg == 0x%02x, data == 0x%02x)\n",
-+		       __func__, err, reg, data);
- 		return err;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-index 447b518e287a..6dc79d4528c2 100644
---- a/drivers/media/dvb-frontends/ds3000.c
-+++ b/drivers/media/dvb-frontends/ds3000.c
-@@ -248,8 +248,8 @@ static int ds3000_writereg(struct ds3000_state *state, int reg, int data)
- 
- 	err = i2c_transfer(state->i2c, &msg, 1);
- 	if (err != 1) {
--		printk(KERN_ERR "%s: writereg error(err == %i, reg == 0x%02x,"
--			 " value == 0x%02x)\n", __func__, err, reg, data);
-+		printk(KERN_ERR "%s: writereg error(err == %i, reg == 0x%02x, value == 0x%02x)\n",
-+		       __func__, err, reg, data);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -296,8 +296,8 @@ static int ds3000_writeFW(struct ds3000_state *state, int reg,
- 
- 		ret = i2c_transfer(state->i2c, &msg, 1);
- 		if (ret != 1) {
--			printk(KERN_ERR "%s: write error(err == %i, "
--				"reg == 0x%02x\n", __func__, ret, reg);
-+			printk(KERN_ERR "%s: write error(err == %i, reg == 0x%02x\n",
-+			       __func__, ret, reg);
- 			ret = -EREMOTEIO;
- 			goto error;
- 		}
-@@ -364,8 +364,8 @@ static int ds3000_firmware_ondemand(struct dvb_frontend *fe)
- 				state->i2c->dev.parent);
- 	printk(KERN_INFO "%s: Waiting for firmware upload(2)...\n", __func__);
- 	if (ret) {
--		printk(KERN_ERR "%s: No firmware uploaded (timeout or file not "
--				"found?)\n", __func__);
-+		printk(KERN_ERR "%s: No firmware uploaded (timeout or file not found?)\n",
-+		       __func__);
- 		return ret;
- 	}
- 
-@@ -1144,8 +1144,7 @@ static struct dvb_frontend_ops ds3000_ops = {
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
- 
--MODULE_DESCRIPTION("DVB Frontend module for Montage Technology "
--			"DS3000 hardware");
-+MODULE_DESCRIPTION("DVB Frontend module for Montage Technology DS3000 hardware");
- MODULE_AUTHOR("Konstantin Dimitrov <kosio.dimitrov@gmail.com>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(DS3000_DEFAULT_FIRMWARE);
-diff --git a/drivers/media/dvb-frontends/lgdt330x.c b/drivers/media/dvb-frontends/lgdt330x.c
-index 96bf254da21e..8cb6c56d220a 100644
---- a/drivers/media/dvb-frontends/lgdt330x.c
-+++ b/drivers/media/dvb-frontends/lgdt330x.c
-@@ -405,8 +405,7 @@ static int lgdt330x_set_parameters(struct dvb_frontend *fe)
- 			return -1;
- 		}
- 		if (err < 0)
--			printk(KERN_WARNING "lgdt330x: %s: error blasting "
--			       "bytes to lgdt3303 for modulation type(%d)\n",
-+			printk(KERN_WARNING "lgdt330x: %s: error blasting bytes to lgdt3303 for modulation type(%d)\n",
- 			       __func__, p->modulation);
- 
- 		/*
-diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
-index ef79a4ec31e2..133248251f8e 100644
---- a/drivers/media/dvb-frontends/m88rs2000.c
-+++ b/drivers/media/dvb-frontends/m88rs2000.c
-@@ -75,8 +75,8 @@ static int m88rs2000_writereg(struct m88rs2000_state *state,
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		deb_info("%s: writereg error (reg == 0x%02x, val == 0x%02x, "
--			"ret == %i)\n", __func__, reg, data, ret);
-+		deb_info("%s: writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+			 __func__, reg, data, ret);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-@@ -618,8 +618,7 @@ static int m88rs2000_set_frontend(struct dvb_frontend *fe)
- 	state->no_lock_count = 0;
- 
- 	if (c->delivery_system != SYS_DVBS) {
--			deb_info("%s: unsupported delivery "
--				"system selected (%d)\n",
-+			deb_info("%s: unsupported delivery system selected (%d)\n",
- 				__func__, c->delivery_system);
- 			return -EOPNOTSUPP;
- 	}
-diff --git a/drivers/media/dvb-frontends/mt312.c b/drivers/media/dvb-frontends/mt312.c
-index fc08429c99b7..fdee75b1b99a 100644
---- a/drivers/media/dvb-frontends/mt312.c
-+++ b/drivers/media/dvb-frontends/mt312.c
-@@ -457,8 +457,8 @@ static int mt312_read_status(struct dvb_frontend *fe, enum fe_status *s)
- 	if (ret < 0)
- 		return ret;
- 
--	dprintk("QPSK_STAT_H: 0x%02x, QPSK_STAT_L: 0x%02x,"
--		" FEC_STATUS: 0x%02x\n", status[0], status[1], status[2]);
-+	dprintk("QPSK_STAT_H: 0x%02x, QPSK_STAT_L: 0x%02x, FEC_STATUS: 0x%02x\n",
-+		status[0], status[1], status[2]);
- 
- 	if (status[0] & 0xc0)
- 		*s |= FE_HAS_SIGNAL;	/* signal noise ratio */
-@@ -827,8 +827,7 @@ struct dvb_frontend *mt312_attach(const struct mt312_config *config,
- 		state->freq_mult = 9;
- 		break;
- 	default:
--		printk(KERN_WARNING "Only Zarlink VP310/MT312/ZL10313"
--			" are supported chips.\n");
-+		printk(KERN_WARNING "Only Zarlink VP310/MT312/ZL10313 are supported chips.\n");
- 		goto error;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/nxt200x.c b/drivers/media/dvb-frontends/nxt200x.c
-index 79c3040912ab..7c23f0499f23 100644
---- a/drivers/media/dvb-frontends/nxt200x.c
-+++ b/drivers/media/dvb-frontends/nxt200x.c
-@@ -289,8 +289,7 @@ static void nxt200x_microcontroller_stop (struct nxt200x_state* state)
- 		counter++;
- 	}
- 
--	pr_warn("Timeout waiting for nxt200x to stop. This is ok after "
--		"firmware upload.\n");
-+	pr_warn("Timeout waiting for nxt200x to stop. This is ok after firmware upload.\n");
- 	return;
- }
- 
-@@ -893,8 +892,8 @@ static int nxt2002_init(struct dvb_frontend* fe)
- 			       state->i2c->dev.parent);
- 	pr_debug("%s: Waiting for firmware upload(2)...\n", __func__);
- 	if (ret) {
--		pr_err("%s: No firmware uploaded (timeout or file not found?)"
--		       "\n", __func__);
-+		pr_err("%s: No firmware uploaded (timeout or file not found?)\n",
-+		       __func__);
- 		return ret;
- 	}
- 
-@@ -960,8 +959,8 @@ static int nxt2004_init(struct dvb_frontend* fe)
- 			       state->i2c->dev.parent);
- 	pr_debug("%s: Waiting for firmware upload(2)...\n", __func__);
- 	if (ret) {
--		pr_err("%s: No firmware uploaded (timeout or file not found?)"
--		       "\n", __func__);
-+		pr_err("%s: No firmware uploaded (timeout or file not found?)\n",
-+		       __func__);
- 		return ret;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/or51132.c b/drivers/media/dvb-frontends/or51132.c
-index a165af990672..bacea20822ea 100644
---- a/drivers/media/dvb-frontends/or51132.c
-+++ b/drivers/media/dvb-frontends/or51132.c
-@@ -342,15 +342,13 @@ static int or51132_set_parameters(struct dvb_frontend *fe)
- 		       fwname);
- 		ret = request_firmware(&fw, fwname, state->i2c->dev.parent);
- 		if (ret) {
--			printk(KERN_WARNING "or51132: No firmware up"
--			       "loaded(timeout or file not found?)\n");
-+			printk(KERN_WARNING "or51132: No firmware uploaded(timeout or file not found?)\n");
- 			return ret;
- 		}
- 		ret = or51132_load_firmware(fe, fw);
- 		release_firmware(fw);
- 		if (ret) {
--			printk(KERN_WARNING "or51132: Writing firmware to "
--			       "device failed!\n");
-+			printk(KERN_WARNING "or51132: Writing firmware to device failed!\n");
- 			return ret;
- 		}
- 		printk("or51132: Firmware upload complete.\n");
-diff --git a/drivers/media/dvb-frontends/or51211.c b/drivers/media/dvb-frontends/or51211.c
-index e82413b975e6..839479eab3b3 100644
---- a/drivers/media/dvb-frontends/or51211.c
-+++ b/drivers/media/dvb-frontends/or51211.c
-@@ -377,8 +377,7 @@ static int or51211_init(struct dvb_frontend* fe)
- 					       OR51211_DEFAULT_FIRMWARE);
- 		pr_info("Got Hotplug firmware\n");
- 		if (ret) {
--			pr_warn("No firmware uploaded "
--				"(timeout or file not found?)\n");
-+			pr_warn("No firmware uploaded (timeout or file not found?)\n");
- 			return ret;
- 		}
- 
-diff --git a/drivers/media/dvb-frontends/s5h1409.c b/drivers/media/dvb-frontends/s5h1409.c
-index c68965ad97c0..56c3fb442d6c 100644
---- a/drivers/media/dvb-frontends/s5h1409.c
-+++ b/drivers/media/dvb-frontends/s5h1409.c
-@@ -321,8 +321,8 @@ static int s5h1409_writereg(struct s5h1409_state *state, u8 reg, u16 data)
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: error (reg == 0x%02x, val == 0x%04x, "
--		       "ret == %i)\n", __func__, reg, data, ret);
-+		printk(KERN_ERR "%s: error (reg == 0x%02x, val == 0x%04x, ret == %i)\n",
-+		       __func__, reg, data, ret);
- 
- 	return (ret != 1) ? -1 : 0;
- }
-diff --git a/drivers/media/dvb-frontends/s5h1411.c b/drivers/media/dvb-frontends/s5h1411.c
-index 90f86e82b087..a861854981b7 100644
---- a/drivers/media/dvb-frontends/s5h1411.c
-+++ b/drivers/media/dvb-frontends/s5h1411.c
-@@ -350,8 +350,8 @@ static int s5h1411_writereg(struct s5h1411_state *state,
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: writereg error 0x%02x 0x%02x 0x%04x, "
--		       "ret == %i)\n", __func__, addr, reg, data, ret);
-+		printk(KERN_ERR "%s: writereg error 0x%02x 0x%02x 0x%04x, ret == %i)\n",
-+		       __func__, addr, reg, data, ret);
- 
- 	return (ret != 1) ? -1 : 0;
- }
-diff --git a/drivers/media/dvb-frontends/s5h1432.c b/drivers/media/dvb-frontends/s5h1432.c
-index 4215652f8eb7..5de79739cf63 100644
---- a/drivers/media/dvb-frontends/s5h1432.c
-+++ b/drivers/media/dvb-frontends/s5h1432.c
-@@ -63,8 +63,8 @@ static int s5h1432_writereg(struct s5h1432_state *state,
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: writereg error 0x%02x 0x%02x 0x%04x, "
--		       "ret == %i)\n", __func__, addr, reg, data, ret);
-+		printk(KERN_ERR "%s: writereg error 0x%02x 0x%02x 0x%04x, ret == %i)\n",
-+		       __func__, addr, reg, data, ret);
- 
- 	return (ret != 1) ? -1 : 0;
- }
-diff --git a/drivers/media/dvb-frontends/s921.c b/drivers/media/dvb-frontends/s921.c
-index b5e3d90eba5e..98cceb149b91 100644
---- a/drivers/media/dvb-frontends/s921.c
-+++ b/drivers/media/dvb-frontends/s921.c
-@@ -214,8 +214,8 @@ static int s921_i2c_writereg(struct s921_state *state,
- 
- 	rc = i2c_transfer(state->i2c, &msg, 1);
- 	if (rc != 1) {
--		printk("%s: writereg rcor(rc == %i, reg == 0x%02x,"
--			 " data == 0x%02x)\n", __func__, rc, reg, data);
-+		printk("%s: writereg rcor(rc == %i, reg == 0x%02x, data == 0x%02x)\n",
-+		       __func__, rc, reg, data);
- 		return rc;
- 	}
- 
-diff --git a/drivers/media/dvb-frontends/si21xx.c b/drivers/media/dvb-frontends/si21xx.c
-index 62ad7a7be9f8..32ebfb78bfdd 100644
---- a/drivers/media/dvb-frontends/si21xx.c
-+++ b/drivers/media/dvb-frontends/si21xx.c
-@@ -245,8 +245,8 @@ static int si21_writeregs(struct si21xx_state *state, u8 reg1,
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		dprintk("%s: writereg error (reg1 == 0x%02x, data == 0x%02x, "
--			"ret == %i)\n", __func__, reg1, data[0], ret);
-+		dprintk("%s: writereg error (reg1 == 0x%02x, data == 0x%02x, ret == %i)\n",
-+			__func__, reg1, data[0], ret);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-@@ -265,8 +265,8 @@ static int si21_writereg(struct si21xx_state *state, u8 reg, u8 data)
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		dprintk("%s: writereg error (reg == 0x%02x, data == 0x%02x, "
--			"ret == %i)\n", __func__, reg, data, ret);
-+		dprintk("%s: writereg error (reg == 0x%02x, data == 0x%02x, ret == %i)\n",
-+			__func__, reg, data, ret);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-diff --git a/drivers/media/dvb-frontends/sp887x.c b/drivers/media/dvb-frontends/sp887x.c
-index 4378fe1b978e..f9194b7b7fec 100644
---- a/drivers/media/dvb-frontends/sp887x.c
-+++ b/drivers/media/dvb-frontends/sp887x.c
-@@ -63,8 +63,7 @@ static int sp887x_writereg (struct sp887x_state* state, u16 reg, u16 data)
- 		if (!(reg == 0xf1a && data == 0x000 &&
- 			(ret == -EREMOTEIO || ret == -EFAULT)))
- 		{
--			printk("%s: writereg error "
--			       "(reg %03x, data %03x, ret == %i)\n",
-+			printk("%s: writereg error (reg %03x, data %03x, ret == %i)\n",
- 			       __func__, reg & 0xffff, data & 0xffff, ret);
- 			return ret;
- 		}
-diff --git a/drivers/media/dvb-frontends/stv0288.c b/drivers/media/dvb-frontends/stv0288.c
-index c93d9a45f7f7..4abd3db62e2d 100644
---- a/drivers/media/dvb-frontends/stv0288.c
-+++ b/drivers/media/dvb-frontends/stv0288.c
-@@ -74,8 +74,8 @@ static int stv0288_writeregI(struct stv0288_state *state, u8 reg, u8 data)
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, "
--			"ret == %i)\n", __func__, reg, data, ret);
-+		dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+			__func__, reg, data, ret);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-@@ -465,8 +465,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe)
- 	dprintk("%s : FE_SET_FRONTEND\n", __func__);
- 
- 	if (c->delivery_system != SYS_DVBS) {
--			dprintk("%s: unsupported delivery "
--				"system selected (%d)\n",
-+			dprintk("%s: unsupported delivery system selected (%d)\n",
- 				__func__, c->delivery_system);
- 			return -EOPNOTSUPP;
- 	}
-diff --git a/drivers/media/dvb-frontends/stv0297.c b/drivers/media/dvb-frontends/stv0297.c
-index 81b27b7c0c96..73b4d4243b74 100644
---- a/drivers/media/dvb-frontends/stv0297.c
-+++ b/drivers/media/dvb-frontends/stv0297.c
-@@ -57,8 +57,8 @@ static int stv0297_writereg(struct stv0297_state *state, u8 reg, u8 data)
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, "
--			"ret == %i)\n", __func__, reg, data, ret);
-+		dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+			__func__, reg, data, ret);
- 
- 	return (ret != 1) ? -1 : 0;
- }
-diff --git a/drivers/media/dvb-frontends/stv0299.c b/drivers/media/dvb-frontends/stv0299.c
-index 7927fa925f2f..a9b28ceb80d8 100644
---- a/drivers/media/dvb-frontends/stv0299.c
-+++ b/drivers/media/dvb-frontends/stv0299.c
-@@ -88,8 +88,8 @@ static int stv0299_writeregI (struct stv0299_state* state, u8 reg, u8 data)
- 	ret = i2c_transfer (state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, "
--			"ret == %i)\n", __func__, reg, data, ret);
-+		dprintk("%s: writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+			__func__, reg, data, ret);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-@@ -761,8 +761,7 @@ module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
- 
- MODULE_DESCRIPTION("ST STV0299 DVB Demodulator driver");
--MODULE_AUTHOR("Ralph Metzler, Holger Waechtler, Peter Schildmann, Felix Domke, "
--	      "Andreas Oberritter, Andrew de Quincey, Kenneth Aafly");
-+MODULE_AUTHOR("Ralph Metzler, Holger Waechtler, Peter Schildmann, Felix Domke, Andreas Oberritter, Andrew de Quincey, Kenneth Aafly");
- MODULE_LICENSE("GPL");
- 
- EXPORT_SYMBOL(stv0299_attach);
-diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
-index fa63a9e929ce..bded82774f4b 100644
---- a/drivers/media/dvb-frontends/stv0900_sw.c
-+++ b/drivers/media/dvb-frontends/stv0900_sw.c
-@@ -1485,8 +1485,7 @@ static u32 stv0900_search_srate_coarse(struct dvb_frontend *fe)
- 		current_step++;
- 		direction *= -1;
- 
--		dprintk("lock: I2C_DEMOD_MODE_FIELD =0. Search started."
--			" tuner freq=%d agc2=0x%x srate_coarse=%d tmg_cpt=%d\n",
-+		dprintk("lock: I2C_DEMOD_MODE_FIELD =0. Search started. tuner freq=%d agc2=0x%x srate_coarse=%d tmg_cpt=%d\n",
- 			tuner_freq, agc2_integr, coarse_srate, timingcpt);
- 
- 		if ((timingcpt >= 5) &&
-diff --git a/drivers/media/dvb-frontends/tda10021.c b/drivers/media/dvb-frontends/tda10021.c
-index 806c56691ca5..4c514e6bffda 100644
---- a/drivers/media/dvb-frontends/tda10021.c
-+++ b/drivers/media/dvb-frontends/tda10021.c
-@@ -77,8 +77,7 @@ static int _tda10021_writereg (struct tda10021_state* state, u8 reg, u8 data)
- 
- 	ret = i2c_transfer (state->i2c, &msg, 1);
- 	if (ret != 1)
--		printk("DVB: TDA10021(%d): %s, writereg error "
--			"(reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+		printk("DVB: TDA10021(%d): %s, writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
- 			state->frontend.dvb->num, __func__, reg, data, ret);
- 
- 	msleep(10);
-diff --git a/drivers/media/dvb-frontends/tda10023.c b/drivers/media/dvb-frontends/tda10023.c
-index 3b8c7e499d0d..0c416be76d65 100644
---- a/drivers/media/dvb-frontends/tda10023.c
-+++ b/drivers/media/dvb-frontends/tda10023.c
-@@ -72,8 +72,7 @@ static u8 tda10023_readreg (struct tda10023_state* state, u8 reg)
- 	ret = i2c_transfer (state->i2c, msg, 2);
- 	if (ret != 2) {
- 		int num = state->frontend.dvb ? state->frontend.dvb->num : -1;
--		printk(KERN_ERR "DVB: TDA10023(%d): %s: readreg error "
--			"(reg == 0x%02x, ret == %i)\n",
-+		printk(KERN_ERR "DVB: TDA10023(%d): %s: readreg error (reg == 0x%02x, ret == %i)\n",
- 			num, __func__, reg, ret);
- 	}
- 	return b1[0];
-@@ -88,8 +87,7 @@ static int tda10023_writereg (struct tda10023_state* state, u8 reg, u8 data)
- 	ret = i2c_transfer (state->i2c, &msg, 1);
- 	if (ret != 1) {
- 		int num = state->frontend.dvb ? state->frontend.dvb->num : -1;
--		printk(KERN_ERR "DVB: TDA10023(%d): %s, writereg error "
--			"(reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+		printk(KERN_ERR "DVB: TDA10023(%d): %s, writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
- 			num, __func__, reg, data, ret);
- 	}
- 	return (ret != 1) ? -EREMOTEIO : 0;
-diff --git a/drivers/media/dvb-frontends/tda10048.c b/drivers/media/dvb-frontends/tda10048.c
-index c2bf89d0b0b0..7cb23f89a03b 100644
---- a/drivers/media/dvb-frontends/tda10048.c
-+++ b/drivers/media/dvb-frontends/tda10048.c
-@@ -1063,32 +1063,28 @@ static void tda10048_establish_defaults(struct dvb_frontend *fe)
- 	/* Validate/default the config */
- 	if (config->dtv6_if_freq_khz == 0) {
- 		config->dtv6_if_freq_khz = TDA10048_IF_4300;
--		printk(KERN_WARNING "%s() tda10048_config.dtv6_if_freq_khz "
--			"is not set (defaulting to %d)\n",
-+		printk(KERN_WARNING "%s() tda10048_config.dtv6_if_freq_khz is not set (defaulting to %d)\n",
- 			__func__,
- 			config->dtv6_if_freq_khz);
- 	}
- 
- 	if (config->dtv7_if_freq_khz == 0) {
- 		config->dtv7_if_freq_khz = TDA10048_IF_4300;
--		printk(KERN_WARNING "%s() tda10048_config.dtv7_if_freq_khz "
--			"is not set (defaulting to %d)\n",
-+		printk(KERN_WARNING "%s() tda10048_config.dtv7_if_freq_khz is not set (defaulting to %d)\n",
- 			__func__,
- 			config->dtv7_if_freq_khz);
- 	}
- 
- 	if (config->dtv8_if_freq_khz == 0) {
- 		config->dtv8_if_freq_khz = TDA10048_IF_4300;
--		printk(KERN_WARNING "%s() tda10048_config.dtv8_if_freq_khz "
--			"is not set (defaulting to %d)\n",
-+		printk(KERN_WARNING "%s() tda10048_config.dtv8_if_freq_khz is not set (defaulting to %d)\n",
- 			__func__,
- 			config->dtv8_if_freq_khz);
- 	}
- 
- 	if (config->clk_freq_khz == 0) {
- 		config->clk_freq_khz = TDA10048_CLK_16000;
--		printk(KERN_WARNING "%s() tda10048_config.clk_freq_khz "
--			"is not set (defaulting to %d)\n",
-+		printk(KERN_WARNING "%s() tda10048_config.clk_freq_khz is not set (defaulting to %d)\n",
- 			__func__,
- 			config->clk_freq_khz);
- 	}
-diff --git a/drivers/media/dvb-frontends/ves1820.c b/drivers/media/dvb-frontends/ves1820.c
-index b09fe88c40f8..24ac54b3b967 100644
---- a/drivers/media/dvb-frontends/ves1820.c
-+++ b/drivers/media/dvb-frontends/ves1820.c
-@@ -65,8 +65,8 @@ static int ves1820_writereg(struct ves1820_state *state, u8 reg, u8 data)
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk("ves1820: %s(): writereg error (reg == 0x%02x, "
--			"val == 0x%02x, ret == %i)\n", __func__, reg, data, ret);
-+		printk("ves1820: %s(): writereg error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
-+		       __func__, reg, data, ret);
- 
- 	return (ret != 1) ? -EREMOTEIO : 0;
- }
-@@ -84,8 +84,8 @@ static u8 ves1820_readreg(struct ves1820_state *state, u8 reg)
- 	ret = i2c_transfer(state->i2c, msg, 2);
- 
- 	if (ret != 2)
--		printk("ves1820: %s(): readreg error (reg == 0x%02x, "
--		"ret == %i)\n", __func__, reg, ret);
-+		printk("ves1820: %s(): readreg error (reg == 0x%02x, ret == %i)\n",
-+		       __func__, reg, ret);
- 
- 	return b1[0];
- }
-diff --git a/drivers/media/dvb-frontends/zl10036.c b/drivers/media/dvb-frontends/zl10036.c
-index 7ed81315965f..df5d0fe24687 100644
---- a/drivers/media/dvb-frontends/zl10036.c
-+++ b/drivers/media/dvb-frontends/zl10036.c
-@@ -85,8 +85,8 @@ static int zl10036_read_status_reg(struct zl10036_state *state)
- 	deb_i2c("R(status): %02x  [FL=%d]\n", status,
- 		(status & STATUS_FL) ? 1 : 0);
- 	if (status & STATUS_POR)
--		deb_info("%s: Power-On-Reset bit enabled - "
--			"need to initialize the tuner\n", __func__);
-+		deb_info("%s: Power-On-Reset bit enabled - need to initialize the tuner\n",
-+			 __func__);
- 
- 	return status;
- }
-diff --git a/drivers/media/dvb-frontends/zl10039.c b/drivers/media/dvb-frontends/zl10039.c
-index f8c271be196c..d6ded11fee49 100644
---- a/drivers/media/dvb-frontends/zl10039.c
-+++ b/drivers/media/dvb-frontends/zl10039.c
-@@ -152,8 +152,7 @@ static int zl10039_init(struct dvb_frontend *fe)
- 	/* Reset logic */
- 	ret = zl10039_writereg(state, GENERAL, 0x40);
- 	if (ret < 0) {
--		dprintk("Note: i2c write error normal when resetting the "
--			"tuner\n");
-+		dprintk("Note: i2c write error normal when resetting the tuner\n");
- 	}
- 	/* Wake up */
- 	ret = zl10039_writereg(state, GENERAL, 0x01);
+mutex_destroy() should be called on the mutex if probe fails after this and
+in remove().
+
+> +
+> +	v4l2_i2c_subdev_init(&sensor->subdev, client, &et8ek8_ops);
+> +	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	sensor->subdev.internal_ops = &et8ek8_internal_ops;
+> +
+> +	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	ret = media_entity_pads_init(&sensor->subdev.entity, 1, &sensor->pad);
+> +	if (ret < 0) {
+> +		dev_err(&client->dev, "media entity init failed!\n");
+> +		return ret;
+> +	}
+> +
+> +	ret = v4l2_async_register_subdev(&sensor->subdev);
+> +	if (ret < 0) {
+> +		media_entity_cleanup(&sensor->subdev.entity);
+> +		return ret;
+> +	}
+> +
+> +	dev_dbg(dev, "initialized!\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static int __exit et8ek8_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
+> +
+> +	if (sensor->power_count) {
+> +		gpiod_set_value(sensor->reset, 0);
+> +		clk_disable_unprepare(sensor->ext_clk);
+
+How about the regulator? Could you call et8ek8_power_off() instead?
+
+> +		sensor->power_count = 0;
+> +	}
+> +
+> +	v4l2_device_unregister_subdev(&sensor->subdev);
+> +	device_remove_file(&client->dev, &dev_attr_priv_mem);
+> +	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
+> +	media_entity_cleanup(&sensor->subdev.entity);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id et8ek8_of_table[] = {
+> +	{ .compatible = "toshiba,et8ek8" },
+> +	{ },
+> +};
+> +
+> +static const struct i2c_device_id et8ek8_id_table[] = {
+> +	{ ET8EK8_NAME, 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, et8ek8_id_table);
+> +
+> +static const struct dev_pm_ops et8ek8_pm_ops = {
+> +	.suspend	= et8ek8_suspend,
+> +	.resume		= et8ek8_resume,
+> +};
+> +
+> +static struct i2c_driver et8ek8_i2c_driver = {
+> +	.driver		= {
+> +		.name	= ET8EK8_NAME,
+> +		.pm	= &et8ek8_pm_ops,
+> +		.of_match_table	= et8ek8_of_table,
+> +	},
+> +	.probe		= et8ek8_probe,
+> +	.remove		= __exit_p(et8ek8_remove),
+> +	.id_table	= et8ek8_id_table,
+> +};
+> +
+> +module_i2c_driver(et8ek8_i2c_driver);
+> +
+> +MODULE_AUTHOR("Sakari Ailus <sakari.ailus@iki.fi>");
+> +MODULE_DESCRIPTION("Toshiba ET8EK8 camera sensor driver");
+> +MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/i2c/et8ek8/et8ek8_mode.c b/drivers/media/i2c/et8ek8/et8ek8_mode.c
+> new file mode 100644
+> index 0000000..956fc60
+> --- /dev/null
+> +++ b/drivers/media/i2c/et8ek8/et8ek8_mode.c
+> @@ -0,0 +1,587 @@
+> +/*
+> + * et8ek8_mode.c
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> + *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include "et8ek8_reg.h"
+> +
+> +/*
+> + * Stingray sensor mode settings for Scooby
+> + */
+> +
+> +/* Mode1_poweron_Mode2_16VGA_2592x1968_12.07fps */
+> +static struct et8ek8_reglist mode1_poweron_mode2_16vga_2592x1968_12_07fps = {
+> +/* (without the +1)
+> + * SPCK       = 80 MHz
+> + * CCP2       = 640 MHz
+> + * VCO        = 640 MHz
+> + * VCOUNT     = 84 (2016)
+> + * HCOUNT     = 137 (3288)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 200
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 7
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 0
+> + */
+> +	.type = ET8EK8_REGLIST_POWERON,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3288,
+> +		.height = 2016,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 2592,
+> +		.window_height = 1968,
+> +		.pixel_clock = 80000000,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 1207
+> +		},
+> +		.max_exp = 2012,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		/* Need to set firstly */
+> +		{ ET8EK8_REG_8BIT, 0x126C, 0xCC },
+> +		/* Strobe and Data of CCP2 delay are minimized. */
+> +		{ ET8EK8_REG_8BIT, 0x1269, 0x00 },
+> +		/* Refined value of Min H_COUNT  */
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x89 },
+> +		/* Frequency of SPCK setting (SPCK=MRCK) */
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x07 },
+> +		{ ET8EK8_REG_8BIT, 0x1241, 0x94 },
+> +		{ ET8EK8_REG_8BIT, 0x1242, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x124B, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1255, 0xFF },
+> +		{ ET8EK8_REG_8BIT, 0x1256, 0x9F },
+> +		{ ET8EK8_REG_8BIT, 0x1258, 0x00 },
+> +		/* From parallel out to serial out */
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x88 },
+> +		/* From w/ embeded data to w/o embeded data */
+> +		{ ET8EK8_REG_8BIT, 0x125E, 0xC0 },
+> +		/* CCP2 out is from STOP to ACTIVE */
+> +		{ ET8EK8_REG_8BIT, 0x1263, 0x98 },
+> +		{ ET8EK8_REG_8BIT, 0x1268, 0xC6 },
+> +		{ ET8EK8_REG_8BIT, 0x1434, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1163, 0x44 },
+> +		{ ET8EK8_REG_8BIT, 0x1166, 0x29 },
+> +		{ ET8EK8_REG_8BIT, 0x1140, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x1011, 0x24 },
+> +		{ ET8EK8_REG_8BIT, 0x1151, 0x80 },
+> +		{ ET8EK8_REG_8BIT, 0x1152, 0x23 },
+> +		/* Initial setting for improvement2 of lower frequency noise */
+> +		{ ET8EK8_REG_8BIT, 0x1014, 0x05 },
+> +		{ ET8EK8_REG_8BIT, 0x1033, 0x06 },
+> +		{ ET8EK8_REG_8BIT, 0x1034, 0x79 },
+> +		{ ET8EK8_REG_8BIT, 0x1423, 0x3F },
+> +		{ ET8EK8_REG_8BIT, 0x1424, 0x3F },
+> +		{ ET8EK8_REG_8BIT, 0x1426, 0x00 },
+> +		/* Switch of Preset-White-balance (0d:disable / 1d:enable) */
+> +		{ ET8EK8_REG_8BIT, 0x1439, 0x00 },
+> +		/* Switch of blemish correction (0d:disable / 1d:enable) */
+> +		{ ET8EK8_REG_8BIT, 0x161F, 0x60 },
+> +		/* Switch of auto noise correction (0d:disable / 1d:enable) */
+> +		{ ET8EK8_REG_8BIT, 0x1634, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1646, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1648, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x113E, 0x01 },
+> +		{ ET8EK8_REG_8BIT, 0x113F, 0x22 },
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x70 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x07 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x89 },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x54 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x88 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode1_16VGA_2592x1968_13.12fps_DPCM10-8 */
+> +static struct et8ek8_reglist mode1_16vga_2592x1968_13_12fps_dpcm10_8 = {
+> +/* (without the +1)
+> + * SPCK       = 80 MHz
+> + * CCP2       = 560 MHz
+> + * VCO        = 560 MHz
+> + * VCOUNT     = 84 (2016)
+> + * HCOUNT     = 128 (3072)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 175
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 6
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 0
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3072,
+> +		.height = 2016,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 2592,
+> +		.window_height = 1968,
+> +		.pixel_clock = 80000000,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 1292
+> +		},
+> +		.max_exp = 2012,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10DPCM8,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x57 },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x82 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x70 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x06 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x80 }, /* <-changed to v14 7E->80 */
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x54 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x83 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode3_4VGA_1296x984_29.99fps_DPCM10-8 */
+> +static struct et8ek8_reglist mode3_4vga_1296x984_29_99fps_dpcm10_8 = {
+> +/* (without the +1)
+> + * SPCK       = 96.5333333333333 MHz
+> + * CCP2       = 579.2 MHz
+> + * VCO        = 579.2 MHz
+> + * VCOUNT     = 84 (2016)
+> + * HCOUNT     = 133 (3192)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 181
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 5
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 0
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3192,
+> +		.height = 1008,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 1296,
+> +		.window_height = 984,
+> +		.pixel_clock = 96533333,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 3000
+> +		},
+> +		.max_exp = 1004,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10DPCM8,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x5A },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x82 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x70 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x05 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x63 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x85 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x54 },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x63 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x83 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode4_SVGA_864x656_29.88fps */
+> +static struct et8ek8_reglist mode4_svga_864x656_29_88fps = {
+> +/* (without the +1)
+> + * SPCK       = 80 MHz
+> + * CCP2       = 320 MHz
+> + * VCO        = 640 MHz
+> + * VCOUNT     = 84 (2016)
+> + * HCOUNT     = 166 (3984)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 200
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 7
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 1
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3984,
+> +		.height = 672,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 864,
+> +		.window_height = 656,
+> +		.pixel_clock = 80000000,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 2988
+> +		},
+> +		.max_exp = 668,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x71 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x07 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x62 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x62 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0xA6 },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x54 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x88 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode5_VGA_648x492_29.93fps */
+> +static struct et8ek8_reglist mode5_vga_648x492_29_93fps = {
+> +/* (without the +1)
+> + * SPCK       = 80 MHz
+> + * CCP2       = 320 MHz
+> + * VCO        = 640 MHz
+> + * VCOUNT     = 84 (2016)
+> + * HCOUNT     = 221 (5304)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 200
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 7
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 1
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 5304,
+> +		.height = 504,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 648,
+> +		.window_height = 492,
+> +		.pixel_clock = 80000000,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 2993
+> +		},
+> +		.max_exp = 500,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x71 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x07 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x61 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x61 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0xDD },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x54 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x88 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode2_16VGA_2592x1968_3.99fps */
+> +static struct et8ek8_reglist mode2_16vga_2592x1968_3_99fps = {
+> +/* (without the +1)
+> + * SPCK       = 80 MHz
+> + * CCP2       = 640 MHz
+> + * VCO        = 640 MHz
+> + * VCOUNT     = 254 (6096)
+> + * HCOUNT     = 137 (3288)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 200
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 7
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 0
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3288,
+> +		.height = 6096,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 2592,
+> +		.window_height = 1968,
+> +		.pixel_clock = 80000000,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 399
+> +		},
+> +		.max_exp = 6092,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x70 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x07 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x89 },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0xFE },
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode_648x492_5fps */
+> +static struct et8ek8_reglist mode_648x492_5fps = {
+> +/* (without the +1)
+> + * SPCK       = 13.3333333333333 MHz
+> + * CCP2       = 53.3333333333333 MHz
+> + * VCO        = 640 MHz
+> + * VCOUNT     = 84 (2016)
+> + * HCOUNT     = 221 (5304)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 200
+> + * VCO_DIV    = 5
+> + * SPCK_DIV   = 7
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 1
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 5304,
+> +		.height = 504,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 648,
+> +		.window_height = 492,
+> +		.pixel_clock = 13333333,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 499
+> +		},
+> +		.max_exp = 500,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x64 },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x71 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x57 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x61 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x61 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0xDD },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x54 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x88 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode3_4VGA_1296x984_5fps */
+> +static struct et8ek8_reglist mode3_4vga_1296x984_5fps = {
+> +/* (without the +1)
+> + * SPCK       = 49.4 MHz
+> + * CCP2       = 395.2 MHz
+> + * VCO        = 790.4 MHz
+> + * VCOUNT     = 250 (6000)
+> + * HCOUNT     = 137 (3288)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 247
+> + * VCO_DIV    = 1
+> + * SPCK_DIV   = 7
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 0
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3288,
+> +		.height = 3000,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 1296,
+> +		.window_height = 984,
+> +		.pixel_clock = 49400000,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 501
+> +		},
+> +		.max_exp = 2996,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x7B },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x82 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x70 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x17 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x63 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x63 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x89 },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0xFA },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x88 }, /* CCP_LVDS_MODE/  */
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +/* Mode_4VGA_1296x984_25fps_DPCM10-8 */
+> +static struct et8ek8_reglist mode_4vga_1296x984_25fps_dpcm10_8 = {
+> +/* (without the +1)
+> + * SPCK       = 84.2666666666667 MHz
+> + * CCP2       = 505.6 MHz
+> + * VCO        = 505.6 MHz
+> + * VCOUNT     = 88 (2112)
+> + * HCOUNT     = 133 (3192)
+> + * CKREF_DIV  = 2
+> + * CKVAR_DIV  = 158
+> + * VCO_DIV    = 0
+> + * SPCK_DIV   = 5
+> + * MRCK_DIV   = 7
+> + * LVDSCK_DIV = 0
+> + */
+> +	.type = ET8EK8_REGLIST_MODE,
+> +	.mode = {
+> +		.sensor_width = 2592,
+> +		.sensor_height = 1968,
+> +		.sensor_window_origin_x = 0,
+> +		.sensor_window_origin_y = 0,
+> +		.sensor_window_width = 2592,
+> +		.sensor_window_height = 1968,
+> +		.width = 3192,
+> +		.height = 1056,
+> +		.window_origin_x = 0,
+> +		.window_origin_y = 0,
+> +		.window_width = 1296,
+> +		.window_height = 984,
+> +		.pixel_clock = 84266667,
+> +		.ext_clock = 9600000,
+> +		.timeperframe = {
+> +			.numerator = 100,
+> +			.denominator = 2500
+> +		},
+> +		.max_exp = 1052,
+> +		/* .max_gain = 0, */
+> +		.pixel_format = V4L2_PIX_FMT_SGRBG10DPCM8,
+> +		.sensitivity = 65536
+> +	},
+> +	.regs = {
+> +		{ ET8EK8_REG_8BIT, 0x1239, 0x4F },
+> +		{ ET8EK8_REG_8BIT, 0x1238, 0x02 },
+> +		{ ET8EK8_REG_8BIT, 0x123B, 0x70 },
+> +		{ ET8EK8_REG_8BIT, 0x123A, 0x05 },
+> +		{ ET8EK8_REG_8BIT, 0x121B, 0x63 },
+> +		{ ET8EK8_REG_8BIT, 0x1220, 0x85 },
+> +		{ ET8EK8_REG_8BIT, 0x1221, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x1222, 0x58 },
+> +		{ ET8EK8_REG_8BIT, 0x1223, 0x00 },
+> +		{ ET8EK8_REG_8BIT, 0x121D, 0x63 },
+> +		{ ET8EK8_REG_8BIT, 0x125D, 0x83 },
+> +		{ ET8EK8_REG_TERM, 0, 0}
+> +	}
+> +};
+> +
+> +struct et8ek8_meta_reglist meta_reglist = {
+> +	.version = "V14 03-June-2008",
+> +	.reglist = {
+> +		{ .ptr = &mode1_poweron_mode2_16vga_2592x1968_12_07fps },
+> +		{ .ptr = &mode1_16vga_2592x1968_13_12fps_dpcm10_8 },
+> +		{ .ptr = &mode3_4vga_1296x984_29_99fps_dpcm10_8 },
+> +		{ .ptr = &mode4_svga_864x656_29_88fps },
+> +		{ .ptr = &mode5_vga_648x492_29_93fps },
+> +		{ .ptr = &mode2_16vga_2592x1968_3_99fps },
+> +		{ .ptr = &mode_648x492_5fps },
+> +		{ .ptr = &mode3_4vga_1296x984_5fps },
+> +		{ .ptr = &mode_4vga_1296x984_25fps_dpcm10_8 },
+> +		{ .ptr = NULL }
+> +	}
+> +};
+> diff --git a/drivers/media/i2c/et8ek8/et8ek8_reg.h b/drivers/media/i2c/et8ek8/et8ek8_reg.h
+> new file mode 100644
+> index 0000000..9970bff
+> --- /dev/null
+> +++ b/drivers/media/i2c/et8ek8/et8ek8_reg.h
+> @@ -0,0 +1,96 @@
+> +/*
+> + * et8ek8.h
+
+et8ek8_reg.h
+
+> + *
+> + * Copyright (C) 2008 Nokia Corporation
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
+> + *          Tuukka Toivonen <tuukkat76@gmail.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#ifndef ET8EK8REGS_H
+> +#define ET8EK8REGS_H
+> +
+> +#include <linux/i2c.h>
+> +#include <linux/types.h>
+> +#include <linux/videodev2.h>
+> +#include <linux/v4l2-subdev.h>
+> +
+> +struct v4l2_mbus_framefmt;
+> +struct v4l2_subdev_pad_mbus_code_enum;
+> +
+> +struct et8ek8_mode {
+> +	/* Physical sensor resolution and current image window */
+> +	u16 sensor_width;
+> +	u16 sensor_height;
+> +	u16 sensor_window_origin_x;
+> +	u16 sensor_window_origin_y;
+> +	u16 sensor_window_width;
+> +	u16 sensor_window_height;
+> +
+> +	/* Image data coming from sensor (after scaling) */
+> +	u16 width;
+> +	u16 height;
+> +	u16 window_origin_x;
+> +	u16 window_origin_y;
+> +	u16 window_width;
+> +	u16 window_height;
+> +
+> +	u32 pixel_clock;		/* in Hz */
+> +	u32 ext_clock;			/* in Hz */
+> +	struct v4l2_fract timeperframe;
+> +	u32 max_exp;			/* Maximum exposure value */
+> +	u32 pixel_format;		/* V4L2_PIX_FMT_xxx */
+> +	u32 sensitivity;		/* 16.16 fixed point */
+> +};
+> +
+> +#define ET8EK8_REG_8BIT			1
+> +#define ET8EK8_REG_16BIT		2
+> +#define ET8EK8_REG_DELAY		100
+> +#define ET8EK8_REG_TERM			0xff
+> +struct et8ek8_reg {
+> +	u16 type;
+> +	u16 reg;			/* 16-bit offset */
+> +	u32 val;			/* 8/16/32-bit value */
+> +};
+> +
+> +/* Possible struct smia_reglist types. */
+> +#define ET8EK8_REGLIST_STANDBY		0
+> +#define ET8EK8_REGLIST_POWERON		1
+> +#define ET8EK8_REGLIST_RESUME		2
+> +#define ET8EK8_REGLIST_STREAMON		3
+> +#define ET8EK8_REGLIST_STREAMOFF	4
+> +#define ET8EK8_REGLIST_DISABLED		5
+> +
+> +#define ET8EK8_REGLIST_MODE		10
+> +
+> +#define ET8EK8_REGLIST_LSC_ENABLE	100
+> +#define ET8EK8_REGLIST_LSC_DISABLE	101
+> +#define ET8EK8_REGLIST_ANR_ENABLE	102
+> +#define ET8EK8_REGLIST_ANR_DISABLE	103
+> +
+> +struct et8ek8_reglist {
+> +	u32 type;
+> +	struct et8ek8_mode mode;
+> +	struct et8ek8_reg regs[];
+> +};
+> +
+> +#define ET8EK8_MAX_LEN			32
+> +struct et8ek8_meta_reglist {
+> +	char version[ET8EK8_MAX_LEN];
+> +	union {
+> +		struct et8ek8_reglist *ptr;
+> +	} reglist[];
+> +};
+> +
+> +extern struct et8ek8_meta_reglist meta_reglist;
+> +
+> +#endif /* ET8EK8REGS */
+> 
+
 -- 
-2.7.4
+Kind regards,
 
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
