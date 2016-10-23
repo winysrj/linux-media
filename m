@@ -1,76 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:18872 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1757275AbcJXLuB (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51762 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753156AbcJWKwP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 07:50:01 -0400
-Message-ID: <1477309795.29543.23.camel@mtksdaap41>
-Subject: Re: [PATCH 3/4] mtk_mdp_m2m: remove an unused struct
-From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>
-Date: Mon, 24 Oct 2016 19:49:55 +0800
-In-Reply-To: <624b0ea4550b90318ec2293d80b1caa5bafd2a35.1477058332.git.mchehab@s-opensource.com>
-References: <cd14afdb178cf490e257368bc899c7a0c690d140.1477058332.git.mchehab@s-opensource.com>
-         <624b0ea4550b90318ec2293d80b1caa5bafd2a35.1477058332.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+        Sun, 23 Oct 2016 06:52:15 -0400
+Date: Sun, 23 Oct 2016 12:52:11 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Cc: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: v4.9-rc1: smiapp divides by zero
+Message-ID: <20161023105211.GA24117@amd>
+References: <1465659593-16858-1-git-send-email-ivo.g.dimitrov.75@gmail.com>
+ <20161023073322.GA3523@amd>
+ <20161023102213.GA13705@amd>
 MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+In-Reply-To: <20161023102213.GA13705@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2016-10-21 at 11:59 -0200, Mauro Carvalho Chehab wrote:
-> drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c:48:33: warning: ‘mtk_mdp_size_align’ defined but not used [-Wunused-variable]
->  static struct mtk_mdp_pix_align mtk_mdp_size_align = {
->                                  ^~~~~~~~~~~~~~~~~~
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c | 7 -------
->  1 file changed, 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-> index 065502757133..33124a6c9951 100644
-> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
-> @@ -45,13 +45,6 @@ struct mtk_mdp_pix_limit {
->  	u16 target_rot_en_h;
->  };
->  
-> -static struct mtk_mdp_pix_align mtk_mdp_size_align = {
-> -	.org_w			= 16,
-> -	.org_h			= 16,
-> -	.target_w		= 2,
-> -	.target_h		= 2,
-> -};
-> -
 
-Hi Mauro,
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The structure is used for the format V4L2_PIX_FMT_MT21C which is added
-in the later patch.
-"[media] media: mtk-mdp: support pixelformat V4L2_PIX_FMT_MT21C"
+Hi!
 
-I just know checkpatch should be run patch by patch, so this warning
-message will be generated without the MT21C patch.
+> I tried to update camera code on n900 to v4.9-rc1, and I'm getting
+> some divide by zero, that eventually cascades into fcam-dev not
+> working.
+>=20
+> mul is zero in my testing, resulting in divide by zero.
+>=20
+> (Note that this is going from my patched camera-v4.8 tree to
+> camera-v4.9 tree.)
 
-I found all mtk-mdp patches have been merged in media tree, so is this
-patch still needed?
+If I revert the smiapp changes to the ones in camera-v4.8, I get fcam
+back, and can get pictures using the main camera.
 
-If yes, remove 'mtk_mdp_size_align' in this patch, and re-added it in
-the MT21C patch. 
+There are only few patches between v4.8 and v4.8 in smiapp, so I'll
+try to find what is going on there.
+
+Best regards,
+								Pavel
 
 
-minghsiu
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
->  static const struct mtk_mdp_fmt mtk_mdp_formats[] = {
->  	{
->  		.pixelformat	= V4L2_PIX_FMT_NV12M,
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
+iEYEARECAAYFAlgMllsACgkQMOfwapXb+vJDagCgkz0CAr6vbvOfZ+XKZWv8qQwc
+RiYAni/AHQLR/XKGeSTGlxciNftwUGDp
+=sZVf
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
