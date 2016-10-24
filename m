@@ -1,336 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51660 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935657AbcJRUqY (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:27252 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933576AbcJXIUL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:24 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mon, 24 Oct 2016 04:20:11 -0400
+Subject: Re: [PATCH v4] [media] vb2: Add support for capture_dma_bidirectional
+ queue flag
+To: Thierry Escande <thierry.escande@collabora.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Erik Andren <erik.andren@gmail.com>,
-        Brian Johnson <brijohn@gmail.com>, Antonio Ospite <ao2@ao2.it>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Oliver Neukum <oneukum@suse.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        Wesley Post <pa4wdh@xs4all.nl>,
-        Bhaktipriya Shridhar <bhaktipriya96@gmail.com>
-Subject: [PATCH v2 38/58] gspca: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:50 -0200
-Message-Id: <c67ce1137463b52a152b42e28150df777dc9a922.1476822925.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <b6bfc5f3-df78-0938-73da-b431b91f3335@samsung.com>
+Date: Mon, 24 Oct 2016 10:20:04 +0200
+MIME-version: 1.0
+In-reply-to: <1477294221-10912-1-git-send-email-thierry.escande@collabora.com>
+Content-type: text/plain; charset=utf-8; format=flowed
+Content-transfer-encoding: 7bit
+References: <CGME20161024073048epcas4p39068cc1699f05d7902038d0d4311a60d@epcas4p3.samsung.com>
+ <1477294221-10912-1-git-send-email-thierry.escande@collabora.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Hi Thierry,
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
 
-So, join those continuation lines.
+On 2016-10-24 09:30, Thierry Escande wrote:
+> From: Pawel Osciak <posciak@chromium.org>
+>
+> When this flag is set for CAPTURE queues by the driver on calling
+> vb2_queue_init(), it forces the buffers on the queue to be
+> allocated/mapped with DMA_BIDIRECTIONAL direction flag instead of
+> DMA_FROM_DEVICE. This allows the device not only to write to the
+> buffers, but also read out from them. This may be useful e.g. for codec
+> hardware which may be using CAPTURE buffers as reference to decode
+> other buffers.
+>
+> This flag is ignored for OUTPUT queues as we don't want to allow HW to
+> be able to write to OUTPUT buffers.
+>
+> This patch introduces 2 macros:
+> VB2_DMA_DIR(q) returns the corresponding dma_dir for the passed queue
+> type, tanking care of the capture_dma_birectional flag.
+>
+> VB2_DMA_DIR_CAPTURE(d) is a test macro returning true if the passed DMA
+> direction refers to a capture buffer. This test is used to map virtual
+> addresses for writing and to mark pages as dirty.
+>
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Tested-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+Thanks for this patch. It reminds me that I have to look again into s5p-mfc
+codec driver and also fix it to use this feature. It worked so far only
+because the current Exynos IOMMU driver doesn't implement access protection
+checks...
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+> ---
+>
+> Changes since v1:
+> - Renamed use_dma_bidirectional field as capture_dma_bidirectional
+> - Added a VB2_DMA_DIR() macro
+>
+> Changes since v2:
+> - Get rid of dma_dir field and therefore squashed the previous patch
+>
+> Changes since v3:
+> - Fixed typos in include/media/videobuf2-core.h
+> - Added VB2_DMA_DIR_CAPTURE() test macro
+>
+>
+>   drivers/media/v4l2-core/videobuf2-core.c       |  9 +++------
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c |  2 +-
+>   drivers/media/v4l2-core/videobuf2-dma-sg.c     |  5 +++--
+>   drivers/media/v4l2-core/videobuf2-vmalloc.c    |  4 ++--
+>   include/media/videobuf2-core.h                 | 24 ++++++++++++++++++++++++
+>   5 files changed, 33 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 21900202..22d6105 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -194,8 +194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
+>   static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>   {
+>   	struct vb2_queue *q = vb->vb2_queue;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>   	void *mem_priv;
+>   	int plane;
+>   	int ret = -ENOMEM;
+> @@ -978,8 +977,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
+>   	void *mem_priv;
+>   	unsigned int plane;
+>   	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>   	bool reacquired = vb->planes[0].mem_priv == NULL;
+>   
+>   	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> @@ -1096,8 +1094,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>   	void *mem_priv;
+>   	unsigned int plane;
+>   	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>   	bool reacquired = vb->planes[0].mem_priv == NULL;
+>   
+>   	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index fb6a177..a44e383 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -507,7 +507,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>   	buf->dma_dir = dma_dir;
+>   
+>   	offset = vaddr & ~PAGE_MASK;
+> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, VB2_DMA_DIR_CAPTURE(dma_dir));
+>   	if (IS_ERR(vec)) {
+>   		ret = PTR_ERR(vec);
+>   		goto fail_buf;
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index ecff8f49..51c98f6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -238,7 +238,8 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
+>   	buf->offset = vaddr & ~PAGE_MASK;
+>   	buf->size = size;
+>   	buf->dma_sgt = &buf->sg_table;
+> -	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size,
+> +				  VB2_DMA_DIR_CAPTURE(buf->dma_dir));
+>   	if (IS_ERR(vec))
+>   		goto userptr_fail_pfnvec;
+>   	buf->vec = vec;
+> @@ -291,7 +292,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>   		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>   	sg_free_table(buf->dma_sgt);
+>   	while (--i >= 0) {
+> -		if (buf->dma_dir == DMA_FROM_DEVICE)
+> +		if (VB2_DMA_DIR_CAPTURE(buf->dma_dir))
+>   			set_page_dirty_lock(buf->pages[i]);
+>   	}
+>   	vb2_destroy_framevec(buf->vec);
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index ab3227b..76649bd 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -86,7 +86,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
+>   	buf->dma_dir = dma_dir;
+>   	offset = vaddr & ~PAGE_MASK;
+>   	buf->size = size;
+> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, VB2_DMA_DIR_CAPTURE(dma_dir));
+>   	if (IS_ERR(vec)) {
+>   		ret = PTR_ERR(vec);
+>   		goto fail_pfnvec_create;
+> @@ -136,7 +136,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+>   		pages = frame_vector_pages(buf->vec);
+>   		if (vaddr)
+>   			vm_unmap_ram((void *)vaddr, n_pages);
+> -		if (buf->dma_dir == DMA_FROM_DEVICE)
+> +		if (VB2_DMA_DIR_CAPTURE(buf->dma_dir))
+>   			for (i = 0; i < n_pages; i++)
+>   				set_page_dirty_lock(pages[i]);
+>   	} else {
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index ac5898a..98379ba 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -433,6 +433,9 @@ struct vb2_buf_ops {
+>    * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
+>    *              has not been called. This is a vb1 idiom that has been adopted
+>    *              also by vb2.
+> + * @capture_dma_bidirectional:	use DMA_BIDIRECTIONAL for CAPTURE buffers; this
+> + *				allows HW to read from the CAPTURE buffers in
+> + *				addition to writing; ignored for OUTPUT queues.
+>    * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+>    *		driver can set this to a mutex to let the v4l2 core serialize
+>    *		the queuing ioctls. If the driver wants to handle locking
+> @@ -499,6 +502,7 @@ struct vb2_queue {
+>   	unsigned			fileio_write_immediately:1;
+>   	unsigned			allow_zero_bytesused:1;
+>   	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+> +	unsigned			capture_dma_bidirectional:1;
+>   
+>   	struct mutex			*lock;
+>   	void				*owner;
+> @@ -554,6 +558,26 @@ struct vb2_queue {
+>   #endif
+>   };
+>   
+> +/*
+> + * Returns the corresponding DMA direction given the vb2_queue type (capture or
+> + * output). Returns DMA_BIDIRECTIONAL for capture buffers if the vb2_queue field
+> + * capture_dma_bidirectional is set by the driver.
+> + */
+> +#define VB2_DMA_DIR(q) (V4L2_TYPE_IS_OUTPUT((q)->type)   \
+> +			? DMA_TO_DEVICE                  \
+> +			: (q)->capture_dma_bidirectional \
+> +			  ? DMA_BIDIRECTIONAL            \
+> +			  : DMA_FROM_DEVICE)
+> +
+> +/*
+> + * Returns true if the DMA direction passed as parameter refers to a capture
+> + * buffer as capture buffers allow both FROM_DEVICE and BIDIRECTIONAL DMA
+> + * direction. This test is used to map virtual addresses for writing and to mark
+> + * pages as dirty.
+> + */
+> +#define VB2_DMA_DIR_CAPTURE(d) \
+> +			((d) == DMA_FROM_DEVICE || (d) == DMA_BIDIRECTIONAL)
+> +
+>   /**
+>    * vb2_plane_vaddr() - Return a kernel virtual address of a given plane
+>    * @vb:		vb2_buffer to which the plane in question belongs to
 
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/gspca/gspca.c            |  3 +--
- drivers/media/usb/gspca/m5602/m5602_core.c | 11 ++++-------
- drivers/media/usb/gspca/mr97310a.c         |  3 +--
- drivers/media/usb/gspca/ov519.c            |  3 +--
- drivers/media/usb/gspca/pac207.c           |  4 ++--
- drivers/media/usb/gspca/pac7302.c          |  3 +--
- drivers/media/usb/gspca/sn9c20x.c          |  6 ++----
- drivers/media/usb/gspca/sq905.c            |  3 +--
- drivers/media/usb/gspca/sq905c.c           |  4 ++--
- drivers/media/usb/gspca/stv06xx/stv06xx.c  |  9 +++------
- drivers/media/usb/gspca/sunplus.c          |  3 +--
- drivers/media/usb/gspca/topro.c            |  3 +--
- drivers/media/usb/gspca/zc3xx.c            |  3 +--
- 13 files changed, 21 insertions(+), 37 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
-index af2395a76d8b..fa2cbb981905 100644
---- a/drivers/media/usb/gspca/gspca.c
-+++ b/drivers/media/usb/gspca/gspca.c
-@@ -201,8 +201,7 @@ static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev,
- 
- 	buffer_len = le16_to_cpu(ep->wMaxPacketSize);
- 	interval = ep->bInterval;
--	PDEBUG(D_CONF, "found int in endpoint: 0x%x, "
--		"buffer_len=%u, interval=%u",
-+	PDEBUG(D_CONF, "found int in endpoint: 0x%x, buffer_len=%u, interval=%u",
- 		ep->bEndpointAddress, buffer_len, interval);
- 
- 	dev = gspca_dev->dev;
-diff --git a/drivers/media/usb/gspca/m5602/m5602_core.c b/drivers/media/usb/gspca/m5602/m5602_core.c
-index e4a0658e3f83..f1dcd9021983 100644
---- a/drivers/media/usb/gspca/m5602/m5602_core.c
-+++ b/drivers/media/usb/gspca/m5602/m5602_core.c
-@@ -154,8 +154,8 @@ int m5602_read_sensor(struct sd *sd, const u8 address,
- 
- 		err = m5602_read_bridge(sd, M5602_XB_I2C_DATA, &(i2c_data[i]));
- 
--		PDEBUG(D_CONF, "Reading sensor register "
--			       "0x%x containing 0x%x ", address, *i2c_data);
-+		PDEBUG(D_CONF, "Reading sensor register 0x%x containing 0x%x ",
-+		       address, *i2c_data);
- 	}
- 	return err;
- }
-@@ -441,13 +441,10 @@ MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
- module_param(force_sensor, int, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(force_sensor,
--		"forces detection of a sensor, "
--		"1 = OV9650, 2 = S5K83A, 3 = S5K4AA, "
--		"4 = MT9M111, 5 = PO1030, 6 = OV7660");
-+		"forces detection of a sensor, 1 = OV9650, 2 = S5K83A, 3 = S5K4AA, 4 = MT9M111, 5 = PO1030, 6 = OV7660");
- 
- module_param(dump_bridge, bool, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(dump_bridge, "Dumps all usb bridge registers at startup");
- 
- module_param(dump_sensor, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(dump_sensor, "Dumps all usb sensor registers "
--		"at startup providing a sensor is found");
-+MODULE_PARM_DESC(dump_sensor, "Dumps all usb sensor registers at startup providing a sensor is found");
-diff --git a/drivers/media/usb/gspca/mr97310a.c b/drivers/media/usb/gspca/mr97310a.c
-index f006e29ca019..6dfb364094ec 100644
---- a/drivers/media/usb/gspca/mr97310a.c
-+++ b/drivers/media/usb/gspca/mr97310a.c
-@@ -72,8 +72,7 @@
- #define MR97310A_MIN_CLOCKDIV_MAX	8
- #define MR97310A_MIN_CLOCKDIV_DEFAULT	3
- 
--MODULE_AUTHOR("Kyle Guinn <elyk03@gmail.com>,"
--	      "Theodore Kilgore <kilgota@auburn.edu>");
-+MODULE_AUTHOR("Kyle Guinn <elyk03@gmail.com>,Theodore Kilgore <kilgota@auburn.edu>");
- MODULE_DESCRIPTION("GSPCA/Mars-Semi MR97310A USB Camera Driver");
- MODULE_LICENSE("GPL");
- 
-diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
-index 965372a5ff2f..4dbca54cf2a8 100644
---- a/drivers/media/usb/gspca/ov519.c
-+++ b/drivers/media/usb/gspca/ov519.c
-@@ -4326,8 +4326,7 @@ static void ov511_pkt_scan(struct gspca_dev *gspca_dev,
- 			/* Frame end */
- 			if ((in[9] + 1) * 8 != gspca_dev->pixfmt.width ||
- 			    (in[10] + 1) * 8 != gspca_dev->pixfmt.height) {
--				PERR("Invalid frame size, got: %dx%d,"
--					" requested: %dx%d\n",
-+				PERR("Invalid frame size, got: %dx%d, requested: %dx%d\n",
- 					(in[9] + 1) * 8, (in[10] + 1) * 8,
- 					gspca_dev->pixfmt.width,
- 					gspca_dev->pixfmt.height);
-diff --git a/drivers/media/usb/gspca/pac207.c b/drivers/media/usb/gspca/pac207.c
-index 07529e5a0c56..51e11248bbb8 100644
---- a/drivers/media/usb/gspca/pac207.c
-+++ b/drivers/media/usb/gspca/pac207.c
-@@ -179,8 +179,8 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	}
- 
- 	PDEBUG(D_PROBE,
--		"Pixart PAC207BCA Image Processor and Control Chip detected"
--		" (vid/pid 0x%04X:0x%04X)", id->idVendor, id->idProduct);
-+		"Pixart PAC207BCA Image Processor and Control Chip detected (vid/pid 0x%04X:0x%04X)",
-+		id->idVendor, id->idProduct);
- 
- 	cam = &gspca_dev->cam;
- 	cam->cam_mode = sif_mode;
-diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
-index 8b08bd0172f4..be07a24c4518 100644
---- a/drivers/media/usb/gspca/pac7302.c
-+++ b/drivers/media/usb/gspca/pac7302.c
-@@ -105,8 +105,7 @@
- #define PAC7302_EXPOSURE_DEFAULT	 66 /* 33 ms / 30 fps */
- #define PAC7302_EXPOSURE_KNEE		133 /* 66 ms / 15 fps */
- 
--MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, "
--		"Thomas Kaiser thomas@kaiser-linux.li");
-+MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, Thomas Kaiser thomas@kaiser-linux.li");
- MODULE_DESCRIPTION("Pixart PAC7302");
- MODULE_LICENSE("GPL");
- 
-diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
-index 10269dad9d20..e7430b06526a 100644
---- a/drivers/media/usb/gspca/sn9c20x.c
-+++ b/drivers/media/usb/gspca/sn9c20x.c
-@@ -29,8 +29,7 @@
- 
- #include <linux/dmi.h>
- 
--MODULE_AUTHOR("Brian Johnson <brijohn@gmail.com>, "
--		"microdia project <microdia@googlegroups.com>");
-+MODULE_AUTHOR("Brian Johnson <brijohn@gmail.com>, microdia project <microdia@googlegroups.com>");
- MODULE_DESCRIPTION("GSPCA/SN9C20X USB Camera Driver");
- MODULE_LICENSE("GPL");
- 
-@@ -1948,8 +1947,7 @@ static int sd_isoc_init(struct gspca_dev *gspca_dev)
- 		intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
- 
- 		if (intf->num_altsetting != 9) {
--			pr_warn("sn9c20x camera with unknown number of alt "
--				"settings (%d), please report!\n",
-+			pr_warn("sn9c20x camera with unknown number of alt settings (%d), please report!\n",
- 				intf->num_altsetting);
- 			gspca_dev->alt = intf->num_altsetting;
- 			return 0;
-diff --git a/drivers/media/usb/gspca/sq905.c b/drivers/media/usb/gspca/sq905.c
-index a7ae0ec9fa91..9424c33f0ddb 100644
---- a/drivers/media/usb/gspca/sq905.c
-+++ b/drivers/media/usb/gspca/sq905.c
-@@ -41,8 +41,7 @@
- #include <linux/slab.h>
- #include "gspca.h"
- 
--MODULE_AUTHOR("Adam Baker <linux@baker-net.org.uk>, "
--		"Theodore Kilgore <kilgota@auburn.edu>");
-+MODULE_AUTHOR("Adam Baker <linux@baker-net.org.uk>, Theodore Kilgore <kilgota@auburn.edu>");
- MODULE_DESCRIPTION("GSPCA/SQ905 USB Camera Driver");
- MODULE_LICENSE("GPL");
- 
-diff --git a/drivers/media/usb/gspca/sq905c.c b/drivers/media/usb/gspca/sq905c.c
-index aa21edc9502d..e02b8c1d06a2 100644
---- a/drivers/media/usb/gspca/sq905c.c
-+++ b/drivers/media/usb/gspca/sq905c.c
-@@ -210,8 +210,8 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	int ret;
- 
- 	PDEBUG(D_PROBE,
--		"SQ9050 camera detected"
--		" (vid/pid 0x%04X:0x%04X)", id->idVendor, id->idProduct);
-+	       "SQ9050 camera detected (vid/pid 0x%04X:0x%04X)",
-+	       id->idVendor, id->idProduct);
- 
- 	ret = sq905c_command(gspca_dev, SQ905C_GET_ID, 0);
- 	if (ret < 0) {
-diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-index 6ac93d8db427..562ddb050cfd 100644
---- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
-+++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-@@ -412,8 +412,7 @@ static void stv06xx_pkt_scan(struct gspca_dev *gspca_dev,
- 		len -= 4;
- 
- 		if (len < chunk_len) {
--			PERR("URB packet length is smaller"
--				" than the specified chunk length");
-+			PERR("URB packet length is smaller than the specified chunk length");
- 			gspca_dev->last_packet_type = DISCARD_PACKET;
- 			return;
- 		}
-@@ -455,8 +454,7 @@ static void stv06xx_pkt_scan(struct gspca_dev *gspca_dev,
- 				sd->to_skip = gspca_dev->pixfmt.width * 4;
- 
- 			if (chunk_len)
--				PERR("Chunk length is "
--					      "non-zero on a SOF");
-+				PERR("Chunk length is non-zero on a SOF");
- 			break;
- 
- 		case 0x8002:
-@@ -469,8 +467,7 @@ static void stv06xx_pkt_scan(struct gspca_dev *gspca_dev,
- 					NULL, 0);
- 
- 			if (chunk_len)
--				PERR("Chunk length is "
--					      "non-zero on a EOF");
-+				PERR("Chunk length is non-zero on a EOF");
- 			break;
- 
- 		case 0x0005:
-diff --git a/drivers/media/usb/gspca/sunplus.c b/drivers/media/usb/gspca/sunplus.c
-index 46c9f2229a18..38dc9e7aa313 100644
---- a/drivers/media/usb/gspca/sunplus.c
-+++ b/drivers/media/usb/gspca/sunplus.c
-@@ -368,8 +368,7 @@ static void spca504_read_info(struct gspca_dev *gspca_dev)
- 		info[i] = gspca_dev->usb_buf[0];
- 	}
- 	PDEBUG(D_STREAM,
--		"Read info: %d %d %d %d %d %d."
--		" Should be 1,0,2,2,0,0",
-+		"Read info: %d %d %d %d %d %d. Should be 1,0,2,2,0,0",
- 		info[0], info[1], info[2],
- 		info[3], info[4], info[5]);
- }
-diff --git a/drivers/media/usb/gspca/topro.c b/drivers/media/usb/gspca/topro.c
-index 15eb069ab60b..983fc6b500af 100644
---- a/drivers/media/usb/gspca/topro.c
-+++ b/drivers/media/usb/gspca/topro.c
-@@ -24,8 +24,7 @@
- #include "gspca.h"
- 
- MODULE_DESCRIPTION("Topro TP6800/6810 gspca webcam driver");
--MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, "
--		"Anders Blomdell <anders.blomdell@control.lth.se>");
-+MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, Anders Blomdell <anders.blomdell@control.lth.se>");
- MODULE_LICENSE("GPL");
- 
- static int force_sensor = -1;
-diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
-index 5f7254d2bc9a..d5d8c7e81762 100644
---- a/drivers/media/usb/gspca/zc3xx.c
-+++ b/drivers/media/usb/gspca/zc3xx.c
-@@ -25,8 +25,7 @@
- #include "gspca.h"
- #include "jpeg.h"
- 
--MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, "
--		"Serge A. Suchkov <Serge.A.S@tochka.ru>");
-+MODULE_AUTHOR("Jean-Francois Moine <http://moinejf.free.fr>, Serge A. Suchkov <Serge.A.S@tochka.ru>");
- MODULE_DESCRIPTION("GSPCA ZC03xx/VC3xx USB Camera Driver");
- MODULE_LICENSE("GPL");
- 
+Best regards
 -- 
-2.7.4
-
+Marek Szyprowski, PhD
+Samsung R&D Institute Poland
 
