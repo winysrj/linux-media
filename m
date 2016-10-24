@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47329 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S946321AbcJaUXn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 16:23:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Felipe Balbi <felipe.balbi@linux.intel.com>
-Cc: Linux USB <linux-usb@vger.kernel.org>,
+Received: from mout.web.de ([212.227.17.11]:51506 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S941144AbcJXU7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 16:59:38 -0400
+Subject: [PATCH 1/3] [media] au0828-video: Use kcalloc() in au0828_init_isoc()
+To: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 14/82] media: usb: uvc: make use of new usb_endpoint_maxp_mult()
-Date: Mon, 31 Oct 2016 22:23:36 +0200
-Message-ID: <1866739.E6Rllxssiz@avalon>
-In-Reply-To: <20161031104914.1990-15-felipe.balbi@linux.intel.com>
-References: <20161031104914.1990-1-felipe.balbi@linux.intel.com> <20161031104914.1990-15-felipe.balbi@linux.intel.com>
+        =?UTF-8?Q?Rafael_Louren=c3=a7o_de_Lima_Chehab?=
+        <chehabrafael@gmail.com>, Shuah Khan <shuah@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+References: <c6a37822-c0f9-1f1e-6ebe-a1c88c6d9d0a@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <68ad1aaa-c029-04b9-805a-e859f6c2d2d5@users.sourceforge.net>
+Date: Mon, 24 Oct 2016 22:59:24 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <c6a37822-c0f9-1f1e-6ebe-a1c88c6d9d0a@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Felipe,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Mon, 24 Oct 2016 22:08:47 +0200
 
-Thank you for the patch.
+* Multiplications for the size determination of memory allocations
+  indicated that array data structures should be processed.
+  Thus use the corresponding function "kcalloc".
 
-On Monday 31 Oct 2016 12:48:06 Felipe Balbi wrote:
-> We have introduced a helper to calculate multiplier
-> value from wMaxPacketSize. Start using it.
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: <linux-media@vger.kernel.org>
-> Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+  This issue was detected by using the Coccinelle software.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+* Replace the specification of data types by pointer dereferences
+  to make the corresponding size determination a bit safer according to
+  the Linux coding style convention.
 
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index b5589d5f5da4..11e0e5f4e1c2 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1467,6 +1467,7 @@ static unsigned int uvc_endpoint_max_bpi(struct
-> usb_device *dev, struct usb_host_endpoint *ep)
->  {
->  	u16 psize;
-> +	u16 mult;
-> 
->  	switch (dev->speed) {
->  	case USB_SPEED_SUPER:
-> @@ -1474,7 +1475,8 @@ static unsigned int uvc_endpoint_max_bpi(struct
-> usb_device *dev, return le16_to_cpu(ep->ss_ep_comp.wBytesPerInterval);
->  	case USB_SPEED_HIGH:
->  		psize = usb_endpoint_maxp(&ep->desc);
-> -		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-> +		mult = usb_endpoint_maxp_mult(&ep->desc);
-> +		return (psize & 0x07ff) * mult;
->  	case USB_SPEED_WIRELESS:
->  		psize = usb_endpoint_maxp(&ep->desc);
->  		return psize;
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/usb/au0828/au0828-video.c | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 85dd9a8..85b13c1 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -221,15 +221,18 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
+ 
+ 	dev->isoc_ctl.isoc_copy = isoc_copy;
+ 	dev->isoc_ctl.num_bufs = num_bufs;
+-
+-	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
++	dev->isoc_ctl.urb = kcalloc(num_bufs,
++				    sizeof(*dev->isoc_ctl.urb),
++				    GFP_KERNEL);
+ 	if (!dev->isoc_ctl.urb) {
+ 		au0828_isocdbg("cannot alloc memory for usb buffers\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	dev->isoc_ctl.transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
+-					      GFP_KERNEL);
++	dev->isoc_ctl.transfer_buffer = kcalloc(num_bufs,
++						sizeof(*dev->isoc_ctl
++						       .transfer_buffer),
++						GFP_KERNEL);
+ 	if (!dev->isoc_ctl.transfer_buffer) {
+ 		au0828_isocdbg("cannot allocate memory for usb transfer\n");
+ 		kfree(dev->isoc_ctl.urb);
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.1
 
