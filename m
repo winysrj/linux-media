@@ -1,71 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:12799
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751592AbcJKNRh (ORCPT
+Received: from 50-206-132-250-static.hfc.comcastbusiness.net ([50.206.132.250]:56751
+        "EHLO mail.universalcompanies.org" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757098AbcJXKzi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 09:17:37 -0400
-Date: Tue, 11 Oct 2016 15:16:04 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-cc: linux-media@vger.kernel.org, kbuild-all@01.org
-Subject: [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408
- 3/31] drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on
- line 169
-Message-ID: <alpine.DEB.2.10.1610111515300.2883@hadrien>
+        Mon, 24 Oct 2016 06:55:38 -0400
+From: Maria Canales <mcanales@universalcompanies.org>
+To: "info@notice.com" <info@notice.com>
+Subject: =?iso-8859-1?Q?=A9Faculty/_Password_Update?=
+Date: Mon, 24 Oct 2016 10:50:27 +0000
+Message-ID: <847AEC06AB4A2B41A5CE40C7C4A2BFBD8E5FA5D0@exchange1.Universal.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It looks like a lock may be needed before line 174.
+Help Desk
 
-julia
 
----------- Forwarded message ----------
-Date: Tue, 11 Oct 2016 21:06:18 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: kbuild@01.org
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Subject:
-    [linux-review:Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-medi
-    a-usb-drivers/20161011-182408 3/31]
-    drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line
-    169
+Your password will soon expire To keep your password active. Click Here <http://qw43.tripod.com/> to update
 
-CC: kbuild-all@01.org
-TO: Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: linux-media@vger.kernel.org
-CC: 0day robot <fengguang.wu@intel.com>
 
-tree:   https://github.com/0day-ci/linux Mauro-Carvalho-Chehab/Don-t-use-stack-for-DMA-transers-on-media-usb-drivers/20161011-182408
-head:   ff49f775552fe4ebe2944527cf882073679cb1e5
-commit: b38d98275e144aaea9db69ba2dcba58466046d9b [3/31] cinergyT2-core: handle error code on RC query
-:::::: branch date: 3 hours ago
-:::::: commit date: 3 hours ago
+Sincerely,
+IT-Service Help Desk
 
->> drivers/media/usb/dvb-usb/cinergyT2-core.c:174:2-8: preceding lock on line 169
 
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout b38d98275e144aaea9db69ba2dcba58466046d9b
-vim +174 drivers/media/usb/dvb-usb/cinergyT2-core.c
 
-986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  163  {
-7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  164  	struct cinergyt2_state *st = d->priv;
-b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  165  	int i, ret;
-7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  166
-986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  167  	*state = REMOTE_NO_KEY_PRESSED;
-986bd1e5 drivers/media/dvb/dvb-usb/cinergyT2-core.c Tomi Orava            2008-09-19  168
-48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @169  	mutex_lock(&st->data_mutex);
-48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  170  	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
-48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  171
-b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  172  	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
-b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  173  	if (ret < 0)
-b38d9827 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11 @174  		return ret;
-48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  175
-48922468 drivers/media/usb/dvb-usb/cinergyT2-core.c Mauro Carvalho Chehab 2016-10-11  176  	if (st->data[4] == 0xff) {
-7f987678 drivers/media/dvb/dvb-usb/cinergyT2-core.c Thierry MERLE         2008-09-19  177  		/* key repeat */
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
