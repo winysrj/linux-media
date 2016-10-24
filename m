@@ -1,99 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.goneo.de ([85.220.129.37]:49504 "EHLO smtp3.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933171AbcJ0Uxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 16:53:40 -0400
-Subject: Re: Documentation/media/uapi/cec/ sporadically unnecessarily
- rebuilding
-To: Jani Nikula <jani.nikula@intel.com>,
-        Markus Heiser <markus.heiser@darmarit.de>
-References: <871sz6p17k.fsf@intel.com>
- <F520076A-A05A-42B3-B416-288E67833AA9@darmarit.de> <87lgx9lu9a.fsf@intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
-From: Markus Heiser <markus.heiser@darmarit.de>
-Message-ID: <e40e560f-f9f7-1725-edbe-978aeb93fbac@darmarit.de>
-Date: Thu, 27 Oct 2016 22:53:24 +0200
-MIME-Version: 1.0
-In-Reply-To: <87lgx9lu9a.fsf@intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52731 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938541AbcJXJDx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 05:03:53 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran@ksquared.org.uk>
+Subject: [PATCH v4 4/4] arm64: dts: renesas: r8a7796: Add FDP1 instance
+Date: Mon, 24 Oct 2016 12:03:38 +0300
+Message-Id: <1477299818-31935-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The r8a7796 has a single FDP1 instance.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ arch/arm64/boot/dts/renesas/r8a7796.dtsi | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-On 27.10.2016 16:52, Jani Nikula wrote:
-> On Thu, 27 Oct 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
->> Hi Jani,
->>
->> Am 24.10.2016 um 11:04 schrieb Jani Nikula <jani.nikula@intel.com>:
->>
->>> I think I saw some of this in the past [1], but then couldn't reproduce
->>> it after all. Now I'm seeing it again. Sporadically
->>> Documentation/media/uapi/cec/ gets rebuilt on successive runs of make
->>> htmldocs, even when nothing has changed.
->>>
->>> Output of 'make SPHINXOPTS="-v -v" htmldocs' attached for both cases.
->>>
->>> Using Sphinx (sphinx-build) 1.4.6
->>
->> I can't see what's  wrong with your "rebuild" file ...
->>
->> <build-cec-rebuilding.txt --------->
->> loading pickled environment... done
->> building [mo]: targets for 0 po files that are out of date
->> building [html]: targets for 0 source files that are out of date
->> updating environment: 0 added, 0 changed, 0 removed
->> looking for now-outdated files... none found
->> no targets are out of date.
->> build succeeded.
->>   HTML    Documentation/DocBook/index.html
->> <build-cec-rebuilding.txt --------->
->
-> Awesome, I screwed up the file names, please check again with
-> build-cec-rebuilding.txt <-> build-ok.txt...
+diff --git a/arch/arm64/boot/dts/renesas/r8a7796.dtsi b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
+index 9217da983525..fbec7a29121a 100644
+--- a/arch/arm64/boot/dts/renesas/r8a7796.dtsi
++++ b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
+@@ -251,5 +251,14 @@
+ 			power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
+ 			status = "disabled";
+ 		};
++
++		fdp1@fe940000 {
++			compatible = "renesas,fdp1";
++			reg = <0 0xfe940000 0 0x2400>;
++			interrupts = <GIC_SPI 262 IRQ_TYPE_LEVEL_HIGH>;
++			clocks = <&cpg CPG_MOD 119>;
++			power-domains = <&sysc R8A7796_PD_A3VC>;
++			renesas,fcp = <&fcpf0>;
++		};
+ 	};
+ };
+-- 
+Regards,
 
-Ah, ok .. I can reproduce the error.
+Laurent Pinchart
 
-It seems that sphinx's ".. toctree::" don't like it, if you
-build a structure where severals ".. toctrees" in the same
-folder include files of this folder.
-
-E.g. if you have "myfolder" with "index.rst", "f1.rst"
-and "f2.rst" in (content see below) and you rebuild it
-5 or more times, the files f1.rst and f2.rst will
-sporadically rebuild.
-
-May I have time to find the bug and send a fix to sphinx.
-
--- Markus --
-
-------------------------------------------------------
-index
-=====
-
-.. toctree::
-     :maxdepth: 1
-     :numbered:
-
-     f1
-
-------------------------------------------------------
-f1
-==
-
-.. toctree::
-     :maxdepth: 1
-     :numbered:
-
-     f2
-
-------------------------------------------------------
-f2
-==
-
-lorem
-------------------------------------------------------
