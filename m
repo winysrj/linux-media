@@ -1,47 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:61550 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752030AbcJSOLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:11:17 -0400
-Subject: Re: [media] winbond-cir: Move a variable assignment in wbcir_tx()
-To: =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        linux-media@vger.kernel.org
-References: <1a68a0e8-6d56-d9c1-058b-cf9cd8122acb@users.sourceforge.net>
- <26ee4adb-2637-52c3-ac83-ae121bed5eff@users.sourceforge.net>
- <566ABCD9.1060404@users.sourceforge.net>
- <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
- <78ddb54d61d871ad4b81c986dd9a32d4@hardeman.nu>
- <db564db599ac11c5b191d6ec3eec32ff@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <71669997-fda1-6b97-9599-4b8118a20fb7@users.sourceforge.net>
-Date: Wed, 19 Oct 2016 16:05:59 +0200
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:9946 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S934865AbcJXI1F (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 04:27:05 -0400
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Date: Mon, 24 Oct 2016 10:26:49 +0200
+Subject: Re: [patch] [media] st-hva: fix some error handling in
+ hva_hw_probe()
+Message-ID: <9c07d71a-2d04-3733-4077-49838c23090c@st.com>
+References: <20161014072928.GB15168@mwanda>
+In-Reply-To: <20161014072928.GB15168@mwanda>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <db564db599ac11c5b191d6ec3eec32ff@hardeman.nu>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> * How do you think about to avoid a variable assignment in case
->> that this memory allocation failed anyhow?
-> 
-> There is no memory allocation that can fail at this point.
+Thanks,
 
-Do you really know the failure probability for a call of the
-function "kmalloc" (within the function "wbcir_tx") under all
-possible run time situations?
+Acked-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
 
-
->> * Do you care for data access locality?
-> 
-> Not unless you can show measurable performance improvements?
-
-Did any software developer (before me) dare anything in this direction?
-
-Regards,
-Markus
+On 10/14/2016 09:32 AM, Dan Carpenter wrote:
+> The devm_ioremap_resource() returns error pointers, never NULL.  The
+> platform_get_resource() returns NULL on error, never error pointers.
+> The error code needs to be set, as well.  The current code returns
+> PTR_ERR(NULL) which is success.
+>
+> Fixes: 57b2c0628b60 ("[media] st-hva: multi-format video encoder V4L2 driver")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>
+> diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+> index d341d49..cf2a8d8 100644
+> --- a/drivers/media/platform/sti/hva/hva-hw.c
+> +++ b/drivers/media/platform/sti/hva/hva-hw.c
+> @@ -305,16 +305,16 @@ int hva_hw_probe(struct platform_device *pdev, struct hva_dev *hva)
+>  	/* get memory for registers */
+>  	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	hva->regs = devm_ioremap_resource(dev, regs);
+> -	if (IS_ERR_OR_NULL(hva->regs)) {
+> +	if (IS_ERR(hva->regs)) {
+>  		dev_err(dev, "%s     failed to get regs\n", HVA_PREFIX);
+>  		return PTR_ERR(hva->regs);
+>  	}
+>
+>  	/* get memory for esram */
+>  	esram = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> -	if (IS_ERR_OR_NULL(esram)) {
+> +	if (!esram) {
+>  		dev_err(dev, "%s     failed to get esram\n", HVA_PREFIX);
+> -		return PTR_ERR(esram);
+> +		return -ENODEV;
+>  	}
+>  	hva->esram_addr = esram->start;
+>  	hva->esram_size = resource_size(esram);
+>
