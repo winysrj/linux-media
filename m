@@ -1,72 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55800
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933267AbcJUNIT (ORCPT
+Received: from mail-yw0-f193.google.com ([209.85.161.193]:34279 "EHLO
+        mail-yw0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755258AbcJXLDa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Oct 2016 09:08:19 -0400
-Date: Fri, 21 Oct 2016 11:08:09 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Tiffany Lin <tiffany.lin@mediatek.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Subject: Re: [PATCH v5 3/9] vcodec: mediatek: Add Mediatek V4L2 Video
- Decoder Driver
-Message-ID: <20161021110809.269fd70d@vento.lan>
-In-Reply-To: <20161021110104.5733240e@vento.lan>
-References: <1472818800-22558-1-git-send-email-tiffany.lin@mediatek.com>
-        <1472818800-22558-2-git-send-email-tiffany.lin@mediatek.com>
-        <1472818800-22558-3-git-send-email-tiffany.lin@mediatek.com>
-        <1472818800-22558-4-git-send-email-tiffany.lin@mediatek.com>
-        <20161021110104.5733240e@vento.lan>
+        Mon, 24 Oct 2016 07:03:30 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1477299818-31935-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1477299818-31935-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Mon, 24 Oct 2016 13:03:29 +0200
+Message-ID: <CAMuHMdUohporR7__mnX7b3XvmSjhYsOpp8UrERJbK00Zg5aqAg@mail.gmail.com>
+Subject: Re: [PATCH v4 4/4] arm64: dts: renesas: r8a7796: Add FDP1 instance
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Kieran Bingham <kieran@ksquared.org.uk>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 21 Oct 2016 11:01:04 -0200
-Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+On Mon, Oct 24, 2016 at 11:03 AM, Laurent Pinchart
+<laurent.pinchart+renesas@ideasonboard.com> wrote:
+> The r8a7796 has a single FDP1 instance.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-> Em Fri, 2 Sep 2016 20:19:54 +0800
-> Tiffany Lin <tiffany.lin@mediatek.com> escreveu:
-> 
-> > Add v4l2 layer decoder driver for MT8173
-> > 
-> > Signed-off-by: Tiffany Lin <tiffany.lin@mediatek.com>  
-> 
-> > +int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
-> > +{
-> > +	int ret = 0;
-> > +
-> > +	switch (fourcc) {
-> > +	case V4L2_PIX_FMT_H264:
-> > +	case V4L2_PIX_FMT_VP8:
-> > +	default:
-> > +		return -EINVAL;
-> > +	}  
-> 
-> Did you ever test this driver? The above code will *always* return
-> -EINVAL, with will cause vidioc_vdec_s_fmt() to always fail!
-> 
-> I suspect that what you wanted to do, instead, is:
-> 
-> 	switch (fourcc) {
-> 	case V4L2_PIX_FMT_H264:
-> 	case V4L2_PIX_FMT_VP8:
-> 		break;
-> 	default:
-> 		return -EINVAL;
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Yeah, a latter patch in this series added a break there.
+Gr{oetje,eeting}s,
 
-Thanks,
-Mauro
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
