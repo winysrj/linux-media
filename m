@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:34788 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1761149AbcJ1UaN (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53129 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751606AbcJXKbq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 28 Oct 2016 16:30:13 -0400
-Received: by mail-oi0-f45.google.com with SMTP id 62so21385677oif.1
-        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2016 13:30:13 -0700 (PDT)
+        Mon, 24 Oct 2016 06:31:46 -0400
+Subject: Re: [PATCH v4 4/4] arm64: dts: renesas: r8a7796: Add FDP1 instance
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org
+References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1477299818-31935-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <cadb2e0f-91c4-8004-0c7d-61839ef8bb3e@ideasonboard.com>
+Date: Mon, 24 Oct 2016 11:31:40 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
-References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Fri, 28 Oct 2016 16:30:12 -0400
-Message-ID: <CAGoCfiw0YJ-iPYG+ZZvdf=5Vh_7wCbB7oO61HU9T3z51kjORiw@mail.gmail.com>
-Subject: Re: [RFC] v4l2 support for thermopile devices
-To: Matt Ranostay <matt@ranostay.consulting>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1477299818-31935-5-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matt,
+Hi Laurent,
 
-> Need some input for the video pixel data types, which the device we
-> are using (see datasheet links below) is outputting pixel data in
-> little endian 16-bit of which a 12-bits signed value is used.  Does it
-> make sense to do some basic processing on the data since greyscale is
-> going to look weird with temperatures under 0C degrees? Namely a cold
-> object is going to be brighter than the hottest object it could read.
-> Or should a new V4L2_PIX_FMT_* be defined and processing done in
-> software?  Another issue is how to report the scaling value of 0.25 C
-> for each LSB of the pixels to the respecting recording application.
+On 24/10/16 10:03, Laurent Pinchart wrote:
+> The r8a7796 has a single FDP1 instance.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> ---
+>  arch/arm64/boot/dts/renesas/r8a7796.dtsi | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/arch/arm64/boot/dts/renesas/r8a7796.dtsi b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
+> index 9217da983525..fbec7a29121a 100644
+> --- a/arch/arm64/boot/dts/renesas/r8a7796.dtsi
+> +++ b/arch/arm64/boot/dts/renesas/r8a7796.dtsi
+> @@ -251,5 +251,14 @@
+>  			power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
+>  			status = "disabled";
+>  		};
+> +
+> +		fdp1@fe940000 {
+> +			compatible = "renesas,fdp1";
+> +			reg = <0 0xfe940000 0 0x2400>;
+> +			interrupts = <GIC_SPI 262 IRQ_TYPE_LEVEL_HIGH>;
+> +			clocks = <&cpg CPG_MOD 119>;
+> +			power-domains = <&sysc R8A7796_PD_A3VC>;
+> +			renesas,fcp = <&fcpf0>;
+> +		};
+>  	};
+>  };
+> 
 
-Regarding the format for the pixel data:  I did some research into
-this when doing some driver work for the Seek Thermal (a product
-similar to the FLIR Lepton).  While it would be nice to be able to use
-an existing application like VLC or gStreamer to just take the video
-and capture from the V4L2 interface with no additional userland code,
-the reality is that how you colorize the data is going to be highly
-user specific (e.g. what thermal ranges to show with what colors,
-etc).  If your goal is really to do a V4L2 driver which returns the
-raw data, then you're probably best returning it in the native
-greyscale format (whether that be an existing V4L2 PIX_FMT or a new
-one needs to be defined), and then in software you can figure out how
-to colorize it.
+Looks good to me:
 
-Just my opinion though....
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Reviewed-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+--
+Kieran
