@@ -1,75 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:15345 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934306AbcJUOzU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Oct 2016 10:55:20 -0400
-Subject: Re: [Intel-gfx] [PATCH 4/5] drm/i915: Use __sg_alloc_table_from_pages
- for allocating object backing store
-To: Chris Wilson <chris@chris-wilson.co.uk>,
-        Tvrtko Ursulin <tursulin@ursulin.net>,
-        Intel-gfx@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-References: <1477059083-3500-1-git-send-email-tvrtko.ursulin@linux.intel.com>
- <1477059083-3500-5-git-send-email-tvrtko.ursulin@linux.intel.com>
- <20161021142757.GP25629@nuc-i3427.alporthouse.com>
-From: Tvrtko Ursulin <tvrtko.ursulin@linux.intel.com>
-Message-ID: <79f299ba-ac59-4932-56e8-687a30ca43e2@linux.intel.com>
-Date: Fri, 21 Oct 2016 15:55:11 +0100
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:48030 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965406AbcJXU43 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 16:56:29 -0400
+Date: Mon, 24 Oct 2016 21:56:21 +0100
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
+Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
+Message-ID: <20161024205621.GA25320@dell-m4800.home>
+References: <m360powc4m.fsf@t19.piap.pl>
+ <20160922152356.nhgacxprxtvutb67@zver>
+ <m3ponri5ky.fsf@t19.piap.pl>
+ <20160926091831.cp6qkv77oo5tinn5@zver>
+ <m337kldi92.fsf@t19.piap.pl>
+ <20160927074009.3kcvruynnapj6y3q@zver>
+ <m3y42dbmqq.fsf@t19.piap.pl>
+ <20160927142244.rocwg36f2bsfl3n6@zver>
+ <m3ponobnvb.fsf@t19.piap.pl>
+ <20161024173233.5daabac4@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <20161021142757.GP25629@nuc-i3427.alporthouse.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161024173233.5daabac4@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Oct 24, 2016 at 05:32:33PM -0200, Mauro Carvalho Chehab wrote:
+> Em Wed, 28 Sep 2016 07:21:44 +0200
+> khalasa@piap.pl (Krzysztof Hałasa) escreveu:
+> 
+> > Andrey Utkin <andrey_utkin@fastmail.com> writes:
+> > 
+> > > Lockup happens only on 6010. In provided log you can see that 6110
+> > > passes just fine right before 6010. Also if 6010 PCI ID is removed from
+> > > solo6x10 driver's devices list, the freeze doesn't happen.  
+> > 
+> > Probably explains why I don't see lockups :-)
+> > 
+> > I will have a look.
+> 
+> Any news on this? Should the patch be applied or not? If not, are there
+> any other patch to fix this regression?
 
-On 21/10/2016 15:27, Chris Wilson wrote:
-> On Fri, Oct 21, 2016 at 03:11:22PM +0100, Tvrtko Ursulin wrote:
->> @@ -2236,18 +2233,16 @@ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
->>  	BUG_ON(obj->base.read_domains & I915_GEM_GPU_DOMAINS);
->>  	BUG_ON(obj->base.write_domain & I915_GEM_GPU_DOMAINS);
->>
->> -	max_segment = swiotlb_max_size();
->> -	if (!max_segment)
->> -		max_segment = rounddown(UINT_MAX, PAGE_SIZE);
->> -
->> -	st = kmalloc(sizeof(*st), GFP_KERNEL);
->> -	if (st == NULL)
->> -		return -ENOMEM;
->> -
->>  	page_count = obj->base.size / PAGE_SIZE;
->> -	if (sg_alloc_table(st, page_count, GFP_KERNEL)) {
->> -		kfree(st);
->> +	pages = drm_malloc_gfp(page_count, sizeof(struct page *),
->> +			       GFP_TEMPORARY | __GFP_ZERO);
->> +	if (!pages)
->>  		return -ENOMEM;
->
-> Full circle! The whole reason this exists was to avoid that vmalloc. I
-> don't really want it back...
+Actual patch is
 
-Yes, it is not ideal.
-
-However all objects under 4 MiB should fall under the kmalloc fast path 
-(8 KiB of struct page pointers, which should always be available), and 
-possibly bigger ones as well if there is room.
-
-It only fallbacks to vmalloc for objects larger than 4 MiB, when it also 
-fails to get the page pointer array from the SLAB (GFP_TEMPORARY).
-
-So perhaps SLAB would most of the time have some nice chunks for us to 
-pretty much limit vmalloc apart for the huge objects? And then, is 
-creation time for those so performance critical?
-
-I came up with this because I started to dislike my previous 
-sg_trim_table approach as too ugly. It had an advantage of simplicity 
-after fixing the theoretical chunk overflow in sg_alloc_table_from_pages.
-
-If we choose none of the two, only third option I can think of is to 
-allocate the sg table as we add entries to it. I don't think it would be 
-hard to do that.
-
-Regards,
-
-Tvrtko
+Subject: [PATCH v2] media: solo6x10: fix lockup by avoiding delayed register write
+Message-Id: <20161022153436.12076-1-andrey.utkin@corp.bluecherry.net>
+Date: Sat, 22 Oct 2016 16:34:36 +0100
