@@ -1,75 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:36451 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S945233AbcJaRwc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 13:52:32 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 8/9] [media] lirc: prevent use-after free
-Date: Mon, 31 Oct 2016 17:52:26 +0000
-Message-Id: <1477936347-9029-9-git-send-email-sean@mess.org>
-In-Reply-To: <1477936347-9029-1-git-send-email-sean@mess.org>
-References: <1477936347-9029-1-git-send-email-sean@mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52991 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938698AbcJXJqt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 05:46:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Kieran Bingham <kieran@ksquared.org.uk>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 2/4] dt-bindings: Add Renesas R-Car FDP1 bindings
+Date: Mon, 24 Oct 2016 12:46:46 +0300
+Message-ID: <1923730.zaykC4sXJR@avalon>
+In-Reply-To: <CAMuHMdUGy0+bv-t=8HXeQf0BpoMJMNP85cd2tubQzD4Zj8X9Gw@mail.gmail.com>
+References: <1477299818-31935-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1477299818-31935-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAMuHMdUGy0+bv-t=8HXeQf0BpoMJMNP85cd2tubQzD4Zj8X9Gw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If you unplug an lirc device while reading from it, you will get an
-use after free as the cdev is freed while still in use.
+Hi Geert,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/lirc_dev.c | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+On Monday 24 Oct 2016 11:14:11 Geert Uytterhoeven wrote:
+> On Mon, Oct 24, 2016 at 11:03 AM, Laurent Pinchart wrote:
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,fdp1.txt
+> > @@ -0,0 +1,33 @@
+> > +Renesas R-Car Fine Display Processor (FDP1)
+> > +-------------------------------------------
+> > +
+> > +The FDP1 is a de-interlacing module which converts interlaced video to
+> > +progressive video. It is capable of performing pixel format conversion
+> > between +YCbCr/YUV formats and RGB formats. Only YCbCr/YUV formats are
+> > supported as +an input to the module.
+> > +
+> > + - compatible: Must be the following
+> > +
+> > +   - "renesas,fdp1" for generic compatible
+> > +
+> > + - reg: the register base and size for the device registers
+> > + - interrupts : interrupt specifier for the FDP1 instance
+> > + - clocks: reference to the functional clock
+> > + - renesas,fcp: reference to the FCPF connected to the FDP1
+> > +
+> > +Optional properties:
+> > + - power-domains : power-domain property defined with a power domain
+> > specifier
+>                       "power domain"?
+> 
+> > +                            to respective power domain.
+> 
+> Still, too many power domains in one sentence?
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index bf4309f..60fd106 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -164,15 +164,15 @@ static int lirc_cdev_add(struct irctl *ir)
- 	struct lirc_driver *d = &ir->d;
- 	struct cdev *cdev;
- 
--	cdev = kzalloc(sizeof(*cdev), GFP_KERNEL);
-+	cdev = cdev_alloc();
- 	if (!cdev)
- 		goto err_out;
- 
- 	if (d->fops) {
--		cdev_init(cdev, d->fops);
-+		cdev->ops = d->fops;
- 		cdev->owner = d->owner;
- 	} else {
--		cdev_init(cdev, &lirc_dev_fops);
-+		cdev->ops = &lirc_dev_fops;
- 		cdev->owner = THIS_MODULE;
- 	}
- 	retval = kobject_set_name(&cdev->kobj, "lirc%d", d->minor);
-@@ -190,7 +190,7 @@ static int lirc_cdev_add(struct irctl *ir)
- 	return 0;
- 
- err_out:
--	kfree(cdev);
-+	cdev_del(cdev);
- 	return retval;
- }
- 
-@@ -420,7 +420,6 @@ int lirc_unregister_driver(int minor)
- 	} else {
- 		lirc_irctl_cleanup(ir);
- 		cdev_del(cdev);
--		kfree(cdev);
- 		kfree(ir);
- 		irctls[minor] = NULL;
- 	}
-@@ -521,7 +520,6 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
- 		lirc_irctl_cleanup(ir);
- 		cdev_del(cdev);
- 		irctls[ir->d.minor] = NULL;
--		kfree(cdev);
- 		kfree(ir);
- 	}
- 
+How about
+
+ - power-domains : reference to the power domain that the FDP1 belongs to, if
+   any.
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
