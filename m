@@ -1,74 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48593 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754265AbcJNRrE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:47:04 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 04/25] [media] em28xx: mark printk continuation lines as such
-Date: Fri, 14 Oct 2016 14:45:42 -0300
-Message-Id: <ce7e7bb7ccbb306930d7c3582a1e3af6d945b181.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from comal.ext.ti.com ([198.47.26.152]:56391 "EHLO comal.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932594AbcJXRAK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 13:00:10 -0400
+Date: Mon, 24 Oct 2016 12:00:07 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [Patch 00/35] media: ti-vpe: fixes and enhancements
+Message-ID: <20161024170007.GP31296@ti.com>
+References: <20160928211643.26298-1-bparrot@ti.com>
+ <46c23700-5c4f-e379-846a-604cacc17f4f@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <46c23700-5c4f-e379-846a-604cacc17f4f@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has a lot of printk continuation lines for
-debugging purposes. Since commit 563873318d32
-("Merge branch 'printk-cleanups"), this won't work as expected
-anymore. So, let's add KERN_CONT to those lines.
+Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/em28xx/em28xx-core.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+Thank you for taking the time to review my patches.
+I'll update the patch set relating to your comments
+and submit a v2 shortly.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index a73e853e876e..06bee2d67273 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -102,7 +102,7 @@ int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
- 			      0x0000, reg, dev->urb_buf, len, HZ);
- 	if (ret < 0) {
- 		if (reg_debug)
--			printk(" failed!\n");
-+			printk(KERN_CONT " failed!\n");
- 		mutex_unlock(&dev->ctrl_urb_lock);
- 		return usb_translate_errors(ret);
- 	}
-@@ -115,10 +115,10 @@ int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
- 	if (reg_debug) {
- 		int byte;
- 
--		printk("<<<");
-+		printk(KERN_CONT "<<<");
- 		for (byte = 0; byte < len; byte++)
--			printk(" %02x", (unsigned char)buf[byte]);
--		printk("\n");
-+			printk(KERN_CONT " %02x", (unsigned char)buf[byte]);
-+		printk(KERN_CONT "\n");
- 	}
- 
- 	return ret;
-@@ -174,8 +174,8 @@ int em28xx_write_regs_req(struct em28xx *dev, u8 req, u16 reg, char *buf,
- 			len & 0xff, len >> 8);
- 
- 		for (byte = 0; byte < len; byte++)
--			printk(" %02x", (unsigned char)buf[byte]);
--		printk("\n");
-+			printk(KERN_CONT " %02x", (unsigned char)buf[byte]);
-+		printk(KERN_CONT "\n");
- 	}
- 
- 	mutex_lock(&dev->ctrl_urb_lock);
--- 
-2.7.4
+Regards
+Benoit
 
-
+Hans Verkuil <hverkuil@xs4all.nl> wrote on Mon [2016-Oct-17 16:35:01 +0200]:
+> On 09/28/2016 11:16 PM, Benoit Parrot wrote:
+> > This patch series is to publish a number of enhancements
+> > we have been carrying for a while.
+> > 
+> > A number of bug fixes and feature enhancements have been
+> > included.
+> > 
+> > We also need to prepare the way for the introduction of
+> > the VIP (Video Input Port) driver (coming soon) which
+> > has internal IP module in common with VPE.
+> > 
+> > The relevant modules (vpdma, sc and csc) are therefore converted
+> > into individual kernel modules.
+> 
+> Other than the few comments I made this patch series looks OK.
+> 
+> You can add my
+> 
+> 	Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> to those patches where I didn't make any comments.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Archit Taneja (1):
+> >   media: ti-vpe: Use line average de-interlacing for first 2 frames
+> > 
+> > Benoit Parrot (16):
+> >   media: ti-vpe: vpdma: Make vpdma library into its own module
+> >   media: ti-vpe: vpdma: Add multi-instance and multi-client support
+> >   media: ti-vpe: vpdma: Add helper to set a background color
+> >   media: ti-vpe: vpdma: Fix bus error when vpdma is writing a descriptor
+> >   media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
+> >   media: ti-vpe: vpdma: Corrected YUV422 data type label.
+> >   media: ti-vpe: vpdma: RGB data type yield inverted data
+> >   media: ti-vpe: vpe: Fix vb2 buffer cleanup
+> >   media: ti-vpe: vpe: Enable DMABUF export
+> >   media: ti-vpe: Make scaler library into its own module
+> >   media: ti-vpe: scaler: Add debug support for multi-instance
+> >   media: ti-vpe: vpe: Make sure frame size dont exceed scaler capacity
+> >   media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
+> >   media: ti-vpe: Make colorspace converter library into its own module
+> >   media: ti-vpe: csc: Add debug support for multi-instance
+> >   media: ti-vpe: vpe: Add proper support single and multi-plane buffer
+> > 
+> > Harinarayan Bhatta (2):
+> >   media: ti-vpe: Increasing max buffer height and width
+> >   media: ti-vpe: Free vpdma buffers in vpe_release
+> > 
+> > Nikhil Devshatwar (16):
+> >   media: ti-vpe: vpe: Do not perform job transaction atomically
+> >   media: ti-vpe: Add support for SEQ_TB buffers
+> >   media: ti-vpe: vpe: Return NULL for invalid buffer type
+> >   media: ti-vpe: vpdma: Add support for setting max width height
+> >   media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
+> >   media: ti-vpe: vpdma: Make list post atomic operation
+> >   media: ti-vpe: vpdma: Clear IRQs for individual lists
+> >   media: ti-vpe: vpe: configure line mode separately
+> >   media: ti-vpe: vpe: Setup srcdst parameters in start_streaming
+> >   media: ti-vpe: vpe: Post next descriptor only for list complete IRQ
+> >   media: ti-vpe: vpe: Add RGB565 and RGB5551 support
+> >   media: ti-vpe: vpdma: allocate and maintain hwlist
+> >   media: ti-vpe: sc: Fix incorrect optimization
+> >   media: ti-vpe: vpdma: Fix race condition for firmware loading
+> >   media: ti-vpe: vpdma: Use bidirectional cached buffers
+> >   media: ti-vpe: vpe: Fix line stride for output motion vector
+> > 
+> >  drivers/media/platform/Kconfig             |  14 +
+> >  drivers/media/platform/ti-vpe/Makefile     |  10 +-
+> >  drivers/media/platform/ti-vpe/csc.c        |  18 +-
+> >  drivers/media/platform/ti-vpe/csc.h        |   2 +-
+> >  drivers/media/platform/ti-vpe/sc.c         |  28 +-
+> >  drivers/media/platform/ti-vpe/sc.h         |  11 +-
+> >  drivers/media/platform/ti-vpe/vpdma.c      | 349 +++++++++++++++++++---
+> >  drivers/media/platform/ti-vpe/vpdma.h      |  85 +++++-
+> >  drivers/media/platform/ti-vpe/vpdma_priv.h | 130 ++++-----
+> >  drivers/media/platform/ti-vpe/vpe.c        | 450 ++++++++++++++++++++++++-----
+> >  10 files changed, 891 insertions(+), 206 deletions(-)
+> > 
