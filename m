@@ -1,60 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0043.outbound.protection.outlook.com ([104.47.40.43]:22848
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932441AbcJLJYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 12 Oct 2016 05:24:42 -0400
-Subject: Re: [RFC 0/6] Module for tracking/accounting shared memory buffers
-To: Ruchi Kandoi <kandoiruchi@google.com>,
-        <gregkh@linuxfoundation.org>, <arve@android.com>,
-        <riandrews@android.com>, <sumit.semwal@linaro.org>,
-        <arnd@arndb.de>, <labbott@redhat.com>, <viro@zeniv.linux.org.uk>,
-        <jlayton@poochiereds.net>, <bfields@fieldses.org>,
-        <mingo@redhat.com>, <peterz@infradead.org>,
-        <akpm@linux-foundation.org>, <keescook@chromium.org>,
-        <mhocko@suse.com>, <oleg@redhat.com>, <john.stultz@linaro.org>,
-        <mguzik@redhat.com>, <jdanis@google.com>, <adobriyan@gmail.com>,
-        <ghackmann@google.com>, <kirill.shutemov@linux.intel.com>,
-        <vbabka@suse.cz>, <dave.hansen@linux.intel.com>,
-        <dan.j.williams@intel.com>, <hannes@cmpxchg.org>,
-        <iamjoonsoo.kim@lge.com>, <luto@kernel.org>, <tj@kernel.org>,
-        <vdavydov.dev@gmail.com>, <ebiederm@xmission.com>,
-        <linux-kernel@vger.kernel.org>, <devel@driverdev.osuosl.org>,
-        <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-        <linaro-mm-sig@lists.linaro.org>, <linux-fsdevel@vger.kernel.org>,
-        <linux-mm@kvack.org>
-References: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <a49e7aa1-d9c6-bb52-36b1-0f7538a8f960@amd.com>
-Date: Wed, 12 Oct 2016 11:09:47 +0200
+Received: from arroyo.ext.ti.com ([198.47.19.12]:35601 "EHLO arroyo.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S938936AbcJXQ53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 24 Oct 2016 12:57:29 -0400
+Date: Mon, 24 Oct 2016 11:57:23 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: Re: [Patch 06/35] media: ti-vpe: vpe: Do not perform job transaction
+ atomically
+Message-ID: <20161024165723.GO31296@ti.com>
+References: <20160928212040.26547-1-bparrot@ti.com>
+ <e102942f-597e-9149-6216-a0c23f07405b@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1476229810-26570-1-git-send-email-kandoiruchi@google.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <e102942f-597e-9149-6216-a0c23f07405b@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 12.10.2016 um 01:50 schrieb Ruchi Kandoi:
-> This patchstack adds memtrack hooks into dma-buf and ion.  If there's upstream
-> interest in memtrack, it can be extended to other memory allocators as well,
-> such as GEM implementations.
-We have run into similar problems before. Because of this I already 
-proposed a solution for this quite a while ago, but never pushed on 
-upstreaming this since it was only done for a special use case.
+Hans Verkuil <hverkuil@xs4all.nl> wrote on Mon [2016-Oct-17 16:17:15 +0200]:
+> On 09/28/2016 11:20 PM, Benoit Parrot wrote:
+> > From: Nikhil Devshatwar <nikhil.nd@ti.com>
+> > 
+> > Current VPE driver does not start the job until all the buffers for
+> > a transaction are not queued. When running in multiple context, this might
+> 
+> I think this should be: s/not queued/queued/, right?
 
-Instead of keeping track of how much memory a process has bound (which 
-is very fragile) my solution  only added some more debugging info on a 
-per fd basis (e.g. how much memory is bound to this fd).
+Yep, will fix that.
 
-This information was then used by the OOM killer (for example) to make a 
-better decision on which process to reap.
+> 
+> > increase the processing latency.
+> > 
+> > Alternate solution would be to try to continue the same context as long as
+> > buffers for the transaction are ready; else switch the context. This may
+> > increase number of context switches but it reduces latency significantly.
+> > 
+> > In this approach, the job_ready always succeeds as long as there are
+> > buffers on the CAPTURE and OUTPUT stream. Processing may start immediately
+> > as the first 2 iterations don't need extra source buffers. Shift all the
+> > source buffers after each iteration and remove the oldest buffer.
+> > 
+> > Also, with this removes the constraint of pre buffering 3 buffers before
+> > call to STREAMON in case of de-interlacing.
+> > 
+> > Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+> > Signed-off-by: Benoit Parrot <bparrot@ti.com>
+> > ---
+> >  drivers/media/platform/ti-vpe/vpe.c | 32 ++++++++++++++++----------------
+> >  1 file changed, 16 insertions(+), 16 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+> > index a0b29685fb69..9c38eff5df46 100644
+> > --- a/drivers/media/platform/ti-vpe/vpe.c
+> > +++ b/drivers/media/platform/ti-vpe/vpe.c
+> > @@ -898,15 +898,14 @@ static struct vpe_ctx *file2ctx(struct file *file)
+> >  static int job_ready(void *priv)
+> >  {
+> >  	struct vpe_ctx *ctx = priv;
+> > -	int needed = ctx->bufs_per_job;
+> >  
+> > -	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL)
+> > -		needed += 2;	/* need additional two most recent fields */
+> > -
+> > -	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) < needed)
+> > -		return 0;
+> > -
+> > -	if (v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) < needed)
+> > +	/*
+> > +	 * This check is needed as this might be called directly from driver
+> > +	 * When called by m2m framework, this will always satisy, but when
+> 
+> typo: satisfy
 
-Shouldn't be to hard to expose this through debugfs or maybe a new fcntl 
-to userspace for debugging.
+Will fix.
 
-I haven't looked at the code in detail, but messing with the per process 
-memory accounting like you did in this proposal is clearly not a good 
-idea if you ask me.
-
-Regards,
-Christian.
+> 
+> > +	 * called from vpe_irq, this might fail. (src stream with zero buffers)
+> > +	 */
+> > +	if (v4l2_m2m_num_src_bufs_ready(ctx->fh.m2m_ctx) <= 0 ||
+> > +		v4l2_m2m_num_dst_bufs_ready(ctx->fh.m2m_ctx) <= 0)
+> >  		return 0;
+> >  
+> >  	return 1;
+> > @@ -1116,19 +1115,20 @@ static void device_run(void *priv)
+> >  	struct sc_data *sc = ctx->dev->sc;
+> >  	struct vpe_q_data *d_q_data = &ctx->q_data[Q_DATA_DST];
+> >  
+> > -	if (ctx->deinterlacing && ctx->src_vbs[2] == NULL) {
+> > -		ctx->src_vbs[2] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> > -		WARN_ON(ctx->src_vbs[2] == NULL);
+> > -		ctx->src_vbs[1] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> > -		WARN_ON(ctx->src_vbs[1] == NULL);
+> > -	}
+> > -
+> >  	ctx->src_vbs[0] = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> >  	WARN_ON(ctx->src_vbs[0] == NULL);
+> >  	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> >  	WARN_ON(ctx->dst_vb == NULL);
+> >  
+> >  	if (ctx->deinterlacing) {
+> > +
+> > +		if (ctx->src_vbs[2] == NULL) {
+> > +			ctx->src_vbs[2] = ctx->src_vbs[0];
+> > +			WARN_ON(ctx->src_vbs[2] == NULL);
+> > +			ctx->src_vbs[1] = ctx->src_vbs[0];
+> > +			WARN_ON(ctx->src_vbs[1] == NULL);
+> > +		}
+> > +
+> >  		/*
+> >  		 * we have output the first 2 frames through line average, we
+> >  		 * now switch to EDI de-interlacer
+> > @@ -1349,7 +1349,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+> >  	}
+> >  
+> >  	ctx->bufs_completed++;
+> > -	if (ctx->bufs_completed < ctx->bufs_per_job) {
+> > +	if (ctx->bufs_completed < ctx->bufs_per_job && job_ready(ctx)) {
+> >  		device_run(ctx);
+> >  		goto handled;
+> >  	}
+> > 
+> 
+> Regards,
+> 
+> 	Hans
