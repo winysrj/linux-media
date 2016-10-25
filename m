@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48198 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751798AbcJGWuy (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36412 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932932AbcJYTYT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 18:50:54 -0400
-Date: Sat, 8 Oct 2016 01:50:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        kernel@pengutronix.de
-Subject: Re: [PATCH 03/22] [media] v4l: of: add v4l2_of_subdev_registered
-Message-ID: <20161007225018.GD9460@valkosipuli.retiisi.org.uk>
-References: <20161007160107.5074-1-p.zabel@pengutronix.de>
- <20161007160107.5074-4-p.zabel@pengutronix.de>
+        Tue, 25 Oct 2016 15:24:19 -0400
+Received: by mail-wm0-f66.google.com with SMTP id c78so1922562wme.3
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2016 12:24:18 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 5/5] media: rc: nuvoton: replace usage of spin_lock_irqsave in
+ ISR
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <d213893b-4bdf-7db1-b2e3-e2d5d028a51f@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <e1597e55-e454-1be3-62b8-09eb59ebe991@gmail.com>
+Date: Tue, 25 Oct 2016 21:23:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161007160107.5074-4-p.zabel@pengutronix.de>
+In-Reply-To: <d213893b-4bdf-7db1-b2e3-e2d5d028a51f@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Kernel takes care that interrupts from one source are serialized.
+So there's no need to use spinlock_irq_save.
 
-On Fri, Oct 07, 2016 at 06:00:48PM +0200, Philipp Zabel wrote:
-> Provide a default registered callback for device tree probed subdevices
-> that use OF graph bindings to add still missing source subdevices to
-> the async notifier waiting list.
-> This is only necessary for subdevices that have input ports to which
-> other subdevices are connected that are not initially known to the
-> master/bridge device when it sets up the notifier.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/v4l2-core/v4l2-of.c | 68 +++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-of.h           | 12 +++++++
->  2 files changed, 80 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> index 93b3368..fbdd6b4 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -19,6 +19,7 @@
->  #include <linux/types.h>
->  
->  #include <media/v4l2-of.h>
-> +#include <media/v4l2-device.h>
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-Alphabetical order, please.
-
->  
->  static int v4l2_of_parse_csi_bus(const struct device_node *node,
->  				 struct v4l2_of_endpoint *endpoint)
-> @@ -314,3 +315,70 @@ void v4l2_of_put_link(struct v4l2_of_link *link)
->  	of_node_put(link->remote_node);
->  }
->  EXPORT_SYMBOL(v4l2_of_put_link);
-> +
-> +struct v4l2_subdev *v4l2_find_subdev_by_node(struct v4l2_device *v4l2_dev,
-> +					     struct device_node *node)
-> +{
-> +	struct v4l2_subdev *sd;
-> +
-> +	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
-> +		if (sd->of_node == node)
-> +			return sd;
-> +	}
-
-The braces aren't really needed. Up to you.
-
-> +
-> +	return NULL;
-> +}
-
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 6332cf3..f21a2bc 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -840,11 +840,10 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ {
+ 	struct nvt_dev *nvt = data;
+ 	u8 status, iren;
+-	unsigned long flags;
+ 
+ 	nvt_dbg_verbose("%s firing", __func__);
+ 
+-	spin_lock_irqsave(&nvt->lock, flags);
++	spin_lock(&nvt->lock);
+ 
+ 	/*
+ 	 * Get IR Status register contents. Write 1 to ack/clear
+@@ -866,7 +865,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 	 * logical device is being disabled.
+ 	 */
+ 	if (status == 0xff && iren == 0xff) {
+-		spin_unlock_irqrestore(&nvt->lock, flags);
++		spin_unlock(&nvt->lock);
+ 		nvt_dbg_verbose("Spurious interrupt detected");
+ 		return IRQ_HANDLED;
+ 	}
+@@ -875,7 +874,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 	 * status bit whether the related interrupt source is enabled
+ 	 */
+ 	if (!(status & iren)) {
+-		spin_unlock_irqrestore(&nvt->lock, flags);
++		spin_unlock(&nvt->lock);
+ 		nvt_dbg_verbose("%s exiting, IRSTS 0x0", __func__);
+ 		return IRQ_NONE;
+ 	}
+@@ -923,7 +922,7 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 		}
+ 	}
+ 
+-	spin_unlock_irqrestore(&nvt->lock, flags);
++	spin_unlock(&nvt->lock);
+ 
+ 	nvt_dbg_verbose("%s done", __func__);
+ 	return IRQ_HANDLED;
 -- 
-Kind regards,
+2.10.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+
