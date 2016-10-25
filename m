@@ -1,54 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33099 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753772AbcJ3Bxc (ORCPT
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:35934 "EHLO
+        mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753680AbcJYXzl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Oct 2016 21:53:32 -0400
-Received: by mail-pf0-f193.google.com with SMTP id a136so1665002pfa.0
-        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2016 18:53:31 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: Patrice Chotard <patrice.chotard@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>,
-        linux-arm-kernel@lists.infradead.org, kernel@stlinux.com,
+        Tue, 25 Oct 2016 19:55:41 -0400
+Received: by mail-pf0-f173.google.com with SMTP id e6so127444656pfk.3
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2016 16:55:41 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
-Subject: [PATCH -next] [media] c8sectpfe: fix error return code in c8sectpfe_probe()
-Date: Sun, 30 Oct 2016 01:53:10 +0000
-Message-Id: <1477792390-24533-1-git-send-email-weiyj.lk@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [RFC PATCH 3/6] ARM: dts: davinci: da850: add VPIF
+Date: Tue, 25 Oct 2016 16:55:33 -0700
+Message-Id: <20161025235536.7342-4-khilman@baylibre.com>
+In-Reply-To: <20161025235536.7342-1-khilman@baylibre.com>
+References: <20161025235536.7342-1-khilman@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+Add VPIF and VPIF capture nodes to da850.
 
-Fix to return error code -ENODEV from the error handling
-case instead of 0, as done elsewhere in this function.
+Note that these are separate nodes because the current media drivers
+have two separate drivers for vpif and vpif_capture.
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/boot/dts/da850.dtsi | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-index 42b123f..69d9a16 100644
---- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-+++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-@@ -813,6 +813,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
- 		i2c_bus = of_parse_phandle(child, "i2c-bus", 0);
- 		if (!i2c_bus) {
- 			dev_err(&pdev->dev, "No i2c-bus found\n");
-+			ret = -ENODEV;
- 			goto err_clk_disable;
- 		}
- 		tsin->i2c_adapter =
-@@ -820,6 +821,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
- 		if (!tsin->i2c_adapter) {
- 			dev_err(&pdev->dev, "No i2c adapter found\n");
- 			of_node_put(i2c_bus);
-+			ret = -ENODEV;
- 			goto err_clk_disable;
- 		}
- 		of_node_put(i2c_bus);
+diff --git a/arch/arm/boot/dts/da850.dtsi b/arch/arm/boot/dts/da850.dtsi
+index f79e1b91c680..62c5b3e65071 100644
+--- a/arch/arm/boot/dts/da850.dtsi
++++ b/arch/arm/boot/dts/da850.dtsi
+@@ -399,7 +399,35 @@
+ 				<&edma0 0 1>;
+ 			dma-names = "tx", "rx";
+ 		};
++
++		vpif: video@0x00217000 {
++			compatible = "ti,vpif";
++			reg = <0x00217000 0x1000>;
++			status = "disabled";
++		};
++
++		vpif_capture: video-capture@0x00217000 {
++			compatible = "ti,vpif-capture";
++			reg = <0x00217000 0x1000>;
++			interrupts = <92>;
++			status = "disabled";
++
++			/* VPIF capture: input channels */
++			port {
++				vpif_ch0: endpoint@0 {
++					  reg = <0>;
++					  bus-width = <8>;
++				};
++
++				vpif_ch1: endpoint@1 {
++					  reg = <1>;
++					  bus-width = <8>;
++					  data-shift = <8>;
++				};
++			};
++		};
+ 	};
++
+ 	aemif: aemif@68000000 {
+ 		compatible = "ti,da850-aemif";
+ 		#address-cells = <2>;
+-- 
+2.9.3
 
