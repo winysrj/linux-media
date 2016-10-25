@@ -1,121 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:34041 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750780AbcJDEFE (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36398 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753871AbcJYTYQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 4 Oct 2016 00:05:04 -0400
-Message-ID: <6bd9da5e5b9a59192afcdab589ff0352@smtp-cloud2.xs4all.net>
-Date: Tue, 04 Oct 2016 06:05:00 +0200
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 25 Oct 2016 15:24:16 -0400
+Received: by mail-wm0-f66.google.com with SMTP id c78so1922505wme.3
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2016 12:24:15 -0700 (PDT)
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH 3/5] media: rc: nuvoton: eliminate nvt->tx.lock
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+References: <d213893b-4bdf-7db1-b2e3-e2d5d028a51f@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-ID: <3ebbfb6b-8417-f1a9-ad7e-b1432e582ccd@gmail.com>
+Date: Tue, 25 Oct 2016 21:23:45 +0200
+MIME-Version: 1.0
+In-Reply-To: <d213893b-4bdf-7db1-b2e3-e2d5d028a51f@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Using a separate spinlock to protect access to substruct tx of struct
+nvt_dev doesn't provide any actual benefit. We can use spinlock
+nvt_lock to protect all access to struct nvt_dev and get rid of
+nvt->tx.lock.
 
-Results of the daily build of media_tree:
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/media/rc/nuvoton-cir.c | 35 +++++++++--------------------------
+ drivers/media/rc/nuvoton-cir.h |  1 -
+ 2 files changed, 9 insertions(+), 27 deletions(-)
 
-date:			Tue Oct  4 05:00:29 CEST 2016
-media-tree git hash:	e3ea5e94489bc8c711d422dfa311cfa310553a1b
-media_build git hash:	ecfc9bfca3012b0c6e19967ce90f621f71a6da94
-v4l-utils git hash:	7288e1413197237ab8064e3154469a25b49b0a06
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index a583066..c677628 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -688,7 +688,7 @@ static int nvt_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned n)
+ 	u8 iren;
+ 	int ret;
+ 
+-	spin_lock_irqsave(&nvt->tx.lock, flags);
++	spin_lock_irqsave(&nvt->nvt_lock, flags);
+ 
+ 	ret = min((unsigned)(TX_BUF_LEN / sizeof(unsigned)), n);
+ 	nvt->tx.buf_count = (ret * sizeof(unsigned));
+@@ -712,13 +712,13 @@ static int nvt_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned n)
+ 	for (i = 0; i < 9; i++)
+ 		nvt_cir_reg_write(nvt, 0x01, CIR_STXFIFO);
+ 
+-	spin_unlock_irqrestore(&nvt->tx.lock, flags);
++	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+ 
+ 	wait_event(nvt->tx.queue, nvt->tx.tx_state == ST_TX_REQUEST);
+ 
+-	spin_lock_irqsave(&nvt->tx.lock, flags);
++	spin_lock_irqsave(&nvt->nvt_lock, flags);
+ 	nvt->tx.tx_state = ST_TX_NONE;
+-	spin_unlock_irqrestore(&nvt->tx.lock, flags);
++	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+ 
+ 	/* restore enabled interrupts to prior state */
+ 	nvt_cir_reg_write(nvt, iren, CIR_IREN);
+@@ -832,14 +832,7 @@ static void nvt_cir_log_irqs(u8 status, u8 iren)
+ 
+ static bool nvt_cir_tx_inactive(struct nvt_dev *nvt)
+ {
+-	unsigned long flags;
+-	u8 tx_state;
+-
+-	spin_lock_irqsave(&nvt->tx.lock, flags);
+-	tx_state = nvt->tx.tx_state;
+-	spin_unlock_irqrestore(&nvt->tx.lock, flags);
+-
+-	return tx_state == ST_TX_NONE;
++	return nvt->tx.tx_state == ST_TX_NONE;
+ }
+ 
+ /* interrupt service routine for incoming and outgoing CIR data */
+@@ -902,8 +895,6 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 			nvt_get_rx_ir_data(nvt);
+ 	}
+ 
+-	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
+-
+ 	if (status & CIR_IRSTS_TE)
+ 		nvt_clear_tx_fifo(nvt);
+ 
+@@ -911,8 +902,6 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 		unsigned int pos, count;
+ 		u8 tmp;
+ 
+-		spin_lock_irqsave(&nvt->tx.lock, flags);
+-
+ 		pos = nvt->tx.cur_buf_num;
+ 		count = nvt->tx.buf_count;
+ 
+@@ -925,20 +914,17 @@ static irqreturn_t nvt_cir_isr(int irq, void *data)
+ 			tmp = nvt_cir_reg_read(nvt, CIR_IREN);
+ 			nvt_cir_reg_write(nvt, tmp & ~CIR_IREN_TTR, CIR_IREN);
+ 		}
+-
+-		spin_unlock_irqrestore(&nvt->tx.lock, flags);
+-
+ 	}
+ 
+ 	if (status & CIR_IRSTS_TFU) {
+-		spin_lock_irqsave(&nvt->tx.lock, flags);
+ 		if (nvt->tx.tx_state == ST_TX_REPLY) {
+ 			nvt->tx.tx_state = ST_TX_REQUEST;
+ 			wake_up(&nvt->tx.queue);
+ 		}
+-		spin_unlock_irqrestore(&nvt->tx.lock, flags);
+ 	}
+ 
++	spin_unlock_irqrestore(&nvt->nvt_lock, flags);
++
+ 	nvt_dbg_verbose("%s done", __func__);
+ 	return IRQ_HANDLED;
+ }
+@@ -1019,7 +1005,6 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	nvt->cr_efdr = CR_EFDR;
+ 
+ 	spin_lock_init(&nvt->nvt_lock);
+-	spin_lock_init(&nvt->tx.lock);
+ 
+ 	pnp_set_drvdata(pdev, nvt);
+ 
+@@ -1117,12 +1102,10 @@ static int nvt_suspend(struct pnp_dev *pdev, pm_message_t state)
+ 
+ 	nvt_dbg("%s called", __func__);
+ 
+-	spin_lock_irqsave(&nvt->tx.lock, flags);
+-	nvt->tx.tx_state = ST_TX_NONE;
+-	spin_unlock_irqrestore(&nvt->tx.lock, flags);
+-
+ 	spin_lock_irqsave(&nvt->nvt_lock, flags);
+ 
++	nvt->tx.tx_state = ST_TX_NONE;
++
+ 	/* disable all CIR interrupts */
+ 	nvt_cir_reg_write(nvt, 0, CIR_IREN);
+ 
+diff --git a/drivers/media/rc/nuvoton-cir.h b/drivers/media/rc/nuvoton-cir.h
+index 77102a9..a8569b6 100644
+--- a/drivers/media/rc/nuvoton-cir.h
++++ b/drivers/media/rc/nuvoton-cir.h
+@@ -87,7 +87,6 @@ struct nvt_dev {
+ 	unsigned int pkts;
+ 
+ 	struct {
+-		spinlock_t lock;
+ 		u8 buf[TX_BUF_LEN];
+ 		unsigned int buf_count;
+ 		unsigned int cur_buf_num;
+-- 
+2.10.1
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: OK
-linux-3.14.9-i686: OK
-linux-3.15.2-i686: OK
-linux-3.16.7-i686: OK
-linux-3.17.8-i686: OK
-linux-3.18.7-i686: OK
-linux-3.19-i686: OK
-linux-4.0.9-i686: OK
-linux-4.1.33-i686: OK
-linux-4.2.8-i686: OK
-linux-4.3.6-i686: OK
-linux-4.4.22-i686: OK
-linux-4.5.7-i686: OK
-linux-4.6.7-i686: OK
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: OK
-linux-3.14.9-x86_64: OK
-linux-3.15.2-x86_64: OK
-linux-3.16.7-x86_64: OK
-linux-3.17.8-x86_64: OK
-linux-3.18.7-x86_64: OK
-linux-3.19-x86_64: OK
-linux-4.0.9-x86_64: OK
-linux-4.1.33-x86_64: OK
-linux-4.2.8-x86_64: OK
-linux-4.3.6-x86_64: OK
-linux-4.4.22-x86_64: OK
-linux-4.5.7-x86_64: OK
-linux-4.6.7-x86_64: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-smatch: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
