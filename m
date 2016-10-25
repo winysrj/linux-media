@@ -1,99 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33717 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755638AbcJZQsy (ORCPT
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:34775 "EHLO
+        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754163AbcJYXzo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 26 Oct 2016 12:48:54 -0400
-Received: by mail-wm0-f66.google.com with SMTP id d128so4024209wmf.0
-        for <linux-media@vger.kernel.org>; Wed, 26 Oct 2016 09:48:53 -0700 (PDT)
-Subject: Re: [PATCH v6 2/2] media: Add a driver for the ov5645 camera sensor.
-To: Todor Tomov <todor.tomov@linaro.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org>
- <1739314.RkalEXrcbu@avalon> <5800C80D.4000006@linaro.org>
- <2757849.cqAmgViGfT@avalon> <58109035.5030000@linaro.org>
- <5810931B.4070101@linaro.org>
- <e88eeb08-6d33-df4e-5d75-6606a4ffa0f3@gmail.com>
- <5810B8BF.4020501@linaro.org>
-Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
-        matrandg@cisco.com, sakari.ailus@iki.fi,
+        Tue, 25 Oct 2016 19:55:44 -0400
+Received: by mail-pf0-f177.google.com with SMTP id n85so11119830pfi.1
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2016 16:55:44 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <871ba9d1-a79b-5319-1393-86788b8ffa96@gmail.com>
-Date: Wed, 26 Oct 2016 17:48:49 +0100
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [RFC PATCH 6/6] [media] davinci: vpif_capture: get subdevs from DT
+Date: Tue, 25 Oct 2016 16:55:36 -0700
+Message-Id: <20161025235536.7342-7-khilman@baylibre.com>
+In-Reply-To: <20161025235536.7342-1-khilman@baylibre.com>
+References: <20161025235536.7342-1-khilman@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <5810B8BF.4020501@linaro.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/10/16 15:07, Todor Tomov wrote:
-> Hi,
->
-> On 10/26/2016 03:48 PM, Ian Arkver wrote:
->> [snip]
->>>>>>>> +static int ov5645_regulators_enable(struct ov5645 *ov5645)
->>>>>>>> +{
->>>>>>>> +    int ret;
->>>>>>>> +
->>>>>>>> +    ret = regulator_enable(ov5645->io_regulator);
->>>>>>>> +    if (ret < 0) {
->>>>>>>> +        dev_err(ov5645->dev, "set io voltage failed\n");
->>>>>>>> +        return ret;
->>>>>>>> +    }
->>>>>>>> +
->>>>>>>> +    ret = regulator_enable(ov5645->core_regulator);
->>>>>>>> +    if (ret) {
->>>>>>>> +        dev_err(ov5645->dev, "set core voltage failed\n");
->>>>>>>> +        goto err_disable_io;
->>>>>>>> +    }
->>>>>>>> +
->>>>>>>> +    ret = regulator_enable(ov5645->analog_regulator);
->>>>>>>> +    if (ret) {
->>>>>>>> +        dev_err(ov5645->dev, "set analog voltage failed\n");
->>>>>>>> +        goto err_disable_core;
->>>>>>>> +    }
->>>>>>> How about using the regulator bulk API ? This would simplify the enable
->>>>>>> and disable functions.
->>>>>> The driver must enable the regulators in this order. I can see in the
->>>>>> implementation of the bulk api that they are enabled again in order
->>>>>> but I don't see stated anywhere that it is guaranteed to follow the
->>>>>> same order in future. I'd prefer to keep it explicit as it is now.
->>>>> I believe it should be an API guarantee, otherwise many drivers using the bulk
->>>>> API would break. Mark, could you please comment on that ?
->>>> Ok, let's wait for a response from Mark.
->> I don't have the OV5645 datasheet, but I do have the OV5640 and OV5647 datasheets. Both of these show that AVDD should come up before DVDD where DVDD is externally supplied, although the minimum delay between them is 0ms. Both datasheets also imply that this requirement is only to allow host SCCB access on a shared I2C bus while the device is powering up. They imply that if one waits 20ms after power on then SCCB will be fine without this sequencing. Your code includes an msleep(20);
-> There is also requirement that DOVDD should become stable before AVDD (in both cases -
-> external or internal DVDD).
->
-> Aren't these requirements needed to allow I2C access to another device on the same I2C bus even during these 20ms?
-Well, it's a really obscure corner case where these rails are actually 
-switched and the rise times are all available to the regulator framework 
-(so that there's a difference between three distinct calls to 
-regulator_enable and one call to the ASYNC_DOMAIN driven bulk enable) 
-and the I2C bus is shared with another device that is being accessed at 
-the same time as the sensor is enabled and the sensor breaks that access.
+First pass at getting subdevs from DT ports and endpoints.
 
-Having said that, really obscure corner cases are what lurk around and 
-catch you unawares years in the future, so maybe three calls is 
-necessary here. However, I think analog should be enabled before core - 
-check with your datasheet if you have the correct one.
+The _get_pdata() function was larely inspired by (i.e. stolen from)
+am437x-vpfe.c
 
-Regards,
-Ian
+Questions:
+- Legacy board file passes subdev input & output routes via pdata
+  (e.g. tvp514x svideo or composite selection.)  How is this supposed
+  to be done via DT?
 
->
->> Further, the reference schematic for the OV5647 shows three separate LDOs with no sequencing between them.
->>
->> I've no comment on whether the bulk regulator API needs a "keep sequencing" flag or somesuch, but I don't think this device will drive that requirement.
->>
->> Regards,
->> Ian
->>
-> Best regards,
-> Todor
->
+Not-Yet-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 132 +++++++++++++++++++++++++-
+ include/media/davinci/vpif_types.h            |   9 +-
+ 2 files changed, 134 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index becc3e63b472..df2af5cda37a 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -26,6 +26,8 @@
+ #include <linux/slab.h>
+ 
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-of.h>
++#include <media/i2c/tvp514x.h> /* FIXME: how to pass the INPUT_* OUTPUT* fields? */
+ 
+ #include "vpif.h"
+ #include "vpif_capture.h"
+@@ -651,6 +653,10 @@ static int vpif_input_to_subdev(
+ 
+ 	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
+ 
++	if (!chan_cfg)
++		return -1;
++	if (input_index >= chan_cfg->input_count)
++		return -1;
+ 	subdev_name = chan_cfg->inputs[input_index].subdev_name;
+ 	if (subdev_name == NULL)
+ 		return -1;
+@@ -658,7 +664,7 @@ static int vpif_input_to_subdev(
+ 	/* loop through the sub device list to get the sub device info */
+ 	for (i = 0; i < vpif_cfg->subdev_count; i++) {
+ 		subdev_info = &vpif_cfg->subdev_info[i];
+-		if (!strcmp(subdev_info->name, subdev_name))
++		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
+ 			return i;
+ 	}
+ 	return -1;
+@@ -1328,13 +1334,25 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+ {
+ 	int i;
+ 
++	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
++		const struct device_node *node = vpif_obj.config->asd[i]->match.of.node;
++
++		if (node == subdev->of_node) {
++			vpif_obj.sd[i] = subdev;
++			vpif_obj.config->chan_config->inputs[i].subdev_name = subdev->of_node->full_name;
++			vpif_dbg(2, debug, "%s: setting input %d subdev_name = %s\n", __func__,
++				 i, subdev->of_node->full_name);
++			return 0;
++		}
++	}
++
+ 	for (i = 0; i < vpif_obj.config->subdev_count; i++)
+ 		if (!strcmp(vpif_obj.config->subdev_info[i].name,
+ 			    subdev->name)) {
+ 			vpif_obj.sd[i] = subdev;
+ 			return 0;
+ 		}
+-
++	
+ 	return -EINVAL;
+ }
+ 
+@@ -1423,6 +1441,113 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+ 	return vpif_probe_complete();
+ }
+ 
++static struct vpif_capture_config *
++vpif_capture_get_pdata(struct platform_device *pdev)
++{
++	struct device_node *endpoint = NULL;
++	struct v4l2_of_endpoint bus_cfg;
++	struct vpif_capture_config *pdata;
++	struct vpif_subdev_info *sdinfo;
++	struct vpif_capture_chan_config *chan;
++	unsigned int i;
++
++	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
++
++	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
++		return pdev->dev.platform_data;
++
++	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return NULL;
++	pdata->subdev_info = devm_kzalloc(&pdev->dev,
++					  sizeof(*pdata->subdev_info) *
++					  VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
++	if (!pdata->subdev_info)
++		return NULL;
++	dev_dbg(&pdev->dev, "%s\n", __func__);
++
++	for (i = 0; ; i++) {
++		struct device_node *rem;
++		unsigned int flags;
++		int err;
++		
++		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
++						      endpoint);
++		if (!endpoint)
++			break;
++
++		dev_dbg(&pdev->dev, "found endpoint %s, %s\n",
++			endpoint->name, endpoint->full_name);
++
++		sdinfo = &pdata->subdev_info[i];
++		chan = &pdata->chan_config[i];
++		chan->inputs = devm_kzalloc(&pdev->dev,
++					    sizeof(*chan->inputs) *
++					    VPIF_DISPLAY_MAX_CHANNELS,
++					    GFP_KERNEL);
++		
++		/* sdinfo->name = devm_kzalloc(&pdev->dev, 16, GFP_KERNEL); */
++		/* snprintf(sdinfo->name, 16, "VPIF input %d", i); */
++		chan->input_count++;
++		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
++		chan->inputs[i].input.std = V4L2_STD_ALL;
++		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
++		
++		/* FIXME: need a new property? ch0:composite ch1: s-video */
++		if (i == 0)
++			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
++		else
++			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
++		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
++				
++		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++		if (err) {
++			dev_err(&pdev->dev, "Could not parse the endpoint\n");
++			goto done;
++		}
++		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
++			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
++		flags = bus_cfg.bus.parallel.flags;
++
++		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++			chan->vpif_if.hd_pol = 1;
++
++		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++			chan->vpif_if.vd_pol = 1;
++
++		chan->vpif_if.if_type = VPIF_IF_BT656;
++		rem = of_graph_get_remote_port_parent(endpoint);
++		if (!rem) {
++			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
++				endpoint->full_name);
++			goto done;
++		}
++
++		dev_dbg(&pdev->dev, "Remote device %s, %s found\n", rem->name, rem->full_name);
++		sdinfo->name = rem->full_name;
++
++		pdata->asd[i] = devm_kzalloc(&pdev->dev,
++					     sizeof(struct v4l2_async_subdev),
++					     GFP_KERNEL);
++		if (!pdata->asd[i]) {
++			of_node_put(rem);
++			pdata = NULL;
++			goto done;
++		}
++
++		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
++		pdata->asd[i]->match.of.node = rem;
++		of_node_put(rem);
++	}
++
++done:
++	pdata->asd_sizes[0] = i;
++	pdata->subdev_count = i;
++	pdata->card_name = "DA850/OMAP-L138 Video Capture";
++
++	return pdata;
++}
++
+ /**
+  * vpif_probe : This function probes the vpif capture driver
+  * @pdev: platform device pointer
+@@ -1439,6 +1564,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	int res_idx = 0;
+ 	int i, err;
+ 
++	pdev->dev.platform_data = vpif_capture_get_pdata(pdev);;
+ 	if (!pdev->dev.platform_data) {
+ 		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
+ 		return -EINVAL;
+@@ -1481,7 +1607,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		goto vpif_unregister;
+ 	}
+ 
+-	if (!vpif_obj.config->asd_sizes) {
++	if (!vpif_obj.config->asd_sizes[0]) {
+ 		i2c_adap = i2c_get_adapter(1);
+ 		for (i = 0; i < subdev_count; i++) {
+ 			subdevdata = &vpif_obj.config->subdev_info[i];
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index 3cb1704a0650..4ee3b41975db 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -65,14 +65,14 @@ struct vpif_display_config {
+ 
+ struct vpif_input {
+ 	struct v4l2_input input;
+-	const char *subdev_name;
++	char *subdev_name;
+ 	u32 input_route;
+ 	u32 output_route;
+ };
+ 
+ struct vpif_capture_chan_config {
+ 	struct vpif_interface vpif_if;
+-	const struct vpif_input *inputs;
++	struct vpif_input *inputs;
+ 	int input_count;
+ };
+ 
+@@ -83,7 +83,8 @@ struct vpif_capture_config {
+ 	struct vpif_subdev_info *subdev_info;
+ 	int subdev_count;
+ 	const char *card_name;
+-	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+-	int *asd_sizes;		/* 0-terminated array of asd group sizes */
++
++	struct v4l2_async_subdev *asd[VPIF_CAPTURE_MAX_CHANNELS];
++	int asd_sizes[VPIF_CAPTURE_MAX_CHANNELS];
+ };
+ #endif /* _VPIF_TYPES_H */
+-- 
+2.9.3
 
