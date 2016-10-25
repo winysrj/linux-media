@@ -1,182 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51409 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754271AbcJRUqQ (ORCPT
+Received: from out1-smtp.messagingengine.com ([66.111.4.25]:47784 "EHLO
+        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933206AbcJYMqN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:16 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Tue, 25 Oct 2016 08:46:13 -0400
+Date: Tue, 25 Oct 2016 13:46:17 +0100
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Takashi Iwai <tiwai@suse.de>, Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Geliang Tang <geliangtang@163.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 06/58] bt8xx: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:18 -0200
-Message-Id: <4a31ff0369383e7f0a3734fa77e46f6c53fb28ca.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+        Rafael =?iso-8859-1?Q?Louren=E7o?= de Lima Chehab
+        <chehabrafael@gmail.com>, Shuah Khan <shuah@kernel.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 1/3] [media] au0828-video: Use kcalloc() in
+ au0828_init_isoc()
+Message-ID: <20161025124617.GB6567@stationary.pb.com>
+References: <c6a37822-c0f9-1f1e-6ebe-a1c88c6d9d0a@users.sourceforge.net>
+ <68ad1aaa-c029-04b9-805a-e859f6c2d2d5@users.sourceforge.net>
+ <20161024222844.GD25320@dell-m4800.home>
+ <20161024221115.3632aa5c@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161024221115.3632aa5c@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+On Mon, Oct 24, 2016 at 10:11:15PM -0200, Mauro Carvalho Chehab wrote:
+> Em Mon, 24 Oct 2016 23:28:44 +0100
+> Andrey Utkin <andrey_utkin@fastmail.com> escreveu:
+> 
+> > On Mon, Oct 24, 2016 at 10:59:24PM +0200, SF Markus Elfring wrote:
+> > > From: Markus Elfring <elfring@users.sourceforge.net>
+> > > Date: Mon, 24 Oct 2016 22:08:47 +0200
+> > > 
+> > > * Multiplications for the size determination of memory allocations
+> > >   indicated that array data structures should be processed.
+> > >   Thus use the corresponding function "kcalloc".
+> > > 
+> > >   This issue was detected by using the Coccinelle software.
+> > > 
+> > > * Replace the specification of data types by pointer dereferences
+> > >   to make the corresponding size determination a bit safer according to
+> > >   the Linux coding style convention.
+> > > 
+> > > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> > > ---
+> > >  drivers/media/usb/au0828/au0828-video.c | 11 +++++++----
+> > >  1 file changed, 7 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+> > > index 85dd9a8..85b13c1 100644
+> > > --- a/drivers/media/usb/au0828/au0828-video.c
+> > > +++ b/drivers/media/usb/au0828/au0828-video.c
+> > > @@ -221,15 +221,18 @@ static int au0828_init_isoc(struct au0828_dev *dev, int max_packets,
+> > >  
+> > >  	dev->isoc_ctl.isoc_copy = isoc_copy;
+> > >  	dev->isoc_ctl.num_bufs = num_bufs;
+> > > -  
+> > 
+> > > -	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
+> > > +	dev->isoc_ctl.urb = kcalloc(num_bufs,
+> > > +				    sizeof(*dev->isoc_ctl.urb),
+> > > +				    GFP_KERNEL);  
+> > 
+> > What about this (for both hunks)?
+> > 
+> > -	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
+> > +	dev->isoc_ctl.urb =
+> > +		kcalloc(num_bufs, sizeof(*dev->isoc_ctl.urb), GFP_KERNEL);
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+Now i see that also this should suit style better than original variant:
 
-So, join those continuation lines.
+	dev->isoc_ctl.urb = kcalloc(num_bufs, sizeof(*dev->isoc_ctl.urb),
+				    GFP_KERNEL);
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+That's what vim with github.com/vivien/vim-linux-coding-style plugin
+proposes.
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
+> That's worse :)
 
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/bt8xx/bttv-cards.c  | 9 +++------
- drivers/media/pci/bt8xx/bttv-driver.c | 6 ++----
- drivers/media/pci/bt8xx/bttv-i2c.c    | 6 ++----
- drivers/media/pci/bt8xx/bttv-input.c  | 4 ++--
- 4 files changed, 9 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index 8a17cc0bfa07..4ad50f978e0e 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -125,10 +125,8 @@ module_param_array(remote,   int, NULL, 0444);
- module_param_array(audiodev, int, NULL, 0444);
- module_param_array(audiomux, int, NULL, 0444);
- 
--MODULE_PARM_DESC(triton1,"set ETBF pci config bit "
--		 "[enable bug compatibility for triton1 + others]");
--MODULE_PARM_DESC(vsfx,"set VSFX pci config bit "
--		 "[yet another chipset flaw workaround]");
-+MODULE_PARM_DESC(triton1,"set ETBF pci config bit [enable bug compatibility for triton1 + others]");
-+MODULE_PARM_DESC(vsfx,"set VSFX pci config bit [yet another chipset flaw workaround]");
- MODULE_PARM_DESC(latency,"pci latency timer");
- MODULE_PARM_DESC(card,"specify TV/grabber card model, see CARDLIST file for a list");
- MODULE_PARM_DESC(pll, "specify installed crystal (0=none, 28=28 MHz, 35=35 MHz, 14=14 MHz)");
-@@ -141,8 +139,7 @@ MODULE_PARM_DESC(audiodev, "specify audio device:\n"
- 		"\t\t 2 = tda7432\n"
- 		"\t\t 3 = tvaudio");
- MODULE_PARM_DESC(saa6588, "if 1, then load the saa6588 RDS module, default (0) is to use the card definition.");
--MODULE_PARM_DESC(no_overlay,"allow override overlay default (0 disables, 1 enables)"
--		" [some VIA/SIS chipsets are known to have problem with overlay]");
-+MODULE_PARM_DESC(no_overlay,"allow override overlay default (0 disables, 1 enables) [some VIA/SIS chipsets are known to have problem with overlay]");
- 
- /* ----------------------------------------------------------------------- */
- /* list of card IDs for bt878+ cards                                       */
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 97b91a9f9fa9..fb4aefbcc8f8 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -148,8 +148,7 @@ MODULE_PARM_DESC(irq_debug, "irq handler debug messages, default is 0 (no)");
- MODULE_PARM_DESC(disable_ir, "disable infrared remote support");
- MODULE_PARM_DESC(gbuffers, "number of capture buffers. range 2-32, default 8");
- MODULE_PARM_DESC(gbufsize, "size of the capture buffers, default is 0x208000");
--MODULE_PARM_DESC(reset_crop, "reset cropping parameters at open(), default "
--		 "is 1 (yes) for compatibility with older applications");
-+MODULE_PARM_DESC(reset_crop, "reset cropping parameters at open(), default is 1 (yes) for compatibility with older applications");
- MODULE_PARM_DESC(automute, "mute audio on bad/missing video signal, default is 1 (yes)");
- MODULE_PARM_DESC(chroma_agc, "enables the AGC of chroma signal, default is 0 (no)");
- MODULE_PARM_DESC(agc_crush, "enables the luminance AGC crush, default is 1 (yes)");
-@@ -3506,8 +3505,7 @@ static void bttv_irq_debug_low_latency(struct bttv *btv, u32 rc)
- 		(unsigned long)rc);
- 
- 	if (0 == (btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC)) {
--		pr_notice("%d: Oh, there (temporarily?) is no input signal. "
--			  "Ok, then this is harmless, don't worry ;)\n",
-+		pr_notice("%d: Oh, there (temporarily?) is no input signal. Ok, then this is harmless, don't worry ;)\n",
- 			  btv->c.nr);
- 		return;
- 	}
-diff --git a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
-index d43911deb617..830437471038 100644
---- a/drivers/media/pci/bt8xx/bttv-i2c.c
-+++ b/drivers/media/pci/bt8xx/bttv-i2c.c
-@@ -44,15 +44,13 @@ static int i2c_scan;
- module_param(i2c_debug, int, 0644);
- MODULE_PARM_DESC(i2c_debug, "configure i2c debug level");
- module_param(i2c_hw,    int, 0444);
--MODULE_PARM_DESC(i2c_hw,"force use of hardware i2c support, "
--			"instead of software bitbang");
-+MODULE_PARM_DESC(i2c_hw,"force use of hardware i2c support, instead of software bitbang");
- module_param(i2c_scan,  int, 0444);
- MODULE_PARM_DESC(i2c_scan,"scan i2c bus at insmod time");
- 
- static unsigned int i2c_udelay = 5;
- module_param(i2c_udelay, int, 0444);
--MODULE_PARM_DESC(i2c_udelay,"soft i2c delay at insmod time, in usecs "
--		"(should be 5 or higher). Lower value means higher bus speed.");
-+MODULE_PARM_DESC(i2c_udelay,"soft i2c delay at insmod time, in usecs (should be 5 or higher). Lower value means higher bus speed.");
- 
- /* ----------------------------------------------------------------------- */
- /* I2C functions - bitbanging adapter (software i2c)                       */
-diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
-index a75c53da224a..4da720e4867e 100644
---- a/drivers/media/pci/bt8xx/bttv-input.c
-+++ b/drivers/media/pci/bt8xx/bttv-input.c
-@@ -185,8 +185,8 @@ static u32 bttv_rc5_decode(unsigned int code)
- 			return 0;
- 		}
- 	}
--	dprintk("code=%x, rc5=%x, start=%x, toggle=%x, address=%x, "
--		"instr=%x\n", rc5, org_code, RC5_START(rc5),
-+	dprintk("code=%x, rc5=%x, start=%x, toggle=%x, address=%x, instr=%x\n",
-+		rc5, org_code, RC5_START(rc5),
- 		RC5_TOGGLE(rc5), RC5_ADDR(rc5), RC5_INSTR(rc5));
- 	return rc5;
- }
--- 
-2.7.4
-
-
+I was about to send long emotional noobish bikeshedding rant arguing
+with this point, but restrained from that keeping in mind that I want to
+proceed contributing to the codebase successfully :) I'll keep my coding
+style preferences for myself for a while.
