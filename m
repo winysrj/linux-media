@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:37610 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1758532AbcJaElM (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35369 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752105AbcJYDoz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 00:41:12 -0400
-Message-ID: <379b9f1fdb1db2784ec2aa1de8941170@smtp-cloud6.xs4all.net>
-Date: Mon, 31 Oct 2016 05:41:08 +0100
+        Mon, 24 Oct 2016 23:44:55 -0400
+Message-ID: <cfda9f4620e631adac0ab37e60cd388a@smtp-cloud2.xs4all.net>
+Date: Tue, 25 Oct 2016 05:44:51 +0200
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: ERRORS
@@ -17,7 +17,7 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Mon Oct 31 05:00:17 CET 2016
+date:			Tue Oct 25 05:00:15 CEST 2016
 media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
 media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
 v4l-utils git hash:	4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
@@ -28,16 +28,16 @@ host hardware:		x86_64
 host os:		4.7.0-164
 
 linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
 linux-git-arm-pxa: OK
 linux-git-blackfin-bf561: OK
-linux-git-i686: ERRORS
+linux-git-i686: OK
 linux-git-m32r: WARNINGS
 linux-git-mips: OK
 linux-git-powerpc64: OK
 linux-git-sh: OK
-linux-git-x86_64: ERRORS
+linux-git-x86_64: OK
 linux-2.6.36.4-i686: ERRORS
 linux-2.6.37.6-i686: ERRORS
 linux-2.6.38.8-i686: ERRORS
@@ -115,11 +115,11 @@ sparse: WARNINGS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
