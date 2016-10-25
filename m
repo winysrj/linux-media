@@ -1,96 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59048 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756336AbcJNUWn (ORCPT
+Received: from mail-pf0-f172.google.com ([209.85.192.172]:33593 "EHLO
+        mail-pf0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753107AbcJYXzk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 16:22:43 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>,
+        Tue, 25 Oct 2016 19:55:40 -0400
+Received: by mail-pf0-f172.google.com with SMTP id 197so3669360pfu.0
+        for <linux-media@vger.kernel.org>; Tue, 25 Oct 2016 16:55:40 -0700 (PDT)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 04/57] [media] cx25840: don't break long lines
-Date: Fri, 14 Oct 2016 17:19:52 -0300
-Message-Id: <fc31387c77cd27e0ca1284f349b6dbe58c2d3263.1476475771.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476475770.git.mchehab@s-opensource.com>
-References: <cover.1476475770.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [RFC PATCH 2/6] ARM: davinci: da8xx: VPIF: enable DT init
+Date: Tue, 25 Oct 2016 16:55:32 -0700
+Message-Id: <20161025235536.7342-3-khilman@baylibre.com>
+In-Reply-To: <20161025235536.7342-1-khilman@baylibre.com>
+References: <20161025235536.7342-1-khilman@baylibre.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols checkpatch warnings, several strings
-were broken into multiple lines. This is not considered
-a good practice anymore, as it makes harder to grep for
-strings at the source code. So, join those continuation
-lines.
+Add basic support for DT initializaion of VPIF (capture) via DT.  Clocks
+and mux still need to happen in this file until there are real clock and
+pinctrl drivers, but the video nodes and subdevs can all come from DT.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/media/i2c/cx25840/cx25840-core.c | 11 +++--------
- drivers/media/i2c/cx25840/cx25840-ir.c   |  6 ++----
- 2 files changed, 5 insertions(+), 12 deletions(-)
+ arch/arm/mach-davinci/da8xx-dt.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
-index 142ae28803bb..0dcf450052ac 100644
---- a/drivers/media/i2c/cx25840/cx25840-core.c
-+++ b/drivers/media/i2c/cx25840/cx25840-core.c
-@@ -873,10 +873,7 @@ void cx25840_std_setup(struct i2c_client *client)
- 					"Chroma sub-carrier freq = %d.%06d MHz\n",
- 					fsc / 1000000, fsc % 1000000);
+diff --git a/arch/arm/mach-davinci/da8xx-dt.c b/arch/arm/mach-davinci/da8xx-dt.c
+index c9f7e9274aa8..e1b7d72f9070 100644
+--- a/arch/arm/mach-davinci/da8xx-dt.c
++++ b/arch/arm/mach-davinci/da8xx-dt.c
+@@ -17,6 +17,7 @@
+ #include <mach/common.h>
+ #include "cp_intc.h"
+ #include <mach/da8xx.h>
++#include <mach/mux.h>
  
--			v4l_dbg(1, cx25840_debug, client, "hblank %i, hactive %i, "
--				"vblank %i, vactive %i, vblank656 %i, src_dec %i, "
--				"burst 0x%02x, luma_lpf %i, uv_lpf %i, comb 0x%02x, "
--				"sc 0x%06x\n",
-+			v4l_dbg(1, cx25840_debug, client, "hblank %i, hactive %i, vblank %i, vactive %i, vblank656 %i, src_dec %i, burst 0x%02x, luma_lpf %i, uv_lpf %i, comb 0x%02x, sc 0x%06x\n",
- 				hblank, hactive, vblank, vactive, vblank656,
- 				src_decimation, burst, luma_lpf, uv_lpf, comb, sc);
- 		}
-@@ -5169,11 +5166,9 @@ static int cx25840_probe(struct i2c_client *client,
- 		id = CX2310X_AV;
- 	} else if ((device_id & 0xff) == (device_id >> 8)) {
- 		v4l_err(client,
--			"likely a confused/unresponsive cx2388[578] A/V decoder"
--			" found @ 0x%x (%s)\n",
-+			"likely a confused/unresponsive cx2388[578] A/V decoder found @ 0x%x (%s)\n",
- 			client->addr << 1, client->adapter->name);
--		v4l_err(client, "A method to reset it from the cx25840 driver"
--			" software is not known at this time\n");
-+		v4l_err(client, "A method to reset it from the cx25840 driver software is not known at this time\n");
- 		return -ENODEV;
- 	} else {
- 		v4l_dbg(1, cx25840_debug, client, "cx25840 not found\n");
-diff --git a/drivers/media/i2c/cx25840/cx25840-ir.c b/drivers/media/i2c/cx25840/cx25840-ir.c
-index 4b782012cadc..291f7d0a1c5c 100644
---- a/drivers/media/i2c/cx25840/cx25840-ir.c
-+++ b/drivers/media/i2c/cx25840/cx25840-ir.c
-@@ -1113,8 +1113,7 @@ int cx25840_ir_log_status(struct v4l2_subdev *sd)
- 			j = 0;
- 			break;
- 		}
--		v4l2_info(sd, "\tNext carrier edge window:          16 clocks "
--			  "-%1d/+%1d, %u to %u Hz\n", i, j,
-+		v4l2_info(sd, "\tNext carrier edge window:          16 clocks -%1d/+%1d, %u to %u Hz\n", i, j,
- 			  clock_divider_to_freq(rxclk, 16 + j),
- 			  clock_divider_to_freq(rxclk, 16 - i));
- 	}
-@@ -1124,8 +1123,7 @@ int cx25840_ir_log_status(struct v4l2_subdev *sd)
- 	v4l2_info(sd, "\tLow pass filter:                   %s\n",
- 		  filtr ? "enabled" : "disabled");
- 	if (filtr)
--		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, "
--			  "%u ns\n",
-+		v4l2_info(sd, "\tMin acceptable pulse width (LPF):  %u us, %u ns\n",
- 			  lpf_count_to_us(filtr),
- 			  lpf_count_to_ns(filtr));
- 	v4l2_info(sd, "\tPulse width timer timed-out:       %s\n",
+ static struct of_dev_auxdata da850_auxdata_lookup[] __initdata = {
+ 	OF_DEV_AUXDATA("ti,davinci-i2c", 0x01c22000, "i2c_davinci.1", NULL),
+@@ -38,14 +39,30 @@ static struct of_dev_auxdata da850_auxdata_lookup[] __initdata = {
+ 		       NULL),
+ 	OF_DEV_AUXDATA("ti,da830-mcasp-audio", 0x01d00000, "davinci-mcasp.0", NULL),
+ 	OF_DEV_AUXDATA("ti,da850-aemif", 0x68000000, "ti-aemif", NULL),
++	OF_DEV_AUXDATA("ti,vpif", 0x01e17000, "vpif", NULL),
+ 	{}
+ };
+ 
+ #ifdef CONFIG_ARCH_DAVINCI_DA850
+ 
++#if IS_ENABLED(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE)
++static __init void da850_vpif_capture_init(void)
++{
++	int ret;
++	
++	ret = davinci_cfg_reg_list(da850_vpif_capture_pins);
++	if (ret)
++		pr_warn("da850_evm_init: VPIF capture mux setup failed: %d\n",
++			ret);
++}
++#else
++#define da850_vpif_capture_init()
++#endif
++
+ static void __init da850_init_machine(void)
+ {
+ 	of_platform_default_populate(NULL, da850_auxdata_lookup, NULL);
++	da850_vpif_capture_init();
+ }
+ 
+ static const char *const da850_boards_compat[] __initconst = {
 -- 
-2.7.4
-
+2.9.3
 
