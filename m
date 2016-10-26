@@ -1,99 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:33109 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757497AbcJQS0S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 14:26:18 -0400
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: hverkuil@xs4all.nl, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        pmhahn+video@pmhahn.de, Andrey Utkin <andrey_utkin@fastmail.com>
-Subject: [PATCH v1] media: saa7146: Fix for "[BUG] process stuck when closing saa7146 [dvb_ttpci]"
-Date: Mon, 17 Oct 2016 20:25:59 +0100
-Message-Id: <20161017192559.2918-1-andrey_utkin@fastmail.com>
+Received: from foss.arm.com ([217.140.101.70]:37592 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753971AbcJZLKT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Oct 2016 07:10:19 -0400
+Date: Wed, 26 Oct 2016 12:10:12 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 7/9] drm: atomic: factor out common out-fence
+ operations
+Message-ID: <20161026111012.GA30071@e106950-lin.cambridge.arm.com>
+References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+ <1477472108-27222-8-git-send-email-brian.starkey@arm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <1477472108-27222-8-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Release queued DMA buffers when ending streaming, so that
-videobuf_waiton() doesn't block forever.
+Hi Gustavo,
 
-As reported, this fixes avoids occasional lockup of process reading from
-video device, which manifests in such log:
+As Daniel rightly pointed out you would likely be interested in this
+patch.
 
-INFO: task ffmpeg:9864 blocked for more than 120 seconds.
-      Tainted: P           O    4.6.7 #3
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-ffmpeg          D ffff880177cc7b00     0  9864      1 0x00000000
- ffff880177cc7b00 0000000000000202 0000000000000202 ffffffff8180b4c0
- ffff88019d79e4c0 ffffffff81064050 ffff880177cc7ae0 ffff880177cc8000
- ffff880177cc7b18 ffff8801fd41d648 ffff8802307acca0 ffff8802307acc70
-Call Trace:
- [<ffffffff81064050>] ? preempt_count_add+0x89/0xab
- [<ffffffff81477215>] schedule+0x86/0x9e
- [<ffffffff81477215>] ? schedule+0x86/0x9e
- [<ffffffffa0fe1c96>] videobuf_waiton+0x131/0x15e [videobuf_core]
- [<ffffffff8107727b>] ? wait_woken+0x6d/0x6d
- [<ffffffffa1017be9>] saa7146_dma_free+0x39/0x5b [saa7146_vv]
- [<ffffffffa10186c4>] buffer_release+0x2a/0x3e [saa7146_vv]
- [<ffffffffa0fee4a8>] videobuf_vm_close+0xd8/0x103 [videobuf_dma_sg]
- [<ffffffff8112049e>] remove_vma+0x25/0x4d
- [<ffffffff81121a32>] exit_mmap+0xce/0xf7
- [<ffffffff8104381d>] mmput+0x4e/0xe2
- [<ffffffff810491fd>] do_exit+0x372/0x920
- [<ffffffff81049813>] do_group_exit+0x3c/0x98
- [<ffffffff810522ef>] get_signal+0x4e8/0x56e
- [<ffffffff810710a5>] ? task_dead_fair+0xd/0xf
- [<ffffffff81017020>] do_signal+0x23/0x521
- [<ffffffff81479e82>] ? _raw_spin_unlock_irqrestore+0x13/0x25
- [<ffffffff8109710d>] ? hrtimer_try_to_cancel+0xd7/0x104
- [<ffffffff8109b306>] ? ktime_get+0x4c/0xa1
- [<ffffffff81096ea6>] ? update_rmtp+0x46/0x5b
- [<ffffffff81097ce0>] ? hrtimer_nanosleep+0xe4/0x10e
- [<ffffffff81096e3c>] ? hrtimer_init+0xeb/0xeb
- [<ffffffff810014f8>] exit_to_usermode_loop+0x4f/0x93
- [<ffffffff810019fe>] syscall_return_slowpath+0x3b/0x46
- [<ffffffff8147a355>] entry_SYSCALL_64_fastpath+0x8d/0x8f
+This is on-top of your v5 patch-set, with the bug-fixes I mentioned
+before. I haven't dropped the fence_get(), as I figured you're
+probably going to rebase your patches on top of the fence_get() in
+sync_file_create(), and then I will do the same.
 
-Reported-by: Philipp Matthias Hahn <pmhahn+video@pmhahn.de>
-Tested-by: Philipp Matthias Hahn <pmhahn+video@pmhahn.de>
-Signed-off-by: Andrey Utkin <andrey_utkin@fastmail.com>
----
+Thanks,
+Brian
 
-Dear maintainers,
-Please check whether the used buffer status (DONE) is correct for this
-situation. I am in doubt, shouldn't it be VIDEOBUF_ERROR? However, ERROR
-wasn't tested by Philipp and I guess it may indicate some undesired failure
-status to application.
-
-[PATCH v1] prefix is used to distinguish it from old letter with subj
-"[PATCH] ..." which was a quick reply to Philipp's request and wasn't signed
-off and otherwise properly formatted for submission.
-
- drivers/media/common/saa7146/saa7146_video.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
-index ea2f3bf..e034bcf 100644
---- a/drivers/media/common/saa7146/saa7146_video.c
-+++ b/drivers/media/common/saa7146/saa7146_video.c
-@@ -390,6 +390,7 @@ static int video_end(struct saa7146_fh *fh, struct file *file)
- {
- 	struct saa7146_dev *dev = fh->dev;
- 	struct saa7146_vv *vv = dev->vv_data;
-+	struct saa7146_dmaqueue *q = &vv->video_dmaq;
- 	struct saa7146_format *fmt = NULL;
- 	unsigned long flags;
- 	unsigned int resource;
-@@ -428,6 +429,9 @@ static int video_end(struct saa7146_fh *fh, struct file *file)
- 	/* shut down all used video dma transfers */
- 	saa7146_write(dev, MC1, dmas);
- 
-+	if (q->curr)
-+		saa7146_buffer_finish(dev, q, VIDEOBUF_DONE);
-+
- 	spin_unlock_irqrestore(&dev->slock, flags);
- 
- 	vv->video_fh = NULL;
--- 
-2.10.1
-
+On Wed, Oct 26, 2016 at 09:55:06AM +0100, Brian Starkey wrote:
+>Some parts of setting up the CRTC out-fence can be re-used for
+>writeback out-fences. Factor this out into a separate function.
+>
+>Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+>---
+> drivers/gpu/drm/drm_atomic.c |   64 +++++++++++++++++++++++++++---------------
+> 1 file changed, 42 insertions(+), 22 deletions(-)
+>
+>diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+>index f434f34..3f8fc97 100644
+>--- a/drivers/gpu/drm/drm_atomic.c
+>+++ b/drivers/gpu/drm/drm_atomic.c
+>@@ -1693,37 +1693,46 @@ void drm_atomic_clean_old_fb(struct drm_device *dev,
+> }
+> EXPORT_SYMBOL(drm_atomic_clean_old_fb);
+>
+>-static int crtc_setup_out_fence(struct drm_crtc *crtc,
+>-				struct drm_crtc_state *crtc_state,
+>-				struct drm_out_fence_state *fence_state)
+>+static struct fence *get_crtc_fence(struct drm_crtc *crtc,
+>+				    struct drm_crtc_state *crtc_state)
+> {
+> 	struct fence *fence;
+>
+>-	fence_state->fd = get_unused_fd_flags(O_CLOEXEC);
+>-	if (fence_state->fd < 0) {
+>-		return fence_state->fd;
+>-	}
+>-
+>-	fence_state->out_fence_ptr = crtc_state->out_fence_ptr;
+>-	crtc_state->out_fence_ptr = NULL;
+>-
+>-	if (put_user(fence_state->fd, fence_state->out_fence_ptr))
+>-		return -EFAULT;
+>-
+> 	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
+> 	if (!fence)
+>-		return -ENOMEM;
+>+		return NULL;
+>
+> 	fence_init(fence, &drm_crtc_fence_ops, &crtc->fence_lock,
+> 		   crtc->fence_context, ++crtc->fence_seqno);
+>
+>+	crtc_state->event->base.fence = fence_get(fence);
+>+
+>+	return fence;
+>+}
+>+
+>+static int setup_out_fence(struct drm_out_fence_state *fence_state,
+>+			   u64 __user *out_fence_ptr,
+>+			   struct fence *fence)
+>+{
+>+	int ret;
+>+
+>+	DRM_DEBUG_ATOMIC("Putting out-fence %p into user ptr: %p\n",
+>+			 fence, out_fence_ptr);
+>+
+>+	fence_state->fd = get_unused_fd_flags(O_CLOEXEC);
+>+	if (fence_state->fd < 0)
+>+		return fence_state->fd;
+>+
+>+	ret = put_user(fence_state->fd, out_fence_ptr);
+>+	if (ret)
+>+		return ret;
+>+
+>+	fence_state->out_fence_ptr = out_fence_ptr;
+>+
+> 	fence_state->sync_file = sync_file_create(fence);
+>-	if(!fence_state->sync_file) {
+>-		fence_put(fence);
+>+	if (!fence_state->sync_file)
+> 		return -ENOMEM;
+>-	}
+>
+>-	crtc_state->event->base.fence = fence_get(fence);
+> 	return 0;
+> }
+>
+>@@ -1896,10 +1905,21 @@ retry:
+> 		}
+>
+> 		if (crtc_state->out_fence_ptr) {
+>-			ret = crtc_setup_out_fence(crtc, crtc_state,
+>-						   &fence_state[fence_idx++]);
+>-			if (ret)
+>+			struct fence *fence = get_crtc_fence(crtc, crtc_state);
+>+			if (!fence) {
+>+				ret = -ENOMEM;
+>+				goto out;
+>+			}
+>+
+>+			ret = setup_out_fence(&fence_state[fence_idx++],
+>+					      crtc_state->out_fence_ptr,
+>+					      fence);
+>+			if (ret) {
+>+				fence_put(fence);
+> 				goto out;
+>+			}
+>+
+>+			crtc_state->out_fence_ptr = NULL;
+> 		}
+> 	}
+>
+>-- 
+>1.7.9.5
+>
