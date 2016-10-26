@@ -1,92 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53679
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752437AbcJESzj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 14:55:39 -0400
-Date: Wed, 5 Oct 2016 15:55:32 -0300
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problem with VMAP_STACK=y
-Message-ID: <20161005155532.682258e2@vento.lan>
-In-Reply-To: <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com>
-        <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm>
-        <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com>
-        <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
-        <20161005093417.6e82bd97@vdr>
-        <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm>
-        <20161005060450.1b0f2152@vento.lan>
-        <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org>
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40525 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752269AbcJZIwZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Oct 2016 04:52:25 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v3 2/2] [media] videobuf2-dc: Support cacheable MMAP
+Date: Wed, 26 Oct 2016 10:52:06 +0200
+Message-Id: <1477471926-15796-3-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
+References: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Johannes,
+From: Heng-Ruey Hsu <henryhsu@chromium.org>
 
-Em Wed, 5 Oct 2016 20:29:45 +0200
-Johannes Stezenbach <js@linuxtv.org> escreveu:
+DMA allocations for MMAP type are uncached by default. But for
+some cases, CPU has to access the buffers. ie: memcpy for format
+converter. Supporting cacheable MMAP improves huge performance.
 
-> On Wed, Oct 05, 2016 at 06:04:50AM -0300, Mauro Carvalho Chehab wrote:
-> >  static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
-> >  {
-> > -	char query[] = { CINERGYT2_EP1_GET_FIRMWARE_VERSION };
-> > -	char state[3];
-> > +	struct dvb_usb_device *d = adap->dev;
-> > +	struct cinergyt2_state *st = d->priv;
-> >  	int ret;
-> >  
-> >  	adap->fe_adap[0].fe = cinergyt2_fe_attach(adap->dev);
-> >  
-> > -	ret = dvb_usb_generic_rw(adap->dev, query, sizeof(query), state,
-> > -				sizeof(state), 0);  
-> 
-> it seems to miss this:
-> 
-> 	st->data[0] = CINERGYT2_EP1_GET_FIRMWARE_VERSION;
-> 
-> > +	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
-> >  	if (ret < 0) {
-> >  		deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
-> >  			"state info\n");
-> > @@ -141,13 +147,14 @@ static int repeatable_keys[] = {
-> >  static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
-> >  {
-> >  	struct cinergyt2_state *st = d->priv;
-> > -	u8 key[5] = {0, 0, 0, 0, 0}, cmd = CINERGYT2_EP1_GET_RC_EVENTS;
-> >  	int i;
-> >  
-> >  	*state = REMOTE_NO_KEY_PRESSED;
-> >  
-> > -	dvb_usb_generic_rw(d, &cmd, 1, key, sizeof(key), 0);
-> > -	if (key[4] == 0xff) {
-> > +	st->data[0] = CINERGYT2_EP1_SLEEP_MODE;  
-> 
-> should probably be
-> 
-> 	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
-> 
-> > +
-> > +	dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);  
-> 
-> 
-> HTH,
-> Johannes
+This patch enables cacheable memory for DMA coherent allocator in mmap
+buffer allocation if non-consistent DMA attribute is set and kernel
+mapping is present. Even if userspace doesn't mmap the buffer, sync
+still should be happening if kernel mapping is present.
+If not done in allocation, it is enabled when memory is mapped from
+userspace (if non-consistent DMA attribute is set).
 
+Signed-off-by: Heng-Ruey Hsu <henryhsu@chromium.org>
+Tested-by: Heng-ruey Hsu <henryhsu@chromium.org>
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Thanks for the review! Yeah, you're right: both firmware and remote
-controller logic would be broken without the above fixes.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 0d9665d..89b534a 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -151,6 +151,10 @@ static void vb2_dc_put(void *buf_priv)
+ 		sg_free_table(buf->sgt_base);
+ 		kfree(buf->sgt_base);
+ 	}
++	if (buf->dma_sgt) {
++		sg_free_table(buf->dma_sgt);
++		kfree(buf->dma_sgt);
++	}
+ 	dma_free_attrs(buf->dev, buf->size, buf->cookie, buf->dma_addr,
+ 		       buf->attrs);
+ 	put_device(buf->dev);
+@@ -192,6 +196,14 @@ static void *vb2_dc_alloc(struct device *dev, unsigned long attrs,
+ 	buf->handler.put = vb2_dc_put;
+ 	buf->handler.arg = buf;
+ 
++	/*
++	 * Enable cache maintenance. Even if userspace doesn't mmap the buffer,
++	 * sync still should be happening if kernel mapping is present.
++	 */
++	if (!(buf->attrs & DMA_ATTR_NO_KERNEL_MAPPING) &&
++	    buf->attrs & DMA_ATTR_NON_CONSISTENT)
++		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
++
+ 	atomic_inc(&buf->refcount);
+ 
+ 	return buf;
+@@ -227,6 +239,10 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 
+ 	vma->vm_ops->open(vma);
+ 
++	/* Enable cache maintenance if not enabled in allocation. */
++	if (!buf->dma_sgt && buf->attrs & DMA_ATTR_NON_CONSISTENT)
++		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
++
+ 	pr_debug("%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
+ 		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
+ 		buf->size);
+-- 
+2.7.4
 
-Just sent a version 2 of this patch to the ML with the above fixes.
-
-Regards,
-Mauro
