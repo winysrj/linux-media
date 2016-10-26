@@ -1,88 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:59320 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751902AbcJRPG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 11:06:26 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        p.zabel@pengutronix.de, niklas.soderlund@ragnatech.se
-Subject: [PATCH 1/1] doc-rst: v4l: Add documentation on CSI-2 bus configuration
-Date: Tue, 18 Oct 2016 18:02:54 +0300
-Message-Id: <1476802974-28119-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mout.kundenserver.de ([212.227.126.130]:55285 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752821AbcJZJpm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Oct 2016 05:45:42 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Houlong Wei <houlong.wei@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] media: mtk-mdp: mark PM functions as __maybe_unused
+Date: Wed, 26 Oct 2016 11:43:43 +0200
+Message-Id: <20161026094411.785911-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the interface between the CSI-2 transmitter and receiver drivers.
+A previous patch tried to fix a build error, but introduced another
+warning:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+drivers/media/platform/mtk-mdp/mtk_mdp_core.c:71:13: error: ‘mtk_mdp_clock_off’ defined but not used [-Werror=unused-function]
+drivers/media/platform/mtk-mdp/mtk_mdp_core.c:62:13: error: ‘mtk_mdp_clock_on’ defined but not used [-Werror=unused-function]
+
+This marks all the PM functions as __maybe_unused and removes
+the #ifdef around them, as that will always do the right thing.
+
+Fixes: 1b06fcf56aa6 ("[media] media: mtk-mdp: fix build error")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
-Hi folks,
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-We've got multiple CSI-2 tranmitter and receiver drivers currently in the
-kernel. Some receivers require information on dynamic bus parameters and
-some of the transmitter drivers implement that. It's time to document what
-is expected of both so we will not end up with multiple non-interoperable
-implementations.
-
-Regards,
-Sakari
-
- Documentation/media/kapi/csi2.rst  | 35 +++++++++++++++++++++++++++++++++++
- Documentation/media/media_kapi.rst |  1 +
- 2 files changed, 36 insertions(+)
- create mode 100644 Documentation/media/kapi/csi2.rst
-
-diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
-new file mode 100644
-index 0000000..856a509
---- /dev/null
-+++ b/Documentation/media/kapi/csi2.rst
-@@ -0,0 +1,35 @@
-+MIPI CSI-2
-+==========
-+
-+CSI-2 is a data bus intended for transferring images from cameras to
-+the host SoC. It is defined by the `MIPI alliance`_.
-+
-+.. _`MIPI alliance`: http://www.mipi.org/
-+
-+Transmitter drivers
-+-------------------
-+
-+CSI-2 transmitter, such as a sensor or a TV tuner, drivers need to
-+provide the CSI-2 receiver with information on the CSI-2 bus
-+configuration. These include the V4L2_CID_LINK_FREQ control and
-+(:c:type:`v4l2_subdev_video_ops`->s_stream() callback). Both must be
-+present on the sub-device represents the CSI-2 transmitter. The
-+V4L2_CID_LINK_FREQ control is used to tell the receiver driver the
-+frequency (and not the symbol rate) of the link and the
-+:c:type:`v4l2_subdev_video_ops`->s_stream() callback provides an
-+ability to start and stop the stream.
-+
-+The transmitter drivers must configure the CSI-2 transmitter to *LP-11
-+mode* whenever the transmitter is powered on but not active. Some
-+transmitters do this automatically but some have to be explicitly
-+programmed to do so.
-+
-+Receiver drivers
-+----------------
-+
-+Before the receiver driver may enable the CSI-2 transmitter by using
-+the :c:type:`v4l2_subdev_video_ops`->s_stream(), it must have powered
-+the transmitter up by using the
-+:c:type:`v4l2_subdev_core_ops`->s_power() callback. This may take
-+place either indirectly by using :c:func:`v4l2_pipeline_pm_use` or
-+directly.
-diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
-index f282ca2..bc06389 100644
---- a/Documentation/media/media_kapi.rst
-+++ b/Documentation/media/media_kapi.rst
-@@ -33,3 +33,4 @@ For more details see the file COPYING in the source distribution of Linux.
-     kapi/rc-core
-     kapi/mc-core
-     kapi/cec-core
-+    kapi/csi2
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+index 40a229d8a1f5..d4c740263457 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+@@ -233,8 +233,7 @@ static int mtk_mdp_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+-static int mtk_mdp_pm_suspend(struct device *dev)
++static int __maybe_unused mtk_mdp_pm_suspend(struct device *dev)
+ {
+ 	struct mtk_mdp_dev *mdp = dev_get_drvdata(dev);
+ 
+@@ -243,7 +242,7 @@ static int mtk_mdp_pm_suspend(struct device *dev)
+ 	return 0;
+ }
+ 
+-static int mtk_mdp_pm_resume(struct device *dev)
++static int __maybe_unused mtk_mdp_pm_resume(struct device *dev)
+ {
+ 	struct mtk_mdp_dev *mdp = dev_get_drvdata(dev);
+ 
+@@ -251,10 +250,8 @@ static int mtk_mdp_pm_resume(struct device *dev)
+ 
+ 	return 0;
+ }
+-#endif /* CONFIG_PM */
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static int mtk_mdp_suspend(struct device *dev)
++static int __maybe_unused mtk_mdp_suspend(struct device *dev)
+ {
+ 	if (pm_runtime_suspended(dev))
+ 		return 0;
+@@ -262,14 +259,13 @@ static int mtk_mdp_suspend(struct device *dev)
+ 	return mtk_mdp_pm_suspend(dev);
+ }
+ 
+-static int mtk_mdp_resume(struct device *dev)
++static int __maybe_unused mtk_mdp_resume(struct device *dev)
+ {
+ 	if (pm_runtime_suspended(dev))
+ 		return 0;
+ 
+ 	return mtk_mdp_pm_resume(dev);
+ }
+-#endif /* CONFIG_PM_SLEEP */
+ 
+ static const struct dev_pm_ops mtk_mdp_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(mtk_mdp_suspend, mtk_mdp_resume)
 -- 
-2.7.4
+2.9.0
 
