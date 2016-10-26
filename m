@@ -1,39 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:51938 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756289AbcJYJGw (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40515 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752027AbcJZIwZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 25 Oct 2016 05:06:52 -0400
-Date: Tue, 25 Oct 2016 12:06:21 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rafael =?iso-8859-1?Q?Louren=E7o?= de Lima Chehab
-        <chehabrafael@gmail.com>, Shuah Khan <shuah@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 3/3] [media] au0828-video: Move two assignments in
- au0828_init_isoc()
-Message-ID: <20161025090621.GG4469@mwanda>
-References: <c6a37822-c0f9-1f1e-6ebe-a1c88c6d9d0a@users.sourceforge.net>
- <1ab6b168-3c69-97c2-d02e-cd64b7fa222f@users.sourceforge.net>
+        Wed, 26 Oct 2016 04:52:25 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v3 1/2] [media] videobuf2-dc: Move vb2_dc_get_base_sgt() above mmap callbacks
+Date: Wed, 26 Oct 2016 10:52:05 +0200
+Message-Id: <1477471926-15796-2-git-send-email-thierry.escande@collabora.com>
+In-Reply-To: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
+References: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1ab6b168-3c69-97c2-d02e-cd64b7fa222f@users.sourceforge.net>
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces bugs.  It's my policy to not explain the Markus's
-bugs because otherwise he will just resend the patchset and I have asked
-him many times to stop.
+This patch moves vb2_dc_get_base_sgt() function above mmap buffers
+callbacks, particularly vb2_dc_alloc() and vb2_dc_mmap() from where it
+will be called for cacheable MMAP support introduced in the next patch.
 
-I will happily review bug fix patches but I really think he should stop
-sending these cleanup patches.
+Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 44 +++++++++++++-------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-regards,
-dan carpenter
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index a44e383..0d9665d 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -61,6 +61,28 @@ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
+ 	return size;
+ }
+ 
++static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
++{
++	int ret;
++	struct sg_table *sgt;
++
++	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
++	if (!sgt) {
++		dev_err(buf->dev, "failed to alloc sg table\n");
++		return NULL;
++	}
++
++	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
++		buf->size, buf->attrs);
++	if (ret < 0) {
++		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
++		kfree(sgt);
++		return NULL;
++	}
++
++	return sgt;
++}
++
+ /*********************************************/
+ /*         callbacks for all buffers         */
+ /*********************************************/
+@@ -363,28 +385,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
+ 	.release = vb2_dc_dmabuf_ops_release,
+ };
+ 
+-static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+-{
+-	int ret;
+-	struct sg_table *sgt;
+-
+-	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+-	if (!sgt) {
+-		dev_err(buf->dev, "failed to alloc sg table\n");
+-		return NULL;
+-	}
+-
+-	ret = dma_get_sgtable_attrs(buf->dev, sgt, buf->cookie, buf->dma_addr,
+-		buf->size, buf->attrs);
+-	if (ret < 0) {
+-		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+-		kfree(sgt);
+-		return NULL;
+-	}
+-
+-	return sgt;
+-}
+-
+ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+-- 
+2.7.4
 
