@@ -1,90 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:13386 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932203AbcJXDuA (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57144 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750847AbcJZDlD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 23:50:00 -0400
-Message-ID: <1477280975.10501.16.camel@mtksdaap41>
-Subject: Re: FW: [PATCH] mtk-vcodec: fix some smatch warnings
-From: Tiffany Lin <tiffany.lin@mediatek.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-CC: <daniel.thompson@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Rob Herring" <robh+dt@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Daniel Kurtz <djkurtz@chromium.org>,
-        Pawel Osciak <posciak@chromium.org>,
-        Eddie Huang <eddie.huang@mediatek.com>,
-        Yingjoe Chen <yingjoe.chen@mediatek.com>,
-        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-media@vger.kernel.org>,
-        <linux-mediatek@lists.infradead.org>, <PoChun.Lin@mediatek.com>
-Date: Mon, 24 Oct 2016 11:49:35 +0800
-In-Reply-To: <6D1A1B40F9E1B64689A7C1952F8B336792FED2F0@mtkmbs08n1>
-References: <066110a3574ef835ba47a0996343474288da72cc.1477058315.git.mchehab@s-opensource.com>
-         <6D1A1B40F9E1B64689A7C1952F8B336792FED2F0@mtkmbs08n1>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+        Tue, 25 Oct 2016 23:41:03 -0400
+Message-ID: <a56ac3380e5af09443c15f58c0a3808c@smtp-cloud2.xs4all.net>
+Date: Wed, 26 Oct 2016 05:40:58 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-> Fix this bug:
-> 	drivers/media/platform/mtk-vcodec/vdec_drv_if.c:38 vdec_if_init() info: ignoring unreachable code.
-> 
-> With is indeed a real problem that prevents the driver to work!
-> 
-> While here, also remove an used var, as reported by smatch:
-> 
-> 	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c: In function 'mtk_vcodec_init_dec_pm':
-> 	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c:29:17: warning: variable 'dev' set but not used [-Wunused-but-set-variable]
-> 	  struct device *dev;
-> 	                 ^~~
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+date:			Wed Oct 26 05:00:15 CEST 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
+v4l-utils git hash:	4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-Acked-by: Tiffany Lin <tiffany.lin@mediatek.com>
-> ---
->  drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c | 2 --
->  drivers/media/platform/mtk-vcodec/vdec_drv_if.c       | 1 +
->  2 files changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
-> index 18182f5676d8..79ca03ac449c 100644
-> --- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
-> +++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec_pm.c
-> @@ -26,14 +26,12 @@ int mtk_vcodec_init_dec_pm(struct mtk_vcodec_dev *mtkdev)  {
->  	struct device_node *node;
->  	struct platform_device *pdev;
-> -	struct device *dev;
->  	struct mtk_vcodec_pm *pm;
->  	int ret = 0;
->  
->  	pdev = mtkdev->plat_dev;
->  	pm = &mtkdev->pm;
->  	pm->mtkdev = mtkdev;
-> -	dev = &pdev->dev;
->  	node = of_parse_phandle(pdev->dev.of_node, "mediatek,larb", 0);
->  	if (!node) {
->  		mtk_v4l2_err("of_parse_phandle mediatek,larb fail!"); diff --git a/drivers/media/platform/mtk-vcodec/vdec_drv_if.c b/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
-> index 3cb04ef45144..9813b2ffd5fa 100644
-> --- a/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
-> +++ b/drivers/media/platform/mtk-vcodec/vdec_drv_if.c
-> @@ -31,6 +31,7 @@ int vdec_if_init(struct mtk_vcodec_ctx *ctx, unsigned int fourcc)
->  	switch (fourcc) {
->  	case V4L2_PIX_FMT_H264:
->  	case V4L2_PIX_FMT_VP8:
-> +		break;
->  	default:
->  		return -EINVAL;
->  	}
-> --
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in the body of a message to majordomo@vger.kernel.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-multi
+ABI WARNING: change for blackfin-bf561
+ABI WARNING: change for mips
+sparse: WARNINGS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
