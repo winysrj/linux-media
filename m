@@ -1,130 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:53389 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S945227AbcJaRwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 13:52:31 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 4/9] [media] redrat3: fix error paths in probe
-Date: Mon, 31 Oct 2016 17:52:22 +0000
-Message-Id: <1477936347-9029-5-git-send-email-sean@mess.org>
-In-Reply-To: <1477936347-9029-1-git-send-email-sean@mess.org>
-References: <1477936347-9029-1-git-send-email-sean@mess.org>
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:34848 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753075AbcJZVoE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Oct 2016 17:44:04 -0400
+Date: Wed, 26 Oct 2016 19:43:57 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 9/9] drm: mali-dp: Add writeback out-fence support
+Message-ID: <20161026214357.GH12629@joana>
+References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+ <1477472108-27222-10-git-send-email-brian.starkey@arm.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1477472108-27222-10-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If redrat3_delete() is called, ensure ep_in and udev members are set
-up so we don't dereference null in the error path. Also ensure that
-rc dev device exists before we enable the receiver and that the
-led urb exists before we create the led device.
+2016-10-26 Brian Starkey <brian.starkey@arm.com>:
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/redrat3.c | 49 ++++++++++++++++++++++------------------------
- 1 file changed, 23 insertions(+), 26 deletions(-)
+> If userspace has asked for an out-fence for the writeback, we add a
+> fence to malidp_mw_job, to be signaled when the writeback job has
+> completed.
+> 
+> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+> ---
+>  drivers/gpu/drm/arm/malidp_hw.c |    5 ++++-
+>  drivers/gpu/drm/arm/malidp_mw.c |   18 +++++++++++++++++-
+>  drivers/gpu/drm/arm/malidp_mw.h |    3 +++
+>  3 files changed, 24 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
+> index 1689547..3032226 100644
+> --- a/drivers/gpu/drm/arm/malidp_hw.c
+> +++ b/drivers/gpu/drm/arm/malidp_hw.c
+> @@ -707,8 +707,11 @@ static irqreturn_t malidp_se_irq(int irq, void *arg)
+>  		unsigned long irqflags;
+>  		/*
+>  		 * We can't unreference the framebuffer here, so we queue it
+> -		 * up on our threaded handler.
+> +		 * up on our threaded handler. However, signal the fence
+> +		 * as soon as possible
+>  		 */
+> +		malidp_mw_job_signal(drm, malidp->current_mw, 0);
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 23180ec..eaf374d 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -982,17 +982,19 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 		goto no_endpoints;
- 
- 	rr3->dev = &intf->dev;
-+	rr3->ep_in = ep_in;
-+	rr3->ep_out = ep_out;
-+	rr3->udev = udev;
- 
- 	/* set up bulk-in endpoint */
- 	rr3->read_urb = usb_alloc_urb(0, GFP_KERNEL);
- 	if (!rr3->read_urb)
--		goto error;
-+		goto redrat_free;
- 
--	rr3->ep_in = ep_in;
- 	rr3->bulk_in_buf = usb_alloc_coherent(udev,
- 		le16_to_cpu(ep_in->wMaxPacketSize), GFP_KERNEL, &rr3->dma_in);
- 	if (!rr3->bulk_in_buf)
--		goto error;
-+		goto redrat_free;
- 
- 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
- 	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
-@@ -1000,34 +1002,16 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	rr3->read_urb->transfer_dma = rr3->dma_in;
- 	rr3->read_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
--	rr3->ep_out = ep_out;
--	rr3->udev = udev;
--
- 	redrat3_reset(rr3);
- 	redrat3_get_firmware_rev(rr3);
- 
--	/* might be all we need to do? */
--	retval = redrat3_enable_detector(rr3);
--	if (retval < 0)
--		goto error;
--
- 	/* default.. will get overridden by any sends with a freq defined */
- 	rr3->carrier = 38000;
- 
--	/* led control */
--	rr3->led.name = "redrat3:red:feedback";
--	rr3->led.default_trigger = "rc-feedback";
--	rr3->led.brightness_set = redrat3_brightness_set;
--	retval = led_classdev_register(&intf->dev, &rr3->led);
--	if (retval)
--		goto error;
--
- 	atomic_set(&rr3->flash, 0);
- 	rr3->flash_urb = usb_alloc_urb(0, GFP_KERNEL);
--	if (!rr3->flash_urb) {
--		retval = -ENOMEM;
--		goto led_free_error;
--	}
-+	if (!rr3->flash_urb)
-+		goto redrat_free;
- 
- 	/* setup packet is 'c0 b9 0000 0000 0001' */
- 	rr3->flash_control.bRequestType = 0xc0;
-@@ -1039,20 +1023,33 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 			&rr3->flash_in_buf, sizeof(rr3->flash_in_buf),
- 			redrat3_led_complete, rr3);
- 
-+	/* led control */
-+	rr3->led.name = "redrat3:red:feedback";
-+	rr3->led.default_trigger = "rc-feedback";
-+	rr3->led.brightness_set = redrat3_brightness_set;
-+	retval = led_classdev_register(&intf->dev, &rr3->led);
-+	if (retval)
-+		goto redrat_free;
-+
- 	rr3->rc = redrat3_init_rc_dev(rr3);
- 	if (!rr3->rc) {
- 		retval = -ENOMEM;
--		goto led_free_error;
-+		goto led_free;
- 	}
- 
-+	/* might be all we need to do? */
-+	retval = redrat3_enable_detector(rr3);
-+	if (retval < 0)
-+		goto led_free;
-+
- 	/* we can register the device now, as it is ready */
- 	usb_set_intfdata(intf, rr3);
- 
- 	return 0;
- 
--led_free_error:
-+led_free:
- 	led_classdev_unregister(&rr3->led);
--error:
-+redrat_free:
- 	redrat3_delete(rr3, rr3->udev);
- 
- no_endpoints:
--- 
-2.7.4
+Drivers should not deal with fences directly. We need some sort of 
+drm_writeback_finished() that will do the signalling for you.
+
+Gustavo
 
