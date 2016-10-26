@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35684 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753535AbcJ2QSG (ORCPT
+Received: from bhuna.collabora.co.uk ([46.235.227.227]:40510 "EHLO
+        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751465AbcJZIwY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 29 Oct 2016 12:18:06 -0400
-Received: by mail-pf0-f196.google.com with SMTP id s8so4247962pfj.2
-        for <linux-media@vger.kernel.org>; Sat, 29 Oct 2016 09:18:06 -0700 (PDT)
-From: Wei Yongjun <weiyj.lk@gmail.com>
+        Wed, 26 Oct 2016 04:52:24 -0400
+From: Thierry Escande <thierry.escande@collabora.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kamil Debski <kamil@wypas.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: [PATCH -next] [media] s5p-cec: remove unused including <linux/version.h>
-Date: Sat, 29 Oct 2016 16:17:55 +0000
-Message-Id: <1477757875-28793-1-git-send-email-weiyj.lk@gmail.com>
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH v3 0/2] [media] videobuf2-dc: Add support for cacheable MMAP
+Date: Wed, 26 Oct 2016 10:52:04 +0200
+Message-Id: <1477471926-15796-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset = "utf-8"
+Content-Transfert-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+Hi,
 
-Remove including <linux/version.h> that don't need it.
+This series adds support for cacheable MMAP in DMA coherent allocator.
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- drivers/staging/media/s5p-cec/s5p_cec.c | 1 -
- 1 file changed, 1 deletion(-)
+The first patch moves the vb2_dc_get_base_sgt() function above mmap
+callbacks for calls introduced by the second patch. This avoids a
+forward declaration.
 
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
-index 1780a08..aef962b 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/staging/media/s5p-cec/s5p_cec.c
-@@ -22,7 +22,6 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/timer.h>
--#include <linux/version.h>
- #include <linux/workqueue.h>
- #include <media/cec.h>
+Changes in v2:
+- Put function move in a separate patch
+- Added comments
+
+Changes in v3:
+- Remove redundant test on NO_KERNEL_MAPPING DMA attribute in mmap()
+
+Heng-Ruey Hsu (1):
+  [media] videobuf2-dc: Support cacheable MMAP
+
+Thierry Escande (1):
+  [media] videobuf2-dc: Move vb2_dc_get_base_sgt() above mmap callbacks
+
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 60 ++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 22 deletions(-)
+
+-- 
+2.7.4
 
