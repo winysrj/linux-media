@@ -1,73 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:48938 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755615AbcJNRfG (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33717 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755638AbcJZQsy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:35:06 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 17/21] [media] imx-ipuv3-csi: support downsizing
-Date: Fri, 14 Oct 2016 19:34:37 +0200
-Message-Id: <1476466481-24030-18-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+        Wed, 26 Oct 2016 12:48:54 -0400
+Received: by mail-wm0-f66.google.com with SMTP id d128so4024209wmf.0
+        for <linux-media@vger.kernel.org>; Wed, 26 Oct 2016 09:48:53 -0700 (PDT)
+Subject: Re: [PATCH v6 2/2] media: Add a driver for the ov5645 camera sensor.
+To: Todor Tomov <todor.tomov@linaro.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org>
+ <1739314.RkalEXrcbu@avalon> <5800C80D.4000006@linaro.org>
+ <2757849.cqAmgViGfT@avalon> <58109035.5030000@linaro.org>
+ <5810931B.4070101@linaro.org>
+ <e88eeb08-6d33-df4e-5d75-6606a4ffa0f3@gmail.com>
+ <5810B8BF.4020501@linaro.org>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+From: Ian Arkver <ian.arkver.dev@gmail.com>
+Message-ID: <871ba9d1-a79b-5319-1393-86788b8ffa96@gmail.com>
+Date: Wed, 26 Oct 2016 17:48:49 +0100
+MIME-Version: 1.0
+In-Reply-To: <5810B8BF.4020501@linaro.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the CSI internal horizontal and vertical downsizing.
+On 26/10/16 15:07, Todor Tomov wrote:
+> Hi,
+>
+> On 10/26/2016 03:48 PM, Ian Arkver wrote:
+>> [snip]
+>>>>>>>> +static int ov5645_regulators_enable(struct ov5645 *ov5645)
+>>>>>>>> +{
+>>>>>>>> +    int ret;
+>>>>>>>> +
+>>>>>>>> +    ret = regulator_enable(ov5645->io_regulator);
+>>>>>>>> +    if (ret < 0) {
+>>>>>>>> +        dev_err(ov5645->dev, "set io voltage failed\n");
+>>>>>>>> +        return ret;
+>>>>>>>> +    }
+>>>>>>>> +
+>>>>>>>> +    ret = regulator_enable(ov5645->core_regulator);
+>>>>>>>> +    if (ret) {
+>>>>>>>> +        dev_err(ov5645->dev, "set core voltage failed\n");
+>>>>>>>> +        goto err_disable_io;
+>>>>>>>> +    }
+>>>>>>>> +
+>>>>>>>> +    ret = regulator_enable(ov5645->analog_regulator);
+>>>>>>>> +    if (ret) {
+>>>>>>>> +        dev_err(ov5645->dev, "set analog voltage failed\n");
+>>>>>>>> +        goto err_disable_core;
+>>>>>>>> +    }
+>>>>>>> How about using the regulator bulk API ? This would simplify the enable
+>>>>>>> and disable functions.
+>>>>>> The driver must enable the regulators in this order. I can see in the
+>>>>>> implementation of the bulk api that they are enabled again in order
+>>>>>> but I don't see stated anywhere that it is guaranteed to follow the
+>>>>>> same order in future. I'd prefer to keep it explicit as it is now.
+>>>>> I believe it should be an API guarantee, otherwise many drivers using the bulk
+>>>>> API would break. Mark, could you please comment on that ?
+>>>> Ok, let's wait for a response from Mark.
+>> I don't have the OV5645 datasheet, but I do have the OV5640 and OV5647 datasheets. Both of these show that AVDD should come up before DVDD where DVDD is externally supplied, although the minimum delay between them is 0ms. Both datasheets also imply that this requirement is only to allow host SCCB access on a shared I2C bus while the device is powering up. They imply that if one waits 20ms after power on then SCCB will be fine without this sequencing. Your code includes an msleep(20);
+> There is also requirement that DOVDD should become stable before AVDD (in both cases -
+> external or internal DVDD).
+>
+> Aren't these requirements needed to allow I2C access to another device on the same I2C bus even during these 20ms?
+Well, it's a really obscure corner case where these rails are actually 
+switched and the rise times are all available to the regulator framework 
+(so that there's a difference between three distinct calls to 
+regulator_enable and one call to the ASYNC_DOMAIN driven bulk enable) 
+and the I2C bus is shared with another device that is being accessed at 
+the same time as the sensor is enabled and the sensor breaks that access.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v1:
- - Rebased onto CSI changes.
----
- drivers/media/platform/imx/imx-ipuv3-csi.c | 18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+Having said that, really obscure corner cases are what lurk around and 
+catch you unawares years in the future, so maybe three calls is 
+necessary here. However, I think analog should be enabled before core - 
+check with your datasheet if you have the correct one.
 
-diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
-index 7837978..c65f02c 100644
---- a/drivers/media/platform/imx/imx-ipuv3-csi.c
-+++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
-@@ -175,8 +175,14 @@ static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
- 	} else {
- 		struct v4l2_mbus_framefmt *infmt = &ipucsi->format_mbus[0];
- 
--		width = infmt->width;
--		height = infmt->height;
-+		if (sdformat->format.width < (infmt->width * 3 / 4))
-+			width = infmt->width / 2;
-+		else
-+			width = infmt->width;
-+		if (sdformat->format.height < (infmt->height * 3 / 4))
-+			height = infmt->height / 2;
-+		else
-+			height = infmt->height;
- 		mbusformat->field = infmt->field;
- 		mbusformat->colorspace = infmt->colorspace;
- 	}
-@@ -237,14 +243,14 @@ static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
- 		window.width = fmt[0].width;
- 		window.height = fmt[0].height;
- 		ipu_csi_set_window(ipucsi->csi, &window);
-+		ipu_csi_set_downsize(ipucsi->csi,
-+				     fmt[0].width == 2 * fmt[1].width,
-+				     fmt[0].height == 2 * fmt[1].height);
- 
- 		/* Is CSI data source MCT (MIPI)? */
- 		mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
--
- 		ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
--		if (mux_mct)
--			ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
--						  &fmt[0]);
-+		ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0, &fmt[0]);
- 
- 		ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
- 					     &fmt[0]);
--- 
-2.9.3
+Regards,
+Ian
+
+>
+>> Further, the reference schematic for the OV5647 shows three separate LDOs with no sequencing between them.
+>>
+>> I've no comment on whether the bulk regulator API needs a "keep sequencing" flag or somesuch, but I don't think this device will drive that requirement.
+>>
+>> Regards,
+>> Ian
+>>
+> Best regards,
+> Todor
+>
 
