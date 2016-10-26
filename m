@@ -1,59 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:48030 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965406AbcJXU43 (ORCPT
+Received: from mail-ua0-f196.google.com ([209.85.217.196]:35986 "EHLO
+        mail-ua0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932684AbcJZVpT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 24 Oct 2016 16:56:29 -0400
-Date: Mon, 24 Oct 2016 21:56:21 +0100
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Krzysztof =?utf-8?Q?Ha=C5=82asa?= <khalasa@piap.pl>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Ismael Luceno <ismael@iodev.co.uk>,
-        Bluecherry Maintainers <maintainers@bluecherrydvr.com>
-Subject: Re: solo6010 modprobe lockup since e1ceb25a (v4.3 regression)
-Message-ID: <20161024205621.GA25320@dell-m4800.home>
-References: <m360powc4m.fsf@t19.piap.pl>
- <20160922152356.nhgacxprxtvutb67@zver>
- <m3ponri5ky.fsf@t19.piap.pl>
- <20160926091831.cp6qkv77oo5tinn5@zver>
- <m337kldi92.fsf@t19.piap.pl>
- <20160927074009.3kcvruynnapj6y3q@zver>
- <m3y42dbmqq.fsf@t19.piap.pl>
- <20160927142244.rocwg36f2bsfl3n6@zver>
- <m3ponobnvb.fsf@t19.piap.pl>
- <20161024173233.5daabac4@vento.lan>
+        Wed, 26 Oct 2016 17:45:19 -0400
+Date: Wed, 26 Oct 2016 19:45:14 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Brian Starkey <brian.starkey@arm.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 7/9] drm: atomic: factor out common out-fence
+ operations
+Message-ID: <20161026214514.GI12629@joana>
+References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+ <1477472108-27222-8-git-send-email-brian.starkey@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20161024173233.5daabac4@vento.lan>
+In-Reply-To: <1477472108-27222-8-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Oct 24, 2016 at 05:32:33PM -0200, Mauro Carvalho Chehab wrote:
-> Em Wed, 28 Sep 2016 07:21:44 +0200
-> khalasa@piap.pl (Krzysztof Hałasa) escreveu:
-> 
-> > Andrey Utkin <andrey_utkin@fastmail.com> writes:
-> > 
-> > > Lockup happens only on 6010. In provided log you can see that 6110
-> > > passes just fine right before 6010. Also if 6010 PCI ID is removed from
-> > > solo6x10 driver's devices list, the freeze doesn't happen.  
-> > 
-> > Probably explains why I don't see lockups :-)
-> > 
-> > I will have a look.
-> 
-> Any news on this? Should the patch be applied or not? If not, are there
-> any other patch to fix this regression?
+2016-10-26 Brian Starkey <brian.starkey@arm.com>:
 
-Actual patch is
+> Some parts of setting up the CRTC out-fence can be re-used for
+> writeback out-fences. Factor this out into a separate function.
+> 
+> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+> ---
+>  drivers/gpu/drm/drm_atomic.c |   64 +++++++++++++++++++++++++++---------------
+>  1 file changed, 42 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+> index f434f34..3f8fc97 100644
+> --- a/drivers/gpu/drm/drm_atomic.c
+> +++ b/drivers/gpu/drm/drm_atomic.c
+> @@ -1693,37 +1693,46 @@ void drm_atomic_clean_old_fb(struct drm_device *dev,
+>  }
+>  EXPORT_SYMBOL(drm_atomic_clean_old_fb);
+>  
+> -static int crtc_setup_out_fence(struct drm_crtc *crtc,
+> -				struct drm_crtc_state *crtc_state,
+> -				struct drm_out_fence_state *fence_state)
+> +static struct fence *get_crtc_fence(struct drm_crtc *crtc,
+> +				    struct drm_crtc_state *crtc_state)
+>  {
+>  	struct fence *fence;
+>  
+> -	fence_state->fd = get_unused_fd_flags(O_CLOEXEC);
+> -	if (fence_state->fd < 0) {
+> -		return fence_state->fd;
+> -	}
+> -
+> -	fence_state->out_fence_ptr = crtc_state->out_fence_ptr;
+> -	crtc_state->out_fence_ptr = NULL;
+> -
+> -	if (put_user(fence_state->fd, fence_state->out_fence_ptr))
+> -		return -EFAULT;
+> -
+>  	fence = kzalloc(sizeof(*fence), GFP_KERNEL);
+>  	if (!fence)
+> -		return -ENOMEM;
+> +		return NULL;
+>  
+>  	fence_init(fence, &drm_crtc_fence_ops, &crtc->fence_lock,
+>  		   crtc->fence_context, ++crtc->fence_seqno);
+>  
+> +	crtc_state->event->base.fence = fence_get(fence);
+> +
+> +	return fence;
+> +}
+> +
+> +static int setup_out_fence(struct drm_out_fence_state *fence_state,
+> +			   u64 __user *out_fence_ptr,
+> +			   struct fence *fence)
+> +{
+> +	int ret;
+> +
+> +	DRM_DEBUG_ATOMIC("Putting out-fence %p into user ptr: %p\n",
+> +			 fence, out_fence_ptr);
 
-Subject: [PATCH v2] media: solo6x10: fix lockup by avoiding delayed register write
-Message-Id: <20161022153436.12076-1-andrey.utkin@corp.bluecherry.net>
-Date: Sat, 22 Oct 2016 16:34:36 +0100
+%p should be kept for your internal debug only. Make sure to remove
+anything that exposes kernel address when sending patches.
+
+Gustavo
+
