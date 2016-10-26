@@ -1,129 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51479 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934306AbcJRUqU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 16:46:20 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH v2 13/58] meye: don't break long lines
-Date: Tue, 18 Oct 2016 18:45:25 -0200
-Message-Id: <efed5f2ab76e9688b5ddaa5cb2246237c0039834.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476822924.git.mchehab@s-opensource.com>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
+Received: from eumx.net ([91.82.101.43]:52433 "EHLO owm.eumx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752060AbcJZL3I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Oct 2016 07:29:08 -0400
+Subject: Re: [PATCH v2 08/21] [media] imx: Add i.MX IPUv3 capture driver
+To: Marek Vasut <marex@denx.de>, Philipp Zabel <p.zabel@pengutronix.de>
+References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
+ <1476466481-24030-9-git-send-email-p.zabel@pengutronix.de>
+ <a5a06050-f6e7-2031-4b14-312f085c5644@embed.me.uk>
+ <1476706359.2488.13.camel@pengutronix.de>
+ <fe21681b-0b92-c983-b14a-daf6504a9000@embed.me.uk>
+ <9550fc48-8bbd-181a-c6d5-5403c7088ac0@denx.de>
+Cc: linux-media@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Gary Bisson <gary.bisson@boundarydevices.com>,
+        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
+        Marc Kleine-Budde <mkl@pengutronix.de>
+From: Jack Mitchell <ml@embed.me.uk>
+Message-ID: <ba71dd6d-9000-e52d-a7ba-00608e31a7fd@embed.me.uk>
+Date: Wed, 26 Oct 2016 12:29:44 +0100
+MIME-Version: 1.0
+In-Reply-To: <9550fc48-8bbd-181a-c6d5-5403c7088ac0@denx.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to the 80-cols restrictions, and latter due to checkpatch
-warnings, several strings were broken into multiple lines. This
-is not considered a good practice anymore, as it makes harder
-to grep for strings at the source code.
+Hi Marek,
 
-As we're right now fixing other drivers due to KERN_CONT, we need
-to be able to identify what printk strings don't end with a "\n".
-It is a way easier to detect those if we don't break long lines.
+On 19/10/16 20:25, Marek Vasut wrote:
+> On 10/19/2016 06:22 PM, Jack Mitchell wrote:
+>> Hi Philipp,
+>>
+>> On 17/10/16 13:12, Philipp Zabel wrote:
+>>> Hi Jack,
+>>>
+>>> Am Montag, den 17.10.2016, 12:32 +0100 schrieb Jack Mitchell:
+>>>> Hi Philipp,
+>>>>
+>>>> I'm looking at how I would enable a parallel greyscale camera using this
+>>>> set of drivers and am a little bit confused. Do you have an example
+>>>> somewhere of a devicetree with an input node.
+>>>
+>>> In your board device tree it should look somewhat like this:
+>>>
+>>> &i2c1 {
+>>>     sensor@48 {
+>>>         compatible = "aptina,mt9v032m";
+>>>         /* ... */
+>>>
+>>>         port {
+>>>             cam_out: endpoint {
+>>>                 remote-endpoint = <&csi_in>;
+>>>             }
+>>>         };
+>>>     };
+>>> };
+>>>
+>>> /*
+>>>  * This is the input port node corresponding to the 'CSI0' pad group,
+>>>  * not necessarily the CSI0 port of IPU1 or IPU2. On i.MX6Q it's port@1
+>>>  * of the mipi_ipu1_mux, on i.MX6DL it's port@4 of the ipu_csi0_mux,
+>>>  * the csi0 label is added in patch 13/21.
+>>>  */
+>>> &csi0 {
+>>>     #address-cells = <1>;
+>>>     #size-cells = <0>;
+>>>
+>>>     csi_in: endpoint@0 {
+>>>         bus-width = <8>;
+>>>         data-shift = <12>;
+>>>         hsync-active = <1>;
+>>>         vsync-active = <1>;
+>>>         pclk-sample = <1>;
+>>>         remote-endpoint = <&cam_out>;
+>>>     };
+>>> };
+>>>
+>>>>  I also have a further note below:
+>>> [...]
+>>>>> +    if (raw && priv->smfc) {
+>>>>
+>>
+>> Thank you, I think I have something which is kind of right.
+>>
+>> (Apologies in advance for the formatting)
+>>
+>> diff --git a/arch/arm/boot/dts/imx6q-sabrelite.dts
+>> b/arch/arm/boot/dts/imx6q-sabrelite.dts
+>> index 66d10d8..90e6b92 100644
+>> --- a/arch/arm/boot/dts/imx6q-sabrelite.dts
+>> +++ b/arch/arm/boot/dts/imx6q-sabrelite.dts
+>> @@ -52,3 +52,62 @@
+>>  &sata {
+>>      status = "okay";
+>>  };
+>> +
+>> +&i2c2 {
+>> +    sensor@10 {
+>> +        compatible = "onsemi,ar0135";
+>> +        reg = <0x10>;
+>> +
+>> +        pinctrl-names = "default";
+>> +        pinctrl-0 = <&pinctrl_ar0135>;
+>> +
+>> +        reset-gpio = <&gpio1 6 GPIO_ACTIVE_HIGH>;
+>> +
+>> +        clocks = <&clks IMX6QDL_CLK_CKO2>;
+>> +        clock-names = "xclk";
+>> +
+>> +        xclk = <24000000>;
+>> +
+>> +        port {
+>> +            parallel_camera_output: endpoint {
+>> +                remote-endpoint = <&csi_in_from_parallel_camera>;
+>> +            };
+>> +        };
+>> +    };
+>> +};
+>> +
+>> +&csi0 {
+>> +    csi_in_from_parallel_camera: endpoint@0 {
+>> +        bus-width = <8>;
+>> +        data-shift = <12>;
+>> +        hsync-active = <1>;
+>> +        vsync-active = <1>;
+>> +        pclk-sample = <1>;
+>> +        remote-endpoint = <&parallel_camera_output>;
+>> +    };
+>> +};
+>> +
+>> +&iomuxc {
+>> +
+>> +        imx6q-sabrelite {
+>> +
+>> +        pinctrl_ar0135: ar0135grp {
+>> +            fsl,pins = <
+>> +                MX6QDL_PAD_GPIO_6__GPIO1_IO06   0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18    0x80000000
+>> +                MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19    0x80000000
+>> +                MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK   0x80000000
+>> +                MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC      0x80000000
+>> +                MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC     0x80000000
+>> +                MX6QDL_PAD_CSI0_DATA_EN__IPU1_CSI0_DATA_EN 0x80000000
+>> +            >;
+>> +        };
+>> +    };
+>> +};
+>>
+>>
+>> However, I can't seem to link the entities together properly, am I
+>> missing something obvious?
+>>
+>> root@vicon:~# media-ctl -p
+>> Media controller API version 0.1.0
+>>
+>> Media device information
+>> ------------------------
+>> driver          imx-media
+>> model           i.MX IPUv3
+>> serial
+>> bus info
+>> hw revision     0x0
+>> driver version  0.0.0
+>>
+>> Device topology
+>> - entity 1: IPU0 CSI0 (2 pads, 1 link)
+>>             type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Sink
+>>     pad1: Source
+>>         -> "imx-ipuv3-capture.0":0 [ENABLED]
+>>
+>> - entity 4: imx-ipuv3-capture.0 (1 pad, 1 link)
+>>             type Node subtype V4L flags 0
+>>             device node name /dev/video0
+>>     pad0: Sink
+>>         <- "IPU0 CSI0":1 [ENABLED]
+>>
+>> - entity 10: IPU0 CSI1 (2 pads, 1 link)
+>>              type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Sink
+>>     pad1: Source
+>>         -> "imx-ipuv3-capture.1":0 [ENABLED]
+>>
+>> - entity 13: imx-ipuv3-capture.1 (1 pad, 1 link)
+>>              type Node subtype V4L flags 0
+>>              device node name /dev/video1
+>>     pad0: Sink
+>>         <- "IPU0 CSI1":1 [ENABLED]
+>>
+>> - entity 19: IPU1 CSI0 (2 pads, 1 link)
+>>              type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Sink
+>>     pad1: Source
+>>         -> "imx-ipuv3-capture.0":0 [ENABLED]
+>>
+>> - entity 22: imx-ipuv3-capture.0 (1 pad, 1 link)
+>>              type Node subtype V4L flags 0
+>>              device node name /dev/video2
+>>     pad0: Sink
+>>         <- "IPU1 CSI0":1 [ENABLED]
+>>
+>> - entity 28: IPU1 CSI1 (2 pads, 1 link)
+>>              type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Sink
+>>     pad1: Source
+>>         -> "imx-ipuv3-capture.1":0 [ENABLED]
+>>
+>> - entity 31: imx-ipuv3-capture.1 (1 pad, 1 link)
+>>              type Node subtype V4L flags 0
+>>              device node name /dev/video3
+>>     pad0: Sink
+>>         <- "IPU1 CSI1":1 [ENABLED]
+>>
+>> - entity 37: mipi_ipu1_mux (3 pads, 0 link)
+>>              type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Sink
+>>     pad1: Sink
+>>     pad2: Source
+>>
+>> - entity 41: mipi_ipu2_mux (3 pads, 0 link)
+>>              type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Sink
+>>     pad1: Sink
+>>     pad2: Source
+>>
+>> - entity 45: ar0135 1-0010 (1 pad, 0 link)
+>>              type V4L2 subdev subtype Unknown flags 0
+>>     pad0: Source
+>>
+>>
+>>
+>>
+>> root@imx6:~# media-ctl -v --links '"ar01351-0010":0->"mipi_ipu1_mux":0[1]'
+>>
+>> Opening media device /dev/media0
+>> Enumerating entities
+>> Found 11 entities
+>> Enumerating pads and links
+>> No link between "ar0135 1-0010":0 and "mipi_ipu1_mux":0
+>> media_parse_setup_link: Unable to parse link
+>>
+>>  "ar0135 1-0010":0->"mipi_ipu1_mux":0[1]
+>>                                      ^
+>> Unable to parse link: Invalid argument (22)
+>>
+>> If you have something in the works with a camera example then just tell
+>> me to be patient and I'll wait for a v3 ;)
+>
+> Check whether you have something along these lines in your camera driver
+> in the probe() function:
+>
+>         priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>         priv->subdev.dev = &client->dev;
+>         priv->pad.flags = MEDIA_PAD_FL_SOURCE;
+>
+>         ret = media_entity_init(&priv->subdev.entity, 1, &priv->pad, 0);
+>         if (ret < 0) {
+>                 v4l2_clk_put(priv->clk);
+>                 return ret;
+>         }
+>
+>         ret = v4l2_async_register_subdev(&priv->subdev);
+>         if (ret < 0) {
+>                 v4l2_clk_put(priv->clk);
+>                 return ret;
+>         }
+>
 
-So, join those continuation lines.
+Yes, I have stripped the driver down to do nothing[1] apart from probe, 
+and allow me to try to link the pipeline together. I still have no luck.
 
-The patch was generated via the script below, and manually
-adjusted if needed.
+- entity 1: IPU0 CSI0 (2 pads, 1 link)
+             type V4L2 subdev subtype Unknown flags 0
+         pad0: Sink
+         pad1: Source
+                 -> "imx-ipuv3-capture.0":0 [ENABLED]
 
-</script>
-use Text::Tabs;
-while (<>) {
-	if ($next ne "") {
-		$c=$_;
-		if ($c =~ /^\s+\"(.*)/) {
-			$c2=$1;
-			$next =~ s/\"\n$//;
-			$n = expand($next);
-			$funpos = index($n, '(');
-			$pos = index($c2, '",');
-			if ($funpos && $pos > 0) {
-				$s1 = substr $c2, 0, $pos + 2;
-				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-				$s2 =~ s/^\s+//;
-
-				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
-
-				print unexpand("$next$s1\n");
-				print unexpand("$s2\n") if ($s2 ne "");
-			} else {
-				print "$next$c2\n";
-			}
-			$next="";
-			next;
-		} else {
-			print $next;
-		}
-		$next="";
-	} else {
-		if (m/\"$/) {
-			if (!m/\\n\"$/) {
-				$next=$_;
-				next;
-			}
-		}
-	}
-	print $_;
-}
-</script>
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/pci/meye/meye.c | 12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
-index ba887e8e1b17..11d81389ab1e 100644
---- a/drivers/media/pci/meye/meye.c
-+++ b/drivers/media/pci/meye/meye.c
-@@ -60,8 +60,7 @@ MODULE_PARM_DESC(gbuffers, "number of capture buffers, default is 2 (32 max)");
- /* size of a grab buffer */
- static unsigned int gbufsize = MEYE_MAX_BUFSIZE;
- module_param(gbufsize, int, 0444);
--MODULE_PARM_DESC(gbufsize, "size of the capture buffers, default is 614400"
--		 " (will be rounded up to a page multiple)");
-+MODULE_PARM_DESC(gbufsize, "size of the capture buffers, default is 614400 (will be rounded up to a page multiple)");
- 
- /* /dev/videoX registration number */
- static int video_nr = -1;
-@@ -1261,8 +1260,7 @@ static int vidioc_reqbufs(struct file *file, void *fh,
- 	meye.grab_fbuffer = rvmalloc(gbuffers * gbufsize);
- 
- 	if (!meye.grab_fbuffer) {
--		printk(KERN_ERR "meye: v4l framebuffer allocation"
--				" failed\n");
-+		printk(KERN_ERR "meye: v4l framebuffer allocation failed\n");
- 		mutex_unlock(&meye.lock);
- 		return -ENOMEM;
- 	}
-@@ -1659,8 +1657,7 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
- 	ret = -EIO;
- 	if ((ret = sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERA, 1))) {
- 		v4l2_err(v4l2_dev, "meye: unable to power on the camera\n");
--		v4l2_err(v4l2_dev, "meye: did you enable the camera in "
--				"sonypi using the module options ?\n");
-+		v4l2_err(v4l2_dev, "meye: did you enable the camera in sonypi using the module options ?\n");
- 		goto outsonypienable;
- 	}
- 
-@@ -1834,8 +1831,7 @@ static int __init meye_init(void)
- 	if (gbufsize > MEYE_MAX_BUFSIZE)
- 		gbufsize = MEYE_MAX_BUFSIZE;
- 	gbufsize = PAGE_ALIGN(gbufsize);
--	printk(KERN_INFO "meye: using %d buffers with %dk (%dk total) "
--			 "for capture\n",
-+	printk(KERN_INFO "meye: using %d buffers with %dk (%dk total) for capture\n",
- 			 gbuffers,
- 			 gbufsize / 1024, gbuffers * gbufsize / 1024);
- 	return pci_register_driver(&meye_driver);
--- 
-2.7.4
+- entity 45: ar0135 1-0010 (1 pad, 0 link)
+              type V4L2 subdev subtype Unknown flags 0
+         pad0: Source
 
 
+root@sabrelite:~# media-ctl -v --links '"ar0135 1-0010":0->"IPU0 CSI0":0[1]'
+Opening media device /dev/media0
+Enumerating entities
+Found 11 entities
+Enumerating pads and links
+No link between "ar0135 1-0010":0 and "IPU0 CSI0":0
+media_parse_setup_link: Unable to parse link
+
+  "ar0135 1-0010":0->"IPU0 CSI0":0[1]
+                                  ^
+Unable to parse link: Invalid argument (22)
+
+It's possible I'm attempting to go about this the wrong way, the whole 
+v4l2 subsystem is a bit of a maze.
+
+Cheers,
+Jack.
+
+[1] http://pastebin.com/EXZKq4jZ
