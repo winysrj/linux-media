@@ -1,290 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:58094 "EHLO mout02.posteo.de"
+Received: from gofer.mess.org ([80.229.237.210]:44135 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751765AbcJJGfV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 02:35:21 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id 4FFEC20B0C
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:35:19 +0200 (CEST)
-Date: Mon, 10 Oct 2016 08:35:09 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
+        id S935657AbcJ0Of4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Oct 2016 10:35:56 -0400
+From: Sean Young <sean@mess.org>
 To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
-        Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH 20/26] pctv452e: don't do DMA on stack
-Message-ID: <20161010083509.76e7087a@posteo.de>
-In-Reply-To: <de2bfe3a707febc30ac5b5b5454b72d3938f81d8.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-        <de2bfe3a707febc30ac5b5b5454b72d3938f81d8.1475860773.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, Andi Shyti <andi.shyti@samsung.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH] [media] lirc: introduce LIRC_SET_TRANSMITTER_WAIT ioctl
+Date: Thu, 27 Oct 2016 15:35:53 +0100
+Message-Id: <1477578953-5309-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  7 Oct 2016 14:24:30 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+lirc transmit waits for the IR to complete, since existing versions
+of lircd (prior to 0.9.4) rely on this. Allows this to be configurable
+if this is not desirable.
 
-> The USB control messages require DMA to work. We cannot pass
-> a stack-allocated buffer, as it is not warranted that the
-> stack would be into a DMA enabled area.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/usb/dvb-usb/pctv452e.c | 110
-> ++++++++++++++++++----------------- 1 file changed, 58 insertions(+),
-> 52 deletions(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb/pctv452e.c
-> b/drivers/media/usb/dvb-usb/pctv452e.c index
-> c05de1b088a4..855fe9d34b59 100644 ---
-> a/drivers/media/usb/dvb-usb/pctv452e.c +++
-> b/drivers/media/usb/dvb-usb/pctv452e.c @@ -97,13 +97,14 @@ struct
-> pctv452e_state { u8 c;	   /* transaction counter, wraps
-> around...  */ u8 initialized; /* set to 1 if 0x15 has been sent */
->  	u16 last_rc_key;
-> +
-> +	unsigned char data[80];
->  };
->  
->  static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
->  			 unsigned int write_len, unsigned int
-> read_len) {
->  	struct pctv452e_state *state = (struct pctv452e_state
-> *)d->priv;
-> -	u8 buf[64];
->  	u8 id;
->  	unsigned int rlen;
->  	int ret;
-> @@ -114,30 +115,30 @@ static int tt3650_ci_msg(struct dvb_usb_device
-> *d, u8 cmd, u8 *data, 
->  	id = state->c++;
->  
-> -	buf[0] = SYNC_BYTE_OUT;
-> -	buf[1] = id;
-> -	buf[2] = cmd;
-> -	buf[3] = write_len;
-> +	state->data[0] = SYNC_BYTE_OUT;
-> +	state->data[1] = id;
-> +	state->data[2] = cmd;
-> +	state->data[3] = write_len;
->  
-> -	memcpy(buf + 4, data, write_len);
-> +	memcpy(state->data + 4, data, write_len);
->  
->  	rlen = (read_len > 0) ? 64 : 0;
-> -	ret = dvb_usb_generic_rw(d, buf, 4 + write_len,
-> -				  buf, rlen, /* delay_ms */ 0);
-> +	ret = dvb_usb_generic_rw(d, state->data, 4 + write_len,
-> +				  state->data, rlen, /* delay_ms */
-> 0); if (0 != ret)
->  		goto failed;
->  
->  	ret = -EIO;
-> -	if (SYNC_BYTE_IN != buf[0] || id != buf[1])
-> +	if (SYNC_BYTE_IN != state->data[0] || id != state->data[1])
->  		goto failed;
->  
-> -	memcpy(data, buf + 4, read_len);
-> +	memcpy(data, state->data + 4, read_len);
->  
->  	return 0;
->  
->  failed:
->  	err("CI error %d; %02X %02X %02X -> %*ph.",
-> -	     ret, SYNC_BYTE_OUT, id, cmd, 3, buf);
-> +	     ret, SYNC_BYTE_OUT, id, cmd, 3, state->data);
->  
->  	return ret;
->  }
-> @@ -405,7 +406,6 @@ static int pctv452e_i2c_msg(struct dvb_usb_device
-> *d, u8 addr, u8 *rcv_buf, u8 rcv_len)
->  {
->  	struct pctv452e_state *state = (struct pctv452e_state
-> *)d->priv;
-> -	u8 buf[64];
->  	u8 id;
->  	int ret;
->  
-> @@ -415,42 +415,40 @@ static int pctv452e_i2c_msg(struct
-> dvb_usb_device *d, u8 addr, if (snd_len > 64 - 7 || rcv_len > 64 - 7)
->  		goto failed;
->  
-> -	buf[0] = SYNC_BYTE_OUT;
-> -	buf[1] = id;
-> -	buf[2] = PCTV_CMD_I2C;
-> -	buf[3] = snd_len + 3;
-> -	buf[4] = addr << 1;
-> -	buf[5] = snd_len;
-> -	buf[6] = rcv_len;
-> +	state->data[0] = SYNC_BYTE_OUT;
-> +	state->data[1] = id;
-> +	state->data[2] = PCTV_CMD_I2C;
-> +	state->data[3] = snd_len + 3;
-> +	state->data[4] = addr << 1;
-> +	state->data[5] = snd_len;
-> +	state->data[6] = rcv_len;
->  
-> -	memcpy(buf + 7, snd_buf, snd_len);
-> +	memcpy(state->data + 7, snd_buf, snd_len);
->  
-> -	ret = dvb_usb_generic_rw(d, buf, 7 + snd_len,
-> -				  buf, /* rcv_len */ 64,
-> +	ret = dvb_usb_generic_rw(d, state->data, 7 + snd_len,
-> +				  state->data, /* rcv_len */ 64,
->  				  /* delay_ms */ 0);
->  	if (ret < 0)
->  		goto failed;
->  
->  	/* TT USB protocol error. */
->  	ret = -EIO;
-> -	if (SYNC_BYTE_IN != buf[0] || id != buf[1])
-> +	if (SYNC_BYTE_IN != state->data[0] || id != state->data[1])
->  		goto failed;
->  
->  	/* I2C device didn't respond as expected. */
->  	ret = -EREMOTEIO;
-> -	if (buf[5] < snd_len || buf[6] < rcv_len)
-> +	if (state->data[5] < snd_len || state->data[6] < rcv_len)
->  		goto failed;
->  
-> -	memcpy(rcv_buf, buf + 7, rcv_len);
-> +	memcpy(rcv_buf, state->data + 7, rcv_len);
->  
->  	return rcv_len;
->  
->  failed:
-> -	err("I2C error %d; %02X %02X  %02X %02X %02X -> "
-> -	     "%02X %02X  %02X %02X %02X.",
-> +	err("I2C error %d; %02X %02X  %02X %02X %02X -> %*ph",
->  	     ret, SYNC_BYTE_OUT, id, addr << 1, snd_len, rcv_len,
-> -	     buf[0], buf[1], buf[4], buf[5], buf[6]);
-> -
-> +	     7, state->data);
->  	return ret;
->  }
->  
-> @@ -499,8 +497,7 @@ static u32 pctv452e_i2c_func(struct i2c_adapter
-> *adapter) static int pctv452e_power_ctrl(struct dvb_usb_device *d,
-> int i) {
->  	struct pctv452e_state *state = (struct pctv452e_state
-> *)d->priv;
-> -	u8 b0[] = { 0xaa, 0, PCTV_CMD_RESET, 1, 0 };
-> -	u8 rx[PCTV_ANSWER_LEN];
-> +	u8 *rx;
->  	int ret;
->  
->  	info("%s: %d\n", __func__, i);
-> @@ -511,6 +508,10 @@ static int pctv452e_power_ctrl(struct
-> dvb_usb_device *d, int i) if (state->initialized)
->  		return 0;
->  
-> +	rx = kmalloc(PCTV_ANSWER_LEN, GFP_KERNEL);
-> +	if (!rx)
-> +		return -ENOMEM;
-> +
->  	/* hmm where shoud this should go? */
->  	ret = usb_set_interface(d->udev, 0,
-> ISOC_INTERFACE_ALTERNATIVE); if (ret != 0)
-> @@ -518,57 +519,62 @@ static int pctv452e_power_ctrl(struct
-> dvb_usb_device *d, int i) __func__, ret);
->  
->  	/* this is a one-time initialization, dont know where to put
-> */
-> -	b0[1] = state->c++;
-> +	state->data[0] = 0xaa;
-> +	state->data[1] = state->c++;
-> +	state->data[2] = PCTV_CMD_RESET;
-> +	state->data[3] = 1;
-> +	state->data[4] = 0;
->  	/* reset board */
-> -	ret = dvb_usb_generic_rw(d, b0, sizeof(b0), rx,
-> PCTV_ANSWER_LEN, 0);
-> +	ret = dvb_usb_generic_rw(d, state->data, 5, rx,
-> PCTV_ANSWER_LEN, 0); if (ret)
-> -		return ret;
-> +		goto ret;
->  
-> -	b0[1] = state->c++;
-> -	b0[4] = 1;
-> +	state->data[1] = state->c++;
-> +	state->data[4] = 1;
->  	/* reset board (again?) */
-> -	ret = dvb_usb_generic_rw(d, b0, sizeof(b0), rx,
-> PCTV_ANSWER_LEN, 0);
-> +	ret = dvb_usb_generic_rw(d, state->data, 5, rx,
-> PCTV_ANSWER_LEN, 0); if (ret)
-> -		return ret;
-> +		goto ret;
->  
->  	state->initialized = 1;
->  
-> -	return 0;
-> +ret:
-> +	kfree(rx);
-> +	return ret;
->  }
->  
->  static int pctv452e_rc_query(struct dvb_usb_device *d)
->  {
->  	struct pctv452e_state *state = (struct pctv452e_state
-> *)d->priv;
-> -	u8 b[CMD_BUFFER_SIZE];
-> -	u8 rx[PCTV_ANSWER_LEN];
->  	int ret, i;
->  	u8 id = state->c++;
->  
->  	/* prepare command header  */
-> -	b[0] = SYNC_BYTE_OUT;
-> -	b[1] = id;
-> -	b[2] = PCTV_CMD_IR;
-> -	b[3] = 0;
-> +	state->data[0] = SYNC_BYTE_OUT;
-> +	state->data[1] = id;
-> +	state->data[2] = PCTV_CMD_IR;
-> +	state->data[3] = 0;
->  
->  	/* send ir request */
-> -	ret = dvb_usb_generic_rw(d, b, 4, rx, PCTV_ANSWER_LEN, 0);
-> +	ret = dvb_usb_generic_rw(d, state->data, 4,
-> +				 state->data, PCTV_ANSWER_LEN, 0);
->  	if (ret != 0)
->  		return ret;
->  
->  	if (debug > 3) {
-> -		info("%s: read: %2d: %*ph: ", __func__, ret, 3, rx);
-> -		for (i = 0; (i < rx[3]) && ((i+3) <
-> PCTV_ANSWER_LEN); i++)
-> -			info(" %02x", rx[i+3]);
-> +		info("%s: read: %2d: %*ph: ", __func__, ret, 3,
-> state->data);
-> +		for (i = 0; (i < state->data[3]) && ((i + 3) <
-> PCTV_ANSWER_LEN); i++)
-> +			info(" %02x", state->data[i + 3]);
->  
->  		info("\n");
->  	}
->  
-> -	if ((rx[3] == 9) &&  (rx[12] & 0x01)) {
-> +	if ((state->data[3] == 9) &&  (state->data[12] & 0x01)) {
->  		/* got a "press" event */
-> -		state->last_rc_key = RC_SCANCODE_RC5(rx[7], rx[6]);
-> +		state->last_rc_key = RC_SCANCODE_RC5(state->data[7],
-> state->data[6]); if (debug > 2)
->  			info("%s: cmd=0x%02x sys=0x%02x\n",
-> -				__func__, rx[6], rx[7]);
-> +				__func__, state->data[6],
-> state->data[7]); 
->  		rc_keydown(d->rc_dev, RC_TYPE_RC5,
-> state->last_rc_key, 0); } else if (state->last_rc_key) {
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ Documentation/media/uapi/rc/lirc-func.rst          |  1 +
+ .../media/uapi/rc/lirc-set-transmitter-wait.rst    | 46 ++++++++++++++++++++++
+ Documentation/media/uapi/rc/lirc-write.rst         |  6 ++-
+ drivers/media/rc/ir-lirc-codec.c                   | 29 +++++++++-----
+ drivers/media/rc/rc-core-priv.h                    |  2 +-
+ include/uapi/linux/lirc.h                          |  5 +++
+ 6 files changed, 76 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/media/uapi/rc/lirc-set-transmitter-wait.rst
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+diff --git a/Documentation/media/uapi/rc/lirc-func.rst b/Documentation/media/uapi/rc/lirc-func.rst
+index 9b5a772..be02ca2 100644
+--- a/Documentation/media/uapi/rc/lirc-func.rst
++++ b/Documentation/media/uapi/rc/lirc-func.rst
+@@ -26,3 +26,4 @@ LIRC Function Reference
+     lirc-set-rec-timeout-reports
+     lirc-set-measure-carrier-mode
+     lirc-set-wideband-receiver
++    lirc-set-transmitter-wait
+diff --git a/Documentation/media/uapi/rc/lirc-set-transmitter-wait.rst b/Documentation/media/uapi/rc/lirc-set-transmitter-wait.rst
+new file mode 100644
+index 0000000..37835ad
+--- /dev/null
++++ b/Documentation/media/uapi/rc/lirc-set-transmitter-wait.rst
+@@ -0,0 +1,46 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _lirc_set_transmitter_mask:
++
++*******************************
++ioctl LIRC_SET_TRANSMITTER_WAIT
++*******************************
++
++Name
++====
++
++LIRC_SET_TRANSMITTER_WAIT - Wait for IR to transmit
++
++Synopsis
++========
++
++.. c:function:: int ioctl( int fd, LIRC_SET_TRANSMITTER_WAIT, __u32 *enable )
++    :name: LIRC_SET_TRANSMITTER_WAIT
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by open().
++
++``enable``
++    enable = 1 means wait for IR to transmit before write() returns,
++    enable = 0 means return as soon as the driver has sent the commmand
++    to the hardware.
++
++
++Description
++===========
++
++Early lirc drivers would only return from write() when the IR had been
++transmitted and the lirc daemon relies on this for calculating when to
++send the next IR signal. Some drivers (e.g. usb drivers) can return
++earlier than that.
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
+diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
+index 3b035c6..32c2152 100644
+--- a/Documentation/media/uapi/rc/lirc-write.rst
++++ b/Documentation/media/uapi/rc/lirc-write.rst
+@@ -46,8 +46,10 @@ The data written to the chardev is a pulse/space sequence of integer
+ values. Pulses and spaces are only marked implicitly by their position.
+ The data must start and end with a pulse, therefore, the data must
+ always include an uneven number of samples. The write function must
+-block until the data has been transmitted by the hardware. If more data
+-is provided than the hardware can send, the driver returns ``EINVAL``.
++block until the data has been transmitted by the hardware, unless
++:ref:`LIRC_SET_TRANSMITTER_WAIT <LIRC_SET_TRANSMITTER_WAIT>` has been
++disabled. If more data is provided than the hardware can send, the driver
++returns ``EINVAL``.
+ 
+ 
+ Return Value
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index c327730..110e501 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -161,17 +161,19 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+ 	ret *= sizeof(unsigned int);
+ 
+-	/*
+-	 * The lircd gap calculation expects the write function to
+-	 * wait for the actual IR signal to be transmitted before
+-	 * returning.
+-	 */
+-	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
+-	if (towait > 0) {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-		schedule_timeout(usecs_to_jiffies(towait));
++	if (!lirc->tx_no_wait) {
++		/*
++		 * The lircd gap calculation expects the write function to
++		 * wait for the actual IR signal to be transmitted before
++		 * returning.
++		 */
++		towait = ktime_us_delta(ktime_add_us(start, duration),
++								ktime_get());
++		if (towait > 0) {
++			set_current_state(TASK_INTERRUPTIBLE);
++			schedule_timeout(usecs_to_jiffies(towait));
++		}
+ 	}
+-
+ out:
+ 	kfree(txbuf);
+ 	return ret;
+@@ -234,6 +236,13 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 
+ 		return dev->s_tx_duty_cycle(dev, val);
+ 
++	case LIRC_SET_TRANSMITTER_WAIT:
++		if (!dev->tx_ir)
++			return -ENOTTY;
++
++		lirc->tx_no_wait = !val;
++		break;
++
+ 	/* RX settings */
+ 	case LIRC_SET_REC_CARRIER:
+ 		if (!dev->s_rx_carrier_range)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 585d5e5..0c0d2f2 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -112,7 +112,7 @@ struct ir_raw_event_ctrl {
+ 		u64 gap_duration;
+ 		bool gap;
+ 		bool send_timeout_reports;
+-
++		bool tx_no_wait;
+ 	} lirc;
+ 	struct xmp_dec {
+ 		int state;
+diff --git a/include/uapi/linux/lirc.h b/include/uapi/linux/lirc.h
+index 991ab45..3874f21 100644
+--- a/include/uapi/linux/lirc.h
++++ b/include/uapi/linux/lirc.h
+@@ -130,4 +130,9 @@
+ 
+ #define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+ 
++/*
++ * Should the lirc driver wait until the IR has been transmitted.
++ */
++#define LIRC_SET_TRANSMITTER_WAIT      _IOW('i', 0x00000024, __u32)
++
+ #endif
+-- 
+2.7.4
+
