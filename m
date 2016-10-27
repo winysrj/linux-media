@@ -1,72 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:58181 "EHLO gofer.mess.org"
+Received: from mga03.intel.com ([134.134.136.65]:39134 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752508AbcJMVjE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 13 Oct 2016 17:39:04 -0400
-Date: Thu, 13 Oct 2016 22:38:24 +0100
-From: Sean Young <sean@mess.org>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 12/18] [media] RedRat3: Move a variable assignment in
- redrat3_init_rc_dev()
-Message-ID: <20161013213824.GA23361@gofer.mess.org>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
- <b51ed26a-4a89-4e58-9fcc-3f4b4fa0987f@users.sourceforge.net>
+        id S1034029AbcJ0OwU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Oct 2016 10:52:20 -0400
+From: Jani Nikula <jani.nikula@intel.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+Subject: Re: Documentation/media/uapi/cec/ sporadically unnecessarily rebuilding
+In-Reply-To: <F520076A-A05A-42B3-B416-288E67833AA9@darmarit.de>
+References: <871sz6p17k.fsf@intel.com> <F520076A-A05A-42B3-B416-288E67833AA9@darmarit.de>
+Date: Thu, 27 Oct 2016 17:52:01 +0300
+Message-ID: <87lgx9lu9a.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b51ed26a-4a89-4e58-9fcc-3f4b4fa0987f@users.sourceforge.net>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Oct 13, 2016 at 06:39:23PM +0200, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Thu, 13 Oct 2016 14:50:05 +0200
-> 
-> Move the assignment for the local variable "prod" behind the source code
-> for a memory allocation by this function.
+On Thu, 27 Oct 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> Hi Jani,
+>
+> Am 24.10.2016 um 11:04 schrieb Jani Nikula <jani.nikula@intel.com>:
+>
+>> I think I saw some of this in the past [1], but then couldn't reproduce
+>> it after all. Now I'm seeing it again. Sporadically
+>> Documentation/media/uapi/cec/ gets rebuilt on successive runs of make
+>> htmldocs, even when nothing has changed.
+>> 
+>> Output of 'make SPHINXOPTS="-v -v" htmldocs' attached for both cases.
+>> 
+>> Using Sphinx (sphinx-build) 1.4.6
+>
+> I can't see what's  wrong with your "rebuild" file ...
+>
+> <build-cec-rebuilding.txt --------->
+> loading pickled environment... done
+> building [mo]: targets for 0 po files that are out of date
+> building [html]: targets for 0 source files that are out of date
+> updating environment: 0 added, 0 changed, 0 removed
+> looking for now-outdated files... none found
+> no targets are out of date.
+> build succeeded.
+>   HTML    Documentation/DocBook/index.html
+> <build-cec-rebuilding.txt --------->
 
-The redrat3 driver shouldn't be adding the usb vendor/product id to the
-device name. A better patch would be to remove those from the snprintf
-completely and to away with the local variable.
+Awesome, I screwed up the file names, please check again with
+build-cec-rebuilding.txt <-> build-ok.txt...
 
-Sean
+BR,
+Jani.
 
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/rc/redrat3.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-> index b23a8bb..002030f 100644
-> --- a/drivers/media/rc/redrat3.c
-> +++ b/drivers/media/rc/redrat3.c
-> @@ -856,12 +856,13 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
->  {
->  	struct rc_dev *rc;
->  	int ret;
-> -	u16 prod = le16_to_cpu(rr3->udev->descriptor.idProduct);
-> +	u16 prod;
->  
->  	rc = rc_allocate_device();
->  	if (!rc)
->  		goto out;
->  
-> +	prod = le16_to_cpu(rr3->udev->descriptor.idProduct);
->  	snprintf(rr3->name, sizeof(rr3->name), "RedRat3%s "
->  		 "Infrared Remote Transceiver (%04x:%04x)",
->  		 prod == USB_RR3IIUSB_PRODUCT_ID ? "-II" : "",
-> -- 
-> 2.10.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Sphinx loads the cached (pickled) environment and says, that no
+> target was outdated. The build succeeded without any rebuild.
+> IMO it is sane build ... or do I misunderstood you?
+>
+> -- Markus --
+>
+
+-- 
+Jani Nikula, Intel Open Source Technology Center
