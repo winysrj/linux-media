@@ -1,97 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46406
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S942951AbcJSOne (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35719 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933978AbcJ0UeR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:43:34 -0400
-Date: Wed, 19 Oct 2016 07:56:52 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Antti Palosaari <crope@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        Nick Dyer <nick@shmanahar.org>, Shuah Khan <shuah@kernel.org>,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: Re: [PATCH v2 50/58] v4l2-core: don't break long lines
-Message-ID: <20161019075652.36f59b7b@vento.lan>
-In-Reply-To: <20161019070916.GQ9460@valkosipuli.retiisi.org.uk>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
-        <9ff01ca23d33ed0bdbd4b72a2135029d77afd21b.1476822925.git.mchehab@s-opensource.com>
-        <20161019070916.GQ9460@valkosipuli.retiisi.org.uk>
+        Thu, 27 Oct 2016 16:34:17 -0400
+Received: by mail-wm0-f68.google.com with SMTP id b80so4377414wme.2
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 13:34:16 -0700 (PDT)
+Date: Thu, 27 Oct 2016 22:34:08 +0200
+From: Marcel Hasler <mahasler@gmail.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 0/3] stk1160: Let the driver setup the device's internal
+ AC97 codec
+Message-ID: <20161027203408.GA28339@arch-desktop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 19 Oct 2016 10:09:16 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+As requested, I've cleaned up my previous patchset for resubmission.
 
-> Hi Mauro,
-> 
-> On Tue, Oct 18, 2016 at 06:46:02PM -0200, Mauro Carvalho Chehab wrote:
-> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > index c52d94c018bb..26fe7aef1196 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> > @@ -174,8 +174,7 @@ static void v4l_print_querycap(const void *arg, bool write_only)
-> >  {
-> >  	const struct v4l2_capability *p = arg;
-> >  
-> > -	pr_cont("driver=%.*s, card=%.*s, bus=%.*s, version=0x%08x, "
-> > -		"capabilities=0x%08x, device_caps=0x%08x\n",
-> > +	pr_cont("driver=%.*s, card=%.*s, bus=%.*s, version=0x%08x, capabilities=0x%08x, device_caps=0x%08x\n",
-> >  		(int)sizeof(p->driver), p->driver,
-> >  		(int)sizeof(p->card), p->card,
-> >  		(int)sizeof(p->bus_info), p->bus_info,  
-> 
-> I still wouldn't do this to v4l2-ioctl.c. It does not improve grappability
-> because of the format strings. 
+This patchset is really a result of my attempt to fix a bug (https://bugzilla.kernel.org/show_bug.cgi?id=180071) that eventually turned out to be caused by a missing quirk in snd-usb-audio. My idea was to remove the AC97 interface and setup the codec using the same values and in the same order as the Windows driver does, hoping there might be some "magic" sequence that would make the sound work the way it should. Although this didn't help to fix the problem, I found these changes to be useful nevertheless.
 
-The main reason that made me do this patch series is to identify the lack
-of KERN_CONT at the media subsystem.
+IMHO, having all of the AC97 codec's channels exposed to userspace is confusing since most of them have no meaning for this device anyway. Changing these values in alsamixer has either no effect at all or may even reduce the sound quality since it can actually increase the line-in DC offset (slightly).
 
-The grep I'm using to identify missing KERN_CONT lines actually tests
-for a string line that doesn't end with "\n", like:
+In addition, having to re-select the correct capture channel everytime the device has been plugged in is annoying. At least on my systems the mixer setup is only saved if the device is plugged in during shutdown/reboot. I also get error messages in my kernel log when I unplug the device because some process (probably the AC97 driver) ist trying to read from the device after it has been removed. Either way the device should work out-of-the-box without the need for the user to manually setup channels.
 
-	$ git grep '("' drivers/media/|grep -v KERN_|grep -v '\\n'|grep -v MODULE
+The first patch in the set therefore removes the 'stk1160-mixer' and lets the driver setup the AC97 codec using the same values as the Windows driver. Although some of the values seem to be defaults I let the driver set them either way, just to be sure.
 
-That's said, the format strings don't hurt grep:
+The second patch adds a check to determine whether the device is strapped to use the internal 8-bit ADC or an external chip. There's currently no check in place to determine whether the device uses AC-link or I2S, but then again I haven't heard of any of these devices actually using an I2S chip. If the device uses the internal ADC the AC97 setup can be skipped. I implemented the check inside stk1160-ac97. It could just as well be in stk1160-core but this way just seemed cleaner. If at some point the need arises to check other power-on strap values, it might make sense to refactor this then.
 
-	$ git grep -E "driver=.*bus=.*device_caps="
-	drivers/media/v4l2-core/v4l2-ioctl.c:   pr_cont("driver=%.*s, card=%.*s, bus=%.*s, version=0x%08x, capabilities=0x%08x, device_caps=0x%08x\n",
+The third patch adds a new module parameter for setting the record gain manually since the AC97 chip is no longer exposed to userspace. The Windows driver doesn't allow this value to be changed but instead always sets it to 8 (of 15). While this should be fine for most users, some may prefer something higher.
 
-> Some are also really long such as the one a
-> few chunks below.
+Marcel Hasler (3):
+  stk1160: Remove stk1160-mixer and setup internal AC97 codec automatically.
+  stk1160: Check whether to use AC97 codec or internal ADC.
+  stk1160: Add module param for setting the record gain.
 
-Yeah, but it gives a bad coding style example. I prefer to have the core
-subsystem as close as possible of the coding style I would like to see
-at the drivers code I review. Btw, at least on my 1920x1050 monitor,
-if I open a console full screen, only one line of v4l2-ioctl.c is bigger
-than the terminal column size.
+ drivers/media/usb/stk1160/Kconfig        |  10 +--
+ drivers/media/usb/stk1160/Makefile       |   4 +-
+ drivers/media/usb/stk1160/stk1160-ac97.c | 139 ++++++++++++++-----------------
+ drivers/media/usb/stk1160/stk1160-core.c |   8 +-
+ drivers/media/usb/stk1160/stk1160-reg.h  |   3 +
+ drivers/media/usb/stk1160/stk1160.h      |   9 +-
+ 6 files changed, 72 insertions(+), 101 deletions(-)
 
-> Other than that, this looks very nice now. Your script makes me wonder,
-> though, whether there should be a tool to automatically improve coding style
-> for cases such as this. I didn't realise so many strings were actually
-> split. I'm sure also the rest of the kernel would benefit from such a tool.
-> With the increased number of lines of code, the special cases that need to
-> be handled manually must decrease as well or it becomes unfeasible.
+-- 
+2.10.1
 
-Yeah, I was also thinking that there would be a way less places than
-what it was hit by this script.
-
-The script on this patch is generic enough to be used to fix such cases
-on other subsystems, although it needs some polish to cover a few corner
-cases. I suspect it shouldn't be hard to integrate it to checkpatch.pl
-to be used with --fix.
-
-Thanks,
-Mauro
