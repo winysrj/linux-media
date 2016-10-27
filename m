@@ -1,36 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33522 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39436 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756623AbcJWUGi (ORCPT
+        by vger.kernel.org with ESMTP id S1752696AbcJ0H22 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 16:06:38 -0400
-Date: Sun, 23 Oct 2016 23:06:00 +0300
+        Thu, 27 Oct 2016 03:28:28 -0400
+Date: Thu, 27 Oct 2016 10:28:18 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: et8ek8: add device tree binding documentation
-Message-ID: <20161023200600.GH9460@valkosipuli.retiisi.org.uk>
-References: <20161023191706.GA25754@amd>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sebastian Reichel <sre@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] smiapp: make PM functions as __maybe_unused
+Message-ID: <20161027072818.GQ9460@valkosipuli.retiisi.org.uk>
+References: <20161026203814.1904690-1-arnd@arndb.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161023191706.GA25754@amd>
+In-Reply-To: <20161026203814.1904690-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi Arnd,
 
-On Sun, Oct 23, 2016 at 09:17:06PM +0200, Pavel Machek wrote:
+On Wed, Oct 26, 2016 at 10:38:01PM +0200, Arnd Bergmann wrote:
+> The rework of the PM support has caused two functions to
+> be orphaned when CONFIG_PM is disabled:
 > 
-> Add device tree binding documentation for toshiba et8ek8 sensor.
+> media/i2c/smiapp/smiapp-core.c:1352:12: error: 'smiapp_power_off' defined but not used [-Werror=unused-function]
+> media/i2c/smiapp/smiapp-core.c:1206:12: error: 'smiapp_power_on' defined but not used [-Werror=unused-function]
+> 
+> This changes all four PM entry points to __maybe_unused and
+> removes the #ifdef markers for consistency. This avoids the
+> warnings even when something changes again.
+> 
+> Fixes: cbba45d43631 ("[media] smiapp: Use runtime PM")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-How about the et8ek8 driver itself? And the N900 DT snippet? What's their
-status?
+The power-on sequence is in fact mandatory as it involves writing the
+initial configuration to the sensor as well.
+
+Instead, I believe the correct fix is to make the driver depend on
+CONFIG_PM.
 
 -- 
 Kind regards,
