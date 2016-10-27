@@ -1,59 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:45364 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755114AbcJRNRf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 09:17:35 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: [PATCH v2 1/1] v4l: Document that m2m devices have a file handle specific context
-Date: Tue, 18 Oct 2016 16:15:32 +0300
-Message-Id: <1476796532-23010-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1476794913-22870-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1476794913-22870-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:53387 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934758AbcJ0N45 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Oct 2016 09:56:57 -0400
+Date: Thu, 27 Oct 2016 16:44:01 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>,
+        David =?iso-8859-15?Q?H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any transmitting
+ time for tx only devices
+Message-id: <20161027074401.wxg5icc6hcpwnfsf@gangnam.samsung>
+References: <20160901171629.15422-1-andi.shyti@samsung.com>
+ <20160901171629.15422-6-andi.shyti@samsung.com>
+ <CGME20160902084206epcas1p26e535506ec1c418ede9ba230d40f0656@epcas1p2.samsung.com>
+ <20160902084158.GA25342@gofer.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <20160902084158.GA25342@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Memory-to-memory V4L2 devices all have file handle specific context.
-Say this in the API documentation so that the user space may rely on it
-being the case.
+Hi Sean,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v1:
+it's been a while :)
 
-- Added a note to struct v4l2_m2m_queue_ctx documentation as well.
+I was going through your review fixing what needs to be fixed,
+but...
 
- Documentation/media/uapi/v4l/dev-codec.rst | 2 +-
- include/media/v4l2-mem2mem.h               | 3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+> > @@ -153,7 +153,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+> >  	}
+> >  
+> >  	ret = dev->tx_ir(dev, txbuf, count);
+> > -	if (ret < 0)
+> > +	if (ret < 0 || dev->driver_type == RC_DRIVER_IR_RAW_TX)
+> 
+> Just because a driver only does transmit doesn't mean its transmit ABI
+> should change.
+> 
+> Now this bit of code is pretty horrible. It ensures that the call to write()
+> takes at least as long as the length of the transmit IR by sleeping. That's
+> not much of a guarantee that the IR has been sent.
+> 
+> Note that in the case of ir-spi, since your spi transfer is sync no sleep
+> should be introduced here.
+> 
+> The gap calculation in lirc checks that if the call to write() took _longer_
+> than expected wait before sending the next IR code (when either multiple
+> IR codes or repeats are specified). Introducing the sleep in the kernel
+> here does not help at all, lirc already ensures that it waits as long as
+> the IR is long (see schedule_repeat_timer in lirc).
+> 
+> This change was introduced in 3.10, commit f8e00d5. 
 
-diff --git a/Documentation/media/uapi/v4l/dev-codec.rst b/Documentation/media/uapi/v4l/dev-codec.rst
-index d9f2184..c61e938 100644
---- a/Documentation/media/uapi/v4l/dev-codec.rst
-+++ b/Documentation/media/uapi/v4l/dev-codec.rst
-@@ -26,7 +26,7 @@ parameters
-    The MPEG controls actually support many more codecs than
-    just MPEG. See :ref:`mpeg-controls`.
- 
--Memory-to-memory devices can often be used as a shared resource: you can
-+Memory-to-memory devices function as a shared resource: you can
- open the video node multiple times, each application setting up their
- own codec properties that are local to the file handle, and each can use
- it independently from the others. The driver will arbitrate access to
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 1b35534..3ccd01b 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -90,6 +90,9 @@ struct v4l2_m2m_queue_ctx {
-  *		%TRANS_QUEUED, %TRANS_RUNNING and %TRANS_ABORT.
-  * @finished: Wait queue used to signalize when a job queue finished.
-  * @priv: Instance private data
-+ *
-+ * The memory to memory context is specific to a file handle, NOT to e.g.
-+ * a device.
-  */
- struct v4l2_m2m_ctx {
- 	/* optional cap/out vb2 queues lock */
--- 
-2.7.4
+... I'm not sure what can be done here. I get your point and I
+understand that this indeed is a kind of fake sync point and by
+doing this I 
 
+How about creating two different functions:
+
+- ir_lirc_transmit_ir where we actually do what the function
+  already does
+- ir_lirc_transmit_no_sync where the function we don't wait
+  because the the sync is done on a different level (for example
+  in the SPI case).
+
+SPI does approximately the same thing.
+
+Andi
