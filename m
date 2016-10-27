@@ -1,76 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53387 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934758AbcJ0N45 (ORCPT
+Received: from smtpoutz27.laposte.net ([194.117.213.102]:49099 "EHLO
+        smtp.laposte.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S942325AbcJ0Up1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 27 Oct 2016 09:56:57 -0400
-Date: Thu, 27 Oct 2016 16:44:01 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>,
-        David =?iso-8859-15?Q?H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any transmitting
- time for tx only devices
-Message-id: <20161027074401.wxg5icc6hcpwnfsf@gangnam.samsung>
-References: <20160901171629.15422-1-andi.shyti@samsung.com>
- <20160901171629.15422-6-andi.shyti@samsung.com>
- <CGME20160902084206epcas1p26e535506ec1c418ede9ba230d40f0656@epcas1p2.samsung.com>
- <20160902084158.GA25342@gofer.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20160902084158.GA25342@gofer.mess.org>
+        Thu, 27 Oct 2016 16:45:27 -0400
+Received: from smtp.laposte.net (localhost [127.0.0.1])
+        by lpn-prd-vrout015 (Postfix) with ESMTP id A22FC1C8B99
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 22:23:44 +0200 (CEST)
+Received: from smtp.laposte.net (localhost [127.0.0.1])
+        by lpn-prd-vrout015 (Postfix) with ESMTP id 941601C8BE8
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 22:23:44 +0200 (CEST)
+Received: from lpn-prd-vrin001 (lpn-prd-vrin001.laposte [10.128.63.2])
+        by lpn-prd-vrout015 (Postfix) with ESMTP id 8E9651C8B99
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 22:23:44 +0200 (CEST)
+Received: from lpn-prd-vrin001 (localhost [127.0.0.1])
+        by lpn-prd-vrin001 (Postfix) with ESMTP id 79AFE366DBA
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 22:23:44 +0200 (CEST)
+From: =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@laposte.net>
+To: linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Vincent=20Stehl=C3=A9?= <vincent.stehle@laposte.net>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH next 2/2] media: mtk-mdp: NULL-terminate mtk_mdp_comp_dt_ids
+Date: Thu, 27 Oct 2016 22:23:25 +0200
+Message-Id: <20161027202325.20680-2-vincent.stehle@laposte.net>
+In-Reply-To: <20161027202325.20680-1-vincent.stehle@laposte.net>
+References: <1473340146-6598-4-git-send-email-minghsiu.tsai@mediatek.com>
+ <20161027202325.20680-1-vincent.stehle@laposte.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+The mtk_mdp_comp_dt_ids[] array should be NULL-terminated; add therefore an
+empty entry in the end.
 
-it's been a while :)
+Fixes: c8eb2d7e8202fd9c ("[media] media: Add Mediatek MDP Driver")
+Signed-off-by: Vincent Stehlé <vincent.stehle@laposte.net>
+Cc: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-I was going through your review fixing what needs to be fixed,
-but...
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+index 40a229d..53296e2 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.c
+@@ -50,7 +50,8 @@ static const struct of_device_id mtk_mdp_comp_dt_ids[] = {
+ 	}, {
+ 		.compatible = "mediatek,mt8173-mdp-wrot",
+ 		.data = (void *)MTK_MDP_WROT
+-	}
++	},
++	{ },
+ };
+ 
+ static const struct of_device_id mtk_mdp_of_ids[] = {
+-- 
+2.9.3
 
-> > @@ -153,7 +153,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
-> >  	}
-> >  
-> >  	ret = dev->tx_ir(dev, txbuf, count);
-> > -	if (ret < 0)
-> > +	if (ret < 0 || dev->driver_type == RC_DRIVER_IR_RAW_TX)
-> 
-> Just because a driver only does transmit doesn't mean its transmit ABI
-> should change.
-> 
-> Now this bit of code is pretty horrible. It ensures that the call to write()
-> takes at least as long as the length of the transmit IR by sleeping. That's
-> not much of a guarantee that the IR has been sent.
-> 
-> Note that in the case of ir-spi, since your spi transfer is sync no sleep
-> should be introduced here.
-> 
-> The gap calculation in lirc checks that if the call to write() took _longer_
-> than expected wait before sending the next IR code (when either multiple
-> IR codes or repeats are specified). Introducing the sleep in the kernel
-> here does not help at all, lirc already ensures that it waits as long as
-> the IR is long (see schedule_repeat_timer in lirc).
-> 
-> This change was introduced in 3.10, commit f8e00d5. 
-
-... I'm not sure what can be done here. I get your point and I
-understand that this indeed is a kind of fake sync point and by
-doing this I 
-
-How about creating two different functions:
-
-- ir_lirc_transmit_ir where we actually do what the function
-  already does
-- ir_lirc_transmit_no_sync where the function we don't wait
-  because the the sync is done on a different level (for example
-  in the SPI case).
-
-SPI does approximately the same thing.
-
-Andi
