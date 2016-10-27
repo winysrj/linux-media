@@ -1,34 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59629 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750793AbcJBOzF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 2 Oct 2016 10:55:05 -0400
-Date: Sun, 2 Oct 2016 16:55:05 +0200
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wei Yongjun <weiyongjun1@huawei.com>, kernel@stlinux.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH -next] staging: media: stih-cec: remove unused including
- <linux/version.h>
-Message-ID: <20161002145505.GA21312@kroah.com>
-References: <1475075593-22123-1-git-send-email-weiyj.lk@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1475075593-22123-1-git-send-email-weiyj.lk@gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:48226 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965068AbcJ0OBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Oct 2016 10:01:51 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [RFC 1/3] Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
+Date: Thu, 27 Oct 2016 15:01:23 +0100
+Message-Id: <1477576885-21978-2-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <1477576885-21978-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+References: <1477576885-21978-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Sep 28, 2016 at 03:13:13PM +0000, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1@huawei.com>
-> 
-> Remove including <linux/version.h> that don't need it.
-> 
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-> ---
->  drivers/staging/media/st-cec/stih-cec.c | 1 -
+This reverts commit 3299ba5c0b213be5d911752d40251c1abc1004f7.
 
-This file isn't in my tree, maybe it needs to go through Mauro's...
+The DU output mode does not rely on frames being supplied on the WPF as
+its pipeline is supplied from DRM. For the upcoming WPF writeback
+functionality, we will choose to enable writeback mode if there is an
+output buffer, or disable it (leaving the existing display pipeline
+unharmed) otherwise.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 94b428596c4f..f10401065cd3 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -296,11 +296,6 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+  * This function completes the current buffer by filling its sequence number,
+  * time stamp and payload size, and hands it back to the videobuf core.
+  *
+- * When operating in DU output mode (deep pipeline to the DU through the LIF),
+- * the VSP1 needs to constantly supply frames to the display. In that case, if
+- * no other buffer is queued, reuse the one that has just been processed instead
+- * of handing it back to the videobuf core.
+- *
+  * Return the next queued buffer or NULL if the queue is empty.
+  */
+ static struct vsp1_vb2_buffer *
+@@ -322,12 +317,6 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
+ 	done = list_first_entry(&video->irqqueue,
+ 				struct vsp1_vb2_buffer, queue);
+ 
+-	/* In DU output mode reuse the buffer if the list is singular. */
+-	if (pipe->lif && list_is_singular(&video->irqqueue)) {
+-		spin_unlock_irqrestore(&video->irqlock, flags);
+-		return done;
+-	}
+-
+ 	list_del(&done->queue);
+ 
+ 	if (!list_empty(&video->irqqueue))
+-- 
+2.7.4
+
