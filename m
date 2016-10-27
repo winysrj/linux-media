@@ -1,50 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:14241
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750949AbcJAUFR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 1 Oct 2016 16:05:17 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 05/15] dma-buf/sw_sync: improve function-level documentation
-Date: Sat,  1 Oct 2016 21:46:22 +0200
-Message-Id: <1475351192-27079-6-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1475351192-27079-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from foss.arm.com ([217.140.101.70]:36938 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S940018AbcJ0Nzj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Oct 2016 09:55:39 -0400
+Date: Thu, 27 Oct 2016 11:18:47 +0100
+From: Brian Starkey <brian.starkey@arm.com>
+To: Gustavo Padovan <gustavo@padovan.org>,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 9/9] drm: mali-dp: Add writeback out-fence support
+Message-ID: <20161027101847.GC18708@e106950-lin.cambridge.arm.com>
+References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+ <1477472108-27222-10-git-send-email-brian.starkey@arm.com>
+ <20161026214357.GH12629@joana>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Disposition: inline
+In-Reply-To: <20161026214357.GH12629@joana>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adjust the documentation to use the names that appear in the function
-parameter list.
+On Wed, Oct 26, 2016 at 07:43:57PM -0200, Gustavo Padovan wrote:
+>2016-10-26 Brian Starkey <brian.starkey@arm.com>:
+>
+>> If userspace has asked for an out-fence for the writeback, we add a
+>> fence to malidp_mw_job, to be signaled when the writeback job has
+>> completed.
+>>
+>> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+>> ---
+>>  drivers/gpu/drm/arm/malidp_hw.c |    5 ++++-
+>>  drivers/gpu/drm/arm/malidp_mw.c |   18 +++++++++++++++++-
+>>  drivers/gpu/drm/arm/malidp_mw.h |    3 +++
+>>  3 files changed, 24 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
+>> index 1689547..3032226 100644
+>> --- a/drivers/gpu/drm/arm/malidp_hw.c
+>> +++ b/drivers/gpu/drm/arm/malidp_hw.c
+>> @@ -707,8 +707,11 @@ static irqreturn_t malidp_se_irq(int irq, void *arg)
+>>  		unsigned long irqflags;
+>>  		/*
+>>  		 * We can't unreference the framebuffer here, so we queue it
+>> -		 * up on our threaded handler.
+>> +		 * up on our threaded handler. However, signal the fence
+>> +		 * as soon as possible
+>>  		 */
+>> +		malidp_mw_job_signal(drm, malidp->current_mw, 0);
+>
+>Drivers should not deal with fences directly. We need some sort of
+>drm_writeback_finished() that will do the signalling for you.
+>
 
-Issue detected using Coccinelle (http://coccinelle.lip6.fr/)
+With a signature like this?
+	drm_writeback_finished(struct drm_connector_state *state);
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+I'll have to think about how to achieve that. The state isn't
+refcounted and the driver isn't in charge of it's lifetime. I'm not
+sure how/where to ensure the state doesn't get destroyed before its
+been signaled.
 
----
- drivers/dma-buf/sw_sync.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+-Brian
 
-diff --git a/drivers/dma-buf/sw_sync.c b/drivers/dma-buf/sw_sync.c
-index 62e8e6d..5d2b1b6 100644
---- a/drivers/dma-buf/sw_sync.c
-+++ b/drivers/dma-buf/sw_sync.c
-@@ -155,11 +155,11 @@ static void sync_timeline_signal(struct sync_timeline *obj, unsigned int inc)
- 
- /**
-  * sync_pt_create() - creates a sync pt
-- * @parent:	fence's parent sync_timeline
-+ * @obj:	fence's parent sync_timeline
-  * @size:	size to allocate for this pt
-- * @inc:	value of the fence
-+ * @value:	value of the fence
-  *
-- * Creates a new sync_pt as a child of @parent.  @size bytes will be
-+ * Creates a new sync_pt as a child of @obj.  @size bytes will be
-  * allocated allowing for implementation specific data to be kept after
-  * the generic sync_timeline struct. Returns the sync_pt object or
-  * NULL in case of error.
-
+>Gustavo
+>
