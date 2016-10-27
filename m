@@ -1,202 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44622 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S945230AbcJaRzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 31 Oct 2016 13:55:45 -0400
-Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-References: <20161031100228.17917-1-lstoakes@gmail.com>
- <20161031100228.17917-3-lstoakes@gmail.com>
- <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
- <20161031134849.GA13609@lucifer>
-Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
-        Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>,
-        Hugh Dickins <hughd@google.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com,
-        linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-From: Paolo Bonzini <pbonzini@redhat.com>
-Message-ID: <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
-Date: Mon, 31 Oct 2016 18:55:33 +0100
+Received: from regular1.263xmail.com ([211.150.99.140]:45619 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753115AbcJ0BIU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 26 Oct 2016 21:08:20 -0400
+Subject: Re: [RFC] V4L2 unified low-level decoder API
+To: Hugues FRUCHET <hugues.fruchet@st.com>,
+        "posciak@chromium.org" <posciak@chromium.org>,
+        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
+Cc: Florent Revest <florent.revest@free-electrons.com>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>,
+        "eddie.cai" <eddie.cai@rock-chips.com>,
+        "linux-rockchip@lists.infradead.org"
+        <linux-rockchip@lists.infradead.org>,
+        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
+        =?UTF-8?B?5p6X6YeR5Y+R?= <alpha.lin@rock-chips.com>
+From: Randy Li <randy.li@rock-chips.com>
+Message-ID: <aab23d5d-d41d-78e1-7324-77b9d98ee127@rock-chips.com>
+Date: Thu, 27 Oct 2016 09:08:08 +0800
 MIME-Version: 1.0
-In-Reply-To: <20161031134849.GA13609@lucifer>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
-On 31/10/2016 14:48, Lorenzo Stoakes wrote:
-> On Mon, Oct 31, 2016 at 12:45:36PM +0100, Paolo Bonzini wrote:
->>
->>
->> On 31/10/2016 11:02, Lorenzo Stoakes wrote:
->>> - *
->>> - * get_user_pages should be phased out in favor of
->>> - * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
->>> - * should use get_user_pages because it cannot pass
->>> - * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
->>
->> This comment should be preserved in some way.  In addition, removing
-> 
-> Could you clarify what you think should be retained?
-> 
-> The comment seems to me to be largely rendered redundant by this change -
-> get_user_pages() now offers identical behaviour, and of course the latter part
-> of the comment ('because it cannot pass FAULT_FLAG_ALLOW_RETRY') is rendered
-> incorrect by this change.
-> 
-> It could be replaced with a recommendation to make use of VM_FAULT_RETRY logic
-> if possible.
+On 10/26/2016 11:09 PM, Hugues FRUCHET wrote:
+> Hi,
+>
+>
+>
+> This RFC aims to start discussions in order to define the codec specific
+> controls structures to fulfill the low-level decoder API needed by non
+> “Stream API” based decoders (“stateless” or “Frame API” based decoders).
+>
+> Several implementation exists now which runs on several SoC and various
+> software frameworks.
+>
+> The idea is to find the communalities between all those implementations
+> and SoC to define a single unified interface in V4L2 includes.
+>
+> Even if “Request API” is needed to pass those codec specific controls
+> from userspace down to kernel on a per-buffer basis, we can start
+> discussions and define the controls in parallel of its development.
+Yes, I have sent a one for H.264 decoder and JPEG encoder.
+>
+> We can even propose some implementations based on existing V4L2 control
+> framework (which doesn’t support “per-frame” basis) by ensuring
+> atomicity of sequence S_EXT_CTRL(header[i])/QBUF(stream[i]). Constraint
+> can then be relaxed when “Request API” is merged.
+>
+>
+>
+> I would like to propose to work on a “per-codec” basis, having at least
+> 2 different SoC and 2 different frameworks to test and validate controls.
+>
+> To do so, I have tried to identify some people that have worked on this
+> subject and have proposed some implementations, feel free to correct me
+> and enhance the list if needed:
+>
+> * MPEG2/MPEG4
+>
+>    - Florent Revest for Allwinner A13 CedarX support [1] tested with VLC
+> -> libVA + sunxi-cedrus-drv-video -> V4L2
+>
+>    - Myself for STMicroelectronics Delta support [2] tested with
+> GStreamer V4L2 -> libv4l2 + libv4l-delta plugin -> V4L2
+>
+>
+>
+> * VP8
+>
+> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [3] tested with
+> Chromium -> V4L2
+>
+> - Jung Zhao for Rockchip RK3288 VPU support [4] <cannot find the
+> framework used>
+There is rockchip VDPAU driver supporting it, but it is .
+>
+>
+>
+> * H264
+>
+> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [5] tested with
+> Chromium -> V4L2
+>
+> - Randy Li for Rockchip RK3288  VPU support [6] tested with VLC? ->
+> libVA + rockchip-va-driver -> V4L2
+I only tested it with Gstreamer -> VA-API element -> Rockchip VA-API 
+driver -> V4L2
+>
+>                                                                                                                          VLC?
+> -> libVDPAU + rockchip-va-driver -> V4L2
+>
+> I can work to define MPEG2/MPEG4 controls and propose functional
+> implementations for those codecs, and will be glad to co-work with you
+> Florent.
+But it may not work with Rockchip's SoC, you may check the following branch
+https://github.com/hizukiayaka/rockchip-video-driver/tree/rk_v4l2_mix
+>
+> I can help on H264 on a code review basis based on the functional H264
+> setup I have in-house and codec knowledge, but I cannot provide
+> implementation in a reasonable timeframe, same for VP8.
+>
+>
+>
+> Apart of very details of each codec, we have also to state about generic
+> concerns such as:
+>
+> -          new pixel format introduction (VP8 => VP8F, H264 => S264,
+> MPG2 => MG2F, MPG4 => MG4F)
+I don't think it is necessary.
+>
+> -          new device caps to indicate that driver requires extra
+> headers ? maybe not needed because redundant with new pixel format
+I prefer this one.
+>
+> -          continue to modify v4l2-controls.h ? or do we add some new
+> specific header files (H264 is huge!) ?
+Not huge. You could check rockchip's kernel.
+>
+> -          how to manage sequence header & picture header,
+> optional/extended controls (MPEG2 sequence/picture extensions, H264 SEI,
+> …). Personally I have added flags inside a single control structure,
+> H264 is done in a different way using several controls
+> (SPS/PPS/SLICE/DECODE/…)
+the last one is dpb, except the dpb, it would have the same numbers of 
+controls to those structures defined in VA-API H264 decoder.
+>
+>
+> Thanks you to all of you for your attention and feel free to react on
+> this topic if you are interested to work on this subject.
+Currently, I have to pause the process of VA-API drive, and moving to 
+the other idea I have said before, creating a new API in userspace(but 
+won't archive the goal I set before in this step). There are some 
+shortages in VA-API I have said in last email making the performance in 
+4K video and extending the Gstreamer VA-API is a little difficult job 
+and need more time.
+And the development for the new VPU driver for rockchip would pause a 
+while as well.
 
-Yes, exactly.  locked == NULL should be avoided whenever mmap_sem can 
-be dropped, and the comment indirectly said so.  Now most of those cases
-actually are those where you can just call get_user_pages_unlocked.
+It would not be a long time(a few weeks) and I am still available in my 
+free time(at home). It is good to know the wheel begin to roll. And do 
+feel free to assign job to me.
+>
+>
+>
+> Best regards,
+>
+> Hugues.
+>
+>
+>
+> [0] [ANN] Codec & Request API Brainstorm meeting Oct 10 & 11
+> https://www.spinics.net/lists/linux-media/msg106699.html
+>
+> [1] MPEG2 A13 CedarX http://www.spinics.net/lists/linux-media/msg104823.html
+>
+> [1] MPEG4 A13 CedarX http://www.spinics.net/lists/linux-media/msg104817.html
+>
+> [2] MPEG2 STi4xx Delta
+> http://www.spinics.net/lists/linux-media/msg106240.html
+>
+> [2] MPEG4 STi4xx Delta is also supported but not yet pushed
+>
+> [3] VP8 Rockchip RK3288, RK3399? VPU
+> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0002-CHROMIUM-v4l-Add-VP8-low-level-decoder-API-controls.patch
+>
+>
+> [4] VP8 Rockchip RK3288 VPU
+> http://www.spinics.net/lists/linux-media/msg97997.html
+>
+> [5] H264 Rockchip RK3288, RK3399? VPU
+> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0001-CHROMIUM-media-headers-Import-V4L2-headers-from-Chro.patch
+>
+> [6] H264 Rockchip RK3288 VPU
+> http://www.spinics.net/lists/linux-media/msg105095.html
+>
+>
+>
 
->> get_user_pages_locked() makes it harder (compared to a simple "git grep
->> -w") to identify callers that lack allow-retry functionality).  So I'm
->> not sure about the benefits of these patches.
-> 
-> That's a fair point, and certainly this cleanup series is less obviously helpful
-> than previous ones.
-> 
-> However, there are a few points in its favour:
-> 
-> 1. get_user_pages_remote() was the mirror of get_user_pages() prior to adding an
->    int *locked parameter to the former (necessary to allow for the unexport of
->    __get_user_pages_unlocked()), differing only in task/mm being specified and
->    FOLL_REMOTE being set. This patch series keeps these functions 'synchronised'
->    in this respect.
-> 
-> 2. There is currently only one caller of get_user_pages_locked() in
->    mm/frame_vector.c which seems to suggest this function isn't widely
->    used/known.
+-- 
+Randy Li
+The third produce department
 
-Or not widely necessary. :)
-
-> 3. This change results in all slow-path get_user_pages*() functions having the
->    ability to use VM_FAULT_RETRY logic rather than 'defaulting' to using
->    get_user_pages() that doesn't let you do this even if you wanted to.
-
-This is only true if someone does the work though.  From a quick look 
-at your series, the following files can be trivially changed to use 
-get_user_pages_unlocked:
-
-- drivers/gpu/drm/via/via_dmablit.c
-- drivers/platform/goldfish/goldfish_pipe.c
-- drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
-- drivers/rapidio/devices/rio_mport_cdev.c
-- drivers/virt/fsl_hypervisor.c
-
-Also, videobuf_dma_init_user could be changed to use retry by adding a 
-*locked argument to videobuf_dma_init_user_locked, prototype patch 
-after my signature.
-
-Everything else is probably best kept using get_user_pages.
-
-> 4. It's somewhat confusing/redundant having both get_user_pages_locked() and
->    get_user_pages() functions which both require mmap_sem to be held (i.e. both
->    are 'locked' versions.)
-> 
->> If all callers were changed, then sure removing the _locked suffix would
->> be a good idea.
-> 
-> It seems many callers cannot release mmap_sem so VM_FAULT_RETRY logic couldn't
-> happen anyway in this cases and in these cases we couldn't change the caller.
-
-But then get_user_pages_locked remains a less-common case, so perhaps 
-it's a good thing to give it a longer name!
-
-> Overall, an alternative here might be to remove get_user_pages() and update
-> get_user_pages_locked() to add a 'vmas' parameter, however doing this renders
-> get_user_pages_unlocked() asymmetric as it would lack an vmas parameter (adding
-> one there would make no sense as VM_FAULT_RETRY logic invalidates VMAs) though
-> perhaps not such a big issue as it makes sense as to why this is the case.
-
-Adding the 'vmas' parameter to get_user_pages_locked would make little 
-sense.  Since VM_FAULT_RETRY invalidates it and g_u_p_locked can and 
-does retry, it would generally not be useful.
-
-So I think we have the right API now:
-
-- do not have lock?  Use get_user_pages_unlocked, get retry for free,
-no need to handle  mmap_sem and the locked argument; cannot get back vmas.
-
-- have and cannot drop lock?  User get_user_pages, no need to pass NULL 
-for the locked argument; can get back vmas.
-
-- have but can drop lock (rare case)?  Use get_user_pages_locked, 
-cannot get back vams.
-
-Paolo
-
-> get_user_pages_unlocked() definitely seems to be a useful helper and therefore
-> makes sense to retain.
-
-> Of course another alternative is to leave things be :)
-> 
-
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 1db0af6c7f94..dae4eb8e9d5b 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -152,7 +152,8 @@ static void videobuf_dma_init(struct videobuf_dmabuf *dma)
- }
- 
- static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
--			int direction, unsigned long data, unsigned long size)
-+			int direction, unsigned long data, unsigned long size,
-+			int *locked)
- {
- 	unsigned long first, last;
- 	int err, rw = 0;
-@@ -185,8 +186,17 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
- 		data, size, dma->nr_pages);
- 
--	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
--			     flags, dma->pages, NULL);
-+	if (locked && !*locked) {
-+		down_read(&current->mm->mmap_sem);
-+		*locked = 1;
-+	}
-+
-+	/*
-+	 * If the caller cannot have mmap_sem dropped, it passes locked == NULL
-+	 * so get_user_pages_locked will not release it.
-+	 */
-+	err = get_user_pages_locked(data & PAGE_MASK, dma->nr_pages,
-+				    flags, dma->pages, locked);
- 
- 	if (err != dma->nr_pages) {
- 		dma->nr_pages = (err >= 0) ? err : 0;
-@@ -200,10 +210,11 @@ static int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
- 			   unsigned long data, unsigned long size)
- {
- 	int ret;
-+	int locked = 0;
- 
--	down_read(&current->mm->mmap_sem);
--	ret = videobuf_dma_init_user_locked(dma, direction, data, size);
--	up_read(&current->mm->mmap_sem);
-+	ret = videobuf_dma_init_user_locked(dma, direction, data, size, &locked);
-+	if (locked)
-+		up_read(&current->mm->mmap_sem);
- 
- 	return ret;
- }
-@@ -540,7 +551,7 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 
- 			err = videobuf_dma_init_user_locked(&mem->dma,
- 						      DMA_FROM_DEVICE,
--						      vb->baddr, vb->bsize);
-+						      vb->baddr, vb->bsize, NULL);
- 			if (0 != err)
- 				return err;
- 		}
