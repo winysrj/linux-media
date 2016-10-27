@@ -1,170 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56484 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758062AbcJQNu7 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33027 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S942434AbcJ0OL0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 09:50:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH 18/25] [media] uvc_driver: use KERN_CONT where needed
-Date: Mon, 17 Oct 2016 16:50:56 +0300
-Message-ID: <2921419.5PiyCZEmd7@avalon>
-In-Reply-To: <cb3853709bfff02c2a967112531e87d49c74f4fd.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com> <cb3853709bfff02c2a967112531e87d49c74f4fd.1476466574.git.mchehab@s-opensource.com>
+        Thu, 27 Oct 2016 10:11:26 -0400
+Received: by mail-wm0-f65.google.com with SMTP id m83so2924990wmc.0
+        for <linux-media@vger.kernel.org>; Thu, 27 Oct 2016 07:11:25 -0700 (PDT)
+Date: Thu, 27 Oct 2016 16:11:21 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Gustavo Padovan <gustavo@padovan.org>,
+        Brian Starkey <brian.starkey@arm.com>,
+        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 9/9] drm: mali-dp: Add writeback out-fence support
+Message-ID: <20161027141121.wyugpj27ert3x4iw@phenom.ffwll.local>
+References: <1477472108-27222-1-git-send-email-brian.starkey@arm.com>
+ <1477472108-27222-10-git-send-email-brian.starkey@arm.com>
+ <20161026214357.GH12629@joana>
+ <20161027101847.GC18708@e106950-lin.cambridge.arm.com>
+ <20161027112519.GJ12629@joana>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161027112519.GJ12629@joana>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, Oct 27, 2016 at 09:25:19AM -0200, Gustavo Padovan wrote:
+> 2016-10-27 Brian Starkey <brian.starkey@arm.com>:
+> 
+> > On Wed, Oct 26, 2016 at 07:43:57PM -0200, Gustavo Padovan wrote:
+> > > 2016-10-26 Brian Starkey <brian.starkey@arm.com>:
+> > > 
+> > > > If userspace has asked for an out-fence for the writeback, we add a
+> > > > fence to malidp_mw_job, to be signaled when the writeback job has
+> > > > completed.
+> > > > 
+> > > > Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+> > > > ---
+> > > >  drivers/gpu/drm/arm/malidp_hw.c |    5 ++++-
+> > > >  drivers/gpu/drm/arm/malidp_mw.c |   18 +++++++++++++++++-
+> > > >  drivers/gpu/drm/arm/malidp_mw.h |    3 +++
+> > > >  3 files changed, 24 insertions(+), 2 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
+> > > > index 1689547..3032226 100644
+> > > > --- a/drivers/gpu/drm/arm/malidp_hw.c
+> > > > +++ b/drivers/gpu/drm/arm/malidp_hw.c
+> > > > @@ -707,8 +707,11 @@ static irqreturn_t malidp_se_irq(int irq, void *arg)
+> > > >  		unsigned long irqflags;
+> > > >  		/*
+> > > >  		 * We can't unreference the framebuffer here, so we queue it
+> > > > -		 * up on our threaded handler.
+> > > > +		 * up on our threaded handler. However, signal the fence
+> > > > +		 * as soon as possible
+> > > >  		 */
+> > > > +		malidp_mw_job_signal(drm, malidp->current_mw, 0);
+> > > 
+> > > Drivers should not deal with fences directly. We need some sort of
+> > > drm_writeback_finished() that will do the signalling for you.
+> > > 
+> > 
+> > With a signature like this?
+> > 	drm_writeback_finished(struct drm_connector_state *state);
+> > 
+> > I'll have to think about how to achieve that. The state isn't
+> > refcounted and the driver isn't in charge of it's lifetime. I'm not
+> > sure how/where to ensure the state doesn't get destroyed before its
+> > been signaled.
+> 
+> Maybe we should do something similar to the crtc vblank handlers and
+> even hide the connector_state. Those helpers only take the crtc.
+> They are able to hold ref to the event as well.
 
-Thank you for the patch.
-
-On Friday 14 Oct 2016 14:45:56 Mauro Carvalho Chehab wrote:
-> Some continuation messages are not using KERN_CONT.
-> 
-> Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
-> this won't work as expected anymore. So, let's add KERN_CONT
-> to those lines.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 30 +++++++++++++++---------------
->  1 file changed, 15 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 302e284a95eb..9c4b56b4a9c6
-> 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1309,7 +1309,7 @@ static int uvc_scan_chain_entity(struct
-> uvc_video_chain *chain, switch (UVC_ENTITY_TYPE(entity)) {
->  	case UVC_VC_EXTENSION_UNIT:
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk(" <- XU %d", entity->id);
-> +			printk(KERN_CONT " <- XU %d", entity->id);
-> 
->  		if (entity->bNrInPins != 1) {
->  			uvc_trace(UVC_TRACE_DESCR, "Extension unit %d has more 
-"
-> @@ -1321,7 +1321,7 @@ static int uvc_scan_chain_entity(struct
-> uvc_video_chain *chain,
-> 
->  	case UVC_VC_PROCESSING_UNIT:
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk(" <- PU %d", entity->id);
-> +			printk(KERN_CONT " <- PU %d", entity->id);
-> 
->  		if (chain->processing != NULL) {
->  			uvc_trace(UVC_TRACE_DESCR, "Found multiple "
-> @@ -1334,7 +1334,7 @@ static int uvc_scan_chain_entity(struct
-> uvc_video_chain *chain,
-> 
->  	case UVC_VC_SELECTOR_UNIT:
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk(" <- SU %d", entity->id);
-> +			printk(KERN_CONT " <- SU %d", entity->id);
-> 
->  		/* Single-input selector units are ignored. */
->  		if (entity->bNrInPins == 1)
-> @@ -1353,7 +1353,7 @@ static int uvc_scan_chain_entity(struct
-> uvc_video_chain *chain, case UVC_ITT_CAMERA:
->  	case UVC_ITT_MEDIA_TRANSPORT_INPUT:
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk(" <- IT %d\n", entity->id);
-> +			printk(KERN_CONT " <- IT %d\n", entity->id);
-> 
->  		break;
-> 
-> @@ -1361,17 +1361,17 @@ static int uvc_scan_chain_entity(struct
-> uvc_video_chain *chain, case UVC_OTT_DISPLAY:
->  	case UVC_OTT_MEDIA_TRANSPORT_OUTPUT:
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk(" OT %d", entity->id);
-> +			printk(KERN_CONT " OT %d", entity->id);
-> 
->  		break;
-> 
->  	case UVC_TT_STREAMING:
->  		if (UVC_ENTITY_IS_ITERM(entity)) {
->  			if (uvc_trace_param & UVC_TRACE_PROBE)
-> -				printk(" <- IT %d\n", entity->id);
-> +				printk(KERN_CONT " <- IT %d\n", entity->id);
->  		} else {
->  			if (uvc_trace_param & UVC_TRACE_PROBE)
-> -				printk(" OT %d", entity->id);
-> +				printk(KERN_CONT " OT %d", entity->id);
->  		}
-> 
->  		break;
-> @@ -1416,9 +1416,9 @@ static int uvc_scan_chain_forward(struct
-> uvc_video_chain *chain, list_add_tail(&forward->chain, &chain->entities);
->  			if (uvc_trace_param & UVC_TRACE_PROBE) {
->  				if (!found)
-> -					printk(" (->");
-> +					printk(KERN_CONT " (->");
-> 
-> -				printk(" XU %d", forward->id);
-> +				printk(KERN_CONT " XU %d", forward->id);
->  				found = 1;
->  			}
->  			break;
-> @@ -1436,16 +1436,16 @@ static int uvc_scan_chain_forward(struct
-> uvc_video_chain *chain, list_add_tail(&forward->chain, &chain->entities);
->  			if (uvc_trace_param & UVC_TRACE_PROBE) {
->  				if (!found)
-> -					printk(" (->");
-> +					printk(KERN_CONT " (->");
-> 
-> -				printk(" OT %d", forward->id);
-> +				printk(KERN_CONT " OT %d", forward->id);
->  				found = 1;
->  			}
->  			break;
->  		}
->  	}
->  	if (found)
-> -		printk(")");
-> +		printk(KERN_CONT ")");
-> 
->  	return 0;
->  }
-> @@ -1471,7 +1471,7 @@ static int uvc_scan_chain_backward(struct
-> uvc_video_chain *chain, }
-> 
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk(" <- IT");
-> +			printk(KERN_CONT " <- IT");
-> 
->  		chain->selector = entity;
->  		for (i = 0; i < entity->bNrInPins; ++i) {
-> @@ -1485,14 +1485,14 @@ static int uvc_scan_chain_backward(struct
-> uvc_video_chain *chain, }
-> 
->  			if (uvc_trace_param & UVC_TRACE_PROBE)
-> -				printk(" %d", term->id);
-> +				printk(KERN_CONT " %d", term->id);
-> 
->  			list_add_tail(&term->chain, &chain->entities);
->  			uvc_scan_chain_forward(chain, term, entity);
->  		}
-> 
->  		if (uvc_trace_param & UVC_TRACE_PROBE)
-> -			printk("\n");
-> +			printk(KERN_CONT "\n");
-> 
->  		id = 0;
->  		break;
-
+I guess we could reuse the drm_event stuff, but not sure that's too much
+overkill. It would at least be a consistent driver interface, and drivers
+could reuse stuff like arm_event and similar functions. Which might be
+rather beneficial.
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
