@@ -1,105 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39801 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752132AbcJKKh6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:37:58 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Received: from smtp3.goneo.de ([85.220.129.37]:49504 "EHLO smtp3.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933171AbcJ0Uxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 27 Oct 2016 16:53:40 -0400
+Subject: Re: Documentation/media/uapi/cec/ sporadically unnecessarily
+ rebuilding
+To: Jani Nikula <jani.nikula@intel.com>,
+        Markus Heiser <markus.heiser@darmarit.de>
+References: <871sz6p17k.fsf@intel.com>
+ <F520076A-A05A-42B3-B416-288E67833AA9@darmarit.de> <87lgx9lu9a.fsf@intel.com>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH v2 23/31] technisat-usb2: use DMA buffers for I2C transfers
-Date: Tue, 11 Oct 2016 07:09:38 -0300
-Message-Id: <75525df6d9982227a6e5a3f09cda7bf2d290cd05.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, linux-doc@vger.kernel.org
+From: Markus Heiser <markus.heiser@darmarit.de>
+Message-ID: <e40e560f-f9f7-1725-edbe-978aeb93fbac@darmarit.de>
+Date: Thu, 27 Oct 2016 22:53:24 +0200
+MIME-Version: 1.0
+In-Reply-To: <87lgx9lu9a.fsf@intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
-
-On this driver, most of the transfers are OK, but the I2C
-one was using stack.
-
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/technisat-usb2.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb/technisat-usb2.c b/drivers/media/usb/dvb-usb/technisat-usb2.c
-index d9f3262bf071..4706628a3ed5 100644
---- a/drivers/media/usb/dvb-usb/technisat-usb2.c
-+++ b/drivers/media/usb/dvb-usb/technisat-usb2.c
-@@ -89,9 +89,13 @@ struct technisat_usb2_state {
- static int technisat_usb2_i2c_access(struct usb_device *udev,
- 		u8 device_addr, u8 *tx, u8 txlen, u8 *rx, u8 rxlen)
- {
--	u8 b[64];
-+	u8 *b;
- 	int ret, actual_length;
- 
-+	b = kmalloc(64, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
- 	deb_i2c("i2c-access: %02x, tx: ", device_addr);
- 	debug_dump(tx, txlen, deb_i2c);
- 	deb_i2c(" ");
-@@ -123,7 +127,7 @@ static int technisat_usb2_i2c_access(struct usb_device *udev,
- 
- 	if (ret < 0) {
- 		err("i2c-error: out failed %02x = %d", device_addr, ret);
--		return -ENODEV;
-+		goto err;
- 	}
- 
- 	ret = usb_bulk_msg(udev,
-@@ -131,7 +135,7 @@ static int technisat_usb2_i2c_access(struct usb_device *udev,
- 			b, 64, &actual_length, 1000);
- 	if (ret < 0) {
- 		err("i2c-error: in failed %02x = %d", device_addr, ret);
--		return -ENODEV;
-+		goto err;
- 	}
- 
- 	if (b[0] != I2C_STATUS_OK) {
-@@ -140,7 +144,7 @@ static int technisat_usb2_i2c_access(struct usb_device *udev,
- 		if (!(b[0] == I2C_STATUS_NAK &&
- 				device_addr == 0x60
- 				/* && device_is_technisat_usb2 */))
--			return -ENODEV;
-+			goto err;
- 	}
- 
- 	deb_i2c("status: %d, ", b[0]);
-@@ -154,7 +158,9 @@ static int technisat_usb2_i2c_access(struct usb_device *udev,
- 
- 	deb_i2c("\n");
- 
--	return 0;
-+err:
-+	kfree(b);
-+	return ret;
- }
- 
- static int technisat_usb2_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msg,
--- 
-2.7.4
 
 
+On 27.10.2016 16:52, Jani Nikula wrote:
+> On Thu, 27 Oct 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+>> Hi Jani,
+>>
+>> Am 24.10.2016 um 11:04 schrieb Jani Nikula <jani.nikula@intel.com>:
+>>
+>>> I think I saw some of this in the past [1], but then couldn't reproduce
+>>> it after all. Now I'm seeing it again. Sporadically
+>>> Documentation/media/uapi/cec/ gets rebuilt on successive runs of make
+>>> htmldocs, even when nothing has changed.
+>>>
+>>> Output of 'make SPHINXOPTS="-v -v" htmldocs' attached for both cases.
+>>>
+>>> Using Sphinx (sphinx-build) 1.4.6
+>>
+>> I can't see what's  wrong with your "rebuild" file ...
+>>
+>> <build-cec-rebuilding.txt --------->
+>> loading pickled environment... done
+>> building [mo]: targets for 0 po files that are out of date
+>> building [html]: targets for 0 source files that are out of date
+>> updating environment: 0 added, 0 changed, 0 removed
+>> looking for now-outdated files... none found
+>> no targets are out of date.
+>> build succeeded.
+>>   HTML    Documentation/DocBook/index.html
+>> <build-cec-rebuilding.txt --------->
+>
+> Awesome, I screwed up the file names, please check again with
+> build-cec-rebuilding.txt <-> build-ok.txt...
+
+Ah, ok .. I can reproduce the error.
+
+It seems that sphinx's ".. toctree::" don't like it, if you
+build a structure where severals ".. toctrees" in the same
+folder include files of this folder.
+
+E.g. if you have "myfolder" with "index.rst", "f1.rst"
+and "f2.rst" in (content see below) and you rebuild it
+5 or more times, the files f1.rst and f2.rst will
+sporadically rebuild.
+
+May I have time to find the bug and send a fix to sphinx.
+
+-- Markus --
+
+------------------------------------------------------
+index
+=====
+
+.. toctree::
+     :maxdepth: 1
+     :numbered:
+
+     f1
+
+------------------------------------------------------
+f1
+==
+
+.. toctree::
+     :maxdepth: 1
+     :numbered:
+
+     f2
+
+------------------------------------------------------
+f2
+==
+
+lorem
+------------------------------------------------------
