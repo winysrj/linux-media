@@ -1,97 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:58292 "EHLO
-        out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932403AbcJQSrM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35654 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S935544AbcJ0NzC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 17 Oct 2016 14:47:12 -0400
-Date: Mon, 17 Oct 2016 20:47:06 +0100
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        maintainers@bluecherrydvr.com, andrey.utkin@corp.bluecherry.net
-Subject: Re: [PATCH] [media] tw5864: crop picture width to 704
-Message-ID: <20161017194706.GB21569@stationary.pb.com>
-References: <20160922000420.4273-1-andrey.utkin@corp.bluecherry.net>
+        Thu, 27 Oct 2016 09:55:02 -0400
+Date: Thu, 27 Oct 2016 14:27:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: mchehab@s-opensource.com
+Cc: linux-media@vger.kernel.org
+Subject: DocBook documentation on linuxtv.org
+Message-ID: <20161027112745.GV9460@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20160922000420.4273-1-andrey.utkin@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Sep 22, 2016 at 03:04:20AM +0300, Andrey Utkin wrote:
-> Previously, width of 720 was used, but it gives 16-pixel wide black bar
-> at right side of encoded picture.
-> 
-> Signed-off-by: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
-> ---
->  drivers/media/pci/tw5864/tw5864-reg.h   |  8 ++++++++
->  drivers/media/pci/tw5864/tw5864-video.c | 13 +++++++++++--
->  2 files changed, 19 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/pci/tw5864/tw5864-reg.h b/drivers/media/pci/tw5864/tw5864-reg.h
-> index 92a1b07..30ac142 100644
-> --- a/drivers/media/pci/tw5864/tw5864-reg.h
-> +++ b/drivers/media/pci/tw5864/tw5864-reg.h
-> @@ -1879,6 +1879,14 @@
->  #define TW5864_INDIR_IN_PIC_HEIGHT(channel) (0x201 + 4 * channel)
->  #define TW5864_INDIR_OUT_PIC_WIDTH(channel) (0x202 + 4 * channel)
->  #define TW5864_INDIR_OUT_PIC_HEIGHT(channel) (0x203 + 4 * channel)
-> +
-> +/* Some registers skipped */
-> +
-> +#define TW5864_INDIR_CROP_ETC 0x260
-> +/* Define controls in register TW5864_INDIR_CROP_ETC */
-> +/* Enable cropping from 720 to 704 */
-> +#define TW5864_INDIR_CROP_ETC_CROP_EN 0x4
-> +
->  /*
->   * Interrupt status register from the front-end. Write "1" to each bit to clear
->   * the interrupt
-> diff --git a/drivers/media/pci/tw5864/tw5864-video.c b/drivers/media/pci/tw5864/tw5864-video.c
-> index ff94e6c..3c8c302 100644
-> --- a/drivers/media/pci/tw5864/tw5864-video.c
-> +++ b/drivers/media/pci/tw5864/tw5864-video.c
-> @@ -590,6 +590,15 @@ static int tw5864_enable_input(struct tw5864_input *input)
->  	tw_indir_writeb(TW5864_INDIR_OUT_PIC_WIDTH(nr), input->width / 4);
->  	tw_indir_writeb(TW5864_INDIR_OUT_PIC_HEIGHT(nr), input->height / 4);
->  
-> +	/*
-> +	 * Crop width from 720 to 704.
-> +	 * Above register settings need value 720 involved.
-> +	 */
-> +	input->width = 704;
-> +	tw_indir_writeb(TW5864_INDIR_CROP_ETC,
-> +			tw_indir_readb(TW5864_INDIR_CROP_ETC) |
-> +			TW5864_INDIR_CROP_ETC_CROP_EN);
-> +
->  	tw_writel(TW5864_DSP_PIC_MAX_MB,
->  		  ((input->width / 16) << 8) | (input->height / 16));
->  
-> @@ -792,7 +801,7 @@ static int tw5864_fmt_vid_cap(struct file *file, void *priv,
->  {
->  	struct tw5864_input *input = video_drvdata(file);
->  
-> -	f->fmt.pix.width = 720;
-> +	f->fmt.pix.width = 704;
->  	switch (input->std) {
->  	default:
->  		WARN_ON_ONCE(1);
-> @@ -998,7 +1007,7 @@ static int tw5864_enum_framesizes(struct file *file, void *priv,
->  		return -EINVAL;
->  
->  	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-> -	fsize->discrete.width = 720;
-> +	fsize->discrete.width = 704;
->  	fsize->discrete.height = input->std == STD_NTSC ? 480 : 576;
->  
->  	return 0;
-> -- 
-> 2.9.2
-> 
+Hi Mauro,
 
-Mauro, Hans,
-Please pick this up. This has been around for a month, I expected it
-would get to v4.9-rc1 easily.
-Thanks.
+The link labelled "v4l-dvb-apis/" on the
+<URL:https://www.linuxtv.org/downloads/> page still points to the old
+DocBook documentation. Could you update it, and perhaps even remove the old
+DocBook documentation so people do not accidentally continue to use it?
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
