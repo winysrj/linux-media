@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34232 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756891AbcJSJFD (ORCPT
+Received: from mail-oi0-f45.google.com ([209.85.218.45]:34788 "EHLO
+        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761149AbcJ1UaN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 05:05:03 -0400
-Date: Wed, 19 Oct 2016 10:52:05 +0200
-From: Michal Hocko <mhocko@kernel.org>
-To: Lorenzo Stoakes <lstoakes@gmail.com>
-Cc: Jan Kara <jack@suse.cz>, linux-mm@kvack.org,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Hugh Dickins <hughd@google.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Rik van Riel <riel@redhat.com>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        adi-buildroot-devel@lists.sourceforge.net,
-        ceph-devel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        intel-gfx@lists.freedesktop.org, kvm@vger.kernel.org,
-        linux-alpha@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-cris-kernel@axis.com, linux-fbdev@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-ia64@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-mips@linux-mips.org, linux-rdma@vger.kernel.org,
-        linux-s390@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-scsi@vger.kernel.org, linux-security-module@vger.kernel.org,
-        linux-sh@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, sparclinux@vger.kernel.org, x86@kernel.org
-Subject: Re: [PATCH 08/10] mm: replace __access_remote_vm() write parameter
- with gup_flags
-Message-ID: <20161019085204.GD7517@dhcp22.suse.cz>
-References: <20161013002020.3062-1-lstoakes@gmail.com>
- <20161013002020.3062-9-lstoakes@gmail.com>
- <20161019075903.GP29967@quack2.suse.cz>
- <20161019081352.GB7562@dhcp22.suse.cz>
- <20161019084045.GA19441@lucifer>
+        Fri, 28 Oct 2016 16:30:13 -0400
+Received: by mail-oi0-f45.google.com with SMTP id 62so21385677oif.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2016 13:30:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161019084045.GA19441@lucifer>
+In-Reply-To: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
+References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Fri, 28 Oct 2016 16:30:12 -0400
+Message-ID: <CAGoCfiw0YJ-iPYG+ZZvdf=5Vh_7wCbB7oO61HU9T3z51kjORiw@mail.gmail.com>
+Subject: Re: [RFC] v4l2 support for thermopile devices
+To: Matt Ranostay <matt@ranostay.consulting>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 19-10-16 09:40:45, Lorenzo Stoakes wrote:
-> On Wed, Oct 19, 2016 at 10:13:52AM +0200, Michal Hocko wrote:
-> > On Wed 19-10-16 09:59:03, Jan Kara wrote:
-> > > On Thu 13-10-16 01:20:18, Lorenzo Stoakes wrote:
-> > > > This patch removes the write parameter from __access_remote_vm() and replaces it
-> > > > with a gup_flags parameter as use of this function previously _implied_
-> > > > FOLL_FORCE, whereas after this patch callers explicitly pass this flag.
-> > > >
-> > > > We make this explicit as use of FOLL_FORCE can result in surprising behaviour
-> > > > (and hence bugs) within the mm subsystem.
-> > > >
-> > > > Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
-> > >
-> > > So I'm not convinced this (and the following two patches) is actually
-> > > helping much. By grepping for FOLL_FORCE we will easily see that any caller
-> > > of access_remote_vm() gets that semantics and can thus continue search
-> >
-> > I am really wondering. Is there anything inherent that would require
-> > FOLL_FORCE for access_remote_vm? I mean FOLL_FORCE is a really
-> > non-trivial thing. It doesn't obey vma permissions so we should really
-> > minimize its usage. Do all of those users really need FOLL_FORCE?
-> 
-> I wonder about this also, for example by accessing /proc/self/mem you trigger
-> access_remote_vm() and consequently get_user_pages_remote() meaning FOLL_FORCE
-> is implied and you can use /proc/self/mem to override any VMA permissions. I
+Hi Matt,
 
-yes this is the desirable and expected behavior. 
+> Need some input for the video pixel data types, which the device we
+> are using (see datasheet links below) is outputting pixel data in
+> little endian 16-bit of which a 12-bits signed value is used.  Does it
+> make sense to do some basic processing on the data since greyscale is
+> going to look weird with temperatures under 0C degrees? Namely a cold
+> object is going to be brighter than the hottest object it could read.
+> Or should a new V4L2_PIX_FMT_* be defined and processing done in
+> software?  Another issue is how to report the scaling value of 0.25 C
+> for each LSB of the pixels to the respecting recording application.
 
-> wonder if this is desirable behaviour or whether this ought to be limited to
-> ptrace system calls. Regardless, by making the flag more visible it makes it
-> easier to see that this is happening.
+Regarding the format for the pixel data:  I did some research into
+this when doing some driver work for the Seek Thermal (a product
+similar to the FLIR Lepton).  While it would be nice to be able to use
+an existing application like VLC or gStreamer to just take the video
+and capture from the V4L2 interface with no additional userland code,
+the reality is that how you colorize the data is going to be highly
+user specific (e.g. what thermal ranges to show with what colors,
+etc).  If your goal is really to do a V4L2 driver which returns the
+raw data, then you're probably best returning it in the native
+greyscale format (whether that be an existing V4L2 PIX_FMT or a new
+one needs to be defined), and then in software you can figure out how
+to colorize it.
 
-mem_open already enforces PTRACE_MODE_ATTACH
+Just my opinion though....
+
+Devin
 
 -- 
-Michal Hocko
-SUSE Labs
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
