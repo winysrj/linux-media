@@ -1,79 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:35724 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752263AbcJKQ4P (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58120 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751152AbcJ1Djt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 12:56:15 -0400
-Received: by mail-io0-f194.google.com with SMTP id p26so1959735ioo.2
-        for <linux-media@vger.kernel.org>; Tue, 11 Oct 2016 09:56:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20161011164751.GB14337@e106950-lin.cambridge.arm.com>
-References: <1476197648-24918-1-git-send-email-brian.starkey@arm.com>
- <1476197648-24918-3-git-send-email-brian.starkey@arm.com> <20161011154448.GE20761@phenom.ffwll.local>
- <20161011164751.GB14337@e106950-lin.cambridge.arm.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Tue, 11 Oct 2016 18:56:14 +0200
-Message-ID: <CAKMK7uE0FYUVAf8ARD+HXNTVVbzdOzzU1ot2UbFFLQ9EQiVnfA@mail.gmail.com>
-Subject: Re: [RFC PATCH 02/11] drm/fb-helper: Skip writeback connectors
-To: Brian Starkey <brian.starkey@arm.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Liviu Dudau <liviu.dudau@arm.com>,
-        "Clark, Rob" <robdclark@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Eric Anholt <eric@anholt.net>,
-        "Syrjala, Ville" <ville.syrjala@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+        Thu, 27 Oct 2016 23:39:49 -0400
+Message-ID: <1129a1e24efc5fb22c344c3cc33d9677@smtp-cloud6.xs4all.net>
+Date: Fri, 28 Oct 2016 05:39:45 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 11, 2016 at 6:47 PM, Brian Starkey <brian.starkey@arm.com> wrote:
-> On Tue, Oct 11, 2016 at 05:44:48PM +0200, Daniel Vetter wrote:
->>
->> On Tue, Oct 11, 2016 at 03:53:59PM +0100, Brian Starkey wrote:
->>>
->>> Writeback connectors aren't much use to the fbdev helpers, as they won't
->>> show anything to the user. Skip them when looking for candidate output
->>> configurations.
->>>
->>> Signed-off-by: Brian Starkey <brian.starkey@arm.com>
->>> ---
->>>  drivers/gpu/drm/drm_fb_helper.c |    4 ++++
->>>  1 file changed, 4 insertions(+)
->>>
->>> diff --git a/drivers/gpu/drm/drm_fb_helper.c
->>> b/drivers/gpu/drm/drm_fb_helper.c
->>> index 03414bd..dedf6e7 100644
->>> --- a/drivers/gpu/drm/drm_fb_helper.c
->>> +++ b/drivers/gpu/drm/drm_fb_helper.c
->>> @@ -2016,6 +2016,10 @@ static int drm_pick_crtcs(struct drm_fb_helper
->>> *fb_helper,
->>>         if (modes[n] == NULL)
->>>                 return best_score;
->>>
->>> +       /* Writeback connectors aren't much use for fbdev */
->>> +       if (connector->connector_type == DRM_MODE_CONNECTOR_WRITEBACK)
->>> +               return best_score;
->>
->>
->> I think we could handle this by always marking writeback connectors as
->> disconnected. Userspace and fbdev emulation should then avoid them,
->> always.
->> -Daniel
->>
->
-> Good idea; I'll need to take a closer look at how it would interact
-> with the probe helper (connector->force etc).
->
-> Are you thinking instead-of or in-addition-to the client cap? I'd be
-> worried about apps doing strange things and trying to use even
-> disconnected connectors.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Apps shouldn't try to use disconnected connectors, at least by
-default. I think we wouldn't need the cap in that case.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Results of the daily build of media_tree:
+
+date:			Fri Oct 28 05:00:15 CEST 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
+v4l-utils git hash:	4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-multi
+ABI WARNING: change for blackfin-bf561
+ABI WARNING: change for mips
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
