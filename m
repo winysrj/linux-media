@@ -1,109 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:39715 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752327AbcJKKfT (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:36328 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752582AbcJ1KkS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 11 Oct 2016 06:35:19 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?q?J=C3=B6rg=20Otte?= <jrg.otte@gmail.com>
-Subject: [PATCH v2 18/31] gp8psk: don't do DMA on stack
-Date: Tue, 11 Oct 2016 07:09:33 -0300
-Message-Id: <632081ba085ddf0ded63cce3dbcf3870485d3cd3.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476179975.git.mchehab@s-opensource.com>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
+        Fri, 28 Oct 2016 06:40:18 -0400
+Received: by mail-oi0-f68.google.com with SMTP id e12so9387601oib.3
+        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2016 03:40:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOJOY2MwyX++KbGLBXpf5nKihmrP+Qx5JgYJ==q-41t-znVwKQ@mail.gmail.com>
+References: <20161028085224.GA9826@arch-desktop> <CAOJOY2MwyX++KbGLBXpf5nKihmrP+Qx5JgYJ==q-41t-znVwKQ@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Fri, 28 Oct 2016 12:39:37 +0200
+Message-ID: <CAOJOY2PVf8QVyzzeErUD21FMenNSGWDaY4jh4xPBp25rW6Vfvg@mail.gmail.com>
+Subject: Fwd: [PATCH] stk1160: Give the chip some time to retrieve data from
+ AC97 codec.
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB control messages require DMA to work. We cannot pass
-a stack-allocated buffer, as it is not warranted that the
-stack would be into a DMA enabled area.
+This patch might need some explaining. I actually noticed this problem
+early on while trying to fix the sound problem, but it was only this
+morning that I realized the (trivial) cause of it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/gp8psk.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+I first noticed something strange going on when I read the AC97
+registers from /proc/asound/cardX/codec97#0/ac97#0-0+regs using the
+current version of the driver. Every time I read that file I would get
+slightly different values, not only for one register but for several
+of them. Also, every time I plugged in the device and opened alsamixer
+I would be presented with a different set of mixer controls. So
+obviously something was going wrong while talking to the AC97 chip.
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index 5d0384dd45b5..fa215ad37f7b 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -24,6 +24,10 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DV
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
-+struct gp8psk_state {
-+	unsigned char data[80];
-+};
-+
- static int gp8psk_get_fw_version(struct dvb_usb_device *d, u8 *fw_vers)
- {
- 	return (gp8psk_usb_in_op(d, GET_FW_VERS, 0, 0, fw_vers, 6));
-@@ -53,17 +57,19 @@ static void gp8psk_info(struct dvb_usb_device *d)
- 
- int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
- {
-+	struct gp8psk_state *st = d->priv;
- 	int ret = 0,try = 0;
- 
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
- 
- 	while (ret >= 0 && ret != blen && try < 3) {
-+		memcpy(st->data, b, blen);
- 		ret = usb_control_msg(d->udev,
- 			usb_rcvctrlpipe(d->udev,0),
- 			req,
- 			USB_TYPE_VENDOR | USB_DIR_IN,
--			value,index,b,blen,
-+			value, index, st->data, blen,
- 			2000);
- 		deb_info("reading number %d (ret: %d)\n",try,ret);
- 		try++;
-@@ -86,6 +92,7 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
- int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen)
- {
-+	struct gp8psk_state *st = d->priv;
- 	int ret;
- 
- 	deb_xfer("out: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
-@@ -94,11 +101,12 @@ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 	if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
- 		return ret;
- 
-+	memcpy(st->data, b, blen);
- 	if (usb_control_msg(d->udev,
- 			usb_sndctrlpipe(d->udev,0),
- 			req,
- 			USB_TYPE_VENDOR | USB_DIR_OUT,
--			value,index,b,blen,
-+			value,index, st->data, blen,
- 			2000) != blen) {
- 		warn("usb out operation failed.");
- 		ret = -EIO;
-@@ -265,6 +273,8 @@ static struct dvb_usb_device_properties gp8psk_properties = {
- 	.usb_ctrl = CYPRESS_FX2,
- 	.firmware = "dvb-usb-gp8psk-01.fw",
- 
-+	.size_of_priv = sizeof(struct gp8psk_state),
-+
- 	.num_adapters = 1,
- 	.adapter = {
- 		{
--- 
-2.7.4
+When analyzing the USB trace I took from Windows (on VirtualBox) I
+found long delays (2 ms) between control packets and wondered whether
+those might be set by the driver on purpose. So I tried adding delays
+in stk1160_[read|write]_reg, and sure enough, the problem disappeared.
 
+In retrospective I suspect those long delays to really be the result
+of virtualization overhead. I actually tried getting a native trace
+using USBpcap, but unfortunately its timer resolution is so low that
+it's impossible to get any useful data.
 
+Once I realized what the actual problem was I removed the delays in
+stk1160_[read|write]_reg and instead experimented with different
+delays in stk1160_read_ac97 and found 20 us to be perfectly sufficient
+to get reliable reads.
+
+Now the strange thing about this problem is that it occurs on both of
+my notebooks, but not on my desktop computer. I can only speculate
+about the reason for this. My theory is that is has something to do
+with the way different USB host controllers handle/buffer outgoing
+control packets. Both of my notebooks are recent models by Acer (a
+normal notebook and a cloudbook) and most likely use the same host
+controller. My desktop motherboard on the other hand is a bit older.
+
+So I wonder, have you experienced this problem on your own systems?
+
+Best regards
+Marcel
+
+2016-10-28 10:52 GMT+02:00 Marcel Hasler <mahasler@gmail.com>:
+> The STK1160 needs some time to transfer data from the AC97 registers into its own. On some
+> systems reading the chip's own registers to soon will return wrong values. The "proper" way to
+> handle this would be to poll STK1160_AC97CTL_0 after every read or write command until the
+> command bit has been cleared, but this may not be worth the hassle.
+>
+> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+> ---
+>  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
+> index 31bdd60d..caa65a8 100644
+> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+> @@ -20,6 +20,7 @@
+>   *
+>   */
+>
+> +#include <linux/delay.h>
+>  #include <linux/module.h>
+>
+>  #include "stk1160.h"
+> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
+>          */
+>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
+>
+> +       /* Give the chip some time to transfer data */
+> +       usleep_range(20, 40);
+> +
+>         /* Retrieve register value */
+>         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
+>         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
+> --
+> 2.10.1
+>
