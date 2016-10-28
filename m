@@ -1,43 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34070 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754033AbcJWMDG (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36640 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752045AbcJ1Iwc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 23 Oct 2016 08:03:06 -0400
-From: Leo Sperling <leosperling97@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Leo Sperling <leosperling97@gmail.com>
-Subject: [PATCH] Staging: media: davinci_vpfe: fix indentation issue in vpfe_video.c
-Date: Sun, 23 Oct 2016 14:02:23 +0200
-Message-Id: <1477224143-22653-1-git-send-email-leosperling97@gmail.com>
+        Fri, 28 Oct 2016 04:52:32 -0400
+Received: by mail-wm0-f66.google.com with SMTP id c17so6410706wmc.3
+        for <linux-media@vger.kernel.org>; Fri, 28 Oct 2016 01:52:31 -0700 (PDT)
+Date: Fri, 28 Oct 2016 10:52:24 +0200
+From: Marcel Hasler <mahasler@gmail.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] stk1160: Give the chip some time to retrieve data from AC97
+ codec.
+Message-ID: <20161028085224.GA9826@arch-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a patch to the vpfe_video.c file that fixes an indentation
-warning reported by checkpatch.pl
+The STK1160 needs some time to transfer data from the AC97 registers into its own. On some
+systems reading the chip's own registers to soon will return wrong values. The "proper" way to
+handle this would be to poll STK1160_AC97CTL_0 after every read or write command until the
+command bit has been cleared, but this may not be worth the hassle.
 
-Signed-off-by: Leo Sperling <leosperling97@gmail.com>
+Signed-off-by: Marcel Hasler <mahasler@gmail.com>
 ---
- drivers/staging/media/davinci_vpfe/vpfe_video.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 8be9f85..c34bf46 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -1143,8 +1143,8 @@ static int vpfe_buffer_prepare(struct vb2_buffer *vb)
- 	/* Initialize buffer */
- 	vb2_set_plane_payload(vb, 0, video->fmt.fmt.pix.sizeimage);
- 	if (vb2_plane_vaddr(vb, 0) &&
--		vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
--			return -EINVAL;
-+	    vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
-+		return -EINVAL;
+diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
+index 31bdd60d..caa65a8 100644
+--- a/drivers/media/usb/stk1160/stk1160-ac97.c
++++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+@@ -20,6 +20,7 @@
+  *
+  */
  
- 	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
- 	/* Make sure user addresses are aligned to 32 bytes */
++#include <linux/delay.h>
+ #include <linux/module.h>
+ 
+ #include "stk1160.h"
+@@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
+ 	 */
+ 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
+ 
++	/* Give the chip some time to transfer data */
++	usleep_range(20, 40);
++
+ 	/* Retrieve register value */
+ 	stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
+ 	stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
 -- 
-2.1.4
+2.10.1
 
