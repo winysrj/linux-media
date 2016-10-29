@@ -1,58 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:56335 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751488AbcJOQnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 15 Oct 2016 12:43:03 -0400
-Subject: Re: [PATCH 4/5] [media] winbond-cir: One variable and its check less
- in wbcir_shutdown() after error detection
-To: Sean Young <sean@mess.org>
-References: <566ABCD9.1060404@users.sourceforge.net>
- <1d7d6a2c-0f1e-3434-9023-9eab25bb913f@users.sourceforge.net>
- <84757ae3-24d2-cf9b-2217-fd9793b86078@users.sourceforge.net>
- <20161015132956.GA3393@gofer.mess.org>
-Cc: linux-media@vger.kernel.org,
-        =?UTF-8?Q?David_H=c3=a4rdeman?= <david@hardeman.nu>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <7fe65702-ac76-39f2-edea-eba007a3ee96@users.sourceforge.net>
-Date: Sat, 15 Oct 2016 18:42:52 +0200
-MIME-Version: 1.0
-In-Reply-To: <20161015132956.GA3393@gofer.mess.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:45425 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756166AbcJ2DkI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 28 Oct 2016 23:40:08 -0400
+Message-ID: <1b1a192277b0b08e800e306f7a41fc55@smtp-cloud3.xs4all.net>
+Date: Sat, 29 Oct 2016 05:40:04 +0200
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> +	/* Set CEIR_EN */
->> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
->> +set_irqmask:
->>  	/*
->>  	 * ACPI will set the HW disable bit for SP3 which means that the
->>  	 * output signals are left in an undefined state which may cause
->> @@ -876,6 +858,14 @@ wbcir_shutdown(struct pnp_dev *device)
->>  	 */
->>  	wbcir_set_irqmask(data, WBCIR_IRQ_NONE);
->>  	disable_irq(data->irq);
->> +	return;
->> +clear_bits:
->> +	/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
->> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x00, 0x07);
->> +
->> +	/* Clear CEIR_EN */
->> +	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x00, 0x01);
->> +	goto set_irqmask;
-> 
-> I'm not convinced that adding a goto which goes backwards is making this
-> code any more readible, just so that a local variable can be dropped.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for your feedback.
+Results of the daily build of media_tree:
 
-Is such a "backward jump" usual and finally required when you would like
-to move a bit of common error handling code to the end without using extra
-local variables and a few statements should still be performed after it?
+date:			Sat Oct 29 05:00:15 CEST 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
+v4l-utils git hash:	4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-Regards,
-Markus
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: WARNINGS
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+ABI WARNING: change for arm-davinci
+ABI WARNING: change for arm-multi
+ABI WARNING: change for blackfin-bf561
+ABI WARNING: change for mips
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
