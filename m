@@ -1,109 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:23886 "EHLO mga07.intel.com"
+Received: from mail.southpole.se ([37.247.8.11]:39154 "EHLO mail.southpole.se"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932806AbcJSObe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 19 Oct 2016 10:31:34 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        id S1751594AbcJ3NMk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 30 Oct 2016 09:12:40 -0400
+Received: from [192.168.1.138] (assp.southpole.se [37.247.8.10])
+        by mail.southpole.se (Postfix) with ESMTPSA id 77F814404EC
+        for <linux-media@vger.kernel.org>; Sun, 30 Oct 2016 14:12:36 +0100 (CET)
+Subject: Re: [BUG] non working drivers with current linuxtv git on Ubuntu
+ 16.04.1 LTS
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        p.zabel@pengutronix.de, niklas.soderlund@ragnatech.se
-Subject: [PATCH v3 1/1] doc-rst: v4l: Add documentation on CSI-2 bus configuration
-Date: Wed, 19 Oct 2016 17:28:45 +0300
-Message-Id: <1476887325-328-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1476887059.3054.42.camel@pengutronix.de>
-References: <1476887059.3054.42.camel@pengutronix.de>
+References: <bdd2742f-3249-9a9b-9703-be0be33bb556@southpole.se>
+From: Benjamin Larsson <benjamin@southpole.se>
+Message-ID: <568d75cc-4c1c-3547-00e1-4e1bd0464afc@southpole.se>
+Date: Sun, 30 Oct 2016 14:12:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <bdd2742f-3249-9a9b-9703-be0be33bb556@southpole.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the interface between the CSI-2 transmitter and receiver drivers.
+On 10/30/2016 01:22 PM, Benjamin Larsson wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v2:
+> I got this for my anysee card:
+>
+> dvb_usb_anysee: disagrees about version of symbol dvb_ca_en50221_init
+> dvb_usb_anysee: Unknown symbol dvb_ca_en50221_init (err -22)
+> dvb_usb_anysee: disagrees about version of symbol dvb_ca_en50221_release
+> dvb_usb_anysee: Unknown symbol dvb_ca_en50221_release (err -22)
+> dvb_usb_anysee: disagrees about version of symbol rc_keydown
+> dvb_usb_anysee: Unknown symbol rc_keydown (err -22)
+> dvb_usb_anysee: disagrees about version of symbol
+> dvb_usbv2_generic_rw_locked
+> dvb_usb_anysee: Unknown symbol dvb_usbv2_generic_rw_locked (err -22)
+>
 
-- Add bits_per_sample variable to the formula. It should be correct now.
+For unknown reasons the anysee module was not enabled.
 
- Documentation/media/kapi/csi2.rst  | 61 ++++++++++++++++++++++++++++++++++++++
- Documentation/media/media_kapi.rst |  1 +
- 2 files changed, 62 insertions(+)
- create mode 100644 Documentation/media/kapi/csi2.rst
-
-diff --git a/Documentation/media/kapi/csi2.rst b/Documentation/media/kapi/csi2.rst
-new file mode 100644
-index 0000000..2004db0
---- /dev/null
-+++ b/Documentation/media/kapi/csi2.rst
-@@ -0,0 +1,61 @@
-+MIPI CSI-2
-+==========
-+
-+CSI-2 is a data bus intended for transferring images from cameras to
-+the host SoC. It is defined by the `MIPI alliance`_.
-+
-+.. _`MIPI alliance`: http://www.mipi.org/
-+
-+Transmitter drivers
-+-------------------
-+
-+CSI-2 transmitter, such as a sensor or a TV tuner, drivers need to
-+provide the CSI-2 receiver with information on the CSI-2 bus
-+configuration. These include the V4L2_CID_LINK_FREQ and
-+V4L2_CID_PIXEL_RATE controls and
-+(:c:type:`v4l2_subdev_video_ops`->s_stream() callback). These
-+interface elements must be present on the sub-device represents the
-+CSI-2 transmitter.
-+
-+The V4L2_CID_LINK_FREQ control is used to tell the receiver driver the
-+frequency (and not the symbol rate) of the link. The
-+V4L2_CID_PIXEL_RATE is may be used by the receiver to obtain the pixel
-+rate the transmitter uses. The
-+:c:type:`v4l2_subdev_video_ops`->s_stream() callback provides an
-+ability to start and stop the stream.
-+
-+The value of the V4L2_CID_PIXEL_RATE is calculated as follows::
-+
-+	pixel_rate = link_freq * 2 * nr_of_lanes / bits_per_sample
-+
-+where
-+
-+.. list-table:: variables in pixel rate calculation
-+   :header-rows: 1
-+
-+   * - variable or constant
-+     - description
-+   * - link_freq
-+     - The value of the V4L2_CID_LINK_FREQ integer64 menu item.
-+   * - nr_of_lanes
-+     - Number of data lanes used on the CSI-2 link. This can
-+       be obtained from the OF endpoint configuration.
-+   * - 2
-+     - Two bits are transferred per clock cycle per lane.
-+   * - bits_per_sample
-+     - Number of bits per sample.
-+
-+The transmitter drivers must configure the CSI-2 transmitter to *LP-11
-+mode* whenever the transmitter is powered on but not active. Some
-+transmitters do this automatically but some have to be explicitly
-+programmed to do so.
-+
-+Receiver drivers
-+----------------
-+
-+Before the receiver driver may enable the CSI-2 transmitter by using
-+the :c:type:`v4l2_subdev_video_ops`->s_stream(), it must have powered
-+the transmitter up by using the
-+:c:type:`v4l2_subdev_core_ops`->s_power() callback. This may take
-+place either indirectly by using :c:func:`v4l2_pipeline_pm_use` or
-+directly.
-diff --git a/Documentation/media/media_kapi.rst b/Documentation/media/media_kapi.rst
-index f282ca2..bc06389 100644
---- a/Documentation/media/media_kapi.rst
-+++ b/Documentation/media/media_kapi.rst
-@@ -33,3 +33,4 @@ For more details see the file COPYING in the source distribution of Linux.
-     kapi/rc-core
-     kapi/mc-core
-     kapi/cec-core
-+    kapi/csi2
--- 
-2.7.4
+MvH
+Benjamin Larsson
 
