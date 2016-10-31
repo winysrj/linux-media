@@ -1,171 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33314 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751154AbcJENUE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 5 Oct 2016 09:20:04 -0400
-Received: by mail-wm0-f65.google.com with SMTP id p138so24560230wmb.0
-        for <linux-media@vger.kernel.org>; Wed, 05 Oct 2016 06:20:03 -0700 (PDT)
-Date: Wed, 5 Oct 2016 15:19:59 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, cc.ma@mediatek.com,
-        joakim.bech@linaro.org, burt.lien@linaro.org,
-        linus.walleij@linaro.org, linaro-mm-sig@lists.linaro.org,
-        linaro-kernel@lists.linaro.org
-Subject: Re: [PATCH v10 0/3] Secure Memory Allocation Framework
-Message-ID: <20161005131959.GE20761@phenom.ffwll.local>
-References: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1475581644-10600-1-git-send-email-benjamin.gaignard@linaro.org>
+Received: from gofer.mess.org ([80.229.237.210]:53389 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S945227AbcJaRwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Oct 2016 13:52:31 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 4/9] [media] redrat3: fix error paths in probe
+Date: Mon, 31 Oct 2016 17:52:22 +0000
+Message-Id: <1477936347-9029-5-git-send-email-sean@mess.org>
+In-Reply-To: <1477936347-9029-1-git-send-email-sean@mess.org>
+References: <1477936347-9029-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Oct 04, 2016 at 01:47:21PM +0200, Benjamin Gaignard wrote:
-> version 10 changes:
->  - rebased on kernel 4.8 tag
->  - minor typo fix
-> 
-> version 9 changes:
->  - rebased on 4.8-rc5
->  - struct dma_attrs doesn't exist anymore so update CMA allocator
->    to compile with new dma_*_attr functions
->  - add example SMAF use case in cover letter
-> 
-> version 8 changes:
->  - rework of the structures used within ioctl
->    by adding a version field and padding to be futur proof
->  - rename fake secure moduel to test secure module
->  - fix the various remarks done on the previous patcheset
-> 
-> version 7 changes:
->  - rebased on kernel 4.6-rc7
->  - simplify secure module API
->  - add vma ops to be able to detect mmap/munmap calls
->  - add ioctl to get number and allocator names
->  - update libsmaf with adding tests
->    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->  - add debug log in fake secure module
-> 
-> version 6 changes:
->  - rebased on kernel 4.5-rc4
->  - fix mmapping bug while requested allocation size isn't a a multiple of
->    PAGE_SIZE (add a test for this in libsmaf)
-> 
-> version 5 changes:
->  - rebased on kernel 4.3-rc6
->  - rework locking schema and make handle status use an atomic_t
->  - add a fake secure module to allow performing tests without trusted
->    environment
-> 
-> version 4 changes:
->  - rebased on kernel 4.3-rc3
->  - fix missing EXPORT_SYMBOL for smaf_create_handle()
-> 
-> version 3 changes:
->  - Remove ioctl for allocator selection instead provide the name of
->    the targeted allocator with allocation request.
->    Selecting allocator from userland isn't the prefered way of working
->    but is needed when the first user of the buffer is a software component.
->  - Fix issues in case of error while creating smaf handle.
->  - Fix module license.
->  - Update libsmaf and tests to care of the SMAF API evolution
->    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
-> 
-> version 2 changes:
->  - Add one ioctl to allow allocator selection from userspace.
->    This is required for the uses case where the first user of
->    the buffer is a software IP which can't perform dma_buf attachement.
->  - Add name and ranking to allocator structure to be able to sort them.
->  - Create a tiny library to test SMAF:
->    https://git.linaro.org/people/benjamin.gaignard/libsmaf.git
->  - Fix one issue when try to secure buffer without secure module registered
-> 
-> SMAF aim to solve two problems: allocating memory that fit with hardware IPs
-> constraints and secure those data from bus point of view.
-> 
-> One example of SMAF usage is camera preview: on SoC you may use either an USB
-> webcam or the built-in camera interface and the frames could be send directly
-> to the dipslay Ip or handle by GPU.
-> Most of USB interfaces and GPU have mmu but almost all built-in camera
-> interace and display Ips don't have mmu so when selecting how allocate
-> buffer you need to be aware of each devices constraints (contiguous memroy,
-> stride, boundary, alignment ...).
-> ION has solve this problem by let userland decide which allocator (heap) to use
-> but this require to adapt userland for each platform and sometime for each
-> use case.
-> 
-> To be sure to select the best allocation method for devices SMAF implement
-> deferred allocation mechanism: memory allocation is only done when the first
-> device effectively required it.
-> Allocator modules have to implement a match() to let SMAF know if they are
-> compatibles with devices needs.
-> This patch set provide an example of allocator module which use
-> dma_{alloc/free/mmap}_attrs() and check if at least one device have
-> coherent_dma_mask set to DMA_BIT_MASK(32) in match function.
-> 
-> In the same camera preview use case, SMAF allow to protect the data from being
-> read by unauthorized IPs (i.e. a malware to dump camera stream).
-> Until now I have only see access rights protection at process/thread level 
-> (PKeys/MPK) or on file (SELinux) but nothing allow to drive data bus firewalls.
-> SMAF propose an interface to control and implement those firewalls.
-> Like IOMMU, firewalls IPs can help to protect memory from malicious/faulty devices
-> that are attempting DMA attacks.
-> 
-> Secure modules are responsibles of granting and revoking devices access rights
-> on the memory. Secure module is also called to check if CPU map memory into
-> kernel and user address spaces.
-> An example of secure module implementation can be found here:
-> http://git.linaro.org/people/benjamin.gaignard/optee-sdp.git
-> This code isn't yet part of the patch set because it depends on generic TEE
-> which is still under discussion (https://lwn.net/Articles/644646/)
-> 
-> For allocation part of SMAF code I get inspirated by Sumit Semwal work about
-> constraint aware allocator.
+If redrat3_delete() is called, ensure ep_in and udev members are set
+up so we don't dereference null in the error path. Also ensure that
+rc dev device exists before we enable the receiver and that the
+led urb exists before we create the led device.
 
-semi-random review comment, and a bit late: Why not implement smaf as a
-new heap in ion? I think consensus is pretty much that we'll be stuck with
-ion forever, and I think it's better to have 1 central buffer allocater
-than lots of them ...
--Daniel
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/redrat3.c | 49 ++++++++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 26 deletions(-)
 
-> 
-> Benjamin Gaignard (3):
->   create SMAF module
->   SMAF: add CMA allocator
->   SMAF: add test secure module
-> 
->  drivers/Kconfig                |   2 +
->  drivers/Makefile               |   1 +
->  drivers/smaf/Kconfig           |  17 +
->  drivers/smaf/Makefile          |   3 +
->  drivers/smaf/smaf-cma.c        | 186 ++++++++++
->  drivers/smaf/smaf-core.c       | 818 +++++++++++++++++++++++++++++++++++++++++
->  drivers/smaf/smaf-testsecure.c |  90 +++++
->  include/linux/smaf-allocator.h |  45 +++
->  include/linux/smaf-secure.h    |  65 ++++
->  include/uapi/linux/smaf.h      |  85 +++++
->  10 files changed, 1312 insertions(+)
->  create mode 100644 drivers/smaf/Kconfig
->  create mode 100644 drivers/smaf/Makefile
->  create mode 100644 drivers/smaf/smaf-cma.c
->  create mode 100644 drivers/smaf/smaf-core.c
->  create mode 100644 drivers/smaf/smaf-testsecure.c
->  create mode 100644 include/linux/smaf-allocator.h
->  create mode 100644 include/linux/smaf-secure.h
->  create mode 100644 include/uapi/linux/smaf.h
-> 
-> -- 
-> 1.9.1
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 23180ec..eaf374d 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -982,17 +982,19 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 		goto no_endpoints;
+ 
+ 	rr3->dev = &intf->dev;
++	rr3->ep_in = ep_in;
++	rr3->ep_out = ep_out;
++	rr3->udev = udev;
+ 
+ 	/* set up bulk-in endpoint */
+ 	rr3->read_urb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (!rr3->read_urb)
+-		goto error;
++		goto redrat_free;
+ 
+-	rr3->ep_in = ep_in;
+ 	rr3->bulk_in_buf = usb_alloc_coherent(udev,
+ 		le16_to_cpu(ep_in->wMaxPacketSize), GFP_KERNEL, &rr3->dma_in);
+ 	if (!rr3->bulk_in_buf)
+-		goto error;
++		goto redrat_free;
+ 
+ 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
+ 	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
+@@ -1000,34 +1002,16 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 	rr3->read_urb->transfer_dma = rr3->dma_in;
+ 	rr3->read_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+ 
+-	rr3->ep_out = ep_out;
+-	rr3->udev = udev;
+-
+ 	redrat3_reset(rr3);
+ 	redrat3_get_firmware_rev(rr3);
+ 
+-	/* might be all we need to do? */
+-	retval = redrat3_enable_detector(rr3);
+-	if (retval < 0)
+-		goto error;
+-
+ 	/* default.. will get overridden by any sends with a freq defined */
+ 	rr3->carrier = 38000;
+ 
+-	/* led control */
+-	rr3->led.name = "redrat3:red:feedback";
+-	rr3->led.default_trigger = "rc-feedback";
+-	rr3->led.brightness_set = redrat3_brightness_set;
+-	retval = led_classdev_register(&intf->dev, &rr3->led);
+-	if (retval)
+-		goto error;
+-
+ 	atomic_set(&rr3->flash, 0);
+ 	rr3->flash_urb = usb_alloc_urb(0, GFP_KERNEL);
+-	if (!rr3->flash_urb) {
+-		retval = -ENOMEM;
+-		goto led_free_error;
+-	}
++	if (!rr3->flash_urb)
++		goto redrat_free;
+ 
+ 	/* setup packet is 'c0 b9 0000 0000 0001' */
+ 	rr3->flash_control.bRequestType = 0xc0;
+@@ -1039,20 +1023,33 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 			&rr3->flash_in_buf, sizeof(rr3->flash_in_buf),
+ 			redrat3_led_complete, rr3);
+ 
++	/* led control */
++	rr3->led.name = "redrat3:red:feedback";
++	rr3->led.default_trigger = "rc-feedback";
++	rr3->led.brightness_set = redrat3_brightness_set;
++	retval = led_classdev_register(&intf->dev, &rr3->led);
++	if (retval)
++		goto redrat_free;
++
+ 	rr3->rc = redrat3_init_rc_dev(rr3);
+ 	if (!rr3->rc) {
+ 		retval = -ENOMEM;
+-		goto led_free_error;
++		goto led_free;
+ 	}
+ 
++	/* might be all we need to do? */
++	retval = redrat3_enable_detector(rr3);
++	if (retval < 0)
++		goto led_free;
++
+ 	/* we can register the device now, as it is ready */
+ 	usb_set_intfdata(intf, rr3);
+ 
+ 	return 0;
+ 
+-led_free_error:
++led_free:
+ 	led_classdev_unregister(&rr3->led);
+-error:
++redrat_free:
+ 	redrat3_delete(rr3, rr3->udev);
+ 
+ no_endpoints:
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+2.7.4
+
