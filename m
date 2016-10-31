@@ -1,94 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56925
-        "EHLO s-opensource.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbcJUQ4L (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33832 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S946126AbcJaWsV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 21 Oct 2016 12:56:11 -0400
-Date: Fri, 21 Oct 2016 14:55:59 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>,
-        Stefan =?UTF-8?B?UMO2c2NoZWw=?= <basic.master@gmx.de>
-Subject: Re: [GIT PULL STABLE 4.6] af9035 regression
-Message-ID: <20161021145559.23b80d7b@vento.lan>
-In-Reply-To: <943812ea-cec5-46a1-8652-a468ebb2cb42@iki.fi>
-References: <1e077824-104b-4665-96c8-de46c1a63a5d@iki.fi>
-        <20160909114906.66c77b1b@vento.lan>
-        <943812ea-cec5-46a1-8652-a468ebb2cb42@iki.fi>
+        Mon, 31 Oct 2016 18:48:21 -0400
+Date: Tue, 1 Nov 2016 00:47:39 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Rob Herring <robh@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: et8ek8: add device tree binding documentation
+Message-ID: <20161031224739.GA3217@valkosipuli.retiisi.org.uk>
+References: <20161023191706.GA25754@amd>
+ <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 9 Sep 2016 18:04:07 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Hi Rob and Pavel,
 
-> On 09/09/2016 05:49 PM, Mauro Carvalho Chehab wrote:
-> > Hi Antti,
-> >
-> > Em Sat, 3 Sep 2016 02:40:52 +0300
-> > Antti Palosaari <crope@iki.fi> escreveu:
-> >  
-> >> The following changes since commit 2dcd0af568b0cf583645c8a317dd12e344b1c72a:
-> >>
-> >>    Linux 4.6 (2016-05-15 15:43:13 -0700)  
-> >
-> > Is this patchset really meant to Kernel 4.6? if so, you should send
-> > the path to stable@vger.kernel.org, c/c the mailing list.
-> >
-> > It helps to point the original patch that fixed the issue upstream,
-> > as they won't apply the fix if it was not fixed upstream yet.  
+On Sun, Oct 30, 2016 at 03:41:34PM -0500, Rob Herring wrote:
+> On Sun, Oct 23, 2016 at 09:17:06PM +0200, Pavel Machek wrote:
+> > 
+> > Add device tree binding documentation for toshiba et8ek8 sensor.
+> > 
+> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > 
+> > ---
+> > 
+> > diff from v3: explain what clock-frequency means
+> > 
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+> > new file mode 100644
+> > index 0000000..54863cf
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+> > @@ -0,0 +1,51 @@
+> > +Toshiba et8ek8 5MP sensor
+> > +
+> > +Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
+> > +
+> > +More detailed documentation can be found in
+> > +Documentation/devicetree/bindings/media/video-interfaces.txt .
+> > +
+> > +
+> > +Mandatory properties
+> > +--------------------
+> > +
+> > +- compatible: "toshiba,et8ek8"
+> > +- reg: I2C address (0x3e, or an alternative address)
+> > +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
+> > +- clocks: External clock to the sensor
+> > +- clock-frequency: Frequency of the external clock to the sensor. Camera
+> > +  driver will set this frequency on the external clock.
 > 
-> I think you already applied upstream patch, that one is just back-ported 
-> to 4.6.
+> This is fine if the frequency is fixed (e.g. an oscillator), but you 
+> should use the clock binding if clocks are programable.
 
-Ah!
+We've discussed the matter here (v3):
 
-> It is that patch:
-> https://patchwork.linuxtv.org/patch/36795/
-> 
-> and it contains all the needed tags including Cc stable. Could you send 
-> it to stable?
+<URL:http://www.spinics.net/lists/linux-media/msg101210.html>
 
-Just send the patch directly to stable@vger.kernel.org. if you
-C/C me, I'll add my acked-by.
+<URL:http://www.spinics.net/lists/linux-media/msg101233.html>
 
-> 
-> Antti
-> 
-> >
-> > Regards,
-> > Mauro
-> >  
-> >>
-> >> are available in the git repository at:
-> >>
-> >>    git://linuxtv.org/anttip/media_tree.git af9035_fix
-> >>
-> >> for you to fetch changes up to 7bb87ff5255defe87916f32cd1fcef163a489339:
-> >>
-> >>    af9035: fix dual tuner detection with PCTV 79e (2016-09-03 02:23:44
-> >> +0300)
-> >>
-> >> ----------------------------------------------------------------
-> >> Stefan Pöschel (1):
-> >>        af9035: fix dual tuner detection with PCTV 79e
-> >>
-> >>   drivers/media/usb/dvb-usb-v2/af9035.c | 53
-> >> +++++++++++++++++++++++++++++++++++------------------
-> >>   drivers/media/usb/dvb-usb-v2/af9035.h |  2 +-
-> >>   2 files changed, 36 insertions(+), 19 deletions(-)
-> >>  
-> >
-> >
-> >
-> > Thanks,
-> > Mauro
-> >  
-> 
+Pavel, could you add to the desciption e.g.:
 
+"The clock frequency is a pre-determined frequency known to be suitable to
+the board."
 
+-- 
+Kind regards,
 
-Thanks,
-Mauro
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
