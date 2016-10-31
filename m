@@ -1,154 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout02.posteo.de ([185.67.36.66]:41098 "EHLO mout02.posteo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752044AbcJJGii (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 10 Oct 2016 02:38:38 -0400
-Received: from submission (posteo.de [89.146.220.130])
-        by mout02.posteo.de (Postfix) with ESMTPS id C90D020B44
-        for <linux-media@vger.kernel.org>; Mon, 10 Oct 2016 08:38:22 +0200 (CEST)
-Date: Mon, 10 Oct 2016 08:38:18 +0200
-From: Patrick Boettcher <patrick.boettcher@posteo.de>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Jiri Kosina <jikos@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Kees Cook <keescook@chromium.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Sean Young <sean@mess.org>,
-        Nicolas Sugino <nsugino@3way.com.ar>,
-        Alejandro Torrado <aletorrado@gmail.com>
-Subject: Re: [PATCH 07/26] dib0700: be sure that dib0700_ctrl_rd() users can
- do DMA
-Message-ID: <20161010083818.2d937db6@posteo.de>
-In-Reply-To: <30a00ca71aec4502905cbdf5d1ab11c2ae7b8562.1475860773.git.mchehab@s-opensource.com>
-References: <cover.1475860773.git.mchehab@s-opensource.com>
-        <30a00ca71aec4502905cbdf5d1ab11c2ae7b8562.1475860773.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34228 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S947843AbcJaXB4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Oct 2016 19:01:56 -0400
+Date: Tue, 1 Nov 2016 01:01:51 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: p.zabel@pengutronix.de, niklas.soderlund@ragnatech.se,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: Notes on V4L2 async discussion
+Message-ID: <20161031230151.GD3217@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  7 Oct 2016 14:24:17 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+Hi folks,
 
-> dib0700_ctrl_rd() takes a RX and a TX pointer. Be sure that
-> both will point to a memory allocated via kmalloc().
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/usb/dvb-usb/dib0700_core.c    |  4 +++-
->  drivers/media/usb/dvb-usb/dib0700_devices.c | 25
-> +++++++++++++------------ 2 files changed, 16 insertions(+), 13
-> deletions(-)
-> 
-> diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c
-> b/drivers/media/usb/dvb-usb/dib0700_core.c index
-> f3196658fb70..515f89dba199 100644 ---
-> a/drivers/media/usb/dvb-usb/dib0700_core.c +++
-> b/drivers/media/usb/dvb-usb/dib0700_core.c @@ -292,13 +292,15 @@
-> static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap, 
->  			/* special thing in the current firmware:
-> when length is zero the read-failed */ len = dib0700_ctrl_rd(d,
-> st->buf, msg[i].len + 2,
-> -					msg[i+1].buf, msg[i+1].len);
-> +					      st->buf, msg[i +
-> 1].len); if (len <= 0) {
->  				deb_info("I2C read failed on address
-> 0x%02x\n", msg[i].addr);
->  				break;
->  			}
->  
-> +			memcpy(msg[i + 1].buf, st->buf, msg[i +
-> 1].len); +
->  			msg[i+1].len = len;
->  
->  			i++;
-> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c
-> b/drivers/media/usb/dvb-usb/dib0700_devices.c index
-> 0857b56e652c..ef1b8ee75c57 100644 ---
-> a/drivers/media/usb/dvb-usb/dib0700_devices.c +++
-> b/drivers/media/usb/dvb-usb/dib0700_devices.c @@ -508,8 +508,6 @@
-> static int stk7700ph_tuner_attach(struct dvb_usb_adapter *adap) 
->  #define DEFAULT_RC_INTERVAL 50
->  
-> -static u8 rc_request[] = { REQUEST_POLL_RC, 0 };
-> -
->  /*
->   * This function is used only when firmware is < 1.20 version. Newer
->   * firmwares use bulk mode, with functions implemented at
-> dib0700_core, @@ -517,7 +515,6 @@ static u8 rc_request[] =
-> { REQUEST_POLL_RC, 0 }; */
->  static int dib0700_rc_query_old_firmware(struct dvb_usb_device *d)
->  {
-> -	u8 key[4];
->  	enum rc_type protocol;
->  	u32 scancode;
->  	u8 toggle;
-> @@ -532,39 +529,43 @@ static int dib0700_rc_query_old_firmware(struct
-> dvb_usb_device *d) return 0;
->  	}
->  
-> -	i = dib0700_ctrl_rd(d, rc_request, 2, key, 4);
-> +	st->buf[0] = REQUEST_POLL_RC;
-> +	st->buf[1] = 0;
-> +
-> +	i = dib0700_ctrl_rd(d, st->buf, 2, st->buf, 4);
->  	if (i <= 0) {
->  		err("RC Query Failed");
-> -		return -1;
-> +		return -EIO;
->  	}
->  
->  	/* losing half of KEY_0 events from Philipps rc5 remotes.. */
-> -	if (key[0] == 0 && key[1] == 0 && key[2] == 0 && key[3] == 0)
-> +	if (st->buf[0] == 0 && st->buf[1] == 0
-> +	    && st->buf[2] == 0 && st->buf[3] == 0)
->  		return 0;
->  
-> -	/* info("%d: %2X %2X %2X
-> %2X",dvb_usb_dib0700_ir_proto,(int)key[3-2],(int)key[3-3],(int)key[3-1],(int)key[3]);
-> */
-> +	/* info("%d: %2X %2X %2X
-> %2X",dvb_usb_dib0700_ir_proto,(int)st->buf[3 - 2],(int)st->buf[3 -
-> 3],(int)st->buf[3 - 1],(int)st->buf[3]);  */ dib0700_rc_setup(d,
-> NULL); /* reset ir sensor data to prevent false events */ 
->  	switch (d->props.rc.core.protocol) {
->  	case RC_BIT_NEC:
->  		/* NEC protocol sends repeat code as 0 0 0 FF */
-> -		if ((key[3-2] == 0x00) && (key[3-3] == 0x00) &&
-> -		    (key[3] == 0xff)) {
-> +		if ((st->buf[3 - 2] == 0x00) && (st->buf[3 - 3] ==
-> 0x00) &&
-> +		    (st->buf[3] == 0xff)) {
->  			rc_repeat(d->rc_dev);
->  			return 0;
->  		}
->  
->  		protocol = RC_TYPE_NEC;
-> -		scancode = RC_SCANCODE_NEC(key[3-2], key[3-3]);
-> +		scancode = RC_SCANCODE_NEC(st->buf[3 - 2], st->buf[3
-> - 3]); toggle = 0;
->  		break;
->  
->  	default:
->  		/* RC-5 protocol changes toggle bit on new keypress
-> */ protocol = RC_TYPE_RC5;
-> -		scancode = RC_SCANCODE_RC5(key[3-2], key[3-3]);
-> -		toggle = key[3-1];
-> +		scancode = RC_SCANCODE_RC5(st->buf[3 - 2], st->buf[3
-> - 3]);
-> +		toggle = st->buf[3 - 1];
->  		break;
->  	}
->  
+Here are my notes on the V4L2 async development discussion we had a couple
+of days ago.
 
-Reviewed-By: Patrick Boettcher <patrick.boettcher@posteo.de>
+Philipp Zabel, Niklas Söderlund, Laurent Pinchart and myself were present.
+
+
+Background
+----------
+
+The V4L2 async framework provides all-important support for delaying the
+registration of the external sub-devices until all the necessary information
+is available in order to finish the device registration.
+
+New use cases have surfaced since the original V4L2 async framework. While
+the original framework dealt with attaching single sub-devices to the ISP
+(or bridge) device which also was the owner of the media device, we now have
+an entire graph of devices described in DT. This is demonstrated by e.g. the
+ADV7482 analogue / HDMI -> CSI-2 converter [1] and the iMX6 IPU [2].
+
+
+New use cases
+-------------
+
+In order to support graphs, there are two approaches that can be taken in
+extending the V4L2 async framework:
+
+1. Take the next logical step in extending the V4L2 async framework and add
+   support for a different kind of a notifier and a callback for sub-devices
+   to register other sub-devices or
+2. Implement a generic OF graph parser which parses the entire graph,
+   possibly initiated by the Media device owner driver.
+
+In the first option, the use of callbacks to driver functions to call other
+callbacks suggests that the framework is getting perhaps a little bit more
+complicated than it would need to be. Graph parsing is generic, independent
+of hardware. There is also a significant risk of getting things wrong in
+drivers, and on the other hand the framework could do more of the driver's job.
+
+The V4L2 async framework would require changes beyond (1) also because there
+will be other than 1:1 relations between sub-devices and async slaves (now
+called async sub-devices).
+
+Thus, from debugging, maintenance and niceness point of view the second
+option is preferred.
+
+
+Changes required
+----------------
+
+- A generic graph parsing function is needed. The function is called on a
+  device node of the Media device driver's device.
+
+	- Endpoints may refer to non-V4L2 devices as well. The drivers must
+	  thus be consulted before parsing the OF links from a device_node,
+	  in order to tell whether or not one or more ports should be
+	  ignored. A callback is added for this purpose.
+	
+		- Driver's probe must be run first.
+
+		- Probably default to parsing all.
+
+- There may be other than 1:1 relations between device nodes and
+  sub-devices (for device node which is related to a sub-device). In ADV7482
+  case the driver could well instantiate several sub-devices for a single
+  device node.
+
+	- Instead of registering sub-devices with the async framework, async
+	  slave concept should be used to replace async sub-devices.
+	
+		- An async slave is registered for each device's device
+		  node by the driver in its probe() function.
+
+	- Matching can be done using either the device or port node.
+
+		- Using the port node does have the benefit of making it
+		  possible to have a single list of nodes to match against.
+
+- Sub-device registration to the media device can be postponed until the full
+  graph is parsed. There may be other benefits from this. Once all
+  sub-devices have been registered, the media device is finally registered.
+
+	- The sub-devices can be registered to the media device only when
+	  the media device itself is registered.
+		
+As there will be V4L2 async API changes to the existing API, this should be
+tried first with one driver before converting more drivers.
+
+
+References
+----------
+
+[1] http://www.retiisi.org.uk/v4l2/tmp/adv7482.txt
+
+[2] http://www.retiisi.org.uk/v4l2/tmp/imx6.txt
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
