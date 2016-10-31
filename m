@@ -1,148 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-proxy004.phy.lolipop.jp ([157.7.104.45]:41778 "EHLO
-        smtp-proxy004.phy.lolipop.jp" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750770AbcJRXDK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 19:03:10 -0400
-Subject: Re: [PATCH v2 53/58] firewire: don't break long lines
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <cover.1476822924.git.mchehab@s-opensource.com>
- <bce754e03eef20b560c05a33d7cf68f6030e68e7.1476822925.git.mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux1394-devel@lists.sourceforge.net,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Message-ID: <84c06fb2-d147-689d-8d42-ce6b1f400a1f@sakamocchi.jp>
-Date: Wed, 19 Oct 2016 08:03:01 +0900
+Received: from mx1.redhat.com ([209.132.183.28]:44622 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S945230AbcJaRzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Oct 2016 13:55:45 -0400
+Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
+To: Lorenzo Stoakes <lstoakes@gmail.com>
+References: <20161031100228.17917-1-lstoakes@gmail.com>
+ <20161031100228.17917-3-lstoakes@gmail.com>
+ <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
+ <20161031134849.GA13609@lucifer>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
+        Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>,
+        Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com,
+        linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+From: Paolo Bonzini <pbonzini@redhat.com>
+Message-ID: <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
+Date: Mon, 31 Oct 2016 18:55:33 +0100
 MIME-Version: 1.0
-In-Reply-To: <bce754e03eef20b560c05a33d7cf68f6030e68e7.1476822925.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20161031134849.GA13609@lucifer>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On Oct 19 2016 05:46, Mauro Carvalho Chehab wrote:
-> Due to the 80-cols restrictions, and latter due to checkpatch
-> warnings, several strings were broken into multiple lines. This
-> is not considered a good practice anymore, as it makes harder
-> to grep for strings at the source code.
+
+On 31/10/2016 14:48, Lorenzo Stoakes wrote:
+> On Mon, Oct 31, 2016 at 12:45:36PM +0100, Paolo Bonzini wrote:
+>>
+>>
+>> On 31/10/2016 11:02, Lorenzo Stoakes wrote:
+>>> - *
+>>> - * get_user_pages should be phased out in favor of
+>>> - * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
+>>> - * should use get_user_pages because it cannot pass
+>>> - * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
+>>
+>> This comment should be preserved in some way.  In addition, removing
 > 
-> As we're right now fixing other drivers due to KERN_CONT, we need
-> to be able to identify what printk strings don't end with a "\n".
-> It is a way easier to detect those if we don't break long lines.
+> Could you clarify what you think should be retained?
 > 
-> So, join those continuation lines.
+> The comment seems to me to be largely rendered redundant by this change -
+> get_user_pages() now offers identical behaviour, and of course the latter part
+> of the comment ('because it cannot pass FAULT_FLAG_ALLOW_RETRY') is rendered
+> incorrect by this change.
 > 
-> The patch was generated via the script below, and manually
-> adjusted if needed.
+> It could be replaced with a recommendation to make use of VM_FAULT_RETRY logic
+> if possible.
+
+Yes, exactly.  locked == NULL should be avoided whenever mmap_sem can 
+be dropped, and the comment indirectly said so.  Now most of those cases
+actually are those where you can just call get_user_pages_unlocked.
+
+>> get_user_pages_locked() makes it harder (compared to a simple "git grep
+>> -w") to identify callers that lack allow-retry functionality).  So I'm
+>> not sure about the benefits of these patches.
 > 
-> </script>
-> use Text::Tabs;
-> while (<>) {
-> 	if ($next ne "") {
-> 		$c=$_;
-> 		if ($c =~ /^\s+\"(.*)/) {
-> 			$c2=$1;
-> 			$next =~ s/\"\n$//;
-> 			$n = expand($next);
-> 			$funpos = index($n, '(');
-> 			$pos = index($c2, '",');
-> 			if ($funpos && $pos > 0) {
-> 				$s1 = substr $c2, 0, $pos + 2;
-> 				$s2 = ' ' x ($funpos + 1) . substr $c2, $pos + 2;
-> 				$s2 =~ s/^\s+//;
+> That's a fair point, and certainly this cleanup series is less obviously helpful
+> than previous ones.
 > 
-> 				$s2 = ' ' x ($funpos + 1) . $s2 if ($s2 ne "");
+> However, there are a few points in its favour:
 > 
-> 				print unexpand("$next$s1\n");
-> 				print unexpand("$s2\n") if ($s2 ne "");
-> 			} else {
-> 				print "$next$c2\n";
-> 			}
-> 			$next="";
-> 			next;
-> 		} else {
-> 			print $next;
-> 		}
-> 		$next="";
-> 	} else {
-> 		if (m/\"$/) {
-> 			if (!m/\\n\"$/) {
-> 				$next=$_;
-> 				next;
-> 			}
-> 		}
-> 	}
-> 	print $_;
-> }
-> </script>
+> 1. get_user_pages_remote() was the mirror of get_user_pages() prior to adding an
+>    int *locked parameter to the former (necessary to allow for the unexport of
+>    __get_user_pages_unlocked()), differing only in task/mm being specified and
+>    FOLL_REMOTE being set. This patch series keeps these functions 'synchronised'
+>    in this respect.
 > 
-> Reviewed-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-> Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/firewire/firedtv-rc.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> 2. There is currently only one caller of get_user_pages_locked() in
+>    mm/frame_vector.c which seems to suggest this function isn't widely
+>    used/known.
+
+Or not widely necessary. :)
+
+> 3. This change results in all slow-path get_user_pages*() functions having the
+>    ability to use VM_FAULT_RETRY logic rather than 'defaulting' to using
+>    get_user_pages() that doesn't let you do this even if you wanted to.
+
+This is only true if someone does the work though.  From a quick look 
+at your series, the following files can be trivially changed to use 
+get_user_pages_unlocked:
+
+- drivers/gpu/drm/via/via_dmablit.c
+- drivers/platform/goldfish/goldfish_pipe.c
+- drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+- drivers/rapidio/devices/rio_mport_cdev.c
+- drivers/virt/fsl_hypervisor.c
+
+Also, videobuf_dma_init_user could be changed to use retry by adding a 
+*locked argument to videobuf_dma_init_user_locked, prototype patch 
+after my signature.
+
+Everything else is probably best kept using get_user_pages.
+
+> 4. It's somewhat confusing/redundant having both get_user_pages_locked() and
+>    get_user_pages() functions which both require mmap_sem to be held (i.e. both
+>    are 'locked' versions.)
 > 
-> diff --git a/drivers/media/firewire/firedtv-rc.c b/drivers/media/firewire/firedtv-rc.c
-> index f82d4a93feb3..46dde73944df 100644
-> --- a/drivers/media/firewire/firedtv-rc.c
-> +++ b/drivers/media/firewire/firedtv-rc.c
-> @@ -184,8 +184,8 @@ void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code)
->  	else if (code >= 0x4540 && code <= 0x4542)
->  		code = oldtable[code - 0x4521];
->  	else {
-> -		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x "
-> -		       "from remote control\n", code);
-> +		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x from remote control\n",
-> +		       code);
->  		return;
->  	}
+>> If all callers were changed, then sure removing the _locked suffix would
+>> be a good idea.
+> 
+> It seems many callers cannot release mmap_sem so VM_FAULT_RETRY logic couldn't
+> happen anyway in this cases and in these cases we couldn't change the caller.
 
-I realized that we can use dev_dbg() instead of the printk(). What do
-you think about this patch? Anyway, the line is within 80 characters.
+But then get_user_pages_locked remains a less-common case, so perhaps 
+it's a good thing to give it a longer name!
 
--------- 8< --------
+> Overall, an alternative here might be to remove get_user_pages() and update
+> get_user_pages_locked() to add a 'vmas' parameter, however doing this renders
+> get_user_pages_unlocked() asymmetric as it would lack an vmas parameter (adding
+> one there would make no sense as VM_FAULT_RETRY logic invalidates VMAs) though
+> perhaps not such a big issue as it makes sense as to why this is the case.
 
->From da3289a04226450d6dbabb5c81155ac17c11374d Mon Sep 17 00:00:00 2001
-From: Takashi Sakamoto <o-takashi@sakamocchi.jp>
-Date: Wed, 19 Oct 2016 07:53:35 +0900
-Subject: [PATCH] [media] firewire: use dev_dbg() instead of printk()
+Adding the 'vmas' parameter to get_user_pages_locked would make little 
+sense.  Since VM_FAULT_RETRY invalidates it and g_u_p_locked can and 
+does retry, it would generally not be useful.
 
-A structure for firedtv (struct firedtv) has a member for a pointer to
-struct device. In this case, we can use dev_dbg() for debug printing.
-This is more preferrable behaviour in device driver development.
+So I think we have the right API now:
 
-Signed-off-by: Takashi Sakamoto <o-takashi@sakamocchi.jp>
----
- drivers/media/firewire/firedtv-rc.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+- do not have lock?  Use get_user_pages_unlocked, get retry for free,
+no need to handle  mmap_sem and the locked argument; cannot get back vmas.
 
-diff --git a/drivers/media/firewire/firedtv-rc.c
-b/drivers/media/firewire/firedtv-rc.c
-index f82d4a9..04dea2a 100644
---- a/drivers/media/firewire/firedtv-rc.c
-+++ b/drivers/media/firewire/firedtv-rc.c
-@@ -184,8 +184,9 @@ void fdtv_handle_rc(struct firedtv *fdtv, unsigned
-int code)
- 	else if (code >= 0x4540 && code <= 0x4542)
- 		code = oldtable[code - 0x4521];
- 	else {
--		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x "
--		       "from remote control\n", code);
-+		dev_dbg(fdtv->device,
-+			"invalid key code 0x%04x from remote control\n",
-+			code);
- 		return;
- 	}
+- have and cannot drop lock?  User get_user_pages, no need to pass NULL 
+for the locked argument; can get back vmas.
 
--- 
-2.7.4
+- have but can drop lock (rare case)?  Use get_user_pages_locked, 
+cannot get back vams.
 
+Paolo
 
-Regards
+> get_user_pages_unlocked() definitely seems to be a useful helper and therefore
+> makes sense to retain.
 
-Takashi Sakamoto
+> Of course another alternative is to leave things be :)
+> 
+
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 1db0af6c7f94..dae4eb8e9d5b 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -152,7 +152,8 @@ static void videobuf_dma_init(struct videobuf_dmabuf *dma)
+ }
+ 
+ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+-			int direction, unsigned long data, unsigned long size)
++			int direction, unsigned long data, unsigned long size,
++			int *locked)
+ {
+ 	unsigned long first, last;
+ 	int err, rw = 0;
+@@ -185,8 +186,17 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
+ 		data, size, dma->nr_pages);
+ 
+-	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
+-			     flags, dma->pages, NULL);
++	if (locked && !*locked) {
++		down_read(&current->mm->mmap_sem);
++		*locked = 1;
++	}
++
++	/*
++	 * If the caller cannot have mmap_sem dropped, it passes locked == NULL
++	 * so get_user_pages_locked will not release it.
++	 */
++	err = get_user_pages_locked(data & PAGE_MASK, dma->nr_pages,
++				    flags, dma->pages, locked);
+ 
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
+@@ -200,10 +210,11 @@ static int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
+ 			   unsigned long data, unsigned long size)
+ {
+ 	int ret;
++	int locked = 0;
+ 
+-	down_read(&current->mm->mmap_sem);
+-	ret = videobuf_dma_init_user_locked(dma, direction, data, size);
+-	up_read(&current->mm->mmap_sem);
++	ret = videobuf_dma_init_user_locked(dma, direction, data, size, &locked);
++	if (locked)
++		up_read(&current->mm->mmap_sem);
+ 
+ 	return ret;
+ }
+@@ -540,7 +551,7 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+ 
+ 			err = videobuf_dma_init_user_locked(&mem->dma,
+ 						      DMA_FROM_DEVICE,
+-						      vb->baddr, vb->bsize);
++						      vb->baddr, vb->bsize, NULL);
+ 			if (0 != err)
+ 				return err;
+ 		}
