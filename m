@@ -1,144 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:34462 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935006AbcJRPBn (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34046 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S946090AbcJaWyN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 18 Oct 2016 11:01:43 -0400
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: horms@verge.net.au
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        magnus.damm@gmail.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, william.towle@codethink.co.uk,
-        niklas.soderlund@ragnatech.se, geert@linux-m68k.org,
-        sergei.shtylyov@cogentembedded.com,
-        Rob Taylor <rob.taylor@codethink.co.uk>,
-        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-Subject: [PATCH v2 1/2] ARM: dts: lager: Add entries for VIN HDMI input support
-Date: Tue, 18 Oct 2016 17:01:33 +0200
-Message-Id: <1476802894-5105-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1476802894-5105-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+        Mon, 31 Oct 2016 18:54:13 -0400
+Date: Tue, 1 Nov 2016 00:54:08 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
+References: <20161023200355.GA5391@amd>
+ <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
+ <20161023203315.GC6391@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161023203315.GC6391@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: William Towle <william.towle@codethink.co.uk>
+Hi Pavel,
 
-Add DT entries for vin0, vin0_pins, and adv7612.
+On Sun, Oct 23, 2016 at 10:33:15PM +0200, Pavel Machek wrote:
+> Hi!
+> 
+> > Thanks, this answered half of my questions already. ;-)
+> 
+> :-).
+> 
+> I'll have to go through the patches, et8ek8 driver is probably not
+> enough to get useful video. platform/video-bus-switch.c is needed for
+> camera switching, then some omap3isp patches to bind flash and
+> autofocus into the subdevice.
+> 
+> Then, device tree support on n900 can be added.
 
-Sets the 'default-input' property for ADV7612, enabling image and video
-capture without the need to have userspace specifying routing.
+I briefly discussed with with Sebastian.
 
-Signed-off-by: William Towle <william.towle@codethink.co.uk>
-Signed-off-by: Rob Taylor <rob.taylor@codethink.co.uk>
-[uli: added interrupt, renamed endpoint, merged default-input]
-Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
----
- arch/arm/boot/dts/r8a7790-lager.dts | 66 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 64 insertions(+), 2 deletions(-)
+Do you think the elusive support for the secondary camera is worth keeping
+out the main camera from the DT in mainline? As long as there's a reasonable
+way to get it working, I'd just merge that. If someone ever gets the
+secondary camera working properly and nicely with the video bus switch,
+that's cool, we'll somehow deal with the problem then. But frankly I don't
+think it's very useful even if we get there: the quality is really bad.
 
-diff --git a/arch/arm/boot/dts/r8a7790-lager.dts b/arch/arm/boot/dts/r8a7790-lager.dts
-index 52b56fc..4342682 100644
---- a/arch/arm/boot/dts/r8a7790-lager.dts
-+++ b/arch/arm/boot/dts/r8a7790-lager.dts
-@@ -231,12 +231,23 @@
- 		};
- 	};
- 
-+	hdmi-in {
-+		compatible = "hdmi-connector";
-+		type = "a";
-+
-+		port {
-+			hdmi_con_in: endpoint {
-+				remote-endpoint = <&adv7612_in>;
-+			};
-+		};
-+	};
-+
- 	hdmi-out {
- 		compatible = "hdmi-connector";
- 		type = "a";
- 
- 		port {
--			hdmi_con: endpoint {
-+			hdmi_con_out: endpoint {
- 				remote-endpoint = <&adv7511_out>;
- 			};
- 		};
-@@ -427,6 +438,11 @@
- 		function = "usb2";
- 	};
- 
-+	vin0_pins: vin0 {
-+		groups = "vin0_data24", "vin0_sync", "vin0_clkenb", "vin0_clk";
-+		function = "vin0";
-+	};
-+
- 	vin1_pins: vin1 {
- 		groups = "vin1_data8", "vin1_clk";
- 		function = "vin1";
-@@ -646,7 +662,34 @@
- 			port@1 {
- 				reg = <1>;
- 				adv7511_out: endpoint {
--					remote-endpoint = <&hdmi_con>;
-+					remote-endpoint = <&hdmi_con_out>;
-+				};
-+			};
-+		};
-+	};
-+
-+	hdmi-in@4c {
-+		compatible = "adi,adv7612";
-+		reg = <0x4c>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <20 IRQ_TYPE_LEVEL_LOW>;
-+		default-input = <0>;
-+
-+		ports {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			port@0 {
-+				reg = <0>;
-+				adv7612_in: endpoint {
-+					remote-endpoint = <&hdmi_con_in>;
-+				};
-+			};
-+
-+			port@2 {
-+				reg = <2>;
-+				adv7612_out: endpoint {
-+					remote-endpoint = <&vin0ep2>;
- 				};
- 			};
- 		};
-@@ -722,6 +765,25 @@
- 	status = "okay";
- };
- 
-+/* HDMI video input */
-+&vin0 {
-+	pinctrl-0 = <&vin0_pins>;
-+	pinctrl-names = "default";
-+
-+	status = "okay";
-+
-+	port {
-+		vin0ep2: endpoint {
-+			remote-endpoint = <&adv7612_out>;
-+			bus-width = <24>;
-+			hsync-active = <0>;
-+			vsync-active = <0>;
-+			pclk-sample = <1>;
-+			data-active = <1>;
-+		};
-+	};
-+};
-+
- /* composite video input */
- &vin1 {
- 	pinctrl-0 = <&vin1_pins>;
+> > Do all the modes work for you currently btw.?
+> 
+> I don't think I got 5MP mode to work. Even 2.5MP mode is tricky (needs
+> a lot of continuous memory).
+
+The OMAP 3 ISP has got an MMU, getting some contiguous memory is not really
+a problem when you have a 4 GiB empty space to use.
+
+> Anyway, I have to start somewhere, and I believe this is a good
+> starting place; I'd like to get the code cleaned up and merged, then
+> move to the next parts.
+
+I wonder if something else could be the problem. I think the data rate is
+higher in the 5 MP mode, and that might be the reason. I don't remember how
+similar is the clock tree in the 3430 to the 3630. Could it be that the ISP
+clock is lower than it should be for some reason, for instance?
+
 -- 
-2.7.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
