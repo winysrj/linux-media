@@ -1,69 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48650 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755105AbcJNRrH (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:33740 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935873AbcJaLpn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 14 Oct 2016 13:47:07 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 13/25] [media] dvb_demux: uncomment a packet loss check code
-Date: Fri, 14 Oct 2016 14:45:51 -0300
-Message-Id: <80f91bcddf727c2bb50b3fc378d9b5640dd2f239.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1476466574.git.mchehab@s-opensource.com>
-References: <cover.1476466574.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        Mon, 31 Oct 2016 07:45:43 -0400
+Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
+To: Lorenzo Stoakes <lstoakes@gmail.com>, linux-mm@kvack.org
+References: <20161031100228.17917-1-lstoakes@gmail.com>
+ <20161031100228.17917-3-lstoakes@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>,
+        Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com,
+        linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+From: Paolo Bonzini <pbonzini@redhat.com>
+Message-ID: <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
+Date: Mon, 31 Oct 2016 12:45:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161031100228.17917-3-lstoakes@gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a commented code that also detects packet loss.
-Uncomment it and put into the DVB_DEMUX_SECTION_LOSS_LOG
-debug Kconfig option.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_demux.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 5a69b0bda4bb..51bf5eb2df49 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -110,21 +110,23 @@ static inline int dvb_dmx_swfilter_payload(struct dvb_demux_feed *feed,
- {
- 	int count = payload(buf);
- 	int p;
--	//int ccok;
--	//u8 cc;
-+#ifdef CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
-+	int ccok;
-+	u8 cc;
-+#endif
- 
- 	if (count == 0)
- 		return -1;
- 
- 	p = 188 - count;
- 
--	/*
-+#ifdef CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
- 	cc = buf[3] & 0x0f;
- 	ccok = ((feed->cc + 1) & 0x0f) == cc;
- 	feed->cc = cc;
- 	if (!ccok)
- 		dprintk("missed packet!\n");
--	*/
-+#endif
- 
- 	if (buf[1] & 0x40)	// PUSI ?
- 		feed->peslen = 0xfffa;
--- 
-2.7.4
 
 
+On 31/10/2016 11:02, Lorenzo Stoakes wrote:
+> - *
+> - * get_user_pages should be phased out in favor of
+> - * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
+> - * should use get_user_pages because it cannot pass
+> - * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
+
+This comment should be preserved in some way.  In addition, removing
+get_user_pages_locked() makes it harder (compared to a simple "git grep
+-w") to identify callers that lack allow-retry functionality).  So I'm
+not sure about the benefits of these patches.
+
+If all callers were changed, then sure removing the _locked suffix would
+be a good idea.
+
+Paolo
