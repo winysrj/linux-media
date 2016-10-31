@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:54430 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753718AbcJGHw6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 7 Oct 2016 03:52:58 -0400
-Date: Fri, 7 Oct 2016 09:52:56 +0200 (CEST)
-From: Jiri Kosina <jikos@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-cc: =?ISO-8859-15?Q?J=F6rg_Otte?= <jrg.otte@gmail.com>,
-        Johannes Stezenbach <js@linuxtv.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problem with VMAP_STACK=y
-In-Reply-To: <20161006141734.4b2e4880@vento.lan>
-Message-ID: <alpine.LNX.2.00.1610070952010.31629@cbobk.fhfr.pm>
-References: <CADDKRnB1=-zj8apQ3vBfbxVZ8Dc4DJbD1MHynC9azNpfaZeF6Q@mail.gmail.com> <alpine.LRH.2.00.1610041519160.1123@gjva.wvxbf.pm> <CADDKRnA1qjyejvmmKQ9MuxH6Dkc7Uhwq4BSFVsOS3U-eBWP9GA@mail.gmail.com> <alpine.LNX.2.00.1610050925470.31629@cbobk.fhfr.pm>
- <20161005093417.6e82bd97@vdr> <alpine.LNX.2.00.1610050947380.31629@cbobk.fhfr.pm> <20161005060450.1b0f2152@vento.lan> <20161005182945.nkpphvd6wtk6kq7h@linuxtv.org> <20161005155532.682258e2@vento.lan> <CADDKRnCV7YhD5ErkvWSL8P3adymCLqzp5OePYmGp0L=9Dt_=UA@mail.gmail.com>
- <20161006141734.4b2e4880@vento.lan>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36012 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1764454AbcJaKCm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Oct 2016 06:02:42 -0400
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+To: linux-mm@kvack.org
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>,
+        Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Paolo Bonzini <pbonzini@redhat.com>,
+        linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com,
+        linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH 0/2] mm: remove get_user_pages_locked()
+Date: Mon, 31 Oct 2016 10:02:26 +0000
+Message-Id: <20161031100228.17917-1-lstoakes@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 6 Oct 2016, Mauro Carvalho Chehab wrote:
+by adding an int *locked parameter to get_user_pages() callers to this function
+can now utilise VM_FAULT_RETRY functionality.
 
-> I can't see any other obvious error on the conversion. You could try to 
-> enable debug options at DVB core/dvb-usb and/or add some printk's to the 
-> driver and see what's happening.
+Taken in conjunction with the patch series adding the same parameter to
+get_user_pages_remote() this means all slow-path get_user_pages*() functions
+will now have the ability to utilise VM_FAULT_RETRY.
 
-Mauro, also please don't forget that there are many more places in 
-drivers/media that still perform DMA on stack, and so have to be fixed for 
-4.9 (as VMAP_STACK makes that to be immediately visible problem even on 
-x86_64, which it wasn't the case before).
+Additionally get_user_pages() and get_user_pages_remote() previously mirrored
+one another in functionality differing only in the ability to specify task/mm,
+this patch series reinstates this relationship.
 
-Thanks,
+This patch series should not introduce any functional changes.
 
--- 
-Jiri Kosina
-SUSE Labs
+Lorenzo Stoakes (2):
+  mm: add locked parameter to get_user_pages()
+  mm: remove get_user_pages_locked()
 
+ arch/cris/arch-v32/drivers/cryptocop.c             |  2 +
+ arch/ia64/kernel/err_inject.c                      |  2 +-
+ arch/x86/mm/mpx.c                                  |  2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c            |  2 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c                |  2 +-
+ drivers/gpu/drm/via/via_dmablit.c                  |  2 +-
+ drivers/infiniband/core/umem.c                     |  2 +-
+ drivers/infiniband/hw/mthca/mthca_memfree.c        |  3 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c         |  2 +-
+ drivers/infiniband/hw/usnic/usnic_uiom.c           |  2 +-
+ drivers/media/v4l2-core/videobuf-dma-sg.c          |  2 +-
+ drivers/misc/mic/scif/scif_rma.c                   |  1 +
+ drivers/misc/sgi-gru/grufault.c                    |  3 +-
+ drivers/platform/goldfish/goldfish_pipe.c          |  2 +-
+ drivers/rapidio/devices/rio_mport_cdev.c           |  2 +-
+ .../interface/vchiq_arm/vchiq_2835_arm.c           |  3 +-
+ .../vc04_services/interface/vchiq_arm/vchiq_arm.c  |  3 +-
+ drivers/virt/fsl_hypervisor.c                      |  2 +-
+ include/linux/mm.h                                 |  4 +-
+ mm/frame_vector.c                                  |  4 +-
+ mm/gup.c                                           | 62 ++++++++--------------
+ mm/ksm.c                                           |  3 +-
+ mm/mempolicy.c                                     |  2 +-
+ mm/nommu.c                                         | 10 +---
+ virt/kvm/kvm_main.c                                |  4 +-
+ 25 files changed, 55 insertions(+), 73 deletions(-)
