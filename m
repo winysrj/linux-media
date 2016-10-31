@@ -1,107 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:53992 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964960AbcJVRgT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 22 Oct 2016 13:36:19 -0400
-Reply-To: <ps00de@yahoo.de>
-From: <ps00de@yahoo.de>
-To: "'Mauro Carvalho Chehab'" <mchehab@s-opensource.com>,
-        <ps00de@yahoo.de>
-Cc: <linux-media@vger.kernel.org>
-References: <000901d22a39$9de21e70$d9a65b50$@yahoo.de> <20161019171419.3343cdd5@vento.lan>
-In-Reply-To: <20161019171419.3343cdd5@vento.lan>
-Subject: AW: em28xx WinTV dualHD in Raspbian
-Date: Sat, 22 Oct 2016 19:36:13 +0200
-Message-ID: <009201d22c8a$c93b9580$5bb2c080$@yahoo.de>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36775 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S945621AbcJaT2a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 31 Oct 2016 15:28:30 -0400
+Date: Mon, 31 Oct 2016 19:28:26 +0000
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+To: Paolo Bonzini <pbonzini@redhat.com>
+Cc: linux-mm@kvack.org, Linus Torvalds <torvalds@linux-foundation.org>,
+        Michal Hocko <mhocko@kernel.org>, Jan Kara <jack@suse.cz>,
+        Hugh Dickins <hughd@google.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Rik van Riel <riel@redhat.com>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-cris-kernel@axis.com,
+        linux-ia64@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-rdma@vger.kernel.org, kvm@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 2/2] mm: remove get_user_pages_locked()
+Message-ID: <20161031192826.GA13380@lucifer>
+References: <20161031100228.17917-1-lstoakes@gmail.com>
+ <20161031100228.17917-3-lstoakes@gmail.com>
+ <cc508436-156e-eb4b-ae01-b44f33c2d692@redhat.com>
+ <20161031134849.GA13609@lucifer>
+ <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: de
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ddbe34d0-5d29-abce-1627-f464635bbfe6@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I gave up and compiled an 4.7 Kernel (Option 3) - now it works out of the
-box.
+On Mon, Oct 31, 2016 at 06:55:33PM +0100, Paolo Bonzini wrote:
+> > 2. There is currently only one caller of get_user_pages_locked() in
+> >    mm/frame_vector.c which seems to suggest this function isn't widely
+> >    used/known.
+>
+> Or not widely necessary. :)
 
-Hopefully some driver expert can get the second tuner working, that would be
-awesome
+Well, quite :)
+>
+> > 3. This change results in all slow-path get_user_pages*() functions having the
+> >    ability to use VM_FAULT_RETRY logic rather than 'defaulting' to using
+> >    get_user_pages() that doesn't let you do this even if you wanted to.
+>
+> This is only true if someone does the work though.  From a quick look
+> at your series, the following files can be trivially changed to use
+> get_user_pages_unlocked:
+>
+> - drivers/gpu/drm/via/via_dmablit.c
+> - drivers/platform/goldfish/goldfish_pipe.c
+> - drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+> - drivers/rapidio/devices/rio_mport_cdev.c
+> - drivers/virt/fsl_hypervisor.c
+>
 
-Thanks,
-Patrick
+Ah indeed, I rather glossed through the callers and noticed that at least some
+held locks long enough or were called with a lock held sufficient that I wasn't
+sure it could be released.
 
------Ursprüngliche Nachricht-----
-Von: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] Im Auftrag von Mauro Carvalho
-Chehab
-Gesendet: Mittwoch, 19. Oktober 2016 21:14
-An: ps00de@yahoo.de
-Cc: linux-media@vger.kernel.org
-Betreff: Re: em28xx WinTV dualHD in Raspbian
+> Also, videobuf_dma_init_user could be changed to use retry by adding a
+> *locked argument to videobuf_dma_init_user_locked, prototype patch
+> after my signature.
+>
 
-Em Wed, 19 Oct 2016 20:50:09 +0200
-<ps00de@yahoo.de> escreveu:
+Very nice!
 
-> > Based on this log:
-> > 
-> > Oct 18 23:08:01 mediapi kernel: [ 7590.369200] em28xx_dvb: disagrees 
-> > about version of symbol dvb_dmxdev_init Oct 18 23:08:01 mediapi 
-> > kernel: [ 7590.369228] em28xx_dvb: Unknown symbol dvb_dmxdev_init 
-> > (err -22)
-> > 
-> > it seems you messed the modules install or you have the V4L2 stack
-compiled builtin with a different version.   
-> 
-> How to fix this?
-> 
-> - I reinstalled the current firmware and kernel on the raspberry.
-> - I installed the headers with sudo apt-get install 
-> raspberrypi-kernel-headers
-> - Then I have cloned, build and installed the modules:
-> 
-> git clone git://linuxtv.org/media_build.git cd media_build ./build 
-> sudo make install
-> 
-> But the same errors appear again.
+> Everything else is probably best kept using get_user_pages.
+>
+> > 4. It's somewhat confusing/redundant having both get_user_pages_locked() and
+> >    get_user_pages() functions which both require mmap_sem to be held (i.e. both
+> >    are 'locked' versions.)
+> >
+> >> If all callers were changed, then sure removing the _locked suffix would
+> >> be a good idea.
+> >
+> > It seems many callers cannot release mmap_sem so VM_FAULT_RETRY logic couldn't
+> > happen anyway in this cases and in these cases we couldn't change the caller.
+>
+> But then get_user_pages_locked remains a less-common case, so perhaps
+> it's a good thing to give it a longer name!
 
-There are 3 options:
+My (somewhat minor) concern was that there would be confusion due to the
+existence of the triumvirate of g_u_p()/g_u_p_unlocked()/g_u_p_locked(), however
+the comments do a decent enough job of explaining the situation.
 
-1) If the V4L core is builtin on your Kernel [1], then you'll need recompile
-the Kernel yourself and be sure that V4L will be disabled. Then, you can
-build V4L2 using the media_build tree.
-You'll likely need to fix the DRM driver dependencies through, by modifying
-the Kernel source code (actually, some Kconfig file).
+>
+> > Overall, an alternative here might be to remove get_user_pages() and update
+> > get_user_pages_locked() to add a 'vmas' parameter, however doing this renders
+> > get_user_pages_unlocked() asymmetric as it would lack an vmas parameter (adding
+> > one there would make no sense as VM_FAULT_RETRY logic invalidates VMAs) though
+> > perhaps not such a big issue as it makes sense as to why this is the case.
+>
+> Adding the 'vmas' parameter to get_user_pages_locked would make little
+> sense.  Since VM_FAULT_RETRY invalidates it and g_u_p_locked can and
+> does retry, it would generally not be useful.
 
-2) To use the em28xx driver that came at the RPi Kernel, instead of using
-media_build.git. You'll also need to recompile the RPi proprietary Kernel
-from its sources;
+I meant only in the case where we'd remove get_user_pages() and instead be left
+with get_user_pages_[un]locked() only, meaning we'd have to add some means of
+retrieving vmas if locked was set NULL, of course in cases where locked is not
+NULL it makes no sense to add it.
 
-3) use the upstream Kernel. If I remember correctly, the VC4 driver (needed
-for GPU support) was added on Kernel 4.7. If you're not using a camera
-sensor connected to your RPi, the VC4 driver should be enough for your
-needs.
+>
+> So I think we have the right API now:
+>
+> - do not have lock?  Use get_user_pages_unlocked, get retry for free,
+> no need to handle  mmap_sem and the locked argument; cannot get back vmas.
+>
+> - have and cannot drop lock?  User get_user_pages, no need to pass NULL
+> for the locked argument; can get back vmas.
+>
+> - have but can drop lock (rare case)?  Use get_user_pages_locked,
+> cannot get back vams.
 
-[1] If you're using the RPi proprietary Kernel, I bet you have the
-V4L2 core built in. I remember I found the same issue last year, while
-playing with RPi proprietary Kernel - part of their GPU driver was depending
-on CONFIG_MEDIA - I think - for no good reason. I used to have a patch
-fixing it somewhere, but I was unable to find it.
+Yeah I think this is sane as it is actually, this patch set was a lot less
+convincing of a cleanup than prior ones and overall it seems we are better off
+with the existing API.
 
-> 
-> Thanks,
-> Patrick
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> in the body of a message to majordomo@vger.kernel.org More majordomo 
-> info at  http://vger.kernel.org/majordomo-info.html
+I wonder whether a better patch series to come out of this would be to find
+cases where the lock could be dropped (i.e. the ones you mention above) and to
+switch to using get_user_pages_[un]locked() where it makes sense to.
 
-
-
-Thanks,
-Mauro
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org More majordomo info at
-http://vger.kernel.org/majordomo-info.html
-
+I am happy to look into these cases (though of course I must leave your
+suggested patch here to you :)
