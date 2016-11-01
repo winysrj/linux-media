@@ -1,80 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55796
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752084AbcKRNBH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 08:01:07 -0500
-Date: Fri, 18 Nov 2016 11:00:58 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 14/18] [media] RedRat3: Rename a jump label in
- redrat3_init_rc_dev()
-Message-ID: <20161118110058.458a3a47@vento.lan>
-In-Reply-To: <20161118105240.6d23990e@vento.lan>
-References: <566ABCD9.1060404@users.sourceforge.net>
-        <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-        <172b54fe-559b-44a4-9902-96abece75a7f@users.sourceforge.net>
-        <20161118105240.6d23990e@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:52734 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1165738AbcKAGvO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2016 02:51:14 -0400
+Date: Tue, 01 Nov 2016 15:51:11 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: David =?iso-8859-15?Q?H=E4rdeman?= <david@hardeman.nu>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any transmitting
+ time for tx only devices
+Message-id: <20161101065111.hofyxjps2iwmxpzj@gangnam.samsung>
+References: <20161027143601.GA5103@gofer.mess.org>
+ <20160901171629.15422-1-andi.shyti@samsung.com>
+ <20160901171629.15422-6-andi.shyti@samsung.com>
+ <CGME20160902084206epcas1p26e535506ec1c418ede9ba230d40f0656@epcas1p2.samsung.com>
+ <20160902084158.GA25342@gofer.mess.org>
+ <20161027074401.wxg5icc6hcpwnfsf@gangnam.samsung>
+ <7e2f88ed83c4044c30bc03aaea9f09e1@hardeman.nu>
+ <20161031170526.GA8183@gofer.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <20161031170526.GA8183@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 18 Nov 2016 10:52:40 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Hi Sean,
 
-> Em Thu, 13 Oct 2016 18:42:16 +0200
-> SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
-> 
-> > From: Markus Elfring <elfring@users.sourceforge.net>
-> > Date: Thu, 13 Oct 2016 15:00:12 +0200
-> > 
-> > Adjust a jump label according to the Linux coding style convention.
-> > 
-> > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> > ---
-> >  drivers/media/rc/redrat3.c | 5 ++---
-> >  1 file changed, 2 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-> > index 74d93dd..055f214 100644
-> > --- a/drivers/media/rc/redrat3.c
-> > +++ b/drivers/media/rc/redrat3.c
-> > @@ -890,12 +890,11 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
-> >  	ret = rc_register_device(rc);
-> >  	if (ret < 0) {
-> >  		dev_err(rr3->dev, "remote dev registration failed\n");
-> > -		goto out;
-> > +		goto free_device;
-> >  	}
-> >  
-> >  	return rc;
-> > -
-> > -out:
-> > +free_device:
-> >  	rc_free_device(rc);
-> >  	return NULL;
-> >  }  
-> 
-> I don't see *any* sense on patches like this. Please don't flood me with
-> useless patches like that.
-> 
-> I'll silently ignore any patches like this during my review.
+> Andi, it would be good to know what the use-case for the original change is.
 
-Btw:
-	[PATCH 14/18] [media] RedRat3: Rename a jump label in redrat3_init_rc_dev()
+the use case is the ir-spi itself which doesn't need the lirc to
+perform any waiting on its behalf.
 
-Don't use CamelCase for the name of the driver. We don't use CamelCase
-inside the Kernel, as it violates its coding style. Also, it means
-nothing, as the name of this driver, and its c file is "redhat3".
+To me it just doesn't look right to simulate a fake transmission
+period and wait unnecessary time. Of course, the "over-wait" is not
+a big deal and at the end we can decide to drop it.
+
+Otherwise, an alternative could be to add the boolean
+'tx_no_wait' in the rc_dev structure. It could be set by the
+device driver during the initialization and the we can follow
+your approach.
+
+Something like this:
+
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index c327730..4553d04 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -161,15 +161,19 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+        ret *= sizeof(unsigned int);
+ 
+-       /*
+-        * The lircd gap calculation expects the write function to
+-        * wait for the actual IR signal to be transmitted before
+-        * returning.
+-        */
+-       towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
+-       if (towait > 0) {
+-               set_current_state(TASK_INTERRUPTIBLE);
+-               schedule_timeout(usecs_to_jiffies(towait));
++       if (!dev->tx_no_wait) {
++               /*
++                * The lircd gap calculation expects the write function to
++                * wait for the actual IR signal to be transmitted before
++                * returning.
++                */
++               towait = ktime_us_delta(ktime_add_us(start, duration),
++                                                               ktime_get());
++               if (towait > 0) {
++                       set_current_state(TASK_INTERRUPTIBLE);
++                       schedule_timeout(usecs_to_jiffies(towait));
++               }
++
+        }
+ 
+ out:
+diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
+index fcda1e4..e44abfa 100644
+--- a/drivers/media/rc/ir-spi.c
++++ b/drivers/media/rc/ir-spi.c
+@@ -149,6 +149,7 @@ static int ir_spi_probe(struct spi_device *spi)
+        if (!idata->rc)
+                return -ENOMEM;
+ 
++       idata->rc->tx_no_wait      = true;
+        idata->rc->tx_ir           = ir_spi_tx;
+        idata->rc->s_tx_carrier    = ir_spi_set_tx_carrier;
+        idata->rc->s_tx_duty_cycle = ir_spi_set_duty_cycle;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index fe0c9c4..c3ced9b 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -85,6 +85,9 @@ enum rc_filter_type {
+  * @input_dev: the input child device used to communicate events to userspace
+  * @driver_type: specifies if protocol decoding is done in hardware or software
+  * @idle: used to keep track of RX state
++ * @tx_no_wait: decides whether to perform or not a sync write or not. The
++ *      device driver setting it to true must make sure to not break the ABI
++ *      which requires a sync transfer.
+  * @allowed_protocols: bitmask with the supported RC_BIT_* protocols
+  * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols
+  * @allowed_wakeup_protocols: bitmask with the supported RC_BIT_* wakeup protocols
+@@ -147,6 +150,7 @@ struct rc_dev {
+        struct input_dev                *input_dev;
+        enum rc_driver_type             driver_type;
+        bool                            idle;
++       bool                            tx_no_wait;
+        u64                             allowed_protocols;
+        u64                             enabled_protocols;
+        u64                             allowed_wakeup_protocols;
 
 Thanks,
-Mauro
+Andi
