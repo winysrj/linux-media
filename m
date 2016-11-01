@@ -1,65 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f51.google.com ([209.85.214.51]:37065 "EHLO
-        mail-it0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756077AbcKKMLn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 07:11:43 -0500
-Received: by mail-it0-f51.google.com with SMTP id u205so118034378itc.0
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 04:11:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <f5120730-0e1d-f93c-eed9-7b71ff79f5db@xs4all.nl>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org> <f5120730-0e1d-f93c-eed9-7b71ff79f5db@xs4all.nl>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Fri, 11 Nov 2016 09:11:42 -0300
-Message-ID: <CABxcv=nop8h5U0Kt5yjmSVX3ZZbUb7O6yVzOf5AxzsiWUucjwA@mail.gmail.com>
-Subject: Re: [PATCH v3 0/9] Qualcomm video decoder/encoder driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+Received: from smtpout.microchip.com ([198.175.253.82]:37580 "EHLO
+        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1168142AbcKAJDE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2016 05:03:04 -0400
+Subject: Re: [PATCH] [media] atmel-isc: release the filehandle if it's not the
+ only one.
+To: Hans Verkuil <hverkuil@xs4all.nl>, <nicolas.ferre@atmel.com>
+References: <1477987726-4257-1-git-send-email-songjun.wu@microchip.com>
+ <c90098d4-4d53-d2e1-2d3e-e38e7d548f45@xs4all.nl>
+CC: <linux-arm-kernel@lists.infradead.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+From: "Wu, Songjun" <Songjun.Wu@microchip.com>
+Message-ID: <b2c97492-7750-38b0-610a-70781b80a81a@microchip.com>
+Date: Tue, 1 Nov 2016 17:02:34 +0800
+MIME-Version: 1.0
+In-Reply-To: <c90098d4-4d53-d2e1-2d3e-e38e7d548f45@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Sorry, my mistake, the device should be able to opened multiple times.
+It's a wrong patch.
 
-On Fri, Nov 11, 2016 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Stanimir,
+On 11/1/2016 16:52, Hans Verkuil wrote:
+> On 01/11/16 09:08, Songjun Wu wrote:
+>> Release the filehandle in 'isc_open' if it's not the only filehandle
+>> opened for the associated video_device.
 >
-> Overall it looks good. As you saw, I do have some comments but nothing major.
+> What's wrong with that? You should always be able to open the device
+> multiple times. v4l2-compliance will fail after this patch. I'm not sure
+> what you intended to do here, but this patch is wrong.
 >
-> One question: you use qcom as the directory name. How about using qualcomm?
->
-> It's really not that much longer and a bit more obvious.
->
-> Up to you, though.
->
-
-It seems qcom is more consistent to the name used in most subsystems
-for Qualcomm:
-
-$ find -name *qcom
-./arch/arm/mach-qcom
-./arch/arm64/boot/dts/qcom
-./Documentation/devicetree/bindings/soc/qcom
-./sound/soc/qcom
-./drivers/pinctrl/qcom
-./drivers/soc/qcom
-./drivers/clk/qcom
-
-$ find -name *qualcomm
-./drivers/net/ethernet/qualcomm
-
 > Regards,
 >
->         Hans
+>     Hans
 >
-
-Best regards,
-Javier
+>>
+>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+>> ---
+>>
+>>  drivers/media/platform/atmel/atmel-isc.c | 18 +++++++++---------
+>>  1 file changed, 9 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/atmel/atmel-isc.c
+>> b/drivers/media/platform/atmel/atmel-isc.c
+>> index 8e25d3f..5e08404 100644
+>> --- a/drivers/media/platform/atmel/atmel-isc.c
+>> +++ b/drivers/media/platform/atmel/atmel-isc.c
+>> @@ -926,21 +926,21 @@ static int isc_open(struct file *file)
+>>      if (ret < 0)
+>>          goto unlock;
+>>
+>> -    if (!v4l2_fh_is_singular_file(file))
+>> -        goto unlock;
+>> +    ret = !v4l2_fh_is_singular_file(file);
+>> +    if (ret)
+>> +        goto fh_rel;
+>>
+>>      ret = v4l2_subdev_call(sd, core, s_power, 1);
+>> -    if (ret < 0 && ret != -ENOIOCTLCMD) {
+>> -        v4l2_fh_release(file);
+>> -        goto unlock;
+>> -    }
+>> +    if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +        goto fh_rel;
+>>
+>>      ret = isc_set_fmt(isc, &isc->fmt);
+>> -    if (ret) {
+>> +    if (ret)
+>>          v4l2_subdev_call(sd, core, s_power, 0);
+>> -        v4l2_fh_release(file);
+>> -    }
+>>
+>> +fh_rel:
+>> +    if (ret)
+>> +        v4l2_fh_release(file);
+>>  unlock:
+>>      mutex_unlock(&isc->lock);
+>>      return ret;
+>>
