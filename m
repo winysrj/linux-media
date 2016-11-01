@@ -1,44 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.161.179]:36395 "EHLO
-        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932274AbcKNOQL (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:57245 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1168083AbcKAIwS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 09:16:11 -0500
-Received: by mail-yw0-f179.google.com with SMTP id a10so59555312ywa.3
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 06:16:10 -0800 (PST)
+        Tue, 1 Nov 2016 04:52:18 -0400
+Subject: Re: [PATCH] [media] atmel-isc: release the filehandle if it's not the
+ only one.
+To: Songjun Wu <songjun.wu@microchip.com>, nicolas.ferre@atmel.com
+References: <1477987726-4257-1-git-send-email-songjun.wu@microchip.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c90098d4-4d53-d2e1-2d3e-e38e7d548f45@xs4all.nl>
+Date: Tue, 1 Nov 2016 09:52:13 +0100
 MIME-Version: 1.0
-In-Reply-To: <8ff2fc76-2290-d353-08cd-2aa31c31a19c@xs4all.nl>
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
- <1470247430-11168-8-git-send-email-steve_longerbeam@mentor.com> <8ff2fc76-2290-d353-08cd-2aa31c31a19c@xs4all.nl>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Mon, 14 Nov 2016 09:16:08 -0500
-Message-ID: <CAGoCfiyu+iGmy4pu8UQE8YrN=RUBAda4HD0PDjboq8QJTh0dnw@mail.gmail.com>
-Subject: Re: [PATCH v4 7/8] v4l: Add signal lock status to source change events
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Lars-Peter Clausen <lars@metafoo.de>, mchehab@kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1477987726-4257-1-git-send-email-songjun.wu@microchip.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> OK, but what can the application do with that event? If the glitch didn't
-> affect the video, then it is pointless.
+On 01/11/16 09:08, Songjun Wu wrote:
+> Release the filehandle in 'isc_open' if it's not the only filehandle
+> opened for the associated video_device.
+
+What's wrong with that? You should always be able to open the device
+multiple times. v4l2-compliance will fail after this patch. I'm not sure
+what you intended to do here, but this patch is wrong.
+
+Regards,
+
+	Hans
+
 >
-> If the lock is lost, then normally you loose video as well. If not, then
-> applications are not interested in the event.
-
-What about free running mode (where some decoders delivers blue or
-black video with no signal present)?  In that case it might still be
-useful to inform the application so it can show a message that says
-something like "No Signal".
-
-Devin
-
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+> ---
+>
+>  drivers/media/platform/atmel/atmel-isc.c | 18 +++++++++---------
+>  1 file changed, 9 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+> index 8e25d3f..5e08404 100644
+> --- a/drivers/media/platform/atmel/atmel-isc.c
+> +++ b/drivers/media/platform/atmel/atmel-isc.c
+> @@ -926,21 +926,21 @@ static int isc_open(struct file *file)
+>  	if (ret < 0)
+>  		goto unlock;
+>
+> -	if (!v4l2_fh_is_singular_file(file))
+> -		goto unlock;
+> +	ret = !v4l2_fh_is_singular_file(file);
+> +	if (ret)
+> +		goto fh_rel;
+>
+>  	ret = v4l2_subdev_call(sd, core, s_power, 1);
+> -	if (ret < 0 && ret != -ENOIOCTLCMD) {
+> -		v4l2_fh_release(file);
+> -		goto unlock;
+> -	}
+> +	if (ret < 0 && ret != -ENOIOCTLCMD)
+> +		goto fh_rel;
+>
+>  	ret = isc_set_fmt(isc, &isc->fmt);
+> -	if (ret) {
+> +	if (ret)
+>  		v4l2_subdev_call(sd, core, s_power, 0);
+> -		v4l2_fh_release(file);
+> -	}
+>
+> +fh_rel:
+> +	if (ret)
+> +		v4l2_fh_release(file);
+>  unlock:
+>  	mutex_unlock(&isc->lock);
+>  	return ret;
+>
