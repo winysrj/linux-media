@@ -1,46 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:42904 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753708AbcKRXVY (ORCPT
+Received: from cisp-smtprelay-02.totisp.net ([203.113.112.52]:52313 "EHLO
+        cisp-smtprelay-01.totisp.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750846AbcKBNF0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:24 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 28/35] media: ti-vpe: vpe: Enable DMABUF export
-Date: Fri, 18 Nov 2016 17:20:38 -0600
-Message-ID: <20161118232045.24665-29-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
+        Wed, 2 Nov 2016 09:05:26 -0400
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: From Amir A. K
+To: Recipients <usa@bphosp.or.th>
+From: <usa@bphosp.or.th>
+Date: Tue, 1 Nov 2016 20:11:52 +0100
+Reply-To: <khanmammadov@vera.com.uy>
+Message-ID: <fe93af58-15fc-41f5-bd9d-a3bac8c31259@MAIL.bphosp.or.th>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow VPE to be able to export DMA buffer.
+Thanks for your last email response to me.
+The information required should include the following-:
+Your full names
+Your address
+Telephone number
+Your private email
+Occupation
+Age
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/ti-vpe/vpe.c | 1 +
- 1 file changed, 1 insertion(+)
+This is to enable my further discussion with you in confidence.
+Best regards and wishes to you.
+Amir A. Khanmammadov
+REPLY TO
+khanmammadov@vera.com.uy
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 608d11344147..1d780ac7ff82 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -1944,6 +1944,7 @@ static const struct v4l2_ioctl_ops vpe_ioctl_ops = {
- 	.vidioc_querybuf		= v4l2_m2m_ioctl_querybuf,
- 	.vidioc_qbuf			= v4l2_m2m_ioctl_qbuf,
- 	.vidioc_dqbuf			= v4l2_m2m_ioctl_dqbuf,
-+	.vidioc_expbuf			= v4l2_m2m_ioctl_expbuf,
- 	.vidioc_streamon		= v4l2_m2m_ioctl_streamon,
- 	.vidioc_streamoff		= v4l2_m2m_ioctl_streamoff,
- 
--- 
-2.9.0
-
+amir2016@vera.com.uy
