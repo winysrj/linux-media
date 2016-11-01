@@ -1,61 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:33493 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753617AbcKQSB7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Nov 2016 13:01:59 -0500
+Received: from gofer.mess.org ([80.229.237.210]:43541 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1168438AbcKAKeM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 Nov 2016 06:34:12 -0400
+Date: Tue, 1 Nov 2016 10:34:08 +0000
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any
+ transmitting time for tx only devices
+Message-ID: <20161101103408.GA15939@gofer.mess.org>
+References: <20161027143601.GA5103@gofer.mess.org>
+ <20160901171629.15422-1-andi.shyti@samsung.com>
+ <20160901171629.15422-6-andi.shyti@samsung.com>
+ <CGME20160902084206epcas1p26e535506ec1c418ede9ba230d40f0656@epcas1p2.samsung.com>
+ <20160902084158.GA25342@gofer.mess.org>
+ <20161027074401.wxg5icc6hcpwnfsf@gangnam.samsung>
+ <7e2f88ed83c4044c30bc03aaea9f09e1@hardeman.nu>
+ <20161031170526.GA8183@gofer.mess.org>
+ <20161101065111.hofyxjps2iwmxpzj@gangnam.samsung>
 MIME-Version: 1.0
-In-Reply-To: <2923918.nyphv1Ma7d@wuerfel>
-References: <20161107075524.49d83697@vento.lan> <11020459.EheIgy38UF@wuerfel>
- <20161116182633.74559ffd@vento.lan> <2923918.nyphv1Ma7d@wuerfel>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 17 Nov 2016 08:02:50 -0800
-Message-ID: <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        ksummit-discuss@lists.linuxfoundation.org,
-        Josh Triplett <josh@joshtriplett.org>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161101065111.hofyxjps2iwmxpzj@gangnam.samsung>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 17, 2016 at 3:07 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->
-> [adding Linus for clarification]
->
-> I understood the concern as being about binary files that you cannot
-> modify with classic 'patch', which is a separate issue.
 
-No. That is how I *noticed* the issue. Those stupid pdf binary files
-have been around forever, I just didn't notice until the Fedora people
-started complaining about the patches.
+Hi Andi,
 
-My real problem is not "binary" or even "editable", but SOURCE CODE.
+On Tue, Nov 01, 2016 at 03:51:11PM +0900, Andi Shyti wrote:
+> > Andi, it would be good to know what the use-case for the original change is.
+> 
+> the use case is the ir-spi itself which doesn't need the lirc to
+> perform any waiting on its behalf.
 
-It's like including a "vmlinux" image in the git tree: sure, you can
-technically "edit" it with a hex editor, but that doesn't change the
-basic issue: it's not the original source code.
+Here is the crux of the problem: in the ir-spi case no wait will actually 
+happen here, and certainly no "over-wait". The patch below will not change
+behaviour at all.
 
-I don't want to see generated binary crap.
+In the ir-spi case, "towait" will be 0 and no wait happens.
 
-That goes for png, that goes for gif, that goes for pdf - and in fact
-that goes for svg *too*, if the actual source of the svg was something
-else, and it was generated from some other data.
+I think the code is already in good shape but somehow there is a 
+misunderstanding. Did I miss something?
 
-We have makefiles, but more importantly, few enough people actually
-*generate* the documentation, that I think if it's an option to just
-fix sphinx, we should do that instead. If it means that you have to
-have some development version of sphinx, so be it. Most people read
-the documentation either directly in the unprocessed text-files
-("source code") or on the web (by searching for pre-formatted docs)
-that I really don't think we need to worry too much about the
-toolchain.
 
-But what we *should* worry about is having the kernel source tree
-contain source.
+Sean
 
-                 Linus
+> To me it just doesn't look right to simulate a fake transmission
+> period and wait unnecessary time. Of course, the "over-wait" is not
+> a big deal and at the end we can decide to drop it.
+> 
+> Otherwise, an alternative could be to add the boolean
+> 'tx_no_wait' in the rc_dev structure. It could be set by the
+> device driver during the initialization and the we can follow
+> your approach.
+> 
+> Something like this:
+> 
+> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+> index c327730..4553d04 100644
+> --- a/drivers/media/rc/ir-lirc-codec.c
+> +++ b/drivers/media/rc/ir-lirc-codec.c
+> @@ -161,15 +161,19 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+>  
+>         ret *= sizeof(unsigned int);
+>  
+> -       /*
+> -        * The lircd gap calculation expects the write function to
+> -        * wait for the actual IR signal to be transmitted before
+> -        * returning.
+> -        */
+> -       towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
+> -       if (towait > 0) {
+> -               set_current_state(TASK_INTERRUPTIBLE);
+> -               schedule_timeout(usecs_to_jiffies(towait));
+> +       if (!dev->tx_no_wait) {
+> +               /*
+> +                * The lircd gap calculation expects the write function to
+> +                * wait for the actual IR signal to be transmitted before
+> +                * returning.
+> +                */
+> +               towait = ktime_us_delta(ktime_add_us(start, duration),
+> +                                                               ktime_get());
+> +               if (towait > 0) {
+> +                       set_current_state(TASK_INTERRUPTIBLE);
+> +                       schedule_timeout(usecs_to_jiffies(towait));
+> +               }
+> +
+>         }
+>  
+>  out:
+> diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
+> index fcda1e4..e44abfa 100644
+> --- a/drivers/media/rc/ir-spi.c
+> +++ b/drivers/media/rc/ir-spi.c
+> @@ -149,6 +149,7 @@ static int ir_spi_probe(struct spi_device *spi)
+>         if (!idata->rc)
+>                 return -ENOMEM;
+>  
+> +       idata->rc->tx_no_wait      = true;
+>         idata->rc->tx_ir           = ir_spi_tx;
+>         idata->rc->s_tx_carrier    = ir_spi_set_tx_carrier;
+>         idata->rc->s_tx_duty_cycle = ir_spi_set_duty_cycle;
+> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+> index fe0c9c4..c3ced9b 100644
+> --- a/include/media/rc-core.h
+> +++ b/include/media/rc-core.h
+> @@ -85,6 +85,9 @@ enum rc_filter_type {
+>   * @input_dev: the input child device used to communicate events to userspace
+>   * @driver_type: specifies if protocol decoding is done in hardware or software
+>   * @idle: used to keep track of RX state
+> + * @tx_no_wait: decides whether to perform or not a sync write or not. The
+> + *      device driver setting it to true must make sure to not break the ABI
+> + *      which requires a sync transfer.
+>   * @allowed_protocols: bitmask with the supported RC_BIT_* protocols
+>   * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols
+>   * @allowed_wakeup_protocols: bitmask with the supported RC_BIT_* wakeup protocols
+> @@ -147,6 +150,7 @@ struct rc_dev {
+>         struct input_dev                *input_dev;
+>         enum rc_driver_type             driver_type;
+>         bool                            idle;
+> +       bool                            tx_no_wait;
+>         u64                             allowed_protocols;
+>         u64                             enabled_protocols;
+>         u64                             allowed_wakeup_protocols;
+> 
+> Thanks,
+> Andi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
