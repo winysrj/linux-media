@@ -1,98 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43888 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757338AbcK2Om0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 09:42:26 -0500
+Received: from 220-136-221-108.dynamic.hinet.net ([220.136.221.108]:44815 "HELO
+        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+        id S1752728AbcKASeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 Nov 2016 14:34:14 -0400
+Content-Disposition: attachment
+Subject: 225025525 linux-media
+Content-Transfer-Encoding: base64
+From: <gay.irwin@walton.k12.ga.us>
+To: <linux-media@vger.kernel.org>
+Message-ID: <147802524801.17921.10385082816015043536@hinet.net>
+Date: Tue, 01 Nov 2016 18:34:08 -0000
+Content-Type: application/zip; name="INFO_81144401_linux-media.zip"
 MIME-Version: 1.0
-In-Reply-To: <m2shqbs0eu.fsf@baylibre.com>
-References: <20161122155244.802-1-khilman@baylibre.com> <20161122155244.802-5-khilman@baylibre.com>
- <20161128213822.26oeyzkht5jz5gd3@rob-hp-laptop> <m2shqbs0eu.fsf@baylibre.com>
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 29 Nov 2016 08:41:44 -0600
-Message-ID: <CAL_JsqJ3wJnNa=bVN+UT4A-J5XC0jdyGAgWzROScRDLy6T8xHw@mail.gmail.com>
-Subject: Re: [PATCH v3 4/4] [media] dt-bindings: add TI VPIF documentation
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?Q?Bartosz_Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 28, 2016 at 4:30 PM, Kevin Hilman <khilman@baylibre.com> wrote:
-> Hi Rob,
->
-> Rob Herring <robh@kernel.org> writes:
->
->> On Tue, Nov 22, 2016 at 07:52:44AM -0800, Kevin Hilman wrote:
->>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->>> ---
->>>  .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
->>>  .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
->>>  2 files changed, 73 insertions(+)
->>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->>>
->>> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->>> new file mode 100644
->>> index 000000000000..c447ac482c1d
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->>> @@ -0,0 +1,65 @@
->>> +Texas Instruments VPIF Capture
->>> +------------------------------
->>> +
->>> +The TI Video Port InterFace (VPIF) capture component is the primary
->>> +component for video capture on the DA850 family of TI DaVinci SoCs.
->>> +
->>> +TI Document number reference: SPRUH82C
->>> +
->>> +Required properties:
->>> +- compatible: must be "ti,da850-vpif-capture"
->>> +- reg: physical base address and length of the registers set for the device;
->>> +- interrupts: should contain IRQ line for the VPIF
->>> +
->>> +VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
->>> +channels or a single 16-bit channel.  It should contain at least one
->>> +port child node with child 'endpoint' node. Please refer to the
->>> +bindings defined in
->>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->>> +
->>> +Example using 2 8-bit input channels, one of which is connected to an
->>> +I2C-connected TVP5147 decoder:
->>> +
->>> +    vpif_capture: video-capture@0x00217000 {
->>> +            reg = <0x00217000 0x1000>;
->>> +            interrupts = <92>;
->>> +
->>> +            port {
->>> +                    vpif_ch0: endpoint@0 {
->>> +                              reg = <0>;
->>> +                              bus-width = <8>;
->>> +                              remote-endpoint = <&composite>;
->>> +                    };
->>> +
->>> +                    vpif_ch1: endpoint@1 {
->>
->> I think probably channels here should be ports rather than endpoints.
->> AIUI, having multiple endpoints is for cases like a mux or 1 to many
->> connections. There's only one data flow, but multiple sources or sinks.
->
-> Looking at this closer... , I used an endpoint because it's bascially a
-> 16-bit parallel bus, that can be configured as (up to) 2 8-bit
-> "channels.  So, based on the video-interfaces.txt doc, I configured this
-> as a single port, with (up to) 2 endpoints.  That also allows me to
-> connect output of the decoder directly, using the remote-endpoint
-> property.
->
-> So I guess I'm not fully understanding your suggestion.
-
-NM, looks like video-interfaces.txt actually spells out this case and
-defines doing it as you did.
-
-Rob
+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
+BgAAAAABAAEAVAAAAAUNAAAAAA==
