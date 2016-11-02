@@ -1,102 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49618 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753320AbcKPQnN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:13 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 05/35] [media] cx23885: use KERN_CONT where needed
-Date: Wed, 16 Nov 2016 14:42:37 -0200
-Message-Id: <88c01c60cdbc1e4a3f7d35640c9228eb2a200c11.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49638 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754583AbcKBN3s (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:48 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 27/32] media: rcar-vin: start/stop the CSI2 bridge stream
+Date: Wed,  2 Nov 2016 14:23:24 +0100
+Message-Id: <20161102132329.436-28-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some continuation messages are not using KERN_CONT.
+On Gen3 the CSI2 bridge stream needs to be start/stop in conjunction
+with the video source. Create helpers to deal with both the Gen2 single
+subdevice case and the Gen3 CSI2 group case.
 
-Since commit 563873318d32 ("Merge branch 'printk-cleanups'"),
-this won't work as expected anymore. So, let's add KERN_CONT
-to those lines.
+In the Gen3 case there might be other simultaneous users of the bridge
+and source devices so examine each entity stream_count before acting on
+any particular device.
 
-While here, add missing log level annotations.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/pci/cx23885/cx23885-core.c | 8 ++++----
- drivers/media/pci/cx23885/cx23885-i2c.c  | 8 ++++----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 84 +++++++++++++++++++++++++++---
+ 1 file changed, 77 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index 5020a60a4f1f..0d97da3be90b 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -407,12 +407,12 @@ static int cx23885_risc_decode(u32 risc)
- 	};
- 	int i;
- 
--	printk("0x%08x [ %s", risc,
-+	printk(KERN_DEBUG "0x%08x [ %s", risc,
- 	       instr[risc >> 28] ? instr[risc >> 28] : "INVALID");
- 	for (i = ARRAY_SIZE(bits) - 1; i >= 0; i--)
- 		if (risc & (1 << (i + 12)))
--			printk(" %s", bits[i]);
--	printk(" count=%d ]\n", risc & 0xfff);
-+			printk(KERN_CONT " %s", bits[i]);
-+	printk(KERN_CONT " count=%d ]\n", risc & 0xfff);
- 	return incr[risc >> 28] ? incr[risc >> 28] : 1;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 322e4c1..872f138 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1089,15 +1089,87 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
  }
  
-@@ -2003,7 +2003,7 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	pci_set_master(pci_dev);
- 	err = pci_set_dma_mask(pci_dev, 0xffffffff);
- 	if (err) {
--		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
-+		printk(KERN_ERR "%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
- 		goto fail_ctrl;
++static int __rvin_start_streaming(struct rvin_dev *vin)
++{
++	struct v4l2_subdev *source, *bridge = NULL;
++	struct media_pipeline *pipe;
++	int ret;
++
++	source = vin_to_source(vin);
++	if (!source)
++		return -EINVAL;
++
++	if (vin_have_bridge(vin)) {
++		bridge = vin_to_bridge(vin);
++
++		if (!bridge)
++			return -EINVAL;
++
++		mutex_lock(&vin->group->lock);
++
++		pipe = bridge->entity.pipe ? bridge->entity.pipe :
++			&vin->vdev.pipe;
++		ret = media_entity_pipeline_start(&vin->vdev.entity, pipe);
++		if (ret) {
++			mutex_unlock(&vin->group->lock);
++			return ret;
++		}
++
++		/* Only need to start stream if it's not running */
++		if (bridge->entity.stream_count <= 1)
++			v4l2_subdev_call(bridge, video, s_stream, 1);
++		if (source->entity.stream_count <= 1)
++			v4l2_subdev_call(source, video, s_stream, 1);
++
++		mutex_unlock(&vin->group->lock);
++	} else {
++		v4l2_subdev_call(source, video, s_stream, 1);
++	}
++
++	return 0;
++}
++
++static int __rvin_stop_streaming(struct rvin_dev *vin)
++{
++	struct v4l2_subdev *source, *bridge = NULL;
++
++	source = vin_to_source(vin);
++	if (!source)
++		return -EINVAL;
++
++	if (vin_have_bridge(vin)) {
++		bridge = vin_to_bridge(vin);
++
++		if (!bridge)
++			return -EINVAL;
++
++		mutex_lock(&vin->group->lock);
++
++		media_entity_pipeline_stop(&vin->vdev.entity);
++
++		/* Only need to stop stream if there are no other users */
++		if (bridge->entity.stream_count <= 0)
++			v4l2_subdev_call(bridge, video, s_stream, 0);
++		if (source->entity.stream_count <= 0)
++			v4l2_subdev_call(source, video, s_stream, 0);
++
++		mutex_unlock(&vin->group->lock);
++	} else {
++		v4l2_subdev_call(source, video, s_stream, 0);
++	}
++
++	return 0;
++}
++
+ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 1);
++	ret = __rvin_start_streaming(vin);
++	if (ret)
++		return ret;
+ 
+ 	spin_lock_irqsave(&vin->qlock, flags);
+ 
+@@ -1122,7 +1194,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	/* Return all buffers if something went wrong */
+ 	if (ret) {
+ 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+-		v4l2_subdev_call(sd, video, s_stream, 0);
++		__rvin_stop_streaming(vin);
  	}
  
-diff --git a/drivers/media/pci/cx23885/cx23885-i2c.c b/drivers/media/pci/cx23885/cx23885-i2c.c
-index 61591225be9a..19faf9a611ed 100644
---- a/drivers/media/pci/cx23885/cx23885-i2c.c
-+++ b/drivers/media/pci/cx23885/cx23885-i2c.c
-@@ -119,9 +119,9 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
- 	if (!i2c_wait_done(i2c_adap))
- 		goto eio;
- 	if (i2c_debug) {
--		printk(" <W %02x %02x", msg->addr << 1, msg->buf[0]);
-+		printk(KERN_DEBUG " <W %02x %02x", msg->addr << 1, msg->buf[0]);
- 		if (!(ctrl & I2C_NOSTOP))
--			printk(" >\n");
-+			printk(KERN_CONT " >\n");
- 	}
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+@@ -1133,7 +1205,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ static void rvin_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int retries = 0;
  
- 	for (cnt = 1; cnt < msg->len; cnt++) {
-@@ -141,9 +141,9 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
- 		if (!i2c_wait_done(i2c_adap))
- 			goto eio;
- 		if (i2c_debug) {
--			dprintk(1, " %02x", msg->buf[cnt]);
-+			printk(KERN_CONT " %02x", msg->buf[cnt]);
- 			if (!(ctrl & I2C_NOSTOP))
--				dprintk(1, " >\n");
-+				printk(KERN_CONT " >\n");
- 		}
- 	}
- 	return msg->len;
+@@ -1172,8 +1243,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
+ 
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+ 
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 0);
++	__rvin_stop_streaming(vin);
+ 
+ 	/* disable interrupts */
+ 	rvin_disable_interrupts(vin);
 -- 
-2.7.4
-
+2.10.2
 
