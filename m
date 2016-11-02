@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:32062 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752107AbcKJHqn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 02:46:43 -0500
-Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
- ir-spi device driver
-To: Rob Herring <robh@kernel.org>
-Cc: Andi Shyti <andi.shyti@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Message-id: <13210179-ea3f-6106-e3c0-fa30b83e23cc@samsung.com>
-Date: Thu, 10 Nov 2016 08:46:35 +0100
-MIME-version: 1.0
-In-reply-to: <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
- <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
- <20161102104010.26959-6-andi.shyti@samsung.com>
- <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
- <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
- <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
- <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49446 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752978AbcKBN3g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:36 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 03/32] media: rcar-vin: reset bytesperline and sizeimage when resetting format
+Date: Wed,  2 Nov 2016 14:23:00 +0100
+Message-Id: <20161102132329.436-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/09/2016 07:26 PM, Rob Herring wrote:
-> On Thu, Nov 03, 2016 at 11:39:21AM +0100, Jacek Anaszewski wrote:
->> On 11/03/2016 11:10 AM, Andi Shyti wrote:
->>> Hi Jacek,
->>>
->>>> Only DT bindings of LED class drivers should be placed in
->>>> Documentation/devicetree/bindings/leds. Please move it to the
->>>> media bindings.
->>>
->>> that's where I placed it first, but Rob asked me to put it in the
->>> LED directory and Cc the LED mailining list.
->>>
->>> That's the discussion of the version 2:
->>>
->>> https://lkml.org/lkml/2016/9/12/380
->>>
->>> Rob, Jacek, could you please agree where I can put the binding?
->>
->> I'm not sure if this is a good approach. I've noticed also that
->> backlight bindings have been moved to leds, whereas they don't look
->> similarly.
->>
->> We have common.txt LED bindings, that all LED class drivers' bindings
->> have to follow. Neither backlight bindings nor these ones do that,
->> which introduces some mess.
->
-> And there are probably LED bindings that don't follow common.txt either.
->
->> Eventually adding a sub-directory, e.g. remote_control could make it
->> somehow logically justified, but still - shouldn't bindings be
->> placed in the documentation directory related to the subsystem of the
->> driver they are predestined to?
->
-> No. While binding directories often mirror the driver directories, they
-> are not the same. Bindings are grouped by types of h/w and IR LEDs are a
-> type of LED.
->
-> If you prefer a sub-dir, that is fine with me.
+These two fields where forgotten when refactoring the format reset code
+path. If they are not also reset at the same time as width and hight the
+format read using G_FMT will not match realty.
 
-Fine. So how about sub-dir "ir" ?
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 2bbe6d4..69bc4cf 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -151,6 +151,9 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 
+ 	rvin_reset_crop_compose(vin);
+ 
++	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
++	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
++
+ 	return 0;
+ }
+ 
 -- 
-Best regards,
-Jacek Anaszewski
+2.10.2
+
