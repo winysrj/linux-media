@@ -1,283 +1,1106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49740 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753874AbcKPQnS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:18 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 32/35] [media] tvp5150: Get rid of direct calls to printk()
-Date: Wed, 16 Nov 2016 14:43:04 -0200
-Message-Id: <3a4777867f0781fc7f8632483972ed28084cfd62.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([80.229.237.210]:35491 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932645AbcKBRiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 13:38:07 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] [media] serial_ir: port lirc_serial to rc-core
+Date: Wed,  2 Nov 2016 17:38:04 +0000
+Message-Id: <1478108285-12046-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Tested with a homebrew serial ir.
 
-When returning results via v4l2_subdev_core_ops.log_status,
-use dev_foo() call, instead of just calling printk()
-directly, without even specifying the log message level.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/i2c/tvp5150.c | 218 ++++++++++++++++++++++----------------------
- 1 file changed, 110 insertions(+), 108 deletions(-)
+ MAINTAINERS                  |    6 +
+ drivers/media/rc/Kconfig     |   17 +
+ drivers/media/rc/Makefile    |    1 +
+ drivers/media/rc/serial_ir.c | 1020 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1044 insertions(+)
+ create mode 100644 drivers/media/rc/serial_ir.c
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 569eb7c0968a..d0dbdd7ea233 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -36,6 +36,8 @@ static int debug;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Debug level (0-2)");
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 93e9f42..cd8fd50 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10604,6 +10604,12 @@ S:	Maintained
+ F:	Documentation/devicetree/bindings/serial/
+ F:	drivers/tty/serial/
  
-+#define dprintk0(__dev, __arg...) dev_dbg_lvl(__dev, 0, 0, __arg)
++SERIAL IR RECEIVER
++M:	Sean Young <sean@mess.org>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/rc/serial_ir.c
 +
- struct tvp5150 {
- 	struct v4l2_subdev sd;
- #ifdef CONFIG_MEDIA_CONTROLLER
-@@ -118,120 +120,120 @@ static void dump_reg_range(struct v4l2_subdev *sd, char *s, u8 init,
+ STI CEC DRIVER
+ M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+ L:	kernel@stlinux.com
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index 370e16e..629e8ca 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -389,4 +389,21 @@ config IR_SUNXI
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called sunxi-ir.
  
- static int tvp5150_log_status(struct v4l2_subdev *sd)
- {
--	printk("tvp5150: Video input source selection #1 = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_VD_IN_SRC_SEL_1));
--	printk("tvp5150: Analog channel controls = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_ANAL_CHL_CTL));
--	printk("tvp5150: Operation mode controls = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_OP_MODE_CTL));
--	printk("tvp5150: Miscellaneous controls = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_MISC_CTL));
--	printk("tvp5150: Autoswitch mask= 0x%02x\n",
--			tvp5150_read(sd, TVP5150_AUTOSW_MSK));
--	printk("tvp5150: Color killer threshold control = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_COLOR_KIL_THSH_CTL));
--	printk("tvp5150: Luminance processing controls #1 #2 and #3 = %02x %02x %02x\n",
--			tvp5150_read(sd, TVP5150_LUMA_PROC_CTL_1),
--			tvp5150_read(sd, TVP5150_LUMA_PROC_CTL_2),
--			tvp5150_read(sd, TVP5150_LUMA_PROC_CTL_3));
--	printk("tvp5150: Brightness control = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_BRIGHT_CTL));
--	printk("tvp5150: Color saturation control = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_SATURATION_CTL));
--	printk("tvp5150: Hue control = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_HUE_CTL));
--	printk("tvp5150: Contrast control = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_CONTRAST_CTL));
--	printk("tvp5150: Outputs and data rates select = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_DATA_RATE_SEL));
--	printk("tvp5150: Configuration shared pins = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_CONF_SHARED_PIN));
--	printk("tvp5150: Active video cropping start = 0x%02x%02x\n",
--			tvp5150_read(sd, TVP5150_ACT_VD_CROP_ST_MSB),
--			tvp5150_read(sd, TVP5150_ACT_VD_CROP_ST_LSB));
--	printk("tvp5150: Active video cropping stop  = 0x%02x%02x\n",
--			tvp5150_read(sd, TVP5150_ACT_VD_CROP_STP_MSB),
--			tvp5150_read(sd, TVP5150_ACT_VD_CROP_STP_LSB));
--	printk("tvp5150: Genlock/RTC = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_GENLOCK));
--	printk("tvp5150: Horizontal sync start = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_HORIZ_SYNC_START));
--	printk("tvp5150: Vertical blanking start = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_VERT_BLANKING_START));
--	printk("tvp5150: Vertical blanking stop = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_VERT_BLANKING_STOP));
--	printk("tvp5150: Chrominance processing control #1 and #2 = %02x %02x\n",
--			tvp5150_read(sd, TVP5150_CHROMA_PROC_CTL_1),
--			tvp5150_read(sd, TVP5150_CHROMA_PROC_CTL_2));
--	printk("tvp5150: Interrupt reset register B = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_RESET_REG_B));
--	printk("tvp5150: Interrupt enable register B = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_ENABLE_REG_B));
--	printk("tvp5150: Interrupt configuration register B = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INTT_CONFIG_REG_B));
--	printk("tvp5150: Video standard = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_VIDEO_STD));
--	printk("tvp5150: Chroma gain factor: Cb=0x%02x Cr=0x%02x\n",
--			tvp5150_read(sd, TVP5150_CB_GAIN_FACT),
--			tvp5150_read(sd, TVP5150_CR_GAIN_FACTOR));
--	printk("tvp5150: Macrovision on counter = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_MACROVISION_ON_CTR));
--	printk("tvp5150: Macrovision off counter = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_MACROVISION_OFF_CTR));
--	printk("tvp5150: ITU-R BT.656.%d timing(TVP5150AM1 only)\n",
--			(tvp5150_read(sd, TVP5150_REV_SELECT) & 1) ? 3 : 4);
--	printk("tvp5150: Device ID = %02x%02x\n",
--			tvp5150_read(sd, TVP5150_MSB_DEV_ID),
--			tvp5150_read(sd, TVP5150_LSB_DEV_ID));
--	printk("tvp5150: ROM version = (hex) %02x.%02x\n",
--			tvp5150_read(sd, TVP5150_ROM_MAJOR_VER),
--			tvp5150_read(sd, TVP5150_ROM_MINOR_VER));
--	printk("tvp5150: Vertical line count = 0x%02x%02x\n",
--			tvp5150_read(sd, TVP5150_VERT_LN_COUNT_MSB),
--			tvp5150_read(sd, TVP5150_VERT_LN_COUNT_LSB));
--	printk("tvp5150: Interrupt status register B = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_STATUS_REG_B));
--	printk("tvp5150: Interrupt active register B = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_ACTIVE_REG_B));
--	printk("tvp5150: Status regs #1 to #5 = %02x %02x %02x %02x %02x\n",
--			tvp5150_read(sd, TVP5150_STATUS_REG_1),
--			tvp5150_read(sd, TVP5150_STATUS_REG_2),
--			tvp5150_read(sd, TVP5150_STATUS_REG_3),
--			tvp5150_read(sd, TVP5150_STATUS_REG_4),
--			tvp5150_read(sd, TVP5150_STATUS_REG_5));
-+	dprintk0(sd->dev, "tvp5150: Video input source selection #1 = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_VD_IN_SRC_SEL_1));
-+	dprintk0(sd->dev, "tvp5150: Analog channel controls = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_ANAL_CHL_CTL));
-+	dprintk0(sd->dev, "tvp5150: Operation mode controls = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_OP_MODE_CTL));
-+	dprintk0(sd->dev, "tvp5150: Miscellaneous controls = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_MISC_CTL));
-+	dprintk0(sd->dev, "tvp5150: Autoswitch mask= 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_AUTOSW_MSK));
-+	dprintk0(sd->dev, "tvp5150: Color killer threshold control = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_COLOR_KIL_THSH_CTL));
-+	dprintk0(sd->dev, "tvp5150: Luminance processing controls #1 #2 and #3 = %02x %02x %02x\n",
-+		tvp5150_read(sd, TVP5150_LUMA_PROC_CTL_1),
-+		tvp5150_read(sd, TVP5150_LUMA_PROC_CTL_2),
-+		tvp5150_read(sd, TVP5150_LUMA_PROC_CTL_3));
-+	dprintk0(sd->dev, "tvp5150: Brightness control = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_BRIGHT_CTL));
-+	dprintk0(sd->dev, "tvp5150: Color saturation control = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_SATURATION_CTL));
-+	dprintk0(sd->dev, "tvp5150: Hue control = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_HUE_CTL));
-+	dprintk0(sd->dev, "tvp5150: Contrast control = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_CONTRAST_CTL));
-+	dprintk0(sd->dev, "tvp5150: Outputs and data rates select = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_DATA_RATE_SEL));
-+	dprintk0(sd->dev, "tvp5150: Configuration shared pins = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_CONF_SHARED_PIN));
-+	dprintk0(sd->dev, "tvp5150: Active video cropping start = 0x%02x%02x\n",
-+		tvp5150_read(sd, TVP5150_ACT_VD_CROP_ST_MSB),
-+		tvp5150_read(sd, TVP5150_ACT_VD_CROP_ST_LSB));
-+	dprintk0(sd->dev, "tvp5150: Active video cropping stop  = 0x%02x%02x\n",
-+		tvp5150_read(sd, TVP5150_ACT_VD_CROP_STP_MSB),
-+		tvp5150_read(sd, TVP5150_ACT_VD_CROP_STP_LSB));
-+	dprintk0(sd->dev, "tvp5150: Genlock/RTC = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_GENLOCK));
-+	dprintk0(sd->dev, "tvp5150: Horizontal sync start = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_HORIZ_SYNC_START));
-+	dprintk0(sd->dev, "tvp5150: Vertical blanking start = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_VERT_BLANKING_START));
-+	dprintk0(sd->dev, "tvp5150: Vertical blanking stop = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_VERT_BLANKING_STOP));
-+	dprintk0(sd->dev, "tvp5150: Chrominance processing control #1 and #2 = %02x %02x\n",
-+		tvp5150_read(sd, TVP5150_CHROMA_PROC_CTL_1),
-+		tvp5150_read(sd, TVP5150_CHROMA_PROC_CTL_2));
-+	dprintk0(sd->dev, "tvp5150: Interrupt reset register B = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_RESET_REG_B));
-+	dprintk0(sd->dev, "tvp5150: Interrupt enable register B = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_ENABLE_REG_B));
-+	dprintk0(sd->dev, "tvp5150: Interrupt configuration register B = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INTT_CONFIG_REG_B));
-+	dprintk0(sd->dev, "tvp5150: Video standard = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_VIDEO_STD));
-+	dprintk0(sd->dev, "tvp5150: Chroma gain factor: Cb=0x%02x Cr=0x%02x\n",
-+		tvp5150_read(sd, TVP5150_CB_GAIN_FACT),
-+		tvp5150_read(sd, TVP5150_CR_GAIN_FACTOR));
-+	dprintk0(sd->dev, "tvp5150: Macrovision on counter = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_MACROVISION_ON_CTR));
-+	dprintk0(sd->dev, "tvp5150: Macrovision off counter = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_MACROVISION_OFF_CTR));
-+	dprintk0(sd->dev, "tvp5150: ITU-R BT.656.%d timing(TVP5150AM1 only)\n",
-+		(tvp5150_read(sd, TVP5150_REV_SELECT) & 1) ? 3 : 4);
-+	dprintk0(sd->dev, "tvp5150: Device ID = %02x%02x\n",
-+		tvp5150_read(sd, TVP5150_MSB_DEV_ID),
-+		tvp5150_read(sd, TVP5150_LSB_DEV_ID));
-+	dprintk0(sd->dev, "tvp5150: ROM version = (hex) %02x.%02x\n",
-+		tvp5150_read(sd, TVP5150_ROM_MAJOR_VER),
-+		tvp5150_read(sd, TVP5150_ROM_MINOR_VER));
-+	dprintk0(sd->dev, "tvp5150: Vertical line count = 0x%02x%02x\n",
-+		tvp5150_read(sd, TVP5150_VERT_LN_COUNT_MSB),
-+		tvp5150_read(sd, TVP5150_VERT_LN_COUNT_LSB));
-+	dprintk0(sd->dev, "tvp5150: Interrupt status register B = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_STATUS_REG_B));
-+	dprintk0(sd->dev, "tvp5150: Interrupt active register B = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_ACTIVE_REG_B));
-+	dprintk0(sd->dev, "tvp5150: Status regs #1 to #5 = %02x %02x %02x %02x %02x\n",
-+		tvp5150_read(sd, TVP5150_STATUS_REG_1),
-+		tvp5150_read(sd, TVP5150_STATUS_REG_2),
-+		tvp5150_read(sd, TVP5150_STATUS_REG_3),
-+		tvp5150_read(sd, TVP5150_STATUS_REG_4),
-+		tvp5150_read(sd, TVP5150_STATUS_REG_5));
- 
- 	dump_reg_range(sd, "Teletext filter 1",   TVP5150_TELETEXT_FIL1_INI,
- 			TVP5150_TELETEXT_FIL1_END, 8);
- 	dump_reg_range(sd, "Teletext filter 2",   TVP5150_TELETEXT_FIL2_INI,
- 			TVP5150_TELETEXT_FIL2_END, 8);
- 
--	printk("tvp5150: Teletext filter enable = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_TELETEXT_FIL_ENA));
--	printk("tvp5150: Interrupt status register A = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_STATUS_REG_A));
--	printk("tvp5150: Interrupt enable register A = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_ENABLE_REG_A));
--	printk("tvp5150: Interrupt configuration = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_INT_CONF));
--	printk("tvp5150: VDP status register = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_VDP_STATUS_REG));
--	printk("tvp5150: FIFO word count = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_FIFO_WORD_COUNT));
--	printk("tvp5150: FIFO interrupt threshold = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_FIFO_INT_THRESHOLD));
--	printk("tvp5150: FIFO reset = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_FIFO_RESET));
--	printk("tvp5150: Line number interrupt = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_LINE_NUMBER_INT));
--	printk("tvp5150: Pixel alignment register = 0x%02x%02x\n",
--			tvp5150_read(sd, TVP5150_PIX_ALIGN_REG_HIGH),
--			tvp5150_read(sd, TVP5150_PIX_ALIGN_REG_LOW));
--	printk("tvp5150: FIFO output control = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_FIFO_OUT_CTRL));
--	printk("tvp5150: Full field enable = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_FULL_FIELD_ENA));
--	printk("tvp5150: Full field mode register = 0x%02x\n",
--			tvp5150_read(sd, TVP5150_FULL_FIELD_MODE_REG));
-+	dprintk0(sd->dev, "tvp5150: Teletext filter enable = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_TELETEXT_FIL_ENA));
-+	dprintk0(sd->dev, "tvp5150: Interrupt status register A = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_STATUS_REG_A));
-+	dprintk0(sd->dev, "tvp5150: Interrupt enable register A = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_ENABLE_REG_A));
-+	dprintk0(sd->dev, "tvp5150: Interrupt configuration = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_INT_CONF));
-+	dprintk0(sd->dev, "tvp5150: VDP status register = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_VDP_STATUS_REG));
-+	dprintk0(sd->dev, "tvp5150: FIFO word count = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_FIFO_WORD_COUNT));
-+	dprintk0(sd->dev, "tvp5150: FIFO interrupt threshold = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_FIFO_INT_THRESHOLD));
-+	dprintk0(sd->dev, "tvp5150: FIFO reset = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_FIFO_RESET));
-+	dprintk0(sd->dev, "tvp5150: Line number interrupt = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_LINE_NUMBER_INT));
-+	dprintk0(sd->dev, "tvp5150: Pixel alignment register = 0x%02x%02x\n",
-+		tvp5150_read(sd, TVP5150_PIX_ALIGN_REG_HIGH),
-+		tvp5150_read(sd, TVP5150_PIX_ALIGN_REG_LOW));
-+	dprintk0(sd->dev, "tvp5150: FIFO output control = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_FIFO_OUT_CTRL));
-+	dprintk0(sd->dev, "tvp5150: Full field enable = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_FULL_FIELD_ENA));
-+	dprintk0(sd->dev, "tvp5150: Full field mode register = 0x%02x\n",
-+		tvp5150_read(sd, TVP5150_FULL_FIELD_MODE_REG));
- 
- 	dump_reg_range(sd, "CC   data",   TVP5150_CC_DATA_INI,
- 			TVP5150_CC_DATA_END, 8);
++config IR_SERIAL
++	tristate "Homebrew Serial Port Receiver"
++	depends on RC_CORE
++	---help---
++	   Say Y if you want to use Homebrew Serial Port Receivers and
++	   Transceivers.
++
++	   To compile this driver as a module, choose M here: the module will
++	   be called serial-ir.
++
++config IR_SERIAL_TRANSMITTER
++	bool "Serial Port Transmitter"
++	default y
++	depends on IR_SERIAL
++	---help---
++	   Serial Port Transmitter support
++
+ endif #RC_DEVICES
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 379a5c0..3a984ee 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -37,3 +37,4 @@ obj-$(CONFIG_IR_TTUSBIR) += ttusbir.o
+ obj-$(CONFIG_RC_ST) += st_rc.o
+ obj-$(CONFIG_IR_SUNXI) += sunxi-cir.o
+ obj-$(CONFIG_IR_IMG) += img-ir/
++obj-$(CONFIG_IR_SERIAL) += serial_ir.o
+diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
+new file mode 100644
+index 0000000..77193c3
+--- /dev/null
++++ b/drivers/media/rc/serial_ir.c
+@@ -0,0 +1,1020 @@
++/*
++ * serial-ir.c
++ *
++ * serial-ir - Device driver that records pulse- and pause-lengths
++ *	       (space-lengths) between DDCD event on a serial port.
++ *
++ * Copyright (C) 1996,97 Ralph Metzler <rjkm@thp.uni-koeln.de>
++ * Copyright (C) 1998 Trent Piepho <xyzzy@u.washington.edu>
++ * Copyright (C) 1998 Ben Pfaff <blp@gnu.org>
++ * Copyright (C) 1999 Christoph Bartelmus <lirc@bartelmus.de>
++ * Copyright (C) 2007 Andrei Tanas <andrei@tanas.ca> (suspend/resume support)
++ * Copyright (C) 2016 Sean Young <sean@mess.org> (port to rc-core)
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++/*
++ * Steve's changes to improve transmission fidelity:
++ *   - for systems with the rdtsc instruction and the clock counter, a
++ *     send_pule that times the pulses directly using the counter.
++ *     This means that the IR_SERIAL_TRANSMITTER_LATENCY fudge is
++ *     not needed. Measurement shows very stable waveform, even where
++ *     PCI activity slows the access to the UART, which trips up other
++ *     versions.
++ *   - For other system, non-integer-microsecond pulse/space lengths,
++ *     done using fixed point binary. So, much more accurate carrier
++ *     frequency.
++ *   - fine tuned transmitter latency, taking advantage of fractional
++ *     microseconds in previous change
++ *   - Fixed bug in the way transmitter latency was accounted for by
++ *     tuning the pulse lengths down - the send_pulse routine ignored
++ *     this overhead as it timed the overall pulse length - so the
++ *     pulse frequency was right but overall pulse length was too
++ *     long. Fixed by accounting for latency on each pulse/space
++ *     iteration.
++ *
++ * Steve Davies <steve@daviesfam.org>  July 2001
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/serial_reg.h>
++#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock.h>
++#include <media/rc-core.h>
++
++/* From Intel IXP42X Developer's Manual (#252480-005): */
++/* ftp://download.intel.com/design/network/manuals/25248005.pdf */
++#define UART_IE_IXP42X_UUE   0x40 /* IXP42X UART Unit enable */
++#define UART_IE_IXP42X_RTOIE 0x10 /* IXP42X Receiver Data Timeout int.enable */
++
++#define DRIVER_NAME "serial_ir"
++
++struct serial_ir {
++	int signal_pin;
++	int signal_pin_change;
++	u8 on;
++	u8 off;
++	long (*send_pulse)(unsigned long length);
++	void (*send_space)(long length);
++	bool set_send_carrier;
++	bool set_duty_cycle;
++	spinlock_t lock;
++};
++
++#define IR_HOMEBREW	0
++#define IR_IRDEO	1
++#define IR_IRDEO_REMOTE	2
++#define IR_ANIMAX	3
++#define IR_IGOR		4
++#define IR_NSLU2	5
++
++/*** module parameters ***/
++static int type;
++static int io;
++static int irq;
++static bool iommap;
++static int ioshift;
++static bool softcarrier = true;
++static bool share_irq;
++static int sense = -1;	/* -1 = auto, 0 = active high, 1 = active low */
++static bool txsense;	/* 0 = active high, 1 = active low */
++
++/* forward declarations */
++static long send_pulse_irdeo(unsigned long length);
++static long send_pulse_homebrew(unsigned long length);
++static void send_space_irdeo(long length);
++static void send_space_homebrew(long length);
++
++static struct serial_ir hardware[] = {
++	[IR_HOMEBREW] = {
++		.lock = __SPIN_LOCK_UNLOCKED(hardware[IR_HOMEBREW].lock),
++		.signal_pin	   = UART_MSR_DCD,
++		.signal_pin_change = UART_MSR_DDCD,
++		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
++		.off = (UART_MCR_RTS | UART_MCR_OUT2),
++		.send_pulse = send_pulse_homebrew,
++		.send_space = send_space_homebrew,
++#ifdef CONFIG_IR_SERIAL_TRANSMITTER
++		.set_send_carrier = true,
++		.set_duty_cycle = true,
++#endif
++	},
++
++	[IR_IRDEO] = {
++		.lock = __SPIN_LOCK_UNLOCKED(hardware[IR_IRDEO].lock),
++		.signal_pin	   = UART_MSR_DSR,
++		.signal_pin_change = UART_MSR_DDSR,
++		.on  = UART_MCR_OUT2,
++		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.send_pulse  = send_pulse_irdeo,
++		.send_space  = send_space_irdeo,
++		.set_duty_cycle = true,
++	},
++
++	[IR_IRDEO_REMOTE] = {
++		.lock = __SPIN_LOCK_UNLOCKED(hardware[IR_IRDEO_REMOTE].lock),
++		.signal_pin	   = UART_MSR_DSR,
++		.signal_pin_change = UART_MSR_DDSR,
++		.on  = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.send_pulse  = send_pulse_irdeo,
++		.send_space  = send_space_irdeo,
++		.set_duty_cycle = true,
++	},
++
++	[IR_ANIMAX] = {
++		.lock = __SPIN_LOCK_UNLOCKED(hardware[IR_ANIMAX].lock),
++		.signal_pin	   = UART_MSR_DCD,
++		.signal_pin_change = UART_MSR_DDCD,
++		.on  = 0,
++		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.send_pulse = NULL,
++		.send_space = NULL,
++	},
++
++	[IR_IGOR] = {
++		.lock = __SPIN_LOCK_UNLOCKED(hardware[IR_IGOR].lock),
++		.signal_pin	   = UART_MSR_DSR,
++		.signal_pin_change = UART_MSR_DDSR,
++		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
++		.off = (UART_MCR_RTS | UART_MCR_OUT2),
++		.send_pulse = send_pulse_homebrew,
++		.send_space = send_space_homebrew,
++#ifdef CONFIG_IR_SERIAL_TRANSMITTER
++		.set_send_carrier = true,
++		.set_duty_cycle = true,
++#endif
++	},
++};
++
++#define RS_ISR_PASS_LIMIT 256
++
++/*
++ * A long pulse code from a remote might take up to 300 bytes.	The
++ * daemon should read the bytes as soon as they are generated, so take
++ * the number of keys you think you can push before the daemon runs
++ * and multiply by 300.  The driver will warn you if you overrun this
++ * buffer.  If you have a slow computer or non-busmastering IDE disks,
++ * maybe you will need to increase this.
++ */
++
++/* This MUST be a power of two!  It has to be larger than 1 as well. */
++
++static ktime_t lastkt;
++
++static struct rc_dev *rcdev;
++
++static unsigned int freq = 38000;
++static unsigned int duty_cycle = 50;
++
++/* Initialized in init_timing_params() */
++static unsigned long period;
++static unsigned long pulse_width;
++static unsigned long space_width;
++
++#if defined(__i386__)
++/*
++ * From:
++ * Linux I/O port programming mini-HOWTO
++ * Author: Riku Saikkonen <Riku.Saikkonen@hut.fi>
++ * v, 28 December 1997
++ *
++ * [...]
++ * Actually, a port I/O instruction on most ports in the 0-0x3ff range
++ * takes almost exactly 1 microsecond, so if you're, for example, using
++ * the parallel port directly, just do additional inb()s from that port
++ * to delay.
++ * [...]
++ */
++/* transmitter latency 1.5625us 0x1.90 - this figure arrived at from
++ * comment above plus trimming to match actual measured frequency.
++ * This will be sensitive to cpu speed, though hopefully most of the 1.5us
++ * is spent in the uart access.  Still - for reference test machine was a
++ * 1.13GHz Athlon system - Steve
++ */
++
++/*
++ * changed from 400 to 450 as this works better on slower machines;
++ * faster machines will use the rdtsc code anyway
++ */
++#define IR_SERIAL_TRANSMITTER_LATENCY 450
++
++#else
++
++/* does anybody have information on other platforms ? */
++/* 256 = 1<<8 */
++#define IR_SERIAL_TRANSMITTER_LATENCY 256
++
++#endif	/* __i386__ */
++/*
++ * FIXME: should we be using hrtimers instead of this
++ * IR_SERIAL_TRANSMITTER_LATENCY nonsense?
++ */
++
++/* fetch serial input packet (1 byte) from register offset */
++static u8 sinp(int offset)
++{
++	if (iommap)
++		/* the register is memory-mapped */
++		offset <<= ioshift;
++
++	return inb(io + offset);
++}
++
++/* write serial output packet (1 byte) of value to register offset */
++static void soutp(int offset, u8 value)
++{
++	if (iommap)
++		/* the register is memory-mapped */
++		offset <<= ioshift;
++
++	outb(value, io + offset);
++}
++
++static void on(void)
++{
++	if (txsense)
++		soutp(UART_MCR, hardware[type].off);
++	else
++		soutp(UART_MCR, hardware[type].on);
++}
++
++static void off(void)
++{
++	if (txsense)
++		soutp(UART_MCR, hardware[type].on);
++	else
++		soutp(UART_MCR, hardware[type].off);
++}
++
++#ifndef MAX_UDELAY_MS
++#define MAX_UDELAY_US 5000
++#else
++#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
++#endif
++
++static void safe_udelay(unsigned long usecs)
++{
++	while (usecs > MAX_UDELAY_US) {
++		udelay(MAX_UDELAY_US);
++		usecs -= MAX_UDELAY_US;
++	}
++	udelay(usecs);
++}
++
++#ifdef USE_RDTSC
++/*
++ * This is an overflow/precision juggle, complicated in that we can't
++ * do long long divide in the kernel
++ */
++
++/*
++ * When we use the rdtsc instruction to measure clocks, we keep the
++ * pulse and space widths as clock cycles.  As this is CPU speed
++ * dependent, the widths must be calculated in init_port and ioctl
++ * time
++ */
++
++static int init_timing_params(unsigned int new_duty_cycle,
++		unsigned int new_freq)
++{
++	__u64 loops_per_sec, work;
++
++	duty_cycle = new_duty_cycle;
++	freq = new_freq;
++
++	loops_per_sec = __this_cpu_read(cpu.info.loops_per_jiffy);
++	loops_per_sec *= HZ;
++
++	/* How many clocks in a microsecond?, avoiding long long divide */
++	work = loops_per_sec;
++	work *= 4295;  /* 4295 = 2^32 / 1e6 */
++
++	/*
++	 * Carrier period in clocks, approach good up to 32GHz clock,
++	 * gets carrier frequency within 8Hz
++	 */
++	period = loops_per_sec >> 3;
++	period /= (freq >> 3);
++
++	/* Derive pulse and space from the period */
++	pulse_width = period * duty_cycle / 100;
++	space_width = period - pulse_width;
++	pr_debug("in init_timing_params, freq=%d, duty_cycle=%d, clk/jiffy=%ld, pulse=%ld, space=%ld, conv_us_to_clocks=%ld\n",
++		 freq, duty_cycle, __this_cpu_read(cpu_info.loops_per_jiffy),
++		 pulse_width, space_width, conv_us_to_clocks);
++	return 0;
++}
++#else /* ! USE_RDTSC */
++static int init_timing_params(unsigned int new_duty_cycle,
++		unsigned int new_freq)
++{
++/*
++ * period, pulse/space width are kept with 8 binary places -
++ * IE multiplied by 256.
++ */
++	if (256 * 1000000L / new_freq * new_duty_cycle / 100 <=
++	    IR_SERIAL_TRANSMITTER_LATENCY)
++		return -EINVAL;
++	if (256 * 1000000L / new_freq * (100 - new_duty_cycle) / 100 <=
++	    IR_SERIAL_TRANSMITTER_LATENCY)
++		return -EINVAL;
++	duty_cycle = new_duty_cycle;
++	freq = new_freq;
++	period = 256 * 1000000L / freq;
++	pulse_width = period * duty_cycle / 100;
++	space_width = period - pulse_width;
++	pr_debug("in init_timing_params, freq=%d pulse=%ld, space=%ld\n",
++		 freq, pulse_width, space_width);
++	return 0;
++}
++#endif /* USE_RDTSC */
++
++
++/* return value: space length delta */
++
++static long send_pulse_irdeo(unsigned long length)
++{
++	long rawbits, ret;
++	int i;
++	unsigned char output;
++	unsigned char chunk, shifted;
++
++	/* how many bits have to be sent ? */
++	rawbits = length * 1152 / 10000;
++	if (duty_cycle > 50)
++		chunk = 3;
++	else
++		chunk = 1;
++	for (i = 0, output = 0x7f; rawbits > 0; rawbits -= 3) {
++		shifted = chunk << (i * 3);
++		shifted >>= 1;
++		output &= (~shifted);
++		i++;
++		if (i == 3) {
++			soutp(UART_TX, output);
++			while (!(sinp(UART_LSR) & UART_LSR_THRE))
++				;
++			output = 0x7f;
++			i = 0;
++		}
++	}
++	if (i != 0) {
++		soutp(UART_TX, output);
++		while (!(sinp(UART_LSR) & UART_LSR_TEMT))
++			;
++	}
++
++	if (i == 0)
++		ret = (-rawbits) * 10000 / 1152;
++	else
++		ret = (3 - i) * 3 * 10000 / 1152 + (-rawbits) * 10000 / 1152;
++
++	return ret;
++}
++
++/* Version using udelay() */
++
++/*
++ * here we use fixed point arithmetic, with 8
++ * fractional bits.  that gets us within 0.1% or so of the right average
++ * frequency, albeit with some jitter in pulse length - Steve
++ *
++ * This should use ndelay instead.
++ */
++
++/* To match 8 fractional bits used for pulse/space length */
++
++static long send_pulse_homebrew_softcarrier(unsigned long length)
++{
++	int flag;
++	unsigned long actual, target, d;
++
++	length <<= 8;
++
++	actual = 0; target = 0; flag = 0;
++	while (actual < length) {
++		if (flag) {
++			off();
++			target += space_width;
++		} else {
++			on();
++			target += pulse_width;
++		}
++		d = (target - actual -
++		     IR_SERIAL_TRANSMITTER_LATENCY + 128) >> 8;
++		/*
++		 * Note - we've checked in ioctl that the pulse/space
++		 * widths are big enough so that d is > 0
++		 */
++		udelay(d);
++		actual += (d << 8) + IR_SERIAL_TRANSMITTER_LATENCY;
++		flag = !flag;
++	}
++	return (actual-length) >> 8;
++}
++
++static long send_pulse_homebrew(unsigned long length)
++{
++	if (length <= 0)
++		return 0;
++
++	if (softcarrier)
++		return send_pulse_homebrew_softcarrier(length);
++
++	on();
++	safe_udelay(length);
++	return 0;
++}
++
++static void send_space_irdeo(long length)
++{
++	if (length <= 0)
++		return;
++
++	safe_udelay(length);
++}
++
++static void send_space_homebrew(long length)
++{
++	off();
++	if (length <= 0)
++		return;
++	safe_udelay(length);
++}
++
++static void frbwrite(unsigned int l, bool is_pulse)
++{
++	/* simple noise filter */
++	static unsigned int ptr, pulse, space;
++	DEFINE_IR_RAW_EVENT(ev);
++
++	if (ptr > 0 && is_pulse) {
++		pulse += l;
++		if (pulse > 250000) {
++			ev.duration = space;
++			ev.pulse = false;
++			ir_raw_event_store_with_filter(rcdev, &ev);
++			ev.duration = pulse;
++			ev.pulse = true;
++			ir_raw_event_store_with_filter(rcdev, &ev);
++			ptr = 0;
++			pulse = 0;
++		}
++		return;
++	}
++	if (!is_pulse) {
++		if (ptr == 0) {
++			if (l > 20000000) {
++				space = l;
++				ptr++;
++				return;
++			}
++		} else {
++			if (l > 20000000) {
++				space += pulse;
++				if (space > IR_MAX_DURATION)
++					space = IR_MAX_DURATION;
++				space += l;
++				if (space > IR_MAX_DURATION)
++					space = IR_MAX_DURATION;
++				pulse = 0;
++				return;
++			}
++
++			ev.duration = space;
++			ev.pulse = false;
++			ir_raw_event_store_with_filter(rcdev, &ev);
++			ev.duration = pulse;
++			ev.pulse = true;
++			ir_raw_event_store_with_filter(rcdev, &ev);
++			ptr = 0;
++			pulse = 0;
++		}
++	}
++
++	ev.duration = l;
++	ev.pulse = is_pulse;
++	ir_raw_event_store_with_filter(rcdev, &ev);
++}
++
++static irqreturn_t serial_ir_irq_handler(int i, void *blah)
++{
++	ktime_t kt;
++	int counter, dcd;
++	u8 status;
++	ktime_t delkt;
++	unsigned int data;
++	static int last_dcd = -1;
++
++	if ((sinp(UART_IIR) & UART_IIR_NO_INT)) {
++		/* not our interrupt */
++		return IRQ_NONE;
++	}
++
++	counter = 0;
++	do {
++		counter++;
++		status = sinp(UART_MSR);
++		if (counter > RS_ISR_PASS_LIMIT) {
++			pr_warn("AIEEEE: We're caught!\n");
++			break;
++		}
++		if ((status & hardware[type].signal_pin_change)
++		    && sense != -1) {
++			/* get current time */
++			kt = ktime_get();
++
++			/*
++			 * If PULSE_BIT is set a pulse has been
++			 * received, otherwise a space has been
++			 * received.  The driver needs to know if your
++			 * receiver is active high or active low, or
++			 * the space/pulse sense could be
++			 * inverted. The bits denoted by PULSE_MASK are
++			 * the length in microseconds. Lengths greater
++			 * than or equal to 16 seconds are clamped to
++			 * PULSE_MASK.	All other bits are unused.
++			 * This is a much simpler interface for user
++			 * programs, as well as eliminating "out of
++			 * phase" errors with space/pulse
++			 * autodetection.
++			 */
++
++			/* calc time since last interrupt in microseconds */
++			dcd = (status & hardware[type].signal_pin) ? 1 : 0;
++
++			if (dcd == last_dcd) {
++				pr_warn("ignoring spike: %d %d %llx %llx\n",
++					dcd, sense, ktime_to_us(kt),
++					ktime_to_us(lastkt));
++				continue;
++			}
++
++			delkt = ktime_sub(kt, lastkt);
++			if (ktime_compare(delkt, ktime_set(15, 0)) > 0) {
++				data = IR_MAX_DURATION; /* really long time */
++				if (!(dcd^sense)) {
++					/* sanity check */
++					pr_warn("AIEEEE: %d %d %llx %llx\n",
++						dcd, sense, ktime_to_us(kt),
++						ktime_to_us(lastkt));
++					/*
++					 * detecting pulse while this
++					 * MUST be a space!
++					 */
++					sense = sense ? 0 : 1;
++				}
++			} else
++				data = (unsigned int)ktime_to_ns(delkt);
++			frbwrite(data, !(dcd^sense));
++			lastkt = kt;
++			last_dcd = dcd;
++			ir_raw_event_handle(rcdev);
++		}
++	} while (!(sinp(UART_IIR) & UART_IIR_NO_INT)); /* still pending ? */
++	return IRQ_HANDLED;
++}
++
++
++static int hardware_init_port(void)
++{
++	u8 scratch, scratch2, scratch3;
++
++	/*
++	 * This is a simple port existence test, borrowed from the autoconfig
++	 * function in drivers/serial/8250.c
++	 */
++	scratch = sinp(UART_IER);
++	soutp(UART_IER, 0);
++#ifdef __i386__
++	outb(0xff, 0x080);
++#endif
++	scratch2 = sinp(UART_IER) & 0x0f;
++	soutp(UART_IER, 0x0f);
++#ifdef __i386__
++	outb(0x00, 0x080);
++#endif
++	scratch3 = sinp(UART_IER) & 0x0f;
++	soutp(UART_IER, scratch);
++	if (scratch2 != 0 || scratch3 != 0x0f) {
++		/* we fail, there's nothing here */
++		pr_err("port existence test failed, cannot continue\n");
++		return -ENODEV;
++	}
++
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	/* First of all, disable all interrupts */
++	soutp(UART_IER, sinp(UART_IER) &
++	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
++
++	/* Clear registers. */
++	sinp(UART_LSR);
++	sinp(UART_RX);
++	sinp(UART_IIR);
++	sinp(UART_MSR);
++
++	/* Set line for power source */
++	off();
++
++	/* Clear registers again to be sure. */
++	sinp(UART_LSR);
++	sinp(UART_RX);
++	sinp(UART_IIR);
++	sinp(UART_MSR);
++
++	switch (type) {
++	case IR_IRDEO:
++	case IR_IRDEO_REMOTE:
++		/* setup port to 7N1 @ 115200 Baud */
++		/* 7N1+start = 9 bits at 115200 ~ 3 bits at 38kHz */
++
++		/* Set DLAB 1. */
++		soutp(UART_LCR, sinp(UART_LCR) | UART_LCR_DLAB);
++		/* Set divisor to 1 => 115200 Baud */
++		soutp(UART_DLM, 0);
++		soutp(UART_DLL, 1);
++		/* Set DLAB 0 +  7N1 */
++		soutp(UART_LCR, UART_LCR_WLEN7);
++		/* THR interrupt already disabled at this point */
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static int serial_ir_probe(struct platform_device *dev)
++{
++	int i, nlow, nhigh, result;
++
++	result = devm_request_irq(&dev->dev, irq, serial_ir_irq_handler,
++			     (share_irq ? IRQF_SHARED : 0),
++			     DRIVER_NAME, &hardware);
++	if (result < 0) {
++		if (result == -EBUSY)
++			dev_err(&dev->dev, "IRQ %d busy\n", irq);
++		else if (result == -EINVAL)
++			dev_err(&dev->dev, "Bad irq number or handler\n");
++		return result;
++	}
++
++	/* Reserve io region. */
++	/*
++	 * Future MMAP-Developers: Attention!
++	 * For memory mapped I/O you *might* need to use ioremap() first,
++	 * for the NSLU2 it's done in boot code.
++	 */
++	if (((iommap)
++	     && (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
++					 DRIVER_NAME) == NULL))
++	   || ((!iommap)
++	       && (devm_request_region(&dev->dev, io, 8,
++				       DRIVER_NAME) == NULL))) {
++		dev_err(&dev->dev, "port %04x already in use\n", io);
++		dev_warn(&dev->dev, "use 'setserial /dev/ttySX uart none'\n");
++		dev_warn(&dev->dev,
++			 "or compile the serial port driver as module and\n");
++		dev_warn(&dev->dev, "make sure this module is loaded first\n");
++		return -EBUSY;
++	}
++
++	result = hardware_init_port();
++	if (result < 0)
++		return result;
++
++	/* Initialize pulse/space widths */
++	init_timing_params(duty_cycle, freq);
++
++	/* If pin is high, then this must be an active low receiver. */
++	if (sense == -1) {
++		/* wait 1/2 sec for the power supply */
++		msleep(500);
++
++		/*
++		 * probe 9 times every 0.04s, collect "votes" for
++		 * active high/low
++		 */
++		nlow = 0;
++		nhigh = 0;
++		for (i = 0; i < 9; i++) {
++			if (sinp(UART_MSR) & hardware[type].signal_pin)
++				nlow++;
++			else
++				nhigh++;
++			msleep(40);
++		}
++		sense = nlow >= nhigh ? 1 : 0;
++		dev_info(&dev->dev, "auto-detected active %s receiver\n",
++			 sense ? "low" : "high");
++	} else
++		dev_info(&dev->dev, "Manually using active %s receiver\n",
++			 sense ? "low" : "high");
++
++	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
++	return 0;
++}
++
++static int serial_ir_open(struct rc_dev *rcdev)
++{
++	unsigned long flags;
++
++	/* initialize timestamp */
++	lastkt = ktime_get();
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
++
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++
++	return 0;
++}
++
++static void serial_ir_close(struct rc_dev *rcdev)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	/* First of all, disable all interrupts */
++	soutp(UART_IER, sinp(UART_IER) &
++	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++}
++
++static int serial_ir_tx(struct rc_dev *dev, unsigned int *txbuf,
++							unsigned int count)
++{
++	unsigned long flags;
++	long delta = 0;
++	int i;
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++	if (type == IR_IRDEO) {
++		/* DTR, RTS down */
++		on();
++	}
++	for (i = 0; i < count; i++) {
++		if (i%2)
++			hardware[type].send_space(txbuf[i] - delta);
++		else
++			delta = hardware[type].send_pulse(txbuf[i]);
++	}
++	off();
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++	return count;
++}
++
++static int serial_ir_tx_duty_cycle(struct rc_dev *dev, u32 cycle)
++{
++	return init_timing_params(cycle, freq);
++}
++
++static int serial_ir_tx_carrier(struct rc_dev *dev, u32 carrier)
++{
++	if (carrier > 500000 || carrier < 20000)
++		return -EINVAL;
++
++	return init_timing_params(duty_cycle, carrier);
++}
++
++static struct platform_device *serial_ir_dev;
++
++static int serial_ir_suspend(struct platform_device *dev,
++			       pm_message_t state)
++{
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	/* Disable all interrupts */
++	soutp(UART_IER, sinp(UART_IER) &
++	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
++
++	/* Clear registers. */
++	sinp(UART_LSR);
++	sinp(UART_RX);
++	sinp(UART_IIR);
++	sinp(UART_MSR);
++
++	return 0;
++}
++
++static int serial_ir_resume(struct platform_device *dev)
++{
++	unsigned long flags;
++	int result;
++
++	result = hardware_init_port();
++	if (result < 0)
++		return result;
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++	/* Enable Interrupt */
++	lastkt = ktime_get();
++	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
++	off();
++
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++
++	return 0;
++}
++
++static struct platform_driver serial_ir_driver = {
++	.probe		= serial_ir_probe,
++	.suspend	= serial_ir_suspend,
++	.resume		= serial_ir_resume,
++	.driver		= {
++		.name	= "serial_ir",
++	},
++};
++
++static int __init serial_ir_init(void)
++{
++	int result;
++
++	result = platform_driver_register(&serial_ir_driver);
++	if (result)
++		return result;
++
++	serial_ir_dev = platform_device_alloc("serial_ir", 0);
++	if (!serial_ir_dev) {
++		result = -ENOMEM;
++		goto exit_driver_unregister;
++	}
++
++	result = platform_device_add(serial_ir_dev);
++	if (result)
++		goto exit_device_put;
++
++	return 0;
++
++exit_device_put:
++	platform_device_put(serial_ir_dev);
++exit_driver_unregister:
++	platform_driver_unregister(&serial_ir_driver);
++	return result;
++}
++
++static void serial_ir_exit(void)
++{
++	platform_device_unregister(serial_ir_dev);
++	platform_driver_unregister(&serial_ir_driver);
++}
++
++static int __init serial_ir_init_module(void)
++{
++	int result;
++
++	switch (type) {
++	case IR_HOMEBREW:
++	case IR_IRDEO:
++	case IR_IRDEO_REMOTE:
++	case IR_ANIMAX:
++	case IR_IGOR:
++	case IR_NSLU2:
++		/* if nothing specified, use ttyS0/com1 and irq 4 */
++		io = io ? io : 0x3f8;
++		irq = irq ? irq : 4;
++		break;
++	default:
++		return -EINVAL;
++	}
++	if (!softcarrier) {
++		switch (type) {
++		case IR_HOMEBREW:
++		case IR_IGOR:
++			hardware[type].set_send_carrier = false;
++			hardware[type].set_duty_cycle = false;
++			break;
++		}
++	}
++
++	/* make sure sense is either -1, 0, or 1 */
++	if (sense != -1)
++		sense = !!sense;
++
++	result = serial_ir_init();
++	if (result)
++		return result;
++
++	rcdev = devm_rc_allocate_device(&serial_ir_dev->dev);
++
++	if (hardware[type].send_pulse && hardware[type].send_space)
++		rcdev->tx_ir = serial_ir_tx;
++	if (hardware[type].set_send_carrier)
++		rcdev->s_tx_carrier = serial_ir_tx_carrier;
++	if (hardware[type].set_duty_cycle)
++		rcdev->s_tx_duty_cycle = serial_ir_tx_duty_cycle;
++
++	switch (type) {
++	case IR_HOMEBREW:
++		rcdev->input_name = "Serial IR type home-brew";
++		break;
++	case IR_IRDEO:
++		rcdev->input_name = "Serial IR type IRdeo";
++		break;
++	case IR_IRDEO_REMOTE:
++		rcdev->input_name = "Serial IR type IRdeo remote";
++		break;
++	case IR_ANIMAX:
++		rcdev->input_name = "Serial IR type AnimaX";
++		break;
++	case IR_IGOR:
++		rcdev->input_name = "Serial IR type IgorPlug";
++		break;
++	case IR_NSLU2:
++		rcdev->input_name = "Serial IR type NSLU2 RX:CTS2/TX:GreenLED)";
++		break;
++	}
++
++	rcdev->input_phys = DRIVER_NAME "/input0";
++	rcdev->input_id.bustype = BUS_HOST;
++	rcdev->input_id.vendor = 0x0001;
++	rcdev->input_id.product = 0x0001;
++	rcdev->input_id.version = 0x0100;
++	rcdev->open = serial_ir_open;
++	rcdev->close = serial_ir_close;
++	rcdev->dev.parent = &serial_ir_dev->dev;
++	rcdev->driver_type = RC_DRIVER_IR_RAW;
++	rcdev->allowed_protocols = RC_BIT_ALL;
++	rcdev->driver_name = DRIVER_NAME;
++	rcdev->map_name = RC_MAP_RC6_MCE;
++	rcdev->timeout = IR_DEFAULT_TIMEOUT;
++	rcdev->rx_resolution = 250000;
++
++	return rc_register_device(rcdev);
++}
++
++static void __exit serial_ir_exit_module(void)
++{
++	rc_unregister_device(rcdev);
++	serial_ir_exit();
++}
++
++
++module_init(serial_ir_init_module);
++module_exit(serial_ir_exit_module);
++
++MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
++MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, Christoph Bartelmus, Andrei Tanas");
++MODULE_LICENSE("GPL");
++
++module_param(type, int, 0444);
++MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo, 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug, 5 = NSLU2 RX:CTS2/TX:GreenLED)");
++
++module_param(io, int, 0444);
++MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
++
++/* some architectures (e.g. intel xscale) have memory mapped registers */
++module_param(iommap, bool, 0444);
++MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
++
++/*
++ * some architectures (e.g. intel xscale) align the 8bit serial registers
++ * on 32bit word boundaries.
++ * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
++ */
++module_param(ioshift, int, 0444);
++MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
++
++module_param(irq, int, 0444);
++MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
++
++module_param(share_irq, bool, 0444);
++MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
++
++module_param(sense, int, 0444);
++MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit (0 = active high, 1 = active low )");
++
++#ifdef CONFIG_IR_SERIAL_TRANSMITTER
++module_param(txsense, bool, 0444);
++MODULE_PARM_DESC(txsense, "Sense of transmitter circuit (0 = active high, 1 = active low )");
++#endif
++
++module_param(softcarrier, bool, 0444);
++MODULE_PARM_DESC(softcarrier, "Software carrier (0 = off, 1 = on, default on)");
 -- 
 2.7.4
-
 
