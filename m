@@ -1,142 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46884 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932954AbcKKQLx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 11:11:53 -0500
-Subject: Re: [RFC PATCH v2 1/2] [media] tvp5150: Add input connectors DT
- bindings
-To: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1460500973-9066-1-git-send-email-javier@osg.samsung.com>
- <1460500973-9066-2-git-send-email-javier@osg.samsung.com>
- <2355815.rhlvKGshE1@avalon>
- <744e5205-59e6-e135-3985-db097044aa11@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7966dcbe-4a9d-714a-ae2f-8c18b053762a@xs4all.nl>
-Date: Fri, 11 Nov 2016 17:11:47 +0100
+Received: from arroyo.ext.ti.com ([198.47.19.12]:37718 "EHLO arroyo.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752483AbcKBMkF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 08:40:05 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <laurent.pinchart@ideasonboard.com>, <mchehab@osg.samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH RESEND] media: omap3isp: Use dma_request_chan() to requesting DMA channel
+Date: Wed, 2 Nov 2016 14:39:59 +0200
+Message-ID: <20161102123959.6098-1-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <744e5205-59e6-e135-3985-db097044aa11@osg.samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This old mail came up in a discussion today so let me comment on this:
+With the new dma_request_chan() the client driver does not need to look for
+the DMA resource and it does not need to pass filter_fn anymore.
+By switching to the new API the driver can now support deferred probing
+against DMA.
 
-On 04/27/2016 09:12 PM, Javier Martinez Canillas wrote:
-> Hello Laurent,
-> 
-> Thanks a lot for your feedback.
-> 
-> On 04/27/2016 10:29 AM, Laurent Pinchart wrote:
->> Hi Javier,
->>
->> Thank you for the patch.
->>
->> On Tuesday 12 Apr 2016 18:42:52 Javier Martinez Canillas wrote:
->>> The tvp5150 and tvp5151 decoders support different video input source
->>> connections to their AIP1A and AIP1B pins. Either two Composite or a
->>> S-Video input signals are supported.
->>>
->>> The possible configurations are as follows:
->>>
->>> - Analog Composite signal connected to AIP1A.
->>> - Analog Composite signal connected to AIP1B.
->>> - Analog S-Video Y (luminance) and C (chrominance)
->>>   signals connected to AIP1A and AIP1B respectively.
->>>
->>> This patch extends the Device Tree binding documentation to describe
->>> how the input connectors for these devices should be defined in a DT.
->>>
->>> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
->>>
->>> ---
->>> Hello,
->>>
->>> The DT binding assumes that there is a 1:1 map between physical connectors
->>> and connections, so there will be a connector described in the DT for each
->>> connection.
->>>
->>> There is also the question about how the DT bindings will be extended to
->>> support other attributes (color/position/group) using the properties API.
->>
->> I foresee lots of bikeshedding on that particular topic, but I don't think it 
->> will be a blocker. We need a volunteer to quickstart a discussion on the 
->> devicetree (or possible devicetree-spec) mailing list :-)
->>
-> 
-> Yes, I plan to extend this binding once we have the properties API in mainline
-> but that can be done as a follow-up since it should just be more properties on
-> top of compatible, label and port that will be supported in the meantime.
->  
->>> But I believe that can be done as a follow-up, once the properties API is
->>> in mainline.
->>>
->>> Best regards,
->>> Javier
->>>
->>> Changes in v2:
->>> - Remove from the changelog a mention of devices that multiplex the
->>>   physical RCA connectors to be used for the S-Video Y and C signals
->>>   since it's a special case and it doesn't really work on the IGEPv2.
->>>
->>>  .../devicetree/bindings/media/i2c/tvp5150.txt      | 59 +++++++++++++++++++
->>>  1 file changed, 59 insertions(+)
->>> :
->>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
->>> b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt index
->>> 8c0fc1a26bf0..df555650b0b4 100644
->>> --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
->>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
->>> @@ -26,8 +26,46 @@ Required Endpoint Properties for parallel
->>> synchronization: If none of hsync-active, vsync-active and
->>> field-even-active is specified, the endpoint is assumed to use embedded
->>> BT.656 synchronization.
->>>
->>> +-Optional nodes:
->>> +- connectors: The list of tvp5150 input connectors available on a given
->>> +  board. The node should contain a child 'port' node for each connector.
->>
->> I had understood this as meaning that connectors should be fully described in 
->> the connectors subnode, until I read through the whole patch and saw that 
->> dedicated DT nodes are needed for the connectors. I thus believe the paragraph 
->> should be reworded to avoid the ambiguity.
->>
-> 
-> I see what you mean, OK I'll make it clear that this only is the list of ports
-> and that connectors should be described somewhere else (i.e: the root node).
-> 
->> This being said, why do you need a connectors subnode ? Can't we just add the 
->> port nodes for the input ports directly in the tvp5150 node (or possibly in a 
->> ports subnode, as defined in the OF graph bindings).
->>
-> 
-> Yes we could, I went with a "connectors" subnode because the video decoders
-> will have another port node to point to the bridge device node endpoint. So
-> I thought it could be more clear to make a distinction between those ports.
-> 
-> We can go with the "ports" subnode instead of "connectors" but then again it
-> could be confusing to differentiate between bridge and connectors ports both
-> for users writing/reading DTS and the drivers parsing the DT.
-> 
-> I used as an inspiration the regulators binding where regulators are usually
-> described under a "regulators" subnode.
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+---
+Hi,
 
-I am inclined to go with Laurent on this. In the end these are just pins and while
-they usually will be hooked up to connectors, that doesn't have to be the case.
-There may be another component in between, so I don't really like it that it is
-called 'connector'. In my mind it is just another (input) port. It is really
-only after looking at the remote endpoint that you see that there is a connector
-connected to the pin(s).
+the original patch was sent 29.04.2016:
+https://patchwork.kernel.org/patch/8981811/
+
+I have rebased it on top of linux-next.
 
 Regards,
+Peter
 
-	Hans
+ drivers/media/platform/omap3isp/isphist.c | 27 +++++++++------------------
+ 1 file changed, 9 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index 7138b043a4aa..e163e3d92517 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -18,7 +18,6 @@
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/dmaengine.h>
+-#include <linux/omap-dmaengine.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ 
+@@ -486,27 +485,19 @@ int omap3isp_hist_init(struct isp_device *isp)
+ 	hist->isp = isp;
+ 
+ 	if (HIST_CONFIG_DMA) {
+-		struct platform_device *pdev = to_platform_device(isp->dev);
+-		struct resource *res;
+-		unsigned int sig = 0;
+-		dma_cap_mask_t mask;
+-
+-		dma_cap_zero(mask);
+-		dma_cap_set(DMA_SLAVE, mask);
+-
+-		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
+-						   "hist");
+-		if (res)
+-			sig = res->start;
+-
+-		hist->dma_ch = dma_request_slave_channel_compat(mask,
+-				omap_dma_filter_fn, &sig, isp->dev, "hist");
+-		if (!hist->dma_ch)
++		hist->dma_ch = dma_request_chan(isp->dev, "hist");
++		if (IS_ERR(hist->dma_ch)) {
++			ret = PTR_ERR(hist->dma_ch);
++			if (ret == -EPROBE_DEFER)
++				return ret;
++
++			hist->dma_ch = NULL;
+ 			dev_warn(isp->dev,
+ 				 "hist: DMA channel request failed, using PIO\n");
+-		else
++		} else {
+ 			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+ 				dma_chan_name(hist->dma_ch));
++		}
+ 	}
+ 
+ 	hist->ops = &hist_ops;
+-- 
+2.10.2
+
