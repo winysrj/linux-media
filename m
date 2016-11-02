@@ -1,122 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41131 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752429AbcKJEk4 (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36754 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753021AbcKBMqi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Nov 2016 23:40:56 -0500
-Message-ID: <730da2a4758023cfe41e8e356aaaea36@smtp-cloud6.xs4all.net>
-Date: Thu, 10 Nov 2016 05:40:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Wed, 2 Nov 2016 08:46:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 03/11] cec: add flag to cec_log_addrs to enable RC passthrough
+Date: Wed,  2 Nov 2016 13:46:27 +0100
+Message-Id: <20161102124635.11989-4-hverkuil@xs4all.nl>
+In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
+References: <20161102124635.11989-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+By default the CEC_MSG_USER_CONTROL_PRESSED/RELEASED messages
+are passed on to the follower(s) only. If the new
+CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU flag is set in the
+flags field of struct cec_log_addrs then these messages are also
+passed on to the remote control input subsystem and they will appear
+as keystrokes.
 
-date:			Thu Nov 10 05:00:15 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	3e34e5f92881aa379635763ead549abd84480628
-v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+This used to be the default behavior, but now you have to explicitly
+enable it. This is done to force the caller to think about possible
+security issues (e.g. if these messages are used to enter passwords).
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 10 ++++++++++
+ drivers/staging/media/cec/TODO                            |  2 --
+ drivers/staging/media/cec/cec-adap.c                      |  6 ++++--
+ drivers/staging/media/cec/cec-api.c                       |  3 ++-
+ include/linux/cec.h                                       |  2 ++
+ 5 files changed, 18 insertions(+), 5 deletions(-)
 
-Detailed results are available here:
+diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+index af35f71..571ae57 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
+@@ -166,6 +166,16 @@ logical address types are already defined will return with error ``EBUSY``.
+ 	it will go back to the unconfigured state. If this flag is set, then it will
+ 	fallback to the Unregistered logical address. Note that if the Unregistered
+ 	logical address was explicitly requested, then this flag has no effect.
++    * .. _`CEC-LOG-ADDRS-FL-ALLOW-RC-PASSTHRU`:
++
++      - ``CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU``
++      - 2
++      - By default the ``CEC_MSG_USER_CONTROL_PRESSED`` and ``CEC_MSG_USER_CONTROL_RELEASED``
++        messages are only passed on to the follower(s), if any. If this flag is set,
++	then these messages are also passed on to the remote control input subsystem
++	and will appear as keystrokes. This features needs to be enabled explicitly.
++	If CEC is used to enter e.g. passwords, then you may not want to enable this
++	to avoid trivial snooping of the keystrokes.
+ 
+ .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
+ 
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+index 1322469..0841206 100644
+--- a/drivers/staging/media/cec/TODO
++++ b/drivers/staging/media/cec/TODO
+@@ -13,8 +13,6 @@ Hopefully this will happen later in 2016.
+ Other TODOs:
+ 
+ - There are two possible replies to CEC_MSG_INITIATE_ARC. How to handle that?
+-- Add a flag to inhibit passing CEC RC messages to the rc subsystem.
+-  Applications should be able to choose this when calling S_LOG_ADDRS.
+ - If the reply field of cec_msg is set then when the reply arrives it
+   is only sent to the filehandle that transmitted the original message
+   and not to any followers. Should this behavior change or perhaps
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index 611e07b..589e457 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -1478,7 +1478,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 	}
+ 
+ 	case CEC_MSG_USER_CONTROL_PRESSED:
+-		if (!(adap->capabilities & CEC_CAP_RC))
++		if (!(adap->capabilities & CEC_CAP_RC) ||
++		    !(adap->log_addrs.flags & CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU))
+ 			break;
+ 
+ #if IS_REACHABLE(CONFIG_RC_CORE)
+@@ -1515,7 +1516,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 		break;
+ 
+ 	case CEC_MSG_USER_CONTROL_RELEASED:
+-		if (!(adap->capabilities & CEC_CAP_RC))
++		if (!(adap->capabilities & CEC_CAP_RC) ||
++		    !(adap->log_addrs.flags & CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU))
+ 			break;
+ #if IS_REACHABLE(CONFIG_RC_CORE)
+ 		rc_keyup(adap->rc);
+diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
+index e274e2f..040ca7d 100644
+--- a/drivers/staging/media/cec/cec-api.c
++++ b/drivers/staging/media/cec/cec-api.c
+@@ -162,7 +162,8 @@ static long cec_adap_s_log_addrs(struct cec_adapter *adap, struct cec_fh *fh,
+ 		return -ENOTTY;
+ 	if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
+ 		return -EFAULT;
+-	log_addrs.flags &= CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK;
++	log_addrs.flags &= CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK |
++			   CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU;
+ 	mutex_lock(&adap->lock);
+ 	if (!adap->is_configuring &&
+ 	    (!log_addrs.num_log_addrs || !adap->is_configured) &&
+diff --git a/include/linux/cec.h b/include/linux/cec.h
+index 851968e..825455f 100644
+--- a/include/linux/cec.h
++++ b/include/linux/cec.h
+@@ -391,6 +391,8 @@ struct cec_log_addrs {
+ 
+ /* Allow a fallback to unregistered */
+ #define CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK	(1 << 0)
++/* Passthrough RC messages to the input subsystem */
++#define CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU	(1 << 1)
+ 
+ /* Events */
+ 
+-- 
+2.10.1
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
