@@ -1,48 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49649 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753610AbcKPQnO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:14 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 25/35] [media] af9005: remove a printk that would require a KERN_CONT
-Date: Wed, 16 Nov 2016 14:42:57 -0200
-Message-Id: <df4bbe53fd9ac57f58dac73be01b43239c236492.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
+Received: from [115.47.41.233] ([115.47.41.233]:4101 "HELO a.tttof.com"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
+        id S1754604AbcKBC7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 1 Nov 2016 22:59:31 -0400
+Date: Wed, 2 Nov 2016 10:58:14 +0800
+From: "Bob" <alu_casting@163.com>
+Reply-To: alu_casting@163.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RE:FW : Gravity die casting with A356-T6
+Message-ID: <201611021058148121470@a.tttof.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="GB2312"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb-usb system has its own macro to print hexa dumps
-(debug_dump). Such macro doesn't support messages with
-KERN_CONT after commit 563873318d32 ("Merge branch 'printk-cleanups").
-So, let's get rid of a printk() that would be assuming that
-this would work.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb/af9005.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/usb/dvb-usb/af9005.c b/drivers/media/usb/dvb-usb/af9005.c
-index b257780fb380..e615d040555e 100644
---- a/drivers/media/usb/dvb-usb/af9005.c
-+++ b/drivers/media/usb/dvb-usb/af9005.c
-@@ -827,7 +827,6 @@ static int af9005_frontend_attach(struct dvb_usb_adapter *adap)
- 		printk("EEPROM DUMP\n");
- 		for (i = 0; i < 255; i += 8) {
- 			af9005_read_eeprom(adap->dev, i, buf, 8);
--			printk("ADDR %x ", i);
- 			debug_dump(buf, 8, printk);
- 		}
- 	}
--- 
-2.7.4
-
-
+SGVsbG8sIA0KDQpXZSBhcmUgdGhlIHNwZWNpYWxpemVkIG1hbnVmYWN0dXJlciBvZiBhbHVtaW51
+bSBjYXN0aW5nIGluIENoaW5hIHdpdGggYWR2YW50YWdlcyBhcyBmb2xsb3dzOiANCjEuIEFsbCBr
+aW5kcyBvZiBjYXN0aW5nIHByb2Nlc3NlczogZGllIGNhc3RpbmcsIHNhbmQgY2FzdGluZywgZ3Jh
+dml0eSBwcmVtYW5lbnQgbW9sZCBjYXN0aW5nIHRvIG1lZXQgeW91ciBkaWZmZXJlbnQgZGVtYW5k
+LiANCjIuIDE3IHllYXJzIGV4cGVyaWVuY2Ugb25seSBkZWRpY2F0ZWQgaW4gYWx1bWludW0gY2Fz
+dGluZ3Mgd2l0aCBwcmVjaXNpb24gbWFjaGluaW5nLCBNb3JlIHByb2Zlc3Npb24sIG1vcmUgY29t
+cGV0aXRpdmUuIA0KMy4gQWxsIG1vbGRzIG1hZGUgYnkgb3Vyc2VsZiB0byByZWR1Y2UgeW91ciBj
+b3N0LiBBZHZhbmNlZCBtYWNoaW5pbmcgZXF1aXBtZW50cyBhbmQgdGVzdGluZyBlcXVpcG1lbnRz
+LiANCg0KNDAlIG9mIG91ciBzaGlwbWVudCBhcmUgZm9yIHlvdXIgbWFya2V0LCBwcm92ZWQgb3Vy
+IGNvbXBldGl0aXZlIGluIHByaWNpbmcgYW5kIHF1YWxpdHkuIFNoYWxsIHlvdSBoYXZlIGFueSBp
+bnRlcmVzdCwgcGxzIGNvbnRhY3QgZm9yIHBvc3NpYmxlIGRlYWwuDQogDQpiLnJnZHMgDQpCb2Ig
+SHUgDQpOaW5nYm8gWWluemhvdSBYdXNoZW5nIE1hY2hpbmVyeSBGYWN0b3J5DQpDZWxsOiAwMDg2
+LTEzOTU4MzIgNzc3NCANClNreXBlOiBib2JodTEgDQpUZWw6IDAwODYtNTc0LTg4MTI4NjAzIA0K
+Ym9iQHhzLWFsdW1pbnVtY2FzdGluZy5jb20gDQp3d3cueHMtYWx1bWludW1jYXN0aW5nLmNvbQ==
