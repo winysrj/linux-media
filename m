@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
 Received: from smtp-4.sys.kth.se ([130.237.48.193]:49477 "EHLO
         smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754475AbcKBN3n (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:43 -0400
+        with ESMTP id S1752844AbcKBN3l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:41 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -12,9 +12,9 @@ Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 18/32] media: rcar-vin: enable Gen3 hardware configuration
-Date: Wed,  2 Nov 2016 14:23:15 +0100
-Message-Id: <20161102132329.436-19-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 13/32] media: rcar-vin: register the video device early
+Date: Wed,  2 Nov 2016 14:23:10 +0100
+Message-Id: <20161102132329.436-14-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -23,204 +23,366 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the register needed to work with Gen3 hardware. This patch adds
-the logic for how to work with the Gen3 hardware. More work is required
-to enable the subdevice structure needed to configure capturing.
+This is done to prepare for Gen3 support where there can be more then
+one video pipeline which can terminate in a particular VIN instance.
+Each pipeline have its own set of subdevices so to attach to a specific
+subdevice at probe time is not possible. The pipelines will be
+configured using the media controller API.
+
+This patch changes the rcar-vin behavior so that the video device is
+registered at probe time but attaching to a subdeivce is only once the
+video device node is opened. If at that time there is no video source
+subdevice for the VIN to use the open will fail with -EBUSY.
 
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 98 ++++++++++++++++++++----------
- drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
- 2 files changed, 68 insertions(+), 31 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c |  10 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 226 ++++++++++++++--------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   2 +
+ 3 files changed, 121 insertions(+), 117 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index eac5c19..80958e6 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -33,21 +33,23 @@
- #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
- #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
- #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
--#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
--#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
--#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
--#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
- #define VNIS_REG	0x2C	/* Video n Image Stride Register */
- #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
- #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
- #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
- #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
- #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
--#define VNYS_REG	0x50	/* Video n Y Scale Register */
--#define VNXS_REG	0x54	/* Video n X Scale Register */
- #define VNDMR_REG	0x58	/* Video n Data Mode Register */
- #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
- #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
-+
-+/* Register offsets specific for Gen2 */
-+#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-+#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-+#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-+#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
-+#define VNYS_REG	0x50	/* Video n Y Scale Register */
-+#define VNXS_REG	0x54	/* Video n X Scale Register */
- #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
- #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
- #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
-@@ -73,9 +75,13 @@
- #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
- #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
- 
-+/* Register offsets specific for Gen3 */
-+#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
- 
- /* Register bit fields for R-Car VIN */
- /* Video n Main Control Register bits */
-+#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
-+#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
- #define VNMC_FOC		(1 << 21)
- #define VNMC_YCAL		(1 << 19)
- #define VNMC_INF_YUV8_BT656	(0 << 16)
-@@ -119,6 +125,13 @@
- #define VNDMR2_FTEV		(1 << 17)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
- 
-+/* Video n CSI2 Interface Mode Register (Gen3) */
-+#define VNCSI_IFMD_DES2		(1 << 27)
-+#define VNCSI_IFMD_DES1		(1 << 26)
-+#define VNCSI_IFMD_DES0		(1 << 25)
-+#define VNCSI_IFMD_CSI_CHSEL(n) ((n & 0xf) << 0)
-+#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
-+
- static void rvin_write(struct rvin_dev *vin, u32 value, u32 offset)
- {
- 	iowrite32(value, vin->base + offset);
-@@ -205,7 +218,10 @@ static int rvin_setup(struct rvin_dev *vin)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 50058fe..5807d8d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -107,7 +107,7 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 		return ret;
  	}
  
- 	/* Enable VSYNC Field Toogle mode after one VSYNC input */
--	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-+	if (vin->info->chip == RCAR_GEN3)
-+		dmr2 = VNDMR2_FTEV;
-+	else
-+		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
- 	if (!(rent->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-@@ -257,6 +273,14 @@ static int rvin_setup(struct rvin_dev *vin)
- 	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
-+	if (vin->info->chip == RCAR_GEN3) {
-+		/* Select between CSI-2 and Digital input */
-+		if (rent->mbus_cfg.type == V4L2_MBUS_CSI2)
-+			vnmc &= ~VNMC_DPINE;
-+		else
-+			vnmc |= VNMC_DPINE;
-+	}
-+
- 	/* Progressive or interlaced mode */
- 	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
- 
-@@ -758,28 +782,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
- 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+-	return rvin_v4l2_probe(vin);
++	return 0;
  }
  
--void rvin_crop_scale_comp(struct rvin_dev *vin)
-+static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
- {
- 	u32 xs, ys;
+ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+@@ -118,7 +118,6 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
  
--	/* Set Start/End Pixel/Line Pre-Clip */
--	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
--	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
--	switch (vin->format.field) {
--	case V4L2_FIELD_INTERLACED:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
--		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
--			   VNELPRC_REG);
--		break;
--	default:
--		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
--		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
--			   VNELPRC_REG);
--		break;
--	}
--
- 	/* Set scaling coefficient */
- 	ys = 0;
- 	if (vin->crop.height != vin->compose.height)
-@@ -817,11 +823,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		break;
+ 	if (vin->digital.subdev == subdev) {
+ 		vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
+-		rvin_v4l2_remove(vin);
+ 		vin->digital.subdev = NULL;
+ 		return;
  	}
+@@ -283,6 +282,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
  
--	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
--		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
--	else
--		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
--
- 	vin_dbg(vin,
- 		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
- 		vin->crop.width, vin->crop.height, vin->crop.left,
-@@ -829,9 +830,44 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		0, 0);
+ 	vin->dev = &pdev->dev;
+ 	vin->chip = (enum chip_id)match->data;
++	vin->last_input = NULL;
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+@@ -304,6 +304,10 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error;
+ 
++	ret = rvin_v4l2_probe(vin);
++	if (ret)
++		goto error;
++
+ 	pm_suspend_ignore_children(&pdev->dev, true);
+ 	pm_runtime_enable(&pdev->dev);
+ 
+@@ -322,6 +326,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	pm_runtime_disable(&pdev->dev);
+ 
++	rvin_v4l2_remove(vin);
++
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 
+ 	rvin_dma_remove(vin);
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 929f58b..47137d7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -483,6 +483,94 @@ static int rvin_cropcap(struct file *file, void *priv,
+ 	return v4l2_subdev_call(sd, video, g_pixelaspect, &crop->pixelaspect);
  }
  
-+void rvin_crop_scale_comp(struct rvin_dev *vin)
++static int rvin_attach_subdevices(struct rvin_dev *vin)
 +{
-+	/* Set Start/End Pixel/Line Pre-Clip */
-+	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-+	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
++	struct v4l2_subdev_format fmt = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	struct v4l2_mbus_framefmt *mf = &fmt.format;
++	struct v4l2_subdev *sd = vin_to_source(vin);
++	struct rvin_graph_entity *rent;
++	struct v4l2_format f;
++	int ret;
 +
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-+		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-+			   VNELPRC_REG);
-+		break;
-+	default:
-+		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-+		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-+			   VNELPRC_REG);
-+		break;
++	rent = vin_to_entity(vin);
++	if (!rent)
++		return -ENODEV;
++
++	ret = v4l2_subdev_call(sd, core, s_power, 1);
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++		return ret;
++
++	if (rent != vin->last_input) {
++		/* Input source have changed, reset our format */
++
++		vin->vdev.tvnorms = 0;
++		ret = v4l2_subdev_call(sd, video, g_tvnorms,
++				       &vin->vdev.tvnorms);
++		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++			goto error;
++
++		/* Free old controls (safe even if there where none) */
++		v4l2_ctrl_handler_free(&vin->ctrl_handler);
++
++		ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
++		if (ret < 0)
++			goto error;
++
++		/* Add new controls */
++		ret = v4l2_ctrl_add_handler(&vin->ctrl_handler,
++					    sd->ctrl_handler, NULL);
++		if (ret < 0)
++			goto error;
++
++		v4l2_ctrl_handler_setup(&vin->ctrl_handler);
++
++		fmt.pad = rent->source_pad_idx;
++
++		/* Try to improve our guess of a reasonable window format */
++		ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
++		if (ret)
++			goto error;
++
++		/* Set default format */
++		vin->format.width	= mf->width;
++		vin->format.height	= mf->height;
++		vin->format.colorspace	= mf->colorspace;
++		vin->format.field	= mf->field;
++		vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
++
++		/* Set initial crop and compose */
++		vin->crop.top = vin->crop.left = 0;
++		vin->crop.width = mf->width;
++		vin->crop.height = mf->height;
++
++		vin->compose.top = vin->compose.left = 0;
++		vin->compose.width = mf->width;
++		vin->compose.height = mf->height;
++
++		f.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		f.fmt.pix = vin->format;
++		ret = __rvin_s_fmt_vid_cap(vin, &f);
++		if (ret)
++			goto error;
 +	}
 +
-+	/* TODO: Add support for the UDS scaler. */
-+	if (vin->info->chip != RCAR_GEN3)
-+		rvin_crop_scale_comp_gen2(vin);
++	vin->last_input = rent;
 +
-+	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-+		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-+	else
-+		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
++	return 0;
++error:
++	v4l2_subdev_call(sd, core, s_power, 0);
++	return ret;
 +}
 +
- void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
- 		    u32 width, u32 height)
- {
-+	/* TODO: Add support for the UDS scaler. */
-+	if (vin->info->chip == RCAR_GEN3)
-+		return;
++static void rvin_detach_subdevices(struct rvin_dev *vin)
++{
++	struct v4l2_subdev *sd = vin_to_source(vin);
 +
- 	/* All VIN channels on Gen2 have scalers */
- 	pix->width = width;
- 	pix->height = height;
++	v4l2_subdev_call(sd, core, s_power, 0);
++}
++
+ static int rvin_enum_input(struct file *file, void *priv,
+ 			   struct v4l2_input *i)
+ {
+@@ -741,80 +829,6 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+  * File Operations
+  */
+ 
+-static int rvin_power_on(struct rvin_dev *vin)
+-{
+-	int ret;
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+-
+-	pm_runtime_get_sync(vin->v4l2_dev.dev);
+-
+-	ret = v4l2_subdev_call(sd, core, s_power, 1);
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+-		return ret;
+-	return 0;
+-}
+-
+-static int rvin_power_off(struct rvin_dev *vin)
+-{
+-	int ret;
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+-
+-	ret = v4l2_subdev_call(sd, core, s_power, 0);
+-
+-	pm_runtime_put(vin->v4l2_dev.dev);
+-
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+-		return ret;
+-
+-	return 0;
+-}
+-
+-static int rvin_initialize_device(struct file *file)
+-{
+-	struct rvin_dev *vin = video_drvdata(file);
+-	int ret;
+-
+-	struct v4l2_format f = {
+-		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-		.fmt.pix = {
+-			.width		= vin->format.width,
+-			.height		= vin->format.height,
+-			.field		= vin->format.field,
+-			.colorspace	= vin->format.colorspace,
+-			.pixelformat	= vin->format.pixelformat,
+-		},
+-	};
+-
+-	ret = rvin_power_on(vin);
+-	if (ret < 0)
+-		return ret;
+-
+-	pm_runtime_enable(&vin->vdev.dev);
+-	ret = pm_runtime_resume(&vin->vdev.dev);
+-	if (ret < 0 && ret != -ENOSYS)
+-		goto eresume;
+-
+-	/*
+-	 * Try to configure with default parameters. Notice: this is the
+-	 * very first open, so, we cannot race against other calls,
+-	 * apart from someone else calling open() simultaneously, but
+-	 * .host_lock is protecting us against it.
+-	 */
+-	ret = rvin_s_fmt_vid_cap(file, NULL, &f);
+-	if (ret < 0)
+-		goto esfmt;
+-
+-	v4l2_ctrl_handler_setup(&vin->ctrl_handler);
+-
+-	return 0;
+-esfmt:
+-	pm_runtime_disable(&vin->vdev.dev);
+-eresume:
+-	rvin_power_off(vin);
+-
+-	return ret;
+-}
+-
+ static int rvin_open(struct file *file)
+ {
+ 	struct rvin_dev *vin = video_drvdata(file);
+@@ -826,17 +840,31 @@ static int rvin_open(struct file *file)
+ 
+ 	ret = v4l2_fh_open(file);
+ 	if (ret)
+-		goto unlock;
++		goto err_out;
+ 
+-	if (!v4l2_fh_is_singular_file(file))
+-		goto unlock;
++	/* If there is no subdevice there is not much we can do */
++	if (!vin_to_source(vin)) {
++		ret = -EBUSY;
++		goto err_open;
++	}
+ 
+-	if (rvin_initialize_device(file)) {
+-		v4l2_fh_release(file);
+-		ret = -ENODEV;
++	if (v4l2_fh_is_singular_file(file)) {
++		pm_runtime_get_sync(vin->dev);
++		ret = rvin_attach_subdevices(vin);
++		if (ret) {
++			vin_err(vin, "Error attaching subdevice\n");
++			goto err_power;
++		}
+ 	}
+ 
+-unlock:
++	mutex_unlock(&vin->lock);
++
++	return 0;
++err_power:
++	pm_runtime_put(vin->dev);
++err_open:
++	v4l2_fh_release(file);
++err_out:
+ 	mutex_unlock(&vin->lock);
+ 	return ret;
+ }
+@@ -860,9 +888,8 @@ static int rvin_release(struct file *file)
+ 	 * Then de-initialize hw module.
+ 	 */
+ 	if (fh_singular) {
+-		pm_runtime_suspend(&vin->vdev.dev);
+-		pm_runtime_disable(&vin->vdev.dev);
+-		rvin_power_off(vin);
++		rvin_detach_subdevices(vin);
++		pm_runtime_put(vin->dev);
+ 	}
+ 
+ 	mutex_unlock(&vin->lock);
+@@ -910,41 +937,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int ret;
+ 
+-	v4l2_set_subdev_hostdata(sd, vin);
+-
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+-		return ret;
+-
+-	if (vin->vdev.tvnorms == 0) {
+-		/* Disable the STD API if there are no tvnorms defined */
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
+-	}
+-
+-	/* Add the controls */
+-	/*
+-	 * Currently the subdev with the largest number of controls (13) is
+-	 * ov6550. So let's pick 16 as a hint for the control handler. Note
+-	 * that this is a hint only: too large and you waste some memory, too
+-	 * small and there is a (very) small performance hit when looking up
+-	 * controls in the internal hash.
+-	 */
+-	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
+-	if (ret < 0)
+-		return ret;
+-
+ 	/* video node */
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
 diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index ddeca9f..b8f5634 100644
+index d31212a..2a1b190 100644
 --- a/drivers/media/platform/rcar-vin/rcar-vin.h
 +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -33,6 +33,7 @@ enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_GEN2,
-+	RCAR_GEN3,
- };
+@@ -111,6 +111,7 @@ struct rvin_graph_entity {
+  * @sequence:		V4L2 buffers sequence number
+  * @state:		keeps track of operation state
+  *
++ * @last_input:		points to the last active input source
+  * @source:		active format from the video source
+  * @format:		active V4L2 pixel format
+  *
+@@ -138,6 +139,7 @@ struct rvin_dev {
+ 	unsigned int sequence;
+ 	enum rvin_dma_state state;
  
- /**
++	struct rvin_graph_entity *last_input;
+ 	struct rvin_source_fmt source;
+ 	struct v4l2_pix_format format;
+ 
 -- 
 2.10.2
 
