@@ -1,180 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:60375 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753457AbcKRXVO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:14 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 21/35] media: ti-vpe: vpdma: Corrected YUV422 data type label.
-Date: Fri, 18 Nov 2016 17:20:31 -0600
-Message-ID: <20161118232045.24665-22-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout4.samsung.com ([203.254.224.34]:49863 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754014AbcKBKk5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 06:40:57 -0400
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v3 5/6] Documentation: bindings: add documentation for ir-spi
+ device driver
+Date: Wed, 02 Nov 2016 19:40:09 +0900
+Message-id: <20161102104010.26959-6-andi.shyti@samsung.com>
+In-reply-to: <20161102104010.26959-1-andi.shyti@samsung.com>
+References: <20161102104010.26959-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The YUV data type definition below are taken from
-both the TRM and i839 Errata information.
-Use the correct data type considering byte
-reordering of components.
+Document the ir-spi driver's binding which is a IR led driven
+through the SPI line.
 
-Added the 2 missing YUV422 variant.
-Also since the single use of "C" in the 422 case
-to mean "Cr" (i.e. V component). It was decided
-to explicitly label them CR to remove any confusion.
-Bear in mind that the type label refer to the memory
-packed order (LSB - MSB).
-
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
 ---
- drivers/media/platform/ti-vpe/vpdma.c      | 18 ++++++++++++++----
- drivers/media/platform/ti-vpe/vpdma.h      |  6 ++++--
- drivers/media/platform/ti-vpe/vpdma_priv.h | 19 ++++++++++++++++---
- drivers/media/platform/ti-vpe/vpe.c        |  8 ++++----
- 4 files changed, 38 insertions(+), 13 deletions(-)
+ .../devicetree/bindings/leds/spi-ir-led.txt        | 29 ++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/spi-ir-led.txt
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index f85727a0ac44..8f0d608c70f6 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -59,9 +59,9 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 		.data_type	= DATA_TYPE_C420,
- 		.depth		= 4,
- 	},
--	[VPDMA_DATA_FMT_YC422] = {
-+	[VPDMA_DATA_FMT_YCR422] = {
- 		.type		= VPDMA_DATA_FMT_TYPE_YUV,
--		.data_type	= DATA_TYPE_YC422,
-+		.data_type	= DATA_TYPE_YCR422,
- 		.depth		= 16,
- 	},
- 	[VPDMA_DATA_FMT_YC444] = {
-@@ -69,9 +69,19 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 		.data_type	= DATA_TYPE_YC444,
- 		.depth		= 24,
- 	},
--	[VPDMA_DATA_FMT_CY422] = {
-+	[VPDMA_DATA_FMT_CRY422] = {
- 		.type		= VPDMA_DATA_FMT_TYPE_YUV,
--		.data_type	= DATA_TYPE_CY422,
-+		.data_type	= DATA_TYPE_CRY422,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_CBY422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
-+		.data_type	= DATA_TYPE_CBY422,
-+		.depth		= 16,
-+	},
-+	[VPDMA_DATA_FMT_YCB422] = {
-+		.type		= VPDMA_DATA_FMT_TYPE_YUV,
-+		.data_type	= DATA_TYPE_YCB422,
- 		.depth		= 16,
- 	},
- };
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index ccf871ad8800..405a6febc254 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -74,9 +74,11 @@ enum vpdma_yuv_formats {
- 	VPDMA_DATA_FMT_C444,
- 	VPDMA_DATA_FMT_C422,
- 	VPDMA_DATA_FMT_C420,
--	VPDMA_DATA_FMT_YC422,
-+	VPDMA_DATA_FMT_YCR422,
- 	VPDMA_DATA_FMT_YC444,
--	VPDMA_DATA_FMT_CY422,
-+	VPDMA_DATA_FMT_CRY422,
-+	VPDMA_DATA_FMT_CBY422,
-+	VPDMA_DATA_FMT_YCB422,
- };
- 
- enum vpdma_rgb_formats {
-diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
-index 54b6aa866c74..f974a803fa27 100644
---- a/drivers/media/platform/ti-vpe/vpdma_priv.h
-+++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
-@@ -77,16 +77,29 @@
- #define VPDMA_LIST_TYPE_SHFT		16
- #define VPDMA_LIST_SIZE_MASK		0xffff
- 
--/* VPDMA data type values for data formats */
-+/*
-+ * The YUV data type definition below are taken from
-+ * both the TRM and i839 Errata information.
-+ * Use the correct data type considering byte
-+ * reordering of components.
-+ *
-+ * Also since the single use of "C" in the 422 case
-+ * to mean "Cr" (i.e. V component). It was decided
-+ * to explicitly label them CR to remove any confusion.
-+ * Bear in mind that the type label refer to the memory
-+ * packed order (LSB - MSB).
-+ */
- #define DATA_TYPE_Y444				0x0
- #define DATA_TYPE_Y422				0x1
- #define DATA_TYPE_Y420				0x2
- #define DATA_TYPE_C444				0x4
- #define DATA_TYPE_C422				0x5
- #define DATA_TYPE_C420				0x6
--#define DATA_TYPE_YC422				0x7
- #define DATA_TYPE_YC444				0x8
--#define DATA_TYPE_CY422				0x27
-+#define DATA_TYPE_YCB422			0x7
-+#define DATA_TYPE_YCR422			0x17
-+#define DATA_TYPE_CBY422			0x27
-+#define DATA_TYPE_CRY422			0x37
- 
- #define DATA_TYPE_RGB16_565			0x0
- #define DATA_TYPE_ARGB_1555			0x1
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 05b793595ce9..ef55fb45d0be 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -237,7 +237,7 @@ struct vpe_fmt {
- 
- static struct vpe_fmt vpe_formats[] = {
- 	{
--		.name		= "YUV 422 co-planar",
-+		.name		= "NV16 YUV 422 co-planar",
- 		.fourcc		= V4L2_PIX_FMT_NV16,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 1,
-@@ -246,7 +246,7 @@ static struct vpe_fmt vpe_formats[] = {
- 				  },
- 	},
- 	{
--		.name		= "YUV 420 co-planar",
-+		.name		= "NV12 YUV 420 co-planar",
- 		.fourcc		= V4L2_PIX_FMT_NV12,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 1,
-@@ -259,7 +259,7 @@ static struct vpe_fmt vpe_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_YUYV,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 0,
--		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YC422],
-+		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YCB422],
- 				  },
- 	},
- 	{
-@@ -267,7 +267,7 @@ static struct vpe_fmt vpe_formats[] = {
- 		.fourcc		= V4L2_PIX_FMT_UYVY,
- 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
- 		.coplanar	= 0,
--		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CY422],
-+		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CBY422],
- 				  },
- 	},
- 	{
+diff --git a/Documentation/devicetree/bindings/leds/spi-ir-led.txt b/Documentation/devicetree/bindings/leds/spi-ir-led.txt
+new file mode 100644
+index 0000000..896b699
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/spi-ir-led.txt
+@@ -0,0 +1,29 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
++
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
++
++Required properties:
++	- compatible: should be "ir-spi-led".
++
++Optional properties:
++	- duty-cycle: 8 bit balue that represents the percentage of one period
++	  in which the signal is active.  It can be 50, 60, 70, 75, 80 or 90.
++	- led-active-low: boolean value that specifies whether the output is
++	  negated with a NOT gate.
++	- power-supply: specifies the power source. It can either be a regulator
++	  or a gpio which enables a regulator, i.e. a regulator-fixed as
++	  described in
++	  Documentation/devicetree/bindings/regulator/fixed-regulator.txt
++
++Example:
++
++	irled@0 {
++		compatible = "ir-spi-led";
++		reg = <0x0>;
++		spi-max-frequency = <5000000>;
++		power-supply = <&vdd_led>;
++		led-active-low;
++		duty-cycle = /bits/ 8 <60>;
++	};
 -- 
-2.9.0
+2.10.1
 
