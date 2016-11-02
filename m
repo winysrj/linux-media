@@ -1,92 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44091 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933299AbcKNKZm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 05:25:42 -0500
-Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
- functions
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
- <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
- <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
- <a6557768-787d-7794-8cd0-781dc1ee9072@xs4all.nl>
- <dd5c0fef-4994-4beb-952f-659ff5d17fb0@linaro.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <72f8675a-4771-3e9a-6ee0-6e1b86589e8f@xs4all.nl>
-Date: Mon, 14 Nov 2016 11:25:36 +0100
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49502 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753565AbcKBN3p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:45 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 22/32] media: rcar-vin: add chsel information to rvin_info
+Date: Wed,  2 Nov 2016 14:23:19 +0100
+Message-Id: <20161102132329.436-23-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <dd5c0fef-4994-4beb-952f-659ff5d17fb0@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/2016 11:11 AM, Stanimir Varbanov wrote:
-> Hi Hans,
-> 
-> <cut>
-> 
->>>>
->>>>> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
->>>>> +{
->>>>> +	struct venus_inst *inst = vb2_get_drv_priv(q);
->>>>> +	struct venus_core *core = inst->core;
->>>>> +	struct device *dev = core->dev;
->>>>> +	struct vb2_queue *other_queue;
->>>>> +	struct vidc_buffer *buf, *n;
->>>>> +	enum vb2_buffer_state state;
->>>>> +	int ret;
->>>>> +
->>>>> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->>>>> +		other_queue = &inst->bufq_cap;
->>>>> +	else
->>>>> +		other_queue = &inst->bufq_out;
->>>>> +
->>>>> +	if (!vb2_is_streaming(other_queue))
->>>>> +		return;
->>>>
->>>> This seems wrong to me: this return means that the buffers of queue q are never
->>>> released. Either drop this 'if' or release both queues when the last queue
->>>> stops streaming. I think dropping the 'if' is best.
->>>
->>> I have done this way because hfi_session_stop must be called only once,
->>> and buffers will be released on first streamoff for both queues.
->>
->> Are you sure the buffers are released for both queues? I may have missed that when
->> reviewing.
-> 
-> yes, hfi_session_stop will instruct the firmware to stop using provided
-> buffers and return ownership to the host driver by fill_buf_done and
-> empty_buf_done callbacks.
-> 
->>
->> I would recommend to call hfi_session_stop when the first stop_streaming is called,
->> not when it is called for both queues. I say this because stopping streaming without
->> releasing the buffers is likely to cause problems.
-> 
-> this is what I tried to implement with above
-> !vb2_is_streaming(other_queue) thing.
+Each Gen3 SoC have a limited set of predefined routing possibilities for
+which CSI2 device and virtual channel can be routed to which VIN
+instance.  Prepare to store this information in the struct rvin_info.
 
-That doesn't work: if the application calls STREAMON(CAPTURE) followed by STREAMOFF(CAPTURE)
-without ever starting the OUTPUT queue, this will not clean up the capture queue.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-vin.h | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-Regards,
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 90c28a7..cd7d959 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -35,6 +35,9 @@
+ /* Max number on VIN instances that can be in a system */
+ #define RCAR_VIN_NUM 8
+ 
++/* Max number of CHSEL values for any Gen3 SoC */
++#define RCAR_CHSEL_MAX 6
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -111,6 +114,16 @@ struct rvin_graph_entity {
+ 
+ struct rvin_group;
+ 
++
++/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
++ * @csi:		VIN internal number for CSI2 device
++ * @chan:		CSI2 VC number on remote
++ */
++struct rvin_group_chsel {
++	enum rvin_csi_id csi;
++	int chan;
++};
++
+ /**
+  * struct rvin_info- Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -123,6 +136,9 @@ struct rvin_info {
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
++
++	unsigned int num_chsels;
++	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
+ };
+ 
+ /**
+-- 
+2.10.2
 
-	Hans
-
-> 
->>
->> Did you turn on CONFIG_VIDEO_ADV_DEBUG? If it is on, and you don't release buffers
->> then I think you will see warnings in the kernel log.
-> 
-> OK I will enable it to be sure that warnings are missing.
-> 
