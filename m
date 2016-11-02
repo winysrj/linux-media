@@ -1,134 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33303 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752742AbcKGMuw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 07:50:52 -0500
-MIME-Version: 1.0
-In-Reply-To: <20161102132235.32738-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132235.32738-1-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 7 Nov 2016 13:49:55 +0100
-Message-ID: <CAMuHMdW6pBQHMnpmnpoJ6rYBXLfEWuXpdaZMJNBUVAyXrz7_Mw@mail.gmail.com>
-Subject: Re: [PATCHv3] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 driver
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49477 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754175AbcKBN3i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:38 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 07/32] media: rcar-vin: add wrapper to get rvin_graph_entity
+Date: Wed,  2 Nov 2016 14:23:04 +0100
+Message-Id: <20161102132329.436-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Update the driver to retrieve the code and mbus_cfg values from a
+rvin_graph_entity retrieved from a wrapper function instead of directly
+accessing the entity for the digital port. This is done to prepare for
+Gen3 support where the subdeivce might change during runtime, so to
+directly accesses a specific rvin_graph_entity is bad.
 
-On Wed, Nov 2, 2016 at 2:22 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> A V4L2 driver for Renesas R-Car MIPI CSI-2 interface. The driver
-> supports the rcar-vin driver on R-Car Gen3 SoCs where a separate driver
-> is needed to receive CSI-2.
->
-> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
->
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c |  9 +++++++++
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 15 ++++++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  6 +++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
+ 4 files changed, 25 insertions(+), 6 deletions(-)
 
-Looking at the binding doc only...
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 098a0b1..89a9280 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -26,6 +26,15 @@
+ #include "rcar-vin.h"
+ 
+ /* -----------------------------------------------------------------------------
++ * Subdevice helpers
++ */
++
++struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin)
++{
++	return &vin->digital;
++}
++
++/* -----------------------------------------------------------------------------
+  * Async notifier
+  */
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 9ccd5ff..eac5c19 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -131,10 +131,15 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
+ 
+ static int rvin_setup(struct rvin_dev *vin)
+ {
++	struct rvin_graph_entity *rent;
+ 	u32 vnmc, dmr, dmr2, interrupts;
+ 	v4l2_std_id std;
+ 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
+ 
++	rent = vin_to_entity(vin);
++	if (!rent)
++		return -ENODEV;
++
+ 	switch (vin->format.field) {
+ 	case V4L2_FIELD_TOP:
+ 		vnmc = VNMC_IM_ODD;
+@@ -174,7 +179,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	/*
+ 	 * Input interface
+ 	 */
+-	switch (vin->digital.code) {
++	switch (rent->code) {
+ 	case MEDIA_BUS_FMT_YUYV8_1X16:
+ 		/* BT.601/BT.1358 16bit YCbCr422 */
+ 		vnmc |= VNMC_INF_YUV16;
+@@ -182,7 +187,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY8_2X8:
+ 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= rent->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -191,7 +196,7 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		break;
+ 	case MEDIA_BUS_FMT_UYVY10_2X10:
+ 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+-		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
++		vnmc |= rent->mbus_cfg.type == V4L2_MBUS_BT656 ?
+ 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+ 		input_is_yuv = true;
+ 		break;
+@@ -203,11 +208,11 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
++	if (!(rent->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_HPS;
+ 
+ 	/* Vsync Signal Polarity Select */
+-	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
++	if (!(rent->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+ 		dmr2 |= VNDMR2_VPS;
+ 
+ 	/*
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f9218f2..370bb18 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -164,6 +164,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ {
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_subdev_pad_config *pad_cfg;
++	struct rvin_graph_entity *rent;
+ 	struct v4l2_subdev_format format = {
+ 		.which = which,
+ 	};
+@@ -171,8 +172,11 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 	int ret;
+ 
+ 	sd = vin_to_source(vin);
++	rent = vin_to_entity(vin);
++	if (!rent)
++		return -ENODEV;
+ 
+-	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
++	v4l2_fill_mbus_format(&format.format, pix, rent->code);
+ 
+ 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
+ 	if (pad_cfg == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 727e215..daec26a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -144,6 +144,7 @@ struct rvin_dev {
+ 	struct v4l2_rect compose;
+ };
+ 
++struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin);
+ #define vin_to_source(vin)		vin->digital.subdev
+ 
+ /* Debug */
+-- 
+2.10.2
 
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
-> @@ -0,0 +1,116 @@
-> +Renesas R-Car MIPI CSI-2 driver (rcar-csi2)
-
-Bindings are meant to describe hardware, not drivers.
-
-> +-------------------------------------------
-> +
-> +The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-=
-Car
-> +family of devices. It is to be used in conjunction with the rcar-vin dri=
-ver
-
-R-Car VIN module?
-
-> +which provides the video input capabilities.
-
-> +
-> + - compatible: Must be one or more of the following
-> +   - "renesas,r8a7795-csi2" for the R8A7795 device.
-> +   - "renesas,r8a7796-csi2" for the R8A7796 device.
-> +   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device=
-.
-> +
-> +   When compatible with a generic version nodes must list the
-> +   SoC-specific version corresponding to the platform first
-> +   followed by the generic version.
-> +
-> + - reg: the register base and size for the device registers
-> + - interrupts: the interrupt for the device
-> + - clocks: Reference to the parent clock
-> +
-> +The device node should contain two 'port' child nodes according to the
-> +bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt. Port 0 should connect the device that is the vidoe
-
-video
-
-> +source for to the CSI-2 . Port 1 should connect the R-Car VIN devices
-> +(rcar-vin) devices which can use the CSI-2 device.
-
-Please drop "(rcar-vin)"
-
-> +
-> +- Port 0 - Vidoe source
-
-Video
-
-> +       - Reg 0 - sub-node describing the endpoint which are the vidoe so=
-urce
-
-is the video?
-
-> +
-> +- Port 1 - VIN instacnes
-> +       - Reg 0 - sub-node describing the endpoint which are VIN0
-> +       - Reg 1 - sub-node describing the endpoint which are VIN1
-> +       - Reg 2 - sub-node describing the endpoint which are VIN2
-> +       - Reg 3 - sub-node describing the endpoint which are VIN3
-> +       - Reg 4 - sub-node describing the endpoint which are VIN4
-> +       - Reg 5 - sub-node describing the endpoint which are VIN5
-> +       - Reg 6 - sub-node describing the endpoint which are VIN6
-> +       - Reg 7 - sub-node describing the endpoint which are VIN7
-
-s/are/in/?
-
-> +
-> +Example:
-> +
-> +/* SoC properties */
-> +
-> +        csi20: csi2@fea80000 {
-> +                compatible =3D "renesas,r8a7795-csi2";
-> +                reg =3D <0 0xfea80000 0 0x10000>;
-> +                interrupts =3D <0 184 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 714>;
-> +                power-domains =3D <&cpg>;
-
-Please update the power-domains property to match reality.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
