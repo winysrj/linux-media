@@ -1,738 +1,376 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51122 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754852AbcKYQtZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 11:49:25 -0500
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, daniel@ffwll.ch, gustavo@padovan.org,
-        laurent.pinchart@ideasonboard.com, eric@anholt.net,
-        ville.syrjala@linux.intel.com, liviu.dudau@arm.com
-Subject: [PATCH 1/6] drm: Add writeback connector type
-Date: Fri, 25 Nov 2016 16:48:59 +0000
-Message-Id: <1480092544-1725-2-git-send-email-brian.starkey@arm.com>
-In-Reply-To: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:59816 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754023AbcKBNEM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 09:04:12 -0400
+Subject: [PATCHv2 08/11] cec: move the CEC framework out of staging and to
+ media
+To: linux-media@vger.kernel.org
+References: <20161102124635.11989-1-hverkuil@xs4all.nl>
+ <20161102124635.11989-9-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <0b6019af-c559-a088-6f34-09a06561a907@xs4all.nl>
+Date: Wed, 2 Nov 2016 14:04:08 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161102124635.11989-9-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Writeback connectors represent writeback engines which can write the
-CRTC output to a memory framebuffer. Add a writeback connector type and
-related support functions.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Drivers should initialize a writeback connector with
-drm_writeback_connector_init() which takes care of setting up all the
-writeback-specific details on top of the normal functionality of
-drm_connector_init().
+The last open issues have been addressed, so it is time to move
+this out of staging and into the mainline and to move the public
+cec headers to include/uapi/linux.
 
-Writeback connectors have a WRITEBACK_FB_ID property, used to set the
-output framebuffer, and a PIXEL_FORMATS blob used to expose the
-supported writeback formats to userspace.
-
-When a framebuffer is attached to a writeback connector with the
-WRITEBACK_FB_ID property, it is used only once (for the commit in which
-it was included), and userspace can never read back the value of
-WRITEBACK_FB_ID. WRITEBACK_FB_ID can only be set if the connector is
-attached to a CRTC.
-
-Changes since v1:
- - Added drm_writeback.c + documentation
- - Added helper to initialize writeback connector in one go
- - Added core checks
- - Squashed into a single commit
- - Dropped the client cap
- - Writeback framebuffers are no longer persistent
-
-Changes since v2:
- Daniel Vetter:
- - Subclass drm_connector to drm_writeback_connector
- - Relax check to allow CRTC to be set without an FB
- - Add some writeback_ prefixes
- - Drop PIXEL_FORMATS_SIZE property, as it was unnecessary
- Gustavo Padovan:
- - Add drm_writeback_job to handle writeback signalling centrally
-
-Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/gpu/drm-kms.rst       |    9 ++
- drivers/gpu/drm/Makefile            |    2 +-
- drivers/gpu/drm/drm_atomic.c        |  130 ++++++++++++++++++++
- drivers/gpu/drm/drm_atomic_helper.c |    6 +
- drivers/gpu/drm/drm_connector.c     |    4 +-
- drivers/gpu/drm/drm_writeback.c     |  230 +++++++++++++++++++++++++++++++++++
- include/drm/drm_atomic.h            |    3 +
- include/drm/drm_connector.h         |   13 ++
- include/drm/drm_mode_config.h       |   14 +++
- include/drm/drm_writeback.h         |   78 ++++++++++++
- include/uapi/drm/drm_mode.h         |    1 +
- 11 files changed, 488 insertions(+), 2 deletions(-)
- create mode 100644 drivers/gpu/drm/drm_writeback.c
- create mode 100644 include/drm/drm_writeback.h
+Changes since v1:
 
-diff --git a/Documentation/gpu/drm-kms.rst b/Documentation/gpu/drm-kms.rst
-index 568f3c2..3a4f35b 100644
---- a/Documentation/gpu/drm-kms.rst
-+++ b/Documentation/gpu/drm-kms.rst
-@@ -122,6 +122,15 @@ Connector Functions Reference
- .. kernel-doc:: drivers/gpu/drm/drm_connector.c
-    :export:
- 
-+Writeback Connectors
-+--------------------
+Fix path to cec.h in Documentation/media/Makefile.
+Forgot to make the documentation after moving linux/cec.h to
+uapi/linux/cec.h :-(
+---
+  Documentation/media/Makefile               |  2 +-
+  drivers/media/Kconfig                      | 16 ++++++++++++++++
+  drivers/media/Makefile                     |  4 ++++
+  drivers/{staging => }/media/cec/Makefile   |  2 +-
+  drivers/{staging => }/media/cec/cec-adap.c |  0
+  drivers/{staging => }/media/cec/cec-api.c  |  0
+  drivers/{staging => }/media/cec/cec-core.c |  0
+  drivers/{staging => }/media/cec/cec-priv.h |  0
+  drivers/media/i2c/Kconfig                  |  6 +++---
+  drivers/media/platform/vivid/Kconfig       |  2 +-
+  drivers/staging/media/Kconfig              |  2 --
+  drivers/staging/media/Makefile             |  1 -
+  drivers/staging/media/cec/Kconfig          | 12 ------------
+  drivers/staging/media/cec/TODO             |  9 ---------
+  drivers/staging/media/pulse8-cec/Kconfig   |  2 +-
+  drivers/staging/media/s5p-cec/Kconfig      |  2 +-
+  drivers/staging/media/st-cec/Kconfig       |  2 +-
+  include/media/cec.h                        |  2 +-
+  include/uapi/linux/Kbuild                  |  2 ++
+  include/{ => uapi}/linux/cec-funcs.h       |  6 ------
+  include/{ => uapi}/linux/cec.h             |  6 ------
+  21 files changed, 32 insertions(+), 46 deletions(-)
+  rename drivers/{staging => }/media/cec/Makefile (70%)
+  rename drivers/{staging => }/media/cec/cec-adap.c (100%)
+  rename drivers/{staging => }/media/cec/cec-api.c (100%)
+  rename drivers/{staging => }/media/cec/cec-core.c (100%)
+  rename drivers/{staging => }/media/cec/cec-priv.h (100%)
+  delete mode 100644 drivers/staging/media/cec/Kconfig
+  delete mode 100644 drivers/staging/media/cec/TODO
+  rename include/{ => uapi}/linux/cec-funcs.h (99%)
+  rename include/{ => uapi}/linux/cec.h (99%)
+
+diff --git a/Documentation/media/Makefile b/Documentation/media/Makefile
+index a7fb352..61afa05 100644
+--- a/Documentation/media/Makefile
++++ b/Documentation/media/Makefile
+@@ -51,7 +51,7 @@ $(BUILDDIR)/videodev2.h.rst: ${UAPI}/videodev2.h 
+${PARSER} $(SRC_DIR)/videodev2.
+  $(BUILDDIR)/media.h.rst: ${UAPI}/media.h ${PARSER} 
+$(SRC_DIR)/media.h.rst.exceptions
+  	@$($(quiet)gen_rst)
+
+-$(BUILDDIR)/cec.h.rst: ${KAPI}/cec.h ${PARSER} 
+$(SRC_DIR)/cec.h.rst.exceptions
++$(BUILDDIR)/cec.h.rst: ${UAPI}/cec.h ${PARSER} 
+$(SRC_DIR)/cec.h.rst.exceptions
+  	@$($(quiet)gen_rst)
+
+  $(BUILDDIR)/lirc.h.rst: ${UAPI}/lirc.h ${PARSER} 
+$(SRC_DIR)/lirc.h.rst.exceptions
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 7b85402..bc643cb 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -80,6 +80,22 @@ config MEDIA_RC_SUPPORT
+
+  	  Say Y when you have a TV or an IR device.
+
++config MEDIA_CEC_SUPPORT
++	bool "HDMI CEC support"
++	select MEDIA_CEC_EDID
++	---help---
++	  Enable support for HDMI CEC (Consumer Electronics Control),
++	  which is an optional HDMI feature.
 +
-+.. kernel-doc:: drivers/gpu/drm/drm_writeback.c
-+  :doc: overview
++	  Say Y when you have an HDMI receiver, transmitter or a USB CEC
++	  adapter that supports HDMI CEC.
 +
-+.. kernel-doc:: drivers/gpu/drm/drm_writeback.c
-+  :export:
++config MEDIA_CEC_DEBUG
++	bool "HDMI CEC debugfs interface"
++	depends on MEDIA_CEC_SUPPORT && DEBUG_FS
++	---help---
++	  Turns on the DebugFS interface for CEC devices.
 +
- Encoder Abstraction
- ===================
- 
-diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
-index 883f3e7..3209aa4 100644
---- a/drivers/gpu/drm/Makefile
-+++ b/drivers/gpu/drm/Makefile
-@@ -16,7 +16,7 @@ drm-y       :=	drm_auth.o drm_bufs.o drm_cache.o \
- 		drm_framebuffer.o drm_connector.o drm_blend.o \
- 		drm_encoder.o drm_mode_object.o drm_property.o \
- 		drm_plane.o drm_color_mgmt.o drm_print.o \
--		drm_dumb_buffers.o drm_mode_config.o
-+		drm_dumb_buffers.o drm_mode_config.o drm_writeback.o
- 
- drm-$(CONFIG_COMPAT) += drm_ioc32.o
- drm-$(CONFIG_DRM_GEM_CMA_HELPER) += drm_gem_cma_helper.o
-diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
-index b476ec5..343e2b7 100644
---- a/drivers/gpu/drm/drm_atomic.c
-+++ b/drivers/gpu/drm/drm_atomic.c
-@@ -31,6 +31,7 @@
- #include <drm/drm_mode.h>
- #include <drm/drm_plane_helper.h>
- #include <drm/drm_print.h>
-+#include <drm/drm_writeback.h>
- #include <linux/sync_file.h>
- 
- #include "drm_crtc_internal.h"
-@@ -659,6 +660,46 @@ static void drm_atomic_crtc_print_state(struct drm_printer *p,
- }
- 
- /**
-+ * drm_atomic_connector_check - check connector state
-+ * @connector: connector to check
-+ * @state: connector state to check
-+ *
-+ * Provides core sanity checks for connector state.
-+ *
-+ * RETURNS:
-+ * Zero on success, error code on failure
-+ */
-+static int drm_atomic_connector_check(struct drm_connector *connector,
-+		struct drm_connector_state *state)
-+{
-+	struct drm_crtc_state *crtc_state;
-+	struct drm_writeback_job *writeback_job = state->writeback_job;
+  config MEDIA_CEC_EDID
+  	bool
+
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 0deaa93..d87ccb8 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -6,6 +6,10 @@ ifeq ($(CONFIG_MEDIA_CEC_EDID),y)
+    obj-$(CONFIG_MEDIA_SUPPORT) += cec-edid.o
+  endif
+
++ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
++  obj-$(CONFIG_MEDIA_SUPPORT) += cec/
++endif
 +
-+	if ((connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK) ||
-+	    !writeback_job)
-+		return 0;
-+
-+	if (writeback_job->fb && !state->crtc) {
-+		DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] framebuffer without CRTC\n",
-+				 connector->base.id, connector->name);
-+		return -EINVAL;
-+	}
-+
-+	if (state->crtc)
-+		crtc_state = drm_atomic_get_existing_crtc_state(state->state,
-+								state->crtc);
-+
-+	if (writeback_job->fb && !crtc_state->active) {
-+		DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] has framebuffer, but [CRTC:%d] is off\n",
-+				 connector->base.id, connector->name,
-+				 state->crtc->base.id);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-  * drm_atomic_get_plane_state - get plane state
-  * @state: global atomic state object
-  * @plane: plane to get state object for
-@@ -1087,6 +1128,12 @@ int drm_atomic_connector_set_property(struct drm_connector *connector,
- 		 * now?) atomic writes to DPMS property:
- 		 */
- 		return -EINVAL;
-+	} else if (property == config->writeback_fb_id_property) {
-+		struct drm_framebuffer *fb = drm_framebuffer_lookup(dev, val);
-+		int ret = drm_atomic_set_writeback_fb_for_connector(state, fb);
-+		if (fb)
-+			drm_framebuffer_unreference(fb);
-+		return ret;
- 	} else if (connector->funcs->atomic_set_property) {
- 		return connector->funcs->atomic_set_property(connector,
- 				state, property, val);
-@@ -1135,6 +1182,9 @@ static void drm_atomic_connector_print_state(struct drm_printer *p,
- 		*val = (state->crtc) ? state->crtc->base.id : 0;
- 	} else if (property == config->dpms_property) {
- 		*val = connector->dpms;
-+	} else if (property == config->writeback_fb_id_property) {
-+		/* Writeback framebuffer is one-shot, write and forget */
-+		*val = 0;
- 	} else if (connector->funcs->atomic_get_property) {
- 		return connector->funcs->atomic_get_property(connector,
- 				state, property, val);
-@@ -1347,6 +1397,75 @@ int drm_atomic_get_property(struct drm_mode_object *obj,
- }
- EXPORT_SYMBOL(drm_atomic_set_crtc_for_connector);
- 
-+/*
-+ * drm_atomic_get_writeback_job - return or allocate a writeback job
-+ * @conn_state: Connector state to get the job for
-+ *
-+ * Writeback jobs have a different lifetime to the atomic state they are
-+ * associated with. This convenience function takes care of allocating a job
-+ * if there isn't yet one associated with the connector state, otherwise
-+ * it just returns the existing job.
-+ *
-+ * Returns: The writeback job for the given connector state
-+ */
-+static struct drm_writeback_job *
-+drm_atomic_get_writeback_job(struct drm_connector_state *conn_state)
-+{
-+	WARN_ON(conn_state->connector->connector_type !=
-+		DRM_MODE_CONNECTOR_WRITEBACK);
-+
-+	if (!conn_state->writeback_job)
-+		conn_state->writeback_job =
-+			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
-+
-+	return conn_state->writeback_job;
-+}
-+
-+/**
-+ * drm_atomic_set_writeback_fb_for_connector - set writeback framebuffer
-+ * @conn_state: atomic state object for the connector
-+ * @fb: fb to use for the connector
-+ *
-+ * This is used to set the framebuffer for a writeback connector, which outputs
-+ * to a buffer instead of an actual physical connector.
-+ * Changing the assigned framebuffer requires us to grab a reference to the new
-+ * fb and drop the reference to the old fb, if there is one. This function
-+ * takes care of all these details besides updating the pointer in the
-+ * state object itself.
-+ *
-+ * Note: The only way conn_state can already have an fb set is if the commit
-+ * sets the property more than once.
-+ *
-+ * See also: drm_writeback_connector_init()
-+ *
-+ * Returns: 0 on success
-+ */
-+int drm_atomic_set_writeback_fb_for_connector(
-+		struct drm_connector_state *conn_state,
-+		struct drm_framebuffer *fb)
-+{
-+	struct drm_writeback_job *job =
-+		drm_atomic_get_writeback_job(conn_state);
-+	if (!job)
-+		return -ENOMEM;
-+
-+	if (job->fb)
-+		drm_framebuffer_unreference(job->fb);
-+	if (fb)
-+		drm_framebuffer_reference(fb);
-+	job->fb = fb;
-+
-+	if (fb)
-+		DRM_DEBUG_ATOMIC("Set [FB:%d] for connector state %p\n",
-+				 fb->base.id, conn_state);
-+	else
-+		DRM_DEBUG_ATOMIC("Set [NOFB] for connector state %p\n",
-+				 conn_state);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(drm_atomic_set_writeback_fb_for_connector);
-+
- /**
-  * drm_atomic_add_affected_connectors - add connectors for crtc
-  * @state: atomic state
-@@ -1501,6 +1620,8 @@ int drm_atomic_check_only(struct drm_atomic_state *state)
- 	struct drm_plane_state *plane_state;
- 	struct drm_crtc *crtc;
- 	struct drm_crtc_state *crtc_state;
-+	struct drm_connector *conn;
-+	struct drm_connector_state *conn_state;
- 	int i, ret = 0;
- 
- 	DRM_DEBUG_ATOMIC("checking %p\n", state);
-@@ -1523,6 +1644,15 @@ int drm_atomic_check_only(struct drm_atomic_state *state)
- 		}
- 	}
- 
-+	for_each_connector_in_state(state, conn, conn_state, i) {
-+		ret = drm_atomic_connector_check(conn, conn_state);
-+		if (ret) {
-+			DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] atomic core check failed\n",
-+					 conn->base.id, conn->name);
-+			return ret;
-+		}
-+	}
-+
- 	if (config->funcs->atomic_check)
- 		ret = config->funcs->atomic_check(state->dev, state);
- 
-diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
-index 0b16587..75812b9 100644
---- a/drivers/gpu/drm/drm_atomic_helper.c
-+++ b/drivers/gpu/drm/drm_atomic_helper.c
-@@ -30,6 +30,7 @@
- #include <drm/drm_plane_helper.h>
- #include <drm/drm_crtc_helper.h>
- #include <drm/drm_atomic_helper.h>
-+#include <drm/drm_writeback.h>
- #include <linux/dma-fence.h>
- 
- #include "drm_crtc_internal.h"
-@@ -3192,6 +3193,9 @@ void drm_atomic_helper_connector_reset(struct drm_connector *connector)
- 	memcpy(state, connector->state, sizeof(*state));
- 	if (state->crtc)
- 		drm_connector_reference(connector);
-+
-+	/* Don't copy over a writeback job, they are used only once */
-+	state->writeback_job = NULL;
- }
- EXPORT_SYMBOL(__drm_atomic_helper_connector_duplicate_state);
- 
-@@ -3319,6 +3323,8 @@ struct drm_atomic_state *
- 	 */
- 	if (state->crtc)
- 		drm_connector_unreference(state->connector);
-+	if (state->writeback_job)
-+		drm_writeback_cleanup_job(state->writeback_job);
- }
- EXPORT_SYMBOL(__drm_atomic_helper_connector_destroy_state);
- 
-diff --git a/drivers/gpu/drm/drm_connector.c b/drivers/gpu/drm/drm_connector.c
-index b5c6a8e..6bbd93f 100644
---- a/drivers/gpu/drm/drm_connector.c
-+++ b/drivers/gpu/drm/drm_connector.c
-@@ -86,6 +86,7 @@ struct drm_conn_prop_enum_list {
- 	{ DRM_MODE_CONNECTOR_VIRTUAL, "Virtual" },
- 	{ DRM_MODE_CONNECTOR_DSI, "DSI" },
- 	{ DRM_MODE_CONNECTOR_DPI, "DPI" },
-+	{ DRM_MODE_CONNECTOR_WRITEBACK, "Writeback" },
- };
- 
- void drm_connector_ida_init(void)
-@@ -235,7 +236,8 @@ int drm_connector_init(struct drm_device *dev,
- 	list_add_tail(&connector->head, &config->connector_list);
- 	config->num_connector++;
- 
--	if (connector_type != DRM_MODE_CONNECTOR_VIRTUAL)
-+	if ((connector_type != DRM_MODE_CONNECTOR_VIRTUAL) &&
-+	    (connector_type != DRM_MODE_CONNECTOR_WRITEBACK))
- 		drm_object_attach_property(&connector->base,
- 					      config->edid_property,
- 					      0);
-diff --git a/drivers/gpu/drm/drm_writeback.c b/drivers/gpu/drm/drm_writeback.c
-new file mode 100644
-index 0000000..75a1dbf
---- /dev/null
-+++ b/drivers/gpu/drm/drm_writeback.c
-@@ -0,0 +1,230 @@
-+/*
-+ * (C) COPYRIGHT 2016 ARM Limited. All rights reserved.
-+ * Author: Brian Starkey <brian.starkey@arm.com>
-+ *
-+ * This program is free software and is provided to you under the terms of the
-+ * GNU General Public License version 2 as published by the Free Software
-+ * Foundation, and any use by you of this program is subject to the terms
-+ * of such GNU licence.
-+ */
-+
-+#include <drm/drm_crtc.h>
-+#include <drm/drm_property.h>
-+#include <drm/drm_writeback.h>
-+#include <drm/drmP.h>
-+
-+/**
-+ * DOC: overview
-+ *
-+ * Writeback connectors are used to expose hardware which can write the output
-+ * from a CRTC to a memory buffer. They are used and act similarly to other
-+ * types of connectors, with some important differences:
-+ *  - Writeback connectors don't provide a way to output visually to the user.
-+ *  - Writeback connectors should always report as "disconnected" (so that
-+ *    clients which don't understand them will ignore them).
-+ *  - Writeback connectors don't have EDID.
-+ *
-+ * A framebuffer may only be attached to a writeback connector when the
-+ * connector is attached to a CRTC. The WRITEBACK_FB_ID property which sets the
-+ * framebuffer applies only to a single commit (see below). A framebuffer may
-+ * not be attached while the CRTC is off.
-+ *
-+ * Writeback connectors have some additional properties, which userspace
-+ * can use to query and control them:
-+ *
-+ *  "WRITEBACK_FB_ID":
-+ *	Write-only object property storing a DRM_MODE_OBJECT_FB: it stores the
-+ *	framebuffer to be written by the writeback connector. This property is
-+ *	similar to the FB_ID property on planes, but will always read as zero
-+ *	and is not preserved across commits.
-+ *	Userspace must set this property to an output buffer every time it
-+ *	wishes the buffer to get filled.
-+ *
-+ *  "PIXEL_FORMATS":
-+ *	Immutable blob property to store the supported pixel formats table. The
-+ *	data is an array of u32 DRM_FORMAT_* fourcc values.
-+ *	Userspace can use this blob to find out what pixel formats are supported
-+ *	by the connector's writeback engine.
-+ */
-+
-+static bool create_writeback_properties(struct drm_device *dev)
-+{
-+	struct drm_property *prop;
-+
-+	if (!dev->mode_config.writeback_fb_id_property) {
-+		prop = drm_property_create_object(dev, DRM_MODE_PROP_ATOMIC,
-+						  "WRITEBACK_FB_ID",
-+						  DRM_MODE_OBJECT_FB);
-+		if (!prop)
-+			return false;
-+		dev->mode_config.writeback_fb_id_property = prop;
-+	}
-+
-+	if (!dev->mode_config.writeback_pixel_formats_property) {
-+		prop = drm_property_create(dev, DRM_MODE_PROP_BLOB | DRM_MODE_PROP_IMMUTABLE,
-+					   "PIXEL_FORMATS", 0);
-+		if (!prop)
-+			return false;
-+		dev->mode_config.writeback_pixel_formats_property = prop;
-+	}
-+
-+	return true;
-+}
-+
-+/**
-+ * drm_writeback_connector_init - Initialize a writeback connector and its properties
-+ * @dev: DRM device
-+ * @wb_connector: Writeback connector to initialize
-+ * @funcs: Connector funcs vtable
-+ * @formats: Array of supported pixel formats for the writeback engine
-+ * @n_formats: Length of the formats array
-+ *
-+ * This function creates the writeback-connector-specific properties if they
-+ * have not been already created, initializes the connector as
-+ * type DRM_MODE_CONNECTOR_WRITEBACK, and correctly initializes the property
-+ * values.
-+ *
-+ * Drivers should always use this function instead of drm_connector_init() to
-+ * set up writeback connectors.
-+ *
-+ * Returns: 0 on success, or a negative error code
-+ */
-+int drm_writeback_connector_init(struct drm_device *dev,
-+				 struct drm_writeback_connector *wb_connector,
-+				 const struct drm_connector_funcs *funcs,
-+				 u32 *formats, int n_formats)
-+{
-+	int ret;
-+	struct drm_property_blob *blob;
-+	struct drm_connector *connector = &wb_connector->base;
-+	struct drm_mode_config *config = &dev->mode_config;
-+
-+	if (!create_writeback_properties(dev))
-+		return -EINVAL;
-+
-+	blob = drm_property_create_blob(dev, n_formats * sizeof(*formats),
-+					formats);
-+	if (IS_ERR(blob))
-+		return PTR_ERR(blob);
-+
-+	ret = drm_connector_init(dev, connector, funcs,
-+				 DRM_MODE_CONNECTOR_WRITEBACK);
-+	if (ret)
-+		goto fail;
-+
-+	INIT_LIST_HEAD(&wb_connector->job_queue);
-+	spin_lock_init(&wb_connector->job_lock);
-+
-+	drm_object_attach_property(&connector->base,
-+				   config->writeback_fb_id_property, 0);
-+
-+	drm_object_attach_property(&connector->base,
-+				   config->writeback_pixel_formats_property,
-+				   blob->base.id);
-+	wb_connector->pixel_formats_blob_ptr = blob;
-+
-+	return 0;
-+
-+fail:
-+	drm_property_unreference_blob(blob);
-+	return ret;
-+}
-+EXPORT_SYMBOL(drm_writeback_connector_init);
-+
-+/**
-+ * @drm_writeback_queue_job: Queue a writeback job for later signalling
-+ * @wb_connector: The writeback connector to queue a job on
-+ * @job: The job to queue
-+ *
-+ * This function adds a job to the job_queue for a writeback connector. It
-+ * should be considered to take ownership of the writeback job, and so any other
-+ * references to the job must be cleared after calling this function.
-+ *
-+ * Drivers must ensure that for a given writeback connector, jobs are queued in
-+ * exactly the same order as they will be completed by the hardware (and
-+ * signaled via drm_writeback_signal_completion).
-+ *
-+ * For every call to drm_writeback_queue_job() there must be exactly one call to
-+ * drm_writeback_signal_completion()
-+ *
-+ * See also: drm_writeback_signal_completion()
-+ */
-+void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
-+			     struct drm_writeback_job *job)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&wb_connector->job_lock, flags);
-+	list_add_tail(&job->list_entry, &wb_connector->job_queue);
-+	spin_unlock_irqrestore(&wb_connector->job_lock, flags);
-+}
-+EXPORT_SYMBOL(drm_writeback_queue_job);
-+
-+/**
-+ * @drm_writeback_cleanup_job: Cleanup and free a writeback job
-+ * @job: The writeback job to free
-+ *
-+ * Drops any references held by the writeback job, and frees the structure.
-+ */
-+void drm_writeback_cleanup_job(struct drm_writeback_job *job)
-+{
-+	if (!job)
-+		return;
-+
-+	if (job->fb)
-+		drm_framebuffer_unreference(job->fb);
-+	kfree(job);
-+}
-+EXPORT_SYMBOL(drm_writeback_cleanup_job);
-+
-+/*
-+ * @cleanup_work: deferred cleanup of a writeback job
-+ *
-+ * The job cannot be cleaned up directly in drm_writeback_signal_completion,
-+ * because it may be called in interrupt context. Dropping the framebuffer
-+ * reference can sleep, and so the cleanup is deferred to a workqueue.
-+ */
-+static void cleanup_work(struct work_struct *work)
-+{
-+	struct drm_writeback_job *job = container_of(work,
-+						     struct drm_writeback_job,
-+						     cleanup_work);
-+	drm_writeback_cleanup_job(job);
-+}
-+
-+/**
-+ * @drm_writeback_signal_completion: Signal the completion of a writeback job
-+ * @wb_connector: The writeback connector whose job is complete
-+ *
-+ * Drivers should call this to signal the completion of a previously queued
-+ * writeback job. It should be called as soon as possible after the hardware
-+ * has finished writing, and may be called from interrupt context.
-+ * It is the driver's responsibility to ensure that for a given connector, the
-+ * hardware completes writeback jobs in the same order as they are queued.
-+ *
-+ * Unless the driver is holding its own reference to the framebuffer, it must
-+ * not be accessed after calling this function.
-+ *
-+ * See also: drm_writeback_queue_job()
-+ */
-+void
-+drm_writeback_signal_completion(struct drm_writeback_connector *wb_connector)
-+{
-+	unsigned long flags;
-+	struct drm_writeback_job *job;
-+
-+	spin_lock_irqsave(&wb_connector->job_lock, flags);
-+	job = list_first_entry_or_null(&wb_connector->job_queue,
-+				       struct drm_writeback_job,
-+				       list_entry);
-+	if (job)
-+		list_del(&job->list_entry);
-+	spin_unlock_irqrestore(&wb_connector->job_lock, flags);
-+
-+	if (WARN_ON(!job))
-+		return;
-+
-+	INIT_WORK(&job->cleanup_work, cleanup_work);
-+	queue_work(system_long_wq, &job->cleanup_work);
-+}
-+EXPORT_SYMBOL(drm_writeback_signal_completion);
-diff --git a/include/drm/drm_atomic.h b/include/drm/drm_atomic.h
-index c0eaec7..476561d 100644
---- a/include/drm/drm_atomic.h
-+++ b/include/drm/drm_atomic.h
-@@ -351,6 +351,9 @@ void drm_atomic_set_fence_for_plane(struct drm_plane_state *plane_state,
- int __must_check
- drm_atomic_set_crtc_for_connector(struct drm_connector_state *conn_state,
- 				  struct drm_crtc *crtc);
-+int drm_atomic_set_writeback_fb_for_connector(
-+		struct drm_connector_state *conn_state,
-+		struct drm_framebuffer *fb);
- int __must_check
- drm_atomic_add_affected_connectors(struct drm_atomic_state *state,
- 				   struct drm_crtc *crtc);
-diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
-index 34f9741..dc4910d6 100644
---- a/include/drm/drm_connector.h
-+++ b/include/drm/drm_connector.h
-@@ -214,6 +214,19 @@ struct drm_connector_state {
- 	struct drm_encoder *best_encoder;
- 
- 	struct drm_atomic_state *state;
-+
-+	/**
-+	 * @writeback_job: Writeback job for writeback connectors
-+	 *
-+	 * Holds the framebuffer for a writeback connector. As the writeback
-+	 * completion may be asynchronous to the normal commit cycle, the
-+	 * writeback job lifetime is managed separately from the normal atomic
-+	 * state by this object.
-+	 *
-+	 * See also: drm_writeback_queue_job() and
-+	 * drm_writeback_signal_completion()
-+	 */
-+	struct drm_writeback_job *writeback_job;
- };
- 
- /**
-diff --git a/include/drm/drm_mode_config.h b/include/drm/drm_mode_config.h
-index bf9991b2..3d3d07f 100644
---- a/include/drm/drm_mode_config.h
-+++ b/include/drm/drm_mode_config.h
-@@ -634,6 +634,20 @@ struct drm_mode_config {
- 	 */
- 	struct drm_property *suggested_y_property;
- 
-+	/**
-+	 * @writeback_fb_id_property: Property for writeback connectors, storing
-+	 * the ID of the output framebuffer.
-+	 * See also: drm_writeback_connector_init()
-+	 */
-+	struct drm_property *writeback_fb_id_property;
-+	/**
-+	 * @writeback_pixel_formats_property: Property for writeback connectors,
-+	 * storing an array of the supported pixel formats for the writeback
-+	 * engine (read-only).
-+	 * See also: drm_writeback_connector_init()
-+	 */
-+	struct drm_property *writeback_pixel_formats_property;
-+
- 	/* dumb ioctl parameters */
- 	uint32_t preferred_depth, prefer_shadow;
- 
-diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
-new file mode 100644
-index 0000000..6b2ac45
---- /dev/null
-+++ b/include/drm/drm_writeback.h
-@@ -0,0 +1,78 @@
-+/*
-+ * (C) COPYRIGHT 2016 ARM Limited. All rights reserved.
-+ * Author: Brian Starkey <brian.starkey@arm.com>
-+ *
-+ * This program is free software and is provided to you under the terms of the
-+ * GNU General Public License version 2 as published by the Free Software
-+ * Foundation, and any use by you of this program is subject to the terms
-+ * of such GNU licence.
-+ */
-+
-+#ifndef __DRM_WRITEBACK_H__
-+#define __DRM_WRITEBACK_H__
-+#include <drm/drm_connector.h>
-+#include <linux/workqueue.h>
-+
-+struct drm_writeback_connector {
-+	struct drm_connector base;
-+
-+	/**
-+	 * @pixel_formats_blob_ptr:
-+	 *
-+	 * DRM blob property data for the pixel formats list on writeback
-+	 * connectors
-+	 * See also drm_writeback_connector_init()
-+	 */
-+	struct drm_property_blob *pixel_formats_blob_ptr;
-+
-+	/** @job_lock: Protects job_queue */
-+	spinlock_t job_lock;
-+	/**
-+	 * @job_queue:
-+	 *
-+	 * Holds a list of a connector's writeback jobs; the last item is the
-+	 * most recent. The first item may be either waiting for the hardware
-+	 * to begin writing, or currently being written.
-+	 *
-+	 * See also: drm_writeback_queue_job() and
-+	 * drm_writeback_signal_completion()
-+	 */
-+	struct list_head job_queue;
-+};
-+
-+struct drm_writeback_job {
-+	/**
-+	 * @cleanup_work:
-+	 *
-+	 * Used to allow drm_writeback_signal_completion to defer dropping the
-+	 * framebuffer reference to a workqueue.
-+	 */
-+	struct work_struct cleanup_work;
-+	/**
-+	 * @list_entry:
-+	 *
-+	 * List item for the connector's @job_queue
-+	 */
-+	struct list_head list_entry;
-+	/**
-+	 * @fb:
-+	 *
-+	 * Framebuffer to be written to by the writeback connector. Do not set
-+	 * directly, use drm_atomic_set_writeback_fb_for_connector()
-+	 */
-+	struct drm_framebuffer *fb;
-+};
-+
-+int drm_writeback_connector_init(struct drm_device *dev,
-+				 struct drm_writeback_connector *wb_connector,
-+				 const struct drm_connector_funcs *funcs,
-+				 u32 *formats, int n_formats);
-+
-+void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
-+			     struct drm_writeback_job *job);
-+
-+void drm_writeback_cleanup_job(struct drm_writeback_job *job);
-+
-+void
-+drm_writeback_signal_completion(struct drm_writeback_connector *wb_connector);
-+#endif
-diff --git a/include/uapi/drm/drm_mode.h b/include/uapi/drm/drm_mode.h
-index ebf622f..ae5e4f7 100644
---- a/include/uapi/drm/drm_mode.h
-+++ b/include/uapi/drm/drm_mode.h
-@@ -263,6 +263,7 @@ struct drm_mode_get_encoder {
- #define DRM_MODE_CONNECTOR_VIRTUAL      15
- #define DRM_MODE_CONNECTOR_DSI		16
- #define DRM_MODE_CONNECTOR_DPI		17
-+#define DRM_MODE_CONNECTOR_WRITEBACK	18
- 
- struct drm_mode_get_connector {
- 
+  media-objs	:= media-device.o media-devnode.o media-entity.o
+
+  #
+diff --git a/drivers/staging/media/cec/Makefile b/drivers/media/cec/Makefile
+similarity index 70%
+rename from drivers/staging/media/cec/Makefile
+rename to drivers/media/cec/Makefile
+index bd7f3c5..d668633 100644
+--- a/drivers/staging/media/cec/Makefile
++++ b/drivers/media/cec/Makefile
+@@ -1,5 +1,5 @@
+  cec-objs := cec-core.o cec-adap.o cec-api.o
+
+-ifeq ($(CONFIG_MEDIA_CEC),y)
++ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
+    obj-$(CONFIG_MEDIA_SUPPORT) += cec.o
+  endif
+diff --git a/drivers/staging/media/cec/cec-adap.c 
+b/drivers/media/cec/cec-adap.c
+similarity index 100%
+rename from drivers/staging/media/cec/cec-adap.c
+rename to drivers/media/cec/cec-adap.c
+diff --git a/drivers/staging/media/cec/cec-api.c 
+b/drivers/media/cec/cec-api.c
+similarity index 100%
+rename from drivers/staging/media/cec/cec-api.c
+rename to drivers/media/cec/cec-api.c
+diff --git a/drivers/staging/media/cec/cec-core.c 
+b/drivers/media/cec/cec-core.c
+similarity index 100%
+rename from drivers/staging/media/cec/cec-core.c
+rename to drivers/media/cec/cec-core.c
+diff --git a/drivers/staging/media/cec/cec-priv.h 
+b/drivers/media/cec/cec-priv.h
+similarity index 100%
+rename from drivers/staging/media/cec/cec-priv.h
+rename to drivers/media/cec/cec-priv.h
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 2669b4b..b31fa6f 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -221,7 +221,7 @@ config VIDEO_ADV7604
+
+  config VIDEO_ADV7604_CEC
+  	bool "Enable Analog Devices ADV7604 CEC support"
+-	depends on VIDEO_ADV7604 && MEDIA_CEC
++	depends on VIDEO_ADV7604 && MEDIA_CEC_SUPPORT
+  	---help---
+  	  When selected the adv7604 will support the optional
+  	  HDMI CEC feature.
+@@ -242,7 +242,7 @@ config VIDEO_ADV7842
+
+  config VIDEO_ADV7842_CEC
+  	bool "Enable Analog Devices ADV7842 CEC support"
+-	depends on VIDEO_ADV7842 && MEDIA_CEC
++	depends on VIDEO_ADV7842 && MEDIA_CEC_SUPPORT
+  	---help---
+  	  When selected the adv7842 will support the optional
+  	  HDMI CEC feature.
+@@ -481,7 +481,7 @@ config VIDEO_ADV7511
+
+  config VIDEO_ADV7511_CEC
+  	bool "Enable Analog Devices ADV7511 CEC support"
+-	depends on VIDEO_ADV7511 && MEDIA_CEC
++	depends on VIDEO_ADV7511 && MEDIA_CEC_SUPPORT
+  	---help---
+  	  When selected the adv7511 will support the optional
+  	  HDMI CEC feature.
+diff --git a/drivers/media/platform/vivid/Kconfig 
+b/drivers/media/platform/vivid/Kconfig
+index 8e6918c..db0dd19 100644
+--- a/drivers/media/platform/vivid/Kconfig
++++ b/drivers/media/platform/vivid/Kconfig
+@@ -25,7 +25,7 @@ config VIDEO_VIVID
+
+  config VIDEO_VIVID_CEC
+  	bool "Enable CEC emulation support"
+-	depends on VIDEO_VIVID && MEDIA_CEC
++	depends on VIDEO_VIVID && MEDIA_CEC_SUPPORT
+  	---help---
+  	  When selected the vivid module will emulate the optional
+  	  HDMI CEC feature.
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index 6620d96..0abe5ff 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -21,8 +21,6 @@ if STAGING_MEDIA && MEDIA_SUPPORT
+  # Please keep them in alphabetic order
+  source "drivers/staging/media/bcm2048/Kconfig"
+
+-source "drivers/staging/media/cec/Kconfig"
+-
+  source "drivers/staging/media/cxd2099/Kconfig"
+
+  source "drivers/staging/media/davinci_vpfe/Kconfig"
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 906257e..246299e 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,5 +1,4 @@
+  obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+-obj-$(CONFIG_MEDIA_CEC)		+= cec/
+  obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
+  obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+  obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+diff --git a/drivers/staging/media/cec/Kconfig 
+b/drivers/staging/media/cec/Kconfig
+deleted file mode 100644
+index 6e12d41..0000000
+--- a/drivers/staging/media/cec/Kconfig
++++ /dev/null
+@@ -1,12 +0,0 @@
+-config MEDIA_CEC
+-	bool "CEC API (EXPERIMENTAL)"
+-	depends on MEDIA_SUPPORT
+-	select MEDIA_CEC_EDID
+-	---help---
+-	  Enable the CEC API.
+-
+-config MEDIA_CEC_DEBUG
+-	bool "CEC debugfs interface (EXPERIMENTAL)"
+-	depends on MEDIA_CEC && DEBUG_FS
+-	---help---
+-	  Turns on the DebugFS interface for CEC devices.
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+deleted file mode 100644
+index 504d35c..0000000
+--- a/drivers/staging/media/cec/TODO
++++ /dev/null
+@@ -1,9 +0,0 @@
+-TODOs:
+-
+-- Once this is out of staging this should no longer be a separate
+-  config option, instead it should be selected by drivers that want it.
+-- Revisit the IS_REACHABLE(RC_CORE): perhaps the RC_CORE support should
+-  be enabled through a separate config option in drivers/media/Kconfig
+-  or rc/Kconfig?
+-
+-Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/drivers/staging/media/pulse8-cec/Kconfig 
+b/drivers/staging/media/pulse8-cec/Kconfig
+index c6aa2d1..6ffc407 100644
+--- a/drivers/staging/media/pulse8-cec/Kconfig
++++ b/drivers/staging/media/pulse8-cec/Kconfig
+@@ -1,6 +1,6 @@
+  config USB_PULSE8_CEC
+  	tristate "Pulse Eight HDMI CEC"
+-	depends on USB_ACM && MEDIA_CEC
++	depends on USB_ACM && MEDIA_CEC_SUPPORT
+  	select SERIO
+  	select SERIO_SERPORT
+  	---help---
+diff --git a/drivers/staging/media/s5p-cec/Kconfig 
+b/drivers/staging/media/s5p-cec/Kconfig
+index 0315fd7..ddfd955 100644
+--- a/drivers/staging/media/s5p-cec/Kconfig
++++ b/drivers/staging/media/s5p-cec/Kconfig
+@@ -1,6 +1,6 @@
+  config VIDEO_SAMSUNG_S5P_CEC
+         tristate "Samsung S5P CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC && (PLAT_S5P || ARCH_EXYNOS || 
+COMPILE_TEST)
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || 
+ARCH_EXYNOS || COMPILE_TEST)
+         ---help---
+           This is a driver for Samsung S5P HDMI CEC interface. It uses the
+           generic CEC framework interface.
+diff --git a/drivers/staging/media/st-cec/Kconfig 
+b/drivers/staging/media/st-cec/Kconfig
+index 784d2c6..c04283d 100644
+--- a/drivers/staging/media/st-cec/Kconfig
++++ b/drivers/staging/media/st-cec/Kconfig
+@@ -1,6 +1,6 @@
+  config VIDEO_STI_HDMI_CEC
+         tristate "STMicroelectronics STiH4xx HDMI CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC && (ARCH_STI || COMPILE_TEST)
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || 
+COMPILE_TEST)
+         ---help---
+           This is a driver for STIH4xx HDMI CEC interface. It uses the
+           generic CEC framework interface.
+diff --git a/include/media/cec.h b/include/media/cec.h
+index fdb5d60..717eaf5 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -196,7 +196,7 @@ static inline bool cec_is_sink(const struct 
+cec_adapter *adap)
+  	return adap->phys_addr == 0;
+  }
+
+-#if IS_ENABLED(CONFIG_MEDIA_CEC)
++#if IS_ENABLED(CONFIG_MEDIA_CEC_SUPPORT)
+  struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+  		void *priv, const char *name, u32 caps, u8 available_las,
+  		struct device *parent);
+diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+index 6965d09..c49c448 100644
+--- a/include/uapi/linux/Kbuild
++++ b/include/uapi/linux/Kbuild
+@@ -82,6 +82,8 @@ header-y += capi.h
+  header-y += cciss_defs.h
+  header-y += cciss_ioctl.h
+  header-y += cdrom.h
++header-y += cec.h
++header-y += cec-funcs.h
+  header-y += cgroupstats.h
+  header-y += chio.h
+  header-y += cm4000_cs.h
+diff --git a/include/linux/cec-funcs.h b/include/uapi/linux/cec-funcs.h
+similarity index 99%
+rename from include/linux/cec-funcs.h
+rename to include/uapi/linux/cec-funcs.h
+index 138bbf7..1a1de21 100644
+--- a/include/linux/cec-funcs.h
++++ b/include/uapi/linux/cec-funcs.h
+@@ -33,12 +33,6 @@
+   * SOFTWARE.
+   */
+
+-/*
+- * Note: this framework is still in staging and it is likely the API
+- * will change before it goes out of staging.
+- *
+- * Once it is moved out of staging this header will move to uapi.
+- */
+  #ifndef _CEC_UAPI_FUNCS_H
+  #define _CEC_UAPI_FUNCS_H
+
+diff --git a/include/linux/cec.h b/include/uapi/linux/cec.h
+similarity index 99%
+rename from include/linux/cec.h
+rename to include/uapi/linux/cec.h
+index 9c87711..f4ec0af 100644
+--- a/include/linux/cec.h
++++ b/include/uapi/linux/cec.h
+@@ -33,12 +33,6 @@
+   * SOFTWARE.
+   */
+
+-/*
+- * Note: this framework is still in staging and it is likely the API
+- * will change before it goes out of staging.
+- *
+- * Once it is moved out of staging this header will move to uapi.
+- */
+  #ifndef _CEC_UAPI_H
+  #define _CEC_UAPI_H
+
 -- 
-1.7.9.5
+2.10.1
 
