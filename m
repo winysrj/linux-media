@@ -1,96 +1,333 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Thu, 24 Nov 2016 09:42:49 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161124164249.GD20818@obsidianresearch.com>
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:39712 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753975AbcKBMqj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 08:46:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 08/11] cec: move the CEC framework out of staging and to media
+Date: Wed,  2 Nov 2016 13:46:32 +0100
+Message-Id: <20161102124635.11989-9-hverkuil@xs4all.nl>
+In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
+References: <20161102124635.11989-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 06:25:21PM -0700, Logan Gunthorpe wrote:
-> 
-> 
-> On 23/11/16 02:55 PM, Jason Gunthorpe wrote:
-> >>> Only ODP hardware allows changing the DMA address on the fly, and it
-> >>> works at the page table level. We do not need special handling for
-> >>> RDMA.
-> >>
-> >> I am aware of ODP but, noted by others, it doesn't provide a general
-> >> solution to the points above.
-> > 
-> > How do you mean?
-> 
-> I was only saying it wasn't general in that it wouldn't work for IB
-> hardware that doesn't support ODP or other hardware  that doesn't do
-> similar things (like an NVMe drive).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There are three cases to worry about:
- - Coherent long lived page table mirroring (RDMA ODP MR)
- - Non-coherent long lived page table mirroring (RDMA MR)
- - Short lived DMA mapping (everything else)
+The last open issues have been addressed, so it is time to move
+this out of staging and into the mainline and to move the public
+cec headers to include/uapi/linux.
 
-Like you say below we have to handle short lived in the usual way, and
-that covers basically every device except IB MRs, including the
-command queue on a NVMe drive.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/Kconfig                      | 16 ++++++++++++++++
+ drivers/media/Makefile                     |  4 ++++
+ drivers/{staging => }/media/cec/Makefile   |  2 +-
+ drivers/{staging => }/media/cec/cec-adap.c |  0
+ drivers/{staging => }/media/cec/cec-api.c  |  0
+ drivers/{staging => }/media/cec/cec-core.c |  0
+ drivers/{staging => }/media/cec/cec-priv.h |  0
+ drivers/media/i2c/Kconfig                  |  6 +++---
+ drivers/media/platform/vivid/Kconfig       |  2 +-
+ drivers/staging/media/Kconfig              |  2 --
+ drivers/staging/media/Makefile             |  1 -
+ drivers/staging/media/cec/Kconfig          | 12 ------------
+ drivers/staging/media/cec/TODO             |  9 ---------
+ drivers/staging/media/pulse8-cec/Kconfig   |  2 +-
+ drivers/staging/media/s5p-cec/Kconfig      |  2 +-
+ drivers/staging/media/st-cec/Kconfig       |  2 +-
+ include/media/cec.h                        |  2 +-
+ include/uapi/linux/Kbuild                  |  2 ++
+ include/{ => uapi}/linux/cec-funcs.h       |  6 ------
+ include/{ => uapi}/linux/cec.h             |  6 ------
+ 20 files changed, 31 insertions(+), 45 deletions(-)
+ rename drivers/{staging => }/media/cec/Makefile (70%)
+ rename drivers/{staging => }/media/cec/cec-adap.c (100%)
+ rename drivers/{staging => }/media/cec/cec-api.c (100%)
+ rename drivers/{staging => }/media/cec/cec-core.c (100%)
+ rename drivers/{staging => }/media/cec/cec-priv.h (100%)
+ delete mode 100644 drivers/staging/media/cec/Kconfig
+ delete mode 100644 drivers/staging/media/cec/TODO
+ rename include/{ => uapi}/linux/cec-funcs.h (99%)
+ rename include/{ => uapi}/linux/cec.h (99%)
 
-> any complex allocators (GPU or otherwise) should respect that. And that
-> seems like it should be the default way most of this works -- and I
-> think it wouldn't actually take too much effort to make it all work now
-> as is. (Our iopmem work is actually quite small and simple.)
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 7b85402..bc643cb 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -80,6 +80,22 @@ config MEDIA_RC_SUPPORT
+ 
+ 	  Say Y when you have a TV or an IR device.
+ 
++config MEDIA_CEC_SUPPORT
++	bool "HDMI CEC support"
++	select MEDIA_CEC_EDID
++	---help---
++	  Enable support for HDMI CEC (Consumer Electronics Control),
++	  which is an optional HDMI feature.
++
++	  Say Y when you have an HDMI receiver, transmitter or a USB CEC
++	  adapter that supports HDMI CEC.
++
++config MEDIA_CEC_DEBUG
++	bool "HDMI CEC debugfs interface"
++	depends on MEDIA_CEC_SUPPORT && DEBUG_FS
++	---help---
++	  Turns on the DebugFS interface for CEC devices.
++
+ config MEDIA_CEC_EDID
+ 	bool
+ 
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 0deaa93..d87ccb8 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -6,6 +6,10 @@ ifeq ($(CONFIG_MEDIA_CEC_EDID),y)
+   obj-$(CONFIG_MEDIA_SUPPORT) += cec-edid.o
+ endif
+ 
++ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
++  obj-$(CONFIG_MEDIA_SUPPORT) += cec/
++endif
++
+ media-objs	:= media-device.o media-devnode.o media-entity.o
+ 
+ #
+diff --git a/drivers/staging/media/cec/Makefile b/drivers/media/cec/Makefile
+similarity index 70%
+rename from drivers/staging/media/cec/Makefile
+rename to drivers/media/cec/Makefile
+index bd7f3c5..d668633 100644
+--- a/drivers/staging/media/cec/Makefile
++++ b/drivers/media/cec/Makefile
+@@ -1,5 +1,5 @@
+ cec-objs := cec-core.o cec-adap.o cec-api.o
+ 
+-ifeq ($(CONFIG_MEDIA_CEC),y)
++ifeq ($(CONFIG_MEDIA_CEC_SUPPORT),y)
+   obj-$(CONFIG_MEDIA_SUPPORT) += cec.o
+ endif
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+similarity index 100%
+rename from drivers/staging/media/cec/cec-adap.c
+rename to drivers/media/cec/cec-adap.c
+diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
+similarity index 100%
+rename from drivers/staging/media/cec/cec-api.c
+rename to drivers/media/cec/cec-api.c
+diff --git a/drivers/staging/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+similarity index 100%
+rename from drivers/staging/media/cec/cec-core.c
+rename to drivers/media/cec/cec-core.c
+diff --git a/drivers/staging/media/cec/cec-priv.h b/drivers/media/cec/cec-priv.h
+similarity index 100%
+rename from drivers/staging/media/cec/cec-priv.h
+rename to drivers/media/cec/cec-priv.h
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 2669b4b..b31fa6f 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -221,7 +221,7 @@ config VIDEO_ADV7604
+ 
+ config VIDEO_ADV7604_CEC
+ 	bool "Enable Analog Devices ADV7604 CEC support"
+-	depends on VIDEO_ADV7604 && MEDIA_CEC
++	depends on VIDEO_ADV7604 && MEDIA_CEC_SUPPORT
+ 	---help---
+ 	  When selected the adv7604 will support the optional
+ 	  HDMI CEC feature.
+@@ -242,7 +242,7 @@ config VIDEO_ADV7842
+ 
+ config VIDEO_ADV7842_CEC
+ 	bool "Enable Analog Devices ADV7842 CEC support"
+-	depends on VIDEO_ADV7842 && MEDIA_CEC
++	depends on VIDEO_ADV7842 && MEDIA_CEC_SUPPORT
+ 	---help---
+ 	  When selected the adv7842 will support the optional
+ 	  HDMI CEC feature.
+@@ -481,7 +481,7 @@ config VIDEO_ADV7511
+ 
+ config VIDEO_ADV7511_CEC
+ 	bool "Enable Analog Devices ADV7511 CEC support"
+-	depends on VIDEO_ADV7511 && MEDIA_CEC
++	depends on VIDEO_ADV7511 && MEDIA_CEC_SUPPORT
+ 	---help---
+ 	  When selected the adv7511 will support the optional
+ 	  HDMI CEC feature.
+diff --git a/drivers/media/platform/vivid/Kconfig b/drivers/media/platform/vivid/Kconfig
+index 8e6918c..db0dd19 100644
+--- a/drivers/media/platform/vivid/Kconfig
++++ b/drivers/media/platform/vivid/Kconfig
+@@ -25,7 +25,7 @@ config VIDEO_VIVID
+ 
+ config VIDEO_VIVID_CEC
+ 	bool "Enable CEC emulation support"
+-	depends on VIDEO_VIVID && MEDIA_CEC
++	depends on VIDEO_VIVID && MEDIA_CEC_SUPPORT
+ 	---help---
+ 	  When selected the vivid module will emulate the optional
+ 	  HDMI CEC feature.
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index 6620d96..0abe5ff 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -21,8 +21,6 @@ if STAGING_MEDIA && MEDIA_SUPPORT
+ # Please keep them in alphabetic order
+ source "drivers/staging/media/bcm2048/Kconfig"
+ 
+-source "drivers/staging/media/cec/Kconfig"
+-
+ source "drivers/staging/media/cxd2099/Kconfig"
+ 
+ source "drivers/staging/media/davinci_vpfe/Kconfig"
+diff --git a/drivers/staging/media/Makefile b/drivers/staging/media/Makefile
+index 906257e..246299e 100644
+--- a/drivers/staging/media/Makefile
++++ b/drivers/staging/media/Makefile
+@@ -1,5 +1,4 @@
+ obj-$(CONFIG_I2C_BCM2048)	+= bcm2048/
+-obj-$(CONFIG_MEDIA_CEC)		+= cec/
+ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_CEC) += s5p-cec/
+ obj-$(CONFIG_DVB_CXD2099)	+= cxd2099/
+ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+diff --git a/drivers/staging/media/cec/Kconfig b/drivers/staging/media/cec/Kconfig
+deleted file mode 100644
+index 6e12d41..0000000
+--- a/drivers/staging/media/cec/Kconfig
++++ /dev/null
+@@ -1,12 +0,0 @@
+-config MEDIA_CEC
+-	bool "CEC API (EXPERIMENTAL)"
+-	depends on MEDIA_SUPPORT
+-	select MEDIA_CEC_EDID
+-	---help---
+-	  Enable the CEC API.
+-
+-config MEDIA_CEC_DEBUG
+-	bool "CEC debugfs interface (EXPERIMENTAL)"
+-	depends on MEDIA_CEC && DEBUG_FS
+-	---help---
+-	  Turns on the DebugFS interface for CEC devices.
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+deleted file mode 100644
+index 504d35c..0000000
+--- a/drivers/staging/media/cec/TODO
++++ /dev/null
+@@ -1,9 +0,0 @@
+-TODOs:
+-
+-- Once this is out of staging this should no longer be a separate
+-  config option, instead it should be selected by drivers that want it.
+-- Revisit the IS_REACHABLE(RC_CORE): perhaps the RC_CORE support should
+-  be enabled through a separate config option in drivers/media/Kconfig
+-  or rc/Kconfig?
+-
+-Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/drivers/staging/media/pulse8-cec/Kconfig b/drivers/staging/media/pulse8-cec/Kconfig
+index c6aa2d1..6ffc407 100644
+--- a/drivers/staging/media/pulse8-cec/Kconfig
++++ b/drivers/staging/media/pulse8-cec/Kconfig
+@@ -1,6 +1,6 @@
+ config USB_PULSE8_CEC
+ 	tristate "Pulse Eight HDMI CEC"
+-	depends on USB_ACM && MEDIA_CEC
++	depends on USB_ACM && MEDIA_CEC_SUPPORT
+ 	select SERIO
+ 	select SERIO_SERPORT
+ 	---help---
+diff --git a/drivers/staging/media/s5p-cec/Kconfig b/drivers/staging/media/s5p-cec/Kconfig
+index 0315fd7..ddfd955 100644
+--- a/drivers/staging/media/s5p-cec/Kconfig
++++ b/drivers/staging/media/s5p-cec/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_SAMSUNG_S5P_CEC
+        tristate "Samsung S5P CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
+        ---help---
+          This is a driver for Samsung S5P HDMI CEC interface. It uses the
+          generic CEC framework interface.
+diff --git a/drivers/staging/media/st-cec/Kconfig b/drivers/staging/media/st-cec/Kconfig
+index 784d2c6..c04283d 100644
+--- a/drivers/staging/media/st-cec/Kconfig
++++ b/drivers/staging/media/st-cec/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_STI_HDMI_CEC
+        tristate "STMicroelectronics STiH4xx HDMI CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC && (ARCH_STI || COMPILE_TEST)
++       depends on VIDEO_DEV && MEDIA_CEC_SUPPORT && (ARCH_STI || COMPILE_TEST)
+        ---help---
+          This is a driver for STIH4xx HDMI CEC interface. It uses the
+          generic CEC framework interface.
+diff --git a/include/media/cec.h b/include/media/cec.h
+index fdb5d60..717eaf5 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -196,7 +196,7 @@ static inline bool cec_is_sink(const struct cec_adapter *adap)
+ 	return adap->phys_addr == 0;
+ }
+ 
+-#if IS_ENABLED(CONFIG_MEDIA_CEC)
++#if IS_ENABLED(CONFIG_MEDIA_CEC_SUPPORT)
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 		void *priv, const char *name, u32 caps, u8 available_las,
+ 		struct device *parent);
+diff --git a/include/uapi/linux/Kbuild b/include/uapi/linux/Kbuild
+index 6965d09..c49c448 100644
+--- a/include/uapi/linux/Kbuild
++++ b/include/uapi/linux/Kbuild
+@@ -82,6 +82,8 @@ header-y += capi.h
+ header-y += cciss_defs.h
+ header-y += cciss_ioctl.h
+ header-y += cdrom.h
++header-y += cec.h
++header-y += cec-funcs.h
+ header-y += cgroupstats.h
+ header-y += chio.h
+ header-y += cm4000_cs.h
+diff --git a/include/linux/cec-funcs.h b/include/uapi/linux/cec-funcs.h
+similarity index 99%
+rename from include/linux/cec-funcs.h
+rename to include/uapi/linux/cec-funcs.h
+index 138bbf7..1a1de21 100644
+--- a/include/linux/cec-funcs.h
++++ b/include/uapi/linux/cec-funcs.h
+@@ -33,12 +33,6 @@
+  * SOFTWARE.
+  */
+ 
+-/*
+- * Note: this framework is still in staging and it is likely the API
+- * will change before it goes out of staging.
+- *
+- * Once it is moved out of staging this header will move to uapi.
+- */
+ #ifndef _CEC_UAPI_FUNCS_H
+ #define _CEC_UAPI_FUNCS_H
+ 
+diff --git a/include/linux/cec.h b/include/uapi/linux/cec.h
+similarity index 99%
+rename from include/linux/cec.h
+rename to include/uapi/linux/cec.h
+index 9c87711..f4ec0af 100644
+--- a/include/linux/cec.h
++++ b/include/uapi/linux/cec.h
+@@ -33,12 +33,6 @@
+  * SOFTWARE.
+  */
+ 
+-/*
+- * Note: this framework is still in staging and it is likely the API
+- * will change before it goes out of staging.
+- *
+- * Once it is moved out of staging this header will move to uapi.
+- */
+ #ifndef _CEC_UAPI_H
+ #define _CEC_UAPI_H
+ 
+-- 
+2.10.1
 
-Yes, absolutely, some kind of page pinning like locking is a hard
-requirement.
-
-> Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
-> memory working for some time. I'd say it's a good fit. The main question
-> we've had is how to expose PCIe bars to userspace to be used as MRs and
-> such.
-
-Is there any progress on that?
-
-I still don't quite get what iopmem was about.. I thought the
-objection to uncachable ZONE_DEVICE & DAX made sense, so running DAX
-over iopmem and still ending up with uncacheable mmaps still seems
-like a non-starter to me...
-
-Serguei, what is your plan in GPU land for migration? Ie if I have a
-CPU mapped page and the GPU moves it to VRAM, it becomes non-cachable
-- do you still allow the CPU to access it? Or do you swap it back to
-cachable memory if the CPU touches it?
-
-One approach might be to mmap the uncachable ZONE_DEVICE memory and
-mark it inaccessible to the CPU - DMA could still translate. If the
-CPU needs it then the kernel migrates it to system memory so it
-becomes cachable. ??
-
-Jason
