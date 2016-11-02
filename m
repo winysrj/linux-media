@@ -1,268 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59545 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938733AbcKXLBc (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:60289 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753905AbcKBMqj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 06:01:32 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Walls <awalls@md.metrocast.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 3/3] [media] ivtv: mark DVB "borrowed" ioctls as deprecated
-Date: Thu, 24 Nov 2016 09:01:22 -0200
-Message-Id: <326db540103d3cd8619de0a39256b2de361eece8.1479985277.git.mchehab@s-opensource.com>
-In-Reply-To: <8e39e8122c8a4d3b5fb0a71ec51e0896a6953b66.1479985277.git.mchehab@s-opensource.com>
-References: <8e39e8122c8a4d3b5fb0a71ec51e0896a6953b66.1479985277.git.mchehab@s-opensource.com>
-In-Reply-To: <8e39e8122c8a4d3b5fb0a71ec51e0896a6953b66.1479985277.git.mchehab@s-opensource.com>
-References: <8e39e8122c8a4d3b5fb0a71ec51e0896a6953b66.1479985277.git.mchehab@s-opensource.com>
+        Wed, 2 Nov 2016 08:46:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 07/11] cec: add proper support for CDC-Only CEC devices
+Date: Wed,  2 Nov 2016 13:46:31 +0100
+Message-Id: <20161102124635.11989-8-hverkuil@xs4all.nl>
+In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
+References: <20161102124635.11989-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changeset da8ec560e3b4 ("[media] ivtv: implement new decoder command
-ioctls") implemented proper support for mpeg audio and video control
-at V4L2 API. Since then, the usage of the the DVB APIs is deprecated.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-However, we never actually marked it as deprecated nor provided any
-way to disable it. Let's do it now.
+CDC-Only CEC devices are CEC devices that can only handle CDC messages,
+all other messages are ignored.
 
-This patch prepares for the removal of this bad usage on a couple
-of Kernel versions.
+Add a flag to signal that this is a CDC-Only device and act accordingly.
 
-Fixes: da8ec560e3b4 ("[media] ivtv: implement new decoder command ioctls")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Also add helper functions to identify if a CEC device is configured as a
+CDC-Only device, a second TV, a switch or a processor, since these variations
+cannot be determined by the logical address alone.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/ivtv/Kconfig       | 13 ++++++++++
- drivers/media/pci/ivtv/ivtv-driver.h |  2 --
- drivers/media/pci/ivtv/ivtv-ioctl.c  | 49 ++++++++++++++++++++++++------------
- 3 files changed, 46 insertions(+), 18 deletions(-)
+ drivers/staging/media/cec/TODO       |  4 ---
+ drivers/staging/media/cec/cec-adap.c | 31 ++++++++++++++++++++-
+ drivers/staging/media/cec/cec-api.c  |  9 ++++++-
+ include/linux/cec.h                  | 52 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 90 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/pci/ivtv/Kconfig b/drivers/media/pci/ivtv/Kconfig
-index 6e5867c57305..c72cbbd2d40c 100644
---- a/drivers/media/pci/ivtv/Kconfig
-+++ b/drivers/media/pci/ivtv/Kconfig
-@@ -28,6 +28,19 @@ config VIDEO_IVTV
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called ivtv.
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+index 5a4cfdf8..504d35c 100644
+--- a/drivers/staging/media/cec/TODO
++++ b/drivers/staging/media/cec/TODO
+@@ -1,9 +1,5 @@
+ TODOs:
  
-+config VIDEO_IVTV_DEPRECATED_IOCTLS
-+	bool "enable the DVB ioctls abuse on ivtv driver"
-+	depends on VIDEO_IVTV
-+	default n
-+	---help---
-+	  Enable the usage of the a DVB set of ioctls that were abused by
-+	  IVTV driver for a while.
-+
-+	  Those ioctls were not needed for a long time, as IVTV implements
-+	  the proper V4L2 ioctls since kernel 3.3.
-+
-+	  If unsure, say N.
-+
- config VIDEO_IVTV_ALSA
- 	tristate "Conexant cx23415/cx23416 ALSA interface for PCM audio capture"
- 	depends on VIDEO_IVTV && SND
-diff --git a/drivers/media/pci/ivtv/ivtv-driver.h b/drivers/media/pci/ivtv/ivtv-driver.h
-index b2b0fa27b1a7..ab1fb48d5629 100644
---- a/drivers/media/pci/ivtv/ivtv-driver.h
-+++ b/drivers/media/pci/ivtv/ivtv-driver.h
-@@ -42,8 +42,6 @@
- #include <asm/uaccess.h>
- #include <linux/delay.h>
- #include <linux/device.h>
--#include <linux/dvb/audio.h>
--#include <linux/dvb/video.h>
- #include <linux/fs.h>
- #include <linux/i2c.h>
- #include <linux/i2c-algo-bit.h>
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 2dc4b20f3ac0..e5e53a09537e 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -35,7 +35,10 @@
- #include <media/i2c/saa7127.h>
- #include <media/tveeprom.h>
- #include <media/v4l2-event.h>
-+#ifdef CONFIG_VIDEO_IVTV_DEPRECATED_IOCTLS
- #include <linux/dvb/audio.h>
-+#include <linux/dvb/video.h>
-+#endif
+-- Should CEC_LOG_ADDR_TYPE_SPECIFIC be replaced by TYPE_2ND_TV and TYPE_PROCESSOR?
+-  And also TYPE_SWITCH and TYPE_CDC_ONLY in addition to the TYPE_UNREGISTERED?
+-  This should give the framework more information about the device type
+-  since SPECIFIC and UNREGISTERED give no useful information.
+ - Once this is out of staging this should no longer be a separate
+   config option, instead it should be selected by drivers that want it.
+ - Revisit the IS_REACHABLE(RC_CORE): perhaps the RC_CORE support should
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index a65d866..054cd06 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -1233,7 +1233,8 @@ static int cec_config_thread_func(void *arg)
+ 	mutex_unlock(&adap->lock);
  
- u16 ivtv_service2vbi(int type)
- {
-@@ -1620,13 +1623,23 @@ static int ivtv_try_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder
- 	return ivtv_video_command(itv, id, dec, true);
- }
+ 	for (i = 0; i < las->num_log_addrs; i++) {
+-		if (las->log_addr[i] == CEC_LOG_ADDR_INVALID)
++		if (las->log_addr[i] == CEC_LOG_ADDR_INVALID ||
++		    (las->flags & CEC_LOG_ADDRS_FL_CDC_ONLY))
+ 			continue;
  
-+#ifdef CONFIG_VIDEO_IVTV_DEPRECATED_IOCTLS
-+static __inline__ void warn_deprecated_ioctl(char *name)
-+{
-+	pr_warn_once("warning: the %s ioctl is deprecated. Don't use it, as it will be removed soon\n",
-+		     name);
-+}
-+#endif
-+
- static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- {
- 	struct ivtv_open_id *id = fh2id(filp->private_data);
- 	struct ivtv *itv = id->itv;
-+	struct ivtv_stream *s = &itv->streams[id->type];
-+#ifdef CONFIG_VIDEO_IVTV_DEPRECATED_IOCTLS
- 	int nonblocking = filp->f_flags & O_NONBLOCK;
--	struct ivtv_stream *s = &itv->streams[id->type];
- 	unsigned long iarg = (unsigned long)arg;
-+#endif
- 
- 	switch (cmd) {
- 	case IVTV_IOC_DMA_FRAME: {
-@@ -1658,12 +1671,12 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 		if (!(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
- 			return -EINVAL;
- 		return ivtv_passthrough_mode(itv, *(int *)arg != 0);
--
-+#ifdef CONFIG_VIDEO_IVTV_DEPRECATED_IOCTLS
- 	case VIDEO_GET_PTS: {
- 		s64 *pts = arg;
- 		s64 frame;
- 
--		IVTV_DEBUG_IOCTL("VIDEO_GET_PTS\n");
-+		warn_deprecated_ioctl("VIDEO_GET_PTS");
- 		if (s->type < IVTV_DEC_STREAM_TYPE_MPG) {
- 			*pts = s->dma_pts;
- 			break;
-@@ -1677,7 +1690,7 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 		s64 *frame = arg;
- 		s64 pts;
- 
--		IVTV_DEBUG_IOCTL("VIDEO_GET_FRAME_COUNT\n");
-+		warn_deprecated_ioctl("VIDEO_GET_FRAME_COUNT");
- 		if (s->type < IVTV_DEC_STREAM_TYPE_MPG) {
- 			*frame = 0;
- 			break;
-@@ -1690,7 +1703,7 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 	case VIDEO_PLAY: {
- 		struct v4l2_decoder_cmd dc;
- 
--		IVTV_DEBUG_IOCTL("VIDEO_PLAY\n");
-+		warn_deprecated_ioctl("VIDEO_PLAY");
- 		memset(&dc, 0, sizeof(dc));
- 		dc.cmd = V4L2_DEC_CMD_START;
- 		return ivtv_video_command(itv, id, &dc, 0);
-@@ -1699,7 +1712,7 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 	case VIDEO_STOP: {
- 		struct v4l2_decoder_cmd dc;
- 
--		IVTV_DEBUG_IOCTL("VIDEO_STOP\n");
-+		warn_deprecated_ioctl("VIDEO_STOP");
- 		memset(&dc, 0, sizeof(dc));
- 		dc.cmd = V4L2_DEC_CMD_STOP;
- 		dc.flags = V4L2_DEC_CMD_STOP_TO_BLACK | V4L2_DEC_CMD_STOP_IMMEDIATELY;
-@@ -1709,7 +1722,7 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 	case VIDEO_FREEZE: {
- 		struct v4l2_decoder_cmd dc;
- 
--		IVTV_DEBUG_IOCTL("VIDEO_FREEZE\n");
-+		warn_deprecated_ioctl("VIDEO_FREEZE");
- 		memset(&dc, 0, sizeof(dc));
- 		dc.cmd = V4L2_DEC_CMD_PAUSE;
- 		return ivtv_video_command(itv, id, &dc, 0);
-@@ -1718,7 +1731,7 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 	case VIDEO_CONTINUE: {
- 		struct v4l2_decoder_cmd dc;
- 
--		IVTV_DEBUG_IOCTL("VIDEO_CONTINUE\n");
-+		warn_deprecated_ioctl("VIDEO_CONTINUE");
- 		memset(&dc, 0, sizeof(dc));
- 		dc.cmd = V4L2_DEC_CMD_RESUME;
- 		return ivtv_video_command(itv, id, &dc, 0);
-@@ -1732,9 +1745,9 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 		int try = (cmd == VIDEO_TRY_COMMAND);
- 
- 		if (try)
--			IVTV_DEBUG_IOCTL("VIDEO_TRY_COMMAND %d\n", dc->cmd);
-+			warn_deprecated_ioctl("VIDEO_TRY_COMMAND");
- 		else
--			IVTV_DEBUG_IOCTL("VIDEO_COMMAND %d\n", dc->cmd);
-+			warn_deprecated_ioctl("VIDEO_COMMAND");
- 		return ivtv_video_command(itv, id, dc, try);
- 	}
- 
-@@ -1742,7 +1755,7 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 		struct video_event *ev = arg;
- 		DEFINE_WAIT(wait);
- 
--		IVTV_DEBUG_IOCTL("VIDEO_GET_EVENT\n");
-+		warn_deprecated_ioctl("VIDEO_GET_EVENT");
- 		if (!(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
- 			return -EINVAL;
- 		memset(ev, 0, sizeof(*ev));
-@@ -1785,28 +1798,28 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 	}
- 
- 	case VIDEO_SELECT_SOURCE:
--		IVTV_DEBUG_IOCTL("VIDEO_SELECT_SOURCE\n");
-+		warn_deprecated_ioctl("VIDEO_SELECT_SOURCE");
- 		if (!(itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT))
- 			return -EINVAL;
- 		return ivtv_passthrough_mode(itv, iarg == VIDEO_SOURCE_DEMUX);
- 
- 	case AUDIO_SET_MUTE:
--		IVTV_DEBUG_IOCTL("AUDIO_SET_MUTE\n");
-+		warn_deprecated_ioctl("AUDIO_SET_MUTE");
- 		itv->speed_mute_audio = iarg;
+ 		/*
+@@ -1355,6 +1356,29 @@ int __cec_s_log_addrs(struct cec_adapter *adap,
  		return 0;
- 
- 	case AUDIO_CHANNEL_SELECT:
--		IVTV_DEBUG_IOCTL("AUDIO_CHANNEL_SELECT\n");
-+		warn_deprecated_ioctl("AUDIO_CHANNEL_SELECTn");
- 		if (iarg > AUDIO_STEREO_SWAPPED)
- 			return -EINVAL;
- 		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_playback, iarg + 1);
- 
- 	case AUDIO_BILINGUAL_CHANNEL_SELECT:
--		IVTV_DEBUG_IOCTL("AUDIO_BILINGUAL_CHANNEL_SELECT\n");
-+		warn_deprecated_ioctl("AUDIO_BILINGUAL_CHANNEL_SELECT");
- 		if (iarg > AUDIO_STEREO_SWAPPED)
- 			return -EINVAL;
- 		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_multilingual_playback, iarg + 1);
--
-+#endif
- 	default:
- 		return -EINVAL;
  	}
-@@ -1821,6 +1834,7 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
- 	if (!valid_prio) {
- 		switch (cmd) {
- 		case IVTV_IOC_PASSTHROUGH_MODE:
-+#ifdef CONFIG_VIDEO_IVTV_DEPRECATED_IOCTLS
- 		case VIDEO_PLAY:
- 		case VIDEO_STOP:
- 		case VIDEO_FREEZE:
-@@ -1830,6 +1844,7 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
- 		case AUDIO_SET_MUTE:
- 		case AUDIO_CHANNEL_SELECT:
- 		case AUDIO_BILINGUAL_CHANNEL_SELECT:
-+#endif
- 			return -EBUSY;
- 		}
- 	}
-@@ -1847,6 +1862,7 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
  
- 	case IVTV_IOC_DMA_FRAME:
- 	case IVTV_IOC_PASSTHROUGH_MODE:
-+#ifdef CONFIG_VIDEO_IVTV_DEPRECATED_IOCTLS
- 	case VIDEO_GET_PTS:
- 	case VIDEO_GET_FRAME_COUNT:
- 	case VIDEO_GET_EVENT:
-@@ -1860,6 +1876,7 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
- 	case AUDIO_SET_MUTE:
- 	case AUDIO_CHANNEL_SELECT:
- 	case AUDIO_BILINGUAL_CHANNEL_SELECT:
-+#endif
- 		return ivtv_decoder_ioctls(file, cmd, (void *)arg);
++	if (log_addrs->flags & CEC_LOG_ADDRS_FL_CDC_ONLY) {
++		/*
++		 * Sanitize log_addrs fields if a CDC-Only device is
++		 * requested.
++		 */
++		log_addrs->num_log_addrs = 1;
++		log_addrs->osd_name[0] = '\0';
++		log_addrs->vendor_id = CEC_VENDOR_ID_NONE;
++		log_addrs->log_addr_type[0] = CEC_LOG_ADDR_TYPE_UNREGISTERED;
++		/*
++		 * This is just an internal convention since a CDC-Only device
++		 * doesn't have to be a switch. But switches already use
++		 * unregistered, so it makes some kind of sense to pick this
++		 * as the primary device. Since a CDC-Only device never sends
++		 * any 'normal' CEC messages this primary device type is never
++		 * sent over the CEC bus.
++		 */
++		log_addrs->primary_device_type[0] = CEC_OP_PRIM_DEVTYPE_SWITCH;
++		log_addrs->all_device_types[0] = 0;
++		log_addrs->features[0][0] = 0;
++		log_addrs->features[0][1] = 0;
++	}
++
+ 	/* Ensure the osd name is 0-terminated */
+ 	log_addrs->osd_name[sizeof(log_addrs->osd_name) - 1] = '\0';
  
- 	default:
+@@ -1575,6 +1599,11 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 
+ 	dprintk(1, "cec_receive_notify: %*ph\n", msg->len, msg->msg);
+ 
++	/* If this is a CDC-Only device, then ignore any non-CDC messages */
++	if (cec_is_cdc_only(&adap->log_addrs) &&
++	    msg->msg[1] != CEC_MSG_CDC_MESSAGE)
++		return 0;
++
+ 	if (adap->ops->received) {
+ 		/* Allow drivers to process the message first */
+ 		if (adap->ops->received(adap, msg) != -ENOMSG)
+diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
+index 54148a6..d4bc4ee 100644
+--- a/drivers/staging/media/cec/cec-api.c
++++ b/drivers/staging/media/cec/cec-api.c
+@@ -163,7 +163,8 @@ static long cec_adap_s_log_addrs(struct cec_adapter *adap, struct cec_fh *fh,
+ 	if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
+ 		return -EFAULT;
+ 	log_addrs.flags &= CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK |
+-			   CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU;
++			   CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU |
++			   CEC_LOG_ADDRS_FL_CDC_ONLY;
+ 	mutex_lock(&adap->lock);
+ 	if (!adap->is_configuring &&
+ 	    (!log_addrs.num_log_addrs || !adap->is_configured) &&
+@@ -190,6 +191,12 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
+ 		return -ENOTTY;
+ 	if (copy_from_user(&msg, parg, sizeof(msg)))
+ 		return -EFAULT;
++
++	/* A CDC-Only device can only send CDC messages */
++	if ((adap->log_addrs.flags & CEC_LOG_ADDRS_FL_CDC_ONLY) &&
++	    (msg.len == 1 || msg.msg[1] != CEC_MSG_CDC_MESSAGE))
++		return -EINVAL;
++
+ 	msg.flags &= CEC_MSG_FL_REPLY_TO_FOLLOWERS;
+ 	mutex_lock(&adap->lock);
+ 	if (!adap->is_configured)
+diff --git a/include/linux/cec.h b/include/linux/cec.h
+index 3f2f076..9c87711 100644
+--- a/include/linux/cec.h
++++ b/include/linux/cec.h
+@@ -396,6 +396,8 @@ struct cec_log_addrs {
+ #define CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK	(1 << 0)
+ /* Passthrough RC messages to the input subsystem */
+ #define CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU	(1 << 1)
++/* CDC-Only device: supports only CDC messages */
++#define CEC_LOG_ADDRS_FL_CDC_ONLY		(1 << 2)
+ 
+ /* Events */
+ 
+@@ -1016,4 +1018,54 @@ struct cec_event {
+ #define CEC_OP_HPD_ERROR_OTHER				3
+ #define CEC_OP_HPD_ERROR_NONE_NO_VIDEO			4
+ 
++/* End of Messages */
++
++/* Helper functions to identify the 'special' CEC devices */
++
++static inline bool cec_is_2nd_tv(const struct cec_log_addrs *las)
++{
++	/*
++	 * It is a second TV if the logical address is 14 or 15 and the
++	 * primary device type is a TV.
++	 */
++	return las->num_log_addrs &&
++	       las->log_addr[0] >= CEC_LOG_ADDR_SPECIFIC &&
++	       las->primary_device_type[0] == CEC_OP_PRIM_DEVTYPE_TV;
++}
++
++static inline bool cec_is_processor(const struct cec_log_addrs *las)
++{
++	/*
++	 * It is a processor if the logical address is 12-15 and the
++	 * primary device type is a Processor.
++	 */
++	return las->num_log_addrs &&
++	       las->log_addr[0] >= CEC_LOG_ADDR_BACKUP_1 &&
++	       las->primary_device_type[0] == CEC_OP_PRIM_DEVTYPE_PROCESSOR;
++}
++
++static inline bool cec_is_switch(const struct cec_log_addrs *las)
++{
++	/*
++	 * It is a switch if the logical address is 15 and the
++	 * primary device type is a Switch and the CDC-Only flag is not set.
++	 */
++	return las->num_log_addrs == 1 &&
++	       las->log_addr[0] == CEC_LOG_ADDR_UNREGISTERED &&
++	       las->primary_device_type[0] == CEC_OP_PRIM_DEVTYPE_SWITCH &&
++	       !(las->flags & CEC_LOG_ADDRS_FL_CDC_ONLY);
++}
++
++static inline bool cec_is_cdc_only(const struct cec_log_addrs *las)
++{
++	/*
++	 * It is a CDC-only device if the logical address is 15 and the
++	 * primary device type is a Switch and the CDC-Only flag is set.
++	 */
++	return las->num_log_addrs == 1 &&
++	       las->log_addr[0] == CEC_LOG_ADDR_UNREGISTERED &&
++	       las->primary_device_type[0] == CEC_OP_PRIM_DEVTYPE_SWITCH &&
++	       (las->flags & CEC_LOG_ADDRS_FL_CDC_ONLY);
++}
++
+ #endif
 -- 
-2.9.3
+2.10.1
 
