@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49437 "EHLO
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49495 "EHLO
         smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752795AbcKBN3g (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:36 -0400
+        with ESMTP id S1752795AbcKBN3j (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:39 -0400
 From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -10,12 +10,11 @@ To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
         tomoharu.fukawa.eb@renesas.com,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Michal Simek <michal.simek@xilinx.com>,
         =?UTF-8?q?Niklas=20S=C3=B6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 02/32] media: entity: Add media_entity_has_route() function
-Date: Wed,  2 Nov 2016 14:22:59 +0100
-Message-Id: <20161102132329.436-3-niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 09/32] media: rcar-vin: move pad number discovery to async complete handler
+Date: Wed,  2 Nov 2016 14:23:06 +0100
+Message-Id: <20161102132329.436-10-niklas.soderlund+renesas@ragnatech.se>
 In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
@@ -24,72 +23,94 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The rvin_v4l2_probe() handler will with Gen3 support need to handle more
+then one subdevice. To prepare for this move the digital subdev pad
+number discover to the digital specific async notification complete
+function.
 
-This is a wrapper around the media entity has_route operation.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
 Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/media-entity.c | 29 +++++++++++++++++++++++++++++
- include/media/media-entity.h |  3 +++
- 2 files changed, 32 insertions(+)
+ drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 18 +-----------------
+ 2 files changed, 24 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c68239e..4d03ea7 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -242,6 +242,35 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-  * Graph traversal
-  */
- 
-+/**
-+ * media_entity_has_route - Check if two entity pads are connected internally
-+ * @entity: The entity
-+ * @pad0: The first pad index
-+ * @pad1: The second pad index
-+ *
-+ * This function can be used to check whether two pads of an entity are
-+ * connected internally in the entity.
-+ *
-+ * The caller must hold entity->source->parent->mutex.
-+ *
-+ * Return: true if the pads are connected internally and false otherwise.
-+ */
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1)
-+{
-+	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-+		return false;
-+
-+	if (pad0 == pad1)
-+		return true;
-+
-+	if (!entity->ops || !entity->ops->has_route)
-+		return true;
-+
-+	return entity->ops->has_route(entity, pad0, pad1);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_has_route);
-+
- static struct media_entity *
- media_entity_other(struct media_entity *entity, struct media_link *link)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 89a9280..2c40b6a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -68,6 +68,8 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
  {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 8f9fc85..5fb3f06 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -851,6 +851,9 @@ void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
-  */
- void media_entity_put(struct media_entity *entity);
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct v4l2_subdev *sd = vin->digital.subdev;
++	unsigned int pad_idx;
+ 	int ret;
  
-+bool media_entity_has_route(struct media_entity *entity, unsigned int sink,
-+			    unsigned int source);
+ 	/* Verify subdevices mbus format */
+@@ -80,6 +82,27 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ 	vin_dbg(vin, "Found media bus format for %s: %d\n",
+ 		vin->digital.subdev->name, vin->digital.code);
+ 
++	/* Figure out source and sink pad ids */
++	vin->digital.source_pad_idx = 0;
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
++			break;
++	if (pad_idx >= sd->entity.num_pads)
++		return -EINVAL;
 +
- /**
-  * media_entity_graph_walk_start - Start walking the media graph at a
-  *	given entity
++	vin->digital.source_pad_idx = pad_idx;
++
++	vin->digital.sink_pad_idx = 0;
++	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
++		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
++			vin->digital.sink_pad_idx = pad_idx;
++			break;
++		}
++
++	vin_dbg(vin, "Found media pads for %s source: %d sink %d\n",
++		vin->digital.subdev->name, vin->digital.source_pad_idx,
++		vin->digital.sink_pad_idx);
++
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+ 		vin_err(vin, "Failed to register subdev nodes\n");
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f8ff7c4..51324c6 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -905,7 +905,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+ 	struct v4l2_subdev *sd = vin_to_source(vin);
+-	int pad_idx, ret;
++	int ret;
+ 
+ 	v4l2_set_subdev_hostdata(sd, vin);
+ 
+@@ -951,22 +951,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
+-	vin->digital.source_pad_idx = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
+-			break;
+-	if (pad_idx >= sd->entity.num_pads)
+-		return -EINVAL;
+-
+-	vin->digital.source_pad_idx = pad_idx;
+-
+-	vin->digital.sink_pad_idx = 0;
+-	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
+-		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
+-			vin->digital.sink_pad_idx = pad_idx;
+-			break;
+-		}
+-
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+ 	rvin_reset_format(vin);
+ 
 -- 
 2.10.2
 
