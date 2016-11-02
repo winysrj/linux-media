@@ -1,135 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx194.ext.ti.com ([198.47.27.80]:14823 "EHLO
-        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753501AbcKRXVN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:13 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 19/35] media: ti-vpe: vpdma: allocate and maintain hwlist
-Date: Fri, 18 Nov 2016 17:20:29 -0600
-Message-ID: <20161118232045.24665-20-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49495 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754661AbcKBN3u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:50 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 30/32] media: rcar-vin: add Gen3 devicetree bindings documentation
+Date: Wed,  2 Nov 2016 14:23:27 +0100
+Message-Id: <20161102132329.436-31-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
+Document the Gen3 devicetree bindings. The new bindings are all handled
+in the port@1 node, if a endpoint is described as on Gen2 in port@0 the
+driver will work in Gen2 mode and this is supported on Gen3. The new
+CSI-2 video sources are only supported on Gen3.
 
-VPDMA block used in ti-vip and ti-vpe modules have support for
-up to 8 hardware descriptor lists. A descriptor list can be
-submitted to any of the 8 lists (as long as it's not busy).
-
-When multiple clients want to transfer data in parallel, its easier
-to allocate one list per client and let it use it. This way, the
-list numbers need not be hard-coded into the driver.
-
-Add support for allocating hwlist and maintain them with a priv data.
-
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/ti-vpe/vpdma.c | 44 +++++++++++++++++++++++++++++++++++
- drivers/media/platform/ti-vpe/vpdma.h |  9 +++++++
- 2 files changed, 53 insertions(+)
+ .../devicetree/bindings/media/rcar_vin.txt         | 116 +++++++++++++++++++--
+ 1 file changed, 106 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index c0a4e035bc2a..f85727a0ac44 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -902,6 +902,50 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
- }
- EXPORT_SYMBOL(vpdma_add_in_dtd);
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 6a4e61c..a51cf70 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -2,8 +2,12 @@ Renesas RCar Video Input driver (rcar_vin)
+ ------------------------------------------
  
-+int vpdma_hwlist_alloc(struct vpdma_data *vpdma, void *priv)
-+{
-+	int i, list_num = -1;
-+	unsigned long flags;
+ The rcar_vin device provides video input capabilities for the Renesas R-Car
+-family of devices. The current blocks are always slaves and suppot one input
+-channel which can be either RGB, YUYV or BT656.
++family of devices.
 +
-+	spin_lock_irqsave(&vpdma->lock, flags);
-+	for (i = 0; i < VPDMA_MAX_NUM_LIST &&
-+	    vpdma->hwlist_used[i] == true; i++)
-+		;
-+
-+	if (i < VPDMA_MAX_NUM_LIST) {
-+		list_num = i;
-+		vpdma->hwlist_used[i] = true;
-+		vpdma->hwlist_priv[i] = priv;
-+	}
-+	spin_unlock_irqrestore(&vpdma->lock, flags);
-+
-+	return list_num;
-+}
-+EXPORT_SYMBOL(vpdma_hwlist_alloc);
-+
-+void *vpdma_hwlist_get_priv(struct vpdma_data *vpdma, int list_num)
-+{
-+	if (!vpdma || list_num >= VPDMA_MAX_NUM_LIST)
-+		return NULL;
-+
-+	return vpdma->hwlist_priv[list_num];
-+}
-+EXPORT_SYMBOL(vpdma_hwlist_get_priv);
-+
-+void *vpdma_hwlist_release(struct vpdma_data *vpdma, int list_num)
-+{
-+	void *priv;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&vpdma->lock, flags);
-+	vpdma->hwlist_used[list_num] = false;
-+	priv = vpdma->hwlist_priv;
-+	spin_unlock_irqrestore(&vpdma->lock, flags);
-+
-+	return priv;
-+}
-+EXPORT_SYMBOL(vpdma_hwlist_release);
-+
- /* set or clear the mask for list complete interrupt */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
- 		int list_num, bool enable)
-diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
-index 65961147e8f7..ccf871ad8800 100644
---- a/drivers/media/platform/ti-vpe/vpdma.h
-+++ b/drivers/media/platform/ti-vpe/vpdma.h
-@@ -13,6 +13,7 @@
- #ifndef __TI_VPDMA_H_
- #define __TI_VPDMA_H_
++On Gen2 the current blocks are always slaves and support one input channel
++which can be either RGB, YUYV or BT656. On Gen3 the current blocks are
++always slaves and support multiple input channels which can be ether RGB,
++YUVU, BT656 or CSI-2.
  
-+#define VPDMA_MAX_NUM_LIST		8
- /*
-  * A vpdma_buf tracks the size, DMA address and mapping status of each
-  * driver DMA area.
-@@ -36,6 +37,8 @@ struct vpdma_data {
- 	struct platform_device	*pdev;
+  - compatible: Must be one or more of the following
+    - "renesas,vin-r8a7795" for the R8A7795 device
+@@ -28,7 +32,7 @@ channel which can be either RGB, YUYV or BT656.
+ Additionally, an alias named vinX will need to be created to specify
+ which video input device this is.
  
- 	spinlock_t		lock;
-+	bool			hwlist_used[VPDMA_MAX_NUM_LIST];
-+	void			*hwlist_priv[VPDMA_MAX_NUM_LIST];
- 	/* callback to VPE driver when the firmware is loaded */
- 	void (*cb)(struct platform_device *pdev);
+-The per-board settings:
++The per-board settings Gen2:
+  - port sub-node describing a single endpoint connected to the vin
+    as described in video-interfaces.txt[1]. Only the first one will
+    be considered as each vin interface has one input port.
+@@ -36,13 +40,22 @@ The per-board settings:
+    These settings are used to work out video input format and widths
+    into the system.
+ 
++The per-board settings Gen3:
++
++- ports
++        - port@0 - Digital video source (same as port node on Gen2)
++        - port@1 - CSI-2 video sources
++                -reg 0 - sub-node describing the endpoint which is CSI20
++                -reg 1 - sub-node describing the endpoint which is CSI21
++                -reg 2 - sub-node describing the endpoint which is CSI40
++                -reg 3 - sub-node describing the endpoint which is CSI41
+ 
+-Device node example
+--------------------
++Device node example Gen2
++------------------------
+ 
+-	aliases {
+-	       vin0 = &vin0;
+-	};
++        aliases {
++                vin0 = &vin0;
++        };
+ 
+         vin0: vin@0xe6ef0000 {
+                 compatible = "renesas,vin-r8a7790", "renesas,rcar-gen2-vin";
+@@ -52,8 +65,8 @@ Device node example
+                 status = "disabled";
+         };
+ 
+-Board setup example (vin1 composite video input)
+-------------------------------------------------
++Board setup example Gen2 (vin1 composite video input)
++-----------------------------------------------------
+ 
+ &i2c2   {
+         status = "ok";
+@@ -92,6 +105,89 @@ Board setup example (vin1 composite video input)
+         };
  };
-@@ -215,6 +218,12 @@ bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num);
- void vpdma_update_dma_addr(struct vpdma_data *vpdma,
- 	struct vpdma_desc_list *list, dma_addr_t dma_addr,
- 	void *write_dtd, int drop, int idx);
+ 
++Device node example Gen3
++------------------------
 +
-+/* VPDMA hardware list funcs */
-+int vpdma_hwlist_alloc(struct vpdma_data *vpdma, void *priv);
-+void *vpdma_hwlist_get_priv(struct vpdma_data *vpdma, int list_num);
-+void *vpdma_hwlist_release(struct vpdma_data *vpdma, int list_num);
++        aliases {
++                vin0 = &vin0;
++        };
 +
- /* helpers for creating vpdma descriptors */
- void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
- 		struct vpdma_buf *blk, u32 dest_offset);
++        vin1: video@e6ef1000 {
++                compatible = "renesas,vin-r8a7796";
++                reg =  <0 0xe6ef1000 0 0x1000>;
++                interrupts = <0 189 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 810>;
++                power-domains = <&cpg>;
++                status = "disabled";
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                vin1csi20: endpoint@0 {
++                                        reg = <0>;
++                                        remote-endpoint= <&csi20vin1>;
++                                };
++                        };
++                };
++        };
++
++        csi20: csi2@fea80000 {
++                compatible = "renesas,r8a7796-csi2";
++                reg = <0 0xfea80000 0 0x10000>;
++                interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++                clocks = <&cpg CPG_MOD 714>;
++                power-domains = <&cpg>;
++                status = "disabled";
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@1 {
++                                #address-cells = <1>;
++                                #size-cells = <0>;
++
++                                reg = <1>;
++
++                                csi20vin1: endpoint@1 {
++                                        reg = <1>;
++                                        remote-endpoint = <&vin1csi20>;
++                                };
++                        };
++                };
++        };
++
+ 
++Board setup example Gen3 (CSI-2)
++--------------------------------
++
++        &vin0 {
++                status = "okay";
++        };
++
++        csi20 {
++                status = "okay";
++
++                ports {
++                        #address-cells = <1>;
++                        #size-cells = <0>;
++
++                        port@0 {
++                                reg = <0>;
++                                csi20_in: endpoint@0 {
++                                        clock-lanes = <0>;
++                                        data-lanes = <1>;
++                                        remote-endpoint = <&adv7482_txb>;
++                                };
++                        };
++                };
++        };
+ 
+ [1] video-interfaces.txt common video media interface
 -- 
-2.9.0
+2.10.2
 
