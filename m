@@ -1,95 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:47026 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932477AbcKHMyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 07:54:40 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 1/1] media: entity: Add media_entity_has_route() function
-Date: Tue,  8 Nov 2016 14:54:28 +0200
-Message-Id: <1478609668-1117-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <20161108124238.GM3217@valkosipuli.retiisi.org.uk>
-References: <20161108124238.GM3217@valkosipuli.retiisi.org.uk>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:2971 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751223AbcKBGYd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 02:24:33 -0400
+Date: Wed, 2 Nov 2016 07:24:29 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Nadim Almas <nadim.902@gmail.com>
+cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging:media:davinci_vpfe: used devm_kzalloc in place
+ of kzalloc
+In-Reply-To: <20161102061300.GA4157@gmail.com>
+Message-ID: <alpine.DEB.2.20.1611020720250.2081@hadrien>
+References: <20161102061300.GA4157@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-This is a wrapper around the media entity has_route operation.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi Niklas,
+On Wed, 2 Nov 2016, Nadim Almas wrote:
 
-There was actually another problem with the Kerneldoc comment related to
-the mutex. Fixed that one as well.
+> Switch to resource-managed function devm_kzalloc instead
+> of kzolloc and remove unneeded kzfree
+>
+> Also, remove kzfree in probe function and  remove
+> function,vpfe_remove as it is now has nothing to do.
+> The Coccinelle semantic patch used to make this change is as follows:
+> /<smpl>
+> @platform@
+> identifier p, probefn, removefn;
+> @@
+> struct platform_driver p = {
+> .probe = probefn,
+> .remove = removefn,
+> };
+>
+> @prb@
+> identifier platform.probefn, pdev;
+> expression e, e1, e2;
+> @@
+> probefn(struct platform_device *pdev, ...) {
+> <+...
+> - e = kzalloc(e1, e2)
+> + e = devm_kzalloc(&pdev->dev, e1, e2)
+> ...
+> ?-kzfree(e);
+> ...+>
+> }
+> @rem depends on prb@
+> identifier platform.removefn;
+> expression prb.e;
+> @@
+> removefn(...) {
+> <...
+> - kzfree(e);
+> ...>
+> }
+> //</smpl>
+>
+> Signed-off-by: Nadim Almas <nadim.902@gmail.com>
+> ---
+>  drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 4 +---
+>  1 file changed, 1 insertion(+), 3 deletions(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> index bf077f8..cd44f0f 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> @@ -579,7 +579,7 @@ static int vpfe_probe(struct platform_device *pdev)
+>  	struct resource *res1;
+>  	int ret = -ENOMEM;
+>
+> -	vpfe_dev = kzalloc(sizeof(*vpfe_dev), GFP_KERNEL);
+> +	vpfe_dev = devm_kzalloc(&pdev->dev, sizeof(*vpfe_dev), GFP_KERNEL);
+>  	if (!vpfe_dev)
+>  		return ret;
+>
+> @@ -681,7 +681,6 @@ static int vpfe_probe(struct platform_device *pdev)
+>  probe_disable_clock:
+>  	vpfe_disable_clock(vpfe_dev);
+>  probe_free_dev_mem:
+> -	kzfree(vpfe_dev);
 
-Kind regards,
-Sakari
+Kzfree zeroes the data before freeing it.  Devm_kzalloc only causes a
+kfree to happen, not a kzfree.  If the kzfree is needed, then a memset 0
+would need to replace the calls to kzfree.
 
- drivers/media/media-entity.c | 16 ++++++++++++++++
- include/media/media-entity.h | 17 +++++++++++++++++
- 2 files changed, 33 insertions(+)
+There are some other minor issues with the patch.  In the subject line,
+there is normally a space after each :.  There is a spelling mistake in
+the commit message.  In the commit message there should be one space
+betwee words within a sentence, and there should be a space after a comma,
+or other puctuation.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5734bb9..7de08e1 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -242,6 +242,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
-  * Graph traversal
-  */
- 
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1)
-+{
-+	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-+		return false;
-+
-+	if (pad0 == pad1)
-+		return true;
-+
-+	if (!entity->ops || !entity->ops->has_route)
-+		return true;
-+
-+	return entity->ops->has_route(entity, pad0, pad1);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_has_route);
-+
- static struct media_entity *
- media_entity_other(struct media_entity *entity, struct media_link *link)
- {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 2060e48..aa8d3c5 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -834,6 +834,23 @@ __must_check int media_entity_graph_walk_init(
- 	struct media_entity_graph *graph, struct media_device *mdev);
- 
- /**
-+ * media_entity_has_route - Check if two entity pads are connected internally
-+ *
-+ * @entity: The entity
-+ * @pad0: The first pad index
-+ * @pad1: The second pad index
-+ *
-+ * This function can be used to check whether two pads of an entity are
-+ * connected internally in the entity.
-+ *
-+ * The caller must hold entity->graph_obj.mdev->mutex.
-+ *
-+ * Return: true if the pads are connected internally and false otherwise.
-+ */
-+bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-+			    unsigned int pad1);
-+
-+/**
-  * media_entity_graph_walk_cleanup - Release resources used by graph walk.
-  *
-  * @graph: Media graph structure that will be used to walk the graph
--- 
-2.7.4
+julia
 
+>
+>  	return ret;
+>  }
+> @@ -702,7 +701,6 @@ static int vpfe_remove(struct platform_device *pdev)
+>  	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
+>  	media_device_unregister(&vpfe_dev->media_dev);
+>  	vpfe_disable_clock(vpfe_dev);
+> -	kzfree(vpfe_dev);
+>
+>  	return 0;
+>  }
+> --
+> 2.7.4
+>
+>
