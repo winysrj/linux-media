@@ -1,66 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exsmtp02.microchip.com ([198.175.253.38]:19419 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1167926AbcKAIO4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2016 04:14:56 -0400
-From: Songjun Wu <songjun.wu@microchip.com>
-To: <nicolas.ferre@atmel.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] atmel-isc: release the filehandle if it's not the only one.
-Date: Tue, 1 Nov 2016 16:08:46 +0800
-Message-ID: <1477987726-4257-1-git-send-email-songjun.wu@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:38970 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753977AbcKBMqj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 08:46:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 10/11] s5p-cec/st-cec: update TODOs
+Date: Wed,  2 Nov 2016 13:46:34 +0100
+Message-Id: <20161102124635.11989-11-hverkuil@xs4all.nl>
+In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
+References: <20161102124635.11989-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Release the filehandle in 'isc_open' if it's not the only filehandle
-opened for the associated video_device.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+Update the TODOs explaining why these two drivers remain in
+staging. The reason is that these drivers rely on userspace to
+set the physical address, but that should come from the HDMI
+output driver. This in turn needs the upcoming HDMI notifier
+framework.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/staging/media/s5p-cec/TODO | 12 ++++++------
+ drivers/staging/media/st-cec/TODO  |  7 +++++++
+ 2 files changed, 13 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/staging/media/st-cec/TODO
 
- drivers/media/platform/atmel/atmel-isc.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 8e25d3f..5e08404 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -926,21 +926,21 @@ static int isc_open(struct file *file)
- 	if (ret < 0)
- 		goto unlock;
+diff --git a/drivers/staging/media/s5p-cec/TODO b/drivers/staging/media/s5p-cec/TODO
+index f51d526..64f21ba 100644
+--- a/drivers/staging/media/s5p-cec/TODO
++++ b/drivers/staging/media/s5p-cec/TODO
+@@ -1,7 +1,7 @@
+-This driver depends on the CEC framework, which is currently in
+-staging, so therefor this driver is in staging as well.
++This driver requires that userspace sets the physical address.
++However, this should be passed on from the corresponding
++Samsung HDMI driver.
  
--	if (!v4l2_fh_is_singular_file(file))
--		goto unlock;
-+	ret = !v4l2_fh_is_singular_file(file);
-+	if (ret)
-+		goto fh_rel;
- 
- 	ret = v4l2_subdev_call(sd, core, s_power, 1);
--	if (ret < 0 && ret != -ENOIOCTLCMD) {
--		v4l2_fh_release(file);
--		goto unlock;
--	}
-+	if (ret < 0 && ret != -ENOIOCTLCMD)
-+		goto fh_rel;
- 
- 	ret = isc_set_fmt(isc, &isc->fmt);
--	if (ret) {
-+	if (ret)
- 		v4l2_subdev_call(sd, core, s_power, 0);
--		v4l2_fh_release(file);
--	}
- 
-+fh_rel:
-+	if (ret)
-+		v4l2_fh_release(file);
- unlock:
- 	mutex_unlock(&isc->lock);
- 	return ret;
+-In addition, this driver requires that userspace sets the physical
+-address. However, this should be passed on from the corresponding
+-samsung HDMI driver. It is very annoying if userspace has to do this,
+-and other than USB CEC adapters this must be handled automatically.
++We have to wait until the HDMI notifier framework has been merged
++in order to handle this gracefully, until that time this driver
++has to remain in staging.
+diff --git a/drivers/staging/media/st-cec/TODO b/drivers/staging/media/st-cec/TODO
+new file mode 100644
+index 0000000..c612897
+--- /dev/null
++++ b/drivers/staging/media/st-cec/TODO
+@@ -0,0 +1,7 @@
++This driver requires that userspace sets the physical address.
++However, this should be passed on from the corresponding
++ST HDMI driver.
++
++We have to wait until the HDMI notifier framework has been merged
++in order to handle this gracefully, until that time this driver
++has to remain in staging.
 -- 
-2.7.4
+2.10.1
 
