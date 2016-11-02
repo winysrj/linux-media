@@ -1,77 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:18291 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750812AbcKZJ5o (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Nov 2016 04:57:44 -0500
-Date: Sat, 26 Nov 2016 12:57:17 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: sean@mess.org
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] [media] lirc: prevent use-after free
-Message-ID: <20161126095717.GA3150@mwanda>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:49502 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754569AbcKBN3r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:47 -0400
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH 26/32] media: rcar-vin: add helpers for bridge
+Date: Wed,  2 Nov 2016 14:23:23 +0100
+Message-Id: <20161102132329.436-27-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sean Young,
+On Gen3 there might be a CSI2 bridge between the video source and the
+VIN. Add helpers to check for this and to fetch the bridge subdevice.
 
-The patch afbb110172b9: "[media] lirc: prevent use-after free" from
-Oct 31, 2016, leads to the following static checker warning:
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 19 +++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 ++
+ 2 files changed, 21 insertions(+)
 
-	drivers/media/rc/lirc_dev.c:190 lirc_cdev_add()
-	error: potential null dereference 'cdev'.  (cdev_alloc returns null)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index f382f91..a409157 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -369,6 +369,11 @@ static int rvin_group_vin_to_csi(struct rvin_dev *vin)
+ 	return csi;
+ }
+ 
++bool vin_have_bridge(struct rvin_dev *vin)
++{
++	return vin->digital.subdev == NULL;
++}
++
+ struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin)
+ {
+ 	int csi;
+@@ -399,6 +404,20 @@ struct v4l2_subdev *vin_to_source(struct rvin_dev *vin)
+ 	return vin->group->source[csi].subdev;
+ }
+ 
++struct v4l2_subdev *vin_to_bridge(struct rvin_dev *vin)
++{
++	int csi;
++
++	if (vin->digital.subdev)
++		return NULL;
++
++	csi = rvin_group_vin_to_csi(vin);
++	if (csi < 0)
++		return NULL;
++
++	return vin->group->bridge[csi].subdev;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Async notifier helpers
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 2f1e087..acaed2b 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -206,8 +206,10 @@ struct rvin_dev {
+ 	struct v4l2_rect compose;
+ };
+ 
++bool vin_have_bridge(struct rvin_dev *vin);
+ struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin);
+ struct v4l2_subdev *vin_to_source(struct rvin_dev *vin);
++struct v4l2_subdev *vin_to_bridge(struct rvin_dev *vin);
+ 
+ /* Debug */
+ #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
+-- 
+2.10.2
 
-drivers/media/rc/lirc_dev.c
-   158  static int lirc_cdev_add(struct irctl *ir)
-   159  {
-   160          int retval = -ENOMEM;
-   161          struct lirc_driver *d = &ir->d;
-   162          struct cdev *cdev;
-   163  
-   164          cdev = cdev_alloc();
-   165          if (!cdev)
-   166                  goto err_out;
-
-Classic one err bug.  Just return directly here.  return -ENOMEM is 100%
-readable but goto err_out is opaque because you first have to scroll
-down to see what err_out does then you have to scroll to the start of
-the function to verify that retval is set.
-
-   167  
-   168          if (d->fops) {
-   169                  cdev->ops = d->fops;
-   170                  cdev->owner = d->owner;
-   171          } else {
-   172                  cdev->ops = &lirc_dev_fops;
-   173                  cdev->owner = THIS_MODULE;
-   174          }
-   175          retval = kobject_set_name(&cdev->kobj, "lirc%d", d->minor);
-   176          if (retval)
-   177                  goto err_out;
-   178  
-   179          retval = cdev_add(cdev, MKDEV(MAJOR(lirc_base_dev), d->minor), 1);
-   180          if (retval) {
-   181                  kobject_put(&cdev->kobj);
-
-This is a double free, isn't it?  It should just be goto del_cdev;
-
-   182                  goto err_out;
-   183          }
-   184  
-   185          ir->cdev = cdev;
-   186  
-   187          return 0;
-   188  
-   189  err_out:
-   190          cdev_del(cdev);
-
-Can't pass NULLs to this function.
-
-   191          return retval;
-   192  }
-
-regards,
-dan carpenter
