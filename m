@@ -1,309 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:56724 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755999AbcKKLtk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 06:49:40 -0500
-Subject: Re: [PATCH v3 0/9] Qualcomm video decoder/encoder driver
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f5120730-0e1d-f93c-eed9-7b71ff79f5db@xs4all.nl>
-Date: Fri, 11 Nov 2016 12:49:34 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53495 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756776AbcKBU7H (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 16:59:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Cc: "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "crope@iki.fi" <crope@iki.fi>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        "geert@linux-m68k.org" <geert@linux-m68k.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [RFC 5/5] doc_rst: media: New SDR formats SC16, SC18 & SC20
+Date: Wed, 02 Nov 2016 22:58:47 +0200
+Message-ID: <6165707.yDnDHhpUBT@avalon>
+In-Reply-To: <SG2PR06MB10389152CEC59BB77A5DA7DDC3A00@SG2PR06MB1038.apcprd06.prod.outlook.com>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <2893157.XL3Txm4q5I@avalon> <SG2PR06MB10389152CEC59BB77A5DA7DDC3A00@SG2PR06MB1038.apcprd06.prod.outlook.com>
 MIME-Version: 1.0
-In-Reply-To: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stanimir,
+Hi Ramesh,
 
-Overall it looks good. As you saw, I do have some comments but nothing major.
+On Wednesday 02 Nov 2016 09:00:00 Ramesh Shanmugasundaram wrote:
+> Hi Laurent,
+> 
+> Any further thoughts on the SDR format please (especially the comment
+> below). I would appreciate your feedback.
+>
+> >> On Wednesday 12 Oct 2016 15:10:29 Ramesh Shanmugasundaram wrote:
+> >>> This patch adds documentation for the three new SDR formats
+> >>> 
+> >>> V4L2_SDR_FMT_SCU16BE
+> >>> V4L2_SDR_FMT_SCU18BE
+> >>> V4L2_SDR_FMT_SCU20BE
+> 
+> [snip]
+> 
+> >>> +
+> >>> +       -  start + 0:
+> >>> +
+> >>> +       -  I'\ :sub:`0[D13:D6]`
+> >>> +
+> >>> +       -  I'\ :sub:`0[D5:D0]`
+> >>> +
+> >>> +    -  .. row 2
+> >>> +
+> >>> +       -  start + buffer_size/2:
+> >>> +
+> >>> +       -  Q'\ :sub:`0[D13:D6]`
+> >>> +
+> >>> +       -  Q'\ :sub:`0[D5:D0]`
+> >> 
+> >> The format looks planar, does it use one V4L2 plane (as does NV12) or
+> >> two V4L2 planes (as does NV12M) ? Same question for the other formats.
+> > 
+> > Thank you for bringing up this topic. This is one of the key design
+> > dilemma.
+> > 
+> > The I & Q data for these three SDR formats comes from two different DMA
+> > channels and hence two separate pointers -> we could say it is v4l2 multi-
+> > planar. Right now, I am making it look like a single plane by presenting
+> > the data in one single buffer ptr.
+> > 
+> > For e.g. multi-planar SC16 format would look something like this
+> > 
+> > <------------------------32bits---------------------->
+> > <--I(14 bit data) + 2bit status--16bit padded zeros--> : start0 + 0
+> > <--I(14 bit data) + 2bit status--16bit padded zeros--> : start0 + 4 ...
+> > <--Q(14 bit data) + 2bit status--16bit padded zeros--> : start1 + 0
+> > <--Q(14 bit data) + 2bit status--16bit padded zeros--> : start1 + 4
+> > 
+> > My concerns are
+> > 
+> > 1) These formats are not a standard as the video "Image Formats". These
+> > formats are possible when we use DRIF + MAX2175 combination. If we
+> > interface with a different tuner vendor, the above format(s) MAY/MAY NOT
+> > be re-usable. We do not know at this point. This is the main open item for
+> > discussion in the cover letter.
 
-One question: you use qcom as the directory name. How about using qualcomm?
+If the formats are really device-specific then they should be documented 
+accordingly and not made generic.
 
-It's really not that much longer and a bit more obvious.
+> > 2) MPLANE support within V4L2 seems specific to video. Please correct me
+> > if this is wrong interpretation.
+> > 
+> > - struct v4l2_format contains v4l2_sdr_format and
+> > v4l2_pix_format_mplane as members of union. Should I create a new
+> > v4l2_sdr_format_mplane? If I have to use v4l2_pix_format_mplane most of
+> > the video specific members would be unused (it would be similar to using
+> > v4l2_pix_format itself instead of v4l2_sdr_format)?
 
-Up to you, though.
+I have no answer to that question as I'm not familiar with SDR. Antti, you've 
+added v4l2_sdr_format to the API, what's your opinion ? Hans, as you've acked 
+the patch, your input would be appreciated as well.
 
+> > - The above decision (accomodate SDR & MPLANE) needs to be
+> > propagated across the framework. Is this the preferred approach?
+> > 
+> > It goes back to point (1). As of today, the change set for this combo
+> > (DRIF+MAX2175) introduces new SDR formats only. Should it add further
+> > SDR+MPLANE support to the framework as well?
+> > 
+> > I would appreciate your suggestions on this regard.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
-> Hi,
-> 
-> Here is v3 of the Venus v4l2 video encoder/decoder driver.
-> 
-> The changes since v2 are:
-> 	- return queued buffers on stream_on error.
-> 	- changed name of the driver vidc -> venus and reflect that in
-> querycap.
-> 	- fix video_device::release to point to video_device_release.
-> 	- tried to implement correctly g_selection for decoder and encoder.
-> 	- added Venus HFI 3xx basic support, to able to reuse driver on
-> msm8996.
-> 	- extend DT binding with reg-names and interrupt-names.
-> 	- parse DT IRQ and MEM resources by name.
-> 	- merge hfi_core,hfi_inst in venus_core and venus_inst structures.
-> 	- killed hfi_pkt_ops struct and use functions.
-> 	- various cleanups.
-> 
-> The output of v4l2-compliance looks like:
-> 
-> root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video0
-> v4l2-compliance SHA   : 405f0c21e0b52836d22c999aa4ee1f51d87998b2
-> 
-> Driver Info:
->         Driver name   : qcom-venus
->         Card type     : Qualcomm Venus video decoder
->         Bus info      : platform:qcom-venus
->         Driver version: 4.4.23
->         Capabilities  : 0x84204000
->                 Video Memory-to-Memory Multiplanar
->                 Streaming
->                 Extended Pix Format
->                 Device Capabilities
->         Device Caps   : 0x04204000
->                 Video Memory-to-Memory Multiplanar
->                 Streaming
->                 Extended Pix Format
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
->         test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->         test VIDIOC_G/S_PRIORITY: OK
->         test for unlimited opens: OK
-> 
-> Debug ioctls:
->         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->         test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
->         Control ioctls:
->                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
->                 test VIDIOC_QUERYCTRL: OK
->                 test VIDIOC_G/S_CTRL: OK
->                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->                 Standard Controls: 7 Private Controls: 0
-> 
->         Format ioctls:
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->                 test VIDIOC_G/S_PARM: OK (Not Supported)
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 test VIDIOC_G_FMT: OK
->                 test VIDIOC_TRY_FMT: OK
->                 test VIDIOC_S_FMT: OK
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->                 test Cropping: OK
->                 test Composing: OK
->                 test Scaling: OK
-> 
->         Codec ioctls:
->                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
->         Buffer ioctls:
->                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                 test VIDIOC_EXPBUF: OK
-> 
-> Test input 0:
-> 
-> 
-> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-> 
-> root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video1
-> v4l2-compliance SHA   : 405f0c21e0b52836d22c999aa4ee1f51d87998b2
-> 
-> Driver Info:
->         Driver name   : vidc
->         Card type     : video encoder
->         Bus info      : platform:vidc
->         Driver version: 4.4.23
->         Capabilities  : 0x84204000
->                 Video Memory-to-Memory Multiplanar
->                 Streaming
->                 Extended Pix Format
->                 Device Capabilities
->         Device Caps   : 0x04204000
->                 Video Memory-to-Memory Multiplanar
->                 Streaming
->                 Extended Pix Format
-> 
-> Compliance test for device /dev/video1 (not using libv4l2):
-> 
-> Required ioctls:
->         test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
->         test second video open: OK
->         test VIDIOC_QUERYCAP: OK
->         test VIDIOC_G/S_PRIORITY: OK
->         test for unlimited opens: OK
-> 
-> Debug ioctls:
->         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
->         test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
->         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
->         test VIDIOC_ENUMAUDIO: OK (Not Supported)
->         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDIO: OK (Not Supported)
->         Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
->         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
->         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
->         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
->         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
->         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
->         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
->         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
->         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
->         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
->         test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
->         Control ioctls:
->                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
->                 test VIDIOC_QUERYCTRL: OK
->                 test VIDIOC_G/S_CTRL: OK
->                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK
->                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
->                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
->                 Standard Controls: 32 Private Controls: 0
-> 
->         Format ioctls:
->                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
->                 test VIDIOC_G/S_PARM: OK
->                 test VIDIOC_G_FBUF: OK (Not Supported)
->                 test VIDIOC_G_FMT: OK
->                 test VIDIOC_TRY_FMT: OK
->                 test VIDIOC_S_FMT: OK
->                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
->                 test Cropping: OK
->                 test Composing: OK (Not Supported)
->                 test Scaling: OK
-> 
->         Codec ioctls:
->                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
->                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
->                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
->         Buffer ioctls:
->                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
->                 test VIDIOC_EXPBUF: OK
-> 
-> Test input 0:
-> 
-> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-> 
-> regards,
-> Stan
-> 
-> Stanimir Varbanov (9):
->   doc: DT: vidc: binding document for Qualcomm video driver
->   MAINTAINERS: Add Qualcomm Venus video accelerator driver
->   media: venus: adding core part and helper functions
->   media: venus: vdec: add video decoder files
->   media: venus: venc: add video encoder files
->   media: venus: hfi: add Host Firmware Interface (HFI)
->   media: venus: hfi: add Venus HFI files
->   media: venus: add Makefiles and Kconfig files
->   media: venus: enable building of Venus video codec driver
-> 
->  .../devicetree/bindings/media/qcom,venus.txt       |   98 ++
->  MAINTAINERS                                        |    8 +
->  drivers/media/platform/Kconfig                     |    1 +
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/qcom/Kconfig                |    7 +
->  drivers/media/platform/qcom/Makefile               |    1 +
->  drivers/media/platform/qcom/venus/Makefile         |   15 +
->  drivers/media/platform/qcom/venus/core.c           |  557 +++++++
->  drivers/media/platform/qcom/venus/core.h           |  261 ++++
->  drivers/media/platform/qcom/venus/helpers.c        |  612 ++++++++
->  drivers/media/platform/qcom/venus/helpers.h        |   43 +
->  drivers/media/platform/qcom/venus/hfi.c            |  604 ++++++++
->  drivers/media/platform/qcom/venus/hfi.h            |  180 +++
->  drivers/media/platform/qcom/venus/hfi_cmds.c       | 1255 ++++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
->  drivers/media/platform/qcom/venus/hfi_helper.h     | 1045 ++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_msgs.c       | 1054 ++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
->  drivers/media/platform/qcom/venus/hfi_venus.c      | 1523 ++++++++++++++++++++
->  drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
->  drivers/media/platform/qcom/venus/hfi_venus_io.h   |   98 ++
->  drivers/media/platform/qcom/venus/vdec.c           | 1108 ++++++++++++++
->  drivers/media/platform/qcom/venus/vdec.h           |   32 +
->  drivers/media/platform/qcom/venus/vdec_ctrls.c     |  197 +++
->  drivers/media/platform/qcom/venus/venc.c           | 1212 ++++++++++++++++
->  drivers/media/platform/qcom/venus/venc.h           |   32 +
->  drivers/media/platform/qcom/venus/venc_ctrls.c     |  396 +++++
->  27 files changed, 10950 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
->  create mode 100644 drivers/media/platform/qcom/Kconfig
->  create mode 100644 drivers/media/platform/qcom/Makefile
->  create mode 100644 drivers/media/platform/qcom/venus/Makefile
->  create mode 100644 drivers/media/platform/qcom/venus/core.c
->  create mode 100644 drivers/media/platform/qcom/venus/core.h
->  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
->  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
->  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
->  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
->  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
->  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
->  create mode 100644 drivers/media/platform/qcom/venus/venc.c
->  create mode 100644 drivers/media/platform/qcom/venus/venc.h
->  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
-> 
