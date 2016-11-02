@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:52740 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936133AbcKDSTn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Nov 2016 14:19:43 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 0/4] vsp1 partition algorithm improvements
-Date: Fri,  4 Nov 2016 18:19:26 +0000
-Message-Id: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:36699 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755516AbcKBQnb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 12:43:31 -0400
+Received: by mail-lf0-f47.google.com with SMTP id t196so17877282lff.3
+        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2016 09:43:30 -0700 (PDT)
+Subject: Re: [PATCH 03/32] media: rcar-vin: reset bytesperline and sizeimage
+ when resetting format
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+ <20161102132329.436-4-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-ID: <2f6c92a8-6d07-d355-41c9-ce7bc73093da@cogentembedded.com>
+Date: Wed, 2 Nov 2016 19:43:27 +0300
+MIME-Version: 1.0
+In-Reply-To: <20161102132329.436-4-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some updates and initial improvements for the VSP1 partition algorithm that
-remove redundant processing and variables, reducing the processing done in
-interrupt context slightly.
+Hello.
 
-Patch 1 brings in some protection against invalid pipeline configurations that
-are not supported by the partition algorithm on Gen3 hardware.
+On 11/02/2016 04:23 PM, Niklas Söderlund wrote:
 
-Patches 2,3 and 4 clean up the calculation of the partition sizes such that they
-are only calculated once at streamon - and the partition windows are stored in
-the vsp1_pipeline object.
+> These two fields where forgotten when refactoring the format reset code
+> path. If they are not also reset at the same time as width and hight the
+> format read using G_FMT will not match realty.
 
-Kieran Bingham (4):
-  v4l: vsp1: Implement partition algorithm restrictions
-  v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
-  v4l: vsp1: Calculate partition sizes at stream start.
-  v4l: vsp1: Remove redundant context variables
+    Reality?
 
- drivers/media/platform/vsp1/vsp1_pipe.h  |  10 ++-
- drivers/media/platform/vsp1/vsp1_sru.c   |   7 +-
- drivers/media/platform/vsp1/vsp1_sru.h   |   1 +
- drivers/media/platform/vsp1/vsp1_video.c | 124 +++++++++++++++++++------------
- 4 files changed, 89 insertions(+), 53 deletions(-)
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+[...]
 
--- 
-2.7.4
+MBR, Sergei
 
