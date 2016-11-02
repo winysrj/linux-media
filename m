@@ -1,75 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:37089 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753813AbcKDE2l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 00:28:41 -0400
-Date: Fri, 04 Nov 2016 13:28:38 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
- ir-spi device driver
-Message-id: <20161104042838.kwjv66ldun6g4hlv@gangnam.samsung>
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
- <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
- <20161102104010.26959-6-andi.shyti@samsung.com>
- <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
- <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
- <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52116 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753343AbcKBMqj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 2 Nov 2016 08:46:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 04/11] cec: add CEC_MSG_FL_REPLY_TO_FOLLOWERS
+Date: Wed,  2 Nov 2016 13:46:28 +0100
+Message-Id: <20161102124635.11989-5-hverkuil@xs4all.nl>
+In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
+References: <20161102124635.11989-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> > > Only DT bindings of LED class drivers should be placed in
-> > > Documentation/devicetree/bindings/leds. Please move it to the
-> > > media bindings.
-> > 
-> > that's where I placed it first, but Rob asked me to put it in the
-> > LED directory and Cc the LED mailining list.
-> > 
-> > That's the discussion of the version 2:
-> > 
-> > https://lkml.org/lkml/2016/9/12/380
-> > 
-> > Rob, Jacek, could you please agree where I can put the binding?
-> 
-> I'm not sure if this is a good approach. I've noticed also that
-> backlight bindings have been moved to leds, whereas they don't look
-> similarly.
-> 
-> We have common.txt LED bindings, that all LED class drivers' bindings
-> have to follow. Neither backlight bindings nor these ones do that,
-> which introduces some mess.
-> 
-> Eventually adding a sub-directory, e.g. remote_control could make it
-> somehow logically justified, but still - shouldn't bindings be
-> placed in the documentation directory related to the subsystem of the
-> driver they are predestined to?
+Give the caller more control over how replies to a transmit are
+handled. By default the reply will only go to the filehandle that
+called CEC_TRANSMIT. If this new flag is set, then the reply will
+also go to all followers.
 
-In principle I agree with you, also because I understood that the
-led kind of bindings are for those LEDs which main function is to
-emit light.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/cec/cec-ioc-receive.rst | 22 +++++++++++++++++++++-
+ drivers/staging/media/cec/TODO                   |  4 ----
+ drivers/staging/media/cec/cec-adap.c             |  6 +++---
+ drivers/staging/media/cec/cec-api.c              |  1 +
+ include/linux/cec.h                              |  5 ++++-
+ 5 files changed, 29 insertions(+), 9 deletions(-)
 
-There is no need for a remote control directory, because there is
-one already under bindings/media, where all the remote
-controllers are placed.
+diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+index 21a88df..b4dffd2 100644
+--- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
++++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
+@@ -119,7 +119,7 @@ result.
+ 	transmit.
+     * - __u32
+       - ``flags``
+-      - Flags. No flags are defined yet, so set this to 0.
++      - Flags. See :ref:`cec-msg-flags` for a list of available flags.
+     * - __u8
+       - ``tx_status``
+       - The status bits of the transmitted message. See
+@@ -180,6 +180,26 @@ result.
+ 	valid if the :ref:`CEC_TX_STATUS_ERROR <CEC-TX-STATUS-ERROR>` status bit is set.
+ 
+ 
++.. _cec-msg-flags:
++
++.. flat-table:: Flags for struct cec_msg
++    :header-rows:  0
++    :stub-columns: 0
++    :widths:       3 1 4
++
++    * .. _`CEC-MSG-FL-REPLY-TO-FOLLOWERS`:
++
++      - ``CEC_MSG_FL_REPLY_TO_FOLLOWERS``
++      - 1
++      - If a CEC transmit expects a reply, then by default that reply is only sent to
++	the filehandle that called :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`. If this
++	flag is set, then the reply is also sent to all followers, if any. If the
++	filehandle that called :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is also a
++	follower, then that filehandle will receive the reply twice: once as the
++	result of the :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`, and once via
++	:ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
++
++
+ .. tabularcolumns:: |p{5.6cm}|p{0.9cm}|p{11.0cm}|
+ 
+ .. _cec-tx-status:
+diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
+index 0841206..ce69001 100644
+--- a/drivers/staging/media/cec/TODO
++++ b/drivers/staging/media/cec/TODO
+@@ -13,10 +13,6 @@ Hopefully this will happen later in 2016.
+ Other TODOs:
+ 
+ - There are two possible replies to CEC_MSG_INITIATE_ARC. How to handle that?
+-- If the reply field of cec_msg is set then when the reply arrives it
+-  is only sent to the filehandle that transmitted the original message
+-  and not to any followers. Should this behavior change or perhaps
+-  controlled through a cec_msg flag?
+ - Should CEC_LOG_ADDR_TYPE_SPECIFIC be replaced by TYPE_2ND_TV and TYPE_PROCESSOR?
+   And also TYPE_SWITCH and TYPE_CDC_ONLY in addition to the TYPE_UNREGISTERED?
+   This should give the framework more information about the device type
+diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
+index 589e457..6aceb1d 100644
+--- a/drivers/staging/media/cec/cec-adap.c
++++ b/drivers/staging/media/cec/cec-adap.c
+@@ -587,7 +587,6 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
+ 	msg->tx_nack_cnt = 0;
+ 	msg->tx_low_drive_cnt = 0;
+ 	msg->tx_error_cnt = 0;
+-	msg->flags = 0;
+ 	msg->sequence = ++adap->sequence;
+ 	if (!msg->sequence)
+ 		msg->sequence = ++adap->sequence;
+@@ -823,6 +822,7 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
+ 			dst->rx_status = msg->rx_status;
+ 			if (abort)
+ 				dst->rx_status |= CEC_RX_STATUS_FEATURE_ABORT;
++			msg->flags = dst->flags;
+ 			/* Remove it from the wait_queue */
+ 			list_del_init(&data->list);
+ 
+@@ -1575,8 +1575,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 	}
+ 
+ skip_processing:
+-	/* If this was a reply, then we're done */
+-	if (is_reply)
++	/* If this was a reply, then we're done, unless otherwise specified */
++	if (is_reply && !(msg->flags & CEC_MSG_FL_REPLY_TO_FOLLOWERS))
+ 		return 0;
+ 
+ 	/*
+diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
+index 040ca7d..54148a6 100644
+--- a/drivers/staging/media/cec/cec-api.c
++++ b/drivers/staging/media/cec/cec-api.c
+@@ -190,6 +190,7 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
+ 		return -ENOTTY;
+ 	if (copy_from_user(&msg, parg, sizeof(msg)))
+ 		return -EFAULT;
++	msg.flags &= CEC_MSG_FL_REPLY_TO_FOLLOWERS;
+ 	mutex_lock(&adap->lock);
+ 	if (!adap->is_configured)
+ 		err = -ENONET;
+diff --git a/include/linux/cec.h b/include/linux/cec.h
+index 825455f..3f2f076 100644
+--- a/include/linux/cec.h
++++ b/include/linux/cec.h
+@@ -175,7 +175,10 @@ static inline void cec_msg_set_reply_to(struct cec_msg *msg,
+ 	msg->reply = msg->timeout = 0;
+ }
+ 
+-/* cec status field */
++/* cec_msg flags field */
++#define CEC_MSG_FL_REPLY_TO_FOLLOWERS	(1 << 0)
++
++/* cec_msg tx/rx_status field */
+ #define CEC_TX_STATUS_OK		(1 << 0)
+ #define CEC_TX_STATUS_ARB_LOST		(1 << 1)
+ #define CEC_TX_STATUS_NACK		(1 << 2)
+-- 
+2.10.1
 
-Now this is a matter of interpretation, is this an IR LED used by
-the driver as remote controller or is this a remote controller
-with just an IR LED?
-
-In any case, I will wait for you and Rob to agree where is best
-to place the binding, then I will send a new version.
-
-Thanks,
-Andi
