@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp.gentoo.org ([140.211.166.183]:45232 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755269AbcKCPMG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Nov 2016 11:12:06 -0400
+Subject: Re: [RFC] v4l2 support for thermopile devices
+To: Attila Kinali <attila@kinali.ch>,
+        Matt Ranostay <matt@ranostay.consulting>
+References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
+ <767cacf5-5f91-2596-90ef-31358b8e1db9@xs4all.nl>
+ <CAJ_EiSQ-yf7hmnz1qqOAA-XcByCq9f12z=7h=+rCeWQbua+dOg@mail.gmail.com>
+ <CAJ_EiSQRai=XqOryMW1WLKvFDPZUVVmkjXSF3TyxpPNMsVsR_Q@mail.gmail.com>
+ <20161103142134.4a59dfc34c593391086c0508@kinali.ch>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Marek Vasut <marex@denx.de>
+From: Luca Barbato <lu_zero@gentoo.org>
+Message-ID: <0e410f78-840b-842a-c9ab-bc0ffc159249@gentoo.org>
+Date: Thu, 3 Nov 2016 16:11:52 +0100
 MIME-Version: 1.0
-In-Reply-To: <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Nov 2016 10:40:47 -0800
-Message-ID: <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Bart Van Assche <bart.vanassche@sandisk.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20161103142134.4a59dfc34c593391086c0508@kinali.ch>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 9:27 AM, Bart Van Assche
-<bart.vanassche@sandisk.com> wrote:
-> On 11/23/2016 09:13 AM, Logan Gunthorpe wrote:
+On 03/11/2016 14:21, Attila Kinali wrote:
+> On Wed, 2 Nov 2016 23:10:41 -0700
+> Matt Ranostay <matt@ranostay.consulting> wrote:
+> 
 >>
->> IMO any memory that has been registered for a P2P transaction should be
->> locked from being evicted. So if there's a get_user_pages call it needs
->> to be pinned until the put_page. The main issue being with the RDMA
->> case: handling an eviction when a chunk of memory has been registered as
->> an MR would be very tricky. The MR may be relied upon by another host
->> and the kernel would have to inform user-space the MR was invalid then
->> user-space would have to tell the remote application.
->
->
-> Hello Logan,
->
-> Are you aware that the Linux kernel already supports ODP (On Demand Paging)?
-> See also the output of git grep -nHi on.demand.paging. See also
-> https://www.openfabrics.org/images/eventpresos/workshops2014/DevWorkshop/presos/Tuesday/pdf/04_ODP_update.pdf.
->
+>> So does anyone know of any software that is using V4L2_PIX_FMT_Y12
+>> currently? Want to test my driver but seems there isn't anything that
+>> uses that format (ffmpeg, mplayer, etc).
+>>
+>> Raw data seems correct but would like to visualize it :). Suspect I'll
+>> need to write a test case application though
+> 
+> I was pretty sure that MPlayer supports 12bit greyscale, but I cannot
+> find where it was handled. You can of course pass it to the MPlayer
+> internas as 8bit greyscale, which would be IMGFMT_Y8 or just pass
+> it on as 16bit which would be IMGFMT_Y16_LE (LE = little endian).
+> 
+> You can find the internal #defines of the image formats in
+> libmpcodecs/img_format.h and can use https://www.fourcc.org/yuv.php
+> to decode their meaning.
+> 
+> The equivalent for libav would be libavutil/pixfmt.h
+> 
+> Luca Barbato tells me that adding Y12 support to libav would be easy.
+> 
+> 			Attila Kinali
+> 
 
-I don't think that was designed for the case where the backing memory
-is a special/static physical address range rather than anonymous
-"System RAM", right?
+So easy that is [done][1], it still needs to be tested/reviewed/polished
+though.
 
-I think we should handle the graphics P2P concerns separately from the
-general P2P-DMA case since the latter does not require the higher
-order memory management facilities. Using ZONE_DEVICE/DAX mappings to
-avoid changes to every driver that wants to support P2P-DMA separately
-from typical DMA still seems the path of least resistance.
+[1]:https://github.com/lu-zero/libav/commits/gray12
+
+lu
