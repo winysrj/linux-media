@@ -1,127 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:36754 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753021AbcKBMqi (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38553 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754397AbcKCMUM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Nov 2016 08:46:38 -0400
+        Thu, 3 Nov 2016 08:20:12 -0400
+Subject: Re: [PATCH 10/34] [media] DaVinci-VPBE: Check return value of a
+ setup_if_config() call in vpbe_set_output()
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Manjunath Hadli <manjunath.hadli@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+ <47590f2e-1cfa-582d-769e-502802171b66@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 03/11] cec: add flag to cec_log_addrs to enable RC passthrough
-Date: Wed,  2 Nov 2016 13:46:27 +0100
-Message-Id: <20161102124635.11989-4-hverkuil@xs4all.nl>
-In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
-References: <20161102124635.11989-1-hverkuil@xs4all.nl>
+Message-ID: <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
+Date: Thu, 3 Nov 2016 13:20:08 +0100
+MIME-Version: 1.0
+In-Reply-To: <47590f2e-1cfa-582d-769e-502802171b66@users.sourceforge.net>
+Content-Type: text/plain; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 12/10/16 16:47, SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Wed, 12 Oct 2016 09:56:56 +0200
+>
+> * A function was called over the pointer "setup_if_config" in the data
+>   structure "venc_platform_data". But the return value was not used so far.
+>   Thus assign it to the local variable "ret" which will be checked with
+>   the next statement.
+>
+>   Fixes: 9a7f95ad1c946efdd7a7a72df27db738260a0fd8 ("[media] davinci vpbe: add dm365 VPBE display driver changes")
+>
+> * Pass a value to this function call without storing it in an intermediate
+>   variable before.
+>
+> * Delete the local variable "if_params" which became unnecessary with
+>   this refactoring.
+>
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/platform/davinci/vpbe.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index 19611a2..6e7b0df 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -227,7 +227,6 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>  			vpbe_current_encoder_info(vpbe_dev);
+>  	struct vpbe_config *cfg = vpbe_dev->cfg;
+>  	struct venc_platform_data *venc_device = vpbe_dev->venc_device;
+> -	u32 if_params;
+>  	int enc_out_index;
+>  	int sd_index;
+>  	int ret = 0;
+> @@ -257,8 +256,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>  			goto out;
+>  		}
+>
+> -		if_params = cfg->outputs[index].if_params;
+> -		venc_device->setup_if_config(if_params);
+> +		ret = venc_device->setup_if_config(cfg
+> +						   ->outputs[index].if_params);
 
-By default the CEC_MSG_USER_CONTROL_PRESSED/RELEASED messages
-are passed on to the follower(s) only. If the new
-CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU flag is set in the
-flags field of struct cec_log_addrs then these messages are also
-passed on to the remote control input subsystem and they will appear
-as keystrokes.
+Either keep this as one line or keep the if_params temp variable. This 
+odd linebreak
+is ugly.
 
-This used to be the default behavior, but now you have to explicitly
-enable it. This is done to force the caller to think about possible
-security issues (e.g. if these messages are used to enter passwords).
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst | 10 ++++++++++
- drivers/staging/media/cec/TODO                            |  2 --
- drivers/staging/media/cec/cec-adap.c                      |  6 ++++--
- drivers/staging/media/cec/cec-api.c                       |  3 ++-
- include/linux/cec.h                                       |  2 ++
- 5 files changed, 18 insertions(+), 5 deletions(-)
+	Hans
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-index af35f71..571ae57 100644
---- a/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst
-@@ -166,6 +166,16 @@ logical address types are already defined will return with error ``EBUSY``.
- 	it will go back to the unconfigured state. If this flag is set, then it will
- 	fallback to the Unregistered logical address. Note that if the Unregistered
- 	logical address was explicitly requested, then this flag has no effect.
-+    * .. _`CEC-LOG-ADDRS-FL-ALLOW-RC-PASSTHRU`:
-+
-+      - ``CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU``
-+      - 2
-+      - By default the ``CEC_MSG_USER_CONTROL_PRESSED`` and ``CEC_MSG_USER_CONTROL_RELEASED``
-+        messages are only passed on to the follower(s), if any. If this flag is set,
-+	then these messages are also passed on to the remote control input subsystem
-+	and will appear as keystrokes. This features needs to be enabled explicitly.
-+	If CEC is used to enter e.g. passwords, then you may not want to enable this
-+	to avoid trivial snooping of the keystrokes.
- 
- .. tabularcolumns:: |p{6.6cm}|p{2.2cm}|p{8.7cm}|
- 
-diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
-index 1322469..0841206 100644
---- a/drivers/staging/media/cec/TODO
-+++ b/drivers/staging/media/cec/TODO
-@@ -13,8 +13,6 @@ Hopefully this will happen later in 2016.
- Other TODOs:
- 
- - There are two possible replies to CEC_MSG_INITIATE_ARC. How to handle that?
--- Add a flag to inhibit passing CEC RC messages to the rc subsystem.
--  Applications should be able to choose this when calling S_LOG_ADDRS.
- - If the reply field of cec_msg is set then when the reply arrives it
-   is only sent to the filehandle that transmitted the original message
-   and not to any followers. Should this behavior change or perhaps
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index 611e07b..589e457 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -1478,7 +1478,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	}
- 
- 	case CEC_MSG_USER_CONTROL_PRESSED:
--		if (!(adap->capabilities & CEC_CAP_RC))
-+		if (!(adap->capabilities & CEC_CAP_RC) ||
-+		    !(adap->log_addrs.flags & CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU))
- 			break;
- 
- #if IS_REACHABLE(CONFIG_RC_CORE)
-@@ -1515,7 +1516,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 		break;
- 
- 	case CEC_MSG_USER_CONTROL_RELEASED:
--		if (!(adap->capabilities & CEC_CAP_RC))
-+		if (!(adap->capabilities & CEC_CAP_RC) ||
-+		    !(adap->log_addrs.flags & CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU))
- 			break;
- #if IS_REACHABLE(CONFIG_RC_CORE)
- 		rc_keyup(adap->rc);
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index e274e2f..040ca7d 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -162,7 +162,8 @@ static long cec_adap_s_log_addrs(struct cec_adapter *adap, struct cec_fh *fh,
- 		return -ENOTTY;
- 	if (copy_from_user(&log_addrs, parg, sizeof(log_addrs)))
- 		return -EFAULT;
--	log_addrs.flags &= CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK;
-+	log_addrs.flags &= CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK |
-+			   CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU;
- 	mutex_lock(&adap->lock);
- 	if (!adap->is_configuring &&
- 	    (!log_addrs.num_log_addrs || !adap->is_configured) &&
-diff --git a/include/linux/cec.h b/include/linux/cec.h
-index 851968e..825455f 100644
---- a/include/linux/cec.h
-+++ b/include/linux/cec.h
-@@ -391,6 +391,8 @@ struct cec_log_addrs {
- 
- /* Allow a fallback to unregistered */
- #define CEC_LOG_ADDRS_FL_ALLOW_UNREG_FALLBACK	(1 << 0)
-+/* Passthrough RC messages to the input subsystem */
-+#define CEC_LOG_ADDRS_FL_ALLOW_RC_PASSTHRU	(1 << 1)
- 
- /* Events */
- 
--- 
-2.10.1
-
+>  		if (ret)
+>  			goto out;
+>  	}
+>
