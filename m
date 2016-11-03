@@ -1,91 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:49966 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753651AbcKWC27 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 21:28:59 -0500
-Date: Wed, 23 Nov 2016 11:28:56 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Rob Herring <robh@kernel.org>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: [RFC] Documentation: media,
- leds: move IR LED remote controllers from media to LED
-Message-id: <20161123022856.gliio3nyfclx6hj2@gangnam.samsung>
-References: <20161110132650.5109-1-andi.shyti@samsung.com>
- <CGME20161122141450epcas4p4a07f3db61d459fe775cbad7048affe7a@epcas4p4.samsung.com>
- <20161122121440.627f1c16@vento.lan>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20161122121440.627f1c16@vento.lan>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:36806 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751882AbcKCGKm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 02:10:42 -0400
+Received: by mail-qk0-f193.google.com with SMTP id h201so2006999qke.3
+        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2016 23:10:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAJ_EiSQ-yf7hmnz1qqOAA-XcByCq9f12z=7h=+rCeWQbua+dOg@mail.gmail.com>
+References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
+ <767cacf5-5f91-2596-90ef-31358b8e1db9@xs4all.nl> <CAJ_EiSQ-yf7hmnz1qqOAA-XcByCq9f12z=7h=+rCeWQbua+dOg@mail.gmail.com>
+From: Matt Ranostay <matt@ranostay.consulting>
+Date: Wed, 2 Nov 2016 23:10:41 -0700
+Message-ID: <CAJ_EiSQRai=XqOryMW1WLKvFDPZUVVmkjXSF3TyxpPNMsVsR_Q@mail.gmail.com>
+Subject: Re: [RFC] v4l2 support for thermopile devices
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Oct 28, 2016 at 7:59 PM, Matt Ranostay <matt@ranostay.consulting> wrote:
+> On Fri, Oct 28, 2016 at 2:53 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Matt,
+>>
+>> On 28/10/16 22:14, Matt Ranostay wrote:
+>>>
+>>> So want to toss a few thoughts on adding support for thermopile
+>>> devices (could be used for FLIR Lepton as well) that output pixel
+>>> data.
+>>> These typically aren't DMA'able devices since they are low speed
+>>> (partly to limiting the functionality to be in compliance with ITAR)
+>>> and data is piped over i2c/spi.
+>>>
+>>> My question is that there doesn't seem to be an other driver that
+>>> polls frames off of a device and pushes it to the video buffer, and
+>>> wanted to be sure that this doesn't currently exist somewhere.
+>>
+>>
+>> Not anymore, but if you go back to kernel 3.6 then you'll find this driver:
+>>
+>> drivers/media/video/bw-qcam.c
+>>
+>> It was for a grayscale parallel port webcam (which explains why it was
+>> removed in 3.7 :-) ), and it used polling to get the pixels.
+>
+> Yikes parallel port, but I'll take a look at that for some reference :)
 
-> > this is purely a request for comments after a discussion had with
-> > Rob and Jacek [*] about where to place the ir leds binding. Rob wants
-> > the binding to be under led, while Jacek wants it in media...
-> > "Ubi maior minor cessat": it goes to LED and they can be organized
-> > in a subdirectory.
-> > 
-> > Standing to Rob "Bindings are grouped by types of h/w and IR LEDs
-> > are a type of LED": all remote controllers have an IR LED as core
-> > device, even though the framework is under drivers/media/rc/, thus
-> > they naturally belong to the LED binding group.
-> > 
-> > Please, let me know if this is the right approach.
-> 
-> IMHO, this is wrong. 
-> 
-> Ok, if you look at just the diode, the physics of an IR Light-emitting Diode
-> (LED) is identical  to the one for a visible light LED, just like the physics
-> of the LED diodes inside a display. Btw, the physics of an IR detector
-> diode is almost identical to the physics of a LED.
-> 
-> Yet, the hardware where those diodes are connected are very different,
-> and so their purpose.
-> 
-> The same way I don't think it would make sense to represent a LED
-> display using the same approach as a flash light, I don't think we
-> should to it for IR LEDs.
-> 
-> A visible light LED is used either to work as a flash light for a camera
-> or as a way to indicate a status. No machine2machine protocol there.
-> The circuitry for them is usually just a gatway that will turn it on
-> or off.
-> 
-> With regards to the IR hardware, an IR LED is used for machine2machine
-> signaling. It is part of a modulator circuit that uses a carrier of about
-> 40kHz to modulate 16 or 32 bits words.
-> 
-> The IR device hardware usually also have another diode (the IR detector)
-> that receives IR rays. Visually, they look identical.
-> 
-> IMHO, it makes much more sense to keep both IR detector and light-emitting
-> diodes described together, as they are part of the same circuitry and
-> have a way more similarities than a flash light or a LED display.
 
-thanks for the reply, I agree with you, that's why I first put
-the ir-spi of tm2 in the media directory where all the ir leds
-devices are. That's what Jacek recommended and what you are
-recommending (that's also why this is an RFC and not a patch).
+So does anyone know of any software that is using V4L2_PIX_FMT_Y12
+currently? Want to test my driver but seems there isn't anything that
+uses that format (ffmpeg, mplayer, etc).
 
-Rob, if I place the tm2 ir-spi in the led bindings in a
-sub-directory it will be the only device there for the time
-being. But the ir-spi it's not unique in its kind, there are many
-others and they are all under the media directory. My opinion is
-that all the ir-leds devices should be in the same place.
+Raw data seems correct but would like to visualize it :). Suspect I'll
+need to write a test case application though
 
-Would, then, make sense to split the ir-leds devices in two
-different locations?
 
-Would it be a valid alternative to create instead an 'rc'
-directory for the ir-leds bindings that can either be under
-media or in the higher directory?
-
-Thanks,
-Andi
+>
+>>
+>>> Also more importantly does the mailing list thinks it belongs in v4l2?
+>>
+>>
+>> I think it fits. It's a sensor, just with a very small resolution and
+>> infrared
+>> instead of visible light.
+>>
+>>> We already came up the opinion on the IIO list that it doesn't belong
+>>> in that subsystem since pushing raw pixel data to a buffer is a bit
+>>> hacky. Also could be generically written with regmap so other devices
+>>> (namely FLIR Lepton) could be easily supported.
+>>>
+>>> Need some input for the video pixel data types, which the device we
+>>> are using (see datasheet links below) is outputting pixel data in
+>>> little endian 16-bit of which a 12-bits signed value is used.  Does it
+>>> make sense to do some basic processing on the data since greyscale is
+>>> going to look weird with temperatures under 0C degrees? Namely a cold
+>>> object is going to be brighter than the hottest object it could read.
+>>
+>>
+>>> Or should a new V4L2_PIX_FMT_* be defined and processing done in
+>>> software?
+>>
+>>
+>> I would recommend that. It's no big deal, as long as the new format is
+>> documented.
+>>
+>>> Another issue is how to report the scaling value of 0.25 C
+>>> for each LSB of the pixels to the respecting recording application.
+>>
+>>
+>> Probably through a read-only control, but I'm not sure.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>> Datasheet:
+>>> http://media.digikey.com/pdf/Data%20Sheets/Panasonic%20Sensors%20PDFs/Grid-EYE_AMG88.pdf
+>>> Datasheet:
+>>> https://eewiki.net/download/attachments/13599167/Grid-EYE%20SPECIFICATIONS%28Reference%29.pdf?version=1&modificationDate=1380660426690&api=v2
+>>>
+>>> Thanks,
+>>>
+>>> Matt
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
