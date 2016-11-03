@@ -1,98 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:54010 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1754775AbcK1Ppo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 10:45:44 -0500
-Date: Mon, 28 Nov 2016 10:45:43 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sakari Ailus <sakari.ailus@iki.fi>, Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        <linux-media@vger.kernel.org>, <linux-pm@vger.kernel.org>
-Subject: Re: [PATCH 1/1] smiapp: Implement power-on and power-off sequences
- without runtime PM
-In-Reply-To: <2882556.Uxbj3HAuQA@avalon>
-Message-ID: <Pine.LNX.4.44L0.1611281029070.1967-100000@iolanthe.rowland.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:59344 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754148AbcKCUge (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Nov 2016 16:36:34 -0400
+Subject: Re: [RFC 5/5] doc_rst: media: New SDR formats SC16, SC18 & SC20
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <2893157.XL3Txm4q5I@avalon>
+ <SG2PR06MB10389152CEC59BB77A5DA7DDC3A00@SG2PR06MB1038.apcprd06.prod.outlook.com>
+ <6165707.yDnDHhpUBT@avalon>
+Cc: "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        "geert@linux-m68k.org" <geert@linux-m68k.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <9ec35a3a-02a7-8067-8f7c-23243de8456a@iki.fi>
+Date: Thu, 3 Nov 2016 22:36:28 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <6165707.yDnDHhpUBT@avalon>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 28 Nov 2016, Laurent Pinchart wrote:
+Hello
 
-> > Well, I admit it would be nicer if drivers didn't have to worry about
-> > whether or not CONFIG_PM was enabled.  A slightly cleaner approach
-> > from the one outlined above would have the probe routine do this:
-> > 
-> > 	my_power_up(dev);
-> > 	pm_runtime_set_active(dev);
-> > 	pm_runtime_get_noresume(dev);
-> > 	pm_runtime_enable(dev);
-> > 
-> > and have the runtime-resume callback routine call my_power_up() to do
-> > its work.  (Or make my_power_up() actually be the runtime-resume
-> > callback routine.)  That's pretty straightforward and hard to mess up.
-> 
-> You'd be surprised how easy drivers can mess simple things up ;-)
+On 11/02/2016 10:58 PM, Laurent Pinchart wrote:
+> Hi Ramesh,
+>
+> On Wednesday 02 Nov 2016 09:00:00 Ramesh Shanmugasundaram wrote:
+>> Hi Laurent,
+>>
+>> Any further thoughts on the SDR format please (especially the comment
+>> below). I would appreciate your feedback.
+>>
+>>>> On Wednesday 12 Oct 2016 15:10:29 Ramesh Shanmugasundaram wrote:
+>>>>> This patch adds documentation for the three new SDR formats
+>>>>>
+>>>>> V4L2_SDR_FMT_SCU16BE
+>>>>> V4L2_SDR_FMT_SCU18BE
+>>>>> V4L2_SDR_FMT_SCU20BE
+>>
+>> [snip]
+>>
+>>>>> +
+>>>>> +       -  start + 0:
+>>>>> +
+>>>>> +       -  I'\ :sub:`0[D13:D6]`
+>>>>> +
+>>>>> +       -  I'\ :sub:`0[D5:D0]`
+>>>>> +
+>>>>> +    -  .. row 2
+>>>>> +
+>>>>> +       -  start + buffer_size/2:
+>>>>> +
+>>>>> +       -  Q'\ :sub:`0[D13:D6]`
+>>>>> +
+>>>>> +       -  Q'\ :sub:`0[D5:D0]`
+>>>>
+>>>> The format looks planar, does it use one V4L2 plane (as does NV12) or
+>>>> two V4L2 planes (as does NV12M) ? Same question for the other formats.
+>>>
+>>> Thank you for bringing up this topic. This is one of the key design
+>>> dilemma.
+>>>
+>>> The I & Q data for these three SDR formats comes from two different DMA
+>>> channels and hence two separate pointers -> we could say it is v4l2 multi-
+>>> planar. Right now, I am making it look like a single plane by presenting
+>>> the data in one single buffer ptr.
+>>>
+>>> For e.g. multi-planar SC16 format would look something like this
+>>>
+>>> <------------------------32bits---------------------->
+>>> <--I(14 bit data) + 2bit status--16bit padded zeros--> : start0 + 0
+>>> <--I(14 bit data) + 2bit status--16bit padded zeros--> : start0 + 4 ...
+>>> <--Q(14 bit data) + 2bit status--16bit padded zeros--> : start1 + 0
+>>> <--Q(14 bit data) + 2bit status--16bit padded zeros--> : start1 + 4
+>>>
+>>> My concerns are
+>>>
+>>> 1) These formats are not a standard as the video "Image Formats". These
+>>> formats are possible when we use DRIF + MAX2175 combination. If we
+>>> interface with a different tuner vendor, the above format(s) MAY/MAY NOT
+>>> be re-usable. We do not know at this point. This is the main open item for
+>>> discussion in the cover letter.
+>
+> If the formats are really device-specific then they should be documented
+> accordingly and not made generic.
+>
+>>> 2) MPLANE support within V4L2 seems specific to video. Please correct me
+>>> if this is wrong interpretation.
+>>>
+>>> - struct v4l2_format contains v4l2_sdr_format and
+>>> v4l2_pix_format_mplane as members of union. Should I create a new
+>>> v4l2_sdr_format_mplane? If I have to use v4l2_pix_format_mplane most of
+>>> the video specific members would be unused (it would be similar to using
+>>> v4l2_pix_format itself instead of v4l2_sdr_format)?
+>
+> I have no answer to that question as I'm not familiar with SDR. Antti, you've
+> added v4l2_sdr_format to the API, what's your opinion ? Hans, as you've acked
+> the patch, your input would be appreciated as well.
 
-No -- I wouldn't!  :-)
+If I understood correctly this hardware provides I and Q samples via 
+different channels and driver now combines those channels as a 
+sequential IQ sample pairs. I have never seen any other than hw which 
+provides IQ IQ IQ IQ ... IQ.
+This is
+I I I I ... I
+Q Q Q Q ... Q
+I am not very familiar with planars, but it sounds like it is correct 
+approach. So I think should be added rather than emulate packet 
+sequential format.
 
-> We'd still 
-> have to get the message out there, that would be the most difficult part.
+>
+>>> - The above decision (accomodate SDR & MPLANE) needs to be
+>>> propagated across the framework. Is this the preferred approach?
+>>>
+>>> It goes back to point (1). As of today, the change set for this combo
+>>> (DRIF+MAX2175) introduces new SDR formats only. Should it add further
+>>> SDR+MPLANE support to the framework as well?
+>>>
+>>> I would appreciate your suggestions on this regard.
+>
 
-Agreed.
+regards
+Antti
 
-> > In theory, we could have pm_runtime_enable() invoke the runtime-resume
-> > callback when CONFIG_PM is disabled.  In practice, it would be rather
-> > awkward.  drivers/base/power/runtime.c, which is where
-> > pm_runtime_enable() is defined and the runtime-PM callbacks are
-> > invoked, doesn't even get compiled if CONFIG_PM is off.
-> 
-> Sure, but that can easily be fixed.
-> 
-> > (Also, it would run against the grain.  CONFIG_PM=n means the kernel
-> > ignores runtime PM, so pm_runtime_enable() shouldn't do anything.)
-> 
-> I'd argue that CONFIG_PM=n should mean that the runtime PM API doesn't perform 
-> runtime PM, not that it should do absolutely nothing. If semantics is the 
-> biggest concern, we could introduce a helper (whose name is TBD) that would 
-> enable runtime PM when CONFIG_PM=y or power on the device when CONFIG_PM=n
-
-Or have the driver call _both_ the helper routine and
-pm_runtime_enable() -- the helper would do nothing if CONFIG_PM=y, and
-it would invoke the runtime-resume callback if CONFIG_PM=n.
-
-Either way would be a good approach.  Having pm_runtime_enable() call
-the runtime-resume handler wouldn't work well if the driver has already
-powered-up the device or the device starts out in the power-on state
-(which is often the case).
-
-> I want to make it as easy as possible for drivers to make sure they won't get 
-> this wrong, which in my opinion requires a simple and straightforward API with 
-> no code in the driver that would depend on the value of CONFIG_PM.
-
-Well, the approach I outlined above is pretty simple and it doesn't
-depend on the value of CONFIG_PM.
-
-Your proposal is just as simple, but it does require drivers to 
-remember to call the new helper routine.
-
-> > There's a corollary aspect to this.  If you depend on runtime PM for
-> > powering up your device during probe, does that mean you also depend on
-> > runtime PM for powering down the device during remove?  That is likely
-> > not to work, because the user can prevent runtime suspends by writing
-> > to /sys/.../power/control.
-> 
-> Yes, I do, and I expect most runtime PM-enabled driver to do the same. When 
-> runtime suspend is disabled through /sys/.../power/control does 
-> pm_runtime_disable() invoke the runtime PM suspend handler if the device is 
-> powered on ?
-
-No, it doesn't, and neither does pm_runtime_put().  After all, if the
-user has told the system not to do runtime PM on that device, it
-doesn't make sense to call the runtime-suspend handler.  But you can
-always blame the user when this happens.  :-)
-
-Alan Stern
-
+-- 
+http://palosaari.fi/
