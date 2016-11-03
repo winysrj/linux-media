@@ -1,110 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40766 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37952 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1758181AbcK3QLm (ORCPT
+        by vger.kernel.org with ESMTP id S1758257AbcKCVtg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 11:11:42 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: stern@rowland.harvard.edu
-Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-pm@vger.kernel.org
-Subject: [PATCH v2.2 1/2] smiapp: Implement power-on and power-off sequences without runtime PM
-Date: Wed, 30 Nov 2016 18:11:36 +0200
-Message-Id: <1480522296-24006-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
+        Thu, 3 Nov 2016 17:49:36 -0400
+Date: Thu, 3 Nov 2016 23:49:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+        linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20161103214900.GH3217@valkosipuli.retiisi.org.uk>
+References: <20160527205140.GA26767@amd>
+ <20160805102611.GA13116@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+ <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+ <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+ <20160818104539.GA7427@amd>
+ <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+ <20161103102727.GA10084@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161103102727.GA10084@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Power on the sensor when the module is loaded and power it off when it is
-removed.
+On Thu, Nov 03, 2016 at 11:27:27AM +0100, Pavel Machek wrote:
+> Hi!
+> 
+> > > > > > Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
+> > > > > 
+> > > > > I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
+> > > > > test...
+> > > > > 
+> > > > > What hardware do you have?
+> > > > 
+> > > > N900. What else could it be? :-) :-)
+> > > 
+> > > Heh. Basically anything is easier to develop for than n900 :-(.
+> > 
+> > Is it?
+> > 
+> > I actually find the old Nokia devices very practical. It's easy to boot your
+> > own kernel and things just work... until musb broke a bit recently. It
+> > requires reconnecting the usb cable again to function.
+> > 
+> > I have to admit I mostly use an N9.
+> 
+> Well, if you compare that to development on PC, I prefer PC.
+> 
+> Even arm development boards are usually easier, as they don't need too
+> complex userspace, and do have working serial ports.
+> 
+> But I do have a serial adapter for N900 now (thanks, sre), so my main
+> problem now is that N900 takes a lot of time to boot into usable
+> state.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-since v2.1:
+Yeah... I just upgraded my Debian installation (armel over NFS) a few major
+numbers and I find it a lot slower than it used to do. I presume that's
+mostly because of systemd...
 
-- Power off conditionally, i.e. only if the device was powered.
-  pm_runtime_status_suspended() returns false if CONFIG_PM is not set.
-
- drivers/media/i2c/smiapp/smiapp-core.c | 29 ++++++++++-------------------
- 1 file changed, 10 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 59872b3..620f8ce 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2741,8 +2741,6 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
-  * I2C Driver
-  */
- 
--#ifdef CONFIG_PM
--
- static int smiapp_suspend(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
-@@ -2783,13 +2781,6 @@ static int smiapp_resume(struct device *dev)
- 	return rval;
- }
- 
--#else
--
--#define smiapp_suspend	NULL
--#define smiapp_resume	NULL
--
--#endif /* CONFIG_PM */
--
- static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
- {
- 	struct smiapp_hwconfig *hwcfg;
-@@ -2913,13 +2904,9 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (IS_ERR(sensor->xshutdown))
- 		return PTR_ERR(sensor->xshutdown);
- 
--	pm_runtime_enable(&client->dev);
--
--	rval = pm_runtime_get_sync(&client->dev);
--	if (rval < 0) {
--		rval = -ENODEV;
--		goto out_power_off;
--	}
-+	rval = smiapp_power_on(&client->dev);
-+	if (rval < 0)
-+		return rval;
- 
- 	rval = smiapp_identify_module(sensor);
- 	if (rval) {
-@@ -3100,6 +3087,9 @@ static int smiapp_probe(struct i2c_client *client,
- 	if (rval < 0)
- 		goto out_media_entity_cleanup;
- 
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_get_noresume(&client->dev);
-+	pm_runtime_enable(&client->dev);
- 	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
- 	pm_runtime_use_autosuspend(&client->dev);
- 	pm_runtime_put_autosuspend(&client->dev);
-@@ -3113,8 +3103,7 @@ static int smiapp_probe(struct i2c_client *client,
- 	smiapp_cleanup(sensor);
- 
- out_power_off:
--	pm_runtime_put(&client->dev);
--	pm_runtime_disable(&client->dev);
-+	smiapp_power_off(&client->dev);
- 
- 	return rval;
- }
-@@ -3127,8 +3116,10 @@ static int smiapp_remove(struct i2c_client *client)
- 
- 	v4l2_async_unregister_subdev(subdev);
- 
--	pm_runtime_suspend(&client->dev);
- 	pm_runtime_disable(&client->dev);
-+	if (!pm_runtime_status_suspended(&client->dev))
-+		smiapp_power_off(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
- 
- 	for (i = 0; i < sensor->ssds_used; i++) {
- 		v4l2_device_unregister_subdev(&sensor->ssds[i].sd);
 -- 
-2.1.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
