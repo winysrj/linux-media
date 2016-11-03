@@ -1,244 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49339 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753010AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 05:34:54 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 7/9] af9035: register it9133 tuner using platform binding
-Date: Sat, 12 Nov 2016 12:33:59 +0200
-Message-Id: <1478946841-2807-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
-References: <1478946841-2807-1-git-send-email-crope@iki.fi>
+Received: from devils.ext.ti.com ([198.47.26.153]:41490 "EHLO
+        devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752694AbcKCJX4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 05:23:56 -0400
+Subject: Re: [PATCH RESEND] media: omap3isp: Use dma_request_chan() to
+ requesting DMA channel
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20161102123959.6098-1-peter.ujfalusi@ti.com>
+ <1758201.F0bdTd4b9u@avalon>
+CC: <mchehab@osg.samsung.com>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Message-ID: <9b482d6b-5750-9c9d-e9a8-b113788fbb67@ti.com>
+Date: Thu, 3 Nov 2016 11:23:50 +0200
+MIME-Version: 1.0
+In-Reply-To: <1758201.F0bdTd4b9u@avalon>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-it913x tuner driver is changed to platform model so we need bind it
-using platform_device_register_data().
 
-Also remove hacks from I2C adapter where fake tuner driver address
-(addr >> 1) were used as those are no longer needed.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 121 ++++++++++++++++------------------
- drivers/media/usb/dvb-usb-v2/af9035.h |   2 +
- 2 files changed, 59 insertions(+), 64 deletions(-)
+On 11/02/2016 11:19 PM, Laurent Pinchart wrote:
+> Hi Peter,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday 02 Nov 2016 14:39:59 Peter Ujfalusi wrote:
+>> With the new dma_request_chan() the client driver does not need to look for
+>> the DMA resource and it does not need to pass filter_fn anymore.
+>> By switching to the new API the driver can now support deferred probing
+>> against DMA.
+> 
+> I believe this breaks the OMAP3 ISP driver. dma_request_slave_channel_compat() 
+> is a superset of dma_request_chan() that will, when called with 
+> omap_dma_filter_fn, return as a fallback any free channel handled by the OMAP 
+> DMA engine driver. This feature is actively used by this driver and must be 
+> preserved.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 61dac6a..d89d0d6 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -335,14 +335,12 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
- 		} else if ((msg[0].addr == state->af9033_i2c_addr[0]) ||
--			   (msg[0].addr == state->af9033_i2c_addr[1]) ||
--			   (state->chip_type == 0x9135)) {
-+			   (msg[0].addr == state->af9033_i2c_addr[1])) {
- 			/* demod access via firmware interface */
- 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
- 					msg[0].buf[2];
- 
--			if (msg[0].addr == state->af9033_i2c_addr[1] ||
--			    msg[0].addr == (state->af9033_i2c_addr[1] >> 1))
-+			if (msg[0].addr == state->af9033_i2c_addr[1])
- 				reg |= 0x100000;
- 
- 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
-@@ -396,14 +394,12 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			/* TODO: correct limits > 40 */
- 			ret = -EOPNOTSUPP;
- 		} else if ((msg[0].addr == state->af9033_i2c_addr[0]) ||
--			   (msg[0].addr == state->af9033_i2c_addr[1]) ||
--			   (state->chip_type == 0x9135)) {
-+			   (msg[0].addr == state->af9033_i2c_addr[1])) {
- 			/* demod access via firmware interface */
- 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
- 					msg[0].buf[2];
- 
--			if (msg[0].addr == state->af9033_i2c_addr[1] ||
--			    msg[0].addr == (state->af9033_i2c_addr[1] >> 1))
-+			if (msg[0].addr == state->af9033_i2c_addr[1])
- 				reg |= 0x100000;
- 
- 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
-@@ -1250,30 +1246,11 @@ static int af9035_frontend_detach(struct dvb_usb_adapter *adap)
- 	struct state *state = adap_to_priv(adap);
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	struct usb_interface *intf = d->intf;
--	int demod2;
- 
- 	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
- 
--	/*
--	 * For dual tuner devices we have to resolve 2nd demod client, as there
--	 * is two different kind of tuner drivers; one is using I2C binding
--	 * and the other is using DVB attach/detach binding.
--	 */
--	switch (state->af9033_config[adap->id].tuner) {
--	case AF9033_TUNER_IT9135_38:
--	case AF9033_TUNER_IT9135_51:
--	case AF9033_TUNER_IT9135_52:
--	case AF9033_TUNER_IT9135_60:
--	case AF9033_TUNER_IT9135_61:
--	case AF9033_TUNER_IT9135_62:
--		demod2 = 2;
--		break;
--	default:
--		demod2 = 1;
--	}
--
- 	if (adap->id == 1) {
--		if (state->i2c_client[demod2])
-+		if (state->i2c_client[1])
- 			af9035_del_i2c_dev(d);
- 	} else if (adap->id == 0) {
- 		if (state->i2c_client[0])
-@@ -1513,50 +1490,55 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 	case AF9033_TUNER_IT9135_38:
- 	case AF9033_TUNER_IT9135_51:
- 	case AF9033_TUNER_IT9135_52:
--	{
--		struct it913x_config it913x_config = {
--			.fe = adap->fe[0],
--			.chip_ver = 1,
--		};
--
--		if (state->dual_mode) {
--			if (adap->id == 0)
--				it913x_config.role = IT913X_ROLE_DUAL_MASTER;
--			else
--				it913x_config.role = IT913X_ROLE_DUAL_SLAVE;
--		}
--
--		ret = af9035_add_i2c_dev(d, "it913x",
--				state->af9033_i2c_addr[adap->id] >> 1,
--				&it913x_config, &d->i2c_adap);
--		if (ret)
--			goto err;
--
--		fe = adap->fe[0];
--		break;
--	}
- 	case AF9033_TUNER_IT9135_60:
- 	case AF9033_TUNER_IT9135_61:
- 	case AF9033_TUNER_IT9135_62:
- 	{
--		struct it913x_config it913x_config = {
-+		struct platform_device *pdev;
-+		struct it913x_platform_data it913x_pdata = {
-+			.regmap = state->af9033_config[adap->id].regmap,
- 			.fe = adap->fe[0],
--			.chip_ver = 2,
- 		};
- 
-+		switch (state->af9033_config[adap->id].tuner) {
-+		case AF9033_TUNER_IT9135_38:
-+		case AF9033_TUNER_IT9135_51:
-+		case AF9033_TUNER_IT9135_52:
-+			it913x_pdata.chip_ver = 1;
-+			break;
-+		case AF9033_TUNER_IT9135_60:
-+		case AF9033_TUNER_IT9135_61:
-+		case AF9033_TUNER_IT9135_62:
-+			it913x_pdata.chip_ver = 2;
-+			break;
-+		}
-+
- 		if (state->dual_mode) {
- 			if (adap->id == 0)
--				it913x_config.role = IT913X_ROLE_DUAL_MASTER;
-+				it913x_pdata.role = IT913X_ROLE_DUAL_MASTER;
- 			else
--				it913x_config.role = IT913X_ROLE_DUAL_SLAVE;
-+				it913x_pdata.role = IT913X_ROLE_DUAL_SLAVE;
-+		} else {
-+			it913x_pdata.role = IT913X_ROLE_SINGLE;
- 		}
- 
--		ret = af9035_add_i2c_dev(d, "it913x",
--				state->af9033_i2c_addr[adap->id] >> 1,
--				&it913x_config, &d->i2c_adap);
--		if (ret)
-+		request_module("%s", "it913x");
-+		pdev = platform_device_register_data(&d->intf->dev,
-+						     "it913x",
-+						     PLATFORM_DEVID_AUTO,
-+						     &it913x_pdata,
-+						     sizeof(it913x_pdata));
-+		if (IS_ERR(pdev) || !pdev->dev.driver) {
-+			ret = -ENODEV;
-+			goto err;
-+		}
-+		if (!try_module_get(pdev->dev.driver->owner)) {
-+			platform_device_unregister(pdev);
-+			ret = -ENODEV;
- 			goto err;
-+		}
- 
-+		state->platform_device_tuner[adap->id] = pdev;
- 		fe = adap->fe[0];
- 		break;
- 	}
-@@ -1678,12 +1660,6 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
- 	switch (state->af9033_config[adap->id].tuner) {
- 	case AF9033_TUNER_TUA9001:
- 	case AF9033_TUNER_FC2580:
--	case AF9033_TUNER_IT9135_38:
--	case AF9033_TUNER_IT9135_51:
--	case AF9033_TUNER_IT9135_52:
--	case AF9033_TUNER_IT9135_60:
--	case AF9033_TUNER_IT9135_61:
--	case AF9033_TUNER_IT9135_62:
- 		if (adap->id == 1) {
- 			if (state->i2c_client[3])
- 				af9035_del_i2c_dev(d);
-@@ -1691,6 +1667,23 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
- 			if (state->i2c_client[1])
- 				af9035_del_i2c_dev(d);
- 		}
-+		break;
-+	case AF9033_TUNER_IT9135_38:
-+	case AF9033_TUNER_IT9135_51:
-+	case AF9033_TUNER_IT9135_52:
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
-+	{
-+		struct platform_device *pdev;
-+
-+		pdev = state->platform_device_tuner[adap->id];
-+		if (pdev) {
-+			module_put(pdev->dev.driver->owner);
-+			platform_device_unregister(pdev);
-+		}
-+		break;
-+	}
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index 89a08a4..a76e6bf 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -22,6 +22,7 @@
- #ifndef AF9035_H
- #define AF9035_H
- 
-+#include <linux/platform_device.h>
- #include "dvb_usb.h"
- #include "af9033.h"
- #include "tua9001.h"
-@@ -73,6 +74,7 @@ struct state {
- 	#define AF9035_I2C_CLIENT_MAX 4
- 	struct i2c_client *i2c_client[AF9035_I2C_CLIENT_MAX];
- 	struct i2c_adapter *i2c_adapter_demod;
-+	struct platform_device *platform_device_tuner[2];
- };
- 
- static const u32 clock_lut_af9035[] = {
+The fallback to use the filter_fn is used only when booted in legacy
+mode or when requesting a channel for non slave DMA operation.
+Based on the code in the driver it is handling slave transfers, so it
+must have DMA request line coming from somewhere. If that is missing the
+driver should not be able to work as it will not start the transfer.
+
+dma_request_chan() is to be used when you want to have slave channel
+with DMA request.
+
+If legacy mode needs to be supported then adding the hist DMA request
+number to the omap3xxx_sdma_map in arch/arm/mach-omap2/dma.c should be done.
+The reason the omap3isp is not in the table is that I could not find any
+place where the DMA resource was set (nor the DMA is specified in DT).
+
+I'm unsure how this driver could work w/o DMA request line over a random
+(and SW triggered) DMA channel with slave operation. For the slave DMA
+you need to have DMA request line.
+
 -- 
-http://palosaari.fi/
+Péter
 
+>> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+>> CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+>> ---
+>> Hi,
+>>
+>> the original patch was sent 29.04.2016:
+>> https://patchwork.kernel.org/patch/8981811/
+>>
+>> I have rebased it on top of linux-next.
+>>
+>> Regards,
+>> Peter
+>>
+>>  drivers/media/platform/omap3isp/isphist.c | 27 +++++++++------------------
+>>  1 file changed, 9 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/omap3isp/isphist.c
+>> b/drivers/media/platform/omap3isp/isphist.c index
+>> 7138b043a4aa..e163e3d92517 100644
+>> --- a/drivers/media/platform/omap3isp/isphist.c
+>> +++ b/drivers/media/platform/omap3isp/isphist.c
+>> @@ -18,7 +18,6 @@
+>>  #include <linux/delay.h>
+>>  #include <linux/device.h>
+>>  #include <linux/dmaengine.h>
+>> -#include <linux/omap-dmaengine.h>
+>>  #include <linux/slab.h>
+>>  #include <linux/uaccess.h>
+>>
+>> @@ -486,27 +485,19 @@ int omap3isp_hist_init(struct isp_device *isp)
+>>  	hist->isp = isp;
+>>
+>>  	if (HIST_CONFIG_DMA) {
+>> -		struct platform_device *pdev = to_platform_device(isp->dev);
+>> -		struct resource *res;
+>> -		unsigned int sig = 0;
+>> -		dma_cap_mask_t mask;
+>> -
+>> -		dma_cap_zero(mask);
+>> -		dma_cap_set(DMA_SLAVE, mask);
+>> -
+>> -		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
+>> -						   "hist");
+>> -		if (res)
+>> -			sig = res->start;
+>> -
+>> -		hist->dma_ch = dma_request_slave_channel_compat(mask,
+>> -				omap_dma_filter_fn, &sig, isp->dev, "hist");
+>> -		if (!hist->dma_ch)
+>> +		hist->dma_ch = dma_request_chan(isp->dev, "hist");
+>> +		if (IS_ERR(hist->dma_ch)) {
+>> +			ret = PTR_ERR(hist->dma_ch);
+>> +			if (ret == -EPROBE_DEFER)
+>> +				return ret;
+>> +
+>> +			hist->dma_ch = NULL;
+>>  			dev_warn(isp->dev,
+>>  				 "hist: DMA channel request failed, using 
+> PIO\n");
+>> -		else
+>> +		} else {
+>>  			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+>>  				dma_chan_name(hist->dma_ch));
+>> +		}
+>>  	}
+>>
+>>  	hist->ops = &hist_ops;
+> 
