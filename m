@@ -1,19 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:37360 "EHLO
-        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752418AbcKRJLi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 04:11:38 -0500
-Received: by mail-wm0-f47.google.com with SMTP id t79so24117284wmt.0
-        for <linux-media@vger.kernel.org>; Fri, 18 Nov 2016 01:11:37 -0800 (PST)
-Subject: Re: [PATCH v3 4/9] media: venus: vdec: add video decoder files
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:36792 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754397AbcKCKp1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 06:45:27 -0400
+Received: by mail-wm0-f54.google.com with SMTP id p190so324103157wmp.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2016 03:45:27 -0700 (PDT)
+Subject: Re: [PATCH v2 3/8] media: vidc: decoder: add video decoder files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
- <63a91a5a-a97b-f3df-d16d-c8f76bf20c30@xs4all.nl>
- <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
+References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1473248229-5540-4-git-send-email-stanimir.varbanov@linaro.org>
+ <40feffa4-68a3-d4e9-12ee-e3e5b5f08349@xs4all.nl>
 Cc: Andy Gross <andy.gross@linaro.org>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         Stephen Boyd <sboyd@codeaurora.org>,
@@ -21,10 +19,10 @@ Cc: Andy Gross <andy.gross@linaro.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-msm@vger.kernel.org
 From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <86442d1d-4a12-71c1-97fa-12bc73bb5045@linaro.org>
-Date: Fri, 18 Nov 2016 11:11:34 +0200
+Message-ID: <20aa8a6d-d1a6-c4e4-761d-71460629ff7f@linaro.org>
+Date: Thu, 3 Nov 2016 12:45:20 +0200
 MIME-Version: 1.0
-In-Reply-To: <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
+In-Reply-To: <40feffa4-68a3-d4e9-12ee-e3e5b5f08349@xs4all.nl>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
@@ -32,51 +30,97 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
->>> +
->>> +static int
->>> +vdec_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
->>> +{
->>> +	struct vb2_queue *queue = to_vb2q(file, b->type);
->>> +
->>> +	if (!queue)
->>> +		return -EINVAL;
->>> +
->>> +	return vb2_reqbufs(queue, b);
->>> +}
+On 09/19/2016 01:04 PM, Hans Verkuil wrote:
+> On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
+>> This consists of video decoder implementation plus decoder
+>> controls.
 >>
->> Is there any reason why the v4l2_m2m_ioctl_reqbufs et al helper functions
->> can't be used? I strongly recommend that, unless there is a specific reason
->> why that won't work.
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/vidc/vdec.c       | 1091 +++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/vidc/vdec.h       |   29 +
+>>  drivers/media/platform/qcom/vidc/vdec_ctrls.c |  200 +++++
+>>  drivers/media/platform/qcom/vidc/vdec_ctrls.h |   21 +
+>>  4 files changed, 1341 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/vidc/vdec.c
+>>  create mode 100644 drivers/media/platform/qcom/vidc/vdec.h
+>>  create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.c
+>>  create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.h
+>>
+
+<cut>
+
+>> +
+>> +static int
+>> +vdec_g_selection(struct file *file, void *priv, struct v4l2_selection *s)
+>> +{
+>> +	struct vidc_inst *inst = to_inst(file);
+>> +
+>> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>> +		return -EINVAL;
+>> +
+>> +	switch (s->target) {
+>> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+>> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+>> +	case V4L2_SEL_TGT_CROP:
+>> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+>> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+>> +	case V4L2_SEL_TGT_COMPOSE:
 > 
-> So that means I need to completely rewrite the v4l2 part and adopt it
-> for mem2mem device APIs.
+> This is almost certainly wrong.
 > 
-> If that is what you meant I can invest some time to make a estimation
-> what would be the changes and time needed. After that we can decide what
-> to do - take the driver as is and port it to mem2mem device APIs later
-> on or wait for the this transition to happen before merging.
+> For capture I would expect that you can do compose, but not crop.
+> 
+> This would likely explain that v4l2-compliance thinks that the driver can
+> scale:
+> 
+>                 test Scaling: OK
 > 
 
-I made an attempt to adopt v4l2 part of the venus driver to m2m API's
-and the result was ~300 less lines of code, but with the price of few
-extensions in m2m APIs (and I still have issues with running
-simultaneously multiple instances).
+Maybe I need some help to implement correctly g_selection.
 
-I have to add few functions/macros to iterate over a list (list_for_each
-and friends). This is used to find the returned from decoder buffers by
-address and associate them to vb2_buffer, because the decoder can change
-the order of the output buffers.
+Lets say that the resolution of the compressed stream is 1280x720, and
+that resolution is set with s_fmt(OUTPUT queue), then I calculate the
+output resolution which I will return by g_fmt(CAPTURE queue) and it
+will be 1280x736 (hardware wants height to be multiple of 32 lines). So
+the result will be 16 lines of vertical padding which should be exposed
+to client (think of gstreamer v4l2videodec element) via g_crop
+(g_selection) as 1280x720 because this is the actual image.
 
-The main problem I have is registering of the capture buffers before
-session_start. This is requirement (disadvantage) of the firmware
-implementation i.e. I need to announce capture buffers (address and size
-of the buffer) to the firmware before start buffer interaction by
-session_start.
+So from what I understood while read Selection API, I need to support
+only composing on CAPTURE queue, no scaling and no cropping.
 
-So having that I think I will need one more week to stabilize the driver
-to the state that it was before this m2m transition.
+OUTPUT buffer type, data source
+TGT_CROP_BOUNDS = TGT_CROP_DEFAULT = TGT_CROP = 1280x720
+TGT_COMPOSE_BOUNDS = TGT_COMPOSE_DEFAULT = TGT_COMPOSE = 1280x720
 
-Thoughts?
+CAPTURE buffer type, data sink
+TGT_CROP_BOUNDS = TGT_CROP_DEFAULT = TGT_CROP = EINVAL
+TGT_COMPOSE_BOUNDS = 1280x736
+TGT_COMPOSE_DEFAULT = TGT_COMPOSE = 1280x720
+
+With this logic in g_selection the output of v4l2-compliance test
+application is:
+	test Cropping: OK
+	test Composing: OK
+	test Scaling: OK (Not Supported)
+
+So why v4l2-compliance still thinks that the driver supports Cropping?
+
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	s->r.top = 0;
+>> +	s->r.left = 0;
+>> +	s->r.width = inst->out_width;
+>> +	s->r.height = inst->out_height;
+>> +
+>> +	return 0;
+>> +}
+
+<cut>
 
 -- 
 regards,
