@@ -1,107 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:4094 "EHLO
-        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752777AbcKOHuI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 02:50:08 -0500
-From: Jiancheng Xue <xuejiancheng@hisilicon.com>
-To: <robh+dt@kernel.org>, <mark.rutland@arm.com>, <mchehab@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <yanhaifeng@hisilicon.com>,
-        <xuejiancheng@hisilicon.com>, <hermit.wangheming@hisilicon.com>,
-        <elder@linaro.org>, <bin.chen@linaro.org>,
-        Ruqiang Ju <juruqiang@huawei.com>
-Subject: [PATCH] [media] ir-hix5hd2: make hisilicon,power-syscon property deprecated
-Date: Tue, 15 Nov 2016 15:31:32 +0800
-Message-ID: <1479195092-20090-1-git-send-email-xuejiancheng@hisilicon.com>
+Received: from mout.web.de ([212.227.17.12]:51088 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758079AbcKCUyu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Nov 2016 16:54:50 -0400
+Subject: Re: [PATCH 10/34] [media] DaVinci-VPBE: Check return value of a
+ setup_if_config() call in vpbe_set_output()
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+ <47590f2e-1cfa-582d-769e-502802171b66@users.sourceforge.net>
+ <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Manjunath Hadli <manjunath.hadli@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <680a0feb-3748-da16-9b79-297e1ab9044d@users.sourceforge.net>
+Date: Thu, 3 Nov 2016 21:54:34 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ruqiang Ju <juruqiang@huawei.com>
+>> From: Markus Elfring <elfring@users.sourceforge.net>
+>> Date: Wed, 12 Oct 2016 09:56:56 +0200
+>>
+>> * A function was called over the pointer "setup_if_config" in the data
+>>   structure "venc_platform_data". But the return value was not used so far.
+>>   Thus assign it to the local variable "ret" which will be checked with
+>>   the next statement.
+>>
+>>   Fixes: 9a7f95ad1c946efdd7a7a72df27db738260a0fd8 ("[media] davinci vpbe: add dm365 VPBE display driver changes")
+>>
+>> * Pass a value to this function call without storing it in an intermediate
+>>   variable before.
+>>
+>> * Delete the local variable "if_params" which became unnecessary with
+>>   this refactoring.
+>>
+>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>> ---
+>>  drivers/media/platform/davinci/vpbe.c | 5 ++---
+>>  1 file changed, 2 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+>> index 19611a2..6e7b0df 100644
+>> --- a/drivers/media/platform/davinci/vpbe.c
+>> +++ b/drivers/media/platform/davinci/vpbe.c
+>> @@ -227,7 +227,6 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>>              vpbe_current_encoder_info(vpbe_dev);
+>>      struct vpbe_config *cfg = vpbe_dev->cfg;
+>>      struct venc_platform_data *venc_device = vpbe_dev->venc_device;
+>> -    u32 if_params;
+>>      int enc_out_index;
+>>      int sd_index;
+>>      int ret = 0;
+>> @@ -257,8 +256,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>>              goto out;
+>>          }
+>>
+>> -        if_params = cfg->outputs[index].if_params;
+>> -        venc_device->setup_if_config(if_params);
+>> +        ret = venc_device->setup_if_config(cfg
+>> +                           ->outputs[index].if_params);
+> 
+> Either keep this as one line
 
-The clock of IR can be provided by the clock provider and controlled
-by common clock framework APIs.
+Will you tolerate a line length of 82 characters then?
 
-Signed-off-by: Ruqiang Ju <juruqiang@huawei.com>
-Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
----
- .../devicetree/bindings/media/hix5hd2-ir.txt       |  6 +++---
- drivers/media/rc/ir-hix5hd2.c                      | 25 ++++++++++++++--------
- 2 files changed, 19 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/hix5hd2-ir.txt b/Documentation/devicetree/bindings/media/hix5hd2-ir.txt
-index fb5e760..54e1bed 100644
---- a/Documentation/devicetree/bindings/media/hix5hd2-ir.txt
-+++ b/Documentation/devicetree/bindings/media/hix5hd2-ir.txt
-@@ -8,10 +8,11 @@ Required properties:
- 	  the device. The interrupt specifier format depends on the interrupt
- 	  controller parent.
- 	- clocks: clock phandle and specifier pair.
--	- hisilicon,power-syscon: phandle of syscon used to control power.
+> or keep the if_params temp variable.
 
- Optional properties:
- 	- linux,rc-map-name : Remote control map name.
-+	- hisilicon,power-syscon: DEPRECATED. Don't use this in new dts files.
-+		Provide correct clocks instead.
+My proposal was to get rid of it.
 
- Example node:
 
-@@ -19,7 +20,6 @@ Example node:
- 		compatible = "hisilicon,hix5hd2-ir";
- 		reg = <0xf8001000 0x1000>;
- 		interrupts = <0 47 4>;
--		clocks = <&clock HIX5HD2_FIXED_24M>;
--		hisilicon,power-syscon = <&sysctrl>;
-+		clocks = <&clock HIX5HD2_IR_CLOCK>;
- 		linux,rc-map-name = "rc-tivo";
- 	};
-diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
-index d0549fb..d26907e 100644
---- a/drivers/media/rc/ir-hix5hd2.c
-+++ b/drivers/media/rc/ir-hix5hd2.c
-@@ -75,15 +75,22 @@ static void hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
- {
- 	u32 val;
+> This odd linebreak is ugly.
 
--	regmap_read(dev->regmap, IR_CLK, &val);
--	if (on) {
--		val &= ~IR_CLK_RESET;
--		val |= IR_CLK_ENABLE;
-+	if (dev->regmap) {
-+		regmap_read(dev->regmap, IR_CLK, &val);
-+		if (on) {
-+			val &= ~IR_CLK_RESET;
-+			val |= IR_CLK_ENABLE;
-+		} else {
-+			val &= ~IR_CLK_ENABLE;
-+			val |= IR_CLK_RESET;
-+		}
-+		regmap_write(dev->regmap, IR_CLK, val);
- 	} else {
--		val &= ~IR_CLK_ENABLE;
--		val |= IR_CLK_RESET;
-+		if (on)
-+			clk_prepare_enable(dev->clock);
-+		else
-+			clk_disable_unprepare(dev->clock);
- 	}
--	regmap_write(dev->regmap, IR_CLK, val);
- }
+I am curious on how the desired changes can be integrated after a couple of update
+suggestions were accepted from this patch series.
 
- static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
-@@ -207,8 +214,8 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
- 	priv->regmap = syscon_regmap_lookup_by_phandle(node,
- 						       "hisilicon,power-syscon");
- 	if (IS_ERR(priv->regmap)) {
--		dev_err(dev, "no power-reg\n");
--		return -EINVAL;
-+		dev_info(dev, "no power-reg\n");
-+		priv->regmap = NULL;
- 	}
-
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
---
-1.9.1
-
+Regards,
+Markus
