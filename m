@@ -1,70 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.161.194]:33954 "EHLO
-        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756497AbcKKPuU (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39098 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933240AbcKCXFH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 10:50:20 -0500
-Received: by mail-yw0-f194.google.com with SMTP id a10so1443557ywa.1
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 07:50:20 -0800 (PST)
+        Thu, 3 Nov 2016 19:05:07 -0400
+Date: Fri, 4 Nov 2016 01:05:01 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Pavel Machek <pavel@ucw.cz>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161103230501.GJ3217@valkosipuli.retiisi.org.uk>
+References: <20161023200355.GA5391@amd>
+ <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
+ <20161023203315.GC6391@amd>
+ <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
+ <20161103224843.itxlvvotni6w6tmu@earth>
 MIME-Version: 1.0
-In-Reply-To: <dad6e38b-093b-bd36-3e0d-a0c10bddea58@xs4all.nl>
-References: <20161025235536.7342-1-khilman@baylibre.com> <20161025235536.7342-7-khilman@baylibre.com>
- <dad6e38b-093b-bd36-3e0d-a0c10bddea58@xs4all.nl>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Fri, 11 Nov 2016 12:50:19 -0300
-Message-ID: <CABxcv==ZR0=4GhXECiKtFJZ3WEY_5h-Egvs3hjBK56FiQeF6Jg@mail.gmail.com>
-Subject: Re: [RFC PATCH 6/6] [media] davinci: vpif_capture: get subdevs from DT
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kevin Hilman <khilman@baylibre.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?Q?Bartosz_Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161103224843.itxlvvotni6w6tmu@earth>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sebastian,
 
-On Fri, Nov 11, 2016 at 12:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 10/26/2016 01:55 AM, Kevin Hilman wrote:
->> First pass at getting subdevs from DT ports and endpoints.
->>
->> The _get_pdata() function was larely inspired by (i.e. stolen from)
->> am437x-vpfe.c
->>
->> Questions:
->> - Legacy board file passes subdev input & output routes via pdata
->>   (e.g. tvp514x svideo or composite selection.)  How is this supposed
->>   to be done via DT?
->
-> We have plans to model connectors as well in the device tree, but no
-> implementation exists yet. I think Laurent has some code in progress for this,
-> but I may be mistaken.
->
+On Thu, Nov 03, 2016 at 11:48:43PM +0100, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Tue, Nov 01, 2016 at 12:54:08AM +0200, Sakari Ailus wrote:
+> > > > Thanks, this answered half of my questions already. ;-)
+> > > :-).
+> > > 
+> > > I'll have to go through the patches, et8ek8 driver is probably not
+> > > enough to get useful video. platform/video-bus-switch.c is needed for
+> > > camera switching, then some omap3isp patches to bind flash and
+> > > autofocus into the subdevice.
+> > > 
+> > > Then, device tree support on n900 can be added.
+> > 
+> > I briefly discussed with with Sebastian.
+> > 
+> > Do you think the elusive support for the secondary camera is worth keeping
+> > out the main camera from the DT in mainline? As long as there's a reasonable
+> > way to get it working, I'd just merge that. If someone ever gets the
+> > secondary camera working properly and nicely with the video bus switch,
+> > that's cool, we'll somehow deal with the problem then. But frankly I don't
+> > think it's very useful even if we get there: the quality is really bad.
+> 
+> If we want to keep open the option to add proper support for the
+> second camera, we could also add the bus switch and not add the
+> front camera node in DT. Then adding the front camera does not
+> require DT or userspace API changes. It would need an additional
+> DT quirk in arch/arm/mach-omap2/board-generic.c for RX51, which
+> adds the CCP2 bus settings from the camera node to the bus
+> switch node to keep isp_of_parse_node happy. That should be
+> easy to implement and not add much delay in upstreaming.
 
-I posted a RFC series [0] some time ago, that proposed a DT binding
-for input connectors [1] using OF graphs.
+By adding the video bus switch we have a little bit more complex system as a
+whole. The V4L2 async does not currently support this. There's more here:
 
-I never re-spin the series because Laurent had some comments on the DT
-bindings and I was waiting for a response on to my latest email [2].
-So if you can comment on this and see if the DT bindings fits your,
-would be very useful.
+<URL:http://www.spinics.net/lists/linux-media/msg107262.html>
 
-> Anyway, hard-coding it like you do now is for now the only way.
->
->         Hans
->
->>
+What I thought was that once we have everything that's required in place, we
+can just change what's in DT. But the software needs to continue to work
+with the old DT content.
 
-[0]: https://www.mail-archive.com/linux-media@vger.kernel.org/msg96393.html
-[1]: http://www.spinics.net/lists/linux-media/msg99421.html
-[2]: http://www.spinics.net/lists/linux-media/msg99987.html
+> For actually getting both cameras available with runtime-switching
+> the proper solution would probably involve moving the parsing of
+> the bus-settings to the sensor driver and providing a callback.
+> This callback can be called by omap3isp when it wants to configure
+> the phy (which is basically when it starts streaming). That seems
+> to be the only place needing the buscfg anyways.
+> 
+> Then the video-bus-switch could do something like this (pseudocode):
+> 
+> static void get_buscfg(struct *this, struct *buscfg) {
+>     if (selected_cam == 0)
+>         return this->sensor_a->get_buscfg(buscfg);
+>     else
+>         return this->sensor_b->get_buscfg(buscfg);
+> }
+> 
+> Regarding the usefulness: I noticed, that the Neo900 people also
+> plan to have the bus-switch [0]. It's still the same crappy front-cam,
+> though. Nevertheless it might be useful for testing. It has nice
+> test-image capabilities, which might be useful for regression
+> testing once everything is in place.
+> 
+> [0] http://neo900.org/stuff/block-diagrams/neo900/neo900.html
 
-Best regards,
-Javier
+Seriously? I suppose there should be no need for that anymore, is there?
+
+I think they wanted to save one GPIO in order to shave off 0,0001 cents from
+the manufacturing costs or something like that. And the result is...
+painful. :-I
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
