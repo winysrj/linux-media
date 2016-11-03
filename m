@@ -1,64 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:40008 "EHLO
-        out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752851AbcKSWc3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 17:32:29 -0500
-Date: Sat, 19 Nov 2016 22:32:24 +0000
-From: Andrey Utkin <andrey_utkin@fastmail.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        Sean Young <sean@mess.org>
-Subject: Re: [PATCH v2] [media] cx88: make checkpatch.pl happy
-Message-ID: <20161119223224.GB11418@dell-m4800.home>
-References: <451cfbe8b2a968992c49edac0fad57a6425caad6.1479590802.git.mchehab@s-opensource.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59374 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756519AbcKCMrx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 08:47:53 -0400
+Date: Thu, 3 Nov 2016 13:47:49 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Rob Herring <robh@kernel.org>
+Cc: ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: et8ek8: add device tree binding documentation
+Message-ID: <20161103124749.GA22180@amd>
+References: <20161023191706.GA25754@amd>
+ <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
 Content-Disposition: inline
-In-Reply-To: <451cfbe8b2a968992c49edac0fad57a6425caad6.1479590802.git.mchehab@s-opensource.com>
+In-Reply-To: <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for your hard work at beautification of this driver :)
->From reviewing the diff over v1, it looks good.
 
-Also thanks for deep explanations you gave me for my comments.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, Nov 19, 2016 at 07:27:30PM -0200, Mauro Carvalho Chehab wrote:
-> 
-> Suggested-by: Andrey Utkin <andrey_utkin@fastmail.com>
-> Fixes: 65bc2fe86e66 ("[media] cx88: convert it to use pr_foo() macros")
-> Fixes: 7b61ba8ff838 ("[media] cx88: make checkpatch happier")
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
+Hi!
 
-Reviewed-by: Andrey Utkin <andrey_utkin@fastmail.com>
+> > +Mandatory properties
+> > +--------------------
+> > +
+> > +- compatible: "toshiba,et8ek8"
+> > +- reg: I2C address (0x3e, or an alternative address)
+> > +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
+> > +- clocks: External clock to the sensor
+> > +- clock-frequency: Frequency of the external clock to the sensor. Came=
+ra
+> > +  driver will set this frequency on the external clock.
+>=20
+> This is fine if the frequency is fixed (e.g. an oscillator), but you=20
+> should use the clock binding if clocks are programable.
 
-> --- a/drivers/media/pci/cx88/cx88-input.c
-> +++ b/drivers/media/pci/cx88/cx88-input.c
-> @@ -62,11 +62,15 @@ static int ir_debug;
->  module_param(ir_debug, int, 0644);	/* debug level [IR] */
->  MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
->  
-> -#define ir_dprintk(fmt, arg...)	if (ir_debug) \
-> -	printk(KERN_DEBUG "%s IR: " fmt, ir->core->name, ##arg)
-> +#define ir_dprintk(fmt, arg...)	do {					\
-> +	if (ir_debug)							\
-> +		printk(KERN_DEBUG "%s IR: " fmt, ir->core->name, ##arg);\
-> +} while (0)
+It is fixed. So I assume this can stay as is? Or do you want me to add
+"The clock frequency is a pre-determined frequency known to be
+suitable to the board." as Sakari suggests?
 
-Oh ok, so when the patch is applied, the backslash doesn't stand out, it
-just looks this way in the diff.
+> > +- reset-gpios: XSHUTDOWN GPIO
+>=20
+> Please state what the active polarity is.
+
+As in "This gpio will be set to 1 when the chip is powered." ?
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--IS0zKkzwUGydFO0o
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgbMfUACgkQMOfwapXb+vLRFQCdFTMF0elT5tSOWocc/9aWOFrL
+RFwAnRwMNhbl2WCsFd3ZLyGZ5XaE8bJ6
+=neek
+-----END PGP SIGNATURE-----
+
+--IS0zKkzwUGydFO0o--
