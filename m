@@ -1,89 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:37060 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754991AbcKCIlj (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:52939 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750889AbcKCLv1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 04:41:39 -0400
-Subject: Re: [RFC] v4l2 support for thermopile devices
-To: Antonio Ospite <ao2@ao2.it>,
-        Matt Ranostay <matt@ranostay.consulting>
-References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
- <767cacf5-5f91-2596-90ef-31358b8e1db9@xs4all.nl>
- <CAJ_EiSQ-yf7hmnz1qqOAA-XcByCq9f12z=7h=+rCeWQbua+dOg@mail.gmail.com>
- <CAJ_EiSQRai=XqOryMW1WLKvFDPZUVVmkjXSF3TyxpPNMsVsR_Q@mail.gmail.com>
- <20161103083533.9ebc9c88d883b09bf16d44c0@ao2.it>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>
+        Thu, 3 Nov 2016 07:51:27 -0400
+Subject: Re: [PATCH v4l-utils v7 0/7] Add a plugin for Exynos4 camera
+To: Jacek Anaszewski <j.anaszewski@samsung.com>,
+        linux-media@vger.kernel.org
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+Cc: sakari.ailus@linux.intel.com, mchehab@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <114e007f-a677-7a1f-c661-3b522c08fab1@xs4all.nl>
-Date: Thu, 3 Nov 2016 09:41:34 +0100
+Message-ID: <a95cba78-c237-9982-97a2-1e80998e8e06@xs4all.nl>
+Date: Thu, 3 Nov 2016 12:51:23 +0100
 MIME-Version: 1.0
-In-Reply-To: <20161103083533.9ebc9c88d883b09bf16d44c0@ao2.it>
+In-Reply-To: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/16 08:35, Antonio Ospite wrote:
-> On Wed, 2 Nov 2016 23:10:41 -0700
-> Matt Ranostay <matt@ranostay.consulting> wrote:
->
->> On Fri, Oct 28, 2016 at 7:59 PM, Matt Ranostay <matt@ranostay.consulting> wrote:
->>> On Fri, Oct 28, 2016 at 2:53 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> Hi Matt,
->>>>
->>>> On 28/10/16 22:14, Matt Ranostay wrote:
->>>>>
->>>>> So want to toss a few thoughts on adding support for thermopile
->>>>> devices (could be used for FLIR Lepton as well) that output pixel
->>>>> data.
->>>>> These typically aren't DMA'able devices since they are low speed
->>>>> (partly to limiting the functionality to be in compliance with ITAR)
->>>>> and data is piped over i2c/spi.
->>>>>
->>>>> My question is that there doesn't seem to be an other driver that
->>>>> polls frames off of a device and pushes it to the video buffer, and
->>>>> wanted to be sure that this doesn't currently exist somewhere.
->>>>
->>>>
->>>> Not anymore, but if you go back to kernel 3.6 then you'll find this driver:
->>>>
->>>> drivers/media/video/bw-qcam.c
->>>>
->>>> It was for a grayscale parallel port webcam (which explains why it was
->>>> removed in 3.7 :-) ), and it used polling to get the pixels.
->>>
->>> Yikes parallel port, but I'll take a look at that for some reference :)
->>
->>
->> So does anyone know of any software that is using V4L2_PIX_FMT_Y12
->> currently? Want to test my driver but seems there isn't anything that
->> uses that format (ffmpeg, mplayer, etc).
->>
->> Raw data seems correct but would like to visualize it :). Suspect I'll
->> need to write a test case application though
->>
->
-> You could add a conversion routine in libv4lconvert from v4l-utils to
-> have a grayscale representation of Y12, I did something similar for the
-> kinect depth map, discarding the least significant bits:
->
-> https://git.linuxtv.org/v4l-utils.git/commit/lib/libv4lconvert?id=6daa2b1ce8674bda66b0f3bb5cf08089e42579fd
->
-> After that any v4l2 program using libv4l2 will at least be able to show
-> _an_ image.
->
-> You can play with "false color" representations too in libv4lconvert,
-> however I don't know if such representations are generic enough to be
-> mainlined, in the Kinect case the false color representation of the
-> depth map was done in specialized software like libfreenect.
+Hi all,
 
-You can also try to add support for Y12 to the qv4l2 utility. It already has
-Y16 support, so adding Y12 should be pretty easy.
+Is there anything that blocks me from merging this?
+
+This plugin work has been ongoing for years and unless there are serious
+objections I propose that this is merged.
+
+Jacek, is there anything missing that would prevent merging this?
 
 Regards,
 
 	Hans
+
+On 12/10/16 16:35, Jacek Anaszewski wrote:
+> This is a seventh version of the patch series adding a plugin for the
+> Exynos4 camera. Last version [0] of the patch set was posted in
+> January.
+>
+> The plugin doesn't link against libmediactl, but has its sources
+> compiled in. Currently utils are built after the plugins, but
+> libv4l-exynos4-camera plugin depends on the utils. In order to link
+> the plugin against libmediactl the build system would have to be
+> modified.
+>
+> ================
+> Changes from v6:
+> ================
+>
+> - close v4l2 sub-devices on media device release
+> - moved non-generic code from libmediactl to the plugin
+> - resigned from adding libmedia_ioctl library and moved all its
+>   code to the plugin, since it depended on pipeline representation,
+>   which was not generic for all possible media device topologies
+> - used media_get_info()->name instead of adding media_entity_get_name
+> - renamed media_get_backlinks_by_entity() to media_entity_get_backlinks(()
+> - moved pipeline from struct media_device to the plugin
+> - changed the way of associating video device file descriptor with media device
+> - switched to using auto-generated media-bus-format-names.h header file
+> - renamed v4l2-ctrl-redir config entry name to v4l2-ctrl-binding
+>
+> ================
+> Changes from v5:
+> ================
+>
+> - fixed and tested use cases with S5K6A3 sensor and FIMC-IS-ISP
+> - added conversion "colorspace id to string"
+>
+> ================
+> Changes from v4:
+> ================
+>
+> - removed some redundant functions for traversing media device graph
+>   and switched over to using existing ones
+> - avoided accessing struct v4l2_subdev from libmediactl
+> - applied various improvements
+>
+> ================
+> Changes from v3:
+> ================
+>
+> - added struct v4l2_subdev and put entity fd and
+>   information about supported controls to it
+> - improved functions for negotiating and setting
+>   pipeline format by using available libv4lsubdev API
+> - applied minor improvements and cleanups
+>
+> ================
+> Changes from v2:
+> ================
+>
+> - switched to using mediatext library for parsing
+>   the media device configuration
+> - extended libmediactl
+> - switched to using libmediactl
+>
+> ================
+> Changes from v1:
+> ================
+>
+> - removed redundant mbus code negotiation
+> - split the parser, media device helpers and ioctl wrappers
+>   to the separate modules
+> - added mechanism for querying extended controls
+> - applied various fixes and modifications
+>
+>
+>
+> The plugin was tested on v4.8-rc2 (exynos4-is driver doesn't proble properly
+> with current master branch of linux-media.git) with patches fixing several
+> issues for Exynos4 camera: [1], [2], [3].
+>
+> The plugin expects a configuration file:
+> /var/lib/libv4l/exynos4_capture_conf
+>
+> Exemplary configuration file for pipeline with sensor
+> S5C73M3 (rear camera):
+>
+> ==========================================
+>
+> link-conf "s5p-mipi-csis.0":1 -> "FIMC.0":0 [1]
+> v4l2-ctrl-binding 0x0098091f -> "fimc.0.capture"
+> v4l2-ctrl-binding 0x00980902 -> "S5C73M3"
+> v4l2-ctrl-binding 0x00980922 -> "fimc.0.capture"
+> v4l2-ctrl-binding 0x009a0914 -> "S5C73M3"
+>
+> ==========================================
+>
+> With this settings the plugin can be tested on the exynos4412-trats2 board
+> using following gstreamer pipeline:
+>
+> gst-launch-1.0 v4l2src device=/dev/video1 extra-controls="c,rotate=90,color_effects=2" ! video/x-raw,width=960,height=720 ! fbdevsink
+>
+> Exemplary configuration file for pipeline with sensor
+> S5K6A3 (front camera):
+>
+> ==========================================
+>
+> link-conf "s5p-mipi-csis.1":1 -> "FIMC-LITE.1":0 [1]
+> link-conf "FIMC-LITE.1":2 -> "FIMC-IS-ISP":0 [1]
+> link-conf "FIMC-IS-ISP":1 -> "FIMC.0":1 [1]
+>
+> ==========================================
+>
+> gst-launch-1.0 v4l2src device=/dev/video1 extra-controls="c,rotate=270,color_effects=2,horizontal_flip=1" ! video/x-raw,width=960,height=920 ! fbdevsink
+>
+> Best Regards,
+> Jacek Anaszewski
+>
+> [0] http://www.spinics.net/lists/linux-media/msg96510.html
+> [1] https://patchwork.kernel.org/patch/9335197/
+> [2] https://patchwork.kernel.org/patch/9270985/
+> [3] https://patchwork.kernel.org/patch/9308923/
+> [4] https://patchwork.kernel.org/patch/9335273/
+>
+>
+> Jacek Anaszewski (7):
+>   mediactl: Add support for v4l2-ctrl-binding config
+>   mediatext: Add library
+>   mediactl: Add media_entity_get_backlinks()
+>   mediactl: Add media_device creation helpers
+>   mediactl: libv4l2subdev: Add colorspace logging
+>   mediactl: libv4l2subdev: add support for comparing mbus formats
+>   Add a libv4l plugin for Exynos4 camera
+>
+>  configure.ac                                      |    1 +
+>  lib/Makefile.am                                   |    5 +
+>  lib/libv4l-exynos4-camera/Makefile.am             |   19 +
+>  lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c | 1325 +++++++++++++++++++++
+>  utils/media-ctl/Makefile.am                       |   10 +-
+>  utils/media-ctl/libmediactl.c                     |  152 ++-
+>  utils/media-ctl/libmediatext.pc.in                |   10 +
+>  utils/media-ctl/libv4l2subdev.c                   |  106 ++
+>  utils/media-ctl/mediactl.h                        |   42 +
+>  utils/media-ctl/mediatext-test.c                  |   64 +
+>  utils/media-ctl/mediatext.c                       |  312 +++++
+>  utils/media-ctl/mediatext.h                       |   52 +
+>  utils/media-ctl/v4l2subdev.h                      |   50 +
+>  13 files changed, 2144 insertions(+), 4 deletions(-)
+>  create mode 100644 lib/libv4l-exynos4-camera/Makefile.am
+>  create mode 100644 lib/libv4l-exynos4-camera/libv4l-exynos4-camera.c
+>  create mode 100644 utils/media-ctl/libmediatext.pc.in
+>  create mode 100644 utils/media-ctl/mediatext-test.c
+>  create mode 100644 utils/media-ctl/mediatext.c
+>  create mode 100644 utils/media-ctl/mediatext.h
+>
