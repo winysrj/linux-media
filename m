@@ -1,59 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:50658 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965080AbcKDRyA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Nov 2016 13:54:00 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCHv2 0/2] vsp1 writeback prototype
-Date: Fri,  4 Nov 2016 17:53:50 +0000
-Message-Id: <1478282032-17571-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from col004-omc3s9.hotmail.com ([65.55.34.147]:60631 "EHLO
+        COL004-OMC3S9.hotmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756663AbcKCUvA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 16:51:00 -0400
+From: Christian Steiner <christian.steiner@outlook.de>
+To: Olli Salonen <olli.salonen@iki.fi>
+CC: Andrey Utkin <andrey_utkin@fastmail.com>,
+        "ps00de@yahoo.de" <ps00de@yahoo.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media <linux-media@vger.kernel.org>
+Subject: Re: em28xx WinTV dualHD in Raspbian
+Date: Thu, 3 Nov 2016 20:45:54 +0000
+Message-ID: <AM2PR05MB0689253D427DB1D3FA8D22FB91A30@AM2PR05MB0689.eurprd05.prod.outlook.com>
+References: <000901d22a39$9de21e70$d9a65b50$@yahoo.de>
+ <20161019171419.3343cdd5@vento.lan>
+ <009201d22c8a$c93b9580$5bb2c080$@yahoo.de>
+ <20161023100312.GA6792@dell-m4800.home>
+ <CAAZRmGzT_8LUB8-gJPfwMS0m2VME5Frp-FBugbnr-YCsQ+VE=A@mail.gmail.com>
+In-Reply-To: <CAAZRmGzT_8LUB8-gJPfwMS0m2VME5Frp-FBugbnr-YCsQ+VE=A@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <F6CED48CA823A840899540EBEE965C42@eurprd05.prod.outlook.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Resending this patch series to bring in dri-devel, and interested parties.
-Apologies for the resend to linux-media and linux-renesas-soc.
-
-This short series extends the VSP1 on the RCar platforms to allow creating a
-V4L2 video node on display pipelines where the hardware allows writing to
-memory simultaneously.
-
-In this instance, the hardware restricts the output to match the display size
-(no rescaling) but does allow pixel format conversion.
-
-A current limitation (that the DRI devs might have ideas about) is that the vb2
-buffers are swapped on the atomic_flush() calls rather than on vsync events.
-
-Ideally swapping buffers would occur on every vsync such that the output rate
-of the video node would match the display rate, however the timing here proves
-more difficult to synchronise the updates from a vysnc and flush without adding
-latency to the flush.
-
-Is there anything I can do to synchronise the v4l2 buffers with the DRM/KMS
-interfaces currently? Or does anyone have any suggestions for extending as
-such?
-
-And of course ideas on anything that could be done generically to support other
-targets as well would be worth considering - though currently this
-implementation is very RCar/VSP1 specific.
-
-
-Kieran Bingham (2):
-  Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
-  v4l: vsp1: Provide a writeback video device
-
- drivers/media/platform/vsp1/vsp1.h       |   1 +
- drivers/media/platform/vsp1/vsp1_drm.c   |  19 ++++
- drivers/media/platform/vsp1/vsp1_drv.c   |   5 +-
- drivers/media/platform/vsp1/vsp1_rwpf.h  |   1 +
- drivers/media/platform/vsp1/vsp1_video.c | 161 ++++++++++++++++++++++++++++---
- drivers/media/platform/vsp1/vsp1_video.h |   5 +
- drivers/media/platform/vsp1/vsp1_wpf.c   |  19 +++-
- 7 files changed, 193 insertions(+), 18 deletions(-)
-
--- 
-2.7.4
-
+SGkgT2xsaSwNCg0KT24gMjMuMTAuMjAxNiAxMjoxNCwgT2xsaSBTYWxvbmVuIHdyb3RlOg0KPiBX
+aGVuIEkgc3VibWl0dGVkIHRoZSBvcmlnaW5hbCBwYXRjaCB0byBhZGQgc3VwcG9ydCBmb3IgdGhp
+cyBkZXZpY2UgSQ0KPiBzdGF0ZWQgdGhhdCBpdCBvbmx5IHN1cHBvcnRzIHRoZSBmaXJzdCB0dW5l
+ci4gVGhlIGVtMjh4eCBkcml2ZXIgaXMgbm90DQo+IGJ1aWx0IHdpdGggZHVhbC10dW5lciBzdXBw
+b3J0IGluIG1pbmQgYW5kIEkgaGFkIG5vdCBlbm91Z2ggaW50ZXJlc3QgdG8NCj4gc3RhcnQgY2hh
+bmdpbmcgaXQgKHRoZSBkcml2ZXIgc3VwcG9ydHMgbGlrZSAxMDAgZGV2aWNlcyBhbmQgaXMgcXVp
+dGUNCj4gbWFzc2l2ZSkuDQoNCmhhdmUgeW91IHNlZW4gaHR0cDovL3d3dy5zcGluaWNzLm5ldC9s
+aXN0cy9saW51eC1tZWRpYS9tc2cxMDU5MzkuaHRtbD8NClRoZSBndXkgaXMgb2ZmZXJpbmcgVVNE
+JDIwMCBmb3Igd29ya2luZyBkdWFsIHR1bmVyIHN1cHBvcnQgb2YgdGhlIEFUU0MNCnZlcnNpb24u
+IFRoZSBBVFNDIHZlcnNpb24gaGFzIGRpZmZlcmVudCB0dW5lcnMsIGJ1dCBtYXliZSBpdCBpcyBu
+byBiaWcNCmRlYWwuIFdvdWxkIHRoYXQgYmUgYSBsaXR0bGUgbW90aXZhdGlvbiBmb3IgeW91PyBP
+ciB3aGF0IGNvdWxkIG1vdGl2YXRlDQp5b3U/IERvIHlvdSBsaWtlIEdlcm1hbiBiZWVyPyA7LSkN
+Cg0KRHVhbCB0dW5lciBzdXBwb3J0IHdvdWxkIGJlIGF3ZXNvbWUuIFRoZSBkZXZpY2UgaXMgcGVy
+ZmVjdCBmb3IgYnVpbGRpbmcNCmEgbG93LXBvd2VyIFZEUiBjbGllbnQgb3Igc3RyZWFtaW5nIHNl
+cnZlciB1c2luZyBhIFJhc3BiZXJyeSBQaS9CYW5hbmEgUGkuDQoNCkJlc3QsDQpDaHJpc3RpYW4N
+Cg==
