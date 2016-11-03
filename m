@@ -1,84 +1,369 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:39613 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751055AbcKZL0R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Nov 2016 06:26:17 -0500
-Date: Sat, 26 Nov 2016 11:26:14 +0000
-From: Sean Young <sean@mess.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [bug report] [media] lirc: prevent use-after free
-Message-ID: <20161126112614.GA18806@gofer.mess.org>
-References: <20161126095717.GA3150@mwanda>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:42531 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752131AbcKCNyo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 3 Nov 2016 09:54:44 -0400
+Subject: Re: [PATCH v2 1/2] [media] st-hva: encoding summary at instance
+ release
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        linux-media@vger.kernel.org
+References: <1474364796-23747-1-git-send-email-jean-christophe.trotin@st.com>
+ <1474364796-23747-2-git-send-email-jean-christophe.trotin@st.com>
+Cc: kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <295fbe1b-163a-024e-e0c3-0277fa6483bf@xs4all.nl>
+Date: Thu, 3 Nov 2016 14:54:39 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161126095717.GA3150@mwanda>
+In-Reply-To: <1474364796-23747-2-git-send-email-jean-christophe.trotin@st.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+On 20/09/16 11:46, Jean-Christophe Trotin wrote:
+> This patch prints unconditionnaly a short summary about the encoding
+> operation at each instance closing, for debug purpose:
+> - information about the frame (format, resolution)
+> - information about the stream (format, profile, level, resolution)
+> - number of encoded frames
+> - potential (system, encoding...) errors
+>
+> Signed-off-by: Yannick Fertre <yannick.fertre@st.com>
+> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+> ---
+>  drivers/media/platform/sti/hva/Makefile    |  2 +-
+>  drivers/media/platform/sti/hva/hva-debug.c | 71 ++++++++++++++++++++++++++++++
+>  drivers/media/platform/sti/hva/hva-h264.c  |  6 +++
+>  drivers/media/platform/sti/hva/hva-hw.c    |  5 +++
+>  drivers/media/platform/sti/hva/hva-mem.c   |  5 ++-
+>  drivers/media/platform/sti/hva/hva-v4l2.c  | 28 +++++++-----
+>  drivers/media/platform/sti/hva/hva.h       | 10 +++++
+>  7 files changed, 115 insertions(+), 12 deletions(-)
+>  create mode 100644 drivers/media/platform/sti/hva/hva-debug.c
+>
+> diff --git a/drivers/media/platform/sti/hva/Makefile b/drivers/media/platform/sti/hva/Makefile
+> index ffb69ce..0895d2d 100644
+> --- a/drivers/media/platform/sti/hva/Makefile
+> +++ b/drivers/media/platform/sti/hva/Makefile
+> @@ -1,2 +1,2 @@
+>  obj-$(CONFIG_VIDEO_STI_HVA) := st-hva.o
+> -st-hva-y := hva-v4l2.o hva-hw.o hva-mem.o hva-h264.o
+> +st-hva-y := hva-v4l2.o hva-hw.o hva-mem.o hva-h264.o hva-debug.o
+> diff --git a/drivers/media/platform/sti/hva/hva-debug.c b/drivers/media/platform/sti/hva/hva-debug.c
+> new file mode 100644
+> index 0000000..43bb7e4
+> --- /dev/null
+> +++ b/drivers/media/platform/sti/hva/hva-debug.c
+> @@ -0,0 +1,71 @@
+> +/*
+> + * Copyright (C) STMicroelectronics SA 2015
+> + * Authors: Yannick Fertre <yannick.fertre@st.com>
+> + *          Hugues Fruchet <hugues.fruchet@st.com>
+> + * License terms:  GNU General Public License (GPL), version 2
+> + */
+> +
+> +#include "hva.h"
+> +
+> +/*
+> + * encoding summary
+> + */
+> +
+> +char *hva_dbg_summary(struct hva_ctx *ctx)
+> +{
+> +	struct hva_streaminfo *stream = &ctx->streaminfo;
+> +	struct hva_frameinfo *frame = &ctx->frameinfo;
+> +	static char str[200] = "";
+> +	char *cur = str;
+> +	size_t left = sizeof(str);
+> +	int cnt = 0;
+> +	int ret = 0;
+> +
+> +	/* frame info */
+> +	ret = snprintf(cur, left, "%4.4s %dx%d > ",
+> +		       (char *)&frame->pixelformat,
+> +		       frame->aligned_width, frame->aligned_height);
+> +	cnt = (left > ret ? ret : left);
+> +
+> +	/* stream info */
+> +	cur += cnt;
+> +	left -= cnt;
+> +	ret = snprintf(cur, left, "%4.4s %dx%d %s %s: ",
+> +		       (char *)&stream->streamformat,
+> +		       stream->width, stream->height,
+> +		       stream->profile, stream->level);
+> +	cnt = (left > ret ? ret : left);
+> +
+> +	/* encoding info */
+> +	cur += cnt;
+> +	left -= cnt;
+> +	ret = snprintf(cur, left, "%d frames encoded", ctx->encoded_frames);
+> +	cnt = (left > ret ? ret : left);
+> +
+> +	/* error info */
+> +	if (ctx->sys_errors) {
+> +		cur += cnt;
+> +		left -= cnt;
+> +		ret = snprintf(cur, left, ", %d system errors",
+> +			       ctx->sys_errors);
+> +		cnt = (left > ret ? ret : left);
+> +	}
+> +
+> +	if (ctx->encode_errors) {
+> +		cur += cnt;
+> +		left -= cnt;
+> +		ret = snprintf(cur, left, ", %d encoding errors",
+> +			       ctx->encode_errors);
+> +		cnt = (left > ret ? ret : left);
+> +	}
+> +
+> +	if (ctx->frame_errors) {
+> +		cur += cnt;
+> +		left -= cnt;
+> +		ret = snprintf(cur, left, ", %d frame errors",
+> +			       ctx->frame_errors);
+> +		cnt = (left > ret ? ret : left);
+> +	}
 
-On Sat, Nov 26, 2016 at 12:57:17PM +0300, Dan Carpenter wrote:
-> Hello Sean Young,
-> 
-> The patch afbb110172b9: "[media] lirc: prevent use-after free" from
-> Oct 31, 2016, leads to the following static checker warning:
-> 
-> 	drivers/media/rc/lirc_dev.c:190 lirc_cdev_add()
-> 	error: potential null dereference 'cdev'.  (cdev_alloc returns null)
-> 
-> drivers/media/rc/lirc_dev.c
->    158  static int lirc_cdev_add(struct irctl *ir)
->    159  {
->    160          int retval = -ENOMEM;
->    161          struct lirc_driver *d = &ir->d;
->    162          struct cdev *cdev;
->    163  
->    164          cdev = cdev_alloc();
->    165          if (!cdev)
->    166                  goto err_out;
-> 
-> Classic one err bug.  Just return directly here.  return -ENOMEM is 100%
-> readable but goto err_out is opaque because you first have to scroll
-> down to see what err_out does then you have to scroll to the start of
-> the function to verify that retval is set.
-> 
->    167  
->    168          if (d->fops) {
->    169                  cdev->ops = d->fops;
->    170                  cdev->owner = d->owner;
->    171          } else {
->    172                  cdev->ops = &lirc_dev_fops;
->    173                  cdev->owner = THIS_MODULE;
->    174          }
->    175          retval = kobject_set_name(&cdev->kobj, "lirc%d", d->minor);
->    176          if (retval)
->    177                  goto err_out;
->    178  
->    179          retval = cdev_add(cdev, MKDEV(MAJOR(lirc_base_dev), d->minor), 1);
->    180          if (retval) {
->    181                  kobject_put(&cdev->kobj);
-> 
-> This is a double free, isn't it?  It should just be goto del_cdev;
-> 
->    182                  goto err_out;
->    183          }
->    184  
->    185          ir->cdev = cdev;
->    186  
->    187          return 0;
->    188  
->    189  err_out:
->    190          cdev_del(cdev);
-> 
-> Can't pass NULLs to this function.
-> 
->    191          return retval;
->    192  }
+Yuck. Just make this one big snprintf. Or even better, just use 
+dev_info. No need to use a
+static char buffer that way.
 
-Oh dear! Thanks for reporting this, you're absolutely right. I'll send
-out a patch shortly.
+> +
+> +	return str;
+> +}
+> diff --git a/drivers/media/platform/sti/hva/hva-h264.c b/drivers/media/platform/sti/hva/hva-h264.c
+> index 8cc8467..e6f247a 100644
+> --- a/drivers/media/platform/sti/hva/hva-h264.c
+> +++ b/drivers/media/platform/sti/hva/hva-h264.c
+> @@ -607,6 +607,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  			"%s   width(%d) or height(%d) exceeds limits (%dx%d)\n",
+>  			pctx->name, frame_width, frame_height,
+>  			H264_MAX_SIZE_W, H264_MAX_SIZE_H);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -717,6 +718,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  	default:
+>  		dev_err(dev, "%s   invalid source pixel format\n",
+>  			pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -741,6 +743,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>
+>  	if (td->framerate_den == 0) {
+>  		dev_err(dev, "%s   invalid framerate\n", pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -831,6 +834,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  	    (payload > MAX_SPS_PPS_SIZE)) {
+>  		dev_err(dev, "%s   invalid sps/pps size %d\n", pctx->name,
+>  			payload);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -842,6 +846,7 @@ static int hva_h264_prepare_task(struct hva_ctx *pctx,
+>  						   (u8 *)stream->vaddr,
+>  						   &payload)) {
+>  		dev_err(dev, "%s   fail to get SEI nal\n", pctx->name);
+> +		pctx->frame_errors++;
+>  		return -EINVAL;
+>  	}
+>
+> @@ -963,6 +968,7 @@ err_seq_info:
+>  err_ctx:
+>  	devm_kfree(dev, ctx);
+>  err:
+> +	pctx->sys_errors++;
+>  	return ret;
+>  }
+>
+> diff --git a/drivers/media/platform/sti/hva/hva-hw.c b/drivers/media/platform/sti/hva/hva-hw.c
+> index 8d9ad1c..33fc1dd 100644
+> --- a/drivers/media/platform/sti/hva/hva-hw.c
+> +++ b/drivers/media/platform/sti/hva/hva-hw.c
+> @@ -470,6 +470,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>
+>  	if (pm_runtime_get_sync(dev) < 0) {
+>  		dev_err(dev, "%s     failed to get pm_runtime\n", ctx->name);
+> +		ctx->sys_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -481,6 +482,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  		break;
+>  	default:
+>  		dev_dbg(dev, "%s     unknown command 0x%x\n", ctx->name, cmd);
+> +		ctx->encode_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -511,6 +513,7 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  					 msecs_to_jiffies(2000))) {
+>  		dev_err(dev, "%s     %s: time out on completion\n", ctx->name,
+>  			__func__);
+> +		ctx->encode_errors++;
+>  		ret = -EFAULT;
+>  		goto out;
+>  	}
+> @@ -518,6 +521,8 @@ int hva_hw_execute_task(struct hva_ctx *ctx, enum hva_hw_cmd_type cmd,
+>  	/* get encoding status */
+>  	ret = ctx->hw_err ? -EFAULT : 0;
+>
+> +	ctx->encode_errors += ctx->hw_err ? 1 : 0;
+> +
+>  out:
+>  	disable_irq(hva->irq_its);
+>  	disable_irq(hva->irq_err);
+> diff --git a/drivers/media/platform/sti/hva/hva-mem.c b/drivers/media/platform/sti/hva/hva-mem.c
+> index 649f660..821c78e 100644
+> --- a/drivers/media/platform/sti/hva/hva-mem.c
+> +++ b/drivers/media/platform/sti/hva/hva-mem.c
+> @@ -17,14 +17,17 @@ int hva_mem_alloc(struct hva_ctx *ctx, u32 size, const char *name,
+>  	void *base;
+>
+>  	b = devm_kzalloc(dev, sizeof(*b), GFP_KERNEL);
+> -	if (!b)
+> +	if (!b) {
+> +		ctx->sys_errors++;
+>  		return -ENOMEM;
+> +	}
+>
+>  	base = dma_alloc_attrs(dev, size, &paddr, GFP_KERNEL | GFP_DMA,
+>  			       DMA_ATTR_WRITE_COMBINE);
+>  	if (!base) {
+>  		dev_err(dev, "%s %s : dma_alloc_attrs failed for %s (size=%d)\n",
+>  			ctx->name, __func__, name, size);
+> +		ctx->sys_errors++;
+>  		devm_kfree(dev, b);
+>  		return -ENOMEM;
+>  	}
+> diff --git a/drivers/media/platform/sti/hva/hva-v4l2.c b/drivers/media/platform/sti/hva/hva-v4l2.c
+> index 6bf3c858..3583a05 100644
+> --- a/drivers/media/platform/sti/hva/hva-v4l2.c
+> +++ b/drivers/media/platform/sti/hva/hva-v4l2.c
+> @@ -614,19 +614,17 @@ static int hva_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
+>  		ctx->ctrls.profile = ctrl->val;
+> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+> -			snprintf(ctx->streaminfo.profile,
+> -				 sizeof(ctx->streaminfo.profile),
+> -				 "%s profile",
+> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+> +		snprintf(ctx->streaminfo.profile,
+> +			 sizeof(ctx->streaminfo.profile),
+> +			 "%s profile",
+> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
+>  		ctx->ctrls.level = ctrl->val;
+> -		if (ctx->flags & HVA_FLAG_STREAMINFO)
+> -			snprintf(ctx->streaminfo.level,
+> -				 sizeof(ctx->streaminfo.level),
+> -				 "level %s",
+> -				 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+> +		snprintf(ctx->streaminfo.level,
+> +			 sizeof(ctx->streaminfo.level),
+> +			 "level %s",
+> +			 v4l2_ctrl_get_menu(ctrl->id)[ctrl->val]);
+>  		break;
+>  	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
+>  		ctx->ctrls.entropy_mode = ctrl->val;
+> @@ -812,6 +810,8 @@ static void hva_run_work(struct work_struct *work)
+>  		dst_buf->field = V4L2_FIELD_NONE;
+>  		dst_buf->sequence = ctx->stream_num - 1;
+>
+> +		ctx->encoded_frames++;
+> +
+>  		v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+>  		v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+>  	}
+> @@ -1026,6 +1026,8 @@ err:
+>  			v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
+>  	}
+>
+> +	ctx->sys_errors++;
+> +
+>  	return ret;
+>  }
+>
+> @@ -1150,6 +1152,7 @@ static int hva_open(struct file *file)
+>  	if (ret) {
+>  		dev_err(dev, "%s [x:x] failed to setup controls\n",
+>  			HVA_PREFIX);
+> +		ctx->sys_errors++;
+>  		goto err_fh;
+>  	}
+>  	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+> @@ -1162,6 +1165,7 @@ static int hva_open(struct file *file)
+>  		ret = PTR_ERR(ctx->fh.m2m_ctx);
+>  		dev_err(dev, "%s failed to initialize m2m context (%d)\n",
+>  			HVA_PREFIX, ret);
+> +		ctx->sys_errors++;
+>  		goto err_ctrls;
+>  	}
+>
+> @@ -1206,6 +1210,10 @@ static int hva_release(struct file *file)
+>  		hva->nb_of_instances--;
+>  	}
+>
+> +	/* trace a summary of instance before closing (debug purpose) */
+> +	if (ctx->flags & HVA_FLAG_STREAMINFO)
+> +		dev_info(dev, "%s %s\n", ctx->name, hva_dbg_summary(ctx));
 
-Thanks
-Sean
+So just change this to:
+
+		hva_dbg_summary(ctx);
+
+> +
+>  	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+>
+>  	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+> diff --git a/drivers/media/platform/sti/hva/hva.h b/drivers/media/platform/sti/hva/hva.h
+> index caa5808..013aa16 100644
+> --- a/drivers/media/platform/sti/hva/hva.h
+> +++ b/drivers/media/platform/sti/hva/hva.h
+> @@ -182,6 +182,10 @@ struct hva_enc;
+>   * @priv:            private codec data for this instance, allocated
+>   *                   by encoder @open time
+>   * @hw_err:          true if hardware error detected
+> + * @encoded_frames:  number of encoded frames
+> + * @sys_errors:      number of system errors (memory, resource, pm...)
+> + * @encode_errors:   number of encoding errors (hw/driver errors)
+> + * @frame_errors:    number of frame errors (format, size, header...)
+>   */
+>  struct hva_ctx {
+>  	struct hva_dev		        *hva_dev;
+> @@ -207,6 +211,10 @@ struct hva_ctx {
+>  	struct hva_enc			*enc;
+>  	void				*priv;
+>  	bool				hw_err;
+> +	u32				encoded_frames;
+> +	u32				sys_errors;
+> +	u32				encode_errors;
+> +	u32				frame_errors;
+>  };
+>
+>  #define HVA_FLAG_STREAMINFO	0x0001
+> @@ -312,4 +320,6 @@ struct hva_enc {
+>  				  struct hva_stream *stream);
+>  };
+>
+> +char *hva_dbg_summary(struct hva_ctx *ctx);
+> +
+>  #endif /* HVA_H */
+>
+
+Regards,
+
+	Hans
