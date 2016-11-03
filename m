@@ -1,65 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:27905 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753751AbcK1Ltz (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48424 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754580AbcKCNjf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 06:49:55 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Samsung SoC related updates
-To: LMML <linux-media@vger.kernel.org>
-Cc: linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Message-id: <4a805660-e4e3-f7f5-6f1d-b57aa5deeba5@samsung.com>
-Date: Mon, 28 Nov 2016 12:49:48 +0100
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7bit
-References: <CGME20161128114949eucas1p179e1d91456cf977b8d0a92828703faf2@eucas1p1.samsung.com>
+        Thu, 3 Nov 2016 09:39:35 -0400
+Subject: Re: [PATCH 1/1] v4l: compat: Prevent allocating excessive amounts of
+ memory
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+References: <1475670099-25242-1-git-send-email-sakari.ailus@linux.intel.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8197fefa-cc36-7a24-435c-72ca781c3240@xs4all.nl>
+Date: Thu, 3 Nov 2016 14:39:32 +0100
+MIME-Version: 1.0
+In-Reply-To: <1475670099-25242-1-git-send-email-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On 05/10/16 14:21, Sakari Ailus wrote:
+> get_v4l2_ext_controls32() is used to convert the 32-bit compat struct into
+> native 64-bit representation. The function multiplies the array length by
+> the entry length before validating size. Perform the size validation
+> first.
+>
+> Also use unsigned values for size computation.
+>
+> Make similar changes to get_v4l2_buffer32() for multi-plane buffers.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 28 +++++++++++++++------------
+>  1 file changed, 16 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index bacecbd..7d98624 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -409,7 +409,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  	struct v4l2_plane32 __user *uplane32;
+>  	struct v4l2_plane __user *uplane;
+>  	compat_caddr_t p;
+> -	int num_planes;
+>  	int ret;
+>
+>  	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
+> @@ -429,12 +428,15 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  			return -EFAULT;
+>
+>  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+> -		num_planes = kp->length;
+> -		if (num_planes == 0) {
+> +		int num_planes;
+> +
+> +		if (kp->length == 0) {
+>  			kp->m.planes = NULL;
+>  			/* num_planes == 0 is legal, e.g. when userspace doesn't
+>  			 * need planes array on DQBUF*/
+>  			return 0;
+> +		} else if (kp->length > VIDEO_MAX_PLANES) {
+> +			return -EINVAL;
+>  		}
+>
+>  		if (get_user(p, &up->m.planes))
+> @@ -442,16 +444,16 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>
+>  		uplane32 = compat_ptr(p);
+>  		if (!access_ok(VERIFY_READ, uplane32,
+> -				num_planes * sizeof(struct v4l2_plane32)))
+> +				kp->length * sizeof(struct v4l2_plane32)))
+>  			return -EFAULT;
+>
+>  		/* We don't really care if userspace decides to kill itself
+>  		 * by passing a very big num_planes value */
+> -		uplane = compat_alloc_user_space(num_planes *
+> -						sizeof(struct v4l2_plane));
+> +		uplane = compat_alloc_user_space(kp->length *
+> +						 sizeof(struct v4l2_plane));
+>  		kp->m.planes = (__force struct v4l2_plane *)uplane;
+>
+> -		while (--num_planes >= 0) {
+> +		for (num_planes = kp->length; num_planes >= 0; num_planes--) {
 
-this change set adds support for the Exynos5433 SoC variant 
-of the MFC subsystem, it also includes related clean up 
-and fixes/improvements.
+Can you change this to:
 
-The following changes since commit 36f94a5cf0f9afb527f18166ae56bd3cc7204f63:
+		for (num_planes = 0; num_planes < kp->length; num_planes++) {
 
-  Merge tag 'v4.9-rc5' into patchwork (2016-11-16 16:42:27 -0200)
+Which is much easier on the eyes :-)
 
-are available in the git repository at:
+>  			ret = get_v4l2_plane32(uplane, uplane32, kp->memory);
+>  			if (ret)
+>  				return ret;
+> @@ -675,20 +677,22 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+>  		copy_from_user(kp->reserved, up->reserved,
+>  			       sizeof(kp->reserved)))
+>  			return -EFAULT;
+> -	n = kp->count;
+> -	if (n == 0) {
+> +	if (kp->count == 0) {
+>  		kp->controls = NULL;
+>  		return 0;
+> +	} else if (kp->count > V4L2_CID_MAX_CTRLS) {
+> +		return -EINVAL;
+>  	}
+>  	if (get_user(p, &up->controls))
+>  		return -EFAULT;
+>  	ucontrols = compat_ptr(p);
+>  	if (!access_ok(VERIFY_READ, ucontrols,
+> -			n * sizeof(struct v4l2_ext_control32)))
+> +			kp->count * sizeof(struct v4l2_ext_control32)))
+>  		return -EFAULT;
+> -	kcontrols = compat_alloc_user_space(n * sizeof(struct v4l2_ext_control));
+> +	kcontrols = compat_alloc_user_space(kp->count *
+> +					    sizeof(struct v4l2_ext_control));
+>  	kp->controls = (__force struct v4l2_ext_control *)kcontrols;
+> -	while (--n >= 0) {
+> +	for (n = kp->count; n >= 0; n--) {
 
+Ditto.
 
-  git://linuxtv.org/snawrocki/samsung.git for-v4.10/media/next-2
+>  		u32 id;
+>
+>  		if (copy_in_user(kcontrols, ucontrols, sizeof(*ucontrols)))
+>
 
-for you to fetch changes up to d9f2586c6c302d4db39c5aa92b803dcd30b06f4e:
+Looks good otherwise.
 
-  s5p-mfc: Add support for MFC v8 available in Exynos 5433 SoCs (2016-11-17 12:11:26 +0100)
+Regards,
 
-----------------------------------------------------------------
-Douglas Anderson (1):
-      s5p-mfc: Set DMA_ATTR_ALLOC_SINGLE_PAGES
-
-Marek Szyprowski (8):
-      s5p-mfc: Use printk_ratelimited for reporting ioctl errors
-      s5p-mfc: Remove special clock rate management
-      s5p-mfc: Ensure that clock is disabled before turning power off
-      s5p-mfc: Remove dead conditional code
-      s5p-mfc: Kill all IS_ERR_OR_NULL in clocks management code
-      s5p-mfc: Don't keep clock prepared all the time
-      s5p-mfc: Rework clock handling
-      s5p-mfc: Add support for MFC v8 available in Exynos 5433 SoCs
-
- .../devicetree/bindings/media/s5p-mfc.txt     |   1 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c      |  61 +++++---
- .../media/platform/s5p-mfc/s5p_mfc_common.h   |  10 +-
- .../media/platform/s5p-mfc/s5p_mfc_debug.h    |   6 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c  |   2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c  |   2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c   | 139 ++++++-----------
- 7 files changed, 103 insertions(+), 118 deletions(-)
-
---
-Thanks, 
-Sylwester
+	Hans
