@@ -1,151 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:14194 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753456AbcKIOYN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:13 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 04/12] exynos-gsc: Make runtime PM callbacks available for
- CONFIG_PM
-Date: Wed, 09 Nov 2016 15:23:53 +0100
-Message-id: <1478701441-29107-5-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161109142408eucas1p24bd5bce9a6046e186948a2f4f65c7d7d@eucas1p2.samsung.com>
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49540 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933470AbcKDOUZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 10:20:25 -0400
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec: an inner loop clobbered the outer loop variable
+Message-ID: <fe7ce973-0d4b-1d70-94dc-e7d3f8fc8e6f@xs4all.nl>
+Date: Fri, 4 Nov 2016 15:20:23 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ulf Hansson <ulf.hansson@linaro.org>
+An inner for-loop reused the outer loop variable. This was
+only noticeable with CEC adapters supporting more than one
+logical address.
 
-There are no need to set up the runtime PM callbacks unless they are
-being used. It also causes compiler warnings about unused functions.
-
-Silence the warnings by making them available for CONFIG_PM.
-
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-[mszyprow: rebased onto v4.9-rc4]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 79 ++++++++++++++--------------
- 1 file changed, 40 insertions(+), 39 deletions(-)
+  drivers/media/cec/cec-adap.c | 9 +++++----
+  1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index b5a99af..7e99fda 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -988,43 +988,6 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
- 	return driver_data;
- }
- 
--static int gsc_m2m_suspend(struct gsc_dev *gsc)
--{
--	unsigned long flags;
--	int timeout;
--
--	spin_lock_irqsave(&gsc->slock, flags);
--	if (!gsc_m2m_pending(gsc)) {
--		spin_unlock_irqrestore(&gsc->slock, flags);
--		return 0;
--	}
--	clear_bit(ST_M2M_SUSPENDED, &gsc->state);
--	set_bit(ST_M2M_SUSPENDING, &gsc->state);
--	spin_unlock_irqrestore(&gsc->slock, flags);
--
--	timeout = wait_event_timeout(gsc->irq_queue,
--			     test_bit(ST_M2M_SUSPENDED, &gsc->state),
--			     GSC_SHUTDOWN_TIMEOUT);
--
--	clear_bit(ST_M2M_SUSPENDING, &gsc->state);
--	return timeout == 0 ? -EAGAIN : 0;
--}
--
--static void gsc_m2m_resume(struct gsc_dev *gsc)
--{
--	struct gsc_ctx *ctx;
--	unsigned long flags;
--
--	spin_lock_irqsave(&gsc->slock, flags);
--	/* Clear for full H/W setup in first run after resume */
--	ctx = gsc->m2m.ctx;
--	gsc->m2m.ctx = NULL;
--	spin_unlock_irqrestore(&gsc->slock, flags);
--
--	if (test_and_clear_bit(ST_M2M_SUSPENDED, &gsc->state))
--		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
--}
--
- static int gsc_probe(struct platform_device *pdev)
- {
- 	struct gsc_dev *gsc;
-@@ -1130,6 +1093,44 @@ static int gsc_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+#ifdef CONFIG_PM
-+static int gsc_m2m_suspend(struct gsc_dev *gsc)
-+{
-+	unsigned long flags;
-+	int timeout;
-+
-+	spin_lock_irqsave(&gsc->slock, flags);
-+	if (!gsc_m2m_pending(gsc)) {
-+		spin_unlock_irqrestore(&gsc->slock, flags);
-+		return 0;
-+	}
-+	clear_bit(ST_M2M_SUSPENDED, &gsc->state);
-+	set_bit(ST_M2M_SUSPENDING, &gsc->state);
-+	spin_unlock_irqrestore(&gsc->slock, flags);
-+
-+	timeout = wait_event_timeout(gsc->irq_queue,
-+			     test_bit(ST_M2M_SUSPENDED, &gsc->state),
-+			     GSC_SHUTDOWN_TIMEOUT);
-+
-+	clear_bit(ST_M2M_SUSPENDING, &gsc->state);
-+	return timeout == 0 ? -EAGAIN : 0;
-+}
-+
-+static void gsc_m2m_resume(struct gsc_dev *gsc)
-+{
-+	struct gsc_ctx *ctx;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&gsc->slock, flags);
-+	/* Clear for full H/W setup in first run after resume */
-+	ctx = gsc->m2m.ctx;
-+	gsc->m2m.ctx = NULL;
-+	spin_unlock_irqrestore(&gsc->slock, flags);
-+
-+	if (test_and_clear_bit(ST_M2M_SUSPENDED, &gsc->state))
-+		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
-+}
-+
- static int gsc_runtime_resume(struct device *dev)
- {
- 	struct gsc_dev *gsc = dev_get_drvdata(dev);
-@@ -1160,6 +1161,7 @@ static int gsc_runtime_suspend(struct device *dev)
- 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
- 	return ret;
- }
-+#endif
- 
- static int gsc_resume(struct device *dev)
- {
-@@ -1201,8 +1203,7 @@ static int gsc_suspend(struct device *dev)
- static const struct dev_pm_ops gsc_pm_ops = {
- 	.suspend		= gsc_suspend,
- 	.resume			= gsc_resume,
--	.runtime_suspend	= gsc_runtime_suspend,
--	.runtime_resume		= gsc_runtime_resume,
-+	SET_RUNTIME_PM_OPS(gsc_runtime_suspend, gsc_runtime_resume, NULL)
- };
- 
- static struct platform_driver gsc_driver = {
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index bcd19d4..ed76d70 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -1416,6 +1416,7 @@ int __cec_s_log_addrs(struct cec_adapter *adap,
+  		const u8 feature_sz = ARRAY_SIZE(log_addrs->features[0]);
+  		u8 *features = log_addrs->features[i];
+  		bool op_is_dev_features = false;
++		unsigned j;
+
+  		log_addrs->log_addr[i] = CEC_LOG_ADDR_INVALID;
+  		if (type_mask & (1 << log_addrs->log_addr_type[i])) {
+@@ -1442,19 +1443,19 @@ int __cec_s_log_addrs(struct cec_adapter *adap,
+  			dprintk(1, "unknown logical address type\n");
+  			return -EINVAL;
+  		}
+-		for (i = 0; i < feature_sz; i++) {
+-			if ((features[i] & 0x80) == 0) {
++		for (j = 0; j < feature_sz; j++) {
++			if ((features[j] & 0x80) == 0) {
+  				if (op_is_dev_features)
+  					break;
+  				op_is_dev_features = true;
+  			}
+  		}
+-		if (!op_is_dev_features || i == feature_sz) {
++		if (!op_is_dev_features || j == feature_sz) {
+  			dprintk(1, "malformed features\n");
+  			return -EINVAL;
+  		}
+  		/* Zero unused part of the feature array */
+-		memset(features + i + 1, 0, feature_sz - i - 1);
++		memset(features + j + 1, 0, feature_sz - j - 1);
+  	}
+
+  	if (log_addrs->cec_version >= CEC_OP_CEC_VERSION_2_0) {
 -- 
-1.9.1
+2.10.1
 
