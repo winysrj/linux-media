@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:43319 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754957AbcKVDsX (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37441 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1760551AbcKDIGE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 22:48:23 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Fri, 4 Nov 2016 04:06:04 -0400
+Subject: Re: [PATCH 17/34] [media] DaVinci-VPFE-Capture: Improve another size
+ determination in vpfe_enum_input()
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+ <88b3de4c-5f3f-9f70-736b-039dca6b8a2e@users.sourceforge.net>
+ <f214edb8-0af3-e1f5-8b45-9cfa0537f8b5@xs4all.nl>
+ <6a3a4a79-d428-f5d9-87e0-97fd91b75c2a@users.sourceforge.net>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>
-Subject: [PATCH v7 4/4] vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver
-Date: Tue, 22 Nov 2016 11:46:17 +0800
-Message-ID: <1479786377-11567-5-git-send-email-rick.chang@mediatek.com>
-In-Reply-To: <1479786377-11567-1-git-send-email-rick.chang@mediatek.com>
-References: <1479786377-11567-1-git-send-email-rick.chang@mediatek.com>
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3c76f5d0-4469-01a4-3a7c-49401aeb84b7@xs4all.nl>
+Date: Fri, 4 Nov 2016 09:06:01 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <6a3a4a79-d428-f5d9-87e0-97fd91b75c2a@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
- MAINTAINERS | 7 +++++++
- 1 file changed, 7 insertions(+)
+On 03/11/16 22:05, SF Markus Elfring wrote:
+>>> @@ -1091,7 +1091,7 @@ static int vpfe_enum_input(struct file *file, void *priv,
+>>>          return -EINVAL;
+>>>      }
+>>>      sdinfo = &vpfe_dev->cfg->sub_devs[subdev];
+>>> -    memcpy(inp, &sdinfo->inputs[index], sizeof(struct v4l2_input));
+>>> +    memcpy(inp, &sdinfo->inputs[index], sizeof(*inp));
+>>
+>> If I am not mistaken this can be written as:
+>>
+>>     *inp = sdinfo->inputs[index];
+>>
+>> Much better.
+>
+> At which position would you like to integrate a second approach for such a change
+> from this patch series?
+>
+> * Do you expect me to send a "V2" for the whole series?
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 93e9f42..a9e7ee0 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7818,6 +7818,13 @@ L:	netdev@vger.kernel.org
- S:	Maintained
- F:	drivers/net/ethernet/mediatek/
- 
-+MEDIATEK JPEG DRIVER
-+M:	Rick Chang <rick.chang@mediatek.com>
-+M:	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-+S:	Supported
-+F:	drivers/media/platform/mtk-jpeg/
-+F:	Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
-+
- MEDIATEK MEDIA DRIVER
- M:	Tiffany Lin <tiffany.lin@mediatek.com>
- M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
--- 
-1.9.1
+No, just for the patches I commented upon.
 
+>
+> * Will an update step be appropriate if I would rebase it on other
+>   recently accepted suggestions?
+
+You can base it on 
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=for-v4.10a
+
+That branch has all your other patches of this series merged and is part 
+of a pull
+request I posted yesterday.
+
+	Hans
+
+>
+> Regards,
+> Markus
+>
