@@ -1,54 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:35456 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932380AbcKGRmf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:42:35 -0500
-Received: by mail-wm0-f46.google.com with SMTP id a197so197507214wmd.0
-        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 09:42:34 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v3 2/9] MAINTAINERS: Add Qualcomm Venus video accelerator driver
-Date: Mon,  7 Nov 2016 19:33:56 +0200
-Message-Id: <1478540043-24558-3-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:36371 "EHLO
+        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755103AbcKDJBB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 05:01:01 -0400
+Received: by mail-qk0-f176.google.com with SMTP id o68so88956861qkf.3
+        for <linux-media@vger.kernel.org>; Fri, 04 Nov 2016 02:01:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1478246311-15944-1-git-send-email-maninder.s2@samsung.com>
+References: <1478246311-15944-1-git-send-email-maninder.s2@samsung.com>
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Date: Fri, 4 Nov 2016 10:00:59 +0100
+Message-ID: <CA+M3ks6A=Y9GkKNyS+AFeHor1qN0rNO6uS6e=ayQciHCoG685Q@mail.gmail.com>
+Subject: Re: [PATCH] staging: st-cec: add parentheses around complex macros
+To: Maninder Singh <maninder.s2@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        kernel@stlinux.com,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        devel@driverdev.osuosl.org,
+        Ravikant Bijendra Sharma <ravikant.s2@samsung.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an entry for Venus video encoder/decoder accelerator driver.
+Thanks,
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 93e9f4227c53..5c2e70e83ff5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -9986,6 +9986,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.g
- S:	Supported
- F:	arch/hexagon/
- 
-+QUALCOMM VENUS VIDEO ACCELERATOR DRIVER
-+M:	Stanimir Varbanov <stanimir.varbanov@linaro.org>
-+L:	linux-media@vger.kernel.org
-+L:	linux-arm-msm@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/platform/qcom/venus/
-+
- QUALCOMM WCN36XX WIRELESS DRIVER
- M:	Eugene Krasnikov <k.eugene.e@gmail.com>
- L:	wcn36xx@lists.infradead.org
--- 
-2.7.4
+2016-11-04 8:58 GMT+01:00 Maninder Singh <maninder.s2@samsung.com>:
+> This patch fixes the following checkpatch.pl error:
+> ERROR: Macros with complex values should be enclosed in parentheses
+>
+> Signed-off-by: Maninder Singh <maninder.s2@samsung.com>
+> ---
+>  drivers/staging/media/st-cec/stih-cec.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/me=
+dia/st-cec/stih-cec.c
+> index 2143448..b22394a 100644
+> --- a/drivers/staging/media/st-cec/stih-cec.c
+> +++ b/drivers/staging/media/st-cec/stih-cec.c
+> @@ -108,11 +108,11 @@
+>
+>  /* Constants for CEC_BIT_TOUT_THRESH register */
+>  #define CEC_SBIT_TOUT_47MS BIT(1)
+> -#define CEC_SBIT_TOUT_48MS BIT(0) | BIT(1)
+> +#define CEC_SBIT_TOUT_48MS (BIT(0) | BIT(1))
+>  #define CEC_SBIT_TOUT_50MS BIT(2)
+>  #define CEC_DBIT_TOUT_27MS BIT(0)
+>  #define CEC_DBIT_TOUT_28MS BIT(1)
+> -#define CEC_DBIT_TOUT_29MS BIT(0) | BIT(1)
+> +#define CEC_DBIT_TOUT_29MS (BIT(0) | BIT(1))
+>
+>  /* Constants for CEC_BIT_PULSE_THRESH register */
+>  #define CEC_BIT_LPULSE_03MS BIT(1)
+> --
+> 1.7.9.5
+>
 
+
+
+--=20
+Benjamin Gaignard
+
+Graphic Study Group
+
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
