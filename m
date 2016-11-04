@@ -1,275 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49486 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754175AbcKBN3q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:46 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 24/32] media: rcar-vin: add link notify for Gen3
-Date: Wed,  2 Nov 2016 14:23:21 +0100
-Message-Id: <20161102132329.436-25-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from comal.ext.ti.com ([198.47.26.152]:39841 "EHLO comal.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752502AbcKDIFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 04:05:31 -0400
+Subject: Re: [PATCH RESEND] media: omap3isp: Use dma_request_chan() to
+ requesting DMA channel
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <20161102123959.6098-1-peter.ujfalusi@ti.com>
+ <9b482d6b-5750-9c9d-e9a8-b113788fbb67@ti.com>
+ <6d504f4d-44b0-467d-de21-6fd12771dfc5@ti.com> <5665893.fe4E5jvxvE@avalon>
+CC: <mchehab@osg.samsung.com>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Message-ID: <8af57c52-5fc9-bad8-1a9e-905e457831e2@ti.com>
+Date: Fri, 4 Nov 2016 10:05:27 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <5665893.fe4E5jvxvE@avalon>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the ability to process media device link change request. Link
-enablement are a bit complicated on Gen3, if it's possible to enable a
-link depends on what other links already are enabled. On Gen3 the 8 VIN
-are split into two subgroups (VIN0-3 and VIN4-7) and from a routing
-perspective these two groups are independent of each other. Each
-subgroups routing is controlled by the subgroup VIN master instance
-(VIN0 and VIN4).
+Hi Laurent,
 
-There are a limited number of possible route setups available for each
-subgroup and the configuration of each setup is dictated by the
-hardware. On H3 for example there are 6 possible route setups for each
-subgroup to choose from.
+On 11/03/2016 05:12 PM, Laurent Pinchart wrote:
+>> It is a bit misleading that it used dma_request_slave_channel_compat()
+>> for getting the channel.
+>>
+>> I think what would be correct is:
+>> dma_cap_mask_t mask;
+>>
+>> dma_cap_zero(mask);
+>> dma_cap_set(DMA_SLAVE, mask);
+>> hist->dma_ch = dma_request_chan_by_mask(&mask);
+>>
+>> We will get any DMA channel capable of slave configuration, but we will
+>> configure no DMA request number for the channel.
+> 
+> I believe that should work. It could in theory result in a different behaviour 
+> as it could return a DMA channel not handled by the OMAP SDMA engine, but I 
+> don't think that would be an issue.
 
-This leads to the media device link notification code being rather large
-since it will find the best routing configuration to try and accommodate
-as many links as possible. When it's not possible to enable a new link
-due to hardware constrains the link_notifier callback will return
--EBUSY.
+Yes, that could be the case if we would have more than one DMAs in SoCs
+where the omap3isp is used, but we only have sDMA.
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 205 ++++++++++++++++++++++++++++
- 1 file changed, 205 insertions(+)
+The reason why I would like to move the driver to use the generic API is
+that my plan is to remove the legacy sDMA support in the future so the
+filter_fn is not going to be available outside of the DMAengine driver.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 20fe377..06876a8 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -26,6 +26,209 @@
- #include "rcar-vin.h"
- 
- /* -----------------------------------------------------------------------------
-+ * Media Controller link notification
-+ */
-+
-+static unsigned int rvin_group_csi_pad_to_chan(unsigned int pad)
-+{
-+	/*
-+	 * The CSI2 driver is rcar-csi2 and we know it's pad layout are
-+	 * 0: Source 1-4: Sinks so if we remove one from the pad we
-+	 * get the rcar-vin internal CSI2 channel number
-+	 */
-+	return pad - 1;
-+}
-+
-+/* group lock should be held when calling this function */
-+static int rvin_group_entity_to_vin_num(struct rvin_group *group,
-+					struct media_entity *entity)
-+{
-+	struct video_device *vdev;
-+	int i;
-+
-+	if (!is_media_entity_v4l2_video_device(entity))
-+		return -ENODEV;
-+
-+	vdev = media_entity_to_video_device(entity);
-+
-+	for (i = 0; i < RCAR_VIN_NUM; i++) {
-+		if (!group->vin[i])
-+			continue;
-+
-+		if (&group->vin[i]->vdev == vdev)
-+			return i;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+/* group lock should be held when calling this function */
-+static int rvin_group_entity_to_csi_num(struct rvin_group *group,
-+					struct media_entity *entity)
-+{
-+	struct v4l2_subdev *sd;
-+	int i;
-+
-+	if (!is_media_entity_v4l2_subdev(entity))
-+		return -ENODEV;
-+
-+	sd = media_entity_to_v4l2_subdev(entity);
-+
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (group->bridge[i].subdev == sd)
-+			return i;
-+
-+	return -ENODEV;
-+}
-+
-+/* group lock should be held when calling this function */
-+static void __rvin_group_build_link_list(struct rvin_group *group,
-+					 struct rvin_group_chsel *map,
-+					 int start, int len)
-+{
-+	struct media_pad *vin_pad, *remote_pad;
-+	unsigned int n;
-+
-+	for (n = 0; n < len; n++) {
-+		map[n].csi = -1;
-+		map[n].chan = -1;
-+
-+		if (!group->vin[start + n])
-+			continue;
-+
-+		vin_pad = &group->vin[start + n]->vdev.entity.pads[RVIN_SINK];
-+
-+		remote_pad = media_entity_remote_pad(vin_pad);
-+		if (!remote_pad)
-+			continue;
-+
-+		map[n].csi =
-+			rvin_group_entity_to_csi_num(group, remote_pad->entity);
-+		map[n].chan = rvin_group_csi_pad_to_chan(remote_pad->index);
-+	}
-+}
-+
-+/* group lock should be held when calling this function */
-+static int __rvin_group_try_get_chsel(struct rvin_group *group,
-+				      struct rvin_group_chsel *map,
-+				      int start, int len)
-+{
-+	const struct rvin_group_chsel *sel;
-+	unsigned int i, n;
-+	int chsel;
-+
-+	for (i = 0; i < group->vin[start]->info->num_chsels; i++) {
-+		chsel = i;
-+		for (n = 0; n < len; n++) {
-+
-+			/* If the link is not active it's OK */
-+			if (map[n].csi == -1)
-+				continue;
-+
-+			/* Check if chsel match requested link */
-+			sel = &group->vin[start]->info->chsels[start + n][i];
-+			if (map[n].csi != sel->csi ||
-+			    map[n].chan != sel->chan) {
-+				chsel = -1;
-+				break;
-+			}
-+		}
-+
-+		/* A chsel which satisfy the links have been found */
-+		if (chsel != -1)
-+			return chsel;
-+	}
-+
-+	/* No chsel can satisfy the requested links */
-+	return -1;
-+}
-+
-+/* group lock should be held when calling this function */
-+static bool rvin_group_in_use(struct rvin_group *group)
-+{
-+	struct media_entity *entity;
-+
-+	media_device_for_each_entity(entity, &group->mdev)
-+		if (entity->use_count)
-+			return true;
-+
-+	return false;
-+}
-+
-+static int rvin_group_link_notify(struct media_link *link, u32 flags,
-+				  unsigned int notification)
-+{
-+	struct rvin_group *group = container_of(link->graph_obj.mdev,
-+						struct rvin_group, mdev);
-+	struct rvin_group_chsel chsel_map[4];
-+	int vin_num, vin_master, csi_num, csi_chan;
-+	unsigned int chsel;
-+
-+	mutex_lock(&group->lock);
-+
-+	vin_num = rvin_group_entity_to_vin_num(group, link->sink->entity);
-+	csi_num = rvin_group_entity_to_csi_num(group, link->source->entity);
-+	csi_chan = rvin_group_csi_pad_to_chan(link->source->index);
-+
-+	/*
-+	 * Figure out which VIN node is the subgroup master.
-+	 *
-+	 * VIN0-3 are controlled by VIN0
-+	 * VIN4-7 are controlled by VIN4
-+	 */
-+	vin_master = vin_num < 4 ? 0 : 4;
-+
-+	/* If not all devices exists something is horribly wrong */
-+	if (vin_num < 0 || csi_num < 0 || !group->vin[vin_master])
-+		goto error;
-+
-+	/* Special checking only needed for links which are to be enabled */
-+	if (notification != MEDIA_DEV_NOTIFY_PRE_LINK_CH ||
-+	    !(flags & MEDIA_LNK_FL_ENABLED))
-+		goto out;
-+
-+	/* If any link in the group are in use, no new link can be enabled */
-+	if (rvin_group_in_use(group))
-+		goto error;
-+
-+	/* If the VIN already have a active link it's busy */
-+	if (media_entity_remote_pad(&link->sink->entity->pads[RVIN_SINK]))
-+		goto error;
-+
-+	/* Build list of active links */
-+	__rvin_group_build_link_list(group, chsel_map, vin_master, 4);
-+
-+	/* Add the new proposed link */
-+	chsel_map[vin_num - vin_master].csi = csi_num;
-+	chsel_map[vin_num - vin_master].chan = csi_chan;
-+
-+	/* See if there is a chsel value which match our link selection */
-+	chsel = __rvin_group_try_get_chsel(group, chsel_map, vin_master, 4);
-+
-+	/* No chsel can provide the request links */
-+	if (chsel == -1)
-+		goto error;
-+
-+	/* Update chsel value at group master */
-+	if (rvin_set_chsel(group->vin[vin_master], chsel))
-+		goto error;
-+
-+out:
-+	mutex_unlock(&group->lock);
-+
-+	return v4l2_pipeline_link_notify(link, flags, notification);
-+error:
-+	mutex_unlock(&group->lock);
-+
-+	return -EBUSY;
-+}
-+
-+
-+static const struct media_device_ops rvin_media_ops = {
-+	.link_notify = rvin_group_link_notify,
-+};
-+
-+/* -----------------------------------------------------------------------------
-  * Gen3 CSI2 Group Allocator
-  */
- 
-@@ -100,6 +303,8 @@ static struct rvin_group *rvin_group_allocate(struct rvin_dev *vin)
- 		mdev->driver_version = LINUX_VERSION_CODE;
- 		media_device_init(mdev);
- 
-+		mdev->ops = &rvin_media_ops;
-+
- 		ret = media_device_register(mdev);
- 		if (ret) {
- 			vin_err(vin, "Failed to register media device\n");
+I do believe that this is safe to do in this way and if the IP shows up
+somewhere else where we have more than one DMAs - which is unlikely -
+I'm sure it can be fixed up, but w/o device it is hard to guess what
+needs to be done.
+FWIW: if omap3isp shows up where we have sDMA and eDMA we can set the
+mask as DMA_SLAVE | DMA_MEMCPY as eDMA does not set both for a channel -
+it is either slave or memcpy.
+
+>> and document this in the driver...
+> 
+
 -- 
-2.10.2
-
+Péter
