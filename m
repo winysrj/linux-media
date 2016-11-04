@@ -1,68 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51882 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938787AbcKLOrA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 09:47:00 -0500
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 0/3] Media fixes for Kernel 4.9-rc5
-Date: Sat, 12 Nov 2016 12:46:25 -0200
-Message-Id: <cover.1478960480.git.mchehab@osg.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60861 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbcKDXck (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 19:32:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        srv_heupstream@mediatek.com, linux-mediatek@lists.infradead.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: Re: [PATCH v3 1/3] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+Date: Sat, 05 Nov 2016 01:32:35 +0200
+Message-ID: <4460771.lgvC1NvD9I@avalon>
+In-Reply-To: <1478238680-11310-2-git-send-email-rick.chang@mediatek.com>
+References: <1478238680-11310-1-git-send-email-rick.chang@mediatek.com> <1478238680-11310-2-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi Rick,
 
-This patch series contain two patches fixing problems with my
-patch series meant to make USB drivers to work again after the
-DMA on stack changes.
+Thank you for the patch.
 
-The last patch on this series is actually not related to DMA on
-stack. It solves a longstanding bug affecting module unload,
-causing module_put() to be called twice. It was reported by the
-user who reported and tested the issues with the gp8psk driver
-with the DMA fixup patches. As we're late at -rc cycle, maybe you
-prefer to not apply it right now. If this is the case, I'll
-add to the pile of patches for 4.10.
+On Friday 04 Nov 2016 13:51:18 Rick Chang wrote:
+> Add a DT binding documentation for Mediatek JPEG Decoder of
+> MT2701 SoC.
 
-Regards,
-Mauro
+This version looks much better !
 
-PS.: Exceptionally this time, I'm sending the patches via e-mail,
-because I'm on another trip, and won't be able to use the usual
-procedure until Monday. Also, it is only three patches, and you
-followed already the discussions about the first one.
+> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> ---
+>  .../bindings/media/mediatek-jpeg-codec.txt         | 35 +++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt new file
+> mode 100644
+> index 0000000..b2b19ed
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> @@ -0,0 +1,35 @@
+> +* Mediatek JPEG Decoder
+> +
+> +Mediatek JPEG Decoder is the JPEG decode hw present in Mediatek SoCs
 
-Mauro Carvalho Chehab (3):
-  [media] dvb-usb: move data_mutex to struct dvb_usb_device
-  [media] gp8psk: fix gp8psk_usb_in_op() logic
-  [media] gp8psk: Fix DVB frontend attach
+Nitpicking, I'd write hardware instead of hw.
 
- drivers/media/dvb-frontends/Kconfig                |   5 +
- drivers/media/dvb-frontends/Makefile               |   1 +
- .../{usb/dvb-usb => dvb-frontends}/gp8psk-fe.c     | 139 ++++++++++++---------
- drivers/media/dvb-frontends/gp8psk-fe.h            |  82 ++++++++++++
- drivers/media/usb/dvb-usb/Makefile                 |   2 +-
- drivers/media/usb/dvb-usb/af9005.c                 |  33 ++---
- drivers/media/usb/dvb-usb/cinergyT2-core.c         |  33 ++---
- drivers/media/usb/dvb-usb/cxusb.c                  |  39 +++---
- drivers/media/usb/dvb-usb/cxusb.h                  |   1 -
- drivers/media/usb/dvb-usb/dtt200u.c                |  40 +++---
- drivers/media/usb/dvb-usb/dvb-usb-init.c           |   1 +
- drivers/media/usb/dvb-usb/dvb-usb.h                |   9 +-
- drivers/media/usb/dvb-usb/gp8psk.c                 | 111 +++++++++++-----
- drivers/media/usb/dvb-usb/gp8psk.h                 |  63 ----------
- 14 files changed, 310 insertions(+), 249 deletions(-)
- rename drivers/media/{usb/dvb-usb => dvb-frontends}/gp8psk-fe.c (72%)
- create mode 100644 drivers/media/dvb-frontends/gp8psk-fe.h
+> +Required properties:
+> +- compatible : "mediatek,mt2701-jpgdec"
+
+As commented on the previous version, is this JPEG decoder unique to the 
+MT2701, or is it also used (possibly with different interrupts, clocks, ...) 
+in other SoCs ? In the latter case, if the JPEG decoder IP core is identical 
+in multiple SoCs, a more generic compatible string would be better.
+
+> +- reg : physical base address of the jpeg decoder registers and length of
+> +  memory mapped region.
+> +- interrupts : interrupt number to the interrupt controller.
+> +- clocks: device clocks, see
+> +  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
+> +- clock-names: must contain "jpgdec-smi" and "jpgdec".
+> +- power-domains: a phandle to the power domain, see
+> +  Documentation/devicetree/bindings/power/power_domain.txt for details.
+> +- mediatek,larb: must contain the local arbiters in the current Socs, see
+> + 
+> Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
+> +  for details.
+> +- iommus: should point to the respective IOMMU block with master port as
+> +  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
+> +  for details.
+> +
+> +Example:
+> +	jpegdec: jpegdec@15004000 {
+> +		compatible = "mediatek,mt2701-jpgdec";
+> +		reg = <0 0x15004000 0 0x1000>;
+> +		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
+> +		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
+> +			  <&imgsys CLK_IMG_JPGDEC>;
+> +		clock-names = "jpgdec-smi",
+> +			      "jpgdec";
+> +		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+> +		mediatek,larb = <&larb2>;
+> +		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
+> +			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
+> +	};
 
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
