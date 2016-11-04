@@ -1,190 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52728 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755340AbcK2Gh7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 01:37:59 -0500
-Date: Tue, 29 Nov 2016 08:37:53 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacek Anaszewski <jacek.anaszewski@gmail.com>
-Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
-        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, mchehab@kernel.org, m.szyprowski@samsung.com,
-        s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v4l-utils v7 1/7] mediactl: Add support for
- v4l2-ctrl-binding config
-Message-ID: <20161129063753.GK16630@valkosipuli.retiisi.org.uk>
-References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
- <1476282922-11544-2-git-send-email-j.anaszewski@samsung.com>
- <20161124142320.GP16630@valkosipuli.retiisi.org.uk>
- <ce5d6882-21c4-4493-6bfa-1b8103eedf34@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ce5d6882-21c4-4493-6bfa-1b8103eedf34@gmail.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:37089 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753813AbcKDE2l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 00:28:41 -0400
+Date: Fri, 04 Nov 2016 13:28:38 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
+ ir-spi device driver
+Message-id: <20161104042838.kwjv66ldun6g4hlv@gangnam.samsung>
+References: <20161102104010.26959-1-andi.shyti@samsung.com>
+ <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
+ <20161102104010.26959-6-andi.shyti@samsung.com>
+ <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
+ <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
+ <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Jacek,
 
-On Mon, Nov 28, 2016 at 10:32:43PM +0100, Jacek Anaszewski wrote:
-> Hi Sakari,
+> > > Only DT bindings of LED class drivers should be placed in
+> > > Documentation/devicetree/bindings/leds. Please move it to the
+> > > media bindings.
+> > 
+> > that's where I placed it first, but Rob asked me to put it in the
+> > LED directory and Cc the LED mailining list.
+> > 
+> > That's the discussion of the version 2:
+> > 
+> > https://lkml.org/lkml/2016/9/12/380
+> > 
+> > Rob, Jacek, could you please agree where I can put the binding?
 > 
-> On 11/24/2016 03:23 PM, Sakari Ailus wrote:
-> >Hi Jacek,
-> >
-> >On Wed, Oct 12, 2016 at 04:35:16PM +0200, Jacek Anaszewski wrote:
-> >>Make struct v4l2_subdev capable of aggregating v4l2-ctrl-bindings -
-> >>media device configuration entries. Added are also functions for
-> >>validating support for the control on given media entity and checking
-> >>whether a v4l2-ctrl-binding has been defined for a media entity.
-> >
-> >I still don't think this belongs here.
-> >
-> >I think I told you about the generic pipeline configuration library I worked
-> >on years ago; unfortunately it was left on prototype stage. Still, what I
-> >realised was that something very similar is needed in that library ---
-> >associating information to the representation of the media entities (or the
-> >V4L2 sub-devices) in user space that has got nothing to do with the devices
-> >themselves.
-> >
-> >We could have e.g. a list of key--value pairs where the key is a pointer
-> >provided by the user (i.e. application, another library) that could be
-> >associated with the value. That would avoid having explicit information on
-> >that in the struct media_entity itself.
-> >
-> >An quicker alternative would be to manage a list of controls e.g. in the
-> >plugin itself and store the media entity where they're implemented in that
-> >list, with the control value.
-
-s/value/id/
-
+> I'm not sure if this is a good approach. I've noticed also that
+> backlight bindings have been moved to leds, whereas they don't look
+> similarly.
 > 
-> We are not interested in media entity -> control value relation but
-> but media entity -> control id. The value is an arbitrary choice of
-> userspace. Binding's task is to route the ctrl ioctl to a desired
-> pipeline entity if more than one supports same control.
-
-Correct. But even that's more efficient if you don't need to iterate over
-all the entities.
-
+> We have common.txt LED bindings, that all LED class drivers' bindings
+> have to follow. Neither backlight bindings nor these ones do that,
+> which introduces some mess.
 > 
-> Effectively we'd need a list of controls as a keys and entities
-> as values. The list should be allocated dynamically as it would
-> make no sense to keep keys for all v4l2 controls if only few bindings
-> are defined.
-> 
-> Best regards,
-> Jacek Anaszewski
-> 
-> >Cc Laurent as well.
-> >
-> >>
-> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >>---
-> >> utils/media-ctl/libv4l2subdev.c | 32 ++++++++++++++++++++++++++++++++
-> >> utils/media-ctl/v4l2subdev.h    | 19 +++++++++++++++++++
-> >> 2 files changed, 51 insertions(+)
-> >>
-> >>diff --git a/utils/media-ctl/libv4l2subdev.c b/utils/media-ctl/libv4l2subdev.c
-> >>index c3439d7..4f8ee7f 100644
-> >>--- a/utils/media-ctl/libv4l2subdev.c
-> >>+++ b/utils/media-ctl/libv4l2subdev.c
-> >>@@ -50,7 +50,15 @@ int v4l2_subdev_create(struct media_entity *entity)
-> >>
-> >> 	entity->sd->fd = -1;
-> >>
-> >>+	entity->sd->v4l2_ctrl_bindings = malloc(sizeof(__u32));
-> >>+	if (entity->sd->v4l2_ctrl_bindings == NULL)
-> >>+		goto err_v4l2_ctrl_bindings_alloc;
-> >>+
-> >> 	return 0;
-> >>+
-> >>+err_v4l2_ctrl_bindings_alloc:
-> >>+	free(entity->sd);
-> >>+	return -ENOMEM;
-> >> }
-> >>
-> >> int v4l2_subdev_create_opened(struct media_entity *entity, int fd)
-> >>@@ -102,6 +110,7 @@ void v4l2_subdev_close(struct media_entity *entity)
-> >> 	if (entity->sd->fd_owner)
-> >> 		close(entity->sd->fd);
-> >>
-> >>+	free(entity->sd->v4l2_ctrl_bindings);
-> >> 	free(entity->sd);
-> >> }
-> >>
-> >>@@ -884,3 +893,26 @@ const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(unsigned int *length)
-> >>
-> >> 	return mbus_codes;
-> >> }
-> >>+
-> >>+int v4l2_subdev_supports_v4l2_ctrl(struct media_device *media,
-> >>+				   struct media_entity *entity,
-> >>+				   __u32 ctrl_id)
-> >>+{
-> >>+	struct v4l2_queryctrl queryctrl = {};
-> >>+	int ret;
-> >>+
-> >>+	ret = v4l2_subdev_open(entity);
-> >>+	if (ret < 0)
-> >>+		return ret;
-> >>+
-> >>+	queryctrl.id = ctrl_id;
-> >>+
-> >>+	ret = ioctl(entity->sd->fd, VIDIOC_QUERYCTRL, &queryctrl);
-> >>+	if (ret < 0)
-> >>+		return ret;
-> >>+
-> >>+	media_dbg(media, "Validated control \"%s\" (0x%8.8x) on entity %s\n",
-> >>+		  queryctrl.name, queryctrl.id, entity->info.name);
-> >>+
-> >>+	return 0;
-> >>+}
-> >>diff --git a/utils/media-ctl/v4l2subdev.h b/utils/media-ctl/v4l2subdev.h
-> >>index 011fab1..4dee6b1 100644
-> >>--- a/utils/media-ctl/v4l2subdev.h
-> >>+++ b/utils/media-ctl/v4l2subdev.h
-> >>@@ -26,10 +26,14 @@
-> >>
-> >> struct media_device;
-> >> struct media_entity;
-> >>+struct media_device;
-> >>
-> >> struct v4l2_subdev {
-> >> 	int fd;
-> >> 	unsigned int fd_owner:1;
-> >>+
-> >>+	__u32 *v4l2_ctrl_bindings;
-> >>+	unsigned int num_v4l2_ctrl_bindings;
-> >> };
-> >>
-> >> /**
-> >>@@ -314,4 +318,19 @@ enum v4l2_field v4l2_subdev_string_to_field(const char *string);
-> >> const enum v4l2_mbus_pixelcode *v4l2_subdev_pixelcode_list(
-> >> 	unsigned int *length);
-> >>
-> >>+/**
-> >>+ * @brief Check if sub-device supports given v4l2 control
-> >>+ * @param media - media device.
-> >>+ * @param entity - media entity.
-> >>+ * @param ctrl_id - id of the v4l2 control to check.
-> >>+ *
-> >>+ * Verify if the sub-device associated with given media entity
-> >>+ * supports v4l2-control with given ctrl_id.
-> >>+ *
-> >>+ * @return 1 if the control is supported, 0 otherwise.
-> >>+ */
-> >>+int v4l2_subdev_supports_v4l2_ctrl(struct media_device *device,
-> >>+				   struct media_entity *entity,
-> >>+				   __u32 ctrl_id);
-> >>+
-> >> #endif
-> >
+> Eventually adding a sub-directory, e.g. remote_control could make it
+> somehow logically justified, but still - shouldn't bindings be
+> placed in the documentation directory related to the subsystem of the
+> driver they are predestined to?
 
--- 
-Kind regards,
+In principle I agree with you, also because I understood that the
+led kind of bindings are for those LEDs which main function is to
+emit light.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+There is no need for a remote control directory, because there is
+one already under bindings/media, where all the remote
+controllers are placed.
+
+Now this is a matter of interpretation, is this an IR LED used by
+the driver as remote controller or is this a remote controller
+with just an IR LED?
+
+In any case, I will wait for you and Rob to agree where is best
+to place the binding, then I will send a new version.
+
+Thanks,
+Andi
