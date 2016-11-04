@@ -1,60 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:37730 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755315AbcKKJrX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 04:47:23 -0500
-Received: by mail-wm0-f42.google.com with SMTP id t79so81679725wmt.0
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 01:47:22 -0800 (PST)
+Received: from mailgw01.mediatek.com ([210.61.82.183]:32228 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753677AbcKDEVg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 00:21:36 -0400
+Message-ID: <1478233287.23008.17.camel@mtksdaap41>
+Subject: Re: [PATCH v2 1/3] dt-bindings: mediatek: Add a binding for
+ Mediatek JPEG Decoder
+From: Rick Chang <rick.chang@mediatek.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        "Minghsiu Tsai" <minghsiu.tsai@mediatek.com>
+Date: Fri, 4 Nov 2016 12:21:27 +0800
+In-Reply-To: <5665939.z4I9T3nobc@avalon>
+References: <1477898217-19250-1-git-send-email-rick.chang@mediatek.com>
+         <1477898217-19250-2-git-send-email-rick.chang@mediatek.com>
+         <5665939.z4I9T3nobc@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-In-Reply-To: <201611101146.cbVxBQXg%fengguang.wu@intel.com>
-References: <1478701441-29107-5-git-send-email-m.szyprowski@samsung.com> <201611101146.cbVxBQXg%fengguang.wu@intel.com>
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Date: Fri, 11 Nov 2016 10:47:20 +0100
-Message-ID: <CAPDyKFqN=haG0HvpXgQr3nqfNUhhxRku8zbW1QJngPUyLDjokw@mail.gmail.com>
-Subject: Re: [PATCH 04/12] exynos-gsc: Make runtime PM callbacks available for CONFIG_PM
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 November 2016 at 04:44, kbuild test robot <lkp@intel.com> wrote:
-> Hi Ulf,
->
-> [auto build test ERROR on linuxtv-media/master]
-> [also build test ERROR on v4.9-rc4 next-20161109]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->
-> url:    https://github.com/0day-ci/linux/commits/Marek-Szyprowski/media-Exynos-GScaller-driver-fixes/20161110-000048
-> base:   git://linuxtv.org/media_tree.git master
-> config: openrisc-allyesconfig (attached as .config)
-> compiler: or32-linux-gcc (GCC) 4.5.1-or32-1.0rc1
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=openrisc
->
-> Note: the linux-review/Marek-Szyprowski/media-Exynos-GScaller-driver-fixes/20161110-000048 HEAD 92b20676ac75659d1ea1d83b00e8028f45ea84e9 builds fine.
->       It only hurts bisectibility.
->
-> All errors (new ones prefixed by >>):
->
->    drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_resume':
->>> drivers/media/platform/exynos-gsc/gsc-core.c:1183:3: error: implicit declaration of function 'gsc_runtime_resume'
->    drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_suspend':
->>> drivers/media/platform/exynos-gsc/gsc-core.c:1198:3: error: implicit declaration of function 'gsc_runtime_suspend'
->
+Hi Laurent,
 
-Marek, to avoid the bisectibility issue, we could squash patch 4/12 with 6/12.
+Thanks for your patient review.I will fix them in the next patch (v3).
 
-Do you want to do it, or you prefer me to re-spin the series?
+On Thu, 2016-11-03 at 20:33 +0200, Laurent Pinchart wrote:
+> Hi Rick,
+> 
+> Thank you for the patch.
+> 
+> On Monday 31 Oct 2016 15:16:55 Rick Chang wrote:
+> > Add a DT binding documentation for Mediatek JPEG Decoder of
+> > MT2701 SoC.
+> > 
+> > Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> > ---
+> >  .../bindings/media/mediatek-jpeg-codec.txt         | 35 +++++++++++++++++++
+> >  1 file changed, 35 insertions(+)
+> >  create mode 100644
+> > Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> > 
+> > diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> > b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt new file
+> > mode 100644
+> > index 0000000..514e656
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> > @@ -0,0 +1,35 @@
+> > +* Mediatek JPEG Codec
+> 
+> Is it a codec or a decoder only ?
 
-Kind regards
-Uffe
+It's a decoder precisely.
+
+> > +Mediatek JPEG Codec device driver is a v4l2 driver which can decode
+> > +JPEG-encoded video frames.
+> 
+> DT bindings should not reference drivers, they are OS-agnostic.
+
+OK.
+
+> > +Required properties:
+> > +  - compatible : "mediatek,mt2701-jpgdec"
+> > +  - reg : Physical base address of the jpeg codec registers and length of
+> > +        memory mapped region.
+> > +  - interrupts : interrupt number to the cpu.
+> 
+> That's actually not correct, the interrupt number is local to the interrupt 
+> controller, not to the CPU.
+
+OK.
+
+> > +  - clocks : clock name from clock manager
+> 
+> The clocks property doesn't contain a name.
+
+OK.
+
+> Until we provide standardized descriptions for those properties, I recommend 
+> copying the compatible, reg, interrupts, clocks, clock-names, power-domains 
+> and iommus properties descriptions from good DT bindings. Which DT bindings 
+> are good source of inspiration here is left as an exercise for the reader I'm 
+> afraid :-(
+
+Thank you for the advice. I will revise the descriptions with the
+statements in existed upstream documents.
+
+> > +  - clock-names: the clocks of the jpeg codec H/W
+> > +  - power-domains : a phandle to the power domain.
+> > +  - larb : must contain the larbes of current platform
+> 
+> Shouldn't this be mediatek,larb ? And what is a larb ?
+
+It should be mediatek,larb.
+
+> > +  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
+> > +        the multimedia H/W. and there is only one multimedia iommu domain.
+> > +        "iommus = <&iommu portid>" the "portid" is from
+> > +        dt-bindings\iommu\mt2701-iommu-port.h, it means that this portid
+> > will
+> > +        enable iommu. The portid default is disable iommu if "<&iommu> 
+> portid>"
+> > +        don't be added.
+> 
+> There are two iommus instances in your example below, this should be 
+> documented. This description is not very clear I'm afraid.
+
+OK.
+
+> > +
+> > +Example:
+> > +	jpegdec: jpegdec@15004000 {
+> > +		compatible = "mediatek,mt2701-jpgdec";
+> > +		reg = <0 0x15004000 0 0x1000>;
+> > +		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
+> > +		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
+> > +			  <&imgsys CLK_IMG_JPGDEC>;
+> > +		clock-names = "jpgdec-smi",
+> > +			      "jpgdec";
+> > +		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+> > +		mediatek,larb = <&larb2>;
+> > +		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
+> > +			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
+> > +	};
+> 
+
+
