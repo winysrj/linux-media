@@ -1,99 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:36180 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756908AbcK2KOe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 05:14:34 -0500
-Date: Tue, 29 Nov 2016 10:14:18 +0000
-From: Javi Merino <javi.merino@kernel.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Pantelis Antoniou <pantelis.antoniou@konsulko.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] v4l: async: make v4l2 coexists with devicetree nodes in
- a dt overlay
-Message-ID: <20161129101418.GA1708@ct-lt-587>
-References: <1479895797-7946-1-git-send-email-javi.merino@kernel.org>
- <20161123151042.GD16630@valkosipuli.retiisi.org.uk>
- <20161123161511.GB1753@ct-lt-587>
- <20161125082121.GB16630@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20161125082121.GB16630@valkosipuli.retiisi.org.uk>
+Received: from mail.kernel.org ([198.145.29.136]:52802 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S935508AbcKDSTr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 14:19:47 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH 2/4] v4l: vsp1: Move vsp1_video_pipeline_setup_partitions() function
+Date: Fri,  4 Nov 2016 18:19:28 +0000
+Message-Id: <1478283570-19688-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+References: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 25, 2016 at 10:21:21AM +0200, Sakari Ailus wrote:
-Hi Sakari,
+Separate the code change from the function move so that code changes can
+be clearly identified. This commit has no functional change.
 
-> On Wed, Nov 23, 2016 at 04:15:11PM +0000, Javi Merino wrote:
-> > On Wed, Nov 23, 2016 at 05:10:42PM +0200, Sakari Ailus wrote:
-> > > Hi Javi,
-> > 
-> > Hi Sakari,
-> > 
-> > > On Wed, Nov 23, 2016 at 10:09:57AM +0000, Javi Merino wrote:
-> > > > In asd's configured with V4L2_ASYNC_MATCH_OF, if the v4l2 subdev is in
-> > > > a devicetree overlay, its of_node pointer will be different each time
-> > > > the overlay is applied.  We are not interested in matching the
-> > > > pointer, what we want to match is that the path is the one we are
-> > > > expecting.  Change to use of_node_cmp() so that we continue matching
-> > > > after the overlay has been removed and reapplied.
-> > > > 
-> > > > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> > > > Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> > > > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > > Signed-off-by: Javi Merino <javi.merino@kernel.org>
-> > > > ---
-> > > > Hi,
-> > > > 
-> > > > I feel it is a bit of a hack, but I couldn't think of anything better.
-> > > > I'm ccing devicetree@ and Pantelis because there may be a simpler
-> > > > solution.
-> > > 
-> > > First I have to admit that I'm not an expert when it comes to DT overlays.
-> > > 
-> > > That said, my understanding is that the sub-device and the async sub-device
-> > > are supposed to point to the exactly same DT node. I wonder if there's
-> > > actually anything wrong in the current code.
-> > > 
-> > > If the overlay has changed between probing the driver for the async notifier
-> > > and the async sub-device, there should be no match here, should there? The
-> > > two nodes actually point to a node in a different overlay in that case.
-> > 
-> > Overlays are parts of the devicetree that can be added and removed.
-> > When the overlay is applied, the camera driver is probed and does
-> > v4l2_async_register_subdev().  However, v4l2_async_belongs() fails.
-> > The problem is with comparing pointers.  I haven't looked at the
-> > implementation of overlays in detail, but what I see is that the
-> > of_node pointer changes when you remove and reapply an overlay (I
-> > guess it's dynamically allocated and when you remove the overlay, it's
-> > freed).
-> 
-> The concern here which we were discussing was whether the overlay should be
-> relied on having compliant configuration compared to the part which was not
-> part of the overlay.
-> 
-> As external components are involved, quite possibly also the ISP DT node
-> will require changes, not just the image source (TV tuner, camera sensor
-> etc.). This could be because of number of CSI-2 lanes or parallel bus width,
-> for instance.
-> 
-> I'd also be interested in having an actual driver implement support for
-> removing and adding a DT overlay first so we'd see how this would actually
-> work. We need both in order to be able to actually remove and add DT
-> overlays _without_ unbinding the ISP driver. Otherwise it should already
-> work in the current codebase.
+The partition algorithm functions will be changed, and
+vsp1_video_partition() will call vsp1_video_pipeline_setup_partitions().
+To prepare for that, move the function without any code change.
 
-Unfortunately, the driver I'm working on is not upstream and I can't
-submit it to mainline.  This patch fixes the issue for me, so I
-thought it could be useful fix for the kernel.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 74 ++++++++++++++++----------------
+ 1 file changed, 37 insertions(+), 37 deletions(-)
 
-Cheers,
-Javi
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index d1d3413c6fdf..6d43c02bbc56 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -175,43 +175,6 @@ static int __vsp1_video_try_format(struct vsp1_video *video,
+  * VSP1 Partition Algorithm support
+  */
+ 
+-static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+-{
+-	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+-	const struct v4l2_mbus_framefmt *format;
+-	struct vsp1_entity *entity;
+-	unsigned int div_size;
+-
+-	/*
+-	 * Partitions are computed on the size before rotation, use the format
+-	 * at the WPF sink.
+-	 */
+-	format = vsp1_entity_get_pad_format(&pipe->output->entity,
+-					    pipe->output->entity.config,
+-					    RWPF_PAD_SINK);
+-	div_size = format->width;
+-
+-	/* Gen2 hardware doesn't require image partitioning. */
+-	if (vsp1->info->gen == 2) {
+-		pipe->div_size = div_size;
+-		pipe->partitions = 1;
+-		return;
+-	}
+-
+-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
+-
+-		if (entity->ops->max_width) {
+-			entity_max = entity->ops->max_width(entity, pipe);
+-			if (entity_max)
+-				div_size = min(div_size, entity_max);
+-		}
+-	}
+-
+-	pipe->div_size = div_size;
+-	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+-}
+-
+ /**
+  * vsp1_video_partition - Calculate the active partition output window
+  *
+@@ -286,6 +249,43 @@ static struct v4l2_rect vsp1_video_partition(struct vsp1_pipeline *pipe,
+ 	return partition;
+ }
+ 
++static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
++	const struct v4l2_mbus_framefmt *format;
++	struct vsp1_entity *entity;
++	unsigned int div_size;
++
++	/*
++	 * Partitions are computed on the size before rotation, use the format
++	 * at the WPF sink.
++	 */
++	format = vsp1_entity_get_pad_format(&pipe->output->entity,
++					    pipe->output->entity.config,
++					    RWPF_PAD_SINK);
++	div_size = format->width;
++
++	/* Gen2 hardware doesn't require image partitioning. */
++	if (vsp1->info->gen == 2) {
++		pipe->div_size = div_size;
++		pipe->partitions = 1;
++		return;
++	}
++
++	list_for_each_entry(entity, &pipe->entities, list_pipe) {
++		unsigned int entity_max = VSP1_VIDEO_MAX_WIDTH;
++
++		if (entity->ops->max_width) {
++			entity_max = entity->ops->max_width(entity, pipe);
++			if (entity_max)
++				div_size = min(div_size, entity_max);
++		}
++	}
++
++	pipe->div_size = div_size;
++	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Pipeline Management
+  */
+-- 
+2.7.4
 
