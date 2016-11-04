@@ -1,80 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45015
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752528AbcKJIHj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 03:07:39 -0500
-Date: Thu, 10 Nov 2016 06:07:17 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
-Message-ID: <20161110060717.221e8d88@vento.lan>
-In-Reply-To: <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
-References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
-        <20161108155520.224229d5@vento.lan>
-        <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
-        <20161109073331.204b53c4@vento.lan>
-        <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
-        <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
-        <20161109153521.232b0956@vento.lan>
-        <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
+Received: from muru.com ([72.249.23.125]:57166 "EHLO muru.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755815AbcKDOtm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 10:49:42 -0400
+Date: Fri, 4 Nov 2016 07:49:36 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
+        pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, khilman@kernel.org,
+        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+        linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20161104144936.GG21430@atomide.com>
+References: <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
+ <20160808232323.GC2946@xo-6d-61-c0.localdomain>
+ <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
+ <20160818104539.GA7427@amd>
+ <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+ <20161103102727.GA10084@amd>
+ <20161103214900.GH3217@valkosipuli.retiisi.org.uk>
+ <20161104074533.GB3679@amd>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20161104074533.GB3679@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 9 Nov 2016 17:03:52 -0800
-VDR User <user.vdr@gmail.com> escreveu:
-
-> >> (gdb) l *module_put+0x67
-> >> 0xc10a4b87 is in module_put (kernel/module.c:1108).
-> >> 1103            int ret;
-> >> 1104
-> >> 1105            if (module) {
-> >> 1106                    preempt_disable();
-> >> 1107                    ret = atomic_dec_if_positive(&module->refcnt);
-> >> 1108                    WARN_ON(ret < 0);       /* Failed to put refcount */
-> >> 1109                    trace_module_put(module, _RET_IP_);
-> >> 1110                    preempt_enable();
-> >> 1111            }
-> >> 1112    }  
-> >
-> > OK, I guess we've made progress. Please try the enclosed patch.
-> >
-> > Regards,
-> > Mauro
-> >
-> > [media] gp8psk: Fix DVB frontend attach
-> >
-> > it should be calling module_get() at attach, as otherwise
-> > module_put() will crash.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+* Pavel Machek <pavel@ucw.cz> [161104 00:45]:
+> Hi!
 > 
-> I think you forgot the patch. :)
+> > > > I have to admit I mostly use an N9.
+> > > 
+> > > Well, if you compare that to development on PC, I prefer PC.
+> > > 
+> > > Even arm development boards are usually easier, as they don't need too
+> > > complex userspace, and do have working serial ports.
+> > > 
+> > > But I do have a serial adapter for N900 now (thanks, sre), so my main
+> > > problem now is that N900 takes a lot of time to boot into usable
+> > > state.
+> > 
+> > Yeah... I just upgraded my Debian installation (armel over NFS) a few major
+> > numbers and I find it a lot slower than it used to do. I presume that's
+> > mostly because of systemd...
+> 
+> I'm not sure if systemd is to blame. (I'm booting into full GUI...)
+> 
+> And yes, I noticed the slowdown in Debian 7 -> 8 transition, so I'm
+> basically staying at Debian 7 as far as I can.
 
-commit 0c979a12309af49894bb1dc60e747c3cd53fa888
-Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Date:   Wed Nov 9 15:33:17 2016 -0200
+Maybe it's the armel vs armhf causing the slowdown?
 
-    [media] gp8psk: Fix DVB frontend attach
-    
-    it should be calling module_get() at attach, as otherwise
-    module_put() will crash.
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Regards,
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index cede0d8b0f8a..24eb6c6c8e24 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -250,7 +250,7 @@ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 
- static int gp8psk_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	adap->fe_adap[0].fe = gp8psk_fe_attach(adap->dev);
-+	adap->fe_adap[0].fe = dvb_attach(gp8psk_fe_attach, adap->dev);
- 	return 0;
- }
+Tony
+
+
