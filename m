@@ -1,127 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35062 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932267AbcKJKbl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 05:31:41 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 4/4] s5p-mfc: Use clock gating only on MFC v5 hardware
-Date: Thu, 10 Nov 2016 11:31:23 +0100
-Message-id: <1478773883-12083-5-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478773883-12083-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478773883-12083-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161110103136eucas1p2c55d1177fcc97c5dbf1bc650e88d72ce@eucas1p2.samsung.com>
+Received: from bear.ext.ti.com ([198.47.19.11]:58582 "EHLO bear.ext.ti.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757258AbcKDH6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 03:58:06 -0400
+From: Peter Ujfalusi <peter.ujfalusi@ti.com>
+To: <laurent.pinchart@ideasonboard.com>, <mchehab@osg.samsung.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
+Subject: [PATCH v2] media: omap3isp: Use dma_request_chan_by_mask() to request the DMA channel
+Date: Fri, 4 Nov 2016 09:58:02 +0200
+Message-ID: <20161104075802.19063-1-peter.ujfalusi@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Newer MFC hardware have internal clock gating feature, so additional
-software-triggered clock gating sometimes causes misbehavior of the MFC
-firmware and results in freeze or crash. This patch changes the driver
-to use software-triggered clock gating only when working with v5 MFC
-hardware, where it has been proven to work properly.
+When requesting the DMA channel it was mandatory that we do not have DMA
+resource nor valid DMA channel via DT. In this case the
+dma_request_slave_channel_compat() would fall back and request any channel
+with SW trigger.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+The same can be achieved with the dma_request_chan_by_mask() without the
+misleading use of the DMAengine API - implying that the omap3isp does
+need to have DMA resource or valid dma binding in DT.
+
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     | 17 +++++++++++++++--
- 3 files changed, 18 insertions(+), 2 deletions(-)
+Hi,
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 994a27b..7d39359 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1441,6 +1441,7 @@ static int s5p_mfc_runtime_resume(struct device *dev)
- 	.buf_size	= &buf_size_v5,
- 	.buf_align	= &mfc_buf_align_v5,
- 	.fw_name[0]	= "s5p-mfc.fw",
-+	.use_clock_gating = true,
- };
+Changes sicne v1:
+- use dma_request_chan_by_mask() to request the channel as for the histogram
+  data reading we do not have hw syncronisation. Add comment about this also to
+  clarify the reason.
+
+Regards,
+Peter
+
+ drivers/media/platform/omap3isp/isphist.c | 28 +++++++++++++++-------------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/platform/omap3isp/isphist.c b/drivers/media/platform/omap3isp/isphist.c
+index 7138b043a4aa..a4ed5d140d48 100644
+--- a/drivers/media/platform/omap3isp/isphist.c
++++ b/drivers/media/platform/omap3isp/isphist.c
+@@ -18,7 +18,6 @@
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/dmaengine.h>
+-#include <linux/omap-dmaengine.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
  
- static struct s5p_mfc_buf_size_v6 mfc_buf_size_v6 = {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 46b99f2..c068ee3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -199,6 +199,7 @@ struct s5p_mfc_buf {
- struct s5p_mfc_pm {
- 	struct clk	*clock;
- 	struct clk	*clock_gate;
-+	bool		use_clock_gating;
- 	atomic_t	power;
- 	struct device	*device;
- };
-@@ -235,6 +236,7 @@ struct s5p_mfc_variant {
- 	struct s5p_mfc_buf_size *buf_size;
- 	struct s5p_mfc_buf_align *buf_align;
- 	char	*fw_name[MFC_FW_MAX_VERSIONS];
-+	bool		use_clock_gating;
- };
+@@ -486,27 +485,30 @@ int omap3isp_hist_init(struct isp_device *isp)
+ 	hist->isp = isp;
  
- /**
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 930dc2d..b5806ab 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -37,6 +37,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+ 	if (HIST_CONFIG_DMA) {
+-		struct platform_device *pdev = to_platform_device(isp->dev);
+-		struct resource *res;
+-		unsigned int sig = 0;
+ 		dma_cap_mask_t mask;
  
- 	pm = &dev->pm;
- 	p_dev = dev;
-+	pm->use_clock_gating = dev->variant->use_clock_gating;
- 	pm->clock_gate = clk_get(&dev->plat_dev->dev, MFC_GATE_CLK_NAME);
- 	if (IS_ERR(pm->clock_gate)) {
- 		mfc_err("Failed to get clock-gating control\n");
-@@ -108,6 +109,8 @@ int s5p_mfc_clock_on(void)
- 	atomic_inc(&clk_ref);
- 	mfc_debug(3, "+ %d\n", atomic_read(&clk_ref));
- #endif
-+	if (!pm->use_clock_gating)
-+		return 0;
- 	if (!IS_ERR_OR_NULL(pm->clock_gate))
- 		ret = clk_enable(pm->clock_gate);
- 	return ret;
-@@ -119,22 +122,32 @@ void s5p_mfc_clock_off(void)
- 	atomic_dec(&clk_ref);
- 	mfc_debug(3, "- %d\n", atomic_read(&clk_ref));
- #endif
-+	if (!pm->use_clock_gating)
-+		return;
- 	if (!IS_ERR_OR_NULL(pm->clock_gate))
- 		clk_disable(pm->clock_gate);
- }
++		/*
++		 * We need slave capable channel without DMA request line for
++		 * reading out the data.
++		 * For this we can use dma_request_chan_by_mask() as we are
++		 * happy with any channel as long as it is capable of slave
++		 * configuration.
++		 */
+ 		dma_cap_zero(mask);
+ 		dma_cap_set(DMA_SLAVE, mask);
++		hist->dma_ch = dma_request_chan_by_mask(&mask);
++		if (IS_ERR(hist->dma_ch)) {
++			ret = PTR_ERR(hist->dma_ch);
++			if (ret == -EPROBE_DEFER)
++				return ret;
  
- int s5p_mfc_power_on(void)
- {
-+	int ret = 0;
-+
- #ifdef CONFIG_PM
--	return pm_runtime_get_sync(pm->device);
-+	ret = pm_runtime_get_sync(pm->device);
-+	if (ret)
-+		return ret;
- #else
- 	atomic_set(&pm->power, 1);
--	return 0;
- #endif
-+	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
-+		ret = clk_enable(pm->clock_gate);
-+	return ret;
- }
+-		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
+-						   "hist");
+-		if (res)
+-			sig = res->start;
+-
+-		hist->dma_ch = dma_request_slave_channel_compat(mask,
+-				omap_dma_filter_fn, &sig, isp->dev, "hist");
+-		if (!hist->dma_ch)
++			hist->dma_ch = NULL;
+ 			dev_warn(isp->dev,
+ 				 "hist: DMA channel request failed, using PIO\n");
+-		else
++		} else {
+ 			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
+ 				dma_chan_name(hist->dma_ch));
++		}
+ 	}
  
- int s5p_mfc_power_off(void)
- {
-+	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
-+		clk_disable(pm->clock_gate);
- #ifdef CONFIG_PM
- 	return pm_runtime_put_sync(pm->device);
- #else
+ 	hist->ops = &hist_ops;
 -- 
-1.9.1
+2.10.2
 
