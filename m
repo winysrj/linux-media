@@ -1,95 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:6147 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752165AbcKBQdt (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:33236 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1760667AbcKDIHA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Nov 2016 12:33:49 -0400
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Wed, 2 Nov 2016 17:33:44 +0100
-Subject: Re: YUV444 contradicting wikipedia
-Message-ID: <8225474f-68f3-5571-366b-df022c903c31@st.com>
-References: <Pine.LNX.4.64.1610270806540.21294@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1610270806540.21294@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+        Fri, 4 Nov 2016 04:07:00 -0400
+Subject: Re: [PATCH 10/34] [media] DaVinci-VPBE: Check return value of a
+ setup_if_config() call in vpbe_set_output()
+To: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+ <47590f2e-1cfa-582d-769e-502802171b66@users.sourceforge.net>
+ <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
+ <680a0feb-3748-da16-9b79-297e1ab9044d@users.sourceforge.net>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Manjunath Hadli <manjunath.hadli@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c261629c-bf59-2037-3cff-ed415fc66e76@xs4all.nl>
+Date: Fri, 4 Nov 2016 09:06:56 +0100
 MIME-Version: 1.0
+In-Reply-To: <680a0feb-3748-da16-9b79-297e1ab9044d@users.sourceforge.net>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
-
-
-"4:x:y" refers to chroma subsampling, details here: 
-https://en.wikipedia.org/wiki/Chroma_subsampling. With "YUV 4:4:4" each 
-pixel has 1 Luma information and 1 Chroma information: 1 Y + 1 Cb + 1 Cr 
-= 24 bits per pixel.
-
-
-In top of that, each of the three components (Y, Cb, Cr) can be stored 
-in a single memory plane (packed format), just like usual RGB formats 
-are. Or components can be stored in 2 (Y + Cb-Cr) or 3 (Y + Cb + Cr) 
-memory planes.
-
-
-The combination of the chroma subsampling and the number of planes, 
-defines a pixel format. The problem is that each sub-system (DRM, V4L2, 
-GStreamer, ...) uses its own constants with unfortunately unconsistent 
-names across them.
-
-
-Let's consider the YUV 4:4:4 with three planes format:
-
-DRM =    DRM_FORMAT_YUV444
-
-V4L2 =   V4L2_PIX_FMT_YUV444M
-
-GStreamer = GST_VIDEO_FORMAT_Y444
-
-As you can see, although all of them specify the same pixel format, the 
-names are quite different.
-
-And regarding V4L2_PIX_FMT_YUV444 (not ending with "M"), it defines 
-another format with the following specifications:
-
-- YUV packed
-
-- 4:4:4 chroma sampling
-
-- Alpha (when supported by driver)
-
-- 4 (not 8) bits per component
-
-Very different from the "standard" YUV 4:4:4 pixel format.
-
-I agree that its name is confusing, but since it is part of the API, we 
-shall consider that it won't be updated.
-
- From what I have seen, DRM (maybe because it is a relatively recent 
-'framework') has a clear definition of the pixel formats.
-
-
-Fabien
-
-
-On 10/27/2016 08:16 AM, Guennadi Liakhovetski wrote:
-> Hi,
+On 03/11/16 21:54, SF Markus Elfring wrote:
+>>> From: Markus Elfring <elfring@users.sourceforge.net>
+>>> Date: Wed, 12 Oct 2016 09:56:56 +0200
+>>>
+>>> * A function was called over the pointer "setup_if_config" in the data
+>>>   structure "venc_platform_data". But the return value was not used so far.
+>>>   Thus assign it to the local variable "ret" which will be checked with
+>>>   the next statement.
+>>>
+>>>   Fixes: 9a7f95ad1c946efdd7a7a72df27db738260a0fd8 ("[media] davinci vpbe: add dm365 VPBE display driver changes")
+>>>
+>>> * Pass a value to this function call without storing it in an intermediate
+>>>   variable before.
+>>>
+>>> * Delete the local variable "if_params" which became unnecessary with
+>>>   this refactoring.
+>>>
+>>> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+>>> ---
+>>>  drivers/media/platform/davinci/vpbe.c | 5 ++---
+>>>  1 file changed, 2 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+>>> index 19611a2..6e7b0df 100644
+>>> --- a/drivers/media/platform/davinci/vpbe.c
+>>> +++ b/drivers/media/platform/davinci/vpbe.c
+>>> @@ -227,7 +227,6 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>>>              vpbe_current_encoder_info(vpbe_dev);
+>>>      struct vpbe_config *cfg = vpbe_dev->cfg;
+>>>      struct venc_platform_data *venc_device = vpbe_dev->venc_device;
+>>> -    u32 if_params;
+>>>      int enc_out_index;
+>>>      int sd_index;
+>>>      int ret = 0;
+>>> @@ -257,8 +256,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
+>>>              goto out;
+>>>          }
+>>>
+>>> -        if_params = cfg->outputs[index].if_params;
+>>> -        venc_device->setup_if_config(if_params);
+>>> +        ret = venc_device->setup_if_config(cfg
+>>> +                           ->outputs[index].if_params);
+>>
+>> Either keep this as one line
 >
-> Looks like the Linux definition of the (packed) YUV444 format contradicts
-> wikipedia. According to
-> https://linuxtv.org/downloads/v4l-dvb-apis-new/uapi/v4l/pixfmt-packed-yuv.html
-> The Linux V4L2_PIX_FMT_YUV444 format takes 16 bits per pixel, whereas the
-> wikipedia
-> https://en.wikipedia.org/wiki/YUV#Converting_between_Y.E2.80.B2UV_and_RGB
-> says it's 24 bits per pixel. I understand that the wikipedia doesn't have
-> an absolute authority, but I also saw other sources using the same
-> definition. So, looks like some confusion is possible.
+> Will you tolerate a line length of 82 characters then?
+
+Yes, if it improves readability, which it does.
+
 >
-> Thanks
-> Guennadi
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>> or keep the if_params temp variable.
+>
+> My proposal was to get rid of it.
+>
+>
+>> This odd linebreak is ugly.
+>
+> I am curious on how the desired changes can be integrated after a couple of update
+> suggestions were accepted from this patch series.
+
+See my previous reply to 17/34.
+
+Regards,
+
+	Hans
