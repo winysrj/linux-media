@@ -1,46 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44716
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933567AbcKPPTj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 10:19:39 -0500
-Date: Wed, 16 Nov 2016 13:19:32 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [GIT PULL] Samsung fixes for 4.8
-Message-ID: <20161116131932.7c2908e3@vento.lan>
-In-Reply-To: <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
-References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
-        <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
-        <20161021102607.2df96630@vento.lan>
-        <70cc3f35-e661-c76f-8620-dfeb74030183@samsung.com>
-        <20161116124600.66e4c9e4@vento.lan>
-        <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:24099 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933422AbcKDFvl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 01:51:41 -0400
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>
+Subject: [PATCH v3 3/3] arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+Date: Fri, 4 Nov 2016 13:51:20 +0800
+Message-ID: <1478238680-11310-4-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1478238680-11310-1-git-send-email-rick.chang@mediatek.com>
+References: <1478238680-11310-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Nov 2016 16:08:19 +0100
-Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+This patch depends on: 
+  CCF "Add clock support for Mediatek MT2701"[1]
+  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
 
-> On 11/16/2016 03:46 PM, Mauro Carvalho Chehab wrote:
-> >>>> Marek Szyprowski (1):  
-> >>>> > >>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()    
-> >> > 
-> >> > Mauro, this patch seems to had slipped through the cracks, I can't see it
-> >> > in neither media fixes nor the master branch. Could you please check it?  
-> >
-> > The patch seems to be on my tree:  
-> 
-> Oops, sorry, I didn't check it properly. Would be nice to see that
-> patch also in linux-next.
+[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+[2] https://patchwork.kernel.org/patch/9164013/
+---
+ arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-I'll likely add all patches at linux-next today, after handling more
-patches.
+diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
+index 8f13c70..4dd5048 100644
+--- a/arch/arm/boot/dts/mt2701.dtsi
++++ b/arch/arm/boot/dts/mt2701.dtsi
+@@ -298,6 +298,20 @@
+ 		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+ 	};
+ 
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,mt2701-jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
++
+ 	vdecsys: syscon@16000000 {
+ 		compatible = "mediatek,mt2701-vdecsys", "syscon";
+ 		reg = <0 0x16000000 0 0x1000>;
+-- 
+1.9.1
 
-Thanks,
-Mauro
