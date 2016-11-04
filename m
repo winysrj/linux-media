@@ -1,49 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Wed, 23 Nov 2016 12:12:15 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Bart Van Assche <bart.vanassche@sandisk.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161123191215.GB12146@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
- <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
+Received: from mail.kernel.org ([198.145.29.136]:50658 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965080AbcKDRyA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 13:54:00 -0400
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCHv2 0/2] vsp1 writeback prototype
+Date: Fri,  4 Nov 2016 17:53:50 +0000
+Message-Id: <1478282032-17571-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 10:40:47AM -0800, Dan Williams wrote:
+Resending this patch series to bring in dri-devel, and interested parties.
+Apologies for the resend to linux-media and linux-renesas-soc.
 
-> I don't think that was designed for the case where the backing memory
-> is a special/static physical address range rather than anonymous
-> "System RAM", right?
+This short series extends the VSP1 on the RCar platforms to allow creating a
+V4L2 video node on display pipelines where the hardware allows writing to
+memory simultaneously.
 
-The hardware doesn't care where the memory is. ODP is just a generic
-mechanism to provide demand-fault behavior for a mirrored page table.
+In this instance, the hardware restricts the output to match the display size
+(no rescaling) but does allow pixel format conversion.
 
-ODP has the same issue as everything else, it needs to translate a
-page table entry into a DMA address, and we have no API to do that
-when the page table points to peer-peer memory.
+A current limitation (that the DRI devs might have ideas about) is that the vb2
+buffers are swapped on the atomic_flush() calls rather than on vsync events.
 
-Jason
+Ideally swapping buffers would occur on every vsync such that the output rate
+of the video node would match the display rate, however the timing here proves
+more difficult to synchronise the updates from a vysnc and flush without adding
+latency to the flush.
+
+Is there anything I can do to synchronise the v4l2 buffers with the DRM/KMS
+interfaces currently? Or does anyone have any suggestions for extending as
+such?
+
+And of course ideas on anything that could be done generically to support other
+targets as well would be worth considering - though currently this
+implementation is very RCar/VSP1 specific.
+
+
+Kieran Bingham (2):
+  Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
+  v4l: vsp1: Provide a writeback video device
+
+ drivers/media/platform/vsp1/vsp1.h       |   1 +
+ drivers/media/platform/vsp1/vsp1_drm.c   |  19 ++++
+ drivers/media/platform/vsp1/vsp1_drv.c   |   5 +-
+ drivers/media/platform/vsp1/vsp1_rwpf.h  |   1 +
+ drivers/media/platform/vsp1/vsp1_video.c | 161 ++++++++++++++++++++++++++++---
+ drivers/media/platform/vsp1/vsp1_video.h |   5 +
+ drivers/media/platform/vsp1/vsp1_wpf.c   |  19 +++-
+ 7 files changed, 193 insertions(+), 18 deletions(-)
+
+-- 
+2.7.4
+
