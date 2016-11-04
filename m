@@ -1,58 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64098 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934006AbcKPJFY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 04:05:24 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH 4/9] s5p-mfc: Ensure that clock is disabled before turning
- power off
-Date: Wed, 16 Nov 2016 10:04:53 +0100
-Message-id: <1479287098-30493-5-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
-References: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161116090519eucas1p1021f0aab03499906974608d33aeac4eb@eucas1p1.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59735 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753640AbcKDP4k (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 11:56:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        srv_heupstream@mediatek.com, linux-mediatek@lists.infradead.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: Re: [PATCH v2 1/3] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+Date: Fri, 04 Nov 2016 17:56:29 +0200
+Message-ID: <1792025.53iDXU6qZ9@avalon>
+In-Reply-To: <1478235060.23008.35.camel@mtksdaap41>
+References: <1477898217-19250-1-git-send-email-rick.chang@mediatek.com> <1838616.gXE7Zi2nyC@avalon> <1478235060.23008.35.camel@mtksdaap41>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move clock disabling before turning power off. This will enable later to
-add calls to clk_prepare/unprepare in the s5p_mfc_power_off() function
-to avoid keeping clocks prepared all the time when driver is bound.
+Hi Rick,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+On Friday 04 Nov 2016 12:51:00 Rick Chang wrote:
+> On Thu, 2016-11-03 at 20:34 +0200, Laurent Pinchart wrote:
+> > On Thursday 03 Nov 2016 20:33:12 Laurent Pinchart wrote:
+> >> On Monday 31 Oct 2016 15:16:55 Rick Chang wrote:
+> >>> Add a DT binding documentation for Mediatek JPEG Decoder of
+> >>> MT2701 SoC.
+> >>> 
+> >>> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> >>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> >>> ---
+> >>> 
+> >>>  .../bindings/media/mediatek-jpeg-codec.txt         | 35 ++++++++++++++
+> >>>  1 file changed, 35 insertions(+)
+> >>>  create mode 100644
+> >>> Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> >>> 
+> >>> diff --git
+> >>> a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> >>> b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt new
+> >>> file mode 100644
+> >>> index 0000000..514e656
+> >>> --- /dev/null
+> >>> +++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+> >>> @@ -0,0 +1,35 @@
+> >>> +* Mediatek JPEG Codec
+> >> 
+> >> Is it a codec or a decoder only ?
+> >> 
+> >>> +Mediatek JPEG Codec device driver is a v4l2 driver which can decode
+> >>> +JPEG-encoded video frames.
+> >> 
+> >> DT bindings should not reference drivers, they are OS-agnostic.
+> >> 
+> >>> +Required properties:
+> >>> +  - compatible : "mediatek,mt2701-jpgdec"
+> > 
+> > Is the JPEG decoder found in MT2701 only, or in other Mediatek SoCs as
+> > well ?
+>
+> Yes, the JPEG decoder is found in other Mediatek SoCs. However, the JPEG
+> decoder HW in different SoCs have different register base, interrupt,
+> power-domain and iommu setting.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index a0a29194ccd1..30ceae7eabc5 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -963,11 +963,13 @@ static int s5p_mfc_release(struct file *file)
- 			mfc_debug(2, "Last instance\n");
- 			s5p_mfc_deinit_hw(dev);
- 			del_timer_sync(&dev->watchdog_timer);
-+			s5p_mfc_clock_off();
- 			if (s5p_mfc_power_off() < 0)
- 				mfc_err("Power off failed\n");
-+		} else {
-+			mfc_debug(2, "Shutting down clock\n");
-+			s5p_mfc_clock_off();
- 		}
--		mfc_debug(2, "Shutting down clock\n");
--		s5p_mfc_clock_off();
- 	}
- 	if (dev)
- 		dev->ctx[ctx->num] = NULL;
+That's fine, and that's exactly what the device tree is used for. When an 
+identical IP core is integrated differently in different SoCs, the driver 
+retrieves the resources (base address, clocks, IOMMU, interrupt, power domain 
+and more) from the device tree without any need for SoC-specific code.
+
+> This patch series is only applicable in MT2701.
+
+That was precisely my question, apart from integration properties, is there 
+anything specific to the MT2701 in patches 1/3 and 2/3 ?
+
 -- 
-1.9.1
+Regards,
 
+Laurent Pinchart
