@@ -1,66 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
+Received: from relmlor3.renesas.com ([210.160.252.173]:21655 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750789AbcKDJXf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 4 Nov 2016 05:23:35 -0400
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: Antti Palosaari <crope@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "robh+dt@kernel.org" <robh+dt@kernel.org>,
+        "mark.rutland@arm.com" <mark.rutland@arm.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        "geert@linux-m68k.org" <geert@linux-m68k.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>
+Subject: RE: [RFC 5/5] doc_rst: media: New SDR formats SC16, SC18 & SC20
+Date: Fri, 4 Nov 2016 09:23:29 +0000
+Message-ID: <SG2PR06MB103893781A3AC3FAB8389DB8C3A20@SG2PR06MB1038.apcprd06.prod.outlook.com>
+References: <1476281429-27603-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <2893157.XL3Txm4q5I@avalon>
+ <SG2PR06MB10389152CEC59BB77A5DA7DDC3A00@SG2PR06MB1038.apcprd06.prod.outlook.com>
+ <6165707.yDnDHhpUBT@avalon> <9ec35a3a-02a7-8067-8f7c-23243de8456a@iki.fi>
+In-Reply-To: <9ec35a3a-02a7-8067-8f7c-23243de8456a@iki.fi>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
-From: Daniel Vetter <daniel@ffwll.ch>
-Date: Tue, 22 Nov 2016 21:10:43 +0100
-Message-ID: <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
-> <serguei.sagalovitch@amd.com> wrote:
->> I personally like "device-DAX" idea but my concerns are:
->>
->> -  How well it will co-exists with the  DRM infrastructure / implementations
->>    in part dealing with CPU pointers?
->
-> Inside the kernel a device-DAX range is "just memory" in the sense
-> that you can perform pfn_to_page() on it and issue I/O, but the vma is
-> not migratable. To be honest I do not know how well that co-exists
-> with drm infrastructure.
->
->> -  How well we will be able to handle case when we need to "move"/"evict"
->>    memory/data to the new location so CPU pointer should point to the new
->> physical location/address
->>     (and may be not in PCI device memory at all)?
->
-> So, device-DAX deliberately avoids support for in-kernel migration or
-> overcommit. Those cases are left to the core mm or drm. The device-dax
-> interface is for cases where all that is needed is a direct-mapping to
-> a statically-allocated physical-address range be it persistent memory
-> or some other special reserved memory range.
-
-For some of the fancy use-cases (e.g. to be comparable to what HMM can
-pull off) I think we want all the magic in core mm, i.e. migration and
-overcommit. At least that seems to be the very strong drive in all
-general-purpose gpu abstractions and implementations, where memory is
-allocated with malloc, and then mapped/moved into vram/gpu address
-space through some magic, but still visible on both the cpu and gpu
-side in some form. Special device to allocate memory, and not being
-able to migrate stuff around sound like misfeatures from that pov.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+SGkgQW50dGksDQoNClRoYW5rcyBmb3IgdGhlIHJlc3BvbnNlLg0KDQo+IFN1YmplY3Q6IFJlOiBb
+UkZDIDUvNV0gZG9jX3JzdDogbWVkaWE6IE5ldyBTRFIgZm9ybWF0cyBTQzE2LCBTQzE4ICYgU0My
+MA0KPiANCj4gSGVsbG8NCj4gDQo+IE9uIDExLzAyLzIwMTYgMTA6NTggUE0sIExhdXJlbnQgUGlu
+Y2hhcnQgd3JvdGU6DQo+ID4gSGkgUmFtZXNoLA0KPiA+DQo+ID4gT24gV2VkbmVzZGF5IDAyIE5v
+diAyMDE2IDA5OjAwOjAwIFJhbWVzaCBTaGFubXVnYXN1bmRhcmFtIHdyb3RlOg0KPiA+PiBIaSBM
+YXVyZW50LA0KPiA+Pg0KPiA+PiBBbnkgZnVydGhlciB0aG91Z2h0cyBvbiB0aGUgU0RSIGZvcm1h
+dCBwbGVhc2UgKGVzcGVjaWFsbHkgdGhlIGNvbW1lbnQNCj4gPj4gYmVsb3cpLiBJIHdvdWxkIGFw
+cHJlY2lhdGUgeW91ciBmZWVkYmFjay4NCj4gPj4NCj4gPj4+PiBPbiBXZWRuZXNkYXkgMTIgT2N0
+IDIwMTYgMTU6MTA6MjkgUmFtZXNoIFNoYW5tdWdhc3VuZGFyYW0gd3JvdGU6DQo+ID4+Pj4+IFRo
+aXMgcGF0Y2ggYWRkcyBkb2N1bWVudGF0aW9uIGZvciB0aGUgdGhyZWUgbmV3IFNEUiBmb3JtYXRz
+DQo+ID4+Pj4+DQo+ID4+Pj4+IFY0TDJfU0RSX0ZNVF9TQ1UxNkJFDQo+ID4+Pj4+IFY0TDJfU0RS
+X0ZNVF9TQ1UxOEJFDQo+ID4+Pj4+IFY0TDJfU0RSX0ZNVF9TQ1UyMEJFDQo+ID4+DQo+ID4+IFtz
+bmlwXQ0KPiA+Pg0KPiA+Pj4+PiArDQo+ID4+Pj4+ICsgICAgICAgLSAgc3RhcnQgKyAwOg0KPiA+
+Pj4+PiArDQo+ID4+Pj4+ICsgICAgICAgLSAgSSdcIDpzdWI6YDBbRDEzOkQ2XWANCj4gPj4+Pj4g
+Kw0KPiA+Pj4+PiArICAgICAgIC0gIEknXCA6c3ViOmAwW0Q1OkQwXWANCj4gPj4+Pj4gKw0KPiA+
+Pj4+PiArICAgIC0gIC4uIHJvdyAyDQo+ID4+Pj4+ICsNCj4gPj4+Pj4gKyAgICAgICAtICBzdGFy
+dCArIGJ1ZmZlcl9zaXplLzI6DQo+ID4+Pj4+ICsNCj4gPj4+Pj4gKyAgICAgICAtICBRJ1wgOnN1
+YjpgMFtEMTM6RDZdYA0KPiA+Pj4+PiArDQo+ID4+Pj4+ICsgICAgICAgLSAgUSdcIDpzdWI6YDBb
+RDU6RDBdYA0KPiA+Pj4+DQo+ID4+Pj4gVGhlIGZvcm1hdCBsb29rcyBwbGFuYXIsIGRvZXMgaXQg
+dXNlIG9uZSBWNEwyIHBsYW5lIChhcyBkb2VzIE5WMTIpDQo+ID4+Pj4gb3IgdHdvIFY0TDIgcGxh
+bmVzIChhcyBkb2VzIE5WMTJNKSA/IFNhbWUgcXVlc3Rpb24gZm9yIHRoZSBvdGhlcg0KPiBmb3Jt
+YXRzLg0KPiA+Pj4NCj4gPj4+IFRoYW5rIHlvdSBmb3IgYnJpbmdpbmcgdXAgdGhpcyB0b3BpYy4g
+VGhpcyBpcyBvbmUgb2YgdGhlIGtleSBkZXNpZ24NCj4gPj4+IGRpbGVtbWEuDQo+ID4+Pg0KPiA+
+Pj4gVGhlIEkgJiBRIGRhdGEgZm9yIHRoZXNlIHRocmVlIFNEUiBmb3JtYXRzIGNvbWVzIGZyb20g
+dHdvIGRpZmZlcmVudA0KPiA+Pj4gRE1BIGNoYW5uZWxzIGFuZCBoZW5jZSB0d28gc2VwYXJhdGUg
+cG9pbnRlcnMgLT4gd2UgY291bGQgc2F5IGl0IGlzDQo+ID4+PiB2NGwyIG11bHRpLSBwbGFuYXIu
+IFJpZ2h0IG5vdywgSSBhbSBtYWtpbmcgaXQgbG9vayBsaWtlIGEgc2luZ2xlDQo+ID4+PiBwbGFu
+ZSBieSBwcmVzZW50aW5nIHRoZSBkYXRhIGluIG9uZSBzaW5nbGUgYnVmZmVyIHB0ci4NCj4gPj4+
+DQo+ID4+PiBGb3IgZS5nLiBtdWx0aS1wbGFuYXIgU0MxNiBmb3JtYXQgd291bGQgbG9vayBzb21l
+dGhpbmcgbGlrZSB0aGlzDQo+ID4+Pg0KPiA+Pj4gPC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLTMy
+Yml0cy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0+DQo+ID4+PiA8LS1JKDE0IGJpdCBkYXRhKSArIDJi
+aXQgc3RhdHVzLS0xNmJpdCBwYWRkZWQgemVyb3MtLT4gOiBzdGFydDAgKyAwDQo+ID4+PiA8LS1J
+KDE0IGJpdCBkYXRhKSArIDJiaXQgc3RhdHVzLS0xNmJpdCBwYWRkZWQgemVyb3MtLT4gOiBzdGFy
+dDAgKyA0DQo+IC4uLg0KPiA+Pj4gPC0tUSgxNCBiaXQgZGF0YSkgKyAyYml0IHN0YXR1cy0tMTZi
+aXQgcGFkZGVkIHplcm9zLS0+IDogc3RhcnQxICsgMA0KPiA+Pj4gPC0tUSgxNCBiaXQgZGF0YSkg
+KyAyYml0IHN0YXR1cy0tMTZiaXQgcGFkZGVkIHplcm9zLS0+IDogc3RhcnQxICsgNA0KPiA+Pj4N
+Cj4gPj4+IE15IGNvbmNlcm5zIGFyZQ0KPiA+Pj4NCj4gPj4+IDEpIFRoZXNlIGZvcm1hdHMgYXJl
+IG5vdCBhIHN0YW5kYXJkIGFzIHRoZSB2aWRlbyAiSW1hZ2UgRm9ybWF0cyIuDQo+ID4+PiBUaGVz
+ZSBmb3JtYXRzIGFyZSBwb3NzaWJsZSB3aGVuIHdlIHVzZSBEUklGICsgTUFYMjE3NSBjb21iaW5h
+dGlvbi4NCj4gPj4+IElmIHdlIGludGVyZmFjZSB3aXRoIGEgZGlmZmVyZW50IHR1bmVyIHZlbmRv
+ciwgdGhlIGFib3ZlIGZvcm1hdChzKQ0KPiA+Pj4gTUFZL01BWSBOT1QgYmUgcmUtdXNhYmxlLiBX
+ZSBkbyBub3Qga25vdyBhdCB0aGlzIHBvaW50LiBUaGlzIGlzIHRoZQ0KPiA+Pj4gbWFpbiBvcGVu
+IGl0ZW0gZm9yIGRpc2N1c3Npb24gaW4gdGhlIGNvdmVyIGxldHRlci4NCj4gPg0KPiA+IElmIHRo
+ZSBmb3JtYXRzIGFyZSByZWFsbHkgZGV2aWNlLXNwZWNpZmljIHRoZW4gdGhleSBzaG91bGQgYmUN
+Cj4gPiBkb2N1bWVudGVkIGFjY29yZGluZ2x5IGFuZCBub3QgbWFkZSBnZW5lcmljLg0KPiA+DQo+
+ID4+PiAyKSBNUExBTkUgc3VwcG9ydCB3aXRoaW4gVjRMMiBzZWVtcyBzcGVjaWZpYyB0byB2aWRl
+by4gUGxlYXNlDQo+ID4+PiBjb3JyZWN0IG1lIGlmIHRoaXMgaXMgd3JvbmcgaW50ZXJwcmV0YXRp
+b24uDQo+ID4+Pg0KPiA+Pj4gLSBzdHJ1Y3QgdjRsMl9mb3JtYXQgY29udGFpbnMgdjRsMl9zZHJf
+Zm9ybWF0IGFuZA0KPiA+Pj4gdjRsMl9waXhfZm9ybWF0X21wbGFuZSBhcyBtZW1iZXJzIG9mIHVu
+aW9uLiBTaG91bGQgSSBjcmVhdGUgYSBuZXcNCj4gPj4+IHY0bDJfc2RyX2Zvcm1hdF9tcGxhbmU/
+IElmIEkgaGF2ZSB0byB1c2UgdjRsMl9waXhfZm9ybWF0X21wbGFuZSBtb3N0DQo+ID4+PiBvZiB0
+aGUgdmlkZW8gc3BlY2lmaWMgbWVtYmVycyB3b3VsZCBiZSB1bnVzZWQgKGl0IHdvdWxkIGJlIHNp
+bWlsYXINCj4gPj4+IHRvIHVzaW5nIHY0bDJfcGl4X2Zvcm1hdCBpdHNlbGYgaW5zdGVhZCBvZiB2
+NGwyX3Nkcl9mb3JtYXQpPw0KPiA+DQo+ID4gSSBoYXZlIG5vIGFuc3dlciB0byB0aGF0IHF1ZXN0
+aW9uIGFzIEknbSBub3QgZmFtaWxpYXIgd2l0aCBTRFIuIEFudHRpLA0KPiA+IHlvdSd2ZSBhZGRl
+ZCB2NGwyX3Nkcl9mb3JtYXQgdG8gdGhlIEFQSSwgd2hhdCdzIHlvdXIgb3BpbmlvbiA/IEhhbnMs
+DQo+ID4gYXMgeW91J3ZlIGFja2VkIHRoZSBwYXRjaCwgeW91ciBpbnB1dCB3b3VsZCBiZSBhcHBy
+ZWNpYXRlZCBhcyB3ZWxsLg0KPiANCj4gSWYgSSB1bmRlcnN0b29kIGNvcnJlY3RseSB0aGlzIGhh
+cmR3YXJlIHByb3ZpZGVzIEkgYW5kIFEgc2FtcGxlcyB2aWENCj4gZGlmZmVyZW50IGNoYW5uZWxz
+IGFuZCBkcml2ZXIgbm93IGNvbWJpbmVzIHRob3NlIGNoYW5uZWxzIGFzIGEgc2VxdWVudGlhbA0K
+PiBJUSBzYW1wbGUgcGFpcnMuIA0KDQpUaGUgZHJpdmVyIGNvbWJpbmVzIHRoZSB0d28gYnVmZmVy
+IHB0cnMgYW5kIHByZXNlbnQgYXMgb25lIHNpbmdsZSBidWZmZXIuIEZvciBhIGJ1ZmZlciBvZiBz
+aXplIDIwMA0KDQpwdHIgKyAwICAgOiBJIEkgSSBJIC4uLiBJDQpwdHIgKyAxMDAgOiBRIFEgUSBR
+IC4uLiBRDQoNCj5JIGhhdmUgbmV2ZXIgc2VlbiBhbnkgb3RoZXIgdGhhbiBodyB3aGljaCBwcm92
+aWRlcyBJUSBJUQ0KPiBJUSBJUSAuLi4gSVEuDQoNClRoZXJlIGFyZSBzb21lIG1vZGVzIHdoZXJl
+IHRoaXMgaC93IGNvbWJvIGNhbiBhbHNvIGRvIElRIElRIElRIHBhdHRlcm4uIFRob3NlIG1vZGVz
+IGFyZSBub3QgYWRkZWQgaW4gdGhlIFJGQyBwYXRjaHNldC4NCg0KPiBUaGlzIGlzDQo+IEkgSSBJ
+IEkgLi4uIEkNCj4gUSBRIFEgUSAuLi4gUQ0KPiBJIGFtIG5vdCB2ZXJ5IGZhbWlsaWFyIHdpdGgg
+cGxhbmFycywgYnV0IGl0IHNvdW5kcyBsaWtlIGl0IGlzIGNvcnJlY3QNCj4gYXBwcm9hY2guIFNv
+IEkgdGhpbmsgc2hvdWxkIGJlIGFkZGVkIHJhdGhlciB0aGFuIGVtdWxhdGUgcGFja2V0IHNlcXVl
+bnRpYWwNCj4gZm9ybWF0Lg0KDQpNeSB1bmRlcnN0YW5kaW5nIG9mIFY0TDIgTVBMQU5FIGNvbnN0
+cnVjdHMgaXMgbGltaXRlZCB0byBhIHF1aWNrIGNvZGUgcmVhZCBvbmx5LiBBdCB0aGlzIHBvaW50
+IE1QTEFORSBzdXBwb3J0IHNlZW1zIHNwZWNpZmljIHRvIHZpZGVvLiBTRFIgaXMgZGVmaW5lZCBh
+cyBzZXBhcmF0ZSBmb3JtYXQgbGlrZSB2NGwyX3BpeF9mb3JtYXQuIFF1ZXN0aW9ucyB3b3VsZCBi
+ZSAtIHNob3VsZCB3ZSBkZWZpbmUgbmV3IFNEUl9NUExBTkU/IG9yIG1lcmdlIFNEUiBmb3JtYXQg
+d2l0aCBwaXggZm9ybWF0ICYgcmV1c2UgZXhpc3RpbmcgTVBMQU5FIHdpdGggc29tZSBTRFIgZXh0
+ZW5zaW9ucyAoaWYgcG9zc2libGUpPyBUaGVzZSBzZWVtIGJpZyBkZXNpZ24gZGVjaXNpb25zLiBB
+bnkgc3VnZ2VzdGlvbnMgcGxlYXNlPw0KDQpGb3IgbXkgdXNlIGNhc2UsIE1QTEFORSBzdXBwb3J0
+IGRvZXMgbm90IHNlZW0gdG8gYWRkIHNpZ25pZmljYW50IGJlbmVmaXQgZXhjZXB0IGl0IG1heSBi
+ZSBzeW50YWN0aWNhbGx5IGNvcnJlY3QuIEkgYW0gZG9pbmcgY3ljbGljIERNQSB3aXRoIGEgc21h
+bGwgc2V0IG9mIGgvdyBidWZmZXJzIGFuZCBjb3B5aW5nIGVhY2ggc3RhZ2UgdG8gb25lIG1tYXBw
+ZWQgdm1hbGxvYyB2YjJfYnVmZmVyIGF0IHR3byBvZmZzZXRzLiBJZiB3ZSBhZGQgTVBMQU5FIHN1
+cHBvcnQsIGl0IGNhbiBiZSB0d28gbm9uLWNvbnRpZ3VvdXMgYnVmZmVyIHBvaW50ZXJzLiANCg0K
+PiANCj4gPg0KPiA+Pj4gLSBUaGUgYWJvdmUgZGVjaXNpb24gKGFjY29tb2RhdGUgU0RSICYgTVBM
+QU5FKSBuZWVkcyB0byBiZQ0KPiA+Pj4gcHJvcGFnYXRlZCBhY3Jvc3MgdGhlIGZyYW1ld29yay4g
+SXMgdGhpcyB0aGUgcHJlZmVycmVkIGFwcHJvYWNoPw0KPiA+Pj4NCj4gPj4+IEl0IGdvZXMgYmFj
+ayB0byBwb2ludCAoMSkuIEFzIG9mIHRvZGF5LCB0aGUgY2hhbmdlIHNldCBmb3IgdGhpcw0KPiA+
+Pj4gY29tYm8NCj4gPj4+IChEUklGK01BWDIxNzUpIGludHJvZHVjZXMgbmV3IFNEUiBmb3JtYXRz
+IG9ubHkuIFNob3VsZCBpdCBhZGQNCj4gPj4+IGZ1cnRoZXINCj4gPj4+IFNEUitNUExBTkUgc3Vw
+cG9ydCB0byB0aGUgZnJhbWV3b3JrIGFzIHdlbGw/DQo+ID4+Pg0KPiA+Pj4gSSB3b3VsZCBhcHBy
+ZWNpYXRlIHlvdXIgc3VnZ2VzdGlvbnMgb24gdGhpcyByZWdhcmQuDQoNCg0KVGhhbmtzLA0KUmFt
+ZXNoDQo=
