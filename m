@@ -1,114 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33544 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966005AbcKLNNw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:52 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 20/32] media: rcar-vin: expose a sink pad if we are on Gen3
-Date: Sat, 12 Nov 2016 14:12:04 +0100
-Message-Id: <20161112131216.22635-21-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from regular1.263xmail.com ([211.150.99.137]:43915 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752132AbcKECow (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 22:44:52 -0400
+Subject: Re: [RFC] V4L2 unified low-level decoder API
+To: Hugues FRUCHET <hugues.fruchet@st.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
+ <aab23d5d-d41d-78e1-7324-77b9d98ee127@rock-chips.com>
+ <e6b89733-465e-74d3-45b9-0a39d1136779@st.com>
+Cc: "posciak@chromium.org" <posciak@chromium.org>,
+        Florent Revest <florent.revest@free-electrons.com>,
+        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
+        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>,
+        "eddie.cai" <eddie.cai@rock-chips.com>,
+        "linux-rockchip@lists.infradead.org"
+        <linux-rockchip@lists.infradead.org>,
+        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
+        =?UTF-8?B?5p6X6YeR5Y+R?= <alpha.lin@rock-chips.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        =?UTF-8?B?6LW15L+K?= <jung.zhao@rock-chips.com>
+From: Randy Li <randy.li@rock-chips.com>
+Message-ID: <6d308d93-b0be-45b6-f330-ee00bea5d5a0@rock-chips.com>
+Date: Sat, 5 Nov 2016 10:44:22 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <e6b89733-465e-74d3-45b9-0a39d1136779@st.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refactor the probe code path to look for the digital subdevice, if one
-is found use it just like the driver did before (Gen2 mode) but if it's
-not found prepare for a Gen3 mode by registering a pad for the media
-controller API to use.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 21 ++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++++++
- 2 files changed, 29 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 26e438a..6554141 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -308,6 +308,25 @@ static const struct of_device_id rvin_of_id_table[] = {
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
-+static int rvin_graph_init(struct rvin_dev *vin)
-+{
-+	int ret;
-+
-+	/* Try to get digital video pipe */
-+	ret = rvin_digital_graph_init(vin);
-+
-+	/* No digital pipe and we are on Gen3 try to joint CSI2 group */
-+	if (ret == -ENODEV && vin->info->chip == RCAR_GEN3) {
-+
-+		vin->pads[RVIN_SINK].flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vin->vdev.entity, 1, vin->pads);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return ret;
-+}
-+
- static int rcar_vin_probe(struct platform_device *pdev)
- {
- 	const struct of_device_id *match;
-@@ -343,7 +362,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = rvin_digital_graph_init(vin);
-+	ret = rvin_graph_init(vin);
- 	if (ret < 0)
- 		goto error;
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index a6a49a96..8ed43be 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -36,6 +36,11 @@ enum chip_id {
- 	RCAR_GEN3,
- };
- 
-+enum rvin_pads {
-+	RVIN_SINK,
-+	RVIN_PAD_MAX,
-+};
-+
- /**
-  * STOPPED  - No operation in progress
-  * RUNNING  - Operation in progress have buffers
-@@ -115,6 +120,8 @@ struct rvin_info {
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-  *
-+ * @pads:		pads for media controller
-+ *
-  * @lock:		protects @queue
-  * @queue:		vb2 buffers queue
-  *
-@@ -144,6 +151,8 @@ struct rvin_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity digital;
- 
-+	struct media_pad pads[RVIN_PAD_MAX];
-+
- 	struct mutex lock;
- 	struct vb2_queue queue;
- 
+On 11/04/2016 09:55 PM, Hugues FRUCHET wrote:
+> Hi Randy,
+>
+> thanks for reply, some comments below:
+>
+>
+> On 10/27/2016 03:08 AM, Randy Li wrote:
+>>
+>>
+>> On 10/26/2016 11:09 PM, Hugues FRUCHET wrote:
+>>> Hi,
+>>>
+>>>
+>>>
+>>> This RFC aims to start discussions in order to define the codec specific
+>>> controls structures to fulfill the low-level decoder API needed by non
+>>> “Stream API” based decoders (“stateless” or “Frame API” based decoders).
+>>>
+>>> Several implementation exists now which runs on several SoC and various
+>>> software frameworks.
+>>>
+>>> The idea is to find the communalities between all those implementations
+>>> and SoC to define a single unified interface in V4L2 includes.
+>>>
+>>> Even if “Request API” is needed to pass those codec specific controls
+>>> from userspace down to kernel on a per-buffer basis, we can start
+>>> discussions and define the controls in parallel of its development.
+>> Yes, I have sent a one for H.264 decoder and JPEG encoder.
+>>>
+>>> We can even propose some implementations based on existing V4L2 control
+>>> framework (which doesn’t support “per-frame” basis) by ensuring
+>>> atomicity of sequence S_EXT_CTRL(header[i])/QBUF(stream[i]). Constraint
+>>> can then be relaxed when “Request API” is merged.
+>>>
+>>>
+>>>
+>>> I would like to propose to work on a “per-codec” basis, having at least
+>>> 2 different SoC and 2 different frameworks to test and validate controls.
+>>>
+>>> To do so, I have tried to identify some people that have worked on this
+>>> subject and have proposed some implementations, feel free to correct me
+>>> and enhance the list if needed:
+>>>
+>>> * MPEG2/MPEG4
+>>>
+>>>    - Florent Revest for Allwinner A13 CedarX support [1] tested with VLC
+>>> -> libVA + sunxi-cedrus-drv-video -> V4L2
+>>>
+>>>    - Myself for STMicroelectronics Delta support [2] tested with
+>>> GStreamer V4L2 -> libv4l2 + libv4l-delta plugin -> V4L2
+>>>
+>>>
+>>>
+>>> * VP8
+>>>
+>>> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [3] tested with
+>>> Chromium -> V4L2
+>>>
+>>> - Jung Zhao for Rockchip RK3288 VPU support [4] <cannot find the
+>>> framework used>
+>> There is rockchip VDPAU driver supporting it, but it is .
+>
+> Could you point out the code that is used ? Which application is used on
+> top of VDPAU ?
+https://github.com/rockchip-linux/libvdpau-rockchip
+>
+>>>
+>>>
+>>>
+>>> * H264
+>>>
+>>> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [5] tested with
+>>> Chromium -> V4L2
+>>>
+>>> - Randy Li for Rockchip RK3288  VPU support [6] tested with VLC? ->
+>>> libVA + rockchip-va-driver -> V4L2
+>> I only tested it with Gstreamer -> VA-API element -> Rockchip VA-API
+>> driver -> V4L2
+>
+> OK got it, thks !
+>
+>>>
+>>>                                                                                                                          VLC?
+>>> -> libVDPAU + rockchip-va-driver -> V4L2
+>>>
+>>> I can work to define MPEG2/MPEG4 controls and propose functional
+>>> implementations for those codecs, and will be glad to co-work with you
+>>> Florent.
+>> But it may not work with Rockchip's SoC, you may check the following branch
+>> https://github.com/hizukiayaka/rockchip-video-driver/tree/rk_v4l2_mix
+>
+> I have checked code and I have only found H264 support, do I miss
+> something ?
+No, I have said above, only H264 decoder and JPEG encoder are supported 
+in currently Rockchip VA-API driver. And H264 decoder depends on a 
+Rockchip H264 parser. The rk_v4l2_mix just a branch make that clearly, 
+it could get what the VA-API doesn't offer from code.
+>
+>>>
+>>> I can help on H264 on a code review basis based on the functional H264
+>>> setup I have in-house and codec knowledge, but I cannot provide
+>>> implementation in a reasonable timeframe, same for VP8.
+>>>
+>>>
+>>>
+>>> Apart of very details of each codec, we have also to state about generic
+>>> concerns such as:
+>>>
+>>> -          new pixel format introduction (VP8 => VP8F, H264 => S264,
+>>> MPG2 => MG2F, MPG4 => MG4F)
+>> I don't think it is necessary.
+>
+> But currently it is done that way in all patches proposals I have seen
+> so far, including rockchip:
+> rockchip_decoder_v4l2.c:{VAProfileH264Baseline,V4L2_PIX_FMT_H264_SLICE},
+It is Google's idea, it would be removed with new version kernel driver 
+of mine. Also I don't like multiplanes image format from Google driver.
+>
+> We have to state about it all together. Seems natural to me to do this
+> way instead of device caps.
+> Doing so user knows that the driver is based on "Frame API" -so
+> additional headers are required to decode input stream- and not
+> on "Stream API" -H264 stream can be decoded directly-.
+ > We should probably use something else then "STREAMING" in the
+ > capabilities instead of duplicating all the encoding formats (exception
+ > to H264 byte-stream and H264 AVC, that also applies to streaming
+ > drivers and there is not easy way to introduce stream-format in the API
+ > atm). Other then that, this solution works, so it could just be
+ > considered the right way, I just find it less elegant personally.
+I agree with Nicolas.
+>
+>
+
+>>>
+>>> Best regards,
+>>>
+>>> Hugues.
+>>>
+>>>
+>>>
+>>> [0] [ANN] Codec & Request API Brainstorm meeting Oct 10 & 11
+>>> https://www.spinics.net/lists/linux-media/msg106699.html
+>>>
+>>> [1] MPEG2 A13 CedarX http://www.spinics.net/lists/linux-media/msg104823.html
+>>>
+>>> [1] MPEG4 A13 CedarX http://www.spinics.net/lists/linux-media/msg104817.html
+>>>
+>>> [2] MPEG2 STi4xx Delta
+>>> http://www.spinics.net/lists/linux-media/msg106240.html
+>>>
+>>> [2] MPEG4 STi4xx Delta is also supported but not yet pushed
+>>>
+>>> [3] VP8 Rockchip RK3288, RK3399? VPU
+>>> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0002-CHROMIUM-v4l-Add-VP8-low-level-decoder-API-controls.patch
+>>>
+>>>
+>>> [4] VP8 Rockchip RK3288 VPU
+>>> http://www.spinics.net/lists/linux-media/msg97997.html
+>>>
+>>> [5] H264 Rockchip RK3288, RK3399? VPU
+>>> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0001-CHROMIUM-media-headers-Import-V4L2-headers-from-Chro.patch
+>>>
+>>> [6] H264 Rockchip RK3288 VPU
+>>> http://www.spinics.net/lists/linux-media/msg105095.html
+>>>
+
 -- 
-2.10.2
+Randy Li
+The third produce department
+
 
