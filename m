@@ -1,102 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53688 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751199AbcKCAGb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 20:06:31 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Todor Tomov <todor.tomov@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>, Pawel Moll <pawel.moll@arm.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Ian Campbell <ijc+devicetree@hellion.org.uk>,
-        Kumar Gala <galak@codeaurora.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Geert Uytterhoeven <geert@linux-m68k.org>, matrandg@cisco.com,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v6 1/2] media: i2c/ov5645: add the device tree binding document
-Date: Thu, 03 Nov 2016 02:06:26 +0200
-Message-ID: <1892508.SIY4yi1MNp@avalon>
-In-Reply-To: <5818513A.4040006@linaro.org>
-References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org> <CAL_JsqJ+58t=ZH6m8vGC-hA_bt8ZR0fX5v+_-7mHOQpBXC2a1Q@mail.gmail.com> <5818513A.4040006@linaro.org>
+Received: from mail-it0-f65.google.com ([209.85.214.65]:34472 "EHLO
+        mail-it0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751074AbcKFUFf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2016 15:05:35 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <632081ba085ddf0ded63cce3dbcf3870485d3cd3.1476179975.git.mchehab@s-opensource.com>
+References: <cover.1476179975.git.mchehab@s-opensource.com> <632081ba085ddf0ded63cce3dbcf3870485d3cd3.1476179975.git.mchehab@s-opensource.com>
+From: VDR User <user.vdr@gmail.com>
+Date: Sun, 6 Nov 2016 11:51:14 -0800
+Message-ID: <CAA7C2qiW+Co3XVt1AQDYka9MdSYG8OELxNzecqAia9df0P3Neg@mail.gmail.com>
+Subject: Re: [PATCH v2 18/31] gp8psk: don't do DMA on stack
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Lutomirski <luto@amacapital.net>,
+        Johannes Stezenbach <js@linuxtv.org>,
+        Jiri Kosina <jikos@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Andy Lutomirski <luto@kernel.org>,
+        Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Todor,
+I applied this patch to the 4.8.4 kernel driver (that I'm currently
+running) and it caused nothing but "frontend 0/0 timed out while
+tuning". Is there another patch that should be used in conjunction
+with this? If not, this patch breaks the gp8psk driver.
 
-On Tuesday 01 Nov 2016 10:24:26 Todor Tomov wrote:
-> On 10/26/2016 09:53 PM, Rob Herring wrote:
-> > On Wed, Oct 19, 2016 at 4:21 AM, Laurent Pinchart wrote:
-> >> On Wednesday 19 Oct 2016 12:14:55 Todor Tomov wrote:
-> >>> On 10/19/2016 11:49 AM, Laurent Pinchart wrote:
-> >>>> On Friday 14 Oct 2016 15:01:08 Todor Tomov wrote:
-> >>>>> On 09/08/2016 03:22 PM, Laurent Pinchart wrote:
-> >>>>>> On Thursday 08 Sep 2016 12:13:54 Todor Tomov wrote:
-> >>>>>>> Add the document for ov5645 device tree binding.
-> >>>>>>> 
-> >>>>>>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> >>>>>>> ---
-> >>>>>>> 
-> >>>>>>>  .../devicetree/bindings/media/i2c/ov5645.txt       | 52 +++++++++++
-> >>>>>>>  1 file changed, 52 insertions(+)
-> >>>>>>>  create mode 100644
-> >>>>>>>  Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> >>>>>>> 
-> >>>>>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> >>>>>>> b/Documentation/devicetree/bindings/media/i2c/ov5645.txt new file
-> >>>>>>> mode
-> >>>>>>> 100644
-> >>>>>>> index 0000000..bcf6dba
-> >>>>>>> --- /dev/null
-> >>>>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
-> >>>>>>> @@ -0,0 +1,52 @@
-> >>>>>>> +* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
-> >>>>>>> +
-> >>>>>>> +The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image
-> >>>>>>> sensor with
-> >>>>>>> +an active array size of 2592H x 1944V. It is programmable through a
-> >>>>>>> serial I2C
-> >>>>>>> +interface.
-> >>>>>>> +
-> >>>>>>> +Required Properties:
-> >>>>>>> +- compatible: Value should be "ovti,ov5645".
-> >>>>>>> +- clocks: Reference to the xclk clock.
-> >>>>>>> +- clock-names: Should be "xclk".
-> >>>>>>> +- clock-frequency: Frequency of the xclk clock.
-> >>>>>>> +- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH.
-> >>>> 
-> >>>> By the way, isn't the pin called pwdnb and isn't it active low ?
-> >>> 
-> >>> Yes, the pin is called "pwdnb" and is active low (must be up for power
-> >>> to be up). I have changed the name to "enable" as it is more generally
-> >>> used - this change was suggested by Rob Herring. As the logic switches
-> >>> with this change of the name I have stated it is active high which ends
-> >>> up in the same condition (enable must be up for the power to be up). I
-> >>> think this is correct, isn't it?
-> >> 
-> >> I thought that the rule was to name the GPIO properties based on the name
-> >> of the pin. I could be wrong though. Rob, what's your opinion ?
-> > 
-> > Generally, yes that is the rule. However, an enable (or powerdown
-> > being the inverse) pin is so common that I think it makes sense to use
-> > a common name. Then generic power sequencing code can power up devices
-> > (in the simple cases at least).
-> 
-> Ok, so what can we decide about this case? I personally have a slight
-> preference for the name same as documentation. But I think most important
-> is to follow the rule if we have such a rule. If we don't have a single
-> rule to follow every time then it is not really important which one we will
-> choose.
+Thanks.
 
-I'm fine with both solutions (and also have a slight preference for using the 
-chip's pin name). If we decide to use "enable-gpios", the DT binding document 
-should mention that the property corresponds to the chip's PWDNB pin.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+On Tue, Oct 11, 2016 at 3:09 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> The USB control messages require DMA to work. We cannot pass
+> a stack-allocated buffer, as it is not warranted that the
+> stack would be into a DMA enabled area.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/dvb-usb/gp8psk.c | 14 ++++++++++++--
+>  1 file changed, 12 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+> index 5d0384dd45b5..fa215ad37f7b 100644
+> --- a/drivers/media/usb/dvb-usb/gp8psk.c
+> +++ b/drivers/media/usb/dvb-usb/gp8psk.c
+> @@ -24,6 +24,10 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,xfer=2,rc=4 (or-able))." DV
+>
+>  DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>
+> +struct gp8psk_state {
+> +       unsigned char data[80];
+> +};
+> +
+>  static int gp8psk_get_fw_version(struct dvb_usb_device *d, u8 *fw_vers)
+>  {
+>         return (gp8psk_usb_in_op(d, GET_FW_VERS, 0, 0, fw_vers, 6));
+> @@ -53,17 +57,19 @@ static void gp8psk_info(struct dvb_usb_device *d)
+>
+>  int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
+>  {
+> +       struct gp8psk_state *st = d->priv;
+>         int ret = 0,try = 0;
+>
+>         if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+>                 return ret;
+>
+>         while (ret >= 0 && ret != blen && try < 3) {
+> +               memcpy(st->data, b, blen);
+>                 ret = usb_control_msg(d->udev,
+>                         usb_rcvctrlpipe(d->udev,0),
+>                         req,
+>                         USB_TYPE_VENDOR | USB_DIR_IN,
+> -                       value,index,b,blen,
+> +                       value, index, st->data, blen,
+>                         2000);
+>                 deb_info("reading number %d (ret: %d)\n",try,ret);
+>                 try++;
+> @@ -86,6 +92,7 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
+>  int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+>                              u16 index, u8 *b, int blen)
+>  {
+> +       struct gp8psk_state *st = d->priv;
+>         int ret;
+>
+>         deb_xfer("out: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
+> @@ -94,11 +101,12 @@ int gp8psk_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+>         if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
+>                 return ret;
+>
+> +       memcpy(st->data, b, blen);
+>         if (usb_control_msg(d->udev,
+>                         usb_sndctrlpipe(d->udev,0),
+>                         req,
+>                         USB_TYPE_VENDOR | USB_DIR_OUT,
+> -                       value,index,b,blen,
+> +                       value,index, st->data, blen,
+>                         2000) != blen) {
+>                 warn("usb out operation failed.");
+>                 ret = -EIO;
+> @@ -265,6 +273,8 @@ static struct dvb_usb_device_properties gp8psk_properties = {
+>         .usb_ctrl = CYPRESS_FX2,
+>         .firmware = "dvb-usb-gp8psk-01.fw",
+>
+> +       .size_of_priv = sizeof(struct gp8psk_state),
+> +
+>         .num_adapters = 1,
+>         .adapter = {
+>                 {
+> --
+> 2.7.4
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
