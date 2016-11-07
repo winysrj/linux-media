@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:34192 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932173AbcKGP3Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 10:29:16 -0500
-Received: by mail-it0-f66.google.com with SMTP id q124so9930683itd.1
-        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 07:29:16 -0800 (PST)
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:33593
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751750AbcKGXkR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 18:40:17 -0500
+Subject: Re: [PATCH] media: s5p-mfc include buffer size in error message
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+References: <20161018004337.26831-1-shuahkh@osg.samsung.com>
+ <CGME20161104100504eucas1p196456ab351847ffabb60f51e76eab707@eucas1p1.samsung.com>
+ <b1a9fa02-6821-7637-881c-a31719e891c9@samsung.com>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <8078d0e6-246b-e8f3-ec62-41e9d543909f@osg.samsung.com>
+Date: Mon, 7 Nov 2016 16:40:14 -0700
 MIME-Version: 1.0
-In-Reply-To: <65d65d048e6fa6964ccf679f400b964afac5d782.1478523166.git.mchehab@s-opensource.com>
-References: <65d65d048e6fa6964ccf679f400b964afac5d782.1478523166.git.mchehab@s-opensource.com>
-From: VDR User <user.vdr@gmail.com>
-Date: Mon, 7 Nov 2016 07:28:26 -0800
-Message-ID: <CAA7C2qjGp2gM=KxbpOvRzfabQ5T9-BuG9U2MWbBvKOKV64-rJA@mail.gmail.com>
-Subject: Re: [PATCH] [media] gp8psk: fix gp8psk_usb_in_op() logic
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <b1a9fa02-6821-7637-881c-a31719e891c9@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 7, 2016 at 4:52 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Changeset bc29131ecb10 ("[media] gp8psk: don't do DMA on stack")
-> fixed the usage of DMA on stack, but the memcpy was wrong
-> for gp8psk_usb_in_op(). Fix it.
->
-> Suggested-by: Johannes Stezenbach <js@linuxtv.org>
-> Fixes: bc29131ecb10 ("[media] gp8psk: don't do DMA on stack")
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+On 11/04/2016 04:05 AM, Sylwester Nawrocki wrote:
+> On 10/18/2016 02:43 AM, Shuah Khan wrote:
+>> Include buffer size in s5p_mfc_alloc_priv_buf() the error message when it
+>> fails to allocate the buffer. Remove the debug message that does the same.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c | 5 ++---
+>>  1 file changed, 2 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+>> index 1e72502..eee16a1 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+>> @@ -40,12 +40,11 @@ void s5p_mfc_init_regs(struct s5p_mfc_dev *dev)
+>>  int s5p_mfc_alloc_priv_buf(struct device *dev, dma_addr_t base,
+>>  					struct s5p_mfc_priv_buf *b)
+>>  {
+>> -	mfc_debug(3, "Allocating priv: %zu\n", b->size);
+> 
+> How about keeping this debug message, I think it would be useful
+> to leave that information in the debug logs.
 
-Fix confirmed using 2 different Skywalker models with HD mpeg4, SD mpeg2.
+Sent v2 with just the error message change.
 
-Tested-by: <user.vdr@gmail.com>
+thanks,
+-- Shuah
 
-> ---
->  drivers/media/usb/dvb-usb/gp8psk.c | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-> index adfd76491451..2829e3082d15 100644
-> --- a/drivers/media/usb/dvb-usb/gp8psk.c
-> +++ b/drivers/media/usb/dvb-usb/gp8psk.c
-> @@ -67,7 +67,6 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
->                 return ret;
->
->         while (ret >= 0 && ret != blen && try < 3) {
-> -               memcpy(st->data, b, blen);
->                 ret = usb_control_msg(d->udev,
->                         usb_rcvctrlpipe(d->udev,0),
->                         req,
-> @@ -81,8 +80,10 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
->         if (ret < 0 || ret != blen) {
->                 warn("usb in %d operation failed.", req);
->                 ret = -EIO;
-> -       } else
-> +       } else {
->                 ret = 0;
-> +               memcpy(b, st->data, blen);
-> +       }
->
->         deb_xfer("in: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
->         debug_dump(b,blen,deb_xfer);
+> 
+>>  	b->virt = dma_alloc_coherent(dev, b->size, &b->dma, GFP_KERNEL);
+>>  
+>>  	if (!b->virt) {
+>> -		mfc_err("Allocating private buffer failed\n");
+>> +		mfc_err("Allocating private buffer of size %zu failed\n",
+>> +			b->size);
+>>  		return -ENOMEM;
+>>  	}
+> 
 > --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thanks,
+> Sylwester
+> 
+
