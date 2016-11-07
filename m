@@ -1,78 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59374 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756519AbcKCMrx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 08:47:53 -0400
-Date: Thu, 3 Nov 2016 13:47:49 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Rob Herring <robh@kernel.org>
-Cc: ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: et8ek8: add device tree binding documentation
-Message-ID: <20161103124749.GA22180@amd>
-References: <20161023191706.GA25754@amd>
- <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58651
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751012AbcKGJzb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 04:55:31 -0500
+Date: Mon, 7 Nov 2016 07:55:24 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Cc: Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org
+Subject: Including images on Sphinx documents
+Message-ID: <20161107075524.49d83697@vento.lan>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IS0zKkzwUGydFO0o"
-Content-Disposition: inline
-In-Reply-To: <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Jon,
 
---IS0zKkzwUGydFO0o
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I'm trying to sort out the next steps to do after KS, with regards to
+images included on RST files.
 
-Hi!
+The issue is that Sphinx image support highly depends on the output
+format. Also, despite TexLive support for svg and png images[1], Sphinx
+doesn't produce the right LaTeX commands to use svg[2]. On my tests
+with PNG on my notebook, it also didn't seem to do the right thing for
+PNG either. So, it seems that the only safe way to support images is
+to convert all of them to PDF for latex/pdf build.
 
-> > +Mandatory properties
-> > +--------------------
-> > +
-> > +- compatible: "toshiba,et8ek8"
-> > +- reg: I2C address (0x3e, or an alternative address)
-> > +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
-> > +- clocks: External clock to the sensor
-> > +- clock-frequency: Frequency of the external clock to the sensor. Came=
-ra
-> > +  driver will set this frequency on the external clock.
->=20
-> This is fine if the frequency is fixed (e.g. an oscillator), but you=20
-> should use the clock binding if clocks are programable.
+[1] On Fedora, via texlive-dvipng and texlive-svg
+[2] https://github.com/sphinx-doc/sphinx/issues/1907
 
-It is fixed. So I assume this can stay as is? Or do you want me to add
-"The clock frequency is a pre-determined frequency known to be
-suitable to the board." as Sakari suggests?
+As far as I understand from KS, two decisions was taken:
 
-> > +- reset-gpios: XSHUTDOWN GPIO
->=20
-> Please state what the active polarity is.
+- We're not adding a sphinx extension to run generic commands;
+- The PDF images should be build in runtime from their source files
+  (either svg or bitmap), and not ship anymore the corresponding
+  PDF files generated from its source.
 
-As in "This gpio will be set to 1 when the chip is powered." ?
+As you know, we use several images at the media documentation:
+	https://www.kernel.org/doc/html/latest/_images/
 
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Those images are tightly coupled with the explanation texts. So,
+maintaining them away from the documentation is not an option.
 
---IS0zKkzwUGydFO0o
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I was originally thinking that adding a graphviz extension would solve the
+issue, but, in fact, most of the images aren't diagrams. Instead, there are 
+several ones with images showing the result of passing certain parameters to
+the ioctls, explaining things like scale and cropping and how bytes are
+packed on some image formats.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Linus proposed to call some image conversion tool like ImageMagick or
+inkscape to convert them to PDF when building the pdfdocs or latexdocs
+target at Makefile, but there's an issue with that: Sphinx doesn't read
+files from Documentation/output, and writing them directly at the
+source dir would be against what it is expected when the "O=" argument
+is passed to make. 
 
-iEYEARECAAYFAlgbMfUACgkQMOfwapXb+vLRFQCdFTMF0elT5tSOWocc/9aWOFrL
-RFwAnRwMNhbl2WCsFd3ZLyGZ5XaE8bJ6
-=neek
------END PGP SIGNATURE-----
+So, we have a few alternatives:
 
---IS0zKkzwUGydFO0o--
+1) copy (or symlink) all rst files to Documentation/output (or to the
+   build dir specified via O= directive) and generate the *.pdf there,
+   and produce those converted images via Makefile.;
+
+2) add an Sphinx extension that would internally call ImageMagick and/or
+   inkscape to convert the bitmap;
+
+3) if possible, add an extension to trick Sphinx for it to consider the 
+   output dir as a source dir too.
+
+Comments?
+
+Regards,
+Mauro
