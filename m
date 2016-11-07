@@ -1,143 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:49863 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754014AbcKBKku (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 06:40:50 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 3/6] [media] rc-core: add support for IR raw transmitters
-Date: Wed, 02 Nov 2016 19:40:07 +0900
-Message-id: <20161102104010.26959-4-andi.shyti@samsung.com>
-In-reply-to: <20161102104010.26959-1-andi.shyti@samsung.com>
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:43187 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751187AbcKGEk6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 6 Nov 2016 23:40:58 -0500
+Message-ID: <8b59b444a8b4bcc82532af111bdb1b83@smtp-cloud2.xs4all.net>
+Date: Mon, 07 Nov 2016 05:39:36 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IR raw transmitter driver type is specified in the enum
-rc_driver_type as RC_DRIVER_IR_RAW_TX which includes all those
-devices that transmit raw stream of bit to a receiver.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The data are provided by userspace applications, therefore they
-don't need any input device allocation, but still they need to be
-registered as raw devices.
+Results of the daily build of media_tree:
 
-Suggested-by: Sean Young <sean@mess.org>
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
----
- drivers/media/rc/rc-main.c | 42 +++++++++++++++++++++++++-----------------
- include/media/rc-core.h    |  9 ++++++---
- 2 files changed, 31 insertions(+), 20 deletions(-)
+date:			Mon Nov  7 05:00:13 CET 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
+v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 7ab1b32..0d2f440 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1363,20 +1363,24 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type type)
- 	if (!dev)
- 		return NULL;
- 
--	dev->input_dev = input_allocate_device();
--	if (!dev->input_dev) {
--		kfree(dev);
--		return NULL;
--	}
-+	if (type != RC_DRIVER_IR_RAW_TX) {
-+		dev->input_dev = input_allocate_device();
-+		if (!dev->input_dev) {
-+			kfree(dev);
-+			return NULL;
-+		}
-+
-+		dev->input_dev->getkeycode = ir_getkeycode;
-+		dev->input_dev->setkeycode = ir_setkeycode;
-+		input_set_drvdata(dev->input_dev, dev);
- 
--	dev->input_dev->getkeycode = ir_getkeycode;
--	dev->input_dev->setkeycode = ir_setkeycode;
--	input_set_drvdata(dev->input_dev, dev);
-+		setup_timer(&dev->timer_keyup, ir_timer_keyup,
-+						(unsigned long)dev);
- 
--	spin_lock_init(&dev->rc_map.lock);
--	spin_lock_init(&dev->keylock);
-+		spin_lock_init(&dev->rc_map.lock);
-+		spin_lock_init(&dev->keylock);
-+	}
- 	mutex_init(&dev->lock);
--	setup_timer(&dev->timer_keyup, ir_timer_keyup, (unsigned long)dev);
- 
- 	dev->dev.type = &rc_dev_type;
- 	dev->dev.class = &rc_class;
-@@ -1476,7 +1480,7 @@ static int rc_setup_rx_device(struct rc_dev *dev)
- 
- static void rc_free_rx_device(struct rc_dev *dev)
- {
--	if (!dev)
-+	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
- 		return;
- 
- 	ir_free_table(&dev->rc_map);
-@@ -1506,7 +1510,8 @@ int rc_register_device(struct rc_dev *dev)
- 	atomic_set(&dev->initialized, 0);
- 
- 	dev->dev.groups = dev->sysfs_groups;
--	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
-+		dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
- 	if (dev->s_filter)
- 		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
- 	if (dev->s_wakeup_filter)
-@@ -1524,11 +1529,14 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->input_name ?: "Unspecified device", path ?: "N/A");
- 	kfree(path);
- 
--	rc = rc_setup_rx_device(dev);
--	if (rc)
--		goto out_dev;
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		rc = rc_setup_rx_device(dev);
-+		if (rc)
-+			goto out_dev;
-+	}
- 
--	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+	if (dev->driver_type == RC_DRIVER_IR_RAW ||
-+				dev->driver_type == RC_DRIVER_IR_RAW_TX) {
- 		if (!raw_init) {
- 			request_module_nowait("ir-lirc-codec");
- 			raw_init = true;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index f8ca557..b6f7419 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -32,13 +32,16 @@ do {								\
- /**
-  * enum rc_driver_type - type of the RC output
-  *
-- * @RC_DRIVER_SCANCODE:	Driver or hardware generates a scancode
-- * @RC_DRIVER_IR_RAW:	Driver or hardware generates pulse/space sequences.
-- *			It needs a Infra-Red pulse/space decoder
-+ * @RC_DRIVER_SCANCODE:	 Driver or hardware generates a scancode
-+ * @RC_DRIVER_IR_RAW:	 Driver or hardware generates pulse/space sequences.
-+ *			 It needs a Infra-Red pulse/space decoder
-+ * @RC_DRIVER_IR_RAW_TX: Device transmitter only,
-+			 driver requires pulse/space data sequence.
-  */
- enum rc_driver_type {
- 	RC_DRIVER_SCANCODE = 0,
- 	RC_DRIVER_IR_RAW,
-+	RC_DRIVER_IR_RAW_TX,
- };
- 
- /**
--- 
-2.10.1
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
