@@ -1,59 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60632 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753161AbcKIOYQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:16 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 06/12] exynos-gsc: Do full clock gating at runtime PM suspend
-Date: Wed, 09 Nov 2016 15:23:55 +0100
-Message-id: <1478701441-29107-7-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161109142409eucas1p1cb35ebbee01d819417ed2565667e99f9@eucas1p1.samsung.com>
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:36918 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752534AbcKGRFM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:05:12 -0500
+Date: Mon, 7 Nov 2016 09:05:05 -0800
+From: Josh Triplett <josh@joshtriplett.org>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jani Nikula <jani.nikula@intel.com>, linux-media@vger.kernel.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+Message-ID: <20161107170504.25j4rwfohhqp67fw@x>
+References: <20161107075524.49d83697@vento.lan>
+ <87wpgf8ssc.fsf@intel.com>
+ <20161107094648.55677524@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161107094648.55677524@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ulf Hansson <ulf.hansson@linaro.org>
+On Mon, Nov 07, 2016 at 09:46:48AM -0200, Mauro Carvalho Chehab wrote:
+> That's said, PNG also doesn't seem to work fine on Sphinx 1.4.x.
+> 
+> On my tests, I installed *all* texlive extensions on Fedora 24, to
+> be sure that the issue is not the lack of some extension[1], with:
+> 
+> 	# dnf install $(sudo dnf search texlive |grep all|cut -d. -f 1|grep texlive-)
+> 
+> When running LaTeX in interactive mode, building just the media
+> PDF file with:
+> 
+> 	$ cls;make cleandocs; make SPHINXOPTS="-j5" DOCBOOKS="" SPHINXDIRS=media latexdocs 
+> 	$ PDFLATEX=xelatex LATEXOPTS="-interaction=interactive" -C Documentation/output/media/latex
+> 
+> I get this:
+> 
+> 	LaTeX Warning: Hyper reference `uapi/v4l/subdev-formats:bayer-patterns' on page
+> 	 153 undefined on input line 21373.
+> 
+> 	<use  "bayer.png" > [153]
+> 	! Extra alignment tab has been changed to \cr.
+> 	<template> \endtemplate 
+>                         
+> 	l.21429 \unskip}\relax \unskip}
+> 	                               \relax \\
+> 	? 
+> 
+> This patch fixes the issue:
+> 	https://git.linuxtv.org/mchehab/experimental.git/commit/?h=dirty-pdf&id=b709de415f34d77cc121cad95bece9c7ef4d12fd
+> 
+> That means that Sphinx is not generating the right LaTeX output even for
+> (some?) PNG images.
 
-To potentially save more power in runtime PM suspend state, let's also
-prepare/unprepare the clock from the runtime PM callbacks.
+\includegraphics normally works just fine for PNG images in PDF
+documents.
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-[mszyprow: rebased onto v4.9-rc4]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+[...]
+> And it may even require "--shell-escape" to be passed at the xelatex
+> call if inkscape is not in the path, with seems to be a strong
+> indication that SVG support is not native to texlive, but, instead,
+> just a way to make LaTeX to call inkscape to do the image conversion.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 1d3bde3..9ba1619 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1141,7 +1141,7 @@ static int gsc_runtime_resume(struct device *dev)
- 
- 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
- 
--	ret = clk_enable(gsc->clock);
-+	ret = clk_prepare_enable(gsc->clock);
- 	if (ret)
- 		return ret;
- 
-@@ -1159,7 +1159,7 @@ static int gsc_runtime_suspend(struct device *dev)
- 
- 	ret = gsc_m2m_suspend(gsc);
- 	if (!ret)
--		clk_disable(gsc->clock);
-+		clk_disable_unprepare(gsc->clock);
- 
- 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
- 	return ret;
--- 
-1.9.1
+Please don't require --shell-escape as part of the TeX workflow.  If
+LaTeX can't handle the desired image format natively, it needs
+conversion in advance.
 
+- Josh Triplett
