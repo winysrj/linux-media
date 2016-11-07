@@ -1,136 +1,294 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:33357 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751218AbcKZNuj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Nov 2016 08:50:39 -0500
-Received: by mail-io0-f195.google.com with SMTP id j92so14305455ioi.0
-        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 05:50:39 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAAEAJfAFxtnRkc9+iZtGSc=vJPGq1Aay6-aBKTD9S3_dLPLZWw@mail.gmail.com>
-References: <cover.1477592284.git.mahasler@gmail.com> <20161027203454.GA32566@arch-desktop>
- <CAAEAJfAFxtnRkc9+iZtGSc=vJPGq1Aay6-aBKTD9S3_dLPLZWw@mail.gmail.com>
-From: Marcel Hasler <mahasler@gmail.com>
-Date: Sat, 26 Nov 2016 14:49:58 +0100
-Message-ID: <CAOJOY2NHSeaMk57aAGnvLo7bQrDiLQXF74MeLpG1crXLzqK8=Q@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] stk1160: Check whether to use AC97 codec or
- internal ADC.
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:35048 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932380AbcKGRlX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:41:23 -0500
+Received: by mail-wm0-f49.google.com with SMTP id a197so197440105wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 09:41:23 -0800 (PST)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 0/9] Qualcomm video decoder/encoder driver
+Date: Mon,  7 Nov 2016 19:33:54 +0200
+Message-Id: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-11-20 18:36 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
-> On 27 October 2016 at 17:34, Marcel Hasler <mahasler@gmail.com> wrote:
->> Some STK1160-based devices use the chip's internal 8-bit ADC. This is co=
-nfigured through a strap
->> pin. The value of this and other pins can be read through the POSVA regi=
-ster. If the internal
->> ADC is used, there's no point trying to setup the unavailable AC97 codec=
-.
->>
->> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
->> ---
->>  drivers/media/usb/stk1160/stk1160-ac97.c | 15 +++++++++++++++
->>  drivers/media/usb/stk1160/stk1160-core.c |  3 +--
->>  drivers/media/usb/stk1160/stk1160-reg.h  |  3 +++
->>  3 files changed, 19 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
-b/stk1160/stk1160-ac97.c
->> index d3665ce..6dbc39f 100644
->> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
->> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
->> @@ -90,8 +90,23 @@ void stk1160_ac97_dump_regs(struct stk1160 *dev)
->>  }
->>  #endif
->>
->> +int stk1160_has_ac97(struct stk1160 *dev)
->> +{
->> +       u8 value;
->> +
->> +       stk1160_read_reg(dev, STK1160_POSVA, &value);
->> +
->> +       /* Bit 2 high means internal ADC */
->> +       return !(value & 0x04);
->
-> How about define a macro such as:
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-reg.h
-> b/drivers/media/usb/stk1160/stk1160-reg.h
-> index a4ab586fcee1..4922249d7d34 100644
-> --- a/drivers/media/usb/stk1160/stk1160-reg.h
-> +++ b/drivers/media/usb/stk1160/stk1160-reg.h
-> @@ -28,6 +28,7 @@
->
->  /* Power-on Strapping Data */
->  #define STK1160_POSVA                  0x010
-> +#define  STK1160_POSVA_ACSYNC          BIT(2)
->
+Hi,
 
-Good idea, I'll do that.
+Here is v3 of the Venus v4l2 video encoder/decoder driver.
 
-> Also, the spec mentions another POSVA bit relevant
-> to audio ACDOUT. Should we check that too?
->
+The changes since v2 are:
+	- return queued buffers on stream_on error.
+	- changed name of the driver vidc -> venus and reflect that in
+querycap.
+	- fix video_device::release to point to video_device_release.
+	- tried to implement correctly g_selection for decoder and encoder.
+	- added Venus HFI 3xx basic support, to able to reuse driver on
+msm8996.
+	- extend DT binding with reg-names and interrupt-names.
+	- parse DT IRQ and MEM resources by name.
+	- merge hfi_core,hfi_inst in venus_core and venus_inst structures.
+	- killed hfi_pkt_ops struct and use functions.
+	- various cleanups.
 
-Yes, that would make sense.
+The output of v4l2-compliance looks like:
 
->> +}
->> +
->>  void stk1160_ac97_setup(struct stk1160 *dev)
->>  {
->> +       if (!stk1160_has_ac97(dev)) {
->> +               stk1160_info("Device uses internal 8-bit ADC, skipping A=
-C97 setup.");
->> +               return;
->> +       }
->> +
->>         /* Two-step reset AC97 interface and hardware codec */
->>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
->>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
->> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/us=
-b/stk1160/stk1160-core.c
->> index f3c9b8a..c86eb61 100644
->> --- a/drivers/media/usb/stk1160/stk1160-core.c
->> +++ b/drivers/media/usb/stk1160/stk1160-core.c
->> @@ -20,8 +20,7 @@
->>   *
->>   * TODO:
->>   *
->> - * 1. (Try to) detect if we must register ac97 mixer
->> - * 2. Support stream at lower speed: lower frame rate or lower frame si=
-ze.
->> + * 1. Support stream at lower speed: lower frame rate or lower frame si=
-ze.
->>   *
->>   */
->>
->> diff --git a/drivers/media/usb/stk1160/stk1160-reg.h b/drivers/media/usb=
-/stk1160/stk1160-reg.h
->> index 81ff3a1..a4ab586 100644
->> --- a/drivers/media/usb/stk1160/stk1160-reg.h
->> +++ b/drivers/media/usb/stk1160/stk1160-reg.h
->> @@ -26,6 +26,9 @@
->>  /* Remote Wakup Control */
->>  #define STK1160_RMCTL                  0x00c
->>
->> +/* Power-on Strapping Data */
->> +#define STK1160_POSVA                  0x010
->> +
->>  /*
->>   * Decoder Control Register:
->>   * This byte controls capture start/stop
->> --
->> 2.10.1
->>
->
->
->
-> --
-> Ezequiel Garc=C3=ADa, VanguardiaSur
-> www.vanguardiasur.com.ar
+root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video0
+v4l2-compliance SHA   : 405f0c21e0b52836d22c999aa4ee1f51d87998b2
+
+Driver Info:
+        Driver name   : qcom-venus
+        Card type     : Qualcomm Venus video decoder
+        Bus info      : platform:qcom-venus
+        Driver version: 4.4.23
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 7 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video1
+v4l2-compliance SHA   : 405f0c21e0b52836d22c999aa4ee1f51d87998b2
+
+Driver Info:
+        Driver name   : vidc
+        Card type     : video encoder
+        Bus info      : platform:vidc
+        Driver version: 4.4.23
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video1 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 32 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK (Not Supported)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+regards,
+Stan
+
+Stanimir Varbanov (9):
+  doc: DT: vidc: binding document for Qualcomm video driver
+  MAINTAINERS: Add Qualcomm Venus video accelerator driver
+  media: venus: adding core part and helper functions
+  media: venus: vdec: add video decoder files
+  media: venus: venc: add video encoder files
+  media: venus: hfi: add Host Firmware Interface (HFI)
+  media: venus: hfi: add Venus HFI files
+  media: venus: add Makefiles and Kconfig files
+  media: venus: enable building of Venus video codec driver
+
+ .../devicetree/bindings/media/qcom,venus.txt       |   98 ++
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/qcom/Kconfig                |    7 +
+ drivers/media/platform/qcom/Makefile               |    1 +
+ drivers/media/platform/qcom/venus/Makefile         |   15 +
+ drivers/media/platform/qcom/venus/core.c           |  557 +++++++
+ drivers/media/platform/qcom/venus/core.h           |  261 ++++
+ drivers/media/platform/qcom/venus/helpers.c        |  612 ++++++++
+ drivers/media/platform/qcom/venus/helpers.h        |   43 +
+ drivers/media/platform/qcom/venus/hfi.c            |  604 ++++++++
+ drivers/media/platform/qcom/venus/hfi.h            |  180 +++
+ drivers/media/platform/qcom/venus/hfi_cmds.c       | 1255 ++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+ drivers/media/platform/qcom/venus/hfi_helper.h     | 1045 ++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c       | 1054 ++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+ drivers/media/platform/qcom/venus/hfi_venus.c      | 1523 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |   98 ++
+ drivers/media/platform/qcom/venus/vdec.c           | 1108 ++++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h           |   32 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c     |  197 +++
+ drivers/media/platform/qcom/venus/venc.c           | 1212 ++++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h           |   32 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c     |  396 +++++
+ 27 files changed, 10950 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ create mode 100644 drivers/media/platform/qcom/Kconfig
+ create mode 100644 drivers/media/platform/qcom/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/core.c
+ create mode 100644 drivers/media/platform/qcom/venus/core.h
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+
+-- 
+2.7.4
+
