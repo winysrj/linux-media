@@ -1,176 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:60381 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753599AbcKRXVU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:20 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 29/35] media: ti-vpe: Make scaler library into its own module
-Date: Fri, 18 Nov 2016 17:20:39 -0600
-Message-ID: <20161118232045.24665-30-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:24050 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751203AbcKGG55 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 01:57:57 -0500
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>
+Subject: [PATCH v4 1/3] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+Date: Mon, 7 Nov 2016 14:57:17 +0800
+Message-ID: <1478501839-2775-2-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1478501839-2775-1-git-send-email-rick.chang@mediatek.com>
+References: <1478501839-2775-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation to add scaler support into VIP we need to
-turn sc.c into its own kernel module.
+Add a DT binding documentation for Mediatek JPEG Decoder of
+MT2701 SoC.
 
-Add support for multiple SC memory block as VIP contains
-2 scaler instances.
-This is done by passing the resource name to sc_create() and
-modify the vpe invocation accordingly.
-
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/platform/Kconfig         |  4 ++++
- drivers/media/platform/ti-vpe/Makefile |  4 +++-
- drivers/media/platform/ti-vpe/sc.c     | 17 ++++++++++++++---
- drivers/media/platform/ti-vpe/sc.h     |  2 +-
- drivers/media/platform/ti-vpe/vpe.c    |  2 +-
- 5 files changed, 23 insertions(+), 6 deletions(-)
+ .../bindings/media/mediatek-jpeg-codec.txt         | 35 ++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index b52b6771fc4d..5d7befad90e0 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -365,6 +365,7 @@ config VIDEO_TI_VPE
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	select VIDEO_TI_VPDMA
-+	select VIDEO_TI_SC
- 	default n
- 	---help---
- 	  Support for the TI VPE(Video Processing Engine) block
-@@ -383,6 +384,9 @@ endif # V4L_MEM2MEM_DRIVERS
- config VIDEO_TI_VPDMA
- 	tristate
- 
-+config VIDEO_TI_SC
-+	tristate
+diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+new file mode 100644
+index 0000000..c7dbcc2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
+@@ -0,0 +1,35 @@
++* Mediatek JPEG Decoder
 +
- menuconfig V4L_TEST_DRIVERS
- 	bool "Media test drivers"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
-index faca5e115c1d..736558d309ad 100644
---- a/drivers/media/platform/ti-vpe/Makefile
-+++ b/drivers/media/platform/ti-vpe/Makefile
-@@ -1,8 +1,10 @@
- obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
- obj-$(CONFIG_VIDEO_TI_VPDMA) += ti-vpdma.o
-+obj-$(CONFIG_VIDEO_TI_SC) += ti-sc.o
- 
--ti-vpe-y := vpe.o sc.o csc.o
-+ti-vpe-y := vpe.o csc.o
- ti-vpdma-y := vpdma.o
-+ti-sc-y := sc.o
- 
- ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
- 
-diff --git a/drivers/media/platform/ti-vpe/sc.c b/drivers/media/platform/ti-vpe/sc.c
-index 02f3dae8ae42..52ce1450362f 100644
---- a/drivers/media/platform/ti-vpe/sc.c
-+++ b/drivers/media/platform/ti-vpe/sc.c
-@@ -14,6 +14,7 @@
- 
- #include <linux/err.h>
- #include <linux/io.h>
-+#include <linux/module.h>
- #include <linux/platform_device.h>
- #include <linux/slab.h>
- 
-@@ -52,6 +53,7 @@ void sc_dump_regs(struct sc_data *sc)
- 
- #undef DUMPREG
- }
-+EXPORT_SYMBOL(sc_dump_regs);
- 
- /*
-  * set the horizontal scaler coefficients according to the ratio of output to
-@@ -100,6 +102,7 @@ void sc_set_hs_coeffs(struct sc_data *sc, void *addr, unsigned int src_w,
- 
- 	sc->load_coeff_h = true;
- }
-+EXPORT_SYMBOL(sc_set_hs_coeffs);
- 
- /*
-  * set the vertical scaler coefficients according to the ratio of output to
-@@ -140,6 +143,7 @@ void sc_set_vs_coeffs(struct sc_data *sc, void *addr, unsigned int src_h,
- 
- 	sc->load_coeff_v = true;
- }
-+EXPORT_SYMBOL(sc_set_vs_coeffs);
- 
- void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
- 		u32 *sc_reg17, unsigned int src_w, unsigned int src_h,
-@@ -267,8 +271,9 @@ void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
- 
- 	*sc_reg24 = (src_w << CFG_ORG_W_SHIFT) | (src_h << CFG_ORG_H_SHIFT);
- }
-+EXPORT_SYMBOL(sc_config_scaler);
- 
--struct sc_data *sc_create(struct platform_device *pdev)
-+struct sc_data *sc_create(struct platform_device *pdev, const char *res_name)
- {
- 	struct sc_data *sc;
- 
-@@ -282,9 +287,10 @@ struct sc_data *sc_create(struct platform_device *pdev)
- 
- 	sc->pdev = pdev;
- 
--	sc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "sc");
-+	sc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM, res_name);
- 	if (!sc->res) {
--		dev_err(&pdev->dev, "missing platform resources data\n");
-+		dev_err(&pdev->dev, "missing '%s' platform resources data\n",
-+			res_name);
- 		return ERR_PTR(-ENODEV);
- 	}
- 
-@@ -296,3 +302,8 @@ struct sc_data *sc_create(struct platform_device *pdev)
- 
- 	return sc;
- }
-+EXPORT_SYMBOL(sc_create);
++Mediatek JPEG Decoder is the JPEG decode hardware present in Mediatek SoCs
 +
-+MODULE_DESCRIPTION("TI VIP/VPE Scaler");
-+MODULE_AUTHOR("Texas Instruments Inc.");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/platform/ti-vpe/sc.h b/drivers/media/platform/ti-vpe/sc.h
-index de947db98990..d0aab5ef0eca 100644
---- a/drivers/media/platform/ti-vpe/sc.h
-+++ b/drivers/media/platform/ti-vpe/sc.h
-@@ -200,6 +200,6 @@ void sc_set_vs_coeffs(struct sc_data *sc, void *addr, unsigned int src_h,
- void sc_config_scaler(struct sc_data *sc, u32 *sc_reg0, u32 *sc_reg8,
- 		u32 *sc_reg17, unsigned int src_w, unsigned int src_h,
- 		unsigned int dst_w, unsigned int dst_h);
--struct sc_data *sc_create(struct platform_device *pdev);
-+struct sc_data *sc_create(struct platform_device *pdev, const char *res_name);
- 
- #endif
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index 1d780ac7ff82..ebde4f4586e6 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -2453,7 +2453,7 @@ static int vpe_probe(struct platform_device *pdev)
- 
- 	vpe_top_vpdma_reset(dev);
- 
--	dev->sc = sc_create(pdev);
-+	dev->sc = sc_create(pdev, "sc");
- 	if (IS_ERR(dev->sc)) {
- 		ret = PTR_ERR(dev->sc);
- 		goto runtime_put;
++Required properties:
++- compatible : "mediatek,jpgdec"
++- reg : physical base address of the jpeg decoder registers and length of
++  memory mapped region.
++- interrupts : interrupt number to the interrupt controller.
++- clocks: device clocks, see
++  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
++- clock-names: must contain "jpgdec-smi" and "jpgdec".
++- power-domains: a phandle to the power domain, see
++  Documentation/devicetree/bindings/power/power_domain.txt for details.
++- mediatek,larb: must contain the local arbiters in the current Socs, see
++  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
++  for details.
++- iommus: should point to the respective IOMMU block with master port as
++  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
++  for details.
++
++Example:
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
 -- 
-2.9.0
+1.9.1
 
