@@ -1,1200 +1,1698 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:35611 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932667AbcKBRiI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Nov 2016 13:38:08 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] [media] lirc: remove lirc_serial driver
-Date: Wed,  2 Nov 2016 17:38:05 +0000
-Message-Id: <1478108285-12046-2-git-send-email-sean@mess.org>
-In-Reply-To: <1478108285-12046-1-git-send-email-sean@mess.org>
-References: <1478108285-12046-1-git-send-email-sean@mess.org>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:35027 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753519AbcKGRfl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:35:41 -0500
+Received: by mail-wm0-f54.google.com with SMTP id a197so197057173wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 09:34:36 -0800 (PST)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 5/9] media: venus: venc: add video encoder files
+Date: Mon,  7 Nov 2016 19:33:59 +0200
+Message-Id: <1478540043-24558-6-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This has been replaced by the serial_ir driver in rc-core.
+This adds encoder part of the driver plus encoder controls.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 ---
- drivers/staging/media/lirc/Kconfig       |   13 -
- drivers/staging/media/lirc/Makefile      |    1 -
- drivers/staging/media/lirc/lirc_serial.c | 1130 ------------------------------
- 3 files changed, 1144 deletions(-)
- delete mode 100644 drivers/staging/media/lirc/lirc_serial.c
+ drivers/media/platform/qcom/venus/venc.c       | 1212 ++++++++++++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h       |   32 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c |  396 ++++++++
+ 3 files changed, 1640 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
 
-diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
-index 6879c46..25b7e7c 100644
---- a/drivers/staging/media/lirc/Kconfig
-+++ b/drivers/staging/media/lirc/Kconfig
-@@ -38,19 +38,6 @@ config LIRC_SASEM
- 	help
- 	  Driver for the Sasem OnAir Remocon-V or Dign HV5 HTPC IR/VFD Module
- 
--config LIRC_SERIAL
--	tristate "Homebrew Serial Port Receiver"
--	depends on LIRC
--	help
--	  Driver for Homebrew Serial Port Receivers
--
--config LIRC_SERIAL_TRANSMITTER
--	bool "Serial Port Transmitter"
--	default y
--	depends on LIRC_SERIAL
--	help
--	  Serial Port Transmitter support
--
- config LIRC_SIR
- 	tristate "Built-in SIR IrDA port"
- 	depends on LIRC
-diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
-index 5430adf..7f919ea 100644
---- a/drivers/staging/media/lirc/Makefile
-+++ b/drivers/staging/media/lirc/Makefile
-@@ -7,6 +7,5 @@ obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
- obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
- obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
- obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
--obj-$(CONFIG_LIRC_SERIAL)	+= lirc_serial.o
- obj-$(CONFIG_LIRC_SIR)		+= lirc_sir.o
- obj-$(CONFIG_LIRC_ZILOG)	+= lirc_zilog.o
-diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-deleted file mode 100644
-index b798b31..0000000
---- a/drivers/staging/media/lirc/lirc_serial.c
-+++ /dev/null
-@@ -1,1130 +0,0 @@
--/*
-- * lirc_serial.c
-- *
-- * lirc_serial - Device driver that records pulse- and pause-lengths
-- *	       (space-lengths) between DDCD event on a serial port.
-- *
-- * Copyright (C) 1996,97 Ralph Metzler <rjkm@thp.uni-koeln.de>
-- * Copyright (C) 1998 Trent Piepho <xyzzy@u.washington.edu>
-- * Copyright (C) 1998 Ben Pfaff <blp@gnu.org>
-- * Copyright (C) 1999 Christoph Bartelmus <lirc@bartelmus.de>
-- * Copyright (C) 2007 Andrei Tanas <andrei@tanas.ca> (suspend/resume support)
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-- */
--
--/*
-- * Steve's changes to improve transmission fidelity:
-- *   - for systems with the rdtsc instruction and the clock counter, a
-- *     send_pule that times the pulses directly using the counter.
-- *     This means that the LIRC_SERIAL_TRANSMITTER_LATENCY fudge is
-- *     not needed. Measurement shows very stable waveform, even where
-- *     PCI activity slows the access to the UART, which trips up other
-- *     versions.
-- *   - For other system, non-integer-microsecond pulse/space lengths,
-- *     done using fixed point binary. So, much more accurate carrier
-- *     frequency.
-- *   - fine tuned transmitter latency, taking advantage of fractional
-- *     microseconds in previous change
-- *   - Fixed bug in the way transmitter latency was accounted for by
-- *     tuning the pulse lengths down - the send_pulse routine ignored
-- *     this overhead as it timed the overall pulse length - so the
-- *     pulse frequency was right but overall pulse length was too
-- *     long. Fixed by accounting for latency on each pulse/space
-- *     iteration.
-- *
-- * Steve Davies <steve@daviesfam.org>  July 2001
-- */
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/signal.h>
--#include <linux/sched.h>
--#include <linux/fs.h>
--#include <linux/interrupt.h>
--#include <linux/ioport.h>
--#include <linux/kernel.h>
--#include <linux/serial_reg.h>
--#include <linux/ktime.h>
--#include <linux/string.h>
--#include <linux/types.h>
--#include <linux/wait.h>
--#include <linux/mm.h>
--#include <linux/delay.h>
--#include <linux/poll.h>
--#include <linux/platform_device.h>
--#include <linux/gpio.h>
--#include <linux/io.h>
--#include <linux/irq.h>
--#include <linux/fcntl.h>
--#include <linux/spinlock.h>
--
--/* From Intel IXP42X Developer's Manual (#252480-005): */
--/* ftp://download.intel.com/design/network/manuals/25248005.pdf */
--#define UART_IE_IXP42X_UUE   0x40 /* IXP42X UART Unit enable */
--#define UART_IE_IXP42X_RTOIE 0x10 /* IXP42X Receiver Data Timeout int.enable */
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--#define LIRC_DRIVER_NAME "lirc_serial"
--
--struct lirc_serial {
--	int signal_pin;
--	int signal_pin_change;
--	u8 on;
--	u8 off;
--	long (*send_pulse)(unsigned long length);
--	void (*send_space)(long length);
--	int features;
--	spinlock_t lock;
--};
--
--#define LIRC_HOMEBREW		0
--#define LIRC_IRDEO		1
--#define LIRC_IRDEO_REMOTE	2
--#define LIRC_ANIMAX		3
--#define LIRC_IGOR		4
--#define LIRC_NSLU2		5
--
--/*** module parameters ***/
--static int type;
--static int io;
--static int irq;
--static bool iommap;
--static int ioshift;
--static bool softcarrier = true;
--static bool share_irq;
--static int sense = -1;	/* -1 = auto, 0 = active high, 1 = active low */
--static bool txsense;	/* 0 = active high, 1 = active low */
--
--/* forward declarations */
--static long send_pulse_irdeo(unsigned long length);
--static long send_pulse_homebrew(unsigned long length);
--static void send_space_irdeo(long length);
--static void send_space_homebrew(long length);
--
--static struct lirc_serial hardware[] = {
--	[LIRC_HOMEBREW] = {
--		.lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_HOMEBREW].lock),
--		.signal_pin        = UART_MSR_DCD,
--		.signal_pin_change = UART_MSR_DDCD,
--		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
--		.off = (UART_MCR_RTS | UART_MCR_OUT2),
--		.send_pulse = send_pulse_homebrew,
--		.send_space = send_space_homebrew,
--#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
--		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
--				LIRC_CAN_SET_SEND_CARRIER |
--				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
--#else
--		.features    = LIRC_CAN_REC_MODE2
--#endif
--	},
--
--	[LIRC_IRDEO] = {
--		.lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_IRDEO].lock),
--		.signal_pin        = UART_MSR_DSR,
--		.signal_pin_change = UART_MSR_DDSR,
--		.on  = UART_MCR_OUT2,
--		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
--		.send_pulse  = send_pulse_irdeo,
--		.send_space  = send_space_irdeo,
--		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
--				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
--	},
--
--	[LIRC_IRDEO_REMOTE] = {
--		.lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_IRDEO_REMOTE].lock),
--		.signal_pin        = UART_MSR_DSR,
--		.signal_pin_change = UART_MSR_DDSR,
--		.on  = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
--		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
--		.send_pulse  = send_pulse_irdeo,
--		.send_space  = send_space_irdeo,
--		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
--				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
--	},
--
--	[LIRC_ANIMAX] = {
--		.lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_ANIMAX].lock),
--		.signal_pin        = UART_MSR_DCD,
--		.signal_pin_change = UART_MSR_DDCD,
--		.on  = 0,
--		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
--		.send_pulse = NULL,
--		.send_space = NULL,
--		.features   = LIRC_CAN_REC_MODE2
--	},
--
--	[LIRC_IGOR] = {
--		.lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_IGOR].lock),
--		.signal_pin        = UART_MSR_DSR,
--		.signal_pin_change = UART_MSR_DDSR,
--		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
--		.off = (UART_MCR_RTS | UART_MCR_OUT2),
--		.send_pulse = send_pulse_homebrew,
--		.send_space = send_space_homebrew,
--#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
--		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
--				LIRC_CAN_SET_SEND_CARRIER |
--				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
--#else
--		.features    = LIRC_CAN_REC_MODE2
--#endif
--	},
--};
--
--#define RS_ISR_PASS_LIMIT 256
--
--/*
-- * A long pulse code from a remote might take up to 300 bytes.  The
-- * daemon should read the bytes as soon as they are generated, so take
-- * the number of keys you think you can push before the daemon runs
-- * and multiply by 300.  The driver will warn you if you overrun this
-- * buffer.  If you have a slow computer or non-busmastering IDE disks,
-- * maybe you will need to increase this.
-- */
--
--/* This MUST be a power of two!  It has to be larger than 1 as well. */
--
--#define RBUF_LEN 256
--
--static ktime_t lastkt;
--
--static struct lirc_buffer rbuf;
--
--static unsigned int freq = 38000;
--static unsigned int duty_cycle = 50;
--
--/* Initialized in init_timing_params() */
--static unsigned long period;
--static unsigned long pulse_width;
--static unsigned long space_width;
--
--#if defined(__i386__)
--/*
-- * From:
-- * Linux I/O port programming mini-HOWTO
-- * Author: Riku Saikkonen <Riku.Saikkonen@hut.fi>
-- * v, 28 December 1997
-- *
-- * [...]
-- * Actually, a port I/O instruction on most ports in the 0-0x3ff range
-- * takes almost exactly 1 microsecond, so if you're, for example, using
-- * the parallel port directly, just do additional inb()s from that port
-- * to delay.
-- * [...]
-- */
--/* transmitter latency 1.5625us 0x1.90 - this figure arrived at from
-- * comment above plus trimming to match actual measured frequency.
-- * This will be sensitive to cpu speed, though hopefully most of the 1.5us
-- * is spent in the uart access.  Still - for reference test machine was a
-- * 1.13GHz Athlon system - Steve
-- */
--
--/*
-- * changed from 400 to 450 as this works better on slower machines;
-- * faster machines will use the rdtsc code anyway
-- */
--#define LIRC_SERIAL_TRANSMITTER_LATENCY 450
--
--#else
--
--/* does anybody have information on other platforms ? */
--/* 256 = 1<<8 */
--#define LIRC_SERIAL_TRANSMITTER_LATENCY 256
--
--#endif  /* __i386__ */
--/*
-- * FIXME: should we be using hrtimers instead of this
-- * LIRC_SERIAL_TRANSMITTER_LATENCY nonsense?
-- */
--
--/* fetch serial input packet (1 byte) from register offset */
--static u8 sinp(int offset)
--{
--	if (iommap)
--		/* the register is memory-mapped */
--		offset <<= ioshift;
--
--	return inb(io + offset);
--}
--
--/* write serial output packet (1 byte) of value to register offset */
--static void soutp(int offset, u8 value)
--{
--	if (iommap)
--		/* the register is memory-mapped */
--		offset <<= ioshift;
--
--	outb(value, io + offset);
--}
--
--static void on(void)
--{
--	if (txsense)
--		soutp(UART_MCR, hardware[type].off);
--	else
--		soutp(UART_MCR, hardware[type].on);
--}
--
--static void off(void)
--{
--	if (txsense)
--		soutp(UART_MCR, hardware[type].on);
--	else
--		soutp(UART_MCR, hardware[type].off);
--}
--
--#ifndef MAX_UDELAY_MS
--#define MAX_UDELAY_US 5000
--#else
--#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
--#endif
--
--static void safe_udelay(unsigned long usecs)
--{
--	while (usecs > MAX_UDELAY_US) {
--		udelay(MAX_UDELAY_US);
--		usecs -= MAX_UDELAY_US;
--	}
--	udelay(usecs);
--}
--
--#ifdef USE_RDTSC
--/*
-- * This is an overflow/precision juggle, complicated in that we can't
-- * do long long divide in the kernel
-- */
--
--/*
-- * When we use the rdtsc instruction to measure clocks, we keep the
-- * pulse and space widths as clock cycles.  As this is CPU speed
-- * dependent, the widths must be calculated in init_port and ioctl
-- * time
-- */
--
--static int init_timing_params(unsigned int new_duty_cycle,
--		unsigned int new_freq)
--{
--	__u64 loops_per_sec, work;
--
--	duty_cycle = new_duty_cycle;
--	freq = new_freq;
--
--	loops_per_sec = __this_cpu_read(cpu.info.loops_per_jiffy);
--	loops_per_sec *= HZ;
--
--	/* How many clocks in a microsecond?, avoiding long long divide */
--	work = loops_per_sec;
--	work *= 4295;  /* 4295 = 2^32 / 1e6 */
--
--	/*
--	 * Carrier period in clocks, approach good up to 32GHz clock,
--	 * gets carrier frequency within 8Hz
--	 */
--	period = loops_per_sec >> 3;
--	period /= (freq >> 3);
--
--	/* Derive pulse and space from the period */
--	pulse_width = period * duty_cycle / 100;
--	space_width = period - pulse_width;
--	pr_debug("in init_timing_params, freq=%d, duty_cycle=%d, clk/jiffy=%ld, pulse=%ld, space=%ld, conv_us_to_clocks=%ld\n",
--		 freq, duty_cycle, __this_cpu_read(cpu_info.loops_per_jiffy),
--		 pulse_width, space_width, conv_us_to_clocks);
--	return 0;
--}
--#else /* ! USE_RDTSC */
--static int init_timing_params(unsigned int new_duty_cycle,
--		unsigned int new_freq)
--{
--/*
-- * period, pulse/space width are kept with 8 binary places -
-- * IE multiplied by 256.
-- */
--	if (256 * 1000000L / new_freq * new_duty_cycle / 100 <=
--	    LIRC_SERIAL_TRANSMITTER_LATENCY)
--		return -EINVAL;
--	if (256 * 1000000L / new_freq * (100 - new_duty_cycle) / 100 <=
--	    LIRC_SERIAL_TRANSMITTER_LATENCY)
--		return -EINVAL;
--	duty_cycle = new_duty_cycle;
--	freq = new_freq;
--	period = 256 * 1000000L / freq;
--	pulse_width = period * duty_cycle / 100;
--	space_width = period - pulse_width;
--	pr_debug("in init_timing_params, freq=%d pulse=%ld, space=%ld\n",
--		 freq, pulse_width, space_width);
--	return 0;
--}
--#endif /* USE_RDTSC */
--
--
--/* return value: space length delta */
--
--static long send_pulse_irdeo(unsigned long length)
--{
--	long rawbits, ret;
--	int i;
--	unsigned char output;
--	unsigned char chunk, shifted;
--
--	/* how many bits have to be sent ? */
--	rawbits = length * 1152 / 10000;
--	if (duty_cycle > 50)
--		chunk = 3;
--	else
--		chunk = 1;
--	for (i = 0, output = 0x7f; rawbits > 0; rawbits -= 3) {
--		shifted = chunk << (i * 3);
--		shifted >>= 1;
--		output &= (~shifted);
--		i++;
--		if (i == 3) {
--			soutp(UART_TX, output);
--			while (!(sinp(UART_LSR) & UART_LSR_THRE))
--				;
--			output = 0x7f;
--			i = 0;
--		}
--	}
--	if (i != 0) {
--		soutp(UART_TX, output);
--		while (!(sinp(UART_LSR) & UART_LSR_TEMT))
--			;
--	}
--
--	if (i == 0)
--		ret = (-rawbits) * 10000 / 1152;
--	else
--		ret = (3 - i) * 3 * 10000 / 1152 + (-rawbits) * 10000 / 1152;
--
--	return ret;
--}
--
--/* Version using udelay() */
--
--/*
-- * here we use fixed point arithmetic, with 8
-- * fractional bits.  that gets us within 0.1% or so of the right average
-- * frequency, albeit with some jitter in pulse length - Steve
-- *
-- * This should use ndelay instead.
-- */
--
--/* To match 8 fractional bits used for pulse/space length */
--
--static long send_pulse_homebrew_softcarrier(unsigned long length)
--{
--	int flag;
--	unsigned long actual, target, d;
--
--	length <<= 8;
--
--	actual = 0; target = 0; flag = 0;
--	while (actual < length) {
--		if (flag) {
--			off();
--			target += space_width;
--		} else {
--			on();
--			target += pulse_width;
--		}
--		d = (target - actual -
--		     LIRC_SERIAL_TRANSMITTER_LATENCY + 128) >> 8;
--		/*
--		 * Note - we've checked in ioctl that the pulse/space
--		 * widths are big enough so that d is > 0
--		 */
--		udelay(d);
--		actual += (d << 8) + LIRC_SERIAL_TRANSMITTER_LATENCY;
--		flag = !flag;
--	}
--	return (actual-length) >> 8;
--}
--
--static long send_pulse_homebrew(unsigned long length)
--{
--	if (length <= 0)
--		return 0;
--
--	if (softcarrier)
--		return send_pulse_homebrew_softcarrier(length);
--
--	on();
--	safe_udelay(length);
--	return 0;
--}
--
--static void send_space_irdeo(long length)
--{
--	if (length <= 0)
--		return;
--
--	safe_udelay(length);
--}
--
--static void send_space_homebrew(long length)
--{
--	off();
--	if (length <= 0)
--		return;
--	safe_udelay(length);
--}
--
--static void rbwrite(int l)
--{
--	if (lirc_buffer_full(&rbuf)) {
--		/* no new signals will be accepted */
--		pr_debug("Buffer overrun\n");
--		return;
--	}
--	lirc_buffer_write(&rbuf, (void *)&l);
--}
--
--static void frbwrite(int l)
--{
--	/* simple noise filter */
--	static int pulse, space;
--	static unsigned int ptr;
--
--	if (ptr > 0 && (l & PULSE_BIT)) {
--		pulse += l & PULSE_MASK;
--		if (pulse > 250) {
--			rbwrite(space);
--			rbwrite(pulse | PULSE_BIT);
--			ptr = 0;
--			pulse = 0;
--		}
--		return;
--	}
--	if (!(l & PULSE_BIT)) {
--		if (ptr == 0) {
--			if (l > 20000) {
--				space = l;
--				ptr++;
--				return;
--			}
--		} else {
--			if (l > 20000) {
--				space += pulse;
--				if (space > PULSE_MASK)
--					space = PULSE_MASK;
--				space += l;
--				if (space > PULSE_MASK)
--					space = PULSE_MASK;
--				pulse = 0;
--				return;
--			}
--			rbwrite(space);
--			rbwrite(pulse | PULSE_BIT);
--			ptr = 0;
--			pulse = 0;
--		}
--	}
--	rbwrite(l);
--}
--
--static irqreturn_t lirc_irq_handler(int i, void *blah)
--{
--	ktime_t kt;
--	int counter, dcd;
--	u8 status;
--	ktime_t delkt;
--	int data;
--	static int last_dcd = -1;
--
--	if ((sinp(UART_IIR) & UART_IIR_NO_INT)) {
--		/* not our interrupt */
--		return IRQ_NONE;
--	}
--
--	counter = 0;
--	do {
--		counter++;
--		status = sinp(UART_MSR);
--		if (counter > RS_ISR_PASS_LIMIT) {
--			pr_warn("AIEEEE: We're caught!\n");
--			break;
--		}
--		if ((status & hardware[type].signal_pin_change)
--		    && sense != -1) {
--			/* get current time */
--			kt = ktime_get();
--
--			/* New mode, written by Trent Piepho
--			   <xyzzy@u.washington.edu>. */
--
--			/*
--			 * The old format was not very portable.
--			 * We now use an int to pass pulses
--			 * and spaces to user space.
--			 *
--			 * If PULSE_BIT is set a pulse has been
--			 * received, otherwise a space has been
--			 * received.  The driver needs to know if your
--			 * receiver is active high or active low, or
--			 * the space/pulse sense could be
--			 * inverted. The bits denoted by PULSE_MASK are
--			 * the length in microseconds. Lengths greater
--			 * than or equal to 16 seconds are clamped to
--			 * PULSE_MASK.  All other bits are unused.
--			 * This is a much simpler interface for user
--			 * programs, as well as eliminating "out of
--			 * phase" errors with space/pulse
--			 * autodetection.
--			 */
--
--			/* calc time since last interrupt in microseconds */
--			dcd = (status & hardware[type].signal_pin) ? 1 : 0;
--
--			if (dcd == last_dcd) {
--				pr_warn("ignoring spike: %d %d %llx %llx\n",
--					dcd, sense, ktime_to_us(kt),
--					ktime_to_us(lastkt));
--				continue;
--			}
--
--			delkt = ktime_sub(kt, lastkt);
--			if (ktime_compare(delkt, ktime_set(15, 0)) > 0) {
--				data = PULSE_MASK; /* really long time */
--				if (!(dcd^sense)) {
--					/* sanity check */
--					pr_warn("AIEEEE: %d %d %llx %llx\n",
--						dcd, sense, ktime_to_us(kt),
--						ktime_to_us(lastkt));
--					/*
--					 * detecting pulse while this
--					 * MUST be a space!
--					 */
--					sense = sense ? 0 : 1;
--				}
--			} else
--				data = (int) ktime_to_us(delkt);
--			frbwrite(dcd^sense ? data : (data|PULSE_BIT));
--			lastkt = kt;
--			last_dcd = dcd;
--			wake_up_interruptible(&rbuf.wait_poll);
--		}
--	} while (!(sinp(UART_IIR) & UART_IIR_NO_INT)); /* still pending ? */
--	return IRQ_HANDLED;
--}
--
--
--static int hardware_init_port(void)
--{
--	u8 scratch, scratch2, scratch3;
--
--	/*
--	 * This is a simple port existence test, borrowed from the autoconfig
--	 * function in drivers/serial/8250.c
--	 */
--	scratch = sinp(UART_IER);
--	soutp(UART_IER, 0);
--#ifdef __i386__
--	outb(0xff, 0x080);
--#endif
--	scratch2 = sinp(UART_IER) & 0x0f;
--	soutp(UART_IER, 0x0f);
--#ifdef __i386__
--	outb(0x00, 0x080);
--#endif
--	scratch3 = sinp(UART_IER) & 0x0f;
--	soutp(UART_IER, scratch);
--	if (scratch2 != 0 || scratch3 != 0x0f) {
--		/* we fail, there's nothing here */
--		pr_err("port existence test failed, cannot continue\n");
--		return -ENODEV;
--	}
--
--
--
--	/* Set DLAB 0. */
--	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
--
--	/* First of all, disable all interrupts */
--	soutp(UART_IER, sinp(UART_IER) &
--	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
--
--	/* Clear registers. */
--	sinp(UART_LSR);
--	sinp(UART_RX);
--	sinp(UART_IIR);
--	sinp(UART_MSR);
--
--	/* Set line for power source */
--	off();
--
--	/* Clear registers again to be sure. */
--	sinp(UART_LSR);
--	sinp(UART_RX);
--	sinp(UART_IIR);
--	sinp(UART_MSR);
--
--	switch (type) {
--	case LIRC_IRDEO:
--	case LIRC_IRDEO_REMOTE:
--		/* setup port to 7N1 @ 115200 Baud */
--		/* 7N1+start = 9 bits at 115200 ~ 3 bits at 38kHz */
--
--		/* Set DLAB 1. */
--		soutp(UART_LCR, sinp(UART_LCR) | UART_LCR_DLAB);
--		/* Set divisor to 1 => 115200 Baud */
--		soutp(UART_DLM, 0);
--		soutp(UART_DLL, 1);
--		/* Set DLAB 0 +  7N1 */
--		soutp(UART_LCR, UART_LCR_WLEN7);
--		/* THR interrupt already disabled at this point */
--		break;
--	default:
--		break;
--	}
--
--	return 0;
--}
--
--static int lirc_serial_probe(struct platform_device *dev)
--{
--	int i, nlow, nhigh, result;
--
--	result = devm_request_irq(&dev->dev, irq, lirc_irq_handler,
--			     (share_irq ? IRQF_SHARED : 0),
--			     LIRC_DRIVER_NAME, &hardware);
--	if (result < 0) {
--		if (result == -EBUSY)
--			dev_err(&dev->dev, "IRQ %d busy\n", irq);
--		else if (result == -EINVAL)
--			dev_err(&dev->dev, "Bad irq number or handler\n");
--		return result;
--	}
--
--	/* Reserve io region. */
--	/*
--	 * Future MMAP-Developers: Attention!
--	 * For memory mapped I/O you *might* need to use ioremap() first,
--	 * for the NSLU2 it's done in boot code.
--	 */
--	if (((iommap)
--	     && (devm_request_mem_region(&dev->dev, iommap, 8 << ioshift,
--					 LIRC_DRIVER_NAME) == NULL))
--	   || ((!iommap)
--	       && (devm_request_region(&dev->dev, io, 8,
--				       LIRC_DRIVER_NAME) == NULL))) {
--		dev_err(&dev->dev, "port %04x already in use\n", io);
--		dev_warn(&dev->dev, "use 'setserial /dev/ttySX uart none'\n");
--		dev_warn(&dev->dev,
--			 "or compile the serial port driver as module and\n");
--		dev_warn(&dev->dev, "make sure this module is loaded first\n");
--		return -EBUSY;
--	}
--
--	result = hardware_init_port();
--	if (result < 0)
--		return result;
--
--	/* Initialize pulse/space widths */
--	init_timing_params(duty_cycle, freq);
--
--	/* If pin is high, then this must be an active low receiver. */
--	if (sense == -1) {
--		/* wait 1/2 sec for the power supply */
--		msleep(500);
--
--		/*
--		 * probe 9 times every 0.04s, collect "votes" for
--		 * active high/low
--		 */
--		nlow = 0;
--		nhigh = 0;
--		for (i = 0; i < 9; i++) {
--			if (sinp(UART_MSR) & hardware[type].signal_pin)
--				nlow++;
--			else
--				nhigh++;
--			msleep(40);
--		}
--		sense = nlow >= nhigh ? 1 : 0;
--		dev_info(&dev->dev, "auto-detected active %s receiver\n",
--			 sense ? "low" : "high");
--	} else
--		dev_info(&dev->dev, "Manually using active %s receiver\n",
--			 sense ? "low" : "high");
--
--	dev_dbg(&dev->dev, "Interrupt %d, port %04x obtained\n", irq, io);
--	return 0;
--}
--
--static int set_use_inc(void *data)
--{
--	unsigned long flags;
--
--	/* initialize timestamp */
--	lastkt = ktime_get();
--
--	spin_lock_irqsave(&hardware[type].lock, flags);
--
--	/* Set DLAB 0. */
--	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
--
--	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
--
--	spin_unlock_irqrestore(&hardware[type].lock, flags);
--
--	return 0;
--}
--
--static void set_use_dec(void *data)
--{	unsigned long flags;
--
--	spin_lock_irqsave(&hardware[type].lock, flags);
--
--	/* Set DLAB 0. */
--	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
--
--	/* First of all, disable all interrupts */
--	soutp(UART_IER, sinp(UART_IER) &
--	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
--	spin_unlock_irqrestore(&hardware[type].lock, flags);
--}
--
--static ssize_t lirc_write(struct file *file, const char __user *buf,
--			 size_t n, loff_t *ppos)
--{
--	int i, count;
--	unsigned long flags;
--	long delta = 0;
--	int *wbuf;
--
--	if (!(hardware[type].features & LIRC_CAN_SEND_PULSE))
--		return -EPERM;
--
--	count = n / sizeof(int);
--	if (n % sizeof(int) || count % 2 == 0)
--		return -EINVAL;
--	wbuf = memdup_user(buf, n);
--	if (IS_ERR(wbuf))
--		return PTR_ERR(wbuf);
--	spin_lock_irqsave(&hardware[type].lock, flags);
--	if (type == LIRC_IRDEO) {
--		/* DTR, RTS down */
--		on();
--	}
--	for (i = 0; i < count; i++) {
--		if (i%2)
--			hardware[type].send_space(wbuf[i] - delta);
--		else
--			delta = hardware[type].send_pulse(wbuf[i]);
--	}
--	off();
--	spin_unlock_irqrestore(&hardware[type].lock, flags);
--	kfree(wbuf);
--	return n;
--}
--
--static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
--{
--	int result;
--	u32 __user *uptr = (u32 __user *)arg;
--	u32 value;
--
--	switch (cmd) {
--	case LIRC_GET_SEND_MODE:
--		if (!(hardware[type].features&LIRC_CAN_SEND_MASK))
--			return -ENOIOCTLCMD;
--
--		result = put_user(LIRC_SEND2MODE
--				  (hardware[type].features&LIRC_CAN_SEND_MASK),
--				  uptr);
--		if (result)
--			return result;
--		break;
--
--	case LIRC_SET_SEND_MODE:
--		if (!(hardware[type].features&LIRC_CAN_SEND_MASK))
--			return -ENOIOCTLCMD;
--
--		result = get_user(value, uptr);
--		if (result)
--			return result;
--		/* only LIRC_MODE_PULSE supported */
--		if (value != LIRC_MODE_PULSE)
--			return -EINVAL;
--		break;
--
--	case LIRC_GET_LENGTH:
--		return -ENOIOCTLCMD;
--
--	case LIRC_SET_SEND_DUTY_CYCLE:
--		pr_debug("SET_SEND_DUTY_CYCLE\n");
--		if (!(hardware[type].features&LIRC_CAN_SET_SEND_DUTY_CYCLE))
--			return -ENOIOCTLCMD;
--
--		result = get_user(value, uptr);
--		if (result)
--			return result;
--		if (value <= 0 || value > 100)
--			return -EINVAL;
--		return init_timing_params(value, freq);
--
--	case LIRC_SET_SEND_CARRIER:
--		pr_debug("SET_SEND_CARRIER\n");
--		if (!(hardware[type].features&LIRC_CAN_SET_SEND_CARRIER))
--			return -ENOIOCTLCMD;
--
--		result = get_user(value, uptr);
--		if (result)
--			return result;
--		if (value > 500000 || value < 20000)
--			return -EINVAL;
--		return init_timing_params(duty_cycle, value);
--
--	default:
--		return lirc_dev_fop_ioctl(filep, cmd, arg);
--	}
--	return 0;
--}
--
--static const struct file_operations lirc_fops = {
--	.owner		= THIS_MODULE,
--	.write		= lirc_write,
--	.unlocked_ioctl	= lirc_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= lirc_ioctl,
--#endif
--	.read		= lirc_dev_fop_read,
--	.poll		= lirc_dev_fop_poll,
--	.open		= lirc_dev_fop_open,
--	.release	= lirc_dev_fop_close,
--	.llseek		= no_llseek,
--};
--
--static struct lirc_driver driver = {
--	.name		= LIRC_DRIVER_NAME,
--	.minor		= -1,
--	.code_length	= 1,
--	.sample_rate	= 0,
--	.data		= NULL,
--	.add_to_buf	= NULL,
--	.rbuf		= &rbuf,
--	.set_use_inc	= set_use_inc,
--	.set_use_dec	= set_use_dec,
--	.fops		= &lirc_fops,
--	.dev		= NULL,
--	.owner		= THIS_MODULE,
--};
--
--static struct platform_device *lirc_serial_dev;
--
--static int lirc_serial_suspend(struct platform_device *dev,
--			       pm_message_t state)
--{
--	/* Set DLAB 0. */
--	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
--
--	/* Disable all interrupts */
--	soutp(UART_IER, sinp(UART_IER) &
--	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
--
--	/* Clear registers. */
--	sinp(UART_LSR);
--	sinp(UART_RX);
--	sinp(UART_IIR);
--	sinp(UART_MSR);
--
--	return 0;
--}
--
--/* twisty maze... need a forward-declaration here... */
--static void lirc_serial_exit(void);
--
--static int lirc_serial_resume(struct platform_device *dev)
--{
--	unsigned long flags;
--	int result;
--
--	result = hardware_init_port();
--	if (result < 0)
--		return result;
--
--	spin_lock_irqsave(&hardware[type].lock, flags);
--	/* Enable Interrupt */
--	lastkt = ktime_get();
--	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
--	off();
--
--	lirc_buffer_clear(&rbuf);
--
--	spin_unlock_irqrestore(&hardware[type].lock, flags);
--
--	return 0;
--}
--
--static struct platform_driver lirc_serial_driver = {
--	.probe		= lirc_serial_probe,
--	.suspend	= lirc_serial_suspend,
--	.resume		= lirc_serial_resume,
--	.driver		= {
--		.name	= "lirc_serial",
--	},
--};
--
--static int __init lirc_serial_init(void)
--{
--	int result;
--
--	/* Init read buffer. */
--	result = lirc_buffer_init(&rbuf, sizeof(int), RBUF_LEN);
--	if (result < 0)
--		return result;
--
--	result = platform_driver_register(&lirc_serial_driver);
--	if (result) {
--		printk("lirc register returned %d\n", result);
--		goto exit_buffer_free;
--	}
--
--	lirc_serial_dev = platform_device_alloc("lirc_serial", 0);
--	if (!lirc_serial_dev) {
--		result = -ENOMEM;
--		goto exit_driver_unregister;
--	}
--
--	result = platform_device_add(lirc_serial_dev);
--	if (result)
--		goto exit_device_put;
--
--	return 0;
--
--exit_device_put:
--	platform_device_put(lirc_serial_dev);
--exit_driver_unregister:
--	platform_driver_unregister(&lirc_serial_driver);
--exit_buffer_free:
--	lirc_buffer_free(&rbuf);
--	return result;
--}
--
--static void lirc_serial_exit(void)
--{
--	platform_device_unregister(lirc_serial_dev);
--	platform_driver_unregister(&lirc_serial_driver);
--	lirc_buffer_free(&rbuf);
--}
--
--static int __init lirc_serial_init_module(void)
--{
--	int result;
--
--	switch (type) {
--	case LIRC_HOMEBREW:
--	case LIRC_IRDEO:
--	case LIRC_IRDEO_REMOTE:
--	case LIRC_ANIMAX:
--	case LIRC_IGOR:
--		/* if nothing specified, use ttyS0/com1 and irq 4 */
--		io = io ? io : 0x3f8;
--		irq = irq ? irq : 4;
--		break;
--	default:
--		return -EINVAL;
--	}
--	if (!softcarrier) {
--		switch (type) {
--		case LIRC_HOMEBREW:
--		case LIRC_IGOR:
--			hardware[type].features &=
--				~(LIRC_CAN_SET_SEND_DUTY_CYCLE|
--				  LIRC_CAN_SET_SEND_CARRIER);
--			break;
--		}
--	}
--
--	/* make sure sense is either -1, 0, or 1 */
--	if (sense != -1)
--		sense = !!sense;
--
--	result = lirc_serial_init();
--	if (result)
--		return result;
--
--	driver.features = hardware[type].features;
--	driver.dev = &lirc_serial_dev->dev;
--	driver.minor = lirc_register_driver(&driver);
--	if (driver.minor < 0) {
--		pr_err("register_chrdev failed!\n");
--		lirc_serial_exit();
--		return driver.minor;
--	}
--	return 0;
--}
--
--static void __exit lirc_serial_exit_module(void)
--{
--	lirc_unregister_driver(driver.minor);
--	lirc_serial_exit();
--	pr_debug("cleaned up module\n");
--}
--
--
--module_init(lirc_serial_init_module);
--module_exit(lirc_serial_exit_module);
--
--MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
--MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, "
--	      "Christoph Bartelmus, Andrei Tanas");
--MODULE_LICENSE("GPL");
--
--module_param(type, int, S_IRUGO);
--MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo,"
--		 " 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug,"
--		 " 5 = NSLU2 RX:CTS2/TX:GreenLED)");
--
--module_param(io, int, S_IRUGO);
--MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
--
--/* some architectures (e.g. intel xscale) have memory mapped registers */
--module_param(iommap, bool, S_IRUGO);
--MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O"
--		" (0 = no memory mapped io)");
--
--/*
-- * some architectures (e.g. intel xscale) align the 8bit serial registers
-- * on 32bit word boundaries.
-- * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
-- */
--module_param(ioshift, int, S_IRUGO);
--MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
--
--module_param(irq, int, S_IRUGO);
--MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
--
--module_param(share_irq, bool, S_IRUGO);
--MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
--
--module_param(sense, int, S_IRUGO);
--MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit"
--		 " (0 = active high, 1 = active low )");
--
--#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
--module_param(txsense, bool, S_IRUGO);
--MODULE_PARM_DESC(txsense, "Sense of transmitter circuit"
--		 " (0 = active high, 1 = active low )");
--#endif
--
--module_param(softcarrier, bool, S_IRUGO);
--MODULE_PARM_DESC(softcarrier, "Software carrier (0 = off, 1 = on, default on)");
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+new file mode 100644
+index 000000000000..35572eaffb9e
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -0,0 +1,1212 @@
++/*
++ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2016 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <linux/slab.h>
++#include <linux/pm_runtime.h>
++#include <media/videobuf2-dma-sg.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-ctrls.h>
++
++#include "core.h"
++#include "helpers.h"
++#include "venc.h"
++
++#define NUM_B_FRAMES_MAX	4
++
++static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
++{
++	u32 y_stride, uv_stride, y_plane;
++	u32 y_sclines, uv_sclines, uv_plane;
++	u32 size;
++
++	y_stride = ALIGN(width, 128);
++	uv_stride = ALIGN(width, 128);
++	y_sclines = ALIGN(height, 32);
++	uv_sclines = ALIGN(((height + 1) >> 1), 16);
++
++	y_plane = y_stride * y_sclines;
++	uv_plane = uv_stride * uv_sclines + SZ_4K;
++	size = y_plane + uv_plane + SZ_8K;
++	size = ALIGN(size, SZ_4K);
++
++	return size;
++}
++
++static u32 get_framesize_compressed(u32 width, u32 height)
++{
++	u32 sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
++
++	return ALIGN(sz, SZ_4K);
++}
++
++static const struct venus_format venc_formats[] = {
++	{
++		.pixfmt = V4L2_PIX_FMT_NV12,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_MPEG4,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_H263,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_H264,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	}, {
++		.pixfmt = V4L2_PIX_FMT_VP8,
++		.num_planes = 1,
++		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
++	},
++};
++
++static const struct venus_format *find_format(u32 pixfmt, int type)
++{
++	const struct venus_format *fmt = venc_formats;
++	unsigned int size = ARRAY_SIZE(venc_formats);
++	unsigned int i;
++
++	for (i = 0; i < size; i++) {
++		if (fmt[i].pixfmt == pixfmt)
++			break;
++	}
++
++	if (i == size || fmt[i].type != type)
++		return NULL;
++
++	return &fmt[i];
++}
++
++static const struct venus_format *find_format_by_index(int index, int type)
++{
++	const struct venus_format *fmt = venc_formats;
++	unsigned int size = ARRAY_SIZE(venc_formats);
++	int i, k = 0;
++
++	if (index < 0 || index > size)
++		return NULL;
++
++	for (i = 0; i < size; i++) {
++		if (fmt[i].type != type)
++			continue;
++		if (k == index)
++			break;
++		k++;
++	}
++
++	if (i == size)
++		return NULL;
++
++	return &fmt[i];
++}
++
++static int venc_v4l2_to_hfi(int id, int value)
++{
++	switch (id) {
++	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_0:
++		default:
++			return HFI_MPEG4_LEVEL_0;
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B:
++			return HFI_MPEG4_LEVEL_0b;
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_1:
++			return HFI_MPEG4_LEVEL_1;
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_2:
++			return HFI_MPEG4_LEVEL_2;
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_3:
++			return HFI_MPEG4_LEVEL_3;
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_4:
++			return HFI_MPEG4_LEVEL_4;
++		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_5:
++			return HFI_MPEG4_LEVEL_5;
++		}
++	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE:
++		default:
++			return HFI_MPEG4_PROFILE_SIMPLE;
++		case V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE:
++			return HFI_MPEG4_PROFILE_ADVANCEDSIMPLE;
++		}
++	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE:
++			return HFI_H264_PROFILE_BASELINE;
++		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
++			return HFI_H264_PROFILE_CONSTRAINED_BASE;
++		case V4L2_MPEG_VIDEO_H264_PROFILE_MAIN:
++			return HFI_H264_PROFILE_MAIN;
++		case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH:
++		default:
++			return HFI_H264_PROFILE_HIGH;
++		}
++	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_H264_LEVEL_1_0:
++			return HFI_H264_LEVEL_1;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_1B:
++			return HFI_H264_LEVEL_1b;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_1_1:
++			return HFI_H264_LEVEL_11;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_1_2:
++			return HFI_H264_LEVEL_12;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_1_3:
++			return HFI_H264_LEVEL_13;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_2_0:
++			return HFI_H264_LEVEL_2;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_2_1:
++			return HFI_H264_LEVEL_21;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_2_2:
++			return HFI_H264_LEVEL_22;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_3_0:
++			return HFI_H264_LEVEL_3;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_3_1:
++			return HFI_H264_LEVEL_31;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_3_2:
++			return HFI_H264_LEVEL_32;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_4_0:
++			return HFI_H264_LEVEL_4;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
++			return HFI_H264_LEVEL_41;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
++			return HFI_H264_LEVEL_42;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_5_0:
++		default:
++			return HFI_H264_LEVEL_5;
++		case V4L2_MPEG_VIDEO_H264_LEVEL_5_1:
++			return HFI_H264_LEVEL_51;
++		}
++	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
++		switch (value) {
++		case V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC:
++		default:
++			return HFI_H264_ENTROPY_CAVLC;
++		case V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC:
++			return HFI_H264_ENTROPY_CABAC;
++		}
++	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
++		switch (value) {
++		case 0:
++		default:
++			return HFI_VPX_PROFILE_VERSION_0;
++		case 1:
++			return HFI_VPX_PROFILE_VERSION_1;
++		case 2:
++			return HFI_VPX_PROFILE_VERSION_2;
++		case 3:
++			return HFI_VPX_PROFILE_VERSION_3;
++		}
++	}
++
++	return 0;
++}
++
++static int
++venc_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
++{
++	strlcpy(cap->driver, "qcom-venus", sizeof(cap->driver));
++	strlcpy(cap->card, "Qualcomm Venus video encoder", sizeof(cap->card));
++	strlcpy(cap->bus_info, "platform:qcom-venus", sizeof(cap->bus_info));
++
++	return 0;
++}
++
++static int venc_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
++{
++	const struct venus_format *fmt;
++
++	fmt = find_format_by_index(f->index, f->type);
++
++	memset(f->reserved, 0, sizeof(f->reserved));
++
++	if (!fmt)
++		return -EINVAL;
++
++	f->pixelformat = fmt->pixfmt;
++
++	return 0;
++}
++
++static const struct venus_format *
++venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
++{
++	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
++	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
++	const struct venus_format *fmt;
++	unsigned int p;
++
++	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
++	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
++
++	fmt = find_format(pixmp->pixelformat, f->type);
++	if (!fmt) {
++		if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++			pixmp->pixelformat = V4L2_PIX_FMT_H264;
++		else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++			pixmp->pixelformat = V4L2_PIX_FMT_NV12;
++		else
++			return NULL;
++		fmt = find_format(pixmp->pixelformat, f->type);
++		pixmp->width = 1280;
++		pixmp->height = 720;
++	}
++
++	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
++			     inst->cap_width.max);
++	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
++			      inst->cap_height.max);
++
++	pixmp->height = ALIGN(pixmp->height, 32);
++
++	if (pixmp->field == V4L2_FIELD_ANY)
++		pixmp->field = V4L2_FIELD_NONE;
++	pixmp->num_planes = fmt->num_planes;
++	pixmp->flags = 0;
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		for (p = 0; p < pixmp->num_planes; p++) {
++			pfmt[p].sizeimage =
++				get_framesize_uncompressed(p, pixmp->width,
++							   pixmp->height);
++
++			pfmt[p].bytesperline = ALIGN(pixmp->width, 128);
++		}
++	} else {
++		pfmt[0].sizeimage = get_framesize_compressed(pixmp->width,
++							     pixmp->height);
++		pfmt[0].bytesperline = 0;
++	}
++
++	return fmt;
++}
++
++static int venc_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
++{
++	struct venus_inst *inst = to_inst(file);
++	const struct venus_format *fmt;
++
++	fmt = venc_try_fmt_common(inst, f);
++	if (!fmt)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int venc_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
++{
++	struct venus_inst *inst = to_inst(file);
++	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
++	struct v4l2_pix_format_mplane orig_pixmp;
++	const struct venus_format *fmt;
++	struct v4l2_format format;
++	u32 pixfmt_out = 0, pixfmt_cap = 0;
++
++	orig_pixmp = *pixmp;
++
++	fmt = venc_try_fmt_common(inst, f);
++	if (!fmt)
++		return -EINVAL;
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		pixfmt_out = pixmp->pixelformat;
++		pixfmt_cap = inst->fmt_cap->pixfmt;
++	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		pixfmt_cap = pixmp->pixelformat;
++		pixfmt_out = inst->fmt_out->pixfmt;
++	}
++
++	memset(&format, 0, sizeof(format));
++
++	format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	format.fmt.pix_mp.pixelformat = pixfmt_out;
++	format.fmt.pix_mp.width = orig_pixmp.width;
++	format.fmt.pix_mp.height = orig_pixmp.height;
++	venc_try_fmt_common(inst, &format);
++	inst->out_width = format.fmt.pix_mp.width;
++	inst->out_height = format.fmt.pix_mp.height;
++	inst->colorspace = pixmp->colorspace;
++	inst->ycbcr_enc = pixmp->ycbcr_enc;
++	inst->quantization = pixmp->quantization;
++	inst->xfer_func = pixmp->xfer_func;
++
++	memset(&format, 0, sizeof(format));
++
++	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	format.fmt.pix_mp.pixelformat = pixfmt_cap;
++	format.fmt.pix_mp.width = orig_pixmp.width;
++	format.fmt.pix_mp.height = orig_pixmp.height;
++	venc_try_fmt_common(inst, &format);
++	inst->width = format.fmt.pix_mp.width;
++	inst->height = format.fmt.pix_mp.height;
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		inst->fmt_out = fmt;
++	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		inst->fmt_cap = fmt;
++
++	return 0;
++}
++
++static int venc_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
++{
++	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
++	struct venus_inst *inst = to_inst(file);
++	const struct venus_format *fmt;
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		fmt = inst->fmt_cap;
++	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		fmt = inst->fmt_out;
++	else
++		return -EINVAL;
++
++	pixmp->pixelformat = fmt->pixfmt;
++
++	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		pixmp->width = inst->width;
++		pixmp->height = inst->height;
++		pixmp->colorspace = inst->colorspace;
++		pixmp->ycbcr_enc = inst->ycbcr_enc;
++		pixmp->quantization = inst->quantization;
++		pixmp->xfer_func = inst->xfer_func;
++	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		pixmp->width = inst->out_width;
++		pixmp->height = inst->out_height;
++	}
++
++	venc_try_fmt_common(inst, f);
++
++	return 0;
++}
++
++static int
++venc_g_selection(struct file *file, void *fh, struct v4l2_selection *s)
++{
++	struct venus_inst *inst = to_inst(file);
++
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++		s->r.width = inst->width;
++		s->r.height = inst->height;
++		break;
++	case V4L2_SEL_TGT_CROP:
++		s->r.width = inst->out_width;
++		s->r.height = inst->out_height;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	s->r.top = 0;
++	s->r.left = 0;
++
++	return 0;
++}
++
++static int
++venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
++{
++	struct venus_inst *inst = to_inst(file);
++
++	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
++		return -EINVAL;
++
++	switch (s->target) {
++	case V4L2_SEL_TGT_CROP:
++		if (s->r.width != inst->out_width ||
++		    s->r.height != inst->out_height ||
++		    s->r.top != 0 || s->r.left != 0)
++			return -EINVAL;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int
++venc_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_reqbufs(queue, b);
++}
++
++static int venc_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->type);
++	unsigned int p;
++	int ret;
++
++	ret = vb2_querybuf(queue, b);
++	if (ret)
++		return ret;
++
++	if (b->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
++	    b->memory == V4L2_MEMORY_MMAP) {
++		for (p = 0; p < b->length; p++)
++			b->m.planes[p].m.mem_offset += DST_QUEUE_OFF_BASE;
++	}
++
++	return 0;
++}
++
++static int venc_create_bufs(struct file *file, void *fh,
++			    struct v4l2_create_buffers *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->format.type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_create_bufs(queue, b);
++}
++
++static int venc_prepare_buf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_prepare_buf(queue, b);
++}
++
++static int venc_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_qbuf(queue, b);
++}
++
++static int
++venc_exportbuf(struct file *file, void *fh, struct v4l2_exportbuffer *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_expbuf(queue, b);
++}
++
++static int venc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
++{
++	struct vb2_queue *queue = to_vb2q(file, b->type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_dqbuf(queue, b, file->f_flags & O_NONBLOCK);
++}
++
++static int venc_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
++{
++	struct vb2_queue *queue = to_vb2q(file, type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_streamon(queue, type);
++}
++
++static int venc_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
++{
++	struct vb2_queue *queue = to_vb2q(file, type);
++
++	if (!queue)
++		return -EINVAL;
++
++	return vb2_streamoff(queue, type);
++}
++
++static int venc_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct venus_inst *inst = to_inst(file);
++	struct v4l2_outputparm *out = &a->parm.output;
++	struct v4l2_fract *timeperframe = &out->timeperframe;
++	u64 us_per_frame, fps;
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
++	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		return -EINVAL;
++
++	memset(out->reserved, 0, sizeof(out->reserved));
++
++	if (!timeperframe->denominator)
++		timeperframe->denominator = inst->timeperframe.denominator;
++	if (!timeperframe->numerator)
++		timeperframe->numerator = inst->timeperframe.numerator;
++
++	out->capability = V4L2_CAP_TIMEPERFRAME;
++
++	us_per_frame = timeperframe->numerator * (u64)USEC_PER_SEC;
++	do_div(us_per_frame, timeperframe->denominator);
++
++	if (!us_per_frame)
++		return -EINVAL;
++
++	fps = (u64)USEC_PER_SEC;
++	do_div(fps, us_per_frame);
++
++	inst->timeperframe = *timeperframe;
++	inst->fps = fps;
++
++	return 0;
++}
++
++static int venc_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
++{
++	struct venus_inst *inst = to_inst(file);
++
++	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
++	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		return -EINVAL;
++
++	a->parm.output.capability |= V4L2_CAP_TIMEPERFRAME;
++	a->parm.output.timeperframe = inst->timeperframe;
++
++	return 0;
++}
++
++static int venc_enum_framesizes(struct file *file, void *fh,
++				struct v4l2_frmsizeenum *fsize)
++{
++	struct venus_inst *inst = to_inst(file);
++	const struct venus_format *fmt;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
++
++	fmt = find_format(fsize->pixel_format,
++			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
++	if (!fmt) {
++		fmt = find_format(fsize->pixel_format,
++				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
++		if (!fmt)
++			return -EINVAL;
++	}
++
++	if (fsize->index)
++		return -EINVAL;
++
++	fsize->stepwise.min_width = inst->cap_width.min;
++	fsize->stepwise.max_width = inst->cap_width.max;
++	fsize->stepwise.step_width = inst->cap_width.step_size;
++	fsize->stepwise.min_height = inst->cap_height.min;
++	fsize->stepwise.max_height = inst->cap_height.max;
++	fsize->stepwise.step_height = inst->cap_height.step_size;
++
++	return 0;
++}
++
++static int venc_enum_frameintervals(struct file *file, void *fh,
++				    struct v4l2_frmivalenum *fival)
++{
++	struct venus_inst *inst = to_inst(file);
++	const struct venus_format *fmt;
++
++	fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
++
++	fmt = find_format(fival->pixel_format,
++			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
++	if (!fmt) {
++		fmt = find_format(fival->pixel_format,
++				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
++		if (!fmt)
++			return -EINVAL;
++	}
++
++	if (fival->index)
++		return -EINVAL;
++
++	if (!fival->width || !fival->height)
++		return -EINVAL;
++
++	if (fival->width > inst->cap_width.max ||
++	    fival->width < inst->cap_width.min ||
++	    fival->height > inst->cap_height.max ||
++	    fival->height < inst->cap_height.min)
++		return -EINVAL;
++
++	fival->stepwise.min.numerator = 1;
++	fival->stepwise.min.denominator = inst->cap_framerate.max;
++	fival->stepwise.max.numerator = 1;
++	fival->stepwise.max.denominator = inst->cap_framerate.min;
++	fival->stepwise.step.numerator = 1;
++	fival->stepwise.step.denominator = inst->cap_framerate.max;
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops venc_ioctl_ops = {
++	.vidioc_querycap = venc_querycap,
++	.vidioc_enum_fmt_vid_cap_mplane = venc_enum_fmt,
++	.vidioc_enum_fmt_vid_out_mplane = venc_enum_fmt,
++	.vidioc_s_fmt_vid_cap_mplane = venc_s_fmt,
++	.vidioc_s_fmt_vid_out_mplane = venc_s_fmt,
++	.vidioc_g_fmt_vid_cap_mplane = venc_g_fmt,
++	.vidioc_g_fmt_vid_out_mplane = venc_g_fmt,
++	.vidioc_try_fmt_vid_cap_mplane = venc_try_fmt,
++	.vidioc_try_fmt_vid_out_mplane = venc_try_fmt,
++	.vidioc_g_selection = venc_g_selection,
++	.vidioc_s_selection = venc_s_selection,
++	.vidioc_reqbufs = venc_reqbufs,
++	.vidioc_querybuf = venc_querybuf,
++	.vidioc_create_bufs = venc_create_bufs,
++	.vidioc_prepare_buf = venc_prepare_buf,
++	.vidioc_qbuf = venc_qbuf,
++	.vidioc_expbuf = venc_exportbuf,
++	.vidioc_dqbuf = venc_dqbuf,
++	.vidioc_streamon = venc_streamon,
++	.vidioc_streamoff = venc_streamoff,
++	.vidioc_s_parm = venc_s_parm,
++	.vidioc_g_parm = venc_g_parm,
++	.vidioc_enum_framesizes = venc_enum_framesizes,
++	.vidioc_enum_frameintervals = venc_enum_frameintervals,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
++};
++
++static int venc_set_properties(struct venus_inst *inst)
++{
++	struct venc_controls *ctr = &inst->controls.enc;
++	struct hfi_intra_period intra_period;
++	struct hfi_profile_level pl;
++	struct hfi_framerate frate;
++	struct hfi_bitrate brate;
++	struct hfi_idr_period idrp;
++	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
++	int ret;
++
++	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
++	frate.buffer_type = HFI_BUFFER_OUTPUT;
++	frate.framerate = inst->fps * (1 << 16);
++
++	ret = hfi_session_set_property(inst, ptype, &frate);
++	if (ret)
++		return ret;
++
++	if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
++		struct hfi_h264_vui_timing_info info;
++
++		ptype = HFI_PROPERTY_PARAM_VENC_H264_VUI_TIMING_INFO;
++		info.enable = 1;
++		info.fixed_framerate = 1;
++		info.time_scale = NSEC_PER_SEC;
++
++		ret = hfi_session_set_property(inst, ptype, &info);
++		if (ret)
++			return ret;
++	}
++
++	ptype = HFI_PROPERTY_CONFIG_VENC_IDR_PERIOD;
++	idrp.idr_period = ctr->gop_size;
++	ret = hfi_session_set_property(inst, ptype, &idrp);
++	if (ret)
++		return ret;
++
++	if (ctr->num_b_frames) {
++		u32 max_num_b_frames = NUM_B_FRAMES_MAX;
++
++		ptype = HFI_PROPERTY_PARAM_VENC_MAX_NUM_B_FRAMES;
++		ret = hfi_session_set_property(inst, ptype, &max_num_b_frames);
++		if (ret)
++			return ret;
++	}
++
++	/* intra_period = pframes + bframes + 1 */
++	if (!ctr->num_p_frames)
++		ctr->num_p_frames = 2 * 15 - 1,
++
++	ptype = HFI_PROPERTY_CONFIG_VENC_INTRA_PERIOD;
++	intra_period.pframes = ctr->num_p_frames;
++	intra_period.bframes = ctr->num_b_frames;
++
++	ret = hfi_session_set_property(inst, ptype, &intra_period);
++	if (ret)
++		return ret;
++
++	if (ctr->bitrate_mode == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR)
++		rate_control = HFI_RATE_CONTROL_VBR_CFR;
++	else
++		rate_control = HFI_RATE_CONTROL_CBR_CFR;
++
++	ptype = HFI_PROPERTY_PARAM_VENC_RATE_CONTROL;
++	ret = hfi_session_set_property(inst, ptype, &rate_control);
++	if (ret)
++		return ret;
++
++	if (!ctr->bitrate)
++		bitrate = 64000;
++	else
++		bitrate = ctr->bitrate;
++
++	ptype = HFI_PROPERTY_CONFIG_VENC_TARGET_BITRATE;
++	brate.bitrate = bitrate;
++	brate.layer_id = 0;
++
++	ret = hfi_session_set_property(inst, ptype, &brate);
++	if (ret)
++		return ret;
++
++	if (!ctr->bitrate_peak)
++		bitrate *= 2;
++	else
++		bitrate = ctr->bitrate_peak;
++
++	ptype = HFI_PROPERTY_CONFIG_VENC_MAX_BITRATE;
++	brate.bitrate = bitrate;
++	brate.layer_id = 0;
++
++	ret = hfi_session_set_property(inst, ptype, &brate);
++	if (ret)
++		return ret;
++
++	if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
++		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_H264_PROFILE,
++					   ctr->profile);
++		level = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_H264_LEVEL,
++					 ctr->level);
++	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_VP8) {
++		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_VPX_PROFILE,
++					   ctr->profile);
++		level = 0;
++	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_MPEG4) {
++		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
++					   ctr->profile);
++		level = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
++					 ctr->level);
++	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H263) {
++		profile = 0;
++		level = 0;
++	}
++
++	ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
++	pl.profile = profile;
++	pl.level = level;
++
++	ret = hfi_session_set_property(inst, ptype, &pl);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
++static int venc_init_session(struct venus_inst *inst)
++{
++	u32 pixfmt = inst->fmt_cap->pixfmt;
++	struct hfi_framesize fs;
++	u32 ptype;
++	int ret;
++
++	ret = hfi_session_init(inst, pixfmt, VIDC_SESSION_TYPE_ENC);
++	if (ret)
++		return ret;
++
++	ptype = HFI_PROPERTY_PARAM_FRAME_SIZE;
++	fs.buffer_type = HFI_BUFFER_INPUT;
++	fs.width = inst->out_width;
++	fs.height = inst->out_height;
++
++	ret = hfi_session_set_property(inst, ptype, &fs);
++	if (ret)
++		goto err;
++
++	fs.buffer_type = HFI_BUFFER_OUTPUT;
++	fs.width = inst->width;
++	fs.height = inst->height;
++
++	ret = hfi_session_set_property(inst, ptype, &fs);
++	if (ret)
++		goto err;
++
++	pixfmt = inst->fmt_out->pixfmt;
++
++	ret = vidc_set_color_format(inst, HFI_BUFFER_INPUT, pixfmt);
++	if (ret)
++		goto err;
++
++	return 0;
++err:
++	hfi_session_deinit(inst);
++	return ret;
++}
++
++static int venc_out_num_buffers(struct venus_inst *inst, unsigned int *num)
++{
++	struct hfi_buffer_requirements bufreq;
++	struct device *dev = inst->core->dev;
++	int ret, ret2;
++
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0)
++		return ret;
++
++	ret = venc_init_session(inst);
++	if (ret)
++		goto put_sync;
++
++	ret = vidc_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
++
++	*num = bufreq.count_actual;
++
++	hfi_session_deinit(inst);
++
++put_sync:
++	ret2 = pm_runtime_put_sync(dev);
++
++	return ret ? ret : ret2;
++}
++
++static int venc_queue_setup(struct vb2_queue *q,
++			    unsigned int *num_buffers, unsigned int *num_planes,
++			    unsigned int sizes[], struct device *alloc_devs[])
++{
++	struct venus_inst *inst = vb2_get_drv_priv(q);
++	unsigned int p, num;
++	int ret = 0;
++
++	switch (q->type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++		*num_planes = inst->fmt_out->num_planes;
++
++		ret = venc_out_num_buffers(inst, &num);
++		if (ret)
++			break;
++
++		*num_buffers = max(*num_buffers, num);
++		inst->num_input_bufs = *num_buffers;
++
++		for (p = 0; p < *num_planes; ++p)
++			sizes[p] = get_framesize_uncompressed(p, inst->width,
++							      inst->height);
++		break;
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++		*num_planes = inst->fmt_cap->num_planes;
++		inst->num_output_bufs = *num_buffers;
++		sizes[0] = get_framesize_compressed(inst->width, inst->height);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	return ret;
++}
++
++static int venc_check_configuration(struct venus_inst *inst)
++{
++	struct hfi_buffer_requirements bufreq;
++	int ret;
++
++	ret = vidc_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
++	if (ret)
++		return ret;
++
++	if (inst->num_output_bufs < bufreq.count_actual ||
++	    inst->num_output_bufs < bufreq.count_min)
++		return -EINVAL;
++
++	ret = vidc_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
++	if (ret)
++		return ret;
++
++	if (inst->num_input_bufs < bufreq.count_actual ||
++	    inst->num_input_bufs < bufreq.count_min)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int venc_start_streaming(struct vb2_queue *q, unsigned int count)
++{
++	struct venus_inst *inst = vb2_get_drv_priv(q);
++	struct device *dev = inst->core->dev;
++	struct hfi_buffer_count_actual buf_count;
++	struct vb2_queue *other_queue;
++	u32 ptype;
++	int ret;
++
++	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
++		other_queue = &inst->bufq_cap;
++	else
++		other_queue = &inst->bufq_out;
++
++	if (!vb2_is_streaming(other_queue))
++		return 0;
++
++	inst->sequence = 0;
++
++	ret = pm_runtime_get_sync(dev);
++	if (ret < 0)
++		return ret;
++
++	ret = venc_init_session(inst);
++	if (ret)
++		goto put_sync;
++
++	ret = venc_set_properties(inst);
++	if (ret)
++		goto deinit_sess;
++
++	ret = venc_check_configuration(inst);
++	if (ret)
++		goto deinit_sess;
++
++	ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
++	buf_count.type = HFI_BUFFER_OUTPUT;
++	buf_count.count_actual = inst->num_output_bufs;
++
++	ret = hfi_session_set_property(inst, ptype, &buf_count);
++	if (ret)
++		goto deinit_sess;
++
++	buf_count.type = HFI_BUFFER_INPUT;
++	buf_count.count_actual = inst->num_input_bufs;
++
++	ret = hfi_session_set_property(inst, ptype, &buf_count);
++	if (ret)
++		goto deinit_sess;
++
++	ret = vidc_vb2_start_streaming(inst);
++	if (ret)
++		goto deinit_sess;
++
++	return 0;
++
++deinit_sess:
++	hfi_session_deinit(inst);
++put_sync:
++	pm_runtime_put_sync(dev);
++	return ret;
++}
++
++static const struct vb2_ops venc_vb2_ops = {
++	.queue_setup = venc_queue_setup,
++	.buf_init = vidc_vb2_buf_init,
++	.buf_prepare = vidc_vb2_buf_prepare,
++	.start_streaming = venc_start_streaming,
++	.stop_streaming = vidc_vb2_stop_streaming,
++	.buf_queue = vidc_vb2_buf_queue,
++};
++
++static int venc_empty_buf_done(struct venus_inst *inst, u32 addr, u32 bytesused,
++			       u32 data_offset, u32 flags)
++{
++	struct vb2_v4l2_buffer *vbuf;
++	enum vb2_buffer_state state;
++	struct vb2_buffer *vb;
++
++	vbuf = vidc_vb2_find_buf(inst, addr);
++	if (!vbuf)
++		return -EINVAL;
++
++	vb = &vbuf->vb2_buf;
++	vb->planes[0].bytesused = bytesused;
++	vb->planes[0].data_offset = data_offset;
++	vbuf->flags = flags;
++	state = VB2_BUF_STATE_DONE;
++
++	if (data_offset > vb->planes[0].length ||
++	    bytesused > vb->planes[0].length)
++		state = VB2_BUF_STATE_ERROR;
++
++	vb2_buffer_done(vb, state);
++
++	return 0;
++}
++
++static int venc_fill_buf_done(struct venus_inst *inst, u32 addr, u32 bytesused,
++			      u32 data_offset, u32 flags, u64 timestamp_us)
++{
++	struct vb2_v4l2_buffer *vbuf;
++	enum vb2_buffer_state state;
++	struct vb2_buffer *vb;
++
++	vbuf = vidc_vb2_find_buf(inst, addr);
++	if (!vbuf)
++		return -EINVAL;
++
++	vb = &vbuf->vb2_buf;
++	vb->planes[0].bytesused = bytesused;
++	vb->planes[0].data_offset = data_offset;
++	vb->timestamp = timestamp_us * NSEC_PER_USEC;
++	vbuf->flags = flags;
++	vbuf->sequence = inst->sequence++;
++	state = VB2_BUF_STATE_DONE;
++
++	if (data_offset > vb->planes[0].length ||
++	    bytesused > vb->planes[0].length)
++		state = VB2_BUF_STATE_ERROR;
++
++	vb2_buffer_done(vb, state);
++
++	return 0;
++}
++
++static int venc_event_notify(struct venus_inst *inst, u32 event,
++			     struct hfi_event_data *data)
++{
++	struct device *dev = inst->core->dev;
++
++	switch (event) {
++	case EVT_SESSION_ERROR:
++		if (inst) {
++			mutex_lock(&inst->lock);
++			inst->state = INST_INVALID;
++			mutex_unlock(&inst->lock);
++		}
++		dev_err(dev, "enc: event session error (inst:%p)\n", inst);
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static const struct hfi_inst_ops venc_hfi_ops = {
++	.empty_buf_done = venc_empty_buf_done,
++	.fill_buf_done = venc_fill_buf_done,
++	.event_notify = venc_event_notify,
++};
++
++static void venc_inst_init(struct venus_inst *inst)
++{
++	inst->fmt_cap = &venc_formats[2];
++	inst->fmt_out = &venc_formats[0];
++	inst->width = 1280;
++	inst->height = ALIGN(720, 32);
++	inst->fps = 15;
++	inst->timeperframe.numerator = 1;
++	inst->timeperframe.denominator = 15;
++
++	inst->cap_width.min = 64;
++	inst->cap_width.max = 1920;
++	inst->cap_width.step_size = 1;
++	inst->cap_height.min = 64;
++	inst->cap_height.max = ALIGN(1080, 32);
++	inst->cap_height.step_size = 1;
++	inst->cap_framerate.min = 1;
++	inst->cap_framerate.max = 30;
++	inst->cap_framerate.step_size = 1;
++	inst->cap_mbs_per_frame.min = 16;
++	inst->cap_mbs_per_frame.max = 8160;
++}
++
++int venc_init(struct venus_core *core, struct video_device *enc,
++	      const struct v4l2_file_operations *fops)
++{
++	int ret;
++
++	enc->release = video_device_release;
++	enc->fops = fops;
++	enc->ioctl_ops = &venc_ioctl_ops;
++	enc->vfl_dir = VFL_DIR_M2M;
++	enc->v4l2_dev = &core->v4l2_dev;
++	enc->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++
++	ret = video_register_device(enc, VFL_TYPE_GRABBER, -1);
++	if (ret)
++		return ret;
++
++	video_set_drvdata(enc, core);
++
++	return 0;
++}
++
++void venc_deinit(struct venus_core *core, struct video_device *enc)
++{
++	video_unregister_device(enc);
++}
++
++int venc_open(struct venus_inst *inst)
++{
++	struct vb2_queue *q;
++	int ret;
++
++	ret = venc_ctrl_init(inst);
++	if (ret)
++		return ret;
++
++	ret = hfi_session_create(inst, &venc_hfi_ops);
++	if (ret)
++		goto err_ctrl_deinit;
++
++	venc_inst_init(inst);
++
++	q = &inst->bufq_cap;
++	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
++	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	q->ops = &venc_vb2_ops;
++	q->mem_ops = &vb2_dma_sg_memops;
++	q->drv_priv = inst;
++	q->buf_struct_size = sizeof(struct vidc_buffer);
++	q->allow_zero_bytesused = 1;
++	q->min_buffers_needed = 2;
++	q->dev = inst->core->dev;
++	ret = vb2_queue_init(q);
++	if (ret)
++		goto err_session_destroy;
++
++	q = &inst->bufq_out;
++	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
++	q->io_modes = VB2_MMAP | VB2_DMABUF;
++	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
++	q->ops = &venc_vb2_ops;
++	q->mem_ops = &vb2_dma_sg_memops;
++	q->drv_priv = inst;
++	q->buf_struct_size = sizeof(struct vidc_buffer);
++	q->allow_zero_bytesused = 1;
++	q->dev = inst->core->dev;
++	ret = vb2_queue_init(q);
++	if (ret)
++		goto err_cap_queue_release;
++
++	return 0;
++
++err_cap_queue_release:
++	vb2_queue_release(&inst->bufq_cap);
++err_session_destroy:
++	hfi_session_destroy(inst);
++err_ctrl_deinit:
++	venc_ctrl_deinit(inst);
++	return ret;
++}
++
++void venc_close(struct venus_inst *inst)
++{
++	vb2_queue_release(&inst->bufq_out);
++	vb2_queue_release(&inst->bufq_cap);
++	venc_ctrl_deinit(inst);
++	hfi_session_destroy(inst);
++}
+diff --git a/drivers/media/platform/qcom/venus/venc.h b/drivers/media/platform/qcom/venus/venc.h
+new file mode 100644
+index 000000000000..e48226a70b88
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/venc.h
+@@ -0,0 +1,32 @@
++/*
++ * Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2016 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++#ifndef __VIDC_VENC_H__
++#define __VIDC_VENC_H__
++
++struct venus_core;
++struct video_device;
++struct venus_inst;
++struct v4l2_file_operations;
++
++int venc_init(struct venus_core *core, struct video_device *enc,
++	      const struct v4l2_file_operations *fops);
++void venc_deinit(struct venus_core *core, struct video_device *enc);
++int venc_open(struct venus_inst *inst);
++void venc_close(struct venus_inst *inst);
++
++int venc_ctrl_init(struct venus_inst *inst);
++void venc_ctrl_deinit(struct venus_inst *inst);
++
++#endif
+diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
+new file mode 100644
+index 000000000000..27a5c9401e2e
+--- /dev/null
++++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
+@@ -0,0 +1,396 @@
++/*
++ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
++ * Copyright (C) 2016 Linaro Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++#include <linux/types.h>
++#include <media/v4l2-ctrls.h>
++
++#include "core.h"
++
++#define BITRATE_MIN		32000
++#define BITRATE_MAX		160000000
++#define BITRATE_DEFAULT		1000000
++#define BITRATE_DEFAULT_PEAK	(BITRATE_DEFAULT * 2)
++#define BITRATE_STEP		100
++#define SLICE_BYTE_SIZE_MAX	1024
++#define SLICE_BYTE_SIZE_MIN	1024
++#define SLICE_MB_SIZE_MAX	300
++#define INTRA_REFRESH_MBS_MAX	300
++#define AT_SLICE_BOUNDARY	\
++	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY
++static struct venus_ctrl venc_ctrls[] = {
++	{
++		.id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_BITRATE_MODE_VBR,
++		.max = V4L2_MPEG_VIDEO_BITRATE_MODE_CBR,
++		.def = V4L2_MPEG_VIDEO_BITRATE_MODE_VBR,
++		.menu_skip_mask = ~((1 << V4L2_MPEG_VIDEO_BITRATE_MODE_VBR) |
++				    (1 << V4L2_MPEG_VIDEO_BITRATE_MODE_CBR)),
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_BITRATE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = BITRATE_MIN,
++		.max = BITRATE_MAX,
++		.def = BITRATE_DEFAULT,
++		.step = BITRATE_STEP,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_BITRATE_PEAK,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = BITRATE_MIN,
++		.max = BITRATE_MAX,
++		.def = BITRATE_DEFAULT_PEAK,
++		.step = BITRATE_STEP,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC,
++		.max = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC,
++		.def = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
++		.max = V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY,
++		.def = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
++		.menu_skip_mask = ~(
++			(1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE) |
++			(1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE)
++		),
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_MPEG4_LEVEL_0,
++		.max = V4L2_MPEG_VIDEO_MPEG4_LEVEL_5,
++		.def = V4L2_MPEG_VIDEO_MPEG4_LEVEL_0,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_PROFILE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE,
++		.max = V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH,
++		.def = V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
++		.menu_skip_mask = ~(
++		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE) |
++		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE) |
++		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MAIN) |
++		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH) |
++		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH) |
++		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH)
++		),
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_LEVEL,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
++		.max = V4L2_MPEG_VIDEO_H264_LEVEL_5_1,
++		.def = V4L2_MPEG_VIDEO_H264_LEVEL_5_0,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_VPX_PROFILE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = 3,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 51,
++		.def = 26,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 51,
++		.def = 28,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 51,
++		.def = 30,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_MIN_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 51,
++		.def = 1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_MAX_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 51,
++		.def = 51,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
++		.max = V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES,
++		.def = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = SLICE_BYTE_SIZE_MIN,
++		.max = SLICE_BYTE_SIZE_MAX,
++		.def = SLICE_BYTE_SIZE_MIN,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = SLICE_MB_SIZE_MAX,
++		.def = 1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = -6,
++		.max = 6,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = -6,
++		.max = 6,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED,
++		.max = AT_SLICE_BOUNDARY,
++		.def = V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_HEADER_MODE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE,
++		.max = V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
++		.def = V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE,
++		.menu_skip_mask =
++			1 << V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = INTRA_REFRESH_MBS_MAX,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.min = 0,
++		.max = 1,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.min = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED,
++		.max = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED,
++		.def = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_GOP_SIZE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = (1 << 16) - 1,
++		.def = 12,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = (1 << 16) - 1,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.min = 0,
++		.max = 1,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_VPX_MIN_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 128,
++		.def = 1,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_VPX_MAX_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 1,
++		.max = 128,
++		.def = 128,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_B_FRAMES,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = INT_MAX,
++		.def = 0,
++		.step = 1,
++	}, {
++		.id = V4L2_CID_MPEG_VIDEO_H264_I_PERIOD,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.min = 0,
++		.max = (1 << 16) - 1,
++		.step = 1,
++		.def = 0,
++	},
++};
++
++#define NUM_CTRLS	ARRAY_SIZE(venc_ctrls)
++
++static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct venus_inst *inst = ctrl_to_inst(ctrl);
++	struct venc_controls *ctr = &inst->controls.enc;
++
++	switch (ctrl->id) {
++	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
++		ctr->bitrate_mode = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_BITRATE:
++		ctr->bitrate = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK:
++		ctr->bitrate_peak = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
++		ctr->h264_entropy_mode = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
++		ctr->profile = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
++	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
++		ctr->level = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
++		ctr->h264_i_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
++		ctr->h264_p_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
++		ctr->h264_b_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
++		ctr->h264_min_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
++		ctr->h264_max_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
++		ctr->multi_slice_mode = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
++		ctr->multi_slice_max_bytes = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
++		ctr->multi_slice_max_mb = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:
++		ctr->h264_loop_filter_alpha = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:
++		ctr->h264_loop_filter_beta = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
++		ctr->h264_loop_filter_mode = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
++		ctr->header_mode = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB:
++		break;
++	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
++		ctr->gop_size = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_I_PERIOD:
++		ctr->h264_i_period = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
++	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
++	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
++	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
++		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:
++		ctr->vp8_min_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:
++		ctr->vp8_max_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_B_FRAMES:
++		ctr->num_b_frames = ctrl->val;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops venc_ctrl_ops = {
++	.s_ctrl = venc_op_s_ctrl,
++};
++
++int venc_ctrl_init(struct venus_inst *inst)
++{
++	unsigned int i;
++	int ret;
++
++	ret = v4l2_ctrl_handler_init(&inst->ctrl_handler, NUM_CTRLS);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < NUM_CTRLS; i++) {
++		struct v4l2_ctrl *ctrl;
++
++		if (venc_ctrls[i].type == V4L2_CTRL_TYPE_MENU) {
++			ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler,
++					&venc_ctrl_ops, venc_ctrls[i].id,
++					venc_ctrls[i].max,
++					venc_ctrls[i].menu_skip_mask,
++					venc_ctrls[i].def);
++		} else {
++			ctrl = v4l2_ctrl_new_std(&inst->ctrl_handler,
++					&venc_ctrl_ops, venc_ctrls[i].id,
++					venc_ctrls[i].min,
++					venc_ctrls[i].max,
++					venc_ctrls[i].step,
++					venc_ctrls[i].def);
++		}
++
++		ret = inst->ctrl_handler.error;
++		if (ret) {
++			v4l2_ctrl_handler_free(&inst->ctrl_handler);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++void venc_ctrl_deinit(struct venus_inst *inst)
++{
++	v4l2_ctrl_handler_free(&inst->ctrl_handler);
++}
 -- 
 2.7.4
 
