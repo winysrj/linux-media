@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34414 "EHLO comal.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752320AbcKAUeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 Nov 2016 16:34:10 -0400
-Date: Tue, 1 Nov 2016 15:33:46 -0500
-From: Bin Liu <b-liu@ti.com>
-To: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-CC: Alan Stern <stern@rowland.harvard.edu>, <hdegoede@redhat.com>,
-        <linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
-Subject: Re: musb: isoc pkt loss with pwc
-Message-ID: <20161101203346.GE30087@uda0271908>
-References: <CAJs94EYkgXtr7P+HLsBnu6=j==g=wWRVFy91vofcdDziSfw60w@mail.gmail.com>
- <20160830183039.GA20056@uda0271908>
- <CAJs94EZbTT7TyEyc5QjKvybDdR1hORd-z1sD=yyYNj=kzPQ6tw@mail.gmail.com>
- <20160912032826.GB18340@uda0271908>
- <CAJs94EbNjkjN4eMY03eH3o=xVe+CGB95GQ+a5PsmsNUrDzi8mQ@mail.gmail.com>
- <20160912185709.GL18340@uda0271908>
- <CAJs94EaNwOiqTASzr2LQDWeCHnzoQQWndDsSg75YUuHLQhcuUw@mail.gmail.com>
- <CAJs94EZXjETQGj44hphs61g9W1r-o9vJc+yy+9CeaxBy7Sa0Tg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CAJs94EZXjETQGj44hphs61g9W1r-o9vJc+yy+9CeaxBy7Sa0Tg@mail.gmail.com>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:35456 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932380AbcKGRmf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:42:35 -0500
+Received: by mail-wm0-f46.google.com with SMTP id a197so197507214wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 09:42:34 -0800 (PST)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v3 2/9] MAINTAINERS: Add Qualcomm Venus video accelerator driver
+Date: Mon,  7 Nov 2016 19:33:56 +0200
+Message-Id: <1478540043-24558-3-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Oct 15, 2016 at 10:25:42PM +0300, Matwey V. Kornilov wrote:
+Add an entry for Venus video encoder/decoder accelerator driver.
 
-[snip]
+Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-> >>> > Which means without this commit your camera has been working without
-> >>> > issues, and this is a regression with this commit, right?
-> >>> >
-> >>>
-> >>> Right
-> >>
-> >> Okay, thanks for confirming.
-> >>
-> >> But we cannot just simply add this flag, as it breaks many other use
-> >> cases. I will continue work on this to find a solution which works on
-> >> all use cases.
-> >>
-> >
-> > Ok, thank you.
-> >
-> 
-> Excuse me. Any news?
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 93e9f4227c53..5c2e70e83ff5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -9986,6 +9986,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.g
+ S:	Supported
+ F:	arch/hexagon/
+ 
++QUALCOMM VENUS VIDEO ACCELERATOR DRIVER
++M:	Stanimir Varbanov <stanimir.varbanov@linaro.org>
++L:	linux-media@vger.kernel.org
++L:	linux-arm-msm@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/platform/qcom/venus/
++
+ QUALCOMM WCN36XX WIRELESS DRIVER
+ M:	Eugene Krasnikov <k.eugene.e@gmail.com>
+ L:	wcn36xx@lists.infradead.org
+-- 
+2.7.4
 
-Not solved yet. I used uvc class to exam the issue. uvc_video driver
-takes longer time to execute urb complete() on my platform. Using HCD_BH
-flag doesn't help, because urb->complete() was running with irq disabled
-because of the local_irq. Removing the local_irq as in [1] causes the
-system to lockup - uart and network stop responsing, so hard to debug
-for now.
-
-Right now, I added a workqueue in musb_host to handle urb->complete()
-with local_irq removed. It seems working fine in my test, but it is
-still a long way find the proper fix for upstream. I didn't have much
-time on this issue.
-
-Once I have a proper solution, I will post it to the mailing list.
-
-[1] http://marc.info/?l=linux-usb&m=147560701431267&w=2
-
-Regards,
--Bin.
