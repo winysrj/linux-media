@@ -1,83 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:44356 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933063AbcKNIXV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 03:23:21 -0500
-Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
- framework
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>
-References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
- <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
- <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
- <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
- <f929eb2f-05a4-e674-c90b-b9141de04153@microchip.com>
- <ad11ae23-402f-6e20-6201-af466ff7da2e@microchip.com>
- <86371d6b-3549-0d75-201e-53a0226872db@xs4all.nl>
- <1a034eb2-4d2f-5640-54c4-ed3702ae7202@microchip.com>
- <38cace16-a523-857c-4081-0f5e28550bc5@xs4all.nl>
- <9f054ac5-0891-869b-c5fb-5652bd49fa30@microchip.com>
- <5e077970-440f-a658-7238-2a152a8aba9d@xs4all.nl>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <bc4b4051-ac67-b980-502a-7d867f359ed1@microchip.com>
-Date: Mon, 14 Nov 2016 16:22:28 +0800
+Received: from mga11.intel.com ([192.55.52.93]:38869 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750995AbcKGKyH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 7 Nov 2016 05:54:07 -0500
+From: Jani Nikula <jani.nikula@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Cc: linux-doc@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org
+Subject: Re: Including images on Sphinx documents
+In-Reply-To: <20161107075524.49d83697@vento.lan>
+References: <20161107075524.49d83697@vento.lan>
+Date: Mon, 07 Nov 2016 12:53:55 +0200
+Message-ID: <87wpgf8ssc.fsf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <5e077970-440f-a658-7238-2a152a8aba9d@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 07 Nov 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> Hi Jon,
+>
+> I'm trying to sort out the next steps to do after KS, with regards to
+> images included on RST files.
+>
+> The issue is that Sphinx image support highly depends on the output
+> format. Also, despite TexLive support for svg and png images[1], Sphinx
+> doesn't produce the right LaTeX commands to use svg[2]. On my tests
+> with PNG on my notebook, it also didn't seem to do the right thing for
+> PNG either. So, it seems that the only safe way to support images is
+> to convert all of them to PDF for latex/pdf build.
+>
+> [1] On Fedora, via texlive-dvipng and texlive-svg
+> [2] https://github.com/sphinx-doc/sphinx/issues/1907
+>
+> As far as I understand from KS, two decisions was taken:
+>
+> - We're not adding a sphinx extension to run generic commands;
+> - The PDF images should be build in runtime from their source files
+>   (either svg or bitmap), and not ship anymore the corresponding
+>   PDF files generated from its source.
+>
+> As you know, we use several images at the media documentation:
+> 	https://www.kernel.org/doc/html/latest/_images/
+>
+> Those images are tightly coupled with the explanation texts. So,
+> maintaining them away from the documentation is not an option.
+>
+> I was originally thinking that adding a graphviz extension would solve the
+> issue, but, in fact, most of the images aren't diagrams. Instead, there are 
+> several ones with images showing the result of passing certain parameters to
+> the ioctls, explaining things like scale and cropping and how bytes are
+> packed on some image formats.
+>
+> Linus proposed to call some image conversion tool like ImageMagick or
+> inkscape to convert them to PDF when building the pdfdocs or latexdocs
+> target at Makefile, but there's an issue with that: Sphinx doesn't read
+> files from Documentation/output, and writing them directly at the
+> source dir would be against what it is expected when the "O=" argument
+> is passed to make. 
+>
+> So, we have a few alternatives:
+>
+> 1) copy (or symlink) all rst files to Documentation/output (or to the
+>    build dir specified via O= directive) and generate the *.pdf there,
+>    and produce those converted images via Makefile.;
+>
+> 2) add an Sphinx extension that would internally call ImageMagick and/or
+>    inkscape to convert the bitmap;
+>
+> 3) if possible, add an extension to trick Sphinx for it to consider the 
+>    output dir as a source dir too.
+
+Looking at the available extensions, and the images to be displayed,
+seems to me making svg work, somehow, is the right approach. (As opposed
+to trying to represent the images in graphviz or whatnot.)
+
+IIUC texlive supports displaying svg directly, but the problem is that
+Sphinx produces bad latex for that. Can we make it work by manually
+writing the latex? If yes, we wouldn't need to use an external tool to
+convert the svg to something else, but rather fix the latex. Thus:
+
+4a) See if this works:
+
+.. only:: html
+
+   .. image:: foo.svg
+
+.. raw:: latex
+
+   <the correct latex commands required to display foo.svg>
+
+4b) Add a directive extension to make the above happen automatically.
+
+Of course, the correct fix is to have this fixed in upstream Sphinx, but
+as a workaround an extension doing the above seems plausible, and not
+too much effort - provided that we can make the raw latex work.
+
+BR,
+Jani.
 
 
-On 11/14/2016 16:19, Hans Verkuil wrote:
-> Hi Songjun,
->
-> On 10/19/2016 09:48 AM, Wu, Songjun wrote:
->>
->>
->> On 10/19/2016 15:46, Hans Verkuil wrote:
->>> On 10/19/2016 09:36 AM, Wu, Songjun wrote:
->>>>
->>>>
->>>> On 10/18/2016 18:58, Hans Verkuil wrote:
->>>>> On 10/18/16 11:21, Wu, Songjun wrote:
->>>>>> Hi Hans,
->>>>>>
->>>>>> Do you have any issue on this patch?
->>>>>
->>>>> ENOTIME :-(
->>>>>
->>>>>> Could I give you some help? :)
->>>>>
->>>>> I would certainly help if you can make the requested change to this patch.
->>>>>
->>>>> Let me know if you want to do that, because in that case I'll rebase my
->>>>> tree
->>>>> to the latest media_tree master.
->>>>>
->>>> Yes, I would like to make the requested change to this patch. :)
->>>> It seems the patch is not based on the latest media_tree master.
->>>> Will you rebase this patch to the latest media_tree, or let me move it
->>>> and make the requested change based on the media_tree?
->>>
->>> I've rebased my branch:
->>>
->>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=sama5d3-2
->>>
->> Thank you very much.
->> I will make the requested change based on your branch.
->
-> Did you make any progress on this? I plan on finalizing the atmel-isi driver
-> next week.
->
-I checked the code, you have already modified the code according the 
-comments, and I also validate the ISI driver, no errors.
-You can finalize the atmel-isi driver.
-Thank you very much.
-
-> Regards,
->
-> 	Hans
->
+-- 
+Jani Nikula, Intel Open Source Technology Center
