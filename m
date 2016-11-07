@@ -1,118 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:55028 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932739AbcKJXyC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 18:54:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shuah Khan <shuahkhan@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC v4 08/21] media: Enable allocating the media device dynamically
-Date: Fri, 11 Nov 2016 01:53:59 +0200
-Message-ID: <4251827.ADF06xmuSS@avalon>
-In-Reply-To: <CAKocOONNR9NBszp5Qq+geRdR+qAD70GYXguN7c3Q0Ptoz0Vzhg@mail.gmail.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk> <1478613330-24691-8-git-send-email-sakari.ailus@linux.intel.com> <CAKocOONNR9NBszp5Qq+geRdR+qAD70GYXguN7c3Q0Ptoz0Vzhg@mail.gmail.com>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:34192 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932173AbcKGP3Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 10:29:16 -0500
+Received: by mail-it0-f66.google.com with SMTP id q124so9930683itd.1
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 07:29:16 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <65d65d048e6fa6964ccf679f400b964afac5d782.1478523166.git.mchehab@s-opensource.com>
+References: <65d65d048e6fa6964ccf679f400b964afac5d782.1478523166.git.mchehab@s-opensource.com>
+From: VDR User <user.vdr@gmail.com>
+Date: Mon, 7 Nov 2016 07:28:26 -0800
+Message-ID: <CAA7C2qjGp2gM=KxbpOvRzfabQ5T9-BuG9U2MWbBvKOKV64-rJA@mail.gmail.com>
+Subject: Re: [PATCH] [media] gp8psk: fix gp8psk_usb_in_op() logic
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
-
-On Tuesday 08 Nov 2016 12:20:29 Shuah Khan wrote:
-> On Tue, Nov 8, 2016 at 6:55 AM, Sakari Ailus wrote:
-> > From: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> > Allow allocating the media device dynamically. As the struct media_device
-> > embeds struct media_devnode, the lifetime of that object is that same than
-> > that of the media_device.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> > 
-> >  drivers/media/media-device.c | 15 +++++++++++++++
-> >  include/media/media-device.h | 13 +++++++++++++
-> >  2 files changed, 28 insertions(+)
-> > 
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > index a31329d..496195e 100644
-> > --- a/drivers/media/media-device.c
-> > +++ b/drivers/media/media-device.c
-> > @@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
-> >  }
-> >  EXPORT_SYMBOL_GPL(media_device_init);
-> > 
-> > +struct media_device *media_device_alloc(struct device *dev)
-> > +{
-> > +       struct media_device *mdev;
-> > +
-> > +       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-> > +       if (!mdev)
-> > +               return NULL;
-> > +
-> > +       mdev->dev = dev;
-> > +       media_device_init(mdev);
-> > +
-> > +       return mdev;
-> > +}
-> > +EXPORT_SYMBOL_GPL(media_device_alloc);
-> > +
-> 
-> One problem with this allocation is, this media device can't be shared
-> across drivers. For au0828 and snd-usb-audio should be able to share the
-> media_device. That is what the Media Allocator API patch series does.
-
-No disagreement here, Sakari's patches don't address the issues that the media 
-allocator API fixes. The media allocator API, when ready, should replace (or 
-at least complement, if we decide to keep a simpler API for drivers that don't 
-need to share a media device, but I have no opinion on this at this time) this 
-allocation function.
-
-> This a quick review and I will review the patch series and get back to
-> you.
+On Mon, Nov 7, 2016 at 4:52 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Changeset bc29131ecb10 ("[media] gp8psk: don't do DMA on stack")
+> fixed the usage of DMA on stack, but the memcpy was wrong
+> for gp8psk_usb_in_op(). Fix it.
 >
-> >  void media_device_cleanup(struct media_device *mdev)
-> >  {
-> >         ida_destroy(&mdev->entity_internal_idx);
-> > diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > index 96de915..c9b5798 100644
-> > --- a/include/media/media-device.h
-> > +++ b/include/media/media-device.h
-> > @@ -207,6 +207,15 @@ static inline __must_check int
-> > media_entity_enum_init(
-> >  void media_device_init(struct media_device *mdev);
-> >  
-> >  /**
-> > + * media_device_alloc() - Allocate and initialise a media device
-> > + *
-> > + * @dev:       The associated struct device pointer
-> > + *
-> > + * Allocate and initialise a media device. Returns a media device.
-> > + */
-> > +struct media_device *media_device_alloc(struct device *dev);
-> > +
-> > +/**
-> >   * media_device_cleanup() - Cleanups a media device element
-> >   *
-> >   * @mdev:      pointer to struct &media_device
-> > @@ -451,6 +460,10 @@ void __media_device_usb_init(struct media_device
-> > *mdev,
-> >                              const char *driver_name);
-> >  #else
-> > +static inline struct media_device *media_device_alloc(struct device *dev)
-> > +{
-> > +       return NULL;
-> > +}
-> >  static inline int media_device_register(struct media_device *mdev)
-> >  {
-> >         return 0;
+> Suggested-by: Johannes Stezenbach <js@linuxtv.org>
+> Fixes: bc29131ecb10 ("[media] gp8psk: don't do DMA on stack")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
--- 
-Regards,
+Fix confirmed using 2 different Skywalker models with HD mpeg4, SD mpeg2.
 
-Laurent Pinchart
+Tested-by: <user.vdr@gmail.com>
 
+> ---
+>  drivers/media/usb/dvb-usb/gp8psk.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+> index adfd76491451..2829e3082d15 100644
+> --- a/drivers/media/usb/dvb-usb/gp8psk.c
+> +++ b/drivers/media/usb/dvb-usb/gp8psk.c
+> @@ -67,7 +67,6 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
+>                 return ret;
+>
+>         while (ret >= 0 && ret != blen && try < 3) {
+> -               memcpy(st->data, b, blen);
+>                 ret = usb_control_msg(d->udev,
+>                         usb_rcvctrlpipe(d->udev,0),
+>                         req,
+> @@ -81,8 +80,10 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
+>         if (ret < 0 || ret != blen) {
+>                 warn("usb in %d operation failed.", req);
+>                 ret = -EIO;
+> -       } else
+> +       } else {
+>                 ret = 0;
+> +               memcpy(b, st->data, blen);
+> +       }
+>
+>         deb_xfer("in: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
+>         debug_dump(b,blen,deb_xfer);
+> --
+> 2.7.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
