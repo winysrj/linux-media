@@ -1,205 +1,537 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.137]:43915 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752132AbcKECow (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 22:44:52 -0400
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
- <aab23d5d-d41d-78e1-7324-77b9d98ee127@rock-chips.com>
- <e6b89733-465e-74d3-45b9-0a39d1136779@st.com>
-Cc: "posciak@chromium.org" <posciak@chromium.org>,
-        Florent Revest <florent.revest@free-electrons.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>,
-        "eddie.cai" <eddie.cai@rock-chips.com>,
-        "linux-rockchip@lists.infradead.org"
-        <linux-rockchip@lists.infradead.org>,
-        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
-        =?UTF-8?B?5p6X6YeR5Y+R?= <alpha.lin@rock-chips.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        =?UTF-8?B?6LW15L+K?= <jung.zhao@rock-chips.com>
-From: Randy Li <randy.li@rock-chips.com>
-Message-ID: <6d308d93-b0be-45b6-f330-ee00bea5d5a0@rock-chips.com>
-Date: Sat, 5 Nov 2016 10:44:22 +0800
-MIME-Version: 1.0
-In-Reply-To: <e6b89733-465e-74d3-45b9-0a39d1136779@st.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36320 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751175AbcKGBVt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 6 Nov 2016 20:21:49 -0500
+From: Matt Ranostay <mranostay@gmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Matt Ranostay <matt@ranostay.consulting>,
+        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
+        Luca Barbato <lu_zero@gentoo.org>
+Subject: [PATCH] media: i2c-polling: add i2c-polling driver
+Date: Sun,  6 Nov 2016 17:21:17 -0800
+Message-Id: <1478481677-22170-1-git-send-email-matt@ranostay.consulting>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+There are several thermal sensors that only have a low-speed bus
+interface but output valid video data. This patchset enables support
+for the AMG88xx "Grid-Eye" sensor family.
 
+Cc: Attila Kinali <attila@kinali.ch>
+Cc: Marek Vasut <marex@denx.de>
+Cc: Luca Barbato <lu_zero@gentoo.org>
+Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+---
+ drivers/media/i2c/Kconfig       |   8 +
+ drivers/media/i2c/Makefile      |   1 +
+ drivers/media/i2c/i2c-polling.c | 466 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 475 insertions(+)
+ create mode 100644 drivers/media/i2c/i2c-polling.c
 
-On 11/04/2016 09:55 PM, Hugues FRUCHET wrote:
-> Hi Randy,
->
-> thanks for reply, some comments below:
->
->
-> On 10/27/2016 03:08 AM, Randy Li wrote:
->>
->>
->> On 10/26/2016 11:09 PM, Hugues FRUCHET wrote:
->>> Hi,
->>>
->>>
->>>
->>> This RFC aims to start discussions in order to define the codec specific
->>> controls structures to fulfill the low-level decoder API needed by non
->>> “Stream API” based decoders (“stateless” or “Frame API” based decoders).
->>>
->>> Several implementation exists now which runs on several SoC and various
->>> software frameworks.
->>>
->>> The idea is to find the communalities between all those implementations
->>> and SoC to define a single unified interface in V4L2 includes.
->>>
->>> Even if “Request API” is needed to pass those codec specific controls
->>> from userspace down to kernel on a per-buffer basis, we can start
->>> discussions and define the controls in parallel of its development.
->> Yes, I have sent a one for H.264 decoder and JPEG encoder.
->>>
->>> We can even propose some implementations based on existing V4L2 control
->>> framework (which doesn’t support “per-frame” basis) by ensuring
->>> atomicity of sequence S_EXT_CTRL(header[i])/QBUF(stream[i]). Constraint
->>> can then be relaxed when “Request API” is merged.
->>>
->>>
->>>
->>> I would like to propose to work on a “per-codec” basis, having at least
->>> 2 different SoC and 2 different frameworks to test and validate controls.
->>>
->>> To do so, I have tried to identify some people that have worked on this
->>> subject and have proposed some implementations, feel free to correct me
->>> and enhance the list if needed:
->>>
->>> * MPEG2/MPEG4
->>>
->>>    - Florent Revest for Allwinner A13 CedarX support [1] tested with VLC
->>> -> libVA + sunxi-cedrus-drv-video -> V4L2
->>>
->>>    - Myself for STMicroelectronics Delta support [2] tested with
->>> GStreamer V4L2 -> libv4l2 + libv4l-delta plugin -> V4L2
->>>
->>>
->>>
->>> * VP8
->>>
->>> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [3] tested with
->>> Chromium -> V4L2
->>>
->>> - Jung Zhao for Rockchip RK3288 VPU support [4] <cannot find the
->>> framework used>
->> There is rockchip VDPAU driver supporting it, but it is .
->
-> Could you point out the code that is used ? Which application is used on
-> top of VDPAU ?
-https://github.com/rockchip-linux/libvdpau-rockchip
->
->>>
->>>
->>>
->>> * H264
->>>
->>> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [5] tested with
->>> Chromium -> V4L2
->>>
->>> - Randy Li for Rockchip RK3288  VPU support [6] tested with VLC? ->
->>> libVA + rockchip-va-driver -> V4L2
->> I only tested it with Gstreamer -> VA-API element -> Rockchip VA-API
->> driver -> V4L2
->
-> OK got it, thks !
->
->>>
->>>                                                                                                                          VLC?
->>> -> libVDPAU + rockchip-va-driver -> V4L2
->>>
->>> I can work to define MPEG2/MPEG4 controls and propose functional
->>> implementations for those codecs, and will be glad to co-work with you
->>> Florent.
->> But it may not work with Rockchip's SoC, you may check the following branch
->> https://github.com/hizukiayaka/rockchip-video-driver/tree/rk_v4l2_mix
->
-> I have checked code and I have only found H264 support, do I miss
-> something ?
-No, I have said above, only H264 decoder and JPEG encoder are supported 
-in currently Rockchip VA-API driver. And H264 decoder depends on a 
-Rockchip H264 parser. The rk_v4l2_mix just a branch make that clearly, 
-it could get what the VA-API doesn't offer from code.
->
->>>
->>> I can help on H264 on a code review basis based on the functional H264
->>> setup I have in-house and codec knowledge, but I cannot provide
->>> implementation in a reasonable timeframe, same for VP8.
->>>
->>>
->>>
->>> Apart of very details of each codec, we have also to state about generic
->>> concerns such as:
->>>
->>> -          new pixel format introduction (VP8 => VP8F, H264 => S264,
->>> MPG2 => MG2F, MPG4 => MG4F)
->> I don't think it is necessary.
->
-> But currently it is done that way in all patches proposals I have seen
-> so far, including rockchip:
-> rockchip_decoder_v4l2.c:{VAProfileH264Baseline,V4L2_PIX_FMT_H264_SLICE},
-It is Google's idea, it would be removed with new version kernel driver 
-of mine. Also I don't like multiplanes image format from Google driver.
->
-> We have to state about it all together. Seems natural to me to do this
-> way instead of device caps.
-> Doing so user knows that the driver is based on "Frame API" -so
-> additional headers are required to decode input stream- and not
-> on "Stream API" -H264 stream can be decoded directly-.
- > We should probably use something else then "STREAMING" in the
- > capabilities instead of duplicating all the encoding formats (exception
- > to H264 byte-stream and H264 AVC, that also applies to streaming
- > drivers and there is not easy way to introduce stream-format in the API
- > atm). Other then that, this solution works, so it could just be
- > considered the right way, I just find it less elegant personally.
-I agree with Nicolas.
->
->
-
->>>
->>> Best regards,
->>>
->>> Hugues.
->>>
->>>
->>>
->>> [0] [ANN] Codec & Request API Brainstorm meeting Oct 10 & 11
->>> https://www.spinics.net/lists/linux-media/msg106699.html
->>>
->>> [1] MPEG2 A13 CedarX http://www.spinics.net/lists/linux-media/msg104823.html
->>>
->>> [1] MPEG4 A13 CedarX http://www.spinics.net/lists/linux-media/msg104817.html
->>>
->>> [2] MPEG2 STi4xx Delta
->>> http://www.spinics.net/lists/linux-media/msg106240.html
->>>
->>> [2] MPEG4 STi4xx Delta is also supported but not yet pushed
->>>
->>> [3] VP8 Rockchip RK3288, RK3399? VPU
->>> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0002-CHROMIUM-v4l-Add-VP8-low-level-decoder-API-controls.patch
->>>
->>>
->>> [4] VP8 Rockchip RK3288 VPU
->>> http://www.spinics.net/lists/linux-media/msg97997.html
->>>
->>> [5] H264 Rockchip RK3288, RK3399? VPU
->>> https://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0001-CHROMIUM-media-headers-Import-V4L2-headers-from-Chro.patch
->>>
->>> [6] H264 Rockchip RK3288 VPU
->>> http://www.spinics.net/lists/linux-media/msg105095.html
->>>
-
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 2669b4bad910..6346eeecfaae 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -768,6 +768,14 @@ config VIDEO_M52790
+ 
+ 	 To compile this driver as a module, choose M here: the
+ 	 module will be called m52790.
++
++config VIDEO_I2C_POLLING
++	tristate "I2C polling video support"
++	depends on VIDEO_V4L2 && I2C
++	select VIDEOBUF2_VMALLOC
++	---help---
++	  Enable the I2C polling video support which supports the following:
++	   * Panasonic AMG88xx Grid-Eye Sensors
+ endmenu
+ 
+ menu "Sensors used on soc_camera driver"
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 92773b2e6225..8182ec9f66b9 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -79,6 +79,7 @@ obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
++obj-$(CONFIG_VIDEO_I2C_POLLING)	+= i2c-polling.o
+ obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+ obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
+ obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
+diff --git a/drivers/media/i2c/i2c-polling.c b/drivers/media/i2c/i2c-polling.c
+new file mode 100644
+index 000000000000..753e355b5fa9
+--- /dev/null
++++ b/drivers/media/i2c/i2c-polling.c
+@@ -0,0 +1,466 @@
++/*
++ * i2c_polling.c - Support for polling I2C video devices
++ *
++ * Copyright (C) 2016 Matt Ranostay <mranostay@ranostay.consulting>
++ *
++ * Based on the orginal work drivers/media/parport/bw-qcam.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * Supported:
++ * - Panasonic AMG88xx Grid-Eye Sensors
++ */
++
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/delay.h>
++#include <linux/videodev2.h>
++#include <linux/mutex.h>
++#include <linux/i2c.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
++#include <media/videobuf2-vmalloc.h>
++
++#define I2C_POLLING_DRIVER	"i2c-polling"
++
++struct i2c_polling_chip;
++
++struct i2c_polling_data {
++	struct i2c_client *client;
++	const struct i2c_polling_chip *chip;
++	struct mutex lock;
++	struct mutex queue_lock;
++	unsigned int last_update;
++
++	struct v4l2_device v4l2_dev;
++	struct video_device vdev;
++	struct vb2_queue vb_vidq;
++};
++
++static struct v4l2_fmtdesc amg88xx_format = {
++	.description = "12-bit Greyscale",
++	.pixelformat = V4L2_PIX_FMT_Y12,
++};
++
++static struct v4l2_frmsize_discrete amg88xx_size = {
++	.width = 8,
++	.height = 8,
++};
++
++struct i2c_polling_chip {
++	/* video dimensions */
++	struct v4l2_fmtdesc *format;
++	struct v4l2_frmsize_discrete *size;
++
++	/* max frames per second */
++	unsigned int max_fps;
++
++	/* pixel buffer size */
++	unsigned int buffer_size;
++
++	/* xfer function */
++	int (*xfer)(struct i2c_polling_data *data, char *buf);
++};
++
++enum {
++	AMG88XX	= 0,
++	I2C_POLLING_CHIP_CNT,
++};
++
++static int amg88xx_xfer(struct i2c_polling_data *data, char *buf)
++{
++	struct i2c_client *client = data->client;
++	struct i2c_msg msg[2];
++	u8 reg = 0x80;
++	int ret;
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 1;
++	msg[0].buf  = (char *) &reg;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = data->chip->buffer_size;
++	msg[1].buf = (char *) buf;
++
++	ret = i2c_transfer(client->adapter, msg, 2);
++
++	return (ret == 2) ? 0 : -EIO;
++}
++
++static const struct i2c_polling_chip i2c_polling_chips[I2C_POLLING_CHIP_CNT] = {
++	[AMG88XX] = {
++		.size		= &amg88xx_size,
++		.format		= &amg88xx_format,
++		.max_fps	= 10,
++		.buffer_size	= 128,
++		.xfer		= &amg88xx_xfer,
++	},
++};
++
++static const struct v4l2_file_operations i2c_polling_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= vb2_fop_release,
++	.poll		= vb2_fop_poll,
++	.unlocked_ioctl = video_ioctl2,
++	.read		= vb2_fop_read,
++	.mmap		= vb2_fop_mmap,
++};
++
++static int queue_setup(struct vb2_queue *vq,
++		       unsigned int *nbuffers, unsigned int *nplanes,
++		       unsigned int sizes[], struct device *alloc_devs[])
++{
++	struct i2c_polling_data *data = vb2_get_drv_priv(vq);
++
++	if (!(*nbuffers))
++		*nbuffers = 3;
++
++	*nplanes = 1;
++	sizes[0] = data->chip->buffer_size;
++
++	return 0;
++}
++
++static void buffer_queue(struct vb2_buffer *vb)
++{
++	struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	int delta;
++
++	mutex_lock(&data->lock);
++
++	delta = jiffies - data->last_update;
++
++	if (delta < msecs_to_jiffies(100)) {
++		int tmp = (100 - jiffies_to_msecs(delta)) * 1000;
++
++		usleep_range(tmp, tmp + 1000);
++	}
++	data->last_update = jiffies;
++
++	mutex_unlock(&data->lock);
++
++	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
++}
++
++static void buffer_finish(struct vb2_buffer *vb)
++{
++	struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
++	void *vbuf = vb2_plane_vaddr(vb, 0);
++	int size = vb2_plane_size(vb, 0);
++	int ret;
++
++	mutex_lock(&data->lock);
++
++	ret = data->chip->xfer(data, vbuf);
++	if (ret < 0)
++		vb->state = VB2_BUF_STATE_ERROR;
++
++	mutex_unlock(&data->lock);
++
++	vb->timestamp = ktime_get_ns();
++	vb2_set_plane_payload(vb, 0, ret ? 0 : size);
++}
++
++static struct vb2_ops i2c_polling_video_qops = {
++	.queue_setup	= queue_setup,
++	.buf_queue	= buffer_queue,
++	.buf_finish	= buffer_finish,
++	.wait_prepare	= vb2_ops_wait_prepare,
++	.wait_finish	= vb2_ops_wait_finish,
++};
++
++static int i2c_polling_querycap(struct file *file, void  *priv,
++				struct v4l2_capability *vcap)
++{
++	struct i2c_polling_data *data = video_drvdata(file);
++
++	strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
++	strlcpy(vcap->card, "I2C Polling Video", sizeof(vcap->card));
++
++	strlcpy(vcap->bus_info, "I2C:i2c-polling", sizeof(vcap->bus_info));
++	vcap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
++			    V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	vcap->capabilities = vcap->device_caps | V4L2_CAP_DEVICE_CAPS;
++
++	return 0;
++}
++
++static int i2c_polling_g_input(struct file *file, void *fh, unsigned int *inp)
++{
++	*inp = 0;
++
++	return 0;
++}
++
++static int i2c_polling_s_input(struct file *file, void *fh, unsigned int inp)
++{
++	return (inp > 0) ? -EINVAL : 0;
++}
++
++static int i2c_polling_enum_input(struct file *file, void *fh,
++				  struct v4l2_input *vin)
++{
++	if (vin->index > 0)
++		return -EINVAL;
++
++	strlcpy(vin->name, "Camera", sizeof(vin->name));
++
++	vin->type = V4L2_INPUT_TYPE_CAMERA;
++	vin->audioset = 0;
++	vin->tuner = 0;
++	vin->std = 0;
++	vin->status = 0;
++
++	return 0;
++}
++
++static int i2c_polling_enum_fmt_vid_cap(struct file *file, void *fh,
++					struct v4l2_fmtdesc *fmt)
++{
++	struct i2c_polling_data *data = video_drvdata(file);
++	enum v4l2_buf_type type = fmt->type;
++
++	if (fmt->index > 0)
++		return -EINVAL;
++
++	*fmt = *data->chip->format;
++	fmt->type = type;
++
++	return 0;
++}
++
++static int i2c_polling_enum_framesizes(struct file *file, void *fh,
++				       struct v4l2_frmsizeenum *fsize)
++{
++	struct i2c_polling_data *data = video_drvdata(file);
++	struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	/* currently only one frame size is allowed */
++	if (fsize->index > 0)
++		return -EINVAL;
++
++	if (fsize->pixel_format != data->chip->format->pixelformat)
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = size->width;
++	fsize->discrete.height = size->height;
++
++	return 0;
++}
++
++static int i2c_polling_enum_frameintervals(struct file *file, void *priv,
++					   struct v4l2_frmivalenum *fe)
++{
++	struct i2c_polling_data *data = video_drvdata(file);
++	struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	if (fe->index > 0)
++		return -EINVAL;
++
++	if ((fe->width != size->width) || (fe->height != size->height))
++		return -EINVAL;
++
++	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++	fe->discrete.numerator = 1;
++	fe->discrete.denominator = data->chip->max_fps;
++
++	return 0;
++}
++
++static int i2c_polling_try_fmt_vid_cap(struct file *file, void *fh,
++				       struct v4l2_format *fmt)
++{
++	struct i2c_polling_data *data = video_drvdata(file);
++	struct v4l2_pix_format *pix = &fmt->fmt.pix;
++	struct v4l2_frmsize_discrete *size = data->chip->size;
++
++	pix->width = size->width;
++	pix->height = size->height;
++	pix->pixelformat = data->chip->format->pixelformat;
++	pix->field = V4L2_FIELD_NONE;
++	pix->bytesperline = pix->width * 2;
++	pix->sizeimage = pix->width * pix->height * 2;
++	pix->colorspace = V4L2_COLORSPACE_SRGB;
++	pix->priv = 0;
++
++	return 0;
++}
++
++static int i2c_polling_fmt_vid_cap(struct file *file, void *fh,
++				     struct v4l2_format *fmt)
++{
++	struct i2c_polling_data *data = video_drvdata(file);
++	int ret = i2c_polling_try_fmt_vid_cap(file, fh, fmt);
++
++	if (ret < 0)
++		return ret;
++
++	if (vb2_is_busy(&data->vb_vidq))
++		return -EBUSY;
++
++	return 0;
++}
++
++static int i2c_polling_g_parm(struct file *filp, void *priv,
++			      struct v4l2_streamparm *parm)
++{
++	struct i2c_polling_data *data = video_drvdata(filp);
++
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	parm->parm.capture.readbuffers = 3;
++	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
++	parm->parm.capture.timeperframe.numerator = 1;
++	parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
++
++	return 0;
++}
++
++static int i2c_polling_s_parm(struct file *filp, void *priv,
++			      struct v4l2_streamparm *parm)
++{
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	return i2c_polling_g_parm(filp, priv, parm);
++}
++
++static const struct v4l2_ioctl_ops i2c_polling_ioctl_ops = {
++	.vidioc_querycap		= i2c_polling_querycap,
++	.vidioc_g_input			= i2c_polling_g_input,
++	.vidioc_s_input			= i2c_polling_s_input,
++	.vidioc_enum_input		= i2c_polling_enum_input,
++	.vidioc_enum_fmt_vid_cap	= i2c_polling_enum_fmt_vid_cap,
++	.vidioc_enum_framesizes		= i2c_polling_enum_framesizes,
++	.vidioc_enum_frameintervals	= i2c_polling_enum_frameintervals,
++	.vidioc_g_fmt_vid_cap		= i2c_polling_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= i2c_polling_fmt_vid_cap,
++	.vidioc_g_parm			= i2c_polling_g_parm,
++	.vidioc_s_parm			= i2c_polling_s_parm,
++	.vidioc_try_fmt_vid_cap		= i2c_polling_try_fmt_vid_cap,
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
++static int i2c_polling_probe(struct i2c_client *client,
++			     const struct i2c_device_id *id)
++{
++	struct i2c_polling_data *data;
++	struct v4l2_device *v4l2_dev;
++	struct vb2_queue *queue;
++	int ret;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->chip = &i2c_polling_chips[id->driver_data];
++	data->client = client;
++	data->last_update = jiffies;
++	v4l2_dev = &data->v4l2_dev;
++	strlcpy(v4l2_dev->name, I2C_POLLING_DRIVER, sizeof(v4l2_dev->name));
++
++	ret = v4l2_device_register(&client->dev, v4l2_dev);
++	if (ret < 0)
++		goto error_free_device;
++
++	mutex_init(&data->lock);
++	mutex_init(&data->queue_lock);
++
++	queue = &data->vb_vidq;
++	queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	queue->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
++	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	queue->drv_priv = data;
++	queue->ops = &i2c_polling_video_qops;
++	queue->mem_ops = &vb2_vmalloc_memops;
++
++	ret = vb2_queue_init(queue);
++	if (ret < 0)
++		goto error_free_device;
++
++	data->vdev.queue = queue;
++	data->vdev.queue->lock = &data->queue_lock;
++
++	strlcpy(data->vdev.name, "I2C Polling Video", sizeof(data->vdev.name));
++
++	data->vdev.v4l2_dev = v4l2_dev;
++	data->vdev.fops = &i2c_polling_fops;
++	data->vdev.lock = &data->lock;
++	data->vdev.ioctl_ops = &i2c_polling_ioctl_ops;
++	data->vdev.release = video_device_release_empty;
++
++	video_set_drvdata(&data->vdev, data);
++	i2c_set_clientdata(client, data);
++
++	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		goto error_unregister_device;
++
++	return 0;
++
++error_unregister_device:
++	v4l2_device_unregister(v4l2_dev);
++
++error_free_device:
++	kfree(data);
++
++	return ret;
++}
++
++static int i2c_polling_remove(struct i2c_client *client)
++{
++	struct i2c_polling_data *data = i2c_get_clientdata(client);
++
++	v4l2_device_unregister(&data->v4l2_dev);
++	kfree(data);
++
++	return 0;
++}
++
++static const struct i2c_device_id i2c_polling_id_table[] = {
++	{ "amg88xx", AMG88XX },
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, i2c_polling_id_table);
++
++static struct i2c_driver i2c_polling_driver = {
++	.driver = {
++		.name	= I2C_POLLING_DRIVER,
++	},
++	.probe		= i2c_polling_probe,
++	.remove		= i2c_polling_remove,
++	.id_table	= i2c_polling_id_table,
++};
++
++module_i2c_driver(i2c_polling_driver);
++
++MODULE_AUTHOR("Matt Ranostay <mranostay@ranostay.consulting>");
++MODULE_DESCRIPTION("I2C polling video support");
++MODULE_LICENSE("GPL");
 -- 
-Randy Li
-The third produce department
-
+2.7.4
 
