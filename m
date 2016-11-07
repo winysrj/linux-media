@@ -1,76 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33200 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754713AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 05:34:54 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 9/9] af9035: correct demod i2c addresses
-Date: Sat, 12 Nov 2016 12:34:01 +0200
-Message-Id: <1478946841-2807-9-git-send-email-crope@iki.fi>
-In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
-References: <1478946841-2807-1-git-send-email-crope@iki.fi>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:33863 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751541AbcKGMmT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 07:42:19 -0500
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH] [media] mtk-mdp: allocate video_device dynamically
+Date: Mon, 7 Nov 2016 20:42:09 +0800
+Message-ID: <1478522529-57129-2-git-send-email-minghsiu.tsai@mediatek.com>
+In-Reply-To: <1478522529-57129-1-git-send-email-minghsiu.tsai@mediatek.com>
+References: <1478522529-57129-1-git-send-email-minghsiu.tsai@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Chip uses so called 8-bit i2c addresses, but on bus there is of
-course correct 7-bit addresses with rw bit as lsb - verified
-with oscilloscope.
+It can fix known problems with embedded video_device structs.
 
-Lets still use correct addresses in driver.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.h |  2 +-
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 33 ++++++++++++++++-----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index da29b6f..166ce09 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -772,9 +772,9 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 		/* tell the slave I2C address */
- 		tmp = state->eeprom[EEPROM_2ND_DEMOD_ADDR];
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.h b/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+index 848569d..ad1cff3 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+@@ -167,7 +167,7 @@ struct mtk_mdp_dev {
+ 	struct mtk_mdp_comp		*comp[MTK_MDP_COMP_ID_MAX];
+ 	struct v4l2_m2m_dev		*m2m_dev;
+ 	struct list_head		ctx_list;
+-	struct video_device		vdev;
++	struct video_device		*vdev;
+ 	struct v4l2_device		v4l2_dev;
+ 	struct workqueue_struct		*job_wq;
+ 	struct platform_device		*vpu_dev;
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 9a747e7..b8dee1c 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -1236,16 +1236,22 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+ 	int ret;
  
--		/* use default I2C address if eeprom has no address set */
-+		/* Use default I2C address if eeprom has no address set */
- 		if (!tmp)
--			tmp = 0x3a;
-+			tmp = 0x1d << 1; /* 8-bit format used by chip */
+ 	mdp->variant = &mtk_mdp_default_variant;
+-	mdp->vdev.device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+-	mdp->vdev.fops = &mtk_mdp_m2m_fops;
+-	mdp->vdev.ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
+-	mdp->vdev.release = video_device_release_empty;
+-	mdp->vdev.lock = &mdp->lock;
+-	mdp->vdev.vfl_dir = VFL_DIR_M2M;
+-	mdp->vdev.v4l2_dev = &mdp->v4l2_dev;
+-	snprintf(mdp->vdev.name, sizeof(mdp->vdev.name), "%s:m2m",
++	mdp->vdev = video_device_alloc();
++	if (!mdp->vdev) {
++		dev_err(dev, "failed to allocate video device\n");
++		ret = -ENOMEM;
++		goto err_video_alloc;
++	}
++	mdp->vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++	mdp->vdev->fops = &mtk_mdp_m2m_fops;
++	mdp->vdev->ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
++	mdp->vdev->release = video_device_release;
++	mdp->vdev->lock = &mdp->lock;
++	mdp->vdev->vfl_dir = VFL_DIR_M2M;
++	mdp->vdev->v4l2_dev = &mdp->v4l2_dev;
++	snprintf(mdp->vdev->name, sizeof(mdp->vdev->name), "%s:m2m",
+ 		 MTK_MDP_MODULE_NAME);
+-	video_set_drvdata(&mdp->vdev, mdp);
++	video_set_drvdata(mdp->vdev, mdp);
  
- 		if ((state->chip_type == 0x9135) ||
- 				(state->chip_type == 0x9306)) {
-@@ -837,9 +837,9 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	u8 tmp;
- 	u16 tmp16;
- 
--	/* demod I2C "address" */
--	state->af9033_i2c_addr[0] = 0x38;
--	state->af9033_i2c_addr[1] = 0x3a;
-+	/* Demod I2C address */
-+	state->af9033_i2c_addr[0] = 0x1c;
-+	state->af9033_i2c_addr[1] = 0x1d;
- 	state->af9033_config[0].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
- 	state->af9033_config[1].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
- 	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
-@@ -878,12 +878,13 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	state->ir_type = state->eeprom[EEPROM_IR_TYPE];
- 
- 	if (state->dual_mode) {
--		/* read 2nd demodulator I2C address */
-+		/* Read 2nd demodulator I2C address. 8-bit format on eeprom */
- 		tmp = state->eeprom[EEPROM_2ND_DEMOD_ADDR];
- 		if (tmp)
--			state->af9033_i2c_addr[1] = tmp;
-+			state->af9033_i2c_addr[1] = tmp >> 1;
- 
--		dev_dbg(&intf->dev, "2nd demod I2C addr=%02x\n", tmp);
-+		dev_dbg(&intf->dev, "2nd demod I2C addr=%02x\n",
-+			state->af9033_i2c_addr[1]);
+ 	mdp->m2m_dev = v4l2_m2m_init(&mtk_mdp_m2m_ops);
+ 	if (IS_ERR(mdp->m2m_dev)) {
+@@ -1254,26 +1260,27 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+ 		goto err_m2m_init;
  	}
  
- 	for (i = 0; i < state->dual_mode + 1; i++) {
+-	ret = video_register_device(&mdp->vdev, VFL_TYPE_GRABBER, 2);
++	ret = video_register_device(mdp->vdev, VFL_TYPE_GRABBER, 2);
+ 	if (ret) {
+ 		dev_err(dev, "failed to register video device\n");
+ 		goto err_vdev_register;
+ 	}
+ 
+ 	v4l2_info(&mdp->v4l2_dev, "driver registered as /dev/video%d",
+-		  mdp->vdev.num);
++		  mdp->vdev->num);
+ 	return 0;
+ 
+ err_vdev_register:
+ 	v4l2_m2m_release(mdp->m2m_dev);
+ err_m2m_init:
+-	video_device_release(&mdp->vdev);
++	video_unregister_device(mdp->vdev);
++err_video_alloc:
+ 
+ 	return ret;
+ }
+ 
+ void mtk_mdp_unregister_m2m_device(struct mtk_mdp_dev *mdp)
+ {
+-	video_device_release(&mdp->vdev);
++	video_unregister_device(mdp->vdev);
+ 	v4l2_m2m_release(mdp->m2m_dev);
+ }
 -- 
-http://palosaari.fi/
+1.9.1
 
