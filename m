@@ -1,92 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:53820 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753817AbcKUQgT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 11:36:19 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jarod Wilson <jarod@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 0/3] Avoid warnings about using unitialized dest_dir
-Date: Mon, 21 Nov 2016 17:35:42 +0100
-Message-ID: <2518391.czCat0C7eD@wuerfel>
-In-Reply-To: <cover.1479567006.git.mchehab@s-opensource.com>
-References: <20161027150848.3623829-1-arnd@arndb.de> <cover.1479567006.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:24862 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751541AbcKGMrf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 07:47:35 -0500
+Message-ID: <1478522845.4269.3.camel@mtksdaap41>
+Subject: Re: [PATCH next 1/2] media: mtk-mdp: fix video_device_release
+ argument
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Vincent =?ISO-8859-1?Q?Stehl=E9?= <vincent.stehle@laposte.net>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        "Hans Verkuil" <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Date: Mon, 7 Nov 2016 20:47:25 +0800
+In-Reply-To: <dbaa8b70-ea72-7d9b-176c-6c0a816aaae8@xs4all.nl>
+References: <1473340146-6598-4-git-send-email-minghsiu.tsai@mediatek.com>
+         <20161027202325.20680-1-vincent.stehle@laposte.net>
+         <20161028075253.gdy2bbugih6oqncw@romuald.bergerie>
+         <dbaa8b70-ea72-7d9b-176c-6c0a816aaae8@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, November 19, 2016 12:56:57 PM CET Mauro Carvalho Chehab wrote:
-> As Arnd reported:
+On Thu, 2016-11-03 at 13:47 +0100, Hans Verkuil wrote:
+> Hi Vincent,
 > 
-> 	With gcc-5 or higher on x86, we can get a bogus warning in the
-> 	dvb-net code:
+> On 28/10/16 09:52, Vincent Stehlé wrote:
+> > On Thu, Oct 27, 2016 at 10:23:24PM +0200, Vincent Stehlé wrote:
+> >> video_device_release() takes a pointer to struct video_device as argument.
+> >> Fix two call sites where the address of the pointer is passed instead.
+> >
+> > Sorry, I messed up: please ignore that "fix". The 0day robot made me
+> > realize this is indeed not a proper fix.
+> >
+> > The issue remains, though: we cannot call video_device_release() on the
+> > vdev structure member, as this will in turn call kfree(). Most probably,
+> > vdev needs to be dynamically allocated, or the call to
+> > video_device_release() dropped completely.
 > 
-> 	drivers/media/dvb-core/dvb_net.c: In function ‘dvb_net_ule’:
-> 	arch/x86/include/asm/string_32.h:77:14: error: ‘dest_addr’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-> 	drivers/media/dvb-core/dvb_net.c:633:8: note: ‘dest_addr’ was declared here
+> I prefer that vdev is dynamically allocated. There are known problems with
+> embedded video_device structs, so allocating it is preferred.
 > 
-> Inspecting the code is really hard, as the function Arnd patched is really
-> complex.
+> Minghsiu, can you do that?
 > 
-> IMHO, the best is to first simplify the logic, by breaking parts of it into
-> sub-routines, and then apply a proper fix.
+
+Hi Hans,
+
+I just send the patch for this.
+https://patchwork.kernel.org/patch/9415007/
+
+
+> Regards,
 > 
-> This patch series does that.
+> 	Hans
 > 
-> Arnd,
-> 
-> After splitting the function, I think that the GCC 5 warning is not bogus,
-> as this code:
-> 		skb_copy_from_linear_data(h->priv->ule_skb, dest_addr,
-> 					  ETH_ALEN);
->
-> is called before initializing dest_dir, but, even if I'm wrong, it is not a bad
-> idea to zero the dest_addr before handing the logic.
-
-My conclusion after looking at it for a while was that it is correct, the
-relevant code is roughtly:
-
-	if (!priv->ule_dbit) {
-		drop = ...;
-		if (drop)
-			goto done;
-		else
-			skb_copy_from_linear_data(priv->ule_skb, dest_addr, ETH_ALEN);
-	}
-
-	...
-
-	if (!priv->ule_dbit) {
-		memcpy(ethh->h_dest, dest_addr, ETH_ALEN)
-	}
-
-done:
-	...
+> >
+> > Sorry for the bad patch.
+> >
+> > Best regards,
+> >
+> > Vincent.
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 
 
-So it is always copied from the skb data before it gets used.
-
-> PS.: I took a lot of care to avoid breaking something on this series, as I don't
-> have any means here to test DVB net.  So, I'd appreciate if you could take
-> a look and see if everything looks fine.
-
-I have replaced my patch with your series in my randconfig builds and see no
-new warnings so far.
-
-The first patch looks correct to me, but I can't really verify the
-second one by inspection. It looks like a nice cleanup and I'd assume
-you did it correctly too. The third patch is probably not needed now,
-I think with the 'goto' removed, gcc will be able to figure it out
-already. It probably adds a few extra cycles to copy the zero data,
-which shouldn't be too bad either.
-
-	Arnd
-
-[btw, your mchehab@s-opensource.com keeps bouncing for me, I had to
- remove that from Cc to get my reply to make it out]
