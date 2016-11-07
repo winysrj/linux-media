@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37102
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932291AbcKUNdR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 08:33:17 -0500
-Date: Mon, 21 Nov 2016 11:33:11 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] v4l: videodev2: Include linux/time.h for timeval
- and timespec structs
-Message-ID: <20161121113311.0ec196f7@vento.lan>
-In-Reply-To: <1477565451-3621-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1477565451-3621-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35749 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750905AbcKGUP4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 15:15:56 -0500
+Received: by mail-wm0-f68.google.com with SMTP id a20so7633606wme.2
+        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 12:15:56 -0800 (PST)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Thibaut Girka <thib@sitedethib.com>, linux-media@vger.kernel.org,
+        Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH] [media] uvcvideo: add support for Oculus Rift Sensor
+Date: Mon,  7 Nov 2016 21:15:47 +0100
+Message-Id: <20161107201547.7537-1-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 27 Oct 2016 13:50:51 +0300
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+The Rift CV1 Sensor has bInterfaceClass set to vendor specific, so we
+need an entry in uvc_ids to probe it. Just as the Rift DK2 IR tracker,
+it misreports the pixel format as YUYV instead of Y8.
 
-> struct timeval and struct timespec are defined in linux/time.h. Explicitly
-> include the header if __KERNEL__ is defined.
+The sensor is configured with a low exposure time and high black level
+by default, so that only bright IR sources can be seen.
 
-The patch below doesn't do what you're mentioned above. It unconditionally
-include linux/time.h, and, for userspace, it will *also* include
-sys/time.h...
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-I suspect that this would cause problems on userspace.
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 0eaa9a9..b64bfe4 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2583,6 +2583,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
++	/* Oculus VR Rift Sensor */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x2833,
++	  .idProduct		= 0x0211,
++	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
+ 	/* Leap Motion Controller LM-010 */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+-- 
+2.10.2
 
-Btw, you didn't mention on your description what's the bug you're
-trying to fix.
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/uapi/linux/videodev2.h | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 4364ce6..bbab50c 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -61,6 +61,7 @@
->  #endif
->  #include <linux/compiler.h>
->  #include <linux/ioctl.h>
-> +#include <linux/time.h>
->  #include <linux/types.h>
->  #include <linux/v4l2-common.h>
->  #include <linux/v4l2-controls.h>
-
-
-Thanks,
-Mauro
