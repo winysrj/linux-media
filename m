@@ -1,96 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Wed, 23 Nov 2016 16:25:03 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161123232503.GA13965@obsidianresearch.com>
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:1423 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752254AbcKGG6L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 01:58:11 -0500
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>
+Subject: [PATCH v4 3/3] arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+Date: Mon, 7 Nov 2016 14:57:19 +0800
+Message-ID: <1478501839-2775-4-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1478501839-2775-1-git-send-email-rick.chang@mediatek.com>
+References: <1478501839-2775-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 02:42:12PM -0800, Dan Williams wrote:
-> > The crucial part for this discussion is the ability to fence and block
-> > DMA for a specific range. This is the hardware capability that lets
-> > page migration happen: fence&block DMA, migrate page, update page
-> > table in HCA, unblock DMA.
-> 
-> Wait, ODP requires migratable pages, ZONE_DEVICE pages are not
-> migratable.
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+---
+This patch depends on: 
+  CCF "Add clock support for Mediatek MT2701"[1]
+  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
 
-Does it? I didn't think so.. Does ZONE_DEVICE break MMU notifiers/etc
-or something? There is certainly nothing about the hardware that cares
-about ZONE_DEVICE vs System memory.
+[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+[2] https://patchwork.kernel.org/patch/9164013/
+---
+ arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-I used 'migration' in the broader sense of doing any transformation to
-the page such that the DMA address changes - not the specific kernel
-MM process...
+diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
+index 8f13c70..a929df2 100644
+--- a/arch/arm/boot/dts/mt2701.dtsi
++++ b/arch/arm/boot/dts/mt2701.dtsi
+@@ -298,6 +298,20 @@
+ 		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+ 	};
+ 
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
++
+ 	vdecsys: syscon@16000000 {
+ 		compatible = "mediatek,mt2701-vdecsys", "syscon";
+ 		reg = <0 0x16000000 0 0x1000>;
+-- 
+1.9.1
 
-> You can't replace a PCIe mapping with just any other System RAM
-> physical address, right?
-
-I thought that was exactly what HMM was trying to do? Migrate pages
-between CPU and GPU memory as needed. As Serguei has said this process
-needs to be driven by the GPU driver.
-
-The peer-peer issue is how do you do that while RDMA is possible on
-those pages, because when the page migrates to GPU memory you want the
-RDMA to follow it seamlessly.
-
-This is why page table mirroring is the best solution - use the
-existing mm machinery to link the DMA driver and whatever is
-controlling the VMA.
-
-> At least not without a filesystem recording where things went, but
-> at point we're no longer talking about the base P2P-DMA mapping
-
-In the filesystem/DAX case, it would be the filesystem that initiates
-any change in the page physical address.
-
-ODP *follows* changes in the VMA it does not cause any change in
-address mapping. That has to be done by whoever is in charge of the
-VMA.
-
-> something like pnfs-rdma to a DAX filesystem.
-
-Something in the kernel (ie nfs-rdma) would be entirely different. We
-generally don't do long lived mappings in the kernel for RDMA
-(certainly not for NFS), so it is much more like your basic every day
-DMA operation: map, execute, unmap. We probably don't need to use page
-table mirroring for this.
-
-ODP comes in when userpsace mmaps a DAX file and then tries to use it
-for RDMA. Page table mirroring lets the DAX filesystem decide to move
-the backing pages at any time. When it wants to do that it interacts
-with the MM in the usual way which links to ODP and makes sure the
-migration is seamless.
-
-Jason
