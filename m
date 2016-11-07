@@ -1,130 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52402 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753427AbcKKMRy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 07:17:54 -0500
-Date: Fri, 11 Nov 2016 13:17:50 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Rob Herring <robh@kernel.org>
-Cc: ivo.g.dimitrov.75@gmail.com, sakari.ailus@iki.fi, sre@kernel.org,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] media: et8ek8: add device tree binding documentation
-Message-ID: <20161111121750.GA3022@amd>
-References: <20161023191706.GA25754@amd>
- <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
- <20161107104648.GB5326@amd>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:19918 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750980AbcKGMmT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 07:42:19 -0500
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Subject: [PATCH] media: mtk-mdp: allocate video_device dynamically 
+Date: Mon, 7 Nov 2016 20:42:08 +0800
+Message-ID: <1478522529-57129-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="liOOAslEiF7prFVr"
-Content-Disposition: inline
-In-Reply-To: <20161107104648.GB5326@amd>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+v4l2-compliance test output:
+v4l2-compliance SHA   : abc1453dfe89f244dccd3460d8e1a2e3091cbadb
 
---liOOAslEiF7prFVr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Driver Info:
+        Driver name   : mtk-mdp
+        Card type     : soc:mdp
+        Bus info      : platform:mt8173
+        Driver version: 4.9.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
 
-On Mon 2016-11-07 11:46:48, Pavel Machek wrote:
-> Add device tree binding documentation for toshiba et8ek8 sensor.
->=20
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+Compliance test for device /dev/image-proc0 (not using libv4l2):
 
-Rob, can we get an ack here?
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
 
-Thanks,
-							Pavel
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.t=
-xt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> new file mode 100644
-> index 0000000..b03b21d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> @@ -0,0 +1,53 @@
-> +Toshiba et8ek8 5MP sensor
-> +
-> +Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
-> +
-> +More detailed documentation can be found in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt .
-> +
-> +
-> +Mandatory properties
-> +--------------------
-> +
-> +- compatible: "toshiba,et8ek8"
-> +- reg: I2C address (0x3e, or an alternative address)
-> +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
-> +- clocks: External clock to the sensor
-> +- clock-frequency: Frequency of the external clock to the sensor. Camera
-> +  driver will set this frequency on the external clock. The clock freque=
-ncy is
-> +  a pre-determined frequency known to be suitable to the board.
-> +- reset-gpios: XSHUTDOWN GPIO. The XSHUTDOWN signal is active high. The =
-sensor
-> +  is in hardware standby mode when the signal is in low state.
-> +
-> +
-> +Endpoint node mandatory properties
-> +----------------------------------
-> +
-> +- remote-endpoint: A phandle to the bus receiver's endpoint node.
-> +
-> +Endpoint node optional properties
-> +----------------------------------
-> +
-> +- clock-lanes: <0>
-> +- data-lanes: <1..n>
-> +
-> +Example
-> +-------
-> +
-> +&i2c3 {
-> +	clock-frequency =3D <400000>;
-> +
-> +	cam1: camera@3e {
-> +		compatible =3D "toshiba,et8ek8";
-> +		reg =3D <0x3e>;
-> +		vana-supply =3D <&vaux4>;
-> +		clocks =3D <&isp 0>;
-> +		clock-frequency =3D <9600000>;
-> +		reset-gpio =3D <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
-> +		port {
-> +			csi_cam1: endpoint {
-> +				remote-endpoint =3D <&csi_out1>;
-> +			};
-> +		};
-> +	};
-> +};
->=20
->=20
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 5 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
 
 
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Minghsiu Tsai (1):
+  [media] mtk-mdp: allocate video_device dynamically
 
---liOOAslEiF7prFVr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.h |  2 +-
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 33 ++++++++++++++++-----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+-- 
+1.9.1
 
-iEYEARECAAYFAlgltu4ACgkQMOfwapXb+vIgWwCdHLmjWXC5LDGJnaG6/oOPYQpk
-8dQAn1dy30+Jujqczk0da+zyGtcXh+IJ
-=1I2P
------END PGP SIGNATURE-----
 
---liOOAslEiF7prFVr--
+
