@@ -1,84 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:35782
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752354AbcKNXl2 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35198 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751423AbcKHNzd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 18:41:28 -0500
-Subject: Re: [PATCH 01/12] [media] rc-main: clear rc_map.name in
- ir_free_table()
-To: Max Kellermann <max.kellermann@gmail.com>,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-References: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
-Cc: linux-kernel@vger.kernel.org, shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <1b2a5353-d7c5-dd9c-3478-27825ec1f52a@osg.samsung.com>
-Date: Mon, 14 Nov 2016 16:41:25 -0700
-MIME-Version: 1.0
-In-Reply-To: <147077832610.21835.743840405297289081.stgit@woodpecker.blarg.de>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+        Tue, 8 Nov 2016 08:55:33 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 02/21] Revert "[media] media: fix use-after-free in cdev_put() when app exits after driver unbind"
+Date: Tue,  8 Nov 2016 15:55:11 +0200
+Message-Id: <1478613330-24691-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/09/2016 03:32 PM, Max Kellermann wrote:
-> rc_unregister_device() will first call ir_free_table(), and later
-> device_del(); however, the latter causes a call to rc_dev_uevent(),
-> which prints rc_map.name, which at this point has already bee freed.
-> 
-> This fixes a use-after-free bug found with KASAN.
-> 
-> Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
-> ---
->  drivers/media/rc/rc-main.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 8e7f292..1e5a520 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -159,6 +159,7 @@ static void ir_free_table(struct rc_map *rc_map)
->  {
->  	rc_map->size = 0;
->  	kfree(rc_map->name);
-> +	rc_map->name = NULL;
->  	kfree(rc_map->scan);
->  	rc_map->scan = NULL;
->  }
-> 
+This reverts commit 5b28dde51d0c ("[media] media: fix use-after-free in
+cdev_put() when app exits after driver unbind"). The commit was part of an
+original patchset to avoid crashes when an unregistering device is in use.
 
-Hi Mauro,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c  |  6 ++----
+ drivers/media/media-devnode.c | 48 +++++++++++++++++--------------------------
+ 2 files changed, 21 insertions(+), 33 deletions(-)
 
-Could you please get this fix into 4.9. I am seeing the following when I do
-rmmod on au0828
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index f2525eb..6f5ed09 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -721,16 +721,16 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 
+ 	ret = media_devnode_register(mdev, devnode, owner);
+ 	if (ret < 0) {
+-		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
++		kfree(devnode);
+ 		return ret;
+ 	}
+ 
+ 	ret = device_create_file(&devnode->dev, &dev_attr_model);
+ 	if (ret < 0) {
+-		/* devnode free is handled in media_devnode_*() */
+ 		mdev->devnode = NULL;
+ 		media_devnode_unregister(devnode);
++		kfree(devnode);
+ 		return ret;
+ 	}
+ 
+@@ -810,8 +810,6 @@ void media_device_unregister(struct media_device *mdev)
+ 	if (media_devnode_is_registered(mdev->devnode)) {
+ 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+ 		media_devnode_unregister(mdev->devnode);
+-		/* devnode free is handled in media_devnode_*() */
+-		mdev->devnode = NULL;
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 5b605ff..ecdc02d 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -63,8 +63,13 @@ static void media_devnode_release(struct device *cd)
+ 	struct media_devnode *devnode = to_media_devnode(cd);
+ 
+ 	mutex_lock(&media_devnode_lock);
++
++	/* Delete the cdev on this minor as well */
++	cdev_del(&devnode->cdev);
++
+ 	/* Mark device node number as free */
+ 	clear_bit(devnode->minor, media_devnode_nums);
++
+ 	mutex_unlock(&media_devnode_lock);
+ 
+ 	/* Release media_devnode and perform other cleanups as needed. */
+@@ -72,7 +77,6 @@ static void media_devnode_release(struct device *cd)
+ 		devnode->release(devnode);
+ 
+ 	kfree(devnode);
+-	pr_debug("%s: Media Devnode Deallocated\n", __func__);
+ }
+ 
+ static struct bus_type media_bus_type = {
+@@ -201,8 +205,6 @@ static int media_release(struct inode *inode, struct file *filp)
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	put_device(&devnode->dev);
+-
+-	pr_debug("%s: Media Release\n", __func__);
+ 	return 0;
+ }
+ 
+@@ -233,7 +235,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	if (minor == MEDIA_NUM_DEVICES) {
+ 		mutex_unlock(&media_devnode_lock);
+ 		pr_err("could not get a free minor\n");
+-		kfree(devnode);
+ 		return -ENFILE;
+ 	}
+ 
+@@ -243,31 +244,27 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 	devnode->minor = minor;
+ 	devnode->media_dev = mdev;
+ 
+-	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
+-	devnode->dev.bus = &media_bus_type;
+-	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
+-	devnode->dev.release = media_devnode_release;
+-	if (devnode->parent)
+-		devnode->dev.parent = devnode->parent;
+-	dev_set_name(&devnode->dev, "media%d", devnode->minor);
+-	device_initialize(&devnode->dev);
+-
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &media_devnode_fops);
+ 	devnode->cdev.owner = owner;
+-	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ 
+ 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
+ 	if (ret < 0) {
+ 		pr_err("%s: cdev_add failed\n", __func__);
+-		goto cdev_add_error;
++		goto error;
+ 	}
+ 
+-	/* Part 3: Add the media device */
+-	ret = device_add(&devnode->dev);
++	/* Part 3: Register the media device */
++	devnode->dev.bus = &media_bus_type;
++	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
++	devnode->dev.release = media_devnode_release;
++	if (devnode->parent)
++		devnode->dev.parent = devnode->parent;
++	dev_set_name(&devnode->dev, "media%d", devnode->minor);
++	ret = device_register(&devnode->dev);
+ 	if (ret < 0) {
+-		pr_err("%s: device_add failed\n", __func__);
+-		goto device_add_error;
++		pr_err("%s: device_register failed\n", __func__);
++		goto error;
+ 	}
+ 
+ 	/* Part 4: Activate this minor. The char device can now be used. */
+@@ -275,15 +272,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
+ 
+ 	return 0;
+ 
+-device_add_error:
+-	cdev_del(&devnode->cdev);
+-cdev_add_error:
++error:
+ 	mutex_lock(&media_devnode_lock);
++	cdev_del(&devnode->cdev);
+ 	clear_bit(devnode->minor, media_devnode_nums);
+-	devnode->media_dev = NULL;
+ 	mutex_unlock(&media_devnode_lock);
+ 
+-	put_device(&devnode->dev);
+ 	return ret;
+ }
+ 
+@@ -295,12 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
+ 
+ 	mutex_lock(&media_devnode_lock);
+ 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+-	/* Delete the cdev on this minor as well */
+-	cdev_del(&devnode->cdev);
+ 	mutex_unlock(&media_devnode_lock);
+-	device_del(&devnode->dev);
+-	devnode->media_dev = NULL;
+-	put_device(&devnode->dev);
++	device_unregister(&devnode->dev);
+ }
+ 
+ /*
+-- 
+2.1.4
 
-[  179.010878] ==================================================================
-[  179.010895] BUG: KASAN: use-after-free in string+0x170/0x1f0 at addr ffff8801bd513000
-[  179.010900] Read of size 1 by task rmmod/1831
-[  179.010908] CPU: 1 PID: 1831 Comm: rmmod Tainted: G        W       4.9.0-rc5 #5
-[  179.010910] Hardware name: Hewlett-Packard HP ProBook 6475b/180F, BIOS 68TTU Ver. F.04 08/03/2012
-[  179.010914]  ffff8801aea2f680 ffffffff81b37ad3 ffff8801fa403b80 ffff8801bd513000
-[  179.010922]  ffff8801aea2f6a8 ffffffff8156c301 ffff8801aea2f738 ffff8801bd513000
-[  179.010930]  ffff8801fa403b80 ffff8801aea2f728 ffffffff8156c59a ffff8801aea2f770
-[  179.010937] Call Trace:
-[  179.010944]  [<ffffffff81b37ad3>] dump_stack+0x67/0x94
-[  179.010950]  [<ffffffff8156c301>] kasan_object_err+0x21/0x70
-[  179.010954]  [<ffffffff8156c59a>] kasan_report_error+0x1fa/0x4d0
-[  179.010968]  [<ffffffffa116f05f>] ? au0828_exit+0x10/0x21 [au0828]
-[  179.010973]  [<ffffffff8156c8b3>] __asan_report_load1_noabort+0x43/0x50
-[  179.010978]  [<ffffffff81b58b20>] ? string+0x170/0x1f0
-[  179.010982]  [<ffffffff81b58b20>] string+0x170/0x1f0
-[  179.010987]  [<ffffffff81b621c4>] vsnprintf+0x374/0x1c50
-[  179.010992]  [<ffffffff81b61e50>] ? pointer+0xa80/0xa80
-[  179.010996]  [<ffffffff8156b676>] ? save_stack+0x46/0xd0
-[  179.011001]  [<ffffffff81566faa>] ? __kmalloc+0x14a/0x2a0
-[  179.011006]  [<ffffffff81b3d70a>] ? kobject_get_path+0x9a/0x200
-[  179.011010]  [<ffffffff81b408c2>] ? kobject_uevent_env+0x282/0xca0
-[  179.011014]  [<ffffffff81b412eb>] ? kobject_uevent+0xb/0x10
-[  179.011020]  [<ffffffff81f10104>] ? device_del+0x434/0x6d0
-[  179.011029]  [<ffffffffa0fea717>] ? rc_unregister_device+0x177/0x240 [rc_core]
-[  179.011037]  [<ffffffffa116eeb0>] ? au0828_rc_unregister+0x60/0xb0 [au0828]
-
-The problem is fixed with this patch on Linux 4.9-rc4
-
-thanks,
--- Shuah
