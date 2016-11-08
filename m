@@ -1,80 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33546 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965978AbcKLNNv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35270 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752434AbcKHNzh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:51 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 22/32] media: rcar-vin: add chsel information to rvin_info
-Date: Sat, 12 Nov 2016 14:12:06 +0100
-Message-Id: <20161112131216.22635-23-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 8 Nov 2016 08:55:37 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 18/21] media-device: Postpone graph object removal until free
+Date: Tue,  8 Nov 2016 15:55:27 +0200
+Message-Id: <1478613330-24691-18-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each Gen3 SoC have a limited set of predefined routing possibilities for
-which CSI2 device and virtual channel can be routed to which VIN
-instance.  Prepare to store this information in the struct rvin_info.
+The media device itself will be unregistered based on it being unbound and
+driver's remove callback being called. The graph objects themselves may
+still be in use; rely on the media device release callback to release
+them.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/rcar-vin/rcar-vin.h | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/media/media-device.c | 44 ++++++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 90c28a7..cd7d959 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -35,6 +35,9 @@
- /* Max number on VIN instances that can be in a system */
- #define RCAR_VIN_NUM 8
- 
-+/* Max number of CHSEL values for any Gen3 SoC */
-+#define RCAR_CHSEL_MAX 6
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index e9dfc87..7a5884e 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -717,6 +717,26 @@ EXPORT_SYMBOL_GPL(media_device_init);
+ static void media_device_release(struct media_devnode *devnode)
+ {
+ 	struct media_device *mdev = to_media_device(devnode);
++	struct media_entity *entity;
++	struct media_entity *next;
++	struct media_interface *intf, *tmp_intf;
++	struct media_entity_notify *notify, *nextp;
 +
- enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
-@@ -111,6 +114,16 @@ struct rvin_graph_entity {
- 
- struct rvin_group;
- 
++	/* Remove all entities from the media device */
++	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
++		__media_device_unregister_entity(entity);
 +
-+/** struct rvin_group_chsel - Map a CSI2 device and channel for a CHSEL value
-+ * @csi:		VIN internal number for CSI2 device
-+ * @chan:		CSI2 VC number on remote
-+ */
-+struct rvin_group_chsel {
-+	enum rvin_csi_id csi;
-+	int chan;
-+};
++	/* Remove all entity_notify callbacks from the media device */
++	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
++		__media_device_unregister_entity_notify(mdev, notify);
 +
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-@@ -123,6 +136,9 @@ struct rvin_info {
++	/* Remove all interfaces from the media device */
++	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
++				 graph_obj.list) {
++		__media_remove_intf_links(intf);
++		media_gobj_destroy(&intf->graph_obj);
++		kfree(intf);
++	}
  
- 	unsigned int max_width;
- 	unsigned int max_height;
-+
-+	unsigned int num_chsels;
-+	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
- };
+ 	dev_dbg(devnode->parent, "Media device released\n");
  
- /**
+@@ -797,38 +817,14 @@ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
+ void media_device_unregister(struct media_device *mdev)
+ {
+-	struct media_entity *entity;
+-	struct media_entity *next;
+-	struct media_interface *intf, *tmp_intf;
+-	struct media_entity_notify *notify, *nextp;
+-
+ 	if (mdev == NULL)
+ 		return;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-
+-	/* Check if mdev was ever registered at all */
+ 	if (!media_devnode_is_registered(&mdev->devnode)) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return;
+ 	}
+-
+-	/* Remove all entities from the media device */
+-	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
+-		__media_device_unregister_entity(entity);
+-
+-	/* Remove all entity_notify callbacks from the media device */
+-	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
+-		__media_device_unregister_entity_notify(mdev, notify);
+-
+-	/* Remove all interfaces from the media device */
+-	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
+-				 graph_obj.list) {
+-		__media_remove_intf_links(intf);
+-		media_gobj_destroy(&intf->graph_obj);
+-		kfree(intf);
+-	}
+-
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
 -- 
-2.10.2
+2.1.4
 
