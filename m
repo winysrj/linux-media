@@ -1,54 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51032 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752013AbcKGMxA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 07:53:00 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH] [media] gp8psk: fix gp8psk_usb_in_op() logic
-Date: Mon,  7 Nov 2016 10:52:51 -0200
-Message-Id: <65d65d048e6fa6964ccf679f400b964afac5d782.1478523166.git.mchehab@s-opensource.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:55471 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752363AbcKHFyo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2016 00:54:44 -0500
+From: Ravikant Bijendra Sharma <ravikant.s2@samsung.com>
+To: Alex Deucher <alexander.deucher@amd.com>,
+        =?UTF-8?q?Christian=20K=C3=83=C2=B6nig?= <christian.koenig@amd.com>,
+        David Airlie <airlied@linux.ie>,
+        =?UTF-8?q?Nils=20Wallm=C3=83=C2=A9nius?=
+        <nils.wallmenius@gmail.com>, Jammy Zhou <Jammy.Zhou@amd.com>,
+        "monk.liu" <Monk.Liu@amd.com>,
+        Ravikant B Sharma <ravikant.s2@samsung.com>,
+        Edward O'Callaghan <funfunctor@folklore1984.net>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        =?UTF-8?q?Nicolai=20H=C3=83=C2=A4hnle?= <nicolai.haehnle@amd.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.co.uk>,
+        Junwei Zhang <Jerry.Zhang@amd.com>,
+        Tom St Denis <tom.stdenis@amd.com>,
+        Chunming Zhou <David1.Zhou@amd.com>,
+        Ken Wang <Qingqing.Wang@amd.com>,
+        Flora Cui <Flora.Cui@amd.com>,
+        Eric Huang <JinHuiEric.Huang@amd.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org,
+        shailesh pandey <p.shailesh@samsung.com>,
+        linux-kernel@vger.kernel.org, vidushi.koul@samsung.com
+Subject: [PATCH] drm/amd/amdgpu : Fix NULL pointer comparison
+Date: Tue, 08 Nov 2016 11:19:42 +0530
+Message-id: <1478584182-3901-1-git-send-email-ravikant.s2@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changeset bc29131ecb10 ("[media] gp8psk: don't do DMA on stack")
-fixed the usage of DMA on stack, but the memcpy was wrong
-for gp8psk_usb_in_op(). Fix it.
+From: Ravikant B Sharma <ravikant.s2@samsung.com>
 
-Suggested-by: Johannes Stezenbach <js@linuxtv.org>
-Fixes: bc29131ecb10 ("[media] gp8psk: don't do DMA on stack")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Replace direct comparisons to NULL i.e.
+'x == NULL' with '!x'. As per coding standard.
+
+Signed-off-by: Ravikant B Sharma <ravikant.s2@samsung.com>
 ---
- drivers/media/usb/dvb-usb/gp8psk.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c |    2 +-
+ drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c   |    3 +--
+ drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c    |    2 +-
+ 3 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index adfd76491451..2829e3082d15 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -67,7 +67,6 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
- 		return ret;
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+index 2b6afe1..b7e2762 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_bios.c
+@@ -70,7 +70,7 @@ static bool igp_read_bios_from_vram(struct amdgpu_device *adev)
+ 		return false;
+ 	}
+ 	adev->bios = kmalloc(size, GFP_KERNEL);
+-	if (adev->bios == NULL) {
++	if (!adev->bios) {
+ 		iounmap(bios);
+ 		return false;
+ 	}
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
+index d8af37a..3ecb083 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
+@@ -327,9 +327,8 @@ int amdgpu_sa_bo_new(struct amdgpu_sa_manager *sa_manager,
+ 		return -EINVAL;
  
- 	while (ret >= 0 && ret != blen && try < 3) {
--		memcpy(st->data, b, blen);
- 		ret = usb_control_msg(d->udev,
- 			usb_rcvctrlpipe(d->udev,0),
- 			req,
-@@ -81,8 +80,10 @@ int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8
- 	if (ret < 0 || ret != blen) {
- 		warn("usb in %d operation failed.", req);
- 		ret = -EIO;
--	} else
-+	} else {
- 		ret = 0;
-+		memcpy(b, st->data, blen);
-+	}
- 
- 	deb_xfer("in: req. %x, val: %x, ind: %x, buffer: ",req,value,index);
- 	debug_dump(b,blen,deb_xfer);
+ 	*sa_bo = kmalloc(sizeof(struct amdgpu_sa_bo), GFP_KERNEL);
+-	if ((*sa_bo) == NULL) {
++	if (!(*sa_bo))
+ 		return -ENOMEM;
+-	}
+ 	(*sa_bo)->manager = sa_manager;
+ 	(*sa_bo)->fence = NULL;
+ 	INIT_LIST_HEAD(&(*sa_bo)->olist);
+diff --git a/drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c b/drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c
+index ee6a48a..6c020ea7 100644
+--- a/drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c
+@@ -3905,7 +3905,7 @@ static int gfx_v8_0_init_save_restore_list(struct amdgpu_device *adev)
+ 	int list_size;
+ 	unsigned int *register_list_format =
+ 		kmalloc(adev->gfx.rlc.reg_list_format_size_bytes, GFP_KERNEL);
+-	if (register_list_format == NULL)
++	if (!register_list_format)
+ 		return -ENOMEM;
+ 	memcpy(register_list_format, adev->gfx.rlc.register_list_format,
+ 			adev->gfx.rlc.reg_list_format_size_bytes);
 -- 
-2.7.4
+1.7.9.5
 
