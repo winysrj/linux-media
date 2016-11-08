@@ -1,32 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [115.47.41.233] ([115.47.41.233]:4101 "HELO a.tttof.com"
-        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with SMTP
-        id S1754604AbcKBC7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 Nov 2016 22:59:31 -0400
-Date: Wed, 2 Nov 2016 10:58:14 +0800
-From: "Bob" <alu_casting@163.com>
-Reply-To: alu_casting@163.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: RE:FW : Gravity die casting with A356-T6
-Message-ID: <201611021058148121470@a.tttof.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="GB2312"
-Content-Transfer-Encoding: base64
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35232 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751611AbcKHNze (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 08:55:34 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 05/21] media: devnode: Rename mdev argument as devnode
+Date: Tue,  8 Nov 2016 15:55:14 +0200
+Message-Id: <1478613330-24691-5-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8sIA0KDQpXZSBhcmUgdGhlIHNwZWNpYWxpemVkIG1hbnVmYWN0dXJlciBvZiBhbHVtaW51
-bSBjYXN0aW5nIGluIENoaW5hIHdpdGggYWR2YW50YWdlcyBhcyBmb2xsb3dzOiANCjEuIEFsbCBr
-aW5kcyBvZiBjYXN0aW5nIHByb2Nlc3NlczogZGllIGNhc3RpbmcsIHNhbmQgY2FzdGluZywgZ3Jh
-dml0eSBwcmVtYW5lbnQgbW9sZCBjYXN0aW5nIHRvIG1lZXQgeW91ciBkaWZmZXJlbnQgZGVtYW5k
-LiANCjIuIDE3IHllYXJzIGV4cGVyaWVuY2Ugb25seSBkZWRpY2F0ZWQgaW4gYWx1bWludW0gY2Fz
-dGluZ3Mgd2l0aCBwcmVjaXNpb24gbWFjaGluaW5nLCBNb3JlIHByb2Zlc3Npb24sIG1vcmUgY29t
-cGV0aXRpdmUuIA0KMy4gQWxsIG1vbGRzIG1hZGUgYnkgb3Vyc2VsZiB0byByZWR1Y2UgeW91ciBj
-b3N0LiBBZHZhbmNlZCBtYWNoaW5pbmcgZXF1aXBtZW50cyBhbmQgdGVzdGluZyBlcXVpcG1lbnRz
-LiANCg0KNDAlIG9mIG91ciBzaGlwbWVudCBhcmUgZm9yIHlvdXIgbWFya2V0LCBwcm92ZWQgb3Vy
-IGNvbXBldGl0aXZlIGluIHByaWNpbmcgYW5kIHF1YWxpdHkuIFNoYWxsIHlvdSBoYXZlIGFueSBp
-bnRlcmVzdCwgcGxzIGNvbnRhY3QgZm9yIHBvc3NpYmxlIGRlYWwuDQogDQpiLnJnZHMgDQpCb2Ig
-SHUgDQpOaW5nYm8gWWluemhvdSBYdXNoZW5nIE1hY2hpbmVyeSBGYWN0b3J5DQpDZWxsOiAwMDg2
-LTEzOTU4MzIgNzc3NCANClNreXBlOiBib2JodTEgDQpUZWw6IDAwODYtNTc0LTg4MTI4NjAzIA0K
-Ym9iQHhzLWFsdW1pbnVtY2FzdGluZy5jb20gDQp3d3cueHMtYWx1bWludW1jYXN0aW5nLmNvbQ==
+Historically, mdev argument name was being used on both struct
+media_device and struct media_devnode. Recently most occurrences of mdev
+referring to struct media_devnode were replaced by devnode, which makes
+more sense. Fix the last remaining occurrence.
+
+Fixes: 163f1e93e9950 ("[media] media-devnode: fix namespace mess")
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/media-device.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index bb19c04..a9d543f 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -540,9 +540,9 @@ static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+  * Registration/unregistration
+  */
+ 
+-static void media_device_release(struct media_devnode *mdev)
++static void media_device_release(struct media_devnode *devnode)
+ {
+-	dev_dbg(mdev->parent, "Media device released\n");
++	dev_dbg(devnode->parent, "Media device released\n");
+ }
+ 
+ /**
+-- 
+2.1.4
+
