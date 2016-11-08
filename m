@@ -1,81 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49757 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753320AbcKPQnT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:19 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Max Kellermann <max@duempel.org>, Sean Young <sean@mess.org>,
-        Ole Ernst <olebowle@gmx.com>,
-        Russell King <rmk+kernel@arm.linux.org.uk>,
-        Kamil Debski <kamil@wypas.org>
-Subject: [PATCH 34/35] [media] rc-main: use pr_foo() macros
-Date: Wed, 16 Nov 2016 14:43:06 -0200
-Message-Id: <20a57c3c0e1d3884e9c725faee427ca2a251bea9.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
+Received: from mga06.intel.com ([134.134.136.31]:52950 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752380AbcKHKL5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 05:11:57 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se
+Subject: [PATCH 1/1] media: entity: Swap pads if route is checked from source to sink
+Date: Tue,  8 Nov 2016 12:11:15 +0200
+Message-Id: <1478599875-27700-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of calling printk() directly, use pr_foo() macro.
+This way the pads are always passed to the has_route() op sink pad first.
+Makes sense.
 
-That should make the rc_core messages be formatted with the
-right prefix.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/rc/rc-main.c | 8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+Hi Niklas,
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 5087e76dfb03..adb10fac63e4 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -12,6 +12,8 @@
-  *  GNU General Public License for more details.
-  */
+This should make it easier to implement the has_route() op in drivers.
+
+Feel free to merge this to "[PATCH 02/32] media: entity: Add
+media_entity_has_route() function" if you like, or add separately after
+the second patch.
+
+ drivers/media/media-entity.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 747adcb..520f3f6 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -254,6 +254,10 @@ bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+ 	if (!entity->ops || !entity->ops->has_route)
+ 		return true;
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++	if (entity->pads[pad0].flags & MEDIA_PAD_FL_SOURCE
++	    && entity->pads[pad1].flags & MEDIA_PAD_FL_SINK)
++		swap(pad0, pad1);
 +
- #include <media/rc-core.h>
- #include <linux/atomic.h>
- #include <linux/spinlock.h>
-@@ -66,7 +68,7 @@ struct rc_map *rc_map_get(const char *name)
- 	if (!map) {
- 		int rc = request_module("%s", name);
- 		if (rc < 0) {
--			printk(KERN_ERR "Couldn't load IR keymap %s\n", name);
-+			pr_err("Couldn't load IR keymap %s\n", name);
- 			return NULL;
- 		}
- 		msleep(20);	/* Give some time for IR to register */
-@@ -75,7 +77,7 @@ struct rc_map *rc_map_get(const char *name)
- 	}
- #endif
- 	if (!map) {
--		printk(KERN_ERR "IR keymap %s not found\n", name);
-+		pr_err("IR keymap %s not found\n", name);
- 		return NULL;
- 	}
- 
-@@ -1620,7 +1622,7 @@ static int __init rc_core_init(void)
- {
- 	int rc = class_register(&rc_class);
- 	if (rc) {
--		printk(KERN_ERR "rc_core: unable to register rc class\n");
-+		pr_err("rc_core: unable to register rc class\n");
- 		return rc;
- 	}
- 
+ 	return entity->ops->has_route(entity, pad0, pad1);
+ }
+ EXPORT_SYMBOL_GPL(media_entity_has_route);
 -- 
 2.7.4
-
 
