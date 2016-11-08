@@ -1,45 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34082 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932642AbcKGQ4K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 11:56:10 -0500
-MIME-Version: 1.0
-In-Reply-To: <20161102132329.436-33-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se> <20161102132329.436-33-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 7 Nov 2016 13:44:22 +0100
-Message-ID: <CAMuHMdW9KBa-h3ntg8jsTgqZp7tmAHB3KmQQ84kDYdtmC=GuPg@mail.gmail.com>
-Subject: Re: [PATCH 32/32] media: rcar-vin: enable support for r8a7796
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35262 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751750AbcKHNzf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 08:55:35 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 07/21] media-device: Make devnode.dev->kobj parent of devnode.cdev
+Date: Tue,  8 Nov 2016 15:55:16 +0200
+Message-Id: <1478613330-24691-7-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2016 at 2:23 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Add the SoC specific information for Renesas Salvator-X M3 (r8a7796)
-> board.
+The struct cdev embedded in struct media_devnode contains its own kobj.
+Instead of trying to manage its lifetime separately from struct
+media_devnode, make the cdev kobj a parent of the struct media_device.dev
+kobj.
 
-Same comments as for patch 31/32.
+The cdev will thus be released during unregistering the media_devnode, not
+in media_devnode.dev kobj's release callback.
 
-Gr{oetje,eeting}s,
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-devnode.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-                        Geert
+diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+index 7481c96..a8302fc 100644
+--- a/drivers/media/media-devnode.c
++++ b/drivers/media/media-devnode.c
+@@ -63,9 +63,6 @@ static void media_devnode_release(struct device *cd)
+ 
+ 	mutex_lock(&media_devnode_lock);
+ 
+-	/* Delete the cdev on this minor as well */
+-	cdev_del(&devnode->cdev);
+-
+ 	/* Mark device node number as free */
+ 	clear_bit(devnode->minor, media_devnode_nums);
+ 
+@@ -241,6 +238,7 @@ int __must_check media_devnode_register(struct media_devnode *devnode,
+ 
+ 	/* Part 2: Initialize and register the character device */
+ 	cdev_init(&devnode->cdev, &media_devnode_fops);
++	devnode->cdev.kobj.parent = &devnode->dev.kobj;
+ 	devnode->cdev.owner = owner;
+ 
+ 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
+@@ -285,6 +283,7 @@ void media_devnode_unregister(struct media_devnode *devnode)
+ 	mutex_lock(&media_devnode_lock);
+ 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+ 	mutex_unlock(&media_devnode_lock);
++	cdev_del(&devnode->cdev);
+ 	device_unregister(&devnode->dev);
+ }
+ 
+-- 
+2.1.4
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
