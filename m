@@ -1,170 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:56470 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751203AbcKGG5v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 01:57:51 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38086
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932247AbcKHVil (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2016 16:38:41 -0500
+Date: Tue, 8 Nov 2016 19:38:34 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Benjamin Larsson <benjamin@southpole.se>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>
-Subject: [PATCH v4 0/3] Add Mediatek JPEG Decoder
-Date: Mon, 7 Nov 2016 14:57:16 +0800
-Message-ID: <1478501839-2775-1-git-send-email-rick.chang@mediatek.com>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
+Message-ID: <20161108193834.4b90145b@vento.lan>
+In-Reply-To: <354bc87c-79a1-bb37-6225-988c8fa429a5@southpole.se>
+References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
+        <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
+        <20161108182215.41f1f3d2@vento.lan>
+        <354bc87c-79a1-bb37-6225-988c8fa429a5@southpole.se>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches provide a v4l2 driver to control Mediatek JPEG decoder
-for decoding JPEG image and Motion JPEG bitstream.
+Em Tue, 8 Nov 2016 22:15:24 +0100
+Benjamin Larsson <benjamin@southpole.se> escreveu:
 
-changes since v3:
-- Revise DT binding documentation
-- Revise compatible string
+> On 11/08/2016 09:22 PM, Mauro Carvalho Chehab wrote:
+> > Em Tue, 8 Nov 2016 10:42:03 -0800
+> > Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+> >
+> >> On Sun, Nov 6, 2016 at 7:40 AM, Jörg Otte <jrg.otte@gmail.com> wrote:
+> >>> Since v4.9-rc4 I get following crash in dvb-usb-cinergyT2 module.
+> >>
+> >> Looks like it's commit 5ef8ed0e5608f ("[media] cinergyT2-core: don't
+> >> do DMA on stack"), which movced the DMA data array from the stack to
+> >> the "private" pointer. In the process it also added serialization in
+> >> the form of "data_mutex", but and now it oopses on that mutex because
+> >> the private pointer is NULL.
+> >>
+> >> It looks like the "->private" pointer is allocated in dvb_usb_adapter_init()
+> >>
+> >> cinergyt2_usb_probe ->
+> >>   dvb_usb_device_init ->
+> >>     dvb_usb_init() ->
+> >>       dvb_usb_adapter_init()
+> >>
+> >> but the dvb_usb_init() function calls dvb_usb_device_power_ctrl()
+> >> (which calls the "power_ctrl" function, which is
+> >> cinergyt2_power_ctrl() for that drive) *before* it initializes the
+> >> private field.
+> >>
+> >> Mauro, Patrick, could dvb_usb_adapter_init() be called earlier, perhaps?
+> >
+> > Calling it earlier won't work, as we need to load the firmware before
+> > sending the power control commands on some devices.
+> >
+> > Probably the best here is to pass an extra optional function parameter
+> > that will initialize the mutex before calling any functions.
+> >
+> > Btw, if it broke here, the DMA fixes will likely break on other drivers.
+> > So, after Jörg tests this patch, I'll work on a patch series addressing
+> > this issue on the other drivers I touched.
+> >
+> > Regards,
+> > Mauro
+> 
+> Just for reference I got the following call trace a week ago. I looks 
+> like this confirms that other drivers are affected also.
 
-changes since v2:
-- Revise DT binding documentation 
+Yeah, I avoided serializing the logic that detects if the firmware is
+loaded, but forgot that the power control had the same issue. The
+newer dvb usb drivers use the dvb-usb-v2, so I didn't touch this
+code for a while.
 
-changes since v1:
-- Rebase for v4.9-rc1.
-- Update Compliance test version and result
-- Remove redundant path in Makefile
-- Fix potential build error without CONFIG_PM_RUNTIME and CONFIG_PM_SLEEP
-- Fix warnings from patch check and smatch check
+I'll need to review all touched drivers to be sure that they'll all
+do the right thing. The good news is that it will likely simplify
+the drivers' logic a little bit.
 
-* Dependency
-The patch "arm: dts: mt2701: Add node for JPEG decoder" depends on: 
-  CCF "Add clock support for Mediatek MT2701"[1]
-  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
-
-[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-[2] https://patchwork.kernel.org/patch/9164013/
-
-* Compliance test
-v4l2-compliance SHA   : 4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
-
-Driver Info:
-        Driver name   : mtk-jpeg decode
-        Card type     : mtk-jpeg decoder
-        Bus info      : platform:15004000.jpegdec
-        Driver version: 4.9.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video3 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Rick Chang (3):
-  dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-  vcodec: mediatek: Add Mediatek JPEG Decoder Driver
-  arm: dts: mt2701: Add node for Mediatek JPEG Decoder
-
- .../bindings/media/mediatek-jpeg-codec.txt         |   35 +
- arch/arm/boot/dts/mt2701.dtsi                      |   14 +
- drivers/media/platform/Kconfig                     |   15 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/mtk-jpeg/Makefile           |    2 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1271 ++++++++++++++++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h    |  141 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c      |  417 +++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h      |   91 ++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c   |  160 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h   |   25 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h     |   58 +
- 12 files changed, 2231 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
- create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
-
--- 
-1.9.1
-
+Thanks,
+Mauro
