@@ -1,101 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42041 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751678AbcKOOuN (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35270 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751934AbcKHNzf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 09:50:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Edgar Thier <info@edgarthier.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] uvcvideo: Add bayer 16-bit format patterns
-Date: Tue, 15 Nov 2016 16:50:21 +0200
-Message-ID: <5713726.KjK2pZeoAD@avalon>
-In-Reply-To: <1561162.tWqexSrnMS@avalon>
-References: <87h97achun.fsf@edgarthier.net> <8760np5mjm.fsf@edgarthier.net> <1561162.tWqexSrnMS@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Tue, 8 Nov 2016 08:55:35 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [RFC v4 08/21] media: Enable allocating the media device dynamically
+Date: Tue,  8 Nov 2016 15:55:17 +0200
+Message-Id: <1478613330-24691-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Edgar,
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-On Tuesday 15 Nov 2016 16:44:55 Laurent Pinchart wrote:
-> On Tuesday 15 Nov 2016 06:39:41 Edgar Thier wrote:
-> > From 10ce06db4ab3c037758b3cb5264007f59801f1a1 Mon Sep 17 00:00:00 2001
-> > From: Edgar Thier <info@edgarthier.net>
-> > Date: Tue, 15 Nov 2016 06:33:10 +0100
-> > Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
-> 
-> Which device(s) support these formats ?
+Allow allocating the media device dynamically. As the struct media_device
+embeds struct media_devnode, the lifetime of that object is that same than
+that of the media_device.
 
-And could you please try to fix your e-mail client and/or server to avoid 
-corrupting patches ?
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/media-device.c | 15 +++++++++++++++
+ include/media/media-device.h | 13 +++++++++++++
+ 2 files changed, 28 insertions(+)
 
-> > Signed-off-by: Edgar Thier <info@edgarthier.net>
-> > ---
-> > drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
-> > drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
-> > 2 files changed, 32 insertions(+)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index 87b2fc3b..9d1fc33 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
-> > .guid		= UVC_GUID_FORMAT_RW10,
-> > .fcc		= V4L2_PIX_FMT_SRGGB10P,
-> > },
-> > +	{
-> > +			.name		= "Bayer 16-bit (SBGGR16)",
-> > +			.guid		= UVC_GUID_FORMAT_BG16,
-> > +			.fcc		= V4L2_PIX_FMT_SBGGR16,
-> > +	},
-> > +	{
-> > +			.name		= "Bayer 16-bit (SGBRG16)",
-> > +			.guid		= UVC_GUID_FORMAT_GB16,
-> > +			.fcc		= V4L2_PIX_FMT_SGBRG16,
-> > +	},
-> > +	{
-> > +			.name		= "Bayer 16-bit (SRGGB16)",
-> > +			.guid		= UVC_GUID_FORMAT_RG16,
-> > +			.fcc		= V4L2_PIX_FMT_SRGGB16,
-> > +	},
-> > +	{
-> > +			.name		= "Bayer 16-bit (SGRBG16)",
-> > +			.guid		= UVC_GUID_FORMAT_GR16,
-> > +			.fcc		= V4L2_PIX_FMT_SGRBG16,
-> > +	},
-> > };
-> > 
-> > /*
-> > ------------------------------------------------------------------------
-> > diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> > b/drivers/media/usb/uvc/uvcvideo.h index 7e4d3ee..3d6cc62 100644
-> > --- a/drivers/media/usb/uvc/uvcvideo.h
-> > +++ b/drivers/media/usb/uvc/uvcvideo.h
-> > @@ -106,6 +106,18 @@
-> > #define UVC_GUID_FORMAT_RGGB \
-> > { 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
-> > 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_BG16 \
-> > +	{ 'B',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_GB16 \
-> > +	{ 'G',  'B',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_RG16 \
-> > +	{ 'R',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > +#define UVC_GUID_FORMAT_GR16 \
-> > +	{ 'G',  'R',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-> > +	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-> > #define UVC_GUID_FORMAT_RGBP \
-> > { 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
-> > 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index a31329d..496195e 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
+ }
+ EXPORT_SYMBOL_GPL(media_device_init);
+ 
++struct media_device *media_device_alloc(struct device *dev)
++{
++	struct media_device *mdev;
++
++	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	if (!mdev)
++		return NULL;
++
++	mdev->dev = dev;
++	media_device_init(mdev);
++
++	return mdev;
++}
++EXPORT_SYMBOL_GPL(media_device_alloc);
++
+ void media_device_cleanup(struct media_device *mdev)
+ {
+ 	ida_destroy(&mdev->entity_internal_idx);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 96de915..c9b5798 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -207,6 +207,15 @@ static inline __must_check int media_entity_enum_init(
+ void media_device_init(struct media_device *mdev);
+ 
+ /**
++ * media_device_alloc() - Allocate and initialise a media device
++ *
++ * @dev:	The associated struct device pointer
++ *
++ * Allocate and initialise a media device. Returns a media device.
++ */
++struct media_device *media_device_alloc(struct device *dev);
++
++/**
+  * media_device_cleanup() - Cleanups a media device element
+  *
+  * @mdev:	pointer to struct &media_device
+@@ -451,6 +460,10 @@ void __media_device_usb_init(struct media_device *mdev,
+ 			     const char *driver_name);
+ 
+ #else
++static inline struct media_device *media_device_alloc(struct device *dev)
++{
++	return NULL;
++}
+ static inline int media_device_register(struct media_device *mdev)
+ {
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
