@@ -1,59 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34805 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756305AbcKWLhX (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33484 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932477AbcKHMoC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 06:37:23 -0500
-Received: by mail-pg0-f65.google.com with SMTP id e9so950270pgc.1
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 03:37:23 -0800 (PST)
-Received: from shambles.local (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
-        by smtp.gmail.com with ESMTPSA id b12sm49957640pfb.78.2016.11.23.03.37.20
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 23 Nov 2016 03:37:21 -0800 (PST)
-Date: Wed, 23 Nov 2016 22:37:11 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [patch] fix 'make install'
-Message-ID: <20161123113709.GA14257@shambles.local>
+        Tue, 8 Nov 2016 07:44:02 -0500
+Date: Tue, 8 Nov 2016 14:43:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Michal Simek <michal.simek@xilinx.com>
+Subject: Re: [PATCH 01/32] media: entity: Add has_route entity operation
+Message-ID: <20161108124327.GN3217@valkosipuli.retiisi.org.uk>
+References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+ <20161102132329.436-2-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161102132329.436-2-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Recent work on handling the case of no frame_vector.c in the kernel
-seems to have ended up breaking the 'make install' target. The patch
-below makes it work again for me, on ubuntu 16.04 LTS, amd64,
-kernel 4.4.
-Without it, I get this behavior:
-moake -C /home/me/media_build/v4l install
-make[1]: Entering directory '/home/me/media_build/v4l'
-make[1]: *** No rule to make target 'mm-install', needed by 'install'.  Stop.
-make[1]: Leaving directory '/home/me/media_build/v4l'
-Makefile:15: recipe for target 'install' failed
-make: *** [install] Error 2
+On Wed, Nov 02, 2016 at 02:22:58PM +0100, Niklas Söderlund wrote:
+> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> The optional operation can be used by entities to report whether two
+> pads are internally connected.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
+Thanks!
 
-diff --git a/v4l/Makefile b/v4l/Makefile
-index 28e8fb7..74a2633 100644
---- a/v4l/Makefile
-+++ b/v4l/Makefile
-@@ -210,8 +210,14 @@ all:: default
- 
- #################################################
- # installation invocation rules
--
--modules_install install:: mm-install media-install firmware_install
-+INSTALLDEPS :=
-+ifeq ($(makefile-mm),1)
-+INSTALLDEPS += mm-install
-+endif
-+ifeq ($(makefile-media),1)
-+INSTALLDEPS += media-install
-+endif
-+modules_install install:: $(INSTALLDEPS) firmware_install
- 
- remove rminstall:: media-rminstall
- 
-Vince
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
