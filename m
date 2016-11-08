@@ -1,81 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51186 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932625AbcKYQtc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 11:49:32 -0500
-From: Brian Starkey <brian.starkey@arm.com>
-To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, daniel@ffwll.ch, gustavo@padovan.org,
-        laurent.pinchart@ideasonboard.com, eric@anholt.net,
-        ville.syrjala@linux.intel.com, liviu.dudau@arm.com
-Subject: [PATCH 5/6] drm: mali-dp: Add RGB writeback formats for DP550/DP650
-Date: Fri, 25 Nov 2016 16:49:03 +0000
-Message-Id: <1480092544-1725-6-git-send-email-brian.starkey@arm.com>
-In-Reply-To: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
-References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35308 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752126AbcKHNzg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 08:55:36 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 13/21] media device: Deprecate media_device_{init,cleanup}() for drivers
+Date: Tue,  8 Nov 2016 15:55:22 +0200
+Message-Id: <1478613330-24691-13-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a layer bit for the SE memory-write, and add it to the pixel format
-matrix for DP550/DP650.
+Drivers should no longer directly allocate media_device but rely on
+media_device_alloc(), media_device_get() and media_device_put() instead.
+Deprecate media_device_init() and media_device_cleanup().
 
-Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/gpu/drm/arm/malidp_hw.c |   28 ++++++++++++++--------------
- drivers/gpu/drm/arm/malidp_hw.h |    1 +
- 2 files changed, 15 insertions(+), 14 deletions(-)
+ include/media/media-device.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
-index c696e67..be17631 100644
---- a/drivers/gpu/drm/arm/malidp_hw.c
-+++ b/drivers/gpu/drm/arm/malidp_hw.c
-@@ -46,20 +46,20 @@
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index fc0d82a..ae2bc08 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -203,6 +203,10 @@ static inline __must_check int media_entity_enum_init(
+  * So drivers need to first initialize the media device, register any entity
+  * within the media device, create pad to pad links and then finally register
+  * the media device by calling media_device_register() as a final step.
++ *
++ * Note that using this function in drivers is DEPRECATED. New drivers
++ * must use media_device_alloc() and manage references using
++ * media_device_get() and media_device_put() instead.
+  */
+ void media_device_init(struct media_device *mdev);
  
- #define MALIDP_COMMON_FORMATS \
- 	/*    fourcc,   layers supporting the format,      internal id   */ \
--	{ DRM_FORMAT_ARGB2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 0) }, \
--	{ DRM_FORMAT_ABGR2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 1) }, \
--	{ DRM_FORMAT_RGBA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 2) }, \
--	{ DRM_FORMAT_BGRA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 3) }, \
--	{ DRM_FORMAT_ARGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 0) }, \
--	{ DRM_FORMAT_ABGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 1) }, \
--	{ DRM_FORMAT_RGBA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 2) }, \
--	{ DRM_FORMAT_BGRA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 3) }, \
--	{ DRM_FORMAT_XRGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 0) }, \
--	{ DRM_FORMAT_XBGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 1) }, \
--	{ DRM_FORMAT_RGBX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 2) }, \
--	{ DRM_FORMAT_BGRX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 3) }, \
--	{ DRM_FORMAT_RGB888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(3, 0) }, \
--	{ DRM_FORMAT_BGR888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(3, 1) }, \
-+	{ DRM_FORMAT_ARGB2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 0) }, \
-+	{ DRM_FORMAT_ABGR2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 1) }, \
-+	{ DRM_FORMAT_RGBA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 2) }, \
-+	{ DRM_FORMAT_BGRA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 3) }, \
-+	{ DRM_FORMAT_ARGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 0) }, \
-+	{ DRM_FORMAT_ABGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 1) }, \
-+	{ DRM_FORMAT_RGBA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 2) }, \
-+	{ DRM_FORMAT_BGRA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 3) }, \
-+	{ DRM_FORMAT_XRGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 0) }, \
-+	{ DRM_FORMAT_XBGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 1) }, \
-+	{ DRM_FORMAT_RGBX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 2) }, \
-+	{ DRM_FORMAT_BGRX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 3) }, \
-+	{ DRM_FORMAT_RGB888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(3, 0) }, \
-+	{ DRM_FORMAT_BGR888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(3, 1) }, \
- 	{ DRM_FORMAT_RGBA5551, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(4, 0) }, \
- 	{ DRM_FORMAT_ABGR1555, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(4, 1) }, \
- 	{ DRM_FORMAT_RGB565, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(4, 2) }, \
-diff --git a/drivers/gpu/drm/arm/malidp_hw.h b/drivers/gpu/drm/arm/malidp_hw.h
-index 091171d..8056efa 100644
---- a/drivers/gpu/drm/arm/malidp_hw.h
-+++ b/drivers/gpu/drm/arm/malidp_hw.h
-@@ -33,6 +33,7 @@ enum {
- 	DE_GRAPHICS2 = BIT(2), /* used only in DP500 */
- 	DE_VIDEO2 = BIT(3),
- 	DE_SMART = BIT(4),
-+	SE_MEMWRITE = BIT(5),
- };
+@@ -251,6 +255,10 @@ struct media_device *media_device_alloc(struct device *dev);
+  *
+  * This function that will destroy the graph_mutex that is
+  * initialized in media_device_init().
++ *
++ * Note that using this function in drivers is DEPRECATED. New drivers
++ * must use media_device_alloc() and manage references using
++ * media_device_get() and media_device_put() instead.
+  */
+ void media_device_cleanup(struct media_device *mdev);
  
- struct malidp_format_id {
 -- 
-1.7.9.5
+2.1.4
 
