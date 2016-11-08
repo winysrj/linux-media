@@ -1,71 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:49863 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754014AbcKBKk5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 06:40:57 -0400
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v3 5/6] Documentation: bindings: add documentation for ir-spi
- device driver
-Date: Wed, 02 Nov 2016 19:40:09 +0900
-Message-id: <20161102104010.26959-6-andi.shyti@samsung.com>
-In-reply-to: <20161102104010.26959-1-andi.shyti@samsung.com>
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35302 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752104AbcKHNzg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 08:55:36 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 12/21] media device: Initialise media devnode in media_device_init()
+Date: Tue,  8 Nov 2016 15:55:21 +0200
+Message-Id: <1478613330-24691-12-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the ir-spi driver's binding which is a IR led driven
-through the SPI line.
+Call media_devnode_init() from media_device_init(). This has the effect of
+creating a struct device for the media_devnode before it is registered,
+making it possible to obtain a reference to it for e.g. video devices.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- .../devicetree/bindings/leds/spi-ir-led.txt        | 29 ++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/leds/spi-ir-led.txt
+ drivers/media/media-device.c | 26 ++++++++++++--------------
+ 1 file changed, 12 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/leds/spi-ir-led.txt b/Documentation/devicetree/bindings/leds/spi-ir-led.txt
-new file mode 100644
-index 0000000..896b699
---- /dev/null
-+++ b/Documentation/devicetree/bindings/leds/spi-ir-led.txt
-@@ -0,0 +1,29 @@
-+Device tree bindings for IR LED connected through SPI bus which is used as
-+remote controller.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index e9f6e76..2e52e44 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -708,6 +708,8 @@ void media_device_init(struct media_device *mdev)
+ 	mutex_init(&mdev->graph_mutex);
+ 	ida_init(&mdev->entity_internal_idx);
+ 
++	media_devnode_init(&mdev->devnode);
 +
-+The IR LED switch is connected to the MOSI line of the SPI device and the data
-+are delivered thourgh that.
-+
-+Required properties:
-+	- compatible: should be "ir-spi-led".
-+
-+Optional properties:
-+	- duty-cycle: 8 bit balue that represents the percentage of one period
-+	  in which the signal is active.  It can be 50, 60, 70, 75, 80 or 90.
-+	- led-active-low: boolean value that specifies whether the output is
-+	  negated with a NOT gate.
-+	- power-supply: specifies the power source. It can either be a regulator
-+	  or a gpio which enables a regulator, i.e. a regulator-fixed as
-+	  described in
-+	  Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-+
-+Example:
-+
-+	irled@0 {
-+		compatible = "ir-spi-led";
-+		reg = <0x0>;
-+		spi-max-frequency = <5000000>;
-+		power-supply = <&vdd_led>;
-+		led-active-low;
-+		duty-cycle = /bits/ 8 <60>;
-+	};
+ 	dev_dbg(mdev->dev, "Media device initialized\n");
+ }
+ EXPORT_SYMBOL_GPL(media_device_init);
+@@ -718,7 +720,10 @@ static void media_device_release(struct media_devnode *devnode)
+ 
+ 	dev_dbg(devnode->parent, "Media device released\n");
+ 
+-	media_device_cleanup(mdev);
++	ida_destroy(&mdev->entity_internal_idx);
++	mdev->entity_internal_idx_max = 0;
++	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
++	mutex_destroy(&mdev->graph_mutex);
+ 
+ 	kfree(mdev);
+ }
+@@ -746,6 +751,7 @@ void media_device_cleanup(struct media_device *mdev)
+ 	mdev->entity_internal_idx_max = 0;
+ 	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
+ 	mutex_destroy(&mdev->graph_mutex);
++	media_device_put(mdev);
+ }
+ EXPORT_SYMBOL_GPL(media_device_cleanup);
+ 
+@@ -761,26 +767,19 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	/* Set version 0 to indicate user-space that the graph is static */
+ 	mdev->topology_version = 0;
+ 
+-	media_devnode_init(&mdev->devnode);
+-
+ 	ret = media_devnode_register(&mdev->devnode, owner);
+ 	if (ret < 0)
+-		goto out_put;
++		return ret;
+ 
+ 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+-	if (ret < 0)
+-		goto out_unregister;
++	if (ret < 0) {
++		media_devnode_unregister(&mdev->devnode);
++		return ret;
++	}
+ 
+ 	dev_dbg(mdev->dev, "Media device registered\n");
+ 
+ 	return 0;
+-
+-out_unregister:
+-	media_devnode_unregister(&mdev->devnode);
+-out_put:
+-	put_device(&mdev->devnode.dev);
+-
+-	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__media_device_register);
+ 
+@@ -823,7 +822,6 @@ void media_device_unregister(struct media_device *mdev)
+ 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+ 	dev_dbg(mdev->dev, "Media device unregistering\n");
+ 	media_devnode_unregister(&mdev->devnode);
+-	put_device(&mdev->devnode.dev);
+ }
+ EXPORT_SYMBOL_GPL(media_device_unregister);
+ 
 -- 
-2.10.1
+2.1.4
 
