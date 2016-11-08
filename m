@@ -1,48 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49502 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754253AbcKBN3j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:39 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 10/32] media: rcar-vin: use pad information when verifying media bus format
-Date: Wed,  2 Nov 2016 14:23:07 +0100
-Message-Id: <20161102132329.436-11-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35262 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751100AbcKHNzh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 08:55:37 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        laurent.pinchart@ideasonboard.com
+Subject: [RFC v4 17/21] v4l: Acquire a reference to the media device for every video device
+Date: Tue,  8 Nov 2016 15:55:26 +0200
+Message-Id: <1478613330-24691-17-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the pad information is present in struct rvin_graph_entity use
-it when verifying the media bus format.
+The video device depends on the existence of its media device --- if there
+is one. Acquire a reference to it.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/v4l2-core/v4l2-dev.c | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 2c40b6a..fb6368c 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -48,6 +48,7 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- 	};
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 8be561a..530d53e 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -171,6 +171,9 @@ static void v4l2_device_release(struct device *cd)
+ {
+ 	struct video_device *vdev = to_video_device(cd);
+ 	struct v4l2_device *v4l2_dev = vdev->v4l2_dev;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device *mdev = v4l2_dev->mdev;
++#endif
  
- 	code.index = 0;
-+	code.pad = entity->source_pad_idx;
- 	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
- 		code.index++;
- 		switch (code.code) {
+ 	mutex_lock(&videodev_lock);
+ 	if (WARN_ON(video_device[vdev->minor] != vdev)) {
+@@ -193,8 +196,8 @@ static void v4l2_device_release(struct device *cd)
+ 
+ 	mutex_unlock(&videodev_lock);
+ 
+-#if defined(CONFIG_MEDIA_CONTROLLER)
+-	if (v4l2_dev->mdev) {
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (mdev) {
+ 		/* Remove interfaces and interface links */
+ 		media_devnode_remove(vdev->intf_devnode);
+ 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+@@ -220,6 +223,11 @@ static void v4l2_device_release(struct device *cd)
+ 	/* Decrease v4l2_device refcount */
+ 	if (v4l2_dev)
+ 		v4l2_device_put(v4l2_dev);
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (mdev)
++		media_device_put(mdev);
++#endif
+ }
+ 
+ static struct class video_class = {
+@@ -813,6 +821,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+ 
+ 	/* FIXME: how to create the other interface links? */
+ 
++	media_device_get(vdev->v4l2_dev->mdev);
+ #endif
+ 	return 0;
+ }
 -- 
-2.10.2
+2.1.4
 
