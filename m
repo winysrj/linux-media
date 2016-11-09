@@ -1,93 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:36116 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753058AbcKQJKn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Nov 2016 04:10:43 -0500
-Received: by mail-wm0-f42.google.com with SMTP id g23so297026920wme.1
-        for <linux-media@vger.kernel.org>; Thu, 17 Nov 2016 01:10:43 -0800 (PST)
-Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
- functions
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
- <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
- <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
- <a6557768-787d-7794-8cd0-781dc1ee9072@xs4all.nl>
- <dd5c0fef-4994-4beb-952f-659ff5d17fb0@linaro.org>
- <72f8675a-4771-3e9a-6ee0-6e1b86589e8f@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <fe4b4f77-1c90-a88a-f393-44e35f8f1466@linaro.org>
-Date: Thu, 17 Nov 2016 11:10:40 +0200
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41920
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752634AbcKIRqO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 12:46:14 -0500
+Date: Wed, 9 Nov 2016 15:46:08 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
+ references as needed
+Message-ID: <20161109154608.1e578f9e@vento.lan>
+In-Reply-To: <938ce288-d3d0-59f3-7714-c51fe1939af9@osg.samsung.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+        <6101f959-f8a9-eaca-b015-91161c04cb87@osg.samsung.com>
+        <20161108081947.GL3217@valkosipuli.retiisi.org.uk>
+        <0a4edeb4-d92d-2928-5667-da26213f39d7@osg.samsung.com>
+        <938ce288-d3d0-59f3-7714-c51fe1939af9@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <72f8675a-4771-3e9a-6ee0-6e1b86589e8f@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Wed, 9 Nov 2016 10:00:58 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On 11/14/2016 12:25 PM, Hans Verkuil wrote:
-> On 11/14/2016 11:11 AM, Stanimir Varbanov wrote:
->> Hi Hans,
->>
->> <cut>
->>
->>>>>
->>>>>> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
->>>>>> +{
->>>>>> +	struct venus_inst *inst = vb2_get_drv_priv(q);
->>>>>> +	struct venus_core *core = inst->core;
->>>>>> +	struct device *dev = core->dev;
->>>>>> +	struct vb2_queue *other_queue;
->>>>>> +	struct vidc_buffer *buf, *n;
->>>>>> +	enum vb2_buffer_state state;
->>>>>> +	int ret;
->>>>>> +
->>>>>> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->>>>>> +		other_queue = &inst->bufq_cap;
->>>>>> +	else
->>>>>> +		other_queue = &inst->bufq_out;
->>>>>> +
->>>>>> +	if (!vb2_is_streaming(other_queue))
->>>>>> +		return;
->>>>>
->>>>> This seems wrong to me: this return means that the buffers of queue q are never
->>>>> released. Either drop this 'if' or release both queues when the last queue
->>>>> stops streaming. I think dropping the 'if' is best.
->>>>
->>>> I have done this way because hfi_session_stop must be called only once,
->>>> and buffers will be released on first streamoff for both queues.
->>>
->>> Are you sure the buffers are released for both queues? I may have missed that when
->>> reviewing.
->>
->> yes, hfi_session_stop will instruct the firmware to stop using provided
->> buffers and return ownership to the host driver by fill_buf_done and
->> empty_buf_done callbacks.
->>
->>>
->>> I would recommend to call hfi_session_stop when the first stop_streaming is called,
->>> not when it is called for both queues. I say this because stopping streaming without
->>> releasing the buffers is likely to cause problems.
->>
->> this is what I tried to implement with above
->> !vb2_is_streaming(other_queue) thing.
+> > Maybe we can get the Media Device Allocator API work in and then we can
+> > get your RFC series in after that. Here is what I propose:
+> > 
+> > - Keep the fixes in 4.9
+
+Fixes should always be kept. Reverting a fix is not an option.
+Instead, do incremental patches on the top of it.
+
+> > - Get Media Device Allocator API patches into 4.9.  
 > 
-> That doesn't work: if the application calls STREAMON(CAPTURE) followed by STREAMOFF(CAPTURE)
-> without ever starting the OUTPUT queue, this will not clean up the capture queue.
+> I meant 4.10 not 4.9
+> 
+> > - snd-usb-auido work go into 4.10
 
-Yes this is a bug which should be fixed.
+Sounds like a plan.
+
+> > Then your RFC series could go in. I am looking at the RFC series and that
+> > the drivers need to change as well, so this RFC work could take longer.
+> > Since we have to make media_device sharable, it is necessary to have a
+> > global list approach Media Device Allocator API takes. So it is possible
+> > for your RFC series to go on top of the Media Device Allocator API.
+
+Firstly, the RFC series should be converted into something that can
+be applicable upstream, e. g.:
+
+- doing the changes over the top of upstream, instead of needing to
+  revert patches;
+
+- change all drivers as the kAPI changes;
+
+- be git bisectable, e. g. all patches should compile and run fine
+  after each single patch, without introducing regressions.
+
+That probably means that the series should be tested not only on
+omap3, but also on some other device drivers.
+
 
 -- 
-regards,
-Stan
+Thanks,
+Mauro
