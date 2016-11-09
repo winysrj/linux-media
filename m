@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 Nov 2016 10:11:51 -0800
-Message-ID: <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: "Deucher, Alexander" <Alexander.Deucher@amd.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61455 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752065AbcKIObJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:31:09 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 0/2] media: Exynos GScaller: add support for Exynos 5433 SoC
+Date: Wed, 09 Nov 2016 15:29:36 +0100
+Message-id: <1478701778-29452-1-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20161109142950eucas1p27459d022bf3945618deb1b77fe6c4611@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 21, 2016 at 12:36 PM, Deucher, Alexander
-<Alexander.Deucher@amd.com> wrote:
-> This is certainly not the first time this has been brought up, but I'd li=
-ke to try and get some consensus on the best way to move this forward.  All=
-owing devices to talk directly improves performance and reduces latency by =
-avoiding the use of staging buffers in system memory.  Also in cases where =
-both devices are behind a switch, it avoids the CPU entirely.  Most current=
- APIs (DirectGMA, PeerDirect, CUDA, HSA) that deal with this are pointer ba=
-sed.  Ideally we'd be able to take a CPU virtual address and be able to get=
- to a physical address taking into account IOMMUs, etc.  Having struct page=
-s for the memory would allow it to work more generally and wouldn't require=
- as much explicit support in drivers that wanted to use it.
->
-> Some use cases:
-> 1. Storage devices streaming directly to GPU device memory
-> 2. GPU device memory to GPU device memory streaming
-> 3. DVB/V4L/SDI devices streaming directly to GPU device memory
-> 4. DVB/V4L/SDI devices streaming directly to storage devices
->
-> Here is a relatively simple example of how this could work for testing.  =
-This is obviously not a complete solution.
-> - Device memory will be registered with Linux memory sub-system by create=
-d corresponding struct page structures for device memory
-> - get_user_pages_fast() will  return corresponding struct pages when CPU =
-address points to the device memory
-> - put_page() will deal with struct pages for device memory
->
-[..]
-> 4. iopmem
-> iopmem : A block device for PCIe memory (https://lwn.net/Articles/703895/=
-)
+Hi!
 
-The change I suggest for this particular approach is to switch to
-"device-DAX" [1]. I.e. a character device for establishing DAX
-mappings rather than a block device plus a DAX filesystem. The pro of
-this approach is standard user pointers and struct pages rather than a
-new construct. The con is that this is done via an interface separate
-from the existing gpu and storage device. For example it would require
-a /dev/dax instance alongside a /dev/nvme interface, but I don't see
-that as a significant blocking concern.
+This patchset add support for Exynos 5433 SoC to Exynos GScaller driver.
+This patchset requires fixes for Exynos GScaller driver posted
+in the "[PATCH 00/12] media: Exynos GScaller driver fixes" thread.
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2016-October/007496.html
+Tested on Exynos5433-based TM2 board.
+
+Best regards
+Marek Szyprowski
+Samsung R&D Institute Poland
+
+
+Patch summary:
+
+Marek Szyprowski (2):
+  exynos-gsc: Enable driver on ARCH_EXYNOS
+  exynos-gsc: Add support for Exynos5433 specific version
+
+ .../devicetree/bindings/media/exynos5-gsc.txt      |  3 +-
+ drivers/media/platform/Kconfig                     |  2 +-
+ drivers/media/platform/exynos-gsc/gsc-core.c       | 74 ++++++++++++++++------
+ drivers/media/platform/exynos-gsc/gsc-core.h       |  6 +-
+ 4 files changed, 63 insertions(+), 22 deletions(-)
+
+-- 
+1.9.1
+
