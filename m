@@ -1,146 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:51703 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964868AbcKJQrn (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:28545 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751203AbcKIPyM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 11:47:43 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        x86@kernel.org, linux-kbuild@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: [PATCH v2 00/11] getting back -Wmaybe-uninitialized
-Date: Thu, 10 Nov 2016 17:44:43 +0100
-Message-Id: <20161110164454.293477-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 9 Nov 2016 10:54:12 -0500
+From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Subject: [PATCH 4/5] doc_rst: media: New SDR formats SC16, SC18 & SC20
+Date: Wed,  9 Nov 2016 15:44:43 +0000
+Message-Id: <1478706284-59134-5-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+In-Reply-To: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+This patch adds documentation for the three new SDR formats
 
-It took a while for some patches to make it into mainline through
-maintainer trees, but the 28-patch series is now reduced to 10, with
-one tiny patch added at the end.  I hope this can still make it into
-v4.9. Aside from patches that are no longer required, I did these changes
-compared to version 1:
+V4L2_SDR_FMT_SCU16BE
+V4L2_SDR_FMT_SCU18BE
+V4L2_SDR_FMT_SCU20BE
 
-- Dropped "iio: maxim_thermocouple: detect invalid storage size in
-  read()", which is currently in linux-next as commit 32cb7d27e65d.
-  This is the only remaining warning I see for a couple of corner
-  cases (kbuild bot reports it on blackfin, kernelci bot and
-  arm-soc bot both report it on arm64)
+Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+---
+ .../media/uapi/v4l/pixfmt-sdr-scu16be.rst          | 80 ++++++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-sdr-scu18be.rst          | 80 ++++++++++++++++++++++
+ .../media/uapi/v4l/pixfmt-sdr-scu20be.rst          | 80 ++++++++++++++++++++++
+ Documentation/media/uapi/v4l/sdr-formats.rst       |  3 +
+ 4 files changed, 243 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-scu16be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-scu18be.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-scu20be.rst
 
-- Dropped "brcmfmac: avoid maybe-uninitialized warning in
-  brcmf_cfg80211_start_ap", which is currently in net/master
-  merge pending.
-
-- Dropped two x86 patches, "x86: math-emu: possible uninitialized
-  variable use" and "x86: mark target address as output in 'insb' asm"
-  as they do not seem to trigger for a default build, and I got
-  no feedback on them. Both of these are ancient issues and seem
-  harmless, I will send them again to the x86 maintainers once
-  the rest is merged.
-  
-- Dropped "rbd: false-postive gcc-4.9 -Wmaybe-uninitialized" based on
-  feedback from Ilya Dryomov, who already has a different fix queued up
-  for v4.10. The kbuild bot reports this as a warning for xtensa.
- 
-- Replaced "crypto: aesni: avoid -Wmaybe-uninitialized warning" with a
-  simpler patch, this one always triggers but my first solution would not
-  be safe for linux-4.9 any more at this point. I'll follow up with
-  the larger patch as a cleanup for 4.10.
-  
-- Replaced "dib0700: fix nec repeat handling" with a better one,
-  contributed by Sean Young.
-
-Please merge these directly if you are happy with the result.
-
-As the minimum, I'd hope to see the first patch get in soon,
-but the individual bugfixes are hopefully now all appropriate
-as well. If you see any regressions with the final patch, just
-leave that one out and let me know what problems remain.
-
-	Arnd
-
-Arnd Bergmann (10):
-  Kbuild: enable -Wmaybe-uninitialized warning for "make W=1"
-  NFSv4.1: work around -Wmaybe-uninitialized warning
-  x86: apm: avoid uninitialized data
-  nios2: fix timer initcall return value
-  s390: pci: don't print uninitialized data for debugging
-  [media] rc: print correct variable for z8f0811
-  crypto: aesni: shut up -Wmaybe-uninitialized warning
-  infiniband: shut up a maybe-uninitialized warning
-  pcmcia: fix return value of soc_pcmcia_regulator_set
-  Kbuild: enable -Wmaybe-uninitialized warnings by default
-
-Sean Young (1):
-  [media] dib0700: fix nec repeat handling
-
- Makefile                                 | 10 +++---
- arch/arc/Makefile                        |  4 ++-
- arch/nios2/kernel/time.c                 |  1 +
- arch/s390/pci/pci_dma.c                  |  2 +-
- arch/x86/crypto/aesni-intel_glue.c       |  4 +--
- arch/x86/kernel/apm_32.c                 |  5 ++-
- drivers/infiniband/core/cma.c            | 54 +++++++++++++++++---------------
- drivers/media/i2c/ir-kbd-i2c.c           |  2 +-
- drivers/media/usb/dvb-usb/dib0700_core.c |  5 +--
- drivers/pcmcia/soc_common.c              |  2 +-
- fs/nfs/nfs4session.c                     | 10 +++---
- scripts/Makefile.extrawarn               |  1 +
- scripts/Makefile.ubsan                   |  4 +++
- 13 files changed, 61 insertions(+), 43 deletions(-)
-
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-scu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-scu16be.rst
+new file mode 100644
+index 0000000..7525378
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-scu16be.rst
+@@ -0,0 +1,80 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-SCU16BE:
++
++******************************
++V4L2_SDR_FMT_SCU16BE ('SC16')
++******************************
++
++Sliced complex unsigned 16-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 16 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++
++      -  Byte B0
++
++      -  Byte B1
++
++      -  Byte B2
++
++      -  Byte B3
++
++    * -  start + 0:
++
++      -  I'\ :sub:`0[13:6]`
++
++      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
++
++      -  pad
++
++      -  pad
++
++    * -  start + 4:
++
++      -  I'\ :sub:`1[13:6]`
++
++      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
++
++      -  pad
++
++      -  pad
++
++    * -  ...
++
++    * - start + offset:
++
++      -  Q'\ :sub:`0[13:6]`
++
++      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
++
++      -  pad
++
++      -  pad
++
++    * - start + offset + 4:
++
++      -  Q'\ :sub:`1[13:6]`
++
++      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
++
++      -  pad
++
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-scu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-scu18be.rst
+new file mode 100644
+index 0000000..0ce714d
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-scu18be.rst
+@@ -0,0 +1,80 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-SCU18BE:
++
++******************************
++V4L2_SDR_FMT_SCU18BE ('SC18')
++******************************
++
++Sliced complex unsigned 18-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 18 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++
++      -  Byte B0
++
++      -  Byte B1
++
++      -  Byte B2
++
++      -  Byte B3
++
++    * -  start + 0:
++
++      -  I'\ :sub:`0[17:10]`
++
++      -  I'\ :sub:`0[9:2]`
++
++      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
++
++      -  pad
++
++    * -  start + 4:
++
++      -  I'\ :sub:`1[17:10]`
++
++      -  I'\ :sub:`1[9:2]`
++
++      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
++
++      -  pad
++
++    * -  ...
++
++    * - start + offset:
++
++      -  Q'\ :sub:`0[17:10]`
++
++      -  Q'\ :sub:`0[9:2]`
++
++      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
++
++      -  pad
++
++    * - start + offset + 4:
++
++      -  Q'\ :sub:`1[17:10]`
++
++      -  Q'\ :sub:`1[9:2]`
++
++      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
++
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-scu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-scu20be.rst
+new file mode 100644
+index 0000000..ff2fe51
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-sdr-scu20be.rst
+@@ -0,0 +1,80 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-SDR-FMT-SCU20BE:
++
++******************************
++V4L2_SDR_FMT_SCU20BE ('SC20')
++******************************
++
++Sliced complex unsigned 20-bit big endian IQ sample
++
++Description
++===========
++
++This format contains a sequence of complex number samples. Each complex
++number consist of two parts called In-phase and Quadrature (IQ). Both I
++and Q are represented as a 20 bit unsigned big endian number stored in
++32 bit space. The remaining unused bits within the 32 bit space will be
++padded with 0. I value starts first and Q value starts at an offset
++equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
++the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
++value.
++
++**Byte Order.**
++Each cell is one byte.
++
++.. flat-table::
++    :header-rows:  1
++    :stub-columns: 0
++
++    * -  Offset:
++
++      -  Byte B0
++
++      -  Byte B1
++
++      -  Byte B2
++
++      -  Byte B3
++
++    * -  start + 0:
++
++      -  I'\ :sub:`0[19:12]`
++
++      -  I'\ :sub:`0[11:4]`
++
++      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
++
++      -  pad
++
++    * -  start + 4:
++
++      -  I'\ :sub:`1[19:12]`
++
++      -  I'\ :sub:`1[11:4]`
++
++      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
++
++      -  pad
++
++    * -  ...
++
++    * - start + offset:
++
++      -  Q'\ :sub:`0[19:12]`
++
++      -  Q'\ :sub:`0[11:4]`
++
++      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
++
++      -  pad
++
++    * - start + offset + 4:
++
++      -  Q'\ :sub:`1[19:12]`
++
++      -  Q'\ :sub:`1[11:4]`
++
++      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
++
++      -  pad
+diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
+index f863c08..4c01cf9 100644
+--- a/Documentation/media/uapi/v4l/sdr-formats.rst
++++ b/Documentation/media/uapi/v4l/sdr-formats.rst
+@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
+     pixfmt-sdr-cs08
+     pixfmt-sdr-cs14le
+     pixfmt-sdr-ru12le
++    pixfmt-sdr-scu16be
++    pixfmt-sdr-scu18be
++    pixfmt-sdr-scu20be
 -- 
-2.9.0
-
-Cc: Anna Schumaker <anna.schumaker@netapp.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Ilya Dryomov <idryomov@gmail.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Jiri Kosina <jikos@kernel.org>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: Ley Foon Tan <lftan@altera.com>
-Cc: Luis R. Rodriguez <mcgrof@kernel.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Sean Young <sean@mess.org>
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Trond Myklebust <trond.myklebust@primarydata.com>
-Cc: x86@kernel.org
-Cc: linux-kbuild@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-snps-arc@lists.infradead.org
-Cc: nios2-dev@lists.rocketboards.org
-Cc: linux-s390@vger.kernel.org
-Cc: linux-crypto@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: linux-nfs@vger.kernel.org
-
+1.9.1
 
