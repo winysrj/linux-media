@@ -1,23 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:35371 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753831AbcKCMZF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 08:25:05 -0400
-Received: by mail-oi0-f68.google.com with SMTP id v84so6313809oie.2
-        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2016 05:25:05 -0700 (PDT)
+Received: from mail-it0-f68.google.com ([209.85.214.68]:35654 "EHLO
+        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754740AbcKIS0X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 13:26:23 -0500
+Date: Wed, 9 Nov 2016 12:26:21 -0600
+From: Rob Herring <robh@kernel.org>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: Andi Shyti <andi.shyti@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
+ ir-spi device driver
+Message-ID: <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop>
+References: <20161102104010.26959-1-andi.shyti@samsung.com>
+ <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
+ <20161102104010.26959-6-andi.shyti@samsung.com>
+ <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
+ <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
+ <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
 MIME-Version: 1.0
-Reply-To: ri.asab@yahoo.com
-From: "REV.JOHN GAZDA" <rev.noelb@gmail.com>
-Date: Thu, 3 Nov 2016 05:25:04 -0700
-Message-ID: <CAM3vUwD+6qTdzQ1COrejCyQ7sXrqxJ5CwyAgsZTf+rmBpEMS5g@mail.gmail.com>
-Subject: URGENTLY CONFIRM
-To: undisclosed-recipients:;
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
--- 
-HELLO,
-PLEASE I WANT YOU TO URGENTLY CONFIRM TO ME IF YOU HAVE RECEIVED THE
-FUNDS OR NOT.PLEASE DO CONFIRM NOW.
-REV.JOHN GAZDA
+On Thu, Nov 03, 2016 at 11:39:21AM +0100, Jacek Anaszewski wrote:
+> On 11/03/2016 11:10 AM, Andi Shyti wrote:
+> > Hi Jacek,
+> > 
+> > > Only DT bindings of LED class drivers should be placed in
+> > > Documentation/devicetree/bindings/leds. Please move it to the
+> > > media bindings.
+> > 
+> > that's where I placed it first, but Rob asked me to put it in the
+> > LED directory and Cc the LED mailining list.
+> > 
+> > That's the discussion of the version 2:
+> > 
+> > https://lkml.org/lkml/2016/9/12/380
+> > 
+> > Rob, Jacek, could you please agree where I can put the binding?
+> 
+> I'm not sure if this is a good approach. I've noticed also that
+> backlight bindings have been moved to leds, whereas they don't look
+> similarly.
+> 
+> We have common.txt LED bindings, that all LED class drivers' bindings
+> have to follow. Neither backlight bindings nor these ones do that,
+> which introduces some mess.
+
+And there are probably LED bindings that don't follow common.txt either. 
+
+> Eventually adding a sub-directory, e.g. remote_control could make it
+> somehow logically justified, but still - shouldn't bindings be
+> placed in the documentation directory related to the subsystem of the
+> driver they are predestined to?
+
+No. While binding directories often mirror the driver directories, they 
+are not the same. Bindings are grouped by types of h/w and IR LEDs are a 
+type of LED.
+
+If you prefer a sub-dir, that is fine with me.
+
+Rob
