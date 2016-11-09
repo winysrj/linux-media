@@ -1,68 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fireflyinternet.com ([109.228.58.192]:64076 "EHLO
-        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752739AbcKNJ4E (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53760 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751095AbcKIIA7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 04:56:04 -0500
-Date: Mon, 14 Nov 2016 09:55:48 +0000
-From: Chris Wilson <chris@chris-wilson.co.uk>
-To: Tvrtko Ursulin <tursulin@ursulin.net>
-Cc: Intel-gfx@lists.freedesktop.org,
-        Tomasz Stanislawski <t.stanislaws@samsung.com>,
-        Pawel Osciak <pawel@osciak.com>, linux-kernel@vger.kernel.org,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Matt Porter <mporter@kernel.crashing.org>,
-        linux-media@vger.kernel.org,
-        Alexandre Bounine <alexandre.bounine@idt.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [Intel-gfx] [PATCH 1/4] lib/scatterlist: Fix offset type in
- sg_alloc_table_from_pages
-Message-ID: <20161114095548.GC32240@nuc-i3427.alporthouse.com>
-References: <1478854220-3255-1-git-send-email-tvrtko.ursulin@linux.intel.com>
- <1478854220-3255-2-git-send-email-tvrtko.ursulin@linux.intel.com>
+        Wed, 9 Nov 2016 03:00:59 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec-core.rst: improve documentation
+Message-ID: <092fe777-9286-a190-3499-1641e2da464c@xs4all.nl>
+Date: Wed, 9 Nov 2016 09:00:53 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1478854220-3255-2-git-send-email-tvrtko.ursulin@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 11, 2016 at 08:50:17AM +0000, Tvrtko Ursulin wrote:
-> From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-> 
-> Scatterlist entries have an unsigned int for the offset so
-> correct the sg_alloc_table_from_pages function accordingly.
-> 
-> Since these are offsets withing a page, unsigned int is
-> wide enough.
-> 
-> Also converts callers which were using unsigned long locally
-> with the lower_32_bits annotation to make it explicitly
-> clear what is happening.
-> 
-> v2: Use offset_in_page. (Chris Wilson)
-> 
-> Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
-> Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
-> Cc: Pawel Osciak <pawel@osciak.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Cc: Matt Porter <mporter@kernel.crashing.org>
-> Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
+Improve the internal CEC documentation. In particular add a section that specifies that
+transmit-related interrupts should be processed before receive interrupts.
 
-If there were kerneldoc, it would nicely explain that having an offset
-larger then a page is silly when passing in array of pages.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
+index 88c33b5..8a88dd4 100644
+--- a/Documentation/media/kapi/cec-core.rst
++++ b/Documentation/media/kapi/cec-core.rst
+@@ -106,13 +106,13 @@ your driver:
+ 		int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
+ 		int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
+ 				      u32 signal_free_time, struct cec_msg *msg);
+-		void (\*adap_log_status)(struct cec_adapter *adap);
++		void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
 
-Changes elsewhere look ok (personally I'd be happy with just
-offset_in_page(), 4GiB superpages are somebody else's problem :)
+ 		/* High-level callbacks */
+ 		...
+ 	};
 
-Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
--Chris
+-The three low-level ops deal with various aspects of controlling the CEC adapter
++The five low-level ops deal with various aspects of controlling the CEC adapter
+ hardware:
 
--- 
-Chris Wilson, Intel Open Source Technology Centre
+
+@@ -238,6 +238,18 @@ When a CEC message was received:
+
+ Speaks for itself.
+
++Implementing the interrupt handler
++----------------------------------
++
++Typically the CEC hardware provides interrupts that signal when a transmit
++finished and whether it was successful or not, and it provides and interrupt
++when a CEC message was received.
++
++The CEC driver should always process the transmit interrupts first before
++handling the receive interrupt. The framework expects to see the cec_transmit_done
++call before the cec_received_msg call, otherwise it can get confused if the
++received message was in reply to the transmitted message.
++
+ Implementing the High-Level CEC Adapter
+ ---------------------------------------
+
+@@ -247,11 +259,11 @@ CEC protocol driven. The following high-level callbacks are available:
+ .. code-block:: none
+
+ 	struct cec_adap_ops {
+-		/\* Low-level callbacks \*/
++		/* Low-level callbacks */
+ 		...
+
+-		/\* High-level CEC message callback \*/
+-		int (\*received)(struct cec_adapter \*adap, struct cec_msg \*msg);
++		/* High-level CEC message callback */
++		int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
+ 	};
+
+ The received() callback allows the driver to optionally handle a newly
+@@ -263,7 +275,7 @@ received CEC message
+ If the driver wants to process a CEC message, then it can implement this
+ callback. If it doesn't want to handle this message, then it should return
+ -ENOMSG, otherwise the CEC framework assumes it processed this message and
+-it will not no anything with it.
++it will not do anything with it.
+
+
+ CEC framework functions
