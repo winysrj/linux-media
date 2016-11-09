@@ -1,64 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s3.sipsolutions.net ([5.9.151.49]:36292 "EHLO sipsolutions.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753250AbcKUPof (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 10:44:35 -0500
-Message-ID: <1479743068.4391.4.camel@sipsolutions.net>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-From: Johannes Berg <johannes@sipsolutions.net>
-To: James Bottomley <James.Bottomley@HansenPartnership.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: ksummit-discuss@lists.linuxfoundation.org,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 21 Nov 2016 16:44:28 +0100
-In-Reply-To: <1479742905.2309.16.camel@HansenPartnership.com>
-References: <20161107075524.49d83697@vento.lan>
-         <11020459.EheIgy38UF@wuerfel> <20161116182633.74559ffd@vento.lan>
-         <2923918.nyphv1Ma7d@wuerfel>
-         <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
-         <20161119101543.12b89563@lwn.net>
-         <1479724781.8662.18.camel@sipsolutions.net>
-         <20161121120657.31eaeca4@vento.lan>
-         <1479742905.2309.16.camel@HansenPartnership.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42597 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751226AbcKIEkF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 8 Nov 2016 23:40:05 -0500
+Message-ID: <a04766b1681b2df2bd0164005ad59e12@smtp-cloud2.xs4all.net>
+Date: Wed, 09 Nov 2016 05:40:01 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> > > You had pointed me to this plugin before
-> > > https://pythonhosted.org/sphinxcontrib-aafig/
-> > > 
-> > > but I don't think it can actually represent any of the pictures.
-> > 
-> > No, but there are some ascii art images inside some txt/rst files
-> > and inside some kernel-doc comments. We could either use the above
-> > extension for them or to convert into some image. The ascii art
-> > images I saw seem to be diagrams, so Graphviz would allow replacing
-> > most of them, if not all.
-> 
-> Please don't replace ASCII art that effectively conveys conceptual
-> diagrams.  If you do, we'll wind up in situations where someone
-> hasn't built the docs and doesn't possess the tools to see a diagram
-> that was previously shown by every text editor (or can't be bothered
-> to dig out the now separate file).  In the name of creating
-> "prettier" diagrams (and final doc), we'll have damaged capacity to
-> understand stuff by just reading the source if this diagram is in
-> kernel doc comments.  I think this is a good application of "if it
-> ain't broke, don't fix it".
+Results of the daily build of media_tree:
 
-Right, I agree completely!
+date:			Wed Nov  9 05:00:18 CET 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
+v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-That's the selling point of aafig though, it translates to pretty
-diagrams, but looks fine when viewed in a normal text editor (with
-fixed-width font)
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: WARNINGS
+linux-4.9-rc1-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
-I had a hack elsewhere that would embed the fixed-width text if the
-plugin isn't present, which seemed like a decent compromise, but nobody
-is willing to let plugins be used in general to start with, it seems :)
+Detailed results are available here:
 
-johannes
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
