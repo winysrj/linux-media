@@ -1,123 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47152 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751107AbcK3VtQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 16:49:16 -0500
-Date: Wed, 30 Nov 2016 23:48:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Rob Herring <robh@kernel.org>
-Cc: Kevin Hilman <khilman@baylibre.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>, g.liakhovetski@gmx.de,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v3 4/4] [media] dt-bindings: add TI VPIF documentation
-Message-ID: <20161130214835.GN16630@valkosipuli.retiisi.org.uk>
-References: <20161122155244.802-1-khilman@baylibre.com>
- <20161122155244.802-5-khilman@baylibre.com>
- <20161128213822.26oeyzkht5jz5gd3@rob-hp-laptop>
- <m2shqbs0eu.fsf@baylibre.com>
- <CAL_JsqJ3wJnNa=bVN+UT4A-J5XC0jdyGAgWzROScRDLy6T8xHw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqJ3wJnNa=bVN+UT4A-J5XC0jdyGAgWzROScRDLy6T8xHw@mail.gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:11054 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932867AbcKIO3z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:29:55 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 2/2] exynos-gsc: Add support for Exynos5433 specific version
+Date: Wed, 09 Nov 2016 15:29:38 +0100
+Message-id: <1478701778-29452-3-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1478701778-29452-1-git-send-email-m.szyprowski@samsung.com>
+References: <1478701778-29452-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20161109142951eucas1p25ea07a6d0ba507b26df345f3888b4539@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob and Kevin,
+This patch add support for Exynos5433 specific version of GScaller module.
+The main difference is between Exynos 5433 and earlier is addition of
+new clocks that have to be controlled.
 
-On Tue, Nov 29, 2016 at 08:41:44AM -0600, Rob Herring wrote:
-> On Mon, Nov 28, 2016 at 4:30 PM, Kevin Hilman <khilman@baylibre.com> wrote:
-> > Hi Rob,
-> >
-> > Rob Herring <robh@kernel.org> writes:
-> >
-> >> On Tue, Nov 22, 2016 at 07:52:44AM -0800, Kevin Hilman wrote:
-> >>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-> >>> ---
-> >>>  .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
-> >>>  .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
-> >>>  2 files changed, 73 insertions(+)
-> >>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
-> >>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
-> >>> new file mode 100644
-> >>> index 000000000000..c447ac482c1d
-> >>> --- /dev/null
-> >>> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
-> >>> @@ -0,0 +1,65 @@
-> >>> +Texas Instruments VPIF Capture
-> >>> +------------------------------
-> >>> +
-> >>> +The TI Video Port InterFace (VPIF) capture component is the primary
-> >>> +component for video capture on the DA850 family of TI DaVinci SoCs.
-> >>> +
-> >>> +TI Document number reference: SPRUH82C
-> >>> +
-> >>> +Required properties:
-> >>> +- compatible: must be "ti,da850-vpif-capture"
-> >>> +- reg: physical base address and length of the registers set for the device;
-> >>> +- interrupts: should contain IRQ line for the VPIF
-> >>> +
-> >>> +VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
-> >>> +channels or a single 16-bit channel.  It should contain at least one
-> >>> +port child node with child 'endpoint' node. Please refer to the
-> >>> +bindings defined in
-> >>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> >>> +
-> >>> +Example using 2 8-bit input channels, one of which is connected to an
-> >>> +I2C-connected TVP5147 decoder:
-> >>> +
-> >>> +    vpif_capture: video-capture@0x00217000 {
-> >>> +            reg = <0x00217000 0x1000>;
-> >>> +            interrupts = <92>;
-> >>> +
-> >>> +            port {
-> >>> +                    vpif_ch0: endpoint@0 {
-> >>> +                              reg = <0>;
-> >>> +                              bus-width = <8>;
-> >>> +                              remote-endpoint = <&composite>;
-> >>> +                    };
-> >>> +
-> >>> +                    vpif_ch1: endpoint@1 {
-> >>
-> >> I think probably channels here should be ports rather than endpoints.
-> >> AIUI, having multiple endpoints is for cases like a mux or 1 to many
-> >> connections. There's only one data flow, but multiple sources or sinks.
-> >
-> > Looking at this closer... , I used an endpoint because it's bascially a
-> > 16-bit parallel bus, that can be configured as (up to) 2 8-bit
-> > "channels.  So, based on the video-interfaces.txt doc, I configured this
-> > as a single port, with (up to) 2 endpoints.  That also allows me to
-> > connect output of the decoder directly, using the remote-endpoint
-> > property.
-> >
-> > So I guess I'm not fully understanding your suggestion.
-> 
-> NM, looks like video-interfaces.txt actually spells out this case and
-> defines doing it as you did.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ .../devicetree/bindings/media/exynos5-gsc.txt      |  3 +-
+ drivers/media/platform/exynos-gsc/gsc-core.c       | 74 ++++++++++++++++------
+ drivers/media/platform/exynos-gsc/gsc-core.h       |  6 +-
+ 3 files changed, 62 insertions(+), 21 deletions(-)
 
-It's actually the first time I read that portion (at least so that I could
-remember) of video-interfaces.txt. I'm not sure if anyone has implemented
-that previously, nor how we ended up with the text. The list archive could
-probably tell. Cc Guennadi who wrote it. :-) I couldn't immediately find DT
-source with this arrangement.
-
-In case of splitting the port into two parallel interfaces, how do you
-determine which wires belong to which endpoint? I guess they'd be particular
-sets of wires but as there's just a single port it isn't defined by the
-port.
-
+diff --git a/Documentation/devicetree/bindings/media/exynos5-gsc.txt b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
+index 5fe9372..26ca25b 100644
+--- a/Documentation/devicetree/bindings/media/exynos5-gsc.txt
++++ b/Documentation/devicetree/bindings/media/exynos5-gsc.txt
+@@ -3,7 +3,8 @@
+ G-Scaler is used for scaling and color space conversion on EXYNOS5 SoCs.
+ 
+ Required properties:
+-- compatible: should be "samsung,exynos5-gsc"
++- compatible: should be "samsung,exynos5-gsc" (for Exynos 5250, 5420 and
++	      5422 SoCs) or "samsung,exynos5433-gsc" (Exynos 5433)
+ - reg: should contain G-Scaler physical address location and length.
+ - interrupts: should contain G-Scaler interrupt number
+ 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 664398c..827c1bb 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -29,8 +29,6 @@
+ 
+ #include "gsc-core.h"
+ 
+-#define GSC_CLOCK_GATE_NAME	"gscl"
+-
+ static const struct gsc_fmt gsc_formats[] = {
+ 	{
+ 		.name		= "RGB565",
+@@ -965,6 +963,19 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 		[3] = &gsc_v_100_variant,
+ 	},
+ 	.num_entities = 4,
++	.clk_names = { "gscl" },
++	.num_clocks = 1,
++};
++
++static struct gsc_driverdata gsc_5433_drvdata = {
++	.variant = {
++		[0] = &gsc_v_100_variant,
++		[1] = &gsc_v_100_variant,
++		[2] = &gsc_v_100_variant,
++	},
++	.num_entities = 3,
++	.clk_names = { "pclk", "aclk", "aclk_xiu", "aclk_gsclbend" },
++	.num_clocks = 4,
+ };
+ 
+ static const struct of_device_id exynos_gsc_match[] = {
+@@ -972,6 +983,10 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
+ 		.compatible = "samsung,exynos5-gsc",
+ 		.data = &gsc_v_100_drvdata,
+ 	},
++	{
++		.compatible = "samsung,exynos5433-gsc",
++		.data = &gsc_5433_drvdata,
++	},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, exynos_gsc_match);
+@@ -983,6 +998,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	const struct gsc_driverdata *drv_data = of_device_get_match_data(dev);
+ 	int ret;
++	int i;
+ 
+ 	gsc = devm_kzalloc(dev, sizeof(struct gsc_dev), GFP_KERNEL);
+ 	if (!gsc)
+@@ -998,6 +1014,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
++	gsc->num_clocks = drv_data->num_clocks;
+ 	gsc->variant = drv_data->variant[gsc->id];
+ 	gsc->pdev = pdev;
+ 
+@@ -1016,18 +1033,24 @@ static int gsc_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
+ 
+-	gsc->clock = devm_clk_get(dev, GSC_CLOCK_GATE_NAME);
+-	if (IS_ERR(gsc->clock)) {
+-		dev_err(dev, "failed to get clock~~~: %s\n",
+-			GSC_CLOCK_GATE_NAME);
+-		return PTR_ERR(gsc->clock);
++	for (i = 0; i < gsc->num_clocks; i++) {
++		gsc->clock[i] = devm_clk_get(dev, drv_data->clk_names[i]);
++		if (IS_ERR(gsc->clock[i])) {
++			dev_err(dev, "failed to get clock: %s\n",
++				drv_data->clk_names[i]);
++			return PTR_ERR(gsc->clock[i]);
++		}
+ 	}
+ 
+-	ret = clk_prepare_enable(gsc->clock);
+-	if (ret) {
+-		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+-			GSC_CLOCK_GATE_NAME);
+-		return ret;
++	for (i = 0; i < gsc->num_clocks; i++) {
++		ret = clk_prepare_enable(gsc->clock[i]);
++		if (ret) {
++			dev_err(dev, "clock prepare failed for clock: %s\n",
++				drv_data->clk_names[i]);
++			while (--i >= 0)
++				clk_disable_unprepare(gsc->clock[i]);
++			return ret;
++		}
+ 	}
+ 
+ 	ret = devm_request_irq(dev, res->start, gsc_irq_handler,
+@@ -1062,13 +1085,15 @@ static int gsc_probe(struct platform_device *pdev)
+ err_v4l2:
+ 	v4l2_device_unregister(&gsc->v4l2_dev);
+ err_clk:
+-	clk_disable_unprepare(gsc->clock);
++	for (i = gsc->num_clocks - 1; i >= 0; i--)
++		clk_disable_unprepare(gsc->clock[i]);
+ 	return ret;
+ }
+ 
+ static int gsc_remove(struct platform_device *pdev)
+ {
+ 	struct gsc_dev *gsc = platform_get_drvdata(pdev);
++	int i;
+ 
+ 	pm_runtime_get_sync(&pdev->dev);
+ 
+@@ -1076,7 +1101,8 @@ static int gsc_remove(struct platform_device *pdev)
+ 	v4l2_device_unregister(&gsc->v4l2_dev);
+ 
+ 	vb2_dma_contig_clear_max_seg_size(&pdev->dev);
+-	clk_disable_unprepare(gsc->clock);
++	for (i = 0; i < gsc->num_clocks; i++)
++		clk_disable_unprepare(gsc->clock[i]);
+ 
+ 	pm_runtime_put_noidle(&pdev->dev);
+ 
+@@ -1126,12 +1152,18 @@ static int gsc_runtime_resume(struct device *dev)
+ {
+ 	struct gsc_dev *gsc = dev_get_drvdata(dev);
+ 	int ret = 0;
++	int i;
+ 
+ 	pr_debug("gsc%d: state: 0x%lx\n", gsc->id, gsc->state);
+ 
+-	ret = clk_prepare_enable(gsc->clock);
+-	if (ret)
+-		return ret;
++	for (i = 0; i < gsc->num_clocks; i++) {
++		ret = clk_prepare_enable(gsc->clock[i]);
++		if (ret) {
++			while (--i >= 0)
++				clk_disable_unprepare(gsc->clock[i]);
++			return ret;
++		}
++	}
+ 
+ 	gsc_hw_set_sw_reset(gsc);
+ 	gsc_wait_reset(gsc);
+@@ -1144,10 +1176,14 @@ static int gsc_runtime_suspend(struct device *dev)
+ {
+ 	struct gsc_dev *gsc = dev_get_drvdata(dev);
+ 	int ret = 0;
++	int i;
+ 
+ 	ret = gsc_m2m_suspend(gsc);
+-	if (!ret)
+-		clk_disable_unprepare(gsc->clock);
++	if (ret)
++		return ret;
++
++	for (i = gsc->num_clocks - 1; i >= 0; i--)
++		clk_disable_unprepare(gsc->clock[i]);
+ 
+ 	pr_debug("gsc%d: state: 0x%lx\n", gsc->id, gsc->state);
+ 	return ret;
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+index e5aa8f4..696217e 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.h
++++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+@@ -33,6 +33,7 @@
+ 
+ #define GSC_SHUTDOWN_TIMEOUT		((100*HZ)/1000)
+ #define GSC_MAX_DEVS			4
++#define GSC_MAX_CLOCKS			4
+ #define GSC_M2M_BUF_NUM			0
+ #define GSC_MAX_CTRL_NUM		10
+ #define GSC_SC_ALIGN_4			4
+@@ -307,6 +308,8 @@ struct gsc_variant {
+  */
+ struct gsc_driverdata {
+ 	struct gsc_variant *variant[GSC_MAX_DEVS];
++	const char	*clk_names[GSC_MAX_CLOCKS];
++	int		num_clocks;
+ 	int		num_entities;
+ };
+ 
+@@ -330,7 +333,8 @@ struct gsc_dev {
+ 	struct platform_device		*pdev;
+ 	struct gsc_variant		*variant;
+ 	u16				id;
+-	struct clk			*clock;
++	int				num_clocks;
++	struct clk			*clock[GSC_MAX_CLOCKS];
+ 	void __iomem			*regs;
+ 	wait_queue_head_t		irq_queue;
+ 	struct gsc_m2m_device		m2m;
 -- 
-Regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
