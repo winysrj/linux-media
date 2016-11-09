@@ -1,68 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Fri, 25 Nov 2016 12:41:33 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161125194133.GF16504@obsidianresearch.com>
-References: <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
- <20161125075817.GA18428@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161125075817.GA18428@infradead.org>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61095 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753182AbcKIOYM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:12 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 01/12] exynos-gsc: Simplify clock management
+Date: Wed, 09 Nov 2016 15:23:50 +0100
+Message-id: <1478701441-29107-2-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20161109142407eucas1p14c59e64f284a9d556a63047295611984@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 24, 2016 at 11:58:17PM -0800, Christoph Hellwig wrote:
-> On Thu, Nov 24, 2016 at 11:11:34AM -0700, Logan Gunthorpe wrote:
-> > * Regular DAX in the FS doesn't work at this time because the FS can
-> > move the file you think your transfer to out from under you. Though I
-> > understand there's been some work with XFS to solve that issue.
-> 
-> The file system will never move anything under locked down pages,
-> locking down pages is used exactly to protect against that.
+From: Ulf Hansson <ulf.hansson@linaro.org>
 
-.. And ODP style mmu notifiers work correctly as well, I'd assume.
+Instead of having separate functions that fecthes, prepares and
+unprepares the clock, let's encapsulate this code into ->probe().
 
-So this should work with ZONE_DEVICE, if it doesn't it is a filesystem
-bug?
+This makes error handling easier and decreases the lines of code.
 
-> really want a notification to the consumer if the file systems wants
-> to remove the mapping.  We have implemented that using FL_LAYOUTS locks
-> for NFSD, but only XFS supports it so far.  Without that a long term
-> locked down region of memory (e.g. a kernel MR) would prevent various
-> file operations that would simply hang.
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+[mszyprow: rebased onto v4.9-rc4]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 49 ++++++++--------------------
+ 1 file changed, 14 insertions(+), 35 deletions(-)
 
-So you imagine a signal back to user space asking user space to drop
-any RDMA MRS so the FS can relocate things?
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 787bd16..abebbdb 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -988,36 +988,6 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
+ 	return driver_data;
+ }
+ 
+-static void gsc_clk_put(struct gsc_dev *gsc)
+-{
+-	if (!IS_ERR(gsc->clock))
+-		clk_unprepare(gsc->clock);
+-}
+-
+-static int gsc_clk_get(struct gsc_dev *gsc)
+-{
+-	int ret;
+-
+-	dev_dbg(&gsc->pdev->dev, "gsc_clk_get Called\n");
+-
+-	gsc->clock = devm_clk_get(&gsc->pdev->dev, GSC_CLOCK_GATE_NAME);
+-	if (IS_ERR(gsc->clock)) {
+-		dev_err(&gsc->pdev->dev, "failed to get clock~~~: %s\n",
+-			GSC_CLOCK_GATE_NAME);
+-		return PTR_ERR(gsc->clock);
+-	}
+-
+-	ret = clk_prepare(gsc->clock);
+-	if (ret < 0) {
+-		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+-			GSC_CLOCK_GATE_NAME);
+-		gsc->clock = ERR_PTR(-EINVAL);
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+ static int gsc_m2m_suspend(struct gsc_dev *gsc)
+ {
+ 	unsigned long flags;
+@@ -1085,7 +1055,6 @@ static int gsc_probe(struct platform_device *pdev)
+ 	init_waitqueue_head(&gsc->irq_queue);
+ 	spin_lock_init(&gsc->slock);
+ 	mutex_init(&gsc->lock);
+-	gsc->clock = ERR_PTR(-EINVAL);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	gsc->regs = devm_ioremap_resource(dev, res);
+@@ -1098,9 +1067,19 @@ static int gsc_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
+ 
+-	ret = gsc_clk_get(gsc);
+-	if (ret)
++	gsc->clock = devm_clk_get(dev, GSC_CLOCK_GATE_NAME);
++	if (IS_ERR(gsc->clock)) {
++		dev_err(dev, "failed to get clock~~~: %s\n",
++			GSC_CLOCK_GATE_NAME);
++		return PTR_ERR(gsc->clock);
++	}
++
++	ret = clk_prepare(gsc->clock);
++	if (ret) {
++		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
++			GSC_CLOCK_GATE_NAME);
+ 		return ret;
++	}
+ 
+ 	ret = devm_request_irq(dev, res->start, gsc_irq_handler,
+ 				0, pdev->name, gsc);
+@@ -1135,7 +1114,7 @@ static int gsc_probe(struct platform_device *pdev)
+ err_v4l2:
+ 	v4l2_device_unregister(&gsc->v4l2_dev);
+ err_clk:
+-	gsc_clk_put(gsc);
++	clk_unprepare(gsc->clock);
+ 	return ret;
+ }
+ 
+@@ -1148,7 +1127,7 @@ static int gsc_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_clear_max_seg_size(&pdev->dev);
+ 	pm_runtime_disable(&pdev->dev);
+-	gsc_clk_put(gsc);
++	clk_unprepare(gsc->clock);
+ 
+ 	dev_dbg(&pdev->dev, "%s driver unloaded\n", pdev->name);
+ 	return 0;
+-- 
+1.9.1
 
-Do we need that, or should we encourage people to use either short
-lived MRs or ODP MRs when working with scenarios that need FS
-relocation?
-
-Jason
