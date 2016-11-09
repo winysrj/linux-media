@@ -1,189 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-2.goneo.de ([85.220.129.34]:52393 "EHLO smtp2-2.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753170AbcKIWMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Nov 2016 17:12:30 -0500
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-To: Jani Nikula <jani.nikula@linux.intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40815
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751202AbcKIM14 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 07:27:56 -0500
+Date: Wed, 9 Nov 2016 10:27:50 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jani Nikula <jani.nikula@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org
+Subject: Re: Including images on Sphinx documents
+Message-ID: <20161109102750.5cee0d70@vento.lan>
+In-Reply-To: <87wpgf8ssc.fsf@intel.com>
 References: <20161107075524.49d83697@vento.lan>
- <20161107170133.4jdeuqydthbbchaq@x>
- <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de> <8737j0hpi0.fsf@intel.com>
- <DC27B5F7-D69E-4F22-B184-B7B029392959@darmarit.de> <87shr0g90r.fsf@intel.com>
-Cc: Josh Triplett <josh@joshtriplett.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        ksummit-discuss@lists.linuxfoundation.org,
-        linux-doc@vger.kernel.org
-From: Markus Heiser <markus.heiser@darmarit.de>
-Message-ID: <a6b88e7d-9d6b-4dcc-3d2e-c09bdf366b40@darmarit.de>
-Date: Wed, 9 Nov 2016 23:11:46 +0100
+        <87wpgf8ssc.fsf@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <87shr0g90r.fsf@intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Mon, 07 Nov 2016 12:53:55 +0200
+Jani Nikula <jani.nikula@intel.com> escreveu:
 
-On 09.11.2016 12:58, Jani Nikula wrote:
- > On Wed, 09 Nov 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
- >> Am 09.11.2016 um 12:16 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
- >>>> So I vote for :
- >>>>
- >>>>> 1) copy (or symlink) all rst files to Documentation/output (or to the
- >>>>> build dir specified via O= directive) and generate the *.pdf there,
- >>>>> and produce those converted images via Makefile.;
- >>>
- >>> We're supposed to solve problems, not create new ones.
- >>
- >> ... new ones? ...
- >
- > Handle in-tree builds without copying.
- >
- > Make dependency analysis with source rst and "intermediate" rst work.
- >
- > Make sure your copying gets the timestamps right.
- >
- > Make Sphinx dependency analysis look at the right copies depending on
- > in-tree vs. out-of-tree. Generally make sure it doesn't confuse Sphinx's
- > own dependency analysis.
- >
- > The stuff I didn't think of.
+> On Mon, 07 Nov 2016, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> > Hi Jon,
+> >
+> > I'm trying to sort out the next steps to do after KS, with regards to
+> > images included on RST files.
+> >
+> > The issue is that Sphinx image support highly depends on the output
+> > format. Also, despite TexLive support for svg and png images[1], Sphinx
+> > doesn't produce the right LaTeX commands to use svg[2]. On my tests
+> > with PNG on my notebook, it also didn't seem to do the right thing for
+> > PNG either. So, it seems that the only safe way to support images is
+> > to convert all of them to PDF for latex/pdf build.
+> >
+> > [1] On Fedora, via texlive-dvipng and texlive-svg
+> > [2] https://github.com/sphinx-doc/sphinx/issues/1907
+> >
+> > As far as I understand from KS, two decisions was taken:
+> >
+> > - We're not adding a sphinx extension to run generic commands;
+> > - The PDF images should be build in runtime from their source files
+> >   (either svg or bitmap), and not ship anymore the corresponding
+> >   PDF files generated from its source.
+> >
+> > As you know, we use several images at the media documentation:
+> > 	https://www.kernel.org/doc/html/latest/_images/
+> >
+> > Those images are tightly coupled with the explanation texts. So,
+> > maintaining them away from the documentation is not an option.
+> >
+> > I was originally thinking that adding a graphviz extension would solve the
+> > issue, but, in fact, most of the images aren't diagrams. Instead, there are 
+> > several ones with images showing the result of passing certain parameters to
+> > the ioctls, explaining things like scale and cropping and how bytes are
+> > packed on some image formats.
+> >
+> > Linus proposed to call some image conversion tool like ImageMagick or
+> > inkscape to convert them to PDF when building the pdfdocs or latexdocs
+> > target at Makefile, but there's an issue with that: Sphinx doesn't read
+> > files from Documentation/output, and writing them directly at the
+> > source dir would be against what it is expected when the "O=" argument
+> > is passed to make. 
+> >
+> > So, we have a few alternatives:
+> >
+> > 1) copy (or symlink) all rst files to Documentation/output (or to the
+> >    build dir specified via O= directive) and generate the *.pdf there,
+> >    and produce those converted images via Makefile.;
+> >
+> > 2) add an Sphinx extension that would internally call ImageMagick and/or
+> >    inkscape to convert the bitmap;
+> >
+> > 3) if possible, add an extension to trick Sphinx for it to consider the 
+> >    output dir as a source dir too.  
+> 
+> Looking at the available extensions, and the images to be displayed,
+> seems to me making svg work, somehow, is the right approach. (As opposed
+> to trying to represent the images in graphviz or whatnot.)
 
-It might be easier than you think first.
+I guess answered this one already, but it got lost somehow...
 
- > Sure, it's all supposed to be basic Makefile stuff, but don't make the mistake
- > of thinking just one invocation of 'cp' will solve all the problems.
+The problem is not just with svg. Sphinx also do the wrong thing with
+PNG, despite apparently generating the right LaTeX image include command.
 
-I act naif using 'cp -sa', see patch below.
+> IIUC texlive supports displaying svg directly, but the problem is that
+> Sphinx produces bad latex for that. Can we make it work by manually
+> writing the latex? If yes, we wouldn't need to use an external tool to
+> convert the svg to something else, but rather fix the latex. Thus:
+> 
+> 4a) See if this works:
+> 
+> .. only:: html
+> 
+>    .. image:: foo.svg
 
- > It all adds to the complexity we were trying to avoid when dumping DocBook. It
- > adds to the complexity of debugging stuff. (And hey, there's still the one
- > rebuilding-stuff-for-no-reason issue open.)
+We're currently using .. figure:: instead, as it allow optional caption
+and legend, but I got the idea.
 
-And hey ;-) I wrote you [1], this is a bug in Sphinx. Yes, I haven't had time
-to send a bugfix to Sphinx, but this won't even help us (bugfixes in Sphinx will
-only apply on top).
+> .. raw:: latex
+> 
+>    <the correct latex commands required to display foo.svg>
 
- > If you want to keep the documentation build sane, try to avoid the Makefile
- > preprocessing.
+That is a horrible hack, and will lose other attributes at
+image:: (or figure::), like :align:
 
-I'am just the one helping Mauro to be productive, if he needs preprocessing I
-implement proposals. I know that you fear preprocessing since it tend to
-fall-back, what we had with DocBook's build process.  We discussed this already,
-it might better you unify this with Mauro and the other who need preprocessing.
+Also, it won't solve, as the images will need to be copied to the
+build dir via Makefile, as Spinx only copies the images it recognizes.
 
- > And same old story, if you fix this for real, even if as a Sphinx extension,
- > *other* people than kernel developers will be interested, and *we* don't have
- > to do so much ourselves.
+So, in practice, the only difference is that Makefile would be calling
+"cp" instead of "convert", plus we'll have to hack all ReST sources.
 
-I don't think so, this kind of parsing header files we have and the build of
-content from MAINTAINERS, ABI, etc. is very kernel specific.
+> 4b) Add a directive extension to make the above happen automatically.
 
-Anyway, back to my point 'copy (or symlink) all rst files'. Please take a look
-at my patch below. Take in mind; its just a POC.
+If doable, I agree that this is the best solution. Any volunteers to write
+such extension?
 
-Could this POC persuade you, if so, I send a more elaborate RFC,
-what do you think about?
+> Of course, the correct fix is to have this fixed in upstream Sphinx, but
+> as a workaround an extension doing the above seems plausible, and not
+> too much effort - provided that we can make the raw latex work.
 
-[1] https://www.mail-archive.com/linux-doc@vger.kernel.org/msg07302.html
+Yeah, fixing it on Sphinx upstream would be the best, but we'll still
+need to maintain the workaround for a while for the unpatched versions
+of Sphinx.
 
--- Markus --
-
- > BR,
- > Jani.
- >>
- >>>> IMO placing 'sourcedir' to O= is more sane since this marries the
- >>>> Linux Makefile concept (relative to $PWD) with the sphinx concept
- >>>> (in or below 'sourcedir').
- >>
- >> -- Markus --
- >
-
-diff --git a/Documentation/Makefile.sphinx b/Documentation/Makefile.sphinx
-index ec0c77d..8e904c1 100644
---- a/Documentation/Makefile.sphinx
-+++ b/Documentation/Makefile.sphinx
-@@ -13,6 +13,10 @@ BUILDDIR      = $(obj)/output
-  PDFLATEX      = xelatex
-  LATEXOPTS     = -interaction=batchmode
-
-+ifdef SPHINXDIRS
-+else
-+endif
-+
-  # User-friendly check for sphinx-build
-  HAVE_SPHINX := $(shell if which $(SPHINXBUILD) >/dev/null 2>&1; then echo 1; else echo 0; fi)
-
-@@ -50,30 +54,38 @@ loop_cmd = $(echo-cmd) $(cmd_$(1))
-  #    * dest folder relative to $(BUILDDIR) and
-  #    * cache folder relative to $(BUILDDIR)/.doctrees
-  # $4 dest subfolder e.g. "man" for man pages at media/man
--# $5 reST source folder relative to $(srctree)/$(src),
-+# $5 reST source folder relative to $(obj),
-  #    e.g. "media" for the linux-tv book-set at ./Documentation/media
-
-  quiet_cmd_sphinx = SPHINX  $@ --> file://$(abspath $(BUILDDIR)/$3/$4)
--      cmd_sphinx = $(MAKE) BUILDDIR=$(abspath $(BUILDDIR)) $(build)=Documentation/media all;\
--	BUILDDIR=$(abspath $(BUILDDIR)) SPHINX_CONF=$(abspath $(srctree)/$(src)/$5/$(SPHINX_CONF)) \
-+      cmd_sphinx = $(MAKE) BUILDDIR=$(BUILDDIR) $(build)=Documentation/media all;\
-+	BUILDDIR=$(BUILDDIR) SPHINX_CONF=$(obj)/$5/$(SPHINX_CONF) \
-  	$(SPHINXBUILD) \
-  	-b $2 \
--	-c $(abspath $(srctree)/$(src)) \
--	-d $(abspath $(BUILDDIR)/.doctrees/$3) \
-+	-c $(obj) \
-+	-d $(obj)/.doctrees/$3 \
-  	-D version=$(KERNELVERSION) -D release=$(KERNELRELEASE) \
-  	$(ALLSPHINXOPTS) \
--	$(abspath $(srctree)/$(src)/$5) \
--	$(abspath $(BUILDDIR)/$3/$4);
--
--htmldocs:
-+	$(obj)/$5 \
-+	$(BUILDDIR)/$3/$4;
-+
-+ifdef O
-+sync:
-+	rm -rf $(objtree)/$(obj)
-+	cp -sa $(srctree)/$(obj) $(objtree)
-+else
-+sync:
-+endif
-+
-+htmldocs: sync
-  	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,html,$(var),,$(var)))
-
--latexdocs:
-+latexdocs: sync
-  	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,latex,$(var),latex,$(var)))
-
-  ifeq ($(HAVE_PDFLATEX),0)
-
--pdfdocs:
-+pdfdocs: sync
-  	$(warning The '$(PDFLATEX)' command was not found. Make sure you have it installed and in PATH to produce PDF output.)
-  	@echo "  SKIP    Sphinx $@ target."
-
-@@ -84,10 +96,10 @@ pdfdocs: latexdocs
-
-  endif # HAVE_PDFLATEX
-
--epubdocs:
-+epubdocs: sync
-  	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,epub,$(var),epub,$(var)))
-
--xmldocs:
-+xmldocs: sync
-  	@$(foreach var,$(SPHINXDIRS),$(call loop_cmd,sphinx,xml,$(var),xml,$(var)))
-
-  # no-ops for the Sphinx toolchain
-@@ -98,6 +110,7 @@ installmandocs:
-
-  cleandocs:
-  	$(Q)rm -rf $(BUILDDIR)
-+	$(Q)rm -rf $(obj)/.doctrees
-
-  endif # HAVE_SPHINX
-
+Thanks,
+Mauro
