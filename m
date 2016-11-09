@@ -1,91 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60632 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753182AbcKIOYR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:17 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 08/12] exynos-gsc: Simplify system PM
-Date: Wed, 09 Nov 2016 15:23:57 +0100
-Message-id: <1478701441-29107-9-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161109142410eucas1p198a52c69c695e97965c968d7b899bae8@eucas1p1.samsung.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:48424 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932322AbcKINp2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Nov 2016 08:45:28 -0500
+Subject: Re: [bug report] [media] vcodec: mediatek: Add Mediatek V4L2 Video
+ Decoder Driver
+To: Dan Carpenter <dan.carpenter@oracle.com>, tiffany.lin@mediatek.com
+References: <20161109132820.GA26677@mwanda>
+Cc: linux-media@vger.kernel.org, linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9794dab1-94ba-c384-85c5-edb8831810ff@xs4all.nl>
+Date: Wed, 9 Nov 2016 14:45:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161109132820.GA26677@mwanda>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ulf Hansson <ulf.hansson@linaro.org>
+On 11/09/16 14:28, Dan Carpenter wrote:
+> Hello Tiffany Lin,
+>
+> The patch 590577a4e525: "[media] vcodec: mediatek: Add Mediatek V4L2
+> Video Decoder Driver" from Sep 2, 2016, leads to the following static
+> checker warning:
+>
+> 	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c:536 vidioc_vdec_qbuf()
+> 	error: buffer overflow 'vq->bufs' 32 <= u32max
+>
+> drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+>    520  static int vidioc_vdec_qbuf(struct file *file, void *priv,
+>    521                              struct v4l2_buffer *buf)
+>    522  {
+>    523          struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+>    524          struct vb2_queue *vq;
+>    525          struct vb2_buffer *vb;
+>    526          struct mtk_video_dec_buf *mtkbuf;
+>    527          struct vb2_v4l2_buffer  *vb2_v4l2;
+>    528
+>    529          if (ctx->state == MTK_STATE_ABORT) {
+>    530                  mtk_v4l2_err("[%d] Call on QBUF after unrecoverable error",
+>    531                                  ctx->id);
+>    532                  return -EIO;
+>    533          }
+>    534
+>    535          vq = v4l2_m2m_get_vq(ctx->m2m_ctx, buf->type);
+>    536          vb = vq->bufs[buf->index];
+>
+> Smatch thinks that "buf->index" comes straight from the user without
+> being checked and that this is a buffer overflow.  It seems simple
+> enough to analyse the call tree.
+>
+> __video_do_ioctl()
+> ->  v4l_qbuf()
+>   -> vidioc_vdec_qbuf()
+>
+> It seems like Smatch is correct.  I looked at a different implementation
+> of this and that one wasn't checked either so maybe there is something
+> I am not seeing.
+>
+> This has obvious security implications.  Can someone take a look at
+> this?
 
-It's not needed to keep a local flag about the current system PM state.
-Let's just remove that code and the corresponding debug print.
+This is indeed wrong.
 
-Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
-[mszyprow: rebased onto v4.9-rc4]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 21 ---------------------
- drivers/media/platform/exynos-gsc/gsc-core.h |  3 ---
- 2 files changed, 24 deletions(-)
+The v4l2_m2m_qbuf() call at the end of this function calls in turn 
+vb2_qbuf which
+will check the index. But if you override vidioc_qbuf (or 
+vidioc_prepare), then
+you need to check the index value.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index af6502c..4859727 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1169,20 +1169,6 @@ static int gsc_runtime_suspend(struct device *dev)
- #ifdef CONFIG_PM_SLEEP
- static int gsc_resume(struct device *dev)
- {
--	struct gsc_dev *gsc = dev_get_drvdata(dev);
--	unsigned long flags;
--
--	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
--
--	/* Do not resume if the device was idle before system suspend */
--	spin_lock_irqsave(&gsc->slock, flags);
--	if (!test_and_clear_bit(ST_SUSPEND, &gsc->state) ||
--	    !gsc_m2m_opened(gsc)) {
--		spin_unlock_irqrestore(&gsc->slock, flags);
--		return 0;
--	}
--	spin_unlock_irqrestore(&gsc->slock, flags);
--
- 	if (!pm_runtime_suspended(dev))
- 		return gsc_runtime_resume(dev);
- 
-@@ -1191,13 +1177,6 @@ static int gsc_resume(struct device *dev)
- 
- static int gsc_suspend(struct device *dev)
- {
--	struct gsc_dev *gsc = dev_get_drvdata(dev);
--
--	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
--
--	if (test_and_set_bit(ST_SUSPEND, &gsc->state))
--		return 0;
--
- 	if (!pm_runtime_suspended(dev))
- 		return gsc_runtime_suspend(dev);
- 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index 7ad7b9d..8480aec 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -48,9 +48,6 @@
- #define	GSC_CTX_ABORT			(1 << 7)
- 
- enum gsc_dev_flags {
--	/* for global */
--	ST_SUSPEND,
--
- 	/* for m2m node */
- 	ST_M2M_OPEN,
- 	ST_M2M_RUN,
--- 
-1.9.1
+I double-checked all cases where vidioc_qbuf was set to a 
+driver-specific function
+and this is the only driver that doesn't check the index field. In all 
+other cases
+it is either checked, or it is not used before calling into the vb1/vb2 
+framework
+which checks this.
 
+So luckily this only concerns this driver.
+
+Regards,
+
+	Hans
+
+>
+>    537          vb2_v4l2 = container_of(vb, struct vb2_v4l2_buffer, vb2_buf);
+>    538          mtkbuf = container_of(vb2_v4l2, struct mtk_video_dec_buf, vb);
+>    539
+>    540          if ((buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) &&
+>    541              (buf->m.planes[0].bytesused == 0)) {
+>    542                  mtkbuf->lastframe = true;
+>    543                  mtk_v4l2_debug(1, "[%d] (%d) id=%d lastframe=%d (%d,%d, %d) vb=%p",
+>    544                           ctx->id, buf->type, buf->index,
+>    545                           mtkbuf->lastframe, buf->bytesused,
+>    546                           buf->m.planes[0].bytesused, buf->length,
+>    547                           vb);
+>    548          }
+>    549
+>    550          return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+>    551  }
+>
+> regards,
+> dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
