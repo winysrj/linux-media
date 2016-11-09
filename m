@@ -1,76 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49721 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753859AbcKPQnR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:17 -0500
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41865
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751670AbcKIRfc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 12:35:32 -0500
+Date: Wed, 9 Nov 2016 15:35:21 -0200
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: [PATCH 14/35] [media] ttusb_dec: use KERNEL_CONT where needed
-Date: Wed, 16 Nov 2016 14:42:46 -0200
-Message-Id: <700eaaeefec25ead60c1bba255fcf7ee242b7ff7.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
+Message-ID: <20161109153521.232b0956@vento.lan>
+In-Reply-To: <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
+References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
+        <20161108155520.224229d5@vento.lan>
+        <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
+        <20161109073331.204b53c4@vento.lan>
+        <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
+        <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some continuation messages are not using KERNEL_CONT.
+Em Wed, 9 Nov 2016 07:49:43 -0800
+VDR User <user.vdr@gmail.com> escreveu:
 
-Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
-this won't work as expected anymore. So, let's add KERN_CONT
-to those lines.
+> $ gdb /usr/src/linux/vmlinux
+> GNU gdb (Debian 7.11.1-2) 7.11.1
+> ...
+> Reading symbols from /usr/src/linux/vmlinux...done.
+> (gdb) l *module_put+0x67
+> 0xc10a4b87 is in module_put (kernel/module.c:1108).
+> 1103            int ret;
+> 1104
+> 1105            if (module) {
+> 1106                    preempt_disable();
+> 1107                    ret = atomic_dec_if_positive(&module->refcnt);
+> 1108                    WARN_ON(ret < 0);       /* Failed to put refcount */
+> 1109                    trace_module_put(module, _RET_IP_);
+> 1110                    preempt_enable();
+> 1111            }
+> 1112    }
+
+OK, I guess we've made progress. Please try the enclosed patch.
+
+Regards,
+Mauro
+
+[media] gp8psk: Fix DVB frontend attach
+
+it should be calling module_get() at attach, as otherwise
+module_put() will crash.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/ttusb-dec/ttusb_dec.c | 14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index 559c823a4fe8..fc0219f1b7df 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -329,7 +329,7 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
- 				  int param_length, const u8 params[],
- 				  int *result_length, u8 cmd_result[])
- {
--	int result, actual_len, i;
-+	int result, actual_len;
- 	u8 *b;
- 
- 	dprintk("%s\n", __func__);
-@@ -353,10 +353,8 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
- 		memcpy(&b[4], params, param_length);
- 
- 	if (debug) {
--		printk("%s: command: ", __func__);
--		for (i = 0; i < param_length + 4; i++)
--			printk("0x%02X ", b[i]);
--		printk("\n");
-+		printk(KERN_DEBUG "%s: command: %*ph\n",
-+		       __func__, param_length, b);
- 	}
- 
- 	result = usb_bulk_msg(dec->udev, dec->command_pipe, b,
-@@ -381,10 +379,8 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
- 		return result;
- 	} else {
- 		if (debug) {
--			printk("%s: result: ", __func__);
--			for (i = 0; i < actual_len; i++)
--				printk("0x%02X ", b[i]);
--			printk("\n");
-+			printk(KERN_DEBUG "%s: result: %*ph\n",
-+			       __func__, actual_len, b);
- 		}
- 
- 		if (result_length)
--- 
-2.7.4
 
 
+Thanks,
+Mauro
