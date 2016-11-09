@@ -1,72 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:36515 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754020AbcKNO7U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 09:59:20 -0500
-Received: by mail-wm0-f52.google.com with SMTP id g23so102807848wme.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 06:59:20 -0800 (PST)
-Subject: Re: [PATCH v3 0/9] Qualcomm video decoder/encoder driver
-To: Javier Martinez Canillas <javier@dowhile0.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <f5120730-0e1d-f93c-eed9-7b71ff79f5db@xs4all.nl>
- <CABxcv=nop8h5U0Kt5yjmSVX3ZZbUb7O6yVzOf5AxzsiWUucjwA@mail.gmail.com>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <2b178a80-2fa1-de90-a675-470150d07cf9@linaro.org>
-Date: Mon, 14 Nov 2016 16:59:16 +0200
-MIME-Version: 1.0
-In-Reply-To: <CABxcv=nop8h5U0Kt5yjmSVX3ZZbUb7O6yVzOf5AxzsiWUucjwA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14194 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753456AbcKIOYN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:13 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 04/12] exynos-gsc: Make runtime PM callbacks available for
+ CONFIG_PM
+Date: Wed, 09 Nov 2016 15:23:53 +0100
+Message-id: <1478701441-29107-5-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20161109142408eucas1p24bd5bce9a6046e186948a2f4f65c7d7d@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Ulf Hansson <ulf.hansson@linaro.org>
 
-On 11/11/2016 02:11 PM, Javier Martinez Canillas wrote:
-> Hello Hans,
-> 
-> On Fri, Nov 11, 2016 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Stanimir,
->>
->> Overall it looks good. As you saw, I do have some comments but nothing major.
->>
->> One question: you use qcom as the directory name. How about using qualcomm?
->>
->> It's really not that much longer and a bit more obvious.
->>
->> Up to you, though.
->>
-> 
-> It seems qcom is more consistent to the name used in most subsystems
-> for Qualcomm:
-> 
-> $ find -name *qcom
-> ./arch/arm/mach-qcom
-> ./arch/arm64/boot/dts/qcom
-> ./Documentation/devicetree/bindings/soc/qcom
-> ./sound/soc/qcom
-> ./drivers/pinctrl/qcom
-> ./drivers/soc/qcom
-> ./drivers/clk/qcom
-> 
-> $ find -name *qualcomm
-> ./drivers/net/ethernet/qualcomm
+There are no need to set up the runtime PM callbacks unless they are
+being used. It also causes compiler warnings about unused functions.
 
-Also qcom is the vendor prefix used in [1]
+Silence the warnings by making them available for CONFIG_PM.
 
-[1] Documentation/devicetree/bindings/vendor-prefixes.txt
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+[mszyprow: rebased onto v4.9-rc4]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 79 ++++++++++++++--------------
+ 1 file changed, 40 insertions(+), 39 deletions(-)
 
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index b5a99af..7e99fda 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -988,43 +988,6 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
+ 	return driver_data;
+ }
+ 
+-static int gsc_m2m_suspend(struct gsc_dev *gsc)
+-{
+-	unsigned long flags;
+-	int timeout;
+-
+-	spin_lock_irqsave(&gsc->slock, flags);
+-	if (!gsc_m2m_pending(gsc)) {
+-		spin_unlock_irqrestore(&gsc->slock, flags);
+-		return 0;
+-	}
+-	clear_bit(ST_M2M_SUSPENDED, &gsc->state);
+-	set_bit(ST_M2M_SUSPENDING, &gsc->state);
+-	spin_unlock_irqrestore(&gsc->slock, flags);
+-
+-	timeout = wait_event_timeout(gsc->irq_queue,
+-			     test_bit(ST_M2M_SUSPENDED, &gsc->state),
+-			     GSC_SHUTDOWN_TIMEOUT);
+-
+-	clear_bit(ST_M2M_SUSPENDING, &gsc->state);
+-	return timeout == 0 ? -EAGAIN : 0;
+-}
+-
+-static void gsc_m2m_resume(struct gsc_dev *gsc)
+-{
+-	struct gsc_ctx *ctx;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&gsc->slock, flags);
+-	/* Clear for full H/W setup in first run after resume */
+-	ctx = gsc->m2m.ctx;
+-	gsc->m2m.ctx = NULL;
+-	spin_unlock_irqrestore(&gsc->slock, flags);
+-
+-	if (test_and_clear_bit(ST_M2M_SUSPENDED, &gsc->state))
+-		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
+-}
+-
+ static int gsc_probe(struct platform_device *pdev)
+ {
+ 	struct gsc_dev *gsc;
+@@ -1130,6 +1093,44 @@ static int gsc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
++static int gsc_m2m_suspend(struct gsc_dev *gsc)
++{
++	unsigned long flags;
++	int timeout;
++
++	spin_lock_irqsave(&gsc->slock, flags);
++	if (!gsc_m2m_pending(gsc)) {
++		spin_unlock_irqrestore(&gsc->slock, flags);
++		return 0;
++	}
++	clear_bit(ST_M2M_SUSPENDED, &gsc->state);
++	set_bit(ST_M2M_SUSPENDING, &gsc->state);
++	spin_unlock_irqrestore(&gsc->slock, flags);
++
++	timeout = wait_event_timeout(gsc->irq_queue,
++			     test_bit(ST_M2M_SUSPENDED, &gsc->state),
++			     GSC_SHUTDOWN_TIMEOUT);
++
++	clear_bit(ST_M2M_SUSPENDING, &gsc->state);
++	return timeout == 0 ? -EAGAIN : 0;
++}
++
++static void gsc_m2m_resume(struct gsc_dev *gsc)
++{
++	struct gsc_ctx *ctx;
++	unsigned long flags;
++
++	spin_lock_irqsave(&gsc->slock, flags);
++	/* Clear for full H/W setup in first run after resume */
++	ctx = gsc->m2m.ctx;
++	gsc->m2m.ctx = NULL;
++	spin_unlock_irqrestore(&gsc->slock, flags);
++
++	if (test_and_clear_bit(ST_M2M_SUSPENDED, &gsc->state))
++		gsc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
++}
++
+ static int gsc_runtime_resume(struct device *dev)
+ {
+ 	struct gsc_dev *gsc = dev_get_drvdata(dev);
+@@ -1160,6 +1161,7 @@ static int gsc_runtime_suspend(struct device *dev)
+ 	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
+ 	return ret;
+ }
++#endif
+ 
+ static int gsc_resume(struct device *dev)
+ {
+@@ -1201,8 +1203,7 @@ static int gsc_suspend(struct device *dev)
+ static const struct dev_pm_ops gsc_pm_ops = {
+ 	.suspend		= gsc_suspend,
+ 	.resume			= gsc_resume,
+-	.runtime_suspend	= gsc_runtime_suspend,
+-	.runtime_resume		= gsc_runtime_resume,
++	SET_RUNTIME_PM_OPS(gsc_runtime_suspend, gsc_runtime_resume, NULL)
+ };
+ 
+ static struct platform_driver gsc_driver = {
 -- 
-regards,
-Stan
+1.9.1
+
