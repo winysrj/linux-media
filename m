@@ -1,262 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f41.google.com ([74.125.83.41]:36057 "EHLO
-        mail-pg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935029AbcKWX0V (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 18:26:21 -0500
-Received: by mail-pg0-f41.google.com with SMTP id f188so10921693pgc.3
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 15:26:21 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: Re: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
-In-Reply-To: <20161123153723.GE16630@valkosipuli.retiisi.org.uk> (Sakari
-        Ailus's message of "Wed, 23 Nov 2016 17:37:23 +0200")
-References: <20161122155244.802-1-khilman@baylibre.com>
-        <20161122155244.802-4-khilman@baylibre.com>
-        <20161123153723.GE16630@valkosipuli.retiisi.org.uk>
-Date: Wed, 23 Nov 2016 15:26:19 -0800
-Message-ID: <m237ihvkv8.fsf@baylibre.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34538 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753229AbcKIT6O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 14:58:14 -0500
+Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Benjamin Larsson <benjamin@southpole.se>
+References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
+ <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
+ <20161108182215.41f1f3d2@vento.lan>
+ <354bc87c-79a1-bb37-6225-988c8fa429a5@southpole.se>
+ <20161108193834.4b90145b@vento.lan>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        =?UTF-8?Q?J=c3=b6rg_Otte?= <jrg.otte@gmail.com>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Message-ID: <fac91957-30b0-b16f-a6f3-5bdfd0a65481@gmail.com>
+Date: Wed, 9 Nov 2016 19:57:58 +0000
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20161108193834.4b90145b@vento.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Sakari Ailus <sakari.ailus@iki.fi> writes:
-
-> On Tue, Nov 22, 2016 at 07:52:43AM -0800, Kevin Hilman wrote:
->> Allow getting of subdevs from DT ports and endpoints.
->> 
->> The _get_pdata() function was larely inspired by (i.e. stolen from)
+On 08/11/16 21:38, Mauro Carvalho Chehab wrote:
+> Em Tue, 8 Nov 2016 22:15:24 +0100
+> Benjamin Larsson <benjamin@southpole.se> escreveu:
 >
-> vpif_capture_get_pdata and "largely"?
-
-Yes, thanks.
-
->> am437x-vpfe.c
->> 
->> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->>  drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++++++++++++-
->>  include/media/davinci/vpif_types.h            |   9 +-
->>  2 files changed, 133 insertions(+), 6 deletions(-)
->> 
->> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
->> index 94ee6cf03f02..47a4699157e7 100644
->> --- a/drivers/media/platform/davinci/vpif_capture.c
->> +++ b/drivers/media/platform/davinci/vpif_capture.c
->> @@ -26,6 +26,8 @@
->>  #include <linux/slab.h>
->>  
->>  #include <media/v4l2-ioctl.h>
->> +#include <media/v4l2-of.h>
->> +#include <media/i2c/tvp514x.h>
+>> On 11/08/2016 09:22 PM, Mauro Carvalho Chehab wrote:
+>>> Em Tue, 8 Nov 2016 10:42:03 -0800
+>>> Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+>>>
+>>>> On Sun, Nov 6, 2016 at 7:40 AM, Jörg Otte <jrg.otte@gmail.com> wrote:
+>>>>> Since v4.9-rc4 I get following crash in dvb-usb-cinergyT2 module.
+>>>>
+>>>> Looks like it's commit 5ef8ed0e5608f ("[media] cinergyT2-core: don't
+>>>> do DMA on stack"), which movced the DMA data array from the stack to
+>>>> the "private" pointer. In the process it also added serialization in
+>>>> the form of "data_mutex", but and now it oopses on that mutex because
+>>>> the private pointer is NULL.
+>>>>
+>>>> It looks like the "->private" pointer is allocated in dvb_usb_adapter_init()
+>>>>
+>>>> cinergyt2_usb_probe ->
+>>>>   dvb_usb_device_init ->
+>>>>     dvb_usb_init() ->
+>>>>       dvb_usb_adapter_init()
+>>>>
+>>>> but the dvb_usb_init() function calls dvb_usb_device_power_ctrl()
+>>>> (which calls the "power_ctrl" function, which is
+>>>> cinergyt2_power_ctrl() for that drive) *before* it initializes the
+>>>> private field.
+>>>>
+>>>> Mauro, Patrick, could dvb_usb_adapter_init() be called earlier, perhaps?
+>>>
+>>> Calling it earlier won't work, as we need to load the firmware before
+>>> sending the power control commands on some devices.
+>>>
+>>> Probably the best here is to pass an extra optional function parameter
+>>> that will initialize the mutex before calling any functions.
+>>>
+>>> Btw, if it broke here, the DMA fixes will likely break on other drivers.
+>>> So, after Jörg tests this patch, I'll work on a patch series addressing
+>>> this issue on the other drivers I touched.
+>>>
+>>> Regards,
+>>> Mauro
+>>
+>> Just for reference I got the following call trace a week ago. I looks
+>> like this confirms that other drivers are affected also.
 >
-> Do you need this header?
->
+> Yeah, I avoided serializing the logic that detects if the firmware is
+> loaded, but forgot that the power control had the same issue. The
+> newer dvb usb drivers use the dvb-usb-v2, so I didn't touch this
+> code for a while.
 
-Yes, based on discussion with Hans, since there is no DT binding for
-selecting the input pins of the TVP514x, I have to select it in the
-driver, so I need the defines from this header.  More on this below...
+I think the problem is that the usb buffer has been put in struct 
+cinergyt2_state private area which has not been initialized for initial 
+usb probing.
 
->>  
->>  #include "vpif.h"
->>  #include "vpif_capture.h"
->> @@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
->>  
->>  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
->>  
->> +	if (!chan_cfg)
->> +		return -1;
->> +	if (input_index >= chan_cfg->input_count)
->> +		return -1;
->>  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
->>  	if (subdev_name == NULL)
->>  		return -1;
->> @@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
->>  	/* loop through the sub device list to get the sub device info */
->>  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
->>  		subdev_info = &vpif_cfg->subdev_info[i];
->> -		if (!strcmp(subdev_info->name, subdev_name))
->> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
->>  			return i;
->>  	}
->>  	return -1;
->> @@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
->>  {
->>  	int i;
->>  
->> +	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
->> +		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
->> +		const struct device_node *node = _asd->match.of.node;
->> +
->> +		if (node == subdev->of_node) {
->> +			vpif_obj.sd[i] = subdev;
->> +			vpif_obj.config->chan_config->inputs[i].subdev_name =
->> +				(char *)subdev->of_node->full_name;
->> +			vpif_dbg(2, debug,
->> +				 "%s: setting input %d subdev_name = %s\n",
->> +				 __func__, i, subdev->of_node->full_name);
->> +			return 0;
->> +		}
->> +	}
->> +
->>  	for (i = 0; i < vpif_obj.config->subdev_count; i++)
->>  		if (!strcmp(vpif_obj.config->subdev_info[i].name,
->>  			    subdev->name)) {
->> @@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
->>  	return vpif_probe_complete();
->>  }
->>  
->> +static struct vpif_capture_config *
->> +vpif_capture_get_pdata(struct platform_device *pdev)
->> +{
->> +	struct device_node *endpoint = NULL;
->> +	struct v4l2_of_endpoint bus_cfg;
->> +	struct vpif_capture_config *pdata;
->> +	struct vpif_subdev_info *sdinfo;
->> +	struct vpif_capture_chan_config *chan;
->> +	unsigned int i;
->> +
->> +	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
->> +
->> +	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
->> +		return pdev->dev.platform_data;
->> +
->> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
->> +	if (!pdata)
->> +		return NULL;
->> +	pdata->subdev_info =
->> +		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
->> +			     VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
->> +
->> +	if (!pdata->subdev_info)
->> +		return NULL;
->> +	dev_dbg(&pdev->dev, "%s\n", __func__);
->> +
->> +	for (i = 0; ; i++) {
->> +		struct device_node *rem;
->> +		unsigned int flags;
->> +		int err;
->> +
->> +		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
->> +						      endpoint);
->> +		if (!endpoint)
->> +			break;
->> +
->> +		sdinfo = &pdata->subdev_info[i];
->
-> subdev_info[] has got VPIF_CAPTURE_MAX_CHANNELS entries only.
->
+That was one of the main reasons for porting drivers to dvb-usb-v2.
 
-Right, I need to make the loop only go for a max of
-VPIF_CAPTURE_MAX_CHANNELS iterations.
-
->> +		chan = &pdata->chan_config[i];
->> +		chan->inputs = devm_kzalloc(&pdev->dev,
->> +					    sizeof(*chan->inputs) *
->> +					    VPIF_DISPLAY_MAX_CHANNELS,
->> +					    GFP_KERNEL);
->> +
->> +		chan->input_count++;
->> +		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
->
-> I wonder what's the purpose of using index i on this array as well.
-
-The number of endpoints in DT is the number of input channels configured
-(up to a max of VPIF_CAPTURE_MAX_CHANNELS.)
-
-> If you use that to access a corresponding entry in a different array, I'd
-> just create a struct that contains the port configuration and the async
-> sub-device. The omap3isp driver does that, for instance; see
-> isp_of_parse_nodes() in drivers/media/platform/omap3isp/isp.c if you're
-> interested. Up to you.
-
-OK, I'll have a look at that driver. The goal here with this series is
-just to get this working with DT, but also not break the existing legacy
-platform_device support, so I'm trying not to mess with the
-driver-interal data structures too much.
-
->> +		chan->inputs[i].input.std = V4L2_STD_ALL;
->> +		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
->> +
->> +		/* FIXME: need a new property? ch0:composite ch1: s-video */
->> +		if (i == 0)
->
-> Can you assume that the first endopoint has got a particular kind of input?
-> What if it's not connected?
-
-On all the boards I know of (there aren't many using this SoC), it's a
-safe assumption.
-
-> If this is a different physical port (not in the meaning another) in the
-> device, I'd use the reg property for this. Please see
-> Documentation/devicetree/bindings/media/video-interfaces.txt .
-
-My understanding (which is admittedly somewhat fuzzy) of the TVP514x is
-that it's not physically a different port.  Instead, it's just telling
-the TVP514x which pin(s) will be active inputs (and what kind of signal
-will be present.)
-
-I'm open to a better way to describe this input select from DT, but
-based on what I heard from Hans, there isn't currently a good way to do
-that except for in the driver:
-(c.f. https://marc.info/?l=linux-arm-kernel&m=147887871615788)
-
-Based on further discussion in that thread, it sounds like there may be
-a way forward coming soon, and I'll be glad to switch to that when it
-arrives.
-
->> +			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
->> +		else
->> +			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
->> +		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
->> +
->> +		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
->> +		if (err) {
->> +			dev_err(&pdev->dev, "Could not parse the endpoint\n");
->> +			goto done;
->> +		}
->> +		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
->> +			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
->> +		flags = bus_cfg.bus.parallel.flags;
->> +
->> +		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->> +			chan->vpif_if.hd_pol = 1;
->> +
->> +		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->> +			chan->vpif_if.vd_pol = 1;
->> +
->> +		chan->vpif_if.if_type = VPIF_IF_BT656;
->> +		rem = of_graph_get_remote_port_parent(endpoint);
->> +		if (!rem) {
->> +			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
->> +				endpoint->full_name);
->> +			goto done;
->> +		}
->> +
->> +		dev_dbg(&pdev->dev, "Remote device %s, %s found\n",
->> +			rem->name, rem->full_name);
->> +		sdinfo->name = rem->full_name;
->> +
->> +		pdata->asd[i] = devm_kzalloc(&pdev->dev,
->> +					     sizeof(struct v4l2_async_subdev),
->> +					     GFP_KERNEL);
->
-> Do you ensure somewhere that i isn't overrunning the pdata->asd[] array?
-> It's got VPIF_CAPTURE_MAX_CHANNELS entries.
-
-Oops, no.  That will be fixed by making the outer for loop only iterate
-for i = i..VPIF_CAPTURE_MAX_CHANNELS.
-
-
-Thanks for the review,
-
-Kevin
+Regards
+Malcolm
