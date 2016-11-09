@@ -1,62 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60632 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753589AbcKIOYT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:19 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 10/12] exynos-gsc: Remove unused lclk_freqency entry
-Date: Wed, 09 Nov 2016 15:23:59 +0100
-Message-id: <1478701441-29107-11-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161109142411eucas1p29fd9c9622fd1294ef82bc0090d7b6dff@eucas1p2.samsung.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:58792 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751425AbcKIIbP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Nov 2016 03:31:15 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] control.rst: improve the queryctrl code examples
+Message-ID: <55c13b98-f97c-f651-3204-d98192dde078@xs4all.nl>
+Date: Wed, 9 Nov 2016 09:31:10 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove dead, unused code.
+The code examples on how to enumerate controls were really long in the
+tooth. Update them.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Using FLAG_NEXT_CTRL is preferred these days, so give that example first.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/exynos-gsc/gsc-core.c | 1 -
- drivers/media/platform/exynos-gsc/gsc-core.h | 2 --
- 2 files changed, 3 deletions(-)
+diff --git a/Documentation/media/uapi/v4l/control.rst b/Documentation/media/uapi/v4l/control.rst
+index d3f1450..51112ba 100644
+--- a/Documentation/media/uapi/v4l/control.rst
++++ b/Documentation/media/uapi/v4l/control.rst
+@@ -312,21 +312,20 @@ more menu type controls.
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index 1e8b216..ff35909 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -964,7 +964,6 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
- 		[3] = &gsc_v_100_variant,
- 	},
- 	.num_entities = 4,
--	.lclk_frequency = 266000000UL,
- };
- 
- static const struct of_device_id exynos_gsc_match[] = {
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-index 8480aec..e5aa8f4 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.h
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-@@ -303,12 +303,10 @@ struct gsc_variant {
-  * struct gsc_driverdata - per device type driver data for init time.
-  *
-  * @variant: the variant information for this driver.
-- * @lclk_frequency: G-Scaler clock frequency
-  * @num_entities: the number of g-scalers
-  */
- struct gsc_driverdata {
- 	struct gsc_variant *variant[GSC_MAX_DEVS];
--	unsigned long	lclk_frequency;
- 	int		num_entities;
- };
- 
--- 
-1.9.1
+ .. _enum_all_controls:
+
+-Example: Enumerating all user controls
+-======================================
++Example: Enumerating all controls
++=================================
+
+ .. code-block:: c
+
+-
+     struct v4l2_queryctrl queryctrl;
+     struct v4l2_querymenu querymenu;
+
+-    static void enumerate_menu(void)
++    static void enumerate_menu(__u32 id)
+     {
+ 	printf("  Menu items:\\n");
+
+ 	memset(&querymenu, 0, sizeof(querymenu));
+-	querymenu.id = queryctrl.id;
++	querymenu.id = id;
+
+ 	for (querymenu.index = queryctrl.minimum;
+ 	     querymenu.index <= queryctrl.maximum;
+@@ -339,6 +338,55 @@ Example: Enumerating all user controls
+
+     memset(&queryctrl, 0, sizeof(queryctrl));
+
++    queryctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL;
++    while (0 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
++	if (!(queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
++	    printf("Control %s\\n", queryctrl.name);
++
++	    if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
++	        enumerate_menu(queryctrl.id);
++        }
++
++	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
++    }
++    if (errno != EINVAL) {
++	perror("VIDIOC_QUERYCTRL");
++	exit(EXIT_FAILURE);
++    }
++
++Example: Enumerating all controls including compound controls
++=============================================================
++
++.. code-block:: c
++
++    struct v4l2_query_ext_ctrl query_ext_ctrl;
++
++    memset(&query_ext_ctrl, 0, sizeof(query_ext_ctrl));
++
++    query_ext_ctrl.id = V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
++    while (0 == ioctl(fd, VIDIOC_QUERY_EXT_CTRL, &query_ext_ctrl)) {
++	if (!(query_ext_ctrl.flags & V4L2_CTRL_FLAG_DISABLED)) {
++	    printf("Control %s\\n", query_ext_ctrl.name);
++
++	    if (query_ext_ctrl.type == V4L2_CTRL_TYPE_MENU)
++	        enumerate_menu(query_ext_ctrl.id);
++        }
++
++	query_ext_ctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_FLAG_NEXT_COMPOUND;
++    }
++    if (errno != EINVAL) {
++	perror("VIDIOC_QUERY_EXT_CTRL");
++	exit(EXIT_FAILURE);
++    }
++
++Example: Enumerating all user controls (old style)
++==================================================
++
++.. code-block:: c
++
++
++    memset(&queryctrl, 0, sizeof(queryctrl));
++
+     for (queryctrl.id = V4L2_CID_BASE;
+ 	 queryctrl.id < V4L2_CID_LASTP1;
+ 	 queryctrl.id++) {
+@@ -349,7 +397,7 @@ Example: Enumerating all user controls
+ 	    printf("Control %s\\n", queryctrl.name);
+
+ 	    if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-		enumerate_menu();
++		enumerate_menu(queryctrl.id);
+ 	} else {
+ 	    if (errno == EINVAL)
+ 		continue;
+@@ -368,7 +416,7 @@ Example: Enumerating all user controls
+ 	    printf("Control %s\\n", queryctrl.name);
+
+ 	    if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-		enumerate_menu();
++		enumerate_menu(queryctrl.id);
+ 	} else {
+ 	    if (errno == EINVAL)
+ 		break;
+@@ -379,32 +427,6 @@ Example: Enumerating all user controls
+     }
+
+
+-Example: Enumerating all user controls (alternative)
+-====================================================
+-
+-.. code-block:: c
+-
+-    memset(&queryctrl, 0, sizeof(queryctrl));
+-
+-    queryctrl.id = V4L2_CTRL_CLASS_USER | V4L2_CTRL_FLAG_NEXT_CTRL;
+-    while (0 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
+-	if (V4L2_CTRL_ID2CLASS(queryctrl.id) != V4L2_CTRL_CLASS_USER)
+-	    break;
+-	if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED)
+-	    continue;
+-
+-	printf("Control %s\\n", queryctrl.name);
+-
+-	if (queryctrl.type == V4L2_CTRL_TYPE_MENU)
+-	    enumerate_menu();
+-
+-	queryctrl.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
+-    }
+-    if (errno != EINVAL) {
+-	perror("VIDIOC_QUERYCTRL");
+-	exit(EXIT_FAILURE);
+-    }
+-
+ Example: Changing controls
+ ==========================
 
