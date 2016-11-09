@@ -1,86 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:51088 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758079AbcKCUyu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 16:54:50 -0400
-Subject: Re: [PATCH 10/34] [media] DaVinci-VPBE: Check return value of a
- setup_if_config() call in vpbe_set_output()
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
- <47590f2e-1cfa-582d-769e-502802171b66@users.sourceforge.net>
- <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Manjunath Hadli <manjunath.hadli@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <680a0feb-3748-da16-9b79-297e1ab9044d@users.sourceforge.net>
-Date: Thu, 3 Nov 2016 21:54:34 +0100
-MIME-Version: 1.0
-In-Reply-To: <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10732 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753358AbcKIOYN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:13 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 03/12] exynos-gsc: Make driver functional when CONFIG_PM is
+ unset
+Date: Wed, 09 Nov 2016 15:23:52 +0100
+Message-id: <1478701441-29107-4-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20161109142408eucas1p1401c6b61321b52ea341a28ad063f4653@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> From: Markus Elfring <elfring@users.sourceforge.net>
->> Date: Wed, 12 Oct 2016 09:56:56 +0200
->>
->> * A function was called over the pointer "setup_if_config" in the data
->>   structure "venc_platform_data". But the return value was not used so far.
->>   Thus assign it to the local variable "ret" which will be checked with
->>   the next statement.
->>
->>   Fixes: 9a7f95ad1c946efdd7a7a72df27db738260a0fd8 ("[media] davinci vpbe: add dm365 VPBE display driver changes")
->>
->> * Pass a value to this function call without storing it in an intermediate
->>   variable before.
->>
->> * Delete the local variable "if_params" which became unnecessary with
->>   this refactoring.
->>
->> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
->> ---
->>  drivers/media/platform/davinci/vpbe.c | 5 ++---
->>  1 file changed, 2 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
->> index 19611a2..6e7b0df 100644
->> --- a/drivers/media/platform/davinci/vpbe.c
->> +++ b/drivers/media/platform/davinci/vpbe.c
->> @@ -227,7 +227,6 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
->>              vpbe_current_encoder_info(vpbe_dev);
->>      struct vpbe_config *cfg = vpbe_dev->cfg;
->>      struct venc_platform_data *venc_device = vpbe_dev->venc_device;
->> -    u32 if_params;
->>      int enc_out_index;
->>      int sd_index;
->>      int ret = 0;
->> @@ -257,8 +256,8 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
->>              goto out;
->>          }
->>
->> -        if_params = cfg->outputs[index].if_params;
->> -        venc_device->setup_if_config(if_params);
->> +        ret = venc_device->setup_if_config(cfg
->> +                           ->outputs[index].if_params);
-> 
-> Either keep this as one line
+From: Ulf Hansson <ulf.hansson@linaro.org>
 
-Will you tolerate a line length of 82 characters then?
+The driver depended on CONFIG_PM to be functional. Let's remove that
+dependency, by enable the runtime PM resourses during ->probe() and
+update the device's runtime PM status to reflect this.
 
+Signed-off-by: Ulf Hansson <ulf.hansson@linaro.org>
+[mszyprow: rebased onto v4.9-rc4]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-core.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-> or keep the if_params temp variable.
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index cb4e8bd..b5a99af 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1072,7 +1072,7 @@ static int gsc_probe(struct platform_device *pdev)
+ 		return PTR_ERR(gsc->clock);
+ 	}
+ 
+-	ret = clk_prepare(gsc->clock);
++	ret = clk_prepare_enable(gsc->clock);
+ 	if (ret) {
+ 		dev_err(&gsc->pdev->dev, "clock prepare failed for clock: %s\n",
+ 			GSC_CLOCK_GATE_NAME);
+@@ -1095,24 +1095,23 @@ static int gsc_probe(struct platform_device *pdev)
+ 		goto err_v4l2;
+ 
+ 	platform_set_drvdata(pdev, gsc);
+-	pm_runtime_enable(dev);
+-	ret = pm_runtime_get_sync(&pdev->dev);
+-	if (ret < 0)
+-		goto err_m2m;
++
++	gsc_hw_set_sw_reset(gsc);
++	gsc_wait_reset(gsc);
+ 
+ 	vb2_dma_contig_set_max_seg_size(dev, DMA_BIT_MASK(32));
+ 
+ 	dev_dbg(dev, "gsc-%d registered successfully\n", gsc->id);
+ 
+-	pm_runtime_put(dev);
++	pm_runtime_set_active(dev);
++	pm_runtime_enable(dev);
++
+ 	return 0;
+ 
+-err_m2m:
+-	gsc_unregister_m2m_device(gsc);
+ err_v4l2:
+ 	v4l2_device_unregister(&gsc->v4l2_dev);
+ err_clk:
+-	clk_unprepare(gsc->clock);
++	clk_disable_unprepare(gsc->clock);
+ 	return ret;
+ }
+ 
+-- 
+1.9.1
 
-My proposal was to get rid of it.
-
-
-> This odd linebreak is ugly.
-
-I am curious on how the desired changes can be integrated after a couple of update
-suggestions were accepted from this patch series.
-
-Regards,
-Markus
