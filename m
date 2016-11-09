@@ -1,131 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35186 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751100AbcKHNzd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:33 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 01/21] Revert "[media] media: fix media devnode ioctl/syscall and unregister race"
-Date: Tue,  8 Nov 2016 15:55:10 +0200
-Message-Id: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+Received: from mga01.intel.com ([192.55.52.88]:57043 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753125AbcKIL6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 9 Nov 2016 06:58:15 -0500
+From: Jani Nikula <jani.nikula@linux.intel.com>
+To: Markus Heiser <markus.heiser@darmarit.de>
+Cc: Josh Triplett <josh@joshtriplett.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org,
+        linux-doc@vger.kernel.org
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+In-Reply-To: <DC27B5F7-D69E-4F22-B184-B7B029392959@darmarit.de>
+References: <20161107075524.49d83697@vento.lan> <20161107170133.4jdeuqydthbbchaq@x> <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de> <8737j0hpi0.fsf@intel.com> <DC27B5F7-D69E-4F22-B184-B7B029392959@darmarit.de>
+Date: Wed, 09 Nov 2016 13:58:12 +0200
+Message-ID: <87shr0g90r.fsf@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 6f0dd24a084a ("[media] media: fix media devnode
-ioctl/syscall and unregister race"). The commit was part of an original
-patchset to avoid crashes when an unregistering device is in use.
+On Wed, 09 Nov 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> Am 09.11.2016 um 12:16 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
+>>> So I vote for :
+>>> 
+>>>> 1) copy (or symlink) all rst files to Documentation/output (or to the
+>>>> build dir specified via O= directive) and generate the *.pdf there,
+>>>> and produce those converted images via Makefile.;
+>> 
+>> We're supposed to solve problems, not create new ones.
+>
+> ... new ones? ...
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c  | 15 +++++++--------
- drivers/media/media-devnode.c |  8 +-------
- include/media/media-devnode.h | 16 ++--------------
- 3 files changed, 10 insertions(+), 29 deletions(-)
+Handle in-tree builds without copying.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 2783531..f2525eb 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -730,7 +730,6 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	if (ret < 0) {
- 		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
--		media_devnode_unregister_prepare(devnode);
- 		media_devnode_unregister(devnode);
- 		return ret;
- 	}
-@@ -787,9 +786,6 @@ void media_device_unregister(struct media_device *mdev)
- 		return;
- 	}
- 
--	/* Clear the devnode register bit to avoid races with media dev open */
--	media_devnode_unregister_prepare(mdev->devnode);
--
- 	/* Remove all entities from the media device */
- 	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
- 		__media_device_unregister_entity(entity);
-@@ -810,10 +806,13 @@ void media_device_unregister(struct media_device *mdev)
- 
- 	dev_dbg(mdev->dev, "Media device unregistered\n");
- 
--	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
--	media_devnode_unregister(mdev->devnode);
--	/* devnode free is handled in media_devnode_*() */
--	mdev->devnode = NULL;
-+	/* Check if mdev devnode was registered */
-+	if (media_devnode_is_registered(mdev->devnode)) {
-+		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
-+		media_devnode_unregister(mdev->devnode);
-+		/* devnode free is handled in media_devnode_*() */
-+		mdev->devnode = NULL;
-+	}
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index f2772ba..5b605ff 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -287,7 +287,7 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	return ret;
- }
- 
--void media_devnode_unregister_prepare(struct media_devnode *devnode)
-+void media_devnode_unregister(struct media_devnode *devnode)
- {
- 	/* Check if devnode was ever registered at all */
- 	if (!media_devnode_is_registered(devnode))
-@@ -295,12 +295,6 @@ void media_devnode_unregister_prepare(struct media_devnode *devnode)
- 
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
--	mutex_unlock(&media_devnode_lock);
--}
--
--void media_devnode_unregister(struct media_devnode *devnode)
--{
--	mutex_lock(&media_devnode_lock);
- 	/* Delete the cdev on this minor as well */
- 	cdev_del(&devnode->cdev);
- 	mutex_unlock(&media_devnode_lock);
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index cd23e91..d55ec2b 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -128,26 +128,14 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 					struct module *owner);
- 
- /**
-- * media_devnode_unregister_prepare - clear the media device node register bit
-- * @devnode: the device node to prepare for unregister
-- *
-- * This clears the passed device register bit. Future open calls will be met
-- * with errors. Should be called before media_devnode_unregister() to avoid
-- * races with unregister and device file open calls.
-- *
-- * This function can safely be called if the device node has never been
-- * registered or has already been unregistered.
-- */
--void media_devnode_unregister_prepare(struct media_devnode *devnode);
--
--/**
-  * media_devnode_unregister - unregister a media device node
-  * @devnode: the device node to unregister
-  *
-  * This unregisters the passed device. Future open calls will be met with
-  * errors.
-  *
-- * Should be called after media_devnode_unregister_prepare()
-+ * This function can safely be called if the device node has never been
-+ * registered or has already been unregistered.
-  */
- void media_devnode_unregister(struct media_devnode *devnode);
- 
+Make dependency analysis with source rst and "intermediate" rst work.
+
+Make sure your copying gets the timestamps right.
+
+Make Sphinx dependency analysis look at the right copies depending on
+in-tree vs. out-of-tree. Generally make sure it doesn't confuse Sphinx's
+own dependency analysis.
+
+The stuff I didn't think of.
+
+Sure, it's all supposed to be basic Makefile stuff, but don't make the
+mistake of thinking just one invocation of 'cp' will solve all the
+problems. It all adds to the complexity we were trying to avoid when
+dumping DocBook. It adds to the complexity of debugging stuff. (And hey,
+there's still the one rebuilding-stuff-for-no-reason issue open.)
+
+If you want to keep the documentation build sane, try to avoid the
+Makefile preprocessing. And same old story, if you fix this for real,
+even if as a Sphinx extension, *other* people than kernel developers
+will be interested, and *we* don't have to do so much ourselves.
+
+
+BR,
+Jani.
+
+
+
+>
+>>> IMO placing 'sourcedir' to O= is more sane since this marries the
+>>> Linux Makefile concept (relative to $PWD) with the sphinx concept
+>>> (in or below 'sourcedir').
+>
+> -- Markus --
+
 -- 
-2.1.4
-
+Jani Nikula, Intel Open Source Technology Center
