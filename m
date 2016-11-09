@@ -1,79 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53663 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750832AbcKBX5u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 19:57:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [RFC 1/3] Revert "[media] v4l: vsp1: Supply frames to the DU continuously"
-Date: Thu, 03 Nov 2016 01:57:43 +0200
-Message-ID: <61591109.Gs03RqNDyH@avalon>
-In-Reply-To: <1477576885-21978-2-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1477576885-21978-1-git-send-email-kieran.bingham+renesas@ideasonboard.com> <1477576885-21978-2-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41825
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753562AbcKIRVf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 12:21:35 -0500
+Subject: Re: [PATCH 00/12] media: Exynos GScaller driver fixes
+To: Marek Szyprowski <m.szyprowski@samsung.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+References: <CGME20161109142406eucas1p2c3c158d10fd96d97c57a32ab402acd2e@eucas1p2.samsung.com>
+ <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <517f0587-6df0-9a35-44f6-55087e1717a7@osg.samsung.com>
+Date: Wed, 9 Nov 2016 14:21:24 -0300
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hello Marek,
 
-Thank you for the patch.
-
-On Thursday 27 Oct 2016 15:01:23 Kieran Bingham wrote:
-> This reverts commit 3299ba5c0b213be5d911752d40251c1abc1004f7.
+On 11/09/2016 11:23 AM, Marek Szyprowski wrote:
+> Hi!
 > 
-> The DU output mode does not rely on frames being supplied on the WPF as
-> its pipeline is supplied from DRM. For the upcoming WPF writeback
-> functionality, we will choose to enable writeback mode if there is an
-> output buffer, or disable it (leaving the existing display pipeline
-> unharmed) otherwise.
+> This is a collection of various fixes and cleanups for Exynos GScaller
+> media driver. Most of them comes from the forgotten patchset posted long
+> time ago by Ulf Hansson:
+> https://www.mail-archive.com/linux-media@vger.kernel.org/msg80592.html
 > 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c | 11 -----------
->  1 file changed, 11 deletions(-)
+> While testing and rebasing them, I added some more cleanups. Tested on
+> Exynos5422-based Odroid XU3 board.
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index 94b428596c4f..f10401065cd3
-> 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -296,11 +296,6 @@ static struct v4l2_rect vsp1_video_partition(struct
-> vsp1_pipeline *pipe, * This function completes the current buffer by
-> filling its sequence number, * time stamp and payload size, and hands it
-> back to the videobuf core. *
-> - * When operating in DU output mode (deep pipeline to the DU through the
-> LIF), - * the VSP1 needs to constantly supply frames to the display. In
-> that case, if - * no other buffer is queued, reuse the one that has just
-> been processed instead - * of handing it back to the videobuf core.
-> - *
->   * Return the next queued buffer or NULL if the queue is empty.
->   */
->  static struct vsp1_vb2_buffer *
-> @@ -322,12 +317,6 @@ vsp1_video_complete_buffer(struct vsp1_video *video)
->  	done = list_first_entry(&video->irqqueue,
->  				struct vsp1_vb2_buffer, queue);
-> 
-> -	/* In DU output mode reuse the buffer if the list is singular. */
-> -	if (pipe->lif && list_is_singular(&video->irqqueue)) {
-> -		spin_unlock_irqrestore(&video->irqlock, flags);
-> -		return done;
-> -	}
-> -
->  	list_del(&done->queue);
-> 
->  	if (!list_empty(&video->irqqueue))
 
+I've tested this series on a Exynos5800-based Peach Pi Chromebook. The
+patches were tested on top of Sylwester's for-v4.10/media/next branch:
+
+git://linuxtv.org/snawrocki/samsung.git for-v4.10/media/next
+
+So feel free to add for the whole series:
+
+Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
 -- 
-Regards,
-
-Laurent Pinchart
-
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
