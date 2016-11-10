@@ -1,108 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:4575 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754631AbcK1KbL (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.130]:54772 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935010AbcKJQqj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 05:31:11 -0500
-From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v3 0/3] add debug capabilities to v4l2 encoder for STMicroelectronics SOC
-Date: Mon, 28 Nov 2016 11:30:51 +0100
-Message-ID: <1480329054-30403-1-git-send-email-jean-christophe.trotin@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Thu, 10 Nov 2016 11:46:39 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Jiri Kosina <jikos@kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Ley Foon Tan <lftan@altera.com>,
+        "Luis R . Rodriguez" <mcgrof@kernel.org>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Marek <mmarek@suse.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sean Young <sean@mess.org>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Trond Myklebust <trond.myklebust@primarydata.com>,
+        x86@kernel.org, linux-kbuild@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-nfs@vger.kernel.org
+Subject: [PATCH v2 10/11] pcmcia: fix return value of soc_pcmcia_regulator_set
+Date: Thu, 10 Nov 2016 17:44:53 +0100
+Message-Id: <20161110164454.293477-11-arnd@arndb.de>
+In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
+References: <20161110164454.293477-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-version 3:
-- the encoding summary (first patch) is moved from hva-debug.c to hva-v4l2.c.
-  As suggested by Hans, dev_info() is used instead of snprintf() in the
-  hva_dbg_summary() function.
+The newly introduced soc_pcmcia_regulator_set() function sometimes returns
+without setting its return code, as shown by this warning:
 
-- About the debugfs entries for HVA (second patch), a driver-specific Kconfig
-  option (VIDEO_STI_HVA_DEBUGFS) is added as suggested by Hans. This option
-  depends both on VIDEO_STI_HVA and on DEBUG_FS.
+drivers/pcmcia/soc_common.c: In function 'soc_pcmcia_regulator_set':
+drivers/pcmcia/soc_common.c:112:5: error: 'ret' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-- The third (new) patch enables STMicroelectronics HVA debugfs in
-  multi_v7_defconfig (VIDEO_STI_HVA_DEBUGFS).
+This changes it to propagate the regulator_disable() result instead.
 
-version 2:
-- the encoding summary (first patch) doesn't include any longer information
-  about the encoding performance. Thus, after each frame encoding, only one or
-  two variables are increased (number of encoded frames, number of encoding
-  errors), but no computation is executed (as it was in version 1). When the
-  encoding instance is closed, the short summary that is printed (dev_info),
-  also doesn't require any computation, and gives a useful brief status about
-  the last operation: that are the reasons why there's no Kconfig option to
-  explicitly enable this summary.
+Fixes: ac61b6001a63 ("pcmcia: soc_common: add support for Vcc and Vpp regulators")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/pcmcia/soc_common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-- the second patch enables the computation of the performances (hva_dbg_perf_begin
-  and hva_dbg_perf_end) only if DEBUG_FS is enabled. The functions that
-  create or remove the debugfs entries (hva_debugfs_create,
-  hva_debugfs_remove, hva_dbg_ctx_create, hva_dbg_ctx_remove) are not under
-  CONFIG_DEBUG_FS switch: if DEBUG_FS is disabled, the debugfs functions
-  (debugfs_create_dir and debugfs_create_file) are available, but no entry is
-  created. The "show" operations (hva_dbg_device, hva_dbg_encoders,
-  hva_dbg_last, hva_dbg_regs, hva_dbg_ctx) are also not under
-  CONFIG_DEBUG_FS switch: if DEBUG_FS is disabled, they will never be called.
-  So, with this version 2, no new Kconfig option is introduced, but the
-  performance computations and the debugfs entries depend on whether DEBUG_FS
-  is enabled or not.
-
-version 1:
-- Initial submission
-
-With the first patch, a short summary about the encoding operation is
-unconditionnaly printed at each instance closing:
-- information about the frame (format, resolution)
-- information about the stream (format, profile, level, resolution)
-- number of encoded frames
-- potential (system, encoding...) errors
-
-With the second patch, 4 static debugfs entries are created to dump:
-- the device-related information ("st-hva/device")
-- the list of registered encoders ("st-hva/encoders")
-- the current values of the hva registers ("st-hva/regs")
-- the information about the last closed instance ("st-hva/last")
-
-Moreover, a debugfs entry is dynamically created for each opened instance,
-("st-hva/<instance identifier>") to dump:
- - the information about the frame (format, resolution)
-- the information about the stream (format, profile, level,
-  resolution)
-- the control parameters (bitrate mode, framerate, GOP size...)
-- the potential (system, encoding...) errors
-- the performance information about the encoding (HW processing
-  duration, average bitrate, average framerate...)
-Each time a running instance is closed, its context (including the debug
-information) is saved to feed, on demand, the last closed instance debugfs
-entry.
-
-These debug capabilities are mainly implemented in the hva-debugfs.c file.
-
-Jean-Christophe Trotin (3):
-  st-hva: encoding summary at instance release
-  st-hva: add debug file system
-  ARM: multi_v7_defconfig: enable STMicroelectronics HVA debugfs
-
- arch/arm/configs/multi_v7_defconfig          |   1 +
- drivers/media/platform/Kconfig               |  11 +
- drivers/media/platform/sti/hva/Makefile      |   1 +
- drivers/media/platform/sti/hva/hva-debugfs.c | 422 +++++++++++++++++++++++++++
- drivers/media/platform/sti/hva/hva-h264.c    |   6 +
- drivers/media/platform/sti/hva/hva-hw.c      |  48 +++
- drivers/media/platform/sti/hva/hva-hw.h      |   3 +
- drivers/media/platform/sti/hva/hva-mem.c     |   5 +-
- drivers/media/platform/sti/hva/hva-v4l2.c    |  78 ++++-
- drivers/media/platform/sti/hva/hva.h         |  96 +++++-
- 10 files changed, 657 insertions(+), 14 deletions(-)
- create mode 100644 drivers/media/platform/sti/hva/hva-debugfs.c
-
+diff --git a/drivers/pcmcia/soc_common.c b/drivers/pcmcia/soc_common.c
+index 153f312..b6b316d 100644
+--- a/drivers/pcmcia/soc_common.c
++++ b/drivers/pcmcia/soc_common.c
+@@ -107,7 +107,7 @@ int soc_pcmcia_regulator_set(struct soc_pcmcia_socket *skt,
+ 
+ 		ret = regulator_enable(r->reg);
+ 	} else {
+-		regulator_disable(r->reg);
++		ret = regulator_disable(r->reg);
+ 	}
+ 	if (ret == 0)
+ 		r->on = on;
 -- 
-1.9.1
+2.9.0
 
