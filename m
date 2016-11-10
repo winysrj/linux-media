@@ -1,251 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:28344 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755913AbcKVPxu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:53:50 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v3 10/10] [media] st-delta: debug: trace stream/frame information & summary
-Date: Tue, 22 Nov 2016 16:53:27 +0100
-Message-ID: <1479830007-29767-11-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
-References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+Received: from mailgw01.mediatek.com ([210.61.82.183]:15508 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752933AbcKJEbj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 23:31:39 -0500
+Message-ID: <1478752290.2580.6.camel@mtksdaap41>
+Subject: Re: [bug report] [media] vcodec: mediatek: Add Mediatek V4L2 Video
+ Decoder Driver
+From: Tiffany Lin <tiffany.lin@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Dan Carpenter <dan.carpenter@oracle.com>,
+        <linux-media@vger.kernel.org>, <linux-mediatek@lists.infradead.org>
+Date: Thu, 10 Nov 2016 12:31:30 +0800
+In-Reply-To: <9794dab1-94ba-c384-85c5-edb8831810ff@xs4all.nl>
+References: <20161109132820.GA26677@mwanda>
+         <9794dab1-94ba-c384-85c5-edb8831810ff@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds some trace points showing input compressed stream or
-output decoded frame information.
-Adds an unconditional trace point when streaming starts showing
-the compressed stream and the decoded frame information.
-Adds an unconditional trace point at instance closure summarizing
-into a single line the decoding process (stream information, decoded
-and output frames number, potential errors observed).
+Hi Hans, Dan,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/sti/delta/Makefile      |  2 +-
- drivers/media/platform/sti/delta/delta-debug.c | 72 ++++++++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-debug.h | 18 +++++++
- drivers/media/platform/sti/delta/delta-v4l2.c  | 29 +++++++++--
- 4 files changed, 116 insertions(+), 5 deletions(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
+On Wed, 2016-11-09 at 14:45 +0100, Hans Verkuil wrote:
+> On 11/09/16 14:28, Dan Carpenter wrote:
+> > Hello Tiffany Lin,
+> >
+> > The patch 590577a4e525: "[media] vcodec: mediatek: Add Mediatek V4L2
+> > Video Decoder Driver" from Sep 2, 2016, leads to the following static
+> > checker warning:
+> >
+> > 	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c:536 vidioc_vdec_qbuf()
+> > 	error: buffer overflow 'vq->bufs' 32 <= u32max
+> >
+> > drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> >    520  static int vidioc_vdec_qbuf(struct file *file, void *priv,
+> >    521                              struct v4l2_buffer *buf)
+> >    522  {
+> >    523          struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> >    524          struct vb2_queue *vq;
+> >    525          struct vb2_buffer *vb;
+> >    526          struct mtk_video_dec_buf *mtkbuf;
+> >    527          struct vb2_v4l2_buffer  *vb2_v4l2;
+> >    528
+> >    529          if (ctx->state == MTK_STATE_ABORT) {
+> >    530                  mtk_v4l2_err("[%d] Call on QBUF after unrecoverable error",
+> >    531                                  ctx->id);
+> >    532                  return -EIO;
+> >    533          }
+> >    534
+> >    535          vq = v4l2_m2m_get_vq(ctx->m2m_ctx, buf->type);
+> >    536          vb = vq->bufs[buf->index];
+> >
+> > Smatch thinks that "buf->index" comes straight from the user without
+> > being checked and that this is a buffer overflow.  It seems simple
+> > enough to analyse the call tree.
+> >
+> > __video_do_ioctl()
+> > ->  v4l_qbuf()
+> >   -> vidioc_vdec_qbuf()
+> >
+> > It seems like Smatch is correct.  I looked at a different implementation
+> > of this and that one wasn't checked either so maybe there is something
+> > I am not seeing.
+> >
+> > This has obvious security implications.  Can someone take a look at
+> > this?
+> 
+> This is indeed wrong.
+> 
+> The v4l2_m2m_qbuf() call at the end of this function calls in turn 
+> vb2_qbuf which
+> will check the index. But if you override vidioc_qbuf (or 
+> vidioc_prepare), then
+> you need to check the index value.
+> 
+> I double-checked all cases where vidioc_qbuf was set to a 
+> driver-specific function
+> and this is the only driver that doesn't check the index field. In all 
+> other cases
+> it is either checked, or it is not used before calling into the vb1/vb2 
+> framework
+> which checks this.
+> 
+> So luckily this only concerns this driver.
 
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index 663be70..f95580e 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
--st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
-+st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o delta-debug.o
- 
- # MJPEG support
- st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
-diff --git a/drivers/media/platform/sti/delta/delta-debug.c b/drivers/media/platform/sti/delta/delta-debug.c
-new file mode 100644
-index 0000000..f1bc64e
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-debug.c
-@@ -0,0 +1,72 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
-+ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
-+ *          for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-debug.h"
-+
-+char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
-+			   unsigned int len)
-+{
-+	if (!s)
-+		return NULL;
-+
-+	snprintf(str, len,
-+		 "%4.4s %dx%d %s %s dpb=%d %s %s %s%dx%d@(%d,%d) %s%d/%d",
-+		 (char *)&s->streamformat, s->width, s->height,
-+		 s->profile, s->level, s->dpb,
-+		 (s->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
-+		 s->other,
-+		 s->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
-+		 s->crop.width, s->crop.height,
-+		 s->crop.left, s->crop.top,
-+		 s->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
-+		 s->pixelaspect.numerator,
-+		 s->pixelaspect.denominator);
-+
-+	return str;
-+}
-+
-+char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
-+			  unsigned int len)
-+{
-+	if (!f)
-+		return NULL;
-+
-+	snprintf(str, len,
-+		 "%4.4s %dx%d aligned %dx%d %s %s%dx%d@(%d,%d) %s%d/%d",
-+		 (char *)&f->pixelformat, f->width, f->height,
-+		 f->aligned_width, f->aligned_height,
-+		 (f->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
-+		 f->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
-+		 f->crop.width, f->crop.height,
-+		 f->crop.left, f->crop.top,
-+		 f->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
-+		 f->pixelaspect.numerator,
-+		 f->pixelaspect.denominator);
-+
-+	return str;
-+}
-+
-+void delta_trace_summary(struct delta_ctx *ctx)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	struct delta_streaminfo *s = &ctx->streaminfo;
-+	unsigned char str[100] = "";
-+
-+	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
-+		return;
-+
-+	dev_info(delta->dev, "%s %s, %d frames decoded, %d frames output, %d frames dropped, %d stream errors, %d decode errors",
-+		 ctx->name,
-+		 delta_streaminfo_str(s, str, sizeof(str)),
-+		 ctx->decoded_frames,
-+		 ctx->output_frames,
-+		 ctx->dropped_frames,
-+		 ctx->stream_errors,
-+		 ctx->decode_errors);
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-debug.h b/drivers/media/platform/sti/delta/delta-debug.h
-new file mode 100644
-index 0000000..955c158
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-debug.h
-@@ -0,0 +1,18 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
-+ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
-+ *          for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_DEBUG_H
-+#define DELTA_DEBUG_H
-+
-+char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
-+			   unsigned int len);
-+char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
-+			  unsigned int len);
-+void delta_trace_summary(struct delta_ctx *ctx);
-+
-+#endif /* DELTA_DEBUG_H */
-diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-index 96590da..bd17083 100644
---- a/drivers/media/platform/sti/delta/delta-v4l2.c
-+++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-@@ -17,6 +17,7 @@
- #include <media/videobuf2-dma-contig.h>
- 
- #include "delta.h"
-+#include "delta-debug.h"
- #include "delta-ipc.h"
- 
- #define DELTA_NAME	"st-delta"
-@@ -438,11 +439,13 @@ static int delta_g_fmt_stream(struct file *file, void *fh,
- 	struct delta_dev *delta = ctx->dev;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
-+	unsigned char str[100] = "";
- 
- 	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
- 		dev_dbg(delta->dev,
--			"%s V4L2 GET_FMT (OUTPUT): no stream information available, using default\n",
--			ctx->name);
-+			"%s V4L2 GET_FMT (OUTPUT): no stream information available, default to %s\n",
-+			ctx->name,
-+			delta_streaminfo_str(streaminfo, str, sizeof(str)));
- 
- 	pix->pixelformat = streaminfo->streamformat;
- 	pix->width = streaminfo->width;
-@@ -465,11 +468,13 @@ static int delta_g_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
- 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
-+	unsigned char str[100] = "";
- 
- 	if (!(ctx->flags & DELTA_FLAG_FRAMEINFO))
- 		dev_dbg(delta->dev,
--			"%s V4L2 GET_FMT (CAPTURE): no frame information available, using default\n",
--			ctx->name);
-+			"%s V4L2 GET_FMT (CAPTURE): no frame information available, default to %s\n",
-+			ctx->name,
-+			delta_frameinfo_str(frameinfo, str, sizeof(str)));
- 
- 	pix->pixelformat = frameinfo->pixelformat;
- 	pix->width = frameinfo->aligned_width;
-@@ -652,6 +657,7 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
- 	const struct delta_dec *dec = ctx->dec;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct delta_frameinfo frameinfo;
-+	unsigned char str[100] = "";
- 	struct vb2_queue *vq;
- 	int ret;
- 
-@@ -703,6 +709,10 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
- 
- 	ctx->flags |= DELTA_FLAG_FRAMEINFO;
- 	ctx->frameinfo = frameinfo;
-+	dev_dbg(delta->dev,
-+		"%s V4L2 SET_FMT (CAPTURE): frameinfo updated to %s\n",
-+		ctx->name,
-+		delta_frameinfo_str(&frameinfo, str, sizeof(str)));
- 
- 	pix->pixelformat = frameinfo.pixelformat;
- 	pix->width = frameinfo.aligned_width;
-@@ -1306,6 +1316,8 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
- 	struct vb2_v4l2_buffer *vbuf = NULL;
- 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
- 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
-+	unsigned char str1[100] = "";
-+	unsigned char str2[100] = "";
- 
- 	if ((ctx->state != DELTA_STATE_WF_FORMAT) &&
- 	    (ctx->state != DELTA_STATE_WF_STREAMINFO))
-@@ -1366,6 +1378,10 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
- 
- 	ctx->state = DELTA_STATE_READY;
- 
-+	dev_info(delta->dev, "%s %s => %s\n", ctx->name,
-+		 delta_streaminfo_str(streaminfo, str1, sizeof(str1)),
-+		 delta_frameinfo_str(frameinfo, str2, sizeof(str2)));
-+
- 	delta_au_done(ctx, au, ret);
- 	return 0;
- 
-@@ -1689,6 +1705,11 @@ static int delta_release(struct file *file)
- 	/* close decoder */
- 	call_dec_op(dec, close, ctx);
- 
-+	/* trace a summary of instance
-+	 * before closing (debug purpose)
-+	 */
-+	delta_trace_summary(ctx);
-+
- 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
- 
- 	v4l2_fh_del(&ctx->fh);
--- 
-1.9.1
+Thanks for point out this issue.
+As Hans' mentioned, our driver access index field in v4l2_buffer before
+framework check buffer index.
+We will prepare patch for this issue.
+
+
+best regards,
+Tiffany
+
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> >    537          vb2_v4l2 = container_of(vb, struct vb2_v4l2_buffer, vb2_buf);
+> >    538          mtkbuf = container_of(vb2_v4l2, struct mtk_video_dec_buf, vb);
+> >    539
+> >    540          if ((buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) &&
+> >    541              (buf->m.planes[0].bytesused == 0)) {
+> >    542                  mtkbuf->lastframe = true;
+> >    543                  mtk_v4l2_debug(1, "[%d] (%d) id=%d lastframe=%d (%d,%d, %d) vb=%p",
+> >    544                           ctx->id, buf->type, buf->index,
+> >    545                           mtkbuf->lastframe, buf->bytesused,
+> >    546                           buf->m.planes[0].bytesused, buf->length,
+> >    547                           vb);
+> >    548          }
+> >    549
+> >    550          return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+> >    551  }
+> >
+> > regards,
+> > dan carpenter
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+
 
