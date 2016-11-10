@@ -1,112 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:35667 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933402AbcKNK13 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:35062 "EHLO
+        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932267AbcKJKbl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 05:27:29 -0500
-Received: by mail-wm0-f50.google.com with SMTP id a197so89160558wmd.0
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 02:27:28 -0800 (PST)
-Subject: Re: [PATCH v3 5/9] media: venus: venc: add video encoder files
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-6-git-send-email-stanimir.varbanov@linaro.org>
- <5e918c07-c3fb-262a-5c9e-11014cdb0eb0@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <9e4549e5-4e24-8aaa-bf8a-549f7906c207@linaro.org>
-Date: Mon, 14 Nov 2016 12:27:25 +0200
-MIME-Version: 1.0
-In-Reply-To: <5e918c07-c3fb-262a-5c9e-11014cdb0eb0@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Thu, 10 Nov 2016 05:31:41 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH 4/4] s5p-mfc: Use clock gating only on MFC v5 hardware
+Date: Thu, 10 Nov 2016 11:31:23 +0100
+Message-id: <1478773883-12083-5-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1478773883-12083-1-git-send-email-m.szyprowski@samsung.com>
+References: <1478773883-12083-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20161110103136eucas1p2c55d1177fcc97c5dbf1bc650e88d72ce@eucas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Newer MFC hardware have internal clock gating feature, so additional
+software-triggered clock gating sometimes causes misbehavior of the MFC
+firmware and results in freeze or crash. This patch changes the driver
+to use software-triggered clock gating only when working with v5 MFC
+hardware, where it has been proven to work properly.
 
-Thanks for the comments!
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     | 17 +++++++++++++++--
+ 3 files changed, 18 insertions(+), 2 deletions(-)
 
-On 11/11/2016 01:43 PM, Hans Verkuil wrote:
-> The comments I made before about start_streaming and the use of struct venus_ctrl
-> apply here as well and I won't repeat them.
-> 
-> On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
->> This adds encoder part of the driver plus encoder controls.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/venus/venc.c       | 1212 ++++++++++++++++++++++++
->>  drivers/media/platform/qcom/venus/venc.h       |   32 +
->>  drivers/media/platform/qcom/venus/venc_ctrls.c |  396 ++++++++
->>  3 files changed, 1640 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/venus/venc.c
->>  create mode 100644 drivers/media/platform/qcom/venus/venc.h
->>  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
->>
->> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
->> new file mode 100644
->> index 000000000000..35572eaffb9e
->> --- /dev/null
->> +++ b/drivers/media/platform/qcom/venus/venc.c
-> 
-> <snip>
-> 
->> +static int
->> +venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
->> +{
->> +	struct venus_inst *inst = to_inst(file);
->> +
->> +	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
->> +		return -EINVAL;
->> +
->> +	switch (s->target) {
->> +	case V4L2_SEL_TGT_CROP:
->> +		if (s->r.width != inst->out_width ||
->> +		    s->r.height != inst->out_height ||
->> +		    s->r.top != 0 || s->r.left != 0)
->> +			return -EINVAL;
->> +		break;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +
->> +	return 0;
->> +}
-> 
-> Why implement s_selection if I can't change the selection?
-
-without s_selection the v4l2-compliance test starts failing with:
-
-fail: v4l2-test-formats.cpp(1319): doioctl(node, VIDIOC_S_SELECTION,
-&sel_crop) != EINVAL
-
-fail: v4l2-test-formats.cpp(1407): testBasicCrop(node,
-V4L2_BUF_TYPE_VIDEO_OUTPUT)
-
-> 
->> +
->> +static int
->> +venc_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
->> +{
->> +	struct vb2_queue *queue = to_vb2q(file, b->type);
->> +
->> +	if (!queue)
->> +		return -EINVAL;
->> +
->> +	return vb2_reqbufs(queue, b);
->> +}
-> 
-> Use the m2m helpers if at all possible.
-
-I've answered already to that in 4/9.
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 994a27b..7d39359 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1441,6 +1441,7 @@ static int s5p_mfc_runtime_resume(struct device *dev)
+ 	.buf_size	= &buf_size_v5,
+ 	.buf_align	= &mfc_buf_align_v5,
+ 	.fw_name[0]	= "s5p-mfc.fw",
++	.use_clock_gating = true,
+ };
+ 
+ static struct s5p_mfc_buf_size_v6 mfc_buf_size_v6 = {
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 46b99f2..c068ee3 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -199,6 +199,7 @@ struct s5p_mfc_buf {
+ struct s5p_mfc_pm {
+ 	struct clk	*clock;
+ 	struct clk	*clock_gate;
++	bool		use_clock_gating;
+ 	atomic_t	power;
+ 	struct device	*device;
+ };
+@@ -235,6 +236,7 @@ struct s5p_mfc_variant {
+ 	struct s5p_mfc_buf_size *buf_size;
+ 	struct s5p_mfc_buf_align *buf_align;
+ 	char	*fw_name[MFC_FW_MAX_VERSIONS];
++	bool		use_clock_gating;
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 930dc2d..b5806ab 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -37,6 +37,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+ 
+ 	pm = &dev->pm;
+ 	p_dev = dev;
++	pm->use_clock_gating = dev->variant->use_clock_gating;
+ 	pm->clock_gate = clk_get(&dev->plat_dev->dev, MFC_GATE_CLK_NAME);
+ 	if (IS_ERR(pm->clock_gate)) {
+ 		mfc_err("Failed to get clock-gating control\n");
+@@ -108,6 +109,8 @@ int s5p_mfc_clock_on(void)
+ 	atomic_inc(&clk_ref);
+ 	mfc_debug(3, "+ %d\n", atomic_read(&clk_ref));
+ #endif
++	if (!pm->use_clock_gating)
++		return 0;
+ 	if (!IS_ERR_OR_NULL(pm->clock_gate))
+ 		ret = clk_enable(pm->clock_gate);
+ 	return ret;
+@@ -119,22 +122,32 @@ void s5p_mfc_clock_off(void)
+ 	atomic_dec(&clk_ref);
+ 	mfc_debug(3, "- %d\n", atomic_read(&clk_ref));
+ #endif
++	if (!pm->use_clock_gating)
++		return;
+ 	if (!IS_ERR_OR_NULL(pm->clock_gate))
+ 		clk_disable(pm->clock_gate);
+ }
+ 
+ int s5p_mfc_power_on(void)
+ {
++	int ret = 0;
++
+ #ifdef CONFIG_PM
+-	return pm_runtime_get_sync(pm->device);
++	ret = pm_runtime_get_sync(pm->device);
++	if (ret)
++		return ret;
+ #else
+ 	atomic_set(&pm->power, 1);
+-	return 0;
+ #endif
++	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
++		ret = clk_enable(pm->clock_gate);
++	return ret;
+ }
+ 
+ int s5p_mfc_power_off(void)
+ {
++	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
++		clk_disable(pm->clock_gate);
+ #ifdef CONFIG_PM
+ 	return pm_runtime_put_sync(pm->device);
+ #else
 -- 
-regards,
-Stan
+1.9.1
+
