@@ -1,122 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42597 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751226AbcKIEkF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 23:40:05 -0500
-Message-ID: <a04766b1681b2df2bd0164005ad59e12@smtp-cloud2.xs4all.net>
-Date: Wed, 09 Nov 2016 05:40:01 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mail-it0-f45.google.com ([209.85.214.45]:37414 "EHLO
+        mail-it0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752429AbcKJBDx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 20:03:53 -0500
+Received: by mail-it0-f45.google.com with SMTP id u205so2749665itc.0
+        for <linux-media@vger.kernel.org>; Wed, 09 Nov 2016 17:03:53 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20161109153521.232b0956@vento.lan>
+References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
+ <20161108155520.224229d5@vento.lan> <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
+ <20161109073331.204b53c4@vento.lan> <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
+ <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com> <20161109153521.232b0956@vento.lan>
+From: VDR User <user.vdr@gmail.com>
+Date: Wed, 9 Nov 2016 17:03:52 -0800
+Message-ID: <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
+Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+>> (gdb) l *module_put+0x67
+>> 0xc10a4b87 is in module_put (kernel/module.c:1108).
+>> 1103            int ret;
+>> 1104
+>> 1105            if (module) {
+>> 1106                    preempt_disable();
+>> 1107                    ret = atomic_dec_if_positive(&module->refcnt);
+>> 1108                    WARN_ON(ret < 0);       /* Failed to put refcount */
+>> 1109                    trace_module_put(module, _RET_IP_);
+>> 1110                    preempt_enable();
+>> 1111            }
+>> 1112    }
+>
+> OK, I guess we've made progress. Please try the enclosed patch.
+>
+> Regards,
+> Mauro
+>
+> [media] gp8psk: Fix DVB frontend attach
+>
+> it should be calling module_get() at attach, as otherwise
+> module_put() will crash.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Results of the daily build of media_tree:
-
-date:			Wed Nov  9 05:00:18 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+I think you forgot the patch. :)
