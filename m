@@ -1,114 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:2971 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751223AbcKBGYd (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:43791 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932825AbcKJNau (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Nov 2016 02:24:33 -0400
-Date: Wed, 2 Nov 2016 07:24:29 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Nadim Almas <nadim.902@gmail.com>
-cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Staging:media:davinci_vpfe: used devm_kzalloc in place
- of kzalloc
-In-Reply-To: <20161102061300.GA4157@gmail.com>
-Message-ID: <alpine.DEB.2.20.1611020720250.2081@hadrien>
-References: <20161102061300.GA4157@gmail.com>
+        Thu, 10 Nov 2016 08:30:50 -0500
+Date: Thu, 10 Nov 2016 16:30:04 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: tiffany.lin@mediatek.com, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+Subject: Re: [bug report] [media] vcodec: mediatek: Add Mediatek V4L2 Video
+ Decoder Driver
+Message-ID: <20161110120028.GG28558@mwanda>
+References: <20161109132820.GA26677@mwanda>
+ <9794dab1-94ba-c384-85c5-edb8831810ff@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <9794dab1-94ba-c384-85c5-edb8831810ff@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Nov 09, 2016 at 02:45:21PM +0100, Hans Verkuil wrote:
+> On 11/09/16 14:28, Dan Carpenter wrote:
+> >Hello Tiffany Lin,
+> >
+> >The patch 590577a4e525: "[media] vcodec: mediatek: Add Mediatek V4L2
+> >Video Decoder Driver" from Sep 2, 2016, leads to the following static
+> >checker warning:
+> >
+> >	drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c:536 vidioc_vdec_qbuf()
+> >	error: buffer overflow 'vq->bufs' 32 <= u32max
+> >
+> >drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+> >   520  static int vidioc_vdec_qbuf(struct file *file, void *priv,
+> >   521                              struct v4l2_buffer *buf)
+> >   522  {
+> >   523          struct mtk_vcodec_ctx *ctx = fh_to_ctx(priv);
+> >   524          struct vb2_queue *vq;
+> >   525          struct vb2_buffer *vb;
+> >   526          struct mtk_video_dec_buf *mtkbuf;
+> >   527          struct vb2_v4l2_buffer  *vb2_v4l2;
+> >   528
+> >   529          if (ctx->state == MTK_STATE_ABORT) {
+> >   530                  mtk_v4l2_err("[%d] Call on QBUF after unrecoverable error",
+> >   531                                  ctx->id);
+> >   532                  return -EIO;
+> >   533          }
+> >   534
+> >   535          vq = v4l2_m2m_get_vq(ctx->m2m_ctx, buf->type);
+> >   536          vb = vq->bufs[buf->index];
+> >
+> >Smatch thinks that "buf->index" comes straight from the user without
+> >being checked and that this is a buffer overflow.  It seems simple
+> >enough to analyse the call tree.
+> >
+> >__video_do_ioctl()
+> >->  v4l_qbuf()
+> >  -> vidioc_vdec_qbuf()
+> >
+> >It seems like Smatch is correct.  I looked at a different implementation
+> >of this and that one wasn't checked either so maybe there is something
+> >I am not seeing.
+> >
+> >This has obvious security implications.  Can someone take a look at
+> >this?
+> 
+> This is indeed wrong.
+> 
+> The v4l2_m2m_qbuf() call at the end of this function calls in turn
+> vb2_qbuf which
+> will check the index.
 
+There could be an issue before you reach v4l2_m2m_qbuf() because we
+set "mtkbuf->lastframe = true;" so we could be corrupting random
+memory.
 
-On Wed, 2 Nov 2016, Nadim Almas wrote:
+I re-reviewed the other function I looked at earlier and that one was OK
+though.
 
-> Switch to resource-managed function devm_kzalloc instead
-> of kzolloc and remove unneeded kzfree
->
-> Also, remove kzfree in probe function and  remove
-> function,vpfe_remove as it is now has nothing to do.
-> The Coccinelle semantic patch used to make this change is as follows:
-> /<smpl>
-> @platform@
-> identifier p, probefn, removefn;
-> @@
-> struct platform_driver p = {
-> .probe = probefn,
-> .remove = removefn,
-> };
->
-> @prb@
-> identifier platform.probefn, pdev;
-> expression e, e1, e2;
-> @@
-> probefn(struct platform_device *pdev, ...) {
-> <+...
-> - e = kzalloc(e1, e2)
-> + e = devm_kzalloc(&pdev->dev, e1, e2)
-> ...
-> ?-kzfree(e);
-> ...+>
-> }
-> @rem depends on prb@
-> identifier platform.removefn;
-> expression prb.e;
-> @@
-> removefn(...) {
-> <...
-> - kzfree(e);
-> ...>
-> }
-> //</smpl>
->
-> Signed-off-by: Nadim Almas <nadim.902@gmail.com>
-> ---
->  drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> index bf077f8..cd44f0f 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> @@ -579,7 +579,7 @@ static int vpfe_probe(struct platform_device *pdev)
->  	struct resource *res1;
->  	int ret = -ENOMEM;
->
-> -	vpfe_dev = kzalloc(sizeof(*vpfe_dev), GFP_KERNEL);
-> +	vpfe_dev = devm_kzalloc(&pdev->dev, sizeof(*vpfe_dev), GFP_KERNEL);
->  	if (!vpfe_dev)
->  		return ret;
->
-> @@ -681,7 +681,6 @@ static int vpfe_probe(struct platform_device *pdev)
->  probe_disable_clock:
->  	vpfe_disable_clock(vpfe_dev);
->  probe_free_dev_mem:
-> -	kzfree(vpfe_dev);
+regards,
+dan carpenter
 
-Kzfree zeroes the data before freeing it.  Devm_kzalloc only causes a
-kfree to happen, not a kzfree.  If the kzfree is needed, then a memset 0
-would need to replace the calls to kzfree.
-
-There are some other minor issues with the patch.  In the subject line,
-there is normally a space after each :.  There is a spelling mistake in
-the commit message.  In the commit message there should be one space
-betwee words within a sentence, and there should be a space after a comma,
-or other puctuation.
-
-julia
-
->
->  	return ret;
->  }
-> @@ -702,7 +701,6 @@ static int vpfe_remove(struct platform_device *pdev)
->  	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
->  	media_device_unregister(&vpfe_dev->media_dev);
->  	vpfe_disable_clock(vpfe_dev);
-> -	kzfree(vpfe_dev);
->
->  	return 0;
->  }
-> --
-> 2.7.4
->
->
