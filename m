@@ -1,156 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33424 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965808AbcKLNNp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:45 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 14/32] media: rcar-vin: move chip information to own struct
-Date: Sat, 12 Nov 2016 14:11:58 +0100
-Message-Id: <20161112131216.22635-15-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from gofer.mess.org ([80.229.237.210]:54955 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933391AbcKJOYi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 09:24:38 -0500
+Date: Thu, 10 Nov 2016 14:24:32 +0000
+From: Sean Young <sean@mess.org>
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] [media] serial_ir: port lirc_serial to rc-core
+Message-ID: <20161110142432.GA7376@gofer.mess.org>
+References: <1478108285-12046-1-git-send-email-sean@mess.org>
+ <201611030352.kXJ0FvOv%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201611030352.kXJ0FvOv%fengguang.wu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When Gen3 support is added to the driver more then chip id will be
-different for the different Soc. To avoid a lot of if statements in the
-code create a struct chip_info to contain this information.
+On Thu, Nov 03, 2016 at 03:39:31AM +0800, kbuild test robot wrote:
+> Hi Sean,
+> 
+> [auto build test WARNING on linuxtv-media/master]
+> [also build test WARNING on v4.9-rc3 next-20161028]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> [Suggest to use git(>=2.9.0) format-patch --base=<commit> (or --base=auto for convenience) to record what (public, well-known) commit your patch series was built on]
+> [Check https://git-scm.com/docs/git-format-patch for more information]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Sean-Young/serial_ir-port-lirc_serial-to-rc-core/20161103-014155
+> base:   git://linuxtv.org/media_tree.git master
+> config: parisc-allyesconfig (attached as .config)
+> compiler: hppa-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
+> reproduce:
+>         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=parisc 
+> 
+> All warnings (new ones prefixed by >>):
+> 
+>    drivers/media/rc/serial_ir.c: In function 'serial_ir_irq_handler':
+> >> drivers/media/rc/serial_ir.c:592:1: warning: the frame size of 1196 bytes is larger than 1024 bytes [-Wframe-larger-than=]
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
- 3 files changed, 53 insertions(+), 11 deletions(-)
+Since ktime_t is in nanoseconds, ktime_to_us() does a 64 bit division by 1000
+which quite some instructions/stack space on 32 bit parisc. Since the 
+ktime_to_us() is just for a printk() it can simply report in nanoseconds
+(so use ktime_to_ns() instead). The resulting machine code on parisc 32 bit
+is much shorter and the warning goes away.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 5807d8d..c80bbbc 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -253,14 +253,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Platform Device Driver
-  */
- 
-+static const struct rvin_info rcar_info_h1 = {
-+	.chip = RCAR_H1,
-+};
-+
-+static const struct rvin_info rcar_info_m1 = {
-+	.chip = RCAR_M1,
-+};
-+
-+static const struct rvin_info rcar_info_gen2 = {
-+	.chip = RCAR_GEN2,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
--	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
--	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
-+	{
-+		.compatible = "renesas,vin-r8a7794",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7793",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7791",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7790",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7779",
-+		.data = &rcar_info_h1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7778",
-+		.data = &rcar_info_m1,
-+	},
-+	{
-+		.compatible = "renesas,rcar-gen2-vin",
-+		.data = &rcar_info_gen2,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
-@@ -281,7 +314,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 
- 	vin->dev = &pdev->dev;
--	vin->chip = (enum chip_id)match->data;
-+	vin->info = match->data;
- 	vin->last_input = NULL;
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 47137d7..05b0181 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -279,7 +279,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
--	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+	if (vin->info->chip == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
- 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 2a1b190..17a5fce 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -89,10 +89,18 @@ struct rvin_graph_entity {
- };
- 
- /**
-+ * struct rvin_info- Information about the particular VIN implementation
-+ * @chip:		type of VIN chip
-+ */
-+struct rvin_info {
-+	enum chip_id chip;
-+};
-+
-+/**
-  * struct rvin_dev - Renesas VIN device structure
-  * @dev:		(OF) device
-  * @base:		device I/O register space remapped to virtual memory
-- * @chip:		type of VIN chip
-+ * @info		info about VIN instance
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-@@ -121,7 +129,7 @@ struct rvin_graph_entity {
- struct rvin_dev {
- 	struct device *dev;
- 	void __iomem *base;
--	enum chip_id chip;
-+	const struct rvin_info *info;
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
--- 
-2.10.2
+I'll send out a new version of this patch shortly. Please ignore this
+version.
 
+Thanks,
+
+Sean
