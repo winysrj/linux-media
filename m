@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Dan Williams <dan.j.williams@intel.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
- <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
- <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
- <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
- <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Message-ID: <7ce9026f-871e-d50a-20cf-19f7e2d90649@linux.intel.com>
-Date: Wed, 23 Nov 2016 09:03:33 -0800
-MIME-Version: 1.0
-In-Reply-To: <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:32062 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752107AbcKJHqn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 02:46:43 -0500
+Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
+ ir-spi device driver
+To: Rob Herring <robh@kernel.org>
+Cc: Andi Shyti <andi.shyti@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Message-id: <13210179-ea3f-6106-e3c0-fa30b83e23cc@samsung.com>
+Date: Thu, 10 Nov 2016 08:46:35 +0100
+MIME-version: 1.0
+In-reply-to: <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
+References: <20161102104010.26959-1-andi.shyti@samsung.com>
+ <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
+ <20161102104010.26959-6-andi.shyti@samsung.com>
+ <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
+ <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
+ <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
+ <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/22/2016 11:49 PM, Daniel Vetter wrote:
-> Yes, agreed. My idea with exposing vram sections using numa nodes wasn't
-> to reuse all the existing allocation policies directly, those won't work.
-> So at boot-up your default numa policy would exclude any vram nodes.
-> 
-> But I think (as an -mm layman) that numa gives us a lot of the tools and
-> policy interface that we need to implement what we want for gpus.
+On 11/09/2016 07:26 PM, Rob Herring wrote:
+> On Thu, Nov 03, 2016 at 11:39:21AM +0100, Jacek Anaszewski wrote:
+>> On 11/03/2016 11:10 AM, Andi Shyti wrote:
+>>> Hi Jacek,
+>>>
+>>>> Only DT bindings of LED class drivers should be placed in
+>>>> Documentation/devicetree/bindings/leds. Please move it to the
+>>>> media bindings.
+>>>
+>>> that's where I placed it first, but Rob asked me to put it in the
+>>> LED directory and Cc the LED mailining list.
+>>>
+>>> That's the discussion of the version 2:
+>>>
+>>> https://lkml.org/lkml/2016/9/12/380
+>>>
+>>> Rob, Jacek, could you please agree where I can put the binding?
+>>
+>> I'm not sure if this is a good approach. I've noticed also that
+>> backlight bindings have been moved to leds, whereas they don't look
+>> similarly.
+>>
+>> We have common.txt LED bindings, that all LED class drivers' bindings
+>> have to follow. Neither backlight bindings nor these ones do that,
+>> which introduces some mess.
+>
+> And there are probably LED bindings that don't follow common.txt either.
+>
+>> Eventually adding a sub-directory, e.g. remote_control could make it
+>> somehow logically justified, but still - shouldn't bindings be
+>> placed in the documentation directory related to the subsystem of the
+>> driver they are predestined to?
+>
+> No. While binding directories often mirror the driver directories, they
+> are not the same. Bindings are grouped by types of h/w and IR LEDs are a
+> type of LED.
+>
+> If you prefer a sub-dir, that is fine with me.
 
-Are you suggesting creating NUMA nodes for video RAM (I assume that's
-what you mean by vram) where that RAM is not at all CPU-accessible?
+Fine. So how about sub-dir "ir" ?
+
+-- 
+Best regards,
+Jacek Anaszewski
