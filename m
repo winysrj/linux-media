@@ -1,93 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62738 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932780AbcKILQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Nov 2016 06:16:59 -0500
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Markus Heiser <markus.heiser@darmarit.de>,
-        Josh Triplett <josh@joshtriplett.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        ksummit-discuss@lists.linuxfoundation.org,
-        linux-doc@vger.kernel.org
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-In-Reply-To: <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de>
-References: <20161107075524.49d83697@vento.lan> <20161107170133.4jdeuqydthbbchaq@x> <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de>
-Date: Wed, 09 Nov 2016 13:16:55 +0200
-Message-ID: <8737j0hpi0.fsf@intel.com>
+Received: from mail-it0-f66.google.com ([209.85.214.66]:32841 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755136AbcKJLPl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 06:15:41 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20161110064047.1e0a6b4b@vento.lan>
+References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
+ <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
+ <20161108182215.41f1f3d2@vento.lan> <CADDKRnD_+uhQc7GyK3FfnDSRUkL5WkZNV7F+TsEhhDdo6O=Vmw@mail.gmail.com>
+ <CA+55aFwsYHbXFimTL137Zwbc0bhOmR+XzDnUBmM=Pgn+8xBnWw@mail.gmail.com> <20161110064047.1e0a6b4b@vento.lan>
+From: =?UTF-8?Q?J=C3=B6rg_Otte?= <jrg.otte@gmail.com>
+Date: Thu, 10 Nov 2016 12:15:39 +0100
+Message-ID: <CADDKRnCfHL6P=g87+04XimCUvPcD2GQgGmrQwm4Mq_OjvLD5rA@mail.gmail.com>
+Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 09 Nov 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
-> Am 07.11.2016 um 18:01 schrieb Josh Triplett <josh@joshtriplett.org>:
+2016-11-10 9:40 GMT+01:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> Em Wed, 9 Nov 2016 11:07:35 -0800
+> Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 >
->> On Mon, Nov 07, 2016 at 07:55:24AM -0200, Mauro Carvalho Chehab wrote:
->>> 2) add an Sphinx extension that would internally call ImageMagick and/or
->>>  inkscape to convert the bitmap;
->> 
->> This seems sensible; Sphinx should directly handle the source format we
->> want to use for images/diagrams.
->> 
->>> 3) if possible, add an extension to trick Sphinx for it to consider the 
->>>  output dir as a source dir too.
->> 
->> Or to provide an additional source path and point that at the output
->> directory.
+>> On Wed, Nov 9, 2016 at 3:09 AM, J=C3=B6rg Otte <jrg.otte@gmail.com> wrot=
+e:
+>> >
+>> > Tried patch with no success. Again a NULL ptr dereferece.
+>>
+>> That patch was pure garbage, I think. Pretty much all the other
+>> drivers that use the same approach will have the same issue. Adding
+>> that init function just for the semaphore is crazy.
+>>
+>> I suspect a much simpler approach is to just miove the "data_mutex"
+>> away from the priv area and into "struct dvb_usb_device" and
+>> "dvb_usb_adapter". Sure, that grows those structures a tiny bit, and
+>> not every driver may need that mutex, but it simplifies things
+>> enormously. Mauro?
+>>
+>>              Linus
 >
-> The sphinx-build command excepts only one 'sourcedir' argument. All
-> reST files in this folder (and below) are parsed.
 >
-> Most (all?) directives which include content like images or literalinclude
-> except only relative pathnames. Where *relative* means, relative to the
-> reST file where the directive is used. For security reasons relative 
-> pathnames outside 'sourcepath' are not excepted.
+> [PATCH] cinergyT2-core: move data_mutex to struct dvb_usb_device
 >
-> So I vote for :
+> The data_mutex is initialized too late, as it is needed for
+> the device's power control, causing an OOPS:
 >
->> 1) copy (or symlink) all rst files to Documentation/output (or to the
->>  build dir specified via O= directive) and generate the *.pdf there,
->>  and produce those converted images via Makefile.;
+> dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm =
+state.
+> BUG: unable to handle kernel NULL pointer dereference at           (null)
+> IP: [<ffffffff846617af>] __mutex_lock_slowpath+0x6f/0x100 PGD 0
+> Oops: 0002 [#1] SMP
+> Modules linked in: dvb_usb_cinergyT2(+) dvb_usb
+> CPU: 0 PID: 2029 Comm: modprobe Not tainted 4.9.0-rc4-dvbmod #24
+> Hardware name: FUJITSU LIFEBOOK A544/FJNBB35 , BIOS Version 1.17 05/09/20=
+14
+> task: ffff88020e943840 task.stack: ffff8801f36ec000
+> RIP: 0010:[<ffffffff846617af>]  [<ffffffff846617af>] __mutex_lock_slowpat=
+h+0x6f/0x100
+> RSP: 0018:ffff8801f36efb10  EFLAGS: 00010282
+> RAX: 0000000000000000 RBX: ffff88021509bdc8 RCX: 00000000c0000100
+> RDX: 0000000000000001 RSI: 0000000000000000 RDI: ffff88021509bdcc
+> RBP: ffff8801f36efb58 R08: ffff88021f216320 R09: 0000000000100000
+> R10: ffff88021f216320 R11: 00000023fee6c5a1 R12: ffff88020e943840
+> R13: ffff88021509bdcc R14: 00000000ffffffff R15: ffff88021509bdd0
+> FS:  00007f21adb86740(0000) GS:ffff88021f200000(0000) knlGS:0000000000000=
+000
+> CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> CR2: 0000000000000000 CR3: 0000000215bce000 CR4: 00000000001406f0
+> Stack:
+>  ffff88021509bdd0 0000000000000000 0000000000000000 ffffffffc0137c80
+>  ffff88021509bdc8 ffff8801f5944000 0000000000000001 ffffffffc0136b00
+>  ffff880213e52000 ffff88021509bdc8 ffffffff84661856 ffff88021509bd80
+> Call Trace:
+>  [<ffffffff84661856>] ? mutex_lock+0x16/0x25
+>  [<ffffffffc013616f>] ? cinergyt2_power_ctrl+0x1f/0x60 [dvb_usb_cinergyT2=
+]
+>  [<ffffffffc012e67e>] ? dvb_usb_device_init+0x21e/0x5d0 [dvb_usb]
+>  [<ffffffffc0136021>] ? cinergyt2_usb_probe+0x21/0x50 [dvb_usb_cinergyT2]
+>  [<ffffffff844326f3>] ? usb_probe_interface+0xf3/0x2a0
+>  [<ffffffff8438e348>] ? driver_probe_device+0x208/0x2b0
+>  [<ffffffff8438e477>] ? __driver_attach+0x87/0x90
+>  [<ffffffff8438e3f0>] ? driver_probe_device+0x2b0/0x2b0
+>  [<ffffffff8438c612>] ? bus_for_each_dev+0x52/0x80
+>  [<ffffffff8438d983>] ? bus_add_driver+0x1a3/0x220
+>  [<ffffffff8438ec06>] ? driver_register+0x56/0xd0
+>  [<ffffffff84431527>] ? usb_register_driver+0x77/0x130
+>  [<ffffffffc013a000>] ? 0xffffffffc013a000
+>  [<ffffffff84000426>] ? do_one_initcall+0x46/0x180
+>  [<ffffffff840eb2c8>] ? free_vmap_area_noflush+0x38/0x70
+>  [<ffffffff840f3844>] ? kmem_cache_alloc+0x84/0xc0
+>  [<ffffffff840b802c>] ? do_init_module+0x50/0x1be
+>  [<ffffffff84095adb>] ? load_module+0x1d8b/0x2100
+>  [<ffffffff84093020>] ? find_symbol_in_section+0xa0/0xa0
+>  [<ffffffff84095fe9>] ? SyS_finit_module+0x89/0x90
+>  [<ffffffff846637a0>] ? entry_SYSCALL_64_fastpath+0x13/0x94
+> Code: e8 a7 1d 00 00 8b 03 83 f8 01 0f 84 97 00 00 00 48 8b 43 10 4c 8d 7=
+b 08 48 89 63 10 4c 89 3c 24 41 be ff ff ff ff 48 89 44 24 08 <48> 89 20 4c=
+ 89 64 24 10 eb 1a 49 c7 44 24 08 02 00 00 00 c6 43 RIP  [<ffffffff846617af=
+>] __mutex_lock_slowpath+0x6f/0x100 RSP <ffff8801f36efb10>
+> CR2: 0000000000000000
+>
+> So, move it to the struct dvb_usb_device and initialize it
+> before calling the driver's callbacks.
+>
+> Reported-by: J=C3=B6rg Otte <jrg.otte@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+>
+> diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/u=
+sb/dvb-usb/cinergyT2-core.c
+> index 8ac825413d5a..87e3bd33900d 100644
+> --- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
+> +++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+> @@ -42,7 +42,6 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>  struct cinergyt2_state {
+>         u8 rc_counter;
+>         unsigned char data[64];
+> -       struct mutex data_mutex;
+>  };
+>
+>  /* We are missing a release hook with usb_device data */
+> @@ -56,12 +55,12 @@ static int cinergyt2_streaming_ctrl(struct dvb_usb_ad=
+apter *adap, int enable)
+>         struct cinergyt2_state *st =3D d->priv;
+>         int ret;
+>
+> -       mutex_lock(&st->data_mutex);
+> +       mutex_lock(&d->data_mutex);
+>         st->data[0] =3D CINERGYT2_EP1_CONTROL_STREAM_TRANSFER;
+>         st->data[1] =3D enable ? 1 : 0;
+>
+>         ret =3D dvb_usb_generic_rw(d, st->data, 2, st->data, 64, 0);
+> -       mutex_unlock(&st->data_mutex);
+> +       mutex_unlock(&d->data_mutex);
+>
+>         return ret;
+>  }
+> @@ -71,12 +70,12 @@ static int cinergyt2_power_ctrl(struct dvb_usb_device=
+ *d, int enable)
+>         struct cinergyt2_state *st =3D d->priv;
+>         int ret;
+>
+> -       mutex_lock(&st->data_mutex);
+> +       mutex_lock(&d->data_mutex);
+>         st->data[0] =3D CINERGYT2_EP1_SLEEP_MODE;
+>         st->data[1] =3D enable ? 0 : 1;
+>
+>         ret =3D dvb_usb_generic_rw(d, st->data, 2, st->data, 3, 0);
+> -       mutex_unlock(&st->data_mutex);
+> +       mutex_unlock(&d->data_mutex);
+>
+>         return ret;
+>  }
+> @@ -89,7 +88,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_ada=
+pter *adap)
+>
+>         adap->fe_adap[0].fe =3D cinergyt2_fe_attach(adap->dev);
+>
+> -       mutex_lock(&st->data_mutex);
+> +       mutex_lock(&d->data_mutex);
+>         st->data[0] =3D CINERGYT2_EP1_GET_FIRMWARE_VERSION;
+>
+>         ret =3D dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
+> @@ -97,7 +96,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_ada=
+pter *adap)
+>                 deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
+>                         "state info\n");
+>         }
+> -       mutex_unlock(&st->data_mutex);
+> +       mutex_unlock(&d->data_mutex);
+>
+>         /* Copy this pointer as we are gonna need it in the release phase=
+ */
+>         cinergyt2_usb_device =3D adap->dev;
+> @@ -166,7 +165,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *=
+d, u32 *event, int *state)
+>
+>         *state =3D REMOTE_NO_KEY_PRESSED;
+>
+> -       mutex_lock(&st->data_mutex);
+> +       mutex_lock(&d->data_mutex);
+>         st->data[0] =3D CINERGYT2_EP1_GET_RC_EVENTS;
+>
+>         ret =3D dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
+> @@ -202,7 +201,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *=
+d, u32 *event, int *state)
+>         }
+>
+>  ret:
+> -       mutex_unlock(&st->data_mutex);
+> +       mutex_unlock(&d->data_mutex);
+>         return ret;
+>  }
+>
+> @@ -210,7 +209,6 @@ static int cinergyt2_usb_probe(struct usb_interface *=
+intf,
+>                                 const struct usb_device_id *id)
+>  {
+>         struct dvb_usb_device *d;
+> -       struct cinergyt2_state *st;
+>         int ret;
+>
+>         ret =3D dvb_usb_device_init(intf, &cinergyt2_properties,
+> @@ -218,9 +216,6 @@ static int cinergyt2_usb_probe(struct usb_interface *=
+intf,
+>         if (ret < 0)
+>                 return ret;
+>
+> -       st =3D d->priv;
+> -       mutex_init(&st->data_mutex);
+> -
+>         return 0;
+>  }
+>
+> diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb=
+/dvb-usb/dvb-usb-init.c
+> index 3896ba9a4179..84308569e7dc 100644
+> --- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
+> +++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+> @@ -142,6 +142,7 @@ static int dvb_usb_init(struct dvb_usb_device *d, sho=
+rt *adapter_nums)
+>  {
+>         int ret =3D 0;
+>
+> +       mutex_init(&d->data_mutex);
+>         mutex_init(&d->usb_mutex);
+>         mutex_init(&d->i2c_mutex);
+>
+> diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-=
+usb/dvb-usb.h
+> index 1448c3d27ea2..12b71acee550 100644
+> --- a/drivers/media/usb/dvb-usb/dvb-usb.h
+> +++ b/drivers/media/usb/dvb-usb/dvb-usb.h
+> @@ -404,6 +404,7 @@ struct dvb_usb_adapter {
+>   *  Powered is in/decremented for each call to modify the state.
+>   * @udev: pointer to the device's struct usb_device.
+>   *
+> + * @data_mutex: mutex to protect the data structure used to store URB da=
+ta
+>   * @usb_mutex: semaphore of USB control messages (reading needs two mess=
+ages)
+>   * @i2c_mutex: semaphore for i2c-transfers
+>   *
+> @@ -433,6 +434,7 @@ struct dvb_usb_device {
+>         int powered;
+>
+>         /* locking */
+> +       struct mutex data_mutex;
+>         struct mutex usb_mutex;
+>
+>         /* i2c */
+>
+>
 
-We're supposed to solve problems, not create new ones.
 
-> Placing reST files together with the *autogenerated* (intermediate) 
-> content from
->
-> * image conversions,
-> * reST content build from MAINTAINERS,
-> * reST content build for ABI
-> * etc.
->
-> has the nice side effect, that we can get rid of all theses BUILDDIR
-> quirks in the Makefile.sphinx
->
-> Additional, we can write Makefile targets to build the above listed
-> intermediate content relative to the $PWD, which is what Linux's
-> Makefiles usual do (instead of quirking with a BUILDDIR).
->
-> E.g. with, we can also get rid of the 'kernel-include' directive 
-> and replace it, with Sphinx's common 'literaliclude' and we do not
-> need any extensions to include intermediate PDFs or whatever
-> intermediate content we might want to generate. 
+The patch works for me.
 
-Well, kernel-include is a hack to make parse-headers.pl work, which is
-also a hack that IMHO shouldn't exist...
-
-> IMO placing 'sourcedir' to O= is more sane since this marries the
-> Linux Makefile concept (relative to $PWD) with the sphinx concept
-> (in or below 'sourcedir').
->
->
-> -- Markus --
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+Thanks, J=C3=B6rg
