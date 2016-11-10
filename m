@@ -1,70 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:59647 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752778AbcKSO5H (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:41131 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752429AbcKJEk4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 09:57:07 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jarod Wilson <jarod@redhat.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/3] [media] dvb_net: simplify the logic that fills the ethernet address
-Date: Sat, 19 Nov 2016 12:57:00 -0200
-Message-Id: <e067a0ee1e8872983c02170351a6f1c93beaeb8e.1479567006.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479567006.git.mchehab@s-opensource.com>
-References: <20161027150848.3623829-1-arnd@arndb.de>
- <cover.1479567006.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479567006.git.mchehab@s-opensource.com>
-References: <cover.1479567006.git.mchehab@s-opensource.com>
+        Wed, 9 Nov 2016 23:40:56 -0500
+Message-ID: <730da2a4758023cfe41e8e356aaaea36@smtp-cloud6.xs4all.net>
+Date: Thu, 10 Nov 2016 05:40:53 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_net.c | 14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index bd833b0824c6..10478ac99ffb 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -660,12 +660,13 @@ static int dvb_net_ule_should_drop(struct dvb_net_ule_handle *h)
- 	return 0;
- }
- 
--
- static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h,
- 				  u32 ule_crc, u32 expected_crc)
- {
- 	u8 dest_addr[ETH_ALEN];
- 
-+	eth_zero_addr(dest_addr);
-+
- 	if (ule_crc != expected_crc) {
- 		pr_warn("%lu: CRC32 check FAILED: %08x / %08x, SNDU len %d type %#x, ts_remain %d, next 2: %x.\n",
- 			h->priv->ts_count, ule_crc, expected_crc,
-@@ -750,15 +751,8 @@ static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h,
- 	if (!h->priv->ule_bridged) {
- 		skb_push(h->priv->ule_skb, ETH_HLEN);
- 		h->ethh = (struct ethhdr *)h->priv->ule_skb->data;
--		if (!h->priv->ule_dbit) {
--			/*
--			 * dest_addr buffer is only valid if
--			 * h->priv->ule_dbit == 0
--			 */
--			memcpy(h->ethh->h_dest, dest_addr, ETH_ALEN);
--			eth_zero_addr(h->ethh->h_source);
--		} else /* zeroize source and dest */
--			memset(h->ethh, 0, ETH_ALEN * 2);
-+		memcpy(h->ethh->h_dest, dest_addr, ETH_ALEN);
-+		eth_zero_addr(h->ethh->h_source);
- 
- 		h->ethh->h_proto = htons(h->priv->ule_sndu_type);
- 	}
--- 
-2.7.4
+Results of the daily build of media_tree:
 
+date:			Thu Nov 10 05:00:15 CET 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	3e34e5f92881aa379635763ead549abd84480628
+v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
