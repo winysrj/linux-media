@@ -1,121 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Dan Williams <dan.j.williams@intel.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
- <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
- <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
- <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
- <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
-Message-ID: <2a8a6582-f3de-5cda-0c6e-1c93774147e0@amd.com>
-Date: Wed, 23 Nov 2016 09:51:14 +0100
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45125
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752287AbcKJIky (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 03:40:54 -0500
+Date: Thu, 10 Nov 2016 06:40:47 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
+Message-ID: <20161110064047.1e0a6b4b@vento.lan>
+In-Reply-To: <CA+55aFwsYHbXFimTL137Zwbc0bhOmR+XzDnUBmM=Pgn+8xBnWw@mail.gmail.com>
+References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
+        <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
+        <20161108182215.41f1f3d2@vento.lan>
+        <CADDKRnD_+uhQc7GyK3FfnDSRUkL5WkZNV7F+TsEhhDdo6O=Vmw@mail.gmail.com>
+        <CA+55aFwsYHbXFimTL137Zwbc0bhOmR+XzDnUBmM=Pgn+8xBnWw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 23.11.2016 um 08:49 schrieb Daniel Vetter:
-> On Tue, Nov 22, 2016 at 01:21:03PM -0800, Dan Williams wrote:
->> On Tue, Nov 22, 2016 at 1:03 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
->>> On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
->>> <serguei.sagalovitch@amd.com> wrote:
->>>> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
->>>>> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com>
->>>>> wrote:
->>>>>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
->>>>>> <serguei.sagalovitch@amd.com> wrote:
->>>>>>> I personally like "device-DAX" idea but my concerns are:
->>>>>>>
->>>>>>> -  How well it will co-exists with the  DRM infrastructure /
->>>>>>> implementations
->>>>>>>      in part dealing with CPU pointers?
->>>>>> Inside the kernel a device-DAX range is "just memory" in the sense
->>>>>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
->>>>>> not migratable. To be honest I do not know how well that co-exists
->>>>>> with drm infrastructure.
->>>>>>
->>>>>>> -  How well we will be able to handle case when we need to
->>>>>>> "move"/"evict"
->>>>>>>      memory/data to the new location so CPU pointer should point to the
->>>>>>> new
->>>>>>> physical location/address
->>>>>>>       (and may be not in PCI device memory at all)?
->>>>>> So, device-DAX deliberately avoids support for in-kernel migration or
->>>>>> overcommit. Those cases are left to the core mm or drm. The device-dax
->>>>>> interface is for cases where all that is needed is a direct-mapping to
->>>>>> a statically-allocated physical-address range be it persistent memory
->>>>>> or some other special reserved memory range.
->>>>> For some of the fancy use-cases (e.g. to be comparable to what HMM can
->>>>> pull off) I think we want all the magic in core mm, i.e. migration and
->>>>> overcommit. At least that seems to be the very strong drive in all
->>>>> general-purpose gpu abstractions and implementations, where memory is
->>>>> allocated with malloc, and then mapped/moved into vram/gpu address
->>>>> space through some magic,
->>>> It is possible that there is other way around: memory is requested to be
->>>> allocated and should be kept in vram for  performance reason but due
->>>> to possible overcommit case we need at least temporally to "move" such
->>>> allocation to system memory.
->>> With migration I meant migrating both ways of course. And with stuff
->>> like numactl we can also influence where exactly the malloc'ed memory
->>> is allocated originally, at least if we'd expose the vram range as a
->>> very special numa node that happens to be far away and not hold any
->>> cpu cores.
->> I don't think we should be using numa distance to reverse engineer a
->> certain allocation behavior.  The latency data should be truthful, but
->> you're right we'll need a mechanism to keep general purpose
->> allocations out of that range by default. Btw, strict isolation is
->> another design point of device-dax, but I think in this case we're
->> describing something between the two extremes of full isolation and
->> full compatibility with existing numactl apis.
-> Yes, agreed. My idea with exposing vram sections using numa nodes wasn't
-> to reuse all the existing allocation policies directly, those won't work.
-> So at boot-up your default numa policy would exclude any vram nodes.
->
-> But I think (as an -mm layman) that numa gives us a lot of the tools and
-> policy interface that we need to implement what we want for gpus.
+Em Wed, 9 Nov 2016 11:07:35 -0800
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
-Agree completely. From a ten mile high view our GPUs are just command 
-processors with local memory as well .
+> On Wed, Nov 9, 2016 at 3:09 AM, Jörg Otte <jrg.otte@gmail.com> wrote:
+> >
+> > Tried patch with no success. Again a NULL ptr dereferece.  
+> 
+> That patch was pure garbage, I think. Pretty much all the other
+> drivers that use the same approach will have the same issue. Adding
+> that init function just for the semaphore is crazy.
+> 
+> I suspect a much simpler approach is to just miove the "data_mutex"
+> away from the priv area and into "struct dvb_usb_device" and
+> "dvb_usb_adapter". Sure, that grows those structures a tiny bit, and
+> not every driver may need that mutex, but it simplifies things
+> enormously. Mauro?
+> 
+>              Linus
 
-Basically this is also the whole idea of what AMD is pushing with HSA 
-for a while.
 
-It's just that a lot of problems start to pop up when you look at all 
-the nasty details. For example only part of the GPU memory is usually 
-accessible by the CPU.
+[PATCH] cinergyT2-core: move data_mutex to struct dvb_usb_device
 
-So even when numa nodes expose a good foundation for this I think there 
-is still a lot of code to write.
+The data_mutex is initialized too late, as it is needed for
+the device's power control, causing an OOPS:
 
-BTW: I should probably start to read into the numa code of the kernel. 
-Any good pointers for that?
+dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
+BUG: unable to handle kernel NULL pointer dereference at           (null)
+IP: [<ffffffff846617af>] __mutex_lock_slowpath+0x6f/0x100 PGD 0
+Oops: 0002 [#1] SMP
+Modules linked in: dvb_usb_cinergyT2(+) dvb_usb
+CPU: 0 PID: 2029 Comm: modprobe Not tainted 4.9.0-rc4-dvbmod #24
+Hardware name: FUJITSU LIFEBOOK A544/FJNBB35 , BIOS Version 1.17 05/09/2014
+task: ffff88020e943840 task.stack: ffff8801f36ec000
+RIP: 0010:[<ffffffff846617af>]  [<ffffffff846617af>] __mutex_lock_slowpath+0x6f/0x100
+RSP: 0018:ffff8801f36efb10  EFLAGS: 00010282
+RAX: 0000000000000000 RBX: ffff88021509bdc8 RCX: 00000000c0000100
+RDX: 0000000000000001 RSI: 0000000000000000 RDI: ffff88021509bdcc
+RBP: ffff8801f36efb58 R08: ffff88021f216320 R09: 0000000000100000
+R10: ffff88021f216320 R11: 00000023fee6c5a1 R12: ffff88020e943840
+R13: ffff88021509bdcc R14: 00000000ffffffff R15: ffff88021509bdd0
+FS:  00007f21adb86740(0000) GS:ffff88021f200000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000000 CR3: 0000000215bce000 CR4: 00000000001406f0
+Stack:
+ ffff88021509bdd0 0000000000000000 0000000000000000 ffffffffc0137c80
+ ffff88021509bdc8 ffff8801f5944000 0000000000000001 ffffffffc0136b00
+ ffff880213e52000 ffff88021509bdc8 ffffffff84661856 ffff88021509bd80
+Call Trace:
+ [<ffffffff84661856>] ? mutex_lock+0x16/0x25
+ [<ffffffffc013616f>] ? cinergyt2_power_ctrl+0x1f/0x60 [dvb_usb_cinergyT2]
+ [<ffffffffc012e67e>] ? dvb_usb_device_init+0x21e/0x5d0 [dvb_usb]
+ [<ffffffffc0136021>] ? cinergyt2_usb_probe+0x21/0x50 [dvb_usb_cinergyT2]
+ [<ffffffff844326f3>] ? usb_probe_interface+0xf3/0x2a0
+ [<ffffffff8438e348>] ? driver_probe_device+0x208/0x2b0
+ [<ffffffff8438e477>] ? __driver_attach+0x87/0x90
+ [<ffffffff8438e3f0>] ? driver_probe_device+0x2b0/0x2b0
+ [<ffffffff8438c612>] ? bus_for_each_dev+0x52/0x80
+ [<ffffffff8438d983>] ? bus_add_driver+0x1a3/0x220
+ [<ffffffff8438ec06>] ? driver_register+0x56/0xd0
+ [<ffffffff84431527>] ? usb_register_driver+0x77/0x130
+ [<ffffffffc013a000>] ? 0xffffffffc013a000
+ [<ffffffff84000426>] ? do_one_initcall+0x46/0x180
+ [<ffffffff840eb2c8>] ? free_vmap_area_noflush+0x38/0x70
+ [<ffffffff840f3844>] ? kmem_cache_alloc+0x84/0xc0
+ [<ffffffff840b802c>] ? do_init_module+0x50/0x1be
+ [<ffffffff84095adb>] ? load_module+0x1d8b/0x2100
+ [<ffffffff84093020>] ? find_symbol_in_section+0xa0/0xa0
+ [<ffffffff84095fe9>] ? SyS_finit_module+0x89/0x90
+ [<ffffffff846637a0>] ? entry_SYSCALL_64_fastpath+0x13/0x94
+Code: e8 a7 1d 00 00 8b 03 83 f8 01 0f 84 97 00 00 00 48 8b 43 10 4c 8d 7b 08 48 89 63 10 4c 89 3c 24 41 be ff ff ff ff 48 89 44 24 08 <48> 89 20 4c 89 64 24 10 eb 1a 49 c7 44 24 08 02 00 00 00 c6 43 RIP  [<ffffffff846617af>] __mutex_lock_slowpath+0x6f/0x100 RSP <ffff8801f36efb10>
+CR2: 0000000000000000
 
-Regards,
-Christian.
+So, move it to the struct dvb_usb_device and initialize it
+before calling the driver's callbacks.
 
-> Wrt isolation: There's a sliding scale of what different users expect,
-> from full auto everything, including migrating pages around if needed to
-> full isolation all seems to be on the table. As long as we keep vram nodes
-> out of any default allocation numasets, full isolation should be possible.
-> -Daniel
+Reported-by: Jörg Otte <jrg.otte@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-core.c b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+index 8ac825413d5a..87e3bd33900d 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-core.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-core.c
+@@ -42,7 +42,6 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ struct cinergyt2_state {
+ 	u8 rc_counter;
+ 	unsigned char data[64];
+-	struct mutex data_mutex;
+ };
+ 
+ /* We are missing a release hook with usb_device data */
+@@ -56,12 +55,12 @@ static int cinergyt2_streaming_ctrl(struct dvb_usb_adapter *adap, int enable)
+ 	struct cinergyt2_state *st = d->priv;
+ 	int ret;
+ 
+-	mutex_lock(&st->data_mutex);
++	mutex_lock(&d->data_mutex);
+ 	st->data[0] = CINERGYT2_EP1_CONTROL_STREAM_TRANSFER;
+ 	st->data[1] = enable ? 1 : 0;
+ 
+ 	ret = dvb_usb_generic_rw(d, st->data, 2, st->data, 64, 0);
+-	mutex_unlock(&st->data_mutex);
++	mutex_unlock(&d->data_mutex);
+ 
+ 	return ret;
+ }
+@@ -71,12 +70,12 @@ static int cinergyt2_power_ctrl(struct dvb_usb_device *d, int enable)
+ 	struct cinergyt2_state *st = d->priv;
+ 	int ret;
+ 
+-	mutex_lock(&st->data_mutex);
++	mutex_lock(&d->data_mutex);
+ 	st->data[0] = CINERGYT2_EP1_SLEEP_MODE;
+ 	st->data[1] = enable ? 0 : 1;
+ 
+ 	ret = dvb_usb_generic_rw(d, st->data, 2, st->data, 3, 0);
+-	mutex_unlock(&st->data_mutex);
++	mutex_unlock(&d->data_mutex);
+ 
+ 	return ret;
+ }
+@@ -89,7 +88,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+ 
+ 	adap->fe_adap[0].fe = cinergyt2_fe_attach(adap->dev);
+ 
+-	mutex_lock(&st->data_mutex);
++	mutex_lock(&d->data_mutex);
+ 	st->data[0] = CINERGYT2_EP1_GET_FIRMWARE_VERSION;
+ 
+ 	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 3, 0);
+@@ -97,7 +96,7 @@ static int cinergyt2_frontend_attach(struct dvb_usb_adapter *adap)
+ 		deb_rc("cinergyt2_power_ctrl() Failed to retrieve sleep "
+ 			"state info\n");
+ 	}
+-	mutex_unlock(&st->data_mutex);
++	mutex_unlock(&d->data_mutex);
+ 
+ 	/* Copy this pointer as we are gonna need it in the release phase */
+ 	cinergyt2_usb_device = adap->dev;
+@@ -166,7 +165,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 
+ 	*state = REMOTE_NO_KEY_PRESSED;
+ 
+-	mutex_lock(&st->data_mutex);
++	mutex_lock(&d->data_mutex);
+ 	st->data[0] = CINERGYT2_EP1_GET_RC_EVENTS;
+ 
+ 	ret = dvb_usb_generic_rw(d, st->data, 1, st->data, 5, 0);
+@@ -202,7 +201,7 @@ static int cinergyt2_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
+ 	}
+ 
+ ret:
+-	mutex_unlock(&st->data_mutex);
++	mutex_unlock(&d->data_mutex);
+ 	return ret;
+ }
+ 
+@@ -210,7 +209,6 @@ static int cinergyt2_usb_probe(struct usb_interface *intf,
+ 				const struct usb_device_id *id)
+ {
+ 	struct dvb_usb_device *d;
+-	struct cinergyt2_state *st;
+ 	int ret;
+ 
+ 	ret = dvb_usb_device_init(intf, &cinergyt2_properties,
+@@ -218,9 +216,6 @@ static int cinergyt2_usb_probe(struct usb_interface *intf,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	st = d->priv;
+-	mutex_init(&st->data_mutex);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-init.c b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+index 3896ba9a4179..84308569e7dc 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-init.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-init.c
+@@ -142,6 +142,7 @@ static int dvb_usb_init(struct dvb_usb_device *d, short *adapter_nums)
+ {
+ 	int ret = 0;
+ 
++	mutex_init(&d->data_mutex);
+ 	mutex_init(&d->usb_mutex);
+ 	mutex_init(&d->i2c_mutex);
+ 
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb.h b/drivers/media/usb/dvb-usb/dvb-usb.h
+index 1448c3d27ea2..12b71acee550 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb.h
++++ b/drivers/media/usb/dvb-usb/dvb-usb.h
+@@ -404,6 +404,7 @@ struct dvb_usb_adapter {
+  *  Powered is in/decremented for each call to modify the state.
+  * @udev: pointer to the device's struct usb_device.
+  *
++ * @data_mutex: mutex to protect the data structure used to store URB data
+  * @usb_mutex: semaphore of USB control messages (reading needs two messages)
+  * @i2c_mutex: semaphore for i2c-transfers
+  *
+@@ -433,6 +434,7 @@ struct dvb_usb_device {
+ 	int powered;
+ 
+ 	/* locking */
++	struct mutex data_mutex;
+ 	struct mutex usb_mutex;
+ 
+ 	/* i2c */
 
 
