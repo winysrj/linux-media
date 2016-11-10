@@ -1,855 +1,1189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:43699 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753047AbcKIQNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Nov 2016 11:13:38 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v4l-utils 1/3] ir-ctl: add ability to send scancodes in most protocols
-Date: Wed,  9 Nov 2016 16:13:31 +0000
-Message-Id: <1478708015-1164-1-git-send-email-sean@mess.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:36874 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934649AbcKJVno (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 16:43:44 -0500
+Date: Thu, 10 Nov 2016 13:43:39 -0800
+From: Stephen Boyd <sboyd@codeaurora.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
+ functions
+Message-ID: <20161110214339.GF16026@codeaurora.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Teach ir-ctl to send scancodes. This has a number of uses:
+On 11/07, Stanimir Varbanov wrote:
+> diff --git a/drivers/media/platform/qcom/venus/core.c b/drivers/media/platform/qcom/venus/core.c
+> new file mode 100644
+> index 000000000000..7b14b1f12e20
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/core.c
+> @@ -0,0 +1,557 @@
+> +/*
+> + * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#include <linux/clk.h>
+> +#include <linux/init.h>
+> +#include <linux/ioctl.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/of_device.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/types.h>
+> +#include <linux/remoteproc.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/videobuf2-v4l2.h>
+> +#include <media/v4l2-ioctl.h>
+> +
+> +#include "core.h"
+> +#include "vdec.h"
+> +#include "venc.h"
+> +
+> +struct venus_sys_error {
+> +	struct venus_core *core;
+> +	struct delayed_work work;
+> +};
+> +
+> +static void venus_sys_error_handler(struct work_struct *work)
+> +{
+> +	struct venus_sys_error *handler =
+> +		container_of(work, struct venus_sys_error, work.work);
 
-1. Controlling devices through IR transmission aka blasting
-2. Testing the in-kernel software IR decoders (2 bugs uncovered so far)
-3. Testing the capability of hardware IR decoders
+Perhaps to_delayed_work(work) would be better?
 
-All protocols supported by the kernel are supported except for XMP
-and the MCE Keyboard.
+> +	struct venus_core *core = handler->core;
+> +	struct device *dev = core->dev;
+> +	int ret;
+> +
+> +	mutex_lock(&core->lock);
+> +	if (core->state != CORE_INVALID)
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- utils/ir-ctl/Makefile.am |   2 +-
- utils/ir-ctl/ir-ctl.1.in |  82 ++++++---
- utils/ir-ctl/ir-ctl.c    | 130 ++++++++++++++-
- utils/ir-ctl/ir-encode.c | 427 +++++++++++++++++++++++++++++++++++++++++++++++
- utils/ir-ctl/ir-encode.h |  35 ++++
- 5 files changed, 653 insertions(+), 23 deletions(-)
- create mode 100644 utils/ir-ctl/ir-encode.c
- create mode 100644 utils/ir-ctl/ir-encode.h
+Is this ever possible? Couldn't we cancel the delayed work
+instead?
 
-diff --git a/utils/ir-ctl/Makefile.am b/utils/ir-ctl/Makefile.am
-index 9a1bfed..4c148e5 100644
---- a/utils/ir-ctl/Makefile.am
-+++ b/utils/ir-ctl/Makefile.am
-@@ -1,6 +1,6 @@
- bin_PROGRAMS = ir-ctl
- man_MANS = ir-ctl.1
- 
--ir_ctl_SOURCES = ir-ctl.c
-+ir_ctl_SOURCES = ir-ctl.c ir-encode.c
- ir_ctl_LDADD = @LIBINTL@
- ir_ctl_LDFLAGS = $(ARGP_LIBS)
-diff --git a/utils/ir-ctl/ir-ctl.1.in b/utils/ir-ctl/ir-ctl.1.in
-index 4bdf47e..2efe293 100644
---- a/utils/ir-ctl/ir-ctl.1.in
-+++ b/utils/ir-ctl/ir-ctl.1.in
-@@ -12,10 +12,13 @@ ir\-ctl \- a swiss\-knife tool to handle raw IR and to set lirc options
- [\fIOPTION\fR]... \fI\-\-send\fR [\fIpulse and space file to send\fR]
- .br
- .B ir\-ctl
-+[\fIOPTION\fR]... \fI\-\-scancode\fR [\fIprotocol and scancode to send\fR]
-+.br
-+.B ir\-ctl
- [\fIOPTION\fR]... \fI\-\-record\fR [\fIsave to file\fR]
- .SH DESCRIPTION
- ir\-ctl is a tool that allows one to list the features of a lirc device,
--set its options, record raw IR and send raw IR.
-+set its options, record raw IR, send raw IR or send complete IR scancodes.
- .PP
- Note: You need to have read or write permissions on the /dev/lirc device
- for options to work.
-@@ -36,6 +39,10 @@ Send IR in text file. It must be in the format described below. If this
- option is specified multiple times, send all files in order with 125ms delay
- between them.
- .TP
-+\fB-S\fR, \fB\-\-scancode\fR=\fIPROTOCOL:SCANCODE\fR
-+Send the IR scancode in the protocol specified. The protocol must one of
-+the protocols listed below, followed by a semicolon and the scancode number.
-+.TP
- \fB\-1\fR, \fB\-\-oneshot\fR
- When recording, stop recording after the first message, i.e. after a space or
- timeout of more than 19ms is received.
-@@ -106,43 +113,74 @@ by length in microseconds. The following is a rc-5 encoded message:
- .PP
- 	carrier 36000
- .br
--	pulse 920
-+	pulse 940
-+.br
-+	space 860
-+.br
-+	pulse 1790
-+.br
-+	space 1750
-+.br
-+	pulse 880
- .br
--	space 110
-+	space 880
- .br
--	pulse 270
-+	pulse 900
- .br
--	space 380
-+	space 890
- .br
--	pulse 1800
-+	pulse 870
- .br
--	space 1560
-+	space 900
- .br
--	pulse 1730
-+	pulse 1750
- .br
--	space 1630
-+	space 900
- .br
--	pulse 1730
-+	pulse 890
- .br
--	space 1640
-+	space 910
- .br
--	pulse 850
-+	pulse 840
- .br
--	space 830
-+	space 920
- .br
--	pulse 1690
-+	pulse 870
- .br
--	space 820
-+	space 920
- .br
--	pulse 860
-+	pulse 840
- .br
--	space 1660
-+	space 920
- .br
--	pulse 1690
-+	pulse 870
- .br
--	space 830
-+	space 1810
- .br
--	pulse 850
-+	pulse 840
-+.PP
-+Rather than specifying the raw IR, you can also specify the scancode and
-+protocol you want to send. This will also automatically set the correct
-+carrier. The above can be written as:
-+.PP
-+	scancode rc5:0x1e01
-+.PP
-+Do not specify scancodes with different protocols in one file, as the
-+carrier might differ and the transmitter cannot send this. Multiple
-+scancodes can be specified in one file but ensure that the rules for the
-+protocol are met by inserting an appropriate space between them. Also,
-+there are limits to what lirc devices can send in one go.
-+.PP
-+.SS Supported Protocols
-+A scancode with protocol can be specified on the command line or in the
-+pulse and space file. The following protocols are supported:
-+\fBrc5\fR, \fBrc5x\fR, \fBrc5_sz\fR, \fBjvc\fR, \fBsony12\fR, \fBsony\fB15\fR,
-+\fBsony20\fR, \fBnec\fR, \fBnecx\fR, \fBnec32\fR, \fBsanyo\fR, \fBrc6_0\fR,
-+\fBrc6_6a_20\fR, \fBrc6_6a_24\fR, \fBrc6_6a_32\fR, \fBrc6_mce\fR, \fBsharp\fR.
-+If the scancode starts with 0x it will be interpreted as a
-+hexidecimal number, and if it starts with 0 it will be interpreted as an
-+octal number.
-+.PP
- .SS Wideband and narrowband receiver
- Most IR receivers have a narrowband and wideband receiver. The narrowband
- receiver can receive over longer distances (usually around 10 metres without
-@@ -178,6 +216,10 @@ To send the pulse and space file \fBplay\fR on emitter 3:
- .br
- 	\fBir\-ctl \-e 3 \-\-send=play\fR
- .PP
-+To send the rc-5 hauppuage '1' scancode:
-+.br
-+	\fBir\-ctl \-S rc5:0x1e01
-+.PP
- To restore the IR receiver on /dev/lirc2 to the default state:
- .br
- 	\fBir\-ctl \-PMn \-\-timeout 125000 \-\-device=/dev/lirc2\fR
-diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
-index 2f85e6d..bdea741 100644
---- a/utils/ir-ctl/ir-ctl.c
-+++ b/utils/ir-ctl/ir-ctl.c
-@@ -26,6 +26,8 @@
- 
- #include <config.h>
- 
-+#include "ir-encode.h"
-+
- #include <linux/lirc.h>
- 
- #ifdef ENABLE_NLS
-@@ -82,6 +84,7 @@ static const struct argp_option options[] = {
- 	{ "features",	'f',	0,		0,	N_("list lirc device features") },
- 	{ "record",	'r',	N_("FILE"),	OPTION_ARG_OPTIONAL,	N_("record IR to stdout or file") },
- 	{ "send",	's',	N_("FILE"),	0,	N_("send IR pulse and space file") },
-+	{ "scancode", 'S',	N_("SCANCODE"),	0,	N_("send IR scancode in protocol specified") },
- 		{ .doc = N_("Recording options:") },
- 	{ "one-shot",	'1',	0,		0,	N_("end recording after first message") },
- 	{ "wideband",	'w',	0,		0,	N_("use wideband receiver aka learning mode") },
-@@ -103,6 +106,7 @@ static const char args_doc[] = N_(
- 	"--features\n"
- 	"--record [save to file]\n"
- 	"--send [file to send]\n"
-+	"--scancode [scancode to send]\n"
- 	"[to set lirc option]");
- 
- static const char doc[] = N_(
-@@ -115,7 +119,8 @@ static const char doc[] = N_(
- 	"  DUTY     - the duty cycle to use for sending\n"
- 	"  EMITTERS - comma separated list of emitters to use for sending, e.g. 1,2\n"
- 	"  RANGE    - set range of accepted carrier frequencies, e.g. 20000-40000\n"
--	"  TIMEOUT  - set length of space before recording stops in microseonds\n\n"
-+	"  TIMEOUT  - set length of space before recording stops in microseconds\n"
-+	"  SCANCODE - protocol:scancode, e.g. nec:0xa814\n\n"
- 	"Note that most lirc setting have global state, i.e. the device will remain\n"
- 	"in this state until set otherwise.");
- 
-@@ -132,6 +137,20 @@ static int strtoint(const char *p, const char *unit)
- 	return arg;
- }
- 
-+static bool strtoscancode(const char *p, unsigned *ret)
-+{
-+	char *end;
-+	long arg = strtol(p, &end, 0);
-+	if (end == NULL || end[0] != 0)
-+		return false;
-+
-+	if (arg <= 0 || arg >= 0xffffffff)
-+		return false;
-+
-+	*ret = arg;
-+	return true;
-+}
-+
- static unsigned parse_emitters(char *p)
- {
- 	unsigned emit = 0;
-@@ -193,6 +212,54 @@ static struct file *read_file(const char *fname)
- 			continue;
- 		}
- 
-+		if (strcmp(keyword, "scancode") == 0) {
-+			enum rc_proto proto;
-+			unsigned scancode, carrier;
-+			char *scancodestr;
-+
-+			if (!expect_pulse) {
-+				fprintf(stderr, _("error: %s:%d: space must precede scancode\n"), fname, lineno);
-+				return NULL;
-+			}
-+
-+			scancodestr = strchr(p, ':');
-+			if (!scancodestr) {
-+				fprintf(stderr, _("error: %s:%d: scancode argument '%s' should in protocol:scancode format\n"), fname, lineno, p);
-+				return NULL;
-+			}
-+
-+			*scancodestr++ = 0;
-+
-+			if (!protocol_match(p, &proto)) {
-+				fprintf(stderr, _("error: %s:%d: protocol '%s' not found\n"), fname, lineno, p);
-+				return NULL;
-+			}
-+
-+			if (!strtoscancode(scancodestr, &scancode)) {
-+				fprintf(stderr, _("error: %s:%d: invalid scancode '%s'\n"), fname, lineno, scancodestr);
-+				return NULL;
-+			}
-+
-+			if (scancode & ~protocol_scancode_mask(proto)) {
-+				fprintf(stderr, _("error: %s:%d: invalid scancode '%s' for protocol '%s'\n"), fname, lineno, scancodestr, protocol_name(proto));
-+				return NULL;
-+			}
-+
-+			if (len + protocol_max_size(proto) >= LIRCBUF_SIZE) {
-+				fprintf(stderr, _("error: %s:%d: too much IR for one transmit\n"), fname, lineno);
-+				return NULL;
-+			}
-+
-+			carrier = protocol_carrier(proto);
-+			if (f->carrier && f->carrier != carrier)
-+				fprintf(stderr, _("error: %s:%d: carrier already specified\n"), fname, lineno);
-+			else
-+				f->carrier = carrier;
-+
-+			len += protocol_encode(proto, scancode, f->buf);
-+			continue;
-+		}
-+
- 		int arg = strtoint(p, "");
- 		if (arg == 0) {
- 			fprintf(stderr, _("warning: %s:%d: invalid argument '%s'\n"), fname, lineno, p);
-@@ -225,7 +292,7 @@ static struct file *read_file(const char *fname)
- 				f->buf[len++] = arg;
- 			expect_pulse = false;
- 		} else if (strcmp(keyword, "carrier") == 0) {
--			if (f->carrier) {
-+			if (f->carrier && f->carrier != arg) {
- 				fprintf(stderr, _("warning: %s:%d: carrier already specified\n"), fname, lineno);
- 			} else {
- 				f->carrier = arg;
-@@ -260,6 +327,48 @@ static struct file *read_file(const char *fname)
- 	return f;
- }
- 
-+static struct file *read_scancode(const char *name)
-+{
-+	enum rc_proto proto;
-+	struct file *f;
-+	unsigned scancode;
-+	char *pstr;
-+	char *p = strchr(name, ':');
-+
-+	if (!p) {
-+		fprintf(stderr, _("error: scancode '%s' most be in protocol:scancode format\n"), name);
-+		return NULL;
-+	}
-+
-+	pstr = strndupa(name, p - name);
-+
-+	if (!protocol_match(pstr, &proto)) {
-+		fprintf(stderr, _("error: protocol '%s' not found\n"), pstr);
-+		return NULL;
-+	}
-+
-+	if (!strtoscancode(p + 1, &scancode)) {
-+		fprintf(stderr, _("error: invalid scancode '%s'\n"), p + 1);
-+		return NULL;
-+	}
-+
-+	if (scancode & ~protocol_scancode_mask(proto)) {
-+		fprintf(stderr, _("error: invalid scancode '%s' for protocol '%s'\n"), p + 1, protocol_name(proto));
-+		return NULL;
-+	}
-+
-+	f = malloc(sizeof(*f));
-+	if (f == NULL) {
-+		fprintf(stderr, _("Failed to allocate memory\n"));
-+		return NULL;
-+	}
-+
-+	f->carrier = protocol_carrier(proto);
-+	f->fname = name;
-+	f->len = protocol_encode(proto, scancode, f->buf);
-+
-+	return f;
-+}
- 
- static error_t parse_opt(int k, char *arg, struct argp_state *state)
- {
-@@ -380,6 +489,23 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 			p->next = s;
- 		}
- 		break;
-+	case 'S':
-+		if (arguments->record || arguments->features)
-+			argp_error(state, _("send can not be combined with record or features option"));
-+		s = read_scancode(arg);
-+		if (s == NULL)
-+			exit(EX_DATAERR);
-+
-+		s->next = NULL;
-+		if (arguments->send == NULL)
-+			arguments->send = s;
-+		else {
-+			struct file *p = arguments->send;
-+			while (p->next) p = p->next;
-+			p->next = s;
-+		}
-+		break;
-+
- 	case ARGP_KEY_END:
- 		if (!arguments->work_to_do)
- 			argp_usage(state);
-diff --git a/utils/ir-ctl/ir-encode.c b/utils/ir-ctl/ir-encode.c
-new file mode 100644
-index 0000000..a0d2f4c
---- /dev/null
-+++ b/utils/ir-ctl/ir-encode.c
-@@ -0,0 +1,427 @@
-+/*
-+ * ir-encode.c - encodes IR scancodes in different protocols
-+ *
-+ * Copyright (C) 2016 Sean Young <sean@mess.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation, version 2 of the License.
-+
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/*
-+ * TODO: XMP protocol and MCE keyboard
-+ */
-+
-+#include <stdbool.h>
-+#include <stdint.h>
-+#include <ctype.h>
-+
-+#include "ir-encode.h"
-+
-+#define NS_TO_US(x) (((x)+500)/1000)
-+
-+static int nec_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const int nec_unit = 562500;
-+	int n = 0;
-+
-+	void add_byte(unsigned bits)
-+	{
-+		int i;
-+		for (i=0; i<8; i++) {
-+			buf[n++] = NS_TO_US(nec_unit);
-+			if (bits & (1 << i))
-+				buf[n++] = NS_TO_US(nec_unit * 3);
-+			else
-+				buf[n++] = NS_TO_US(nec_unit);
-+		}
-+	}
-+
-+	buf[n++] = NS_TO_US(nec_unit * 16);
-+	buf[n++] = NS_TO_US(nec_unit * 8);
-+
-+	switch (proto) {
-+	default:
-+		return 0;
-+	case RC_PROTO_NEC:
-+		add_byte(scancode >> 8);
-+		add_byte(~(scancode >> 8));
-+		add_byte(scancode);
-+		add_byte(~scancode);
-+		break;
-+	case RC_PROTO_NECX:
-+		add_byte(scancode >> 16);
-+		add_byte(scancode >> 8);
-+		add_byte(scancode);
-+		add_byte(~scancode);
-+		break;
-+	case RC_PROTO_NEC32:
-+		/*
-+		 * At the time of writing kernel software nec decoder
-+		 * reverses the bit order so it will not match. Hardware
-+		 * decoders do not have this issue.
-+		 */
-+		add_byte(scancode >> 24);
-+		add_byte(scancode >> 16);
-+		add_byte(scancode >> 8);
-+		add_byte(scancode);
-+		break;
-+	}
-+
-+	buf[n++] = NS_TO_US(nec_unit);
-+
-+	return n;
-+}
-+
-+static int jvc_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const int jvc_unit = 525000;
-+	int i;
-+
-+	/* swap bytes so address comes first */
-+	scancode = ((scancode << 8) & 0xff00) | ((scancode >> 8) & 0x00ff);
-+
-+	*buf++ = NS_TO_US(jvc_unit * 16);
-+	*buf++ = NS_TO_US(jvc_unit * 8);
-+
-+	for (i=0; i<16; i++) {
-+		*buf++ = NS_TO_US(jvc_unit);
-+
-+		if (scancode & 1)
-+			*buf++ = NS_TO_US(jvc_unit * 3);
-+		else
-+			*buf++ = NS_TO_US(jvc_unit);
-+
-+		scancode >>= 1;
-+	}
-+
-+	*buf = NS_TO_US(jvc_unit);
-+
-+	return 35;
-+}
-+
-+static int sanyo_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const int sanyo_unit = 562500;
-+
-+	void add_bits(int bits, int count)
-+	{
-+		int i;
-+		for (i=0; i<count; i++) {
-+			*buf++ = NS_TO_US(sanyo_unit);
-+
-+			if (bits & (1 << i))
-+				*buf++ = NS_TO_US(sanyo_unit * 3);
-+			else
-+				*buf++ = NS_TO_US(sanyo_unit);
-+		}
-+	}
-+
-+	*buf++ = NS_TO_US(sanyo_unit * 16);
-+	*buf++ = NS_TO_US(sanyo_unit * 8);
-+
-+	add_bits(scancode >> 8, 13);
-+	add_bits(~(scancode >> 8), 13);
-+	add_bits(scancode, 8);
-+	add_bits(~scancode, 8);
-+
-+	*buf = NS_TO_US(sanyo_unit);
-+
-+	return 87;
-+}
-+
-+static int sharp_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const int sharp_unit = 40000;
-+
-+	void add_bits(int bits, int count)
-+	{
-+		int i;
-+		for (i=0; i<count; i++) {
-+			*buf++ = NS_TO_US(sharp_unit * 8);
-+
-+			if (bits & (1 << i))
-+				*buf++ = NS_TO_US(sharp_unit * 50);
-+			else
-+				*buf++ = NS_TO_US(sharp_unit * 25);
-+		}
-+	}
-+
-+	add_bits(scancode >> 8, 5);
-+	add_bits(scancode, 8);
-+	add_bits(1, 2);
-+
-+	*buf++ = NS_TO_US(sharp_unit * 8);
-+	*buf++ = NS_TO_US(sharp_unit * 1000);
-+
-+	add_bits(scancode >> 8, 5);
-+	add_bits(~scancode, 8);
-+	add_bits(~1, 2);
-+	*buf++ = NS_TO_US(sharp_unit * 8);
-+
-+	return (13 + 2) * 4 + 3;
-+}
-+
-+static int sony_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const int sony_unit = 600000;
-+	int n = 0;
-+
-+	void add_bits(int bits, int count)
-+	{
-+		int i;
-+		for (i=0; i<count; i++) {
-+			if (bits & (1 << i))
-+				buf[n++] = NS_TO_US(sony_unit * 2);
-+			else
-+				buf[n++] = NS_TO_US(sony_unit);
-+
-+			buf[n++] = NS_TO_US(sony_unit);
-+		}
-+	}
-+
-+	buf[n++] = NS_TO_US(sony_unit * 4);
-+	buf[n++] = NS_TO_US(sony_unit);
-+
-+	switch (proto) {
-+	case RC_PROTO_SONY12:
-+		add_bits(scancode, 7);
-+		add_bits(scancode >> 16, 5);
-+		break;
-+	case RC_PROTO_SONY15:
-+		add_bits(scancode, 7);
-+		add_bits(scancode >> 16, 8);
-+		break;
-+	case RC_PROTO_SONY20:
-+		add_bits(scancode, 7);
-+		add_bits(scancode >> 16, 5);
-+		add_bits(scancode >> 8, 8);
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	/* ignore last space */
-+	return n - 1;
-+}
-+
-+static int rc5_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const unsigned int rc5_unit = 888888;
-+	unsigned n = 0;
-+
-+	void advance_space(unsigned length)
-+	{
-+		if (n % 2)
-+			buf[n] += length;
-+		else
-+			buf[++n] = length;
-+	}
-+
-+	void advance_pulse(unsigned length)
-+	{
-+		if (n % 2)
-+			buf[++n] = length;
-+		else
-+			buf[n] += length;
-+	}
-+
-+	void add_bits(int bits, int count)
-+	{
-+		while (count--) {
-+			if (bits & (1 << count)) {
-+				advance_space(NS_TO_US(rc5_unit));
-+				advance_pulse(NS_TO_US(rc5_unit));
-+			} else {
-+				advance_pulse(NS_TO_US(rc5_unit));
-+				advance_space(NS_TO_US(rc5_unit));
-+			}
-+		}
-+	}
-+
-+	buf[n] = NS_TO_US(rc5_unit);
-+
-+	switch (proto) {
-+	default:
-+		return 0;
-+	case RC_PROTO_RC5:
-+		add_bits(2, 2);
-+		add_bits(scancode >> 8, 5);
-+		add_bits(scancode, 6);
-+		break;
-+	case RC_PROTO_RC5_SZ:
-+		add_bits(!!(scancode & 0x2000), 1);
-+		add_bits(0, 1);
-+		add_bits(scancode >> 6, 6);
-+		add_bits(scancode, 6);
-+		break;
-+	case RC_PROTO_RC5X:
-+		add_bits(!!(scancode & 0x4000), 1);
-+		add_bits(0, 1);
-+		add_bits(scancode >> 16, 5);
-+		advance_space(NS_TO_US(rc5_unit * 4));
-+		add_bits(scancode >> 8, 6);
-+		add_bits(scancode, 6);
-+		break;
-+	}
-+
-+	/* drop any trailing pulse */
-+	return (n % 2) ? n : n + 1;
-+}
-+
-+static int rc6_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	const unsigned int rc6_unit = 444444;
-+	unsigned n = 0;
-+
-+	void advance_space(unsigned length)
-+	{
-+		if (n % 2)
-+			buf[n] += length;
-+		else
-+			buf[++n] = length;
-+	}
-+
-+	void advance_pulse(unsigned length)
-+	{
-+		if (n % 2)
-+			buf[++n] = length;
-+		else
-+			buf[n] += length;
-+	}
-+
-+	void add_bits(unsigned bits, unsigned count, unsigned length)
-+	{
-+		while (count--) {
-+			if (bits & (1 << count)) {
-+				advance_pulse(length);
-+				advance_space(length);
-+			} else {
-+				advance_space(length);
-+				advance_pulse(length);
-+			}
-+		}
-+	}
-+
-+	buf[n++] = NS_TO_US(rc6_unit * 6);
-+	buf[n++] = NS_TO_US(rc6_unit * 2);
-+
-+	switch (proto) {
-+	default:
-+		return 0;
-+	case RC_PROTO_RC6_0:
-+		add_bits(8, 4, NS_TO_US(rc6_unit));
-+		add_bits(0, 1, NS_TO_US(rc6_unit * 2));
-+		add_bits(scancode, 16, NS_TO_US(rc6_unit));
-+		break;
-+	case RC_PROTO_RC6_6A_20:
-+		add_bits(14, 4, NS_TO_US(rc6_unit));
-+		add_bits(0, 1, NS_TO_US(rc6_unit * 2));
-+		add_bits(scancode, 20, NS_TO_US(rc6_unit));
-+		break;
-+	case RC_PROTO_RC6_6A_24:
-+		add_bits(14, 4, NS_TO_US(rc6_unit));
-+		add_bits(0, 1, NS_TO_US(rc6_unit * 2));
-+		add_bits(scancode, 24, NS_TO_US(rc6_unit));
-+		break;
-+	case RC_PROTO_RC6_6A_32:
-+	case RC_PROTO_RC6_MCE:
-+		add_bits(14, 4, NS_TO_US(rc6_unit));
-+		add_bits(0, 1, NS_TO_US(rc6_unit * 2));
-+		add_bits(scancode, 32, NS_TO_US(rc6_unit));
-+		break;
-+	}
-+
-+	/* drop any trailing pulse */
-+	return (n % 2) ? n : n + 1;
-+}
-+
-+static const struct {
-+	char name[10];
-+	unsigned scancode_mask;
-+	unsigned max_edges;
-+	unsigned carrier;
-+	int (*encode)(enum rc_proto proto, unsigned scancode, unsigned *buf);
-+} encoders[RC_PROTO_COUNT] = {
-+	[RC_PROTO_RC5] = { "rc5", 0x1f3f, 24, 36000, rc5_encode },
-+	[RC_PROTO_RC5X] = { "rc5x", 0x1f3f3f, 40, 36000, rc5_encode },
-+	[RC_PROTO_RC5_SZ] = { "rc5_sz", 0x2fff, 26, 36000, rc5_encode },
-+	[RC_PROTO_SONY12] = { "sony12", 0x1f007f, 25, 40000, sony_encode },
-+	[RC_PROTO_SONY15] = { "sony15", 0xff007f, 31, 40000, sony_encode },
-+	[RC_PROTO_SONY20] = { "sony20", 0x1fff7f, 41, 40000, sony_encode },
-+	[RC_PROTO_JVC] = { "jvc", 0xffff, 35, 38000, jvc_encode },
-+	[RC_PROTO_NEC] = { "nec", 0xffff, 67, 38000, nec_encode },
-+	[RC_PROTO_NECX] = { "necx", 0xffffff, 67, 38000, nec_encode },
-+	[RC_PROTO_NEC32] = { "nec32", 0xffffffff, 67, 38000, nec_encode },
-+	[RC_PROTO_SANYO] = { "sanyo", 0x1fffff, 87, 38000, sanyo_encode },
-+	[RC_PROTO_RC6_0] = { "rc6_0", 0xffff, 24, 36000, rc6_encode },
-+	[RC_PROTO_RC6_6A_20] = { "rc6_6a_20", 0xfffff, 52, 36000, rc6_encode },
-+	[RC_PROTO_RC6_6A_24] = { "rc6_6a_24", 0xffffff, 60, 36000, rc6_encode },
-+	[RC_PROTO_RC6_6A_32] = { "rc6_6a_32", 0xffffffff, 76, 36000, rc6_encode },
-+	[RC_PROTO_RC6_MCE] = { "rc6_mce", 0xffff7fff, 76, 36000, rc6_encode },
-+	[RC_PROTO_SHARP] = { "sharp", 0x1fff, 63, 38000, sharp_encode },
-+};
-+
-+static bool str_like(const char *a, const char *b)
-+{
-+	while (*a && *b) {
-+		while (*a == ' ' || *a == '-' || *a == '_')
-+			a++;
-+		while (*b == ' ' || *b == '-' || *b == '_')
-+			b++;
-+
-+		if (*a >= 0x7f || *b >= 0x7f)
-+			return false;
-+
-+		if (tolower(*a) != tolower(*b))
-+			return false;
-+
-+		a++; b++;
-+	}
-+
-+	return !*a && !*b;
-+}
-+
-+bool protocol_match(const char *name, enum rc_proto *proto)
-+{
-+	enum rc_proto p;
-+
-+	for (p=0; p<RC_PROTO_COUNT; p++) {
-+		if (str_like(encoders[p].name, name)) {
-+			*proto = p;
-+			return true;
-+		}
-+	}
-+
-+	return false;
-+}
-+
-+unsigned protocol_carrier(enum rc_proto proto)
-+{
-+	return encoders[proto].carrier;
-+}
-+
-+unsigned protocol_max_size(enum rc_proto proto)
-+{
-+	return encoders[proto].max_edges;
-+}
-+
-+unsigned protocol_scancode_mask(enum rc_proto proto)
-+{
-+	return encoders[proto].scancode_mask;
-+}
-+
-+unsigned protocol_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
-+{
-+	return encoders[proto].encode(proto, scancode, buf);
-+}
-+
-+const char* protocol_name(enum rc_proto proto)
-+{
-+	return encoders[proto].name;
-+}
-diff --git a/utils/ir-ctl/ir-encode.h b/utils/ir-ctl/ir-encode.h
-new file mode 100644
-index 0000000..b2542ec
---- /dev/null
-+++ b/utils/ir-ctl/ir-encode.h
-@@ -0,0 +1,35 @@
-+
-+#ifndef __IR_ENCODE_H__
-+#define __IR_ENCODE_H__
-+
-+enum rc_proto {
-+	RC_PROTO_RC5,
-+	RC_PROTO_RC5X,
-+	RC_PROTO_RC5_SZ,
-+	RC_PROTO_JVC,
-+	RC_PROTO_SONY12,
-+	RC_PROTO_SONY15,
-+	RC_PROTO_SONY20,
-+	RC_PROTO_NEC,
-+	RC_PROTO_NECX,
-+	RC_PROTO_NEC32,
-+	RC_PROTO_SANYO,
-+	RC_PROTO_MCE_KBD,
-+	RC_PROTO_RC6_0,
-+	RC_PROTO_RC6_6A_20,
-+	RC_PROTO_RC6_6A_24,
-+	RC_PROTO_RC6_6A_32,
-+	RC_PROTO_RC6_MCE,
-+	RC_PROTO_SHARP,
-+	RC_PROTO_XMP,
-+	RC_PROTO_COUNT
-+};
-+
-+bool protocol_match(const char *name, enum rc_proto *proto);
-+unsigned protocol_carrier(enum rc_proto proto);
-+unsigned protocol_max_size(enum rc_proto proto);
-+unsigned protocol_scancode_mask(enum rc_proto proto);
-+unsigned protocol_encode(enum rc_proto proto, unsigned scancode, unsigned *buf);
-+const char *protocol_name(enum rc_proto proto);
-+
-+#endif
+> +		goto exit;
+> +
+> +	mutex_unlock(&core->lock);
+> +
+> +	ret = hfi_core_deinit(core);
+> +	if (ret)
+> +		dev_err(dev, "core: deinit failed (%d)\n", ret);
+> +
+> +	mutex_lock(&core->lock);
+> +
+> +	rproc_report_crash(core->rproc, RPROC_FATAL_ERROR);
+> +
+> +	rproc_shutdown(core->rproc);
+> +
+> +	ret = rproc_boot(core->rproc);
+> +	if (ret)
+> +		goto exit;
+> +
+> +	core->state = CORE_INIT;
+> +
+> +exit:
+> +	mutex_unlock(&core->lock);
+> +	kfree(handler);
+> +}
+> +
+> +static int venus_event_notify(struct venus_core *core, u32 event)
+> +{
+> +	struct venus_sys_error *handler;
+> +	struct venus_inst *inst;
+> +
+> +	switch (event) {
+> +	case EVT_SYS_WATCHDOG_TIMEOUT:
+> +	case EVT_SYS_ERROR:
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_lock(&core->lock);
+> +
+> +	core->state = CORE_INVALID;
+> +
+> +	list_for_each_entry(inst, &core->instances, list) {
+> +		mutex_lock(&inst->lock);
+> +		inst->state = INST_INVALID;
+> +		mutex_unlock(&inst->lock);
+> +	}
+> +
+> +	mutex_unlock(&core->lock);
+> +
+> +	handler = kzalloc(sizeof(*handler), GFP_KERNEL);
+> +	if (!handler)
+> +		return -ENOMEM;
+> +
+> +	handler->core = core;
+> +	INIT_DELAYED_WORK(&handler->work, venus_sys_error_handler);
+> +
+> +	/*
+> +	 * Sleep for 5 sec to ensure venus has completed any
+> +	 * pending cache operations. Without this sleep, we see
+> +	 * device reset when firmware is unloaded after a sys
+> +	 * error.
+> +	 */
+> +	schedule_delayed_work(&handler->work, msecs_to_jiffies(5000));
+
+Is there a reason we just don't msleep() here instead? Does this
+get called from an interrupt handler or something where we can't
+sleep? A comment in the code with the answer here would be
+helpful.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct hfi_core_ops venus_core_ops = {
+> +	.event_notify = venus_event_notify,
+> +};
+> +
+> +static int venus_open(struct file *file)
+> +{
+> +	struct video_device *vdev = video_devdata(file);
+> +	struct venus_core *core = video_drvdata(file);
+> +	struct venus_inst *inst;
+> +	int ret;
+> +
+> +	inst = kzalloc(sizeof(*inst), GFP_KERNEL);
+> +	if (!inst)
+> +		return -ENOMEM;
+> +
+> +	INIT_LIST_HEAD(&inst->registeredbufs);
+> +	mutex_init(&inst->registeredbufs_lock);
+> +
+> +	INIT_LIST_HEAD(&inst->internalbufs);
+> +	mutex_init(&inst->internalbufs_lock);
+> +
+> +	INIT_LIST_HEAD(&inst->bufqueue);
+> +	mutex_init(&inst->bufqueue_lock);
+> +
+> +	INIT_LIST_HEAD(&inst->list);
+> +	mutex_init(&inst->lock);
+> +
+> +	inst->core = core;
+> +
+> +	if (vdev == core->vdev_dec) {
+> +		inst->session_type = VIDC_SESSION_TYPE_DEC;
+> +		ret = vdec_open(inst);
+> +		if (ret)
+> +			goto err_free_inst;
+> +		v4l2_fh_init(&inst->fh, core->vdev_dec);
+> +	} else {
+> +		inst->session_type = VIDC_SESSION_TYPE_ENC;
+> +		ret = venc_open(inst);
+> +		if (ret)
+> +			goto err_free_inst;
+> +		v4l2_fh_init(&inst->fh, core->vdev_enc);
+> +	}
+> +
+> +	inst->fh.ctrl_handler = &inst->ctrl_handler;
+> +	v4l2_fh_add(&inst->fh);
+> +	file->private_data = &inst->fh;
+> +
+> +	return 0;
+> +
+> +err_free_inst:
+> +	kfree(inst);
+> +	return ret;
+> +}
+> +
+> +const struct v4l2_file_operations venus_fops = {
+
+static?
+
+> +	.owner = THIS_MODULE,
+> +	.open = venus_open,
+> +	.release = venus_close,
+> +	.unlocked_ioctl = video_ioctl2,
+> +	.poll = venus_poll,
+> +	.mmap = venus_mmap,
+> +#ifdef CONFIG_COMPAT
+> +	.compat_ioctl32 = v4l2_compat_ioctl32,
+> +#endif
+> +};
+> +
+> +static irqreturn_t venus_isr_thread(int irq, void *dev_id)
+
+s/dev_id/core/
+
+> +{
+> +	struct venus_core *core = dev_id;
+> +
+> +	return hfi_isr_thread(core);
+
+And replace with hfi_isr_thread(core)?
+
+Or even just pass int irq to hfi_isr_thread and not have this
+simple wrapper.
+
+> +}
+> +
+> +static irqreturn_t venus_isr(int irq, void *dev)
+> +{
+> +	struct venus_core *core = dev;
+> +
+> +	return hfi_isr(core);
+
+Same story here.
+
+> +}
+[..]
+> +
+> +static int venus_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	struct venus_core *core;
+> +	struct device_node *rproc;
+> +	struct resource *r;
+> +	int ret;
+> +
+> +	core = devm_kzalloc(dev, sizeof(*core), GFP_KERNEL);
+> +	if (!core)
+> +		return -ENOMEM;
+> +
+> +	core->dev = dev;
+> +	platform_set_drvdata(pdev, core);
+> +
+> +	rproc = of_parse_phandle(dev->of_node, "rproc", 0);
+> +	if (IS_ERR(rproc))
+> +		return PTR_ERR(rproc);
+> +
+> +	core->rproc = rproc_get_by_phandle(rproc->phandle);
+> +	if (IS_ERR(core->rproc))
+> +		return PTR_ERR(core->rproc);
+> +	else if (!core->rproc)
+
+Could drop the else here.
+
+> +		return -EPROBE_DEFER;
+> +
+> +	r = platform_get_resource_byname(pdev, IORESOURCE_MEM, "venus");
+> +	core->base = devm_ioremap_resource(dev, r);
+> +	if (IS_ERR(core->base))
+> +		return PTR_ERR(core->base);
+> +
+> +	core->irq = platform_get_irq_byname(pdev, "venus");
+> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> new file mode 100644
+> index 000000000000..21ed053aeb17
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/core.h
+> @@ -0,0 +1,261 @@
+> +/*
+> + * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +
+> +#ifndef __VIDC_CORE_H_
+> +#define __VIDC_CORE_H_
+
+Maybe these macros should change from VIDC to VENUS?
+
+> +
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/videobuf2-core.h>
+> +
+> +#include "hfi.h"
+> +
+> +#define VIDC_CLKS_NUM_MAX	12
+> +
+> +struct freq_tbl {
+> +	unsigned int load;
+> +	unsigned long freq;
+> +};
+> +
+> +struct reg_val {
+> +	u32 reg;
+> +	u32 value;
+> +};
+> +
+> +struct venus_resources {
+> +	u64 dma_mask;
+> +	const struct freq_tbl *freq_tbl;
+> +	unsigned int freq_tbl_size;
+> +	const struct reg_val *reg_tbl;
+> +	unsigned int reg_tbl_size;
+> +	const char * const clks[VIDC_CLKS_NUM_MAX];
+> +	unsigned int clks_num;
+> +	enum hfi_version hfi_version;
+> +	u32 max_load;
+> +	unsigned int vmem_id;
+> +	u32 vmem_size;
+> +	u32 vmem_addr;
+> +};
+> +
+> +struct venus_format {
+> +	u32 pixfmt;
+> +	int num_planes;
+> +	u32 type;
+> +};
+> +
+> +struct venus_core {
+> +	void __iomem *base;
+> +	int irq;
+
+Is this ever used?
+
+> +	struct clk *clks[VIDC_CLKS_NUM_MAX];
+> +	struct video_device *vdev_dec;
+> +	struct video_device *vdev_enc;
+> +	struct v4l2_device v4l2_dev;
+> +	const struct venus_resources *res;
+> +	struct rproc *rproc;
+> +	struct device *dev;
+> +	struct mutex lock;
+> +	struct list_head instances;
+> +
+> +	/* HFI core fields */
+> +	unsigned int state;
+> +	struct completion done;
+> +	unsigned int error;
+> +
+> +	/* core operations passed by outside world */
+> +	const struct hfi_core_ops *core_ops;
+> +
+> +	/* filled by sys core init */
+> +	u32 enc_codecs;
+> +	u32 dec_codecs;
+> +	unsigned int max_sessions_supported;
+> +
+> +	/* core capabilities */
+> +#define ENC_ROTATION_CAPABILITY		0x1
+> +#define ENC_SCALING_CAPABILITY		0x2
+> +#define ENC_DEINTERLACE_CAPABILITY	0x4
+> +#define DEC_MULTI_STREAM_CAPABILITY	0x8
+> +	unsigned int core_caps;
+> +
+> +	/* internal hfi operations */
+> +	void *priv;
+> +	const struct hfi_ops *ops;
+> +};
+> +
+> +struct vdec_controls {
+> +	u32 post_loop_deb_mode;
+> +	u32 profile;
+> +	u32 level;
+> +};
+> +
+> +struct venc_controls {
+> +	u16 gop_size;
+> +	u32 idr_period;
+> +	u32 num_p_frames;
+> +	u32 num_b_frames;
+> +	u32 bitrate_mode;
+> +	u32 bitrate;
+> +	u32 bitrate_peak;
+> +
+> +	u32 h264_i_period;
+> +	u32 h264_entropy_mode;
+> +	u32 h264_i_qp;
+> +	u32 h264_p_qp;
+> +	u32 h264_b_qp;
+> +	u32 h264_min_qp;
+> +	u32 h264_max_qp;
+> +	u32 h264_loop_filter_mode;
+> +	u32 h264_loop_filter_alpha;
+> +	u32 h264_loop_filter_beta;
+> +
+> +	u32 vp8_min_qp;
+> +	u32 vp8_max_qp;
+> +
+> +	u32 multi_slice_mode;
+> +	u32 multi_slice_max_bytes;
+> +	u32 multi_slice_max_mb;
+> +
+> +	u32 header_mode;
+> +
+> +	u32 profile;
+> +	u32 level;
+> +};
+> +
+> +struct venus_inst {
+
+Can we have some kernel doc on these structures?
+
+> +	struct list_head list;
+> +	struct mutex lock;
+
+e.g. what is lock protecting? list?
+
+> +
+> +	struct venus_core *core;
+> +
+> +	struct list_head internalbufs;
+> +	struct mutex internalbufs_lock;
+> +
+> +	struct list_head registeredbufs;
+> +	struct mutex registeredbufs_lock;
+> +
+> +	struct list_head bufqueue;
+> +	struct mutex bufqueue_lock;
+> +
+> +	struct vb2_queue bufq_out;
+> +	struct vb2_queue bufq_cap;
+> +
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +	union {
+> +		struct vdec_controls dec;
+> +		struct venc_controls enc;
+> +	} controls;
+> +	struct v4l2_fh fh;
+> +
+> +	/* v4l2 fields */
+> +	u32 width;
+> +	u32 height;
+> +	u32 out_width;
+> +	u32 out_height;
+> +	u32 colorspace;
+> +	u8 ycbcr_enc;
+> +	u8 quantization;
+> +	u8 xfer_func;
+> +	u64 fps;
+> +	struct v4l2_fract timeperframe;
+> +	const struct venus_format *fmt_out;
+> +	const struct venus_format *fmt_cap;
+> +	unsigned int num_input_bufs;
+> +	unsigned int num_output_bufs;
+> +	unsigned int output_buf_size;
+> +	bool in_reconfig;
+> +	u32 reconfig_width;
+> +	u32 reconfig_height;
+> +	u64 sequence;
+> +	bool codec_cfg;
+> +
+> +	/* HFI instance fields */
+> +	unsigned int state;
+> +	struct completion done;
+> +	unsigned int error;
+> +
+> +	/* instance operations passed by outside world */
+> +	const struct hfi_inst_ops *ops;
+> +	void *priv;
+> +	u32 session_type;
+> +	union hfi_get_property hprop;
+> +
+> +	/* capabilities filled by session_init */
+> +	struct hfi_capability cap_width;
+> +	struct hfi_capability cap_height;
+> +	struct hfi_capability cap_mbs_per_frame;
+> +	struct hfi_capability cap_mbs_per_sec;
+> +	struct hfi_capability cap_framerate;
+> +	struct hfi_capability cap_scale_x;
+> +	struct hfi_capability cap_scale_y;
+> +	struct hfi_capability cap_bitrate;
+> +	struct hfi_capability cap_hier_p;
+> +	struct hfi_capability cap_ltr_count;
+> +	struct hfi_capability cap_secure_output2_threshold;
+> +	bool cap_bufs_mode_static;
+> +	bool cap_bufs_mode_dynamic;
+> +
+> +	/* profile & level pairs supported */
+> +	unsigned int pl_count;
+> +	struct hfi_profile_level pl[HFI_MAX_PROFILE_COUNT];
+> +
+> +	/* buffer requirements */
+> +	struct hfi_buffer_requirements bufreq[HFI_BUFFER_TYPE_MAX];
+> +};
+> +
+> +#define ctrl_to_inst(ctrl)	\
+> +	container_of(ctrl->handler, struct venus_inst, ctrl_handler)
+> +
+> +struct venus_ctrl {
+> +	u32 id;
+> +	enum v4l2_ctrl_type type;
+> +	s32 min;
+> +	s32 max;
+> +	s32 def;
+> +	u32 step;
+> +	u64 menu_skip_mask;
+> +	u32 flags;
+> +	const char * const *qmenu;
+> +};
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> new file mode 100644
+> index 000000000000..c2d1446ad254
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
+> @@ -0,0 +1,612 @@
+> +/*
+> + * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
+> + * Copyright (C) 2016 Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + */
+> +#include <linux/clk.h>
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/videobuf2-dma-sg.h>
+> +
+> +#include "helpers.h"
+> +#include "hfi_helper.h"
+> +
+> +struct intbuf {
+> +	struct list_head list;
+> +	u32 type;
+> +	size_t size;
+> +	void *va;
+> +	dma_addr_t da;
+> +	unsigned long attrs;
+> +};
+> +
+> +static int intbufs_set_buffer(struct venus_inst *inst, u32 type)
+> +{
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	struct hfi_buffer_requirements bufreq;
+> +	struct hfi_buffer_desc bd;
+> +	struct intbuf *buf;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	ret = vidc_get_bufreq(inst, type, &bufreq);
+> +	if (ret)
+> +		return 0;
+> +
+> +	if (!bufreq.size)
+> +		return 0;
+> +
+> +	for (i = 0; i < bufreq.count_actual; i++) {
+> +		buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+> +		if (!buf) {
+> +			ret = -ENOMEM;
+> +			goto fail;
+> +		}
+> +
+> +		buf->type = bufreq.type;
+> +		buf->size = bufreq.size;
+> +		buf->attrs = DMA_ATTR_WRITE_COMBINE |
+> +			     DMA_ATTR_NO_KERNEL_MAPPING;
+> +		buf->va = dma_alloc_attrs(dev, buf->size, &buf->da, GFP_KERNEL,
+> +					  buf->attrs);
+> +		if (!buf->va) {
+> +			ret = -ENOMEM;
+> +			goto fail;
+> +		}
+> +
+> +		memset(&bd, 0, sizeof(bd));
+> +		bd.buffer_size = buf->size;
+> +		bd.buffer_type = buf->type;
+> +		bd.num_buffers = 1;
+> +		bd.device_addr = buf->da;
+> +
+> +		ret = hfi_session_set_buffers(inst, &bd);
+> +		if (ret) {
+> +			dev_err(dev, "set session buffers failed\n");
+> +			goto fail;
+> +		}
+> +
+> +		mutex_lock(&inst->internalbufs_lock);
+> +		list_add_tail(&buf->list, &inst->internalbufs);
+> +		mutex_unlock(&inst->internalbufs_lock);
+> +	}
+> +
+> +	return 0;
+> +
+> +fail:
+> +	kfree(buf);
+> +	return ret;
+> +}
+> +
+> +static int intbufs_unset_buffers(struct venus_inst *inst)
+> +{
+> +	struct hfi_buffer_desc bd = {0};
+> +	struct intbuf *buf, *n;
+> +	int ret = 0;
+> +
+> +	mutex_lock(&inst->internalbufs_lock);
+> +	list_for_each_entry_safe(buf, n, &inst->internalbufs, list) {
+> +		bd.buffer_size = buf->size;
+> +		bd.buffer_type = buf->type;
+> +		bd.num_buffers = 1;
+> +		bd.device_addr = buf->da;
+> +		bd.response_required = true;
+> +
+> +		ret = hfi_session_unset_buffers(inst, &bd);
+
+Should this be ret |= ? Only the last time through the loop will
+there be an error. Or perhaps we should be bailing out early from
+this loop?
+
+> +
+> +		list_del(&buf->list);
+> +		dma_free_attrs(inst->core->dev, buf->size, buf->va, buf->da,
+> +			       buf->attrs);
+> +		kfree(buf);
+> +	}
+> +	mutex_unlock(&inst->internalbufs_lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static const unsigned int intbuf_types[] = {
+> +	HFI_BUFFER_INTERNAL_SCRATCH,
+> +	HFI_BUFFER_INTERNAL_SCRATCH_1,
+> +	HFI_BUFFER_INTERNAL_SCRATCH_2,
+> +	HFI_BUFFER_INTERNAL_PERSIST,
+> +	HFI_BUFFER_INTERNAL_PERSIST_1,
+> +};
+> +
+> +static int intbufs_alloc(struct venus_inst *inst)
+> +{
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(intbuf_types); i++) {
+> +		ret = intbufs_set_buffer(inst, intbuf_types[i]);
+> +		if (ret)
+> +			goto error;
+> +	}
+> +
+> +	return 0;
+> +
+> +error:
+> +	intbufs_unset_buffers(inst);
+> +	return ret;
+> +}
+> +
+> +static int intbufs_free(struct venus_inst *inst)
+> +{
+> +	return intbufs_unset_buffers(inst);
+> +}
+> +
+> +static u32 load_per_instance(struct venus_inst *inst)
+> +{
+> +	u32 w = inst->width;
+> +	u32 h = inst->height;
+> +	u32 mbs;
+> +
+> +	if (!inst || !(inst->state >= INST_INIT && inst->state < INST_STOP))
+> +		return 0;
+> +
+> +	mbs = (ALIGN(w, 16) / 16) * (ALIGN(h, 16) / 16);
+> +
+> +	return mbs * inst->fps;
+> +}
+> +
+> +static u32 load_per_type(struct venus_core *core, u32 session_type)
+> +{
+> +	struct venus_inst *inst = NULL;
+> +	u32 mbs_per_sec = 0;
+> +
+> +	mutex_lock(&core->lock);
+> +	list_for_each_entry(inst, &core->instances, list) {
+> +		if (inst->session_type != session_type)
+> +			continue;
+> +
+> +		mbs_per_sec += load_per_instance(inst);
+> +	}
+> +	mutex_unlock(&core->lock);
+> +
+> +	return mbs_per_sec;
+> +}
+> +
+> +static int load_scale_clocks(struct venus_core *core)
+> +{
+> +	const struct freq_tbl *table = core->res->freq_tbl;
+> +	unsigned int num_rows = core->res->freq_tbl_size;
+> +	unsigned long freq = table[0].freq;
+> +	struct clk *clk = core->clks[0];
+> +	struct device *dev = core->dev;
+> +	u32 mbs_per_sec;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	mbs_per_sec = load_per_type(core, VIDC_SESSION_TYPE_ENC) +
+> +		      load_per_type(core, VIDC_SESSION_TYPE_DEC);
+> +
+> +	if (mbs_per_sec > core->res->max_load) {
+> +		dev_warn(dev, "HW is overloaded, needed: %d max: %d\n",
+> +			 mbs_per_sec, core->res->max_load);
+> +		return -EBUSY;
+> +	}
+> +
+> +	if (!mbs_per_sec && num_rows > 1) {
+> +		freq = table[num_rows - 1].freq;
+> +		goto set_freq;
+> +	}
+> +
+> +	for (i = 0; i < num_rows; i++) {
+> +		if (mbs_per_sec > table[i].load)
+> +			break;
+> +		freq = table[i].freq;
+> +	}
+> +
+> +set_freq:
+> +
+> +	ret = clk_set_rate(clk, freq);
+> +	if (ret) {
+> +		dev_err(dev, "failed to set clock rate %lu (%d)\n", freq, ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int session_set_buf(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct vb2_queue *q = vb->vb2_queue;
+> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	struct vidc_buffer *buf = to_vidc_buffer(vbuf);
+> +	struct hfi_frame_data fdata;
+> +	int ret;
+> +
+> +	memset(&fdata, 0, sizeof(fdata));
+> +
+> +	fdata.alloc_len = vb2_plane_size(vb, 0);
+> +	fdata.device_addr = buf->dma_addr;
+> +	fdata.timestamp = vb->timestamp;
+> +	fdata.flags = 0;
+> +	fdata.clnt_data = buf->dma_addr;
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+> +		fdata.buffer_type = HFI_BUFFER_INPUT;
+> +		fdata.filled_len = vb2_get_plane_payload(vb, 0);
+> +		fdata.offset = vb->planes[0].data_offset;
+> +
+> +		if (vbuf->flags & V4L2_BUF_FLAG_LAST || !fdata.filled_len)
+> +			fdata.flags |= HFI_BUFFERFLAG_EOS;
+> +
+> +		if (inst->codec_cfg == false &&
+> +		    inst->session_type == VIDC_SESSION_TYPE_DEC) {
+> +			inst->codec_cfg = true;
+> +			fdata.flags |= HFI_BUFFERFLAG_CODECCONFIG;
+> +		}
+> +
+> +		ret = hfi_session_etb(inst, &fdata);
+> +	} else if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+> +		fdata.buffer_type = HFI_BUFFER_OUTPUT;
+> +		fdata.filled_len = 0;
+> +		fdata.offset = 0;
+> +
+> +		ret = hfi_session_ftb(inst, &fdata);
+> +	} else {
+> +		ret = -EINVAL;
+> +	}
+
+Use a switch statement instead?
+
+> +
+> +	if (ret) {
+> +		dev_err(dev, "failed to set session buffer (%d)\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int session_unregister_bufs(struct venus_inst *inst)
+> +{
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	struct hfi_buffer_desc *bd;
+> +	struct vidc_buffer *buf, *tmp;
+> +	int ret = 0;
+> +
+> +	if (core->res->hfi_version == HFI_VERSION_3XX)
+> +		return 0;
+> +
+> +	mutex_lock(&inst->registeredbufs_lock);
+> +	list_for_each_entry_safe(buf, tmp, &inst->registeredbufs, hfi_list) {
+> +		list_del(&buf->hfi_list);
+> +		bd = &buf->bd;
+> +		bd->response_required = 1;
+> +		ret = hfi_session_unset_buffers(inst, bd);
+> +		if (ret) {
+> +			dev_err(dev, "%s: session release buffers failed\n",
+> +				__func__);
+> +			break;
+> +		}
+> +	}
+> +	mutex_unlock(&inst->registeredbufs_lock);
+> +
+> +	return ret;
+> +}
+> +
+> +static int session_register_bufs(struct venus_inst *inst)
+> +{
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	struct hfi_buffer_desc *bd;
+> +	struct vidc_buffer *buf, *tmp;
+> +	int ret = 0;
+> +
+> +	if (core->res->hfi_version == HFI_VERSION_3XX)
+> +		return 0;
+> +
+> +	mutex_lock(&inst->registeredbufs_lock);
+> +	list_for_each_entry_safe(buf, tmp, &inst->registeredbufs, hfi_list) {
+
+Do we need to iterate safely? It isn't obvious that the list is
+being modified here.
+
+> +		bd = &buf->bd;
+> +		ret = hfi_session_set_buffers(inst, bd);
+> +		if (ret) {
+> +			dev_err(dev, "%s: session: set buffer failed\n",
+> +				__func__);
+> +			break;
+> +		}
+> +	}
+> +	mutex_unlock(&inst->registeredbufs_lock);
+> +
+> +	return ret;
+> +}
+> +
+> +int vidc_get_bufreq(struct venus_inst *inst, u32 type,
+> +		    struct hfi_buffer_requirements *out)
+> +{
+> +	u32 ptype = HFI_PROPERTY_CONFIG_BUFFER_REQUIREMENTS;
+> +	union hfi_get_property hprop;
+> +	int ret, i;
+> +
+> +	if (out)
+> +		memset(out, 0, sizeof(*out));
+> +
+> +	ret = hfi_session_get_property(inst, ptype, &hprop);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = -EINVAL;
+> +
+> +	for (i = 0; i < HFI_BUFFER_TYPE_MAX; i++) {
+> +		if (hprop.bufreq[i].type != type)
+> +			continue;
+> +
+> +		if (out)
+> +			memcpy(out, &hprop.bufreq[i], sizeof(*out));
+> +		ret = 0;
+> +		break;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+> +int vidc_set_color_format(struct venus_inst *inst, u32 type, u32 pixfmt)
+> +{
+> +	struct hfi_uncompressed_format_select fmt;
+> +	u32 ptype = HFI_PROPERTY_PARAM_UNCOMPRESSED_FORMAT_SELECT;
+> +	int ret;
+> +
+> +	fmt.buffer_type = type;
+> +
+> +	switch (pixfmt) {
+> +	case V4L2_PIX_FMT_NV12:
+> +		fmt.format = HFI_COLOR_FORMAT_NV12;
+> +		break;
+> +	case V4L2_PIX_FMT_NV21:
+> +		fmt.format = HFI_COLOR_FORMAT_NV21;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	ret = hfi_session_set_property(inst, ptype, &fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +struct vb2_v4l2_buffer *
+> +vidc_vb2_find_buf(struct venus_inst *inst, dma_addr_t addr)
+> +{
+> +	struct vidc_buffer *buf;
+> +	struct vb2_v4l2_buffer *vb = NULL;
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +
+> +	list_for_each_entry(buf, &inst->bufqueue, list) {
+> +		if (buf->dma_addr == addr) {
+> +			vb = &buf->vb;
+> +			break;
+> +		}
+> +	}
+> +
+> +	if (vb)
+> +		list_del(&buf->list);
+> +
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +
+> +	return vb;
+> +}
+> +
+> +int vidc_vb2_buf_init(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct vb2_queue *q = vb->vb2_queue;
+> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+> +	struct vidc_buffer *buf = to_vidc_buffer(vbuf);
+> +	struct hfi_buffer_desc *bd = &buf->bd;
+> +	struct sg_table *sgt;
+> +
+> +	memset(bd, 0, sizeof(*bd));
+> +
+> +	if (q->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return 0;
+> +
+> +	sgt = vb2_dma_sg_plane_desc(vb, 0);
+> +	if (!sgt)
+> +		return -EINVAL;
+> +
+> +	bd->buffer_size = vb2_plane_size(vb, 0);
+> +	bd->buffer_type = HFI_BUFFER_OUTPUT;
+> +	bd->num_buffers = 1;
+> +	bd->device_addr = sg_dma_address(sgt->sgl);
+> +
+> +	mutex_lock(&inst->registeredbufs_lock);
+> +	list_add_tail(&buf->hfi_list, &inst->registeredbufs);
+> +	mutex_unlock(&inst->registeredbufs_lock);
+> +
+> +	return 0;
+> +}
+> +
+> +int vidc_vb2_buf_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct vidc_buffer *buf = to_vidc_buffer(vbuf);
+> +	struct sg_table *sgt;
+> +
+> +	sgt = vb2_dma_sg_plane_desc(vb, 0);
+> +	if (!sgt)
+> +		return -EINVAL;
+> +
+> +	buf->dma_addr = sg_dma_address(sgt->sgl);
+> +
+> +	return 0;
+> +}
+> +
+> +void vidc_vb2_buf_queue(struct vb2_buffer *vb)
+> +{
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct venus_inst *inst = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct vidc_buffer *buf = to_vidc_buffer(vbuf);
+> +	unsigned int state;
+> +	int ret;
+> +
+> +	mutex_lock(&inst->lock);
+> +	state = inst->state;
+> +	mutex_unlock(&inst->lock);
+> +
+
+So if we context switch here and then venus_event_notify() runs
+and marks inst->state as INVALID we won't notice?
+
+> +	if (state == INST_INVALID || state >= INST_STOP) {
+> +		vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+> +		return;
+> +	}
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +	list_add_tail(&buf->list, &inst->bufqueue);
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +
+> +	if (!vb2_is_streaming(&inst->bufq_cap) ||
+> +	    !vb2_is_streaming(&inst->bufq_out))
+> +		return;
+> +
+> +	ret = session_set_buf(vb);
+> +	if (ret)
+> +		vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+> +}
+> +
+> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	struct vb2_queue *other_queue;
+> +	struct vidc_buffer *buf, *n;
+> +	enum vb2_buffer_state state;
+> +	int ret;
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		other_queue = &inst->bufq_cap;
+> +	else
+> +		other_queue = &inst->bufq_out;
+> +
+> +	if (!vb2_is_streaming(other_queue))
+> +		return;
+> +
+> +	ret = hfi_session_stop(inst);
+> +	if (ret) {
+> +		dev_err(dev, "session: stop failed (%d)\n", ret);
+> +		goto abort;
+> +	}
+> +
+> +	ret = hfi_session_unload_res(inst);
+> +	if (ret) {
+> +		dev_err(dev, "session: release resources failed (%d)\n", ret);
+> +		goto abort;
+> +	}
+> +
+> +	ret = session_unregister_bufs(inst);
+> +	if (ret) {
+> +		dev_err(dev, "failed to release capture buffers: %d\n", ret);
+> +		goto abort;
+> +	}
+> +
+> +	ret = intbufs_free(inst);
+> +
+> +	if (inst->state == INST_INVALID || core->state == CORE_INVALID)
+
+Here we don't have any lock held for inst->state protection? Is
+there some other lock assumed to be held? We should add a
+lockdep_assert() at the top of this function if so.
+
+> +		ret = -EINVAL;
+> +
+> +abort:
+> +	if (ret)
+> +		hfi_session_abort(inst);
+> +
+> +	load_scale_clocks(core);
+> +
+> +	ret = hfi_session_deinit(inst);
+> +
+> +	pm_runtime_put_sync(dev);
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +
+> +	if (list_empty(&inst->bufqueue)) {
+> +		mutex_unlock(&inst->bufqueue_lock);
+> +		return;
+
+Or just let that list_for_each_entry_safe() below iterate over nothing?
+
+> +	}
+> +
+> +	if (ret)
+> +		state = VB2_BUF_STATE_ERROR;
+> +	else
+> +		state = VB2_BUF_STATE_DONE;
+> +
+> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
+> +		vb2_buffer_done(&buf->vb.vb2_buf, state);
+> +		list_del(&buf->list);
+> +	}
+> +
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +}
+> +
+> +int vidc_vb2_start_streaming(struct venus_inst *inst)
+> +{
+> +	struct venus_core *core = inst->core;
+> +	struct vidc_buffer *buf, *n;
+> +	int ret;
+> +
+> +	ret = intbufs_alloc(inst);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = session_register_bufs(inst);
+> +	if (ret)
+> +		goto err_bufs_free;
+> +
+> +	load_scale_clocks(core);
+> +
+> +	ret = hfi_session_load_res(inst);
+> +	if (ret)
+> +		goto err_unreg_bufs;
+> +
+> +	ret = hfi_session_start(inst);
+> +	if (ret)
+> +		goto err_unload_res;
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
+> +		ret = session_set_buf(&buf->vb.vb2_buf);
+> +		if (ret)
+> +			break;
+> +	}
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +
+> +	if (ret)
+> +		goto err_session_stop;
+> +
+> +	return 0;
+> +
+> +err_session_stop:
+> +	hfi_session_stop(inst);
+> +err_unload_res:
+> +	hfi_session_unload_res(inst);
+> +err_unreg_bufs:
+> +	session_unregister_bufs(inst);
+> +err_bufs_free:
+> +	intbufs_free(inst);
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +
+> +	if (list_empty(&inst->bufqueue))
+> +		goto err_done;
+
+Or just iterate over nothing below?
+
+> +
+> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
+> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
+> +		list_del(&buf->list);
+> +	}
+> +
+> +err_done:
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +
+> +	return ret;
+> +}
+
 -- 
-2.7.4
-
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
