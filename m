@@ -1,80 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:56122 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753556AbcKYNsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 08:48:08 -0500
-Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
-To: Dan Carpenter <dan.carpenter@oracle.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20161125102835.GA5856@mwanda>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <3d5d23d6-14ab-5c22-978a-15b5546fdca9@users.sourceforge.net>
-Date: Fri, 25 Nov 2016 14:40:32 +0100
-MIME-Version: 1.0
-In-Reply-To: <20161125102835.GA5856@mwanda>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mout.kundenserver.de ([212.227.126.187]:65234 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934921AbcKJQqq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 11:46:46 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Jiri Kosina <jikos@kernel.org>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Ley Foon Tan <lftan@altera.com>,
+        "Luis R . Rodriguez" <mcgrof@kernel.org>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Marek <mmarek@suse.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sean Young <sean@mess.org>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Trond Myklebust <trond.myklebust@primarydata.com>,
+        x86@kernel.org, linux-kbuild@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
+        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
+        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-nfs@vger.kernel.org
+Subject: [PATCH v2 05/11] s390: pci: don't print uninitialized data for debugging
+Date: Thu, 10 Nov 2016 17:44:48 +0100
+Message-Id: <20161110164454.293477-6-arnd@arndb.de>
+In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
+References: <20161110164454.293477-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> A recent cleanup introduced a potential dereference of -EFAULT when we
-> call kfree(map->menu_info).
-> 
-> Fixes: 4cc5bed1caeb ("[media] uvcvideo: Use memdup_user() rather than duplicating its implementation")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+gcc correctly warns about an incorrect use of the 'pa' variable
+in case we pass an empty scatterlist to __s390_dma_map_sg:
 
-Thanks for your information.
+arch/s390/pci/pci_dma.c: In function '__s390_dma_map_sg':
+arch/s390/pci/pci_dma.c:309:13: warning: 'pa' may be used uninitialized in this function [-Wmaybe-uninitialized]
 
+This adds a bogus initialization to the function to sanitize
+the debug output.  I would have preferred a solution without
+the initialization, but I only got the report from the
+kbuild bot after turning on the warning again, and didn't
+manage to reproduce it myself.
 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index a7e12fd..3e7e283 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -66,14 +66,14 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
->  		if (xmap->menu_count == 0 ||
->  		    xmap->menu_count > UVC_MAX_CONTROL_MENU_ENTRIES) {
->  			ret = -EINVAL;
-> -			goto done;
-> +			goto free_map;
->  		}
->  
->  		size = xmap->menu_count * sizeof(*map->menu_info);
->  		map->menu_info = memdup_user(xmap->menu_info, size);
->  		if (IS_ERR(map->menu_info)) {
->  			ret = PTR_ERR(map->menu_info);
-> -			goto done;
-> +			goto free_map;
->  		}
->  
->  		map->menu_count = xmap->menu_count;
-> @@ -83,13 +83,13 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
->  		uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
->  			  "%u.\n", xmap->v4l2_type);
->  		ret = -ENOTTY;
-> -		goto done;
-> +		goto free_map;
->  	}
->  
->  	ret = uvc_ctrl_add_mapping(chain, map);
->  
-> -done:
->  	kfree(map->menu_info);
-> +free_map:
->  	kfree(map);
->  
->  	return ret;
-> 
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+---
+ arch/s390/pci/pci_dma.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Did your update suggestion become also relevant just because the corresponding
-update step “[PATCH 2/2] uvc_v4l2: One function call less in uvc_ioctl_ctrl_map()
-after error detection” which I offered as another change possibility on 2016-08-19
-was rejected on 2016-11-22?
+diff --git a/arch/s390/pci/pci_dma.c b/arch/s390/pci/pci_dma.c
+index 7350c8b..6b2f72f 100644
+--- a/arch/s390/pci/pci_dma.c
++++ b/arch/s390/pci/pci_dma.c
+@@ -423,7 +423,7 @@ static int __s390_dma_map_sg(struct device *dev, struct scatterlist *sg,
+ 	dma_addr_t dma_addr_base, dma_addr;
+ 	int flags = ZPCI_PTE_VALID;
+ 	struct scatterlist *s;
+-	unsigned long pa;
++	unsigned long pa = 0;
+ 	int ret;
+ 
+ 	size = PAGE_ALIGN(size);
+-- 
+2.9.0
 
-https://patchwork.linuxtv.org/patch/36528/
-https://patchwork.kernel.org/patch/9289897/
-https://lkml.kernel.org/r/<8f89ec37-1556-4c09-f0b7-df87b4169320@users.sourceforge.net>
-
-Regards,
-Markus
