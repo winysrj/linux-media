@@ -1,178 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57283 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55028 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750928AbcKQVlF (ORCPT
+        with ESMTP id S932739AbcKJXyC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Nov 2016 16:41:05 -0500
+        Thu, 10 Nov 2016 18:54:02 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Rob Herring <robh@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
-Date: Thu, 17 Nov 2016 23:41:14 +0200
-Message-ID: <8554630.UOVTySaAZP@avalon>
-In-Reply-To: <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com>
-References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1645400.RKG9rcP36z@avalon> <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com>
+To: Shuah Khan <shuahkhan@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC v4 08/21] media: Enable allocating the media device dynamically
+Date: Fri, 11 Nov 2016 01:53:59 +0200
+Message-ID: <4251827.ADF06xmuSS@avalon>
+In-Reply-To: <CAKocOONNR9NBszp5Qq+geRdR+qAD70GYXguN7c3Q0Ptoz0Vzhg@mail.gmail.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk> <1478613330-24691-8-git-send-email-sakari.ailus@linux.intel.com> <CAKocOONNR9NBszp5Qq+geRdR+qAD70GYXguN7c3Q0Ptoz0Vzhg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hi Shuah,
 
-On Friday 14 Oct 2016 07:40:14 Rob Herring wrote:
-> On Sun, Oct 9, 2016 at 11:33 AM, Laurent Pinchartwrote:
-> > On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
-> >> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
-> >>> LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
-> >>> Multiple incompatible data link layers have been used over time to
-> >>> transmit image data to LVDS panels. This binding supports display
-> >>> panels compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
-> >>> specifications.
-> >>> 
-> >>> Signed-off-by: Laurent Pinchart
-> >>> <laurent.pinchart+renesas@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>>  .../bindings/display/panel/panel-lvds.txt          | 119 +++++++++++++
-> >>>  1 file changed, 119 insertions(+)
-> >>>  create mode 100644
-> >>>  Documentation/devicetree/bindings/display/panel/panel-lvds.txt>
-> >>> 
-> >>> diff --git
-> >>> a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
-> >>> b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt new
-> >>> file
-> >>> mode 100644
-> >>> index 000000000000..250861f2673e
-> >>> --- /dev/null
-> >>> +++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
-> >>> @@ -0,0 +1,119 @@
-> >>> +Generic LVDS Panel
-> >>> +==================
-> >>> +
-> >>> +LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
-> >>> Multiple
-> >>> +incompatible data link layers have been used over time to transmit
-> >>> image data
-> >>> +to LVDS panels. This bindings supports display panels compatible with
-> >>> the
-> >>> +following specifications.
-> >>> +
-> >>> +[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999,
-> >>> February
-> >>> +1999 (Version 1.0), Japan Electronic Industry Development Association
-> >>> (JEIDA)
-> >>> +[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95), National
-> >>> +Semiconductor
-> >>> +[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0),
-> >>> Video
-> >>> +Electronics Standards Association (VESA)
-> >>> +
-> >>> +Device compatible with those specifications have been marketed under
-> >>> the
-> >>> +FPD-Link and FlatLink brands.
-> >>> +
-> >>> +
-> >>> +Required properties:
-> >>> +- compatible: shall contain "panel-lvds"
-> >> 
-> >> Maybe as a fallback, but on its own, no way.
+On Tuesday 08 Nov 2016 12:20:29 Shuah Khan wrote:
+> On Tue, Nov 8, 2016 at 6:55 AM, Sakari Ailus wrote:
+> > From: Sakari Ailus <sakari.ailus@iki.fi>
 > > 
-> > Which brings an interesting question: when designing generic DT bindings,
-> > what's the rule regarding
-> 
-> Call it "simple" so I can easily NAK it. :)
-> 
-> Define a generic structure, not a single binding trying to serve all.
-> 
-> >>> +- width-mm: panel display width in millimeters
-> >>> +- height-mm: panel display height in millimeters
-> >> 
-> >> This is already documented for all panels IIRC.
+> > Allow allocating the media device dynamically. As the struct media_device
+> > embeds struct media_devnode, the lifetime of that object is that same than
+> > that of the media_device.
 > > 
-> > Note that this DT binding has nothing to do with the simple-panel binding.
-> > It is instead similar to the panel-dpi and panel-dsi-cm bindings (which
-> > currently don't but should specify the panel size in DT). The LVDS panel
-> > driver will *not* include any panel-specific information such as size or
-> > timings, these are specified in DT.
-> 
-> The panel bindings aren't really different. The biggest difference was
-> location in the tree, but we now generally allow panels to be either a
-> child of the LCD controller or connected with OF graph. We probably
-> need to work on restructuring the panel bindings a bit. We should have
-> an inheritance with a base panel binding of things like size, label,
-> graph, backlight, etc, then perhaps an interface specific bindings for
-> LVDS, DSI, and parallel, then a panel specific binding. With this the
-> panel specific binding is typically just a compatible string and which
-> inherited properties apply to it.
-> 
-> >>> +- data-mapping: the color signals mapping order, "jeida-18",
-> >>> "jeida-24"
-> >>> +  or "vesa-24"
-> >> 
-> >> Maybe this should be part of the compatible.
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
 > > 
-> > I've thought about it, but given that some panels support selecting
-> > between multiple modes (through a mode pin that is usually hardwired), I
-> > believe a separate DT property makes sense.
-> 
-> Okay.
-> 
-> > Furthermore, LVDS data organization is controlled by the combination of
-> > both data-mapping and data-mirror. It makes little sense from my point of
-> > view to handle one as part of the compatible string and the other one as
-> > a separate property.
+> >  drivers/media/media-device.c | 15 +++++++++++++++
+> >  include/media/media-device.h | 13 +++++++++++++
+> >  2 files changed, 28 insertions(+)
 > > 
-> >>> +Optional properties:
-> >>> +- label: a symbolic name for the panel
-> >> 
-> >> Could be for any panel or display connector.
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index a31329d..496195e 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
+> >  }
+> >  EXPORT_SYMBOL_GPL(media_device_init);
 > > 
-> > Yes, but I'm not sure to understand how that's relevant :-)
+> > +struct media_device *media_device_alloc(struct device *dev)
+> > +{
+> > +       struct media_device *mdev;
+> > +
+> > +       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+> > +       if (!mdev)
+> > +               return NULL;
+> > +
+> > +       mdev->dev = dev;
+> > +       media_device_init(mdev);
+> > +
+> > +       return mdev;
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_device_alloc);
+> > +
 > 
-> Meaning it should be a common property.
-> 
-> >>> +- avdd-supply: reference to the regulator that powers the panel
-> >>> analog supply
-> >>> +- dvdd-supply: reference to the regulator that powers the panel
-> >>> digital supply
-> >> 
-> >> Which one has to be powered on first, what voltage, and with what time
-> >> in between? This is why "generic" or "simple" bindings don't work.
-> > 
-> > The above-mentioned specifications also define connectors, pinouts and
-> > power supplies, but many LVDS panels compatible with the LVDS physical
-> > and data layers use a different connector with small differences in power
-> > supplies.
-> > 
-> > I believe the voltage is irrelevant here, it doesn't need to be controlled
-> > by the operating system. Power supplies order and timing is relevant,
-> > I'll investigate the level of differences between panels. I'm also fine
-> > with dropping those properties for now.
-> 
-> Whether you have control of the supplies is dependent on the board.
-> Dropping them is just puts us in the simple binding trap. The simple
-> bindings start out that way and then people keep adding to them.
-> 
-> >>> +- data-mirror: if set, reverse the bit order on all data lanes (6 to 0
-> >>> instead
-> >>> +  of 0 to 6)
-> 
-> On this one, make the name describe the order. "mirror" requires that
-> I know what is normal ordering. Perhaps "data-msb-first".
+> One problem with this allocation is, this media device can't be shared
+> across drivers. For au0828 and snd-usb-audio should be able to share the
+> media_device. That is what the Media Allocator API patch series does.
 
-The normal order is defined just below in the same document, and actually 
-transmits bits with MSB first (roughly). The bit ordering in LVDS is a bit 
-messed up, I've tried to follow the specs as much as possible for these 
-bindings. Data mirroring isn't defined in any spec I've found but is 
-implemented by some devices that got the spec wrong :-)
+No disagreement here, Sakari's patches don't address the issues that the media 
+allocator API fixes. The media allocator API, when ready, should replace (or 
+at least complement, if we decide to keep a simpler API for drivers that don't 
+need to share a media device, but I have no opinion on this at this time) this 
+allocation function.
+
+> This a quick review and I will review the patch series and get back to
+> you.
+>
+> >  void media_device_cleanup(struct media_device *mdev)
+> >  {
+> >         ida_destroy(&mdev->entity_internal_idx);
+> > diff --git a/include/media/media-device.h b/include/media/media-device.h
+> > index 96de915..c9b5798 100644
+> > --- a/include/media/media-device.h
+> > +++ b/include/media/media-device.h
+> > @@ -207,6 +207,15 @@ static inline __must_check int
+> > media_entity_enum_init(
+> >  void media_device_init(struct media_device *mdev);
+> >  
+> >  /**
+> > + * media_device_alloc() - Allocate and initialise a media device
+> > + *
+> > + * @dev:       The associated struct device pointer
+> > + *
+> > + * Allocate and initialise a media device. Returns a media device.
+> > + */
+> > +struct media_device *media_device_alloc(struct device *dev);
+> > +
+> > +/**
+> >   * media_device_cleanup() - Cleanups a media device element
+> >   *
+> >   * @mdev:      pointer to struct &media_device
+> > @@ -451,6 +460,10 @@ void __media_device_usb_init(struct media_device
+> > *mdev,
+> >                              const char *driver_name);
+> >  #else
+> > +static inline struct media_device *media_device_alloc(struct device *dev)
+> > +{
+> > +       return NULL;
+> > +}
+> >  static inline int media_device_register(struct media_device *mdev)
+> >  {
+> >         return 0;
 
 -- 
 Regards,
