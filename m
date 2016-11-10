@@ -1,94 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:55335 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754473AbcKCK1b (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 06:27:31 -0400
-Date: Thu, 3 Nov 2016 11:27:27 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20161103102727.GA10084@amd>
-References: <20160525212659.GK26360@valkosipuli.retiisi.org.uk>
- <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
- <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
- <20160818104539.GA7427@amd>
- <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:45015
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752528AbcKJIHj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 03:07:39 -0500
+Date: Thu, 10 Nov 2016 06:07:17 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
+Message-ID: <20161110060717.221e8d88@vento.lan>
+In-Reply-To: <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
+References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
+        <20161108155520.224229d5@vento.lan>
+        <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
+        <20161109073331.204b53c4@vento.lan>
+        <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
+        <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
+        <20161109153521.232b0956@vento.lan>
+        <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="qMm9M+Fa2AknHoGS"
-Content-Disposition: inline
-In-Reply-To: <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 9 Nov 2016 17:03:52 -0800
+VDR User <user.vdr@gmail.com> escreveu:
 
---qMm9M+Fa2AknHoGS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> >> (gdb) l *module_put+0x67
+> >> 0xc10a4b87 is in module_put (kernel/module.c:1108).
+> >> 1103            int ret;
+> >> 1104
+> >> 1105            if (module) {
+> >> 1106                    preempt_disable();
+> >> 1107                    ret = atomic_dec_if_positive(&module->refcnt);
+> >> 1108                    WARN_ON(ret < 0);       /* Failed to put refcount */
+> >> 1109                    trace_module_put(module, _RET_IP_);
+> >> 1110                    preempt_enable();
+> >> 1111            }
+> >> 1112    }  
+> >
+> > OK, I guess we've made progress. Please try the enclosed patch.
+> >
+> > Regards,
+> > Mauro
+> >
+> > [media] gp8psk: Fix DVB frontend attach
+> >
+> > it should be calling module_get() at attach, as otherwise
+> > module_put() will crash.
+> >
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> 
+> I think you forgot the patch. :)
 
-Hi!
+commit 0c979a12309af49894bb1dc60e747c3cd53fa888
+Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Date:   Wed Nov 9 15:33:17 2016 -0200
 
-> > > > > Yeah. I just compiled it but haven't tested it. I presume it'll w=
-ork. :-)
-> > > >=20
-> > > > I'm testing it on n900. I guess simpler hardware with ad5820 would =
-be better for the
-> > > > test...
-> > > >=20
-> > > > What hardware do you have?
-> > >=20
-> > > N900. What else could it be? :-) :-)
-> >=20
-> > Heh. Basically anything is easier to develop for than n900 :-(.
->=20
-> Is it?
->=20
-> I actually find the old Nokia devices very practical. It's easy to boot y=
-our
-> own kernel and things just work... until musb broke a bit recently. It
-> requires reconnecting the usb cable again to function.
->=20
-> I have to admit I mostly use an N9.
+    [media] gp8psk: Fix DVB frontend attach
+    
+    it should be calling module_get() at attach, as otherwise
+    module_put() will crash.
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Well, if you compare that to development on PC, I prefer PC.
-
-Even arm development boards are usually easier, as they don't need too
-complex userspace, and do have working serial ports.
-
-But I do have a serial adapter for N900 now (thanks, sre), so my main
-problem now is that N900 takes a lot of time to boot into usable
-state.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---qMm9M+Fa2AknHoGS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgbEQ8ACgkQMOfwapXb+vKhQQCfcJlJ7yvxB3FtoUg8aQQ02yYa
-WZ0An15sp7dXK6wjiUkR8LNpejkMskg1
-=SgiJ
------END PGP SIGNATURE-----
-
---qMm9M+Fa2AknHoGS--
+diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
+index cede0d8b0f8a..24eb6c6c8e24 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk.c
++++ b/drivers/media/usb/dvb-usb/gp8psk.c
+@@ -250,7 +250,7 @@ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 
+ static int gp8psk_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+-	adap->fe_adap[0].fe = gp8psk_fe_attach(adap->dev);
++	adap->fe_adap[0].fe = dvb_attach(gp8psk_fe_attach, adap->dev);
+ 	return 0;
+ }
