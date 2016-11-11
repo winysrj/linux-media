@@ -1,79 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:57651 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751012AbcKFUBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 Nov 2016 15:01:04 -0500
-Subject: [PATCH v2 10/34] [media] DaVinci-VPBE: Check return value of a
- setup_if_config() call in vpbe_set_output()
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Manjunath Hadli <manjunath.hadli@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
- <47590f2e-1cfa-582d-769e-502802171b66@users.sourceforge.net>
- <bc306a0e-d4ff-d90a-e07a-246ead409471@xs4all.nl>
- <680a0feb-3748-da16-9b79-297e1ab9044d@users.sourceforge.net>
- <c261629c-bf59-2037-3cff-ed415fc66e76@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <a09ef69f-6de9-2ff7-3f9e-918e72b8b859@users.sourceforge.net>
-Date: Sun, 6 Nov 2016 21:00:43 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55092 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935019AbcKKAK5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 10 Nov 2016 19:10:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Shuah Khan <shuahkhan@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC v4 08/21] media: Enable allocating the media device dynamically
+Date: Fri, 11 Nov 2016 02:11 +0200
+Message-ID: <1698237.M9v6idgxsX@avalon>
+In-Reply-To: <2d71d705-bfd4-696d-52ff-c5a043eed158@osg.samsung.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk> <4251827.ADF06xmuSS@avalon> <2d71d705-bfd4-696d-52ff-c5a043eed158@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <c261629c-bf59-2037-3cff-ed415fc66e76@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 6 Nov 2016 20:40:20 +0100
+Hi Shuah,
 
-* A function was called over the pointer "setup_if_config" in the data
-  structure "venc_platform_data". But the return value was not used so far.
-  Thus assign it to the local variable "ret" which will be checked with
-  the next statement.
+On Thursday 10 Nov 2016 17:00:16 Shuah Khan wrote:
+> On 11/10/2016 04:53 PM, Laurent Pinchart wrote:
+> > On Tuesday 08 Nov 2016 12:20:29 Shuah Khan wrote:
+> >> On Tue, Nov 8, 2016 at 6:55 AM, Sakari Ailus wrote:
+> >>> From: Sakari Ailus <sakari.ailus@iki.fi>
+> >>> 
+> >>> Allow allocating the media device dynamically. As the struct
+> >>> media_device embeds struct media_devnode, the lifetime of that object is
+> >>> that same than that of the media_device.
+> >>> 
+> >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>> ---
+> >>> 
+> >>>  drivers/media/media-device.c | 15 +++++++++++++++
+> >>>  include/media/media-device.h | 13 +++++++++++++
+> >>>  2 files changed, 28 insertions(+)
+> >>> 
+> >>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> >>> index a31329d..496195e 100644
+> >>> --- a/drivers/media/media-device.c
+> >>> +++ b/drivers/media/media-device.c
+> >>> @@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
+> >>>  }
+> >>>  EXPORT_SYMBOL_GPL(media_device_init);
+> >>> 
+> >>> +struct media_device *media_device_alloc(struct device *dev)
+> >>> +{
+> >>> +       struct media_device *mdev;
+> >>> +
+> >>> +       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+> >>> +       if (!mdev)
+> >>> +               return NULL;
+> >>> +
+> >>> +       mdev->dev = dev;
+> >>> +       media_device_init(mdev);
+> >>> +
+> >>> +       return mdev;
+> >>> +}
+> >>> +EXPORT_SYMBOL_GPL(media_device_alloc);
+> >>> +
+> >> 
+> >> One problem with this allocation is, this media device can't be shared
+> >> across drivers. For au0828 and snd-usb-audio should be able to share the
+> >> media_device. That is what the Media Allocator API patch series does.
+> > 
+> > No disagreement here, Sakari's patches don't address the issues that the
+> > media allocator API fixes. The media allocator API, when ready, should
+> > replace (or at least complement, if we decide to keep a simpler API for
+> > drivers that don't need to share a media device, but I have no opinion on
+> > this at this time) this allocation function.
+> 
+> Media Device Allocator API is ready and reviewed. au0828 uses it as the
+> first driver using it. I will be sending out snd-usb-audio patch soon that
+> makes use of the shared media device.
 
-  Fixes: 9a7f95ad1c946efdd7a7a72df27db738260a0fd8 ("[media] davinci vpbe: add dm365 VPBE display driver changes")
+I don't think it would be too difficult to rebase this series on top of the 
+media allocator API, as all that is needed here is a way to dynamically 
+allocate the media device in a clean fashion. I don't think Sakari's patches 
+depend on a specific implementation of media_device_alloc(). Sakari, please 
+let me know if I got this wrong.
 
-* Pass a value to this function call without storing it in an intermediate
-  variable before.
+> >> This a quick review and I will review the patch series and get back to
+> >> you.
 
-* Delete the local variable "if_params" which became unnecessary with
-  this refactoring.
-
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
-
-v2: Keep the assignment statement on one line despite of its length
-    of 82 characters.
-
- drivers/media/platform/davinci/vpbe.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 19611a2..d04d6b7 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -227,7 +227,6 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 			vpbe_current_encoder_info(vpbe_dev);
- 	struct vpbe_config *cfg = vpbe_dev->cfg;
- 	struct venc_platform_data *venc_device = vpbe_dev->venc_device;
--	u32 if_params;
- 	int enc_out_index;
- 	int sd_index;
- 	int ret = 0;
-@@ -257,5 +257,4 @@ static int vpbe_set_output(struct vpbe_device *vpbe_dev, int index)
- 		}
- 
--		if_params = cfg->outputs[index].if_params;
--		venc_device->setup_if_config(if_params);
-+		ret = venc_device->setup_if_config(cfg->outputs[index].if_params);
- 		if (ret)
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
