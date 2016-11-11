@@ -1,229 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:42063 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755912AbcKVPxg (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:34905 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754572AbcKKLcd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:53:36 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v3 00/10] Add support for DELTA video decoder of STMicroelectronics STiH4xx SoC series
-Date: Tue, 22 Nov 2016 16:53:17 +0100
-Message-ID: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+        Fri, 11 Nov 2016 06:32:33 -0500
+Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
+ functions
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
+Date: Fri, 11 Nov 2016 12:32:28 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset introduces a basic support for DELTA multi-format video
-decoder of STMicroelectronics STiH4xx SoC series.
+Hi Stanimir,
 
-DELTA hardware IP is controlled by a remote firmware loaded in a ST231
-coprocessor. Communication with firmware is done within an IPC layer
-using rpmsg kernel framework and a shared memory for messages handling.
-This driver is compatible with firmware version 21.1-3.
-While a single firmware is loaded in ST231 coprocessor, it is composed
-of several firmwares, one per video format family.
+Some comments:
 
-This DELTA V4L2 driver is designed around files:
-  - delta-v4l2.c   : handles V4L2 APIs using M2M framework and calls decoder ops
-  - delta-<codec>* : implements <codec> decoder calling its associated
-                     video firmware (for ex. MJPEG) using IPC layer
-  - delta-ipc.c    : IPC layer which handles communication with firmware using rpmsg
+On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
+>  * core.c has implemented the platform dirver methods, file
+> operations and v4l2 registration.
+> 
+>  * helpers.c has implemented common helper functions for:
+>    - buffer management
+> 
+>    - vb2_ops and functions for format propagation,
+> 
+>    - functions for allocating and freeing buffers for
+>    internal usage. The buffer parameters describing internal
+>    buffers depends on current format, resolution and codec.
+> 
+>    - functions for calculation of current load of the
+>    hardware. Depending on the count of instances and
+>    resolutions it selects the best clock rate for the video
+>    core.
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/core.c    | 557 +++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/core.h    | 261 ++++++++++++
+>  drivers/media/platform/qcom/venus/helpers.c | 612 ++++++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/helpers.h |  43 ++
+>  4 files changed, 1473 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/venus/core.c
+>  create mode 100644 drivers/media/platform/qcom/venus/core.h
+>  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+>  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+> 
 
-This first basic support implements only MJPEG hardware acceleration but
-the driver structure is in place to support all the features of the
-DELTA video decoder hardware IP.
+<snip>
 
-This driver depends on:
-  - ST remoteproc/rpmsg: patchset posted at https://lkml.org/lkml/2016/9/6/77
-  - ST DELTA firmware: its license is under review. When available,
-    pull request will be done on linux-firmware.
+> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+> new file mode 100644
+> index 000000000000..21ed053aeb17
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/core.h
 
-===========
-= history =
-===========
-version 3
-  - update after v2 review:
-    - fixed m2m_buf_done missing on start_streaming error case
-    - fixed q->dev missing in queue_init()
-    - removed unsupported s_selection
-    - refactored string namings in delta-debug.c
-    - fixed space before comment
-    - all commits have commit messages
-    - reword memory allocator helper commit
+<snip>
 
-version 2
-  - update after v1 review:
-    - simplified tracing
-    - G_/S_SELECTION reworked to fit COMPOSE(CAPTURE)
-    - fixed m2m_buf_done missing on start_streaming error case
-    - fixed q->dev missing in queue_init()
-  - switch to kernel-4.9 rpmsg API
-  - DELTA support added in multi_v7_defconfig
-  - minor typo fixes & code cleanup
+> +struct venus_ctrl {
+> +	u32 id;
+> +	enum v4l2_ctrl_type type;
+> +	s32 min;
+> +	s32 max;
+> +	s32 def;
+> +	u32 step;
+> +	u64 menu_skip_mask;
+> +	u32 flags;
+> +	const char * const *qmenu;
+> +};
 
-version 1:
-  - Initial submission
+Why duplicate struct v4l2_ctrl_config? Just use that struct to define custom controls
+together with v4l2_ctrl_new_custom().
 
-===================
-= v4l2-compliance =
-===================
-Below is the v4l2-compliance report for the version 3 of the DELTA video
-decoder driver. v4l2-compliance has been build from SHA1:
-600492351ddf40cc524aab73802153674d7d287b (libdvb5: Fix multiple definition of dvb_dev_remote_init linking error)
+> +
+> +/*
+> + * Offset base for buffers on the destination queue - used to distinguish
+> + * between source and destination buffers when mmapping - they receive the same
+> + * offsets but for different queues
+> + */
+> +#define DST_QUEUE_OFF_BASE	(1 << 30)
+> +
+> +static inline struct venus_inst *to_inst(struct file *filp)
+> +{
+> +	return container_of(filp->private_data, struct venus_inst, fh);
+> +}
+> +
+> +static inline void *to_hfi_priv(struct venus_core *core)
+> +{
+> +	return core->priv;
+> +}
+> +
+> +static inline struct vb2_queue *
+> +to_vb2q(struct file *file, enum v4l2_buf_type type)
+> +{
+> +	struct venus_inst *inst = to_inst(file);
+> +
+> +	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return &inst->bufq_cap;
+> +	else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		return &inst->bufq_out;
+> +
+> +	return NULL;
+> +}
+> +
+> +#endif
+> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+> new file mode 100644
+> index 000000000000..c2d1446ad254
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/helpers.c
 
-root@sti-4:~# v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : 600492351ddf40cc524aab73802153674d7d287b
+<snip>
 
-Driver Info:
-	Driver name   : st-delta
-	Card type     : st-delta-21.1-3
-	Bus info      : platform:soc:delta0
-	Driver version: 4.9.0
-	Capabilities  : 0x84208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04208000
-		Video Memory-to-Memory
-		Streaming
-		Extended Pix Format
+> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
+> +{
+> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	struct vb2_queue *other_queue;
+> +	struct vidc_buffer *buf, *n;
+> +	enum vb2_buffer_state state;
+> +	int ret;
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		other_queue = &inst->bufq_cap;
+> +	else
+> +		other_queue = &inst->bufq_out;
+> +
+> +	if (!vb2_is_streaming(other_queue))
+> +		return;
 
-Compliance test for device /dev/video0 (not using libv4l2):
+This seems wrong to me: this return means that the buffers of queue q are never
+released. Either drop this 'if' or release both queues when the last queue
+stops streaming. I think dropping the 'if' is best.
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
+> +
+> +	ret = hfi_session_stop(inst);
+> +	if (ret) {
+> +		dev_err(dev, "session: stop failed (%d)\n", ret);
+> +		goto abort;
+> +	}
+> +
+> +	ret = hfi_session_unload_res(inst);
+> +	if (ret) {
+> +		dev_err(dev, "session: release resources failed (%d)\n", ret);
+> +		goto abort;
+> +	}
+> +
+> +	ret = session_unregister_bufs(inst);
+> +	if (ret) {
+> +		dev_err(dev, "failed to release capture buffers: %d\n", ret);
+> +		goto abort;
+> +	}
+> +
+> +	ret = intbufs_free(inst);
+> +
+> +	if (inst->state == INST_INVALID || core->state == CORE_INVALID)
+> +		ret = -EINVAL;
+> +
+> +abort:
+> +	if (ret)
+> +		hfi_session_abort(inst);
+> +
+> +	load_scale_clocks(core);
+> +
+> +	ret = hfi_session_deinit(inst);
+> +
+> +	pm_runtime_put_sync(dev);
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +
+> +	if (list_empty(&inst->bufqueue)) {
+> +		mutex_unlock(&inst->bufqueue_lock);
+> +		return;
+> +	}
+> +
+> +	if (ret)
+> +		state = VB2_BUF_STATE_ERROR;
+> +	else
+> +		state = VB2_BUF_STATE_DONE;
 
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
+Are you sure that the state depends on 'ret'? Usually when stop_streaming is
+called none of the pending buffers are filled with valid frame data, so the
+state is set to ERROR.
 
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
+STATE_DONE implies that the contents of the buffers has valid frame data.
 
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
+> +
+> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
+> +		vb2_buffer_done(&buf->vb.vb2_buf, state);
+> +		list_del(&buf->list);
+> +	}
+> +
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +}
+> +
+> +int vidc_vb2_start_streaming(struct venus_inst *inst)
+> +{
+> +	struct venus_core *core = inst->core;
+> +	struct vidc_buffer *buf, *n;
+> +	int ret;
+> +
+> +	ret = intbufs_alloc(inst);
+> +	if (ret)
+> +		return ret;
 
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
+This should still release all buffers instead of returning an error.
 
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
+> +
+> +	ret = session_register_bufs(inst);
+> +	if (ret)
+> +		goto err_bufs_free;
+> +
+> +	load_scale_clocks(core);
+> +
+> +	ret = hfi_session_load_res(inst);
+> +	if (ret)
+> +		goto err_unreg_bufs;
+> +
+> +	ret = hfi_session_start(inst);
+> +	if (ret)
+> +		goto err_unload_res;
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
+> +		ret = session_set_buf(&buf->vb.vb2_buf);
+> +		if (ret)
+> +			break;
+> +	}
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +
+> +	if (ret)
+> +		goto err_session_stop;
+> +
+> +	return 0;
+> +
+> +err_session_stop:
+> +	hfi_session_stop(inst);
+> +err_unload_res:
+> +	hfi_session_unload_res(inst);
+> +err_unreg_bufs:
+> +	session_unregister_bufs(inst);
+> +err_bufs_free:
+> +	intbufs_free(inst);
+> +
+> +	mutex_lock(&inst->bufqueue_lock);
+> +
+> +	if (list_empty(&inst->bufqueue))
+> +		goto err_done;
+> +
+> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
+> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
+> +		list_del(&buf->list);
+> +	}
 
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-		test VIDIOC_QUERYCTRL: OK (Not Supported)
-		test VIDIOC_G/S_CTRL: OK (Not Supported)
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 0 Private Controls: 0
+I think this is done in the wrong place. The vdec has its own high level start_streaming
+that calls this function, but that high level function doesn't release the buffers at
+all if there is an error. Same for venc. I propose that you make a new function that
+just releases the buffers and call that from the vdec/venc start_streaming function
+whenever an error occurs.
 
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		test VIDIOC_G/S_PARM: OK (Not Supported)
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_TRY_FMT: OK
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
-		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-		test VIDIOC_S_FMT: OK
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		fail: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1457): doioctl(node, VIDIOC_S_SELECTION, &sel_compose) != EINVAL
-		fail: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1501): testBasicCompose(node, V4L2_BUF_TYPE_VIDEO_CAPTURE)
-		test Composing: FAIL
-		test Scaling: OK
+> +
+> +err_done:
+> +	mutex_unlock(&inst->bufqueue_lock);
+> +
+> +	return ret;
+> +}
 
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK
+Regards,
 
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 42, Failed: 1, Warnings: 6
-
-Hugues Fruchet (10):
-  Documentation: DT: add bindings for ST DELTA
-  ARM: dts: STiH410: add DELTA dt node
-  ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
-  [media] MAINTAINERS: add st-delta driver
-  [media] st-delta: STiH4xx multi-format video decoder v4l2 driver
-  [media] st-delta: add memory allocator helper functions
-  [media] st-delta: rpmsg ipc support
-  [media] st-delta: EOS (End Of Stream) support
-  [media] st-delta: add mjpeg support
-  [media] st-delta: debug: trace stream/frame information & summary
-
- .../devicetree/bindings/media/st,st-delta.txt      |   17 +
- MAINTAINERS                                        |    8 +
- arch/arm/boot/dts/stih410.dtsi                     |   10 +
- arch/arm/configs/multi_v7_defconfig                |    1 +
- drivers/media/platform/Kconfig                     |   27 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/sti/delta/Makefile          |    6 +
- drivers/media/platform/sti/delta/delta-cfg.h       |   63 +
- drivers/media/platform/sti/delta/delta-debug.c     |   72 +
- drivers/media/platform/sti/delta/delta-debug.h     |   18 +
- drivers/media/platform/sti/delta/delta-ipc.c       |  590 ++++++
- drivers/media/platform/sti/delta/delta-ipc.h       |   76 +
- drivers/media/platform/sti/delta/delta-mem.c       |   51 +
- drivers/media/platform/sti/delta/delta-mem.h       |   14 +
- drivers/media/platform/sti/delta/delta-mjpeg-dec.c |  454 +++++
- drivers/media/platform/sti/delta/delta-mjpeg-fw.h  |  221 +++
- drivers/media/platform/sti/delta/delta-mjpeg-hdr.c |  150 ++
- drivers/media/platform/sti/delta/delta-mjpeg.h     |   35 +
- drivers/media/platform/sti/delta/delta-v4l2.c      | 1973 ++++++++++++++++++++
- drivers/media/platform/sti/delta/delta.h           |  566 ++++++
- 20 files changed, 4354 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
- create mode 100644 drivers/media/platform/sti/delta/Makefile
- create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
- create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
- create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
- create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
- create mode 100644 drivers/media/platform/sti/delta/delta.h
-
--- 
-1.9.1
-
+	Hans
