@@ -1,80 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:54700 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756484AbcKWJn3 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60630 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755938AbcKKLjQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 04:43:29 -0500
-Message-ID: <1479894203.8964.29.camel@mtksdaap41>
-Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
- Decoder
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        "Rob Herring" <robh+dt@kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Date: Wed, 23 Nov 2016 17:43:23 +0800
-In-Reply-To: <1479866054.8964.21.camel@mtksdaap41>
-References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
-         <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
-         <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
-         <1479784905.8964.15.camel@mtksdaap41>
-         <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
-         <1479866054.8964.21.camel@mtksdaap41>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+        Fri, 11 Nov 2016 06:39:16 -0500
+Subject: Re: [PATCH v3 4/9] media: venus: vdec: add video decoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <63a91a5a-a97b-f3df-d16d-c8f76bf20c30@xs4all.nl>
+Date: Fri, 11 Nov 2016 12:39:11 +0100
 MIME-Version: 1.0
+In-Reply-To: <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2016-11-23 at 09:54 +0800, Rick Chang wrote:
-> Hi Hans,
+I made some comments about start_streaming in my review of patch 3/9, so
+I am not going to repeat that here.
+
+On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
+> This consists of video decoder implementation plus decoder
+> controls.
 > 
-> On Tue, 2016-11-22 at 13:43 +0100, Hans Verkuil wrote:
-> > On 22/11/16 04:21, Rick Chang wrote:
-> > > Hi Hans,
-> > >
-> > > On Mon, 2016-11-21 at 15:51 +0100, Hans Verkuil wrote:
-> > >> On 17/11/16 04:38, Rick Chang wrote:
-> > >>> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-> > >>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > >>> ---
-> > >>> This patch depends on:
-> > >>>   CCF "Add clock support for Mediatek MT2701"[1]
-> > >>>   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
-> > >>>
-> > >>> [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-> > >>> [2] https://patchwork.kernel.org/patch/9164013/
-> > >>
-> > >> I assume that 1 & 2 will appear in 4.10? So this patch needs to go in
-> > >> after the
-> > >> other two are merged in 4.10?
-> > >>
-> > >> Regards,
-> > >>
-> > >> 	Hans
-> > >
-> > > [1] will appear in 4.10, but [2] will appear latter than 4.10.So this
-> > > patch needs to go in after [1] & [2] will be merged in 4.11.
-> > 
-> > So what should I do? Merge the driver for 4.11 and wait with this patch
-> > until [2] is merged in 4.11? Does that sound reasonable?
-> > 
-> > Regards,
-> > 
-> > 	Hans
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/vdec.c       | 1108 ++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/vdec.h       |   32 +
+>  drivers/media/platform/qcom/venus/vdec_ctrls.c |  197 +++++
+>  3 files changed, 1337 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
 > 
-> What do you think about this? You merge the driver first and I send this
-> patch again after [1] & [2] is merged.
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> new file mode 100644
+> index 000000000000..3f0eba7e31dc
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
 
-BTW, to prevent merging conflict, the dtsi should be merged by mediatek
-SoC maintainer, Matthias.I think we can only take care on the driver
-part at this moment.
+<snip>
 
+> +static int
+> +vdec_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
+> +{
+> +	struct venus_inst *inst = to_inst(file);
+> +
+> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+> +	    s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP_BOUNDS:
+> +	case V4L2_SEL_TGT_CROP_DEFAULT:
+> +	case V4L2_SEL_TGT_CROP:
+> +		return -EINVAL;
+> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
+> +	case V4L2_SEL_TGT_COMPOSE_PADDED:
+> +		return -EINVAL;
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +			return -EINVAL;
+> +		s->r.width = inst->out_width;
+> +		s->r.height = inst->out_height;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	s->r.top = 0;
+> +	s->r.left = 0;
+> +
+> +	return 0;
+> +}
 
+This can be simplified to just:
+
+	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+	    s->target != V4L2_SEL_TGT_COMPOSE)
+		return -EINVAL;
+
+	// handle the remaining capture compose case
+
+> +
+> +static int
+> +vdec_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
+> +{
+> +	struct vb2_queue *queue = to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_reqbufs(queue, b);
+> +}
+
+Is there any reason why the v4l2_m2m_ioctl_reqbufs et al helper functions
+can't be used? I strongly recommend that, unless there is a specific reason
+why that won't work.
+
+<snip>
+
+Regards,
+
+	Hans
