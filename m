@@ -1,85 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:53760 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751095AbcKIIA7 (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:32930 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756506AbcKKNk2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 9 Nov 2016 03:00:59 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec-core.rst: improve documentation
-Message-ID: <092fe777-9286-a190-3499-1641e2da464c@xs4all.nl>
-Date: Wed, 9 Nov 2016 09:00:53 +0100
+        Fri, 11 Nov 2016 08:40:28 -0500
+Received: by mail-pf0-f195.google.com with SMTP id 144so2596997pfv.0
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 05:40:28 -0800 (PST)
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
+Subject: [PATCH -next] [media] atmel-isc: fix error return code in atmel_isc_probe()
+Date: Fri, 11 Nov 2016 13:40:20 +0000
+Message-Id: <1478871620-24274-1-git-send-email-weiyj.lk@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improve the internal CEC documentation. In particular add a section that specifies that
-transmit-related interrupts should be processed before receive interrupts.
+From: Wei Yongjun <weiyongjun1@huawei.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Fix to return error code -ENODEV from the error handling
+case instead of 0, as done elsewhere in this function.
+
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
 ---
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index 88c33b5..8a88dd4 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -106,13 +106,13 @@ your driver:
- 		int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
- 		int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
- 				      u32 signal_free_time, struct cec_msg *msg);
--		void (\*adap_log_status)(struct cec_adapter *adap);
-+		void (*adap_status)(struct cec_adapter *adap, struct seq_file *file);
+ drivers/media/platform/atmel/atmel-isc.c | 1 +
+ 1 file changed, 1 insertion(+)
 
- 		/* High-level callbacks */
- 		...
- 	};
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 8e25d3f..fa68fe9 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -1424,6 +1424,7 @@ static int atmel_isc_probe(struct platform_device *pdev)
+ 
+ 	if (list_empty(&isc->subdev_entities)) {
+ 		dev_err(dev, "no subdev found\n");
++		ret = -ENODEV;
+ 		goto unregister_v4l2_device;
+ 	}
 
--The three low-level ops deal with various aspects of controlling the CEC adapter
-+The five low-level ops deal with various aspects of controlling the CEC adapter
- hardware:
-
-
-@@ -238,6 +238,18 @@ When a CEC message was received:
-
- Speaks for itself.
-
-+Implementing the interrupt handler
-+----------------------------------
-+
-+Typically the CEC hardware provides interrupts that signal when a transmit
-+finished and whether it was successful or not, and it provides and interrupt
-+when a CEC message was received.
-+
-+The CEC driver should always process the transmit interrupts first before
-+handling the receive interrupt. The framework expects to see the cec_transmit_done
-+call before the cec_received_msg call, otherwise it can get confused if the
-+received message was in reply to the transmitted message.
-+
- Implementing the High-Level CEC Adapter
- ---------------------------------------
-
-@@ -247,11 +259,11 @@ CEC protocol driven. The following high-level callbacks are available:
- .. code-block:: none
-
- 	struct cec_adap_ops {
--		/\* Low-level callbacks \*/
-+		/* Low-level callbacks */
- 		...
-
--		/\* High-level CEC message callback \*/
--		int (\*received)(struct cec_adapter \*adap, struct cec_msg \*msg);
-+		/* High-level CEC message callback */
-+		int (*received)(struct cec_adapter *adap, struct cec_msg *msg);
- 	};
-
- The received() callback allows the driver to optionally handle a newly
-@@ -263,7 +275,7 @@ received CEC message
- If the driver wants to process a CEC message, then it can implement this
- callback. If it doesn't want to handle this message, then it should return
- -ENOMSG, otherwise the CEC framework assumes it processed this message and
--it will not no anything with it.
-+it will not do anything with it.
-
-
- CEC framework functions
