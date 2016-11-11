@@ -1,43 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f47.google.com ([209.85.215.47]:36699 "EHLO
-        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755516AbcKBQnb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 12:43:31 -0400
-Received: by mail-lf0-f47.google.com with SMTP id t196so17877282lff.3
-        for <linux-media@vger.kernel.org>; Wed, 02 Nov 2016 09:43:30 -0700 (PDT)
-Subject: Re: [PATCH 03/32] media: rcar-vin: reset bytesperline and sizeimage
- when resetting format
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
- <20161102132329.436-4-niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <2f6c92a8-6d07-d355-41c9-ce7bc73093da@cogentembedded.com>
-Date: Wed, 2 Nov 2016 19:43:27 +0300
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:45534 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751606AbcKKNYr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 08:24:47 -0500
+Subject: Re: [PATCH 3/5] media: Add new SDR formats SC16, SC18 & SC20
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, crope@iki.fi
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+ <1478706284-59134-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
+        geert+renesas@glider.be, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <502a606c-2d66-4257-af17-7b7f35f2c839@xs4all.nl>
+Date: Fri, 11 Nov 2016 14:24:41 +0100
 MIME-Version: 1.0
-In-Reply-To: <20161102132329.436-4-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1478706284-59134-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On 11/09/2016 04:44 PM, Ramesh Shanmugasundaram wrote:
+> This patch adds support for the three new SDR formats. These formats
+> were prefixed with "sliced" indicating I data constitutes the top half and
+> Q data constitutes the bottom half of the received buffer.
 
-On 11/02/2016 04:23 PM, Niklas Söderlund wrote:
+The standard terminology for video formats is "planar". I am leaning towards
+using that here as well.
 
-> These two fields where forgotten when refactoring the format reset code
-> path. If they are not also reset at the same time as width and hight the
-> format read using G_FMT will not match realty.
+Any opinions on this?
 
-    Reality?
+	Hans
 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-[...]
-
-MBR, Sergei
-
+> 
+> V4L2_SDR_FMT_SCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+> inside 16-bit. V4L2 FourCC: SC16
+> 
+> V4L2_SDR_FMT_SCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+> inside 18-bit. V4L2 FourCC: SC18
+> 
+> V4L2_SDR_FMT_SCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+> inside 20-bit. V4L2 FourCC: SC20
+> 
+> Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+>  include/uapi/linux/videodev2.h       | 3 +++
+>  2 files changed, 6 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 181381d..d36b386 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -1207,6 +1207,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+>  	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+>  	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+>  	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
+> +	case V4L2_SDR_FMT_SCU16BE:	descr = "Sliced Complex U16BE"; break;
+> +	case V4L2_SDR_FMT_SCU18BE:	descr = "Sliced Complex U18BE"; break;
+> +	case V4L2_SDR_FMT_SCU20BE:	descr = "Sliced Complex U20BE"; break;
+>  	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+>  	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+>  	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 4364ce6..34a9c30 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -666,6 +666,9 @@ struct v4l2_pix_format {
+>  #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+>  #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+>  #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
+> +#define V4L2_SDR_FMT_SCU16BE	  v4l2_fourcc('S', 'C', '1', '6') /* sliced complex u16be */
+> +#define V4L2_SDR_FMT_SCU18BE	  v4l2_fourcc('S', 'C', '1', '8') /* sliced complex u18be */
+> +#define V4L2_SDR_FMT_SCU20BE	  v4l2_fourcc('S', 'C', '2', '0') /* sliced complex u20be */
+>  
+>  /* Touch formats - used for Touch devices */
+>  #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
+> 
