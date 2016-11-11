@@ -1,72 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f41.google.com ([209.85.214.41]:38487 "EHLO
-        mail-it0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756805AbcKKPeA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 10:34:00 -0500
-Received: by mail-it0-f41.google.com with SMTP id q124so128531873itd.1
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 07:34:00 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20161111104903.607428e5@vela.lan>
-References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
- <20161108155520.224229d5@vento.lan> <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
- <20161109073331.204b53c4@vento.lan> <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
- <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
- <20161109153521.232b0956@vento.lan> <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
- <20161110060717.221e8d88@vento.lan> <CAA7C2qiPZnqpJ8MYkQ3wGhnmHzK25kLEP_Sm-1UOu8aECzkOGA@mail.gmail.com>
- <20161111104903.607428e5@vela.lan>
-From: VDR User <user.vdr@gmail.com>
-Date: Fri, 11 Nov 2016 07:33:59 -0800
-Message-ID: <CAA7C2qhAaA0KVj4MNBE4KejhGcfbWuN_7Pj0u=uKdbYc8yvYjQ@mail.gmail.com>
-Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kernel.org ([198.145.29.136]:32982 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752013AbcKKKcO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 05:32:14 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH] v4l: vsp1: Prevent commencing pipelines before they are setup
+Date: Fri, 11 Nov 2016 10:31:58 +0000
+Message-Id: <1478860318-14792-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hmm... dvb_attach() assumes that the symbol is exported. Please try
-> this patch. If it fixes the bug, I'll likely do something else, to
-> avoid the need of EXPORT_SYMBOL.
->
->
-> [PATCH] [media] gp8psk: Fix DVB frontend attach
->
-> it should be calling module_get() at attach, as otherwise
-> module_put() will crash.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
->
-> diff --git a/drivers/media/usb/dvb-usb/gp8psk-fe.c b/drivers/media/usb/dvb-usb/gp8psk-fe.c
-> index db6eb79cde07..ab7c6093436b 100644
-> --- a/drivers/media/usb/dvb-usb/gp8psk-fe.c
-> +++ b/drivers/media/usb/dvb-usb/gp8psk-fe.c
-> @@ -326,6 +326,7 @@ struct dvb_frontend * gp8psk_fe_attach(struct dvb_usb_device *d)
->  success:
->         return &s->fe;
->  }
-> +EXPORT_SYMBOL_GPL(gp8psk_fe_attach);
->
->
->  static struct dvb_frontend_ops gp8psk_fe_ops = {
-> diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-> index 2829e3082d15..c3762c50e93b 100644
-> --- a/drivers/media/usb/dvb-usb/gp8psk.c
-> +++ b/drivers/media/usb/dvb-usb/gp8psk.c
-> @@ -250,7 +250,7 @@ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
->
->  static int gp8psk_frontend_attach(struct dvb_usb_adapter *adap)
->  {
-> -       adap->fe_adap[0].fe = gp8psk_fe_attach(adap->dev);
-> +       adap->fe_adap[0].fe = dvb_attach(gp8psk_fe_attach, adap->dev);
->         return 0;
->  }
->
+With multiple inputs through the BRU it is feasible for the streams to
+race each other at stream-on. In the case of the video pipelines, this
+can present two serious issues.
 
-Unfortunately this still didn't work:
+ 1) A null-dereference if the pipe->dl is committed at the same time as
+    the vsp1_video_setup_pipeline() is processing
 
-[54856.150095] DVB: registering new adapter (Genpix SkyWalker-2 DVB-S receiver)
-[54856.153874] DVB: Unable to find symbol gp8psk_fe_attach()
-[54856.153972] dvb-usb: no frontend was attached by 'Genpix
-SkyWalker-2 DVB-S receiver'
+ 2) A hardware hang, where a display list is committed without having
+    called vsp1_video_setup_pipeline() first.
+
+To prevent these scenarios from occurring, we ensure that only the thread
+that calls the vsp1_video_setup_pipeline() is capable of committing and
+commencing the display list.
+
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+
+I considered a few options to fix this issue. If anyone disagrees with my
+reasoning, and believes one of the below approaches should be used, let me
+know and I'll rework the patch.
+
+ A) Moving the vsp1_video_pipeline_run() call into the upper if block.
+  - This changes the locking, and brings in unneccessary nested locking
+
+ B) Adapting vsp1_pipeline_ready() such that it checks for a configured
+    pipeline event as well.
+
+  - This was tempting - but this particular issue is local to this
+    function only. Changing vsp1_pipeline_ready() to watch for a flag
+    set by vsp1_video_setup_pipeline() would require adding unneccessary
+    changes to the vsp1_drm objects to cater for this.
+
+To test this race, I have used the vsp-unit-test-0007.sh from Laurent's
+VSP-Tests [0] in iteration. Without this patch, failures can be seen be
+seen anywhere up to the 150 iterations mark.
+
+With this patch in place, tests have successfully iterated over 1500
+loops.
+
+The function affected by this change appears to have been around since
+v4.6-rc2-105-g351bbf99f245 and thus may want inclusion in stable trees
+from that point forward. The issue may have been prevalent before that
+but the solution would need reworking for earlier version.
+
+[0] http://git.ideasonboard.com/renesas/vsp-tests.git
+
+ drivers/media/platform/vsp1/vsp1_video.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 94b428596c4f..cc44b27f3e47 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -813,6 +813,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+ 	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+ 	unsigned long flags;
++	bool configured = false;
+ 	int ret;
+ 
+ 	mutex_lock(&pipe->lock);
+@@ -822,13 +823,20 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 			mutex_unlock(&pipe->lock);
+ 			return ret;
+ 		}
++
++		/*
++		 * Multiple streams will execute this function in parallel.
++		 * Only the thread which configures the pipeline is allowed to
++		 * execute the vsp1_video_pipeline_run() call below
++		 */
++		configured = true;
+ 	}
+ 
+ 	pipe->stream_count++;
+ 	mutex_unlock(&pipe->lock);
+ 
+ 	spin_lock_irqsave(&pipe->irqlock, flags);
+-	if (vsp1_pipeline_ready(pipe))
++	if (vsp1_pipeline_ready(pipe) && configured)
+ 		vsp1_video_pipeline_run(pipe);
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ 
+-- 
+2.7.4
+
