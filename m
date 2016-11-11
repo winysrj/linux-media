@@ -1,137 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:44917 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756531AbcKKN6N (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49563
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S935019AbcKKAQe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 08:58:13 -0500
-Subject: Re: [PATCH 2/5] media: i2c: max2175: Add MAX2175 support
+        Thu, 10 Nov 2016 19:16:34 -0500
+Subject: Re: [RFC v4 08/21] media: Enable allocating the media device
+ dynamically
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1478706284-59134-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <46394837-c3f0-8487-750b-95dae7bcf859@xs4all.nl> <1903855.3Xg5AI8ucK@avalon>
-Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, geert+renesas@glider.be,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <264196f6-6935-ecfb-33d8-1dd3a7894d26@xs4all.nl>
-Date: Fri, 11 Nov 2016 14:58:07 +0100
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <4251827.ADF06xmuSS@avalon>
+ <2d71d705-bfd4-696d-52ff-c5a043eed158@osg.samsung.com>
+ <1698237.M9v6idgxsX@avalon>
+Cc: Shuah Khan <shuahkhan@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <87a7cdf5-7964-8a5a-51a8-bd2d440d3f8d@osg.samsung.com>
+Date: Thu, 10 Nov 2016 17:16:31 -0700
 MIME-Version: 1.0
-In-Reply-To: <1903855.3Xg5AI8ucK@avalon>
+In-Reply-To: <1698237.M9v6idgxsX@avalon>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/2016 02:48 PM, Laurent Pinchart wrote:
-> Hi Hans,
+On 11/10/2016 05:11 PM, Laurent Pinchart wrote:
+> Hi Shuah,
 > 
-> On Friday 11 Nov 2016 14:21:22 Hans Verkuil wrote:
->> On 11/09/2016 04:44 PM, Ramesh Shanmugasundaram wrote:
->>> This patch adds driver support for MAX2175 chip. This is Maxim
->>> Integrated's RF to Bits tuner front end chip designed for software-defined
->>> radio solutions. This driver exposes the tuner as a sub-device instance
->>> with standard and custom controls to configure the device.
+> On Thursday 10 Nov 2016 17:00:16 Shuah Khan wrote:
+>> On 11/10/2016 04:53 PM, Laurent Pinchart wrote:
+>>> On Tuesday 08 Nov 2016 12:20:29 Shuah Khan wrote:
+>>>> On Tue, Nov 8, 2016 at 6:55 AM, Sakari Ailus wrote:
+>>>>> From: Sakari Ailus <sakari.ailus@iki.fi>
+>>>>>
+>>>>> Allow allocating the media device dynamically. As the struct
+>>>>> media_device embeds struct media_devnode, the lifetime of that object is
+>>>>> that same than that of the media_device.
+>>>>>
+>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>>>> ---
+>>>>>
+>>>>>  drivers/media/media-device.c | 15 +++++++++++++++
+>>>>>  include/media/media-device.h | 13 +++++++++++++
+>>>>>  2 files changed, 28 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>>>>> index a31329d..496195e 100644
+>>>>> --- a/drivers/media/media-device.c
+>>>>> +++ b/drivers/media/media-device.c
+>>>>> @@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
+>>>>>  }
+>>>>>  EXPORT_SYMBOL_GPL(media_device_init);
+>>>>>
+>>>>> +struct media_device *media_device_alloc(struct device *dev)
+>>>>> +{
+>>>>> +       struct media_device *mdev;
+>>>>> +
+>>>>> +       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+>>>>> +       if (!mdev)
+>>>>> +               return NULL;
+>>>>> +
+>>>>> +       mdev->dev = dev;
+>>>>> +       media_device_init(mdev);
+>>>>> +
+>>>>> +       return mdev;
+>>>>> +}
+>>>>> +EXPORT_SYMBOL_GPL(media_device_alloc);
+>>>>> +
+>>>>
+>>>> One problem with this allocation is, this media device can't be shared
+>>>> across drivers. For au0828 and snd-usb-audio should be able to share the
+>>>> media_device. That is what the Media Allocator API patch series does.
 >>>
->>> Signed-off-by: Ramesh Shanmugasundaram
->>> <ramesh.shanmugasundaram@bp.renesas.com> ---
->>>
->>>  .../devicetree/bindings/media/i2c/max2175.txt      |   61 +
->>>  drivers/media/i2c/Kconfig                          |    4 +
->>>  drivers/media/i2c/Makefile                         |    2 +
->>>  drivers/media/i2c/max2175/Kconfig                  |    8 +
->>>  drivers/media/i2c/max2175/Makefile                 |    4 +
->>>  drivers/media/i2c/max2175/max2175.c                | 1558 +++++++++++++++
->>>  drivers/media/i2c/max2175/max2175.h                |  108 ++
->>>  7 files changed, 1745 insertions(+)
->>>  create mode 100644
->>>  Documentation/devicetree/bindings/media/i2c/max2175.txt
->>>  create mode 100644 drivers/media/i2c/max2175/Kconfig
->>>  create mode 100644 drivers/media/i2c/max2175/Makefile
->>>  create mode 100644 drivers/media/i2c/max2175/max2175.c
->>>  create mode 100644 drivers/media/i2c/max2175/max2175.h
+>>> No disagreement here, Sakari's patches don't address the issues that the
+>>> media allocator API fixes. The media allocator API, when ready, should
+>>> replace (or at least complement, if we decide to keep a simpler API for
+>>> drivers that don't need to share a media device, but I have no opinion on
+>>> this at this time) this allocation function.
 >>
->> <snip>
->>
->>> diff --git a/drivers/media/i2c/max2175/max2175.c
->>> b/drivers/media/i2c/max2175/max2175.c new file mode 100644
->>> index 0000000..ec45b52
->>> --- /dev/null
->>> +++ b/drivers/media/i2c/max2175/max2175.c
->>> @@ -0,0 +1,1558 @@
->>
->> <snip>
->>
->>> +/* Read/Write bit(s) on top of regmap */
->>> +static int max2175_read(struct max2175 *ctx, u8 idx, u8 *val)
->>> +{
->>> +	u32 regval;
->>> +	int ret = regmap_read(ctx->regmap, idx, &regval);
->>> +
->>> +	if (ret)
->>> +		v4l2_err(ctx->client, "read ret(%d): idx 0x%02x\n", ret, idx);
+>> Media Device Allocator API is ready and reviewed. au0828 uses it as the
+>> first driver using it. I will be sending out snd-usb-audio patch soon that
+>> makes use of the shared media device.
 > 
-> By the way, I think I've seen a proposal to get rid of v4l2_err() in favour of 
-> dev_err(), was I dreaming or should this patch use dev_err() already ?
+> I don't think it would be too difficult to rebase this series on top of the 
+> media allocator API, as all that is needed here is a way to dynamically 
+> allocate the media device in a clean fashion. I don't think Sakari's patches 
+> depend on a specific implementation of media_device_alloc(). Sakari, please 
+> let me know if I got this wrong.
 
-I haven't seen anything, but I may have missed it. I haven't been on top of the
-mailinglist lately. I'm fine with both.
+Media Device Allocator API is independent as well. It doesn't make any
+assumptions on media_device register and doesn't care really whether it
+is shared or not. So I think Sakari's work can use the Media Device Allocator
+API instead of the allocator routine it is adding.
 
+thanks,
+-- Shuah
 > 
->>> +
->>> +	*val = regval;
->>
->> Does regmap_read initialize regval even if it returns an error? If not,
->> then I would initialize regval to 0 to prevent *val being uninitialized.
-> 
-> Better than that the error should be propagated to the caller and handled.
-> 
->>> +	return ret;
->>> +}
-> 
-> [snip]
-> 
->>> +static int max2175_band_from_freq(u32 freq)
->>> +{
->>> +	if (freq >= 144000 && freq <= 26100000)
->>> +		return MAX2175_BAND_AM;
->>> +	else if (freq >= 65000000 && freq <= 108000000)
->>> +		return MAX2175_BAND_FM;
->>> +	else
->>
->> No need for these 'else' keywords.
-> 
-> Indeed by in my opinion they improve readability :-)
-> 
->>> +		return MAX2175_BAND_VHF;
->>> +}
-> 
-> [snip]
-> 
->>> +static const struct v4l2_ctrl_config max2175_na_rx_mode = {
->>> +	.ops = &max2175_ctrl_ops,
->>> +	.id = V4L2_CID_MAX2175_RX_MODE,
->>> +	.name = "RX MODE",
->>> +	.type = V4L2_CTRL_TYPE_MENU,
->>> +	.max = ARRAY_SIZE(max2175_ctrl_na_rx_modes) - 1,
->>> +	.def = 0,
->>> +	.qmenu = max2175_ctrl_na_rx_modes,
->>> +};
->>
->> Please document all these controls better. This is part of the public API,
->> so you need to give more information what this means exactly.
-> 
-> Should that go to Documentation/media/v4l-drivers/ ? If so "[PATCH v4 3/4] 
-> v4l: Add Renesas R-Car FDP1 Driver" can be used as an example.
-
-I think that's the preferred place going forward. But a comment should be
-added here pointing to that file so there is a better chance of keeping
-the doc and code in sync.
-
-> 
-> [snip]
+>>>> This a quick review and I will review the patch series and get back to
+>>>> you.
 > 
 
-	Hans
