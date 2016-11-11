@@ -1,89 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:52103 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751201AbcKNJ21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 04:28:27 -0500
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-To: Greg KH <gregkh@linuxfoundation.org>,
-        Mike Krinkin <krinkin.m.u@gmail.com>
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-        mchehab@kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] usb: core: urb make use of usb_endpoint_maxp_mult
-In-Reply-To: <20161114092121.GA31797@kroah.com>
-References: <1479033076-2995-1-git-send-email-krinkin.m.u@gmail.com> <20161114092121.GA31797@kroah.com>
-Date: Mon, 14 Nov 2016 11:27:48 +0200
-Message-ID: <87r36ewgvf.fsf@linux.intel.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:45657 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965305AbcKKJe7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 04:34:59 -0500
+Date: Fri, 11 Nov 2016 07:34:47 -0200
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Markus Heiser <markus.heiser@darmarit.de>,
+        Josh Triplett <josh@joshtriplett.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org,
+        linux-doc@vger.kernel.org
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+Message-ID: <20161111073447.4dd590b0.m.chehab@samsung.com>
+In-Reply-To: <87shr0g90r.fsf@intel.com>
+References: <20161107075524.49d83697@vento.lan>
+        <20161107170133.4jdeuqydthbbchaq@x>
+        <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de>
+        <8737j0hpi0.fsf@intel.com>
+        <DC27B5F7-D69E-4F22-B184-B7B029392959@darmarit.de>
+        <87shr0g90r.fsf@intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-        micalg=pgp-sha256; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Em Wed, 09 Nov 2016 13:58:12 +0200
+Jani Nikula <jani.nikula@linux.intel.com> escreveu:
 
+> On Wed, 09 Nov 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+> > Am 09.11.2016 um 12:16 schrieb Jani Nikula <jani.nikula@linux.intel.com>:  
+> >>> So I vote for :
+> >>>   
+> >>>> 1) copy (or symlink) all rst files to Documentation/output (or to the
+> >>>> build dir specified via O= directive) and generate the *.pdf there,
+> >>>> and produce those converted images via Makefile.;  
+> >> 
+> >> We're supposed to solve problems, not create new ones.  
+> >
+> > ... new ones? ...  
+> 
+> Handle in-tree builds without copying.
+> 
+> Make dependency analysis with source rst and "intermediate" rst work.
+> 
+> Make sure your copying gets the timestamps right.
+> 
+> Make Sphinx dependency analysis look at the right copies depending on
+> in-tree vs. out-of-tree. Generally make sure it doesn't confuse Sphinx's
+> own dependency analysis.
 
-Hi,
+I agree with Jani here: copy the files will make Sphinx recompile
+the entire documentation every time, with is bad. Ok, Some Makefile
+logic could be added to copy only on changes, but that will increase
+the Makefile complexity.
 
-Greg KH <gregkh@linuxfoundation.org> writes:
-> On Sun, Nov 13, 2016 at 01:31:16PM +0300, Mike Krinkin wrote:
->> Since usb_endpoint_maxp now returns only lower 11 bits mult
->> calculation here isn't correct anymore and that breaks webcam
->> for me. Patch make use of usb_endpoint_maxp_mult instead of
->> direct calculation.
->>=20
->> Fixes: abb621844f6a ("usb: ch9: make usb_endpoint_maxp() return
->>        only packet size")
->>=20
->> Signed-off-by: Mike Krinkin <krinkin.m.u@gmail.com>
->> ---
->>  drivers/usb/core/urb.c | 7 ++-----
->>  1 file changed, 2 insertions(+), 5 deletions(-)
->>=20
->> diff --git a/drivers/usb/core/urb.c b/drivers/usb/core/urb.c
->> index 0be49a1..d75cb8c 100644
->> --- a/drivers/usb/core/urb.c
->> +++ b/drivers/usb/core/urb.c
->> @@ -412,11 +412,8 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
->>  		}
->>=20=20
->>  		/* "high bandwidth" mode, 1-3 packets/uframe? */
->> -		if (dev->speed =3D=3D USB_SPEED_HIGH) {
->> -			int	mult =3D 1 + ((max >> 11) & 0x03);
->> -			max &=3D 0x07ff;
->> -			max *=3D mult;
->> -		}
->> +		if (dev->speed =3D=3D USB_SPEED_HIGH)
->> +			max *=3D usb_endpoint_maxp_mult(&ep->desc);
->>=20=20
->>  		if (urb->number_of_packets <=3D 0)
->>  			return -EINVAL;
->
-> Felipe, this looks like it belongs in your tree...
+So, I prefer not using copy. As I said before, a Sphinx extension that
+would make transparent for PDF document generation when a non-PDF image
+is included, doing whatever conversion needed, seems to be the right fix 
+here, but someone would need to step up and write such extension.
 
-Right, I've queued it up :-)
+-- 
 
-=2D-=20
-balbi
-
---=-=-=
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlgpg5QACgkQzL64meEa
-mQY4Jg//WSt6Xf6iqrwZqGQk7/+cd0wNEooYRww9WiVXoSULN/+71DtrMVFvnuWw
-i4jGvFsEhOoNhnICUPy7UTLt8L9yLPCQW7F6mbmlLYMIbU7NUSC05nuFOsDDzvAZ
-Y9EJRORPLtjK0BBIVlH/Y1KuRNl4kXjqpg6Qn7BXp16uDf/FPIBz4H+jZIlL5YPk
-X27d03xI4sIYbT4VtUyRD22uSyXkUEaM4918/2aWP9hG3gjSPseM0NJGkRX1BNDo
-RomWcwiHu6inYOngKFBqFCHUTNIF7JvSm+ufY4l3DhXIjrX2KbbUns1yKqj8IayI
-zEeU3HE8O2iGoHjewayjzUZz392WmZ1mm+pJY+GrWZ1+zLosyiHbLDyJQnpFAvff
-IuQnUkvfuPBs855Nhm5W5a7a31sh3ytEqxZ1LyUh7or9gnLSwQSq29MtY4PLY2fE
-0wAayuKK2VbLRNVuhCH6mV8TPHt8PpwkjXAaKd0GTvI2Mu31un/2/26aKXVM7NlL
-tdFmBB6DWVEikIi/HJNhqHTtZNrJyaKSi8tPHvNEm18t9ekPFwWouzeX1bf5wA3G
-HQ6zAdqakZtWu2w1u/Zi3G+S6SLSRQhsk+yXRgqgaix/Xg28FA2iuyGiXlRgTznz
-EqGJMe9ivEWUGu2OAF+LrvFw5v/vWrf1AplVEWbS/rbf9YuHXtc=
-=jWXy
------END PGP SIGNATURE-----
---=-=-=--
+Cheers,
+Mauro
