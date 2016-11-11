@@ -1,70 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:34170 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932199AbcKGPtf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 10:49:35 -0500
+Received: from mail-it0-f54.google.com ([209.85.214.54]:36612 "EHLO
+        mail-it0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756493AbcKKPx3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 10:53:29 -0500
+Received: by mail-it0-f54.google.com with SMTP id q124so320026291itd.1
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 07:53:29 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20161102132329.436-32-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se> <20161102132329.436-32-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 7 Nov 2016 13:42:40 +0100
-Message-ID: <CAMuHMdXKcX8XWncbPeb6yKOWZBZMM6m0V3TceczPTk_OEf647Q@mail.gmail.com>
-Subject: Re: [PATCH 31/32] media: rcar-vin: enable support for r8a7795
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+In-Reply-To: <CABxcv==ZR0=4GhXECiKtFJZ3WEY_5h-Egvs3hjBK56FiQeF6Jg@mail.gmail.com>
+References: <20161025235536.7342-1-khilman@baylibre.com> <20161025235536.7342-7-khilman@baylibre.com>
+ <dad6e38b-093b-bd36-3e0d-a0c10bddea58@xs4all.nl> <CABxcv==ZR0=4GhXECiKtFJZ3WEY_5h-Egvs3hjBK56FiQeF6Jg@mail.gmail.com>
+From: Javier Martinez Canillas <javier@dowhile0.org>
+Date: Fri, 11 Nov 2016 12:53:27 -0300
+Message-ID: <CABxcv==RuzE-wbT8ncwiBhJHiv7Kj0T4jxdTewLr7kTiyGDLJQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 6/6] [media] davinci: vpif_capture: get subdevs from DT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kevin Hilman <khilman@baylibre.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+        Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?Q?Bartosz_Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        "linux-arm-kernel@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2016 at 2:23 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Add the SoC specific information for Renesas Salvator-X H3 (r8a7795)
-> board.
+On Fri, Nov 11, 2016 at 12:50 PM, Javier Martinez Canillas
+<javier@dowhile0.org> wrote:
 
-Salvator-X is the board, while the support you add is purely SoC-specific.
+[snip]
 
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> ---
->  drivers/media/platform/rcar-vin/Kconfig     |  2 +-
->  drivers/media/platform/rcar-vin/rcar-core.c | 71 +++++++++++++++++++++++=
-++++++
->  2 files changed, 72 insertions(+), 1 deletion(-)
+> So if you can comment on this and see if the DT bindings fits your,
+> would be very useful.
 >
-> diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/plat=
-form/rcar-vin/Kconfig
-> index 111d2a1..e0e981c 100644
-> --- a/drivers/media/platform/rcar-vin/Kconfig
-> +++ b/drivers/media/platform/rcar-vin/Kconfig
 
-> @@ -1138,6 +1205,10 @@ static const struct rvin_info rcar_info_gen2 =3D {
->
->  static const struct of_device_id rvin_of_id_table[] =3D {
->         {
-> +               .compatible =3D "renesas,vin-r8a7795",
-> +               .data =3D (void *)&rcar_info_r8a7795,
+Sorry, I wanted to write "if the DT bindings fits your needs, it would
+be very useful".
 
-Cast not needed
-
-> +       },
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+Best regards,
+Javier
