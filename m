@@ -1,210 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:54718 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752580AbcKUOZ3 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49474
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S935365AbcKKAA4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 09:25:29 -0500
-Subject: Re: [PATCH v2 05/10] [media] st-delta: STiH4xx multi-format video
- decoder v4l2 driver
-To: Hugues Fruchet <hugues.fruchet@st.com>, linux-media@vger.kernel.org
-References: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
- <1479468336-26199-6-git-send-email-hugues.fruchet@st.com>
-Cc: kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <aef3b320-94f4-775d-ca31-264b7b2a8a27@xs4all.nl>
-Date: Mon, 21 Nov 2016 15:25:26 +0100
+        Thu, 10 Nov 2016 19:00:56 -0500
+Subject: Re: [RFC v4 08/21] media: Enable allocating the media device
+ dynamically
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Shuah Khan <shuahkhan@gmail.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
+ <1478613330-24691-8-git-send-email-sakari.ailus@linux.intel.com>
+ <CAKocOONNR9NBszp5Qq+geRdR+qAD70GYXguN7c3Q0Ptoz0Vzhg@mail.gmail.com>
+ <4251827.ADF06xmuSS@avalon>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <2d71d705-bfd4-696d-52ff-c5a043eed158@osg.samsung.com>
+Date: Thu, 10 Nov 2016 17:00:16 -0700
 MIME-Version: 1.0
-In-Reply-To: <1479468336-26199-6-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4251827.ADF06xmuSS@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18/11/16 12:25, Hugues Fruchet wrote:
-> This V4L2 driver enables DELTA multi-format video decoder
-> of STMicroelectronics STiH4xx SoC series.
->
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/platform/Kconfig                |   20 +
->  drivers/media/platform/Makefile               |    2 +
->  drivers/media/platform/sti/delta/Makefile     |    2 +
->  drivers/media/platform/sti/delta/delta-cfg.h  |   60 +
->  drivers/media/platform/sti/delta/delta-v4l2.c | 1813 +++++++++++++++++++++++++
->  drivers/media/platform/sti/delta/delta.h      |  514 +++++++
->  6 files changed, 2411 insertions(+)
->  create mode 100644 drivers/media/platform/sti/delta/Makefile
->  create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
->  create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
->  create mode 100644 drivers/media/platform/sti/delta/delta.h
->
+On 11/10/2016 04:53 PM, Laurent Pinchart wrote:
+> Hi Shuah,
+> 
+> On Tuesday 08 Nov 2016 12:20:29 Shuah Khan wrote:
+>> On Tue, Nov 8, 2016 at 6:55 AM, Sakari Ailus wrote:
+>>> From: Sakari Ailus <sakari.ailus@iki.fi>
+>>>
+>>> Allow allocating the media device dynamically. As the struct media_device
+>>> embeds struct media_devnode, the lifetime of that object is that same than
+>>> that of the media_device.
+>>>
+>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>>> ---
+>>>
+>>>  drivers/media/media-device.c | 15 +++++++++++++++
+>>>  include/media/media-device.h | 13 +++++++++++++
+>>>  2 files changed, 28 insertions(+)
+>>>
+>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+>>> index a31329d..496195e 100644
+>>> --- a/drivers/media/media-device.c
+>>> +++ b/drivers/media/media-device.c
+>>> @@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
+>>>  }
+>>>  EXPORT_SYMBOL_GPL(media_device_init);
+>>>
+>>> +struct media_device *media_device_alloc(struct device *dev)
+>>> +{
+>>> +       struct media_device *mdev;
+>>> +
+>>> +       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
+>>> +       if (!mdev)
+>>> +               return NULL;
+>>> +
+>>> +       mdev->dev = dev;
+>>> +       media_device_init(mdev);
+>>> +
+>>> +       return mdev;
+>>> +}
+>>> +EXPORT_SYMBOL_GPL(media_device_alloc);
+>>> +
+>>
+>> One problem with this allocation is, this media device can't be shared
+>> across drivers. For au0828 and snd-usb-audio should be able to share the
+>> media_device. That is what the Media Allocator API patch series does.
+> 
+> No disagreement here, Sakari's patches don't address the issues that the media 
+> allocator API fixes. The media allocator API, when ready, should replace (or 
+> at least complement, if we decide to keep a simpler API for drivers that don't 
+> need to share a media device, but I have no opinion on this at this time) this 
+> allocation function.
 
-<snip>
+Media Device Allocator API is ready and reviewed. au0828 uses it as the first
+driver using it. I will be sending out snd-usb-audio patch soon that makes use
+of the shared media device.
 
-> +static int delta_s_selection(struct file *file, void *fh,
-> +			     struct v4l2_selection *s)
-> +{
-> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	/* reject attempts to write read only targets */
-> +	if ((s->target == V4L2_SEL_TGT_COMPOSE_DEFAULT) ||
-> +	    (s->target == V4L2_SEL_TGT_COMPOSE_BOUNDS) ||
-> +	    (s->target == V4L2_SEL_TGT_COMPOSE_PADDED))
-> +		return -EINVAL;
-> +
-> +	/* decoder don't support crop/compose request from user,
-> +	 * just return silently what we can currently do
-> +	 */
-> +	return delta_g_selection(file, fh, s);
-> +}
+thanks,
+-- Shuah
 
-Huh? If you don't support s_selection, then just drop it.
+> 
+>> This a quick review and I will review the patch series and get back to
+>> you.
+>>
+>>>  void media_device_cleanup(struct media_device *mdev)
+>>>  {
+>>>         ida_destroy(&mdev->entity_internal_idx);
+>>> diff --git a/include/media/media-device.h b/include/media/media-device.h
+>>> index 96de915..c9b5798 100644
+>>> --- a/include/media/media-device.h
+>>> +++ b/include/media/media-device.h
+>>> @@ -207,6 +207,15 @@ static inline __must_check int
+>>> media_entity_enum_init(
+>>>  void media_device_init(struct media_device *mdev);
+>>>  
+>>>  /**
+>>> + * media_device_alloc() - Allocate and initialise a media device
+>>> + *
+>>> + * @dev:       The associated struct device pointer
+>>> + *
+>>> + * Allocate and initialise a media device. Returns a media device.
+>>> + */
+>>> +struct media_device *media_device_alloc(struct device *dev);
+>>> +
+>>> +/**
+>>>   * media_device_cleanup() - Cleanups a media device element
+>>>   *
+>>>   * @mdev:      pointer to struct &media_device
+>>> @@ -451,6 +460,10 @@ void __media_device_usb_init(struct media_device
+>>> *mdev,
+>>>                              const char *driver_name);
+>>>  #else
+>>> +static inline struct media_device *media_device_alloc(struct device *dev)
+>>> +{
+>>> +       return NULL;
+>>> +}
+>>>  static inline int media_device_register(struct media_device *mdev)
+>>>  {
+>>>         return 0;
+> 
 
-<snip>
-
-> +static int delta_vb2_au_start_streaming(struct vb2_queue *q,
-> +					unsigned int count)
-> +{
-> +	struct delta_ctx *ctx = vb2_get_drv_priv(q);
-> +	struct delta_dev *delta = ctx->dev;
-> +	const struct delta_dec *dec = ctx->dec;
-> +	struct delta_au *au;
-> +	int ret = 0;
-> +	struct vb2_v4l2_buffer *vbuf = NULL;
-> +	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
-> +	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
-> +
-> +	if ((ctx->state != DELTA_STATE_WF_FORMAT) &&
-> +	    (ctx->state != DELTA_STATE_WF_STREAMINFO))
-> +		return 0;
-> +
-> +	if (ctx->state == DELTA_STATE_WF_FORMAT) {
-> +		/* open decoder if not yet done */
-> +		ret = delta_open_decoder(ctx,
-> +					 ctx->streaminfo.streamformat,
-> +					 ctx->frameinfo.pixelformat, &dec);
-> +		if (ret)
-> +			return ret;
-
-This should be 'goto err;'. I mentioned this in the original review as 
-well, but
-apparently you forgot to fix it.
-
-> +		ctx->dec = dec;
-> +		ctx->state = DELTA_STATE_WF_STREAMINFO;
-> +	}
-> +
-> +	/* first buffer should contain stream header,
-> +	 * decode it to get the infos related to stream
-> +	 * such as width, height, dpb, ...
-> +	 */
-> +	vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-> +	if (!vbuf) {
-> +		dev_err(delta->dev, "%s failed to start streaming, no stream header buffer enqueued\n",
-> +			ctx->name);
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +	au = to_au(vbuf);
-> +	au->size = vb2_get_plane_payload(&vbuf->vb2_buf, 0);
-> +	au->dts = vbuf->vb2_buf.timestamp;
-> +
-> +	delta_push_dts(ctx, au->dts);
-> +
-> +	/* dump access unit */
-> +	dump_au(ctx, au);
-> +
-> +	/* decode this access unit */
-> +	ret = call_dec_op(dec, decode, ctx, au);
-> +	if (ret) {
-> +		dev_err(delta->dev, "%s failed to start streaming, header decoding failed (%d)\n",
-> +			ctx->name, ret);
-> +		goto err;
-> +	}
-> +
-> +	ret = call_dec_op(dec, get_streaminfo, ctx, streaminfo);
-> +	if (ret) {
-> +		dev_dbg_ratelimited(delta->dev,
-> +				    "%s failed to start streaming, valid stream header not yet decoded\n",
-> +				    ctx->name);
-> +		goto err;
-> +	}
-> +	ctx->flags |= DELTA_FLAG_STREAMINFO;
-> +
-> +	ret = call_dec_op(dec, get_frameinfo, ctx, frameinfo);
-> +	if (ret)
-> +		goto err;
-> +	ctx->flags |= DELTA_FLAG_FRAMEINFO;
-> +
-> +	ctx->state = DELTA_STATE_READY;
-> +
-> +	delta_au_done(ctx, au, ret);
-> +	return 0;
-> +
-> +err:
-> +	/* return all buffers to vb2 in QUEUED state.
-> +	 * This will give ownership back to userspace
-> +	 */
-> +	if (vbuf)
-> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
-> +
-> +	while ((vbuf = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx)))
-> +		v4l2_m2m_buf_done(vbuf, VB2_BUF_STATE_QUEUED);
-> +	return ret;
-> +}
-
-<snip>
-
-> +static int queue_init(void *priv,
-> +		      struct vb2_queue *src_vq, struct vb2_queue *dst_vq)
-> +{
-> +	struct vb2_queue *q;
-> +	struct delta_ctx *ctx = priv;
-> +	struct delta_dev *delta = ctx->dev;
-> +	int ret;
-> +
-> +	/* setup vb2 queue for stream input */
-> +	q = src_vq;
-> +	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-> +	q->io_modes = VB2_MMAP | VB2_DMABUF;
-> +	q->drv_priv = ctx;
-> +	/* overload vb2 buf with private au struct */
-> +	q->buf_struct_size = sizeof(struct delta_au);
-> +	q->ops = &delta_vb2_au_ops;
-> +	q->mem_ops = &vb2_dma_contig_memops;
-> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	q->lock = &delta->lock;
-
-q->dev is still not set. It is not clear to me why this apparently works 
-for you.
-It should fail when q->dev is NULL.
-
-> +	ret = vb2_queue_init(q);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* setup vb2 queue for frame output */
-> +	q = dst_vq;
-> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	q->io_modes = VB2_MMAP | VB2_DMABUF;
-> +	q->drv_priv = ctx;
-> +	/* overload vb2 buf with private frame struct */
-> +	q->buf_struct_size = sizeof(struct delta_frame)
-> +			     + DELTA_MAX_FRAME_PRIV_SIZE;
-> +	q->ops = &delta_vb2_frame_ops;
-> +	q->mem_ops = &vb2_dma_contig_memops;
-> +	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> +	q->lock = &delta->lock;
-
-Ditto.
-
-> +
-> +	return vb2_queue_init(q);
-> +}
-
-Regards,
-
-	Hans
