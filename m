@@ -1,89 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56584 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757882AbcKCPMM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 11:12:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RESEND] media: omap3isp: Use dma_request_chan() to requesting DMA channel
-Date: Thu, 03 Nov 2016 17:12:09 +0200
-Message-ID: <5665893.fe4E5jvxvE@avalon>
-In-Reply-To: <6d504f4d-44b0-467d-de21-6fd12771dfc5@ti.com>
-References: <20161102123959.6098-1-peter.ujfalusi@ti.com> <9b482d6b-5750-9c9d-e9a8-b113788fbb67@ti.com> <6d504f4d-44b0-467d-de21-6fd12771dfc5@ti.com>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37434 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936514AbcKKJHi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 04:07:38 -0500
+Received: by mail-wm0-f43.google.com with SMTP id t79so79885454wmt.0
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 01:07:37 -0800 (PST)
+Subject: Re: [PATCH v3 8/9] media: venus: add Makefiles and Kconfig files
+To: Vivek Gautam <vivek.gautam@codeaurora.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-9-git-send-email-stanimir.varbanov@linaro.org>
+ <CAFp+6iGPo0aC0Nf+Y5O7bAqSpjGGzwBUZWupgf=bwnicDD04Lg@mail.gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <75434223-9473-94f4-d721-fcd675c234de@linaro.org>
+Date: Fri, 11 Nov 2016 11:07:34 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAFp+6iGPo0aC0Nf+Y5O7bAqSpjGGzwBUZWupgf=bwnicDD04Lg@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Hi Vivek,
 
-On Thursday 03 Nov 2016 15:14:19 Peter Ujfalusi wrote:
-> On 11/03/2016 11:23 AM, Peter Ujfalusi wrote:
-> > On 11/02/2016 11:19 PM, Laurent Pinchart wrote:
-> >>> On Wednesday 02 Nov 2016 14:39:59 Peter Ujfalusi wrote:
-> >>>>> With the new dma_request_chan() the client driver does not need to
-> >>>>> look for the DMA resource and it does not need to pass filter_fn
-> >>>>> anymore. By switching to the new API the driver can now support
-> >>>>> deferred probing against DMA.
-> >>> 
-> >>> I believe this breaks the OMAP3 ISP driver.
-> >>> dma_request_slave_channel_compat() is a superset of dma_request_chan()
-> >>> that will, when called with
-> >>> omap_dma_filter_fn, return as a fallback any free channel handled by
-> >>> the OMAP DMA engine driver. This feature is actively used by this
-> >>> driver and must be preserved.
-> > 
-> > The fallback to use the filter_fn is used only when booted in legacy
-> > mode or when requesting a channel for non slave DMA operation.
-> > Based on the code in the driver it is handling slave transfers, so it
-> > must have DMA request line coming from somewhere. If that is missing the
-> > driver should not be able to work as it will not start the transfer.
-> > 
-> > dma_request_chan() is to be used when you want to have slave channel
-> > with DMA request.
-> > 
-> > If legacy mode needs to be supported then adding the hist DMA request
-> > number to the omap3xxx_sdma_map in arch/arm/mach-omap2/dma.c should be
-> > done. The reason the omap3isp is not in the table is that I could not
-> > find any place where the DMA resource was set (nor the DMA is specified
-> > in DT).
-> > 
-> > I'm unsure how this driver could work w/o DMA request line over a random
-> > (and SW triggered) DMA channel with slave operation. For the slave DMA
-> > you need to have DMA request line.
+On 11/11/2016 08:12 AM, Vivek Gautam wrote:
+> On Mon, Nov 7, 2016 at 11:04 PM, Stanimir Varbanov
+> <stanimir.varbanov@linaro.org> wrote:
+>> Makefile and Kconfig files to build the Venus video codec driver.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/Kconfig        |  7 +++++++
+>>  drivers/media/platform/qcom/Makefile       |  1 +
+>>  drivers/media/platform/qcom/venus/Makefile | 15 +++++++++++++++
+>>  3 files changed, 23 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/Kconfig
+>>  create mode 100644 drivers/media/platform/qcom/Makefile
+>>  create mode 100644 drivers/media/platform/qcom/venus/Makefile
+>>
+>> diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
+>> new file mode 100644
+>> index 000000000000..bf4d2fcce924
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/Kconfig
+>> @@ -0,0 +1,7 @@
+>> +
+>> +menuconfig VIDEO_QCOM_VENUS
+>> +        tristate "Qualcomm Venus V4L2 encoder/decoder driver"
+>> +        depends on ARCH_QCOM && VIDEO_V4L2
 > 
-> I see now.
-> The omap3isp never supposed to get valid DMA request line via
-> platform_get_resource_byname(), it should never find the "hist" DMA in
-> the DT data. If it does, the driver would stop working as there is no
-> DMA request associated with the histogram data reading.
+> Let's also enable this for COMPILE_TEST.
 
-That's correct.
-
-> It is a bit misleading that it used dma_request_slave_channel_compat()
-> for getting the channel.
-> 
-> I think what would be correct is:
-> dma_cap_mask_t mask;
-> 
-> dma_cap_zero(mask);
-> dma_cap_set(DMA_SLAVE, mask);
-> hist->dma_ch = dma_request_chan_by_mask(&mask);
-> 
-> We will get any DMA channel capable of slave configuration, but we will
-> configure no DMA request number for the channel.
-
-I believe that should work. It could in theory result in a different behaviour 
-as it could return a DMA channel not handled by the OMAP SDMA engine, but I 
-don't think that would be an issue.
-
-> and document this in the driver...
+I agree, but it needs changes in other dependency drivers like qcom_scm
+one. I will try to come out with something in the next version.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+regards,
+Stan
