@@ -1,115 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35272 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752194AbcKHNzh (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47411 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751606AbcKKKwI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:37 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 19/21] omap3isp: Allocate the media device dynamically
-Date: Tue,  8 Nov 2016 15:55:28 +0200
-Message-Id: <1478613330-24691-19-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 11 Nov 2016 05:52:08 -0500
+Subject: Re: [PATCH] [media] mtk-mdp: allocate video_device dynamically
+To: Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        daniel.thompson@linaro.org, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+References: <1478522529-57129-1-git-send-email-minghsiu.tsai@mediatek.com>
+ <1478522529-57129-2-git-send-email-minghsiu.tsai@mediatek.com>
+Cc: srv_heupstream@mediatek.com,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-mediatek@lists.infradead.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d21cd419-e1fc-4d2e-a2a9-74c535865762@xs4all.nl>
+Date: Fri, 11 Nov 2016 11:51:57 +0100
+MIME-Version: 1.0
+In-Reply-To: <1478522529-57129-2-git-send-email-minghsiu.tsai@mediatek.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the new media_device_alloc() API to allocate and release the media
-device.
+Almost correct:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/platform/omap3isp/isp.c      | 24 +++++++++++++-----------
- drivers/media/platform/omap3isp/isp.h      |  2 +-
- drivers/media/platform/omap3isp/ispvideo.c |  2 +-
- 3 files changed, 15 insertions(+), 13 deletions(-)
+On 11/07/2016 01:42 PM, Minghsiu Tsai wrote:
+> It can fix known problems with embedded video_device structs.
+> 
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> ---
+>  drivers/media/platform/mtk-mdp/mtk_mdp_core.h |  2 +-
+>  drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 33 ++++++++++++++++-----------
+>  2 files changed, 21 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.h b/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+> index 848569d..ad1cff3 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+> @@ -167,7 +167,7 @@ struct mtk_mdp_dev {
+>  	struct mtk_mdp_comp		*comp[MTK_MDP_COMP_ID_MAX];
+>  	struct v4l2_m2m_dev		*m2m_dev;
+>  	struct list_head		ctx_list;
+> -	struct video_device		vdev;
+> +	struct video_device		*vdev;
+>  	struct v4l2_device		v4l2_dev;
+>  	struct workqueue_struct		*job_wq;
+>  	struct platform_device		*vpu_dev;
+> diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> index 9a747e7..b8dee1c 100644
+> --- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> +++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+> @@ -1236,16 +1236,22 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+>  	int ret;
+>  
+>  	mdp->variant = &mtk_mdp_default_variant;
+> -	mdp->vdev.device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+> -	mdp->vdev.fops = &mtk_mdp_m2m_fops;
+> -	mdp->vdev.ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
+> -	mdp->vdev.release = video_device_release_empty;
+> -	mdp->vdev.lock = &mdp->lock;
+> -	mdp->vdev.vfl_dir = VFL_DIR_M2M;
+> -	mdp->vdev.v4l2_dev = &mdp->v4l2_dev;
+> -	snprintf(mdp->vdev.name, sizeof(mdp->vdev.name), "%s:m2m",
+> +	mdp->vdev = video_device_alloc();
+> +	if (!mdp->vdev) {
+> +		dev_err(dev, "failed to allocate video device\n");
+> +		ret = -ENOMEM;
+> +		goto err_video_alloc;
+> +	}
+> +	mdp->vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+> +	mdp->vdev->fops = &mtk_mdp_m2m_fops;
+> +	mdp->vdev->ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
+> +	mdp->vdev->release = video_device_release;
+> +	mdp->vdev->lock = &mdp->lock;
+> +	mdp->vdev->vfl_dir = VFL_DIR_M2M;
+> +	mdp->vdev->v4l2_dev = &mdp->v4l2_dev;
+> +	snprintf(mdp->vdev->name, sizeof(mdp->vdev->name), "%s:m2m",
+>  		 MTK_MDP_MODULE_NAME);
+> -	video_set_drvdata(&mdp->vdev, mdp);
+> +	video_set_drvdata(mdp->vdev, mdp);
+>  
+>  	mdp->m2m_dev = v4l2_m2m_init(&mtk_mdp_m2m_ops);
+>  	if (IS_ERR(mdp->m2m_dev)) {
+> @@ -1254,26 +1260,27 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+>  		goto err_m2m_init;
+>  	}
+>  
+> -	ret = video_register_device(&mdp->vdev, VFL_TYPE_GRABBER, 2);
+> +	ret = video_register_device(mdp->vdev, VFL_TYPE_GRABBER, 2);
+>  	if (ret) {
+>  		dev_err(dev, "failed to register video device\n");
+>  		goto err_vdev_register;
+>  	}
+>  
+>  	v4l2_info(&mdp->v4l2_dev, "driver registered as /dev/video%d",
+> -		  mdp->vdev.num);
+> +		  mdp->vdev->num);
+>  	return 0;
+>  
+>  err_vdev_register:
+>  	v4l2_m2m_release(mdp->m2m_dev);
+>  err_m2m_init:
+> -	video_device_release(&mdp->vdev);
+> +	video_unregister_device(mdp->vdev);
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 2e1b17e..8bc7a7c 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -1601,8 +1601,8 @@ static void isp_unregister_entities(struct isp_device *isp)
- 	omap3isp_stat_unregister_entities(&isp->isp_hist);
- 
- 	v4l2_device_unregister(&isp->v4l2_dev);
--	media_device_unregister(&isp->media_dev);
--	media_device_cleanup(&isp->media_dev);
-+	media_device_unregister(isp->media_dev);
-+	media_device_put(isp->media_dev);
- }
- 
- static int isp_link_entity(
-@@ -1680,14 +1680,16 @@ static int isp_register_entities(struct isp_device *isp)
- {
- 	int ret;
- 
--	isp->media_dev.dev = isp->dev;
--	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
--		sizeof(isp->media_dev.model));
--	isp->media_dev.hw_revision = isp->revision;
--	isp->media_dev.ops = &isp_media_ops;
--	media_device_init(&isp->media_dev);
-+	isp->media_dev = media_device_alloc(isp->dev, isp);
-+	if (!isp->media_dev)
-+		return -ENOMEM;
-+
-+	strlcpy(isp->media_dev->model, "TI OMAP3 ISP",
-+		sizeof(isp->media_dev->model));
-+	isp->media_dev->hw_revision = isp->revision;
-+	isp->media_dev->ops = &isp_media_ops;
- 
--	isp->v4l2_dev.mdev = &isp->media_dev;
-+	isp->v4l2_dev.mdev = isp->media_dev;
- 	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
- 	if (ret < 0) {
- 		dev_err(isp->dev, "%s: V4L2 device registration failed (%d)\n",
-@@ -2165,7 +2167,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 	struct isp_bus_cfg *bus;
- 	int ret;
- 
--	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-+	ret = media_entity_enum_init(&isp->crashed, isp->media_dev);
- 	if (ret)
- 		return ret;
- 
-@@ -2183,7 +2185,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
- 	if (ret < 0)
- 		return ret;
- 
--	return media_device_register(&isp->media_dev);
-+	return media_device_register(isp->media_dev);
- }
- 
- /*
-diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-index 7e6f663..7378279 100644
---- a/drivers/media/platform/omap3isp/isp.h
-+++ b/drivers/media/platform/omap3isp/isp.h
-@@ -176,7 +176,7 @@ struct isp_xclk {
- struct isp_device {
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_async_notifier notifier;
--	struct media_device media_dev;
-+	struct media_device *media_dev;
- 	struct device *dev;
- 	u32 revision;
- 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 7354469..33e74b9 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1104,7 +1104,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	pipe = video->video.entity.pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
- 
--	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp->media_dev);
-+	ret = media_entity_enum_init(&pipe->ent_enum, video->isp->media_dev);
- 	if (ret)
- 		goto err_enum_init;
- 
--- 
-2.1.4
+This should remain video_device_release: the video_register_device call failed, so
+the device hasn't been registered. In that case just release the device (i.e.
+free the allocated memory).
 
+> +err_video_alloc:
+>  
+>  	return ret;
+>  }
+>  
+>  void mtk_mdp_unregister_m2m_device(struct mtk_mdp_dev *mdp)
+>  {
+> -	video_device_release(&mdp->vdev);
+> +	video_unregister_device(mdp->vdev);
+>  	v4l2_m2m_release(mdp->m2m_dev);
+>  }
+> 
+
+Regards,
+
+	Hans
