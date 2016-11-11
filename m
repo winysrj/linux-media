@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37380 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754341AbcLAAaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 19:30:07 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: stable@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] mn88472: fix chip id check on probe
-Date: Thu,  1 Dec 2016 02:29:46 +0200
-Message-Id: <1480552186-1179-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1480552186-1179-1-git-send-email-crope@iki.fi>
-References: <1480552186-1179-1-git-send-email-crope@iki.fi>
+Received: from mail-wm0-f42.google.com ([74.125.82.42]:37730 "EHLO
+        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755315AbcKKJrX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 04:47:23 -0500
+Received: by mail-wm0-f42.google.com with SMTP id t79so81679725wmt.0
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 01:47:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201611101146.cbVxBQXg%fengguang.wu@intel.com>
+References: <1478701441-29107-5-git-send-email-m.szyprowski@samsung.com> <201611101146.cbVxBQXg%fengguang.wu@intel.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Date: Fri, 11 Nov 2016 10:47:20 +0100
+Message-ID: <CAPDyKFqN=haG0HvpXgQr3nqfNUhhxRku8zbW1QJngPUyLDjokw@mail.gmail.com>
+Subject: Re: [PATCH 04/12] exynos-gsc: Make runtime PM callbacks available for CONFIG_PM
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A register used to identify chip during probe was overwritten during
-firmware download and due to that later probe's for warm chip were
-failing. Detect chip from the another register, which is located on
-different register bank 2.
+On 10 November 2016 at 04:44, kbuild test robot <lkp@intel.com> wrote:
+> Hi Ulf,
+>
+> [auto build test ERROR on linuxtv-media/master]
+> [also build test ERROR on v4.9-rc4 next-20161109]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Marek-Szyprowski/media-Exynos-GScaller-driver-fixes/20161110-000048
+> base:   git://linuxtv.org/media_tree.git master
+> config: openrisc-allyesconfig (attached as .config)
+> compiler: or32-linux-gcc (GCC) 4.5.1-or32-1.0rc1
+> reproduce:
+>         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=openrisc
+>
+> Note: the linux-review/Marek-Szyprowski/media-Exynos-GScaller-driver-fixes/20161110-000048 HEAD 92b20676ac75659d1ea1d83b00e8028f45ea84e9 builds fine.
+>       It only hurts bisectibility.
+>
+> All errors (new ones prefixed by >>):
+>
+>    drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_resume':
+>>> drivers/media/platform/exynos-gsc/gsc-core.c:1183:3: error: implicit declaration of function 'gsc_runtime_resume'
+>    drivers/media/platform/exynos-gsc/gsc-core.c: In function 'gsc_suspend':
+>>> drivers/media/platform/exynos-gsc/gsc-core.c:1198:3: error: implicit declaration of function 'gsc_runtime_suspend'
+>
 
-Fixes: 94d0eaa41987 ("[media] mn88472: move out of staging to media")
-Cc: <stable@vger.kernel.org> # v4.8+
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/mn88472.c | 24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+Marek, to avoid the bisectibility issue, we could squash patch 4/12 with 6/12.
 
-diff --git a/drivers/media/dvb-frontends/mn88472.c b/drivers/media/dvb-frontends/mn88472.c
-index b6f5f83..29dd13b 100644
---- a/drivers/media/dvb-frontends/mn88472.c
-+++ b/drivers/media/dvb-frontends/mn88472.c
-@@ -488,18 +488,6 @@ static int mn88472_probe(struct i2c_client *client,
- 		goto err_kfree;
- 	}
- 
--	/* Check demod answers with correct chip id */
--	ret = regmap_read(dev->regmap[0], 0xff, &utmp);
--	if (ret)
--		goto err_regmap_0_regmap_exit;
--
--	dev_dbg(&client->dev, "chip id=%02x\n", utmp);
--
--	if (utmp != 0x02) {
--		ret = -ENODEV;
--		goto err_regmap_0_regmap_exit;
--	}
--
- 	/*
- 	 * Chip has three I2C addresses for different register banks. Used
- 	 * addresses are 0x18, 0x1a and 0x1c. We register two dummy clients,
-@@ -536,6 +524,18 @@ static int mn88472_probe(struct i2c_client *client,
- 	}
- 	i2c_set_clientdata(dev->client[2], dev);
- 
-+	/* Check demod answers with correct chip id */
-+	ret = regmap_read(dev->regmap[2], 0xff, &utmp);
-+	if (ret)
-+		goto err_regmap_2_regmap_exit;
-+
-+	dev_dbg(&client->dev, "chip id=%02x\n", utmp);
-+
-+	if (utmp != 0x02) {
-+		ret = -ENODEV;
-+		goto err_regmap_2_regmap_exit;
-+	}
-+
- 	/* Sleep because chip is active by default */
- 	ret = regmap_write(dev->regmap[2], 0x05, 0x3e);
- 	if (ret)
+Do you want to do it, or you prefer me to re-spin the series?
+
+Kind regards
+Uffe
