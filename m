@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:41195 "EHLO mail.sig21.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752768AbcKGLaK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Nov 2016 06:30:10 -0500
-Date: Mon, 7 Nov 2016 12:29:47 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: VDR User <user.vdr@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Andy Lutomirski <luto@amacapital.net>,
-        Jiri Kosina <jikos@kernel.org>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        =?iso-8859-1?Q?J=F6rg?= Otte <jrg.otte@gmail.com>
-Subject: Re: [PATCH v2 18/31] gp8psk: don't do DMA on stack
-Message-ID: <20161107112947.qlxpzhxi5k3w7ajz@linuxtv.org>
-References: <cover.1476179975.git.mchehab@s-opensource.com>
- <632081ba085ddf0ded63cce3dbcf3870485d3cd3.1476179975.git.mchehab@s-opensource.com>
- <CAA7C2qiW+Co3XVt1AQDYka9MdSYG8OELxNzecqAia9df0P3Neg@mail.gmail.com>
+Received: from mailgw02.mediatek.com ([210.61.82.184]:10967 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1756416AbcKKMJQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 07:09:16 -0500
+From: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+To: <linux-firmware@kernel.org>
+CC: <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>, <tiffany.lin@mediatek.com>,
+        <eddie.huang@mediatek.com>, <wuchengli@google.com>,
+        <srv_heupstream@mediatek.com>
+Subject: pull request: linux-firmware: Update Mediatek MT8173 VPU firmware
+Date: Fri, 11 Nov 2016 20:09:08 +0800
+Message-ID: <1478866149-2023-1-git-send-email-andrew-ct.chen@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAA7C2qiW+Co3XVt1AQDYka9MdSYG8OELxNzecqAia9df0P3Neg@mail.gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 06, 2016 at 11:51:14AM -0800, VDR User wrote:
-> I applied this patch to the 4.8.4 kernel driver (that I'm currently
-> running) and it caused nothing but "frontend 0/0 timed out while
-> tuning". Is there another patch that should be used in conjunction
-> with this? If not, this patch breaks the gp8psk driver.
-> 
-> Thanks.
+Hi linux-firmware maintainers,
 
-Thanks for testing.  "If it's not tested it's broken"...
+The following changes since commit a179db97914da5e650c21ba8f9b0bae04a0f8a41:
 
-> On Tue, Oct 11, 2016 at 3:09 AM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
+  amdgpu: update SMC firmware for VI parts (2016-10-05 10:30:11 -0700)
 
-> > index 5d0384dd45b5..fa215ad37f7b 100644
-> > --- a/drivers/media/usb/dvb-usb/gp8psk.c
-> > +++ b/drivers/media/usb/dvb-usb/gp8psk.c
+are available in the git repository at:
 
-> >  int gp8psk_usb_in_op(struct dvb_usb_device *d, u8 req, u16 value, u16 index, u8 *b, int blen)
-> >  {
-> > +       struct gp8psk_state *st = d->priv;
-> >         int ret = 0,try = 0;
-> >
-> >         if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
-> >                 return ret;
-> >
-> >         while (ret >= 0 && ret != blen && try < 3) {
-> > +               memcpy(st->data, b, blen);
-> >                 ret = usb_control_msg(d->udev,
-> >                         usb_rcvctrlpipe(d->udev,0),
-> >                         req,
-> >                         USB_TYPE_VENDOR | USB_DIR_IN,
-> > -                       value,index,b,blen,
-> > +                       value, index, st->data, blen,
-> >                         2000);
+  https://github.com/andrewct-chen/linux_fw_vpu_v1.0.3.git v1.0.3
 
-I guess for usb_in the memcpy should be after the usb_control_msg
-and from st->data to b.
+for you to fetch changes up to f52fd5b4f156bd1eef672d29abbdc57cf310ac1b:
 
-Johannes
+  mediatek: update MT8173 VPU firmware for idle state (2016-11-11 19:34:56 +0800)
+
+----------------------------------------------------------------
+Andrew-CT Chen (1):
+      mediatek: update MT8173 VPU firmware for idle state
+
+ vpu_d.bin | Bin 4082928 -> 4082928 bytes
+ vpu_p.bin | Bin 131160 -> 131160 bytes
+ 2 files changed, 0 insertions(+), 0 deletions(-)
