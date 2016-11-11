@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35300 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752087AbcKHNzg (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:38295 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754782AbcKKLnp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:36 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 11/21] media device: Refcount the media device
-Date: Tue,  8 Nov 2016 15:55:20 +0200
-Message-Id: <1478613330-24691-11-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 11 Nov 2016 06:43:45 -0500
+Subject: Re: [PATCH v3 5/9] media: venus: venc: add video encoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-6-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5e918c07-c3fb-262a-5c9e-11014cdb0eb0@xs4all.nl>
+Date: Fri, 11 Nov 2016 12:43:39 +0100
+MIME-Version: 1.0
+In-Reply-To: <1478540043-24558-6-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As the struct media_device embeds struct media_devnode, the lifetime of
-that object must be that same than that of the media_device.
+The comments I made before about start_streaming and the use of struct venus_ctrl
+apply here as well and I won't repeat them.
 
-References are obtained by media_entity_get() and released by
-media_entity_put(). In case a driver uses media_device_alloc() to allocate
-its media device, it must release the media device by calling
-media_device_put() rather than media_device_cleanup().
+On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
+> This adds encoder part of the driver plus encoder controls.
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/venc.c       | 1212 ++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/venc.h       |   32 +
+>  drivers/media/platform/qcom/venus/venc_ctrls.c |  396 ++++++++
+>  3 files changed, 1640 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/venus/venc.c
+>  create mode 100644 drivers/media/platform/qcom/venus/venc.h
+>  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+> 
+> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+> new file mode 100644
+> index 000000000000..35572eaffb9e
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/venc.c
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 13 +++++++++++++
- include/media/media-device.h | 31 +++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+)
+<snip>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 0920c02..e9f6e76 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -712,6 +712,17 @@ void media_device_init(struct media_device *mdev)
- }
- EXPORT_SYMBOL_GPL(media_device_init);
- 
-+static void media_device_release(struct media_devnode *devnode)
-+{
-+	struct media_device *mdev = to_media_device(devnode);
-+
-+	dev_dbg(devnode->parent, "Media device released\n");
-+
-+	media_device_cleanup(mdev);
-+
-+	kfree(mdev);
-+}
-+
- struct media_device *media_device_alloc(struct device *dev)
- {
- 	struct media_device *mdev;
-@@ -723,6 +734,8 @@ struct media_device *media_device_alloc(struct device *dev)
- 	mdev->dev = dev;
- 	media_device_init(mdev);
- 
-+	mdev->devnode.release = media_device_release;
-+
- 	return mdev;
- }
- EXPORT_SYMBOL_GPL(media_device_alloc);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index c9b5798..fc0d82a 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -212,10 +212,39 @@ void media_device_init(struct media_device *mdev);
-  * @dev:	The associated struct device pointer
-  *
-  * Allocate and initialise a media device. Returns a media device.
-+ * The media device is refcounted, and this function returns a media
-+ * device the refcount of which is one (1).
-+ *
-+ * References are taken and given using media_device_get() and
-+ * media_device_put().
-  */
- struct media_device *media_device_alloc(struct device *dev);
- 
- /**
-+ * media_device_get() - Get a reference to a media device
-+ *
-+ * mdev: media device
-+ */
-+#define media_device_get(mdev)						\
-+	do {								\
-+		dev_dbg((mdev)->dev, "%s: get media device %s\n",	\
-+			__func__, (mdev)->bus_info);			\
-+		get_device(&(mdev)->devnode.dev);			\
-+	} while (0)
-+
-+/**
-+ * media_device_put() - Put a reference to a media device
-+ *
-+ * mdev: media device
-+ */
-+#define media_device_put(mdev)						\
-+	do {								\
-+		dev_dbg((mdev)->dev, "%s: put media device %s\n",	\
-+			__func__, (mdev)->bus_info);			\
-+		put_device(&(mdev)->devnode.dev);			\
-+	} while (0)
-+
-+/**
-  * media_device_cleanup() - Cleanups a media device element
-  *
-  * @mdev:	pointer to struct &media_device
-@@ -464,6 +493,8 @@ static inline struct media_device *media_device_alloc(struct device *dev)
- {
- 	return NULL;
- }
-+#define media_device_get(mdev) do { } while (0)
-+#define media_device_put(mdev) do { } while (0)
- static inline int media_device_register(struct media_device *mdev)
- {
- 	return 0;
--- 
-2.1.4
+> +static int
+> +venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
+> +{
+> +	struct venus_inst *inst = to_inst(file);
+> +
+> +	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_CROP:
+> +		if (s->r.width != inst->out_width ||
+> +		    s->r.height != inst->out_height ||
+> +		    s->r.top != 0 || s->r.left != 0)
+> +			return -EINVAL;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
 
+Why implement s_selection if I can't change the selection?
+
+> +
+> +static int
+> +venc_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
+> +{
+> +	struct vb2_queue *queue = to_vb2q(file, b->type);
+> +
+> +	if (!queue)
+> +		return -EINVAL;
+> +
+> +	return vb2_reqbufs(queue, b);
+> +}
+
+Use the m2m helpers if at all possible.
+
+Regards,
+
+	Hans
