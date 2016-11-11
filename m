@@ -1,160 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49477 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754175AbcKBN3i (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:38 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 07/32] media: rcar-vin: add wrapper to get rvin_graph_entity
-Date: Wed,  2 Nov 2016 14:23:04 +0100
-Message-Id: <20161102132329.436-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:36498 "EHLO
+        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934727AbcKKVIr (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 16:08:47 -0500
+Received: by mail-lf0-f52.google.com with SMTP id t196so20907969lff.3
+        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 13:08:46 -0800 (PST)
+Date: Fri, 11 Nov 2016 22:08:43 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 1/1] media: entity: Add media_entity_has_route() function
+Message-ID: <20161111210843.GA3834@bigcity.dyn.berto.se>
+References: <20161108124238.GM3217@valkosipuli.retiisi.org.uk>
+ <1478609668-1117-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1478609668-1117-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the driver to retrieve the code and mbus_cfg values from a
-rvin_graph_entity retrieved from a wrapper function instead of directly
-accessing the entity for the digital port. This is done to prepare for
-Gen3 support where the subdeivce might change during runtime, so to
-directly accesses a specific rvin_graph_entity is bad.
+Hi Sakari,
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c |  9 +++++++++
- drivers/media/platform/rcar-vin/rcar-dma.c  | 15 ++++++++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  6 +++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  1 +
- 4 files changed, 25 insertions(+), 6 deletions(-)
+Thanks, I will use this one in my next iteration of the VIN patches.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 098a0b1..89a9280 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -26,6 +26,15 @@
- #include "rcar-vin.h"
- 
- /* -----------------------------------------------------------------------------
-+ * Subdevice helpers
-+ */
-+
-+struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin)
-+{
-+	return &vin->digital;
-+}
-+
-+/* -----------------------------------------------------------------------------
-  * Async notifier
-  */
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 9ccd5ff..eac5c19 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -131,10 +131,15 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offset)
- 
- static int rvin_setup(struct rvin_dev *vin)
- {
-+	struct rvin_graph_entity *rent;
- 	u32 vnmc, dmr, dmr2, interrupts;
- 	v4l2_std_id std;
- 	bool progressive = false, output_is_yuv = false, input_is_yuv = false;
- 
-+	rent = vin_to_entity(vin);
-+	if (!rent)
-+		return -ENODEV;
-+
- 	switch (vin->format.field) {
- 	case V4L2_FIELD_TOP:
- 		vnmc = VNMC_IM_ODD;
-@@ -174,7 +179,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital.code) {
-+	switch (rent->code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -182,7 +187,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= rent->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -191,7 +196,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital.mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= rent->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -203,11 +208,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(rent->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
- 
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital.mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(rent->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
- 
- 	/*
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f9218f2..370bb18 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -164,6 +164,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- {
- 	struct v4l2_subdev *sd;
- 	struct v4l2_subdev_pad_config *pad_cfg;
-+	struct rvin_graph_entity *rent;
- 	struct v4l2_subdev_format format = {
- 		.which = which,
- 	};
-@@ -171,8 +172,11 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	int ret;
- 
- 	sd = vin_to_source(vin);
-+	rent = vin_to_entity(vin);
-+	if (!rent)
-+		return -ENODEV;
- 
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital.code);
-+	v4l2_fill_mbus_format(&format.format, pix, rent->code);
- 
- 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
- 	if (pad_cfg == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 727e215..daec26a 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -144,6 +144,7 @@ struct rvin_dev {
- 	struct v4l2_rect compose;
- };
- 
-+struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin);
- #define vin_to_source(vin)		vin->digital.subdev
- 
- /* Debug */
+On 2016-11-08 14:54:28 +0200, Sakari Ailus wrote:
+> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> This is a wrapper around the media entity has_route operation.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Niklas,
+> 
+> There was actually another problem with the Kerneldoc comment related to
+> the mutex. Fixed that one as well.
+> 
+> Kind regards,
+> Sakari
+> 
+>  drivers/media/media-entity.c | 16 ++++++++++++++++
+>  include/media/media-entity.h | 17 +++++++++++++++++
+>  2 files changed, 33 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 5734bb9..7de08e1 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -242,6 +242,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
+>   * Graph traversal
+>   */
+>  
+> +bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+> +			    unsigned int pad1)
+> +{
+> +	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
+> +		return false;
+> +
+> +	if (pad0 == pad1)
+> +		return true;
+> +
+> +	if (!entity->ops || !entity->ops->has_route)
+> +		return true;
+> +
+> +	return entity->ops->has_route(entity, pad0, pad1);
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_has_route);
+> +
+>  static struct media_entity *
+>  media_entity_other(struct media_entity *entity, struct media_link *link)
+>  {
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 2060e48..aa8d3c5 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -834,6 +834,23 @@ __must_check int media_entity_graph_walk_init(
+>  	struct media_entity_graph *graph, struct media_device *mdev);
+>  
+>  /**
+> + * media_entity_has_route - Check if two entity pads are connected internally
+> + *
+> + * @entity: The entity
+> + * @pad0: The first pad index
+> + * @pad1: The second pad index
+> + *
+> + * This function can be used to check whether two pads of an entity are
+> + * connected internally in the entity.
+> + *
+> + * The caller must hold entity->graph_obj.mdev->mutex.
+> + *
+> + * Return: true if the pads are connected internally and false otherwise.
+> + */
+> +bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+> +			    unsigned int pad1);
+> +
+> +/**
+>   * media_entity_graph_walk_cleanup - Release resources used by graph walk.
+>   *
+>   * @graph: Media graph structure that will be used to walk the graph
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.10.2
-
+Regards,
+Niklas Söderlund
