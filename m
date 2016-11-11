@@ -1,66 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40918
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751015AbcK1ToX (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:59152 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756493AbcKKPqF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 14:44:23 -0500
-Date: Mon, 28 Nov 2016 17:44:14 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        LMML <linux-media@vger.kernel.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [GIT PULL] Samsung fixes for 4.8
-Message-ID: <20161128174414.1ab8cb7e@vento.lan>
-In-Reply-To: <d56c3d6d-6cbf-2f98-80d8-c72cd20f3957@osg.samsung.com>
-References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
-        <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
-        <20161021102607.2df96630@vento.lan>
-        <70cc3f35-e661-c76f-8620-dfeb74030183@samsung.com>
-        <20161116124600.66e4c9e4@vento.lan>
-        <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
-        <20161116131932.7c2908e3@vento.lan>
-        <d56c3d6d-6cbf-2f98-80d8-c72cd20f3957@osg.samsung.com>
+        Fri, 11 Nov 2016 10:46:05 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.10 v3] cec: fix remaining issues and move it from
+ staging to drivers/media
+Message-ID: <a512db11-af25-0958-d122-8ae2e0f85c63@xs4all.nl>
+Date: Fri, 11 Nov 2016 16:45:59 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 28 Nov 2016 16:29:25 -0300
-Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+This resolves the remaining issues and get it out of staging.
 
-> Hello Mauro,
-> 
-> On 11/16/2016 12:19 PM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 16 Nov 2016 16:08:19 +0100
-> > Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
-> >   
-> >> On 11/16/2016 03:46 PM, Mauro Carvalho Chehab wrote:  
-> >>>>>> Marek Szyprowski (1):    
-> >>>>>>>>>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()      
-> >>>>>
-> >>>>> Mauro, this patch seems to had slipped through the cracks, I can't see it
-> >>>>> in neither media fixes nor the master branch. Could you please check it?    
-> >>>
-> >>> The patch seems to be on my tree:    
-> >>  
-> 
-> This patch is indeed in your tree as commit:
-> 
-> https://git.linuxtv.org/media_tree.git/commit/?id=3467c9a7e7f9
-> 
-> and also in present in the media/v4.9-2 tag.
-> 
-> But the patch never made to mainline. In fact, I don't see any of the
-> patches in the media/v4.9-2 tag to be merged in v4.9-rc7.
+See the cover letter for more info:
 
-It is part of a group of 187 patches for Kernel 4.10. There aren't
-anything there that fixes a regression on 4.8 or 4.9. So, no
-hush.
+https://www.mail-archive.com/linux-media@vger.kernel.org/msg104311.html
 
-I double-checked and all the patches at media/v4.9-2 are there at
-media master. So, should be sent to 4.10.
+One additional patch added in v3:
+
+      cec: zero counters in cec_received_msg()
+
+Three additional patches are added in v2:
+
+       cec: sanitize msg.flags
+       cec.h/cec-funcs.h: don't use bool in public headers
+       cec: an inner loop clobbered the outer loop variable
+
+That last one is rather embarrassing, I'm afraid.
 
 Regards,
-Mauro
+
+     Hans
+
+
+The following changes since commit bd676c0c04ec94bd830b9192e2c33f2c4532278d:
+
+  [media] v4l2-flash-led-class: remove a now unused var (2016-10-24 18:51:29 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cec
+
+for you to fetch changes up to bf471d3d52583f3f12064115faa9c6c6705d1dc2:
+
+  cec: zero counters in cec_received_msg() (2016-11-09 15:10:59 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (15):
+      pulse8-cec: set all_device_types when restoring config
+      cec rst: convert tables and drop the 'row' comments
+      cec: add flag to cec_log_addrs to enable RC passthrough
+      cec: add CEC_MSG_FL_REPLY_TO_FOLLOWERS
+      cec: filter invalid messages
+      cec: accept two replies for CEC_MSG_INITIATE_ARC.
+      cec: add proper support for CDC-Only CEC devices
+      cec: move the CEC framework out of staging and to media
+      cec: sanitize msg.flags
+      cec.h/cec-funcs.h: don't use bool in public headers
+      cec: an inner loop clobbered the outer loop variable
+      pulse8-cec: move out of staging
+      s5p-cec/st-cec: update TODOs
+      MAINTAINERS: update paths
+      cec: zero counters in cec_received_msg()
+
+ Documentation/media/Makefile                                 |   2 +-
+ Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst         | 156 +++++--------
+ Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    | 487 +++++++++++++++------------------------
+ Documentation/media/uapi/cec/cec-ioc-dqevent.rst             | 182 +++++----------
+ Documentation/media/uapi/cec/cec-ioc-g-mode.rst              | 317 +++++++++++--------------
+ Documentation/media/uapi/cec/cec-ioc-receive.rst             | 418 ++++++++++++++-------------------
+ MAINTAINERS                                                  |  10 +-
+ drivers/media/Kconfig                                        |  16 ++
+ drivers/media/Makefile                                       |   4 +
+ drivers/{staging => }/media/cec/Makefile                     |   2 +-
+ drivers/{staging => }/media/cec/cec-adap.c                   | 229 +++++++++++++++++-
+ drivers/{staging => }/media/cec/cec-api.c                    |  11 +-
+ drivers/{staging => }/media/cec/cec-core.c                   |   0
+ drivers/{staging => }/media/cec/cec-priv.h                   |   0
+ drivers/media/i2c/Kconfig                                    |   6 +-
+ drivers/media/platform/vivid/Kconfig                         |   2 +-
+ drivers/media/usb/Kconfig                                    |   5 +
+ drivers/media/usb/Makefile                                   |   1 +
+ drivers/{staging/media => media/usb}/pulse8-cec/Kconfig      |   2 +-
+ drivers/{staging/media => media/usb}/pulse8-cec/Makefile     |   0
+ drivers/{staging/media => media/usb}/pulse8-cec/pulse8-cec.c |   8 +
+ drivers/staging/media/Kconfig                                |   4 -
+ drivers/staging/media/Makefile                               |   2 -
+ drivers/staging/media/cec/Kconfig                            |  12 -
+ drivers/staging/media/cec/TODO                               |  32 ---
+ drivers/staging/media/pulse8-cec/TODO                        |  52 -----
+ drivers/staging/media/s5p-cec/Kconfig                        |   2 +-
+ drivers/staging/media/s5p-cec/TODO                           |  12 +-
+ drivers/staging/media/st-cec/Kconfig                         |   2 +-
+ drivers/staging/media/st-cec/TODO                            |   7 +
+ include/media/cec.h                                          |   2 +-
+ include/uapi/linux/Kbuild                                    |   2 +
+ include/{ => uapi}/linux/cec-funcs.h                         |  76 +++---
+ include/{ => uapi}/linux/cec.h                               |  94 ++++++--
+ 34 files changed, 1015 insertions(+), 1142 deletions(-)
+ rename drivers/{staging => }/media/cec/Makefile (70%)
+ rename drivers/{staging => }/media/cec/cec-adap.c (85%)
+ rename drivers/{staging => }/media/cec/cec-api.c (97%)
+ rename drivers/{staging => }/media/cec/cec-core.c (100%)
+ rename drivers/{staging => }/media/cec/cec-priv.h (100%)
+ rename drivers/{staging/media => media/usb}/pulse8-cec/Kconfig (86%)
+ rename drivers/{staging/media => media/usb}/pulse8-cec/Makefile (100%)
+ rename drivers/{staging/media => media/usb}/pulse8-cec/pulse8-cec.c (97%)
+ delete mode 100644 drivers/staging/media/cec/Kconfig
+ delete mode 100644 drivers/staging/media/cec/TODO
+ delete mode 100644 drivers/staging/media/pulse8-cec/TODO
+ create mode 100644 drivers/staging/media/st-cec/TODO
+ rename include/{ => uapi}/linux/cec-funcs.h (98%)
+ rename include/{ => uapi}/linux/cec.h (93%)
