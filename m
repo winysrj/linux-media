@@ -1,127 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35279 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752253AbcKNQwu (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:49881 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932697AbcKKTvM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 11:52:50 -0500
-Subject: Re: [PATCH 3/5] media: Add new SDR formats SC16, SC18 & SC20
-To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        "mark.rutland@arm.com" <mark.rutland@arm.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "crope@iki.fi" <crope@iki.fi>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1478706284-59134-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <502a606c-2d66-4257-af17-7b7f35f2c839@xs4all.nl>
- <SG2PR06MB1038A5C7419F6EDE6B880A1BC3BC0@SG2PR06MB1038.apcprd06.prod.outlook.com>
-Cc: Chris Paterson <Chris.Paterson2@renesas.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "geert+renesas@glider.be" <geert+renesas@glider.be>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <5bcf8db2-2e7f-83a2-0fc1-3653e89ffe3e@xs4all.nl>
-Date: Mon, 14 Nov 2016 17:52:34 +0100
+        Fri, 11 Nov 2016 14:51:12 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        sayli karnik <karniksayli1995@gmail.com>,
+        Jonathan Cameron <jic23@kernel.org>,
+        Mark Brown <broonie@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Jiri Kosina <jikos@kernel.org>,
+        Ley Foon Tan <lftan@altera.com>,
+        "Luis R . Rodriguez" <mcgrof@kernel.org>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Marek <mmarek@suse.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sean Young <sean@mess.org>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Trond Myklebust <trond.myklebust@primarydata.com>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        arcml <linux-snps-arc@lists.infradead.org>,
+        nios2-dev@lists.rocketboards.org,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
+        gregkh@linuxfoundation.org
+Subject: Re: [PATCH v2 00/11] getting back -Wmaybe-uninitialized
+Date: Fri, 11 Nov 2016 20:49:48 +0100
+Message-ID: <2695221.kyRJMsRMjs@wuerfel>
+In-Reply-To: <CA+55aFx_scFVFKU__TBmoffw_iHvrdAU2dj5u1WKfWJXAkS4QA@mail.gmail.com>
+References: <20161110164454.293477-1-arnd@arndb.de> <CA+55aFx_scFVFKU__TBmoffw_iHvrdAU2dj5u1WKfWJXAkS4QA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <SG2PR06MB1038A5C7419F6EDE6B880A1BC3BC0@SG2PR06MB1038.apcprd06.prod.outlook.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/14/2016 05:20 PM, Ramesh Shanmugasundaram wrote:
-> Hi Hans,
+On Friday, November 11, 2016 9:13:00 AM CET Linus Torvalds wrote:
+> On Thu, Nov 10, 2016 at 8:44 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >
+> > Please merge these directly if you are happy with the result.
 > 
-> Thanks for the review comments.
-> 
->> Subject: Re: [PATCH 3/5] media: Add new SDR formats SC16, SC18 & SC20
->>
->> On 11/09/2016 04:44 PM, Ramesh Shanmugasundaram wrote:
->>> This patch adds support for the three new SDR formats. These formats
->>> were prefixed with "sliced" indicating I data constitutes the top half
->>> and Q data constitutes the bottom half of the received buffer.
->>
->> The standard terminology for video formats is "planar". I am leaning
->> towards using that here as well.
->>
->> Any opinions on this?
-> 
-> Shall I rename the formats as "PC16", "PC18" & "PC20"?
+> I will take this.
 
-Sounds reasonable to me!
+Thanks a lot!
+ 
+> I do see two warnings, but they both seem to be valid and recent,
+> though, so I have no issues with the spurious cases.
 
-	Hans
+Ok, both of them should have my fixes coming your way already.
 
-> For formats that do IQ IQ IQ... I shall use the regular formats "CUXX" when I introduce them.
+> Warning #1:
 > 
-> Thanks,
-> Ramesh
+>   sound/soc/qcom/lpass-platform.c: In function ‘lpass_platform_pcmops_open’:
+>   sound/soc/qcom/lpass-platform.c:83:29: warning: ‘dma_ch’ may be used
+> uninitialized in this function [-Wmaybe-uninitialized]
+>     drvdata->substream[dma_ch] = substream;
+>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
 > 
->>
->> 	Hans
->>
->>>
->>> V4L2_SDR_FMT_SCU16BE - 14-bit complex (I & Q) unsigned big-endian
->>> sample inside 16-bit. V4L2 FourCC: SC16
->>>
->>> V4L2_SDR_FMT_SCU18BE - 16-bit complex (I & Q) unsigned big-endian
->>> sample inside 18-bit. V4L2 FourCC: SC18
->>>
->>> V4L2_SDR_FMT_SCU20BE - 18-bit complex (I & Q) unsigned big-endian
->>> sample inside 20-bit. V4L2 FourCC: SC20
->>>
->>> Signed-off-by: Ramesh Shanmugasundaram
->>> <ramesh.shanmugasundaram@bp.renesas.com>
->>> ---
->>>  drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
->>>  include/uapi/linux/videodev2.h       | 3 +++
->>>  2 files changed, 6 insertions(+)
->>>
->>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
->>> b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> index 181381d..d36b386 100644
->>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
->>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
->>> @@ -1207,6 +1207,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc
->> *fmt)
->>>  	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
->>>  	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
->>>  	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
->>> +	case V4L2_SDR_FMT_SCU16BE:	descr = "Sliced Complex U16BE"; break;
->>> +	case V4L2_SDR_FMT_SCU18BE:	descr = "Sliced Complex U18BE"; break;
->>> +	case V4L2_SDR_FMT_SCU20BE:	descr = "Sliced Complex U20BE"; break;
->>>  	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
->>>  	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
->>>  	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data";
->> break;
->>> diff --git a/include/uapi/linux/videodev2.h
->>> b/include/uapi/linux/videodev2.h index 4364ce6..34a9c30 100644
->>> --- a/include/uapi/linux/videodev2.h
->>> +++ b/include/uapi/linux/videodev2.h
->>> @@ -666,6 +666,9 @@ struct v4l2_pix_format {
->>>  #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /*
->> complex s8 */
->>>  #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /*
->> complex s14le */
->>>  #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /*
->> real u12le */
->>> +#define V4L2_SDR_FMT_SCU16BE	  v4l2_fourcc('S', 'C', '1', '6') /*
->> sliced complex u16be */
->>> +#define V4L2_SDR_FMT_SCU18BE	  v4l2_fourcc('S', 'C', '1', '8') /*
->> sliced complex u18be */
->>> +#define V4L2_SDR_FMT_SCU20BE	  v4l2_fourcc('S', 'C', '2', '0') /*
->> sliced complex u20be */
->>>
->>>  /* Touch formats - used for Touch devices */
->>>  #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-
->> bit signed deltas */
->>>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> and 'dma_ch' usage there really is crazy and wrong. Broken by
+> 022d00ee0b55 ("ASoC: lpass-platform: Fix broken pcm data usage")
+
+Right, the patches crossed here, the bugfix patch that introduced
+this came into linux-next over the kernel summit, and the fix I
+sent on Tuesday made it into Mark Brown's tree on Wednesday but not
+before you pulled alsa tree. It should be fixed the next time you
+pull from the alsa tree, the commit is
+
+3b89e4b77ef9 ("ASoC: lpass-platform: initialize dma channel number")
+ 
+> Warning #2 is not a real bug, but it's reasonable that gcc doesn't
+> know that storage_bytes (chip->read_size) has to be 2/4. Again,
+> introduced recently by commit 231147ee77f3 ("iio: maxim_thermocouple:
+> Align 16 bit big endian value of raw reads"), so you didn't see it.
+
+This is the one I mentioned in the commit message as one that
+is fixed in linux-next and that should make it in soon.
+
+>   drivers/iio/temperature/maxim_thermocouple.c: In function
+> ‘maxim_thermocouple_read_raw’:
+>   drivers/iio/temperature/maxim_thermocouple.c:141:5: warning: ‘ret’
+> may be used uninitialized in this function [-Wmaybe-uninitialized]
+>     if (ret)
+>        ^
+>   drivers/iio/temperature/maxim_thermocouple.c:128:6: note: ‘ret’ was
+> declared here
+>     int ret;
+>         ^~~
 > 
+> and I guess that code can just initialize 'ret' to '-EINVAL' or
+> something to just make the theoretical "somehow we had a wrong
+> chip->read_size" case error out cleanly.
+
+Right, that was my conclusion too. I sent the bugfix on Oct 25
+for linux-next but it didn't make it in until this Monday, after
+you pulled the patch that introduced it on Oct 29.
+
+The commit in staging-testing is
+32cb7d27e65d ("iio: maxim_thermocouple: detect invalid storage size in read()")
+
+Greg and Jonathan, I see now that this is part of the 'iio-for-4.10b'
+branch, so I suspect you were not planning to send this before the
+merge window. Could you make sure this ends up in v4.9 so we get
+a clean build when -Wmaybe-uninitialized gets enabled again?
+
+	Arnd
