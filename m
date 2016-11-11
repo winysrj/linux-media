@@ -1,271 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49495 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752978AbcKBN3p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:45 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 21/32] media: rcar-vin: add group allocator functions
-Date: Wed,  2 Nov 2016 14:23:18 +0100
-Message-Id: <20161102132329.436-22-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56756 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756229AbcKKNst (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 08:48:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        sakari.ailus@linux.intel.com, crope@iki.fi,
+        chris.paterson2@renesas.com, geert+renesas@glider.be,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 3/5] media: Add new SDR formats SC16, SC18 & SC20
+Date: Fri, 11 Nov 2016 15:48:53 +0200
+Message-ID: <13090356.639SNvNHiR@avalon>
+In-Reply-To: <502a606c-2d66-4257-af17-7b7f35f2c839@xs4all.nl>
+References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1478706284-59134-4-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <502a606c-2d66-4257-af17-7b7f35f2c839@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 all VIN instances which wish to interact with with the shared
-CSI2 resource needs to be part of the same media device and share other
-information, such as subdevices and be able to call routing operations
-on other VIN instances.
+Hi Hans,
 
-This patch adds a group allocator which joins all VIN instances in one
-group. Inspiration for this patch is taken from Shuah Khans patch series
-'Media Device Allocator API' which do a similar thing but allows a media
-device to be shared across different drivers. The use case here is to
-share group information between multiple instances of the same driver.
+On Friday 11 Nov 2016 14:24:41 Hans Verkuil wrote:
+> On 11/09/2016 04:44 PM, Ramesh Shanmugasundaram wrote:
+> > This patch adds support for the three new SDR formats. These formats
+> > were prefixed with "sliced" indicating I data constitutes the top half and
+> > Q data constitutes the bottom half of the received buffer.
+> 
+> The standard terminology for video formats is "planar". I am leaning towards
+> using that here as well.
+> 
+> Any opinions on this?
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 103 ++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h  |  41 +++++++++++
- 2 files changed, 144 insertions(+)
+I like that as well, but I'm obviously biased :-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index ce8b59a..68a16c8 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -26,6 +26,102 @@
- #include "rcar-vin.h"
- 
- /* -----------------------------------------------------------------------------
-+ * Gen3 CSI2 Group Allocator
-+ */
-+
-+static DEFINE_MUTEX(rvin_group_lock);
-+static struct rvin_group *rvin_group_data;
-+
-+static void rvin_group_release(struct kref *kref)
-+{
-+	struct rvin_group *group =
-+		container_of(kref, struct rvin_group, refcount);
-+
-+	mutex_lock(&rvin_group_lock);
-+
-+	media_device_unregister(&group->mdev);
-+	media_device_cleanup(&group->mdev);
-+
-+	rvin_group_data = NULL;
-+
-+	mutex_unlock(&rvin_group_lock);
-+
-+	kfree(group);
-+}
-+
-+static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
-+{
-+	struct rvin_group *group;
-+
-+	if (rvin_group_data) {
-+		group = rvin_group_data;
-+		kref_get(&group->refcount);
-+		vin_dbg(vin, "%s: get group=%p\n", __func__, group);
-+		return group;
-+	}
-+
-+	group = kzalloc(sizeof(*group), GFP_KERNEL);
-+	if (!group)
-+		return NULL;
-+
-+	kref_init(&group->refcount);
-+	rvin_group_data = group;
-+
-+	vin_dbg(vin, "%s: alloc group=%p\n", __func__, group);
-+	return group;
-+}
-+
-+static struct rvin_group *rvin_group_allocate(struct rvin_dev *vin)
-+{
-+	struct rvin_group *group;
-+	struct media_device *mdev;
-+	int ret;
-+
-+	mutex_lock(&rvin_group_lock);
-+
-+	group = __rvin_group_allocate(vin);
-+	if (!group) {
-+		mutex_unlock(&rvin_group_lock);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	/* Init group data if its not already initialized */
-+	mdev = &group->mdev;
-+	if (!mdev->dev) {
-+		mutex_init(&group->lock);
-+		mdev->dev = vin->dev;
-+
-+		strlcpy(mdev->driver_name, "Renesas VIN",
-+			sizeof(mdev->driver_name));
-+		strlcpy(mdev->model, vin->dev->of_node->name,
-+			sizeof(mdev->model));
-+		strlcpy(mdev->bus_info, of_node_full_name(vin->dev->of_node),
-+			sizeof(mdev->bus_info));
-+		mdev->driver_version = LINUX_VERSION_CODE;
-+		media_device_init(mdev);
-+
-+		ret = media_device_register(mdev);
-+		if (ret) {
-+			vin_err(vin, "Failed to register media device\n");
-+			mutex_unlock(&rvin_group_lock);
-+			return ERR_PTR(ret);
-+		}
-+	}
-+
-+	vin->v4l2_dev.mdev = mdev;
-+
-+	mutex_unlock(&rvin_group_lock);
-+
-+	return group;
-+}
-+
-+static void rvin_group_delete(struct rvin_dev *vin)
-+{
-+	vin_dbg(vin, "%s: group=%p\n", __func__, &vin->group);
-+	kref_put(&vin->group->refcount, rvin_group_release);
-+}
-+
-+/* -----------------------------------------------------------------------------
-  * Subdevice helpers
-  */
- 
-@@ -322,6 +418,10 @@ static int rvin_graph_init(struct rvin_dev *vin)
- 		ret = media_entity_pads_init(&vin->vdev.entity, 1, vin->pads);
- 		if (ret)
- 			return ret;
-+
-+		vin->group = rvin_group_allocate(vin);
-+		if (IS_ERR(vin->group))
-+			return PTR_ERR(vin->group);
- 	}
- 
- 	return ret;
-@@ -390,6 +490,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 
- 	rvin_v4l2_remove(vin);
- 
-+	if (vin->group)
-+		rvin_group_delete(vin);
-+
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 
- 	rvin_dma_remove(vin);
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 8ed43be..90c28a7 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -17,10 +17,13 @@
- #ifndef __RCAR_VIN__
- #define __RCAR_VIN__
- 
-+#include <linux/kref.h>
-+
- #include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dev.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-mc.h>
- #include <media/videobuf2-v4l2.h>
- 
- /* Number of HW buffers */
-@@ -29,6 +32,9 @@
- /* Address alignment mask for HW buffers */
- #define HW_BUFFER_MASK 0x7f
- 
-+/* Max number on VIN instances that can be in a system */
-+#define RCAR_VIN_NUM 8
-+
- enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
-@@ -36,6 +42,15 @@ enum chip_id {
- 	RCAR_GEN3,
- };
- 
-+enum rvin_csi_id {
-+	RVIN_CSI20,
-+	RVIN_CSI21,
-+	RVIN_CSI40,
-+	RVIN_CSI41,
-+	RVIN_CSI_MAX,
-+	RVIN_NOOPE,
-+};
-+
- enum rvin_pads {
- 	RVIN_SINK,
- 	RVIN_PAD_MAX,
-@@ -94,6 +109,8 @@ struct rvin_graph_entity {
- 	int sink_pad_idx;
- };
- 
-+struct rvin_group;
-+
- /**
-  * struct rvin_info- Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-@@ -120,6 +137,7 @@ struct rvin_info {
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-  *
-+ * @group:		Gen3 CSI group
-  * @pads:		pads for media controller
-  *
-  * @lock:		protects @queue
-@@ -151,6 +169,7 @@ struct rvin_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity digital;
- 
-+	struct rvin_group *group;
- 	struct media_pad pads[RVIN_PAD_MAX];
- 
- 	struct mutex lock;
-@@ -180,6 +199,28 @@ struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin);
- #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
- #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
- 
-+/**
-+ * struct rvin_group - VIN CSI2 group information
-+ * @refcount:		number of VIN instances using the group
-+ *
-+ * @mdev:		media device which represents the group
-+ *
-+ * @lock:		protects the vin, bridge and source members
-+ * @vin:		VIN instances which are part of the group
-+ * @bridge:		CSI2 bridge between video source and VIN
-+ * @source:		video source connected to each bridge
-+ */
-+struct rvin_group {
-+	struct kref refcount;
-+
-+	struct media_device mdev;
-+
-+	struct mutex lock;
-+	struct rvin_dev *vin[RCAR_VIN_NUM];
-+	struct rvin_graph_entity bridge[RVIN_CSI_MAX];
-+	struct rvin_graph_entity source[RVIN_CSI_MAX];
-+};
-+
- int rvin_dma_probe(struct rvin_dev *vin, int irq);
- void rvin_dma_remove(struct rvin_dev *vin);
- 
+> > V4L2_SDR_FMT_SCU16BE - 14-bit complex (I & Q) unsigned big-endian sample
+> > inside 16-bit. V4L2 FourCC: SC16
+> > 
+> > V4L2_SDR_FMT_SCU18BE - 16-bit complex (I & Q) unsigned big-endian sample
+> > inside 18-bit. V4L2 FourCC: SC18
+> > 
+> > V4L2_SDR_FMT_SCU20BE - 18-bit complex (I & Q) unsigned big-endian sample
+> > inside 20-bit. V4L2 FourCC: SC20
+> > 
+> > Signed-off-by: Ramesh Shanmugasundaram
+> > <ramesh.shanmugasundaram@bp.renesas.com> ---
+> > 
+> >  drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
+> >  include/uapi/linux/videodev2.h       | 3 +++
+> >  2 files changed, 6 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > b/drivers/media/v4l2-core/v4l2-ioctl.c index 181381d..d36b386 100644
+> > --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> > +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> > @@ -1207,6 +1207,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc
+> > *fmt)> 
+> >  	case V4L2_SDR_FMT_CS8:		descr = "Complex S8"; break;
+> >  	case V4L2_SDR_FMT_CS14LE:	descr = "Complex S14LE"; break;
+> >  	case V4L2_SDR_FMT_RU12LE:	descr = "Real U12LE"; break;
+> > 
+> > +	case V4L2_SDR_FMT_SCU16BE:	descr = "Sliced Complex U16BE"; break;
+> > +	case V4L2_SDR_FMT_SCU18BE:	descr = "Sliced Complex U18BE"; break;
+> > +	case V4L2_SDR_FMT_SCU20BE:	descr = "Sliced Complex U20BE"; break;
+> > 
+> >  	case V4L2_TCH_FMT_DELTA_TD16:	descr = "16-bit signed deltas"; break;
+> >  	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+> >  	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; 
+break;
+> > 
+> > diff --git a/include/uapi/linux/videodev2.h
+> > b/include/uapi/linux/videodev2.h index 4364ce6..34a9c30 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -666,6 +666,9 @@ struct v4l2_pix_format {
+> > 
+> >  #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /*
+> >  complex s8 */ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S',
+> >  '1', '4') /* complex s14le */ #define V4L2_SDR_FMT_RU12LE      
+> >  v4l2_fourcc('R', 'U', '1', '2') /* real u12le */> 
+> > +#define V4L2_SDR_FMT_SCU16BE	  v4l2_fourcc('S', 'C', '1', '6') /* 
+sliced
+> > complex u16be */ +#define V4L2_SDR_FMT_SCU18BE	  v4l2_fourcc('S', 
+'C',
+> > '1', '8') /* sliced complex u18be */ +#define V4L2_SDR_FMT_SCU20BE	 
+> > v4l2_fourcc('S', 'C', '2', '0') /* sliced complex u20be */> 
+> >  /* Touch formats - used for Touch devices */
+> >  #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-
+bit
+> >  signed deltas */
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
