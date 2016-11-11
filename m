@@ -1,228 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33442 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965294AbcKLNNr (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:46884 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932954AbcKKQLx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:47 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
+        Fri, 11 Nov 2016 11:11:53 -0500
+Subject: Re: [RFC PATCH v2 1/2] [media] tvp5150: Add input connectors DT
+ bindings
+To: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1460500973-9066-1-git-send-email-javier@osg.samsung.com>
+ <1460500973-9066-2-git-send-email-javier@osg.samsung.com>
+ <2355815.rhlvKGshE1@avalon>
+ <744e5205-59e6-e135-3985-db097044aa11@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 18/32] media: rcar-vin: enable Gen3 hardware configuration
-Date: Sat, 12 Nov 2016 14:12:02 +0100
-Message-Id: <20161112131216.22635-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <7966dcbe-4a9d-714a-ae2f-8c18b053762a@xs4all.nl>
+Date: Fri, 11 Nov 2016 17:11:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <744e5205-59e6-e135-3985-db097044aa11@osg.samsung.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the register needed to work with Gen3 hardware. This patch adds
-the logic for how to work with the Gen3 hardware. More work is required
-to enable the subdevice structure needed to configure capturing.
+This old mail came up in a discussion today so let me comment on this:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 98 ++++++++++++++++++++----------
- drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
- 2 files changed, 68 insertions(+), 31 deletions(-)
+On 04/27/2016 09:12 PM, Javier Martinez Canillas wrote:
+> Hello Laurent,
+> 
+> Thanks a lot for your feedback.
+> 
+> On 04/27/2016 10:29 AM, Laurent Pinchart wrote:
+>> Hi Javier,
+>>
+>> Thank you for the patch.
+>>
+>> On Tuesday 12 Apr 2016 18:42:52 Javier Martinez Canillas wrote:
+>>> The tvp5150 and tvp5151 decoders support different video input source
+>>> connections to their AIP1A and AIP1B pins. Either two Composite or a
+>>> S-Video input signals are supported.
+>>>
+>>> The possible configurations are as follows:
+>>>
+>>> - Analog Composite signal connected to AIP1A.
+>>> - Analog Composite signal connected to AIP1B.
+>>> - Analog S-Video Y (luminance) and C (chrominance)
+>>>   signals connected to AIP1A and AIP1B respectively.
+>>>
+>>> This patch extends the Device Tree binding documentation to describe
+>>> how the input connectors for these devices should be defined in a DT.
+>>>
+>>> Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+>>>
+>>> ---
+>>> Hello,
+>>>
+>>> The DT binding assumes that there is a 1:1 map between physical connectors
+>>> and connections, so there will be a connector described in the DT for each
+>>> connection.
+>>>
+>>> There is also the question about how the DT bindings will be extended to
+>>> support other attributes (color/position/group) using the properties API.
+>>
+>> I foresee lots of bikeshedding on that particular topic, but I don't think it 
+>> will be a blocker. We need a volunteer to quickstart a discussion on the 
+>> devicetree (or possible devicetree-spec) mailing list :-)
+>>
+> 
+> Yes, I plan to extend this binding once we have the properties API in mainline
+> but that can be done as a follow-up since it should just be more properties on
+> top of compatible, label and port that will be supported in the meantime.
+>  
+>>> But I believe that can be done as a follow-up, once the properties API is
+>>> in mainline.
+>>>
+>>> Best regards,
+>>> Javier
+>>>
+>>> Changes in v2:
+>>> - Remove from the changelog a mention of devices that multiplex the
+>>>   physical RCA connectors to be used for the S-Video Y and C signals
+>>>   since it's a special case and it doesn't really work on the IGEPv2.
+>>>
+>>>  .../devicetree/bindings/media/i2c/tvp5150.txt      | 59 +++++++++++++++++++
+>>>  1 file changed, 59 insertions(+)
+>>> :
+>>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+>>> b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt index
+>>> 8c0fc1a26bf0..df555650b0b4 100644
+>>> --- a/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+>>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp5150.txt
+>>> @@ -26,8 +26,46 @@ Required Endpoint Properties for parallel
+>>> synchronization: If none of hsync-active, vsync-active and
+>>> field-even-active is specified, the endpoint is assumed to use embedded
+>>> BT.656 synchronization.
+>>>
+>>> +-Optional nodes:
+>>> +- connectors: The list of tvp5150 input connectors available on a given
+>>> +  board. The node should contain a child 'port' node for each connector.
+>>
+>> I had understood this as meaning that connectors should be fully described in 
+>> the connectors subnode, until I read through the whole patch and saw that 
+>> dedicated DT nodes are needed for the connectors. I thus believe the paragraph 
+>> should be reworded to avoid the ambiguity.
+>>
+> 
+> I see what you mean, OK I'll make it clear that this only is the list of ports
+> and that connectors should be described somewhere else (i.e: the root node).
+> 
+>> This being said, why do you need a connectors subnode ? Can't we just add the 
+>> port nodes for the input ports directly in the tvp5150 node (or possibly in a 
+>> ports subnode, as defined in the OF graph bindings).
+>>
+> 
+> Yes we could, I went with a "connectors" subnode because the video decoders
+> will have another port node to point to the bridge device node endpoint. So
+> I thought it could be more clear to make a distinction between those ports.
+> 
+> We can go with the "ports" subnode instead of "connectors" but then again it
+> could be confusing to differentiate between bridge and connectors ports both
+> for users writing/reading DTS and the drivers parsing the DT.
+> 
+> I used as an inspiration the regulators binding where regulators are usually
+> described under a "regulators" subnode.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index eac5c19..80958e6 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -33,21 +33,23 @@
- #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
- #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
- #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
--#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
--#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
--#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
--#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
- #define VNIS_REG	0x2C	/* Video n Image Stride Register */
- #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
- #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
- #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
- #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
- #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
--#define VNYS_REG	0x50	/* Video n Y Scale Register */
--#define VNXS_REG	0x54	/* Video n X Scale Register */
- #define VNDMR_REG	0x58	/* Video n Data Mode Register */
- #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
- #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
-+
-+/* Register offsets specific for Gen2 */
-+#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-+#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-+#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-+#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
-+#define VNYS_REG	0x50	/* Video n Y Scale Register */
-+#define VNXS_REG	0x54	/* Video n X Scale Register */
- #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
- #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
- #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
-@@ -73,9 +75,13 @@
- #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
- #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
- 
-+/* Register offsets specific for Gen3 */
-+#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
- 
- /* Register bit fields for R-Car VIN */
- /* Video n Main Control Register bits */
-+#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
-+#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
- #define VNMC_FOC		(1 << 21)
- #define VNMC_YCAL		(1 << 19)
- #define VNMC_INF_YUV8_BT656	(0 << 16)
-@@ -119,6 +125,13 @@
- #define VNDMR2_FTEV		(1 << 17)
- #define VNDMR2_VLV(n)		((n & 0xf) << 12)
- 
-+/* Video n CSI2 Interface Mode Register (Gen3) */
-+#define VNCSI_IFMD_DES2		(1 << 27)
-+#define VNCSI_IFMD_DES1		(1 << 26)
-+#define VNCSI_IFMD_DES0		(1 << 25)
-+#define VNCSI_IFMD_CSI_CHSEL(n) ((n & 0xf) << 0)
-+#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
-+
- static void rvin_write(struct rvin_dev *vin, u32 value, u32 offset)
- {
- 	iowrite32(value, vin->base + offset);
-@@ -205,7 +218,10 @@ static int rvin_setup(struct rvin_dev *vin)
- 	}
- 
- 	/* Enable VSYNC Field Toogle mode after one VSYNC input */
--	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-+	if (vin->info->chip == RCAR_GEN3)
-+		dmr2 = VNDMR2_FTEV;
-+	else
-+		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
- 	if (!(rent->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-@@ -257,6 +273,14 @@ static int rvin_setup(struct rvin_dev *vin)
- 	if (input_is_yuv == output_is_yuv)
- 		vnmc |= VNMC_BPS;
- 
-+	if (vin->info->chip == RCAR_GEN3) {
-+		/* Select between CSI-2 and Digital input */
-+		if (rent->mbus_cfg.type == V4L2_MBUS_CSI2)
-+			vnmc &= ~VNMC_DPINE;
-+		else
-+			vnmc |= VNMC_DPINE;
-+	}
-+
- 	/* Progressive or interlaced mode */
- 	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
- 
-@@ -758,28 +782,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
- 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
- }
- 
--void rvin_crop_scale_comp(struct rvin_dev *vin)
-+static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
- {
- 	u32 xs, ys;
- 
--	/* Set Start/End Pixel/Line Pre-Clip */
--	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
--	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
--	switch (vin->format.field) {
--	case V4L2_FIELD_INTERLACED:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
--		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
--			   VNELPRC_REG);
--		break;
--	default:
--		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
--		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
--			   VNELPRC_REG);
--		break;
--	}
--
- 	/* Set scaling coefficient */
- 	ys = 0;
- 	if (vin->crop.height != vin->compose.height)
-@@ -817,11 +823,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
--		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
--	else
--		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
--
- 	vin_dbg(vin,
- 		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
- 		vin->crop.width, vin->crop.height, vin->crop.left,
-@@ -829,9 +830,44 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		0, 0);
- }
- 
-+void rvin_crop_scale_comp(struct rvin_dev *vin)
-+{
-+	/* Set Start/End Pixel/Line Pre-Clip */
-+	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-+	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-+
-+	switch (vin->format.field) {
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-+		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-+			   VNELPRC_REG);
-+		break;
-+	default:
-+		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-+		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-+			   VNELPRC_REG);
-+		break;
-+	}
-+
-+	/* TODO: Add support for the UDS scaler. */
-+	if (vin->info->chip != RCAR_GEN3)
-+		rvin_crop_scale_comp_gen2(vin);
-+
-+	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-+		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-+	else
-+		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-+}
-+
- void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
- 		    u32 width, u32 height)
- {
-+	/* TODO: Add support for the UDS scaler. */
-+	if (vin->info->chip == RCAR_GEN3)
-+		return;
-+
- 	/* All VIN channels on Gen2 have scalers */
- 	pix->width = width;
- 	pix->height = height;
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index ddeca9f..b8f5634 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -33,6 +33,7 @@ enum chip_id {
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_GEN2,
-+	RCAR_GEN3,
- };
- 
- /**
--- 
-2.10.2
+I am inclined to go with Laurent on this. In the end these are just pins and while
+they usually will be hooked up to connectors, that doesn't have to be the case.
+There may be another component in between, so I don't really like it that it is
+called 'connector'. In my mind it is just another (input) port. It is really
+only after looking at the remote endpoint that you see that there is a connector
+connected to the pin(s).
 
+Regards,
+
+	Hans
