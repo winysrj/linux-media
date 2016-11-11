@@ -1,191 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:61409 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755162AbcKVDrs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 22:47:48 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>
-Subject: [PATCH v7 0/4] Add Mediatek JPEG Decoder
-Date: Tue, 22 Nov 2016 11:46:13 +0800
-Message-ID: <1479786377-11567-1-git-send-email-rick.chang@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp2-2.goneo.de ([85.220.129.34]:35362 "EHLO smtp2-2.goneo.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754761AbcKKLpV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 11 Nov 2016 06:45:21 -0500
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 6.6 \(1510\))
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <87pom2clcp.fsf@intel.com>
+Date: Fri, 11 Nov 2016 12:45:04 +0100
+Cc: ksummit-discuss@lists.linuxfoundation.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Message-Id: <4021ED64-7A22-4DDF-A1D4-9DC299F69AE7@darmarit.de>
+References: <20161107075524.49d83697@vento.lan> <20161107170133.4jdeuqydthbbchaq@x> <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de> <8737j0hpi0.fsf@intel.com> <DC27B5F7-D69E-4F22-B184-B7B029392959@darmarit.de> <87shr0g90r.fsf@intel.com> <a6b88e7d-9d6b-4dcc-3d2e-c09bdf366b40@darmarit.de> <87y40rei5z.fsf@intel.com> <87pom2clcp.fsf@intel.com>
+To: Jani Nikula <jani.nikula@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches provide a v4l2 driver to control Mediatek JPEG decoder
-for decoding JPEG image and Motion JPEG bitstream.
 
-changes since v6:
-- fix kbuild test fail
-- Add patch for MAINTAINERS
+Am 11.11.2016 um 12:22 schrieb Jani Nikula <jani.nikula@linux.intel.com>:
 
-changes since v5:
-- remove redundant name from struct mtk_jpeg_fmt
-- Set state of all buffers to VB2_BUF_STATE_QUEUED if fail in start streaming
-- Remove VB2_USERPTR
-- Add check for buffer index
+> On Thu, 10 Nov 2016, Jani Nikula <jani.nikula@linux.intel.com> wrote:
+>> On Thu, 10 Nov 2016, Markus Heiser <markus.heiser@darmarit.de> wrote:
+>>> Could this POC persuade you, if so, I send a more elaborate RFC,
+>>> what do you think about?
+>> 
+>> Sorry, I do not wish to be part of this.
+> 
+> That was uncalled for, apologies.
 
-changes since v4:
-- Change file name of binding documentation
-- Revise DT binding documentation
-- Revise compatible string
+It's OK, sometimes we are all in a hurry and want shorten things.
 
-changes since v3:
-- Revise DT binding documentation
-- Revise compatible string
+> Like I said, I don't think this is the right approach. Call it an
+> unsubstantiated gut feel coming from experience.
 
-changes since v2:
-- Revise DT binding documentation 
+Yes, building a bunch of symbolic links "smells". Unfortunately,
+I currently see no other solution to solve the conflict of 
+Linux's "O=/foo" and Sphinx's "sourcedir", so that was my
+proposal.
 
-changes since v1:
-- Rebase for v4.9-rc1.
-- Update Compliance test version and result
-- Remove redundant path in Makefile
-- Fix potential build error without CONFIG_PM_RUNTIME and CONFIG_PM_SLEEP
-- Fix warnings from patch check and smatch check
+> However, I do not have
+> the time to properly dig into this either, and that frustrates me. I
+> wish I could be more helpful, but I can't right now.
 
-* Dependency
-The patch "arm: dts: mt2701: Add node for JPEG decoder" depends on: 
-  CCF "Add clock support for Mediatek MT2701"[1]
-  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
+its a pity
 
-[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-[2] https://patchwork.kernel.org/patch/9164013/
-
-* Compliance test
-v4l2-compliance SHA   : 4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
-
-Driver Info:
-        Driver name   : mtk-jpeg decode
-        Card type     : mtk-jpeg decoder
-        Bus info      : platform:15004000.jpegdec
-        Driver version: 4.9.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video3 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Rick Chang (4):
-  dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-  vcodec: mediatek: Add Mediatek JPEG Decoder Driver
-  arm: dts: mt2701: Add node for Mediatek JPEG Decoder
-  vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver
-
- .../bindings/media/mediatek-jpeg-decoder.txt       |   37 +
- MAINTAINERS                                        |    7 +
- arch/arm/boot/dts/mt2701.dtsi                      |   14 +
- drivers/media/platform/Kconfig                     |   15 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/mtk-jpeg/Makefile           |    2 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1302 ++++++++++++++++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h    |  139 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c      |  417 +++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h      |   91 ++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c   |  160 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h   |   25 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h     |   58 +
- 13 files changed, 2269 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
- create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
-
--- 
-1.9.1
-
+-- Markus --
