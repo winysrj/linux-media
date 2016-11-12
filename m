@@ -1,174 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([37.157.136.199]:39193 "EHLO extserv.mm-sol.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932248AbcKYO5e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 09:57:34 -0500
-From: Todor Tomov <todor.tomov@linaro.org>
-To: mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH 03/10] doc: media/v4l-drivers: Add Qualcomm Camera Subsystem driver document
-Date: Fri, 25 Nov 2016 16:57:15 +0200
-Message-Id: <1480085841-28276-2-git-send-email-todor.tomov@linaro.org>
-In-Reply-To: <1480085841-28276-1-git-send-email-todor.tomov@linaro.org>
-References: <1480085841-28276-1-git-send-email-todor.tomov@linaro.org>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:33626 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966102AbcKLNNy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 08:13:54 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 25/32] media: rcar-vin: enable CSI2 group subdevices in lookup helpers
+Date: Sat, 12 Nov 2016 14:12:09 +0100
+Message-Id: <20161112131216.22635-26-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a document to describe Qualcomm Camera Subsystem driver.
+Make the subdevice helpers look not only at the local digital subdevice
+but also for the CSI2 group subdevices which can be present on Gen3.
 
-Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+Which CSI2 group subdevices are found depends on the CSI2 subgroup
+routing which is stored in the CHSEL register of the subgroup master
+(VIN0 for VIN0-3 and VIN4 for VIN4-7). The lookup functions look at this
+value and returns the correct information or NULL if there is no
+attached subdevices for the current routing for this device.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- Documentation/media/v4l-drivers/index.rst      |   1 +
- Documentation/media/v4l-drivers/qcom_camss.rst | 124 +++++++++++++++++++++++++
- 2 files changed, 125 insertions(+)
- create mode 100644 Documentation/media/v4l-drivers/qcom_camss.rst
+ drivers/media/platform/rcar-vin/rcar-core.c | 70 ++++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 +-
+ 2 files changed, 70 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/v4l-drivers/index.rst b/Documentation/media/v4l-drivers/index.rst
-index aac566f..ba2aaeb 100644
---- a/Documentation/media/v4l-drivers/index.rst
-+++ b/Documentation/media/v4l-drivers/index.rst
-@@ -45,6 +45,7 @@ For more details see the file COPYING in the source distribution of Linux.
- 	omap4_camera
- 	pvrusb2
- 	pxa_camera
-+	qcom_camss
- 	radiotrack
- 	saa7134
- 	sh_mobile_ceu_camera
-diff --git a/Documentation/media/v4l-drivers/qcom_camss.rst b/Documentation/media/v4l-drivers/qcom_camss.rst
-new file mode 100644
-index 0000000..4707ea7
---- /dev/null
-+++ b/Documentation/media/v4l-drivers/qcom_camss.rst
-@@ -0,0 +1,124 @@
-+.. include:: <isonum.txt>
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 0092ab4..0b3882a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -330,9 +330,77 @@ static void rvin_group_delete(struct rvin_dev *vin)
+  * Subdevice helpers
+  */
+ 
++static int rvin_group_vin_to_csi(struct rvin_dev *vin)
++{
++	int i, vin_num, vin_master, chsel, csi;
 +
-+Qualcomm Camera Subsystem driver
-+================================
++	/* Only valid on Gen3 */
++	if (vin->info->chip != RCAR_GEN3)
++		return -1;
 +
-+Introduction
-+------------
++	/*
++	 * Only try to translate to a CSI2 number if there is a enabled
++	 * link from the VIN sink pad. However if there are no links at
++	 * all we are at probe time so ignore the need for enabled links
++	 * to be able to make a better guess of initial format
++	 */
++	if (vin->pads[RVIN_SINK].entity->num_links &&
++	    !media_entity_remote_pad(&vin->pads[RVIN_SINK]))
++		return -1;
 +
-+This file documents the Qualcomm Camera Subsystem driver located under
-+drivers/media/platform/qcom/camss-8x16.
++	/* Find which VIN we are */
++	vin_num = -1;
++	for (i = 0; i < RCAR_VIN_NUM; i++)
++		if (vin == vin->group->vin[i])
++			vin_num = i;
 +
-+The current version of the driver supports the Camera Subsystem found on
-+Qualcomm MSM8916 and APQ8016 processors.
++	if (vin_num == -1)
++		return -1;
 +
-+The driver implements V4L2, Media controller and V4L2 subdev interfaces.
-+Camera sensor using V4L2 subdev interface in the kernel is supported.
++	vin_master = vin_num < 4 ? 0 : 4;
++	if (!vin->group->vin[vin_master])
++		return -1;
 +
-+The driver is implemented using as a reference the Qualcomm Camera Subsystem
-+driver for Android as found in Code Aurora [#f1]_.
++	chsel = rvin_get_chsel(vin->group->vin[vin_master]);
 +
++	csi = vin->info->chsels[vin_num][chsel].csi;
++	if (csi >= RVIN_CSI_MAX)
++		return -1;
 +
-+Qualcomm Camera Subsystem hardware
-+----------------------------------
++	if (!vin->group->source[csi].subdev || !vin->group->bridge[csi].subdev)
++		return -1;
 +
-+The Camera Subsystem hardware found on 8x16 processors and supported by the
-+driver consists of:
++	return csi;
++}
 +
-+- 2 CSIPHY modules. They handle the Physical layer of the CSI2 receivers.
-+  A separate camera sensor can be connected to each of the CSIPHY module;
-+- 2 CSID (CSI Decoder) modules. They handle the Protocol and Application layer
-+  of the CSI2 receivers. A CSID can decode data stream from any of the CSIPHY.
-+  Each CSID also contains a TG (Test Generator) block which can generate
-+  artificial input data for test purposes;
-+- ISPIF (ISP Interface) module. Handles the routing of the data streams from
-+  the CSIDs to the inputs of the VFE;
-+- VFE (Video Front End) module. Contains a pipeline of image processing hardware
-+  blocks. The VFE has different input interfaces. The PIX input interface feeds
-+  the input data to the image processing pipeline. Three RDI input interfaces
-+  bypass the image processing pipeline. The VFE also contains the AXI bus
-+  interface which writes the output data to memory.
+ struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin)
+ {
+-	return &vin->digital;
++	int csi;
 +
++	/* If there is a digital subdev use it */
++	if (vin->digital.subdev)
++		return &vin->digital;
 +
-+Supported functionality
-+-----------------------
++	csi = rvin_group_vin_to_csi(vin);
++	if (csi < 0)
++		return NULL;
 +
-+The current version of the driver supports:
++	return &vin->group->source[csi];
++}
 +
-+- input from camera sensor via CSIPHY;
-+- generation of test input data by the TG in CSID;
-+- raw dump of the input data to memory. RDI interface of VFE is supported.
-+  PIX interface (ISP processing, statistics engines, resize/crop, format
-+  conversion) is not supported in the current version;
-+- concurrent and independent usage of two data inputs - could be camera sensors
-+  and/or TG.
++struct v4l2_subdev *vin_to_source(struct rvin_dev *vin)
++{
++	int csi;
 +
++	/* If there is a digital subdev use it */
++	if (vin->digital.subdev)
++		return vin->digital.subdev;
 +
-+Driver Architecture and Design
-+------------------------------
++	csi = rvin_group_vin_to_csi(vin);
++	if (csi < 0)
++		return NULL;
 +
-+The driver implements the V4L2 subdev interface. With the goal to model the
-+hardware links between the modules and to expose a clean, logical and usable
-+interface, the driver is split into V4L2 sub-devices as follows:
-+
-+- 2 CSIPHY sub-devices - each CSIPHY is represented by a single sub-device;
-+- 2 CSID sub-devices - each CSID is represented by a single sub-device;
-+- 2 ISPIF sub-devices - ISPIF is represented by a number of sub-devices equal
-+  to the number of CSID sub-devices;
-+- 3 VFE sub-devices - VFE is represented by a number of sub-devices equal to
-+  the number of RDI input interfaces.
-+
-+The considerations to split the driver in this particular way are as follows:
-+
-+- representing CSIPHY and CSID modules by a separate sub-device for each module
-+  allows to model the hardware links between these modules;
-+- representing VFE by a separate sub-devices for each RDI input interface allows
-+  to use the three RDI interfaces concurently and independently as this is
-+  supported by the hardware;
-+- representing ISPIF by a number of sub-devices equal to the number of CSID
-+  sub-devices allows to create linear media controller pipelines when using two
-+  cameras simultaneously. This avoids branches in the pipelines which otherwise
-+  will require a) userspace and b) media framework (e.g. power on/off
-+  operations) to  make assumptions about the data flow from a sink pad to a
-+  source pad on a single media entity.
-+
-+Each VFE sub-device is linked to a separate video device node.
-+
-+The complete list of the media entities (V4L2 sub-devices and video device
-+nodes) is as follows:
-+
-+- msm_csiphy0
-+- msm_csiphy1
-+- msm_csid0
-+- msm_csid1
-+- msm_ispif0
-+- msm_ispif1
-+- msm_vfe0_rdi0
-+- msm_vfe0_video0
-+- msm_vfe0_rdi1
-+- msm_vfe0_video1
-+- msm_vfe0_rdi2
-+- msm_vfe0_video2
-+
-+
-+Implementation
-+--------------
-+
-+Runtime configuration of the hardware (updating settings while streaming) is
-+not required to implement the currently supported functionality. The complete
-+configuration on each hardware module is applied on STREAMON ioctl based on
-+the current active media links, formats and controls set.
-+
-+
-+Documentation
-+-------------
-+
-+APQ8016 Specification:
-+https://developer.qualcomm.com/download/sd410/snapdragon-410-processor-device-specification.pdf
-+Referenced 2016-11-24.
-+
-+
-+References
-+----------
-+
-+.. [#f1] https://source.codeaurora.org/quic/la/kernel/msm-3.10/
++	return vin->group->source[csi].subdev;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index cd7d959..2f1e087 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -207,7 +207,7 @@ struct rvin_dev {
+ };
+ 
+ struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin);
+-#define vin_to_source(vin)		vin->digital.subdev
++struct v4l2_subdev *vin_to_source(struct rvin_dev *vin);
+ 
+ /* Debug */
+ #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
 -- 
-1.9.1
+2.10.2
 
