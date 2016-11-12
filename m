@@ -1,78 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43600 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754189AbcKRPHI (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:33424 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965808AbcKLNNp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 10:07:08 -0500
-Subject: patch "media: usb: uvc: make use of new usb_endpoint_maxp_mult()" added to usb-testing
-To: felipe.balbi@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, mchehab@kernel.org
-From: <gregkh@linuxfoundation.org>
-Date: Fri, 18 Nov 2016 16:06:32 +0100
-Message-ID: <147948159214175@kroah.com>
+        Sat, 12 Nov 2016 08:13:45 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 14/32] media: rcar-vin: move chip information to own struct
+Date: Sat, 12 Nov 2016 14:11:58 +0100
+Message-Id: <20161112131216.22635-15-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When Gen3 support is added to the driver more then chip id will be
+different for the different Soc. To avoid a lot of if statements in the
+code create a struct chip_info to contain this information.
 
-This is a note to let you know that I've just added the patch titled
-
-    media: usb: uvc: make use of new usb_endpoint_maxp_mult()
-
-to my usb git tree which can be found at
-    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
-in the usb-testing branch.
-
-The patch will show up in the next release of the linux-next tree
-(usually sometime within the next 24 hours during the week.)
-
-The patch will be merged to the usb-next branch sometime soon,
-after it passes testing, and the merge window is open.
-
-If you have any questions about this process, please let me know.
-
-
->From 08295ee0e6976b060cd5c2a59877d8ea6379075c Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Date: Wed, 28 Sep 2016 13:22:53 +0300
-Subject: media: usb: uvc: make use of new usb_endpoint_maxp_mult()
-
-We have introduced a helper to calculate multiplier
-value from wMaxPacketSize. Start using it.
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/usb/uvc/uvc_video.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 49 ++++++++++++++++++++++++-----
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
+ 3 files changed, 53 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index b5589d5f5da4..11e0e5f4e1c2 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1467,6 +1467,7 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
- 					 struct usb_host_endpoint *ep)
- {
- 	u16 psize;
-+	u16 mult;
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 5807d8d..c80bbbc 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -253,14 +253,47 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+  * Platform Device Driver
+  */
  
- 	switch (dev->speed) {
- 	case USB_SPEED_SUPER:
-@@ -1474,7 +1475,8 @@ static unsigned int uvc_endpoint_max_bpi(struct usb_device *dev,
- 		return le16_to_cpu(ep->ss_ep_comp.wBytesPerInterval);
- 	case USB_SPEED_HIGH:
- 		psize = usb_endpoint_maxp(&ep->desc);
--		return (psize & 0x07ff) * (1 + ((psize >> 11) & 3));
-+		mult = usb_endpoint_maxp_mult(&ep->desc);
-+		return (psize & 0x07ff) * mult;
- 	case USB_SPEED_WIRELESS:
- 		psize = usb_endpoint_maxp(&ep->desc);
- 		return psize;
++static const struct rvin_info rcar_info_h1 = {
++	.chip = RCAR_H1,
++};
++
++static const struct rvin_info rcar_info_m1 = {
++	.chip = RCAR_M1,
++};
++
++static const struct rvin_info rcar_info_gen2 = {
++	.chip = RCAR_GEN2,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+-	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+-	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+-	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
++	{
++		.compatible = "renesas,vin-r8a7794",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7793",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7791",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7790",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7779",
++		.data = &rcar_info_h1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7778",
++		.data = &rcar_info_m1,
++	},
++	{
++		.compatible = "renesas,rcar-gen2-vin",
++		.data = &rcar_info_gen2,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+@@ -281,7 +314,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 
+ 	vin->dev = &pdev->dev;
+-	vin->chip = (enum chip_id)match->data;
++	vin->info = match->data;
+ 	vin->last_input = NULL;
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 47137d7..05b0181 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -279,7 +279,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
+ 
+-	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++	if (vin->info->chip == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+ 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 2a1b190..17a5fce 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -89,10 +89,18 @@ struct rvin_graph_entity {
+ };
+ 
+ /**
++ * struct rvin_info- Information about the particular VIN implementation
++ * @chip:		type of VIN chip
++ */
++struct rvin_info {
++	enum chip_id chip;
++};
++
++/**
+  * struct rvin_dev - Renesas VIN device structure
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+- * @chip:		type of VIN chip
++ * @info		info about VIN instance
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -121,7 +129,7 @@ struct rvin_graph_entity {
+ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+-	enum chip_id chip;
++	const struct rvin_info *info;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
 -- 
 2.10.2
-
 
