@@ -1,131 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:52842 "EHLO mail.kernel.org"
+Received: from mail.kapsi.fi ([217.30.184.167]:32961 "EHLO mail.kapsi.fi"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S938695AbcKDSTv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Nov 2016 14:19:51 -0400
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 4/4] v4l: vsp1: Remove redundant context variables
-Date: Fri,  4 Nov 2016 18:19:30 +0000
-Message-Id: <1478283570-19688-5-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1478283570-19688-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+        id S1753823AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 05:34:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 6/9] it913x: change driver model from i2c to platform
+Date: Sat, 12 Nov 2016 12:33:58 +0200
+Message-Id: <1478946841-2807-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
+References: <1478946841-2807-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vsp1_pipe object context variables for div_size and
-current_partition allowed state to be maintained through processing the
-partitions during processing.
+That tuner is integrated to demodulator and communicates via
+demodulators address space. We cannot register both demodulator
+and tuner having same address to same I2C bus, so better to change
+it platform driver in order to implement I2C adapter correctly.
 
-Now that the partition tables are calculated during stream on, there is
-no requirement to store these variables in the pipe object.
-
-Utilise local variables for the processing as required.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/vsp1/vsp1_pipe.h  |  4 ----
- drivers/media/platform/vsp1/vsp1_video.c | 19 +++++++++----------
- 2 files changed, 9 insertions(+), 14 deletions(-)
+ drivers/media/tuners/it913x.c | 89 +++++++++++++++++--------------------------
+ drivers/media/tuners/it913x.h | 29 ++++++--------
+ 2 files changed, 48 insertions(+), 70 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 3af96c4ea244..9e108ddcceb6 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -82,10 +82,8 @@ enum vsp1_pipeline_state {
-  * @uds_input: entity at the input of the UDS, if the UDS is present
-  * @entities: list of entities in the pipeline
-  * @dl: display list associated with the pipeline
-- * @div_size: The maximum allowed partition size for the pipeline
-  * @partitions: The number of partitions used to process one frame
-  * @partition: The current partition for configuration to process
-- * @current_partition: The partition number currently being configured
-  * @part_table: The pre-calculated partitions used by the pipeline
+diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
+index 6c3ef21..085e33c 100644
+--- a/drivers/media/tuners/it913x.c
++++ b/drivers/media/tuners/it913x.c
+@@ -21,10 +21,11 @@
   */
- struct vsp1_pipeline {
-@@ -117,10 +115,8 @@ struct vsp1_pipeline {
  
- 	struct vsp1_dl_list *dl;
+ #include "it913x.h"
++#include <linux/platform_device.h>
+ #include <linux/regmap.h>
  
--	unsigned int div_size;
- 	unsigned int partitions;
- 	struct v4l2_rect partition;
--	unsigned int current_partition;
- 	struct v4l2_rect part_table[VSP1_PIPE_MAX_PARTITIONS];
- };
+ struct it913x_dev {
+-	struct i2c_client *client;
++	struct platform_device *pdev;
+ 	struct regmap *regmap;
+ 	struct dvb_frontend *fe;
+ 	u8 chip_ver:2;
+@@ -39,13 +40,14 @@ struct it913x_dev {
+ static int it913x_init(struct dvb_frontend *fe)
+ {
+ 	struct it913x_dev *dev = fe->tuner_priv;
++	struct platform_device *pdev = dev->pdev;
+ 	int ret;
+ 	unsigned int utmp;
+ 	u8 iqik_m_cal, nv_val, buf[2];
+ 	static const u8 nv[] = {48, 32, 24, 16, 12, 8, 6, 4, 2};
+ 	unsigned long timeout;
  
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index c4a8c30df108..9efaab2cc982 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -268,7 +268,6 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
+-	dev_dbg(&dev->client->dev, "role %u\n", dev->role);
++	dev_dbg(&pdev->dev, "role %u\n", dev->role);
  
- 	/* Gen2 hardware doesn't require image partitioning. */
- 	if (vsp1->info->gen == 2) {
--		pipe->div_size = div_size;
- 		pipe->partitions = 1;
- 		pipe->part_table[0] = vsp1_video_partition(pipe, div_size, 0);
- 		return;
-@@ -284,7 +283,6 @@ static void vsp1_video_pipeline_setup_partitions(struct vsp1_pipeline *pipe)
- 		}
+ 	ret = regmap_write(dev->regmap, 0x80ec4c, 0x68);
+ 	if (ret)
+@@ -73,7 +75,7 @@ static int it913x_init(struct dvb_frontend *fe)
+ 		iqik_m_cal = 6;
+ 		break;
+ 	default:
+-		dev_err(&dev->client->dev, "unknown clock identifier %d\n", utmp);
++		dev_err(&pdev->dev, "unknown clock identifier %d\n", utmp);
+ 		goto err;
  	}
  
--	pipe->div_size = div_size;
- 	pipe->partitions = DIV_ROUND_UP(format->width, div_size);
+@@ -98,14 +100,14 @@ static int it913x_init(struct dvb_frontend *fe)
+ 			break;
+ 	}
  
- 	for (i = 0; i < pipe->partitions; i++)
-@@ -356,11 +354,12 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+-	dev_dbg(&dev->client->dev, "r_fbc_m_bdry took %u ms, val %u\n",
++	dev_dbg(&pdev->dev, "r_fbc_m_bdry took %u ms, val %u\n",
+ 			jiffies_to_msecs(jiffies) -
+ 			(jiffies_to_msecs(timeout) - TIMEOUT), utmp);
+ 
+ 	dev->fn_min = dev->xtal * utmp;
+ 	dev->fn_min /= (dev->fdiv * nv_val);
+ 	dev->fn_min *= 1000;
+-	dev_dbg(&dev->client->dev, "fn_min %u\n", dev->fn_min);
++	dev_dbg(&pdev->dev, "fn_min %u\n", dev->fn_min);
+ 
+ 	/*
+ 	 * Chip version BX never sets that flag so we just wait 50ms in that
+@@ -125,7 +127,7 @@ static int it913x_init(struct dvb_frontend *fe)
+ 				break;
+ 		}
+ 
+-		dev_dbg(&dev->client->dev, "p_tsm_init_mode took %u ms, val %u\n",
++		dev_dbg(&pdev->dev, "p_tsm_init_mode took %u ms, val %u\n",
+ 				jiffies_to_msecs(jiffies) -
+ 				(jiffies_to_msecs(timeout) - TIMEOUT), utmp);
+ 	} else {
+@@ -152,16 +154,17 @@ static int it913x_init(struct dvb_frontend *fe)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->client->dev, "failed %d\n", ret);
++	dev_dbg(&pdev->dev, "failed %d\n", ret);
+ 	return ret;
  }
  
- static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
--					      struct vsp1_dl_list *dl)
-+					      struct vsp1_dl_list *dl,
-+					      unsigned int partition_number)
+ static int it913x_sleep(struct dvb_frontend *fe)
  {
- 	struct vsp1_entity *entity;
+ 	struct it913x_dev *dev = fe->tuner_priv;
++	struct platform_device *pdev = dev->pdev;
+ 	int ret, len;
  
--	pipe->partition = pipe->part_table[pipe->current_partition];
-+	pipe->partition = pipe->part_table[partition_number];
+-	dev_dbg(&dev->client->dev, "role %u\n", dev->role);
++	dev_dbg(&pdev->dev, "role %u\n", dev->role);
  
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
- 		if (entity->ops->configure)
-@@ -373,6 +372,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ 	dev->active = false;
+ 
+@@ -178,7 +181,7 @@ static int it913x_sleep(struct dvb_frontend *fe)
+ 	else
+ 		len = 15;
+ 
+-	dev_dbg(&dev->client->dev, "role %u, len %d\n", dev->role, len);
++	dev_dbg(&pdev->dev, "role %u, len %d\n", dev->role, len);
+ 
+ 	ret = regmap_bulk_write(dev->regmap, 0x80ec02,
+ 			"\x3f\x1f\x3f\x3e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+@@ -210,13 +213,14 @@ static int it913x_sleep(struct dvb_frontend *fe)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->client->dev, "failed %d\n", ret);
++	dev_dbg(&pdev->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+ static int it913x_set_params(struct dvb_frontend *fe)
  {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	struct vsp1_entity *entity;
-+	unsigned int current_partition = 0;
+ 	struct it913x_dev *dev = fe->tuner_priv;
++	struct platform_device *pdev = dev->pdev;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	unsigned int utmp;
+@@ -224,7 +228,7 @@ static int it913x_set_params(struct dvb_frontend *fe)
+ 	u16 iqik_m_cal, n_div;
+ 	u8 u8tmp, n, l_band, lna_band;
  
- 	if (!pipe->dl)
- 		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-@@ -389,13 +389,12 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+-	dev_dbg(&dev->client->dev, "role=%u, frequency %u, bandwidth_hz %u\n",
++	dev_dbg(&pdev->dev, "role=%u, frequency %u, bandwidth_hz %u\n",
+ 			dev->role, c->frequency, c->bandwidth_hz);
+ 
+ 	if (!dev->active) {
+@@ -290,7 +294,7 @@ static int it913x_set_params(struct dvb_frontend *fe)
+ 	pre_lo_freq += (u32) n << 13;
+ 	/* Frequency OMEGA_IQIK_M_CAL_MID*/
+ 	t_cal_freq = pre_lo_freq + (u32)iqik_m_cal;
+-	dev_dbg(&dev->client->dev, "t_cal_freq %u, pre_lo_freq %u\n",
++	dev_dbg(&pdev->dev, "t_cal_freq %u, pre_lo_freq %u\n",
+ 			t_cal_freq, pre_lo_freq);
+ 
+ 	if (c->frequency <=         440000000) {
+@@ -369,7 +373,7 @@ static int it913x_set_params(struct dvb_frontend *fe)
+ 
+ 	return 0;
+ err:
+-	dev_dbg(&dev->client->dev, "failed %d\n", ret);
++	dev_dbg(&pdev->dev, "failed %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -385,40 +389,31 @@ static const struct dvb_tuner_ops it913x_tuner_ops = {
+ 	.set_params = it913x_set_params,
+ };
+ 
+-static int it913x_probe(struct i2c_client *client,
+-		const struct i2c_device_id *id)
++static int it913x_probe(struct platform_device *pdev)
+ {
+-	struct it913x_config *cfg = client->dev.platform_data;
+-	struct dvb_frontend *fe = cfg->fe;
++	struct it913x_platform_data *pdata = pdev->dev.platform_data;
++	struct dvb_frontend *fe = pdata->fe;
+ 	struct it913x_dev *dev;
+ 	int ret;
+ 	char *chip_ver_str;
+-	static const struct regmap_config regmap_config = {
+-		.reg_bits = 24,
+-		.val_bits = 8,
+-	};
+ 
+ 	dev = kzalloc(sizeof(struct it913x_dev), GFP_KERNEL);
+ 	if (dev == NULL) {
+ 		ret = -ENOMEM;
+-		dev_err(&client->dev, "kzalloc() failed\n");
++		dev_err(&pdev->dev, "kzalloc() failed\n");
+ 		goto err;
  	}
  
- 	/* Run the first partition */
--	pipe->current_partition = 0;
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl);
-+	vsp1_video_pipeline_run_partition(pipe, pipe->dl, current_partition);
+-	dev->client = client;
+-	dev->fe = cfg->fe;
+-	dev->chip_ver = cfg->chip_ver;
+-	dev->role = cfg->role;
+-	dev->regmap = regmap_init_i2c(client, &regmap_config);
+-	if (IS_ERR(dev->regmap)) {
+-		ret = PTR_ERR(dev->regmap);
+-		goto err_kfree;
+-	}
++	dev->pdev = pdev;
++	dev->regmap = pdata->regmap;
++	dev->fe = pdata->fe;
++	dev->chip_ver = pdata->chip_ver;
++	dev->role = pdata->role;
  
- 	/* Process consecutive partitions as necessary */
--	for (pipe->current_partition = 1;
--	     pipe->current_partition < pipe->partitions;
--	     pipe->current_partition++) {
-+	for (current_partition = 1;
-+	     current_partition < pipe->partitions;
-+	     current_partition++) {
- 		struct vsp1_dl_list *dl;
+ 	fe->tuner_priv = dev;
+ 	memcpy(&fe->ops.tuner_ops, &it913x_tuner_ops,
+ 			sizeof(struct dvb_tuner_ops));
+-	i2c_set_clientdata(client, dev);
++	platform_set_drvdata(pdev, dev);
  
- 		/*
-@@ -415,7 +414,7 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- 			break;
- 		}
+ 	if (dev->chip_ver == 1)
+ 		chip_ver_str = "AX";
+@@ -427,51 +422,39 @@ static int it913x_probe(struct i2c_client *client,
+ 	else
+ 		chip_ver_str = "??";
  
--		vsp1_video_pipeline_run_partition(pipe, dl);
-+		vsp1_video_pipeline_run_partition(pipe, dl, current_partition);
- 		vsp1_dl_list_add_chain(pipe->dl, dl);
- 	}
+-	dev_info(&dev->client->dev, "ITE IT913X %s successfully attached\n",
+-			chip_ver_str);
+-	dev_dbg(&dev->client->dev, "chip_ver %u, role %u\n",
+-			dev->chip_ver, dev->role);
++	dev_info(&pdev->dev, "ITE IT913X %s successfully attached\n",
++		 chip_ver_str);
++	dev_dbg(&pdev->dev, "chip_ver %u, role %u\n", dev->chip_ver, dev->role);
+ 	return 0;
+-
+-err_kfree:
+-	kfree(dev);
+ err:
+-	dev_dbg(&client->dev, "failed %d\n", ret);
++	dev_dbg(&pdev->dev, "failed %d\n", ret);
+ 	return ret;
+ }
  
+-static int it913x_remove(struct i2c_client *client)
++static int it913x_remove(struct platform_device *pdev)
+ {
+-	struct it913x_dev *dev = i2c_get_clientdata(client);
++	struct it913x_dev *dev = platform_get_drvdata(pdev);
+ 	struct dvb_frontend *fe = dev->fe;
+ 
+-	dev_dbg(&client->dev, "\n");
++	dev_dbg(&pdev->dev, "\n");
+ 
+ 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+ 	fe->tuner_priv = NULL;
+-	regmap_exit(dev->regmap);
+ 	kfree(dev);
+ 
+ 	return 0;
+ }
+ 
+-static const struct i2c_device_id it913x_id_table[] = {
+-	{"it913x", 0},
+-	{}
+-};
+-MODULE_DEVICE_TABLE(i2c, it913x_id_table);
+-
+-static struct i2c_driver it913x_driver = {
++static struct platform_driver it913x_driver = {
+ 	.driver = {
+ 		.name	= "it913x",
+ 		.suppress_bind_attrs	= true,
+ 	},
+ 	.probe		= it913x_probe,
+ 	.remove		= it913x_remove,
+-	.id_table	= it913x_id_table,
+ };
+ 
+-module_i2c_driver(it913x_driver);
++module_platform_driver(it913x_driver);
+ 
+ MODULE_DESCRIPTION("ITE IT913X silicon tuner driver");
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+diff --git a/drivers/media/tuners/it913x.h b/drivers/media/tuners/it913x.h
+index 33de53d..aa18862 100644
+--- a/drivers/media/tuners/it913x.h
++++ b/drivers/media/tuners/it913x.h
+@@ -25,30 +25,25 @@
+ 
+ #include "dvb_frontend.h"
+ 
+-/*
+- * I2C address
+- * 0x38, 0x3a, 0x3c, 0x3e
++/**
++ * struct it913x_platform_data - Platform data for the it913x driver
++ * @regmap: af9033 demod driver regmap.
++ * @dvb_frontend: af9033 demod driver DVB frontend.
++ * @chip_ver: Used chip version. 1=IT9133 AX, 2=IT9133 BX.
++ * @role: Chip role, single or dual configuration.
+  */
+-struct it913x_config {
+-	/*
+-	 * pointer to DVB frontend
+-	 */
+-	struct dvb_frontend *fe;
+ 
+-	/*
+-	 * chip version
+-	 * 1 = IT9135 AX
+-	 * 2 = IT9135 BX
+-	 */
++struct it913x_platform_data {
++	struct regmap *regmap;
++	struct dvb_frontend *fe;
+ 	unsigned int chip_ver:2;
+-
+-	/*
+-	 * tuner role
+-	 */
+ #define IT913X_ROLE_SINGLE         0
+ #define IT913X_ROLE_DUAL_MASTER    1
+ #define IT913X_ROLE_DUAL_SLAVE     2
+ 	unsigned int role:2;
+ };
+ 
++/* Backwards compatibility */
++#define it913x_config it913x_platform_data
++
+ #endif
 -- 
-2.7.4
+http://palosaari.fi/
 
