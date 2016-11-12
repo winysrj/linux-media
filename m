@@ -1,367 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f180.google.com ([209.85.192.180]:35568 "EHLO
-        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935603AbcKWMjO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 07:39:14 -0500
-Received: by mail-pf0-f180.google.com with SMTP id i88so3571055pfk.2
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 04:39:13 -0800 (PST)
-Date: Wed, 23 Nov 2016 23:39:06 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ir-keytable: infinite loops, segfaults
-Message-ID: <20161123123851.GB14257@shambles.local>
-References: <20161116105256.GA9998@shambles.local>
- <20161117134526.GA8485@gofer.mess.org>
- <20161118121422.GA1986@shambles.local>
- <20161118174034.GA6167@gofer.mess.org>
- <20161118220107.GA3510@shambles.local>
- <20161120132948.GA23247@gofer.mess.org>
- <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
- <20161122092043.GA8630@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161122092043.GA8630@gofer.mess.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:51323 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752786AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 05:34:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/9] af9035: read and store whole eeprom
+Date: Sat, 12 Nov 2016 12:33:53 +0200
+Message-Id: <1478946841-2807-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 22, 2016 at 09:20:44AM +0000, Sean Young wrote:
-> > Thanks for this. I have got it to build within the media_build setup
-> > but will need to find some windows in the schedule for testing. More
-> > in a couple of days. Are there specific things you would like me to
-> > test?
-> 
-> You should have an rc device for the IR receiver in the dvb device; does
-> it continue to work and can you clear/load a new keymap with ir-keytable,
-> and does it work after that.
-> 
-> A "Tested-by" would be great if it all works of course.
+Read eeprom content to chip state and read values there when needed.
+Also debug dump eeprom content.
 
-Time for some initial results. Good start, not quite there yet.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 126 +++++++++++++++-------------------
+ drivers/media/usb/dvb-usb-v2/af9035.h |   5 +-
+ 2 files changed, 60 insertions(+), 71 deletions(-)
 
-Nov 23 23:04:56 kernel: Registered IR keymap rc-dvico-mce
-Nov 23 23:04:56 kernel: input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00
-Nov 23 23:04:56 kernel: rc rc1: IR-receiver inside an USB DVB receiver as /devices/pci0000:0
-Nov 23 23:04:56 kernel: dvb-usb: schedule remote query interval to 100 msecs.
-Nov 23 23:04:56 kernel: dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 successfully initiali
-Nov 23 23:04:56 kernel: dvb-usb: found a 'DViCO FusionHDTV DVB-T Dual Digital 4' in warm sta
-Nov 23 23:04:56 kernel: dvb-usb: will pass the complete MPEG2 transport stream to the softwa
-Nov 23 23:04:56 kernel: dvbdev: DVB: registering new adapter (DViCO FusionHDTV DVB-T Dual Di
-Nov 23 23:04:56 kernel: usb 3-2: media controller created
-Nov 23 23:04:56 kernel: dvbdev: dvb_create_media_entity: media entity 'dvb-demux' registered
-Nov 23 23:04:56 kernel: cxusb: No IR receiver detected on this device.
-Nov 23 23:04:56 kernel: usb 3-2: DVB: registering adapter 1 frontend 0 (Zarlink ZL10353 DVB-
-Nov 23 23:04:56 kernel: dvbdev: dvb_create_media_entity: media entity 'Zarlink ZL10353 DVB-T
-Nov 23 23:04:56 kernel: xc2028 5-0061: creating new instance
-Nov 23 23:04:56 kernel: xc2028 5-0061: type set to XCeive xc2028/xc3028 tuner
-Nov 23 23:04:56 kernel: xc2028 5-0061: Loading 80 firmware images from xc3028-v27.fw, type: 
-Nov 23 23:04:56 kernel: dvb-usb: DViCO FusionHDTV DVB-T Dual Digital 4 successfully initiali
-Nov 23 23:04:56 kernel: usbcore: registered new interface driver dvb_usb_cxusb
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index c673726..61dac6a 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -496,7 +496,8 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ {
+ 	struct state *state = d_to_priv(d);
+ 	struct usb_interface *intf = d->intf;
+-	int ret, ts_mode_invalid;
++	int ret, i, ts_mode_invalid;
++	unsigned int utmp, eeprom_addr;
+ 	u8 tmp;
+ 	u8 wbuf[1] = { 1 };
+ 	u8 rbuf[4];
+@@ -518,25 +519,48 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 		 state->prechip_version, state->chip_version, state->chip_type);
+ 
+ 	if (state->chip_type == 0x9135) {
+-		if (state->chip_version == 0x02)
++		if (state->chip_version == 0x02) {
+ 			*name = AF9035_FIRMWARE_IT9135_V2;
+-		else
++			utmp = 0x00461d;
++		} else {
+ 			*name = AF9035_FIRMWARE_IT9135_V1;
+-		state->eeprom_addr = EEPROM_BASE_IT9135;
++			utmp = 0x00461b;
++		}
++
++		/* Check if eeprom exists */
++		ret = af9035_rd_reg(d, utmp, &tmp);
++		if (ret < 0)
++			goto err;
++
++		if (tmp == 0x00) {
++			dev_dbg(&intf->dev, "no eeprom\n");
++			state->no_eeprom = true;
++			goto check_firmware_status;
++		}
++
++		eeprom_addr = EEPROM_BASE_IT9135;
+ 	} else if (state->chip_type == 0x9306) {
+ 		*name = AF9035_FIRMWARE_IT9303;
+-		state->eeprom_addr = EEPROM_BASE_IT9135;
++		state->no_eeprom = true;
++		goto check_firmware_status;
+ 	} else {
+ 		*name = AF9035_FIRMWARE_AF9035;
+-		state->eeprom_addr = EEPROM_BASE_AF9035;
++		eeprom_addr = EEPROM_BASE_AF9035;
++	}
++
++	/* Read and store eeprom */
++	for (i = 0; i < 256; i += 32) {
++		ret = af9035_rd_regs(d, eeprom_addr + i, &state->eeprom[i], 32);
++		if (ret < 0)
++			goto err;
+ 	}
+ 
++	dev_dbg(&intf->dev, "eeprom dump:\n");
++	for (i = 0; i < 256; i += 16)
++		dev_dbg(&intf->dev, "%*ph\n", 16, &state->eeprom[i]);
+ 
+ 	/* check for dual tuner mode */
+-	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
+-	if (ret < 0)
+-		goto err;
+-
++	tmp = state->eeprom[EEPROM_TS_MODE];
+ 	ts_mode_invalid = 0;
+ 	switch (tmp) {
+ 	case 0:
+@@ -560,7 +584,7 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ 	if (ts_mode_invalid)
+ 		dev_info(&intf->dev, "ts mode=%d not supported, defaulting to single tuner mode!", tmp);
+ 
+-
++check_firmware_status:
+ 	ret = af9035_ctrl_msg(d, &req);
+ 	if (ret < 0)
+ 		goto err;
+@@ -750,11 +774,7 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 			goto err;
+ 
+ 		/* tell the slave I2C address */
+-		ret = af9035_rd_reg(d,
+-				state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR,
+-				&tmp);
+-		if (ret < 0)
+-			goto err;
++		tmp = state->eeprom[EEPROM_2ND_DEMOD_ADDR];
+ 
+ 		/* use default I2C address if eeprom has no address set */
+ 		if (!tmp)
+@@ -819,7 +839,7 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	struct state *state = d_to_priv(d);
+ 	int ret, i;
+ 	u8 tmp;
+-	u16 tmp16, addr;
++	u16 tmp16;
+ 
+ 	/* demod I2C "address" */
+ 	state->af9033_i2c_addr[0] = 0x38;
+@@ -837,20 +857,16 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		if (state->chip_version == 0x02) {
+ 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
+ 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_60;
+-			tmp16 = 0x00461d; /* eeprom memory mapped location */
+ 		} else {
+ 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
+ 			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_38;
+-			tmp16 = 0x00461b; /* eeprom memory mapped location */
+ 		}
+ 
+-		/* check if eeprom exists */
+-		ret = af9035_rd_reg(d, tmp16, &tmp);
+-		if (ret < 0)
+-			goto err;
++		if (state->no_eeprom) {
++			/* Remote controller to NEC polling by default */
++			state->ir_mode = 0x05;
++			state->ir_type = 0x00;
+ 
+-		if (tmp == 0x00) {
+-			dev_dbg(&intf->dev, "no eeprom\n");
+ 			goto skip_eeprom;
+ 		}
+ 	} else if (state->chip_type == 0x9306) {
+@@ -861,29 +877,24 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		return 0;
+ 	}
+ 
++	/* Remote controller */
++	state->ir_mode = state->eeprom[EEPROM_IR_MODE];
++	state->ir_type = state->eeprom[EEPROM_IR_TYPE];
+ 
+ 	if (state->dual_mode) {
+ 		/* read 2nd demodulator I2C address */
+-		ret = af9035_rd_reg(d,
+-				state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR,
+-				&tmp);
+-		if (ret < 0)
+-			goto err;
+-
++		tmp = state->eeprom[EEPROM_2ND_DEMOD_ADDR];
+ 		if (tmp)
+ 			state->af9033_i2c_addr[1] = tmp;
+ 
+ 		dev_dbg(&intf->dev, "2nd demod I2C addr=%02x\n", tmp);
+ 	}
+ 
+-	addr = state->eeprom_addr;
+-
+ 	for (i = 0; i < state->dual_mode + 1; i++) {
+-		/* tuner */
+-		ret = af9035_rd_reg(d, addr + EEPROM_1_TUNER_ID, &tmp);
+-		if (ret < 0)
+-			goto err;
++		unsigned int eeprom_offset = 0;
+ 
++		/* tuner */
++		tmp = state->eeprom[EEPROM_1_TUNER_ID + eeprom_offset];
+ 		dev_dbg(&intf->dev, "[%d]tuner=%02x\n", i, tmp);
+ 
+ 		/* tuner sanity check */
+@@ -956,21 +967,13 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		}
+ 
+ 		/* tuner IF frequency */
+-		ret = af9035_rd_reg(d, addr + EEPROM_1_IF_L, &tmp);
+-		if (ret < 0)
+-			goto err;
+-
+-		tmp16 = tmp;
+-
+-		ret = af9035_rd_reg(d, addr + EEPROM_1_IF_H, &tmp);
+-		if (ret < 0)
+-			goto err;
+-
++		tmp = state->eeprom[EEPROM_1_IF_L + eeprom_offset];
++		tmp16 = tmp << 0;
++		tmp = state->eeprom[EEPROM_1_IF_H + eeprom_offset];
+ 		tmp16 |= tmp << 8;
+-
+ 		dev_dbg(&intf->dev, "[%d]IF=%d\n", i, tmp16);
+ 
+-		addr += 0x10; /* shift for the 2nd tuner params */
++		eeprom_offset += 0x10; /* shift for the 2nd tuner params */
+ 	}
+ 
+ skip_eeprom:
+@@ -1872,25 +1875,13 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ {
+ 	struct state *state = d_to_priv(d);
+ 	struct usb_interface *intf = d->intf;
+-	int ret;
+-	u8 tmp;
+ 
+-	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_IR_MODE, &tmp);
+-	if (ret < 0)
+-		goto err;
+-
+-	dev_dbg(&intf->dev, "ir_mode=%02x\n", tmp);
++	dev_dbg(&intf->dev, "ir_mode=%02x ir_type=%02x\n",
++		state->ir_mode, state->ir_type);
+ 
+ 	/* don't activate rc if in HID mode or if not available */
+-	if (tmp == 5) {
+-		ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_IR_TYPE,
+-				&tmp);
+-		if (ret < 0)
+-			goto err;
+-
+-		dev_dbg(&intf->dev, "ir_type=%02x\n", tmp);
+-
+-		switch (tmp) {
++	if (state->ir_mode == 0x05) {
++		switch (state->ir_type) {
+ 		case 0: /* NEC */
+ 		default:
+ 			rc->allowed_protos = RC_BIT_NEC | RC_BIT_NECX |
+@@ -1910,11 +1901,6 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ 	}
+ 
+ 	return 0;
+-
+-err:
+-	dev_dbg(&intf->dev, "failed=%d\n", ret);
+-
+-	return ret;
+ }
+ #else
+ 	#define af9035_get_rc_config NULL
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index 1f83c92..89a08a4 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -61,9 +61,12 @@ struct state {
+ 	u8 prechip_version;
+ 	u8 chip_version;
+ 	u16 chip_type;
++	u8 eeprom[256];
++	bool no_eeprom;
++	u8 ir_mode;
++	u8 ir_type;
+ 	u8 dual_mode:1;
+ 	u8 no_read:1;
+-	u16 eeprom_addr;
+ 	u8 af9033_i2c_addr[2];
+ 	struct af9033_config af9033_config[2];
+ 	struct af9033_ops ops;
+-- 
+http://palosaari.fi/
 
-# lsmod |grep rc
-rc_dvico_mce           16384  0
-rc_imon_mce            16384  0
-rc_core                32768  11 imon,dvb_usb,winbond_cir,dvb_usb_cxusb,rc_imon_mce,rc_dvico_mce,dvb_usb_v2,dvb_usb_af9035
-libcrc32c              16384  1 raid456
-crc_itu_t              16384  1 firewire_core
-
-# lsmod |grep cxu
-dvb_usb_cxusb          77824  2
-dib0070                20480  1 dvb_usb_cxusb
-dvb_usb                32768  1 dvb_usb_cxusb
-rc_core                32768  11 imon,dvb_usb,winbond_cir,dvb_usb_cxusb,rc_imon_mce,rc_dvico_mce,dvb_usb_v2,dvb_usb_af9035
-
-
-# ir-keytable
-Found /sys/class/rc/rc0/ (/dev/input/event5) with:
-    Driver imon, table rc-imon-mce
-    Supported protocols: rc-6 
-    Enabled protocols: rc-6 
-    Name: iMON Remote (15c2:ffdc)
-    bus: 3, vendor/product: 15c2:ffdc, version: 0x0000
-    Repeat delay = 500 ms, repeat period = 125 ms
-Found /sys/class/rc/rc1/ (/dev/input/event15) with:
-    Driver (null), table rc-dvico-mce
-    Supported protocols: unknown 
-    Enabled protocols: 
-    Name: IR-receiver inside an USB DVB re
-    bus: 3, vendor/product: 0fe9:db78, version: 0x827b
-    Repeat delay = 500 ms, repeat period = 125 ms
-Found /sys/class/rc/rc2/ (/dev/input/event16) with:
-    Driver dvb_usb_af9035, table rc-empty
-    Supported protocols: nec 
-    Enabled protocols: 
-    Name: Leadtek WinFast DTV Dongle Dual
-    bus: 3, vendor/product: 0413:6a05, version: 0x0200
-    Repeat delay = 500 ms, repeat period = 125 ms
-
-Not sure why Driver is (null), dvb_usb_cxusb is loaded.
-
-# ir-keytable -s rc1 -r -v
-Found device /sys/class/rc/rc0/
-Found device /sys/class/rc/rc1/
-Found device /sys/class/rc/rc2/
-Input sysfs node is /sys/class/rc/rc1/input18/
-Event sysfs node is /sys/class/rc/rc1/input18/event15/
-Parsing uevent /sys/class/rc/rc1/input18/event15/uevent
-/sys/class/rc/rc1/input18/event15/uevent uevent MAJOR=13
-/sys/class/rc/rc1/input18/event15/uevent uevent MINOR=79
-/sys/class/rc/rc1/input18/event15/uevent uevent DEVNAME=input/event15
-Parsing uevent /sys/class/rc/rc1/uevent
-/sys/class/rc/rc1/uevent uevent NAME=rc-dvico-mce
-input device is /dev/input/event15
-/sys/class/rc/rc1/protocols protocol unknown (disabled)
-Opening /dev/input/event15
-Input Protocol version: 0x00010001
-scancode 0xfe01 = KEY_RECORD (0xa7)
-scancode 0xfe02 = KEY_TV (0x179)
-scancode 0xfe03 = KEY_0 (0x0b)
-scancode 0xfe05 = KEY_VOLUMEDOWN (0x72)
-scancode 0xfe07 = KEY_4 (0x05)
-scancode 0xfe09 = KEY_CHANNELDOWN (0x193)
-scancode 0xfe0a = KEY_EPG (0x16d)
-scancode 0xfe0b = KEY_1 (0x02)
-scancode 0xfe0d = KEY_STOP (0x80)
-scancode 0xfe0e = KEY_MP3 (0x187)
-scancode 0xfe0f = KEY_PREVIOUSSONG (0xa5)
-scancode 0xfe11 = KEY_CHANNELUP (0x192)
-scancode 0xfe12 = KEY_NEXTSONG (0xa3)
-scancode 0xfe13 = KEY_ANGLE (0x173)
-scancode 0xfe15 = KEY_VOLUMEUP (0x73)
-scancode 0xfe16 = KEY_SETUP (0x8d)
-scancode 0xfe17 = KEY_2 (0x03)
-scancode 0xfe19 = KEY_OPEN (0x86)
-scancode 0xfe1a = KEY_DVD (0x185)
-scancode 0xfe1b = KEY_3 (0x04)
-scancode 0xfe1e = KEY_FAVORITES (0x16c)
-scancode 0xfe1f = KEY_ZOOM (0x174)
-scancode 0xfe42 = KEY_ENTER (0x1c)
-scancode 0xfe43 = KEY_REWIND (0xa8)
-scancode 0xfe46 = KEY_POWER2 (0x164)
-scancode 0xfe47 = KEY_PLAYPAUSE (0xa4)
-scancode 0xfe48 = KEY_7 (0x08)
-scancode 0xfe49 = KEY_BACK (0x9e)
-scancode 0xfe4c = KEY_8 (0x09)
-scancode 0xfe4d = KEY_MENU (0x8b)
-scancode 0xfe4e = KEY_POWER (0x74)
-scancode 0xfe4f = KEY_FASTFORWARD (0xd0)
-scancode 0xfe50 = KEY_5 (0x06)
-scancode 0xfe51 = KEY_UP (0x67)
-scancode 0xfe52 = KEY_CAMERA (0xd4)
-scancode 0xfe53 = KEY_DOWN (0x6c)
-scancode 0xfe54 = KEY_6 (0x07)
-scancode 0xfe55 = KEY_TAB (0x0f)
-scancode 0xfe57 = KEY_MUTE (0x71)
-scancode 0xfe58 = KEY_9 (0x0a)
-scancode 0xfe59 = KEY_INFO (0x166)
-scancode 0xfe5a = KEY_TUNER (0x182)
-scancode 0xfe5b = KEY_LEFT (0x69)
-scancode 0xfe5e = KEY_OK (0x160)
-scancode 0xfe5f = KEY_RIGHT (0x6a)
-Enabled protocols: 
-#
-
-I tried -t and it generated events constantly, before I could press
-any keys.
-# ir-keytable -s rc1 -t
-Testing events. Please, press CTRL-C to abort.
-1479903007.535509: event type EV_MSC(0x04): scancode = 0x00
-1479903007.535509: event type EV_SYN(0x00).
-1479903007.635521: event type EV_MSC(0x04): scancode = 0x00
-1479903007.635521: event type EV_SYN(0x00).
-1479903007.735535: event type EV_MSC(0x04): scancode = 0x00
-1479903007.735535: event type EV_SYN(0x00).
-1479903007.839552: event type EV_MSC(0x04): scancode = 0x00
-1479903007.839552: event type EV_SYN(0x00).
-1479903007.939565: event type EV_MSC(0x04): scancode = 0x00
-1479903007.939565: event type EV_SYN(0x00).
-1479903008.039579: event type EV_MSC(0x04): scancode = 0x00
-1479903008.039579: event type EV_SYN(0x00).
-1479903008.143594: event type EV_MSC(0x04): scancode = 0x00
-1479903008.143594: event type EV_SYN(0x00).
-1479903008.243608: event type EV_MSC(0x04): scancode = 0x00
-1479903008.243608: event type EV_SYN(0x00).
-1479903008.343622: event type EV_MSC(0x04): scancode = 0x00
-1479903008.343622: event type EV_SYN(0x00).
-1479903008.443512: event type EV_MSC(0x04): scancode = 0x00
-1479903008.443512: event type EV_SYN(0x00).
-1479903008.543525: event type EV_MSC(0x04): scancode = 0x00
-1479903008.543525: event type EV_SYN(0x00).
-1479903008.647541: event type EV_MSC(0x04): scancode = 0x00
-1479903008.647541: event type EV_SYN(0x00).
-^C
-
-Same behaviour with -d /dev/input/event15.
-
-I tried pressing the PLAYPAUSE key:
-1479903175.199520: event type EV_MSC(0x04): scancode = 0x00
-1479903175.199520: event type EV_SYN(0x00).
-1479903175.299538: event type EV_MSC(0x04): scancode = 0xfe47
-1479903175.299538: event type EV_KEY(0x01) key_down: KEY_PLAYPAUSE(0x00a4)
-1479903175.299538: event type EV_SYN(0x00).
-1479903175.399554: event type EV_KEY(0x01) key_up: KEY_PLAYPAUSE(0x00a4)
-1479903175.399554: event type EV_MSC(0x04): scancode = 0x00
-1479903175.399554: event type EV_SYN(0x00).
-1479903175.499563: event type EV_MSC(0x04): scancode = 0x00
-1479903175.499563: event type EV_SYN(0x00).
-1479903175.599579: event type EV_MSC(0x04): scancode = 0x00
-1479903175.599579: event type EV_SYN(0x00).
-1479903175.699593: event type EV_MSC(0x04): scancode = 0x00
-1479903175.699593: event type EV_SYN(0x00).
-1479903175.799481: event type EV_MSC(0x04): scancode = 0x00
-1479903175.799481: event type EV_SYN(0x00).
-1479903175.899496: event type EV_MSC(0x04): scancode = 0x00
-1479903175.899496: event type EV_SYN(0x00).
-1479903175.999510: event type EV_MSC(0x04): scancode = 0x00
-1479903175.999510: event type EV_SYN(0x00).
-1479903176.099653: event type EV_MSC(0x04): scancode = 0xfe47
-1479903176.099653: event type EV_KEY(0x01) key_down: KEY_PLAYPAUSE(0x00a4)
-1479903176.099653: event type EV_SYN(0x00).
-1479903176.199540: event type EV_KEY(0x01) key_up: KEY_PLAYPAUSE(0x00a4)
-1479903176.199540: event type EV_MSC(0x04): scancode = 0x00
-1479903176.199540: event type EV_SYN(0x00).
-
-Same behaviour wth 'evtest'
-
-I explored telling it what protocol to use etc.
-
-# cat /sys/class/rc/rc1/protocols 
-unknown
-# echo 3 > /sys/module/rc_core/parameters/debug
-# journalctl -f -k
-(Pressing PLAYPAUSE, once)
-Nov 23 23:21:52 kernel: rc_core: IR-receiver inside an USB DVB receiver: scancode 0xfe47 keycode 0xa4
-Nov 23 23:21:52 kernel: rc_core: IR-receiver inside an USB DVB receiver: key down event, key 0x00a4, protocol 0x0000, scancode 0x0000fe47
-Nov 23 23:21:52 kernel: rc_core: keyup key 0x00a4
-
-(MENU)
-Nov 23 23:24:34 kernel: rc_core: IR-receiver inside an USB DVB receiver: scancode 0xfe4d keycode 0x8b
-Nov 23 23:24:34 kernel: rc_core: IR-receiver inside an USB DVB receiver: key down event, key 0x008b, protocol 0x0000, scancode 0x0000fe4d
-Nov 23 23:24:34 kernel: rc_core: keyup key 0x008b
-
-# echo rc-6 > /sys/class/rc/rc1/protocols 
-Nov 23 23:26:01 kernel: rc_core: Normal protocol change requested
-Nov 23 23:26:01 kernel: rc_core: Protocol switching not supported
-# cat /sys/class/rc/rc1/protocols
-unknown
-
-Try to load a keytable:
-# ir-keytable -v -s rc1 -w /lib/udev/rc_keymaps/dvico_mce 
-Parsing /lib/udev/rc_keymaps/dvico_mce keycode file
-parsing 0xfe02=KEY_TV:  value=377
-parsing 0xfe0e=KEY_MP3: value=391
-parsing 0xfe1a=KEY_DVD: value=389
-parsing 0xfe1e=KEY_FAVORITES:   value=364
-parsing 0xfe16=KEY_SETUP:   value=141
-parsing 0xfe46=KEY_POWER2:  value=356
-parsing 0xfe0a=KEY_EPG: value=365
-parsing 0xfe49=KEY_BACK:    value=158
-parsing 0xfe4d=KEY_MENU:    value=139
-parsing 0xfe51=KEY_UP:  value=103
-parsing 0xfe5b=KEY_LEFT:    value=105
-parsing 0xfe5f=KEY_RIGHT:   value=106
-parsing 0xfe53=KEY_DOWN:    value=108
-parsing 0xfe5e=KEY_OK:  value=352
-parsing 0xfe59=KEY_INFO:    value=358
-parsing 0xfe55=KEY_TAB: value=15
-parsing 0xfe0f=KEY_PREVIOUSSONG:    value=165
-parsing 0xfe12=KEY_NEXTSONG:    value=163
-parsing 0xfe42=KEY_ENTER:   value=28
-parsing 0xfe15=KEY_VOLUMEUP:    value=115
-parsing 0xfe05=KEY_VOLUMEDOWN:  value=114
-parsing 0xfe11=KEY_CHANNELUP:   value=402
-parsing 0xfe09=KEY_CHANNELDOWN: value=403
-parsing 0xfe52=KEY_CAMERA:  value=212
-parsing 0xfe5a=KEY_TUNER:   value=386
-parsing 0xfe19=KEY_OPEN:    value=134
-parsing 0xfe0b=KEY_1:   value=2
-parsing 0xfe17=KEY_2:   value=3
-parsing 0xfe1b=KEY_3:   value=4
-parsing 0xfe07=KEY_4:   value=5
-parsing 0xfe50=KEY_5:   value=6
-parsing 0xfe54=KEY_6:   value=7
-parsing 0xfe48=KEY_7:   value=8
-parsing 0xfe4c=KEY_8:   value=9
-parsing 0xfe58=KEY_9:   value=10
-parsing 0xfe13=KEY_ANGLE:   value=371
-parsing 0xfe03=KEY_0:   value=11
-parsing 0xfe1f=KEY_ZOOM:    value=372
-parsing 0xfe43=KEY_REWIND:  value=168
-parsing 0xfe47=KEY_PLAYPAUSE:   value=164
-parsing 0xfe4f=KEY_FASTFORWARD: value=208
-parsing 0xfe57=KEY_MUTE:    value=113
-parsing 0xfe0d=KEY_STOP:    value=128
-parsing 0xfe01=KEY_RECORD:  value=167
-parsing 0xfe4e=KEY_POWER:   value=116
-Read dvico_mce table
-Found device /sys/class/rc/rc0/
-Found device /sys/class/rc/rc1/
-Found device /sys/class/rc/rc2/
-Input sysfs node is /sys/class/rc/rc1/input18/
-Event sysfs node is /sys/class/rc/rc1/input18/event15/
-Parsing uevent /sys/class/rc/rc1/input18/event15/uevent
-/sys/class/rc/rc1/input18/event15/uevent uevent MAJOR=13
-/sys/class/rc/rc1/input18/event15/uevent uevent MINOR=79
-/sys/class/rc/rc1/input18/event15/uevent uevent DEVNAME=input/event15
-Parsing uevent /sys/class/rc/rc1/uevent
-/sys/class/rc/rc1/uevent uevent NAME=rc-dvico-mce
-input device is /dev/input/event15
-/sys/class/rc/rc1/protocols protocol unknown (disabled)
-Opening /dev/input/event15
-Input Protocol version: 0x00010001
-    fe4e=0074
-    fe01=00a7
-    fe0d=0080
-    fe57=0071
-    fe4f=00d0
-    fe47=00a4
-    fe43=00a8
-    fe1f=0174
-    fe03=000b
-    fe13=0173
-    fe58=000a
-    fe4c=0009
-    fe48=0008
-    fe54=0007
-    fe50=0006
-    fe07=0005
-    fe1b=0004
-    fe17=0003
-    fe0b=0002
-    fe19=0086
-    fe5a=0182
-    fe52=00d4
-    fe09=0193
-    fe11=0192
-    fe05=0072
-    fe15=0073
-    fe42=001c
-    fe12=00a3
-    fe0f=00a5
-    fe55=000f
-    fe59=0166
-    fe5e=0160
-    fe53=006c
-    fe5f=006a
-    fe5b=0069
-    fe51=0067
-    fe4d=008b
-    fe49=009e
-    fe0a=016d
-    fe46=0164
-    fe16=008d
-    fe1e=016c
-    fe1a=0185
-    fe0e=0187
-    fe02=0179
-Wrote 45 keycode(s) to driver
-/sys/class/rc/rc1//protocols: Invalid argument
-Couldn't change the IR protocols
-#
-
-Same result if I add -p RC-6 to the argument list.
-
-Cheers
-Vince
