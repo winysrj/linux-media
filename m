@@ -1,69 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 Nov 2016 12:24:32 -0800
-Message-ID: <CAPcyv4gT8QojYe0__EsR5o59+tAoLAqBWbj=rj-HnqHJo3tYOA@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Received: from mail.kapsi.fi ([217.30.184.167]:33200 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754713AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 05:34:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 9/9] af9035: correct demod i2c addresses
+Date: Sat, 12 Nov 2016 12:34:01 +0200
+Message-Id: <1478946841-2807-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
+References: <1478946841-2807-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 22, 2016 at 12:10 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
->> <serguei.sagalovitch@amd.com> wrote:
->>> I personally like "device-DAX" idea but my concerns are:
->>>
->>> -  How well it will co-exists with the  DRM infrastructure / implementations
->>>    in part dealing with CPU pointers?
->>
->> Inside the kernel a device-DAX range is "just memory" in the sense
->> that you can perform pfn_to_page() on it and issue I/O, but the vma is
->> not migratable. To be honest I do not know how well that co-exists
->> with drm infrastructure.
->>
->>> -  How well we will be able to handle case when we need to "move"/"evict"
->>>    memory/data to the new location so CPU pointer should point to the new
->>> physical location/address
->>>     (and may be not in PCI device memory at all)?
->>
->> So, device-DAX deliberately avoids support for in-kernel migration or
->> overcommit. Those cases are left to the core mm or drm. The device-dax
->> interface is for cases where all that is needed is a direct-mapping to
->> a statically-allocated physical-address range be it persistent memory
->> or some other special reserved memory range.
->
-> For some of the fancy use-cases (e.g. to be comparable to what HMM can
-> pull off) I think we want all the magic in core mm, i.e. migration and
-> overcommit. At least that seems to be the very strong drive in all
-> general-purpose gpu abstractions and implementations, where memory is
-> allocated with malloc, and then mapped/moved into vram/gpu address
-> space through some magic, but still visible on both the cpu and gpu
-> side in some form. Special device to allocate memory, and not being
-> able to migrate stuff around sound like misfeatures from that pov.
+Chip uses so called 8-bit i2c addresses, but on bus there is of
+course correct 7-bit addresses with rw bit as lsb - verified
+with oscilloscope.
 
-Agreed. For general purpose P2P use cases where all you want is
-direct-I/O to a memory range that happens to be on a PCIe device then
-I think a special device fits the bill. For gpu P2P use cases that
-already have migration/overcommit expectations then it is not a good
-fit.
+Lets still use correct addresses in driver.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index da29b6f..166ce09 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -772,9 +772,9 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
+ 		/* tell the slave I2C address */
+ 		tmp = state->eeprom[EEPROM_2ND_DEMOD_ADDR];
+ 
+-		/* use default I2C address if eeprom has no address set */
++		/* Use default I2C address if eeprom has no address set */
+ 		if (!tmp)
+-			tmp = 0x3a;
++			tmp = 0x1d << 1; /* 8-bit format used by chip */
+ 
+ 		if ((state->chip_type == 0x9135) ||
+ 				(state->chip_type == 0x9306)) {
+@@ -837,9 +837,9 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	u8 tmp;
+ 	u16 tmp16;
+ 
+-	/* demod I2C "address" */
+-	state->af9033_i2c_addr[0] = 0x38;
+-	state->af9033_i2c_addr[1] = 0x3a;
++	/* Demod I2C address */
++	state->af9033_i2c_addr[0] = 0x1c;
++	state->af9033_i2c_addr[1] = 0x1d;
+ 	state->af9033_config[0].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
+ 	state->af9033_config[1].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
+ 	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
+@@ -878,12 +878,13 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	state->ir_type = state->eeprom[EEPROM_IR_TYPE];
+ 
+ 	if (state->dual_mode) {
+-		/* read 2nd demodulator I2C address */
++		/* Read 2nd demodulator I2C address. 8-bit format on eeprom */
+ 		tmp = state->eeprom[EEPROM_2ND_DEMOD_ADDR];
+ 		if (tmp)
+-			state->af9033_i2c_addr[1] = tmp;
++			state->af9033_i2c_addr[1] = tmp >> 1;
+ 
+-		dev_dbg(&intf->dev, "2nd demod I2C addr=%02x\n", tmp);
++		dev_dbg(&intf->dev, "2nd demod I2C addr=%02x\n",
++			state->af9033_i2c_addr[1]);
+ 	}
+ 
+ 	for (i = 0; i < state->dual_mode + 1; i++) {
+-- 
+http://palosaari.fi/
+
