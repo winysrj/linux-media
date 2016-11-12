@@ -1,417 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:35068 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750801AbcKYI0M (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:33429 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965548AbcKLNNl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 03:26:12 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCHv2] cec: pass parent device in register(), not allocate()
-Message-ID: <be723fc0-a033-9e75-af5a-413905b9fa7e@xs4all.nl>
-Date: Fri, 25 Nov 2016 09:25:50 +0100
+        Sat, 12 Nov 2016 08:13:41 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 06/32] media: rcar-vin: fix standard in input enumeration
+Date: Sat, 12 Nov 2016 14:11:50 +0100
+Message-Id: <20161112131216.22635-7-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cec_allocate_adapter function doesn't need the parent device, only the
-cec_register_adapter function needs it.
+If the subdevice supports dv_timings_cap the driver should not fill in
+the standard. Also don't use the standard from probe time ask the
+subdevice each time, this is done in preparation for Gen3 support where
+the source subdevice might change during runtime.
 
-Drop the cec_devnode parent field, since devnode.dev.parent can be used
-instead.
-
-This change makes the framework consistent with other frameworks where the
-parent device is not used until the device is registered.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
-The previous v1 patch got mangled and didn't apply, hopefully this time it is
-without linewrapping.
----
- Documentation/media/kapi/cec-core.rst     | 14 ++++++--------
- drivers/media/cec/cec-api.c               |  2 +-
- drivers/media/cec/cec-core.c              | 18 ++++++++++--------
- drivers/media/i2c/adv7511.c               |  5 +++--
- drivers/media/i2c/adv7604.c               |  6 +++---
- drivers/media/i2c/adv7842.c               |  6 +++---
- drivers/media/platform/vivid/vivid-cec.c  |  3 +--
- drivers/media/platform/vivid/vivid-cec.h  |  1 -
- drivers/media/platform/vivid/vivid-core.c |  9 ++++-----
- drivers/media/usb/pulse8-cec/pulse8-cec.c |  4 ++--
- drivers/staging/media/s5p-cec/s5p_cec.c   |  5 ++---
- drivers/staging/media/st-cec/stih-cec.c   |  5 ++---
- include/media/cec.h                       | 10 ++++------
- 13 files changed, 41 insertions(+), 47 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index 8a88dd4..81c6d8e 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -37,9 +37,8 @@ The struct cec_adapter represents the CEC adapter hardware. It is created by
- calling cec_allocate_adapter() and deleted by calling cec_delete_adapter():
-
- .. c:function::
--   struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
--	       void *priv, const char *name, u32 caps, u8 available_las,
--	       struct device *parent);
-+   struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops, void *priv,
-+   const char *name, u32 caps, u8 available_las);
-
- .. c:function::
-    void cec_delete_adapter(struct cec_adapter *adap);
-@@ -66,20 +65,19 @@ available_las:
- 	the number of simultaneous logical addresses that this
- 	adapter can handle. Must be 1 <= available_las <= CEC_MAX_LOG_ADDRS.
-
--parent:
--	the parent device.
--
-
- To register the /dev/cecX device node and the remote control device (if
- CEC_CAP_RC is set) you call:
-
- .. c:function::
--	int cec_register_adapter(struct cec_adapter \*adap);
-+	int cec_register_adapter(struct cec_adapter *adap, struct device *parent);
-+
-+where parent is the parent device.
-
- To unregister the devices call:
-
- .. c:function::
--	void cec_unregister_adapter(struct cec_adapter \*adap);
-+	void cec_unregister_adapter(struct cec_adapter *adap);
-
- Note: if cec_register_adapter() fails, then call cec_delete_adapter() to
- clean up. But if cec_register_adapter() succeeded, then only call
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index 597fbb6..8950b6c 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -88,7 +88,7 @@ static long cec_adap_g_caps(struct cec_adapter *adap,
- {
- 	struct cec_caps caps = {};
-
--	strlcpy(caps.driver, adap->devnode.parent->driver->name,
-+	strlcpy(caps.driver, adap->devnode.dev.parent->driver->name,
- 		sizeof(caps.driver));
- 	strlcpy(caps.name, adap->name, sizeof(caps.name));
- 	caps.available_log_addrs = adap->available_log_addrs;
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index b0137e2..aca3ab8 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -132,7 +132,6 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
- 	devnode->dev.bus = &cec_bus_type;
- 	devnode->dev.devt = MKDEV(MAJOR(cec_dev_t), minor);
- 	devnode->dev.release = cec_devnode_release;
--	devnode->dev.parent = devnode->parent;
- 	dev_set_name(&devnode->dev, "cec%d", devnode->minor);
- 	device_initialize(&devnode->dev);
-
-@@ -198,13 +197,11 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
-
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 					 void *priv, const char *name, u32 caps,
--					 u8 available_las, struct device *parent)
-+					 u8 available_las)
- {
- 	struct cec_adapter *adap;
- 	int res;
-
--	if (WARN_ON(!parent))
--		return ERR_PTR(-EINVAL);
- 	if (WARN_ON(!caps))
- 		return ERR_PTR(-EINVAL);
- 	if (WARN_ON(!ops))
-@@ -214,8 +211,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	adap = kzalloc(sizeof(*adap), GFP_KERNEL);
- 	if (!adap)
- 		return ERR_PTR(-ENOMEM);
--	adap->owner = parent->driver->owner;
--	adap->devnode.parent = parent;
- 	strlcpy(adap->name, name, sizeof(adap->name));
- 	adap->phys_addr = CEC_PHYS_ADDR_INVALID;
- 	adap->log_addrs.cec_version = CEC_OP_CEC_VERSION_2_0;
-@@ -264,7 +259,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- 	adap->rc->input_id.vendor = 0;
- 	adap->rc->input_id.product = 0;
- 	adap->rc->input_id.version = 1;
--	adap->rc->dev.parent = parent;
- 	adap->rc->driver_type = RC_DRIVER_SCANCODE;
- 	adap->rc->driver_name = CEC_NAME;
- 	adap->rc->allowed_protocols = RC_BIT_CEC;
-@@ -278,14 +272,22 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
- }
- EXPORT_SYMBOL_GPL(cec_allocate_adapter);
-
--int cec_register_adapter(struct cec_adapter *adap)
-+int cec_register_adapter(struct cec_adapter *adap,
-+			 struct device *parent)
- {
- 	int res;
-
- 	if (IS_ERR_OR_NULL(adap))
- 		return 0;
-
-+	if (WARN_ON(!parent))
-+		return -EINVAL;
-+
-+	adap->owner = parent->driver->owner;
-+	adap->devnode.dev.parent = parent;
-+
- #if IS_REACHABLE(CONFIG_RC_CORE)
-+	adap->rc->dev.parent = parent;
- 	if (adap->capabilities & CEC_CAP_RC) {
- 		res = rc_register_device(adap->rc);
-
-diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-index 5ba0f21..8c9e289 100644
---- a/drivers/media/i2c/adv7511.c
-+++ b/drivers/media/i2c/adv7511.c
-@@ -1732,9 +1732,10 @@ static bool adv7511_check_edid_status(struct v4l2_subdev *sd)
- static int adv7511_registered(struct v4l2_subdev *sd)
- {
- 	struct adv7511_state *state = get_adv7511_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int err;
-
--	err = cec_register_adapter(state->cec_adap);
-+	err = cec_register_adapter(state->cec_adap, &client->dev);
- 	if (err)
- 		cec_delete_adapter(state->cec_adap);
- 	return err;
-@@ -1928,7 +1929,7 @@ static int adv7511_probe(struct i2c_client *client, const struct i2c_device_id *
- 	state->cec_adap = cec_allocate_adapter(&adv7511_cec_adap_ops,
- 		state, dev_name(&client->dev), CEC_CAP_TRANSMIT |
- 		CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
--		ADV7511_MAX_ADDRS, &client->dev);
-+		ADV7511_MAX_ADDRS);
- 	err = PTR_ERR_OR_ZERO(state->cec_adap);
- 	if (err) {
- 		destroy_workqueue(state->work_queue);
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5630eb2..d0375ca 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -2631,9 +2631,10 @@ static int adv76xx_subscribe_event(struct v4l2_subdev *sd,
- static int adv76xx_registered(struct v4l2_subdev *sd)
- {
- 	struct adv76xx_state *state = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int err;
-
--	err = cec_register_adapter(state->cec_adap);
-+	err = cec_register_adapter(state->cec_adap, &client->dev);
- 	if (err)
- 		cec_delete_adapter(state->cec_adap);
- 	return err;
-@@ -3511,8 +3512,7 @@ static int adv76xx_probe(struct i2c_client *client,
- 	state->cec_adap = cec_allocate_adapter(&adv76xx_cec_adap_ops,
- 		state, dev_name(&client->dev),
- 		CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
--		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV76XX_MAX_ADDRS,
--		&client->dev);
-+		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV76XX_MAX_ADDRS);
- 	err = PTR_ERR_OR_ZERO(state->cec_adap);
- 	if (err)
- 		goto err_entity;
-diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-index 8c2a52e..2d61f0c 100644
---- a/drivers/media/i2c/adv7842.c
-+++ b/drivers/media/i2c/adv7842.c
-@@ -3250,9 +3250,10 @@ static int adv7842_subscribe_event(struct v4l2_subdev *sd,
- static int adv7842_registered(struct v4l2_subdev *sd)
- {
- 	struct adv7842_state *state = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int err;
-
--	err = cec_register_adapter(state->cec_adap);
-+	err = cec_register_adapter(state->cec_adap, &client->dev);
- 	if (err)
- 		cec_delete_adapter(state->cec_adap);
- 	return err;
-@@ -3568,8 +3569,7 @@ static int adv7842_probe(struct i2c_client *client,
- 	state->cec_adap = cec_allocate_adapter(&adv7842_cec_adap_ops,
- 		state, dev_name(&client->dev),
- 		CEC_CAP_TRANSMIT | CEC_CAP_LOG_ADDRS |
--		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV7842_MAX_ADDRS,
--		&client->dev);
-+		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, ADV7842_MAX_ADDRS);
- 	err = PTR_ERR_OR_ZERO(state->cec_adap);
- 	if (err)
- 		goto err_entity;
-diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
-index f9f878b..cb49335 100644
---- a/drivers/media/platform/vivid/vivid-cec.c
-+++ b/drivers/media/platform/vivid/vivid-cec.c
-@@ -216,7 +216,6 @@ static const struct cec_adap_ops vivid_cec_adap_ops = {
-
- struct cec_adapter *vivid_cec_alloc_adap(struct vivid_dev *dev,
- 					 unsigned int idx,
--					 struct device *parent,
- 					 bool is_source)
- {
- 	char name[sizeof(dev->vid_out_dev.name) + 2];
-@@ -227,5 +226,5 @@ struct cec_adapter *vivid_cec_alloc_adap(struct vivid_dev *dev,
- 		 is_source ? dev->vid_out_dev.name : dev->vid_cap_dev.name,
- 		 idx);
- 	return cec_allocate_adapter(&vivid_cec_adap_ops, dev,
--		name, caps, 1, parent);
-+		name, caps, 1);
- }
-diff --git a/drivers/media/platform/vivid/vivid-cec.h b/drivers/media/platform/vivid/vivid-cec.h
-index 97892af..3926b14 100644
---- a/drivers/media/platform/vivid/vivid-cec.h
-+++ b/drivers/media/platform/vivid/vivid-cec.h
-@@ -20,7 +20,6 @@
- #ifdef CONFIG_VIDEO_VIVID_CEC
- struct cec_adapter *vivid_cec_alloc_adap(struct vivid_dev *dev,
- 					 unsigned int idx,
--					 struct device *parent,
- 					 bool is_source);
- void vivid_cec_bus_free_work(struct vivid_dev *dev);
-
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index b8ef836..51e3781 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1167,12 +1167,12 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		if (in_type_counter[HDMI]) {
- 			struct cec_adapter *adap;
-
--			adap = vivid_cec_alloc_adap(dev, 0, &pdev->dev, false);
-+			adap = vivid_cec_alloc_adap(dev, 0, false);
- 			ret = PTR_ERR_OR_ZERO(adap);
- 			if (ret < 0)
- 				goto unreg_dev;
- 			dev->cec_rx_adap = adap;
--			ret = cec_register_adapter(adap);
-+			ret = cec_register_adapter(adap, &pdev->dev);
- 			if (ret < 0) {
- 				cec_delete_adapter(adap);
- 				dev->cec_rx_adap = NULL;
-@@ -1222,13 +1222,12 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 			if (dev->output_type[i] != HDMI)
- 				continue;
- 			dev->cec_output2bus_map[i] = bus_cnt;
--			adap = vivid_cec_alloc_adap(dev, bus_cnt,
--						     &pdev->dev, true);
-+			adap = vivid_cec_alloc_adap(dev, bus_cnt, true);
- 			ret = PTR_ERR_OR_ZERO(adap);
- 			if (ret < 0)
- 				goto unreg_dev;
- 			dev->cec_tx_adap[bus_cnt] = adap;
--			ret = cec_register_adapter(adap);
-+			ret = cec_register_adapter(adap, &pdev->dev);
- 			if (ret < 0) {
- 				cec_delete_adapter(adap);
- 				dev->cec_tx_adap[bus_cnt] = NULL;
-diff --git a/drivers/media/usb/pulse8-cec/pulse8-cec.c b/drivers/media/usb/pulse8-cec/pulse8-cec.c
-index 9092494..7c18dae 100644
---- a/drivers/media/usb/pulse8-cec/pulse8-cec.c
-+++ b/drivers/media/usb/pulse8-cec/pulse8-cec.c
-@@ -659,7 +659,7 @@ static int pulse8_connect(struct serio *serio, struct serio_driver *drv)
-
- 	pulse8->serio = serio;
- 	pulse8->adap = cec_allocate_adapter(&pulse8_cec_adap_ops, pulse8,
--		"HDMI CEC", caps, 1, &serio->dev);
-+		"HDMI CEC", caps, 1);
- 	err = PTR_ERR_OR_ZERO(pulse8->adap);
- 	if (err < 0)
- 		goto free_device;
-@@ -679,7 +679,7 @@ static int pulse8_connect(struct serio *serio, struct serio_driver *drv)
- 	if (err)
- 		goto close_serio;
-
--	err = cec_register_adapter(pulse8->adap);
-+	err = cec_register_adapter(pulse8->adap, &serio->dev);
- 	if (err < 0)
- 		goto close_serio;
-
-diff --git a/drivers/staging/media/s5p-cec/s5p_cec.c b/drivers/staging/media/s5p-cec/s5p_cec.c
-index 33e4358..2a07968 100644
---- a/drivers/staging/media/s5p-cec/s5p_cec.c
-+++ b/drivers/staging/media/s5p-cec/s5p_cec.c
-@@ -203,12 +203,11 @@ static int s5p_cec_probe(struct platform_device *pdev)
- 	cec->adap = cec_allocate_adapter(&s5p_cec_adap_ops, cec,
- 		CEC_NAME,
- 		CEC_CAP_PHYS_ADDR | CEC_CAP_LOG_ADDRS | CEC_CAP_TRANSMIT |
--		CEC_CAP_PASSTHROUGH | CEC_CAP_RC,
--		1, &pdev->dev);
-+		CEC_CAP_PASSTHROUGH | CEC_CAP_RC, 1);
- 	ret = PTR_ERR_OR_ZERO(cec->adap);
- 	if (ret)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 610f59e..f9218f2 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -483,10 +483,16 @@ static int rvin_enum_input(struct file *file, void *priv,
  		return ret;
--	ret = cec_register_adapter(cec->adap);
-+	ret = cec_register_adapter(cec->adap, &pdev->dev);
- 	if (ret) {
- 		cec_delete_adapter(cec->adap);
- 		return ret;
-diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/media/st-cec/stih-cec.c
-index eed1fd6..3c25638 100644
---- a/drivers/staging/media/st-cec/stih-cec.c
-+++ b/drivers/staging/media/st-cec/stih-cec.c
-@@ -335,13 +335,12 @@ static int stih_cec_probe(struct platform_device *pdev)
- 	cec->adap = cec_allocate_adapter(&sti_cec_adap_ops, cec,
- 			CEC_NAME,
- 			CEC_CAP_LOG_ADDRS | CEC_CAP_PASSTHROUGH |
--			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT,
--			1, &pdev->dev);
-+			CEC_CAP_PHYS_ADDR | CEC_CAP_TRANSMIT, 1);
- 	ret = PTR_ERR_OR_ZERO(cec->adap);
- 	if (ret)
- 		return ret;
-
--	ret = cec_register_adapter(cec->adap);
-+	ret = cec_register_adapter(cec->adap, &pdev->dev);
- 	if (ret) {
- 		cec_delete_adapter(cec->adap);
- 		return ret;
-diff --git a/include/media/cec.h b/include/media/cec.h
-index 717eaf5..96a0aa7 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -35,7 +35,6 @@
-  * struct cec_devnode - cec device node
-  * @dev:	cec device
-  * @cdev:	cec character device
-- * @parent:	parent device
-  * @minor:	device node minor number
-  * @registered:	the device was correctly registered
-  * @unregistered: the device was unregistered
-@@ -51,7 +50,6 @@ struct cec_devnode {
- 	/* sysfs */
- 	struct device dev;
- 	struct cdev cdev;
--	struct device *parent;
-
- 	/* device info */
- 	int minor;
-@@ -198,9 +196,8 @@ static inline bool cec_is_sink(const struct cec_adapter *adap)
-
- #if IS_ENABLED(CONFIG_MEDIA_CEC_SUPPORT)
- struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
--		void *priv, const char *name, u32 caps, u8 available_las,
--		struct device *parent);
--int cec_register_adapter(struct cec_adapter *adap);
-+		void *priv, const char *name, u32 caps, u8 available_las);
-+int cec_register_adapter(struct cec_adapter *adap, struct device *parent);
- void cec_unregister_adapter(struct cec_adapter *adap);
- void cec_delete_adapter(struct cec_adapter *adap);
-
-@@ -218,7 +215,8 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
-
- #else
-
--static inline int cec_register_adapter(struct cec_adapter *adap)
-+static inline int cec_register_adapter(struct cec_adapter *adap,
-+				       struct device *parent)
- {
- 	return 0;
- }
+ 
+ 	i->type = V4L2_INPUT_TYPE_CAMERA;
+-	i->std = vin->vdev.tvnorms;
+ 
+-	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap))
++	if (v4l2_subdev_has_op(sd, pad, dv_timings_cap)) {
+ 		i->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++		i->std = 0;
++	} else {
++		i->capabilities = V4L2_IN_CAP_STD;
++		ret = v4l2_subdev_call(sd, video, g_tvnorms, &i->std);
++		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++			return ret;
++	}
+ 
+ 	strlcpy(i->name, "Camera", sizeof(i->name));
+ 
 -- 
-2.8.1
+2.10.2
 
