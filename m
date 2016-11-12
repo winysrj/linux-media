@@ -1,89 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:11823 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754309AbcKVDVz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 22:21:55 -0500
-Message-ID: <1479784905.8964.15.camel@mtksdaap41>
-Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
- Decoder
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        "Rob Herring" <robh+dt@kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Date: Tue, 22 Nov 2016 11:21:45 +0800
-In-Reply-To: <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
-References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
-         <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
-         <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:49339 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753010AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 05:34:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 7/9] af9035: register it9133 tuner using platform binding
+Date: Sat, 12 Nov 2016 12:33:59 +0200
+Message-Id: <1478946841-2807-7-git-send-email-crope@iki.fi>
+In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
+References: <1478946841-2807-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+it913x tuner driver is changed to platform model so we need bind it
+using platform_device_register_data().
 
-On Mon, 2016-11-21 at 15:51 +0100, Hans Verkuil wrote:
-> On 17/11/16 04:38, Rick Chang wrote:
-> > Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > ---
-> > This patch depends on:
-> >   CCF "Add clock support for Mediatek MT2701"[1]
-> >   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
-> >
-> > [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-> > [2] https://patchwork.kernel.org/patch/9164013/
-> 
-> I assume that 1 & 2 will appear in 4.10? So this patch needs to go in 
-> after the
-> other two are merged in 4.10?
-> 
-> Regards,
-> 
-> 	Hans
+Also remove hacks from I2C adapter where fake tuner driver address
+(addr >> 1) were used as those are no longer needed.
 
-[1] will appear in 4.10, but [2] will appear latter than 4.10.So this
-patch needs to go in after [1] & [2] will be merged in 4.11.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 121 ++++++++++++++++------------------
+ drivers/media/usb/dvb-usb-v2/af9035.h |   2 +
+ 2 files changed, 59 insertions(+), 64 deletions(-)
 
-> > ---
-> >  arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
-> >  1 file changed, 14 insertions(+)
-> >
-> > diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
-> > index 8f13c70..4dd5048 100644
-> > --- a/arch/arm/boot/dts/mt2701.dtsi
-> > +++ b/arch/arm/boot/dts/mt2701.dtsi
-> > @@ -298,6 +298,20 @@
-> >  		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-> >  	};
-> >
-> > +	jpegdec: jpegdec@15004000 {
-> > +		compatible = "mediatek,mt2701-jpgdec";
-> > +		reg = <0 0x15004000 0 0x1000>;
-> > +		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-> > +		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-> > +			  <&imgsys CLK_IMG_JPGDEC>;
-> > +		clock-names = "jpgdec-smi",
-> > +			      "jpgdec";
-> > +		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-> > +		mediatek,larb = <&larb2>;
-> > +		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-> > +			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-> > +	};
-> > +
-> >  	vdecsys: syscon@16000000 {
-> >  		compatible = "mediatek,mt2701-vdecsys", "syscon";
-> >  		reg = <0 0x16000000 0 0x1000>;
-> >
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 61dac6a..d89d0d6 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -335,14 +335,12 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+ 		} else if ((msg[0].addr == state->af9033_i2c_addr[0]) ||
+-			   (msg[0].addr == state->af9033_i2c_addr[1]) ||
+-			   (state->chip_type == 0x9135)) {
++			   (msg[0].addr == state->af9033_i2c_addr[1])) {
+ 			/* demod access via firmware interface */
+ 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
+ 					msg[0].buf[2];
+ 
+-			if (msg[0].addr == state->af9033_i2c_addr[1] ||
+-			    msg[0].addr == (state->af9033_i2c_addr[1] >> 1))
++			if (msg[0].addr == state->af9033_i2c_addr[1])
+ 				reg |= 0x100000;
+ 
+ 			ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
+@@ -396,14 +394,12 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
+ 			/* TODO: correct limits > 40 */
+ 			ret = -EOPNOTSUPP;
+ 		} else if ((msg[0].addr == state->af9033_i2c_addr[0]) ||
+-			   (msg[0].addr == state->af9033_i2c_addr[1]) ||
+-			   (state->chip_type == 0x9135)) {
++			   (msg[0].addr == state->af9033_i2c_addr[1])) {
+ 			/* demod access via firmware interface */
+ 			u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
+ 					msg[0].buf[2];
+ 
+-			if (msg[0].addr == state->af9033_i2c_addr[1] ||
+-			    msg[0].addr == (state->af9033_i2c_addr[1] >> 1))
++			if (msg[0].addr == state->af9033_i2c_addr[1])
+ 				reg |= 0x100000;
+ 
+ 			ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
+@@ -1250,30 +1246,11 @@ static int af9035_frontend_detach(struct dvb_usb_adapter *adap)
+ 	struct state *state = adap_to_priv(adap);
+ 	struct dvb_usb_device *d = adap_to_d(adap);
+ 	struct usb_interface *intf = d->intf;
+-	int demod2;
+ 
+ 	dev_dbg(&intf->dev, "adap->id=%d\n", adap->id);
+ 
+-	/*
+-	 * For dual tuner devices we have to resolve 2nd demod client, as there
+-	 * is two different kind of tuner drivers; one is using I2C binding
+-	 * and the other is using DVB attach/detach binding.
+-	 */
+-	switch (state->af9033_config[adap->id].tuner) {
+-	case AF9033_TUNER_IT9135_38:
+-	case AF9033_TUNER_IT9135_51:
+-	case AF9033_TUNER_IT9135_52:
+-	case AF9033_TUNER_IT9135_60:
+-	case AF9033_TUNER_IT9135_61:
+-	case AF9033_TUNER_IT9135_62:
+-		demod2 = 2;
+-		break;
+-	default:
+-		demod2 = 1;
+-	}
+-
+ 	if (adap->id == 1) {
+-		if (state->i2c_client[demod2])
++		if (state->i2c_client[1])
+ 			af9035_del_i2c_dev(d);
+ 	} else if (adap->id == 0) {
+ 		if (state->i2c_client[0])
+@@ -1513,50 +1490,55 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 	case AF9033_TUNER_IT9135_38:
+ 	case AF9033_TUNER_IT9135_51:
+ 	case AF9033_TUNER_IT9135_52:
+-	{
+-		struct it913x_config it913x_config = {
+-			.fe = adap->fe[0],
+-			.chip_ver = 1,
+-		};
+-
+-		if (state->dual_mode) {
+-			if (adap->id == 0)
+-				it913x_config.role = IT913X_ROLE_DUAL_MASTER;
+-			else
+-				it913x_config.role = IT913X_ROLE_DUAL_SLAVE;
+-		}
+-
+-		ret = af9035_add_i2c_dev(d, "it913x",
+-				state->af9033_i2c_addr[adap->id] >> 1,
+-				&it913x_config, &d->i2c_adap);
+-		if (ret)
+-			goto err;
+-
+-		fe = adap->fe[0];
+-		break;
+-	}
+ 	case AF9033_TUNER_IT9135_60:
+ 	case AF9033_TUNER_IT9135_61:
+ 	case AF9033_TUNER_IT9135_62:
+ 	{
+-		struct it913x_config it913x_config = {
++		struct platform_device *pdev;
++		struct it913x_platform_data it913x_pdata = {
++			.regmap = state->af9033_config[adap->id].regmap,
+ 			.fe = adap->fe[0],
+-			.chip_ver = 2,
+ 		};
+ 
++		switch (state->af9033_config[adap->id].tuner) {
++		case AF9033_TUNER_IT9135_38:
++		case AF9033_TUNER_IT9135_51:
++		case AF9033_TUNER_IT9135_52:
++			it913x_pdata.chip_ver = 1;
++			break;
++		case AF9033_TUNER_IT9135_60:
++		case AF9033_TUNER_IT9135_61:
++		case AF9033_TUNER_IT9135_62:
++			it913x_pdata.chip_ver = 2;
++			break;
++		}
++
+ 		if (state->dual_mode) {
+ 			if (adap->id == 0)
+-				it913x_config.role = IT913X_ROLE_DUAL_MASTER;
++				it913x_pdata.role = IT913X_ROLE_DUAL_MASTER;
+ 			else
+-				it913x_config.role = IT913X_ROLE_DUAL_SLAVE;
++				it913x_pdata.role = IT913X_ROLE_DUAL_SLAVE;
++		} else {
++			it913x_pdata.role = IT913X_ROLE_SINGLE;
+ 		}
+ 
+-		ret = af9035_add_i2c_dev(d, "it913x",
+-				state->af9033_i2c_addr[adap->id] >> 1,
+-				&it913x_config, &d->i2c_adap);
+-		if (ret)
++		request_module("%s", "it913x");
++		pdev = platform_device_register_data(&d->intf->dev,
++						     "it913x",
++						     PLATFORM_DEVID_AUTO,
++						     &it913x_pdata,
++						     sizeof(it913x_pdata));
++		if (IS_ERR(pdev) || !pdev->dev.driver) {
++			ret = -ENODEV;
++			goto err;
++		}
++		if (!try_module_get(pdev->dev.driver->owner)) {
++			platform_device_unregister(pdev);
++			ret = -ENODEV;
+ 			goto err;
++		}
+ 
++		state->platform_device_tuner[adap->id] = pdev;
+ 		fe = adap->fe[0];
+ 		break;
+ 	}
+@@ -1678,12 +1660,6 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
+ 	switch (state->af9033_config[adap->id].tuner) {
+ 	case AF9033_TUNER_TUA9001:
+ 	case AF9033_TUNER_FC2580:
+-	case AF9033_TUNER_IT9135_38:
+-	case AF9033_TUNER_IT9135_51:
+-	case AF9033_TUNER_IT9135_52:
+-	case AF9033_TUNER_IT9135_60:
+-	case AF9033_TUNER_IT9135_61:
+-	case AF9033_TUNER_IT9135_62:
+ 		if (adap->id == 1) {
+ 			if (state->i2c_client[3])
+ 				af9035_del_i2c_dev(d);
+@@ -1691,6 +1667,23 @@ static int af9035_tuner_detach(struct dvb_usb_adapter *adap)
+ 			if (state->i2c_client[1])
+ 				af9035_del_i2c_dev(d);
+ 		}
++		break;
++	case AF9033_TUNER_IT9135_38:
++	case AF9033_TUNER_IT9135_51:
++	case AF9033_TUNER_IT9135_52:
++	case AF9033_TUNER_IT9135_60:
++	case AF9033_TUNER_IT9135_61:
++	case AF9033_TUNER_IT9135_62:
++	{
++		struct platform_device *pdev;
++
++		pdev = state->platform_device_tuner[adap->id];
++		if (pdev) {
++			module_put(pdev->dev.driver->owner);
++			platform_device_unregister(pdev);
++		}
++		break;
++	}
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index 89a08a4..a76e6bf 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -22,6 +22,7 @@
+ #ifndef AF9035_H
+ #define AF9035_H
+ 
++#include <linux/platform_device.h>
+ #include "dvb_usb.h"
+ #include "af9033.h"
+ #include "tua9001.h"
+@@ -73,6 +74,7 @@ struct state {
+ 	#define AF9035_I2C_CLIENT_MAX 4
+ 	struct i2c_client *i2c_client[AF9035_I2C_CLIENT_MAX];
+ 	struct i2c_adapter *i2c_adapter_demod;
++	struct platform_device *platform_device_tuner[2];
+ };
+ 
+ static const u32 clock_lut_af9035[] = {
+-- 
+http://palosaari.fi/
 
