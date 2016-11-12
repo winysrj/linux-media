@@ -1,57 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:53474 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752301AbcKRQQd (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:33369 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964936AbcKLNNj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 11:16:33 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Kieran Bingham <kieran@ksquared.org.uk>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] [media] v4l: rcar_fdp1: mark PM functions as __maybe_unused
-Date: Fri, 18 Nov 2016 17:16:04 +0100
-Message-Id: <20161118161621.798004-1-arnd@arndb.de>
+        Sat, 12 Nov 2016 08:13:39 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 00/32] rcar-vin: Add Gen3 with media controller support
+Date: Sat, 12 Nov 2016 14:11:44 +0100
+Message-Id: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new driver produces a warning when CONFIG_PM is disabled:
+Hi All,
 
-platform/rcar_fdp1.c:2408:12: error: 'fdp1_pm_runtime_resume' defined but not used [-Werror=unused-function]
-platform/rcar_fdp1.c:2399:12: error: 'fdp1_pm_runtime_suspend' defined but not used [-Werror=unused-function]
+This series enable Gen3 VIN support in rcar-vin driver for Renesas
+r8a7795 and r8a7796. It is based on top of v4.9-rc1.
 
-This marks the two functions as __maybe_unused.
+Parts of this series was previously part of an different series from me
+which enabled Gen3 support in a different way (using s_input instead of
+a media controller) but after feedback during ELCE the Gen3 enablement
+is now almost completely rewritten.
 
-Fixes: 4710b752e029 ("[media] v4l: Add Renesas R-Car FDP1 Driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/platform/rcar_fdp1.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Patch 1-2: pick-up media entity features from Laurent which the driver
+ depends on.
 
-diff --git a/drivers/media/platform/rcar_fdp1.c b/drivers/media/platform/rcar_fdp1.c
-index dd1a6ea17f22..674cc1309b43 100644
---- a/drivers/media/platform/rcar_fdp1.c
-+++ b/drivers/media/platform/rcar_fdp1.c
-@@ -2396,7 +2396,7 @@ static int fdp1_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static int fdp1_pm_runtime_suspend(struct device *dev)
-+static int __maybe_unused fdp1_pm_runtime_suspend(struct device *dev)
- {
- 	struct fdp1_dev *fdp1 = dev_get_drvdata(dev);
- 
-@@ -2405,7 +2405,7 @@ static int fdp1_pm_runtime_suspend(struct device *dev)
- 	return 0;
- }
- 
--static int fdp1_pm_runtime_resume(struct device *dev)
-+static int __maybe_unused fdp1_pm_runtime_resume(struct device *dev)
- {
- 	struct fdp1_dev *fdp1 = dev_get_drvdata(dev);
- 
+ Patch 3-5: fix small issues in the driver.
+
+ Patch 6-13: changes the driver from attaching to a video source
+ subdevice at probe time to when the video device node (/dev/videoX) are
+ opened. It also allows for the subdevice which is attached is not the
+ same as last time it was opened, but only at the time the first user
+ opens, i.e. when v4l2_fh_is_singular_file() is true.
+
+ Patch 14-15: prepare the internal data structures for Gen3.
+
+ Patch 16-17: small refactoring preparing for Gen3 additions.
+
+ Patch 18-19: add logic to work with the Gen3 hardware registers
+
+ Patch 20-24: add media control support, link setup and link notify
+ handlers.
+
+ Patch 25-29: add logic to the driver to work together with the media
+ controller.
+
+ Patch 30-32: document the new Gen3 DT bindings, add r8a7795 and r8a7796
+ definitions and device info structures.
+
+The driver is tested on both Renesas H3 (r8a7795) and M3-W (r8a7796)
+together with the new rcar-csi2 driver (posted separately) and a
+prototype driver of the ADV7482 (not ready for upstream but publicly
+available). It is possible to capture both CVBS and HDMI video streams,
+v4l2-compliance passes with no errors (there is one warning due the
+ADV7482 driver) and media-ctl can be used to change the routing from the
+different CSI-2 sources to the different VIN consumers.
+
+Gen2 compatibility is verified on Koelsch and no problems where found,
+video can be captured just like before and v4l2-compliance passes
+without errors or warnings.
+
+I have started on a very basic test suite for the VIN driver at:
+
+  https://git.ragnatech.se/vin-tests
+
+And as before the state of the driver and information about how to test it can 
+be found on the elinux wiki:
+
+  http://elinux.org/R-Car/Tests:rcar-vin
+
+* Changes since v1
+- Remove unneeded casts as pointed out by Geert.
+- Fix spelling and DT documentation as pointed out by Geert and Sergei, thanks!
+- Refresh patch 2/32 with an updated version, thanks Sakari for pointing this 
+  out.
+- Add Sakaris Ack to patch 1/32.
+- Rebase on top of v4.9-rc1 instead of v4.9-rc3 to ease integration testing 
+  together with renesas-drivers tree.
+
+Laurent Pinchart (2):
+  media: entity: Add has_route entity operation
+  media: entity: Add media_entity_has_route() function
+
+Niklas Söderlund (30):
+  media: rcar-vin: reset bytesperline and sizeimage when resetting
+    format
+  media: rcar-vin: use rvin_reset_format() in S_DV_TIMINGS
+  media: rcar-vin: fix how pads are handled for v4l2 subdeivce
+    operations
+  media: rcar-vin: fix standard in input enumeration
+  media: rcar-vin: add wrapper to get rvin_graph_entity
+  media: rcar-vin: move subdev source and sink pad index to
+    rvin_graph_entity
+  media: rcar-vin: move pad number discovery to async complete handler
+  media: rcar-vin: use pad information when verifying media bus format
+  media: rcar-vin: refactor pad lookup code
+  media: rcar-vin: split rvin_s_fmt_vid_cap()
+  media: rcar-vin: register the video device early
+  media: rcar-vin: move chip information to own struct
+  media: rcar-vin: move max width and height information to chip
+    information
+  media: rcar-vin: change name of video device
+  media: rcar-vin: clarify error message from the digital notifier
+  media: rcar-vin: enable Gen3 hardware configuration
+  media: rcar-vin: add functions to manipulate Gen3 CHSEL value
+  media: rcar-vin: expose a sink pad if we are on Gen3
+  media: rcar-vin: add group allocator functions
+  media: rcar-vin: add chsel information to rvin_info
+  media: rcar-vin: parse Gen3 OF and setup media graph
+  media: rcar-vin: add link notify for Gen3
+  media: rcar-vin: enable CSI2 group subdevices in lookup helpers
+  media: rcar-vin: add helpers for bridge
+  media: rcar-vin: start/stop the CSI2 bridge stream
+  media: rcar-vin: propagate format to bridge
+  media: rcar-vin: attach to CSI2 group when the video device is opened
+  media: rcar-vin: add Gen3 devicetree bindings documentation
+  media: rcar-vin: enable support for r8a7795
+  media: rcar-vin: enable support for r8a7796
+
+ .../devicetree/bindings/media/rcar_vin.txt         |  117 +-
+ drivers/media/media-entity.c                       |   16 +
+ drivers/media/platform/rcar-vin/Kconfig            |    2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        | 1138 +++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  240 ++++-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  394 ++++---
+ drivers/media/platform/rcar-vin/rcar-vin.h         |  112 +-
+ include/media/media-entity.h                       |   22 +
+ 8 files changed, 1795 insertions(+), 246 deletions(-)
+
 -- 
-2.9.0
+2.10.2
 
