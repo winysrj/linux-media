@@ -1,278 +1,553 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:51976 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932857AbcKKPgW (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:33556 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966012AbcKLNNw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 10:36:22 -0500
-Subject: Re: [RFC PATCH 6/6] [media] davinci: vpif_capture: get subdevs from
- DT
-To: Kevin Hilman <khilman@baylibre.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-References: <20161025235536.7342-1-khilman@baylibre.com>
- <20161025235536.7342-7-khilman@baylibre.com>
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?Q?Bartosz_Go=c5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        linux-arm-kernel@lists.infradead.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <dad6e38b-093b-bd36-3e0d-a0c10bddea58@xs4all.nl>
-Date: Fri, 11 Nov 2016 16:36:16 +0100
+        Sat, 12 Nov 2016 08:13:52 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv2 23/32] media: rcar-vin: parse Gen3 OF and setup media graph
+Date: Sat, 12 Nov 2016 14:12:07 +0100
+Message-Id: <20161112131216.22635-24-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20161025235536.7342-7-khilman@baylibre.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/26/2016 01:55 AM, Kevin Hilman wrote:
-> First pass at getting subdevs from DT ports and endpoints.
-> 
-> The _get_pdata() function was larely inspired by (i.e. stolen from)
-> am437x-vpfe.c
-> 
-> Questions:
-> - Legacy board file passes subdev input & output routes via pdata
->   (e.g. tvp514x svideo or composite selection.)  How is this supposed
->   to be done via DT?
+Parse the VIN Gen3 OF graph and register all devices in the CSI2 group
+common media device. Once a subdevice is added to the common media
+device list as many links as possible are added and if possible enabled.
 
-We have plans to model connectors as well in the device tree, but no
-implementation exists yet. I think Laurent has some code in progress for this,
-but I may be mistaken.
+The links between the video source device and the CSI2 bridge are
+enabled as immutable since they can't change during runtime. While the
+link between the CSI2 bridge and the VIN video device are enabled
+according the CHSEL routing table suitable for the SoC.
 
-Anyway, hard-coding it like you do now is for now the only way.
+The parsing and registering subdevices is a collaborative effort shared
+between all rcar-vin instances which are part of the CSI2 group. Which
+ever rcar-vin instance which fist sees a new subdevice in the graph adds
+it to its private v4l2 async notifier and once it's bound it will be
+available for the whole CSI2 group.
 
-	Hans
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 485 ++++++++++++++++++++++++++++
+ 1 file changed, 485 insertions(+)
 
-> 
-> Not-Yet-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c | 132 +++++++++++++++++++++++++-
->  include/media/davinci/vpif_types.h            |   9 +-
->  2 files changed, 134 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-> index becc3e63b472..df2af5cda37a 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -26,6 +26,8 @@
->  #include <linux/slab.h>
->  
->  #include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-of.h>
-> +#include <media/i2c/tvp514x.h> /* FIXME: how to pass the INPUT_* OUTPUT* fields? */
->  
->  #include "vpif.h"
->  #include "vpif_capture.h"
-> @@ -651,6 +653,10 @@ static int vpif_input_to_subdev(
->  
->  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
->  
-> +	if (!chan_cfg)
-> +		return -1;
-> +	if (input_index >= chan_cfg->input_count)
-> +		return -1;
->  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
->  	if (subdev_name == NULL)
->  		return -1;
-> @@ -658,7 +664,7 @@ static int vpif_input_to_subdev(
->  	/* loop through the sub device list to get the sub device info */
->  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
->  		subdev_info = &vpif_cfg->subdev_info[i];
-> -		if (!strcmp(subdev_info->name, subdev_name))
-> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
->  			return i;
->  	}
->  	return -1;
-> @@ -1328,13 +1334,25 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
->  {
->  	int i;
->  
-> +	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
-> +		const struct device_node *node = vpif_obj.config->asd[i]->match.of.node;
-> +
-> +		if (node == subdev->of_node) {
-> +			vpif_obj.sd[i] = subdev;
-> +			vpif_obj.config->chan_config->inputs[i].subdev_name = subdev->of_node->full_name;
-> +			vpif_dbg(2, debug, "%s: setting input %d subdev_name = %s\n", __func__,
-> +				 i, subdev->of_node->full_name);
-> +			return 0;
-> +		}
-> +	}
-> +
->  	for (i = 0; i < vpif_obj.config->subdev_count; i++)
->  		if (!strcmp(vpif_obj.config->subdev_info[i].name,
->  			    subdev->name)) {
->  			vpif_obj.sd[i] = subdev;
->  			return 0;
->  		}
-> -
-> +	
->  	return -EINVAL;
->  }
->  
-> @@ -1423,6 +1441,113 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
->  	return vpif_probe_complete();
->  }
->  
-> +static struct vpif_capture_config *
-> +vpif_capture_get_pdata(struct platform_device *pdev)
-> +{
-> +	struct device_node *endpoint = NULL;
-> +	struct v4l2_of_endpoint bus_cfg;
-> +	struct vpif_capture_config *pdata;
-> +	struct vpif_subdev_info *sdinfo;
-> +	struct vpif_capture_chan_config *chan;
-> +	unsigned int i;
-> +
-> +	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
-> +		return pdev->dev.platform_data;
-> +
-> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return NULL;
-> +	pdata->subdev_info = devm_kzalloc(&pdev->dev,
-> +					  sizeof(*pdata->subdev_info) *
-> +					  VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
-> +	if (!pdata->subdev_info)
-> +		return NULL;
-> +	dev_dbg(&pdev->dev, "%s\n", __func__);
-> +
-> +	for (i = 0; ; i++) {
-> +		struct device_node *rem;
-> +		unsigned int flags;
-> +		int err;
-> +		
-> +		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
-> +						      endpoint);
-> +		if (!endpoint)
-> +			break;
-> +
-> +		dev_dbg(&pdev->dev, "found endpoint %s, %s\n",
-> +			endpoint->name, endpoint->full_name);
-> +
-> +		sdinfo = &pdata->subdev_info[i];
-> +		chan = &pdata->chan_config[i];
-> +		chan->inputs = devm_kzalloc(&pdev->dev,
-> +					    sizeof(*chan->inputs) *
-> +					    VPIF_DISPLAY_MAX_CHANNELS,
-> +					    GFP_KERNEL);
-> +		
-> +		/* sdinfo->name = devm_kzalloc(&pdev->dev, 16, GFP_KERNEL); */
-> +		/* snprintf(sdinfo->name, 16, "VPIF input %d", i); */
-> +		chan->input_count++;
-> +		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
-> +		chan->inputs[i].input.std = V4L2_STD_ALL;
-> +		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
-> +		
-> +		/* FIXME: need a new property? ch0:composite ch1: s-video */
-> +		if (i == 0)
-> +			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
-> +		else
-> +			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
-> +		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
-> +				
-> +		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> +		if (err) {
-> +			dev_err(&pdev->dev, "Could not parse the endpoint\n");
-> +			goto done;
-> +		}
-> +		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
-> +			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
-> +		flags = bus_cfg.bus.parallel.flags;
-> +
-> +		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +			chan->vpif_if.hd_pol = 1;
-> +
-> +		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +			chan->vpif_if.vd_pol = 1;
-> +
-> +		chan->vpif_if.if_type = VPIF_IF_BT656;
-> +		rem = of_graph_get_remote_port_parent(endpoint);
-> +		if (!rem) {
-> +			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
-> +				endpoint->full_name);
-> +			goto done;
-> +		}
-> +
-> +		dev_dbg(&pdev->dev, "Remote device %s, %s found\n", rem->name, rem->full_name);
-> +		sdinfo->name = rem->full_name;
-> +
-> +		pdata->asd[i] = devm_kzalloc(&pdev->dev,
-> +					     sizeof(struct v4l2_async_subdev),
-> +					     GFP_KERNEL);
-> +		if (!pdata->asd[i]) {
-> +			of_node_put(rem);
-> +			pdata = NULL;
-> +			goto done;
-> +		}
-> +
-> +		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
-> +		pdata->asd[i]->match.of.node = rem;
-> +		of_node_put(rem);
-> +	}
-> +
-> +done:
-> +	pdata->asd_sizes[0] = i;
-> +	pdata->subdev_count = i;
-> +	pdata->card_name = "DA850/OMAP-L138 Video Capture";
-> +
-> +	return pdata;
-> +}
-> +
->  /**
->   * vpif_probe : This function probes the vpif capture driver
->   * @pdev: platform device pointer
-> @@ -1439,6 +1564,7 @@ static __init int vpif_probe(struct platform_device *pdev)
->  	int res_idx = 0;
->  	int i, err;
->  
-> +	pdev->dev.platform_data = vpif_capture_get_pdata(pdev);;
->  	if (!pdev->dev.platform_data) {
->  		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
->  		return -EINVAL;
-> @@ -1481,7 +1607,7 @@ static __init int vpif_probe(struct platform_device *pdev)
->  		goto vpif_unregister;
->  	}
->  
-> -	if (!vpif_obj.config->asd_sizes) {
-> +	if (!vpif_obj.config->asd_sizes[0]) {
->  		i2c_adap = i2c_get_adapter(1);
->  		for (i = 0; i < subdev_count; i++) {
->  			subdevdata = &vpif_obj.config->subdev_info[i];
-> diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-> index 3cb1704a0650..4ee3b41975db 100644
-> --- a/include/media/davinci/vpif_types.h
-> +++ b/include/media/davinci/vpif_types.h
-> @@ -65,14 +65,14 @@ struct vpif_display_config {
->  
->  struct vpif_input {
->  	struct v4l2_input input;
-> -	const char *subdev_name;
-> +	char *subdev_name;
->  	u32 input_route;
->  	u32 output_route;
->  };
->  
->  struct vpif_capture_chan_config {
->  	struct vpif_interface vpif_if;
-> -	const struct vpif_input *inputs;
-> +	struct vpif_input *inputs;
->  	int input_count;
->  };
->  
-> @@ -83,7 +83,8 @@ struct vpif_capture_config {
->  	struct vpif_subdev_info *subdev_info;
->  	int subdev_count;
->  	const char *card_name;
-> -	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
-> -	int *asd_sizes;		/* 0-terminated array of asd group sizes */
-> +
-> +	struct v4l2_async_subdev *asd[VPIF_CAPTURE_MAX_CHANNELS];
-> +	int asd_sizes[VPIF_CAPTURE_MAX_CHANNELS];
->  };
->  #endif /* _VPIF_TYPES_H */
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index c21f029..de75ca8 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -350,6 +350,483 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ }
+ 
+ /* -----------------------------------------------------------------------------
++ * CSI async notifier
++ */
++
++/* group lock should be held when calling this function */
++static void rvin_group_update_pads(struct rvin_graph_entity *entity)
++{
++	struct media_entity *ent = &entity->subdev->entity;
++	unsigned int i;
++
++	/* Make sure source pad idx are sane */
++	if (entity->source_pad_idx >= ent->num_pads ||
++	    ent->pads[entity->source_pad_idx].flags != MEDIA_PAD_FL_SOURCE) {
++		entity->source_pad_idx =
++			rvin_pad_idx(entity->subdev, MEDIA_PAD_FL_SOURCE);
++	}
++
++	/* Try to find sink for source, fall back 0 which always is sink */
++	entity->sink_pad_idx = 0;
++	for (i = 0; i < ent->num_pads; ++i) {
++		struct media_pad *sink = &ent->pads[i];
++
++		if (!(sink->flags & MEDIA_PAD_FL_SINK))
++			continue;
++
++		if (sink->index == entity->source_pad_idx)
++			continue;
++
++		if (media_entity_has_route(ent, sink->index,
++					   entity->source_pad_idx))
++			entity->sink_pad_idx = sink->index;
++	}
++}
++
++/* group lock should be held when calling this function */
++static int rvin_group_add_link(struct rvin_dev *vin,
++			       struct media_entity *source,
++			       unsigned int source_pad_idx,
++			       struct media_entity *sink,
++			       unsigned int sink_idx,
++			       u32 flags)
++{
++	struct media_pad *source_pad, *sink_pad;
++	int ret = 0;
++
++	source_pad = &source->pads[source_pad_idx];
++	sink_pad = &sink->pads[sink_idx];
++
++	if (!media_entity_find_link(source_pad, sink_pad))
++		ret = media_create_pad_link(source, source_pad_idx,
++					    sink, sink_idx, flags);
++
++	if (ret)
++		vin_err(vin, "Error adding link from %s to %s\n",
++			source->name, sink->name);
++
++	return ret;
++}
++
++static int rvin_group_update_links(struct rvin_dev *vin)
++{
++	struct media_entity *source, *sink;
++	struct rvin_dev *master;
++	unsigned int i, n, idx, chsel, csi;
++	u32 flags;
++	int ret;
++
++	mutex_lock(&vin->group->lock);
++
++	/* Update Source -> Bridge */
++	for (i = 0; i < RVIN_CSI_MAX; i++) {
++		if (!vin->group->source[i].subdev)
++			continue;
++
++		if (!vin->group->bridge[i].subdev)
++			continue;
++
++		source = &vin->group->source[i].subdev->entity;
++		sink = &vin->group->bridge[i].subdev->entity;
++		idx = vin->group->source[i].source_pad_idx;
++		flags = MEDIA_LNK_FL_ENABLED | MEDIA_LNK_FL_IMMUTABLE;
++
++		ret = rvin_group_add_link(vin, source, idx, sink, 0, flags);
++		if (ret)
++			goto out;
++	}
++
++	/* Update Bridge -> VIN */
++	for (n = 0; n < RCAR_VIN_NUM; n++) {
++
++		/* Check that VIN is part of the group */
++		if (!vin->group->vin[n])
++			continue;
++
++		/* Check that subgroup master is part of the group */
++		master = vin->group->vin[n < 4 ? 0 : 4];
++		if (!master)
++			continue;
++
++		chsel = rvin_get_chsel(master);
++
++		for (i = 0; i < vin->info->num_chsels; i++) {
++			csi = vin->info->chsels[n][i].csi;
++
++			/* If the CSI is out of bounds it's a no operate skip */
++			if (csi >= RVIN_CSI_MAX)
++				continue;
++
++			/* Check that bridge are part of the group */
++			if (!vin->group->bridge[csi].subdev)
++				continue;
++
++			source = &vin->group->bridge[csi].subdev->entity;
++			sink = &vin->group->vin[n]->vdev.entity;
++			idx = vin->info->chsels[n][i].chan + 1;
++			flags = i == chsel ? MEDIA_LNK_FL_ENABLED : 0;
++
++			ret = rvin_group_add_link(vin, source, idx, sink, 0,
++						  flags);
++			if (ret)
++				goto out;
++		}
++	}
++out:
++	mutex_unlock(&vin->group->lock);
++
++	return ret;
++}
++
++static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
++{
++	struct rvin_dev *vin = notifier_to_vin(notifier);
++	unsigned int i;
++	int ret;
++
++	mutex_lock(&vin->group->lock);
++	for (i = 0; i < RVIN_CSI_MAX; i++) {
++		if (!vin->group->source[i].subdev)
++			continue;
++
++		rvin_group_update_pads(&vin->group->source[i]);
++
++		if (!rvin_mbus_supported(&vin->group->source[i])) {
++			vin_err(vin, "Unsupported media bus format for %s\n",
++				vin->group->source[i].subdev->name);
++			mutex_unlock(&vin->group->lock);
++			return -EINVAL;
++		}
++	}
++	mutex_unlock(&vin->group->lock);
++
++	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
++	if (ret) {
++		vin_err(vin, "Failed to register subdev nodes\n");
++		return ret;
++	}
++
++	return rvin_group_update_links(vin);
++}
++
++static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
++				     struct v4l2_subdev *subdev,
++				     struct v4l2_async_subdev *asd)
++{
++	struct rvin_dev *vin = notifier_to_vin(notifier);
++	unsigned int i;
++
++	mutex_lock(&vin->group->lock);
++	for (i = 0; i < RVIN_CSI_MAX; i++) {
++		struct device_node *del = subdev->dev->of_node;
++
++		if (vin->group->bridge[i].asd.match.of.node == del) {
++			vin_dbg(vin, "Unbind bridge %s\n", subdev->name);
++			vin->group->bridge[i].subdev = NULL;
++			mutex_unlock(&vin->group->lock);
++			return;
++		}
++
++		if (vin->group->source[i].asd.match.of.node == del) {
++			vin_dbg(vin, "Unbind source %s\n", subdev->name);
++			vin->group->source[i].subdev = NULL;
++			mutex_unlock(&vin->group->lock);
++			return;
++		}
++	}
++	mutex_unlock(&vin->group->lock);
++
++	vin_err(vin, "No entity for subdev %s to unbind\n", subdev->name);
++}
++
++static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
++				   struct v4l2_subdev *subdev,
++				   struct v4l2_async_subdev *asd)
++{
++	struct rvin_dev *vin = notifier_to_vin(notifier);
++	unsigned int i;
++
++	v4l2_set_subdev_hostdata(subdev, vin);
++
++	mutex_lock(&vin->group->lock);
++	for (i = 0; i < RVIN_CSI_MAX; i++) {
++		struct device_node *new = subdev->dev->of_node;
++
++		if (vin->group->bridge[i].asd.match.of.node == new) {
++			vin_dbg(vin, "Bound bridge %s\n", subdev->name);
++			vin->group->bridge[i].subdev = subdev;
++			mutex_unlock(&vin->group->lock);
++			return 0;
++		}
++
++		if (vin->group->source[i].asd.match.of.node == new) {
++			vin_dbg(vin, "Bound source %s\n", subdev->name);
++			vin->group->source[i].subdev = subdev;
++			mutex_unlock(&vin->group->lock);
++			return 0;
++		}
++	}
++	mutex_unlock(&vin->group->lock);
++
++	vin_err(vin, "No entity for subdev %s to bind\n", subdev->name);
++	return -EINVAL;
++}
++
++static int rvin_group_parse_v4l2(struct rvin_dev *vin,
++				 struct device_node *ep,
++				 struct v4l2_mbus_config *mbus_cfg)
++{
++	struct v4l2_of_endpoint v4l2_ep;
++	int ret;
++
++	ret = v4l2_of_parse_endpoint(ep, &v4l2_ep);
++	if (ret) {
++		vin_err(vin, "Could not parse v4l2 endpoint\n");
++		return -EINVAL;
++	}
++
++	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
++		vin_err(vin, "Unsupported media bus type for %s\n",
++			of_node_full_name(ep));
++		return -EINVAL;
++	}
++
++	mbus_cfg->type = v4l2_ep.bus_type;
++	mbus_cfg->flags = v4l2_ep.bus.mipi_csi2.flags;
++
++	return 0;
++}
++
++static int rvin_group_vin_num_from_bridge(struct rvin_dev *vin,
++					  struct device_node *node,
++					  int test)
++{
++	struct device_node *remote;
++	struct of_endpoint endpoint;
++	int num;
++
++	remote = of_parse_phandle(node, "remote-endpoint", 0);
++	if (!remote)
++		return -EINVAL;
++
++	of_graph_parse_endpoint(remote, &endpoint);
++	of_node_put(remote);
++
++	num = endpoint.id;
++
++	if (test != -1 && num != test) {
++		vin_err(vin, "VIN numbering error at %s, was %d now %d\n",
++			of_node_full_name(node), test, num);
++		return -EINVAL;
++	}
++
++	return num;
++}
++
++static struct device_node *rvin_group_get_bridge(struct rvin_dev *vin,
++						 struct device_node *node)
++{
++	struct device_node *bridge;
++
++	bridge = of_graph_get_remote_port_parent(node);
++	if (!bridge) {
++		vin_err(vin, "No bridge found %s\n", of_node_full_name(node));
++		return ERR_PTR(-EINVAL);
++	}
++
++	/* Not all bridges are available, this is OK */
++	if (!of_device_is_available(bridge)) {
++		vin_dbg(vin, "Bridge %s not available\n",
++			of_node_full_name(bridge));
++		of_node_put(bridge);
++		return NULL;
++	}
++
++	return bridge;
++}
++
++static struct device_node *
++rvin_group_get_source(struct rvin_dev *vin,
++		      struct device_node *bridge,
++		      struct v4l2_mbus_config *mbus_cfg,
++		      unsigned int *remote_pad)
++{
++	struct device_node *source, *ep, *rp;
++	struct of_endpoint endpoint;
++	int ret;
++
++	ep = of_graph_get_endpoint_by_regs(bridge, 0, 0);
++	if (!ep) {
++		vin_dbg(vin, "Endpoint %s not connected to source\n",
++			of_node_full_name(ep));
++		return ERR_PTR(-EINVAL);
++	}
++
++	/* Check that source uses a supported media bus */
++	ret = rvin_group_parse_v4l2(vin, ep, mbus_cfg);
++	if (ret) {
++		of_node_put(ep);
++		return ERR_PTR(ret);
++	}
++
++	rp = of_graph_get_remote_port(ep);
++	of_graph_parse_endpoint(rp, &endpoint);
++	of_node_put(rp);
++	*remote_pad = endpoint.id;
++
++	source = of_graph_get_remote_port_parent(ep);
++	of_node_put(ep);
++	if (!source) {
++		vin_err(vin, "No source found for endpoint '%s'\n",
++			of_node_full_name(ep));
++		return ERR_PTR(-EINVAL);
++	}
++
++	return source;
++}
++
++/* group lock should be held when calling this function */
++static int rvin_group_graph_parse(struct rvin_dev *vin, unsigned long *bitmap)
++{
++	struct device_node *ep, *bridge, *source;
++	unsigned int i, remote_pad;
++	int vin_num = -1;
++
++	*bitmap = 0;
++
++	for (i = 0; i < RVIN_CSI_MAX; i++) {
++
++		/* Check if instance is connected to the bridge */
++		ep = of_graph_get_endpoint_by_regs(vin->dev->of_node, 1, i);
++		if (!ep) {
++			vin_dbg(vin, "Bridge: %d not connected\n", i);
++			continue;
++		}
++
++		vin_num = rvin_group_vin_num_from_bridge(vin, ep, vin_num);
++		if (vin_num < 0) {
++			of_node_put(ep);
++			return vin_num;
++		}
++
++		if (vin->group->bridge[i].asd.match.of.node) {
++			of_node_put(ep);
++			vin_dbg(vin, "Bridge: %d handled by other device\n", i);
++			continue;
++		}
++
++		bridge = rvin_group_get_bridge(vin, ep);
++		of_node_put(ep);
++		if (IS_ERR(bridge))
++			return PTR_ERR(bridge);
++		if (bridge == NULL)
++			continue;
++
++		source = rvin_group_get_source(vin, bridge,
++					       &vin->group->source[i].mbus_cfg,
++					       &remote_pad);
++		of_node_put(bridge);
++		if (IS_ERR(source))
++			return PTR_ERR(source);
++		if (source == NULL)
++			continue;
++
++		of_node_put(source);
++
++		vin->group->bridge[i].asd.match.of.node = bridge;
++		vin->group->bridge[i].asd.match_type = V4L2_ASYNC_MATCH_OF;
++		vin->group->source[i].asd.match.of.node = source;
++		vin->group->source[i].asd.match_type = V4L2_ASYNC_MATCH_OF;
++		vin->group->source[i].source_pad_idx = remote_pad;
++
++		*bitmap |= BIT(i);
++
++		vin_dbg(vin, "Handle bridge %s and source %s pad %d\n",
++			of_node_full_name(bridge), of_node_full_name(source),
++			remote_pad);
++	}
++
++	/* Insert ourself in the group */
++	vin_dbg(vin, "I'm VIN number %d", vin_num);
++	if (vin->group->vin[vin_num] != NULL) {
++		vin_err(vin, "VIN number %d already occupied\n", vin_num);
++		return -EINVAL;
++	}
++	vin->group->vin[vin_num] = vin;
++
++	return 0;
++}
++
++/* group lock should be held when calling this function */
++static void rvin_group_graph_revert(struct rvin_dev *vin, unsigned long bitmap)
++{
++	int bit;
++
++	for_each_set_bit(bit, &bitmap, RVIN_CSI_MAX) {
++		vin_dbg(vin, "Reverting graph for %s\n",
++			of_node_full_name(vin->dev->of_node));
++		vin->group->bridge[bit].asd.match.of.node = NULL;
++		vin->group->bridge[bit].asd.match_type = 0;
++		vin->group->source[bit].asd.match.of.node = NULL;
++		vin->group->source[bit].asd.match_type = 0;
++	}
++}
++
++static int rvin_group_graph_init(struct rvin_dev *vin)
++{
++	struct v4l2_async_subdev **subdevs = NULL;
++	unsigned long bitmap;
++	int i, bit, count, ret;
++
++	mutex_lock(&vin->group->lock);
++
++	ret = rvin_group_graph_parse(vin, &bitmap);
++	if (ret) {
++		rvin_group_graph_revert(vin, bitmap);
++		mutex_unlock(&vin->group->lock);
++		return ret;
++	}
++
++	/* Check if instance need to handle subdevices on behalf of the group */
++	count = hweight_long(bitmap) * 2;
++	if (!count) {
++		mutex_unlock(&vin->group->lock);
++		return 0;
++	}
++
++	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs) * count, GFP_KERNEL);
++	if (subdevs == NULL) {
++		rvin_group_graph_revert(vin, bitmap);
++		mutex_unlock(&vin->group->lock);
++		return -ENOMEM;
++	}
++
++	i = 0;
++	for_each_set_bit(bit, &bitmap, RVIN_CSI_MAX) {
++		subdevs[i++] = &vin->group->bridge[bit].asd;
++		subdevs[i++] = &vin->group->source[bit].asd;
++	}
++
++	vin_dbg(vin, "Claimed %d subdevices for group\n", count);
++
++	vin->notifier.num_subdevs = count;
++	vin->notifier.subdevs = subdevs;
++	vin->notifier.bound = rvin_group_notify_bound;
++	vin->notifier.unbind = rvin_group_notify_unbind;
++	vin->notifier.complete = rvin_group_notify_complete;
++
++	mutex_unlock(&vin->group->lock);
++
++	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
++	if (ret < 0) {
++		vin_err(vin, "Group notifier registration failed\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++/* -----------------------------------------------------------------------------
+  * Platform Device Driver
+  */
+ 
+@@ -422,6 +899,14 @@ static int rvin_graph_init(struct rvin_dev *vin)
+ 		vin->group = rvin_group_allocate(vin);
+ 		if (IS_ERR(vin->group))
+ 			return PTR_ERR(vin->group);
++
++		ret = rvin_group_graph_init(vin);
++		if (ret)
++			return ret;
++
++		ret = rvin_group_update_links(vin);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return ret;
+-- 
+2.10.2
+
