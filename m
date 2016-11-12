@@ -1,131 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34247 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965905AbcKXP6W (ORCPT
+Received: from saturn.retrosnub.co.uk ([178.18.118.26]:34949 "EHLO
+        saturn.retrosnub.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938767AbcKLN1U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 10:58:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Matt Ranostay <matt@ranostay.consulting>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
-        Luca Barbato <lu_zero@gentoo.org>
-Subject: Re: [PATCH v3] media: i2c-polling: add i2c-polling driver
-Date: Thu, 24 Nov 2016 17:58:42 +0200
-Message-ID: <2959136.pq40D4COK1@avalon>
-In-Reply-To: <CAJ_EiSSsRjHO-BEArFA5BsyWQNnEtD024wwYrnFJ32p0SVNpqQ@mail.gmail.com>
-References: <1479863920-14708-1-git-send-email-matt@ranostay.consulting> <CAJ_EiSSjjf9KDVzA=Qyd0BqXC30Hb89UgcJ7Oinr8bWCN=JmHg@mail.gmail.com> <CAJ_EiSSsRjHO-BEArFA5BsyWQNnEtD024wwYrnFJ32p0SVNpqQ@mail.gmail.com>
+        Sat, 12 Nov 2016 08:27:20 -0500
+Subject: Re: [PATCH v2 00/11] getting back -Wmaybe-uninitialized
+To: Arnd Bergmann <arnd@arndb.de>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+References: <20161110164454.293477-1-arnd@arndb.de>
+ <CA+55aFx_scFVFKU__TBmoffw_iHvrdAU2dj5u1WKfWJXAkS4QA@mail.gmail.com>
+ <2695221.kyRJMsRMjs@wuerfel>
+Cc: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        sayli karnik <karniksayli1995@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Jiri Kosina <jikos@kernel.org>,
+        Ley Foon Tan <lftan@altera.com>,
+        "Luis R . Rodriguez" <mcgrof@kernel.org>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Marek <mmarek@suse.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sean Young <sean@mess.org>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Trond Myklebust <trond.myklebust@primarydata.com>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        arcml <"linux-snps -arc"@lists.infradead.org>,
+        nios2-dev@lists.rocketboards.org,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux NFS Mailing List <linux-nfs@vger.kernel.org>,
+        gregkh@linuxfoundation.org
+From: Jonathan Cameron <jic23@kernel.org>
+Message-ID: <f6dccd27-09d2-1842-220b-24aa84043674@kernel.org>
+Date: Sat, 12 Nov 2016 13:27:12 +0000
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <2695221.kyRJMsRMjs@wuerfel>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matt,
-
-On Thursday 24 Nov 2016 00:04:24 Matt Ranostay wrote:
-> On Wed, Nov 23, 2016 at 10:31 PM, Matt Ranostay wrote:
-> > On Wed, Nov 23, 2016 at 8:30 AM, Laurent Pinchart wrote:
-> >> On Tuesday 22 Nov 2016 17:18:40 Matt Ranostay wrote:
-> >>> There are several thermal sensors that only have a low-speed bus
-> >>> interface but output valid video data. This patchset enables support
-> >>> for the AMG88xx "Grid-Eye" sensor family.
-> >>> 
-> >>> Cc: Attila Kinali <attila@kinali.ch>
-> >>> Cc: Marek Vasut <marex@denx.de>
-> >>> Cc: Luca Barbato <lu_zero@gentoo.org>
-> >>> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
-> >>> ---
-> >>> Changes from v1:
-> >>> * correct i2c_polling_remove() operations
-> >>> * fixed delay calcuation in buffer_queue()
-> >>> * add include linux/slab.h
-> >>> 
-> >>> Changes from v2:
-> >>> * fix build error due to typo in include of slab.h
-> >>> 
-> >>>  drivers/media/i2c/Kconfig       |   8 +
-> >>>  drivers/media/i2c/Makefile      |   1 +
-> >>>  drivers/media/i2c/i2c-polling.c | 469 +++++++++++++++++++++++++++++++++
-> >> 
-> >> Just looking at the driver name I believe a rename is needed. i2c-polling
-> >> is a very generic name and would mislead many people into thinking about
-> >> an I2C subsystem core feature instead of a video driver. "video-i2c" is
-> >> one option, I'm open to other ideas.
-> >> 
-> >>>  3 files changed, 478 insertions(+)
-> >>>  create mode 100644 drivers/media/i2c/i2c-polling.c
-
-[snip]
-
-> >>> diff --git a/drivers/media/i2c/i2c-polling.c
-> >>> b/drivers/media/i2c/i2c-polling.c new file mode 100644
-> >>> index 000000000000..46a4eecde2d2
-> >>> --- /dev/null
-> >>> +++ b/drivers/media/i2c/i2c-polling.c
-
-[snip]
-
-> >>> +static void buffer_queue(struct vb2_buffer *vb)
-> >>> +{
-> >>> +     struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
-> >>> +     unsigned int delay = 1000 / data->chip->max_fps;
-> >>> +     int delta;
-> >>> +
-> >>> +     mutex_lock(&data->lock);
-> >>> +
-> >>> +     delta = jiffies - data->last_update;
-> >>> +
-> >>> +     if (delta < msecs_to_jiffies(delay)) {
-> >>> +             int tmp = (delay - jiffies_to_msecs(delta)) * 1000;
-> >>> +
-> >>> +             usleep_range(tmp, tmp + 1000);
-> >>> +     }
-> >>> +     data->last_update = jiffies;
-> >>> +
-> >>> +     mutex_unlock(&data->lock);
-> >>> +
-> >>> +     vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-> >>> +}
-> >>> +
-> >>> +static void buffer_finish(struct vb2_buffer *vb)
-> >>> +{
-> >>> +     struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
-> >>> +     void *vbuf = vb2_plane_vaddr(vb, 0);
-> >>> +     int size = vb2_plane_size(vb, 0);
-> >>> +     int ret;
-> >>> +
-> >>> +     mutex_lock(&data->lock);
-> >>> +
-> >>> +     ret = data->chip->xfer(data, vbuf);
-> >>> +     if (ret < 0)
-> >>> +             vb->state = VB2_BUF_STATE_ERROR;
-> >> 
-> >> That's not nice, the status should be set through vb2_buffer_done().
-> >> 
-> >> You can't transfer data in the buffer_queue handler is that function
-> >> can't sleep. Instead, I'm wondering whether it would make sense to
-> >> perform transfers in a workqueue, to making timings less dependent on
-> >> userspace.
-> > 
-> > About the workqueue how would one signal to that the buffer is written
-> > to buffer_queue/buffer_finish?
+On 11/11/16 19:49, Arnd Bergmann wrote:
+> On Friday, November 11, 2016 9:13:00 AM CET Linus Torvalds wrote:
+>> On Thu, Nov 10, 2016 at 8:44 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>>>
+>>> Please merge these directly if you are happy with the result.
+>>
+>> I will take this.
 > 
-> Testing the workqueue way and it isn't fine enough... need to use some
-> form of the high resolution timers. Need to figure the best way to do
-> that with signaling back to the queue functions.. would completion
-> queues make sense?
+> Thanks a lot!
+>  
+>> I do see two warnings, but they both seem to be valid and recent,
+>> though, so I have no issues with the spurious cases.
+> 
+> Ok, both of them should have my fixes coming your way already.
+> 
+>> Warning #1:
+>>
+>>   sound/soc/qcom/lpass-platform.c: In function ‘lpass_platform_pcmops_open’:
+>>   sound/soc/qcom/lpass-platform.c:83:29: warning: ‘dma_ch’ may be used
+>> uninitialized in this function [-Wmaybe-uninitialized]
+>>     drvdata->substream[dma_ch] = substream;
+>>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+>>
+>> and 'dma_ch' usage there really is crazy and wrong. Broken by
+>> 022d00ee0b55 ("ASoC: lpass-platform: Fix broken pcm data usage")
+> 
+> Right, the patches crossed here, the bugfix patch that introduced
+> this came into linux-next over the kernel summit, and the fix I
+> sent on Tuesday made it into Mark Brown's tree on Wednesday but not
+> before you pulled alsa tree. It should be fixed the next time you
+> pull from the alsa tree, the commit is
+> 
+> 3b89e4b77ef9 ("ASoC: lpass-platform: initialize dma channel number")
+>  
+>> Warning #2 is not a real bug, but it's reasonable that gcc doesn't
+>> know that storage_bytes (chip->read_size) has to be 2/4. Again,
+>> introduced recently by commit 231147ee77f3 ("iio: maxim_thermocouple:
+>> Align 16 bit big endian value of raw reads"), so you didn't see it.
+> 
+> This is the one I mentioned in the commit message as one that
+> is fixed in linux-next and that should make it in soon.
+> 
+>>   drivers/iio/temperature/maxim_thermocouple.c: In function
+>> ‘maxim_thermocouple_read_raw’:
+>>   drivers/iio/temperature/maxim_thermocouple.c:141:5: warning: ‘ret’
+>> may be used uninitialized in this function [-Wmaybe-uninitialized]
+>>     if (ret)
+>>        ^
+>>   drivers/iio/temperature/maxim_thermocouple.c:128:6: note: ‘ret’ was
+>> declared here
+>>     int ret;
+>>         ^~~
+>>
+>> and I guess that code can just initialize 'ret' to '-EINVAL' or
+>> something to just make the theoretical "somehow we had a wrong
+>> chip->read_size" case error out cleanly.
+> 
+> Right, that was my conclusion too. I sent the bugfix on Oct 25
+> for linux-next but it didn't make it in until this Monday, after
+> you pulled the patch that introduced it on Oct 29.
+> 
+> The commit in staging-testing is
+> 32cb7d27e65d ("iio: maxim_thermocouple: detect invalid storage size in read()")
+> 
+> Greg and Jonathan, I see now that this is part of the 'iio-for-4.10b'
+> branch, so I suspect you were not planning to send this before the
+> merge window. Could you make sure this ends up in v4.9 so we get
+> a clean build when -Wmaybe-uninitialized gets enabled again?
+I'll queue this up and send a pull to Greg tomorrow.
 
-How about a kthread, as done in the vivid driver ?
+Was highly doubtful that a false warning suppression (be it an
+understandable one) was worth sending mid cycle, hence it was
+taking the slow route.
 
-> >>> +     mutex_unlock(&data->lock);
-> >>> +
-> >>> +     vb->timestamp = ktime_get_ns();
-> >>> +     vb2_set_plane_payload(vb, 0, ret ? 0 : size);
-> >>> +}
-
--- 
-Regards,
-
-Laurent Pinchart
+Jonathan
+> 
+> 	Arnd
+> 
 
