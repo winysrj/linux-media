@@ -1,109 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35312 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752217AbcKHNzh (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:51882 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938787AbcKLOrA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:37 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 15/21] media: Provide a way to the driver to set a private pointer
-Date: Tue,  8 Nov 2016 15:55:24 +0200
-Message-Id: <1478613330-24691-15-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+        Sat, 12 Nov 2016 09:47:00 -0500
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/3] Media fixes for Kernel 4.9-rc5
+Date: Sat, 12 Nov 2016 12:46:25 -0200
+Message-Id: <cover.1478960480.git.mchehab@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the media device can be allocated dynamically, drivers have no
-longer a way to conveniently obtain the driver private data structure.
-Provide one again in the form of a private pointer passed to the
-media_device_alloc() function.
+Hi Linus,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/media-device.c |  3 ++-
- include/media/media-device.h | 15 ++++++++++++++-
- 2 files changed, 16 insertions(+), 2 deletions(-)
+This patch series contain two patches fixing problems with my
+patch series meant to make USB drivers to work again after the
+DMA on stack changes.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index 648c64c..7d9f76d 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -729,7 +729,7 @@ static void media_device_release(struct media_devnode *devnode)
- 	kfree(mdev);
- }
- 
--struct media_device *media_device_alloc(struct device *dev)
-+struct media_device *media_device_alloc(struct device *dev, void *priv)
- {
- 	struct media_device *mdev;
- 
-@@ -745,6 +745,7 @@ struct media_device *media_device_alloc(struct device *dev)
- 
- 	mdev->dev = dev;
- 	media_device_init(mdev);
-+	mdev->priv = priv;
- 
- 	mdev->devnode.release = media_device_release;
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index ae2bc08..94e96ef 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -62,6 +62,7 @@ struct media_device_ops {
-  * struct media_device - Media device
-  * @dev:	Parent device
-  * @devnode:	Media device node
-+ * @priv:	A pointer to driver private data
-  * @driver_name: Optional device driver name. If not set, calls to
-  *		%MEDIA_IOC_DEVICE_INFO will return ``dev->driver->name``.
-  *		This is needed for USB drivers for example, as otherwise
-@@ -128,6 +129,7 @@ struct media_device {
- 	/* dev->driver_data points to this struct. */
- 	struct device *dev;
- 	struct media_devnode devnode;
-+	void *priv;
- 
- 	char model[32];
- 	char driver_name[32];
-@@ -214,6 +216,7 @@ void media_device_init(struct media_device *mdev);
-  * media_device_alloc() - Allocate and initialise a media device
-  *
-  * @dev:	The associated struct device pointer
-+ * @priv:	pointer to a driver private data structure
-  *
-  * Allocate and initialise a media device. Returns a media device.
-  * The media device is refcounted, and this function returns a media
-@@ -222,7 +225,7 @@ void media_device_init(struct media_device *mdev);
-  * References are taken and given using media_device_get() and
-  * media_device_put().
-  */
--struct media_device *media_device_alloc(struct device *dev);
-+struct media_device *media_device_alloc(struct device *dev, void *priv);
- 
- /**
-  * media_device_get() - Get a reference to a media device
-@@ -249,6 +252,16 @@ struct media_device *media_device_alloc(struct device *dev);
- 	} while (0)
- 
- /**
-+ * media_device_priv() - Obtain the driver private pointer
-+ *
-+ * Returns a pointer passed to the media_device_alloc() function.
-+ */
-+static inline void *media_device_priv(struct media_device *mdev)
-+{
-+	return mdev->priv;
-+}
-+
-+/**
-  * media_device_cleanup() - Cleanups a media device element
-  *
-  * @mdev:	pointer to struct &media_device
+The last patch on this series is actually not related to DMA on
+stack. It solves a longstanding bug affecting module unload,
+causing module_put() to be called twice. It was reported by the
+user who reported and tested the issues with the gp8psk driver
+with the DMA fixup patches. As we're late at -rc cycle, maybe you
+prefer to not apply it right now. If this is the case, I'll
+add to the pile of patches for 4.10.
+
+Regards,
+Mauro
+
+PS.: Exceptionally this time, I'm sending the patches via e-mail,
+because I'm on another trip, and won't be able to use the usual
+procedure until Monday. Also, it is only three patches, and you
+followed already the discussions about the first one.
+
+Mauro Carvalho Chehab (3):
+  [media] dvb-usb: move data_mutex to struct dvb_usb_device
+  [media] gp8psk: fix gp8psk_usb_in_op() logic
+  [media] gp8psk: Fix DVB frontend attach
+
+ drivers/media/dvb-frontends/Kconfig                |   5 +
+ drivers/media/dvb-frontends/Makefile               |   1 +
+ .../{usb/dvb-usb => dvb-frontends}/gp8psk-fe.c     | 139 ++++++++++++---------
+ drivers/media/dvb-frontends/gp8psk-fe.h            |  82 ++++++++++++
+ drivers/media/usb/dvb-usb/Makefile                 |   2 +-
+ drivers/media/usb/dvb-usb/af9005.c                 |  33 ++---
+ drivers/media/usb/dvb-usb/cinergyT2-core.c         |  33 ++---
+ drivers/media/usb/dvb-usb/cxusb.c                  |  39 +++---
+ drivers/media/usb/dvb-usb/cxusb.h                  |   1 -
+ drivers/media/usb/dvb-usb/dtt200u.c                |  40 +++---
+ drivers/media/usb/dvb-usb/dvb-usb-init.c           |   1 +
+ drivers/media/usb/dvb-usb/dvb-usb.h                |   9 +-
+ drivers/media/usb/dvb-usb/gp8psk.c                 | 111 +++++++++++-----
+ drivers/media/usb/dvb-usb/gp8psk.h                 |  63 ----------
+ 14 files changed, 310 insertions(+), 249 deletions(-)
+ rename drivers/media/{usb/dvb-usb => dvb-frontends}/gp8psk-fe.c (72%)
+ create mode 100644 drivers/media/dvb-frontends/gp8psk-fe.h
+
 -- 
-2.1.4
+2.9.3
 
