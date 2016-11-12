@@ -1,94 +1,803 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:42638 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752557AbcK3Me7 (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:46388 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936990AbcKLMaL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 07:34:59 -0500
-Date: Wed, 30 Nov 2016 15:33:26 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>,
-        Sakari Alius <sakari.ailus@iki.fi>, wharms@bfs.de,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
-Message-ID: <20161130123326.GH28558@mwanda>
-References: <20161125102835.GA5856@mwanda>
- <20161128134358.GS6266@mwanda>
- <alpine.DEB.2.10.1611281453100.2967@hadrien>
- <13737175.iVr8OcoHqv@avalon>
+        Sat, 12 Nov 2016 07:30:11 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCHv4] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 driver
+Date: Sat, 12 Nov 2016 13:29:11 +0100
+Message-Id: <20161112122911.19079-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <13737175.iVr8OcoHqv@avalon>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 28, 2016 at 04:49:36PM +0200, Laurent Pinchart wrote:
-> Hi Julia and Dan,
-> 
-> On Monday 28 Nov 2016 14:54:58 Julia Lawall wrote:
-> > On Mon, 28 Nov 2016, Dan Carpenter wrote:
-> > > I understand the comparison, but I just think it's better if people
-> > > always keep track of what has been allocated and what has not.  I tried
-> > > so hard to get Markus to stop sending those hundreds of patches where
-> > > he's like "this function has a sanity check so we can pass pointers
-> > > that weren't allocated"...  It's garbage code.
-> > > 
-> > > But I understand that other people don't agree.
-> > 
-> > In my opinion, it is good for code understanding to only do what is useful
-> > to do.  It's not a hard and fast rule, but I think it is something to take
-> > into account.
-> 
-> On the other hand it complicates the error handling code by increasing the 
-> number of goto labels, and it then becomes pretty easy when reworking code to 
-> goto the wrong label. This is even more of an issue when the rework doesn't 
-> touch the error handling code, in which case the reviewers can easily miss the 
-> issue if they don't open the original source file to check the goto labels.
-> 
+A V4L2 driver for Renesas R-Car MIPI CSI-2 interface. The driver
+supports the rcar-vin driver on R-Car Gen3 SoCs where a separate driver
+is needed to receive CSI-2.
 
-It's really not.  I've looked at a lot of error handling in the past
-five years and sent hundreds of fixes for error paths, more than any
-other kernel developer during that time.  Although it seems obvious in
-retrospect, it took me years to realize this but the canonical way of
-doing error handling is the least error prone.
+Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
 
-Counting the labels is the wrong way to measure complexity.  That's like
-counting the number of functions.  Code with lots of functions is not
-necessarily more complicated than if it's just one big function.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
 
-Part of the key to unwinding correctly is using good label names.  It
-should say what the label does.  Some people use come-from labels names
-like "goto kmalloc_failed".  Those are totally useless.  It's like
-naming your functions "called_from_foo()".  If there is only one goto
-then come-from label names are useless and if there are more than one
-goto which go to the same label then it's useless *and* misleading.
+Changes since v3:
+- Update DT binding documentation with input from Geert Uytterhoeven, 
+  thanks!
 
-Functions should be written so you can read them from top to bottom
-without scrolling back and forth.
+Changes since v2:
+- Added media control pads as this is needed by the new rcar-vin driver.
+- Update DT bindings after review comments and to add r8a7796 support.
+- Add get_fmt handler.
+- Fix media bus format error s/YUYV8/UYVY8/
 
-	a = alloc();
-	if (!a)
-		return -ENOMEM;
+Changes since v1:
+- Drop dependency on a pad aware s_stream operation.
+- Use the DT bindings format "renesas,<soctype>-<device>", thanks Geert
+  for pointing this out.
 
-	b = alloc();
-	if (!b) {
-		ret = -ENOMEM;
-		goto free_a;
-	}
+ .../devicetree/bindings/media/rcar-csi2.txt        | 116 ++++
+ drivers/media/platform/rcar-vin/Kconfig            |  11 +
+ drivers/media/platform/rcar-vin/Makefile           |   2 +
+ drivers/media/platform/rcar-vin/rcar-csi2.c        | 586 +++++++++++++++++++++
+ 4 files changed, 715 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2.txt
+ create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
 
-That code tells a complete story without any scrolling.  It's future
-proof too.  You can tell the goto is correct just from the name.  But
-when it's:
+diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+new file mode 100644
+index 0000000..a9788e3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+@@ -0,0 +1,116 @@
++Renesas R-Car MIPI CSI-2
++------------------------
++
++The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesas R-Car
++family of devices. It is to be used in conjunction with the R-Car VIN module,
++which provides the video capture capabilities.
++
++ - compatible: Must be one or more of the following
++   - "renesas,r8a7795-csi2" for the R8A7795 device.
++   - "renesas,r8a7796-csi2" for the R8A7796 device.
++   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible device.
++
++   When compatible with a generic version nodes must list the
++   SoC-specific version corresponding to the platform first
++   followed by the generic version.
++
++ - reg: the register base and size for the device registers
++ - interrupts: the interrupt for the device
++ - clocks: Reference to the parent clock
++
++The device node should contain two 'port' child nodes according to the
++bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt. Port 0 should connect the node that is the video
++source for to the CSI-2. Port 1 should connect all the R-Car VIN 
++modules, which can make use of the CSI-2 module.
++
++- Port 0 - Video source
++	- Reg 0 - sub-node describing the endpoint that is the video source
++
++- Port 1 - VIN instances
++	- Reg 0 - sub-node describing the endpoint that is VIN0
++	- Reg 1 - sub-node describing the endpoint that is VIN1
++	- Reg 2 - sub-node describing the endpoint that is VIN2
++	- Reg 3 - sub-node describing the endpoint that is VIN3
++	- Reg 4 - sub-node describing the endpoint that is VIN4
++	- Reg 5 - sub-node describing the endpoint that is VIN5
++	- Reg 6 - sub-node describing the endpoint that is VIN6
++	- Reg 7 - sub-node describing the endpoint that is VIN7
++
++Example:
++
++/* SoC properties */
++
++	 csi20: csi2@fea80000 {
++		 compatible = "renesas,r8a7795-csi2";
++		 reg = <0 0xfea80000 0 0x10000>;
++		 interrupts = <0 184 IRQ_TYPE_LEVEL_HIGH>;
++		 clocks = <&cpg CPG_MOD 714>;
++		 power-domains = <&sysc R8A7796_PD_ALWAYS_ON>;
++		 status = "disabled";
++
++		 ports {
++			 #address-cells = <1>;
++			 #size-cells = <0>;
++
++			 port@1 {
++				 #address-cells = <1>;
++				 #size-cells = <0>;
++
++				 reg = <1>;
++
++				 csi20vin0: endpoint@0 {
++					 reg = <0>;
++					 remote-endpoint = <&vin0csi20>;
++				 };
++				 csi20vin1: endpoint@1 {
++					 reg = <1>;
++					 remote-endpoint = <&vin1csi20>;
++				 };
++				 csi20vin2: endpoint@2 {
++					 reg = <2>;
++					 remote-endpoint = <&vin2csi20>;
++				 };
++				 csi20vin3: endpoint@3 {
++					 reg = <3>;
++					 remote-endpoint = <&vin3csi20>;
++				 };
++				 csi20vin4: endpoint@4 {
++					 reg = <4>;
++					 remote-endpoint = <&vin4csi20>;
++				 };
++				 csi20vin5: endpoint@5 {
++					 reg = <5>;
++					 remote-endpoint = <&vin5csi20>;
++				 };
++				 csi20vin6: endpoint@6 {
++					 reg = <6>;
++					 remote-endpoint = <&vin6csi20>;
++				 };
++				 csi20vin7: endpoint@7 {
++					 reg = <7>;
++					 remote-endpoint = <&vin7csi20>;
++				 };
++			 };
++		 };
++	 };
++
++/* Board properties */
++
++	&csi20 {
++		status = "okay";
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				csi20_in: endpoint@0 {
++					clock-lanes = <0>;
++					data-lanes = <1>;
++					remote-endpoint = <&adv7482_txb>;
++				};
++			};
++		};
++	};
+diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
+index 111d2a1..3606997 100644
+--- a/drivers/media/platform/rcar-vin/Kconfig
++++ b/drivers/media/platform/rcar-vin/Kconfig
+@@ -9,3 +9,14 @@ config VIDEO_RCAR_VIN
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rcar-vin.
++
++config VIDEO_RCAR_CSI2
++	tristate "R-Car MIPI CSI-2 Interface driver"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
++	depends on ARCH_RENESAS || COMPILE_TEST
++	---help---
++	  Support for Renesas R-Car MIPI CSI-2 interface driver.
++	  Supports R-Car Gen3 SoCs.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called rcar-csi2.
+diff --git a/drivers/media/platform/rcar-vin/Makefile b/drivers/media/platform/rcar-vin/Makefile
+index 48c5632..81a37f2 100644
+--- a/drivers/media/platform/rcar-vin/Makefile
++++ b/drivers/media/platform/rcar-vin/Makefile
+@@ -1,3 +1,5 @@
+ rcar-vin-objs = rcar-core.o rcar-dma.o rcar-v4l2.o
+ 
+ obj-$(CONFIG_VIDEO_RCAR_VIN) += rcar-vin.o
++
++obj-$(CONFIG_VIDEO_RCAR_CSI2) += rcar-csi2.o
+diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+new file mode 100644
+index 0000000..13eb78b
+--- /dev/null
++++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -0,0 +1,586 @@
++/*
++ * Driver for Renesas R-Car MIPI CSI-2
++ *
++ * Copyright (C) 2016 Renesas Electronics Corp.
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++
++#include <media/v4l2-of.h>
++#include <media/v4l2-subdev.h>
++
++/* Register offsets */
++#define TREF_REG		0x00 /* Control Timing Select */
++#define SRST_REG		0x04 /* Software Reset */
++#define PHYCNT_REG		0x08 /* PHY Operation Control */
++#define CHKSUM_REG		0x0C /* Checksum Control */
++#define VCDT_REG		0x10 /* Channel Data Type Select */
++#define VCDT2_REG		0x14 /* Channel Data Type Select 2 */
++#define FRDT_REG		0x18 /* Frame Data Type Select */
++#define FLD_REG			0x1C /* Field Detection Control */
++#define ASTBY_REG		0x20 /* Automatic Standby Control */
++#define LNGDT0_REG		0x28 /* Long Data Type Setting 0 */
++#define LNGDT1_REG		0x2C /* Long Data Type Setting 1 */
++#define INTEN_REG		0x30 /* Interrupt Enable */
++#define INTCLOSE_REG		0x34 /* Interrupt Source Mask */
++#define INTSTATE_REG		0x38 /* Interrupt Status Monitor */
++#define INTERRSTATE_REG		0x3C /* Interrupt Error Status Monitor */
++#define SHPDAT_REG		0x40 /* Short Packet Data */
++#define SHPCNT_REG		0x44 /* Short Packet Count */
++#define LINKCNT_REG		0x48 /* LINK Operation Control */
++#define LSWAP_REG		0x4C /* Lane Swap */
++#define PHTC_REG		0x58 /* PHY Test Interface Clear */
++#define PHYPLL_REG		0x68 /* PHY Frequency Control */
++#define PHEERM_REG		0x74 /* PHY ESC Error Monitor */
++#define PHCLM_REG		0x78 /* PHY Clock Lane Monitor */
++#define PHDLM_REG		0x7C /* PHY Data Lane Monitor */
++
++/* Control Timing Select bits */
++#define TREF_TREF			(1 << 0)
++
++/* Software Reset bits */
++#define SRST_SRST			(1 << 0)
++
++/* PHY Operation Control bits */
++#define PHYCNT_SHUTDOWNZ		(1 << 17)
++#define PHYCNT_RSTZ			(1 << 16)
++#define PHYCNT_ENABLECLK		(1 << 4)
++#define PHYCNT_ENABLE_3			(1 << 3)
++#define PHYCNT_ENABLE_2			(1 << 2)
++#define PHYCNT_ENABLE_1			(1 << 1)
++#define PHYCNT_ENABLE_0			(1 << 0)
++
++/* Checksum Control bits */
++#define CHKSUM_ECC_EN			(1 << 1)
++#define CHKSUM_CRC_EN			(1 << 0)
++
++/*
++ * Channel Data Type Select bits
++ * VCDT[0-15]:  Channel 1 VCDT[16-31]:  Channel 2
++ * VCDT2[0-15]: Channel 3 VCDT2[16-31]: Channel 4
++ */
++#define VCDT_VCDTN_EN			(1 << 15)
++#define VCDT_SEL_VC(n)			((n & 0x3) << 8)
++#define VCDT_SEL_DTN_ON			(1 << 6)
++#define VCDT_SEL_DT(n)			((n & 0x1f) << 0)
++
++/* Field Detection Control bits */
++#define FLD_FLD_NUM(n)			((n & 0xff) << 16)
++#define FLD_FLD_EN4			(1 << 3)
++#define FLD_FLD_EN3			(1 << 2)
++#define FLD_FLD_EN2			(1 << 1)
++#define FLD_FLD_EN			(1 << 0)
++
++/* LINK Operation Control bits */
++#define LINKCNT_MONITOR_EN		(1 << 31)
++#define LINKCNT_REG_MONI_PACT_EN	(1 << 25)
++#define LINKCNT_ICLK_NONSTOP		(1 << 24)
++
++/* Lane Swap bits */
++#define LSWAP_L3SEL(n)			((n & 0x3) << 6)
++#define LSWAP_L2SEL(n)			((n & 0x3) << 4)
++#define LSWAP_L1SEL(n)			((n & 0x3) << 2)
++#define LSWAP_L0SEL(n)			((n & 0x3) << 0)
++
++/* PHY Test Interface Clear bits */
++#define PHTC_TESTCLR			(1 << 0)
++
++/* PHY Frequency Control bits */
++#define PHYPLL_HSFREQRANGE_80MBPS	(0x00 << 16)
++#define PHYPLL_HSFREQRANGE_90MBPS	(0x10 << 16)
++#define PHYPLL_HSFREQRANGE_100MBPS	(0x20 << 16)
++#define PHYPLL_HSFREQRANGE_110MBPS	(0x30 << 16)
++#define PHYPLL_HSFREQRANGE_120MBPS	(0x01 << 16)
++#define PHYPLL_HSFREQRANGE_130MBPS	(0x11 << 16)
++#define PHYPLL_HSFREQRANGE_140MBPS	(0x21 << 16)
++#define PHYPLL_HSFREQRANGE_150MBPS	(0x31 << 16)
++#define PHYPLL_HSFREQRANGE_160MBPS	(0x02 << 16)
++#define PHYPLL_HSFREQRANGE_170MBPS	(0x12 << 16)
++#define PHYPLL_HSFREQRANGE_180MBPS	(0x22 << 16)
++#define PHYPLL_HSFREQRANGE_190MBPS	(0x32 << 16)
++#define PHYPLL_HSFREQRANGE_205MBPS	(0x03 << 16)
++#define PHYPLL_HSFREQRANGE_220MBPS	(0x13 << 16)
++#define PHYPLL_HSFREQRANGE_235MBPS	(0x23 << 16)
++#define PHYPLL_HSFREQRANGE_250MBPS	(0x33 << 16)
++#define PHYPLL_HSFREQRANGE_275MBPS	(0x04 << 16)
++#define PHYPLL_HSFREQRANGE_300MBPS	(0x14 << 16)
++#define PHYPLL_HSFREQRANGE_325MBPS	(0x05 << 16)
++#define PHYPLL_HSFREQRANGE_350MBPS	(0x15 << 16)
++#define PHYPLL_HSFREQRANGE_400MBPS	(0x25 << 16)
++#define PHYPLL_HSFREQRANGE_450MBPS	(0x06 << 16)
++#define PHYPLL_HSFREQRANGE_500MBPS	(0x16 << 16)
++#define PHYPLL_HSFREQRANGE_550MBPS	(0x07 << 16)
++#define PHYPLL_HSFREQRANGE_600MBPS	(0x17 << 16)
++#define PHYPLL_HSFREQRANGE_650MBPS	(0x08 << 16)
++#define PHYPLL_HSFREQRANGE_700MBPS	(0x18 << 16)
++#define PHYPLL_HSFREQRANGE_750MBPS	(0x09 << 16)
++#define PHYPLL_HSFREQRANGE_800MBPS	(0x19 << 16)
++#define PHYPLL_HSFREQRANGE_850MBPS	(0x29 << 16)
++#define PHYPLL_HSFREQRANGE_900MBPS	(0x39 << 16)
++#define PHYPLL_HSFREQRANGE_950MBPS	(0x0A << 16)
++#define PHYPLL_HSFREQRANGE_1000MBPS	(0x1A << 16)
++#define PHYPLL_HSFREQRANGE_1050MBPS	(0x2A << 16)
++#define PHYPLL_HSFREQRANGE_1100MBPS	(0x3A << 16)
++#define PHYPLL_HSFREQRANGE_1150MBPS	(0x0B << 16)
++#define PHYPLL_HSFREQRANGE_1200MBPS	(0x1B << 16)
++#define PHYPLL_HSFREQRANGE_1250MBPS	(0x2B << 16)
++#define PHYPLL_HSFREQRANGE_1300MBPS	(0x3B << 16)
++#define PHYPLL_HSFREQRANGE_1350MBPS	(0x0C << 16)
++#define PHYPLL_HSFREQRANGE_1400MBPS	(0x1C << 16)
++#define PHYPLL_HSFREQRANGE_1450MBPS	(0x2C << 16)
++#define PHYPLL_HSFREQRANGE_1500MBPS	(0x3C << 16)
++
++enum rcar_csi2_pads {
++	RCAR_CSI2_SINK,
++	RCAR_CSI2_SOURCE_VC0,
++	RCAR_CSI2_SOURCE_VC1,
++	RCAR_CSI2_SOURCE_VC2,
++	RCAR_CSI2_SOURCE_VC3,
++	RCAR_CSI2_PAD_MAX,
++};
++
++struct rcar_csi2 {
++	struct device *dev;
++	void __iomem *base;
++	spinlock_t lock;
++
++	unsigned short lanes;
++	unsigned char swap[4];
++
++	struct v4l2_subdev subdev;
++	struct media_pad pads[RCAR_CSI2_PAD_MAX];
++	struct v4l2_mbus_framefmt mf;
++};
++
++#define csi_dbg(p, fmt, arg...)		dev_dbg(p->dev, fmt, ##arg)
++#define csi_info(p, fmt, arg...)	dev_info(p->dev, fmt, ##arg)
++#define csi_warn(p, fmt, arg...)	dev_warn(p->dev, fmt, ##arg)
++#define csi_err(p, fmt, arg...)		dev_err(p->dev, fmt, ##arg)
++
++static irqreturn_t rcar_csi2_irq(int irq, void *data)
++{
++	struct rcar_csi2 *priv = data;
++	u32 int_status;
++	unsigned int handled = 0;
++
++	spin_lock(&priv->lock);
++
++	int_status = ioread32(priv->base + INTSTATE_REG);
++	if (!int_status)
++		goto done;
++
++	/* ack interrupts */
++	iowrite32(int_status, priv->base + INTSTATE_REG);
++	handled = 1;
++
++done:
++	spin_unlock(&priv->lock);
++
++	return IRQ_RETVAL(handled);
++
++}
++
++static void rcar_csi2_reset(struct rcar_csi2 *priv)
++{
++	iowrite32(SRST_SRST, priv->base + SRST_REG);
++	udelay(5);
++	iowrite32(0, priv->base + SRST_REG);
++}
++
++static void rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
++{
++	int timeout;
++
++	/* Read the PHY clock lane monitor register (PHCLM). */
++	for (timeout = 100; timeout >= 0; timeout--) {
++		if (ioread32(priv->base + PHCLM_REG) & 0x01) {
++			csi_dbg(priv, "Detected the PHY clock lane\n");
++			break;
++		}
++		msleep(20);
++	}
++	if (!timeout)
++		csi_err(priv, "Timeout of reading the PHY clock lane\n");
++
++
++	/* Read the PHY data lane monitor register (PHDLM). */
++	for (timeout = 100; timeout >= 0; timeout--) {
++		if (ioread32(priv->base + PHDLM_REG) & 0x01) {
++			csi_dbg(priv, "Detected the PHY data lane\n");
++			break;
++		}
++		msleep(20);
++	}
++	if (!timeout)
++		csi_err(priv, "Timeout of reading the PHY data lane\n");
++
++}
++
++static int rcar_csi2_start(struct rcar_csi2 *priv)
++{
++	u32 fld, phycnt, phypll, vcdt, vcdt2, tmp, pixels;
++	int i;
++
++	csi_dbg(priv, "Input size (%dx%d%c)\n", priv->mf.width, priv->mf.height,
++		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
++
++	vcdt = vcdt2 = 0;
++	for (i = 0; i < priv->lanes; i++) {
++		tmp = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON;
++
++		switch (priv->mf.code) {
++		case MEDIA_BUS_FMT_RGB888_1X24:
++			/* 24 == RGB888 */
++			tmp |= 0x24;
++			break;
++		case MEDIA_BUS_FMT_UYVY8_1X16:
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_YUYV10_2X10:
++			/* 1E == YUV422 8-bit */
++			tmp |= 0x1e;
++			break;
++		default:
++			csi_warn(priv,
++				 "Unknown media bus format, try it anyway\n");
++			break;
++		}
++
++		/* Store in correct reg and offset */
++		if (i < 2)
++			vcdt |= tmp << ((i % 2) * 16);
++		else
++			vcdt2 |= tmp << ((i % 2) * 16);
++	}
++
++	switch (priv->lanes) {
++	case 1:
++		fld = FLD_FLD_NUM(1) | FLD_FLD_EN;
++		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
++		phypll = PHYPLL_HSFREQRANGE_400MBPS;
++		break;
++	case 4:
++		fld = FLD_FLD_NUM(2) | FLD_FLD_EN4 | FLD_FLD_EN3 |
++			FLD_FLD_EN2 | FLD_FLD_EN;
++		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 |
++			PHYCNT_ENABLE_2 | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
++
++		/* Calculate MBPS per lane, assume 32 bits per pixel at 60Hz */
++		pixels = (priv->mf.width * priv->mf.height) /
++			(priv->mf.field == V4L2_FIELD_NONE ? 1 : 2);
++		if (pixels <= 640 * 480)
++			phypll = PHYPLL_HSFREQRANGE_100MBPS;
++		else if (pixels <= 720 * 576)
++			phypll = PHYPLL_HSFREQRANGE_190MBPS;
++		else if (pixels <= 1280 * 720)
++			phypll = PHYPLL_HSFREQRANGE_450MBPS;
++		else if (pixels <= 1920 * 1080)
++			phypll = PHYPLL_HSFREQRANGE_900MBPS;
++		else
++			goto error;
++
++		break;
++	default:
++		goto error;
++	}
++
++	/* Init */
++	iowrite32(TREF_TREF, priv->base + TREF_REG);
++	rcar_csi2_reset(priv);
++	iowrite32(0, priv->base + PHTC_REG);
++
++	/* Configure */
++	iowrite32(fld, priv->base + FLD_REG);
++	iowrite32(vcdt, priv->base + VCDT_REG);
++	iowrite32(vcdt2, priv->base + VCDT2_REG);
++	iowrite32(LSWAP_L0SEL(priv->swap[0]) | LSWAP_L1SEL(priv->swap[1]) |
++		  LSWAP_L2SEL(priv->swap[2]) | LSWAP_L3SEL(priv->swap[3]),
++		  priv->base + LSWAP_REG);
++
++	/* Start */
++	iowrite32(phypll, priv->base + PHYPLL_REG);
++	iowrite32(phycnt, priv->base + PHYCNT_REG);
++	iowrite32(LINKCNT_MONITOR_EN | LINKCNT_REG_MONI_PACT_EN |
++		  LINKCNT_ICLK_NONSTOP, priv->base + LINKCNT_REG);
++	iowrite32(phycnt | PHYCNT_SHUTDOWNZ, priv->base + PHYCNT_REG);
++	iowrite32(phycnt | PHYCNT_SHUTDOWNZ | PHYCNT_RSTZ,
++		  priv->base + PHYCNT_REG);
++
++	rcar_csi2_wait_phy_start(priv);
++
++	return 0;
++error:
++	csi_err(priv, "Unsupported resolution (%dx%d%c)\n",
++		priv->mf.width, priv->mf.height,
++		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
++
++	return -EINVAL;
++}
++
++static void rcar_csi2_stop(struct rcar_csi2 *priv)
++{
++	iowrite32(0, priv->base + PHYCNT_REG);
++
++	rcar_csi2_reset(priv);
++}
++
++static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
++
++	if (enable)
++		return rcar_csi2_start(priv);
++
++	rcar_csi2_stop(priv);
++
++	return 0;
++}
++
++static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
++				    struct v4l2_subdev_pad_config *cfg,
++				    struct v4l2_subdev_format *format)
++{
++	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
++
++	if (format->pad != RCAR_CSI2_SINK)
++		return -EINVAL;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++		priv->mf = format->format;
++
++	return 0;
++}
++
++static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
++				    struct v4l2_subdev_pad_config *cfg,
++				    struct v4l2_subdev_format *format)
++{
++	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
++
++	if (format->pad != RCAR_CSI2_SINK)
++		return -EINVAL;
++
++	format->format = priv->mf;
++
++	return 0;
++}
++
++static int rcar_csi2_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct rcar_csi2 *priv = container_of(sd, struct rcar_csi2, subdev);
++
++	if (on)
++		pm_runtime_get_sync(priv->dev);
++	else
++		pm_runtime_put_sync(priv->dev);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_video_ops rcar_csi2_video_ops = {
++	.s_stream = rcar_csi2_s_stream,
++};
++
++static struct v4l2_subdev_core_ops rcar_csi2_subdev_core_ops = {
++	.s_power = rcar_csi2_s_power,
++};
++
++static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops = {
++	.set_fmt = rcar_csi2_set_pad_format,
++	.get_fmt = rcar_csi2_get_pad_format,
++};
++
++static struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
++	.video	= &rcar_csi2_video_ops,
++	.core	= &rcar_csi2_subdev_core_ops,
++	.pad	= &rcar_csi2_pad_ops,
++};
++
++/* -----------------------------------------------------------------------------
++ * Platform Device Driver
++ */
++
++static const struct of_device_id rcar_csi2_of_table[] = {
++	{ .compatible = "renesas,r8a7795-csi2" },
++	{ .compatible = "renesas,r8a7796-csi2" },
++	{ .compatible = "renesas,rcar-gen3-csi2" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
++
++static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
++{
++	struct v4l2_of_endpoint v4l2_ep;
++	struct device_node *ep;
++	int i, n, ret;
++
++	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
++	if (!ep)
++		return -EINVAL;
++
++	ret = v4l2_of_parse_endpoint(ep, &v4l2_ep);
++	of_node_put(ep);
++	if (ret) {
++		csi_err(priv, "Could not parse v4l2 endpoint\n");
++		return -EINVAL;
++	}
++
++	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
++		csi_err(priv, "Unsupported media bus type for %s\n",
++			of_node_full_name(ep));
++		return -EINVAL;
++	}
++
++	switch (v4l2_ep.bus.mipi_csi2.num_data_lanes) {
++	case 1:
++	case 4:
++		priv->lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
++		break;
++	default:
++		csi_err(priv, "Unsupported number of lanes\n");
++		return -EINVAL;
++	}
++
++	for (i = 0; i < 4; i++)
++		priv->swap[i] = i;
++
++	for (i = 0; i < priv->lanes; i++) {
++		/* Check for valid lane number */
++		if (v4l2_ep.bus.mipi_csi2.data_lanes[i] < 1 ||
++		    v4l2_ep.bus.mipi_csi2.data_lanes[i] > 4) {
++			csi_err(priv, "data lanes must be in 1-4 range\n");
++			return -EINVAL;
++		}
++
++		/* Use lane numbers 0-3 internally */
++		priv->swap[i] = v4l2_ep.bus.mipi_csi2.data_lanes[i] - 1;
++
++
++	}
++
++	/* Make sure there are no duplicates */
++	for (i = 0; i < priv->lanes; i++) {
++		for (n = i + 1; n < priv->lanes; n++) {
++			if (priv->swap[i] == priv->swap[n]) {
++				csi_err(priv,
++					"Requested swapping not possible\n");
++				return -EINVAL;
++			}
++		}
++	}
++
++	return 0;
++}
++
++static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
++				     struct platform_device *pdev)
++{
++	struct resource *mem;
++	int irq;
++
++	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!mem)
++		return -ENODEV;
++
++	priv->base = devm_ioremap_resource(&pdev->dev, mem);
++	if (IS_ERR(priv->base))
++		return PTR_ERR(priv->base);
++
++	irq = platform_get_irq(pdev, 0);
++	if (!irq)
++		return -ENODEV;
++
++	return devm_request_irq(&pdev->dev, irq, rcar_csi2_irq, IRQF_SHARED,
++				dev_name(&pdev->dev), priv);
++}
++
++static int rcar_csi2_probe(struct platform_device *pdev)
++{
++	struct rcar_csi2 *priv;
++	unsigned int i;
++	int ret;
++
++	priv = devm_kzalloc(&pdev->dev, sizeof(struct rcar_csi2), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++
++	priv->dev = &pdev->dev;
++	spin_lock_init(&priv->lock);
++
++	ret = rcar_csi2_parse_dt(priv);
++	if (ret)
++		return ret;
++
++	ret = rcar_csi2_probe_resources(priv, pdev);
++	if (ret) {
++		csi_err(priv, "Failed to get resources\n");
++		return ret;
++	}
++
++	platform_set_drvdata(pdev, priv);
++
++	priv->subdev.owner = THIS_MODULE;
++	priv->subdev.dev = &pdev->dev;
++	v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
++	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
++	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
++		 KBUILD_MODNAME, dev_name(&pdev->dev));
++
++	priv->subdev.flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
++	priv->subdev.entity.flags |= MEDIA_ENT_F_ATV_DECODER;
++
++	priv->pads[RCAR_CSI2_SINK].flags = MEDIA_PAD_FL_SINK;
++	for (i = RCAR_CSI2_SOURCE_VC0; i < RCAR_CSI2_PAD_MAX; i++)
++		priv->pads[i].flags = MEDIA_PAD_FL_SOURCE;
++
++	ret = media_entity_pads_init(&priv->subdev.entity, RCAR_CSI2_PAD_MAX,
++				     priv->pads);
++	if (ret)
++		return ret;
++
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret < 0)
++		return ret;
++
++	pm_runtime_enable(&pdev->dev);
++
++	csi_info(priv, "%d lanes found\n", priv->lanes);
++
++	return 0;
++}
++
++static int rcar_csi2_remove(struct platform_device *pdev)
++{
++	struct rcar_csi2 *priv = platform_get_drvdata(pdev);
++
++	v4l2_async_unregister_subdev(&priv->subdev);
++
++	pm_runtime_disable(&pdev->dev);
++
++	return 0;
++}
++
++static struct platform_driver __refdata rcar_csi2_pdrv = {
++	.remove	= rcar_csi2_remove,
++	.probe	= rcar_csi2_probe,
++	.driver	= {
++		.name	= "rcar-csi2",
++		.of_match_table	= of_match_ptr(rcar_csi2_of_table),
++	},
++};
++
++module_platform_driver(rcar_csi2_pdrv);
++
++MODULE_AUTHOR("Niklas Söderlund <niklas.soderlund@ragnatech.se>");
++MODULE_DESCRIPTION("Renesas R-Car MIPI CSI-2 driver");
++MODULE_LICENSE("GPL v2");
+-- 
+2.10.2
 
-	a = alloc();
-	if (!a)
-		goto out;
-	b = alloc();
-		goto out;
-
-That code doesn't have enough information to be understandable on it's
-own.  It's way more bug prone than the first sample.
-
-regards,
-dan carpenter
