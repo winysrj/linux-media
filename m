@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:32930 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756506AbcKKNk2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 08:40:28 -0500
-Received: by mail-pf0-f195.google.com with SMTP id 144so2596997pfv.0
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 05:40:28 -0800 (PST)
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: Songjun Wu <songjun.wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>, linux-media@vger.kernel.org
-Subject: [PATCH -next] [media] atmel-isc: fix error return code in atmel_isc_probe()
-Date: Fri, 11 Nov 2016 13:40:20 +0000
-Message-Id: <1478871620-24274-1-git-send-email-weiyj.lk@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:55539 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753023AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 05:34:54 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/9] af9033: return regmap for integrated IT913x tuner driver
+Date: Sat, 12 Nov 2016 12:33:57 +0200
+Message-Id: <1478946841-2807-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
+References: <1478946841-2807-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <weiyongjun1@huawei.com>
+IT9130 series contains integrated tuner driver, which uses that
+demodulator address space. Return regmap in order to allow it913x
+driver communication.
 
-Fix to return error code -ENODEV from the error handling
-case instead of 0, as done elsewhere in this function.
-
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/atmel/atmel-isc.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/dvb-frontends/af9033.c | 1 +
+ drivers/media/dvb-frontends/af9033.h | 6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 8e25d3f..fa68fe9 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -1424,6 +1424,7 @@ static int atmel_isc_probe(struct platform_device *pdev)
- 
- 	if (list_empty(&isc->subdev_entities)) {
- 		dev_err(dev, "no subdev found\n");
-+		ret = -ENODEV;
- 		goto unregister_v4l2_device;
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index b86a01e..2b86436 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -1154,6 +1154,7 @@ static int af9033_probe(struct i2c_client *client,
+ 		cfg->ops->pid_filter = af9033_pid_filter;
+ 		cfg->ops->pid_filter_ctrl = af9033_pid_filter_ctrl;
  	}
++	cfg->regmap = dev->regmap;
+ 	i2c_set_clientdata(client, dev);
+ 
+ 	dev_info(&client->dev, "Afatech AF9033 successfully attached\n");
+diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
+index c87367f..1a23c64 100644
+--- a/drivers/media/dvb-frontends/af9033.h
++++ b/drivers/media/dvb-frontends/af9033.h
+@@ -87,6 +87,12 @@ struct af9033_config {
+ 	 * returned by that driver
+ 	 */
+ 	struct dvb_frontend **fe;
++
++	/*
++	 * regmap for IT913x integrated tuner driver
++	 * returned by that driver
++	 */
++	struct regmap *regmap;
+ };
+ 
+ struct af9033_ops {
+-- 
+http://palosaari.fi/
 
