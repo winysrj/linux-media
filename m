@@ -1,145 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37654 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932789AbcKGRjl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:39:41 -0500
-Received: by mail-wm0-f48.google.com with SMTP id t79so191875101wmt.0
-        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 09:39:40 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:49854 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966517AbcKLR07 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 12 Nov 2016 12:26:59 -0500
+From: Colin King <colin.king@canonical.com>
 To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>, devicetree@vger.kernel.org
-Subject: [PATCH v3 1/9] doc: DT: vidc: binding document for Qualcomm video driver
-Date: Mon,  7 Nov 2016 19:33:55 +0200
-Message-Id: <1478540043-24558-2-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] zoran: fix spelling mistake in dprintk message
+Date: Sat, 12 Nov 2016 17:26:48 +0000
+Message-Id: <20161112172648.7756-1-colin.king@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding document for Venus video encoder/decoder driver
+From: Colin Ian King <colin.king@canonical.com>
 
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Trivial fix to spelling mistake "unnsupported" to "unsupported"
+in debug message.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- .../devicetree/bindings/media/qcom,venus.txt       | 98 ++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ drivers/media/pci/zoran/zoran_driver.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-new file mode 100644
-index 000000000000..b2af347fbce4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-@@ -0,0 +1,98 @@
-+* Qualcomm Venus video encode/decode accelerator
-+
-+- compatible:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Value should contain one of:
-+		- "qcom,venus-msm8916"
-+		- "qcom,venus-msm8996"
-+- reg:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Register ranges as listed in the reg-names property.
-+- reg-names:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain following entries:
-+		- "venus"	Venus register base
-+- reg-names:
-+	Usage: optional for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain following entries:
-+		- "vmem"	Video memory register base
-+- interrupts:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: Should contain interrupts as listed in the interrupt-names
-+		    property.
-+- interrupt-names:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain following entries:
-+		- "venus"	Venus interrupt line
-+- interrupt-names:
-+	Usage: optional for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain following entries:
-+		- "vmem"	Video memory interrupt line
-+- clocks:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A List of phandle and clock specifier pairs as listed
-+		    in clock-names property.
-+- clock-names:
-+	Usage: required
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "core"	Core video accelerator clock
-+		- "iface"	Video accelerator AHB clock
-+		- "bus"		Video accelerator AXI clock
-+- clock-names:
-+	Usage: required for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "subcore0"		Subcore0 video accelerator clock
-+		- "subcore1"		Subcore1 video accelerator clock
-+		- "mmssnoc_axi"		Multimedia subsystem NOC AXI clock
-+		- "mmss_mmagic_iface"	Multimedia subsystem MMAGIC AHB clock
-+		- "mmss_mmagic_mbus"	Multimedia subsystem MMAGIC MAXI clock
-+		- "mmagic_video_bus"	MMAGIC video AXI clock
-+		- "video_mbus"		Video MAXI clock
-+- clock-names:
-+	Usage: optional for msm8996
-+	Value type: <stringlist>
-+	Definition: Should contain the following entries:
-+		- "vmem_bus"	Video memory MAXI clock
-+		- "vmem_iface"	Video memory AHB clock
-+- power-domains:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle and power domain specifier pairs to the
-+		    power domain which is responsible for collapsing
-+		    and restoring power to the peripheral.
-+- rproc:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A phandle to remote processor responsible for
-+		    firmware loading and processor booting.
-+
-+- iommus:
-+	Usage: required
-+	Value type: <prop-encoded-array>
-+	Definition: A list of phandle and IOMMU specifier pairs.
-+
-+* An Example
-+	video-codec@1d00000 {
-+		compatible = "qcom,venus-msm8916";
-+		reg = <0x01d00000 0xff000>;
-+		reg-names = "venus";
-+		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-+		interrupt-names = "venus";
-+		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
-+			 <&gcc GCC_VENUS0_AHB_CLK>,
-+			 <&gcc GCC_VENUS0_AXI_CLK>;
-+		clock-names = "core", "iface", "bus";
-+		power-domains = <&gcc VENUS_GDSC>;
-+		rproc = <&venus_rproc>;
-+		iommus = <&apps_iommu 5>;
-+	};
+diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
+index d6b631a..2170e17 100644
+--- a/drivers/media/pci/zoran/zoran_driver.c
++++ b/drivers/media/pci/zoran/zoran_driver.c
+@@ -1488,7 +1488,7 @@ zoran_set_input (struct zoran *zr,
+ 	if (input < 0 || input >= zr->card.inputs) {
+ 		dprintk(1,
+ 			KERN_ERR
+-			"%s: %s - unnsupported input %d\n",
++			"%s: %s - unsupported input %d\n",
+ 			ZR_DEVNAME(zr), __func__, input);
+ 		return -EINVAL;
+ 	}
 -- 
-2.7.4
+2.10.2
 
