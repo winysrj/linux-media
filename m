@@ -1,92 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:33989 "EHLO
-        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755528AbcKVPwr (ORCPT
+Received: from mail-qk0-f170.google.com ([209.85.220.170]:33379 "EHLO
+        mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964791AbcKMWAk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:52:47 -0500
-Received: by mail-pf0-f178.google.com with SMTP id c4so4828566pfb.1
-        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2016 07:52:47 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: [PATCH v3 1/4] [media] davinci: add support for DT init
-Date: Tue, 22 Nov 2016 07:52:41 -0800
-Message-Id: <20161122155244.802-2-khilman@baylibre.com>
-In-Reply-To: <20161122155244.802-1-khilman@baylibre.com>
-References: <20161122155244.802-1-khilman@baylibre.com>
+        Sun, 13 Nov 2016 17:00:40 -0500
+Received: by mail-qk0-f170.google.com with SMTP id x190so76824944qkb.0
+        for <linux-media@vger.kernel.org>; Sun, 13 Nov 2016 14:00:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: "Md. Islam" <mislam4@kent.edu>
+Date: Sun, 13 Nov 2016 17:00:38 -0500
+Message-ID: <CAFgPn1CFzn=Si4PeLHLQe4sskh07iD0uMNJBvwqgAcpXdnJTaA@mail.gmail.com>
+Subject: Querying V4L2_CTRL_CLASS_MPEG doesn't return anything
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add basic support for initialization via DT.
+Hi
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif.c         |  9 +++++++++
- drivers/media/platform/davinci/vpif_capture.c | 14 ++++++++++++++
- 2 files changed, 23 insertions(+)
+I want to set the bitrate of my webcam (HP Envy laptop). ./v4l2-ctl
+--all gives me following:
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index 0380cf2e5775..d4434f614141 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -464,8 +464,17 @@ static const struct dev_pm_ops vpif_pm = {
- #define vpif_pm_ops NULL
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id vpif_of_match[] = {
-+	{ .compatible = "ti,da850-vpif", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, vpif_of_match);
-+#endif
-+
- static struct platform_driver vpif_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(vpif_of_match),
- 		.name	= "vpif",
- 		.pm	= vpif_pm_ops,
- 	},
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5104cc0ee40e..87ee1e2c3864 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1435,6 +1435,11 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int res_idx = 0;
- 	int i, err;
- 
-+	if (!pdev->dev.platform_data) {
-+		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
-+		return -EINVAL;
-+	}
-+
- 	vpif_dev = &pdev->dev;
- 
- 	err = initialize_vpif();
-@@ -1618,8 +1623,17 @@ static int vpif_resume(struct device *dev)
- 
- static SIMPLE_DEV_PM_OPS(vpif_pm_ops, vpif_suspend, vpif_resume);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id vpif_capture_of_match[] = {
-+	{ .compatible = "ti,da850-vpif-capture", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, vpif_capture_of_match);
-+#endif
-+
- static __refdata struct platform_driver vpif_driver = {
- 	.driver	= {
-+		.of_match_table = of_match_ptr(vpif_capture_of_match),
- 		.name	= VPIF_DRIVER_NAME,
- 		.pm	= &vpif_pm_ops,
- 	},
--- 
-2.9.3
+Driver Info (not using libv4l2):
+Driver name   : uvcvideo
+Card type     : HP Truevision HD
+Bus info      : usb-0000:00:1d.0-1.3
+Driver version: 4.4.24
+Capabilities  : 0x84200001
+Video Capture
+Streaming
+Extended Pix Format
+Device Capabilities
+Device Caps   : 0x04200001
+Video Capture
+Streaming
+Extended Pix Format
+Priority: 2
+Video input : 0 (Camera 1: ok)
+Format Video Capture:
+Width/Height      : 1280/720
+Pixel Format      : 'MJPG'
+Field             : None
+Bytes per Line    : 0
+Size Image        : 1843789
+Colorspace        : sRGB
+Transfer Function : Default
+YCbCr Encoding    : Default
+Quantization      : Default
+Flags             :
+Crop Capability Video Capture:
+Bounds      : Left 0, Top 0, Width 1280, Height 720
+Default     : Left 0, Top 0, Width 1280, Height 720
+Pixel Aspect: 1/1
+Selection: crop_default, Left 0, Top 0, Width 1280, Height 720
+Selection: crop_bounds, Left 0, Top 0, Width 1280, Height 720
+Streaming Parameters Video Capture:
+Capabilities     : timeperframe
+Frames per second: 30.000 (30/1)
+Read buffers     : 0
+                     brightness (int)    : min=-64 max=64 step=1
+default=0 value=0
+                       contrast (int)    : min=0 max=64 step=1
+default=32 value=32
+                     saturation (int)    : min=0 max=128 step=1
+default=64 value=64
+                            hue (int)    : min=-40 max=40 step=1
+default=0 value=0
+ white_balance_temperature_auto (bool)   : default=1 value=1
+                          gamma (int)    : min=72 max=500 step=1
+default=100 value=100
+                           gain (int)    : min=0 max=100 step=1
+default=0 value=0
+           power_line_frequency (menu)   : min=0 max=2 default=2 value=2
+      white_balance_temperature (int)    : min=2800 max=6500 step=1
+default=4000 value=4000 flags=inactive
+                      sharpness (int)    : min=0 max=5 step=1 default=0 value=0
+         backlight_compensation (int)    : min=0 max=1 step=1 default=0 value=0
+                  exposure_auto (menu)   : min=0 max=3 default=3 value=3
+              exposure_absolute (int)    : min=10 max=2500 step=1
+default=156 value=156 flags=inactive
+         exposure_auto_priority (bool)   : default=0 value=1
 
+I don't see MPEG related options here. Does it mean that MPEG is not
+supported by the webcam? I also tried following function to query
+V4L2_CTRL_CLASS_MPEG options.
+
+static void show_mpeg_controls(int fd, int show_menus)
+{
+const unsigned next_fl = V4L2_CTRL_FLAG_NEXT_CTRL | V4L2_CTRL_CLASS_MPEG;
+struct v4l2_query_ext_ctrl qctrl;
+int id;
+
+memset(&qctrl, 0, sizeof(qctrl));
+qctrl.id = next_fl;
+while (query_ext_ctrl_ioctl(fd, qctrl) == 0) {
+            if (V4L2_CTRL_ID2CLASS(qctrl.id) != V4L2_CTRL_CLASS_MPEG)
+                break;
+print_control(fd, qctrl, show_menus);
+qctrl.id |= next_fl;
+}
+}
+
+It wouldn't print anything. Could you please advise me what is wrong
+here? I'm new to V4L2. Looking forward to your suggestions.
+
+Many thanks
+Tamim
