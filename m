@@ -1,84 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Wed, 23 Nov 2016 13:33:32 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161123203332.GA15062@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33546 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934338AbcKMULB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 Nov 2016 15:11:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Sakari Alius <sakari.ailus@iki.fi>
+Subject: [GIT PULL FOR v4.10] OMAP3 ISP fixes
+Date: Sun, 13 Nov 2016 22:11:05 +0200
+Message-ID: <2113569.4mYIn2GS3y@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 02:58:38PM -0500, Serguei Sagalovitch wrote:
+Hi Mauro,
 
->    We do not want to have "highly" dynamic translation due to
->    performance cost.  We need to support "overcommit" but would
->    like to minimize impact.  To support RDMA MRs for GPU/VRAM/PCIe
->    device memory (which is must) we need either globally force
->    pinning for the scope of "get_user_pages() / "put_pages" or have
->    special handling for RDMA MRs and similar cases.
+The following changes since commit bd676c0c04ec94bd830b9192e2c33f2c4532278d:
 
-As I said, there is no possible special handling. Standard IB hardware
-does not support changing the DMA address once a MR is created. Forget
-about doing that.
+  [media] v4l2-flash-led-class: remove a now unused var (2016-10-24 18:51:29 
+-0200)
 
-Only ODP hardware allows changing the DMA address on the fly, and it
-works at the page table level. We do not need special handling for
-RDMA.
+are available in the git repository at:
 
->    Generally it could be difficult to correctly handle "DMA in
->    progress" due to the facts that (a) DMA could originate from
->    numerous PCIe devices simultaneously including requests to
->    receive network data.
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
 
-We handle all of this today in kernel via the page pinning mechanism.
-This needs to be copied into peer-peer memory and GPU memory schemes
-as well. A pinned page means the DMA address channot be changed and
-there is active non-CPU access to it.
+for you to fetch changes up to 74d96c4486293502133ac4b1d2709d1eb7859e20:
 
-Any hardware that does not support page table mirroring must go this
-route.
+  v4l: omap3isp: Use dma_request_chan_by_mask() to request the DMA channel 
+(2016-11-13 22:09:16 +0200)
 
-> (b) in HSA case DMA could originated from user space without kernel
->    driver knowledge.  So without corresponding h/w support
->    everywhere I do not see how it could be solved effectively.
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      v4l: omap3isp: Fix OF node double put when parsing OF graph
 
-All true user triggered DMA must go through some kind of coherent page
-table mirroring scheme (eg this is what CAPI does, presumably AMDs HSA
-is similar). A page table mirroring scheme is basically the same as
-what ODP does.
+Peter Ujfalusi (1):
+      v4l: omap3isp: Use dma_request_chan_by_mask() to request the DMA channel
 
-Like I said, this is the direction the industry seems to be moving in,
-so any solution here should focus on VMAs/page tables as the way to link
-the peer-peer devices.
+ drivers/media/platform/omap3isp/isp.c     | 19 +++++++++----------
+ drivers/media/platform/omap3isp/isphist.c | 28 +++++++++++++++-------------
+ 2 files changed, 24 insertions(+), 23 deletions(-)
 
-To me this means at least items #1 and #3 should be removed from
-Alexander's list.
+-- 
+Regards,
 
-Jason
+Laurent Pinchart
+
