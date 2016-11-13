@@ -1,34 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:49495 "EHLO mout.gmx.net"
+Received: from tex.lwn.net ([70.33.254.29]:35045 "EHLO vena.lwn.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932283AbcK1OSG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 09:18:06 -0500
-Received: from axis700.grange ([89.0.199.8]) by mail.gmx.com (mrgmx102
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0LnlmV-1cdnc32HE7-00hryX for
- <linux-media@vger.kernel.org>; Mon, 28 Nov 2016 15:18:04 +0100
-Received: from localhost (localhost [127.0.0.1])
-        by axis700.grange (Postfix) with ESMTP id 8D8288B110
-        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2016 15:18:03 +0100 (CET)
-Date: Mon, 28 Nov 2016 15:18:03 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: 3A / auto-exposure Region of Interest setting
-Message-ID: <Pine.LNX.4.64.1611281449520.6665@axis700.grange>
+        id S934905AbcKMTw5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 Nov 2016 14:52:57 -0500
+Date: Sun, 13 Nov 2016 12:52:50 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org,
+        ksummit-discuss@lists.linuxfoundation.org
+Subject: Re: Including images on Sphinx documents
+Message-ID: <20161113125250.779df4dd@lwn.net>
+In-Reply-To: <20161107075524.49d83697@vento.lan>
+References: <20161107075524.49d83697@vento.lan>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 7 Nov 2016 07:55:24 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
 
-Has anyone already considered supporting 3A (e.g. auto-exposure) Region of 
-Interest selection? In UVC this is the "Digital Region of Interest (ROI) 
-Control." Android defines ANDROID_CONTROL_AE_REGIONS, 
-ANDROID_CONTROL_AWB_REGIONS, ANDROID_CONTROL_AF_REGIONS. The UVC control 
-defines just a single rectangle for all (supported) 3A functions. That 
-could be implemented, defining a new selection target. However, Android 
-allows arbitrary numbers of ROI rectangles with associated weights. Any 
-ideas?
+> So, we have a few alternatives:
+> 
+> 1) copy (or symlink) all rst files to Documentation/output (or to the
+>    build dir specified via O= directive) and generate the *.pdf there,
+>    and produce those converted images via Makefile.;
+> 
+> 2) add an Sphinx extension that would internally call ImageMagick and/or
+>    inkscape to convert the bitmap;
+> 
+> 3) if possible, add an extension to trick Sphinx for it to consider the 
+>    output dir as a source dir too.
 
-Thanks
-Guennadi
+So, obviously, I've been letting this go by while dealing with other
+stuff...
+
+I really think that 2) is the one we want.  Copying all the stuff and
+operating on the copies, beyond being a bit of a hack, just seems like a
+recipe for weird build problems in the future.
+
+We should figure out why PNG files don't work.  Maybe I'll give that a
+try at some point soon, if I can find a moment.  Working around tools
+bugs seems like the wrong approach.
+
+Working from .svg seems optimial, but I don't like the --shell-escape
+thing at all.
+
+[Along those lines, we've picked up a lot of lines like this:
+
+	 restricted \write18 enabled.
+
+That, too, is shell execution stuff.  I've not been able to figure out
+where it came from, but I would sure like to get rid of it...]
+
+jon
