@@ -1,84 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:13567 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754031AbcKCIdB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 04:33:01 -0400
-Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
- ir-spi device driver
-To: Andi Shyti <andi.shyti@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi@etezian.org>
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Message-id: <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
-Date: Thu, 03 Nov 2016 09:32:54 +0100
-MIME-version: 1.0
-In-reply-to: <20161102104010.26959-6-andi.shyti@samsung.com>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
- <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
- <20161102104010.26959-6-andi.shyti@samsung.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33712 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932239AbcKMIrd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 13 Nov 2016 03:47:33 -0500
+Date: Sun, 13 Nov 2016 09:47:41 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        sayli karnik <karniksayli1995@gmail.com>,
+        Mark Brown <broonie@kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Anna Schumaker <anna.schumaker@netapp.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Herbert Xu <herbert@gondor.apana.org.au>,
+        Ilya Dryomov <idryomov@gmail.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Jiri Kosina <jikos@kernel.org>,
+        Ley Foon Tan <lftan@altera.com>,
+        "Luis R . Rodriguez" <mcgrof@kernel.org>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Michal Marek <mmarek@suse.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Sean Young <sean@mess.org>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Trond Myklebust <trond.myklebust@primarydata.com>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        arcml <linux-snps-arc@lists.infradead.org>,
+        nios2-dev@lists.rocketboards.org,
+        linux-s390 <linux-s390@vger.kernel.org>,
+        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux NFS Mailing List <linux-nfs@vger.kernel.org>
+Subject: Re: [PATCH v2 00/11] getting back -Wmaybe-uninitialized
+Message-ID: <20161113084741.GA5225@kroah.com>
+References: <20161110164454.293477-1-arnd@arndb.de>
+ <CA+55aFx_scFVFKU__TBmoffw_iHvrdAU2dj5u1WKfWJXAkS4QA@mail.gmail.com>
+ <2695221.kyRJMsRMjs@wuerfel>
+ <f6dccd27-09d2-1842-220b-24aa84043674@kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <f6dccd27-09d2-1842-220b-24aa84043674@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andi,
+On Sat, Nov 12, 2016 at 01:27:12PM +0000, Jonathan Cameron wrote:
+> On 11/11/16 19:49, Arnd Bergmann wrote:
+> > On Friday, November 11, 2016 9:13:00 AM CET Linus Torvalds wrote:
+> >> On Thu, Nov 10, 2016 at 8:44 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> >>>
+> >>> Please merge these directly if you are happy with the result.
+> >>
+> >> I will take this.
+> > 
+> > Thanks a lot!
+> >  
+> >> I do see two warnings, but they both seem to be valid and recent,
+> >> though, so I have no issues with the spurious cases.
+> > 
+> > Ok, both of them should have my fixes coming your way already.
+> > 
+> >> Warning #1:
+> >>
+> >>   sound/soc/qcom/lpass-platform.c: In function ‘lpass_platform_pcmops_open’:
+> >>   sound/soc/qcom/lpass-platform.c:83:29: warning: ‘dma_ch’ may be used
+> >> uninitialized in this function [-Wmaybe-uninitialized]
+> >>     drvdata->substream[dma_ch] = substream;
+> >>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+> >>
+> >> and 'dma_ch' usage there really is crazy and wrong. Broken by
+> >> 022d00ee0b55 ("ASoC: lpass-platform: Fix broken pcm data usage")
+> > 
+> > Right, the patches crossed here, the bugfix patch that introduced
+> > this came into linux-next over the kernel summit, and the fix I
+> > sent on Tuesday made it into Mark Brown's tree on Wednesday but not
+> > before you pulled alsa tree. It should be fixed the next time you
+> > pull from the alsa tree, the commit is
+> > 
+> > 3b89e4b77ef9 ("ASoC: lpass-platform: initialize dma channel number")
+> >  
+> >> Warning #2 is not a real bug, but it's reasonable that gcc doesn't
+> >> know that storage_bytes (chip->read_size) has to be 2/4. Again,
+> >> introduced recently by commit 231147ee77f3 ("iio: maxim_thermocouple:
+> >> Align 16 bit big endian value of raw reads"), so you didn't see it.
+> > 
+> > This is the one I mentioned in the commit message as one that
+> > is fixed in linux-next and that should make it in soon.
+> > 
+> >>   drivers/iio/temperature/maxim_thermocouple.c: In function
+> >> ‘maxim_thermocouple_read_raw’:
+> >>   drivers/iio/temperature/maxim_thermocouple.c:141:5: warning: ‘ret’
+> >> may be used uninitialized in this function [-Wmaybe-uninitialized]
+> >>     if (ret)
+> >>        ^
+> >>   drivers/iio/temperature/maxim_thermocouple.c:128:6: note: ‘ret’ was
+> >> declared here
+> >>     int ret;
+> >>         ^~~
+> >>
+> >> and I guess that code can just initialize 'ret' to '-EINVAL' or
+> >> something to just make the theoretical "somehow we had a wrong
+> >> chip->read_size" case error out cleanly.
+> > 
+> > Right, that was my conclusion too. I sent the bugfix on Oct 25
+> > for linux-next but it didn't make it in until this Monday, after
+> > you pulled the patch that introduced it on Oct 29.
+> > 
+> > The commit in staging-testing is
+> > 32cb7d27e65d ("iio: maxim_thermocouple: detect invalid storage size in read()")
+> > 
+> > Greg and Jonathan, I see now that this is part of the 'iio-for-4.10b'
+> > branch, so I suspect you were not planning to send this before the
+> > merge window. Could you make sure this ends up in v4.9 so we get
+> > a clean build when -Wmaybe-uninitialized gets enabled again?
+> I'll queue this up and send a pull to Greg tomorrow.
+> 
+> Was highly doubtful that a false warning suppression (be it an
+> understandable one) was worth sending mid cycle, hence it was
+> taking the slow route.
 
-Only DT bindings of LED class drivers should be placed in
-Documentation/devicetree/bindings/leds. Please move it to the
-media bindings.
+I can just cherry-pick this, no need to send a separate pull request.
 
-Thanks,
-Jacek Anaszewski
-
-On 11/02/2016 11:40 AM, Andi Shyti wrote:
-> Document the ir-spi driver's binding which is a IR led driven
-> through the SPI line.
->
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> ---
->  .../devicetree/bindings/leds/spi-ir-led.txt        | 29 ++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/leds/spi-ir-led.txt
->
-> diff --git a/Documentation/devicetree/bindings/leds/spi-ir-led.txt b/Documentation/devicetree/bindings/leds/spi-ir-led.txt
-> new file mode 100644
-> index 0000000..896b699
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/leds/spi-ir-led.txt
-> @@ -0,0 +1,29 @@
-> +Device tree bindings for IR LED connected through SPI bus which is used as
-> +remote controller.
-> +
-> +The IR LED switch is connected to the MOSI line of the SPI device and the data
-> +are delivered thourgh that.
-> +
-> +Required properties:
-> +	- compatible: should be "ir-spi-led".
-> +
-> +Optional properties:
-> +	- duty-cycle: 8 bit balue that represents the percentage of one period
-> +	  in which the signal is active.  It can be 50, 60, 70, 75, 80 or 90.
-> +	- led-active-low: boolean value that specifies whether the output is
-> +	  negated with a NOT gate.
-> +	- power-supply: specifies the power source. It can either be a regulator
-> +	  or a gpio which enables a regulator, i.e. a regulator-fixed as
-> +	  described in
-> +	  Documentation/devicetree/bindings/regulator/fixed-regulator.txt
-> +
-> +Example:
-> +
-> +	irled@0 {
-> +		compatible = "ir-spi-led";
-> +		reg = <0x0>;
-> +		spi-max-frequency = <5000000>;
-> +		power-supply = <&vdd_led>;
-> +		led-active-low;
-> +		duty-cycle = /bits/ 8 <60>;
-> +	};
->
-
+greg k-h
