@@ -1,140 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f177.google.com ([209.85.192.177]:33334 "EHLO
-        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751606AbcK3Xtf (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:51784 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753494AbcKNJrM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 18:49:35 -0500
-Received: by mail-pf0-f177.google.com with SMTP id d2so41814354pfd.0
-        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2016 15:48:53 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Rob Herring <robh@kernel.org>,
-        "linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "devicetree\@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>, g.liakhovetski@gmx.de,
-        laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v3 4/4] [media] dt-bindings: add TI VPIF documentation
-References: <20161122155244.802-1-khilman@baylibre.com>
-        <20161122155244.802-5-khilman@baylibre.com>
-        <20161128213822.26oeyzkht5jz5gd3@rob-hp-laptop>
-        <m2shqbs0eu.fsf@baylibre.com>
-        <CAL_JsqJ3wJnNa=bVN+UT4A-J5XC0jdyGAgWzROScRDLy6T8xHw@mail.gmail.com>
-        <20161130214835.GN16630@valkosipuli.retiisi.org.uk>
-Date: Wed, 30 Nov 2016 15:48:51 -0800
-In-Reply-To: <20161130214835.GN16630@valkosipuli.retiisi.org.uk> (Sakari
-        Ailus's message of "Wed, 30 Nov 2016 23:48:36 +0200")
-Message-ID: <m27f7kil5o.fsf@baylibre.com>
+        Mon, 14 Nov 2016 04:47:12 -0500
+Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
+ functions
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
+ <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
+ <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a6557768-787d-7794-8cd0-781dc1ee9072@xs4all.nl>
+Date: Mon, 14 Nov 2016 10:47:01 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari Ailus <sakari.ailus@iki.fi> writes:
+On 11/14/2016 10:42 AM, Stanimir Varbanov wrote:
+> Hi Hans,
+> 
+> Thanks for the comments!
+> 
+> On 11/11/2016 01:32 PM, Hans Verkuil wrote:
+>> Hi Stanimir,
+>>
+>> Some comments:
+>>
+>> On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
+>>>  * core.c has implemented the platform dirver methods, file
+>>> operations and v4l2 registration.
+>>>
+>>>  * helpers.c has implemented common helper functions for:
+>>>    - buffer management
+>>>
+>>>    - vb2_ops and functions for format propagation,
+>>>
+>>>    - functions for allocating and freeing buffers for
+>>>    internal usage. The buffer parameters describing internal
+>>>    buffers depends on current format, resolution and codec.
+>>>
+>>>    - functions for calculation of current load of the
+>>>    hardware. Depending on the count of instances and
+>>>    resolutions it selects the best clock rate for the video
+>>>    core.
+>>>
+>>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>>> ---
+>>>  drivers/media/platform/qcom/venus/core.c    | 557 +++++++++++++++++++++++++
+>>>  drivers/media/platform/qcom/venus/core.h    | 261 ++++++++++++
+>>>  drivers/media/platform/qcom/venus/helpers.c | 612 ++++++++++++++++++++++++++++
+>>>  drivers/media/platform/qcom/venus/helpers.h |  43 ++
+>>>  4 files changed, 1473 insertions(+)
+>>>  create mode 100644 drivers/media/platform/qcom/venus/core.c
+>>>  create mode 100644 drivers/media/platform/qcom/venus/core.h
+>>>  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+>>>  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+>>>
+>>
+>> <snip>
+>>
+>>> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
+>>> new file mode 100644
+>>> index 000000000000..21ed053aeb17
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/qcom/venus/core.h
+>>
+>> <snip>
+>>
+>>> +struct venus_ctrl {
+>>> +	u32 id;
+>>> +	enum v4l2_ctrl_type type;
+>>> +	s32 min;
+>>> +	s32 max;
+>>> +	s32 def;
+>>> +	u32 step;
+>>> +	u64 menu_skip_mask;
+>>> +	u32 flags;
+>>> +	const char * const *qmenu;
+>>> +};
+>>
+>> Why duplicate struct v4l2_ctrl_config? Just use that struct to define custom controls
+>> together with v4l2_ctrl_new_custom().
+> 
+> OK, I will rework the controls to avoid struct v4l2_ctrl_config duplication.
+> 
+>>
+>>> +
+>>> +/*
+>>> + * Offset base for buffers on the destination queue - used to distinguish
+>>> + * between source and destination buffers when mmapping - they receive the same
+>>> + * offsets but for different queues
+>>> + */
+>>> +#define DST_QUEUE_OFF_BASE	(1 << 30)
+>>> +
+>>> +static inline struct venus_inst *to_inst(struct file *filp)
+>>> +{
+>>> +	return container_of(filp->private_data, struct venus_inst, fh);
+>>> +}
+>>> +
+>>> +static inline void *to_hfi_priv(struct venus_core *core)
+>>> +{
+>>> +	return core->priv;
+>>> +}
+>>> +
+>>> +static inline struct vb2_queue *
+>>> +to_vb2q(struct file *file, enum v4l2_buf_type type)
+>>> +{
+>>> +	struct venus_inst *inst = to_inst(file);
+>>> +
+>>> +	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>>> +		return &inst->bufq_cap;
+>>> +	else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>>> +		return &inst->bufq_out;
+>>> +
+>>> +	return NULL;
+>>> +}
+>>> +
+>>> +#endif
+>>> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
+>>> new file mode 100644
+>>> index 000000000000..c2d1446ad254
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/qcom/venus/helpers.c
+>>
+>> <snip>
+>>
+>>> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
+>>> +{
+>>> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+>>> +	struct venus_core *core = inst->core;
+>>> +	struct device *dev = core->dev;
+>>> +	struct vb2_queue *other_queue;
+>>> +	struct vidc_buffer *buf, *n;
+>>> +	enum vb2_buffer_state state;
+>>> +	int ret;
+>>> +
+>>> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>>> +		other_queue = &inst->bufq_cap;
+>>> +	else
+>>> +		other_queue = &inst->bufq_out;
+>>> +
+>>> +	if (!vb2_is_streaming(other_queue))
+>>> +		return;
+>>
+>> This seems wrong to me: this return means that the buffers of queue q are never
+>> released. Either drop this 'if' or release both queues when the last queue
+>> stops streaming. I think dropping the 'if' is best.
+> 
+> I have done this way because hfi_session_stop must be called only once,
+> and buffers will be released on first streamoff for both queues.
 
-> Hi Rob and Kevin,
->
-> On Tue, Nov 29, 2016 at 08:41:44AM -0600, Rob Herring wrote:
->> On Mon, Nov 28, 2016 at 4:30 PM, Kevin Hilman <khilman@baylibre.com> wrote:
->> > Hi Rob,
->> >
->> > Rob Herring <robh@kernel.org> writes:
->> >
->> >> On Tue, Nov 22, 2016 at 07:52:44AM -0800, Kevin Hilman wrote:
->> >>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> >>> ---
->> >>>  .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
->> >>>  .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
->> >>>  2 files changed, 73 insertions(+)
->> >>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->> >>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> >>>
->> >>> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->> >>> new file mode 100644
->> >>> index 000000000000..c447ac482c1d
->> >>> --- /dev/null
->> >>> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->> >>> @@ -0,0 +1,65 @@
->> >>> +Texas Instruments VPIF Capture
->> >>> +------------------------------
->> >>> +
->> >>> +The TI Video Port InterFace (VPIF) capture component is the primary
->> >>> +component for video capture on the DA850 family of TI DaVinci SoCs.
->> >>> +
->> >>> +TI Document number reference: SPRUH82C
->> >>> +
->> >>> +Required properties:
->> >>> +- compatible: must be "ti,da850-vpif-capture"
->> >>> +- reg: physical base address and length of the registers set for the device;
->> >>> +- interrupts: should contain IRQ line for the VPIF
->> >>> +
->> >>> +VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
->> >>> +channels or a single 16-bit channel.  It should contain at least one
->> >>> +port child node with child 'endpoint' node. Please refer to the
->> >>> +bindings defined in
->> >>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> >>> +
->> >>> +Example using 2 8-bit input channels, one of which is connected to an
->> >>> +I2C-connected TVP5147 decoder:
->> >>> +
->> >>> +    vpif_capture: video-capture@0x00217000 {
->> >>> +            reg = <0x00217000 0x1000>;
->> >>> +            interrupts = <92>;
->> >>> +
->> >>> +            port {
->> >>> +                    vpif_ch0: endpoint@0 {
->> >>> +                              reg = <0>;
->> >>> +                              bus-width = <8>;
->> >>> +                              remote-endpoint = <&composite>;
->> >>> +                    };
->> >>> +
->> >>> +                    vpif_ch1: endpoint@1 {
->> >>
->> >> I think probably channels here should be ports rather than endpoints.
->> >> AIUI, having multiple endpoints is for cases like a mux or 1 to many
->> >> connections. There's only one data flow, but multiple sources or sinks.
->> >
->> > Looking at this closer... , I used an endpoint because it's bascially a
->> > 16-bit parallel bus, that can be configured as (up to) 2 8-bit
->> > "channels.  So, based on the video-interfaces.txt doc, I configured this
->> > as a single port, with (up to) 2 endpoints.  That also allows me to
->> > connect output of the decoder directly, using the remote-endpoint
->> > property.
->> >
->> > So I guess I'm not fully understanding your suggestion.
->> 
->> NM, looks like video-interfaces.txt actually spells out this case and
->> defines doing it as you did.
->
-> It's actually the first time I read that portion (at least so that I could
-> remember) of video-interfaces.txt. I'm not sure if anyone has implemented
-> that previously, nor how we ended up with the text. The list archive could
-> probably tell. Cc Guennadi who wrote it. :-) I couldn't immediately find DT
-> source with this arrangement.
->
-> In case of splitting the port into two parallel interfaces, how do you
-> determine which wires belong to which endpoint? I guess they'd be particular
-> sets of wires but as there's just a single port it isn't defined by the
-> port.
+Are you sure the buffers are released for both queues? I may have missed that when
+reviewing.
 
-Isn't that the point of data-shift?
+I would recommend to call hfi_session_stop when the first stop_streaming is called,
+not when it is called for both queues. I say this because stopping streaming without
+releasing the buffers is likely to cause problems.
 
-e.g. it's a single 16-bit parallel bus, where the lower 8 bits are for
-channel 0 and the upper 8 bits are for channel 1.  Alternately, the port
-can also be configured as a single 16-bit channel (e.g. for raw
-capture.)
+Did you turn on CONFIG_VIDEO_ADV_DEBUG? If it is on, and you don't release buffers
+then I think you will see warnings in the kernel log.
 
-If you want more details on this hardware, it's pretty well described in
-Chapter 35 of http://www.ti.com/lit/ug/spruh82c/spruh82c.pdf.
+Regards,
 
-FWIW, I'm not really picky about how to do this.  I'm trying to learn
-"the right way" and am happy to do that, but the feedback so far has
-been confusing (at least for someone relatively new to the DT side of
-the media framework.)
-
-Kevin
-
+	Hans
