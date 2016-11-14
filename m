@@ -1,141 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33626 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966102AbcKLNNy (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35961 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752225AbcKNMSn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:54 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 25/32] media: rcar-vin: enable CSI2 group subdevices in lookup helpers
-Date: Sat, 12 Nov 2016 14:12:09 +0100
-Message-Id: <20161112131216.22635-26-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 14 Nov 2016 07:18:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Todor Tomov <todor.tomov@linaro.org>, robh+dt@kernel.org,
+        pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH v6 2/2] media: Add a driver for the ov5645 camera sensor.
+Date: Mon, 14 Nov 2016 14:18:49 +0200
+Message-ID: <7012441.uVkdQjEznh@avalon>
+In-Reply-To: <20161026115149.GD17252@sirena.org.uk>
+References: <1473326035-25228-1-git-send-email-todor.tomov@linaro.org> <5810931B.4070101@linaro.org> <20161026115149.GD17252@sirena.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make the subdevice helpers look not only at the local digital subdevice
-but also for the CSI2 group subdevices which can be present on Gen3.
+Hi Mark,
 
-Which CSI2 group subdevices are found depends on the CSI2 subgroup
-routing which is stored in the CHSEL register of the subgroup master
-(VIN0 for VIN0-3 and VIN4 for VIN4-7). The lookup functions look at this
-value and returns the correct information or NULL if there is no
-attached subdevices for the current routing for this device.
+On Wednesday 26 Oct 2016 12:51:49 Mark Brown wrote:
+> On Wed, Oct 26, 2016 at 02:27:23PM +0300, Todor Tomov wrote:
+> > And using Mark Brown's correct address...
+> 
+> This is an *enormous* e-mail quoted to multiple levels with top posting
+> and very little editing which makes it incredibly hard to find any
+> relevant content.
+> 
+> > >> I believe it should be an API guarantee, otherwise many drivers using
+> > >> the bulk API would break. Mark, could you please comment on that ?
+> > > 
+> > > Ok, let's wait for a response from Mark.
+> 
+> Why would this be guaranteed by the API given that it's not documented
+> and why would many drivers break?  It's fairly rare for devices other
+> than SoCs to have strict power on sequencing requirements as it is hard
+> to achieve in practical systems.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 70 ++++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 +-
- 2 files changed, 70 insertions(+), 2 deletions(-)
+I'm surprised, I've always considered the bulk regulator API as guaranteeing 
+sequencing, and have written quite a few drivers with that assumption. If 
+that's not correct then I'll have to switch them back to manual regulator 
+handling.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 0092ab4..0b3882a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -330,9 +330,77 @@ static void rvin_group_delete(struct rvin_dev *vin)
-  * Subdevice helpers
-  */
- 
-+static int rvin_group_vin_to_csi(struct rvin_dev *vin)
-+{
-+	int i, vin_num, vin_master, chsel, csi;
-+
-+	/* Only valid on Gen3 */
-+	if (vin->info->chip != RCAR_GEN3)
-+		return -1;
-+
-+	/*
-+	 * Only try to translate to a CSI2 number if there is a enabled
-+	 * link from the VIN sink pad. However if there are no links at
-+	 * all we are at probe time so ignore the need for enabled links
-+	 * to be able to make a better guess of initial format
-+	 */
-+	if (vin->pads[RVIN_SINK].entity->num_links &&
-+	    !media_entity_remote_pad(&vin->pads[RVIN_SINK]))
-+		return -1;
-+
-+	/* Find which VIN we are */
-+	vin_num = -1;
-+	for (i = 0; i < RCAR_VIN_NUM; i++)
-+		if (vin == vin->group->vin[i])
-+			vin_num = i;
-+
-+	if (vin_num == -1)
-+		return -1;
-+
-+	vin_master = vin_num < 4 ? 0 : 4;
-+	if (!vin->group->vin[vin_master])
-+		return -1;
-+
-+	chsel = rvin_get_chsel(vin->group->vin[vin_master]);
-+
-+	csi = vin->info->chsels[vin_num][chsel].csi;
-+	if (csi >= RVIN_CSI_MAX)
-+		return -1;
-+
-+	if (!vin->group->source[csi].subdev || !vin->group->bridge[csi].subdev)
-+		return -1;
-+
-+	return csi;
-+}
-+
- struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin)
- {
--	return &vin->digital;
-+	int csi;
-+
-+	/* If there is a digital subdev use it */
-+	if (vin->digital.subdev)
-+		return &vin->digital;
-+
-+	csi = rvin_group_vin_to_csi(vin);
-+	if (csi < 0)
-+		return NULL;
-+
-+	return &vin->group->source[csi];
-+}
-+
-+struct v4l2_subdev *vin_to_source(struct rvin_dev *vin)
-+{
-+	int csi;
-+
-+	/* If there is a digital subdev use it */
-+	if (vin->digital.subdev)
-+		return vin->digital.subdev;
-+
-+	csi = rvin_group_vin_to_csi(vin);
-+	if (csi < 0)
-+		return NULL;
-+
-+	return vin->group->source[csi].subdev;
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index cd7d959..2f1e087 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -207,7 +207,7 @@ struct rvin_dev {
- };
- 
- struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin);
--#define vin_to_source(vin)		vin->digital.subdev
-+struct v4l2_subdev *vin_to_source(struct rvin_dev *vin);
- 
- /* Debug */
- #define vin_dbg(d, fmt, arg...)		dev_dbg(d->dev, fmt, ##arg)
+Is there a reason why the API shouldn't guarantee that regulators are powered 
+on in the order listed, and powered off in the reverse order ? Looking at the 
+implementation that's already the case for regulator_bulk_disable(), but 
+regulator_bulk_enable() uses async scheduling so doesn't guarantee ordering. I 
+wonder whether a synchronous version of regulator_bulk_enable() would be 
+useful.
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
