@@ -1,88 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44149 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752206AbcKNPXE (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:35667 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933402AbcKNK13 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 10:23:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        Russell King <rmk+kernel@arm.linux.org.uk>
-Subject: [RFCv2 PATCH 2/5] drm/bridge: dw_hdmi: remove CEC engine register definitions
-Date: Mon, 14 Nov 2016 16:22:45 +0100
-Message-Id: <1479136968-24477-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
-References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
+        Mon, 14 Nov 2016 05:27:29 -0500
+Received: by mail-wm0-f50.google.com with SMTP id a197so89160558wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 02:27:28 -0800 (PST)
+Subject: Re: [PATCH v3 5/9] media: venus: venc: add video encoder files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-6-git-send-email-stanimir.varbanov@linaro.org>
+ <5e918c07-c3fb-262a-5c9e-11014cdb0eb0@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <9e4549e5-4e24-8aaa-bf8a-549f7906c207@linaro.org>
+Date: Mon, 14 Nov 2016 12:27:25 +0200
+MIME-Version: 1.0
+In-Reply-To: <5e918c07-c3fb-262a-5c9e-11014cdb0eb0@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+Hi Hans,
 
-We don't need the CEC engine register definitions, so let's remove them.
+Thanks for the comments!
 
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
----
- drivers/gpu/drm/bridge/dw-hdmi.h | 45 ----------------------------------------
- 1 file changed, 45 deletions(-)
+On 11/11/2016 01:43 PM, Hans Verkuil wrote:
+> The comments I made before about start_streaming and the use of struct venus_ctrl
+> apply here as well and I won't repeat them.
+> 
+> On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
+>> This adds encoder part of the driver plus encoder controls.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/venc.c       | 1212 ++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/venc.h       |   32 +
+>>  drivers/media/platform/qcom/venus/venc_ctrls.c |  396 ++++++++
+>>  3 files changed, 1640 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/venus/venc.c
+>>  create mode 100644 drivers/media/platform/qcom/venus/venc.h
+>>  create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+>> new file mode 100644
+>> index 000000000000..35572eaffb9e
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/venus/venc.c
+> 
+> <snip>
+> 
+>> +static int
+>> +venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
+>> +{
+>> +	struct venus_inst *inst = to_inst(file);
+>> +
+>> +	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>> +		return -EINVAL;
+>> +
+>> +	switch (s->target) {
+>> +	case V4L2_SEL_TGT_CROP:
+>> +		if (s->r.width != inst->out_width ||
+>> +		    s->r.height != inst->out_height ||
+>> +		    s->r.top != 0 || s->r.left != 0)
+>> +			return -EINVAL;
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+> 
+> Why implement s_selection if I can't change the selection?
 
-diff --git a/drivers/gpu/drm/bridge/dw-hdmi.h b/drivers/gpu/drm/bridge/dw-hdmi.h
-index fc9a560..26d6845 100644
---- a/drivers/gpu/drm/bridge/dw-hdmi.h
-+++ b/drivers/gpu/drm/bridge/dw-hdmi.h
-@@ -478,51 +478,6 @@
- #define HDMI_A_PRESETUP                         0x501A
- #define HDMI_A_SRM_BASE                         0x5020
- 
--/* CEC Engine Registers */
--#define HDMI_CEC_CTRL                           0x7D00
--#define HDMI_CEC_STAT                           0x7D01
--#define HDMI_CEC_MASK                           0x7D02
--#define HDMI_CEC_POLARITY                       0x7D03
--#define HDMI_CEC_INT                            0x7D04
--#define HDMI_CEC_ADDR_L                         0x7D05
--#define HDMI_CEC_ADDR_H                         0x7D06
--#define HDMI_CEC_TX_CNT                         0x7D07
--#define HDMI_CEC_RX_CNT                         0x7D08
--#define HDMI_CEC_TX_DATA0                       0x7D10
--#define HDMI_CEC_TX_DATA1                       0x7D11
--#define HDMI_CEC_TX_DATA2                       0x7D12
--#define HDMI_CEC_TX_DATA3                       0x7D13
--#define HDMI_CEC_TX_DATA4                       0x7D14
--#define HDMI_CEC_TX_DATA5                       0x7D15
--#define HDMI_CEC_TX_DATA6                       0x7D16
--#define HDMI_CEC_TX_DATA7                       0x7D17
--#define HDMI_CEC_TX_DATA8                       0x7D18
--#define HDMI_CEC_TX_DATA9                       0x7D19
--#define HDMI_CEC_TX_DATA10                      0x7D1a
--#define HDMI_CEC_TX_DATA11                      0x7D1b
--#define HDMI_CEC_TX_DATA12                      0x7D1c
--#define HDMI_CEC_TX_DATA13                      0x7D1d
--#define HDMI_CEC_TX_DATA14                      0x7D1e
--#define HDMI_CEC_TX_DATA15                      0x7D1f
--#define HDMI_CEC_RX_DATA0                       0x7D20
--#define HDMI_CEC_RX_DATA1                       0x7D21
--#define HDMI_CEC_RX_DATA2                       0x7D22
--#define HDMI_CEC_RX_DATA3                       0x7D23
--#define HDMI_CEC_RX_DATA4                       0x7D24
--#define HDMI_CEC_RX_DATA5                       0x7D25
--#define HDMI_CEC_RX_DATA6                       0x7D26
--#define HDMI_CEC_RX_DATA7                       0x7D27
--#define HDMI_CEC_RX_DATA8                       0x7D28
--#define HDMI_CEC_RX_DATA9                       0x7D29
--#define HDMI_CEC_RX_DATA10                      0x7D2a
--#define HDMI_CEC_RX_DATA11                      0x7D2b
--#define HDMI_CEC_RX_DATA12                      0x7D2c
--#define HDMI_CEC_RX_DATA13                      0x7D2d
--#define HDMI_CEC_RX_DATA14                      0x7D2e
--#define HDMI_CEC_RX_DATA15                      0x7D2f
--#define HDMI_CEC_LOCK                           0x7D30
--#define HDMI_CEC_WKUPCTRL                       0x7D31
--
- /* I2C Master Registers (E-DDC) */
- #define HDMI_I2CM_SLAVE                         0x7E00
- #define HDMI_I2CM_ADDRESS                       0x7E01
+without s_selection the v4l2-compliance test starts failing with:
+
+fail: v4l2-test-formats.cpp(1319): doioctl(node, VIDIOC_S_SELECTION,
+&sel_crop) != EINVAL
+
+fail: v4l2-test-formats.cpp(1407): testBasicCrop(node,
+V4L2_BUF_TYPE_VIDEO_OUTPUT)
+
+> 
+>> +
+>> +static int
+>> +venc_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
+>> +{
+>> +	struct vb2_queue *queue = to_vb2q(file, b->type);
+>> +
+>> +	if (!queue)
+>> +		return -EINVAL;
+>> +
+>> +	return vb2_reqbufs(queue, b);
+>> +}
+> 
+> Use the m2m helpers if at all possible.
+
+I've answered already to that in 4/9.
+
 -- 
-2.8.1
-
+regards,
+Stan
