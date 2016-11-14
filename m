@@ -1,127 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:36792 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754397AbcKCKp1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 06:45:27 -0400
-Received: by mail-wm0-f54.google.com with SMTP id p190so324103157wmp.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2016 03:45:27 -0700 (PDT)
-Subject: Re: [PATCH v2 3/8] media: vidc: decoder: add video decoder files
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1473248229-5540-1-git-send-email-stanimir.varbanov@linaro.org>
- <1473248229-5540-4-git-send-email-stanimir.varbanov@linaro.org>
- <40feffa4-68a3-d4e9-12ee-e3e5b5f08349@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <20aa8a6d-d1a6-c4e4-761d-71460629ff7f@linaro.org>
-Date: Thu, 3 Nov 2016 12:45:20 +0200
-MIME-Version: 1.0
-In-Reply-To: <40feffa4-68a3-d4e9-12ee-e3e5b5f08349@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from ns.mm-sol.com ([37.157.136.199]:57214 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752824AbcKNKZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 05:25:08 -0500
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v7 1/2] media: i2c/ov5645: add the device tree binding document
+Date: Mon, 14 Nov 2016 12:24:35 +0200
+Message-Id: <1479119076-26363-2-git-send-email-todor.tomov@linaro.org>
+In-Reply-To: <1479119076-26363-1-git-send-email-todor.tomov@linaro.org>
+References: <1479119076-26363-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add the document for ov5645 device tree binding.
 
-On 09/19/2016 01:04 PM, Hans Verkuil wrote:
-> On 09/07/2016 01:37 PM, Stanimir Varbanov wrote:
->> This consists of video decoder implementation plus decoder
->> controls.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/vidc/vdec.c       | 1091 +++++++++++++++++++++++++
->>  drivers/media/platform/qcom/vidc/vdec.h       |   29 +
->>  drivers/media/platform/qcom/vidc/vdec_ctrls.c |  200 +++++
->>  drivers/media/platform/qcom/vidc/vdec_ctrls.h |   21 +
->>  4 files changed, 1341 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/vidc/vdec.c
->>  create mode 100644 drivers/media/platform/qcom/vidc/vdec.h
->>  create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.c
->>  create mode 100644 drivers/media/platform/qcom/vidc/vdec_ctrls.h
->>
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+---
+ .../devicetree/bindings/media/i2c/ov5645.txt       | 54 ++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
 
-<cut>
-
->> +
->> +static int
->> +vdec_g_selection(struct file *file, void *priv, struct v4l2_selection *s)
->> +{
->> +	struct vidc_inst *inst = to_inst(file);
->> +
->> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
->> +		return -EINVAL;
->> +
->> +	switch (s->target) {
->> +	case V4L2_SEL_TGT_CROP_DEFAULT:
->> +	case V4L2_SEL_TGT_CROP_BOUNDS:
->> +	case V4L2_SEL_TGT_CROP:
->> +	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
->> +	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
->> +	case V4L2_SEL_TGT_COMPOSE:
-> 
-> This is almost certainly wrong.
-> 
-> For capture I would expect that you can do compose, but not crop.
-> 
-> This would likely explain that v4l2-compliance thinks that the driver can
-> scale:
-> 
->                 test Scaling: OK
-> 
-
-Maybe I need some help to implement correctly g_selection.
-
-Lets say that the resolution of the compressed stream is 1280x720, and
-that resolution is set with s_fmt(OUTPUT queue), then I calculate the
-output resolution which I will return by g_fmt(CAPTURE queue) and it
-will be 1280x736 (hardware wants height to be multiple of 32 lines). So
-the result will be 16 lines of vertical padding which should be exposed
-to client (think of gstreamer v4l2videodec element) via g_crop
-(g_selection) as 1280x720 because this is the actual image.
-
-So from what I understood while read Selection API, I need to support
-only composing on CAPTURE queue, no scaling and no cropping.
-
-OUTPUT buffer type, data source
-TGT_CROP_BOUNDS = TGT_CROP_DEFAULT = TGT_CROP = 1280x720
-TGT_COMPOSE_BOUNDS = TGT_COMPOSE_DEFAULT = TGT_COMPOSE = 1280x720
-
-CAPTURE buffer type, data sink
-TGT_CROP_BOUNDS = TGT_CROP_DEFAULT = TGT_CROP = EINVAL
-TGT_COMPOSE_BOUNDS = 1280x736
-TGT_COMPOSE_DEFAULT = TGT_COMPOSE = 1280x720
-
-With this logic in g_selection the output of v4l2-compliance test
-application is:
-	test Cropping: OK
-	test Composing: OK
-	test Scaling: OK (Not Supported)
-
-So why v4l2-compliance still thinks that the driver supports Cropping?
-
->> +		break;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +
->> +	s->r.top = 0;
->> +	s->r.left = 0;
->> +	s->r.width = inst->out_width;
->> +	s->r.height = inst->out_height;
->> +
->> +	return 0;
->> +}
-
-<cut>
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5645.txt b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+new file mode 100644
+index 0000000..fd7aec9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5645.txt
+@@ -0,0 +1,54 @@
++* Omnivision 1/4-Inch 5Mp CMOS Digital Image Sensor
++
++The Omnivision OV5645 is a 1/4-Inch CMOS active pixel digital image sensor with
++an active array size of 2592H x 1944V. It is programmable through a serial I2C
++interface.
++
++Required Properties:
++- compatible: Value should be "ovti,ov5645".
++- clocks: Reference to the xclk clock.
++- clock-names: Should be "xclk".
++- clock-frequency: Frequency of the xclk clock.
++- enable-gpios: Chip enable GPIO. Polarity is GPIO_ACTIVE_HIGH. This corresponds
++  to the hardware pin PWDNB which is physically active low.
++- reset-gpios: Chip reset GPIO. Polarity is GPIO_ACTIVE_LOW. This corresponds to
++  the hardware pin RESETB.
++- vdddo-supply: Chip digital IO regulator.
++- vdda-supply: Chip analog regulator.
++- vddd-supply: Chip digital core regulator.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	&i2c1 {
++		...
++
++		ov5645: ov5645@78 {
++			compatible = "ovti,ov5645";
++			reg = <0x78>;
++
++			enable-gpios = <&gpio1 6 GPIO_ACTIVE_HIGH>;
++			reset-gpios = <&gpio5 20 GPIO_ACTIVE_LOW>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&camera_rear_default>;
++
++			clocks = <&clks 200>;
++			clock-names = "xclk";
++			clock-frequency = <23880000>;
++
++			vdddo-supply = <&camera_dovdd_1v8>;
++			vdda-supply = <&camera_avdd_2v8>;
++			vddd-supply = <&camera_dvdd_1v2>;
++
++			port {
++				ov5645_ep: endpoint {
++					clock-lanes = <1>;
++					data-lanes = <0 2>;
++					remote-endpoint = <&csi0_ep>;
++				};
++			};
++		};
++	};
 -- 
-regards,
-Stan
+1.9.1
+
