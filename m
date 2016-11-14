@@ -1,124 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45289 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750977AbcKYFI6 (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34523 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752007AbcKNPW5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 00:08:58 -0500
-Message-ID: <de1f93bfbfe0ae13e5fb8ddf05cf1819@smtp-cloud2.xs4all.net>
-Date: Fri, 25 Nov 2016 06:08:35 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Mon, 14 Nov 2016 10:22:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org
+Subject: [RFCv2 PATCH 0/5] CEC drivers for iMX6 and TDA9950
+Date: Mon, 14 Nov 2016 16:22:43 +0100
+Message-Id: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+This patch series is an update to this RFC series from Russell:
 
-date:			Fri Nov 25 05:00:20 CET 2016
-media-tree git hash:	4cc5bed1caeb6d40f2f41c4c5eb83368691fbffb
-media_build git hash:	538c0b2692a7ca59253385180954ac6c7d9b7817
-v4l-utils git hash:	d7f2c410fc35841fe817c4bb9cf94070994e0f01
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+https://lists.freedesktop.org/archives/dri-devel/2016-August/115733.html
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+I have not seen any updates to this, so I hope that that series is still
+the latest version.
 
-Detailed results are available here:
+The main problem with that original series was that the notifier didn't
+store the state, so if a CEC driver registered with the notifier, then
+it wouldn't be informed of the current state.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+The hdmi-notifier code has been changed to a per-HDMI-device and refcounted
+block_notifier that stores the state and will report the current state
+upon registration.
 
-Full logs are available here:
+The other four patches have been adapted to the new notifier code, but
+no other changes were made.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+It has *only* been compile-tested. I might be able to verify it next week
+with an actual i.MX6 device, but it will take time to set that up.
 
-The Media Infrastructure API from this daily build is here:
+If someone has a ready-to-test setup, then I would very much appreciate
+it if this series can be tested.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+The patches are also available in my branch:
+
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=cec-notifiers
+
+It is on top of my patch series that moves CEC out of staging. This
+is planned for 4.10.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (1):
+  video: add HDMI state notifier support
+
+Russell King (4):
+  drm/bridge: dw_hdmi: remove CEC engine register definitions
+  drm/bridge: dw_hdmi: add HDMI notifier support
+  drm/bridge: add dw-hdmi cec driver using Hans Verkuil's CEC code
+  drm/i2c: add tda998x/tda9950 CEC driver
+
+ drivers/gpu/drm/bridge/Kconfig            |   8 +
+ drivers/gpu/drm/bridge/Makefile           |   1 +
+ drivers/gpu/drm/bridge/dw-hdmi-cec.c      | 346 ++++++++++++++++++++
+ drivers/gpu/drm/bridge/dw-hdmi.c          |  89 +++++-
+ drivers/gpu/drm/bridge/dw-hdmi.h          |  45 ---
+ drivers/gpu/drm/i2c/Kconfig               |   5 +
+ drivers/gpu/drm/i2c/Makefile              |   1 +
+ drivers/gpu/drm/i2c/tda9950.c             | 516 ++++++++++++++++++++++++++++++
+ drivers/video/Kconfig                     |   3 +
+ drivers/video/Makefile                    |   1 +
+ drivers/video/hdmi-notifier.c             | 136 ++++++++
+ include/linux/hdmi-notifier.h             |  43 +++
+ include/linux/platform_data/dw_hdmi-cec.h |  16 +
+ include/linux/platform_data/tda9950.h     |  15 +
+ 14 files changed, 1168 insertions(+), 57 deletions(-)
+ create mode 100644 drivers/gpu/drm/bridge/dw-hdmi-cec.c
+ create mode 100644 drivers/gpu/drm/i2c/tda9950.c
+ create mode 100644 drivers/video/hdmi-notifier.c
+ create mode 100644 include/linux/hdmi-notifier.h
+ create mode 100644 include/linux/platform_data/dw_hdmi-cec.h
+ create mode 100644 include/linux/platform_data/tda9950.h
+
+-- 
+2.8.1
+
