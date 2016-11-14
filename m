@@ -1,154 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33566 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932343AbcKNTcW (ORCPT
+Received: from mail-yw0-f179.google.com ([209.85.161.179]:36395 "EHLO
+        mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932274AbcKNOQL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 14:32:22 -0500
-Subject: Re: [PATCH v4 7/8] v4l: Add signal lock status to source change
- events
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, lars@metafoo.de
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
- <1470247430-11168-8-git-send-email-steve_longerbeam@mentor.com>
- <8ff2fc76-2290-d353-08cd-2aa31c31a19c@xs4all.nl>
- <de4a622c-0d2b-0233-3f82-958a16319656@mentor.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <b3ef22f9-c048-3c27-1e81-84533728dfb5@gmail.com>
-Date: Mon, 14 Nov 2016 11:32:19 -0800
+        Mon, 14 Nov 2016 09:16:11 -0500
+Received: by mail-yw0-f179.google.com with SMTP id a10so59555312ywa.3
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 06:16:10 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <de4a622c-0d2b-0233-3f82-958a16319656@mentor.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <8ff2fc76-2290-d353-08cd-2aa31c31a19c@xs4all.nl>
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+ <1470247430-11168-8-git-send-email-steve_longerbeam@mentor.com> <8ff2fc76-2290-d353-08cd-2aa31c31a19c@xs4all.nl>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Mon, 14 Nov 2016 09:16:08 -0500
+Message-ID: <CAGoCfiyu+iGmy4pu8UQE8YrN=RUBAda4HD0PDjboq8QJTh0dnw@mail.gmail.com>
+Subject: Re: [PATCH v4 7/8] v4l: Add signal lock status to source change events
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Lars-Peter Clausen <lars@metafoo.de>, mchehab@kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> OK, but what can the application do with that event? If the glitch didn't
+> affect the video, then it is pointless.
+>
+> If the lock is lost, then normally you loose video as well. If not, then
+> applications are not interested in the event.
+
+What about free running mode (where some decoders delivers blue or
+black video with no signal present)?  In that case it might still be
+useful to inform the application so it can show a message that says
+something like "No Signal".
+
+Devin
 
 
-On 11/14/2016 11:19 AM, Steve Longerbeam wrote:
->
->
-> On 11/14/2016 03:36 AM, Hans Verkuil wrote:
->> On 08/03/2016 08:03 PM, Steve Longerbeam wrote:
->>> Add a signal lock status change to the source changes bitmask.
->>> This indicates there was a signal lock or unlock event detected
->>> at the input of a video decoder.
->>>
->>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
->>> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
->>>
->>> ---
->>>
->>> v4:
->>> - converted to rst from DocBook
->>>
->>> v3: no changes
->>> v2: no changes
->>> ---
->>>   Documentation/media/uapi/v4l/vidioc-dqevent.rst | 9 +++++++++
->>>   Documentation/media/videodev2.h.rst.exceptions  | 1 +
->>>   include/uapi/linux/videodev2.h                  | 1 +
->>>   3 files changed, 11 insertions(+)
->>>
->>> diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst 
->>> b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
->>> index 73c0d5b..7d8a053 100644
->>> --- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
->>> +++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
->>> @@ -564,6 +564,15 @@ call.
->>>         an input. This can come from an input connector or from a video
->>>         decoder.
->>>   +    -  .. row 2
->>> +
->>> +       -  ``V4L2_EVENT_SRC_CH_LOCK_STATUS``
->>> +
->>> +       -  0x0002
->>> +
->>> +       -  This event gets triggered when there is a signal lock or
->>> +      unlock detected at the input of a video decoder.
->>> +
->>>     Return Value
->>>   ============
->>> diff --git a/Documentation/media/videodev2.h.rst.exceptions 
->>> b/Documentation/media/videodev2.h.rst.exceptions
->>> index 9bb9a6c..f412cc8 100644
->>> --- a/Documentation/media/videodev2.h.rst.exceptions
->>> +++ b/Documentation/media/videodev2.h.rst.exceptions
->>> @@ -453,6 +453,7 @@ replace define V4L2_EVENT_CTRL_CH_FLAGS 
->>> ctrl-changes-flags
->>>   replace define V4L2_EVENT_CTRL_CH_RANGE ctrl-changes-flags
->>>     replace define V4L2_EVENT_SRC_CH_RESOLUTION src-changes-flags
->>> +replace define V4L2_EVENT_SRC_CH_LOCK_STATUS src-changes-flags
->>>     replace define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ 
->>> v4l2-event-motion-det
->>>   diff --git a/include/uapi/linux/videodev2.h 
->>> b/include/uapi/linux/videodev2.h
->>> index 724f43e..08a153f 100644
->>> --- a/include/uapi/linux/videodev2.h
->>> +++ b/include/uapi/linux/videodev2.h
->>> @@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
->>>   };
->>>     #define V4L2_EVENT_SRC_CH_RESOLUTION        (1 << 0)
->>> +#define V4L2_EVENT_SRC_CH_LOCK_STATUS        (1 << 1)
->>>     struct v4l2_event_src_change {
->>>       __u32 changes;
->>>
->> Quoting from an old (July) conversation about this:
->>
->>>>> I'm not entirely sure I like this. Typically losing lock means 
->>>>> that this event
->>>>> is triggered with the V4L2_EVENT_SRC_CH_RESOLUTION flag set, and 
->>>>> userspace has
->>>>> to check the new timings etc., which will fail if there is no lock 
->>>>> anymore.
->>>>>
->>>>> This information is also available through ENUMINPUT.
->>>>>
->>>>> I would need to know more about why you think this is needed, 
->>>>> because I don't
->>>>> see what this adds.
->>> Hi Hans,
->>>
->>> At least on the ADV718x, a source resolution change (from an
->>> autodetected video
->>> standard change) and a signal lock status change are distinct events.
->>> For example
->>> there can be a temporary loss of input signal lock without a change in
->>> detected
->>> input video standard/resolution.
->> OK, but what can the application do with that event? If the glitch 
->> didn't
->> affect the video, then it is pointless.
->
-> Hi Hans, that's just it, for i.mx6 it does affect video. On i.mx6 a 
-> temporary
-> loss of signal from the adv7180 often results in a "split image", or 
-> rolling
-> image from captured frame to the next, and the only way to recover
-> from this failure is to restart the pipeline (stream off -- stream 
-> on). So
-> the application needs to be informed of this temporary loss of signal
-> event in order to restart streaming.
->
->
->>
->> If the lock is lost, then normally you loose video as well. If not, then
->> applications are not interested in the event.
->
-> Yes, the lost lock causes a temporary or permanent loss of video,
-> but with no other indications from the adv7180 (such as a detected
-> video standard change). And on i.mx6, the lost lock often (actually
-> usually) causes a split or rolling image.
->
-
-Also it seems the sequence of actions from the application due to a
-SRC_CH_LOCK_STATUS event would be in line with the action due to
-SRC_CH_RESOLUTION. In other words for SRC_CH_RESOLUTION,
-the app requests an update on the detected video standard via
-QUERYSTD, and for SRC_CH_LOCK_STATUS, it requests an update
-on input status (ENUMINPUTS).
-
-Steve
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
