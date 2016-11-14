@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:35798 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbcKOM3R (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52626 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753462AbcKNITP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 07:29:17 -0500
-Received: by mail-qt0-f195.google.com with SMTP id m48so8098180qta.2
-        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2016 04:29:17 -0800 (PST)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH] v4l2-ctl: Show HSV encodings names
-Date: Tue, 15 Nov 2016 13:29:14 +0100
-Message-Id: <20161115122914.19981-1-ricardo.ribalda@gmail.com>
+        Mon, 14 Nov 2016 03:19:15 -0500
+Subject: Re: [RFC PATCH 6/7] atmel-isi: remove dependency of the soc-camera
+ framework
+To: "Wu, Songjun" <Songjun.Wu@microchip.com>,
+        linux-media@vger.kernel.org,
+        Nicolas Ferre <nicolas.ferre@microchip.com>
+References: <1471415383-38531-1-git-send-email-hverkuil@xs4all.nl>
+ <1471415383-38531-7-git-send-email-hverkuil@xs4all.nl>
+ <3b1f31fd-c6c9-2d8d-008a-4491e2132160@microchip.com>
+ <7026180d-6180-af21-b8bd-23f673e015a7@xs4all.nl>
+ <f929eb2f-05a4-e674-c90b-b9141de04153@microchip.com>
+ <ad11ae23-402f-6e20-6201-af466ff7da2e@microchip.com>
+ <86371d6b-3549-0d75-201e-53a0226872db@xs4all.nl>
+ <1a034eb2-4d2f-5640-54c4-ed3702ae7202@microchip.com>
+ <38cace16-a523-857c-4081-0f5e28550bc5@xs4all.nl>
+ <9f054ac5-0891-869b-c5fb-5652bd49fa30@microchip.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5e077970-440f-a658-7238-2a152a8aba9d@xs4all.nl>
+Date: Mon, 14 Nov 2016 09:19:09 +0100
+MIME-Version: 1.0
+In-Reply-To: <9f054ac5-0891-869b-c5fb-5652bd49fa30@microchip.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add HSV encoding names to v4l2-ctl. I.e.
+Hi Songjun,
 
-Format Video Capture:
-	Width/Height      : 640/360
-	Pixel Format      : 'HSV3'
-	Field             : None
-	Bytes per Line    : 1920
-	Size Image        : 691200
-	Colorspace        : sRGB
-	Transfer Function : Default
-	YCbCr/HSV Encoding: Hue 0 - 179
-	Quantization      : Default
-	Flags             :
+On 10/19/2016 09:48 AM, Wu, Songjun wrote:
+> 
+> 
+> On 10/19/2016 15:46, Hans Verkuil wrote:
+>> On 10/19/2016 09:36 AM, Wu, Songjun wrote:
+>>>
+>>>
+>>> On 10/18/2016 18:58, Hans Verkuil wrote:
+>>>> On 10/18/16 11:21, Wu, Songjun wrote:
+>>>>> Hi Hans,
+>>>>>
+>>>>> Do you have any issue on this patch?
+>>>>
+>>>> ENOTIME :-(
+>>>>
+>>>>> Could I give you some help? :)
+>>>>
+>>>> I would certainly help if you can make the requested change to this patch.
+>>>>
+>>>> Let me know if you want to do that, because in that case I'll rebase my
+>>>> tree
+>>>> to the latest media_tree master.
+>>>>
+>>> Yes, I would like to make the requested change to this patch. :)
+>>> It seems the patch is not based on the latest media_tree master.
+>>> Will you rebase this patch to the latest media_tree, or let me move it
+>>> and make the requested change based on the media_tree?
+>>
+>> I've rebased my branch:
+>>
+>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=sama5d3-2
+>>
+> Thank you very much.
+> I will make the requested change based on your branch.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- utils/v4l2-ctl/v4l2-ctl.cpp | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Did you make any progress on this? I plan on finalizing the atmel-isi driver
+next week.
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
-index 8a2b3e6d186e..fe398233e28c 100644
---- a/utils/v4l2-ctl/v4l2-ctl.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl.cpp
-@@ -451,6 +451,10 @@ static std::string ycbcr_enc2s(int val)
- 		return "BT.2020 Constant Luminance";
- 	case V4L2_YCBCR_ENC_SMPTE240M:
- 		return "SMPTE 240M";
-+	case V4L2_HSV_ENC_180:
-+		return "Hue 0 - 179";
-+	case V4L2_HSV_ENC_256:
-+		return "Hue 0 - 255";
- 	default:
- 		return "Unknown (" + num2s(val) + ")";
- 	}
-@@ -532,7 +536,7 @@ void printfmt(const struct v4l2_format &vfmt)
- 		printf("\tSize Image        : %u\n", vfmt.fmt.pix.sizeimage);
- 		printf("\tColorspace        : %s\n", colorspace2s(vfmt.fmt.pix.colorspace).c_str());
- 		printf("\tTransfer Function : %s\n", xfer_func2s(vfmt.fmt.pix.xfer_func).c_str());
--		printf("\tYCbCr Encoding    : %s\n", ycbcr_enc2s(vfmt.fmt.pix.ycbcr_enc).c_str());
-+		printf("\tYCbCr/HSV Encoding: %s\n", ycbcr_enc2s(vfmt.fmt.pix.ycbcr_enc).c_str());
- 		printf("\tQuantization      : %s\n", quantization2s(vfmt.fmt.pix.quantization).c_str());
- 		if (vfmt.fmt.pix.priv == V4L2_PIX_FMT_PRIV_MAGIC)
- 			printf("\tFlags             : %s\n", pixflags2s(vfmt.fmt.pix.flags).c_str());
--- 
-2.10.2
+Regards,
 
+	Hans
