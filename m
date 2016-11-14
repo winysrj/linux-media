@@ -1,88 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64098 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934742AbcKPJFb (ORCPT
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:50195 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750776AbcKNN07 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 04:05:31 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH 6/9] s5p-mfc: Kill all IS_ERR_OR_NULL in clocks management code
-Date: Wed, 16 Nov 2016 10:04:55 +0100
-Message-id: <1479287098-30493-7-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
-References: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161116090520eucas1p1014c941bfe4fbe11392f8d9028e6f4f1@eucas1p1.samsung.com>
+        Mon, 14 Nov 2016 08:26:59 -0500
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+        by mailout.nyi.internal (Postfix) with ESMTP id 86742207B3
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 08:26:58 -0500 (EST)
+Received: from workstation01.smtp.fastmail.com (unknown [31.209.95.242])
+        by mail.messagingengine.com (Postfix) with ESMTPA id 1AE9C7E046
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 08:26:58 -0500 (EST)
+From: Edgar Thier <info@edgarthier.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+Date: Mon, 14 Nov 2016 14:26:56 +0100
+Message-ID: <87h97achun.fsf@edgarthier.net>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After commit "s5p-mfc: Fix clock management in s5p_mfc_release function"
-all clocks related functions are called only when MFC device is really
-available, so there is no additional check needed for NULL
-gate clocks. This patch simplifies the code and kills IS_ERR_OR_NULL
-macro usage.
+>From aec97c931cb4b91f91dd0ed38f74d866d4f13347 Mon Sep 17 00:00:00 2001
+From: Edgar Thier <info@edgarthier.net>
+Date: Mon, 14 Nov 2016 14:17:57 +0100
+Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Add bayer 16-bit GUIDs to uvcvideo and associated them with the
+corresponding V4L2 pixel formats.
+
+Signed-off-by: Edgar Thier <info@edgarthier.net>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+drivers/media/usb/uvc/uvc_driver.c   | 20 ++++++++++++++++++++
+drivers/media/usb/uvc/uvcvideo.h     | 12 ++++++++++++
+drivers/media/v4l2-core/v4l2-ioctl.c |  4 ++++
+include/uapi/linux/videodev2.h       |  3 +++
+4 files changed, 39 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-index 11a918eb7564..b514584cf00d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
-@@ -91,16 +91,12 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
- 
- int s5p_mfc_clock_on(void)
- {
--	int ret = 0;
--
- 	atomic_inc(&clk_ref);
- 	mfc_debug(3, "+ %d\n", atomic_read(&clk_ref));
- 
- 	if (!pm->use_clock_gating)
- 		return 0;
--	if (!IS_ERR_OR_NULL(pm->clock_gate))
--		ret = clk_enable(pm->clock_gate);
--	return ret;
-+	return clk_enable(pm->clock_gate);
- }
- 
- void s5p_mfc_clock_off(void)
-@@ -110,8 +106,7 @@ void s5p_mfc_clock_off(void)
- 
- 	if (!pm->use_clock_gating)
- 		return;
--	if (!IS_ERR_OR_NULL(pm->clock_gate))
--		clk_disable(pm->clock_gate);
-+	clk_disable(pm->clock_gate);
- }
- 
- int s5p_mfc_power_on(void)
-@@ -122,14 +117,14 @@ int s5p_mfc_power_on(void)
- 	if (ret)
- 		return ret;
- 
--	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
-+	if (!pm->use_clock_gating)
- 		ret = clk_enable(pm->clock_gate);
- 	return ret;
- }
- 
- int s5p_mfc_power_off(void)
- {
--	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
-+	if (!pm->use_clock_gating)
- 		clk_disable(pm->clock_gate);
- 	return pm_runtime_put_sync(pm->device);
- }
--- 
-1.9.1
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 87b2fc3b..9d1fc33 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
+.guid		= UVC_GUID_FORMAT_RW10,
+.fcc		= V4L2_PIX_FMT_SRGGB10P,
+},
++	{
++			.name		= "Bayer 16-bit (SBGGR16)",
++			.guid		= UVC_GUID_FORMAT_BG16,
++			.fcc		= V4L2_PIX_FMT_SBGGR16,
++	},
++	{
++			.name		= "Bayer 16-bit (SGBRG16)",
++			.guid		= UVC_GUID_FORMAT_GB16,
++			.fcc		= V4L2_PIX_FMT_SGBRG16,
++	},
++	{
++			.name		= "Bayer 16-bit (SRGGB16)",
++			.guid		= UVC_GUID_FORMAT_RG16,
++			.fcc		= V4L2_PIX_FMT_SRGGB16,
++	},
++	{
++			.name		= "Bayer 16-bit (SGRBG16)",
++			.guid		= UVC_GUID_FORMAT_GR16,
++			.fcc		= V4L2_PIX_FMT_SGRBG16,
++	},
+};
 
+/* ------------------------------------------------------------------------
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 7e4d3ee..3d6cc62 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -106,6 +106,18 @@
+#define UVC_GUID_FORMAT_RGGB \
+{ 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
+0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_BG16 \
++	{ 'B',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_GB16 \
++	{ 'G',  'B',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_RG16 \
++	{ 'R',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_GR16 \
++	{ 'G',  'R',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
++	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+#define UVC_GUID_FORMAT_RGBP \
+{ 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
+0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 181381d..abbb6d5 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1179,6 +1179,10 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+case V4L2_PIX_FMT_SGBRG12:	descr = "12-bit Bayer GBGB/RGRG"; break;
+case V4L2_PIX_FMT_SGRBG12:	descr = "12-bit Bayer GRGR/BGBG"; break;
+case V4L2_PIX_FMT_SRGGB12:	descr = "12-bit Bayer RGRG/GBGB"; break;
++	case V4L2_PIX_FMT_SGBRG16:	descr = "16-bit Bayer GBGB/RGRG"; break;
++	case V4L2_PIX_FMT_SGRBG16:	descr = "16-bit Bayer GRGR/BGBG"; break;
++	case V4L2_PIX_FMT_SRGGB16:	descr = "16-bit Bayer RGRG/GBGB"; break;
++	case V4L2_PIX_FMT_SBGGR16:	descr = "16-bit Bayer BGBG/GRGR"; break;
+case V4L2_PIX_FMT_SBGGR10P:	descr = "10-bit Bayer BGBG/GRGR Packed"; break;
+case V4L2_PIX_FMT_SGBRG10P:	descr = "10-bit Bayer GBGB/RGRG Packed"; break;
+case V4L2_PIX_FMT_SGRBG10P:	descr = "10-bit Bayer GRGR/BGBG Packed"; break;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4364ce6..6bdf592 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -605,6 +605,9 @@ struct v4l2_pix_format {
+#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+#define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
++#define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
++#define V4L2_PIX_FMT_SRGGB16 v4l2_fourcc('R', 'G', '1', '6') /* 16  RGRG.. GBGB.. */
++#define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
+
+/* HSV formats */
+#define V4L2_PIX_FMT_HSV24 v4l2_fourcc('H', 'S', 'V', '3')
+--
+2.10.2
