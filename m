@@ -1,54 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:62996 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932816AbcKPOkc (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:34523 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752206AbcKNPXB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 09:40:32 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Robert Jarzmik <robert.jarzmik@free.fr>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] pxa_camera: add V4L2 dependency
-Date: Wed, 16 Nov 2016 15:39:54 +0100
-Message-Id: <20161116144016.2487252-1-arnd@arndb.de>
+        Mon, 14 Nov 2016 10:23:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 1/5] video: add HDMI state notifier support
+Date: Mon, 14 Nov 2016 16:22:44 +0100
+Message-Id: <1479136968-24477-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
+References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moving this driver out of soc_camera has resulted in a new randconfig failure:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-drivers/media/built-in.o: In function `pxa_camera_remove':
-pxa_camera.c:(.text+0x1854d): undefined reference to `v4l2_clk_unregister'
-pxa_camera.c:(.text+0x18555): undefined reference to `v4l2_device_unregister'
-drivers/media/built-in.o: In function `pxa_camera_sensor_unbind':
-pxa_camera.c:(.text+0x185dd): undefined reference to `video_unregister_device'
+Add support for HDMI hotplug and EDID notifiers, which is used to convey
+information from HDMI drivers to their CEC and audio counterparts.
 
-As the driver now can be built for COMPILE_TEST as well, this means we
-can see the problem even on non-PXA platforms.
-Adding a dependency on VIDEO_V4L2 ensures this cannot happen and matches
-what the other drivers do.
+Based on an earlier version from Russell King:
 
-Fixes: 4bb738f228b3 ("[media] media: platform: pxa_camera: move pxa_camera out of soc_camera")
-Fixes: 5809ecdd6c3c ("[media] pxa_camera: allow building it if COMPILE_TEST is set")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+https://patchwork.kernel.org/patch/9277043/
+
+The hdmi_notifier is a reference counted object containing the HDMI state
+of an HDMI device.
+
+When a new notifier is registered the current state will be reported to
+that notifier at registration time.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/Kconfig         |   3 +
+ drivers/video/Makefile        |   1 +
+ drivers/video/hdmi-notifier.c | 136 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/hdmi-notifier.h |  43 +++++++++++++
+ 4 files changed, 183 insertions(+)
+ create mode 100644 drivers/video/hdmi-notifier.c
+ create mode 100644 include/linux/hdmi-notifier.h
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index ce4a96fccc43..5ff803efdc03 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -93,7 +93,7 @@ config VIDEO_OMAP3_DEBUG
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 3c20af9..1ee7b9f 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -36,6 +36,9 @@ config VIDEOMODE_HELPERS
+ config HDMI
+ 	bool
  
- config VIDEO_PXA27x
- 	tristate "PXA27x Quick Capture Interface driver"
--	depends on VIDEO_DEV && HAS_DMA
-+	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	depends on PXA27x || COMPILE_TEST
- 	select VIDEOBUF2_DMA_SG
- 	select SG_SPLIT
++config HDMI_NOTIFIERS
++	bool
++
+ if VT
+ 	source "drivers/video/console/Kconfig"
+ endif
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 9ad3c17..65f5649 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -1,5 +1,6 @@
+ obj-$(CONFIG_VGASTATE)            += vgastate.o
+ obj-$(CONFIG_HDMI)                += hdmi.o
++obj-$(CONFIG_HDMI_NOTIFIERS)      += hdmi-notifier.o
+ 
+ obj-$(CONFIG_VT)		  += console/
+ obj-$(CONFIG_LOGO)		  += logo/
+diff --git a/drivers/video/hdmi-notifier.c b/drivers/video/hdmi-notifier.c
+new file mode 100644
+index 0000000..c2a4f1b
+--- /dev/null
++++ b/drivers/video/hdmi-notifier.c
+@@ -0,0 +1,136 @@
++#include <linux/export.h>
++#include <linux/hdmi-notifier.h>
++#include <linux/string.h>
++#include <linux/slab.h>
++#include <linux/list.h>
++
++struct hdmi_notifiers {
++	struct list_head head;
++	struct device *dev;
++	struct hdmi_notifier *n;
++};
++
++static LIST_HEAD(hdmi_notifiers);
++static DEFINE_MUTEX(hdmi_notifiers_lock);
++
++struct hdmi_notifier *hdmi_notifier_get(struct device *dev)
++{
++	struct hdmi_notifier *n;
++
++	mutex_lock(&hdmi_notifiers_lock);
++	list_for_each_entry(n, &hdmi_notifiers, head) {
++		if (n->dev == dev) {
++			mutex_unlock(&hdmi_notifiers_lock);
++			kref_get(&n->kref);
++			return n;
++		}
++	}
++	n = kzalloc(sizeof(*n), GFP_KERNEL);
++	if (!n)
++		goto unlock;
++	mutex_init(&n->lock);
++	BLOCKING_INIT_NOTIFIER_HEAD(&n->notifiers);
++	kref_init(&n->kref);
++	list_add_tail(&n->head, &hdmi_notifiers);
++unlock:
++	mutex_unlock(&hdmi_notifiers_lock);
++	return n;
++}
++EXPORT_SYMBOL_GPL(hdmi_notifier_get);
++
++static void hdmi_notifier_release(struct kref *kref)
++{
++	struct hdmi_notifier *n =
++		container_of(kref, struct hdmi_notifier, kref);
++
++	kfree(n->edid);
++	kfree(n);
++}
++
++void hdmi_notifier_put(struct hdmi_notifier *n)
++{
++	kref_put(&n->kref, hdmi_notifier_release);
++}
++EXPORT_SYMBOL_GPL(hdmi_notifier_put);
++
++int hdmi_notifier_register(struct hdmi_notifier *n, struct notifier_block *nb)
++{
++	int ret = blocking_notifier_chain_register(&n->notifiers, nb);
++
++	if (ret)
++		return ret;
++	kref_get(&n->kref);
++	mutex_lock(&n->lock);
++	if (n->connected) {
++		blocking_notifier_call_chain(&n->notifiers, HDMI_CONNECTED, n);
++		if (n->edid_size)
++			blocking_notifier_call_chain(&n->notifiers, HDMI_NEW_EDID, n);
++		if (n->has_eld)
++			blocking_notifier_call_chain(&n->notifiers, HDMI_NEW_ELD, n);
++	}
++	mutex_unlock(&n->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(hdmi_notifier_register);
++
++int hdmi_notifier_unregister(struct hdmi_notifier *n, struct notifier_block *nb)
++{
++	int ret = blocking_notifier_chain_unregister(&n->notifiers, nb);
++
++	if (ret == 0)
++		hdmi_notifier_put(n);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(hdmi_notifier_unregister);
++
++void hdmi_event_connect(struct hdmi_notifier *n)
++{
++	mutex_lock(&n->lock);
++	n->connected = true;
++	blocking_notifier_call_chain(&n->notifiers, HDMI_CONNECTED, n);
++	mutex_unlock(&n->lock);
++}
++EXPORT_SYMBOL_GPL(hdmi_event_connect);
++
++void hdmi_event_disconnect(struct hdmi_notifier *n)
++{
++	mutex_lock(&n->lock);
++	n->connected = false;
++	n->has_eld = false;
++	n->edid_size = 0;
++	blocking_notifier_call_chain(&n->notifiers, HDMI_DISCONNECTED, n);
++	mutex_unlock(&n->lock);
++}
++EXPORT_SYMBOL_GPL(hdmi_event_disconnect);
++
++int hdmi_event_new_edid(struct hdmi_notifier *n, const void *edid, size_t size)
++{
++	mutex_lock(&n->lock);
++	if (n->edid_allocated_size < size) {
++		void *p = kmalloc(size, GFP_KERNEL);
++
++		if (p == NULL) {
++			mutex_unlock(&n->lock);
++			return -ENOMEM;
++		}
++		kfree(n->edid);
++		n->edid = p;
++		n->edid_allocated_size = size;
++	}
++	memcpy(n->edid, edid, size);
++	n->edid_size = size;
++	blocking_notifier_call_chain(&n->notifiers, HDMI_NEW_EDID, n);
++	mutex_unlock(&n->lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(hdmi_event_new_edid);
++
++void hdmi_event_new_eld(struct hdmi_notifier *n, const u8 eld[128])
++{
++	mutex_lock(&n->lock);
++	memcpy(n->eld, eld, sizeof(n->eld));
++	n->has_eld = true;
++	blocking_notifier_call_chain(&n->notifiers, HDMI_NEW_ELD, n);
++	mutex_unlock(&n->lock);
++}
++EXPORT_SYMBOL_GPL(hdmi_event_new_eld);
+diff --git a/include/linux/hdmi-notifier.h b/include/linux/hdmi-notifier.h
+new file mode 100644
+index 0000000..f7fc405
+--- /dev/null
++++ b/include/linux/hdmi-notifier.h
+@@ -0,0 +1,43 @@
++#ifndef LINUX_HDMI_NOTIFIER_H
++#define LINUX_HDMI_NOTIFIER_H
++
++#include <linux/types.h>
++#include <linux/notifier.h>
++#include <linux/kref.h>
++
++enum {
++	HDMI_CONNECTED,
++	HDMI_DISCONNECTED,
++	HDMI_NEW_EDID,
++	HDMI_NEW_ELD,
++};
++
++struct device;
++
++struct hdmi_notifier {
++	struct mutex lock;
++	struct list_head head;
++	struct kref kref;
++	struct blocking_notifier_head notifiers;
++	struct device *dev;
++
++	/* Current state */
++	bool connected;
++	bool has_eld;
++	unsigned char eld[128];
++	void *edid;
++	size_t edid_size;
++	size_t edid_allocated_size;
++};
++
++struct hdmi_notifier *hdmi_notifier_get(struct device *dev);
++void hdmi_notifier_put(struct hdmi_notifier *n);
++int hdmi_notifier_register(struct hdmi_notifier *n, struct notifier_block *nb);
++int hdmi_notifier_unregister(struct hdmi_notifier *n, struct notifier_block *nb);
++
++void hdmi_event_connect(struct hdmi_notifier *n);
++void hdmi_event_disconnect(struct hdmi_notifier *n);
++int hdmi_event_new_edid(struct hdmi_notifier *n, const void *edid, size_t size);
++void hdmi_event_new_eld(struct hdmi_notifier *n, const u8 eld[128]);
++
++#endif
 -- 
-2.9.0
+2.8.1
 
