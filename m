@@ -1,254 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f49.google.com ([74.125.83.49]:33507 "EHLO
-        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755480AbcKVPwu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:52:50 -0500
-Received: by mail-pg0-f49.google.com with SMTP id 3so8905902pgd.0
-        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2016 07:52:49 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
-Date: Tue, 22 Nov 2016 07:52:43 -0800
-Message-Id: <20161122155244.802-4-khilman@baylibre.com>
-In-Reply-To: <20161122155244.802-1-khilman@baylibre.com>
-References: <20161122155244.802-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from ns.mm-sol.com ([37.157.136.199]:57215 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753242AbcKNKZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 05:25:08 -0500
+From: Todor Tomov <todor.tomov@linaro.org>
+To: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Cc: Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH v7 0/2] OV5645 camera sensor driver
+Date: Mon, 14 Nov 2016 12:24:34 +0200
+Message-Id: <1479119076-26363-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow getting of subdevs from DT ports and endpoints.
+This is the seventh version of the OV5645 camera sensor driver patchset.
 
-The _get_pdata() function was larely inspired by (i.e. stolen from)
-am437x-vpfe.c
+Changes since version 6 include:
+- keep a pointer to the current sensor mode and remove enum ov5645_mode;
+- do not keep v4l2 control values and xclk frequency in the main data struct;
+- add caching variables in then main data struct for some of the register values
+  to avoid i2c read commands;
+- use reference counting for power state;
+- enable xclk only after regulators are enabled;
+- add check for xclk rate that it is supported;
+- register v4l2 subdev only at the end of probe when the rest is succeeded;
+- add hardware pin names in gpio descriptions in the dt binding document;
+- other minor changes: uppercase to lowercase, add const modifier, remove
+  unnecessary local variables, fix return values.
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++++++++++++-
- include/media/davinci/vpif_types.h            |   9 +-
- 2 files changed, 133 insertions(+), 6 deletions(-)
+Changes since version 5 include:
+- external clock frequency set in DT;
+- added v4l2_subdev_pad_ops.init_cfg function to initialize formats;
+- current sensor mode not updated if set_fmt is TRY (not ACTIVE);
+- other small changes - debug messages removed, register addresses defines
+  renamed, redundant safety checks removed, unnecessary labels removed,
+  mutex_destroy added.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 94ee6cf03f02..47a4699157e7 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -26,6 +26,8 @@
- #include <linux/slab.h>
- 
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-of.h>
-+#include <media/i2c/tvp514x.h>
- 
- #include "vpif.h"
- #include "vpif_capture.h"
-@@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
- 
- 	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
- 
-+	if (!chan_cfg)
-+		return -1;
-+	if (input_index >= chan_cfg->input_count)
-+		return -1;
- 	subdev_name = chan_cfg->inputs[input_index].subdev_name;
- 	if (subdev_name == NULL)
- 		return -1;
-@@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
- 	/* loop through the sub device list to get the sub device info */
- 	for (i = 0; i < vpif_cfg->subdev_count; i++) {
- 		subdev_info = &vpif_cfg->subdev_info[i];
--		if (!strcmp(subdev_info->name, subdev_name))
-+		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
- 			return i;
- 	}
- 	return -1;
-@@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
- {
- 	int i;
- 
-+	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
-+		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
-+		const struct device_node *node = _asd->match.of.node;
-+
-+		if (node == subdev->of_node) {
-+			vpif_obj.sd[i] = subdev;
-+			vpif_obj.config->chan_config->inputs[i].subdev_name =
-+				(char *)subdev->of_node->full_name;
-+			vpif_dbg(2, debug,
-+				 "%s: setting input %d subdev_name = %s\n",
-+				 __func__, i, subdev->of_node->full_name);
-+			return 0;
-+		}
-+	}
-+
- 	for (i = 0; i < vpif_obj.config->subdev_count; i++)
- 		if (!strcmp(vpif_obj.config->subdev_info[i].name,
- 			    subdev->name)) {
-@@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
- 	return vpif_probe_complete();
- }
- 
-+static struct vpif_capture_config *
-+vpif_capture_get_pdata(struct platform_device *pdev)
-+{
-+	struct device_node *endpoint = NULL;
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct vpif_capture_config *pdata;
-+	struct vpif_subdev_info *sdinfo;
-+	struct vpif_capture_chan_config *chan;
-+	unsigned int i;
-+
-+	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
-+		return pdev->dev.platform_data;
-+
-+	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+	pdata->subdev_info =
-+		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
-+			     VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
-+
-+	if (!pdata->subdev_info)
-+		return NULL;
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	for (i = 0; ; i++) {
-+		struct device_node *rem;
-+		unsigned int flags;
-+		int err;
-+
-+		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
-+						      endpoint);
-+		if (!endpoint)
-+			break;
-+
-+		sdinfo = &pdata->subdev_info[i];
-+		chan = &pdata->chan_config[i];
-+		chan->inputs = devm_kzalloc(&pdev->dev,
-+					    sizeof(*chan->inputs) *
-+					    VPIF_DISPLAY_MAX_CHANNELS,
-+					    GFP_KERNEL);
-+
-+		chan->input_count++;
-+		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
-+		chan->inputs[i].input.std = V4L2_STD_ALL;
-+		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
-+
-+		/* FIXME: need a new property? ch0:composite ch1: s-video */
-+		if (i == 0)
-+			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
-+		else
-+			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
-+		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
-+
-+		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+		if (err) {
-+			dev_err(&pdev->dev, "Could not parse the endpoint\n");
-+			goto done;
-+		}
-+		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
-+			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
-+		flags = bus_cfg.bus.parallel.flags;
-+
-+		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+			chan->vpif_if.hd_pol = 1;
-+
-+		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+			chan->vpif_if.vd_pol = 1;
-+
-+		chan->vpif_if.if_type = VPIF_IF_BT656;
-+		rem = of_graph_get_remote_port_parent(endpoint);
-+		if (!rem) {
-+			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
-+				endpoint->full_name);
-+			goto done;
-+		}
-+
-+		dev_dbg(&pdev->dev, "Remote device %s, %s found\n",
-+			rem->name, rem->full_name);
-+		sdinfo->name = rem->full_name;
-+
-+		pdata->asd[i] = devm_kzalloc(&pdev->dev,
-+					     sizeof(struct v4l2_async_subdev),
-+					     GFP_KERNEL);
-+		if (!pdata->asd[i]) {
-+			of_node_put(rem);
-+			pdata = NULL;
-+			goto done;
-+		}
-+
-+		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
-+		pdata->asd[i]->match.of.node = rem;
-+		of_node_put(rem);
-+	}
-+
-+done:
-+	pdata->asd_sizes[0] = i;
-+	pdata->subdev_count = i;
-+	pdata->card_name = "DA850/OMAP-L138 Video Capture";
-+
-+	return pdata;
-+}
-+
- /**
-  * vpif_probe : This function probes the vpif capture driver
-  * @pdev: platform device pointer
-@@ -1438,6 +1563,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int res_idx = 0;
- 	int i, err;
- 
-+	pdev->dev.platform_data = vpif_capture_get_pdata(pdev);
- 	if (!pdev->dev.platform_data) {
- 		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
- 		return -EINVAL;
-@@ -1480,7 +1606,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		goto vpif_unregister;
- 	}
- 
--	if (!vpif_obj.config->asd_sizes) {
-+	if (!vpif_obj.config->asd_sizes[0]) {
- 		i2c_adap = i2c_get_adapter(1);
- 		for (i = 0; i < subdev_count; i++) {
- 			subdevdata = &vpif_obj.config->subdev_info[i];
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3cb1704a0650..4ee3b41975db 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -65,14 +65,14 @@ struct vpif_display_config {
- 
- struct vpif_input {
- 	struct v4l2_input input;
--	const char *subdev_name;
-+	char *subdev_name;
- 	u32 input_route;
- 	u32 output_route;
- };
- 
- struct vpif_capture_chan_config {
- 	struct vpif_interface vpif_if;
--	const struct vpif_input *inputs;
-+	struct vpif_input *inputs;
- 	int input_count;
- };
- 
-@@ -83,7 +83,8 @@ struct vpif_capture_config {
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
- 	const char *card_name;
--	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
--	int *asd_sizes;		/* 0-terminated array of asd group sizes */
-+
-+	struct v4l2_async_subdev *asd[VPIF_CAPTURE_MAX_CHANNELS];
-+	int asd_sizes[VPIF_CAPTURE_MAX_CHANNELS];
- };
- #endif /* _VPIF_TYPES_H */
+Two one-line changes since version 4:
+- return current format on set_format;
+- return all frame sizes when enumerating them.
+
+Only one change since version 3:
+- build failure on kernel v4.7-rc1 fixed:
+  s/media_entity_init/media_entity_pads_init/
+
+Changes from version 2 include:
+- external camera clock configuration is moved from DT to driver;
+- pwdn-gpios renamed to enable-gpios;
+- switched polarity of reset-gpios to the more intuitive active low;
+- added Kconfig dependency to OF;
+- return values checks;
+- regulators and gpios are now required (not optional);
+- regulators names renamed;
+- power counter variable changed to a bool power state;
+- ov5645_registered() is removed and sensor id reading moved to probe().
+
+Changes from version 1 include:
+- patch split to dt binding doc patch and driver patch;
+- changes in power on/off logic - s_power is now not called on
+  open/close;
+- using assigned-clock-rates in dt for setting camera external
+  clock rate;
+- correct api for gpio handling;
+- return values checks;
+- style fixes.
+
+Todor Tomov (2):
+  media: i2c/ov5645: add the device tree binding document
+  media: Add a driver for the ov5645 camera sensor.
+
+ .../devicetree/bindings/media/i2c/ov5645.txt       |   54 +
+ drivers/media/i2c/Kconfig                          |   12 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov5645.c                         | 1354 ++++++++++++++++++++
+ 4 files changed, 1421 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5645.txt
+ create mode 100644 drivers/media/i2c/ov5645.c
+
 -- 
-2.9.3
+1.9.1
 
