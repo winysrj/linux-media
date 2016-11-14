@@ -1,155 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:36259 "EHLO
-        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752105AbcKORPI (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:44091 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933299AbcKNKZm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 12:15:08 -0500
-Received: by mail-wm0-f44.google.com with SMTP id g23so180478560wme.1
-        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2016 09:15:07 -0800 (PST)
-Subject: Re: [PATCH v3 1/9] doc: DT: vidc: binding document for Qualcomm video
- driver
-To: Rob Herring <robh@kernel.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+        Mon, 14 Nov 2016 05:25:42 -0500
+Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
+ functions
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
 References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-2-git-send-email-stanimir.varbanov@linaro.org>
- <20161114170410.56izii5gcwpofvc4@rob-hp-laptop>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
+ <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
+ <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
+ <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
+ <a6557768-787d-7794-8cd0-781dc1ee9072@xs4all.nl>
+ <dd5c0fef-4994-4beb-952f-659ff5d17fb0@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
         Bjorn Andersson <bjorn.andersson@linaro.org>,
         Stephen Boyd <sboyd@codeaurora.org>,
         Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <d0bd8de7-7679-336d-1cbd-c25280172cf0@linaro.org>
-Date: Tue, 15 Nov 2016 19:15:03 +0200
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <72f8675a-4771-3e9a-6ee0-6e1b86589e8f@xs4all.nl>
+Date: Mon, 14 Nov 2016 11:25:36 +0100
 MIME-Version: 1.0
-In-Reply-To: <20161114170410.56izii5gcwpofvc4@rob-hp-laptop>
+In-Reply-To: <dd5c0fef-4994-4beb-952f-659ff5d17fb0@linaro.org>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
-
-Thanks for the comments!
-
-On 11/14/2016 07:04 PM, Rob Herring wrote:
-> On Mon, Nov 07, 2016 at 07:33:55PM +0200, Stanimir Varbanov wrote:
->> Add binding document for Venus video encoder/decoder driver
+On 11/14/2016 11:11 AM, Stanimir Varbanov wrote:
+> Hi Hans,
+> 
+> <cut>
+> 
+>>>>
+>>>>> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
+>>>>> +{
+>>>>> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+>>>>> +	struct venus_core *core = inst->core;
+>>>>> +	struct device *dev = core->dev;
+>>>>> +	struct vb2_queue *other_queue;
+>>>>> +	struct vidc_buffer *buf, *n;
+>>>>> +	enum vb2_buffer_state state;
+>>>>> +	int ret;
+>>>>> +
+>>>>> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>>>>> +		other_queue = &inst->bufq_cap;
+>>>>> +	else
+>>>>> +		other_queue = &inst->bufq_out;
+>>>>> +
+>>>>> +	if (!vb2_is_streaming(other_queue))
+>>>>> +		return;
+>>>>
+>>>> This seems wrong to me: this return means that the buffers of queue q are never
+>>>> released. Either drop this 'if' or release both queues when the last queue
+>>>> stops streaming. I think dropping the 'if' is best.
+>>>
+>>> I have done this way because hfi_session_stop must be called only once,
+>>> and buffers will be released on first streamoff for both queues.
 >>
->> Cc: Rob Herring <robh+dt@kernel.org>
->> Cc: Mark Rutland <mark.rutland@arm.com>
->> Cc: devicetree@vger.kernel.org
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  .../devicetree/bindings/media/qcom,venus.txt       | 98 ++++++++++++++++++++++
->>  1 file changed, 98 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+>> Are you sure the buffers are released for both queues? I may have missed that when
+>> reviewing.
+> 
+> yes, hfi_session_stop will instruct the firmware to stop using provided
+> buffers and return ownership to the host driver by fill_buf_done and
+> empty_buf_done callbacks.
+> 
 >>
->> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
->> new file mode 100644
->> index 000000000000..b2af347fbce4
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
->> @@ -0,0 +1,98 @@
->> +* Qualcomm Venus video encode/decode accelerator
->> +
->> +- compatible:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Value should contain one of:
->> +		- "qcom,venus-msm8916"
->> +		- "qcom,venus-msm8996"
+>> I would recommend to call hfi_session_stop when the first stop_streaming is called,
+>> not when it is called for both queues. I say this because stopping streaming without
+>> releasing the buffers is likely to cause problems.
 > 
-> The normal ordering is <vendor>,<soc>-<block>
+> this is what I tried to implement with above
+> !vb2_is_streaming(other_queue) thing.
 
-OK.
+That doesn't work: if the application calls STREAMON(CAPTURE) followed by STREAMOFF(CAPTURE)
+without ever starting the OUTPUT queue, this will not clean up the capture queue.
+
+Regards,
+
+	Hans
 
 > 
->> +- reg:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: Register ranges as listed in the reg-names property.
->> +- reg-names:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain following entries:
->> +		- "venus"	Venus register base
->> +- reg-names:
+>>
+>> Did you turn on CONFIG_VIDEO_ADV_DEBUG? If it is on, and you don't release buffers
+>> then I think you will see warnings in the kernel log.
 > 
-> I'd prefer these grouped as one entry for reg-names.
+> OK I will enable it to be sure that warnings are missing.
 > 
->> +	Usage: optional for msm8996
-> 
-> Why optional?
-
-The Venus hw block can work without internal video memory in which case
-just performance will be impacted.
-
-> 
->> +	Value type: <stringlist>
->> +	Definition: Should contain following entries:
->> +		- "vmem"	Video memory register base
->> +- interrupts:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: Should contain interrupts as listed in the interrupt-names
->> +		    property.
->> +- interrupt-names:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain following entries:
->> +		- "venus"	Venus interrupt line
->> +- interrupt-names:
->> +	Usage: optional for msm8996
->> +	Value type: <stringlist>
->> +	Definition: Should contain following entries:
->> +		- "vmem"	Video memory interrupt line
->> +- clocks:
->> +	Usage: required
->> +	Value type: <prop-encoded-array>
->> +	Definition: A List of phandle and clock specifier pairs as listed
->> +		    in clock-names property.
->> +- clock-names:
->> +	Usage: required
->> +	Value type: <stringlist>
->> +	Definition: Should contain the following entries:
->> +		- "core"	Core video accelerator clock
->> +		- "iface"	Video accelerator AHB clock
->> +		- "bus"		Video accelerator AXI clock
->> +- clock-names:
->> +	Usage: required for msm8996
-> 
-> Plus the 3 above?
-
-Yes, 'required' without 'for xxx' means that the clocks are required for
-all hw versions (SoCs) and msm8996 needs the extra clocks below.
-
-> 
->> +	Value type: <stringlist>
->> +	Definition: Should contain the following entries:
->> +		- "subcore0"		Subcore0 video accelerator clock
->> +		- "subcore1"		Subcore1 video accelerator clock
->> +		- "mmssnoc_axi"		Multimedia subsystem NOC AXI clock
->> +		- "mmss_mmagic_iface"	Multimedia subsystem MMAGIC AHB clock
->> +		- "mmss_mmagic_mbus"	Multimedia subsystem MMAGIC MAXI clock
->> +		- "mmagic_video_bus"	MMAGIC video AXI clock
->> +		- "video_mbus"		Video MAXI clock
->> +- clock-names:
->> +	Usage: optional for msm8996
-> 
-> Clocks shouldn't be optional unless you failed to add in an initial 
-> binding.
-
-These clocks are needed by video memory block which I noted as
-'optional'. There is another way to model this video memory hw block
-i.e. by a child node of the venus node. Is that sounds better?
-
-<snip>
-
--- 
-regards,
-Stan
