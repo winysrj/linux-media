@@ -1,235 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57748 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752889AbcKTPVa (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37538 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965251AbcKNXjm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Nov 2016 10:21:30 -0500
-Date: Sun, 20 Nov 2016 16:21:27 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161120152127.GC5189@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+        Mon, 14 Nov 2016 18:39:42 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Rob Herring <robh@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
+Date: Tue, 15 Nov 2016 01:39:47 +0200
+Message-ID: <3216002.PGtbontoS9@avalon>
+In-Reply-To: <1488637.i0jADhlNmg@avalon>
+References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com> <1488637.i0jADhlNmg@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="pAwQNkOnpTn9IO2O"
-Content-Disposition: inline
-In-Reply-To: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Rob,
 
---pAwQNkOnpTn9IO2O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ping ?
 
-Hi!
+On Monday 17 Oct 2016 15:42:56 Laurent Pinchart wrote:
+> On Friday 14 Oct 2016 07:40:14 Rob Herring wrote:
+> > On Sun, Oct 9, 2016 at 11:33 AM, Laurent Pinchart wrote:
+> >> On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
+> >>> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
+> >>>> LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+> >>>> Multiple incompatible data link layers have been used over time to
+> >>>> transmit image data to LVDS panels. This binding supports display
+> >>>> panels compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
+> >>>> specifications.
+> >>>> 
+> >>>> Signed-off-by: Laurent Pinchart
+> >>>> <laurent.pinchart+renesas@ideasonboard.com>
+> >>>> ---
+> >>>> 
+> >>>>  .../bindings/display/panel/panel-lvds.txt          | 119 ++++++++++++
+> >>>>  1 file changed, 119 insertions(+)
+> >>>>  create mode 100644
+> >>>>  Documentation/devicetree/bindings/display/panel/panel-lvds.txt>
+> >>>> 
+> >>>> diff --git
+> >>>> a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> >>>> b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> >>>> new file mode 100644
+> >>>> index 000000000000..250861f2673e
+> >>>> --- /dev/null
+> >>>> +++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> >>>> @@ -0,0 +1,119 @@
+> >>>> +Generic LVDS Panel
+> >>>> +==================
+> >>>> +
+> >>>> +LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+> >>>> Multiple
+> >>>> +incompatible data link layers have been used over time to transmit
+> >>>> image data
+> >>>> +to LVDS panels. This bindings supports display panels compatible with
+> >>>> the
+> >>>> +following specifications.
+> >>>> +
+> >>>> +[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999,
+> >>>> February
+> >>>> +1999 (Version 1.0), Japan Electronic Industry Development Association
+> >>>> (JEIDA)
+> >>>> +[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95),
+> >>>> National
+> >>>> +Semiconductor
+> >>>> +[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0),
+> >>>> Video
+> >>>> +Electronics Standards Association (VESA)
+> >>>> +
+> >>>> +Device compatible with those specifications have been marketed under
+> >>>> the
+> >>>> +FPD-Link and FlatLink brands.
+> >>>> +
+> >>>> +
+> >>>> +Required properties:
+> >>>> +- compatible: shall contain "panel-lvds"
+> >>> 
+> >>> Maybe as a fallback, but on its own, no way.
+> >> 
+> >> Which brings an interesting question: when designing generic DT
+> >> bindings, what's the rule regarding
+> 
+> Looks like I forgot part of the question. I meant to ask what is the rule
+> regarding usage of more precise compatible strings ?
+> 
+> For instance (but perhaps not the best example), the
+> input/rotary-encoder.txt bindings define a "rotary-encoder" compatible
+> string, with no other bindings defining more precise compatible strings for
+> the exact rotary encoder model. When it comes to panels I believe it makes
+> sense to define model-specific compatible strings even if they're unused by
+> drivers. I'm however wondering what the rule is there, and where those
+> device-specific compatible strings should be defined. I'd like to avoid
+> using one file per panel model as done today for the simple-panel bindings.
+> 
+> > Call it "simple" so I can easily NAK it. :)
+> > 
+> > Define a generic structure, not a single binding trying to serve all.
+> > 
+> >>> > +- width-mm: panel display width in millimeters
+> >>> > +- height-mm: panel display height in millimeters
+> >>> 
+> >>> This is already documented for all panels IIRC.
+> >> 
+> >> Note that this DT binding has nothing to do with the simple-panel
+> >> binding. It is instead similar to the panel-dpi and panel-dsi-cm bindings
+> >> (which currently don't but should specify the panel size in DT). The LVDS
+> >> panel driver will *not* include any panel-specific information such as
+> >> size or timings, these are specified in DT.
+> > 
+> > The panel bindings aren't really different. The biggest difference was
+> > location in the tree, but we now generally allow panels to be either a
+> > child of the LCD controller or connected with OF graph. We probably
+> > need to work on restructuring the panel bindings a bit. We should have
+> > an inheritance with a base panel binding of things like size, label,
+> > graph, backlight, etc, then perhaps an interface specific bindings for
+> > LVDS, DSI, and parallel, then a panel specific binding. With this the
+> > panel specific binding is typically just a compatible string and which
+> > inherited properties apply to it.
+> 
+> That sounds good to me, but we have multiple models for panel bindings.
+> 
+> As you mentioned panels can be referenced through an LCD controller node
+> property containing a phandle to the panel node, or through OF graph. That's
+> a situation we have today, and we need to keep supporting both (at least
+> for existing panels, perhaps not for the new ones).
+> 
+> Another difference is how to express panel data such as size and timings.
+> The simple-panel DT bindings don't contain such data and expects the
+> drivers to contain a table of panel data for all models supported, while
+> the DPI, DSI and now the proposed LVDS panel bindings contain properties
+> for panel data.
+> 
+> How would you like to reconcile all that ?
+> 
+> >>>> +- data-mapping: the color signals mapping order, "jeida-18",
+> >>>> "jeida-24"
+> >>>> +  or "vesa-24"
+> >>> 
+> >>> Maybe this should be part of the compatible.
+> >> 
+> >> I've thought about it, but given that some panels support selecting
+> >> between multiple modes (through a mode pin that is usually hardwired), I
+> >> believe a separate DT property makes sense.
+> > 
+> > Okay.
+> > 
+> >> Furthermore, LVDS data organization is controlled by the combination of
+> >> both data-mapping and data-mirror. It makes little sense from my point
+> >> of view to handle one as part of the compatible string and the other one
+> >> as a separate property.
+> >> 
+> >>> > +Optional properties:
+> >>> > +- label: a symbolic name for the panel
+> >>> 
+> >>> Could be for any panel or display connector.
+> >> 
+> >> Yes, but I'm not sure to understand how that's relevant :-)
+> > 
+> > Meaning it should be a common property.
+> 
+> Sure. So you expect me to reorganize all the panels and connectors DT
+> bindings in order to get this one merged ? :-)
+> 
+> >>>> +- avdd-supply: reference to the regulator that powers the panel
+> >>>> analog supply
+> >>>> +- dvdd-supply: reference to the regulator that powers the panel
+> >>>> digital supply
+> >>> 
+> >>> Which one has to be powered on first, what voltage, and with what time
+> >>> in between? This is why "generic" or "simple" bindings don't work.
+> >> 
+> >> The above-mentioned specifications also define connectors, pinouts and
+> >> power supplies, but many LVDS panels compatible with the LVDS physical
+> >> and data layers use a different connector with small differences in
+> >> power
+> >> supplies.
+> >> 
+> >> I believe the voltage is irrelevant here, it doesn't need to be
+> >> controlled by the operating system. Power supplies order and timing is
+> >> relevant, I'll investigate the level of differences between panels. I'm
+> >> also fine with dropping those properties for now.
+> > 
+> > Whether you have control of the supplies is dependent on the board.
+> > Dropping them is just puts us in the simple binding trap. The simple
+> > bindings start out that way and then people keep adding to them.
+> 
+> Damn, you can't be fooled easily ;-)
+> 
+> On a more serious note, I'd like to design the bindings in a way that
+> wouldn't require adding device-specific code in the driver for each panel
+> model, given that in most cases power supply handling will be generic.
+> What's your opinion about a generic power supply model that would be used
+> in the default case, with the option to override it with device-specific
+> code when needed ?
+>
+> >>>> +- data-mirror: if set, reverse the bit order on all data lanes (6 to
+> >>>> 0 instead
+> >>>> +  of 0 to 6)
+> > 
+> > On this one, make the name describe the order. "mirror" requires that
+> > I know what is normal ordering. Perhaps "data-msb-first".
+> 
+> Sounds good to me, I'll use that.
 
-> > +static void et8ek8_reglist_to_mbus(const struct et8ek8_reglist *reglis=
-t,
-> > +				   struct v4l2_mbus_framefmt *fmt)
-> > +{
-> > +	fmt->width =3D reglist->mode.window_width;
-> > +	fmt->height =3D reglist->mode.window_height;
-> > +
-> > +	if (reglist->mode.pixel_format =3D=3D V4L2_PIX_FMT_SGRBG10DPCM8)
->=20
-> The driver doesn't really need to deal with pixel formats. Could you use
-> media bus formats instead, and rename the fields accordingly?
->=20
-> The reason why it did use pixel formats was that (V4L2) media bus formats
-> did not exist when the driver was written. :-)
+-- 
+Regards,
 
-Makes sense...
+Laurent Pinchart
 
-Something like this? [untested, will test complete changes.]
-
-									Pavel
-
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
-t8ek8/et8ek8_driver.c
-index 0301e81..eb131b2 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-+++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-@@ -395,11 +395,7 @@ static void et8ek8_reglist_to_mbus(const struct et8ek8=
-_reglist *reglist,
- {
- 	fmt->width =3D reglist->mode.window_width;
- 	fmt->height =3D reglist->mode.window_height;
--
--	if (reglist->mode.pixel_format =3D=3D V4L2_PIX_FMT_SGRBG10DPCM8)
--		fmt->code =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8;
--	else
--		fmt->code =3D MEDIA_BUS_FMT_SGRBG10_1X10;
-+	fmt->code =3D reglist->mode.bus_format;
- }
-=20
- static struct et8ek8_reglist *et8ek8_reglist_find_mode_fmt(
-@@ -538,7 +534,7 @@ static int et8ek8_reglist_import(struct i2c_client *cli=
-ent,
- 		       __func__,
- 		       list->type,
- 		       list->mode.window_width, list->mode.window_height,
--		       list->mode.pixel_format,
-+		       list->mode.bus_format,
- 		       list->mode.timeperframe.numerator,
- 		       list->mode.timeperframe.denominator,
- 		       (void *)meta->reglist[nlists].ptr);
-@@ -967,21 +963,18 @@ static int et8ek8_enum_mbus_code(struct v4l2_subdev *=
-subdev,
- 			continue;
-=20
- 		for (i =3D 0; i < npixelformat; i++) {
--			if (pixelformat[i] =3D=3D mode->pixel_format)
-+			if (pixelformat[i] =3D=3D mode->bus_format)
- 				break;
- 		}
- 		if (i !=3D npixelformat)
- 			continue;
-=20
- 		if (code->index =3D=3D npixelformat) {
--			if (mode->pixel_format =3D=3D V4L2_PIX_FMT_SGRBG10DPCM8)
--				code->code =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8;
--			else
--				code->code =3D MEDIA_BUS_FMT_SGRBG10_1X10;
-+			code->code =3D mode->bus_format;
- 			return 0;
- 		}
-=20
--		pixelformat[npixelformat] =3D mode->pixel_format;
-+		pixelformat[npixelformat] =3D mode->bus_format;
- 		npixelformat++;
- 	}
-=20
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_mode.c b/drivers/media/i2c/et8=
-ek8/et8ek8_mode.c
-index 956fc60..12998d8 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_mode.c
-+++ b/drivers/media/i2c/et8ek8/et8ek8_mode.c
-@@ -59,7 +59,7 @@ static struct et8ek8_reglist mode1_poweron_mode2_16vga_25=
-92x1968_12_07fps =3D {
- 		},
- 		.max_exp =3D 2012,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -160,7 +160,7 @@ static struct et8ek8_reglist mode1_16vga_2592x1968_13_1=
-2fps_dpcm10_8 =3D {
- 		},
- 		.max_exp =3D 2012,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10DPCM8,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -216,7 +216,7 @@ static struct et8ek8_reglist mode3_4vga_1296x984_29_99f=
-ps_dpcm10_8 =3D {
- 		},
- 		.max_exp =3D 1004,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10DPCM8,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -272,7 +272,7 @@ static struct et8ek8_reglist mode4_svga_864x656_29_88fp=
-s =3D {
- 		},
- 		.max_exp =3D 668,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -328,7 +328,7 @@ static struct et8ek8_reglist mode5_vga_648x492_29_93fps=
- =3D {
- 		},
- 		.max_exp =3D 500,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -384,7 +384,7 @@ static struct et8ek8_reglist mode2_16vga_2592x1968_3_99=
-fps =3D {
- 		},
- 		.max_exp =3D 6092,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -439,7 +439,7 @@ static struct et8ek8_reglist mode_648x492_5fps =3D {
- 		},
- 		.max_exp =3D 500,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -495,7 +495,7 @@ static struct et8ek8_reglist mode3_4vga_1296x984_5fps =
-=3D {
- 		},
- 		.max_exp =3D 2996,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-@@ -551,7 +551,7 @@ static struct et8ek8_reglist mode_4vga_1296x984_25fps_d=
-pcm10_8 =3D {
- 		},
- 		.max_exp =3D 1052,
- 		/* .max_gain =3D 0, */
--		.pixel_format =3D V4L2_PIX_FMT_SGRBG10DPCM8,
-+		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
- 		.sensitivity =3D 65536
- 	},
- 	.regs =3D {
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_reg.h b/drivers/media/i2c/et8e=
-k8/et8ek8_reg.h
-index 9970bff..64a8fb7 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_reg.h
-+++ b/drivers/media/i2c/et8ek8/et8ek8_reg.h
-@@ -48,7 +48,7 @@ struct et8ek8_mode {
- 	u32 ext_clock;			/* in Hz */
- 	struct v4l2_fract timeperframe;
- 	u32 max_exp;			/* Maximum exposure value */
--	u32 pixel_format;		/* V4L2_PIX_FMT_xxx */
-+	u32 bus_format;			/* MEDIA_BUS_FMT_ */
- 	u32 sensitivity;		/* 16.16 fixed point */
- };
-=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---pAwQNkOnpTn9IO2O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgxv3cACgkQMOfwapXb+vJ0LQCgsb+Rgq6MJWJX9s13zWIXsMjl
-fVoAoL4Y/uJ0YXGcGF6Vggw0j1NXkw1X
-=3NEi
------END PGP SIGNATURE-----
-
---pAwQNkOnpTn9IO2O--
