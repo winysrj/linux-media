@@ -1,54 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Thu, 24 Nov 2016 23:58:17 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161125075817.GA18428@infradead.org>
-References: <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:33014 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752399AbcKNPbf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 10:31:35 -0500
+Subject: Re: [PATCH 1/2] Add Documentation for Media Device, Video Device, and
+ Synopsys DW MIPI CSI-2 Host
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+References: <cover.1479132355.git.roliveir@synopsys.com>
+ <160acd0770e0685330ba8e7445423c1d6f34658e.1479132355.git.roliveir@synopsys.com>
+ <9132828.vOiOHSy7z0@avalon>
+CC: <robh+dt@kernel.org>, <mark.rutland@arm.com>, <mchehab@kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <davem@davemloft.net>,
+        <gregkh@linuxfoundation.org>, <geert+renesas@glider.be>,
+        <akpm@linux-foundation.org>, <linux@roeck-us.net>,
+        <hverkuil@xs4all.nl>, <laurent.pinchart+renesas@ideasonboard.com>,
+        <arnd@arndb.de>, <sudipm.mukherjee@gmail.com>,
+        <tiffany.lin@mediatek.com>, <minghsiu.tsai@mediatek.com>,
+        <jean-christophe.trotin@st.com>, <andrew-ct.chen@mediatek.com>,
+        <simon.horman@netronome.com>, <songjun.wu@microchip.com>,
+        <bparrot@ti.com>, <CARLOS.PALMINHA@synopsys.com>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Message-ID: <8f28e551-eb97-0e1f-6902-cdae13a8ed96@synopsys.com>
+Date: Mon, 14 Nov 2016 15:31:21 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
+In-Reply-To: <9132828.vOiOHSy7z0@avalon>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 24, 2016 at 11:11:34AM -0700, Logan Gunthorpe wrote:
-> * Regular DAX in the FS doesn't work at this time because the FS can
-> move the file you think your transfer to out from under you. Though I
-> understand there's been some work with XFS to solve that issue.
+Hi Laurent,
 
-The file system will never move anything under locked down pages,
-locking down pages is used exactly to protect against that.  So as long
-as we page structures available RDMA to/from device memory _from kernel
-space_ is trivial, although for file systems to work properly you
-really want a notification to the consumer if the file systems wants
-to remove the mapping.  We have implemented that using FL_LAYOUTS locks
-for NFSD, but only XFS supports it so far.  Without that a long term
-locked down region of memory (e.g. a kernel MR) would prevent various
-file operations that would simply hang.
+Thanks for the feedback.
+
+On 11/14/2016 2:49 PM, Laurent Pinchart wrote:
+> Hi Ramiro,
+> 
+> Thank you for the patch.
+> 
+> On Monday 14 Nov 2016 14:20:22 Ramiro Oliveira wrote:
+>> Add documentation for Media and Video Device, as well as the DW MIPI CSI-2
+>> Host.
+>>
+>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+>> ---
+>>  .../devicetree/bindings/media/snps,dw-mipi-csi.txt | 27 +++++++++++++++++++
+>>  .../devicetree/bindings/media/snps,plat-ipk.txt    |  9 ++++++++
+>>  .../bindings/media/snps,video-device.txt           | 12 ++++++++++
+>>  3 files changed, 48 insertions(+)
+>>  create mode 100644
+>> Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt create mode
+>> 100644 Documentation/devicetree/bindings/media/snps,plat-ipk.txt create
+>> mode 100644 Documentation/devicetree/bindings/media/snps,video-device.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
+>> b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt new file
+>> mode 100644
+>> index 0000000..bec7441
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
+>> @@ -0,0 +1,27 @@
+>> +Synopsys DesignWare CSI-2 Host controller
+>> +
+>> +Description
+>> +-----------
+>> +
+>> +This HW block is used to receive image coming from an MIPI CSI-2 compatible
+>> +camera.
+> 
+> And what does it do after receiving the stream ? A more detailed description 
+> would be useful. Is there any public documentation for this IP core ?
+> 
+
+I can add a more detailed description. Also, here is a link to the
+documentation, but I'm afraid you might have to register yourself to access it.
+
+CSI-2 Host
+https://www.synopsys.com/dw/doc.php/ds/c/dwc_csi2_controller.pdf
+
+CSI-2 Host IPK
+https://www.synopsys.com/dw/doc.php/ds/o/ip_prototyping_kit_mipi_csi2_host_arc.pdf
+
+>> +Required properties:
+>> +- compatible: shall be "snps,dw-mipi-csi"
+>> +- reg		: physical base address and size of the device memory 
+> mapped
+>> +		  registers;
+>> +- interrupts	: CSI-2 Host interrupt
+>> +- data-lanes    : Number of lanes to be used
+> 
+> Is that fixed at synthesis time or configurable at runtime ?
+> 
+
+The max number is fixed at synthesis time, but you can configure it for lower
+values. I added this option here because, although configurable, it's usually a
+fixed value.
+
+>> +- output-type   : Core output to be used (IPI-> 0 or IDI->1 or BOTH->2)
+> 
+> What are IPI and IDI ?
+> 
+
+IPI is Image Pixel Interface and IDI Image Data Interface, these are the two
+types of data output support by our CSI-2 Host controller
+
+>> +- phys, phy-names: List of one PHY specifier and identifier string (as
+>> defined
+>> +  in Documentation/devicetree/bindings/phy/phy-bindings.txt).
+> 
+> A PHY for what ?
+> 
+
+Our controller needs a PHY, in this case a MIPI DPHY, to interact with a CSI-2
+receiver (usually a sensor).
+
+>> +Optional properties(if in IPI mode):
+>> +- ipi-mode 	: Mode to be used when in IPI(Camera -> 0 or Automatic -> 1)
+>> +- ipi-color-mode: Color depth to be used in IPI (48 bits -> 0 or 16 bits ->
+>> 1)
+>> +- ipi-auto-flush: Data auto-flush (1 -> Yes or 0 -> No)
+>> +- virtual-channel: Virtual channel where data is present when in IPI
+> 
+> We need more details than that, this is impossible to review, sorry.
+> 
+
+Sure, I'll add more details to the descripton
+
+>> +The per-board settings:
+>> + - port sub-node describing a single endpoint connected to the dw-mipi-csi
+>> +   as described in video-interfaces.txt[1].
+> 
+> An example would be nice.
+> 
+
+I'll add an example of how we're using it.
+
+>> diff --git a/Documentation/devicetree/bindings/media/snps,plat-ipk.txt
+>> b/Documentation/devicetree/bindings/media/snps,plat-ipk.txt new file mode
+>> 100644
+>> index 0000000..2d51541
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/snps,plat-ipk.txt
+>> @@ -0,0 +1,9 @@
+>> +Synopsys DesignWare CSI-2 Host IPK Media Device
+>> +
+>> +This Media Device at the moment is not totally functional, however it is a
+>> base
+>> +for the future.
+> 
+> Then let's add it later :-) We don't want to design incomplete transient DT 
+> bindings.
+> 
+
+I'm afraid I wasn't completely clear. This setup is fully functional. Actually
+this sentence made sense in the past, but no longer does now.
+
+>> +Required properties:
+>> +
+>> +- compatible: Must be "snps,plat-ipk".
+>> +
+>> diff --git a/Documentation/devicetree/bindings/media/snps,video-device.txt
+>> b/Documentation/devicetree/bindings/media/snps,video-device.txt new file
+>> mode 100644
+>> index 0000000..d467092
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/snps,video-device.txt
+>> @@ -0,0 +1,12 @@
+>> +Synopsys DesignWare CSI-2 Host video device
+>> +
+>> +This driver handles all the video handling part of this platform.
+> 
+> This is a DT binding documentation, drivers are irrelevant. You should 
+> describe the hardware only.
+> 
+> More information is needed, based on this document I can't tell what the 
+> "CSI-2 host video device" is.
+> 
+
+You're right, I'll add a more detailed description.
+
+>> +Required properties:
+>> +
+>> +- compatible: Must be "snps,video-device".
+>> +
+>> +- dmas, dma-names: List of one DMA specifier and identifier string (as
+>> defined
+>> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
+>> +  requires a DMA channel with the identifier string set to "port" followed
+>> by
+>> +  the port index.
+> 
+
+Thanks once again,
+Ramiro Oliveira
