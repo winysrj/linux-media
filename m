@@ -1,73 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:16514 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753240AbcKULQw (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:44149 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752206AbcKNPXE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 06:16:52 -0500
-Message-ID: <1479726989.25126.2.camel@mtksdaap41>
-Subject: Re: [PATCH] [media] VPU: mediatek: fix dereference of pdev before
- checking it is null
-From: andrew-ct chen <andrew-ct.chen@mediatek.com>
-To: Colin King <colin.king@canonical.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Wei Yongjun" <yongjun_wei@trendmicro.com.cn>,
-        <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>
-Date: Mon, 21 Nov 2016 19:16:29 +0800
-In-Reply-To: <20161116191650.11486-1-colin.king@canonical.com>
-References: <20161116191650.11486-1-colin.king@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-MIME-Version: 1.0
+        Mon, 14 Nov 2016 10:23:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King - ARM Linux <linux@armlinux.org.uk>,
+        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Russell King <rmk+kernel@arm.linux.org.uk>
+Subject: [RFCv2 PATCH 2/5] drm/bridge: dw_hdmi: remove CEC engine register definitions
+Date: Mon, 14 Nov 2016 16:22:45 +0100
+Message-Id: <1479136968-24477-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
+References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2016-11-16 at 19:16 +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> pdev is dereferenced using platform_get_drvdata before a check to
-> see if it is null, hence there could be a potential null pointer
-> dereference issue. Instead, first check if pdev is null and only then
-> deference pdev when initializing vpu.
-> 
-> Found with static analysis by CoverityScan, CID 1357797
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
-> ---
+From: Russell King <rmk+kernel@arm.linux.org.uk>
 
-Reviewed-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
+We don't need the CEC engine register definitions, so let's remove them.
 
->  drivers/media/platform/mtk-vpu/mtk_vpu.c | 6 ++++--
->  1 file changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-> index c9bf58c..41f31b2 100644
-> --- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
-> +++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-> @@ -523,9 +523,9 @@ static int load_requested_vpu(struct mtk_vpu *vpu,
->  
->  int vpu_load_firmware(struct platform_device *pdev)
->  {
-> -	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
-> +	struct mtk_vpu *vpu;
->  	struct device *dev = &pdev->dev;
-> -	struct vpu_run *run = &vpu->run;
-> +	struct vpu_run *run;
->  	const struct firmware *vpu_fw = NULL;
->  	int ret;
->  
-> @@ -533,6 +533,8 @@ int vpu_load_firmware(struct platform_device *pdev)
->  		dev_err(dev, "VPU platform device is invalid\n");
->  		return -EINVAL;
->  	}
-> +	vpu = platform_get_drvdata(pdev);
-> +	run = &vpu->run;
->  
->  	mutex_lock(&vpu->vpu_mutex);
->  	if (vpu->fw_loaded) {
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+---
+ drivers/gpu/drm/bridge/dw-hdmi.h | 45 ----------------------------------------
+ 1 file changed, 45 deletions(-)
 
+diff --git a/drivers/gpu/drm/bridge/dw-hdmi.h b/drivers/gpu/drm/bridge/dw-hdmi.h
+index fc9a560..26d6845 100644
+--- a/drivers/gpu/drm/bridge/dw-hdmi.h
++++ b/drivers/gpu/drm/bridge/dw-hdmi.h
+@@ -478,51 +478,6 @@
+ #define HDMI_A_PRESETUP                         0x501A
+ #define HDMI_A_SRM_BASE                         0x5020
+ 
+-/* CEC Engine Registers */
+-#define HDMI_CEC_CTRL                           0x7D00
+-#define HDMI_CEC_STAT                           0x7D01
+-#define HDMI_CEC_MASK                           0x7D02
+-#define HDMI_CEC_POLARITY                       0x7D03
+-#define HDMI_CEC_INT                            0x7D04
+-#define HDMI_CEC_ADDR_L                         0x7D05
+-#define HDMI_CEC_ADDR_H                         0x7D06
+-#define HDMI_CEC_TX_CNT                         0x7D07
+-#define HDMI_CEC_RX_CNT                         0x7D08
+-#define HDMI_CEC_TX_DATA0                       0x7D10
+-#define HDMI_CEC_TX_DATA1                       0x7D11
+-#define HDMI_CEC_TX_DATA2                       0x7D12
+-#define HDMI_CEC_TX_DATA3                       0x7D13
+-#define HDMI_CEC_TX_DATA4                       0x7D14
+-#define HDMI_CEC_TX_DATA5                       0x7D15
+-#define HDMI_CEC_TX_DATA6                       0x7D16
+-#define HDMI_CEC_TX_DATA7                       0x7D17
+-#define HDMI_CEC_TX_DATA8                       0x7D18
+-#define HDMI_CEC_TX_DATA9                       0x7D19
+-#define HDMI_CEC_TX_DATA10                      0x7D1a
+-#define HDMI_CEC_TX_DATA11                      0x7D1b
+-#define HDMI_CEC_TX_DATA12                      0x7D1c
+-#define HDMI_CEC_TX_DATA13                      0x7D1d
+-#define HDMI_CEC_TX_DATA14                      0x7D1e
+-#define HDMI_CEC_TX_DATA15                      0x7D1f
+-#define HDMI_CEC_RX_DATA0                       0x7D20
+-#define HDMI_CEC_RX_DATA1                       0x7D21
+-#define HDMI_CEC_RX_DATA2                       0x7D22
+-#define HDMI_CEC_RX_DATA3                       0x7D23
+-#define HDMI_CEC_RX_DATA4                       0x7D24
+-#define HDMI_CEC_RX_DATA5                       0x7D25
+-#define HDMI_CEC_RX_DATA6                       0x7D26
+-#define HDMI_CEC_RX_DATA7                       0x7D27
+-#define HDMI_CEC_RX_DATA8                       0x7D28
+-#define HDMI_CEC_RX_DATA9                       0x7D29
+-#define HDMI_CEC_RX_DATA10                      0x7D2a
+-#define HDMI_CEC_RX_DATA11                      0x7D2b
+-#define HDMI_CEC_RX_DATA12                      0x7D2c
+-#define HDMI_CEC_RX_DATA13                      0x7D2d
+-#define HDMI_CEC_RX_DATA14                      0x7D2e
+-#define HDMI_CEC_RX_DATA15                      0x7D2f
+-#define HDMI_CEC_LOCK                           0x7D30
+-#define HDMI_CEC_WKUPCTRL                       0x7D31
+-
+ /* I2C Master Registers (E-DDC) */
+ #define HDMI_I2CM_SLAVE                         0x7E00
+ #define HDMI_I2CM_ADDRESS                       0x7E01
+-- 
+2.8.1
 
