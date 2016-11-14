@@ -1,87 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm34-vm8.bullet.mail.gq1.yahoo.com ([98.136.216.159]:36683 "EHLO
-        nm34-vm8.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934564AbcKNHxr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 02:53:47 -0500
-Date: Mon, 14 Nov 2016 07:44:09 +0000 (UTC)
-From: "Dr. Felix Collins" <felixcollinsfnb2@gmail.com>
-Reply-To: "Dr. Felix Collins" <felixcollinsa@gmail.com>
-Message-ID: <1854903249.914393.1479109449106@mail.yahoo.com>
-Subject: PLEASE VIEW THE ATTACHED FILE AND CONTACT ME.
+Received: from mga06.intel.com ([134.134.136.31]:52103 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751201AbcKNJ21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 04:28:27 -0500
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+To: Greg KH <gregkh@linuxfoundation.org>,
+        Mike Krinkin <krinkin.m.u@gmail.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+        mchehab@kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH] usb: core: urb make use of usb_endpoint_maxp_mult
+In-Reply-To: <20161114092121.GA31797@kroah.com>
+References: <1479033076-2995-1-git-send-email-krinkin.m.u@gmail.com> <20161114092121.GA31797@kroah.com>
+Date: Mon, 14 Nov 2016 11:27:48 +0200
+Message-ID: <87r36ewgvf.fsf@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed;
-        boundary="----=_Part_914392_57161530.1479109449106"
-References: <1854903249.914393.1479109449106.ref@mail.yahoo.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: multipart/signed; boundary="=-=-=";
+        micalg=pgp-sha256; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------=_Part_914392_57161530.1479109449106
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+--=-=-=
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
 
+Hi,
 
-------=_Part_914392_57161530.1479109449106
-Content-Type: application/msword
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="FROM FIRST NATIONAL BANK OF SOUTH AFRICA (F.N.B)..rtf"
-Content-ID: <7a5cd6df-04f1-6cf4-dc51-aa1de2c50c02@yahoo.com>
+Greg KH <gregkh@linuxfoundation.org> writes:
+> On Sun, Nov 13, 2016 at 01:31:16PM +0300, Mike Krinkin wrote:
+>> Since usb_endpoint_maxp now returns only lower 11 bits mult
+>> calculation here isn't correct anymore and that breaks webcam
+>> for me. Patch make use of usb_endpoint_maxp_mult instead of
+>> direct calculation.
+>>=20
+>> Fixes: abb621844f6a ("usb: ch9: make usb_endpoint_maxp() return
+>>        only packet size")
+>>=20
+>> Signed-off-by: Mike Krinkin <krinkin.m.u@gmail.com>
+>> ---
+>>  drivers/usb/core/urb.c | 7 ++-----
+>>  1 file changed, 2 insertions(+), 5 deletions(-)
+>>=20
+>> diff --git a/drivers/usb/core/urb.c b/drivers/usb/core/urb.c
+>> index 0be49a1..d75cb8c 100644
+>> --- a/drivers/usb/core/urb.c
+>> +++ b/drivers/usb/core/urb.c
+>> @@ -412,11 +412,8 @@ int usb_submit_urb(struct urb *urb, gfp_t mem_flags)
+>>  		}
+>>=20=20
+>>  		/* "high bandwidth" mode, 1-3 packets/uframe? */
+>> -		if (dev->speed =3D=3D USB_SPEED_HIGH) {
+>> -			int	mult =3D 1 + ((max >> 11) & 0x03);
+>> -			max &=3D 0x07ff;
+>> -			max *=3D mult;
+>> -		}
+>> +		if (dev->speed =3D=3D USB_SPEED_HIGH)
+>> +			max *=3D usb_endpoint_maxp_mult(&ep->desc);
+>>=20=20
+>>  		if (urb->number_of_packets <=3D 0)
+>>  			return -EINVAL;
+>
+> Felipe, this looks like it belongs in your tree...
 
-e1xydGYxXGFuc2lcYW5zaWNwZzEyNTJcZGVmZjBcZGVmbGFuZzcxNzd7XGZvbnR0Ymx7XGYwXGZz
-d2lzc1xmY2hhcnNldDAgQXJpYWw7fX0NCntcKlxnZW5lcmF0b3IgTXNmdGVkaXQgNS40MS4xNS4x
-NTEyO31cdmlld2tpbmQ0XHVjMVxwYXJkXGYwXGZzMjQgSSBhbSBGZWxpeCBDb2xsaW5zLCBJIHdv
-cmsgd2l0aCB0aGUgRklSU1QgTkFUSU9OQUwgQkFOSyBPRiBTT1VUSCBBRlJJQ0EgKEYuTi5CKS5c
-cGFyDQpQbGVhc2UgY29udGFjdCBtZSB3aXRoIHRoaXMgZW1haWwgYWRkcmVzc2VzLlxwYXINCmZl
-bGl4Y29sbGluc2FAZ21haWwuY29tXHBhcg0KUGxlYXNlIGNhbGwgbWUgb24gbXkgcHJpdmF0ZSBu
-dW1iZXIgKCsyNy03OSAtMTQxLTIzODUpXHBhcg0KXHBhcg0KXHBhcg0KQVRURU5USU9OOiBTSVIv
-TUFEQU0sXHBhcg0KXHBhcg0KSSBkbyB1bmRlcnN0YW5kIHRoZSBjb25jZXJuIHRoaXMgbGV0dGVy
-IHdpbGwgYnJpbmcgdG8geW91IGZvciB0aGUgZmFjdCB0aGF0IGl0IGNvbWVzIGZyb20gYSB0b3Rh
-bCBzdHJhbmdlciwgYnV0IGJlIHJlc3QgYXNzdXJlZCBmb3IgaXQgY29tZXMgd2l0aCBnb29kIGlu
-dGVudGlvbnMuIEkgZ290IHlvdXIgY29udGFjdCB0aHJvdWdoIHRoZSBTb3V0aCBBZnJpY2FuIElu
-dGVybmF0aW9uYWwgRXhjaGFuZ2UgTmV0d29yayBPbi1saW5lIGhlcmUgaW4gSm9oYW5uZXNidXJn
-LCBTb3V0aCBBZnJpY2EuIEZvciBwdXJwb3NlIG9mIGludHJvZHVjdGlvbiBJIGFtIEZlbGl4IENv
-bGxpbnMsIEkgd29yayB3aXRoIHRoZSBGSVJTVCBOQVRJT05BTCBCQU5LIE9GIFNPVVRIIEFGUklD
-QSAoRi5OLkIpICBUaGVyZSBpcyBhbiBhY2NvdW50IG9wZW5lZCBpbiB0aGlzIGJhbmsgc2luY2Ug
-MTk4MCBhbmQgc2luY2UgMTk5NSBub2JvZHkgaGFzIG9wZXJhdGVkIG9uIHRoaXMgYWNjb3VudCBh
-Z2Fpbi4gQWZ0ZXIgZ29pbmcgdGhyb3VnaCBzb21lIG9sZCBmaWxlcyBpbiB0aGUgcmVjb3Jkcywg
-SSBkaXNjb3ZlcmVkIHRoYXQgaWYgSSBkb24ndCByZW1pdCB0aGlzIG1vbmV5IG91dCB1cmdlbnRs
-eSBpdCB3b3VsZCBiZSBmb3JmZWl0ZWQgZm9yIG5vdGhpbmcuXHBhcg0KXHBhcg0KVGhlIG93bmVy
-IG9mIHRoaXMgYWNjb3VudCBpcyBNci4gU21pdGggLkIuIEFuZHJlYXMsIGEgZm9yZWlnbmVyIGFu
-ZCBhIG1pbmVyIGF0IEtydWdlciBHb2xkIENvLW9wZXJhdGlvbiwgYSBnZW9sb2dpc3QgYnkgcHJv
-ZmVzc2lvbiBhbmQgaGUgZGllZCBzaW5jZSAxOTk0LiBObyBvdGhlciBwZXJzb24ga25vd3MgYWJv
-dXQgdGhpcyBhY2NvdW50IG9yIGFueXRoaW5nIGNvbmNlcm5pbmcgaXQsIHRoZSBhY2NvdW50IGhh
-cyBubyBvdGhlciBiZW5lZmljaWFyeSBhbmQgbXkgaW52ZXN0aWdhdGlvbiBwcm92ZWQgdG8gbWUg
-YXMgd2VsbCB0aGF0IHRoZSBjb21wYW55IGRvZXMgbm90IGtub3cgYW55dGhpbmcgYWJvdXQgdGhp
-cyBhY2NvdW50IGFuZCB0aGUgYW1vdW50IGludm9sdmVkIGlzIFVTRCQ3NSwwMDAuMDAwLDAwICgg
-U2V2ZW50eSBGaXZlIE1pbGxpb24gVW5pdGVkIFN0YXRlcyBEb2xsYXJzKS4gSSBhbSBvbmx5IGNv
-bnRhY3RpbmcgeW91IGFzIGEgZm9yZWlnbmVyIGJlY2F1c2UgdGhpcyBtb25leSBjYW5ub3QgYmUg
-YXBwcm92ZWQgdG8gYSBsb2NhbCBiYW5rIGhlcmUsIGJ1dCBjYW4gb25seSBiZSBhcHByb3ZlZCB0
-byBhbnkgZm9yZWlnbiBhY2NvdW50IGJlY2F1c2UgdGhlIG1vbmV5IGlzIGluIFVuaXRlZCBTdGF0
-ZXMgRG9sbGFycyBhbmQgdGhlIGZvcm1lciBvd25lciBvZiB0aGUgYWNjb3VudCBNci4gU21pdGgg
-LkIgLiBBbmRyZWFzIGlzIGEgZm9yZWlnbmVyIHRvby4gSSBuZWVkIGEgdHJ1dGhmdWwgcGVyc29u
-IGluIHRoaXMgYnVzaW5lc3MgYmVjYXVzZSBJIGRvbid0IHdhbnQgdG8gbWFrZSBtaXN0YWtlcy5c
-cGFyDQpccGFyDQogSSBuZWVkIHlvdXIgc3Ryb25nIGFzc3VyYW5jZSBhbmQgdHJ1c3QuIFdpdGgg
-bXkgcG9zaXRpb24gbm93IGluIG9mZmljZSBJIGNhbiB0cmFuc2ZlciB0aGlzIG1vbmV5IHRvIGFu
-eSBmb3JlaWduIHJlbGlhYmxlIGFjY291bnQsIHRocm91Z2ggb24tbGluZSBiYW5raW5nIG9yIFRl
-bGVncmFwaGljIFRyYW5zZmVyIChULlQpIHdoaWNoIHlvdSBjYW4gcHJvdmlkZSB3aXRoIGFzc3Vy
-YW5jZSB0aGF0IHRoaXMgbW9uZXkgd2lsbCBiZSBpbnRhY3QgcGVuZGluZyBteSBwaHlzaWNhbCBh
-cnJpdmFsIHRvIHlvdXIgY291bnRyeSBmb3Igc2hhcmluZy4gSSB3aWxsIGFwcGx5IGZvciBhbm51
-YWwgbGVhdmUgdG8gZ2V0IGEgdmlzYSBpbW1lZGlhdGVseSBJIGhlYXIgZnJvbSB5b3UgdGhhdCB5
-b3UgYXJlIHJlYWR5IHRvIGFjdCBhbmQgcmVjZWl2ZSB0aGlzIG1vbmV5IGluIHlvdXIgYWNjb3Vu
-dC4gQXQgdGhlIGNvbmNsdXNpb24gb2YgdGhpcyBidXNpbmVzcywgSSB3aWxsIGNvbWUgdG8geW91
-ciBjb3VudHJ5IGZvciB3aXRoZHJhd2FsIGFuZCBzaGFyaW5nIGFuZCBvdGhlciBpbnZlc3RtZW50
-cy4geW91IHdpbGwgYmUgZ2l2ZW4gNDAlIG9mIHRoZSB0b3RhbCBhbW91bnQsIDUwJSB3aWxsIGJl
-IGZvciBtZSAsIGFuZCB3aGlsZSAxMCUgd2lsbCBiZSBmb3IgZXhwZW5zZXMgYm90aCBwYXJ0aWVz
-IG1pZ2h0IGluY3VyIGR1cmluZyB0aGUgcHJvY2VzcyBvZiB0cmFuc2ZlcnJpbmcgdGhpcyBtb25l
-eS5ccGFyDQpccGFyDQpUaGVyZWZvcmUsIGlmIHlvdSBhcmUgd2lsbGluZyBhbmQgaW50ZXJlc3Rl
-ZCB0byByZW5kZXIgdGhlIG5lZWRlZCBhc3Npc3RhbmNlLCBFbmRlYXZvciB0byByZXBseSB0aHJv
-dWdoIG15IGVtYWlsIGFkZHJlc3MsIEkgYWxzbyBuZWVkIHlvdXIgcHJpdmF0ZSBwaG9uZSBhbmQg
-ZmF4IG51bWJlcnMgZm9yIGVhc3kgY29tbXVuaWNhdGlvbi4gSSB3aWxsIGdpdmUgbW9yZSBjbGFy
-aWZpY2F0aW9ucyBvbiB0aGUgbW9kYWxpdGllcyBuZWVkZWQgZm9yIHRoZSBzdWNjZXNzZnVsIGNv
-bXBsZXRpb24gb2YgdGhpcyB0cmFuc2FjdGlvbi5ccGFyDQpccGFyDQpccGFyDQpCZXN0IFJlZ2Fy
-ZHMsXHBhcg0KRHIuIEZlbGl4IENvbGxpbnNccGFyDQogXHBhcg0KfQ0KAA==
+Right, I've queued it up :-)
 
-------=_Part_914392_57161530.1479109449106--
+=2D-=20
+balbi
+
+--=-=-=
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCAAdFiEElLzh7wn96CXwjh2IzL64meEamQYFAlgpg5QACgkQzL64meEa
+mQY4Jg//WSt6Xf6iqrwZqGQk7/+cd0wNEooYRww9WiVXoSULN/+71DtrMVFvnuWw
+i4jGvFsEhOoNhnICUPy7UTLt8L9yLPCQW7F6mbmlLYMIbU7NUSC05nuFOsDDzvAZ
+Y9EJRORPLtjK0BBIVlH/Y1KuRNl4kXjqpg6Qn7BXp16uDf/FPIBz4H+jZIlL5YPk
+X27d03xI4sIYbT4VtUyRD22uSyXkUEaM4918/2aWP9hG3gjSPseM0NJGkRX1BNDo
+RomWcwiHu6inYOngKFBqFCHUTNIF7JvSm+ufY4l3DhXIjrX2KbbUns1yKqj8IayI
+zEeU3HE8O2iGoHjewayjzUZz392WmZ1mm+pJY+GrWZ1+zLosyiHbLDyJQnpFAvff
+IuQnUkvfuPBs855Nhm5W5a7a31sh3ytEqxZ1LyUh7or9gnLSwQSq29MtY4PLY2fE
+0wAayuKK2VbLRNVuhCH6mV8TPHt8PpwkjXAaKd0GTvI2Mu31un/2/26aKXVM7NlL
+tdFmBB6DWVEikIi/HJNhqHTtZNrJyaKSi8tPHvNEm18t9ekPFwWouzeX1bf5wA3G
+HQ6zAdqakZtWu2w1u/Zi3G+S6SLSRQhsk+yXRgqgaix/Xg28FA2iuyGiXlRgTznz
+EqGJMe9ivEWUGu2OAF+LrvFw5v/vWrf1AplVEWbS/rbf9YuHXtc=
+=jWXy
+-----END PGP SIGNATURE-----
+--=-=-=--
