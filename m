@@ -1,110 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:56856 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751301AbcKCPAS (ORCPT
+Received: from relay1.mentorg.com ([192.94.38.131]:49513 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752861AbcKNSVl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 11:00:18 -0400
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.10] cec: fix remaining issues and move it from
- staging to drivers/media
-Message-ID: <2c4abf9f-a3e0-4ab2-66e4-7b53c04d7614@xs4all.nl>
-Date: Thu, 3 Nov 2016 16:00:15 +0100
+        Mon, 14 Nov 2016 13:21:41 -0500
+Subject: Re: [PATCH v4 3/8] media: adv7180: add support for NEWAVMODE
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Steve Longerbeam <slongerbeam@gmail.com>, <lars@metafoo.de>
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+ <1470247430-11168-4-git-send-email-steve_longerbeam@mentor.com>
+ <c759906e-e04f-2ccd-f175-e46367879890@xs4all.nl>
+CC: <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <c1881a76-2440-7014-18c8-45b369f8f107@mentor.com>
+Date: Mon, 14 Nov 2016 10:21:33 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <c759906e-e04f-2ccd-f175-e46367879890@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This resolves the remaining issues and get it out of staging.
 
-See the cover letter for more info:
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg104311.html
+On 11/14/2016 03:28 AM, Hans Verkuil wrote:
+> On 08/03/2016 08:03 PM, Steve Longerbeam wrote:
+>> Parse the optional v4l2 endpoint DT node. If the bus type is
+>> V4L2_MBUS_BT656 and the endpoint node specifies "newavmode",
+>> configure the BT.656 bus in NEWAVMODE.
+>>
+>> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+>>
+>> ---
+>>
+>> v4: no changes
+>> v3:
+>> - the newavmode endpoint property is now private to adv7180.
+>> ---
+>>   .../devicetree/bindings/media/i2c/adv7180.txt      |  4 ++
+>>   drivers/media/i2c/adv7180.c                        | 46 ++++++++++++++++++++--
+>>   2 files changed, 47 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7180.txt b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+>> index 0d50115..6c175d2 100644
+>> --- a/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7180.txt
+>> @@ -15,6 +15,10 @@ Required Properties :
+>>   		"adi,adv7282"
+>>   		"adi,adv7282-m"
+>>   
+>> +Optional Endpoint Properties :
+>> +- newavmode: a boolean property to indicate the BT.656 bus is operating
+>> +  in Analog Device's NEWAVMODE. Valid for BT.656 busses only.
+> This is too vague.
+>
+> Based on the ADV7280/ADV7281/ADV7282/ADV7283 Hardware Reference Manual I
+> would say something like this:
+>
+> - newavmode: a boolean property to indicate the BT.656 bus is operating
+>    in Analog Device's NEWAVMODE. Valid for BT.656 busses only. When enabled
+>    the generated EAV/SAV codes are suitable for Analog Devices encoders.
+>    Otherwise these codes are setup according to <some standard?>
+>    See bit 4 of user sub map register 0x31 in the Hardware Reference Manual.
+>
+> I may have asked this before, but do you actually have hardware that needs
+> this? If so, it may be useful to give it as an example and explain why it
+> is needed.
+>
+> If not, then I wonder if this cannot be dropped until we DO see hardware
+> that needs it.
 
-Regards,
+Hi Hans, thanks for reviewing this, but at least for imx6, I don't
+need this patch anymore.
 
-	Hans
+Recently I dug deeper into the current bt.656 programming in
+adv7180.c. The driver manually configures the bus to have 21
+blank lines in odd fields, and 22 blank lines in even fields (via
+NVEND register) for NTSC.
 
-The following changes since commit bd676c0c04ec94bd830b9192e2c33f2c4532278d:
+That leaves 525 - (21 +22) = 482 active lines in NTSC.
 
-   [media] v4l2-flash-led-class: remove a now unused var (2016-10-24 
-18:51:29 -0200)
+After configuring the imx6 host bridge to crop those extra 2 lines,
+it is capturing good 720x480 NTSC images now.
 
-are available in the git repository at:
+So I no longer need this patch to enable NEWAVMODE.
 
-   git://linuxtv.org/hverkuil/media_tree.git cec
+However I still see some issues.
 
-for you to fetch changes up to 24aa1f31762622941b976e569223088fc0aab466:
+First, adv7180.c attempts to enable  BT.656-4 mode, but according
+to the datasheet, that cannot be enabled without first enabling
+NEWAVMODE. So the attempt to enable BT.656-4 mode is a no-op,
+it is currently doing nothing. So I suggest removing that attempt.
 
-   MAINTAINERS: update paths (2016-11-02 14:01:29 +0100)
+Second, it is wrong for the host bridge to have to make an assumption
+about cropping for a sensor. The adv7180 needs to communicate to
+hosts about the number of field blanking lines it has configured, maybe
+via get_selection. I.e., report full sensor frame via get_fmt, and 720x482
+via get_selection.
 
-----------------------------------------------------------------
-Hans Verkuil (11):
-       pulse8-cec: set all_device_types when restoring config
-       cec rst: convert tables and drop the 'row' comments
-       cec: add flag to cec_log_addrs to enable RC passthrough
-       cec: add CEC_MSG_FL_REPLY_TO_FOLLOWERS
-       cec: filter invalid messages
-       cec: accept two replies for CEC_MSG_INITIATE_ARC.
-       cec: add proper support for CDC-Only CEC devices
-       cec: move the CEC framework out of staging and to media
-       pulse8-cec: move out of staging
-       s5p-cec/st-cec: update TODOs
-       MAINTAINERS: update paths
 
-  Documentation/media/Makefile                                 |   2 +-
-  Documentation/media/uapi/cec/cec-ioc-adap-g-caps.rst         | 156 
-+++++---------
-  Documentation/media/uapi/cec/cec-ioc-adap-g-log-addrs.rst    | 487 
-++++++++++++++++--------------------------
-  Documentation/media/uapi/cec/cec-ioc-dqevent.rst             | 182 
-++++++----------
-  Documentation/media/uapi/cec/cec-ioc-g-mode.rst              | 317 
-++++++++++++---------------
-  Documentation/media/uapi/cec/cec-ioc-receive.rst             | 418 
-+++++++++++++++---------------------
-  MAINTAINERS                                                  |  10 +-
-  drivers/media/Kconfig                                        |  16 ++
-  drivers/media/Makefile                                       |   4 +
-  drivers/{staging => }/media/cec/Makefile                     |   2 +-
-  drivers/{staging => }/media/cec/cec-adap.c                   | 212 
-+++++++++++++++++-
-  drivers/{staging => }/media/cec/cec-api.c                    |  11 +-
-  drivers/{staging => }/media/cec/cec-core.c                   |   0
-  drivers/{staging => }/media/cec/cec-priv.h                   |   0
-  drivers/media/i2c/Kconfig                                    |   6 +-
-  drivers/media/platform/vivid/Kconfig                         |   2 +-
-  drivers/media/usb/Kconfig                                    |   5 +
-  drivers/media/usb/Makefile                                   |   1 +
-  drivers/{staging/media => media/usb}/pulse8-cec/Kconfig      |   2 +-
-  drivers/{staging/media => media/usb}/pulse8-cec/Makefile     |   0
-  drivers/{staging/media => media/usb}/pulse8-cec/pulse8-cec.c |   8 +
-  drivers/staging/media/Kconfig                                |   4 -
-  drivers/staging/media/Makefile                               |   2 -
-  drivers/staging/media/cec/Kconfig                            |  12 --
-  drivers/staging/media/cec/TODO                               |  32 ---
-  drivers/staging/media/pulse8-cec/TODO                        |  52 -----
-  drivers/staging/media/s5p-cec/Kconfig                        |   2 +-
-  drivers/staging/media/s5p-cec/TODO                           |  12 +-
-  drivers/staging/media/st-cec/Kconfig                         |   2 +-
-  drivers/staging/media/st-cec/TODO                            |   7 +
-  include/media/cec.h                                          |   2 +-
-  include/uapi/linux/Kbuild                                    |   2 +
-  include/{ => uapi}/linux/cec-funcs.h                         |   6 -
-  include/{ => uapi}/linux/cec.h                               |  65 +++++-
-  34 files changed, 952 insertions(+), 1089 deletions(-)
-  rename drivers/{staging => }/media/cec/Makefile (70%)
-  rename drivers/{staging => }/media/cec/cec-adap.c (86%)
-  rename drivers/{staging => }/media/cec/cec-api.c (97%)
-  rename drivers/{staging => }/media/cec/cec-core.c (100%)
-  rename drivers/{staging => }/media/cec/cec-priv.h (100%)
-  rename drivers/{staging/media => media/usb}/pulse8-cec/Kconfig (86%)
-  rename drivers/{staging/media => media/usb}/pulse8-cec/Makefile (100%)
-  rename drivers/{staging/media => media/usb}/pulse8-cec/pulse8-cec.c (97%)
-  delete mode 100644 drivers/staging/media/cec/Kconfig
-  delete mode 100644 drivers/staging/media/cec/TODO
-  delete mode 100644 drivers/staging/media/pulse8-cec/TODO
-  create mode 100644 drivers/staging/media/st-cec/TODO
-  rename include/{ => uapi}/linux/cec-funcs.h (99%)
-  rename include/{ => uapi}/linux/cec.h (94%)
+Steve
+
