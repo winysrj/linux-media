@@ -1,73 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f176.google.com ([209.85.220.176]:36371 "EHLO
-        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755103AbcKDJBB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 05:01:01 -0400
-Received: by mail-qk0-f176.google.com with SMTP id o68so88956861qkf.3
-        for <linux-media@vger.kernel.org>; Fri, 04 Nov 2016 02:01:00 -0700 (PDT)
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:38900 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753662AbcKNMxU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 07:53:20 -0500
+Received: by mail-wm0-f49.google.com with SMTP id f82so96404092wmf.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 04:53:20 -0800 (PST)
+Subject: Re: [PATCH v7 2/2] media: Add a driver for the ov5645 camera sensor.
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1479119076-26363-1-git-send-email-todor.tomov@linaro.org>
+ <1479119076-26363-3-git-send-email-todor.tomov@linaro.org>
+ <5871917.9Xm98D97nL@avalon>
+Cc: robh+dt@kernel.org, pawel.moll@arm.com, mark.rutland@arm.com,
+        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
+        mchehab@osg.samsung.com, hverkuil@xs4all.nl, geert@linux-m68k.org,
+        matrandg@cisco.com, sakari.ailus@iki.fi,
+        linux-media@vger.kernel.org
+From: Todor Tomov <todor.tomov@linaro.org>
+Message-ID: <5829B3B8.2020404@linaro.org>
+Date: Mon, 14 Nov 2016 14:53:12 +0200
 MIME-Version: 1.0
-In-Reply-To: <1478246311-15944-1-git-send-email-maninder.s2@samsung.com>
-References: <1478246311-15944-1-git-send-email-maninder.s2@samsung.com>
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Date: Fri, 4 Nov 2016 10:00:59 +0100
-Message-ID: <CA+M3ks6A=Y9GkKNyS+AFeHor1qN0rNO6uS6e=ayQciHCoG685Q@mail.gmail.com>
-Subject: Re: [PATCH] staging: st-cec: add parentheses around complex macros
-To: Maninder Singh <maninder.s2@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        kernel@stlinux.com,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        devel@driverdev.osuosl.org,
-        Ravikant Bijendra Sharma <ravikant.s2@samsung.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <5871917.9Xm98D97nL@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks,
+Hi Laurent,
 
-Acked-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Thank you once again for the review.
 
-2016-11-04 8:58 GMT+01:00 Maninder Singh <maninder.s2@samsung.com>:
-> This patch fixes the following checkpatch.pl error:
-> ERROR: Macros with complex values should be enclosed in parentheses
->
-> Signed-off-by: Maninder Singh <maninder.s2@samsung.com>
-> ---
->  drivers/staging/media/st-cec/stih-cec.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/staging/media/st-cec/stih-cec.c b/drivers/staging/me=
-dia/st-cec/stih-cec.c
-> index 2143448..b22394a 100644
-> --- a/drivers/staging/media/st-cec/stih-cec.c
-> +++ b/drivers/staging/media/st-cec/stih-cec.c
-> @@ -108,11 +108,11 @@
->
->  /* Constants for CEC_BIT_TOUT_THRESH register */
->  #define CEC_SBIT_TOUT_47MS BIT(1)
-> -#define CEC_SBIT_TOUT_48MS BIT(0) | BIT(1)
-> +#define CEC_SBIT_TOUT_48MS (BIT(0) | BIT(1))
->  #define CEC_SBIT_TOUT_50MS BIT(2)
->  #define CEC_DBIT_TOUT_27MS BIT(0)
->  #define CEC_DBIT_TOUT_28MS BIT(1)
-> -#define CEC_DBIT_TOUT_29MS BIT(0) | BIT(1)
-> +#define CEC_DBIT_TOUT_29MS (BIT(0) | BIT(1))
->
->  /* Constants for CEC_BIT_PULSE_THRESH register */
->  #define CEC_BIT_LPULSE_03MS BIT(1)
-> --
-> 1.7.9.5
->
+On 11/14/2016 02:38 PM, Laurent Pinchart wrote:
+> Hi Todor,
+> 
+> Thank you for the patch.
+> 
+> On Monday 14 Nov 2016 12:24:36 Todor Tomov wrote:
+>> The ov5645 sensor from Omnivision supports up to 2592x1944
+>> and CSI2 interface.
+>>
+>> The driver adds support for the following modes:
+>> - 1280x960
+>> - 1920x1080
+>> - 2592x1944
+>>
+>> Output format is packed 8bit UYVY.
+>>
+>> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+>> ---
+>>  drivers/media/i2c/Kconfig  |   12 +
+>>  drivers/media/i2c/Makefile |    1 +
+>>  drivers/media/i2c/ov5645.c | 1352 +++++++++++++++++++++++++++++++++++++++++
+>>  3 files changed, 1365 insertions(+)
+>>  create mode 100644 drivers/media/i2c/ov5645.c
+> 
+> [snip]
+> 
+>> diff --git a/drivers/media/i2c/ov5645.c b/drivers/media/i2c/ov5645.c
+>> new file mode 100644
+>> index 0000000..2b33bc6
+>> --- /dev/null
+>> +++ b/drivers/media/i2c/ov5645.c
+> 
+> [snip]
+> 
+>> +static const struct ov5645_mode_info *
+>> +ov5645_find_nearest_mode(unsigned int width, unsigned int height)
+>> +{
+>> +       unsigned int i;
+>> +
+>> +       for (i = ARRAY_SIZE(ov5645_mode_info_data) - 1; i >= 0; i--) {
+>> +               if (ov5645_mode_info_data[i].width <= width &&
+>> +                   ov5645_mode_info_data[i].height <= height)
+>> +                       break;
+>> +       }
+>> +
+>> +       if (i < 0)
+> 
+> i needs to be int for this condition to be true.
 
+Oops, I'll fix this for the next version. Let's wait for other feedback too until then.
 
+> 
+> Apart from that,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+>> +               i = 0;
+>> +
+>> +       return &ov5645_mode_info_data[i];
+>> +}
+> 
 
---=20
-Benjamin Gaignard
-
-Graphic Study Group
-
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
+-- 
+Best regards,
+Todor Tomov
