@@ -1,266 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx209.ext.ti.com ([198.47.19.16]:17466 "EHLO
-        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752731AbcKRXU6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:20:58 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 01/35] media: ti-vpe: vpdma: Make vpdma library into its own module
-Date: Fri, 18 Nov 2016 17:20:11 -0600
-Message-ID: <20161118232045.24665-2-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
+Received: from mail.kernel.org ([198.145.29.136]:47650 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753706AbcKNQKu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 11:10:50 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20161110100203.2qv6j6acywpjerfi@gangnam.samsung>
+References: <20161102104010.26959-1-andi.shyti@samsung.com>
+ <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
+ <20161102104010.26959-6-andi.shyti@samsung.com> <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
+ <20161103101048.ofyoko4mkcypf44u@gangnam.samsung> <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
+ <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop> <13210179-ea3f-6106-e3c0-fa30b83e23cc@samsung.com>
+ <20161110100203.2qv6j6acywpjerfi@gangnam.samsung>
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 14 Nov 2016 10:10:23 -0600
+Message-ID: <CAL_Jsq+c_HCFVu1MimrRM2amy1nPrA04Vxpa6D+0mLJG-0SXRA@mail.gmail.com>
+Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
+ ir-spi device driver
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Linux LED Subsystem <linux-leds@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VPDMA (Video Port DMA) as found in devices such as DRA7xx is
-used for both the Video Processing Engine (VPE) and the Video Input
-Port (VIP).
+On Thu, Nov 10, 2016 at 4:02 AM, Andi Shyti <andi.shyti@samsung.com> wrote:
+> Hi Jacek,
+>
+>> > > > > Only DT bindings of LED class drivers should be placed in
+>> > > > > Documentation/devicetree/bindings/leds. Please move it to the
+>> > > > > media bindings.
+>> > > >
+>> > > > that's where I placed it first, but Rob asked me to put it in the
+>> > > > LED directory and Cc the LED mailining list.
+>> > > >
+>> > > > That's the discussion of the version 2:
+>> > > >
+>> > > > https://lkml.org/lkml/2016/9/12/380
+>> > > >
+>> > > > Rob, Jacek, could you please agree where I can put the binding?
+>> > >
+>> > > I'm not sure if this is a good approach. I've noticed also that
+>> > > backlight bindings have been moved to leds, whereas they don't look
+>> > > similarly.
+>> > >
+>> > > We have common.txt LED bindings, that all LED class drivers' bindings
+>> > > have to follow. Neither backlight bindings nor these ones do that,
+>> > > which introduces some mess.
+>> >
+>> > And there are probably LED bindings that don't follow common.txt either.
+>> >
+>> > > Eventually adding a sub-directory, e.g. remote_control could make it
+>> > > somehow logically justified, but still - shouldn't bindings be
+>> > > placed in the documentation directory related to the subsystem of the
+>> > > driver they are predestined to?
+>> >
+>> > No. While binding directories often mirror the driver directories, they
+>> > are not the same. Bindings are grouped by types of h/w and IR LEDs are a
+>> > type of LED.
+>> >
+>> > If you prefer a sub-dir, that is fine with me.
+>>
+>> Fine. So how about sub-dir "ir" ?
+>
+> would we put here all the remote control bindings that currently
+> are under media?
 
-In preparation for this we need to turn vpdma into its own
-kernel module.
+No. Only if they are just an LED that happens to be IR.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
----
- drivers/media/platform/Kconfig         |  6 ++++++
- drivers/media/platform/ti-vpe/Makefile |  4 +++-
- drivers/media/platform/ti-vpe/vpdma.c  | 28 +++++++++++++++++++++++++++-
- 3 files changed, 36 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 3c5a0b6b23a9..b52b6771fc4d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -364,6 +364,7 @@ config VIDEO_TI_VPE
- 	depends on HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
-+	select VIDEO_TI_VPDMA
- 	default n
- 	---help---
- 	  Support for the TI VPE(Video Processing Engine) block
-@@ -377,6 +378,11 @@ config VIDEO_TI_VPE_DEBUG
- 
- endif # V4L_MEM2MEM_DRIVERS
- 
-+# TI VIDEO PORT Helper Modules
-+# These will be selected by VPE and VIP
-+config VIDEO_TI_VPDMA
-+	tristate
-+
- menuconfig V4L_TEST_DRIVERS
- 	bool "Media test drivers"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
-index e236059a60ad..faca5e115c1d 100644
---- a/drivers/media/platform/ti-vpe/Makefile
-+++ b/drivers/media/platform/ti-vpe/Makefile
-@@ -1,6 +1,8 @@
- obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
-+obj-$(CONFIG_VIDEO_TI_VPDMA) += ti-vpdma.o
- 
--ti-vpe-y := vpe.o sc.o csc.o vpdma.o
-+ti-vpe-y := vpe.o sc.o csc.o
-+ti-vpdma-y := vpdma.o
- 
- ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
- 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 4aff05915051..7de0f3f55dcc 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -75,6 +75,7 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
- 		.depth		= 16,
- 	},
- };
-+EXPORT_SYMBOL(vpdma_yuv_fmts);
- 
- const struct vpdma_data_format vpdma_rgb_fmts[] = {
- 	[VPDMA_DATA_FMT_RGB565] = {
-@@ -178,6 +179,7 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
- 		.depth		= 32,
- 	},
- };
-+EXPORT_SYMBOL(vpdma_rgb_fmts);
- 
- const struct vpdma_data_format vpdma_misc_fmts[] = {
- 	[VPDMA_DATA_FMT_MV] = {
-@@ -186,6 +188,7 @@ const struct vpdma_data_format vpdma_misc_fmts[] = {
- 		.depth		= 4,
- 	},
- };
-+EXPORT_SYMBOL(vpdma_misc_fmts);
- 
- struct vpdma_channel_info {
- 	int num;		/* VPDMA channel number */
-@@ -317,6 +320,7 @@ void vpdma_dump_regs(struct vpdma_data *vpdma)
- 	DUMPREG(VIP_UP_UV_CSTAT);
- 	DUMPREG(VPI_CTL_CSTAT);
- }
-+EXPORT_SYMBOL(vpdma_dump_regs);
- 
- /*
-  * Allocate a DMA buffer
-@@ -333,6 +337,7 @@ int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(vpdma_alloc_desc_buf);
- 
- void vpdma_free_desc_buf(struct vpdma_buf *buf)
- {
-@@ -341,6 +346,7 @@ void vpdma_free_desc_buf(struct vpdma_buf *buf)
- 	buf->addr = NULL;
- 	buf->size = 0;
- }
-+EXPORT_SYMBOL(vpdma_free_desc_buf);
- 
- /*
-  * map descriptor/payload DMA buffer, enabling DMA access
-@@ -361,6 +367,7 @@ int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(vpdma_map_desc_buf);
- 
- /*
-  * unmap descriptor/payload DMA buffer, disabling DMA access and
-@@ -375,6 +382,7 @@ void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
- 
- 	buf->mapped = false;
- }
-+EXPORT_SYMBOL(vpdma_unmap_desc_buf);
- 
- /*
-  * create a descriptor list, the user of this list will append configuration,
-@@ -396,6 +404,7 @@ int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(vpdma_create_desc_list);
- 
- /*
-  * once a descriptor list is parsed by VPDMA, we reset the list by emptying it,
-@@ -405,6 +414,7 @@ void vpdma_reset_desc_list(struct vpdma_desc_list *list)
- {
- 	list->next = list->buf.addr;
- }
-+EXPORT_SYMBOL(vpdma_reset_desc_list);
- 
- /*
-  * free the buffer allocated fot the VPDMA descriptor list, this should be
-@@ -416,11 +426,13 @@ void vpdma_free_desc_list(struct vpdma_desc_list *list)
- 
- 	list->next = NULL;
- }
-+EXPORT_SYMBOL(vpdma_free_desc_list);
- 
--static bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
-+bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
- {
- 	return read_reg(vpdma, VPDMA_LIST_STAT_SYNC) & BIT(list_num + 16);
- }
-+EXPORT_SYMBOL(vpdma_list_busy);
- 
- /*
-  * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
-@@ -446,6 +458,7 @@ int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
- 
- 	return 0;
- }
-+EXPORT_SYMBOL(vpdma_submit_descs);
- 
- static void dump_cfd(struct vpdma_cfd *cfd)
- {
-@@ -498,6 +511,7 @@ void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
- 
- 	dump_cfd(cfd);
- }
-+EXPORT_SYMBOL(vpdma_add_cfd_block);
- 
- /*
-  * append a configuration descriptor to the given descriptor list, where the
-@@ -526,6 +540,7 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
- 
- 	dump_cfd(cfd);
- };
-+EXPORT_SYMBOL(vpdma_add_cfd_adb);
- 
- /*
-  * control descriptor format change based on what type of control descriptor it
-@@ -563,6 +578,7 @@ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
- 
- 	dump_ctd(ctd);
- }
-+EXPORT_SYMBOL(vpdma_add_sync_on_channel_ctd);
- 
- static void dump_dtd(struct vpdma_dtd *dtd)
- {
-@@ -672,6 +688,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
- 
- 	dump_dtd(dtd);
- }
-+EXPORT_SYMBOL(vpdma_add_out_dtd);
- 
- /*
-  * append an inbound data transfer descriptor to the given descriptor list,
-@@ -745,6 +762,7 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
- 
- 	dump_dtd(dtd);
- }
-+EXPORT_SYMBOL(vpdma_add_in_dtd);
- 
- /* set or clear the mask for list complete interrupt */
- void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
-@@ -759,6 +777,7 @@ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
- 		val &= ~(1 << (list_num * 2));
- 	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
- }
-+EXPORT_SYMBOL(vpdma_enable_list_complete_irq);
- 
- /* clear previosuly occured list intterupts in the LIST_STAT register */
- void vpdma_clear_list_stat(struct vpdma_data *vpdma)
-@@ -766,6 +785,7 @@ void vpdma_clear_list_stat(struct vpdma_data *vpdma)
- 	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
- 		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
- }
-+EXPORT_SYMBOL(vpdma_clear_list_stat);
- 
- /*
-  * configures the output mode of the line buffer for the given client, the
-@@ -780,6 +800,7 @@ void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
- 	write_field_reg(vpdma, client_cstat, line_mode,
- 		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
- }
-+EXPORT_SYMBOL(vpdma_set_line_mode);
- 
- /*
-  * configures the event which should trigger VPDMA transfer for the given
-@@ -794,6 +815,7 @@ void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
- 	write_field_reg(vpdma, client_cstat, fs_event,
- 		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
- }
-+EXPORT_SYMBOL(vpdma_set_frame_start_event);
- 
- static void vpdma_firmware_cb(const struct firmware *f, void *context)
- {
-@@ -907,4 +929,8 @@ struct vpdma_data *vpdma_create(struct platform_device *pdev,
- 
- 	return vpdma;
- }
-+EXPORT_SYMBOL(vpdma_create);
-+
-+MODULE_AUTHOR("Texas Instruments Inc.");
- MODULE_FIRMWARE(VPDMA_FIRMWARE);
-+MODULE_LICENSE("GPL v2");
--- 
-2.9.0
-
+Rob
