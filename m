@@ -1,71 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Daniel Vetter <daniel@ffwll.ch>,
-        Dan Williams <dan.j.williams@intel.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
-CC: Dave Hansen <dave.hansen@linux.intel.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
-Date: Tue, 22 Nov 2016 15:35:08 -0500
+Received: from mail.fireflyinternet.com ([109.228.58.192]:64076 "EHLO
+        fireflyinternet.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752739AbcKNJ4E (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 04:56:04 -0500
+Date: Mon, 14 Nov 2016 09:55:48 +0000
+From: Chris Wilson <chris@chris-wilson.co.uk>
+To: Tvrtko Ursulin <tursulin@ursulin.net>
+Cc: Intel-gfx@lists.freedesktop.org,
+        Tomasz Stanislawski <t.stanislaws@samsung.com>,
+        Pawel Osciak <pawel@osciak.com>, linux-kernel@vger.kernel.org,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Matt Porter <mporter@kernel.crashing.org>,
+        linux-media@vger.kernel.org,
+        Alexandre Bounine <alexandre.bounine@idt.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [Intel-gfx] [PATCH 1/4] lib/scatterlist: Fix offset type in
+ sg_alloc_table_from_pages
+Message-ID: <20161114095548.GC32240@nuc-i3427.alporthouse.com>
+References: <1478854220-3255-1-git-send-email-tvrtko.ursulin@linux.intel.com>
+ <1478854220-3255-2-git-send-email-tvrtko.ursulin@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1478854220-3255-2-git-send-email-tvrtko.ursulin@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Nov 11, 2016 at 08:50:17AM +0000, Tvrtko Ursulin wrote:
+> From: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+> 
+> Scatterlist entries have an unsigned int for the offset so
+> correct the sg_alloc_table_from_pages function accordingly.
+> 
+> Since these are offsets withing a page, unsigned int is
+> wide enough.
+> 
+> Also converts callers which were using unsigned long locally
+> with the lower_32_bits annotation to make it explicitly
+> clear what is happening.
+> 
+> v2: Use offset_in_page. (Chris Wilson)
+> 
+> Signed-off-by: Tvrtko Ursulin <tvrtko.ursulin@intel.com>
+> Cc: Masahiro Yamada <yamada.masahiro@socionext.com>
+> Cc: Pawel Osciak <pawel@osciak.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Cc: Matt Porter <mporter@kernel.crashing.org>
+> Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> (v1)
 
+If there were kerneldoc, it would nicely explain that having an offset
+larger then a page is silly when passing in array of pages.
 
-On 2016-11-22 03:10 PM, Daniel Vetter wrote:
-> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
->> <serguei.sagalovitch@amd.com> wrote:
->>> I personally like "device-DAX" idea but my concerns are:
->>>
->>> -  How well it will co-exists with the  DRM infrastructure / implementations
->>>     in part dealing with CPU pointers?
->> Inside the kernel a device-DAX range is "just memory" in the sense
->> that you can perform pfn_to_page() on it and issue I/O, but the vma is
->> not migratable. To be honest I do not know how well that co-exists
->> with drm infrastructure.
->>
->>> -  How well we will be able to handle case when we need to "move"/"evict"
->>>     memory/data to the new location so CPU pointer should point to the new
->>> physical location/address
->>>      (and may be not in PCI device memory at all)?
->> So, device-DAX deliberately avoids support for in-kernel migration or
->> overcommit. Those cases are left to the core mm or drm. The device-dax
->> interface is for cases where all that is needed is a direct-mapping to
->> a statically-allocated physical-address range be it persistent memory
->> or some other special reserved memory range.
-> For some of the fancy use-cases (e.g. to be comparable to what HMM can
-> pull off) I think we want all the magic in core mm, i.e. migration and
-> overcommit. At least that seems to be the very strong drive in all
-> general-purpose gpu abstractions and implementations, where memory is
-> allocated with malloc, and then mapped/moved into vram/gpu address
-> space through some magic,
-It is possible that there is other way around: memory is requested to be
-allocated and should be kept in vram for  performance reason but due
-to possible overcommit case we need at least temporally to "move" such
-allocation to system memory.
->   but still visible on both the cpu and gpu
-> side in some form. Special device to allocate memory, and not being
-> able to migrate stuff around sound like misfeatures from that pov.
-> -Daniel
+Changes elsewhere look ok (personally I'd be happy with just
+offset_in_page(), 4GiB superpages are somebody else's problem :)
 
+Reviewed-by: Chris Wilson <chris@chris-wilson.co.uk>
+-Chris
+
+-- 
+Chris Wilson, Intel Open Source Technology Centre
