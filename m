@@ -1,54 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61095 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753187AbcKIOYR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:17 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 11/12] exynos-gsc: Add missing newline char in debug messages
-Date: Wed, 09 Nov 2016 15:24:00 +0100
-Message-id: <1478701441-29107-12-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161109142411eucas1p1b3627f165173225e2ee763d9f75f30f7@eucas1p1.samsung.com>
+Received: from mail-yw0-f194.google.com ([209.85.161.194]:32900 "EHLO
+        mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932605AbcKNRLK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 12:11:10 -0500
+Date: Mon, 14 Nov 2016 11:11:08 -0600
+From: Rob Herring <robh@kernel.org>
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        srv_heupstream@mediatek.com, linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: Re: [PATCH v5 1/3] dt-bindings: mediatek: Add a binding for Mediatek
+ JPEG Decoder
+Message-ID: <20161114171108.vmihebue2pocm6jt@rob-hp-laptop>
+References: <1478586880-3923-1-git-send-email-rick.chang@mediatek.com>
+ <1478586880-3923-2-git-send-email-rick.chang@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1478586880-3923-2-git-send-email-rick.chang@mediatek.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix missing newline char in debug messages.
+On Tue, Nov 08, 2016 at 02:34:38PM +0800, Rick Chang wrote:
+> Add a DT binding documentation for Mediatek JPEG Decoder of
+> MT2701 SoC.
+> 
+> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> ---
+>  .../bindings/media/mediatek-jpeg-decoder.txt       | 37 ++++++++++++++++++++++
+>  1 file changed, 37 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index ff35909..ac4c96c 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -1138,7 +1138,7 @@ static int gsc_runtime_resume(struct device *dev)
- 	struct gsc_dev *gsc = dev_get_drvdata(dev);
- 	int ret = 0;
- 
--	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
-+	pr_debug("gsc%d: state: 0x%lx\n", gsc->id, gsc->state);
- 
- 	ret = clk_prepare_enable(gsc->clock);
- 	if (ret)
-@@ -1160,7 +1160,7 @@ static int gsc_runtime_suspend(struct device *dev)
- 	if (!ret)
- 		clk_disable_unprepare(gsc->clock);
- 
--	pr_debug("gsc%d: state: 0x%lx", gsc->id, gsc->state);
-+	pr_debug("gsc%d: state: 0x%lx\n", gsc->id, gsc->state);
- 	return ret;
- }
- #endif
--- 
-1.9.1
-
+Acked-by: Rob Herring <robh@kernel.org>
