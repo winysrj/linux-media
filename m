@@ -1,78 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48117 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932657AbcKVScw (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:39857 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932404AbcKNFLd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 13:32:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] smiapp: Implement power-on and power-off sequences without runtime PM
-Date: Tue, 22 Nov 2016 20:31:42 +0200
-Message-ID: <1883244.ZIXkBXos04@avalon>
-In-Reply-To: <3365592.8lQdWk1zFY@wuerfel>
-References: <1479477016-28450-1-git-send-email-sakari.ailus@linux.intel.com> <3365592.8lQdWk1zFY@wuerfel>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 14 Nov 2016 00:11:33 -0500
+Message-ID: <4b58c82a1fd2b6bb665cc20c944ad488@smtp-cloud6.xs4all.net>
+Date: Mon, 14 Nov 2016 06:11:29 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Friday 18 Nov 2016 17:09:01 Arnd Bergmann wrote:
-> On Friday, November 18, 2016 3:50:16 PM CET Sakari Ailus wrote:
-> > Power on the sensor when the module is loaded and power it off when it is
-> > removed.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> > Hi Arnd and others,
-> > 
-> > The patch is tested with CONFIG_PM set, as the system does I was testing
-> > on did not boot with CONFIG_PM disabled. I'm not really too worried about
-> > this though, the patch is very simple.
-> > 
-> >  static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
-> >  {
-> >  	struct smiapp_hwconfig *hwcfg;
-> > @@ -2915,7 +2906,11 @@ static int smiapp_probe(struct i2c_client *client,
-> > 
-> >  	pm_runtime_enable(&client->dev);
-> > 
-> > +#ifdef CONFIG_PM
-> >  	rval = pm_runtime_get_sync(&client->dev);
-> > +#else
-> > +	rval = smiapp_power_on(&client->dev);
-> > +#endif
-> > 
-> >  	if (rval < 0) {
-> >  		rval = -ENODEV;
-> >  		goto out_power_off;
-> 
-> I would suggest writing this as
-> 
-> 	if (IS_ENABLED(CONFIG_PM))
-> 		rval = pm_runtime_get_sync(&client->dev);
-> 	else
-> 		rval = smiapp_power_on(&client->dev);
-> 
-> though that is a purely cosmetic change.
+Results of the daily build of media_tree:
 
-Are all drivers really supposed to code this kind of construct ? Shouldn't 
-this be handled in the PM core ? A very naive approach would be to call 
-.runtime_resume() and .runtime_suspend() from the non-CONFIG_PM versions of 
-pm_runtime_enable() and pm_runtime_disable() respectively. I assume that would 
-break things, but can't we implement something similar to that that wouldn't 
-require all drivers to open-code it ?
+date:			Mon Nov 14 05:00:15 CET 2016
+media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
+media_build git hash:	bce0dfbb3eca1600249a7ebc5eaea2e19bfaf56b
+v4l-utils git hash:	db397c130912446d58c9ad3e0a81bacc0c54c159
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
-> I think you are missing one other warning: with CONFIG_PM=y and
-> CONFIG_PM_SLEEP=n, the smiapp_suspend/smiapp_resume functions
-> are now unused and need to be marked as __maybe_unused.
+linux-git-Module.symvers: ERRORS
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc1-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
--- 
-Regards,
+Detailed results are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
