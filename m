@@ -1,80 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54616 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932228AbcKONpk (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:46970 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932176AbcKNKBX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 08:45:40 -0500
-Date: Tue, 15 Nov 2016 15:45:32 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Edgar Thier <info@edgarthier.net>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH] uvcvideo: Add bayer 16-bit format patterns
-Message-ID: <20161115134532.GW3217@valkosipuli.retiisi.org.uk>
-References: <87h97achun.fsf@edgarthier.net>
- <20161114141425.GT3217@valkosipuli.retiisi.org.uk>
- <8760np5mjm.fsf@edgarthier.net>
+        Mon, 14 Nov 2016 05:01:23 -0500
+Subject: Re: [RFC 03/10] v4l: Add sunxi Video Engine pixel format
+To: Florent Revest <florent.revest@free-electrons.com>,
+        linux-media@vger.kernel.org
+References: <1472117989-21455-1-git-send-email-florent.revest@free-electrons.com>
+ <1472117989-21455-4-git-send-email-florent.revest@free-electrons.com>
+Cc: linux-sunxi@googlegroups.com, maxime.ripard@free-electrons.com,
+        posciak@chromium.org, hans.verkuil@cisco.com,
+        thomas.petazzoni@free-electrons.com, mchehab@kernel.org,
+        linux-kernel@vger.kernel.org, wens@csie.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1440b042-2ee7-4e65-52e5-2b16eb7f4e05@xs4all.nl>
+Date: Mon, 14 Nov 2016 11:01:16 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8760np5mjm.fsf@edgarthier.net>
+In-Reply-To: <1472117989-21455-4-git-send-email-florent.revest@free-electrons.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Edgar,
-
-On Tue, Nov 15, 2016 at 06:39:41AM +0100, Edgar Thier wrote:
+On 08/25/2016 11:39 AM, Florent Revest wrote:
+> Add support for the allwinner's proprietary pixel format described in
+> details here: http://linux-sunxi.org/File:Ve_tile_format_v1.pdf
 > 
-> From 10ce06db4ab3c037758b3cb5264007f59801f1a1 Mon Sep 17 00:00:00 2001
-> From: Edgar Thier <info@edgarthier.net>
-> Date: Tue, 15 Nov 2016 06:33:10 +0100
-> Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+> This format is similar to V4L2_PIX_FMT_NV12M but the planes are divided
+> in tiles of 32x32px.
 > 
-> Signed-off-by: Edgar Thier <info@edgarthier.net>
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+> Signed-off-by: Florent Revest <florent.revest@free-electrons.com>
 > ---
-> drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
-> drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
-> 2 files changed, 32 insertions(+)
+>  include/uapi/linux/videodev2.h | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-> index 87b2fc3b..9d1fc33 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
-> .guid		= UVC_GUID_FORMAT_RW10,
-> .fcc		= V4L2_PIX_FMT_SRGGB10P,
-> },
-> +	{
-> +			.name		= "Bayer 16-bit (SBGGR16)",
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 904c44c..96e034d 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -627,6 +627,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_Y8I      v4l2_fourcc('Y', '8', 'I', ' ') /* Greyscale 8-bit L/R interleaved */
+>  #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+>  #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+> +#define V4L2_PIX_FMT_SUNXI    v4l2_fourcc('S', 'X', 'I', 'Y') /* Sunxi VE's 32x32 tiled NV12 */
 
-Laurent, are these still needed? The V4L2 framework fills in the format
-name... certainly out of scope for this patch though.
+This is very similar to V4L2_PIX_FMT_NV12MT_16X16. I think it can be added as
+V4L2_PIX_FMT_NV12MT_32X32.
 
-> +			.guid		= UVC_GUID_FORMAT_BG16,
-> +			.fcc		= V4L2_PIX_FMT_SBGGR16,
-> +	},
-> +	{
-> +			.name		= "Bayer 16-bit (SGBRG16)",
-> +			.guid		= UVC_GUID_FORMAT_GB16,
-> +			.fcc		= V4L2_PIX_FMT_SGBRG16,
-> +	},
-> +	{
-> +			.name		= "Bayer 16-bit (SRGGB16)",
-> +			.guid		= UVC_GUID_FORMAT_RG16,
-> +			.fcc		= V4L2_PIX_FMT_SRGGB16,
-> +	},
-> +	{
-> +			.name		= "Bayer 16-bit (SGRBG16)",
-> +			.guid		= UVC_GUID_FORMAT_GR16,
-> +			.fcc		= V4L2_PIX_FMT_SGRBG16,
-> +	},
-> };
+This needs to be documented in the V4L2 spec as well, of course.
+
+Regards,
+
+	Hans
+
+>  
+>  /* SDR formats - used only for Software Defined Radio devices */
+>  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 > 
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
