@@ -1,91 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-From: Haggai Eran <haggaie@mellanox.com>
-To: "jgunthorpe@obsidianresearch.com" <jgunthorpe@obsidianresearch.com>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
-        "christian.koenig@amd.com" <christian.koenig@amd.com>,
-        "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>,
-        "John.Bridgman@amd.com" <John.Bridgman@amd.com>,
-        "Alexander.Deucher@amd.com" <Alexander.Deucher@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-        "logang@deltatee.com" <logang@deltatee.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Max Gurtovoy" <maxg@mellanox.com>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "serguei.sagalovitch@amd.com" <serguei.sagalovitch@amd.com>,
-        "Paul.Blinzer@amd.com" <Paul.Blinzer@amd.com>,
-        "Felix.Kuehling@amd.com" <Felix.Kuehling@amd.com>,
-        "ben.sander@amd.com" <ben.sander@amd.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Date: Mon, 28 Nov 2016 18:19:40 +0000
-Message-ID: <1480357179.19407.13.camel@mellanox.com>
-References: <20161123193228.GC12146@obsidianresearch.com>
-         <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
-         <20161123203332.GA15062@obsidianresearch.com>
-         <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
-         <20161123215510.GA16311@obsidianresearch.com>
-         <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
-         <20161124164249.GD20818@obsidianresearch.com>
-         <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
-         <20161125193252.GC16504@obsidianresearch.com>
-         <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
-         <20161128165751.GB28381@obsidianresearch.com>
-In-Reply-To: <20161128165751.GB28381@obsidianresearch.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-7"
-Content-ID: <15C391010025F34496D3F092DA4A205C@eurprd05.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:40330 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752067AbcKNLgy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 06:36:54 -0500
+Subject: Re: [PATCH v4 7/8] v4l: Add signal lock status to source change
+ events
+To: Steve Longerbeam <slongerbeam@gmail.com>, lars@metafoo.de
+References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
+ <1470247430-11168-8-git-send-email-steve_longerbeam@mentor.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8ff2fc76-2290-d353-08cd-2aa31c31a19c@xs4all.nl>
+Date: Mon, 14 Nov 2016 12:36:48 +0100
 MIME-Version: 1.0
+In-Reply-To: <1470247430-11168-8-git-send-email-steve_longerbeam@mentor.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2016-11-28 at 09:57 -0700, Jason Gunthorpe wrote:
-+AD4- On Sun, Nov 27, 2016 at 04:02:16PM +-0200, Haggai Eran wrote:
-+AD4- +AD4- I think blocking mmu notifiers against something that is basica=
-lly
-+AD4- +AD4- controlled by user-space can be problematic. This can block thi=
-ngs
-+AD4- +AD4- like
-+AD4- +AD4- memory reclaim. If you have user-space access to the device's
-+AD4- +AD4- queues,
-+AD4- +AD4- user-space can block the mmu notifier forever.
-+AD4- Right, I mentioned that..
-Sorry, I must have missed it.
+On 08/03/2016 08:03 PM, Steve Longerbeam wrote:
+> Add a signal lock status change to the source changes bitmask.
+> This indicates there was a signal lock or unlock event detected
+> at the input of a video decoder.
+> 
+> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+> Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> 
+> ---
+> 
+> v4:
+> - converted to rst from DocBook
+> 
+> v3: no changes
+> v2: no changes
+> ---
+>  Documentation/media/uapi/v4l/vidioc-dqevent.rst | 9 +++++++++
+>  Documentation/media/videodev2.h.rst.exceptions  | 1 +
+>  include/uapi/linux/videodev2.h                  | 1 +
+>  3 files changed, 11 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-dqevent.rst b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> index 73c0d5b..7d8a053 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-dqevent.rst
+> @@ -564,6 +564,15 @@ call.
+>  	  an input. This can come from an input connector or from a video
+>  	  decoder.
+>  
+> +    -  .. row 2
+> +
+> +       -  ``V4L2_EVENT_SRC_CH_LOCK_STATUS``
+> +
+> +       -  0x0002
+> +
+> +       -  This event gets triggered when there is a signal lock or
+> +	  unlock detected at the input of a video decoder.
+> +
+>  
+>  Return Value
+>  ============
+> diff --git a/Documentation/media/videodev2.h.rst.exceptions b/Documentation/media/videodev2.h.rst.exceptions
+> index 9bb9a6c..f412cc8 100644
+> --- a/Documentation/media/videodev2.h.rst.exceptions
+> +++ b/Documentation/media/videodev2.h.rst.exceptions
+> @@ -453,6 +453,7 @@ replace define V4L2_EVENT_CTRL_CH_FLAGS ctrl-changes-flags
+>  replace define V4L2_EVENT_CTRL_CH_RANGE ctrl-changes-flags
+>  
+>  replace define V4L2_EVENT_SRC_CH_RESOLUTION src-changes-flags
+> +replace define V4L2_EVENT_SRC_CH_LOCK_STATUS src-changes-flags
+>  
+>  replace define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ v4l2-event-motion-det
+>  
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 724f43e..08a153f 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -2078,6 +2078,7 @@ struct v4l2_event_frame_sync {
+>  };
+>  
+>  #define V4L2_EVENT_SRC_CH_RESOLUTION		(1 << 0)
+> +#define V4L2_EVENT_SRC_CH_LOCK_STATUS		(1 << 1)
+>  
+>  struct v4l2_event_src_change {
+>  	__u32 changes;
+> 
 
-+AD4- +AD4- On PeerDirect, we have some kind of a middle-ground solution fo=
-r
-+AD4- +AD4- pinning
-+AD4- +AD4- GPU memory. We create a non-ODP MR pointing to VRAM but rely on
-+AD4- +AD4- user-space and the GPU not to migrate it. If they do, the MR ge=
-ts
-+AD4- +AD4- destroyed immediately.
-+AD4- That sounds horrible. How can that possibly work? What if the MR is
-+AD4- being used when the GPU decides to migrate?=20
-Naturally this doesn't support migration. The GPU is expected to pin
-these pages as long as the MR lives. The MR invalidation is done only as
-a last resort to keep system correctness.
+Quoting from an old (July) conversation about this:
 
-I think it is similar to how non-ODP MRs rely on user-space today to
-keep them correct. If you do something like madvise(MADV+AF8-DONTNEED) on a
-non-ODP MR's pages, you can still get yourself into a data corruption
-situation (HCA sees one page and the process sees another for the same
-virtual address). The pinning that we use only guarentees the HCA's page
-won't be reused.
+>> > I'm not entirely sure I like this. Typically losing lock means that this event
+>> > is triggered with the V4L2_EVENT_SRC_CH_RESOLUTION flag set, and userspace has
+>> > to check the new timings etc., which will fail if there is no lock anymore.
+>> >
+>> > This information is also available through ENUMINPUT.
+>> >
+>> > I would need to know more about why you think this is needed, because I don't
+>> > see what this adds.
+> 
+> Hi Hans,
+> 
+> At least on the ADV718x, a source resolution change (from an 
+> autodetected video
+> standard change) and a signal lock status change are distinct events. 
+> For example
+> there can be a temporary loss of input signal lock without a change in 
+> detected
+> input video standard/resolution.
 
-+AD4- I would not support that
-+AD4- upstream without a lot more explanation..
-+AD4-=20
-+AD4- I know people don't like requiring new hardware, but in this case we
-+AD4- really do need ODP hardware to get all the semantics people want..
-+AD4-=20
-+AD4- +AD4-=20
-+AD4- +AD4- Another thing I think is that while HMM is good for user-space
-+AD4- +AD4- applications, for kernel p2p use there is no need for that. Usi=
-ng
-+AD4- From what I understand we are not really talking about kernel p2p,
-+AD4- everything proposed so far is being mediated by a userspace VMA, so
-+AD4- I'd focus on making that work.
-Fair enough, although we will need both eventually, and I hope the
-infrastructure can be shared to some degree.=
+OK, but what can the application do with that event? If the glitch didn't
+affect the video, then it is pointless.
+
+If the lock is lost, then normally you loose video as well. If not, then
+applications are not interested in the event.
+
+So I am not convinced...
+
+Regards,
+
+	Hans
