@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:19422 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755913AbcKVPxj (ORCPT
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:36515 "EHLO
+        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754020AbcKNO7U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:53:39 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v3 04/10] [media] MAINTAINERS: add st-delta driver
-Date: Tue, 22 Nov 2016 16:53:21 +0100
-Message-ID: <1479830007-29767-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
-References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+        Mon, 14 Nov 2016 09:59:20 -0500
+Received: by mail-wm0-f52.google.com with SMTP id g23so102807848wme.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 06:59:20 -0800 (PST)
+Subject: Re: [PATCH v3 0/9] Qualcomm video decoder/encoder driver
+To: Javier Martinez Canillas <javier@dowhile0.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <f5120730-0e1d-f93c-eed9-7b71ff79f5db@xs4all.nl>
+ <CABxcv=nop8h5U0Kt5yjmSVX3ZZbUb7O6yVzOf5AxzsiWUucjwA@mail.gmail.com>
+Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <2b178a80-2fa1-de90-a675-470150d07cf9@linaro.org>
+Date: Mon, 14 Nov 2016 16:59:16 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CABxcv=nop8h5U0Kt5yjmSVX3ZZbUb7O6yVzOf5AxzsiWUucjwA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add entry for the STMicroelectronics DELTA driver.
+Hi,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+On 11/11/2016 02:11 PM, Javier Martinez Canillas wrote:
+> Hello Hans,
+> 
+> On Fri, Nov 11, 2016 at 8:49 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Stanimir,
+>>
+>> Overall it looks good. As you saw, I do have some comments but nothing major.
+>>
+>> One question: you use qcom as the directory name. How about using qualcomm?
+>>
+>> It's really not that much longer and a bit more obvious.
+>>
+>> Up to you, though.
+>>
+> 
+> It seems qcom is more consistent to the name used in most subsystems
+> for Qualcomm:
+> 
+> $ find -name *qcom
+> ./arch/arm/mach-qcom
+> ./arch/arm64/boot/dts/qcom
+> ./Documentation/devicetree/bindings/soc/qcom
+> ./sound/soc/qcom
+> ./drivers/pinctrl/qcom
+> ./drivers/soc/qcom
+> ./drivers/clk/qcom
+> 
+> $ find -name *qualcomm
+> ./drivers/net/ethernet/qualcomm
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7db3f7a..a96dd22 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2394,6 +2394,14 @@ W:	https://linuxtv.org
- S:	Supported
- F:	drivers/media/platform/sti/bdisp
- 
-+DELTA ST MEDIA DRIVER
-+M:	Hugues Fruchet <hugues.fruchet@st.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	https://linuxtv.org
-+S:	Supported
-+F:	drivers/media/platform/sti/delta
-+
- BEFS FILE SYSTEM
- M:	Luis de Bethencourt <luisbg@osg.samsung.com>
- M:	Salah Triki <salah.triki@gmail.com>
+Also qcom is the vendor prefix used in [1]
+
+[1] Documentation/devicetree/bindings/vendor-prefixes.txt
+
 -- 
-1.9.1
-
+regards,
+Stan
