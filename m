@@ -1,89 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34538 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753229AbcKIT6O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 14:58:14 -0500
-Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Benjamin Larsson <benjamin@southpole.se>
-References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
- <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
- <20161108182215.41f1f3d2@vento.lan>
- <354bc87c-79a1-bb37-6225-988c8fa429a5@southpole.se>
- <20161108193834.4b90145b@vento.lan>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        =?UTF-8?Q?J=c3=b6rg_Otte?= <jrg.otte@gmail.com>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Malcolm Priestley <tvboxspy@gmail.com>
-Message-ID: <fac91957-30b0-b16f-a6f3-5bdfd0a65481@gmail.com>
-Date: Wed, 9 Nov 2016 19:57:58 +0000
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42012 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933070AbcKOOpI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Nov 2016 09:45:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Edgar Thier <info@edgarthier.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+Date: Tue, 15 Nov 2016 16:45:16 +0200
+Message-ID: <4240902.Ryzmde8dbC@avalon>
+In-Reply-To: <20161115134532.GW3217@valkosipuli.retiisi.org.uk>
+References: <87h97achun.fsf@edgarthier.net> <8760np5mjm.fsf@edgarthier.net> <20161115134532.GW3217@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20161108193834.4b90145b@vento.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/11/16 21:38, Mauro Carvalho Chehab wrote:
-> Em Tue, 8 Nov 2016 22:15:24 +0100
-> Benjamin Larsson <benjamin@southpole.se> escreveu:
->
->> On 11/08/2016 09:22 PM, Mauro Carvalho Chehab wrote:
->>> Em Tue, 8 Nov 2016 10:42:03 -0800
->>> Linus Torvalds <torvalds@linux-foundation.org> escreveu:
->>>
->>>> On Sun, Nov 6, 2016 at 7:40 AM, Jörg Otte <jrg.otte@gmail.com> wrote:
->>>>> Since v4.9-rc4 I get following crash in dvb-usb-cinergyT2 module.
->>>>
->>>> Looks like it's commit 5ef8ed0e5608f ("[media] cinergyT2-core: don't
->>>> do DMA on stack"), which movced the DMA data array from the stack to
->>>> the "private" pointer. In the process it also added serialization in
->>>> the form of "data_mutex", but and now it oopses on that mutex because
->>>> the private pointer is NULL.
->>>>
->>>> It looks like the "->private" pointer is allocated in dvb_usb_adapter_init()
->>>>
->>>> cinergyt2_usb_probe ->
->>>>   dvb_usb_device_init ->
->>>>     dvb_usb_init() ->
->>>>       dvb_usb_adapter_init()
->>>>
->>>> but the dvb_usb_init() function calls dvb_usb_device_power_ctrl()
->>>> (which calls the "power_ctrl" function, which is
->>>> cinergyt2_power_ctrl() for that drive) *before* it initializes the
->>>> private field.
->>>>
->>>> Mauro, Patrick, could dvb_usb_adapter_init() be called earlier, perhaps?
->>>
->>> Calling it earlier won't work, as we need to load the firmware before
->>> sending the power control commands on some devices.
->>>
->>> Probably the best here is to pass an extra optional function parameter
->>> that will initialize the mutex before calling any functions.
->>>
->>> Btw, if it broke here, the DMA fixes will likely break on other drivers.
->>> So, after Jörg tests this patch, I'll work on a patch series addressing
->>> this issue on the other drivers I touched.
->>>
->>> Regards,
->>> Mauro
->>
->> Just for reference I got the following call trace a week ago. I looks
->> like this confirms that other drivers are affected also.
->
-> Yeah, I avoided serializing the logic that detects if the firmware is
-> loaded, but forgot that the power control had the same issue. The
-> newer dvb usb drivers use the dvb-usb-v2, so I didn't touch this
-> code for a while.
+Hi Sakari,
 
-I think the problem is that the usb buffer has been put in struct 
-cinergyt2_state private area which has not been initialized for initial 
-usb probing.
+On Tuesday 15 Nov 2016 15:45:32 Sakari Ailus wrote:
+> On Tue, Nov 15, 2016 at 06:39:41AM +0100, Edgar Thier wrote:
+> > From 10ce06db4ab3c037758b3cb5264007f59801f1a1 Mon Sep 17 00:00:00 2001
+> > From: Edgar Thier <info@edgarthier.net>
+> > Date: Tue, 15 Nov 2016 06:33:10 +0100
+> > Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+> > 
+> > Signed-off-by: Edgar Thier <info@edgarthier.net>
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> > ---
+> > drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
+> > drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+> > 2 files changed, 32 insertions(+)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index 87b2fc3b..9d1fc33 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
+> > .guid		= UVC_GUID_FORMAT_RW10,
+> > .fcc		= V4L2_PIX_FMT_SRGGB10P,
+> > },
+> > +	{
+> > +			.name		= "Bayer 16-bit (SBGGR16)",
+> 
+> Laurent, are these still needed? The V4L2 framework fills in the format
+> name... certainly out of scope for this patch though.
 
-That was one of the main reasons for porting drivers to dvb-usb-v2.
+I'll fix that.
 
-Regards
-Malcolm
+> > +			.guid		= UVC_GUID_FORMAT_BG16,
+> > +			.fcc		= V4L2_PIX_FMT_SBGGR16,
+> > +	},
+> > +	{
+> > +			.name		= "Bayer 16-bit (SGBRG16)",
+> > +			.guid		= UVC_GUID_FORMAT_GB16,
+> > +			.fcc		= V4L2_PIX_FMT_SGBRG16,
+> > +	},
+> > +	{
+> > +			.name		= "Bayer 16-bit (SRGGB16)",
+> > +			.guid		= UVC_GUID_FORMAT_RG16,
+> > +			.fcc		= V4L2_PIX_FMT_SRGGB16,
+> > +	},
+> > +	{
+> > +			.name		= "Bayer 16-bit (SGRBG16)",
+> > +			.guid		= UVC_GUID_FORMAT_GR16,
+> > +			.fcc		= V4L2_PIX_FMT_SGRBG16,
+> > +	},
+> > };
+
+-- 
+Regards,
+
+Laurent Pinchart
+
