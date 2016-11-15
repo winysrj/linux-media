@@ -1,127 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:37240 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753032AbcKTRgq (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37350 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932797AbcKOVtt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Nov 2016 12:36:46 -0500
-Received: by mail-wm0-f49.google.com with SMTP id t79so109584042wmt.0
-        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2016 09:36:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20161027203454.GA32566@arch-desktop>
-References: <cover.1477592284.git.mahasler@gmail.com> <20161027203454.GA32566@arch-desktop>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Sun, 20 Nov 2016 14:36:44 -0300
-Message-ID: <CAAEAJfAFxtnRkc9+iZtGSc=vJPGq1Aay6-aBKTD9S3_dLPLZWw@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] stk1160: Check whether to use AC97 codec or
- internal ADC.
-To: Marcel Hasler <mahasler@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Tue, 15 Nov 2016 16:49:49 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/1] doc-rst: Specify raw bayer format variant used in the examples
+Date: Tue, 15 Nov 2016 23:49:43 +0200
+Message-Id: <1479246583-18789-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 October 2016 at 17:34, Marcel Hasler <mahasler@gmail.com> wrote:
-> Some STK1160-based devices use the chip's internal 8-bit ADC. This is con=
-figured through a strap
-> pin. The value of this and other pins can be read through the POSVA regis=
-ter. If the internal
-> ADC is used, there's no point trying to setup the unavailable AC97 codec.
->
-> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
-> ---
->  drivers/media/usb/stk1160/stk1160-ac97.c | 15 +++++++++++++++
->  drivers/media/usb/stk1160/stk1160-core.c |  3 +--
->  drivers/media/usb/stk1160/stk1160-reg.h  |  3 +++
->  3 files changed, 19 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb=
-/stk1160/stk1160-ac97.c
-> index d3665ce..6dbc39f 100644
-> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
-> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-> @@ -90,8 +90,23 @@ void stk1160_ac97_dump_regs(struct stk1160 *dev)
->  }
->  #endif
->
-> +int stk1160_has_ac97(struct stk1160 *dev)
-> +{
-> +       u8 value;
-> +
-> +       stk1160_read_reg(dev, STK1160_POSVA, &value);
-> +
-> +       /* Bit 2 high means internal ADC */
-> +       return !(value & 0x04);
+The documentation simply mentioned that one of the four pixel orders was
+used in the example. Now specify the exact pixelformat instead.
 
-How about define a macro such as:
+for i in pixfmt-s*.rst; do i=$i perl -i -pe '
+	my $foo=$ENV{i};
+	$foo =~ s/pixfmt-[a-z]+([0-9].*).rst/$1/;
+	$foo = uc $foo;
+	s/one of these formats/a small V4L2_PIX_FMT_SBGGR$foo image/' $i;
+done
 
-diff --git a/drivers/media/usb/stk1160/stk1160-reg.h
-b/drivers/media/usb/stk1160/stk1160-reg.h
-index a4ab586fcee1..4922249d7d34 100644
---- a/drivers/media/usb/stk1160/stk1160-reg.h
-+++ b/drivers/media/usb/stk1160/stk1160-reg.h
-@@ -28,6 +28,7 @@
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ Documentation/media/uapi/v4l/pixfmt-srggb10p.rst | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb12.rst  | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb16.rst  | 2 +-
+ Documentation/media/uapi/v4l/pixfmt-srggb8.rst   | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
- /* Power-on Strapping Data */
- #define STK1160_POSVA                  0x010
-+#define  STK1160_POSVA_ACSYNC          BIT(2)
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+index 9a41c8d..b6d426c 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
+@@ -28,7 +28,7 @@ bits of each pixel, in the same order.
+ Each n-pixel row contains n/2 green samples and n/2 blue or red samples,
+ with alternating green-red and green-blue rows. They are conventionally
+ described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
+-of one of these formats:
++of a small V4L2_PIX_FMT_SBGGR10P image:
+ 
+ **Byte Order.**
+ Each cell is one byte.
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb12.rst b/Documentation/media/uapi/v4l/pixfmt-srggb12.rst
+index a50ee14..15041e5 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb12.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb12.rst
+@@ -26,7 +26,7 @@ high bits filled with zeros. Each n-pixel row contains n/2 green samples
+ and n/2 blue or red samples, with alternating red and blue rows. Bytes
+ are stored in memory in little endian order. They are conventionally
+ described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example
+-of one of these formats:
++of a small V4L2_PIX_FMT_SBGGR12 image:
+ 
+ **Byte Order.**
+ Each cell is one byte, the 4 most significant bits in the high bytes are
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb16.rst b/Documentation/media/uapi/v4l/pixfmt-srggb16.rst
+index 06facc9..d407b2b 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb16.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb16.rst
+@@ -22,7 +22,7 @@ sample. Each sample is stored in a 16-bit word. Each n-pixel row contains
+ n/2 green samples and n/2 blue or red samples, with alternating red and blue
+ rows. Bytes are stored in memory in little endian order. They are
+ conventionally described as GRGR... BGBG..., RGRG... GBGB..., etc. Below is
+-an example of one of these formats:
++an example of a small V4L2_PIX_FMT_SBGGR16 image:
+ 
+ **Byte Order.**
+ Each cell is one byte.
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb8.rst b/Documentation/media/uapi/v4l/pixfmt-srggb8.rst
+index a3987d2..5ac25a6 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb8.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb8.rst
+@@ -20,7 +20,7 @@ These four pixel formats are raw sRGB / Bayer formats with 8 bits per
+ sample. Each sample is stored in a byte. Each n-pixel row contains n/2
+ green samples and n/2 blue or red samples, with alternating red and
+ blue rows. They are conventionally described as GRGR... BGBG...,
+-RGRG... GBGB..., etc. Below is an example of one of these formats:
++RGRG... GBGB..., etc. Below is an example of a small V4L2_PIX_FMT_SBGGR8 image:
+ 
+ **Byte Order.**
+ Each cell is one byte.
+-- 
+2.1.4
 
-Also, the spec mentions another POSVA bit relevant
-to audio ACDOUT. Should we check that too?
-
-> +}
-> +
->  void stk1160_ac97_setup(struct stk1160 *dev)
->  {
-> +       if (!stk1160_has_ac97(dev)) {
-> +               stk1160_info("Device uses internal 8-bit ADC, skipping AC=
-97 setup.");
-> +               return;
-> +       }
-> +
->         /* Two-step reset AC97 interface and hardware codec */
->         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
->         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
-> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/usb=
-/stk1160/stk1160-core.c
-> index f3c9b8a..c86eb61 100644
-> --- a/drivers/media/usb/stk1160/stk1160-core.c
-> +++ b/drivers/media/usb/stk1160/stk1160-core.c
-> @@ -20,8 +20,7 @@
->   *
->   * TODO:
->   *
-> - * 1. (Try to) detect if we must register ac97 mixer
-> - * 2. Support stream at lower speed: lower frame rate or lower frame siz=
-e.
-> + * 1. Support stream at lower speed: lower frame rate or lower frame siz=
-e.
->   *
->   */
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-reg.h b/drivers/media/usb/=
-stk1160/stk1160-reg.h
-> index 81ff3a1..a4ab586 100644
-> --- a/drivers/media/usb/stk1160/stk1160-reg.h
-> +++ b/drivers/media/usb/stk1160/stk1160-reg.h
-> @@ -26,6 +26,9 @@
->  /* Remote Wakup Control */
->  #define STK1160_RMCTL                  0x00c
->
-> +/* Power-on Strapping Data */
-> +#define STK1160_POSVA                  0x010
-> +
->  /*
->   * Decoder Control Register:
->   * This byte controls capture start/stop
-> --
-> 2.10.1
->
-
-
-
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
