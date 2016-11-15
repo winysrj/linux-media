@@ -1,211 +1,1029 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:8279 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754492AbcKNPyQ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42570 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751359AbcKOTEd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 10:54:16 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "robh+dt@kernel.org" <robh+dt@kernel.org>,
-        "mark.rutland@arm.com" <mark.rutland@arm.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "crope@iki.fi" <crope@iki.fi>
-CC: Chris Paterson <Chris.Paterson2@renesas.com>,
-        "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>,
-        "geert+renesas@glider.be" <geert+renesas@glider.be>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>
-Subject: RE: [PATCH 2/5] media: i2c: max2175: Add MAX2175 support
-Date: Mon, 14 Nov 2016 15:54:02 +0000
-Message-ID: <SG2PR06MB1038438380A78296C185D8E4C3BC0@SG2PR06MB1038.apcprd06.prod.outlook.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1478706284-59134-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <46394837-c3f0-8487-750b-95dae7bcf859@xs4all.nl>
-In-Reply-To: <46394837-c3f0-8487-750b-95dae7bcf859@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        Tue, 15 Nov 2016 14:04:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCHv4] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 driver
+Date: Tue, 15 Nov 2016 21:04:39 +0200
+Message-ID: <32874373.z2EyqD3k7H@avalon>
+In-Reply-To: <20161112122911.19079-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20161112122911.19079-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSGFucywNCg0KVGhhbmsgeW91IGZvciB0aGUgcmV2aWV3IGNvbW1lbnRzLg0KDQo+IE9uIDEx
-LzA5LzIwMTYgMDQ6NDQgUE0sIFJhbWVzaCBTaGFubXVnYXN1bmRhcmFtIHdyb3RlOg0KPiA+IFRo
-aXMgcGF0Y2ggYWRkcyBkcml2ZXIgc3VwcG9ydCBmb3IgTUFYMjE3NSBjaGlwLiBUaGlzIGlzIE1h
-eGltDQo+ID4gSW50ZWdyYXRlZCdzIFJGIHRvIEJpdHMgdHVuZXIgZnJvbnQgZW5kIGNoaXAgZGVz
-aWduZWQgZm9yDQo+ID4gc29mdHdhcmUtZGVmaW5lZCByYWRpbyBzb2x1dGlvbnMuIFRoaXMgZHJp
-dmVyIGV4cG9zZXMgdGhlIHR1bmVyIGFzIGENCj4gPiBzdWItZGV2aWNlIGluc3RhbmNlIHdpdGgg
-c3RhbmRhcmQgYW5kIGN1c3RvbSBjb250cm9scyB0byBjb25maWd1cmUgdGhlDQo+IGRldmljZS4N
-Cj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFJhbWVzaCBTaGFubXVnYXN1bmRhcmFtDQo+ID4gPHJh
-bWVzaC5zaGFubXVnYXN1bmRhcmFtQGJwLnJlbmVzYXMuY29tPg0KPiA+IC0tLQ0KPiA+ICAuLi4v
-ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvbWF4MjE3NS50eHQgICAgICB8ICAgNjEgKw0K
-PiA+ICBkcml2ZXJzL21lZGlhL2kyYy9LY29uZmlnICAgICAgICAgICAgICAgICAgICAgICAgICB8
-ICAgIDQgKw0KPiA+ICBkcml2ZXJzL21lZGlhL2kyYy9NYWtlZmlsZSAgICAgICAgICAgICAgICAg
-ICAgICAgICB8ICAgIDIgKw0KPiA+ICBkcml2ZXJzL21lZGlhL2kyYy9tYXgyMTc1L0tjb25maWcg
-ICAgICAgICAgICAgICAgICB8ICAgIDggKw0KPiA+ICBkcml2ZXJzL21lZGlhL2kyYy9tYXgyMTc1
-L01ha2VmaWxlICAgICAgICAgICAgICAgICB8ICAgIDQgKw0KPiA+ICBkcml2ZXJzL21lZGlhL2ky
-Yy9tYXgyMTc1L21heDIxNzUuYyAgICAgICAgICAgICAgICB8IDE1NTgNCj4gKysrKysrKysrKysr
-KysrKysrKysNCj4gPiAgZHJpdmVycy9tZWRpYS9pMmMvbWF4MjE3NS9tYXgyMTc1LmggICAgICAg
-ICAgICAgICAgfCAgMTA4ICsrDQo+ID4gIDcgZmlsZXMgY2hhbmdlZCwgMTc0NSBpbnNlcnRpb25z
-KCspDQo+ID4gIGNyZWF0ZSBtb2RlIDEwMDY0NA0KPiA+IERvY3VtZW50YXRpb24vZGV2aWNldHJl
-ZS9iaW5kaW5ncy9tZWRpYS9pMmMvbWF4MjE3NS50eHQNCj4gPiAgY3JlYXRlIG1vZGUgMTAwNjQ0
-IGRyaXZlcnMvbWVkaWEvaTJjL21heDIxNzUvS2NvbmZpZyAgY3JlYXRlIG1vZGUNCj4gPiAxMDA2
-NDQgZHJpdmVycy9tZWRpYS9pMmMvbWF4MjE3NS9NYWtlZmlsZQ0KPiA+ICBjcmVhdGUgbW9kZSAx
-MDA2NDQgZHJpdmVycy9tZWRpYS9pMmMvbWF4MjE3NS9tYXgyMTc1LmMNCj4gPiAgY3JlYXRlIG1v
-ZGUgMTAwNjQ0IGRyaXZlcnMvbWVkaWEvaTJjL21heDIxNzUvbWF4MjE3NS5oDQo+ID4NCj4gDQo+
-IDxzbmlwPg0KPiANCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvbWF4MjE3NS9t
-YXgyMTc1LmMNCj4gPiBiL2RyaXZlcnMvbWVkaWEvaTJjL21heDIxNzUvbWF4MjE3NS5jDQo+ID4g
-bmV3IGZpbGUgbW9kZSAxMDA2NDQNCj4gPiBpbmRleCAwMDAwMDAwLi5lYzQ1YjUyDQo+ID4gLS0t
-IC9kZXYvbnVsbA0KPiA+ICsrKyBiL2RyaXZlcnMvbWVkaWEvaTJjL21heDIxNzUvbWF4MjE3NS5j
-DQo+ID4gQEAgLTAsMCArMSwxNTU4IEBADQo+IA0KPiA8c25pcD4NCj4gDQo+ID4gKy8qIFJlYWQv
-V3JpdGUgYml0KHMpIG9uIHRvcCBvZiByZWdtYXAgKi8gc3RhdGljIGludA0KPiA+ICttYXgyMTc1
-X3JlYWQoc3RydWN0IG1heDIxNzUgKmN0eCwgdTggaWR4LCB1OCAqdmFsKSB7DQo+ID4gKwl1MzIg
-cmVndmFsOw0KPiA+ICsJaW50IHJldCA9IHJlZ21hcF9yZWFkKGN0eC0+cmVnbWFwLCBpZHgsICZy
-ZWd2YWwpOw0KPiA+ICsNCj4gPiArCWlmIChyZXQpDQo+ID4gKwkJdjRsMl9lcnIoY3R4LT5jbGll
-bnQsICJyZWFkIHJldCglZCk6IGlkeCAweCUwMnhcbiIsIHJldCwgaWR4KTsNCj4gPiArDQo+ID4g
-KwkqdmFsID0gcmVndmFsOw0KPiANCj4gRG9lcyByZWdtYXBfcmVhZCBpbml0aWFsaXplIHJlZ3Zh
-bCBldmVuIGlmIGl0IHJldHVybnMgYW4gZXJyb3I/IElmIG5vdCwNCj4gdGhlbiBJIHdvdWxkIGlu
-aXRpYWxpemUgcmVndmFsIHRvIDAgdG8gcHJldmVudCAqdmFsIGJlaW5nIHVuaW5pdGlhbGl6ZWQu
-DQoNCkFncmVlZC4NCg0KPiANCj4gPiArCXJldHVybiByZXQ7DQo+ID4gK30NCj4gPiArDQo+ID4g
-K3N0YXRpYyBpbnQgbWF4MjE3NV93cml0ZShzdHJ1Y3QgbWF4MjE3NSAqY3R4LCB1OCBpZHgsIHU4
-IHZhbCkgew0KPiA+ICsJaW50IHJldCA9IHJlZ21hcF93cml0ZShjdHgtPnJlZ21hcCwgaWR4LCB2
-YWwpOw0KPiA+ICsNCj4gPiArCWlmIChyZXQpDQo+ID4gKwkJdjRsMl9lcnIoY3R4LT5jbGllbnQs
-ICJ3cml0ZSByZXQoJWQpOiBpZHggMHglMDJ4IHZhbA0KPiAweCUwMnhcbiIsDQo+ID4gKwkJCSBy
-ZXQsIGlkeCwgdmFsKTsNCj4gPiArCXJldHVybiByZXQ7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0
-YXRpYyB1OCBtYXgyMTc1X3JlYWRfYml0cyhzdHJ1Y3QgbWF4MjE3NSAqY3R4LCB1OCBpZHgsIHU4
-IG1zYiwgdTgNCj4gPiArbHNiKSB7DQo+ID4gKwl1OCB2YWw7DQo+ID4gKw0KPiA+ICsJaWYgKG1h
-eDIxNzVfcmVhZChjdHgsIGlkeCwgJnZhbCkpDQo+ID4gKwkJcmV0dXJuIDA7DQo+ID4gKw0KPiA+
-ICsJcmV0dXJuIG1heDIxNzVfZ2V0X2JpdHZhbCh2YWwsIG1zYiwgbHNiKTsgfQ0KPiA+ICsNCj4g
-PiArc3RhdGljIGJvb2wgbWF4MjE3NV9yZWFkX2JpdChzdHJ1Y3QgbWF4MjE3NSAqY3R4LCB1OCBp
-ZHgsIHU4IGJpdCkgew0KPiA+ICsJcmV0dXJuICEhbWF4MjE3NV9yZWFkX2JpdHMoY3R4LCBpZHgs
-IGJpdCwgYml0KTsgfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBtYXgyMTc1X3dyaXRlX2JpdHMo
-c3RydWN0IG1heDIxNzUgKmN0eCwgdTggaWR4LA0KPiA+ICsJCQkgICAgIHU4IG1zYiwgdTggbHNi
-LCB1OCBuZXd2YWwpDQo+ID4gK3sNCj4gPiArCWludCByZXQgPSByZWdtYXBfdXBkYXRlX2JpdHMo
-Y3R4LT5yZWdtYXAsIGlkeCwgR0VOTUFTSyhtc2IsIGxzYiksDQo+ID4gKwkJCQkgICAgIG5ld3Zh
-bCA8PCBsc2IpOw0KPiA+ICsNCj4gPiArCWlmIChyZXQpDQo+ID4gKwkJdjRsMl9lcnIoY3R4LT5j
-bGllbnQsICJ3Yml0cyByZXQoJWQpOiBpZHggMHglMDJ4XG4iLCByZXQsDQo+IGlkeCk7DQo+ID4g
-Kw0KPiA+ICsJcmV0dXJuIHJldDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBtYXgy
-MTc1X3dyaXRlX2JpdChzdHJ1Y3QgbWF4MjE3NSAqY3R4LCB1OCBpZHgsIHU4IGJpdCwgdTgNCj4g
-PiArbmV3dmFsKSB7DQo+ID4gKwlyZXR1cm4gbWF4MjE3NV93cml0ZV9iaXRzKGN0eCwgaWR4LCBi
-aXQsIGJpdCwgbmV3dmFsKTsgfQ0KPiA+ICsNCj4gPiArLyogQ2hlY2tzIGV4cGVjdGVkIHBhdHRl
-cm4gZXZlcnkgbXNlYyB1bnRpbCB0aW1lb3V0ICovIHN0YXRpYyBpbnQNCj4gPiArbWF4MjE3NV9w
-b2xsX3RpbWVvdXQoc3RydWN0IG1heDIxNzUgKmN0eCwgdTggaWR4LCB1OCBtc2IsIHU4IGxzYiwN
-Cj4gPiArCQkJCXU4IGV4cF9iaXR2YWwsIHUzMiB0aW1lb3V0X21zKQ0KPiA+ICt7DQo+ID4gKwl1
-bnNpZ25lZCBpbnQgdmFsOw0KPiA+ICsNCj4gPiArCXJldHVybiByZWdtYXBfcmVhZF9wb2xsX3Rp
-bWVvdXQoY3R4LT5yZWdtYXAsIGlkeCwgdmFsLA0KPiA+ICsJCQkobWF4MjE3NV9nZXRfYml0dmFs
-KHZhbCwgbXNiLCBsc2IpID09IGV4cF9iaXR2YWwpLA0KPiA+ICsJCQkxMDAwLCB0aW1lb3V0X21z
-ICogMTAwMCk7DQo+ID4gK30NCj4gPiArDQo+ID4gK3N0YXRpYyBpbnQgbWF4MjE3NV9wb2xsX2Nz
-bV9yZWFkeShzdHJ1Y3QgbWF4MjE3NSAqY3R4KSB7DQo+ID4gKwlpbnQgcmV0Ow0KPiA+ICsNCj4g
-PiArCXJldCA9IG1heDIxNzVfcG9sbF90aW1lb3V0KGN0eCwgNjksIDEsIDEsIDAsIDUwKTsNCj4g
-PiArCWlmIChyZXQpDQo+ID4gKwkJdjRsMl9lcnIoY3R4LT5jbGllbnQsICJjc20gbm90IHJlYWR5
-XG4iKTsNCj4gPiArDQo+ID4gKwlyZXR1cm4gcmV0Ow0KPiA+ICt9DQo+ID4gKw0KPiA+ICsjZGVm
-aW5lIE1BWDIxNzVfSVNfQkFORF9BTShjdHgpCQlcDQo+ID4gKwkobWF4MjE3NV9yZWFkX2JpdHMo
-Y3R4LCA1LCAxLCAwKSA9PSBNQVgyMTc1X0JBTkRfQU0pDQo+ID4gKw0KPiA+ICsjZGVmaW5lIE1B
-WDIxNzVfSVNfQkFORF9WSEYoY3R4KQlcDQo+ID4gKwkobWF4MjE3NV9yZWFkX2JpdHMoY3R4LCA1
-LCAxLCAwKSA9PSBNQVgyMTc1X0JBTkRfVkhGKQ0KPiA+ICsNCj4gPiArI2RlZmluZSBNQVgyMTc1
-X0lTX0ZNX01PREUoY3R4KQkJXA0KPiA+ICsJKG1heDIxNzVfcmVhZF9iaXRzKGN0eCwgMTIsIDUs
-IDQpID09IDApDQo+ID4gKw0KPiA+ICsjZGVmaW5lIE1BWDIxNzVfSVNfRk1IRF9NT0RFKGN0eCkJ
-XA0KPiA+ICsJKG1heDIxNzVfcmVhZF9iaXRzKGN0eCwgMTIsIDUsIDQpID09IDEpDQo+ID4gKw0K
-PiA+ICsjZGVmaW5lIE1BWDIxNzVfSVNfREFCX01PREUoY3R4KQlcDQo+ID4gKwkobWF4MjE3NV9y
-ZWFkX2JpdHMoY3R4LCAxMiwgNSwgNCkgPT0gMikNCj4gPiArDQo+ID4gK3N0YXRpYyBpbnQgbWF4
-MjE3NV9iYW5kX2Zyb21fZnJlcSh1MzIgZnJlcSkgew0KPiA+ICsJaWYgKGZyZXEgPj0gMTQ0MDAw
-ICYmIGZyZXEgPD0gMjYxMDAwMDApDQo+ID4gKwkJcmV0dXJuIE1BWDIxNzVfQkFORF9BTTsNCj4g
-PiArCWVsc2UgaWYgKGZyZXEgPj0gNjUwMDAwMDAgJiYgZnJlcSA8PSAxMDgwMDAwMDApDQo+ID4g
-KwkJcmV0dXJuIE1BWDIxNzVfQkFORF9GTTsNCj4gPiArCWVsc2UNCj4gDQo+IE5vIG5lZWQgZm9y
-IHRoZXNlICdlbHNlJyBrZXl3b3Jkcy4NCg0KQWdyZWVkLg0KDQo+IA0KPiA+ICsJCXJldHVybiBN
-QVgyMTc1X0JBTkRfVkhGOw0KPiA+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgaW50IG1heDIxNzVf
-dXBkYXRlX2kyc19tb2RlKHN0cnVjdCBtYXgyMTc1ICpjdHgsIHUzMiByeF9tb2RlLA0KPiA+ICsJ
-CQkJICAgdTMyIGkyc19tb2RlKQ0KPiA+ICt7DQo+ID4gKwltYXgyMTc1X3dyaXRlX2JpdHMoY3R4
-LCAyOSwgMiwgMCwgaTJzX21vZGUpOw0KPiA+ICsNCj4gPiArCS8qIEJhc2VkIG9uIEkyUyBtb2Rl
-IHZhbHVlIEkyU19XT1JEX0NOVCB2YWx1ZXMgY2hhbmdlICovDQo+ID4gKwlzd2l0Y2ggKGkyc19t
-b2RlKSB7DQo+ID4gKwljYXNlIE1BWDIxNzVfSTJTX01PREUzOg0KPiA+ICsJCW1heDIxNzVfd3Jp
-dGVfYml0cyhjdHgsIDMwLCA2LCAwLCAxKTsNCj4gPiArCQlicmVhazsNCj4gPiArCWNhc2UgTUFY
-MjE3NV9JMlNfTU9ERTI6DQo+ID4gKwljYXNlIE1BWDIxNzVfSTJTX01PREU0Og0KPiA+ICsJCW1h
-eDIxNzVfd3JpdGVfYml0cyhjdHgsIDMwLCA2LCAwLCAwKTsNCj4gPiArCQlicmVhazsNCj4gPiAr
-CWNhc2UgTUFYMjE3NV9JMlNfTU9ERTA6DQo+ID4gKwkJbWF4MjE3NV93cml0ZV9iaXRzKGN0eCwg
-MzAsIDYsIDAsDQo+ID4gKwkJCWN0eC0+cnhfbW9kZXNbcnhfbW9kZV0uaTJzX3dvcmRfc2l6ZSk7
-DQo+ID4gKwkJYnJlYWs7DQo+ID4gKwl9DQo+ID4gKwlteG1fZGJnKGN0eCwgInVwZGF0ZV9pMnNf
-bW9kZSAldSwgcnhfbW9kZSAldVxuIiwgaTJzX21vZGUsIHJ4X21vZGUpOw0KPiA+ICsJcmV0dXJu
-IDA7DQo+ID4gK30NCg0KW3NuaXBdDQoNCj4gPiArDQo+ID4gK3N0YXRpYyBpbnQgbWF4MjE3NV9l
-bnVtX2ZyZXFfYmFuZHMoc3RydWN0IHY0bDJfc3ViZGV2ICpzZCwNCj4gPiArCQkJICAgIHN0cnVj
-dCB2NGwyX2ZyZXF1ZW5jeV9iYW5kICpiYW5kKSB7DQo+ID4gKwlzdHJ1Y3QgbWF4MjE3NSAqY3R4
-ID0gbWF4MjE3NV9mcm9tX3NkKHNkKTsNCj4gPiArDQo+ID4gKwlpZiAoYmFuZC0+dHVuZXIgPT0g
-MCAmJiBiYW5kLT5pbmRleCA9PSAwKQ0KPiA+ICsJCSpiYW5kID0gKmN0eC0+YmFuZHNfcmY7DQo+
-ID4gKwllbHNlDQo+ID4gKwkJcmV0dXJuIC1FSU5WQUw7DQo+IA0KPiBUaGlzIGlzIGEgYml0IHVn
-bHkuIEkgd291bGQgaW52ZXJ0IHRoZSBjb25kaXRpb24gYW5kIHJldHVybiAtRUlOVkFMLg0KPiBU
-aGVuIGFzc2lnbiAqYmFuZCBhbmQgcmV0dXJuIDAuDQoNCkFncmVlZC4NCg0KPiANCj4gPiArDQo+
-ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4gPiArc3RhdGljIGludCBtYXgyMTc1X2df
-dHVuZXIoc3RydWN0IHY0bDJfc3ViZGV2ICpzZCwgc3RydWN0IHY0bDJfdHVuZXINCj4gPiArKnZ0
-KSB7DQo+ID4gKwlzdHJ1Y3QgbWF4MjE3NSAqY3R4ID0gbWF4MjE3NV9mcm9tX3NkKHNkKTsNCj4g
-PiArDQo+ID4gKwlpZiAodnQtPmluZGV4ID4gMCkNCj4gPiArCQlyZXR1cm4gLUVJTlZBTDsNCj4g
-PiArDQo+ID4gKwlzdHJsY3B5KHZ0LT5uYW1lLCAiUkYiLCBzaXplb2YodnQtPm5hbWUpKTsNCj4g
-PiArCXZ0LT50eXBlID0gVjRMMl9UVU5FUl9SRjsNCj4gPiArCXZ0LT5jYXBhYmlsaXR5ID0gVjRM
-Ml9UVU5FUl9DQVBfMUhaIHwgVjRMMl9UVU5FUl9DQVBfRlJFUV9CQU5EUzsNCj4gPiArCXZ0LT5y
-YW5nZWxvdyA9IGN0eC0+YmFuZHNfcmYtPnJhbmdlbG93Ow0KPiA+ICsJdnQtPnJhbmdlaGlnaCA9
-IGN0eC0+YmFuZHNfcmYtPnJhbmdlaGlnaDsNCj4gPiArCXJldHVybiAwOw0KPiA+ICt9DQo+ID4g
-Kw0KPiA+ICtzdGF0aWMgaW50IG1heDIxNzVfc190dW5lcihzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNk
-LCBjb25zdCBzdHJ1Y3QNCj4gPiArdjRsMl90dW5lciAqdnQpIHsNCj4gPiArCS8qIENoZWNrIHR1
-bmVyIGluZGV4IGlzIHZhbGlkICovDQo+ID4gKwlpZiAodnQtPmluZGV4ID4gMCkNCj4gPiArCQly
-ZXR1cm4gLUVJTlZBTDsNCj4gPiArDQo+ID4gKwlyZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICsNCj4g
-PiArc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX3N1YmRldl90dW5lcl9vcHMgbWF4MjE3NV90dW5l
-cl9vcHMgPSB7DQo+ID4gKwkuc19mcmVxdWVuY3kgPSBtYXgyMTc1X3NfZnJlcXVlbmN5LA0KPiA+
-ICsJLmdfZnJlcXVlbmN5ID0gbWF4MjE3NV9nX2ZyZXF1ZW5jeSwNCj4gPiArCS5lbnVtX2ZyZXFf
-YmFuZHMgPSBtYXgyMTc1X2VudW1fZnJlcV9iYW5kcywNCj4gPiArCS5nX3R1bmVyID0gbWF4MjE3
-NV9nX3R1bmVyLA0KPiA+ICsJLnNfdHVuZXIgPSBtYXgyMTc1X3NfdHVuZXIsDQo+ID4gK307DQo+
-ID4gKw0KPiA+ICtzdGF0aWMgY29uc3Qgc3RydWN0IHY0bDJfc3ViZGV2X29wcyBtYXgyMTc1X29w
-cyA9IHsNCj4gPiArCS50dW5lciA9ICZtYXgyMTc1X3R1bmVyX29wcywNCj4gPiArfTsNCj4gPiAr
-DQo+ID4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX29wcyBtYXgyMTc1X2N0cmxfb3Bz
-ID0gew0KPiA+ICsJLnNfY3RybCA9IG1heDIxNzVfc19jdHJsLA0KPiA+ICsJLmdfdm9sYXRpbGVf
-Y3RybCA9IG1heDIxNzVfZ192b2xhdGlsZV9jdHJsLCB9Ow0KPiA+ICsNCj4gPiArc3RhdGljIGNv
-bnN0IHN0cnVjdCB2NGwyX2N0cmxfY29uZmlnIG1heDIxNzVfaTJzX2VuID0gew0KPiA+ICsJLm9w
-cyA9ICZtYXgyMTc1X2N0cmxfb3BzLA0KPiA+ICsJLmlkID0gVjRMMl9DSURfTUFYMjE3NV9JMlNf
-RU5BQkxFLA0KPiA+ICsJLm5hbWUgPSAiSTJTIEVuYWJsZSIsDQo+ID4gKwkudHlwZSA9IFY0TDJf
-Q1RSTF9UWVBFX0JPT0xFQU4sDQo+ID4gKwkubWluID0gMCwNCj4gPiArCS5tYXggPSAxLA0KPiA+
-ICsJLnN0ZXAgPSAxLA0KPiA+ICsJLmRlZiA9IDEsDQo+ID4gK307DQo+ID4gKw0KPiA+ICtzdGF0
-aWMgY29uc3QgY2hhciAqIGNvbnN0IG1heDIxNzVfY3RybF9pMnNfbW9kZXNbXSA9IHsNCj4gPiAr
-CVtNQVgyMTc1X0kyU19NT0RFMF0JPSAiaTJzIG1vZGUgMCIsDQo+ID4gKwlbTUFYMjE3NV9JMlNf
-TU9ERTFdCT0gImkycyBtb2RlIDEgKHNraXBwZWQpIiwNCj4gPiArCVtNQVgyMTc1X0kyU19NT0RF
-Ml0JPSAiaTJzIG1vZGUgMiIsDQo+ID4gKwlbTUFYMjE3NV9JMlNfTU9ERTNdCT0gImkycyBtb2Rl
-IDMiLA0KPiA+ICsJW01BWDIxNzVfSTJTX01PREU0XQk9ICJpMnMgbW9kZSA0IiwNCj4gPiArfTsN
-Cj4gPiArDQo+ID4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX2NvbmZpZyBtYXgyMTc1
-X2kyc19tb2RlID0gew0KPiA+ICsJLm9wcyA9ICZtYXgyMTc1X2N0cmxfb3BzLA0KPiA+ICsJLmlk
-ID0gVjRMMl9DSURfTUFYMjE3NV9JMlNfTU9ERSwNCj4gPiArCS5uYW1lID0gIkkyUyBNT0RFIHZh
-bHVlIiwNCj4gPiArCS50eXBlID0gVjRMMl9DVFJMX1RZUEVfTUVOVSwNCj4gPiArCS5tYXggPSBB
-UlJBWV9TSVpFKG1heDIxNzVfY3RybF9pMnNfbW9kZXMpIC0gMSwNCj4gPiArCS5kZWYgPSAwLA0K
-PiA+ICsJLm1lbnVfc2tpcF9tYXNrID0gMHgwMiwNCj4gPiArCS5xbWVudSA9IG1heDIxNzVfY3Ry
-bF9pMnNfbW9kZXMsDQo+ID4gK307DQo+IA0KPiBJcyB0aGlzIHNvbWV0aGluZyB0aGF0IGlzIGNo
-YW5nZWQgZHluYW1pY2FsbHk/IEl0IGxvb2tzIG1vcmUgbGlrZSBhIGRldmljZQ0KPiB0cmVlIHRo
-aW5nIChpdCdzIG5vdCBjbGVhciB3aGF0IGl0IGRvZXMsIHNvIG9idmlvdXNseSBJIGNhbid0IGJl
-IHN1cmUpLg0KDQpZZXMuIEl0IGNhbiBiZSBjaGFuZ2VkIGR5bmFtaWNhbGx5LiANCg0KPiANCj4g
-PiArDQo+ID4gK3N0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX2NvbmZpZyBtYXgyMTc1X2hz
-bHMgPSB7DQo+ID4gKwkub3BzID0gJm1heDIxNzVfY3RybF9vcHMsDQo+ID4gKwkuaWQgPSBWNEwy
-X0NJRF9NQVgyMTc1X0hTTFMsDQo+ID4gKwkubmFtZSA9ICJIU0xTIGFib3ZlL2JlbG93IGRlc2ly
-ZWQiLA0KPiA+ICsJLnR5cGUgPSBWNEwyX0NUUkxfVFlQRV9JTlRFR0VSLA0KPiA+ICsJLm1pbiA9
-IDAsDQo+ID4gKwkubWF4ID0gMSwNCj4gPiArCS5zdGVwID0gMSwNCj4gPiArCS5kZWYgPSAxLA0K
-PiA+ICt9Ow0KPiA+ICsNCj4gPiArc3RhdGljIGNvbnN0IGNoYXIgKiBjb25zdCBtYXgyMTc1X2N0
-cmxfZXVfcnhfbW9kZXNbXSA9IHsNCj4gPiArCVtNQVgyMTc1X0VVX0ZNXzFfMl0JPSAiRVUgRk0g
-MS4yIiwNCj4gPiArCVtNQVgyMTc1X0RBQl8xXzJdCT0gIkRBQiAxLjIiLA0KPiA+ICt9Ow0KPiA+
-ICsNCj4gPiArc3RhdGljIGNvbnN0IGNoYXIgKiBjb25zdCBtYXgyMTc1X2N0cmxfbmFfcnhfbW9k
-ZXNbXSA9IHsNCj4gPiArCVtNQVgyMTc1X05BX0ZNXzFfMF0JPSAiTkEgRk0gMS4wIiwNCj4gPiAr
-CVtNQVgyMTc1X05BX0ZNXzJfMF0JPSAiTkEgRk0gMi4wIiwNCj4gPiArfTsNCj4gPiArDQo+ID4g
-K3N0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9jdHJsX2NvbmZpZyBtYXgyMTc1X2V1X3J4X21vZGUg
-PSB7DQo+ID4gKwkub3BzID0gJm1heDIxNzVfY3RybF9vcHMsDQo+ID4gKwkuaWQgPSBWNEwyX0NJ
-RF9NQVgyMTc1X1JYX01PREUsDQo+ID4gKwkubmFtZSA9ICJSWCBNT0RFIiwNCj4gPiArCS50eXBl
-ID0gVjRMMl9DVFJMX1RZUEVfTUVOVSwNCj4gPiArCS5tYXggPSBBUlJBWV9TSVpFKG1heDIxNzVf
-Y3RybF9ldV9yeF9tb2RlcykgLSAxLA0KPiA+ICsJLmRlZiA9IDAsDQo+ID4gKwkucW1lbnUgPSBt
-YXgyMTc1X2N0cmxfZXVfcnhfbW9kZXMsDQo+ID4gK307DQo+ID4gKw0KPiA+ICtzdGF0aWMgY29u
-c3Qgc3RydWN0IHY0bDJfY3RybF9jb25maWcgbWF4MjE3NV9uYV9yeF9tb2RlID0gew0KPiA+ICsJ
-Lm9wcyA9ICZtYXgyMTc1X2N0cmxfb3BzLA0KPiA+ICsJLmlkID0gVjRMMl9DSURfTUFYMjE3NV9S
-WF9NT0RFLA0KPiA+ICsJLm5hbWUgPSAiUlggTU9ERSIsDQo+ID4gKwkudHlwZSA9IFY0TDJfQ1RS
-TF9UWVBFX01FTlUsDQo+ID4gKwkubWF4ID0gQVJSQVlfU0laRShtYXgyMTc1X2N0cmxfbmFfcnhf
-bW9kZXMpIC0gMSwNCj4gPiArCS5kZWYgPSAwLA0KPiA+ICsJLnFtZW51ID0gbWF4MjE3NV9jdHJs
-X25hX3J4X21vZGVzLA0KPiA+ICt9Ow0KPiANCj4gUGxlYXNlIGRvY3VtZW50IGFsbCB0aGVzZSBj
-b250cm9scyBiZXR0ZXIuIFRoaXMgaXMgcGFydCBvZiB0aGUgcHVibGljIEFQSSwNCj4gc28geW91
-IG5lZWQgdG8gZ2l2ZSBtb3JlIGluZm9ybWF0aW9uIHdoYXQgdGhpcyBtZWFucyBleGFjdGx5Lg0K
-DQpUaGFua3MuIE5vdywgSSBoYXZlIGFkZGVkIGEgb25lLWxpbmVyIGFuZCBhIGJpdCBkZXNjcmlw
-dGl2ZSBleHBsYW5hdGlvbiBhdCBEb2N1bWVudGF0aW9uL21lZGlhL3Y0bC1kcml2ZXJzIGRpciBh
-cyB5b3UgJiBMYXVyZW50IGNvbmNsdWRlZC4NCg0KVGhhbmtzLA0KUmFtZXNoDQo=
+Hi Niklas,
+
+Thank you for the patch.
+
+On Saturday 12 Nov 2016 13:29:11 Niklas S=F6derlund wrote:
+> A V4L2 driver for Renesas R-Car MIPI CSI-2 interface. The driver
+> supports the rcar-vin driver on R-Car Gen3 SoCs where a separate driv=
+er
+> is needed to receive CSI-2.
+>=20
+> Driver is based on a prototype by Koji Matsuoka in the Renesas BSP.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech=
+.se>
+> ---
+>=20
+> Changes since v3:
+> - Update DT binding documentation with input from Geert Uytterhoeven,=
+
+>   thanks!
+>=20
+> Changes since v2:
+> - Added media control pads as this is needed by the new rcar-vin driv=
+er.
+> - Update DT bindings after review comments and to add r8a7796 support=
+.
+> - Add get_fmt handler.
+> - Fix media bus format error s/YUYV8/UYVY8/
+>=20
+> Changes since v1:
+> - Drop dependency on a pad aware s_stream operation.
+> - Use the DT bindings format "renesas,<soctype>-<device>", thanks Gee=
+rt
+>   for pointing this out.
+>=20
+>  .../devicetree/bindings/media/rcar-csi2.txt        | 116 ++++
+>  drivers/media/platform/rcar-vin/Kconfig            |  11 +
+>  drivers/media/platform/rcar-vin/Makefile           |   2 +
+>  drivers/media/platform/rcar-vin/rcar-csi2.c        | 586 +++++++++++=
++++++++
+>  4 files changed, 715 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rcar-csi2=
+.txt
+>  create mode 100644 drivers/media/platform/rcar-vin/rcar-csi2.c
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/rcar-csi2.txt
+> b/Documentation/devicetree/bindings/media/rcar-csi2.txt new file mode=
+
+> 100644
+> index 0000000..a9788e3
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+> @@ -0,0 +1,116 @@
+> +Renesas R-Car MIPI CSI-2
+> +------------------------
+> +
+> +The rcar-csi2 device provides MIPI CSI-2 capabilities for the Renesa=
+s R-Car
+> +family of devices. It is to be used in conjunction with the R-Car VI=
+N
+> module, +which provides the video capture capabilities.
+> +
+> + - compatible: Must be one or more of the following
+> +   - "renesas,r8a7795-csi2" for the R8A7795 device.
+> +   - "renesas,r8a7796-csi2" for the R8A7796 device.
+> +   - "renesas,rcar-gen3-csi2" for a generic R-Car Gen3 compatible de=
+vice.
+> +
+> +   When compatible with a generic version nodes must list the
+> +   SoC-specific version corresponding to the platform first
+> +   followed by the generic version.
+> +
+> + - reg: the register base and size for the device registers
+> + - interrupts: the interrupt for the device
+> + - clocks: Reference to the parent clock
+> +
+> +The device node should contain two 'port' child nodes according to t=
+he
+> +bindings defined in Documentation/devicetree/bindings/media/
+> +video-interfaces.txt. Port 0 should connect the node that is the vid=
+eo
+> +source for to the CSI-2. Port 1 should connect all the R-Car VIN
+> +modules, which can make use of the CSI-2 module.
+> +
+> +- Port 0 - Video source
+> +=09- Reg 0 - sub-node describing the endpoint that is the video sour=
+ce
+> +
+> +- Port 1 - VIN instances
+> +=09- Reg 0 - sub-node describing the endpoint that is VIN0
+> +=09- Reg 1 - sub-node describing the endpoint that is VIN1
+> +=09- Reg 2 - sub-node describing the endpoint that is VIN2
+> +=09- Reg 3 - sub-node describing the endpoint that is VIN3
+> +=09- Reg 4 - sub-node describing the endpoint that is VIN4
+> +=09- Reg 5 - sub-node describing the endpoint that is VIN5
+> +=09- Reg 6 - sub-node describing the endpoint that is VIN6
+> +=09- Reg 7 - sub-node describing the endpoint that is VIN7
+> +
+> +Example:
+> +
+> +/* SoC properties */
+> +
+> +=09 csi20: csi2@fea80000 {
+> +=09=09 compatible =3D "renesas,r8a7795-csi2";
+> +=09=09 reg =3D <0 0xfea80000 0 0x10000>;
+> +=09=09 interrupts =3D <0 184 IRQ_TYPE_LEVEL_HIGH>;
+> +=09=09 clocks =3D <&cpg CPG_MOD 714>;
+> +=09=09 power-domains =3D <&sysc R8A7796_PD_ALWAYS_ON>;
+> +=09=09 status =3D "disabled";
+> +
+> +=09=09 ports {
+> +=09=09=09 #address-cells =3D <1>;
+> +=09=09=09 #size-cells =3D <0>;
+> +
+> +=09=09=09 port@1 {
+> +=09=09=09=09 #address-cells =3D <1>;
+> +=09=09=09=09 #size-cells =3D <0>;
+> +
+> +=09=09=09=09 reg =3D <1>;
+> +
+> +=09=09=09=09 csi20vin0: endpoint@0 {
+> +=09=09=09=09=09 reg =3D <0>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin0csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin1: endpoint@1 {
+> +=09=09=09=09=09 reg =3D <1>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin1csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin2: endpoint@2 {
+> +=09=09=09=09=09 reg =3D <2>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin2csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin3: endpoint@3 {
+> +=09=09=09=09=09 reg =3D <3>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin3csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin4: endpoint@4 {
+> +=09=09=09=09=09 reg =3D <4>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin4csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin5: endpoint@5 {
+> +=09=09=09=09=09 reg =3D <5>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin5csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin6: endpoint@6 {
+> +=09=09=09=09=09 reg =3D <6>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin6csi20>;
+> +=09=09=09=09 };
+> +=09=09=09=09 csi20vin7: endpoint@7 {
+> +=09=09=09=09=09 reg =3D <7>;
+> +=09=09=09=09=09 remote-endpoint =3D <&vin7csi20>;
+> +=09=09=09=09 };
+> +=09=09=09 };
+> +=09=09 };
+> +=09 };
+> +
+> +/* Board properties */
+> +
+> +=09&csi20 {
+> +=09=09status =3D "okay";
+> +
+> +=09=09ports {
+> +=09=09=09#address-cells =3D <1>;
+> +=09=09=09#size-cells =3D <0>;
+> +
+> +=09=09=09port@0 {
+> +=09=09=09=09reg =3D <0>;
+> +=09=09=09=09csi20_in: endpoint@0 {
+> +=09=09=09=09=09clock-lanes =3D <0>;
+> +=09=09=09=09=09data-lanes =3D <1>;
+> +=09=09=09=09=09remote-endpoint =3D <&adv7482_txb>;
+> +=09=09=09=09};
+> +=09=09=09};
+> +=09=09};
+> +=09};
+> diff --git a/drivers/media/platform/rcar-vin/Kconfig
+> b/drivers/media/platform/rcar-vin/Kconfig index 111d2a1..3606997 1006=
+44
+> --- a/drivers/media/platform/rcar-vin/Kconfig
+> +++ b/drivers/media/platform/rcar-vin/Kconfig
+> @@ -9,3 +9,14 @@ config VIDEO_RCAR_VIN
+>=20
+>  =09  To compile this driver as a module, choose M here: the
+>  =09  module will be called rcar-vin.
+> +
+> +config VIDEO_RCAR_CSI2
+> +=09tristate "R-Car MIPI CSI-2 Interface driver"
+
+I would call this CSI-2 Receiver, as interface doesn't make it clear wh=
+ether=20
+we're talking about a receiver or a transmitter. A (supervised)=20
+s/interface/receiver/ through the patch should do.
+
+> +=09depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
+> +=09depends on ARCH_RENESAS || COMPILE_TEST
+> +=09---help---
+> +=09  Support for Renesas R-Car MIPI CSI-2 interface driver.
+> +=09  Supports R-Car Gen3 SoCs.
+> +
+> +=09  To compile this driver as a module, choose M here: the
+> +=09  module will be called rcar-csi2.
+> diff --git a/drivers/media/platform/rcar-vin/Makefile
+> b/drivers/media/platform/rcar-vin/Makefile index 48c5632..81a37f2 100=
+644
+> --- a/drivers/media/platform/rcar-vin/Makefile
+> +++ b/drivers/media/platform/rcar-vin/Makefile
+> @@ -1,3 +1,5 @@
+>  rcar-vin-objs =3D rcar-core.o rcar-dma.o rcar-v4l2.o
+>=20
+>  obj-$(CONFIG_VIDEO_RCAR_VIN) +=3D rcar-vin.o
+> +
+> +obj-$(CONFIG_VIDEO_RCAR_CSI2) +=3D rcar-csi2.o
+
+Nitpicking, I would keep these in alphabetical order (the same applies =
+for=20
+Kconfig actually). There's also no need for a blank line between the tw=
+o.
+
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> b/drivers/media/platform/rcar-vin/rcar-csi2.c new file mode 100644
+> index 0000000..13eb78b
+> --- /dev/null
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -0,0 +1,586 @@
+> +/*
+> + * Driver for Renesas R-Car MIPI CSI-2
+
+CSI-2 Receiver
+
+> + *
+> + * Copyright (C) 2016 Renesas Electronics Corp.
+> + *
+> + * This program is free software; you can redistribute  it and/or mo=
+dify it
+> + * under  the terms of  the GNU General  Public License as published=
+ by
+> the
+> + * Free Software Foundation;  either version 2 of the  License, or (=
+at your
+> + * option) any later version.
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+> +
+> +#include <media/v4l2-of.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +/* Register offsets */
+> +#define TREF_REG=09=090x00 /* Control Timing Select */
+> +#define SRST_REG=09=090x04 /* Software Reset */
+> +#define PHYCNT_REG=09=090x08 /* PHY Operation Control */
+> +#define CHKSUM_REG=09=090x0C /* Checksum Control */
+
+Hex constants are usually lower case in the kernel.
+
+> +#define VCDT_REG=09=090x10 /* Channel Data Type Select */
+> +#define VCDT2_REG=09=090x14 /* Channel Data Type Select 2 */
+> +#define FRDT_REG=09=090x18 /* Frame Data Type Select */
+> +#define FLD_REG=09=09=090x1C /* Field Detection Control */
+> +#define ASTBY_REG=09=090x20 /* Automatic Standby Control */
+> +#define LNGDT0_REG=09=090x28 /* Long Data Type Setting 0 */
+> +#define LNGDT1_REG=09=090x2C /* Long Data Type Setting 1 */
+> +#define INTEN_REG=09=090x30 /* Interrupt Enable */
+> +#define INTCLOSE_REG=09=090x34 /* Interrupt Source Mask */
+> +#define INTSTATE_REG=09=090x38 /* Interrupt Status Monitor */
+> +#define INTERRSTATE_REG=09=090x3C /* Interrupt Error Status Monitor=20=
+
+*/
+> +#define SHPDAT_REG=09=090x40 /* Short Packet Data */
+> +#define SHPCNT_REG=09=090x44 /* Short Packet Count */
+> +#define LINKCNT_REG=09=090x48 /* LINK Operation Control */
+> +#define LSWAP_REG=09=090x4C /* Lane Swap */
+> +#define PHTC_REG=09=090x58 /* PHY Test Interface Clear */
+> +#define PHYPLL_REG=09=090x68 /* PHY Frequency Control */
+> +#define PHEERM_REG=09=090x74 /* PHY ESC Error Monitor */
+> +#define PHCLM_REG=09=090x78 /* PHY Clock Lane Monitor */
+> +#define PHDLM_REG=09=090x7C /* PHY Data Lane Monitor */
+
+I would have prefixed the register names (and bits below) with CSI2_ or=
+=20
+RCAR_CSI2_ to avoid name space clashes, but that's up to you.
+
+> +/* Control Timing Select bits */
+> +#define TREF_TREF=09=09=09(1 << 0)
+
+Another matter of personal taste, I like having bits definitions right =
+after=20
+the register they're related to, it improves readability in my opinion =
+(and=20
+you won't need the comments before the bits).
+
+> +
+> +/* Software Reset bits */
+> +#define SRST_SRST=09=09=09(1 << 0)
+> +
+> +/* PHY Operation Control bits */
+> +#define PHYCNT_SHUTDOWNZ=09=09(1 << 17)
+> +#define PHYCNT_RSTZ=09=09=09(1 << 16)
+> +#define PHYCNT_ENABLECLK=09=09(1 << 4)
+> +#define PHYCNT_ENABLE_3=09=09=09(1 << 3)
+> +#define PHYCNT_ENABLE_2=09=09=09(1 << 2)
+> +#define PHYCNT_ENABLE_1=09=09=09(1 << 1)
+> +#define PHYCNT_ENABLE_0=09=09=09(1 << 0)
+> +
+> +/* Checksum Control bits */
+> +#define CHKSUM_ECC_EN=09=09=09(1 << 1)
+> +#define CHKSUM_CRC_EN=09=09=09(1 << 0)
+> +
+> +/*
+> + * Channel Data Type Select bits
+> + * VCDT[0-15]:  Channel 1 VCDT[16-31]:  Channel 2
+> + * VCDT2[0-15]: Channel 3 VCDT2[16-31]: Channel 4
+> + */
+> +#define VCDT_VCDTN_EN=09=09=09(1 << 15)
+> +#define VCDT_SEL_VC(n)=09=09=09((n & 0x3) << 8)
+
+You should use (n) in case n is an expression, otherwise subtle macro s=
+ide=20
+effects can occur, which can be difficult to debug.
+
+> +#define VCDT_SEL_DTN_ON=09=09=09(1 << 6)
+> +#define VCDT_SEL_DT(n)=09=09=09((n & 0x1f) << 0)
+> +
+> +/* Field Detection Control bits */
+> +#define FLD_FLD_NUM(n)=09=09=09((n & 0xff) << 16)
+> +#define FLD_FLD_EN4=09=09=09(1 << 3)
+> +#define FLD_FLD_EN3=09=09=09(1 << 2)
+> +#define FLD_FLD_EN2=09=09=09(1 << 1)
+> +#define FLD_FLD_EN=09=09=09(1 << 0)
+> +
+> +/* LINK Operation Control bits */
+> +#define LINKCNT_MONITOR_EN=09=09(1 << 31)
+> +#define LINKCNT_REG_MONI_PACT_EN=09(1 << 25)
+> +#define LINKCNT_ICLK_NONSTOP=09=09(1 << 24)
+> +
+> +/* Lane Swap bits */
+> +#define LSWAP_L3SEL(n)=09=09=09((n & 0x3) << 6)
+> +#define LSWAP_L2SEL(n)=09=09=09((n & 0x3) << 4)
+> +#define LSWAP_L1SEL(n)=09=09=09((n & 0x3) << 2)
+> +#define LSWAP_L0SEL(n)=09=09=09((n & 0x3) << 0)
+> +
+> +/* PHY Test Interface Clear bits */
+> +#define PHTC_TESTCLR=09=09=09(1 << 0)
+> +
+> +/* PHY Frequency Control bits */
+
+I wonder who came up with those strange frequencies to register values=20=
+
+mappings...
+
+> +#define PHYPLL_HSFREQRANGE_80MBPS=09(0x00 << 16)
+> +#define PHYPLL_HSFREQRANGE_90MBPS=09(0x10 << 16)
+> +#define PHYPLL_HSFREQRANGE_100MBPS=09(0x20 << 16)
+> +#define PHYPLL_HSFREQRANGE_110MBPS=09(0x30 << 16)
+> +#define PHYPLL_HSFREQRANGE_120MBPS=09(0x01 << 16)
+> +#define PHYPLL_HSFREQRANGE_130MBPS=09(0x11 << 16)
+> +#define PHYPLL_HSFREQRANGE_140MBPS=09(0x21 << 16)
+> +#define PHYPLL_HSFREQRANGE_150MBPS=09(0x31 << 16)
+> +#define PHYPLL_HSFREQRANGE_160MBPS=09(0x02 << 16)
+> +#define PHYPLL_HSFREQRANGE_170MBPS=09(0x12 << 16)
+> +#define PHYPLL_HSFREQRANGE_180MBPS=09(0x22 << 16)
+> +#define PHYPLL_HSFREQRANGE_190MBPS=09(0x32 << 16)
+> +#define PHYPLL_HSFREQRANGE_205MBPS=09(0x03 << 16)
+> +#define PHYPLL_HSFREQRANGE_220MBPS=09(0x13 << 16)
+> +#define PHYPLL_HSFREQRANGE_235MBPS=09(0x23 << 16)
+> +#define PHYPLL_HSFREQRANGE_250MBPS=09(0x33 << 16)
+> +#define PHYPLL_HSFREQRANGE_275MBPS=09(0x04 << 16)
+> +#define PHYPLL_HSFREQRANGE_300MBPS=09(0x14 << 16)
+> +#define PHYPLL_HSFREQRANGE_325MBPS=09(0x05 << 16)
+> +#define PHYPLL_HSFREQRANGE_350MBPS=09(0x15 << 16)
+> +#define PHYPLL_HSFREQRANGE_400MBPS=09(0x25 << 16)
+> +#define PHYPLL_HSFREQRANGE_450MBPS=09(0x06 << 16)
+> +#define PHYPLL_HSFREQRANGE_500MBPS=09(0x16 << 16)
+> +#define PHYPLL_HSFREQRANGE_550MBPS=09(0x07 << 16)
+> +#define PHYPLL_HSFREQRANGE_600MBPS=09(0x17 << 16)
+> +#define PHYPLL_HSFREQRANGE_650MBPS=09(0x08 << 16)
+> +#define PHYPLL_HSFREQRANGE_700MBPS=09(0x18 << 16)
+> +#define PHYPLL_HSFREQRANGE_750MBPS=09(0x09 << 16)
+> +#define PHYPLL_HSFREQRANGE_800MBPS=09(0x19 << 16)
+> +#define PHYPLL_HSFREQRANGE_850MBPS=09(0x29 << 16)
+> +#define PHYPLL_HSFREQRANGE_900MBPS=09(0x39 << 16)
+> +#define PHYPLL_HSFREQRANGE_950MBPS=09(0x0A << 16)
+> +#define PHYPLL_HSFREQRANGE_1000MBPS=09(0x1A << 16)
+> +#define PHYPLL_HSFREQRANGE_1050MBPS=09(0x2A << 16)
+> +#define PHYPLL_HSFREQRANGE_1100MBPS=09(0x3A << 16)
+> +#define PHYPLL_HSFREQRANGE_1150MBPS=09(0x0B << 16)
+> +#define PHYPLL_HSFREQRANGE_1200MBPS=09(0x1B << 16)
+> +#define PHYPLL_HSFREQRANGE_1250MBPS=09(0x2B << 16)
+> +#define PHYPLL_HSFREQRANGE_1300MBPS=09(0x3B << 16)
+> +#define PHYPLL_HSFREQRANGE_1350MBPS=09(0x0C << 16)
+> +#define PHYPLL_HSFREQRANGE_1400MBPS=09(0x1C << 16)
+> +#define PHYPLL_HSFREQRANGE_1450MBPS=09(0x2C << 16)
+> +#define PHYPLL_HSFREQRANGE_1500MBPS=09(0x3C << 16)
+> +
+> +enum rcar_csi2_pads {
+> +=09RCAR_CSI2_SINK,
+> +=09RCAR_CSI2_SOURCE_VC0,
+> +=09RCAR_CSI2_SOURCE_VC1,
+> +=09RCAR_CSI2_SOURCE_VC2,
+> +=09RCAR_CSI2_SOURCE_VC3,
+> +=09RCAR_CSI2_PAD_MAX,
+> +};
+> +
+> +struct rcar_csi2 {
+> +=09struct device *dev;
+> +=09void __iomem *base;
+> +=09spinlock_t lock;
+
+All locks should have a comment describing what they protect.
+
+> +
+> +=09unsigned short lanes;
+> +=09unsigned char swap[4];
+
+Maybe lane_swap ?
+
+> +
+> +=09struct v4l2_subdev subdev;
+> +=09struct media_pad pads[RCAR_CSI2_PAD_MAX];
+> +=09struct v4l2_mbus_framefmt mf;
+> +};
+> +
+> +#define csi_dbg(p, fmt, arg...)=09=09dev_dbg(p->dev, fmt, ##arg)
+> +#define csi_info(p, fmt, arg...)=09dev_info(p->dev, fmt, ##arg)
+> +#define csi_warn(p, fmt, arg...)=09dev_warn(p->dev, fmt, ##arg)
+> +#define csi_err(p, fmt, arg...)=09=09dev_err(p->dev, fmt, ##arg)
+
+I wonder if these macros are really worth it, they only shorten lines b=
+y 4=20
+characters, but hide the fact that we use dev_*.
+
+> +static irqreturn_t rcar_csi2_irq(int irq, void *data)
+> +{
+> +=09struct rcar_csi2 *priv =3D data;
+> +=09u32 int_status;
+> +=09unsigned int handled =3D 0;
+> +
+> +=09spin_lock(&priv->lock);
+> +
+> +=09int_status =3D ioread32(priv->base + INTSTATE_REG);
+
+I'd create two functions to access registers:
+
+static u32 rcar_csi2_read(struct rcar_csi2 *priv, unsigned int reg)
+{
+=09return ioread32(priv->base + reg);
+}
+
+static void rcar_csi2_write(struct rcar_csi2 *priv, unsigned int reg, u=
+32=20
+data)
+{
+=09iowrite32(data, priv->base + reg);
+}
+
+It would in my opinion improve readability and make it easy to log read=
+ and=20
+writes for debug purpose should the need arise.
+
+> +=09if (!int_status)
+> +=09=09goto done;
+> +
+> +=09/* ack interrupts */
+> +=09iowrite32(int_status, priv->base + INTSTATE_REG);
+> +=09handled =3D 1;
+
+If you don't need to handle interrupts, how about not enabling them in =
+the=20
+first place ? :-) Keep it in the DT bindings though, and check in the p=
+robe=20
+function that it has been specified, in order to ensure that we'll be a=
+ble to=20
+use it later if needed.
+
+> +done:
+> +=09spin_unlock(&priv->lock);
+> +
+> +=09return IRQ_RETVAL(handled);
+> +
+> +}
+> +
+> +static void rcar_csi2_reset(struct rcar_csi2 *priv)
+> +{
+> +=09iowrite32(SRST_SRST, priv->base + SRST_REG);
+> +=09udelay(5);
+
+Is the delay really needed ? I see no mention of it in section 25.3.12 =
+of the=20
+datasheet.
+
+> +=09iowrite32(0, priv->base + SRST_REG);
+> +}
+> +
+> +static void rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
+> +{
+> +=09int timeout;
+> +
+> +=09/* Read the PHY clock lane monitor register (PHCLM). */
+> +=09for (timeout =3D 100; timeout >=3D 0; timeout--) {
+> +=09=09if (ioread32(priv->base + PHCLM_REG) & 0x01) {
+> +=09=09=09csi_dbg(priv, "Detected the PHY clock lane\n");
+> +=09=09=09break;
+> +=09=09}
+> +=09=09msleep(20);
+> +=09}
+> +=09if (!timeout)
+> +=09=09csi_err(priv, "Timeout of reading the PHY clock lane\n");
+
+Shouldn't this be a fatal error ?
+
+> +
+> +
+
+Extra blank line.
+
+> +=09/* Read the PHY data lane monitor register (PHDLM). */
+> +=09for (timeout =3D 100; timeout >=3D 0; timeout--) {
+> +=09=09if (ioread32(priv->base + PHDLM_REG) & 0x01) {
+
+Shouldn't you take all used data lanes into account, not just lane 0 ?
+
+> +=09=09=09csi_dbg(priv, "Detected the PHY data lane\n");
+> +=09=09=09break;
+> +=09=09}
+> +=09=09msleep(20);
+> +=09}
+> +=09if (!timeout)
+> +=09=09csi_err(priv, "Timeout of reading the PHY data lane\n");
+
+And this too ?
+
+> +
+
+Extra blank line.
+
+So this code waits for all data and clock lanes to enter LP-11 state. I=
+'d=20
+update the comments to make that clear. I would also possibly combine t=
+he two=20
+loops, as there's no real need to wait for the clock and data lanes=20
+separately. Maybe something like
+
+=09/* Wait for the clock and data lanes to enter LP-11 state. */
+=09for (timeout =3D 100; timeout >=3D 0; timeout--) {
+=09=09const u32 lane_mask =3D (1 << priv->lanes) - 1;
+
+=09=09if ((rcar_csi2_read(priv, PHDLM_REG) & 1) =3D=3D 1 &&
+=09=09    (rcar_csi2_read(priv, PHDLM_REG) & lane_mask) =3D=3D=20
+lane_mask)
+=09=09=09return 0;
+
+=09=09msleep(20);
+=09}
+
+=09dev_err(priv->dev, "Timeout waiting for LP-11 state\n");
+=09return -ETIMEDOUT;
+
+Although if you prefer keeping them separate that's fine too, but the c=
+omment=20
+and error messages should be updated (you could also print which data l=
+ane(s)=20
+didn't switch to LP-11, that could be useful for debugging).
+
+> +}
+> +
+> +static int rcar_csi2_start(struct rcar_csi2 *priv)
+> +{
+> +=09u32 fld, phycnt, phypll, vcdt, vcdt2, tmp, pixels;
+> +=09int i;
+
+unsigned int.
+
+> +
+> +=09csi_dbg(priv, "Input size (%dx%d%c)\n", priv->mf.width, priv-
+>mf.height,
+> +=09=09priv->mf.field =3D=3D V4L2_FIELD_NONE ? 'p' : 'i');
+> +
+> +=09vcdt =3D vcdt2 =3D 0;
+
+You can initialize the variables when declaring them.
+
+> +=09for (i =3D 0; i < priv->lanes; i++) {
+> +=09=09tmp =3D VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON;
+> +
+> +=09=09switch (priv->mf.code) {
+> +=09=09case MEDIA_BUS_FMT_RGB888_1X24:
+> +=09=09=09/* 24 =3D=3D RGB888 */
+> +=09=09=09tmp |=3D 0x24;
+> +=09=09=09break;
+> +=09=09case MEDIA_BUS_FMT_UYVY8_1X16:
+> +=09=09case MEDIA_BUS_FMT_UYVY8_2X8:
+> +=09=09case MEDIA_BUS_FMT_YUYV10_2X10:
+> +=09=09=09/* 1E =3D=3D YUV422 8-bit */
+> +=09=09=09tmp |=3D 0x1e;
+> +=09=09=09break;
+> +=09=09default:
+> +=09=09=09csi_warn(priv,
+> +=09=09=09=09 "Unknown media bus format, try it anyway\n");
+> +=09=09=09break;
+> +=09=09}
+> +
+> +=09=09/* Store in correct reg and offset */
+> +=09=09if (i < 2)
+> +=09=09=09vcdt |=3D tmp << ((i % 2) * 16);
+> +=09=09else
+> +=09=09=09vcdt2 |=3D tmp << ((i % 2) * 16);
+
+These settings are per channel (which I expect map to source pads), not=
+ per=20
+lane.
+
+> +=09}
+> +
+> +=09switch (priv->lanes) {
+> +=09case 1:
+> +=09=09fld =3D FLD_FLD_NUM(1) | FLD_FLD_EN;
+
+This has nothing to do with lanes either :-)
+
+> +=09=09phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
+> +=09=09phypll =3D PHYPLL_HSFREQRANGE_400MBPS;
+> +=09=09break;
+> +=09case 4:
+> +=09=09fld =3D FLD_FLD_NUM(2) | FLD_FLD_EN4 | FLD_FLD_EN3 |
+> +=09=09=09FLD_FLD_EN2 | FLD_FLD_EN;
+> +=09=09phycnt =3D PHYCNT_ENABLECLK | PHYCNT_ENABLE_3 |
+> +=09=09=09PHYCNT_ENABLE_2 | PHYCNT_ENABLE_1 | PHYCNT_ENABLE_0;
+> +
+> +=09=09/* Calculate MBPS per lane, assume 32 bits per pixel at 60Hz=20=
+
+*/
+> +=09=09pixels =3D (priv->mf.width * priv->mf.height) /
+> +=09=09=09(priv->mf.field =3D=3D V4L2_FIELD_NONE ? 1 : 2);
+> +=09=09if (pixels <=3D 640 * 480)
+> +=09=09=09phypll =3D PHYPLL_HSFREQRANGE_100MBPS;
+> +=09=09else if (pixels <=3D 720 * 576)
+> +=09=09=09phypll =3D PHYPLL_HSFREQRANGE_190MBPS;
+> +=09=09else if (pixels <=3D 1280 * 720)
+> +=09=09=09phypll =3D PHYPLL_HSFREQRANGE_450MBPS;
+> +=09=09else if (pixels <=3D 1920 * 1080)
+> +=09=09=09phypll =3D PHYPLL_HSFREQRANGE_900MBPS;
+> +=09=09else
+> +=09=09=09goto error;
+
+That's a pretty bad heuristics as the bit rate doesn't depend on the im=
+age=20
+size only. You should instead query the information from the connected =
+subdev=20
+using the V4L2_CID_LINK_FREQ control (you will obviously have to implem=
+ent the=20
+control in the ADV7482 driver). See isp_video_check_external_subdevs() =
+for an=20
+example of how this is done with the V4L2_CID_PIXEL_RATE control. Note =
+that=20
+CSI-2 is a DDR bus, so the data rate per lane is twice the frequency.
+
+You might want to tabulate the PLL register value for the input frequen=
+cy=20
+ranges instead of using a bit if ... else ..., especially given that th=
+e=20
+datasheet contains a table much larger than the above 4 values.
+
+> +
+> +=09=09break;
+> +=09default:
+> +=09=09goto error;
+> +=09}
+> +
+> +=09/* Init */
+> +=09iowrite32(TREF_TREF, priv->base + TREF_REG);
+> +=09rcar_csi2_reset(priv);
+> +=09iowrite32(0, priv->base + PHTC_REG);
+> +
+> +=09/* Configure */
+> +=09iowrite32(fld, priv->base + FLD_REG);
+> +=09iowrite32(vcdt, priv->base + VCDT_REG);
+> +=09iowrite32(vcdt2, priv->base + VCDT2_REG);
+> +=09iowrite32(LSWAP_L0SEL(priv->swap[0]) | LSWAP_L1SEL(priv->swap[1])=
+ |
+> +=09=09  LSWAP_L2SEL(priv->swap[2]) | LSWAP_L3SEL(priv->swap[3]),
+> +=09=09  priv->base + LSWAP_REG);
+> +
+> +=09/* Start */
+> +=09iowrite32(phypll, priv->base + PHYPLL_REG);
+> +=09iowrite32(phycnt, priv->base + PHYCNT_REG);
+> +=09iowrite32(LINKCNT_MONITOR_EN | LINKCNT_REG_MONI_PACT_EN |
+> +=09=09  LINKCNT_ICLK_NONSTOP, priv->base + LINKCNT_REG);
+> +=09iowrite32(phycnt | PHYCNT_SHUTDOWNZ, priv->base + PHYCNT_REG);
+> +=09iowrite32(phycnt | PHYCNT_SHUTDOWNZ | PHYCNT_RSTZ,
+> +=09=09  priv->base + PHYCNT_REG);
+> +
+> +=09rcar_csi2_wait_phy_start(priv);
+> +
+> +=09return 0;
+> +error:
+> +=09csi_err(priv, "Unsupported resolution (%dx%d%c)\n",
+> +=09=09priv->mf.width, priv->mf.height,
+> +=09=09priv->mf.field =3D=3D V4L2_FIELD_NONE ? 'p' : 'i');
+> +
+> +=09return -EINVAL;
+> +}
+> +
+> +static void rcar_csi2_stop(struct rcar_csi2 *priv)
+> +{
+> +=09iowrite32(0, priv->base + PHYCNT_REG);
+> +
+> +=09rcar_csi2_reset(priv);
+> +}
+> +
+> +static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +=09struct rcar_csi2 *priv =3D container_of(sd, struct rcar_csi2, sub=
+dev);
+
+It's quite customary to create an inline function to do the conversion:=
+
+
+static inline struct rcar_csi2 *to_csi2(struct v4l2_subdev *sd)
+{
+=09return container_of(sd, struct rcar_csi2, subdev);
+}
+
+and place it right after the structure definition.
+
+> +
+> +=09if (enable)
+> +=09=09return rcar_csi2_start(priv);
+> +
+> +=09rcar_csi2_stop(priv);
+> +
+> +=09return 0;
+> +}
+> +
+> +static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
+> +=09=09=09=09    struct v4l2_subdev_pad_config *cfg,
+> +=09=09=09=09    struct v4l2_subdev_format *format)
+> +{
+> +=09struct rcar_csi2 *priv =3D container_of(sd, struct rcar_csi2, sub=
+dev);
+> +
+> +=09if (format->pad !=3D RCAR_CSI2_SINK)
+> +=09=09return -EINVAL;
+
+Why is that ? The format on the sink pad should be configurable.
+
+> +=09if (format->which =3D=3D V4L2_SUBDEV_FORMAT_ACTIVE)
+> +=09=09priv->mf =3D format->format;
+
+How about the V4L2_SUBDEV_FORMAT_ACTIVE formats ? You also need to vali=
+date=20
+the format here.
+
+> +=09return 0;
+> +}
+> +
+> +static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
+> +=09=09=09=09    struct v4l2_subdev_pad_config *cfg,
+> +=09=09=09=09    struct v4l2_subdev_format *format)
+> +{
+> +=09struct rcar_csi2 *priv =3D container_of(sd, struct rcar_csi2, sub=
+dev);
+> +
+> +=09if (format->pad !=3D RCAR_CSI2_SINK)
+> +=09=09return -EINVAL;
+> +
+> +=09format->format =3D priv->mf;
+
+Similar comments here as for the set format implementation.
+
+> +=09return 0;
+> +}
+> +
+> +static int rcar_csi2_s_power(struct v4l2_subdev *sd, int on)
+> +{
+> +=09struct rcar_csi2 *priv =3D container_of(sd, struct rcar_csi2, sub=
+dev);
+> +
+> +=09if (on)
+> +=09=09pm_runtime_get_sync(priv->dev);
+> +=09else
+> +=09=09pm_runtime_put_sync(priv->dev);
+
+You can probably use pm_runtime_put().
+
+> +=09return 0;
+> +}
+> +
+> +static const struct v4l2_subdev_video_ops rcar_csi2_video_ops =3D {
+> +=09.s_stream =3D rcar_csi2_s_stream,
+> +};
+> +
+> +static struct v4l2_subdev_core_ops rcar_csi2_subdev_core_ops =3D {
+> +=09.s_power =3D rcar_csi2_s_power,
+> +};
+> +
+> +static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops =3D {
+> +=09.set_fmt =3D rcar_csi2_set_pad_format,
+> +=09.get_fmt =3D rcar_csi2_get_pad_format,
+> +};
+> +
+> +static struct v4l2_subdev_ops rcar_csi2_subdev_ops =3D {
+> +=09.video=09=3D &rcar_csi2_video_ops,
+> +=09.core=09=3D &rcar_csi2_subdev_core_ops,
+> +=09.pad=09=3D &rcar_csi2_pad_ops,
+> +};
+> +
+> +/* -----------------------------------------------------------------=
+-------
+> + * Platform Device Driver
+> + */
+> +
+> +static const struct of_device_id rcar_csi2_of_table[] =3D {
+> +=09{ .compatible =3D "renesas,r8a7795-csi2" },
+> +=09{ .compatible =3D "renesas,r8a7796-csi2" },
+
+You don't need to list those two compatible strings explicitly, the gen=
+eric=20
+one will be enough.
+
+> +=09{ .compatible =3D "renesas,rcar-gen3-csi2" },
+> +=09{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, rcar_csi2_of_table);
+> +
+> +static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
+> +{
+> +=09struct v4l2_of_endpoint v4l2_ep;
+> +=09struct device_node *ep;
+> +=09int i, n, ret;
+
+i can be an unsigned int.
+
+> +
+> +=09ep =3D of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+> +=09if (!ep)
+> +=09=09return -EINVAL;
+> +
+> +=09ret =3D v4l2_of_parse_endpoint(ep, &v4l2_ep);
+> +=09of_node_put(ep);
+> +=09if (ret) {
+> +=09=09csi_err(priv, "Could not parse v4l2 endpoint\n");
+> +=09=09return -EINVAL;
+> +=09}
+> +
+> +=09if (v4l2_ep.bus_type !=3D V4L2_MBUS_CSI2) {
+> +=09=09csi_err(priv, "Unsupported media bus type for %s\n",
+> +=09=09=09of_node_full_name(ep));
+> +=09=09return -EINVAL;
+> +=09}
+> +
+> +=09switch (v4l2_ep.bus.mipi_csi2.num_data_lanes) {
+> +=09case 1:
+> +=09case 4:
+> +=09=09priv->lanes =3D v4l2_ep.bus.mipi_csi2.num_data_lanes;
+> +=09=09break;
+> +=09default:
+> +=09=09csi_err(priv, "Unsupported number of lanes\n");
+
+Shouldn't we also support the 2 lanes case ?
+
+> +=09=09return -EINVAL;
+> +=09}
+> +
+> +=09for (i =3D 0; i < 4; i++)
+> +=09=09priv->swap[i] =3D i;
+
+Is this needed given that your overwrite swap right below ?
+> +
+> +=09for (i =3D 0; i < priv->lanes; i++) {
+> +=09=09/* Check for valid lane number */
+> +=09=09if (v4l2_ep.bus.mipi_csi2.data_lanes[i] < 1 ||
+> +=09=09    v4l2_ep.bus.mipi_csi2.data_lanes[i] > 4) {
+> +=09=09=09csi_err(priv, "data lanes must be in 1-4 range\n");
+> +=09=09=09return -EINVAL;
+> +=09=09}
+> +
+> +=09=09/* Use lane numbers 0-3 internally */
+> +=09=09priv->swap[i] =3D v4l2_ep.bus.mipi_csi2.data_lanes[i] - 1;
+> +
+> +
+
+Extra blank lines.
+
+> +=09}
+> +
+> +=09/* Make sure there are no duplicates */
+> +=09for (i =3D 0; i < priv->lanes; i++) {
+> +=09=09for (n =3D i + 1; n < priv->lanes; n++) {
+> +=09=09=09if (priv->swap[i] =3D=3D priv->swap[n]) {
+> +=09=09=09=09csi_err(priv,
+> +=09=09=09=09=09"Requested swapping not possible\n");
+> +=09=09=09=09return -EINVAL;
+> +=09=09=09}
+> +=09=09}
+> +=09}
+
+I believe it would make sense to move this code to v4l2_of_parse_endpoi=
+nt().
+
+> +
+> +=09return 0;
+> +}
+> +
+> +static int rcar_csi2_probe_resources(struct rcar_csi2 *priv,
+> +=09=09=09=09     struct platform_device *pdev)
+> +{
+> +=09struct resource *mem;
+> +=09int irq;
+> +
+> +=09mem =3D platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +=09if (!mem)
+> +=09=09return -ENODEV;
+> +
+> +=09priv->base =3D devm_ioremap_resource(&pdev->dev, mem);
+> +=09if (IS_ERR(priv->base))
+> +=09=09return PTR_ERR(priv->base);
+> +
+> +=09irq =3D platform_get_irq(pdev, 0);
+> +=09if (!irq)
+> +=09=09return -ENODEV;
+> +
+> +=09return devm_request_irq(&pdev->dev, irq, rcar_csi2_irq, IRQF_SHAR=
+ED,
+> +=09=09=09=09dev_name(&pdev->dev), priv);
+> +}
+> +
+> +static int rcar_csi2_probe(struct platform_device *pdev)
+> +{
+> +=09struct rcar_csi2 *priv;
+> +=09unsigned int i;
+> +=09int ret;
+> +
+> +=09priv =3D devm_kzalloc(&pdev->dev, sizeof(struct rcar_csi2), GFP_K=
+ERNEL);
+
+sizeof(*priv)
+
+> +=09if (!priv)
+> +=09=09return -ENOMEM;
+> +
+> +
+
+Extra blank line.
+
+> +=09priv->dev =3D &pdev->dev;
+> +=09spin_lock_init(&priv->lock);
+> +
+> +=09ret =3D rcar_csi2_parse_dt(priv);
+> +=09if (ret)
+> +=09=09return ret;
+> +
+> +=09ret =3D rcar_csi2_probe_resources(priv, pdev);
+> +=09if (ret) {
+> +=09=09csi_err(priv, "Failed to get resources\n");
+> +=09=09return ret;
+> +=09}
+> +
+> +=09platform_set_drvdata(pdev, priv);
+> +
+> +=09priv->subdev.owner =3D THIS_MODULE;
+> +=09priv->subdev.dev =3D &pdev->dev;
+> +=09v4l2_subdev_init(&priv->subdev, &rcar_csi2_subdev_ops);
+> +=09v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
+> +=09snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
+> +=09=09 KBUILD_MODNAME, dev_name(&pdev->dev));
+> +
+> +=09priv->subdev.flags =3D V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +=09priv->subdev.entity.flags |=3D MEDIA_ENT_F_ATV_DECODER;
+
+You probably need a new function, this isn't an analog TV decoder. Besi=
+de=20
+that, the field you want to initialize is priv->subdev.entity.function.=
+
+
+> +=09priv->pads[RCAR_CSI2_SINK].flags =3D MEDIA_PAD_FL_SINK;
+> +=09for (i =3D RCAR_CSI2_SOURCE_VC0; i < RCAR_CSI2_PAD_MAX; i++)
+> +=09=09priv->pads[i].flags =3D MEDIA_PAD_FL_SOURCE;
+> +
+> +=09ret =3D media_entity_pads_init(&priv->subdev.entity, RCAR_CSI2_PA=
+D_MAX,
+> +=09=09=09=09     priv->pads);
+> +=09if (ret)
+> +=09=09return ret;
+> +
+> +=09ret =3D v4l2_async_register_subdev(&priv->subdev);
+> +=09if (ret < 0)
+> +=09=09return ret;
+> +
+> +=09pm_runtime_enable(&pdev->dev);
+> +
+> +=09csi_info(priv, "%d lanes found\n", priv->lanes);
+> +
+> +=09return 0;
+> +}
+
+--=20
+Regards,
+
+Laurent Pinchart
+
