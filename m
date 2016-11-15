@@ -1,131 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01-fr.bfs.de ([193.174.231.67]:57270 "EHLO mx01-fr.bfs.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754696AbcKYOsL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 09:48:11 -0500
-Message-ID: <58384F15.4040207@bfs.de>
-Date: Fri, 25 Nov 2016 15:47:49 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from galahad.ideasonboard.com ([185.26.127.97]:42576 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750928AbcKOTHv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Nov 2016 14:07:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Edgar Thier <info@edgarthier.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+Date: Tue, 15 Nov 2016 21:07:59 +0200
+Message-ID: <4228838.ihduIDFkeB@avalon>
+In-Reply-To: <20161115170402.GY3217@valkosipuli.retiisi.org.uk>
+References: <87h97achun.fsf@edgarthier.net> <1640565.qtzjRM8HWd@avalon> <20161115170402.GY3217@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
-References: <20161125102835.GA5856@mwanda> <2064794.XNX8XhaLMu@avalon>
-In-Reply-To: <2064794.XNX8XhaLMu@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
+On Tuesday 15 Nov 2016 19:04:02 Sakari Ailus wrote:
+> On Tue, Nov 15, 2016 at 04:44:04PM +0200, Laurent Pinchart wrote:
+> > Hi Sakari,
+> 
+> ...
+> 
+> >> +Description
+> >> +===========
+> >> +
+> >> +These four pixel formats are raw sRGB / Bayer formats with 16 bits per
+> >> +sample. Each sample is stored in a 16-bit word. Each n-pixel row
+> >> contains
+> >> +n/2 green samples and n/2 blue or red samples, with alternating red and
+> >> blue
+> >> +rows. Bytes are stored in memory in little endian order. They are
+> >> +conventionally described as GRGR... BGBG..., RGRG... GBGB..., etc.
+> >> Below is
+> >> +an example of one of these formats:
+> >
+> > To make it clearer, how about telling which format that is ?
+> 
+> I don't object the change as such, but the text is the same than on other
+> bayer formats as well. The fix should not be done on this one only.
+> 
+> I propose to handle that separately if that's ok for you.
 
-Am 25.11.2016 14:57, schrieb Laurent Pinchart:
-> Hi Dan,
-> 
-> Thank you for the patch.
-> 
-> On Friday 25 Nov 2016 13:28:35 Dan Carpenter wrote:
->> A recent cleanup introduced a potential dereference of -EFAULT when we
->> call kfree(map->menu_info).
-> 
-> I should have caught that, my apologies :-(
-> 
-> Thinking a bit more about this class of problems, would the following patch 
-> make sense ?
-> 
-> commit 034b71306510643f9f059249a0c14418099eb436
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Fri Nov 25 15:54:22 2016 +0200
-> 
->     mm/slab: WARN_ON error pointers passed to kfree()
->     
->     Passing an error pointer to kfree() is invalid and can lead to crashes
->     or memory corruption. Reject those pointers and WARN in order to catch
->     the problems and fix them in the callers.
->     
->     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> diff --git a/mm/slab.c b/mm/slab.c
-> index 0b0550ca85b4..a7eb830c6684 100644
-> --- a/mm/slab.c
-> +++ b/mm/slab.c
-> @@ -3819,6 +3819,8 @@ void kfree(const void *objp)
->  
->  	if (unlikely(ZERO_OR_NULL_PTR(objp)))
->  		return;
-> +	if (WARN_ON(IS_ERR(objp)))
-> +		return;
->  	local_irq_save(flags);
->  	kfree_debugcheck(objp);
->  	c = virt_to_cache(objp);
+I'm fine with that, can you submit a patch ? :-)
 
+-- 
+Regards,
 
-I this is better in kfree_debugcheck().
-1. it has the right name
-2. is contains already a check
+Laurent Pinchart
 
-static void kfree_debugcheck(const void *objp)
- {
-         if (!virt_addr_valid(objp)) {
-                 pr_err("kfree_debugcheck: out of range ptr %lxh\n",
-                        (unsigned long)objp);
-                 BUG();
-         }
-  }
-
-btw: should this read %p ?
-
-re,
- wh
-
-
-
->> Fixes: 4cc5bed1caeb ("[media] uvcvideo: Use memdup_user() rather than
->> duplicating its implementation")
->> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Mauro, the bug is present in your branch only at the moment and queued for 
-> v4.10. Could you please pick this patch up as well ?
-> 
->> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
->> b/drivers/media/usb/uvc/uvc_v4l2.c index a7e12fd..3e7e283 100644
->> --- a/drivers/media/usb/uvc/uvc_v4l2.c
->> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
->> @@ -66,14 +66,14 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
->> *chain, if (xmap->menu_count == 0 ||
->>  		    xmap->menu_count > UVC_MAX_CONTROL_MENU_ENTRIES) {
->>  			ret = -EINVAL;
->> -			goto done;
->> +			goto free_map;
->>  		}
->>
->>  		size = xmap->menu_count * sizeof(*map->menu_info);
->>  		map->menu_info = memdup_user(xmap->menu_info, size);
->>  		if (IS_ERR(map->menu_info)) {
->>  			ret = PTR_ERR(map->menu_info);
->> -			goto done;
->> +			goto free_map;
->>  		}
->>
->>  		map->menu_count = xmap->menu_count;
->> @@ -83,13 +83,13 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
->> *chain, uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
->>  			  "%u.\n", xmap->v4l2_type);
->>  		ret = -ENOTTY;
->> -		goto done;
->> +		goto free_map;
->>  	}
->>
->>  	ret = uvc_ctrl_add_mapping(chain, map);
->>
->> -done:
->>  	kfree(map->menu_info);
->> +free_map:
->>  	kfree(map);
->>
->>  	return ret;
-> 
