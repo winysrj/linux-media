@@ -1,133 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:36816 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753173AbcKOXVt (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:1904 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933973AbcKOBem (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 18:21:49 -0500
+        Mon, 14 Nov 2016 20:34:42 -0500
+From: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        <daniel.thompson@linaro.org>, Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Daniel Kurtz <djkurtz@chromium.org>,
+        Pawel Osciak <posciak@chromium.org>
+CC: <srv_heupstream@mediatek.com>,
+        Eddie Huang <eddie.huang@mediatek.com>,
+        Yingjoe Chen <yingjoe.chen@mediatek.com>,
+        <devicetree@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>,
+        <linux-mediatek@lists.infradead.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Subject: [PATCH v2] [media] mtk-mdp: allocate video_device dynamically
+Date: Tue, 15 Nov 2016 09:34:34 +0800
+Message-ID: <1479173674-42775-1-git-send-email-minghsiu.tsai@mediatek.com>
 MIME-Version: 1.0
-In-Reply-To: <1479136968-24477-4-git-send-email-hverkuil@xs4all.nl>
-References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl> <1479136968-24477-4-git-send-email-hverkuil@xs4all.nl>
-From: Pierre-Hugues Husson <phh@phh.me>
-Date: Wed, 16 Nov 2016 00:21:28 +0100
-Message-ID: <CAJ-oXjSzet5R9d=zJEVxg5EjjUfc1=PM5R2fjc9FgMtJFnx6Uw@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 3/5] drm/bridge: dw_hdmi: add HDMI notifier support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Russell King <rmk+kernel@arm.linux.org.uk>,
-        linux-fbdev@vger.kernel.org,
-        Russell King - ARM Linux <linux@armlinux.org.uk>,
-        dri-devel@lists.freedesktop.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+It can fix known problems with embedded video_device structs.
 
-2016-11-14 16:22 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
->
-> Add HDMI notifiers to the HDMI bridge driver.
->
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> ---
->  drivers/gpu/drm/bridge/Kconfig   |  1 +
->  drivers/gpu/drm/bridge/dw-hdmi.c | 25 ++++++++++++++++++++++++-
->  2 files changed, 25 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/gpu/drm/bridge/Kconfig b/drivers/gpu/drm/bridge/Kconfig
-> index 10e12e7..5f4ebe9 100644
-> --- a/drivers/gpu/drm/bridge/Kconfig
-> +++ b/drivers/gpu/drm/bridge/Kconfig
-> @@ -27,6 +27,7 @@ config DRM_DUMB_VGA_DAC
->  config DRM_DW_HDMI
->         tristate
->         select DRM_KMS_HELPER
-> +       select HDMI_NOTIFIERS
->
->  config DRM_DW_HDMI_AHB_AUDIO
->         tristate "Synopsis Designware AHB Audio interface"
-> diff --git a/drivers/gpu/drm/bridge/dw-hdmi.c b/drivers/gpu/drm/bridge/dw-hdmi.c
-> index ab7023e..bd02da5 100644
-> --- a/drivers/gpu/drm/bridge/dw-hdmi.c
-> +++ b/drivers/gpu/drm/bridge/dw-hdmi.c
-> @@ -16,6 +16,7 @@
->  #include <linux/err.h>
->  #include <linux/clk.h>
->  #include <linux/hdmi.h>
-> +#include <linux/hdmi-notifier.h>
->  #include <linux/mutex.h>
->  #include <linux/of_device.h>
->  #include <linux/spinlock.h>
-> @@ -114,6 +115,7 @@ struct dw_hdmi {
->
->         struct hdmi_data_info hdmi_data;
->         const struct dw_hdmi_plat_data *plat_data;
-> +       struct hdmi_notifier *n;
->
->         int vic;
->
-> @@ -1448,9 +1450,11 @@ static int dw_hdmi_connector_get_modes(struct drm_connector *connector)
->                 hdmi->sink_is_hdmi = drm_detect_hdmi_monitor(edid);
->                 hdmi->sink_has_audio = drm_detect_monitor_audio(edid);
->                 drm_mode_connector_update_edid_property(connector, edid);
-> +               hdmi_event_new_edid(hdmi->n, edid, 0);
->                 ret = drm_add_edid_modes(connector, edid);
->                 /* Store the ELD */
->                 drm_edid_to_eld(connector, edid);
-> +               hdmi_event_new_eld(hdmi->n, connector->eld);
->                 kfree(edid);
->         } else {
->                 dev_dbg(hdmi->dev, "failed to get edid\n");
-> @@ -1579,6 +1583,12 @@ static irqreturn_t dw_hdmi_irq(int irq, void *dev_id)
->                         dw_hdmi_update_phy_mask(hdmi);
->                 }
->                 mutex_unlock(&hdmi->mutex);
-> +
-> +               if ((phy_stat & (HDMI_PHY_RX_SENSE | HDMI_PHY_HPD)) == 0)
-> +                       hdmi_event_disconnect(hdmi->n);
-> +               else if ((phy_stat & (HDMI_PHY_RX_SENSE | HDMI_PHY_HPD)) ==
-> +                        (HDMI_IH_PHY_STAT0_RX_SENSE | HDMI_PHY_HPD))
-> +                       hdmi_event_connect(hdmi->n);
->         }
->
->         if (intr_stat & HDMI_IH_PHY_STAT0_HPD) {
-> @@ -1732,11 +1742,17 @@ int dw_hdmi_bind(struct device *dev, struct device *master,
->
->         initialize_hdmi_ih_mutes(hdmi);
->
-> +       hdmi->n = hdmi_notifier_get(dev);
-> +       if (!hdmi->n) {
-> +               ret = -ENOMEM;
-> +               goto err_iahb;
-> +       }
-> +
->         ret = devm_request_threaded_irq(dev, irq, dw_hdmi_hardirq,
->                                         dw_hdmi_irq, IRQF_SHARED,
->                                         dev_name(dev), hdmi);
->         if (ret)
-> -               goto err_iahb;
-> +               goto err_hdmi_not;
->
->         /*
->          * To prevent overflows in HDMI_IH_FC_STAT2, set the clk regenerator
-> @@ -1788,6 +1804,8 @@ int dw_hdmi_bind(struct device *dev, struct device *master,
->
->         return 0;
->
-> +err_hdmi_not:
-> +       hdmi_notifier_put(hdmi->n);
->  err_iahb:
->         clk_disable_unprepare(hdmi->iahb_clk);
->  err_isfr:
-> @@ -1804,6 +1822,11 @@ void dw_hdmi_unbind(struct device *dev, struct device *master, void *data)
->         if (hdmi->audio && !IS_ERR(hdmi->audio))
->                 platform_device_unregister(hdmi->audio);
->
-> +       hdmi_notifier_put(hdmi->n);
-> +
-> +       if (!IS_ERR(hdmi->cec))
-> +               platform_device_unregister(hdmi->cec);
-Those two lines should be in your 4/5
-> +
->         /* Disable all interrupts */
->         hdmi_writeb(hdmi, ~0, HDMI_IH_MUTE_PHY_STAT0);
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+
+---
+Changes in v2:
+. Call video_device_release() instead of video_unregister_device()
+  in mtk_mdp_register_m2m_device()
+
+
+---
+ drivers/media/platform/mtk-mdp/mtk_mdp_core.h |  2 +-
+ drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c  | 33 ++++++++++++++++-----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_core.h b/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+index 848569d..ad1cff3 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_core.h
+@@ -167,7 +167,7 @@ struct mtk_mdp_dev {
+ 	struct mtk_mdp_comp		*comp[MTK_MDP_COMP_ID_MAX];
+ 	struct v4l2_m2m_dev		*m2m_dev;
+ 	struct list_head		ctx_list;
+-	struct video_device		vdev;
++	struct video_device		*vdev;
+ 	struct v4l2_device		v4l2_dev;
+ 	struct workqueue_struct		*job_wq;
+ 	struct platform_device		*vpu_dev;
+diff --git a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+index 9a747e7..13afe48 100644
+--- a/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
++++ b/drivers/media/platform/mtk-mdp/mtk_mdp_m2m.c
+@@ -1236,16 +1236,22 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+ 	int ret;
+ 
+ 	mdp->variant = &mtk_mdp_default_variant;
+-	mdp->vdev.device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
+-	mdp->vdev.fops = &mtk_mdp_m2m_fops;
+-	mdp->vdev.ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
+-	mdp->vdev.release = video_device_release_empty;
+-	mdp->vdev.lock = &mdp->lock;
+-	mdp->vdev.vfl_dir = VFL_DIR_M2M;
+-	mdp->vdev.v4l2_dev = &mdp->v4l2_dev;
+-	snprintf(mdp->vdev.name, sizeof(mdp->vdev.name), "%s:m2m",
++	mdp->vdev = video_device_alloc();
++	if (!mdp->vdev) {
++		dev_err(dev, "failed to allocate video device\n");
++		ret = -ENOMEM;
++		goto err_video_alloc;
++	}
++	mdp->vdev->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
++	mdp->vdev->fops = &mtk_mdp_m2m_fops;
++	mdp->vdev->ioctl_ops = &mtk_mdp_m2m_ioctl_ops;
++	mdp->vdev->release = video_device_release;
++	mdp->vdev->lock = &mdp->lock;
++	mdp->vdev->vfl_dir = VFL_DIR_M2M;
++	mdp->vdev->v4l2_dev = &mdp->v4l2_dev;
++	snprintf(mdp->vdev->name, sizeof(mdp->vdev->name), "%s:m2m",
+ 		 MTK_MDP_MODULE_NAME);
+-	video_set_drvdata(&mdp->vdev, mdp);
++	video_set_drvdata(mdp->vdev, mdp);
+ 
+ 	mdp->m2m_dev = v4l2_m2m_init(&mtk_mdp_m2m_ops);
+ 	if (IS_ERR(mdp->m2m_dev)) {
+@@ -1254,26 +1260,27 @@ int mtk_mdp_register_m2m_device(struct mtk_mdp_dev *mdp)
+ 		goto err_m2m_init;
+ 	}
+ 
+-	ret = video_register_device(&mdp->vdev, VFL_TYPE_GRABBER, 2);
++	ret = video_register_device(mdp->vdev, VFL_TYPE_GRABBER, 2);
+ 	if (ret) {
+ 		dev_err(dev, "failed to register video device\n");
+ 		goto err_vdev_register;
+ 	}
+ 
+ 	v4l2_info(&mdp->v4l2_dev, "driver registered as /dev/video%d",
+-		  mdp->vdev.num);
++		  mdp->vdev->num);
+ 	return 0;
+ 
+ err_vdev_register:
+ 	v4l2_m2m_release(mdp->m2m_dev);
+ err_m2m_init:
+-	video_device_release(&mdp->vdev);
++	video_device_release(mdp->vdev);
++err_video_alloc:
+ 
+ 	return ret;
+ }
+ 
+ void mtk_mdp_unregister_m2m_device(struct mtk_mdp_dev *mdp)
+ {
+-	video_device_release(&mdp->vdev);
++	video_unregister_device(mdp->vdev);
+ 	v4l2_m2m_release(mdp->m2m_dev);
+ }
+-- 
+1.9.1
+
