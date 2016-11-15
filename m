@@ -1,113 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f52.google.com ([209.85.215.52]:36498 "EHLO
-        mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934727AbcKKVIr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 16:08:47 -0500
-Received: by mail-lf0-f52.google.com with SMTP id t196so20907969lff.3
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 13:08:46 -0800 (PST)
-Date: Fri, 11 Nov 2016 22:08:43 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/1] media: entity: Add media_entity_has_route() function
-Message-ID: <20161111210843.GA3834@bigcity.dyn.berto.se>
-References: <20161108124238.GM3217@valkosipuli.retiisi.org.uk>
- <1478609668-1117-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from mail.kernel.org ([198.145.29.136]:42128 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965643AbcKOBkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 20:40:53 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1478609668-1117-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1488637.i0jADhlNmg@avalon>
+References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1645400.RKG9rcP36z@avalon> <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com>
+ <1488637.i0jADhlNmg@avalon>
+From: Rob Herring <robh@kernel.org>
+Date: Mon, 14 Nov 2016 19:40:26 -0600
+Message-ID: <CAL_JsqL_41VGf8ZFEzQyqPU_EeK=Ms+jdt_N9cvRyLFkXF2MTg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thierry Reding <thierry.reding@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel <dri-devel@lists.freedesktop.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Mon, Oct 17, 2016 at 7:42 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Rob,
+>
+> On Friday 14 Oct 2016 07:40:14 Rob Herring wrote:
+>> On Sun, Oct 9, 2016 at 11:33 AM, Laurent Pinchart wrote:
+>> > On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
+>> >> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
+>> >>> LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+>> >>> Multiple incompatible data link layers have been used over time to
+>> >>> transmit image data to LVDS panels. This binding supports display
+>> >>> panels compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
+>> >>> specifications.
+>> >>>
+>> >>> Signed-off-by: Laurent Pinchart
+>> >>> <laurent.pinchart+renesas@ideasonboard.com>
+>> >>> ---
+>> >>>
+>> >>>  .../bindings/display/panel/panel-lvds.txt          | 119 ++++++++++++++
+>> >>>  1 file changed, 119 insertions(+)
+>> >>>  create mode 100644
+>> >>>  Documentation/devicetree/bindings/display/panel/panel-lvds.txt>
+>> >>>
+>> >>> diff --git
+>> >>> a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+>> >>> b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+>> >>> new file mode 100644
+>> >>> index 000000000000..250861f2673e
+>> >>> --- /dev/null
+>> >>> +++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+>> >>> @@ -0,0 +1,119 @@
+>> >>> +Generic LVDS Panel
+>> >>> +==================
+>> >>> +
+>> >>> +LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+>> >>> Multiple
+>> >>> +incompatible data link layers have been used over time to transmit
+>> >>> image data
+>> >>> +to LVDS panels. This bindings supports display panels compatible with
+>> >>> the
+>> >>> +following specifications.
+>> >>> +
+>> >>> +[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999,
+>> >>> February
+>> >>> +1999 (Version 1.0), Japan Electronic Industry Development Association
+>> >>> (JEIDA)
+>> >>> +[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95), National
+>> >>> +Semiconductor
+>> >>> +[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0),
+>> >>> Video
+>> >>> +Electronics Standards Association (VESA)
+>> >>> +
+>> >>> +Device compatible with those specifications have been marketed under
+>> >>> the
+>> >>> +FPD-Link and FlatLink brands.
+>> >>> +
+>> >>> +
+>> >>> +Required properties:
+>> >>> +- compatible: shall contain "panel-lvds"
+>> >>
+>> >> Maybe as a fallback, but on its own, no way.
+>> >
+>> > Which brings an interesting question: when designing generic DT bindings,
+>> > what's the rule regarding
+>
+> Looks like I forgot part of the question. I meant to ask what is the rule
+> regarding usage of more precise compatible strings ?
 
-Thanks, I will use this one in my next iteration of the VIN patches.
+When in doubt, always have one. If there's any chance at all that s/w
+will need to know or care, then we should have one.
 
-On 2016-11-08 14:54:28 +0200, Sakari Ailus wrote:
-> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> This is a wrapper around the media entity has_route operation.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Niklas,
-> 
-> There was actually another problem with the Kerneldoc comment related to
-> the mutex. Fixed that one as well.
-> 
-> Kind regards,
-> Sakari
-> 
->  drivers/media/media-entity.c | 16 ++++++++++++++++
->  include/media/media-entity.h | 17 +++++++++++++++++
->  2 files changed, 33 insertions(+)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 5734bb9..7de08e1 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -242,6 +242,22 @@ EXPORT_SYMBOL_GPL(media_entity_pads_init);
->   * Graph traversal
->   */
->  
-> +bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-> +			    unsigned int pad1)
-> +{
-> +	if (pad0 >= entity->num_pads || pad1 >= entity->num_pads)
-> +		return false;
-> +
-> +	if (pad0 == pad1)
-> +		return true;
-> +
-> +	if (!entity->ops || !entity->ops->has_route)
-> +		return true;
-> +
-> +	return entity->ops->has_route(entity, pad0, pad1);
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_has_route);
-> +
->  static struct media_entity *
->  media_entity_other(struct media_entity *entity, struct media_link *link)
->  {
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 2060e48..aa8d3c5 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -834,6 +834,23 @@ __must_check int media_entity_graph_walk_init(
->  	struct media_entity_graph *graph, struct media_device *mdev);
->  
->  /**
-> + * media_entity_has_route - Check if two entity pads are connected internally
-> + *
-> + * @entity: The entity
-> + * @pad0: The first pad index
-> + * @pad1: The second pad index
-> + *
-> + * This function can be used to check whether two pads of an entity are
-> + * connected internally in the entity.
-> + *
-> + * The caller must hold entity->graph_obj.mdev->mutex.
-> + *
-> + * Return: true if the pads are connected internally and false otherwise.
-> + */
-> +bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
-> +			    unsigned int pad1);
-> +
-> +/**
->   * media_entity_graph_walk_cleanup - Release resources used by graph walk.
->   *
->   * @graph: Media graph structure that will be used to walk the graph
-> -- 
-> 2.7.4
-> 
+> For instance (but perhaps not the best example), the input/rotary-encoder.txt
+> bindings define a "rotary-encoder" compatible string, with no other bindings
+> defining more precise compatible strings for the exact rotary encoder model.
+> When it comes to panels I believe it makes sense to define model-specific
+> compatible strings even if they're unused by drivers. I'm however wondering
+> what the rule is there, and where those device-specific compatible strings
+> should be defined. I'd like to avoid using one file per panel model as done
+> today for the simple-panel bindings.
 
--- 
-Regards,
-Niklas Söderlund
+There's a few exceptions like this where there is not any sort of
+model to base a compatible on. For example, a GPIO connected LED is
+truly generic. The only way to have a more specific compatible would
+be something with the board name in it.
+
+Your case here is in the middle. It seems like it's generic and
+passive, but perhaps power control is not. Rather than trying to
+decide, we can just cover our ass and put both a generic and specific
+compatible in.
+
+>> Call it "simple" so I can easily NAK it. :)
+>>
+>> Define a generic structure, not a single binding trying to serve all.
+>>
+>> >> > +- width-mm: panel display width in millimeters
+>> >> > +- height-mm: panel display height in millimeters
+>> >>
+>> >> This is already documented for all panels IIRC.
+>> >
+>> > Note that this DT binding has nothing to do with the simple-panel binding.
+>> > It is instead similar to the panel-dpi and panel-dsi-cm bindings (which
+>> > currently don't but should specify the panel size in DT). The LVDS panel
+>> > driver will *not* include any panel-specific information such as size or
+>> > timings, these are specified in DT.
+>>
+>> The panel bindings aren't really different. The biggest difference was
+>> location in the tree, but we now generally allow panels to be either a
+>> child of the LCD controller or connected with OF graph. We probably
+>> need to work on restructuring the panel bindings a bit. We should have
+>> an inheritance with a base panel binding of things like size, label,
+>> graph, backlight, etc, then perhaps an interface specific bindings for
+>> LVDS, DSI, and parallel, then a panel specific binding. With this the
+>> panel specific binding is typically just a compatible string and which
+>> inherited properties apply to it.
+>
+> That sounds good to me, but we have multiple models for panel bindings.
+>
+> As you mentioned panels can be referenced through an LCD controller node
+> property containing a phandle to the panel node, or through OF graph. That's a
+> situation we have today, and we need to keep supporting both (at least for
+> existing panels, perhaps not for the new ones).
+>
+> Another difference is how to express panel data such as size and timings. The
+> simple-panel DT bindings don't contain such data and expects the drivers to
+> contain a table of panel data for all models supported, while the DPI, DSI and
+> now the proposed LVDS panel bindings contain properties for panel data.
+>
+> How would you like to reconcile all that ?
+
+Thierry has outlined the position[1] that simple-panel follows many
+times and I generally agree. I could be convinced that perhaps panel
+timings could go into DT. However, you can't really describe
+*everything*, so we're not going to get away from panel specific
+compatible strings and panel specifics in the kernel.
+
+>> >>> +- data-mapping: the color signals mapping order, "jeida-18",
+>> >>> "jeida-24"
+>> >>> +  or "vesa-24"
+>> >>
+>> >> Maybe this should be part of the compatible.
+>> >
+>> > I've thought about it, but given that some panels support selecting
+>> > between multiple modes (through a mode pin that is usually hardwired), I
+>> > believe a separate DT property makes sense.
+>>
+>> Okay.
+>>
+>> > Furthermore, LVDS data organization is controlled by the combination of
+>> > both data-mapping and data-mirror. It makes little sense from my point of
+>> > view to handle one as part of the compatible string and the other one as
+>> > a separate property.
+>> >
+>> >> > +Optional properties:
+>> >> > +- label: a symbolic name for the panel
+>> >>
+>> >> Could be for any panel or display connector.
+>> >
+>> > Yes, but I'm not sure to understand how that's relevant :-)
+>>
+>> Meaning it should be a common property.
+>
+> Sure. So you expect me to reorganize all the panels and connectors DT bindings
+> in order to get this one merged ? :-)
+
+No, because I don't think label is widely defined. Just put it in a
+common place and reference it. Any other panels can be fixed later.
+Really, the "simple panel" binding should probably morph into the
+common binding.
+
+>> >>> +- avdd-supply: reference to the regulator that powers the panel
+>> >>> analog supply
+>> >>> +- dvdd-supply: reference to the regulator that powers the panel
+>> >>> digital supply
+>> >>
+>> >> Which one has to be powered on first, what voltage, and with what time
+>> >> in between? This is why "generic" or "simple" bindings don't work.
+>> >
+>> > The above-mentioned specifications also define connectors, pinouts and
+>> > power supplies, but many LVDS panels compatible with the LVDS physical
+>> > and data layers use a different connector with small differences in power
+>> > supplies.
+>> >
+>> > I believe the voltage is irrelevant here, it doesn't need to be controlled
+>> > by the operating system. Power supplies order and timing is relevant,
+>> > I'll investigate the level of differences between panels. I'm also fine
+>> > with dropping those properties for now.
+>>
+>> Whether you have control of the supplies is dependent on the board.
+>> Dropping them is just puts us in the simple binding trap. The simple
+>> bindings start out that way and then people keep adding to them.
+>
+> Damn, you can't be fooled easily ;-)
+
+I guess you can count all the simple bindings to see how many times I
+can be fooled. :)
+
+> On a more serious note, I'd like to design the bindings in a way that wouldn't
+> require adding device-specific code in the driver for each panel model, given
+> that in most cases power supply handling will be generic. What's your opinion
+> about a generic power supply model that would be used in the default case,
+> with the option to override it with device-specific code when needed ?
+
+I don't agree. Read Thierry's post on the subject[1].
+
+Rob
+
+[1] http://sietch-tagr.blogspot.com/2016/04/display-panels-are-not-special.html
