@@ -1,96 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41744 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932123AbcKPPQP (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:34063 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938685AbcKOOw3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 10:16:15 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Lubomir Rintel <lkundrak@v3.sk>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Federico Simoncelli <fsimonce@redhat.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        =?UTF-8?q?Nikola=20Forr=C3=B3?= <nikola.forro@gmail.com>,
-        Insu Yun <wuninsu@gmail.com>
-Subject: [PATCH] [media] usbtv: don't do DMA on stack
-Date: Wed, 16 Nov 2016 13:15:56 -0200
-Message-Id: <9c5e1833f754f55e9ccc05549a90c5fa439ce63e.1479309351.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+        Tue, 15 Nov 2016 09:52:29 -0500
+Date: Tue, 15 Nov 2016 15:52:25 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>, mchehab@kernel.org,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        robh+dt@kernel.org, devicetree@vger.kernel.org,
+        davem@davemloft.net, gregkh@linuxfoundation.org,
+        geert+renesas@glider.be, akpm@linux-foundation.org,
+        hverkuil@xs4all.nl, dheitmueller@kernellabs.com,
+        slongerbeam@gmail.com, lars@metafoo.de, robert.jarzmik@free.fr,
+        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
+        mark.rutland@arm.com, CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH v4 2/2] Add support for OV5647 sensor
+Message-ID: <20161115145225.GA7746@amd>
+References: <cover.1479129004.git.roliveir@synopsys.com>
+ <36447f1f102f648057eb9038a693941794a6c344.1479129004.git.roliveir@synopsys.com>
+ <20161115121032.GB7018@amd>
+ <3b6863c4-e239-7b66-1d96-7f0326f507c5@roeck-us.net>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="NzB8fVQJ5HfG6fxh"
+Content-Disposition: inline
+In-Reply-To: <3b6863c4-e239-7b66-1d96-7f0326f507c5@roeck-us.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by smatch:
-	drivers/media/usb/usbtv/usbtv-video.c:716 usbtv_s_ctrl() error: doing dma on the stack (data)
-	drivers/media/usb/usbtv/usbtv-video.c:758 usbtv_s_ctrl() error: doing dma on the stack (data)
 
-We should not do it, as it won't work on Kernels 4.9 and upper.
-So, alloc a buffer for it.
+--NzB8fVQJ5HfG6fxh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: c53a846c48f2 ("[media] usbtv: add video controls")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/usbtv/usbtv-video.c | 18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+On Tue 2016-11-15 05:50:32, Guenter Roeck wrote:
+> On 11/15/2016 04:10 AM, Pavel Machek wrote:
+> >Hi!
+> >
+> >>Add support for OV5647 sensor.
+> >>
+> >
+> >>+static int ov5647_write(struct v4l2_subdev *sd, u16 reg, u8 val)
+> >>+{
+> >>+	int ret;
+> >>+	unsigned char data[3] =3D { reg >> 8, reg & 0xff, val};
+> >>+	struct i2c_client *client =3D v4l2_get_subdevdata(sd);
+> >>+
+> >>+	ret =3D i2c_master_send(client, data, 3);
+> >>+	if (ret !=3D 3) {
+> >>+		dev_dbg(&client->dev, "%s: i2c write error, reg: %x\n",
+> >>+				__func__, reg);
+> >>+		return ret < 0 ? ret : -EIO;
+> >>+	}
+> >>+	return 0;
+> >>+}
+> >
+> >Sorry, this is wrong. It should something <0 any time error is detected.
+> >
+>=20
+> It seems to me that it does return a value < 0 each time an error is dete=
+cted.
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 86ffbf8780f2..d3b6d3dfaa09 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -704,10 +704,14 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct usbtv *usbtv = container_of(ctrl->handler, struct usbtv,
- 								ctrl);
--	u8 data[3];
-+	u8 *data;
- 	u16 index, size;
- 	int ret;
- 
-+	data = kmalloc(3, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
-+
- 	/*
- 	 * Read in the current brightness/contrast registers. We need them
- 	 * both, because the values are for some reason interleaved.
-@@ -717,6 +721,8 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
- 			usb_sndctrlpipe(usbtv->udev, 0), USBTV_CONTROL_REG,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0, USBTV_BASE + 0x0244, (void *)data, 3, 0);
-+		if (ret < 0)
-+			goto error;
- 	}
- 
- 	switch (ctrl->id) {
-@@ -752,6 +758,7 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
- 		}
- 		break;
- 	default:
-+		kfree(data);
- 		return -EINVAL;
- 	}
- 
-@@ -759,12 +766,13 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
- 			USBTV_CONTROL_REG,
- 			USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
- 			0, index, (void *)data, size, 0);
--	if (ret < 0) {
-+
-+error:
-+	if (ret < 0)
- 		dev_warn(usbtv->dev, "Failed to submit a control request.\n");
--		return ret;
--	}
- 
--	return 0;
-+	kfree(data);
-+	return ret;
- }
- 
- static const struct v4l2_ctrl_ops usbtv_ctrl_ops = {
--- 
-2.7.4
+Yep, you are right, sorry, I misparsed the code.
 
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--NzB8fVQJ5HfG6fxh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgrISkACgkQMOfwapXb+vKuygCeLdkwDem4GhGA3D0QH6ipdj6T
+P4gAn3hB/BjOzzahMfPEcuIDwrA6PEoX
+=Oihm
+-----END PGP SIGNATURE-----
+
+--NzB8fVQJ5HfG6fxh--
