@@ -1,55 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42553
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752504AbcKIUZa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 15:25:30 -0500
-Date: Wed, 9 Nov 2016 18:25:23 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Malcolm Priestley <tvboxspy@gmail.com>
-Cc: Benjamin Larsson <benjamin@southpole.se>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        =?UTF-8?B?SsO2cmc=?= Otte <jrg.otte@gmail.com>,
-        Patrick Boettcher <patrick.boettcher@posteo.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
-Message-ID: <20161109182523.43af40bb@vento.lan>
-In-Reply-To: <fac91957-30b0-b16f-a6f3-5bdfd0a65481@gmail.com>
-References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
-        <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
-        <20161108182215.41f1f3d2@vento.lan>
-        <354bc87c-79a1-bb37-6225-988c8fa429a5@southpole.se>
-        <20161108193834.4b90145b@vento.lan>
-        <fac91957-30b0-b16f-a6f3-5bdfd0a65481@gmail.com>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:4094 "EHLO
+        szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752777AbcKOHuI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Nov 2016 02:50:08 -0500
+From: Jiancheng Xue <xuejiancheng@hisilicon.com>
+To: <robh+dt@kernel.org>, <mark.rutland@arm.com>, <mchehab@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <yanhaifeng@hisilicon.com>,
+        <xuejiancheng@hisilicon.com>, <hermit.wangheming@hisilicon.com>,
+        <elder@linaro.org>, <bin.chen@linaro.org>,
+        Ruqiang Ju <juruqiang@huawei.com>
+Subject: [PATCH] [media] ir-hix5hd2: make hisilicon,power-syscon property deprecated
+Date: Tue, 15 Nov 2016 15:31:32 +0800
+Message-ID: <1479195092-20090-1-git-send-email-xuejiancheng@hisilicon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 9 Nov 2016 19:57:58 +0000
-Malcolm Priestley <tvboxspy@gmail.com> escreveu:
+From: Ruqiang Ju <juruqiang@huawei.com>
 
-> > Yeah, I avoided serializing the logic that detects if the firmware is
-> > loaded, but forgot that the power control had the same issue. The
-> > newer dvb usb drivers use the dvb-usb-v2, so I didn't touch this
-> > code for a while.  
-> 
-> I think the problem is that the usb buffer has been put in struct 
-> cinergyt2_state private area which has not been initialized for initial 
-> usb probing.
-> 
-> That was one of the main reasons for porting drivers to dvb-usb-v2.
+The clock of IR can be provided by the clock provider and controlled
+by common clock framework APIs.
 
-True, but converting to dvb-usb-v2, is more complex. In particular,
-dib0700 and dib3000 drivers rely on some things that may not be ported
-to dvb-usb-v2.
+Signed-off-by: Ruqiang Ju <juruqiang@huawei.com>
+Signed-off-by: Jiancheng Xue <xuejiancheng@hisilicon.com>
+---
+ .../devicetree/bindings/media/hix5hd2-ir.txt       |  6 +++---
+ drivers/media/rc/ir-hix5hd2.c                      | 25 ++++++++++++++--------
+ 2 files changed, 19 insertions(+), 12 deletions(-)
 
-So, I don't think we should do such change during the -rc cycle.
-Also, such change requires testing. So, one with those hardware should
-help with it, or the developer willing to do the conversion would
-need to get those old hardware in hands.
+diff --git a/Documentation/devicetree/bindings/media/hix5hd2-ir.txt b/Documentation/devicetree/bindings/media/hix5hd2-ir.txt
+index fb5e760..54e1bed 100644
+--- a/Documentation/devicetree/bindings/media/hix5hd2-ir.txt
++++ b/Documentation/devicetree/bindings/media/hix5hd2-ir.txt
+@@ -8,10 +8,11 @@ Required properties:
+ 	  the device. The interrupt specifier format depends on the interrupt
+ 	  controller parent.
+ 	- clocks: clock phandle and specifier pair.
+-	- hisilicon,power-syscon: phandle of syscon used to control power.
 
-Thanks,
-Mauro
+ Optional properties:
+ 	- linux,rc-map-name : Remote control map name.
++	- hisilicon,power-syscon: DEPRECATED. Don't use this in new dts files.
++		Provide correct clocks instead.
+
+ Example node:
+
+@@ -19,7 +20,6 @@ Example node:
+ 		compatible = "hisilicon,hix5hd2-ir";
+ 		reg = <0xf8001000 0x1000>;
+ 		interrupts = <0 47 4>;
+-		clocks = <&clock HIX5HD2_FIXED_24M>;
+-		hisilicon,power-syscon = <&sysctrl>;
++		clocks = <&clock HIX5HD2_IR_CLOCK>;
+ 		linux,rc-map-name = "rc-tivo";
+ 	};
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index d0549fb..d26907e 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -75,15 +75,22 @@ static void hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
+ {
+ 	u32 val;
+
+-	regmap_read(dev->regmap, IR_CLK, &val);
+-	if (on) {
+-		val &= ~IR_CLK_RESET;
+-		val |= IR_CLK_ENABLE;
++	if (dev->regmap) {
++		regmap_read(dev->regmap, IR_CLK, &val);
++		if (on) {
++			val &= ~IR_CLK_RESET;
++			val |= IR_CLK_ENABLE;
++		} else {
++			val &= ~IR_CLK_ENABLE;
++			val |= IR_CLK_RESET;
++		}
++		regmap_write(dev->regmap, IR_CLK, val);
+ 	} else {
+-		val &= ~IR_CLK_ENABLE;
+-		val |= IR_CLK_RESET;
++		if (on)
++			clk_prepare_enable(dev->clock);
++		else
++			clk_disable_unprepare(dev->clock);
+ 	}
+-	regmap_write(dev->regmap, IR_CLK, val);
+ }
+
+ static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
+@@ -207,8 +214,8 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 	priv->regmap = syscon_regmap_lookup_by_phandle(node,
+ 						       "hisilicon,power-syscon");
+ 	if (IS_ERR(priv->regmap)) {
+-		dev_err(dev, "no power-reg\n");
+-		return -EINVAL;
++		dev_info(dev, "no power-reg\n");
++		priv->regmap = NULL;
+ 	}
+
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+--
+1.9.1
+
