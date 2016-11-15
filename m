@@ -1,45 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:19312 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755857AbcKVPxi (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54616 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932228AbcKONpk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:53:38 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v3 03/10] ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
-Date: Tue, 22 Nov 2016 16:53:20 +0100
-Message-ID: <1479830007-29767-4-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
-References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 15 Nov 2016 08:45:40 -0500
+Date: Tue, 15 Nov 2016 15:45:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Edgar Thier <info@edgarthier.net>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+Message-ID: <20161115134532.GW3217@valkosipuli.retiisi.org.uk>
+References: <87h97achun.fsf@edgarthier.net>
+ <20161114141425.GT3217@valkosipuli.retiisi.org.uk>
+ <8760np5mjm.fsf@edgarthier.net>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8760np5mjm.fsf@edgarthier.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enables support of STMicroelectronics STiH4xx SoC series
-DELTA multi-format video decoder V4L2 driver.
+Hi Edgar,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/configs/multi_v7_defconfig | 1 +
- 1 file changed, 1 insertion(+)
+On Tue, Nov 15, 2016 at 06:39:41AM +0100, Edgar Thier wrote:
+> 
+> From 10ce06db4ab3c037758b3cb5264007f59801f1a1 Mon Sep 17 00:00:00 2001
+> From: Edgar Thier <info@edgarthier.net>
+> Date: Tue, 15 Nov 2016 06:33:10 +0100
+> Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+> 
+> Signed-off-by: Edgar Thier <info@edgarthier.net>
 
-diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-index 11f37ed..8500f75 100644
---- a/arch/arm/configs/multi_v7_defconfig
-+++ b/arch/arm/configs/multi_v7_defconfig
-@@ -562,6 +562,7 @@ CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_SAMSUNG_S5P_JPEG=m
- CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
- CONFIG_VIDEO_STI_BDISP=m
-+CONFIG_VIDEO_STI_DELTA=m
- CONFIG_VIDEO_RENESAS_JPU=m
- CONFIG_VIDEO_RENESAS_VSP1=m
- CONFIG_V4L_TEST_DRIVERS=y
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> ---
+> drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
+> drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
+> 2 files changed, 32 insertions(+)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index 87b2fc3b..9d1fc33 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
+> .guid		= UVC_GUID_FORMAT_RW10,
+> .fcc		= V4L2_PIX_FMT_SRGGB10P,
+> },
+> +	{
+> +			.name		= "Bayer 16-bit (SBGGR16)",
+
+Laurent, are these still needed? The V4L2 framework fills in the format
+name... certainly out of scope for this patch though.
+
+> +			.guid		= UVC_GUID_FORMAT_BG16,
+> +			.fcc		= V4L2_PIX_FMT_SBGGR16,
+> +	},
+> +	{
+> +			.name		= "Bayer 16-bit (SGBRG16)",
+> +			.guid		= UVC_GUID_FORMAT_GB16,
+> +			.fcc		= V4L2_PIX_FMT_SGBRG16,
+> +	},
+> +	{
+> +			.name		= "Bayer 16-bit (SRGGB16)",
+> +			.guid		= UVC_GUID_FORMAT_RG16,
+> +			.fcc		= V4L2_PIX_FMT_SRGGB16,
+> +	},
+> +	{
+> +			.name		= "Bayer 16-bit (SGRBG16)",
+> +			.guid		= UVC_GUID_FORMAT_GR16,
+> +			.fcc		= V4L2_PIX_FMT_SGRBG16,
+> +	},
+> };
+> 
+
 -- 
-1.9.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
