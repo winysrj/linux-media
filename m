@@ -1,84 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:37962 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932823AbcKOAyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 14 Nov 2016 19:54:04 -0500
+Date: Tue, 15 Nov 2016 01:53:58 +0100
+From: Sebastian Reichel <sre@kernel.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Pavel Machek <pavel@ucw.cz>, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161115005357.xjom264pjxbfubtz@earth>
+References: <20161023200355.GA5391@amd>
+ <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
+ <20161023203315.GC6391@amd>
+ <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
+ <20161103224843.itxlvvotni6w6tmu@earth>
+ <20161103230501.GJ3217@valkosipuli.retiisi.org.uk>
+ <20161104000525.jzouapxxwwiwdwjy@earth>
+ <20161114215827.GU3217@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20161123215510.GA16311@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com> <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com> <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com> <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Wed, 23 Nov 2016 14:42:12 -0800
-Message-ID: <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="c3p36kse4522cdcz"
+Content-Disposition: inline
+In-Reply-To: <20161114215827.GU3217@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 1:55 PM, Jason Gunthorpe
-<jgunthorpe@obsidianresearch.com> wrote:
-> On Wed, Nov 23, 2016 at 02:11:29PM -0700, Logan Gunthorpe wrote:
->> > As I said, there is no possible special handling. Standard IB hardware
->> > does not support changing the DMA address once a MR is created. Forget
->> > about doing that.
->>
->> Yeah, that's essentially the point I was trying to make. Not to mention
->> all the other unrelated hardware that can't DMA to an address that might
->> disappear mid-transfer.
->
-> Right, it is impossible to ask for generic page migration with ongoing
-> DMA. That is simply not supported by any of the hardware at all.
->
->> > Only ODP hardware allows changing the DMA address on the fly, and it
->> > works at the page table level. We do not need special handling for
->> > RDMA.
->>
->> I am aware of ODP but, noted by others, it doesn't provide a general
->> solution to the points above.
->
-> How do you mean?
->
-> Perhaps I am not following what Serguei is asking for, but I
-> understood the desire was for a complex GPU allocator that could
-> migrate pages between GPU and CPU memory under control of the GPU
-> driver, among other things. The desire is for DMA to continue to work
-> even after these migrations happen.
->
-> Page table mirroring *is* the general solution for this problem. The
-> GPU driver controls the VMA and the DMA driver mirrors that VMA.
->
-> Do you know of another option that doesn't just degenerate to page
-> table mirroring??
->
-> Remember, there are two facets to the RDMA ODP implementation, I feel
-> there is some confusion here..
->
-> The crucial part for this discussion is the ability to fence and block
-> DMA for a specific range. This is the hardware capability that lets
-> page migration happen: fence&block DMA, migrate page, update page
-> table in HCA, unblock DMA.
 
-Wait, ODP requires migratable pages, ZONE_DEVICE pages are not
-migratable. You can't replace a PCIe mapping with just any other
-System RAM physical address, right? At least not without a filesystem
-recording where things went, but at point we're no longer talking
-about the base P2P-DMA mapping mechanism and are instead talking about
-something like pnfs-rdma to a DAX filesystem.
+--c3p36kse4522cdcz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi Sakari,
+
+On Mon, Nov 14, 2016 at 11:58:28PM +0200, Sakari Ailus wrote:
+> [...]
+>
+> On Fri, Nov 04, 2016 at 01:05:25AM +0100, Sebastian Reichel wrote:
+> > I'm not sure what part relevant for video-bus-switch is currently
+> > not supported?
+> >=20
+> > video-bus-switch registers its own async notifier and only registers
+> > itself as subdevices to omap3isp, once its own subdevices have been
+> > registered successfully.
+>=20
+> Do you happen to have patches for this?
+> I still think we should clean up the V4L2 async framework though.
+
+http://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/tree/drivers=
+/media/platform/video-bus-switch.c?h=3Dn900-camera-ivo
+
+It was inside of the RFC series Ivo sent in April.
+
+> [...]
+
+-- Sebastian
+
+--c3p36kse4522cdcz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlgqXKMACgkQ2O7X88g7
++ppdCg//X2XUCFFUFo0Ixifq+9J8GdSJ+vU+cCs/TauGl+f9Rwf5E6iiCjFq3swv
+CFfLyXgY/WSxZHjhOwrpVKoYJpk8yzzhbNFcayTO5HAvdIS0U/0PIc1wOG4QwSbp
+4V3s05A1IzH8qAsJJ2CAktB2cUWhLeTysNMwtitY+qS92sX/4Pj9HUJw9F3TO4sK
+Fgc9lpBsYZMZGUkCS12sxom+S99xnpOpsLufFuTHBGsuKUo2sGr0oeWmXodl0d19
+7bU55CtY4ic43Dwg1zaubyicIv4wHVzrcIwy58JrbMlHvNdiH213UZkF9TCo9/oR
+p6CCwDKr2L9RZXpoc7XDdlUUf4mYwiNbnPwhr/ARZFxTPq8yvSf4uWNYZB3TDJhw
+4BQHECZsnqKFzq7uNT2eP2D4MP3ut0fQsJyhL/XBtAXdiSKE6k42I4ADegIf6o1A
+Xbo6d+SZvu6jdPcIJ12jdCEsunJXTxAuZ97wbVMppK37HELU9VMKsLaflb7BaNw6
+ZGBA3St62UskekxhQSBJz/FsazSVSs2hBNdSPSEp/EUtQhmFh2CbDPjovgOVlKvw
+5VE9kpZo8mTPhPmFW8KEtKT25u51bO6ta9Q3J8JTVOxP3yYX2/76QqWOY0VAwxCO
++UyNnHgKnjU1SDNf6/RiBex2I6JxaCEQI6umRkACBLkSH9V4tJQ=
+=oN9h
+-----END PGP SIGNATURE-----
+
+--c3p36kse4522cdcz--
