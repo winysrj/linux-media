@@ -1,71 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43688 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753306AbcKRPH7 (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:32797 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752269AbcKOMGE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 10:07:59 -0500
-Subject: patch "media: usb: uvc: remove unnecessary & operation" added to usb-testing
-To: felipe.balbi@linux.intel.com, laurent.pinchart@ideasonboard.com,
-        linux-media@vger.kernel.org, mchehab@kernel.org
-From: <gregkh@linuxfoundation.org>
-Date: Fri, 18 Nov 2016 16:06:36 +0100
-Message-ID: <147948159617106@kroah.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+        Tue, 15 Nov 2016 07:06:04 -0500
+Received: by mail-wm0-f67.google.com with SMTP id u144so25073787wmu.0
+        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2016 04:06:03 -0800 (PST)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Hans de Goede <hdegoede@redhat.com>,
+        linux-media@vger.kernel.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 2/3] qv4l: support for HSV formats via  OpenGL.
+Date: Tue, 15 Nov 2016 13:05:57 +0100
+Message-Id: <20161115120558.2872-2-ricardo.ribalda@gmail.com>
+In-Reply-To: <20161115120558.2872-1-ricardo.ribalda@gmail.com>
+References: <20161115120558.2872-1-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Support for HSV32 and HSV24.
 
-This is a note to let you know that I've just added the patch titled
-
-    media: usb: uvc: remove unnecessary & operation
-
-to my usb git tree which can be found at
-    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
-in the usb-testing branch.
-
-The patch will show up in the next release of the linux-next tree
-(usually sometime within the next 24 hours during the week.)
-
-The patch will be merged to the usb-next branch sometime soon,
-after it passes testing, and the merge window is open.
-
-If you have any questions about this process, please let me know.
-
-
->From 670216f4d38bb128aa525450fe6ff9a5b3a2b8b0 Mon Sep 17 00:00:00 2001
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Date: Wed, 28 Sep 2016 14:17:38 +0300
-Subject: media: usb: uvc: remove unnecessary & operation
-
-Now that usb_endpoint_maxp() only returns the lowest
-11 bits from wMaxPacketSize, we can remove the &
-operation from this driver.
-
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: <linux-media@vger.kernel.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 ---
- drivers/media/usb/uvc/uvc_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ utils/qv4l2/capture-win-gl.cpp | 32 +++++++++++++++++++++++++++++++-
+ 1 file changed, 31 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 11e0e5f4e1c2..f3c1c852e401 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1553,7 +1553,7 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
- 	u16 psize;
- 	u32 size;
+diff --git a/utils/qv4l2/capture-win-gl.cpp b/utils/qv4l2/capture-win-gl.cpp
+index af1909c936c5..df10d6863402 100644
+--- a/utils/qv4l2/capture-win-gl.cpp
++++ b/utils/qv4l2/capture-win-gl.cpp
+@@ -185,6 +185,8 @@ void CaptureWinGLEngine::setColorspace(unsigned colorspace, unsigned xfer_func,
+ 	case V4L2_PIX_FMT_YUV555:
+ 	case V4L2_PIX_FMT_YUV565:
+ 	case V4L2_PIX_FMT_YUV32:
++	case V4L2_PIX_FMT_HSV24:
++	case V4L2_PIX_FMT_HSV32:
+ 		is_rgb = false;
+ 		break;
+ 	}
+@@ -396,6 +398,8 @@ bool CaptureWinGLEngine::hasNativeFormat(__u32 format)
+ 		V4L2_PIX_FMT_GREY,
+ 		V4L2_PIX_FMT_Y16,
+ 		V4L2_PIX_FMT_Y16_BE,
++		V4L2_PIX_FMT_HSV24,
++		V4L2_PIX_FMT_HSV32,
+ 		0
+ 	};
  
--	psize = usb_endpoint_maxp(&ep->desc) & 0x7ff;
-+	psize = usb_endpoint_maxp(&ep->desc);
- 	size = stream->ctrl.dwMaxPayloadTransferSize;
- 	stream->bulk.max_payload_size = size;
+@@ -505,6 +509,8 @@ void CaptureWinGLEngine::changeShader()
+ 	case V4L2_PIX_FMT_GREY:
+ 	case V4L2_PIX_FMT_Y16:
+ 	case V4L2_PIX_FMT_Y16_BE:
++	case V4L2_PIX_FMT_HSV24:
++	case V4L2_PIX_FMT_HSV32:
+ 	default:
+ 		shader_RGB(m_frameFormat);
+ 		break;
+@@ -647,6 +653,8 @@ void CaptureWinGLEngine::paintGL()
+ 	case V4L2_PIX_FMT_XBGR32:
+ 	case V4L2_PIX_FMT_ARGB32:
+ 	case V4L2_PIX_FMT_ABGR32:
++	case V4L2_PIX_FMT_HSV24:
++	case V4L2_PIX_FMT_HSV32:
+ 	default:
+ 		render_RGB(m_frameFormat);
+ 		break;
+@@ -1537,7 +1545,9 @@ void CaptureWinGLEngine::shader_RGB(__u32 format)
+ 			  format == V4L2_PIX_FMT_BGR666 ||
+ 			  format == V4L2_PIX_FMT_GREY ||
+ 			  format == V4L2_PIX_FMT_Y16 ||
+-			  format == V4L2_PIX_FMT_Y16_BE;
++			  format == V4L2_PIX_FMT_Y16_BE ||
++			  format == V4L2_PIX_FMT_HSV24 ||
++			  format == V4L2_PIX_FMT_HSV32;
+ 	GLint internalFmt = manualTransform ? GL_RGBA8 : GL_SRGB8_ALPHA8;
  
+ 	switch (format) {
+@@ -1588,6 +1598,7 @@ void CaptureWinGLEngine::shader_RGB(__u32 format)
+ 		/* fall-through */
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_XRGB32:
++	case V4L2_PIX_FMT_HSV32:
+ 		glTexImage2D(GL_TEXTURE_2D, 0, internalFmt, m_frameWidth, m_frameHeight, 0,
+ 				GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, NULL);
+ 		break;
+@@ -1610,6 +1621,7 @@ void CaptureWinGLEngine::shader_RGB(__u32 format)
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
++	case V4L2_PIX_FMT_HSV24:
+ 	default:
+ 		glTexImage2D(GL_TEXTURE_2D, 0, internalFmt, m_frameWidth, m_frameHeight, 0,
+ 				GL_RGB, GL_UNSIGNED_BYTE, NULL);
+@@ -1657,6 +1669,22 @@ void CaptureWinGLEngine::shader_RGB(__u32 format)
+ 			    "   float g = r;"
+ 			    "   float b = r;";
+ 		break;
++	case V4L2_PIX_FMT_HSV24:
++	case V4L2_PIX_FMT_HSV32:
++		/* From http://lolengine.net/blog/2013/07/27/rgb-to-hsv-in-glsl */
++		if (m_ycbcr_enc == V4L2_HSV_ENC_256)
++			codeHead += "   float hue = color.r;";
++		else
++			codeHead += "   float hue = (color.r * 256.0) / 180.0;";
++
++		codeHead += "   vec3 c = vec3(hue, color.g, color.b);"
++			    "   vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);"
++			    "   vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);"
++			    "   vec3 ret = c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);"
++			    "   float r = ret.x;"
++			    "   float g = ret.y;"
++			    "   float b = ret.z;";
++		break;
+ 	default:
+ 		codeHead += "   float r = color.r;"
+ 			    "   float g = color.g;"
+@@ -1759,6 +1787,7 @@ void CaptureWinGLEngine::render_RGB(__u32 format)
+ 	case V4L2_PIX_FMT_RGB32:
+ 	case V4L2_PIX_FMT_XRGB32:
+ 	case V4L2_PIX_FMT_ARGB32:
++	case V4L2_PIX_FMT_HSV32:
+ 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth, m_frameHeight,
+ 				GL_BGRA, GL_UNSIGNED_INT_8_8_8_8, m_frameData);
+ 		break;
+@@ -1771,6 +1800,7 @@ void CaptureWinGLEngine::render_RGB(__u32 format)
+ 		break;
+ 	case V4L2_PIX_FMT_RGB24:
+ 	case V4L2_PIX_FMT_BGR24:
++	case V4L2_PIX_FMT_HSV24:
+ 	default:
+ 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_frameWidth, m_frameHeight,
+ 				GL_RGB, GL_UNSIGNED_BYTE, m_frameData);
 -- 
 2.10.2
-
 
