@@ -1,75 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35988 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754884AbcK3IcU (ORCPT
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:36303 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753042AbcKOXfZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 03:32:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 1/4] [media] davinci: vpif_capture: don't lock over s_stream
-Date: Wed, 30 Nov 2016 10:32:33 +0200
-Message-ID: <4747860.QGGHSuFRpz@avalon>
-In-Reply-To: <20161129235712.29846-2-khilman@baylibre.com>
-References: <20161129235712.29846-1-khilman@baylibre.com> <20161129235712.29846-2-khilman@baylibre.com>
+        Tue, 15 Nov 2016 18:35:25 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20161115232754.GB1041@n2100.armlinux.org.uk>
+References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
+ <1479136968-24477-3-git-send-email-hverkuil@xs4all.nl> <CAJ-oXjS-VVkBuYh0inTGAvJbsKzvEqKYrgoSeG6UBQtW_1BEyQ@mail.gmail.com>
+ <20161115232754.GB1041@n2100.armlinux.org.uk>
+From: Pierre-Hugues Husson <phh@phh.me>
+Date: Wed, 16 Nov 2016 00:35:03 +0100
+Message-ID: <CAJ-oXjTgYmnNhGh8dW4Ke=zFDN5wwHNoJ40bFUKp0T5dTGLrbw@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 2/5] drm/bridge: dw_hdmi: remove CEC engine register definitions
+To: Russell King - ARM Linux <linux@armlinux.org.uk>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kevin,
+2016-11-16 0:27 GMT+01:00 Russell King - ARM Linux <linux@armlinux.org.uk>:
+> On Wed, Nov 16, 2016 at 12:23:50AM +0100, Pierre-Hugues Husson wrote:
+>> Hi,
+>>
+>>
+>> 2016-11-14 16:22 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
+>> > From: Russell King <rmk+kernel@arm.linux.org.uk>
+>> >
+>> > We don't need the CEC engine register definitions, so let's remove the=
+m.
+>> >
+>> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+>> > ---
+>> >  drivers/gpu/drm/bridge/dw-hdmi.h | 45 -------------------------------=
+---------
+>> >  1 file changed, 45 deletions(-)
+>> >
+>> > diff --git a/drivers/gpu/drm/bridge/dw-hdmi.h b/drivers/gpu/drm/bridge=
+/dw-hdmi.h
+>> > index fc9a560..26d6845 100644
+>> > --- a/drivers/gpu/drm/bridge/dw-hdmi.h
+>> > +++ b/drivers/gpu/drm/bridge/dw-hdmi.h
+>> > @@ -478,51 +478,6 @@
+>> >  #define HDMI_A_PRESETUP                         0x501A
+>> >  #define HDMI_A_SRM_BASE                         0x5020
+>> >
+>> > -/* CEC Engine Registers */
+>> > -#define HDMI_CEC_CTRL                           0x7D00
+>> > -#define HDMI_CEC_STAT                           0x7D01
+>> > -#define HDMI_CEC_MASK                           0x7D02
+>> I don't know if this is relevant for a submission, but the build stops
+>> working here because of a missing definition HDMI_CEC_MASK
+>> Perhaps this should be inverted with 3/5 to make bissecting easier?
+>> I was trying to bissect a kernel panic, and I had to fix this by hand
+>
+> Doesn't make sense - patch 3 doesn't reference HDMI_CEC_MASK.
+>
+> Please show the build error in full.
+The build is actually fixed with patch 4.
 
-Thank you for the patch.
+Building after patch 2 fails with:
+drivers/gpu/drm/bridge/dw-hdmi.c: In function =E2=80=98initialize_hdmi_ih_m=
+utes=E2=80=99:
+drivers/gpu/drm/bridge/dw-hdmi.c:1300:26: error: =E2=80=98HDMI_CEC_MASK=E2=
+=80=99
+undeclared (first use in this function)
+  hdmi_writeb(hdmi, 0xff, HDMI_CEC_MASK);
 
-On Tuesday 29 Nov 2016 15:57:09 Kevin Hilman wrote:
-> Video capture subdevs may be over I2C and may sleep during xfer, so we
-> cannot do IRQ-disabled locking when calling the subdev.
-> 
-> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> b/drivers/media/platform/davinci/vpif_capture.c index
-> 5104cc0ee40e..9f8f41c0f251 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -193,7 +193,10 @@ static int vpif_start_streaming(struct vb2_queue *vq,
-> unsigned int count) }
->  	}
-> 
-> +	spin_unlock_irqrestore(&common->irqlock, flags);
->  	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
-> +	spin_lock_irqsave(&common->irqlock, flags);
+The point of switching patch 3 and patch 2, is that the build works
+with patch 1,3 applied.
+Applying patch 2 breaks the build, but doesn't change any active code,
+so it's ok.
 
-I always get anxious when I see a spinlock being released randomly with an 
-operation in the middle of a protected section. Looking at the code it looks 
-like the spinlock is abused here. irqlock should only protect the dma_queue 
-and should thus only be taken around the following code:
+So with the order 1,3,2,4,5, the build is broken only after 2, while
+with 1,2,3,4,5, it is broken after 2 and 3.
 
-spin_lock_irqsave(&common->irqlock, flags);
-/* Get the next frame from the buffer queue */
-common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
-                            struct vpif_cap_buffer, list);
-/* Remove buffer from the buffer queue */
-list_del(&common->cur_frm->list);
-spin_unlock_irqrestore(&common->irqlock, flags);
+I hope this makes my remark more explicit.
 
-The code that is currently protected by the lock in the start and stop 
-streaming functions should be protected by a mutex instead.
-
-> +
->  	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
->  		vpif_dbg(1, debug, "stream on failed in subdev\n");
->  		goto err;
-
--- 
-Regards,
-
-Laurent Pinchart
-
+If it doesn't, I think it is quite safe to just ignore it
