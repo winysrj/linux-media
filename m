@@ -1,83 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout.microchip.com ([198.175.253.82]:37580 "EHLO
-        email.microchip.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1168142AbcKAJDE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 1 Nov 2016 05:03:04 -0400
-Subject: Re: [PATCH] [media] atmel-isc: release the filehandle if it's not the
- only one.
-To: Hans Verkuil <hverkuil@xs4all.nl>, <nicolas.ferre@atmel.com>
-References: <1477987726-4257-1-git-send-email-songjun.wu@microchip.com>
- <c90098d4-4d53-d2e1-2d3e-e38e7d548f45@xs4all.nl>
-CC: <linux-arm-kernel@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-From: "Wu, Songjun" <Songjun.Wu@microchip.com>
-Message-ID: <b2c97492-7750-38b0-610a-70781b80a81a@microchip.com>
-Date: Tue, 1 Nov 2016 17:02:34 +0800
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57246 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752344AbcKOMKg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 15 Nov 2016 07:10:36 -0500
+Date: Tue, 15 Nov 2016 13:10:32 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, davem@davemloft.net,
+        gregkh@linuxfoundation.org, geert+renesas@glider.be,
+        akpm@linux-foundation.org, linux@roeck-us.net, hverkuil@xs4all.nl,
+        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
+        lars@metafoo.de, robert.jarzmik@free.fr, pali.rohar@gmail.com,
+        sakari.ailus@linux.intel.com, mark.rutland@arm.com,
+        CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH v4 2/2] Add support for OV5647 sensor
+Message-ID: <20161115121032.GB7018@amd>
+References: <cover.1479129004.git.roliveir@synopsys.com>
+ <36447f1f102f648057eb9038a693941794a6c344.1479129004.git.roliveir@synopsys.com>
 MIME-Version: 1.0
-In-Reply-To: <c90098d4-4d53-d2e1-2d3e-e38e7d548f45@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="8GpibOaaTibBMecb"
+Content-Disposition: inline
+In-Reply-To: <36447f1f102f648057eb9038a693941794a6c344.1479129004.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, my mistake, the device should be able to opened multiple times.
-It's a wrong patch.
 
-On 11/1/2016 16:52, Hans Verkuil wrote:
-> On 01/11/16 09:08, Songjun Wu wrote:
->> Release the filehandle in 'isc_open' if it's not the only filehandle
->> opened for the associated video_device.
->
-> What's wrong with that? You should always be able to open the device
-> multiple times. v4l2-compliance will fail after this patch. I'm not sure
-> what you intended to do here, but this patch is wrong.
->
-> Regards,
->
->     Hans
->
->>
->> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
->> ---
->>
->>  drivers/media/platform/atmel/atmel-isc.c | 18 +++++++++---------
->>  1 file changed, 9 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/media/platform/atmel/atmel-isc.c
->> b/drivers/media/platform/atmel/atmel-isc.c
->> index 8e25d3f..5e08404 100644
->> --- a/drivers/media/platform/atmel/atmel-isc.c
->> +++ b/drivers/media/platform/atmel/atmel-isc.c
->> @@ -926,21 +926,21 @@ static int isc_open(struct file *file)
->>      if (ret < 0)
->>          goto unlock;
->>
->> -    if (!v4l2_fh_is_singular_file(file))
->> -        goto unlock;
->> +    ret = !v4l2_fh_is_singular_file(file);
->> +    if (ret)
->> +        goto fh_rel;
->>
->>      ret = v4l2_subdev_call(sd, core, s_power, 1);
->> -    if (ret < 0 && ret != -ENOIOCTLCMD) {
->> -        v4l2_fh_release(file);
->> -        goto unlock;
->> -    }
->> +    if (ret < 0 && ret != -ENOIOCTLCMD)
->> +        goto fh_rel;
->>
->>      ret = isc_set_fmt(isc, &isc->fmt);
->> -    if (ret) {
->> +    if (ret)
->>          v4l2_subdev_call(sd, core, s_power, 0);
->> -        v4l2_fh_release(file);
->> -    }
->>
->> +fh_rel:
->> +    if (ret)
->> +        v4l2_fh_release(file);
->>  unlock:
->>      mutex_unlock(&isc->lock);
->>      return ret;
->>
+--8GpibOaaTibBMecb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> Add support for OV5647 sensor.
+>=20
+
+> +static int ov5647_write(struct v4l2_subdev *sd, u16 reg, u8 val)
+> +{
+> +	int ret;
+> +	unsigned char data[3] =3D { reg >> 8, reg & 0xff, val};
+> +	struct i2c_client *client =3D v4l2_get_subdevdata(sd);
+> +
+> +	ret =3D i2c_master_send(client, data, 3);
+> +	if (ret !=3D 3) {
+> +		dev_dbg(&client->dev, "%s: i2c write error, reg: %x\n",
+> +				__func__, reg);
+> +		return ret < 0 ? ret : -EIO;
+> +	}
+> +	return 0;
+> +}
+
+Sorry, this is wrong. It should something <0 any time error is detected.
+
+> +static int ov5647_write_array(struct v4l2_subdev *sd,
+> +				struct regval_list *regs, int array_size)
+> +{
+> +	int i =3D 0;
+> +	int ret =3D 0;
+> +
+> +	if (!regs)
+> +		return -EINVAL;
+> +
+> +	while (i < array_size) {
+> +		ret =3D ov5647_write(sd, regs->addr, regs->data);
+> +		if (ret < 0)
+> +			return ret;
+> +		i++;
+> +		regs++;
+> +	}
+> +	return 0;
+> +}
+
+For example this expects <0 on error.
+
+> +static int set_sw_standby(struct v4l2_subdev *sd, bool standby)
+> +{
+> +	int ret;
+> +	unsigned char rdval;
+> +
+> +	ret =3D ov5647_read(sd, 0x0100, &rdval);
+> +	if (ret !=3D 0)
+> +		return ret;
+> +
+> +	if (standby)
+> +		ret =3D ov5647_write(sd, 0x0100, rdval&0xfe);
+> +	else
+> +		ret =3D ov5647_write(sd, 0x0100, rdval|0x01);
+> +
+> +	return ret;
+
+if (standby)
+     rdval &=3D 0xfe;
+else
+     rdval |=3D 0x01;
+
+ret =3D ov5647_write(sd, 0x0100, rdval);
+
+?
+
+
+> +/**
+> + * @short Store information about the video data format.
+> + */
+> +static struct sensor_format_struct {
+> +	__u8 *desc;
+> +	u32 mbus_code;
+
+u8 is suitable here.
+
+
+> +	ov5647_read(sd, 0x0100, &resetval);
+> +		if (!resetval&0x01) {
+
+add ()s here.
+
+> +static int sensor_power(struct v4l2_subdev *sd, int on)
+> +{
+> +	int ret;
+> +	struct ov5647 *ov5647 =3D to_state(sd);
+> +	struct i2c_client *client =3D v4l2_get_subdevdata(sd);
+> +
+> +	ret =3D 0;
+> +	mutex_lock(&ov5647->lock);
+> +
+> +	if (on)	{
+> +		dev_dbg(&client->dev, "OV5647 power on!\n");
+> +
+> +		ret =3D ov5647_write_array(sd, sensor_oe_enable_regs,
+> +				ARRAY_SIZE(sensor_oe_enable_regs));
+> +
+> +		ret =3D __sensor_init(sd);
+> +
+> +		if (ret < 0)
+> +			dev_err(&client->dev,
+> +				"Camera not available! Check Power!\n");
+> +	} else {
+> +		dev_dbg(&client->dev, "OV5647 power off!\n");
+> +
+> +		dev_dbg(&client->dev, "disable oe\n");
+> +		ret =3D ov5647_write_array(sd, sensor_oe_disable_regs,
+> +				ARRAY_SIZE(sensor_oe_disable_regs));
+> +
+> +		if (ret < 0)
+> +			dev_dbg(&client->dev, "disable oe failed!\n");
+> +
+> +		ret =3D set_sw_standby(sd, true);
+> +
+> +		if (ret < 0)
+> +			dev_dbg(&client->dev, "soft stby failed!\n");
+
+dev_err for errors? Little less "!"s in the output?
+
+> +static int sensor_get_register(struct v4l2_subdev *sd,
+> +				struct v4l2_dbg_register *reg)
+> +{
+> +	unsigned char val =3D 0;
+> +	int ret;
+> +
+> +	ret =3D ov5647_read(sd, reg->reg & 0xff, &val);
+> +	reg->val =3D val;
+> +	reg->size =3D 1;
+> +	return ret;
+> +}
+
+Filling reg->* when read failed is strange.
+
+> +static int sensor_set_register(struct v4l2_subdev *sd,
+> +				const struct v4l2_dbg_register *reg)
+> +{
+> +	ov5647_write(sd, reg->reg & 0xff, reg->val & 0xff);
+> +	return 0;
+> +}
+
+error handling?
+
+Best regards,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--8GpibOaaTibBMecb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgq+zgACgkQMOfwapXb+vLZ1wCgwsYhTurSIGKt8I7oQN3EOX+k
+PvUAnjVPtIyFUqz/Z7iBCJ6jbt/8wKNF
+=dGlJ
+-----END PGP SIGNATURE-----
+
+--8GpibOaaTibBMecb--
