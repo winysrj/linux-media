@@ -1,52 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-MIME-Version: 1.0
-In-Reply-To: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com> <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 22 Nov 2016 12:01:17 -0800
-Message-ID: <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Cc: "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64098 "EHLO
+        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934742AbcKPJFb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Nov 2016 04:05:31 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>
+Subject: [PATCH 6/9] s5p-mfc: Kill all IS_ERR_OR_NULL in clocks management code
+Date: Wed, 16 Nov 2016 10:04:55 +0100
+Message-id: <1479287098-30493-7-git-send-email-m.szyprowski@samsung.com>
+In-reply-to: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
+References: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
+ <CGME20161116090520eucas1p1014c941bfe4fbe11392f8d9028e6f4f1@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
-<serguei.sagalovitch@amd.com> wrote:
-> Dan,
->
-> I personally like "device-DAX" idea but my concerns are:
->
-> -  How well it will co-exists with the  DRM infrastructure / implementations
->    in part dealing with CPU pointers?
+After commit "s5p-mfc: Fix clock management in s5p_mfc_release function"
+all clocks related functions are called only when MFC device is really
+available, so there is no additional check needed for NULL
+gate clocks. This patch simplifies the code and kills IS_ERR_OR_NULL
+macro usage.
 
-Inside the kernel a device-DAX range is "just memory" in the sense
-that you can perform pfn_to_page() on it and issue I/O, but the vma is
-not migratable. To be honest I do not know how well that co-exists
-with drm infrastructure.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c | 13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-> -  How well we will be able to handle case when we need to "move"/"evict"
->    memory/data to the new location so CPU pointer should point to the new
-> physical location/address
->     (and may be not in PCI device memory at all)?
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 11a918eb7564..b514584cf00d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -91,16 +91,12 @@ void s5p_mfc_final_pm(struct s5p_mfc_dev *dev)
+ 
+ int s5p_mfc_clock_on(void)
+ {
+-	int ret = 0;
+-
+ 	atomic_inc(&clk_ref);
+ 	mfc_debug(3, "+ %d\n", atomic_read(&clk_ref));
+ 
+ 	if (!pm->use_clock_gating)
+ 		return 0;
+-	if (!IS_ERR_OR_NULL(pm->clock_gate))
+-		ret = clk_enable(pm->clock_gate);
+-	return ret;
++	return clk_enable(pm->clock_gate);
+ }
+ 
+ void s5p_mfc_clock_off(void)
+@@ -110,8 +106,7 @@ void s5p_mfc_clock_off(void)
+ 
+ 	if (!pm->use_clock_gating)
+ 		return;
+-	if (!IS_ERR_OR_NULL(pm->clock_gate))
+-		clk_disable(pm->clock_gate);
++	clk_disable(pm->clock_gate);
+ }
+ 
+ int s5p_mfc_power_on(void)
+@@ -122,14 +117,14 @@ int s5p_mfc_power_on(void)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
++	if (!pm->use_clock_gating)
+ 		ret = clk_enable(pm->clock_gate);
+ 	return ret;
+ }
+ 
+ int s5p_mfc_power_off(void)
+ {
+-	if (!pm->use_clock_gating && !IS_ERR_OR_NULL(pm->clock_gate))
++	if (!pm->use_clock_gating)
+ 		clk_disable(pm->clock_gate);
+ 	return pm_runtime_put_sync(pm->device);
+ }
+-- 
+1.9.1
 
-So, device-DAX deliberately avoids support for in-kernel migration or
-overcommit. Those cases are left to the core mm or drm. The device-dax
-interface is for cases where all that is needed is a direct-mapping to
-a statically-allocated physical-address range be it persistent memory
-or some other special reserved memory range.
