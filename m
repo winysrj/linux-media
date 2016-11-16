@@ -1,34 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49633 "EHLO
+Received: from bombadil.infradead.org ([198.137.202.9]:49674 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753525AbcKPQnN (ORCPT
+        with ESMTP id S1753751AbcKPQnQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:13 -0500
+        Wed, 16 Nov 2016 11:43:16 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Masahiro Yamada <yamada.masahiro@socionext.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Stephen Backway <stev391@gmail.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Olli Salonen <olli.salonen@iki.fi>,
-        Matthias Schwarzott <zzam@gentoo.org>,
-        Sean Young <sean@mess.org>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 06/35] [media] cx23885: convert it to use pr_foo() macros
-Date: Wed, 16 Nov 2016 14:42:38 -0200
-Message-Id: <f152aad0106bcf5faa13f8cf17449bb7e15fb947.1479314177.git.mchehab@s-opensource.com>
+        Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH 23/35] [media] dib9000: use pr_foo() instead of printk()
+Date: Wed, 16 Nov 2016 14:42:55 -0200
+Message-Id: <bfb2c03ba7540d888b942ebef39e80ec66c0d35b.1479314177.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
 References: <cover.1479314177.git.mchehab@s-opensource.com>
 In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
@@ -36,1448 +21,653 @@ References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+The dprintk() macro relies on continuation lines. This is not
+a good practice and will break after commit 563873318d32
+("Merge branch 'printk-cleanups").
 
-Instead of calling printk() directly, use pr_foo()
-macros, as suggested at the Kernel's coding style.
+So, instead of directly calling printk(), use pr_foo() macros,
+adding a \n leading char on each macro call.
 
-Please notice that a conversion to dev_foo() is not trivial,
-as several parts on this driver uses pr_cont().
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/pci/cx23885/altera-ci.c     |  13 ++-
- drivers/media/pci/cx23885/altera-ci.h     |  14 +--
- drivers/media/pci/cx23885/cimax2.c        |   8 +-
- drivers/media/pci/cx23885/cx23885-417.c   |  57 ++++++-------
- drivers/media/pci/cx23885/cx23885-alsa.c  |  21 ++---
- drivers/media/pci/cx23885/cx23885-cards.c |  49 ++++++-----
- drivers/media/pci/cx23885/cx23885-core.c  | 137 ++++++++++++++----------------
- drivers/media/pci/cx23885/cx23885-dvb.c   |  40 ++++-----
- drivers/media/pci/cx23885/cx23885-f300.c  |   2 +-
- drivers/media/pci/cx23885/cx23885-i2c.c   |  25 +++---
- drivers/media/pci/cx23885/cx23885-input.c |   6 +-
- drivers/media/pci/cx23885/cx23885-ir.c    |   4 +-
- drivers/media/pci/cx23885/cx23885-vbi.c   |   7 +-
- drivers/media/pci/cx23885/cx23885-video.c |  23 ++---
- drivers/media/pci/cx23885/cx23885.h       |   2 +
- drivers/media/pci/cx23885/cx23888-ir.c    |   6 +-
- drivers/media/pci/cx23885/netup-eeprom.c  |   4 +-
- drivers/media/pci/cx23885/netup-init.c    |   8 +-
- 18 files changed, 208 insertions(+), 218 deletions(-)
+ drivers/media/dvb-frontends/dib9000.c | 171 ++++++++++++++++++----------------
+ 1 file changed, 89 insertions(+), 82 deletions(-)
 
-diff --git a/drivers/media/pci/cx23885/altera-ci.c b/drivers/media/pci/cx23885/altera-ci.c
-index aaf4e46ff3e9..88a9b8788a17 100644
---- a/drivers/media/pci/cx23885/altera-ci.c
-+++ b/drivers/media/pci/cx23885/altera-ci.c
-@@ -48,6 +48,9 @@
-  * |  DATA7|  DATA6|  DATA5|  DATA4|  DATA3|  DATA2|  DATA1|  DATA0|
-  * +-------+-------+-------+-------+-------+-------+-------+-------+
+diff --git a/drivers/media/dvb-frontends/dib9000.c b/drivers/media/dvb-frontends/dib9000.c
+index 5897977d2d00..6e023c0e4f24 100644
+--- a/drivers/media/dvb-frontends/dib9000.c
++++ b/drivers/media/dvb-frontends/dib9000.c
+@@ -7,6 +7,9 @@
+  *	modify it under the terms of the GNU General Public License as
+  *	published by the Free Software Foundation, version 2.
   */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +
- #include <dvb_demux.h>
- #include <dvb_frontend.h>
- #include "altera-ci.h"
-@@ -84,16 +87,18 @@ MODULE_DESCRIPTION("altera FPGA CI module");
- MODULE_AUTHOR("Igor M. Liplianin  <liplianin@netup.ru>");
- MODULE_LICENSE("GPL");
+ #include <linux/kernel.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
+@@ -21,7 +24,12 @@ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "turn on debugging (default: 0)");
  
--#define ci_dbg_print(args...) \
-+#define ci_dbg_print(fmt, args...) \
- 	do { \
- 		if (ci_dbg) \
--			printk(KERN_DEBUG args); \
-+			printk(KERN_DEBUG pr_fmt("%s: " fmt), \
-+			       __func__, ##args); \
- 	} while (0)
- 
--#define pid_dbg_print(args...) \
-+#define pid_dbg_print(fmt, args...) \
- 	do { \
- 		if (pid_dbg) \
--			printk(KERN_DEBUG args); \
-+			printk(KERN_DEBUG pr_fmt("%s: " fmt), \
-+			       __func__, ##args); \
- 	} while (0)
- 
- struct altera_ci_state;
-diff --git a/drivers/media/pci/cx23885/altera-ci.h b/drivers/media/pci/cx23885/altera-ci.h
-index 57a40c84b46e..ababd80fee93 100644
---- a/drivers/media/pci/cx23885/altera-ci.h
-+++ b/drivers/media/pci/cx23885/altera-ci.h
-@@ -48,24 +48,24 @@ extern int altera_ci_tuner_reset(void *dev, int ci_nr);
- 
- static inline int altera_ci_init(struct altera_ci_config *config, int ci_nr)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return 0;
- }
- 
- static inline void altera_ci_release(void *dev, int ci_nr)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- }
- 
- static inline int altera_ci_irq(void *dev)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return 0;
- }
- 
- static inline int altera_ci_tuner_reset(void *dev, int ci_nr)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return 0;
- }
- 
-@@ -74,19 +74,19 @@ static inline int altera_ci_tuner_reset(void *dev, int ci_nr)
- static inline int altera_hw_filt_init(struct altera_ci_config *config,
- 							int hw_filt_nr)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return 0;
- }
- 
- static inline void altera_hw_filt_release(void *dev, int filt_nr)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- }
- 
- static inline int altera_pid_feed_control(void *dev, int filt_nr,
- 		struct dvb_demux_feed *dvbdmxfeed, int onoff)
- {
--	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-+	pr_warn("%s: driver disabled by Kconfig\n", __func__);
- 	return 0;
- }
- 
-diff --git a/drivers/media/pci/cx23885/cimax2.c b/drivers/media/pci/cx23885/cimax2.c
-index d644c65622e2..5e8e134d81c2 100644
---- a/drivers/media/pci/cx23885/cimax2.c
-+++ b/drivers/media/pci/cx23885/cimax2.c
-@@ -65,10 +65,11 @@ static unsigned int ci_irq_enable;
- module_param(ci_irq_enable, int, 0644);
- MODULE_PARM_DESC(ci_irq_enable, "Enable IRQ from CAM");
- 
--#define ci_dbg_print(args...) \
-+#define ci_dbg_print(fmt, args...) \
- 	do { \
- 		if (ci_dbg) \
--			printk(KERN_DEBUG args); \
-+			printk(KERN_DEBUG pr_fmt("%s: " fmt), \
-+			       __func__, ##args); \
- 	} while (0)
- 
- #define ci_irq_flags() (ci_irq_enable ? NETUP_IRQ_IRQAM : 0)
-@@ -135,8 +136,7 @@ static int netup_write_i2c(struct i2c_adapter *i2c_adap, u8 addr, u8 reg,
- 	};
- 
- 	if (1 + len > sizeof(buffer)) {
--		printk(KERN_WARNING
--		       "%s: i2c wr reg=%04x: len=%d is too big!\n",
-+		pr_warn("%s: i2c wr reg=%04x: len=%d is too big!\n",
- 		       KBUILD_MODNAME, reg, len);
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index 0c122585a1f0..2ff1d1e274be 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -20,6 +20,9 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+#include "cx23885-ioctl.h"
+-#define dprintk(args...) do { if (debug) { printk(KERN_DEBUG "DiB9000: "); printk(args); printk("\n"); } } while (0)
++#define dprintk(fmt, arg...) do {					\
++	if (debug)							\
++		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
++		       __func__ , ##arg);				\
++} while(0)
 +
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
-@@ -32,9 +35,6 @@
- #include <media/v4l2-ioctl.h>
- #include <media/drv-intf/cx2341x.h>
+ #define MAX_NUMBER_OF_FRONTENDS 6
  
--#include "cx23885.h"
--#include "cx23885-ioctl.h"
--
- #define CX23885_FIRM_IMAGE_SIZE 376836
- #define CX23885_FIRM_IMAGE_NAME "v4l-cx23885-enc.fw"
+ struct i2c_device {
+@@ -258,7 +266,7 @@ static int dib9000_read16_attr(struct dib9000_state *state, u16 reg, u8 *b, u32
+ 		state->msg[1].buf = b;
+ 		ret = i2c_transfer(state->i2c.i2c_adap, state->msg, 2) != 2 ? -EREMOTEIO : 0;
+ 		if (ret != 0) {
+-			dprintk("i2c read error on %d", reg);
++			dprintk("i2c read error on %d\n", reg);
+ 			return -EREMOTEIO;
+ 		}
  
-@@ -55,8 +55,8 @@ MODULE_PARM_DESC(v4l_debug, "enable V4L debug messages");
+@@ -285,7 +293,7 @@ static u16 dib9000_i2c_read16(struct i2c_device *i2c, u16 reg)
+ 	i2c->i2c_write_buffer[1] = reg & 0xff;
  
- #define dprintk(level, fmt, arg...)\
- 	do { if (v4l_debug >= level) \
--		printk(KERN_DEBUG "%s: " fmt, \
--		(dev) ? dev->name : "cx23885[?]", ## arg); \
-+		printk(KERN_DEBUG pr_fmt("%s: 417:" fmt), \
-+			__func__, ##arg); \
- 	} while (0)
- 
- static struct cx23885_tvnorm cx23885_tvnorms[] = {
-@@ -769,8 +769,7 @@ static int cx23885_mbox_func(void *priv,
- 	   without side effects */
- 	mc417_memory_read(dev, dev->cx23417_mailbox - 4, &value);
- 	if (value != 0x12345678) {
--		printk(KERN_ERR
--			"Firmware and/or mailbox pointer not initialized or corrupted, signature = 0x%x, cmd = %s\n",
-+		pr_err("Firmware and/or mailbox pointer not initialized or corrupted, signature = 0x%x, cmd = %s\n",
- 			value, cmd_to_str(command));
- 		return -1;
+ 	if (i2c_transfer(i2c->i2c_adap, msg, 2) != 2) {
+-		dprintk("read register %x error", reg);
++		dprintk("read register %x error\n", reg);
+ 		return 0;
  	}
-@@ -780,7 +779,7 @@ static int cx23885_mbox_func(void *priv,
- 	 */
- 	mc417_memory_read(dev, dev->cx23417_mailbox, &flag);
- 	if (flag) {
--		printk(KERN_ERR "ERROR: Mailbox appears to be in use (%x), cmd = %s\n",
-+		pr_err("ERROR: Mailbox appears to be in use (%x), cmd = %s\n",
- 		       flag, cmd_to_str(command));
- 		return -1;
+ 
+@@ -440,7 +448,7 @@ static int dib9000_risc_mem_read(struct dib9000_state *state, u8 cmd, u8 * b, u1
+ 		return -EIO;
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
  	}
-@@ -810,7 +809,7 @@ static int cx23885_mbox_func(void *priv,
- 		if (0 != (flag & 4))
+ 	dib9000_risc_mem_setup(state, cmd | 0x80);
+@@ -456,7 +464,7 @@ static int dib9000_risc_mem_write(struct dib9000_state *state, u8 cmd, const u8
+ 		return -EIO;
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	dib9000_risc_mem_setup(state, cmd);
+@@ -479,13 +487,13 @@ static int dib9000_firmware_download(struct dib9000_state *state, u8 risc_id, u1
+ 	dib9000_write_word(state, 1025 + offs, 0);
+ 	dib9000_write_word(state, 1031 + offs, key);
+ 
+-	dprintk("going to download %dB of microcode", len);
++	dprintk("going to download %dB of microcode\n", len);
+ 	if (dib9000_write16_noinc(state, 1026 + offs, (u8 *) code, (u16) len) != 0) {
+-		dprintk("error while downloading microcode for RISC %c", 'A' + risc_id);
++		dprintk("error while downloading microcode for RISC %c\n", 'A' + risc_id);
+ 		return -EIO;
+ 	}
+ 
+-	dprintk("Microcode for RISC %c loaded", 'A' + risc_id);
++	dprintk("Microcode for RISC %c loaded\n", 'A' + risc_id);
+ 
+ 	return 0;
+ }
+@@ -511,10 +519,10 @@ static int dib9000_mbx_host_init(struct dib9000_state *state, u8 risc_id)
+ 	} while ((reset_reg & 0x8000) && --tries);
+ 
+ 	if (reset_reg & 0x8000) {
+-		dprintk("MBX: init ERROR, no response from RISC %c", 'A' + risc_id);
++		dprintk("MBX: init ERROR, no response from RISC %c\n", 'A' + risc_id);
+ 		return -EIO;
+ 	}
+-	dprintk("MBX: initialized");
++	dprintk("MBX: initialized\n");
+ 	return 0;
+ }
+ 
+@@ -531,30 +539,27 @@ static int dib9000_mbx_send_attr(struct dib9000_state *state, u8 id, u16 * data,
+ 		return -EINVAL;
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mbx_if_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	tmp = MAX_MAILBOX_TRY;
+ 	do {
+ 		size = dib9000_read_word_attr(state, 1043, attr) & 0xff;
+ 		if ((size + len + 1) > MBX_MAX_WORDS && --tmp) {
+-			dprintk("MBX: RISC mbx full, retrying");
++			dprintk("MBX: RISC mbx full, retrying\n");
+ 			msleep(100);
+ 		} else
  			break;
- 		if (time_after(jiffies, timeout)) {
--			printk(KERN_ERR "ERROR: API Mailbox timeout\n");
-+			pr_err("ERROR: API Mailbox timeout\n");
- 			return -1;
+ 	} while (1);
+ 
+-	/*dprintk( "MBX: size: %d", size); */
++	/*dprintk( "MBX: size: %d\n", size); */
+ 
+ 	if (tmp == 0) {
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+ #ifdef DUMP_MSG
+-	dprintk("--> %02x %d ", id, len + 1);
+-	for (i = 0; i < len; i++)
+-		dprintk("%04x ", data[i]);
+-	dprintk("\n");
++	dprintk("--> %02x %d %*ph\n", id, len + 1, len, data);
+ #endif
+ 
+ 	/* byte-order conversion - works on big (where it is not necessary) or little endian */
+@@ -596,7 +601,7 @@ static u8 dib9000_mbx_read(struct dib9000_state *state, u16 * data, u8 risc_id,
+ 		return 0;
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mbx_if_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return 0;
+ 	}
+ 	if (risc_id == 1)
+@@ -622,13 +627,13 @@ static u8 dib9000_mbx_read(struct dib9000_state *state, u16 * data, u8 risc_id,
  		}
- 		udelay(10);
-@@ -887,7 +886,7 @@ static int cx23885_find_mailbox(struct cx23885_dev *dev)
- 			return i+1;
+ 
+ #ifdef DUMP_MSG
+-		dprintk("<-- ");
++		dprintk("<-- \n");
+ 		for (i = 0; i < size + 1; i++)
+-			dprintk("%04x ", d[i]);
++			dprintk("%04x \n", d[i]);
+ 		dprintk("\n");
+ #endif
+ 	} else {
+-		dprintk("MBX: message is too big for message cache (%d), flushing message", size);
++		dprintk("MBX: message is too big for message cache (%d), flushing message\n", size);
+ 		size--;		/* Initial word already read */
+ 		while (size--)
+ 			dib9000_read16_noinc_attr(state, 1029 + mc_base, (u8 *) data, 2, attr);
+@@ -649,9 +654,11 @@ static int dib9000_risc_debug_buf(struct dib9000_state *state, u16 * data, u8 si
+ 	b[2 * (size - 2) - 1] = '\0';	/* Bullet proof the buffer */
+ 	if (*b == '~') {
+ 		b++;
+-		dprintk("%s", b);
++		dprintk("%s\n", b);
+ 	} else
+-		dprintk("RISC%d: %d.%04d %s", state->fe_id, ts / 10000, ts % 10000, *b ? b : "<empty>");
++		dprintk("RISC%d: %d.%04d %s\n",
++			state->fe_id,
++			ts / 10000, ts % 10000, *b ? b : "<empty>");
+ 	return 1;
+ }
+ 
+@@ -666,7 +673,7 @@ static int dib9000_mbx_fetch_to_cache(struct dib9000_state *state, u16 attr)
+ 		if (*block == 0) {
+ 			size = dib9000_mbx_read(state, block, 1, attr);
+ 
+-/*                      dprintk( "MBX: fetched %04x message to cache", *block); */
++/*                      dprintk( "MBX: fetched %04x message to cache\n", *block); */
+ 
+ 			switch (*block >> 8) {
+ 			case IN_MSG_DEBUG_BUF:
+@@ -686,7 +693,7 @@ static int dib9000_mbx_fetch_to_cache(struct dib9000_state *state, u16 attr)
+ 			return 1;
  		}
  	}
--	printk(KERN_ERR "Mailbox signature values not found!\n");
-+	pr_err("Mailbox signature values not found!\n");
+-	dprintk("MBX: no free cache-slot found for new message...");
++	dprintk("MBX: no free cache-slot found for new message...\n");
  	return -1;
  }
  
-@@ -922,7 +921,7 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
- 		IVTV_REG_APU, 0);
- 
- 	if (retval != 0) {
--		printk(KERN_ERR "%s: Error with mc417_register_write\n",
-+		pr_err("%s: Error with mc417_register_write\n",
- 			__func__);
+@@ -706,7 +713,7 @@ static int dib9000_mbx_process(struct dib9000_state *state, u16 attr)
  		return -1;
- 	}
-@@ -931,23 +930,21 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
- 				  &dev->pci->dev);
  
- 	if (retval != 0) {
--		printk(KERN_ERR
--			"ERROR: Hotplug firmware request failed (%s).\n",
--			CX23885_FIRM_IMAGE_NAME);
--		printk(KERN_ERR "Please fix your hotplug setup, the board will not work without firmware loaded!\n");
-+		pr_err("ERROR: Hotplug firmware request failed (%s).\n",
-+		       CX23885_FIRM_IMAGE_NAME);
-+		pr_err("Please fix your hotplug setup, the board will not work without firmware loaded!\n");
+ 	if (mutex_lock_interruptible(&state->platform.risc.mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
  		return -1;
  	}
  
- 	if (firmware->size != CX23885_FIRM_IMAGE_SIZE) {
--		printk(KERN_ERR "ERROR: Firmware size mismatch (have %zu, expected %d)\n",
--			firmware->size, CX23885_FIRM_IMAGE_SIZE);
-+		pr_err("ERROR: Firmware size mismatch (have %zu, expected %d)\n",
-+		       firmware->size, CX23885_FIRM_IMAGE_SIZE);
- 		release_firmware(firmware);
+@@ -715,7 +722,7 @@ static int dib9000_mbx_process(struct dib9000_state *state, u16 attr)
+ 
+ 	dib9000_read_word_attr(state, 1229, attr);	/* Clear the IRQ */
+ /*      if (tmp) */
+-/*              dprintk( "cleared IRQ: %x", tmp); */
++/*              dprintk( "cleared IRQ: %x\n", tmp); */
+ 	mutex_unlock(&state->platform.risc.mbx_lock);
+ 
+ 	return ret;
+@@ -750,7 +757,7 @@ static int dib9000_mbx_get_message_attr(struct dib9000_state *state, u16 id, u16
+ 	} while (--timeout);
+ 
+ 	if (timeout == 0) {
+-		dprintk("waiting for message %d timed out", id);
++		dprintk("waiting for message %d timed out\n", id);
  		return -1;
  	}
  
- 	if (0 != memcmp(firmware->data, magic, 8)) {
--		printk(KERN_ERR
--			"ERROR: Firmware magic mismatch, wrong file?\n");
-+		pr_err("ERROR: Firmware magic mismatch, wrong file?\n");
- 		release_firmware(firmware);
- 		return -1;
- 	}
-@@ -959,7 +956,7 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
- 		value = *dataptr;
- 		checksum += ~value;
- 		if (mc417_memory_write(dev, i, value) != 0) {
--			printk(KERN_ERR "ERROR: Loading firmware failed!\n");
-+			pr_err("ERROR: Loading firmware failed!\n");
- 			release_firmware(firmware);
- 			return -1;
- 		}
-@@ -970,15 +967,14 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
- 	dprintk(1, "Verifying firmware ...\n");
- 	for (i--; i >= 0; i--) {
- 		if (mc417_memory_read(dev, i, &value) != 0) {
--			printk(KERN_ERR "ERROR: Reading firmware failed!\n");
-+			pr_err("ERROR: Reading firmware failed!\n");
- 			release_firmware(firmware);
- 			return -1;
- 		}
- 		checksum -= ~value;
- 	}
- 	if (checksum) {
--		printk(KERN_ERR
--			"ERROR: Firmware load failed (checksum mismatch).\n");
-+		pr_err("ERROR: Firmware load failed (checksum mismatch).\n");
- 		release_firmware(firmware);
- 		return -1;
- 	}
-@@ -1003,7 +999,7 @@ static int cx23885_load_firmware(struct cx23885_dev *dev)
- 	mc417_register_read(dev, 0x900C, &gpio_value);
+@@ -770,7 +777,7 @@ static int dib9000_risc_check_version(struct dib9000_state *state)
+ 		return -EIO;
  
- 	if (retval < 0)
--		printk(KERN_ERR "%s: Error with mc417_register_write\n",
-+		pr_err("%s: Error with mc417_register_write\n",
- 			__func__);
- 	return 0;
- }
-@@ -1055,26 +1051,25 @@ static int cx23885_initialize_codec(struct cx23885_dev *dev, int startencoder)
- 		dprintk(2, "%s() PING OK\n", __func__);
- 		retval = cx23885_load_firmware(dev);
- 		if (retval < 0) {
--			printk(KERN_ERR "%s() f/w load failed\n", __func__);
-+			pr_err("%s() f/w load failed\n", __func__);
- 			return retval;
- 		}
- 		retval = cx23885_find_mailbox(dev);
- 		if (retval < 0) {
--			printk(KERN_ERR "%s() mailbox < 0, error\n",
-+			pr_err("%s() mailbox < 0, error\n",
- 				__func__);
- 			return -1;
- 		}
- 		dev->cx23417_mailbox = retval;
- 		retval = cx23885_api_cmd(dev, CX2341X_ENC_PING_FW, 0, 0);
- 		if (retval < 0) {
--			printk(KERN_ERR
--				"ERROR: cx23417 firmware ping failed!\n");
-+			pr_err("ERROR: cx23417 firmware ping failed!\n");
- 			return -1;
- 		}
- 		retval = cx23885_api_cmd(dev, CX2341X_ENC_GET_VERSION, 0, 1,
- 			&version);
- 		if (retval < 0) {
--			printk(KERN_ERR "ERROR: cx23417 firmware get encoder :version failed!\n");
-+			pr_err("ERROR: cx23417 firmware get encoder :version failed!\n");
- 			return -1;
- 		}
- 		dprintk(1, "cx23417 firmware version is 0x%08x\n", version);
-@@ -1559,11 +1554,11 @@ int cx23885_417_register(struct cx23885_dev *dev)
- 	err = video_register_device(dev->v4l_device,
- 		VFL_TYPE_GRABBER, -1);
- 	if (err < 0) {
--		printk(KERN_INFO "%s: can't register mpeg device\n", dev->name);
-+		pr_info("%s: can't register mpeg device\n", dev->name);
- 		return err;
+ 	fw_version = (r[0] << 8) | r[1];
+-	dprintk("RISC: ver: %d.%02d (IC: %d)", fw_version >> 10, fw_version & 0x3ff, (r[2] << 8) | r[3]);
++	dprintk("RISC: ver: %d.%02d (IC: %d)\n", fw_version >> 10, fw_version & 0x3ff, (r[2] << 8) | r[3]);
+ 
+ 	if ((fw_version >> 10) != 7)
+ 		return -EINVAL;
+@@ -850,40 +857,40 @@ static u16 dib9000_identify(struct i2c_device *client)
+ 
+ 	value = dib9000_i2c_read16(client, 896);
+ 	if (value != 0x01b3) {
+-		dprintk("wrong Vendor ID (0x%x)", value);
++		dprintk("wrong Vendor ID (0x%x)\n", value);
+ 		return 0;
  	}
  
--	printk(KERN_INFO "%s: registered device %s [mpeg]\n",
-+	pr_info("%s: registered device %s [mpeg]\n",
- 	       dev->name, video_device_node_name(dev->v4l_device));
- 
- 	/* ST: Configure the encoder paramaters, but don't begin
-diff --git a/drivers/media/pci/cx23885/cx23885-alsa.c b/drivers/media/pci/cx23885/cx23885-alsa.c
-index 9d2a4e2dc54f..c148f9a4a9ac 100644
---- a/drivers/media/pci/cx23885/cx23885-alsa.c
-+++ b/drivers/media/pci/cx23885/cx23885-alsa.c
-@@ -17,6 +17,9 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+#include "cx23885-reg.h"
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/device.h>
-@@ -35,20 +38,14 @@
- 
- #include <sound/tlv.h>
- 
--
--#include "cx23885.h"
--#include "cx23885-reg.h"
--
- #define AUDIO_SRAM_CHANNEL	SRAM_CH07
- 
- #define dprintk(level, fmt, arg...) do {				\
- 	if (audio_debug + 1 > level)					\
--		printk(KERN_INFO "%s: " fmt, chip->dev->name , ## arg);	\
-+		printk(KERN_DEBUG pr_fmt("%s: alsa: " fmt), \
-+			chip->dev->name, ##arg); \
- } while(0)
- 
--#define dprintk_core(level, fmt, arg...)	if (audio_debug >= level) \
--	printk(KERN_DEBUG "%s: " fmt, chip->dev->name , ## arg)
--
- /****************************************************************************
- 			Module global static vars
-  ****************************************************************************/
-@@ -247,7 +244,7 @@ int cx23885_audio_irq(struct cx23885_dev *dev, u32 status, u32 mask)
- 
- 	/* risc op code error */
- 	if (status & AUD_INT_OPC_ERR) {
--		printk(KERN_WARNING "%s/1: Audio risc op code error\n",
-+		pr_warn("%s/1: Audio risc op code error\n",
- 			dev->name);
- 		cx_clear(AUD_INT_DMA_CTL, 0x11);
- 		cx23885_sram_channel_dump(dev,
-@@ -327,7 +324,7 @@ static int snd_cx23885_pcm_open(struct snd_pcm_substream *substream)
- 	int err;
- 
- 	if (!chip) {
--		printk(KERN_ERR "BUG: cx23885 can't find device struct. Can't proceed with open\n");
-+		pr_err("BUG: cx23885 can't find device struct. Can't proceed with open\n");
- 		return -ENODEV;
+ 	value = dib9000_i2c_read16(client, 897);
+ 	if (value != 0x4000 && value != 0x4001 && value != 0x4002 && value != 0x4003 && value != 0x4004 && value != 0x4005) {
+-		dprintk("wrong Device ID (0x%x)", value);
++		dprintk("wrong Device ID (0x%x)\n", value);
+ 		return 0;
  	}
  
-@@ -554,7 +551,7 @@ struct cx23885_audio_dev *cx23885_audio_register(struct cx23885_dev *dev)
- 		return NULL;
- 
- 	if (dev->sram_channels[AUDIO_SRAM_CHANNEL].cmds_start == 0) {
--		printk(KERN_WARNING "%s(): Missing SRAM channel configuration for analog TV Audio\n",
-+		pr_warn("%s(): Missing SRAM channel configuration for analog TV Audio\n",
- 		       __func__);
- 		return NULL;
+ 	/* protect this driver to be used with 7000PC */
+ 	if (value == 0x4000 && dib9000_i2c_read16(client, 769) == 0x4000) {
+-		dprintk("this driver does not work with DiB7000PC");
++		dprintk("this driver does not work with DiB7000PC\n");
+ 		return 0;
  	}
-@@ -589,7 +586,7 @@ struct cx23885_audio_dev *cx23885_audio_register(struct cx23885_dev *dev)
  
- error:
- 	snd_card_free(card);
--	printk(KERN_ERR "%s(): Failed to register analog audio adapter\n",
-+	pr_err("%s(): Failed to register analog audio adapter\n",
- 	       __func__);
- 
- 	return NULL;
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index e2c4edbfbdb7..6011e6b7dcbd 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -15,6 +15,8 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/pci.h>
-@@ -23,7 +25,6 @@
- #include <linux/firmware.h>
- #include <misc/altera.h>
- 
--#include "cx23885.h"
- #include "tuner-xc2028.h"
- #include "netup-eeprom.h"
- #include "netup-init.h"
-@@ -1096,26 +1097,24 @@ void cx23885_card_list(struct cx23885_dev *dev)
- 
- 	if (0 == dev->pci->subsystem_vendor &&
- 	    0 == dev->pci->subsystem_device) {
--		printk(KERN_INFO
--			"%s: Board has no valid PCIe Subsystem ID and can't\n"
--		       "%s: be autodetected. Pass card=<n> insmod option\n"
--		       "%s: to workaround that. Redirect complaints to the\n"
--		       "%s: vendor of the TV card.  Best regards,\n"
--		       "%s:         -- tux\n",
--		       dev->name, dev->name, dev->name, dev->name, dev->name);
-+		pr_info("%s: Board has no valid PCIe Subsystem ID and can't\n"
-+		        "%s: be autodetected. Pass card=<n> insmod option\n"
-+		        "%s: to workaround that. Redirect complaints to the\n"
-+		        "%s: vendor of the TV card.  Best regards,\n"
-+		        "%s:         -- tux\n",
-+		        dev->name, dev->name, dev->name, dev->name, dev->name);
- 	} else {
--		printk(KERN_INFO
--			"%s: Your board isn't known (yet) to the driver.\n"
--		       "%s: Try to pick one of the existing card configs via\n"
--		       "%s: card=<n> insmod option.  Updating to the latest\n"
--		       "%s: version might help as well.\n",
--		       dev->name, dev->name, dev->name, dev->name);
-+		pr_info("%s: Your board isn't known (yet) to the driver.\n"
-+		        "%s: Try to pick one of the existing card configs via\n"
-+		        "%s: card=<n> insmod option.  Updating to the latest\n"
-+		        "%s: version might help as well.\n",
-+		        dev->name, dev->name, dev->name, dev->name);
+ 	switch (value) {
+ 	case 0x4000:
+-		dprintk("found DiB7000MA/PA/MB/PB");
++		dprintk("found DiB7000MA/PA/MB/PB\n");
+ 		break;
+ 	case 0x4001:
+-		dprintk("found DiB7000HC");
++		dprintk("found DiB7000HC\n");
+ 		break;
+ 	case 0x4002:
+-		dprintk("found DiB7000MC");
++		dprintk("found DiB7000MC\n");
+ 		break;
+ 	case 0x4003:
+-		dprintk("found DiB9000A");
++		dprintk("found DiB9000A\n");
+ 		break;
+ 	case 0x4004:
+-		dprintk("found DiB9000H");
++		dprintk("found DiB9000H\n");
+ 		break;
+ 	case 0x4005:
+-		dprintk("found DiB9000M");
++		dprintk("found DiB9000M\n");
+ 		break;
  	}
--	printk(KERN_INFO "%s: Here is a list of valid choices for the card=<n> insmod option:\n",
-+	pr_info("%s: Here is a list of valid choices for the card=<n> insmod option:\n",
- 	       dev->name);
- 	for (i = 0; i < cx23885_bcount; i++)
--		printk(KERN_INFO "%s:    card=%d -> %s\n",
--		       dev->name, i, cx23885_boards[i].name);
-+		pr_info("%s:    card=%d -> %s\n",
-+			dev->name, i, cx23885_boards[i].name);
- }
  
- static void viewcast_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
-@@ -1304,13 +1303,13 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
- 		 */
+@@ -1013,7 +1020,7 @@ static int dib9000_risc_apb_access_read(struct dib9000_state *state, u32 address
+ 	if (address >= 1024 || !state->platform.risc.fw_is_running)
+ 		return -EINVAL;
+ 
+-	/* dprintk( "APB access thru rd fw %d %x", address, attribute); */
++	/* dprintk( "APB access thru rd fw %d %x\n", address, attribute); */
+ 
+ 	mb[0] = (u16) address;
+ 	mb[1] = len / 2;
+@@ -1043,7 +1050,7 @@ static int dib9000_risc_apb_access_write(struct dib9000_state *state, u32 addres
+ 	if (len > 18)
+ 		return -EINVAL;
+ 
+-	/* dprintk( "APB access thru wr fw %d %x", address, attribute); */
++	/* dprintk( "APB access thru wr fw %d %x\n", address, attribute); */
+ 
+ 	mb[0] = (u16)address;
+ 	for (i = 0; i + 1 < len; i += 2)
+@@ -1191,7 +1198,7 @@ static int dib9000_fw_get_channel(struct dvb_frontend *fe)
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0) {
+@@ -1534,7 +1541,7 @@ static int dib9000_fw_set_output_mode(struct dvb_frontend *fe, int mode)
+ 	struct dib9000_state *state = fe->demodulator_priv;
+ 	u16 outreg, smo_mode;
+ 
+-	dprintk("setting output mode for demod %p to %d", fe, mode);
++	dprintk("setting output mode for demod %p to %d\n", fe, mode);
+ 
+ 	switch (mode) {
+ 	case OUTMODE_MPEG2_PAR_GATED_CLK:
+@@ -1556,7 +1563,7 @@ static int dib9000_fw_set_output_mode(struct dvb_frontend *fe, int mode)
+ 		outreg = 0;
  		break;
  	default:
--		printk(KERN_WARNING "%s: warning: unknown hauppauge model #%d\n",
-+		pr_warn("%s: warning: unknown hauppauge model #%d\n",
- 			dev->name, tv.model);
- 		break;
- 	}
- 
--	printk(KERN_INFO "%s: hauppauge eeprom: model=%d\n",
--			dev->name, tv.model);
-+	pr_info("%s: hauppauge eeprom: model=%d\n",
-+		dev->name, tv.model);
- }
- 
- /* Some TBS cards require initing a chip using a bitbanged SPI attached
-@@ -1352,8 +1351,8 @@ int cx23885_tuner_callback(void *priv, int component, int command, int arg)
- 		return 0;
- 
- 	if (command != 0) {
--		printk(KERN_ERR "%s(): Unknown command 0x%x.\n",
--			__func__, command);
-+		pr_err("%s(): Unknown command 0x%x.\n",
-+		       __func__, command);
+-		dprintk("Unhandled output_mode passed to be set for demod %p", &state->fe[0]);
++		dprintk("Unhandled output_mode passed to be set for demod %p\n", &state->fe[0]);
  		return -EINVAL;
  	}
  
-@@ -2336,12 +2335,12 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 			filename = "dvb-netup-altera-01.fw";
- 			break;
- 		}
--		printk(KERN_INFO "NetUP card rev=0x%x fw_filename=%s\n",
--				cinfo.rev, filename);
-+		pr_info("NetUP card rev=0x%x fw_filename=%s\n",
-+			cinfo.rev, filename);
+@@ -1590,7 +1597,7 @@ static int dib9000_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msg[]
+ 				len = 16;
  
- 		ret = request_firmware(&fw, filename, &dev->pci->dev);
- 		if (ret != 0)
--			printk(KERN_ERR "did not find the firmware file. (%s) Please see linux/Documentation/dvb/ for more details on firmware-problems.",
-+			pr_err("did not find the firmware file. (%s) Please see linux/Documentation/dvb/ for more details on firmware-problems.",
- 			       filename);
- 		else
- 			altera_init(&netup_config, fw);
-diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
-index 0d97da3be90b..02b5ec549369 100644
---- a/drivers/media/pci/cx23885/cx23885-core.c
-+++ b/drivers/media/pci/cx23885/cx23885-core.c
-@@ -15,6 +15,8 @@
-  *  GNU General Public License for more details.
-  */
+ 			if (dib9000_read_word(state, 790) != 0)
+-				dprintk("TunerITF: read busy");
++				dprintk("TunerITF: read busy\n");
  
-+#include "cx23885.h"
-+
- #include <linux/init.h>
- #include <linux/list.h>
- #include <linux/module.h>
-@@ -27,7 +29,6 @@
- #include <asm/div64.h>
- #include <linux/firmware.h>
+ 			dib9000_write_word(state, 784, (u16) (msg[index_msg].addr));
+ 			dib9000_write_word(state, 787, (len / 2) - 1);
+@@ -1601,7 +1608,7 @@ static int dib9000_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msg[]
+ 				i--;
  
--#include "cx23885.h"
- #include "cimax2.h"
- #include "altera-ci.h"
- #include "cx23888-ir.h"
-@@ -50,7 +51,8 @@ MODULE_PARM_DESC(card, "card type");
+ 			if (i == 0)
+-				dprintk("TunerITF: read failed");
++				dprintk("TunerITF: read failed\n");
  
- #define dprintk(level, fmt, arg...)\
- 	do { if (debug >= level)\
--		printk(KERN_DEBUG "%s: " fmt, dev->name, ## arg);\
-+		printk(KERN_DEBUG pr_fmt("%s: " fmt), \
-+		       __func__, ##arg); \
- 	} while (0)
+ 			for (i = 0; i < len; i += 2) {
+ 				t = dib9000_read_word(state, 785);
+@@ -1609,13 +1616,13 @@ static int dib9000_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msg[]
+ 				msg[index_msg].buf[i + 1] = (t) & 0xff;
+ 			}
+ 			if (dib9000_read_word(state, 790) != 0)
+-				dprintk("TunerITF: read more data than expected");
++				dprintk("TunerITF: read more data than expected\n");
+ 		} else {
+ 			i = 1000;
+ 			while (dib9000_read_word(state, 789) && i)
+ 				i--;
+ 			if (i == 0)
+-				dprintk("TunerITF: write busy");
++				dprintk("TunerITF: write busy\n");
  
- static unsigned int cx23885_devcount;
-@@ -411,15 +413,14 @@ static int cx23885_risc_decode(u32 risc)
- 	       instr[risc >> 28] ? instr[risc >> 28] : "INVALID");
- 	for (i = ARRAY_SIZE(bits) - 1; i >= 0; i--)
- 		if (risc & (1 << (i + 12)))
--			printk(KERN_CONT " %s", bits[i]);
--	printk(KERN_CONT " count=%d ]\n", risc & 0xfff);
-+			pr_cont(" %s", bits[i]);
-+	pr_cont(" count=%d ]\n", risc & 0xfff);
- 	return incr[risc >> 28] ? incr[risc >> 28] : 1;
- }
- 
- static void cx23885_wakeup(struct cx23885_tsport *port,
- 			   struct cx23885_dmaqueue *q, u32 count)
- {
--	struct cx23885_dev *dev = port->dev;
- 	struct cx23885_buffer *buf;
- 
- 	if (list_empty(&q->active))
-@@ -530,44 +531,44 @@ void cx23885_sram_channel_dump(struct cx23885_dev *dev,
- 	u32 risc;
- 	unsigned int i, j, n;
- 
--	printk(KERN_WARNING "%s: %s - dma channel status dump\n",
--	       dev->name, ch->name);
-+	pr_warn("%s: %s - dma channel status dump\n",
-+		dev->name, ch->name);
- 	for (i = 0; i < ARRAY_SIZE(name); i++)
--		printk(KERN_WARNING "%s:   cmds: %-15s: 0x%08x\n",
--		       dev->name, name[i],
--		       cx_read(ch->cmds_start + 4*i));
-+		pr_warn("%s:   cmds: %-15s: 0x%08x\n",
-+			dev->name, name[i],
-+			cx_read(ch->cmds_start + 4*i));
- 
- 	for (i = 0; i < 4; i++) {
- 		risc = cx_read(ch->cmds_start + 4 * (i + 14));
--		printk(KERN_WARNING "%s:   risc%d: ", dev->name, i);
-+		pr_warn("%s:   risc%d: ", dev->name, i);
- 		cx23885_risc_decode(risc);
- 	}
- 	for (i = 0; i < (64 >> 2); i += n) {
- 		risc = cx_read(ch->ctrl_start + 4 * i);
- 		/* No consideration for bits 63-32 */
- 
--		printk(KERN_WARNING "%s:   (0x%08x) iq %x: ", dev->name,
--		       ch->ctrl_start + 4 * i, i);
-+		pr_warn("%s:   (0x%08x) iq %x: ", dev->name,
-+			ch->ctrl_start + 4 * i, i);
- 		n = cx23885_risc_decode(risc);
- 		for (j = 1; j < n; j++) {
- 			risc = cx_read(ch->ctrl_start + 4 * (i + j));
--			printk(KERN_WARNING "%s:   iq %x: 0x%08x [ arg #%d ]\n",
--			       dev->name, i+j, risc, j);
-+			pr_warn("%s:   iq %x: 0x%08x [ arg #%d ]\n",
-+				dev->name, i+j, risc, j);
+ 			len = msg[index_msg].len;
+ 			if (len > 16)
+@@ -1631,7 +1638,7 @@ static int dib9000_tuner_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg msg[]
+ 			while (dib9000_read_word(state, 791) > 0 && i)
+ 				i--;
+ 			if (i == 0)
+-				dprintk("TunerITF: write failed");
++				dprintk("TunerITF: write failed\n");
  		}
  	}
- 
--	printk(KERN_WARNING "%s: fifo: 0x%08x -> 0x%x\n",
--	       dev->name, ch->fifo_start, ch->fifo_start+ch->fifo_size);
--	printk(KERN_WARNING "%s: ctrl: 0x%08x -> 0x%x\n",
--	       dev->name, ch->ctrl_start, ch->ctrl_start + 6*16);
--	printk(KERN_WARNING "%s:   ptr1_reg: 0x%08x\n",
--	       dev->name, cx_read(ch->ptr1_reg));
--	printk(KERN_WARNING "%s:   ptr2_reg: 0x%08x\n",
--	       dev->name, cx_read(ch->ptr2_reg));
--	printk(KERN_WARNING "%s:   cnt1_reg: 0x%08x\n",
--	       dev->name, cx_read(ch->cnt1_reg));
--	printk(KERN_WARNING "%s:   cnt2_reg: 0x%08x\n",
--	       dev->name, cx_read(ch->cnt2_reg));
-+	pr_warn("%s: fifo: 0x%08x -> 0x%x\n",
-+		dev->name, ch->fifo_start, ch->fifo_start+ch->fifo_size);
-+	pr_warn("%s: ctrl: 0x%08x -> 0x%x\n",
-+		dev->name, ch->ctrl_start, ch->ctrl_start + 6*16);
-+	pr_warn("%s:   ptr1_reg: 0x%08x\n",
-+		dev->name, cx_read(ch->ptr1_reg));
-+	pr_warn("%s:   ptr2_reg: 0x%08x\n",
-+		dev->name, cx_read(ch->ptr2_reg));
-+	pr_warn("%s:   cnt1_reg: 0x%08x\n",
-+		dev->name, cx_read(ch->cnt1_reg));
-+	pr_warn("%s:   cnt2_reg: 0x%08x\n",
-+		dev->name, cx_read(ch->cnt2_reg));
- }
- 
- static void cx23885_risc_disasm(struct cx23885_tsport *port,
-@@ -576,14 +577,14 @@ static void cx23885_risc_disasm(struct cx23885_tsport *port,
- 	struct cx23885_dev *dev = port->dev;
- 	unsigned int i, j, n;
- 
--	printk(KERN_INFO "%s: risc disasm: %p [dma=0x%08lx]\n",
-+	pr_info("%s: risc disasm: %p [dma=0x%08lx]\n",
- 	       dev->name, risc->cpu, (unsigned long)risc->dma);
- 	for (i = 0; i < (risc->size >> 2); i += n) {
--		printk(KERN_INFO "%s:   %04d: ", dev->name, i);
-+		pr_info("%s:   %04d: ", dev->name, i);
- 		n = cx23885_risc_decode(le32_to_cpu(risc->cpu[i]));
- 		for (j = 1; j < n; j++)
--			printk(KERN_INFO "%s:   %04d: 0x%08x [ arg #%d ]\n",
--			       dev->name, i + j, risc->cpu[i + j], j);
-+			pr_info("%s:   %04d: 0x%08x [ arg #%d ]\n",
-+				dev->name, i + j, risc->cpu[i + j], j);
- 		if (risc->cpu[i] == cpu_to_le32(RISC_JUMP))
- 			break;
+ 	return num;
+@@ -1676,7 +1683,7 @@ static int dib9000_fw_component_bus_xfer(struct i2c_adapter *i2c_adap, struct i2
  	}
-@@ -674,8 +675,8 @@ static int get_resources(struct cx23885_dev *dev)
- 			       dev->name))
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
  		return 0;
- 
--	printk(KERN_ERR "%s: can't get MMIO memory @ 0x%llx\n",
--		dev->name, (unsigned long long)pci_resource_start(dev->pci, 0));
-+	pr_err("%s: can't get MMIO memory @ 0x%llx\n",
-+	       dev->name, (unsigned long long)pci_resource_start(dev->pci, 0));
- 
- 	return -EBUSY;
- }
-@@ -793,15 +794,15 @@ static void cx23885_dev_checkrevision(struct cx23885_dev *dev)
- 		dev->hwrevision = 0xb1;
- 		break;
- 	default:
--		printk(KERN_ERR "%s() New hardware revision found 0x%x\n",
--			__func__, dev->hwrevision);
-+		pr_err("%s() New hardware revision found 0x%x\n",
-+		       __func__, dev->hwrevision);
- 	}
- 	if (dev->hwrevision)
--		printk(KERN_INFO "%s() Hardware revision = 0x%02x\n",
-+		pr_info("%s() Hardware revision = 0x%02x\n",
- 			__func__, dev->hwrevision);
- 	else
--		printk(KERN_ERR "%s() Hardware revision unknown 0x%x\n",
--			__func__, dev->hwrevision);
-+		pr_err("%s() Hardware revision unknown 0x%x\n",
-+		       __func__, dev->hwrevision);
- }
- 
- /* Find the first v4l2_subdev member of the group id in hw */
-@@ -915,7 +916,7 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 		cx23885_init_tsport(dev, &dev->ts2, 2);
- 
- 	if (get_resources(dev) < 0) {
--		printk(KERN_ERR "CORE %s No more PCIe resources for subsystem: %04x:%04x\n",
-+		pr_err("CORE %s No more PCIe resources for subsystem: %04x:%04x\n",
- 		       dev->name, dev->pci->subsystem_vendor,
- 		       dev->pci->subsystem_device);
- 
-@@ -929,11 +930,11 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 
- 	dev->bmmio = (u8 __iomem *)dev->lmmio;
- 
--	printk(KERN_INFO "CORE %s: subsystem: %04x:%04x, board: %s [card=%d,%s]\n",
--	       dev->name, dev->pci->subsystem_vendor,
--	       dev->pci->subsystem_device, cx23885_boards[dev->board].name,
--	       dev->board, card[dev->nr] == dev->board ?
--	       "insmod option" : "autodetected");
-+	pr_info("CORE %s: subsystem: %04x:%04x, board: %s [card=%d,%s]\n",
-+		dev->name, dev->pci->subsystem_vendor,
-+		dev->pci->subsystem_device, cx23885_boards[dev->board].name,
-+		dev->board, card[dev->nr] == dev->board ?
-+		"insmod option" : "autodetected");
- 
- 	cx23885_pci_quirks(dev);
- 
-@@ -979,7 +980,7 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 
- 	if (cx23885_boards[dev->board].porta == CX23885_ANALOG_VIDEO) {
- 		if (cx23885_video_register(dev) < 0) {
--			printk(KERN_ERR "%s() Failed to register analog video adapters on VID_A\n",
-+			pr_err("%s() Failed to register analog video adapters on VID_A\n",
- 			       __func__);
- 		}
- 	}
-@@ -989,14 +990,13 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 			dev->ts1.num_frontends =
- 				cx23885_boards[dev->board].num_fds_portb;
- 		if (cx23885_dvb_register(&dev->ts1) < 0) {
--			printk(KERN_ERR "%s() Failed to register dvb adapters on VID_B\n",
-+			pr_err("%s() Failed to register dvb adapters on VID_B\n",
- 			       __func__);
- 		}
- 	} else
- 	if (cx23885_boards[dev->board].portb == CX23885_MPEG_ENCODER) {
- 		if (cx23885_417_register(dev) < 0) {
--			printk(KERN_ERR
--				"%s() Failed to register 417 on VID_B\n",
-+			pr_err("%s() Failed to register 417 on VID_B\n",
- 			       __func__);
- 		}
- 	}
-@@ -1006,15 +1006,13 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 			dev->ts2.num_frontends =
- 				cx23885_boards[dev->board].num_fds_portc;
- 		if (cx23885_dvb_register(&dev->ts2) < 0) {
--			printk(KERN_ERR
--				"%s() Failed to register dvb on VID_C\n",
-+			pr_err("%s() Failed to register dvb on VID_C\n",
- 			       __func__);
- 		}
- 	} else
- 	if (cx23885_boards[dev->board].portc == CX23885_MPEG_ENCODER) {
- 		if (cx23885_417_register(dev) < 0) {
--			printk(KERN_ERR
--				"%s() Failed to register 417 on VID_C\n",
-+			pr_err("%s() Failed to register 417 on VID_C\n",
- 			       __func__);
- 		}
- 	}
-@@ -1343,7 +1341,7 @@ int cx23885_start_dma(struct cx23885_tsport *port,
- 
- 	if ((!(cx23885_boards[dev->board].portb & CX23885_MPEG_DVB)) &&
- 		(!(cx23885_boards[dev->board].portc & CX23885_MPEG_DVB))) {
--		printk("%s() Unsupported .portb/c (0x%08x)/(0x%08x)\n",
-+		pr_err("%s() Unsupported .portb/c (0x%08x)/(0x%08x)\n",
- 			__func__,
- 			cx23885_boards[dev->board].portb,
- 			cx23885_boards[dev->board].portc);
-@@ -1530,7 +1528,6 @@ void cx23885_buf_queue(struct cx23885_tsport *port, struct cx23885_buffer *buf)
- 
- static void do_cancel_buffers(struct cx23885_tsport *port, char *reason)
- {
--	struct cx23885_dev *dev = port->dev;
- 	struct cx23885_dmaqueue *q = &port->mpegq;
- 	struct cx23885_buffer *buf;
- 	unsigned long flags;
-@@ -1550,8 +1547,6 @@ static void do_cancel_buffers(struct cx23885_tsport *port, char *reason)
- 
- void cx23885_cancel_buffers(struct cx23885_tsport *port)
- {
--	struct cx23885_dev *dev = port->dev;
--
- 	dprintk(1, "%s()\n", __func__);
- 	cx23885_stop_dma(port);
- 	do_cancel_buffers(port, "cancel");
-@@ -1578,7 +1573,7 @@ int cx23885_irq_417(struct cx23885_dev *dev, u32 status)
- 		(status & VID_B_MSK_VBI_SYNC)    ||
- 		(status & VID_B_MSK_OF)          ||
- 		(status & VID_B_MSK_VBI_OF)) {
--		printk(KERN_ERR "%s: V4L mpeg risc op code error, status = 0x%x\n",
-+		pr_err("%s: V4L mpeg risc op code error, status = 0x%x\n",
- 		       dev->name, status);
- 		if (status & VID_B_MSK_BAD_PKT)
- 			dprintk(1, "        VID_B_MSK_BAD_PKT\n");
-@@ -1640,7 +1635,7 @@ static int cx23885_irq_ts(struct cx23885_tsport *port, u32 status)
- 			dprintk(7, " (VID_BC_MSK_OF      0x%08x)\n",
- 				VID_BC_MSK_OF);
- 
--		printk(KERN_ERR "%s: mpeg risc op code error\n", dev->name);
-+		pr_err("%s: mpeg risc op code error\n", dev->name);
- 
- 		cx_clear(port->reg_dma_ctl, port->dma_ctl_val);
- 		cx23885_sram_channel_dump(dev,
-@@ -1880,15 +1875,14 @@ void cx23885_gpio_set(struct cx23885_dev *dev, u32 mask)
- 
- 	if (mask & 0x0007fff8) {
- 		if (encoder_on_portb(dev) || encoder_on_portc(dev))
--			printk(KERN_ERR
--				"%s: Setting GPIO on encoder ports\n",
-+			pr_err("%s: Setting GPIO on encoder ports\n",
- 				dev->name);
- 		cx_set(MC417_RWD, (mask & 0x0007fff8) >> 3);
  	}
  
- 	/* TODO: 23-19 */
- 	if (mask & 0x00f80000)
--		printk(KERN_INFO "%s: Unsupported\n", dev->name);
-+		pr_info("%s: Unsupported\n", dev->name);
- }
+@@ -1759,7 +1766,7 @@ static int dib9000_cfg_gpio(struct dib9000_state *st, u8 num, u8 dir, u8 val)
+ 	st->gpio_val |= (val & 0x01) << num;	/* set the new value */
+ 	dib9000_write_word(st, 774, st->gpio_val);
  
- void cx23885_gpio_clear(struct cx23885_dev *dev, u32 mask)
-@@ -1898,15 +1892,14 @@ void cx23885_gpio_clear(struct cx23885_dev *dev, u32 mask)
- 
- 	if (mask & 0x0007fff8) {
- 		if (encoder_on_portb(dev) || encoder_on_portc(dev))
--			printk(KERN_ERR
--				"%s: Clearing GPIO moving on encoder ports\n",
-+			pr_err("%s: Clearing GPIO moving on encoder ports\n",
- 				dev->name);
- 		cx_clear(MC417_RWD, (mask & 0x7fff8) >> 3);
- 	}
- 
- 	/* TODO: 23-19 */
- 	if (mask & 0x00f80000)
--		printk(KERN_INFO "%s: Unsupported\n", dev->name);
-+		pr_info("%s: Unsupported\n", dev->name);
- }
- 
- u32 cx23885_gpio_get(struct cx23885_dev *dev, u32 mask)
-@@ -1916,15 +1909,14 @@ u32 cx23885_gpio_get(struct cx23885_dev *dev, u32 mask)
- 
- 	if (mask & 0x0007fff8) {
- 		if (encoder_on_portb(dev) || encoder_on_portc(dev))
--			printk(KERN_ERR
--				"%s: Reading GPIO moving on encoder ports\n",
-+			pr_err("%s: Reading GPIO moving on encoder ports\n",
- 				dev->name);
- 		return (cx_read(MC417_RWD) & ((mask & 0x7fff8) >> 3)) << 3;
- 	}
- 
- 	/* TODO: 23-19 */
- 	if (mask & 0x00f80000)
--		printk(KERN_INFO "%s: Unsupported\n", dev->name);
-+		pr_info("%s: Unsupported\n", dev->name);
+-	dprintk("gpio dir: %04x: gpio val: %04x", st->gpio_dir, st->gpio_val);
++	dprintk("gpio dir: %04x: gpio val: %04x\n", st->gpio_dir, st->gpio_val);
  
  	return 0;
  }
-@@ -1938,8 +1930,7 @@ void cx23885_gpio_enable(struct cx23885_dev *dev, u32 mask, int asoutput)
+@@ -1779,7 +1786,7 @@ int dib9000_fw_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff)
  
- 	if (mask & 0x0007fff8) {
- 		if (encoder_on_portb(dev) || encoder_on_portc(dev))
--			printk(KERN_ERR
--				"%s: Enabling GPIO on encoder ports\n",
-+			pr_err("%s: Enabling GPIO on encoder ports\n",
- 				dev->name);
+ 	if ((state->pid_ctrl_index != -2) && (state->pid_ctrl_index < 9)) {
+ 		/* postpone the pid filtering cmd */
+-		dprintk("pid filter cmd postpone");
++		dprintk("pid filter cmd postpone\n");
+ 		state->pid_ctrl_index++;
+ 		state->pid_ctrl[state->pid_ctrl_index].cmd = DIB9000_PID_FILTER_CTRL;
+ 		state->pid_ctrl[state->pid_ctrl_index].onoff = onoff;
+@@ -1787,14 +1794,14 @@ int dib9000_fw_pid_filter_ctrl(struct dvb_frontend *fe, u8 onoff)
  	}
  
-@@ -1994,7 +1985,7 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	/* print pci info */
- 	dev->pci_rev = pci_dev->revision;
- 	pci_read_config_byte(pci_dev, PCI_LATENCY_TIMER,  &dev->pci_lat);
--	printk(KERN_INFO "%s/0: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n",
-+	pr_info("%s/0: found at %s, rev: %d, irq: %d, latency: %d, mmio: 0x%llx\n",
- 	       dev->name,
- 	       pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
- 	       dev->pci_lat,
-@@ -2003,14 +1994,14 @@ static int cx23885_initdev(struct pci_dev *pci_dev,
- 	pci_set_master(pci_dev);
- 	err = pci_set_dma_mask(pci_dev, 0xffffffff);
- 	if (err) {
--		printk(KERN_ERR "%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
-+		pr_err("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
- 		goto fail_ctrl;
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
  	}
  
- 	err = request_irq(pci_dev->irq, cx23885_irq,
- 			  IRQF_SHARED, dev->name, dev);
- 	if (err < 0) {
--		printk(KERN_ERR "%s: can't get IRQ %d\n",
-+		pr_err("%s: can't get IRQ %d\n",
- 		       dev->name, pci_dev->irq);
- 		goto fail_irq;
- 	}
-@@ -2096,7 +2087,7 @@ static struct pci_driver cx23885_pci_driver = {
+ 	val = dib9000_read_word(state, 294 + 1) & 0xffef;
+ 	val |= (onoff & 0x1) << 4;
  
- static int __init cx23885_init(void)
- {
--	printk(KERN_INFO "cx23885 driver version %s loaded\n",
-+	pr_info("cx23885 driver version %s loaded\n",
- 		CX23885_VERSION);
- 	return pci_register_driver(&cx23885_pci_driver);
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 42413fa423b4..589a168d1df4 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -15,6 +15,8 @@
-  *  GNU General Public License for more details.
-  */
+-	dprintk("PID filter enabled %d", onoff);
++	dprintk("PID filter enabled %d\n", onoff);
+ 	ret = dib9000_write_word(state, 294 + 1, val);
+ 	mutex_unlock(&state->demod_lock);
+ 	return ret;
+@@ -1809,7 +1816,7 @@ int dib9000_fw_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
  
-+#include "cx23885.h"
-+
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/device.h>
-@@ -23,7 +25,6 @@
- #include <linux/file.h>
- #include <linux/suspend.h>
- 
--#include "cx23885.h"
- #include <media/v4l2-common.h>
- 
- #include "dvb_ca_en50221.h"
-@@ -80,7 +81,8 @@ static unsigned int debug;
- 
- #define dprintk(level, fmt, arg...)\
- 	do { if (debug >= level)\
--		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
-+		printk(KERN_DEBUG pr_fmt("%s dvb: " fmt), \
-+			__func__, ##arg); \
- 	} while (0)
- 
- /* ------------------------------------------------------------------ */
-@@ -1101,7 +1103,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
- 		netup_get_card_info(&dev->i2c_bus[0].i2c_adap, &cinfo);
- 		memcpy(port->frontends.adapter.proposed_mac,
- 				cinfo.port[port->nr - 1].mac, 6);
--		printk(KERN_INFO "NetUP Dual DVB-S2 CI card port%d MAC=%pM\n",
-+		pr_info("NetUP Dual DVB-S2 CI card port%d MAC=%pM\n",
- 			port->nr, port->frontends.adapter.proposed_mac);
- 
- 		netup_ci_init(port);
-@@ -1127,7 +1129,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
- 		/* Read entire EEPROM */
- 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
- 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom, sizeof(eeprom));
--		printk(KERN_INFO "TeVii S470 MAC= %pM\n", eeprom + 0xa0);
-+		pr_info("TeVii S470 MAC= %pM\n", eeprom + 0xa0);
- 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
+ 	if (state->pid_ctrl_index != -2) {
+ 		/* postpone the pid filtering cmd */
+-		dprintk("pid filter postpone");
++		dprintk("pid filter postpone\n");
+ 		if (state->pid_ctrl_index < 9) {
+ 			state->pid_ctrl_index++;
+ 			state->pid_ctrl[state->pid_ctrl_index].cmd = DIB9000_PID_FILTER;
+@@ -1817,15 +1824,15 @@ int dib9000_fw_pid_filter(struct dvb_frontend *fe, u8 id, u16 pid, u8 onoff)
+ 			state->pid_ctrl[state->pid_ctrl_index].pid = pid;
+ 			state->pid_ctrl[state->pid_ctrl_index].onoff = onoff;
+ 		} else
+-			dprintk("can not add any more pid ctrl cmd");
++			dprintk("can not add any more pid ctrl cmd\n");
  		return 0;
+ 	}
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+-	dprintk("Index %x, PID %d, OnOff %d", id, pid, onoff);
++	dprintk("Index %x, PID %d, OnOff %d\n", id, pid, onoff);
+ 	ret = dib9000_write_word(state, 300 + 1 + id,
+ 			onoff ? (1 << 13) | pid : 0);
+ 	mutex_unlock(&state->demod_lock);
+@@ -1868,7 +1875,7 @@ static int dib9000_sleep(struct dvb_frontend *fe)
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	for (index_frontend = 1; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++) {
+@@ -1899,7 +1906,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe,
+ 
+ 	if (state->get_frontend_internal == 0) {
+ 		if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-			dprintk("could not get the lock");
++			dprintk("could not get the lock\n");
+ 			return -EINTR;
  		}
-@@ -1144,7 +1146,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
- 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
- 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
- 				sizeof(eeprom));
--		printk(KERN_INFO "%s port %d MAC address: %pM\n",
-+		pr_info("%s port %d MAC address: %pM\n",
- 			cx23885_boards[dev->board].name, port->nr,
- 			eeprom + 0xc0 + (port->nr-1) * 8);
- 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xc0 +
-@@ -1185,7 +1187,7 @@ static int dvb_register_ci_mac(struct cx23885_tsport *port)
- 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
- 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
- 				sizeof(eeprom));
--		printk(KERN_INFO "%s MAC address: %pM\n",
-+		pr_info("%s MAC address: %pM\n",
- 			cx23885_boards[dev->board].name, eeprom + 0xc0);
- 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xc0, 6);
+ 	}
+@@ -1907,7 +1914,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe,
+ 	for (index_frontend = 1; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++) {
+ 		state->fe[index_frontend]->ops.read_status(state->fe[index_frontend], &stat);
+ 		if (stat & FE_HAS_SYNC) {
+-			dprintk("TPS lock on the slave%i", index_frontend);
++			dprintk("TPS lock on the slave%i\n", index_frontend);
+ 
+ 			/* synchronize the cache with the other frontends */
+ 			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], c);
+@@ -1995,18 +2002,18 @@ static int dib9000_set_frontend(struct dvb_frontend *fe)
+ 
+ 	/* check that the correct parameters are set */
+ 	if (state->fe[0]->dtv_property_cache.frequency == 0) {
+-		dprintk("dib9000: must specify frequency ");
++		dprintk("dib9000: must specify frequency \n");
  		return 0;
-@@ -1464,7 +1466,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			return -ENODEV;
+ 	}
  
- 		if (dib7000p_ops.i2c_enumeration(&i2c_bus->i2c_adap, 1, 0x12, &dib7070p_dib7000p_config) < 0) {
--			printk(KERN_WARNING "Unable to enumerate dib7000p\n");
-+			pr_warn("Unable to enumerate dib7000p\n");
- 			return -ENODEV;
- 		}
- 		fe0->dvb.frontend = dib7000p_ops.init(&i2c_bus->i2c_adap, 0x80, &dib7070p_dib7000p_config);
-@@ -1524,7 +1526,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			fe = dvb_attach(xc4000_attach, fe0->dvb.frontend,
- 					&dev->i2c_bus[1].i2c_adap, &cfg);
- 			if (!fe) {
--				printk(KERN_ERR "%s/2: xc4000 attach failed\n",
-+				pr_err("%s/2: xc4000 attach failed\n",
- 				       dev->name);
- 				goto frontend_detach;
+ 	if (state->fe[0]->dtv_property_cache.bandwidth_hz == 0) {
+-		dprintk("dib9000: must specify bandwidth ");
++		dprintk("dib9000: must specify bandwidth \n");
+ 		return 0;
+ 	}
+ 
+ 	state->pid_ctrl_index = -1; /* postpone the pid filtering cmd */
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return 0;
+ 	}
+ 
+@@ -2073,14 +2080,14 @@ static int dib9000_set_frontend(struct dvb_frontend *fe)
+ 
+ 	/* check the tune result */
+ 	if (exit_condition == 1) {	/* tune failed */
+-		dprintk("tune failed");
++		dprintk("tune failed\n");
+ 		mutex_unlock(&state->demod_lock);
+ 		/* tune failed; put all the pid filtering cmd to junk */
+ 		state->pid_ctrl_index = -1;
+ 		return 0;
+ 	}
+ 
+-	dprintk("tune success on frontend%i", index_frontend_success);
++	dprintk("tune success on frontend%i\n", index_frontend_success);
+ 
+ 	/* synchronize all the channel cache */
+ 	state->get_frontend_internal = 1;
+@@ -2169,7 +2176,7 @@ static int dib9000_read_status(struct dvb_frontend *fe, enum fe_status *stat)
+ 	u16 lock = 0, lock_slave = 0;
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	for (index_frontend = 1; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++)
+@@ -2202,11 +2209,11 @@ static int dib9000_read_ber(struct dvb_frontend *fe, u32 * ber)
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		ret = -EINTR;
+ 		goto error;
+ 	}
+@@ -2237,7 +2244,7 @@ static int dib9000_read_signal_strength(struct dvb_frontend *fe, u16 * strength)
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	*strength = 0;
+@@ -2250,7 +2257,7 @@ static int dib9000_read_signal_strength(struct dvb_frontend *fe, u16 * strength)
+ 	}
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		ret = -EINTR;
+ 		goto error;
+ 	}
+@@ -2281,7 +2288,7 @@ static u32 dib9000_get_snr(struct dvb_frontend *fe)
+ 	u16 val;
+ 
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return 0;
+ 	}
+ 	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0) {
+@@ -2320,7 +2327,7 @@ static int dib9000_read_snr(struct dvb_frontend *fe, u16 * snr)
+ 	u32 snr_master;
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	snr_master = dib9000_get_snr(fe);
+@@ -2345,11 +2352,11 @@ static int dib9000_read_unc_blocks(struct dvb_frontend *fe, u32 * unc)
+ 	int ret = 0;
+ 
+ 	if (mutex_lock_interruptible(&state->demod_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		return -EINTR;
+ 	}
+ 	if (mutex_lock_interruptible(&state->platform.risc.mem_mbx_lock) < 0) {
+-		dprintk("could not get the lock");
++		dprintk("could not get the lock\n");
+ 		ret = -EINTR;
+ 		goto error;
+ 	}
+@@ -2376,12 +2383,12 @@ int dib9000_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 defaul
+ 
+ 	client.i2c_write_buffer = kzalloc(4 * sizeof(u8), GFP_KERNEL);
+ 	if (!client.i2c_write_buffer) {
+-		dprintk("%s: not enough memory", __func__);
++		dprintk("%s: not enough memory\n", __func__);
+ 		return -ENOMEM;
+ 	}
+ 	client.i2c_read_buffer = kzalloc(4 * sizeof(u8), GFP_KERNEL);
+ 	if (!client.i2c_read_buffer) {
+-		dprintk("%s: not enough memory", __func__);
++		dprintk("%s: not enough memory\n", __func__);
+ 		ret = -ENOMEM;
+ 		goto error_memory;
+ 	}
+@@ -2408,7 +2415,7 @@ int dib9000_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 defaul
+ 		if (dib9000_identify(&client) == 0) {
+ 			client.i2c_addr = default_addr;
+ 			if (dib9000_identify(&client) == 0) {
+-				dprintk("DiB9000 #%d: not identified", k);
++				dprintk("DiB9000 #%d: not identified\n", k);
+ 				ret = -EIO;
+ 				goto error;
  			}
-@@ -1597,8 +1599,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 							&i2c_bus->i2c_adap,
- 							LNBH24_PCL | LNBH24_TTX,
- 							LNBH24_TEN, 0x09))
--						printk(KERN_ERR
--							"No LNBH24 found!\n");
-+						pr_err("No LNBH24 found!\n");
+@@ -2417,7 +2424,7 @@ int dib9000_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 defaul
+ 		dib9000_i2c_write16(&client, 1795, (1 << 10) | (4 << 6));
+ 		dib9000_i2c_write16(&client, 1794, (new_addr << 2) | 2);
  
- 				}
- 			}
-@@ -1618,8 +1619,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 							&i2c_bus->i2c_adap,
- 							LNBH24_PCL | LNBH24_TTX,
- 							LNBH24_TEN, 0x0a))
--						printk(KERN_ERR
--							"No LNBH24 found!\n");
-+						pr_err("No LNBH24 found!\n");
- 
- 				}
- 			}
-@@ -2482,13 +2482,13 @@ static int dvb_register(struct cx23885_tsport *port)
- 		break;
- 
- 	default:
--		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card  isn't supported yet\n",
--		       dev->name);
-+		pr_info("%s: The frontend of your DVB/ATSC card  isn't supported yet\n",
-+			dev->name);
- 		break;
+-		dprintk("IC %d initialized (to i2c_address 0x%x)", k, new_addr);
++		dprintk("IC %d initialized (to i2c_address 0x%x)\n", k, new_addr);
  	}
  
- 	if ((NULL == fe0->dvb.frontend) || (fe1 && NULL == fe1->dvb.frontend)) {
--		printk(KERN_ERR "%s: frontend initialization failed\n",
-+		pr_err("%s: frontend initialization failed\n",
- 		       dev->name);
- 		goto frontend_detach;
+ 	for (k = 0; k < no_of_demods; k++) {
+@@ -2445,12 +2452,12 @@ int dib9000_set_slave_frontend(struct dvb_frontend *fe, struct dvb_frontend *fe_
+ 	while ((index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL))
+ 		index_frontend++;
+ 	if (index_frontend < MAX_NUMBER_OF_FRONTENDS) {
+-		dprintk("set slave fe %p to index %i", fe_slave, index_frontend);
++		dprintk("set slave fe %p to index %i\n", fe_slave, index_frontend);
+ 		state->fe[index_frontend] = fe_slave;
+ 		return 0;
  	}
-@@ -2569,7 +2569,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
- 	 * are for safety, and should provide a good foundation for the
- 	 * future addition of any multi-frontend cx23885 based boards.
- 	 */
--	printk(KERN_INFO "%s() allocating %d frontend(s)\n", __func__,
-+	pr_info("%s() allocating %d frontend(s)\n", __func__,
- 		port->num_frontends);
  
- 	for (i = 1; i <= port->num_frontends; i++) {
-@@ -2577,7 +2577,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
- 
- 		if (vb2_dvb_alloc_frontend(
- 			&port->frontends, i) == NULL) {
--			printk(KERN_ERR "%s() failed to alloc\n", __func__);
-+			pr_err("%s() failed to alloc\n", __func__);
- 			return -ENOMEM;
- 		}
- 
-@@ -2596,7 +2596,7 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
- 
- 		/* dvb stuff */
- 		/* We have to init the queue for each frontend on a port. */
--		printk(KERN_INFO "%s: cx23885 based dvb card\n", dev->name);
-+		pr_info("%s: cx23885 based dvb card\n", dev->name);
- 		q = &fe0->dvb.dvbq;
- 		q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-@@ -2616,8 +2616,8 @@ int cx23885_dvb_register(struct cx23885_tsport *port)
- 	}
- 	err = dvb_register(port);
- 	if (err != 0)
--		printk(KERN_ERR "%s() dvb_register failed err = %d\n",
--			__func__, err);
-+		pr_err("%s() dvb_register failed err = %d\n",
-+		       __func__, err);
- 
- 	return err;
+-	dprintk("too many slave frontend");
++	dprintk("too many slave frontend\n");
+ 	return -ENOMEM;
  }
-diff --git a/drivers/media/pci/cx23885/cx23885-f300.c b/drivers/media/pci/cx23885/cx23885-f300.c
-index a6c45eb0a105..460cb8f314b2 100644
---- a/drivers/media/pci/cx23885/cx23885-f300.c
-+++ b/drivers/media/pci/cx23885/cx23885-f300.c
-@@ -122,7 +122,7 @@ static u8 f300_xfer(struct dvb_frontend *fe, u8 *buf)
+ EXPORT_SYMBOL(dib9000_set_slave_frontend);
+@@ -2463,12 +2470,12 @@ int dib9000_remove_slave_frontend(struct dvb_frontend *fe)
+ 	while ((index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL))
+ 		index_frontend++;
+ 	if (index_frontend != 1) {
+-		dprintk("remove slave fe %p (index %i)", state->fe[index_frontend - 1], index_frontend - 1);
++		dprintk("remove slave fe %p (index %i)\n", state->fe[index_frontend - 1], index_frontend - 1);
+ 		state->fe[index_frontend] = NULL;
+ 		return 0;
  	}
  
- 	if (i > 7) {
--		printk(KERN_ERR "%s: timeout, the slave no response\n",
-+		pr_err("%s: timeout, the slave no response\n",
- 								__func__);
- 		ret = 1; /* timeout, the slave no response */
- 	} else { /* the slave not busy, prepare for getting data */
-diff --git a/drivers/media/pci/cx23885/cx23885-i2c.c b/drivers/media/pci/cx23885/cx23885-i2c.c
-index 19faf9a611ed..8528032090f2 100644
---- a/drivers/media/pci/cx23885/cx23885-i2c.c
-+++ b/drivers/media/pci/cx23885/cx23885-i2c.c
-@@ -15,14 +15,14 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
- #include <linux/delay.h>
- #include <asm/io.h>
- 
--#include "cx23885.h"
--
- #include <media/v4l2-common.h>
- 
- static unsigned int i2c_debug;
-@@ -35,7 +35,8 @@ MODULE_PARM_DESC(i2c_scan, "scan i2c bus at insmod time");
- 
- #define dprintk(level, fmt, arg...)\
- 	do { if (i2c_debug >= level)\
--		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
-+		printk(KERN_DEBUG pr_fmt("%s: i2c:" fmt), \
-+			__func__, ##arg); \
- 	} while (0)
- 
- #define I2C_WAIT_DELAY 32
-@@ -121,7 +122,7 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
- 	if (i2c_debug) {
- 		printk(KERN_DEBUG " <W %02x %02x", msg->addr << 1, msg->buf[0]);
- 		if (!(ctrl & I2C_NOSTOP))
--			printk(KERN_CONT " >\n");
-+			pr_cont(" >\n");
- 	}
- 
- 	for (cnt = 1; cnt < msg->len; cnt++) {
-@@ -141,9 +142,9 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
- 		if (!i2c_wait_done(i2c_adap))
- 			goto eio;
- 		if (i2c_debug) {
--			printk(KERN_CONT " %02x", msg->buf[cnt]);
-+			pr_cont(" %02x", msg->buf[cnt]);
- 			if (!(ctrl & I2C_NOSTOP))
--				printk(KERN_CONT " >\n");
-+				pr_cont(" >\n");
- 		}
- 	}
- 	return msg->len;
-@@ -151,7 +152,7 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
-  eio:
- 	retval = -EIO;
- 	if (i2c_debug)
--		printk(KERN_ERR " ERR: %d\n", retval);
-+		pr_err(" ERR: %d\n", retval);
- 	return retval;
+-	dprintk("no frontend to be removed");
++	dprintk("no frontend to be removed\n");
+ 	return -ENODEV;
  }
- 
-@@ -212,15 +213,13 @@ static int i2c_readbytes(struct i2c_adapter *i2c_adap,
-  eio:
- 	retval = -EIO;
- 	if (i2c_debug)
--		printk(KERN_ERR " ERR: %d\n", retval);
-+		pr_err(" ERR: %d\n", retval);
- 	return retval;
- }
- 
- static int i2c_xfer(struct i2c_adapter *i2c_adap,
- 		    struct i2c_msg *msgs, int num)
- {
--	struct cx23885_i2c *bus = i2c_adap->algo_data;
--	struct cx23885_dev *dev = bus->dev;
- 	int i, retval = 0;
- 
- 	dprintk(1, "%s(num = %d)\n", __func__, num);
-@@ -302,7 +301,7 @@ static void do_i2c_scan(char *name, struct i2c_client *c)
- 		rc = i2c_master_recv(c, &buf, 0);
- 		if (rc < 0)
- 			continue;
--		printk(KERN_INFO "%s: i2c scan: found device @ 0x%04x  [%s]\n",
-+		pr_info("%s: i2c scan: found device @ 0x%04x  [%s]\n",
- 		       name, i, i2c_devs[i] ? i2c_devs[i] : "???");
- 	}
- }
-@@ -330,12 +329,12 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
- 	if (0 == bus->i2c_rc) {
- 		dprintk(1, "%s: i2c bus %d registered\n", dev->name, bus->nr);
- 		if (i2c_scan) {
--			printk(KERN_INFO "%s: scan bus %d:\n",
-+			pr_info("%s: scan bus %d:\n",
- 					dev->name, bus->nr);
- 			do_i2c_scan(dev->name, &bus->i2c_client);
- 		}
- 	} else
--		printk(KERN_WARNING "%s: i2c bus %d register FAILED\n",
-+		pr_warn("%s: i2c bus %d register FAILED\n",
- 			dev->name, bus->nr);
- 
- 	/* Instantiate the IR receiver device, if present */
-diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
-index 410c3141c163..1f092febdbd1 100644
---- a/drivers/media/pci/cx23885/cx23885-input.c
-+++ b/drivers/media/pci/cx23885/cx23885-input.c
-@@ -30,13 +30,13 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+#include "cx23885-input.h"
-+
- #include <linux/slab.h>
- #include <media/rc-core.h>
- #include <media/v4l2-subdev.h>
- 
--#include "cx23885.h"
--#include "cx23885-input.h"
--
- #define MODULE_NAME "cx23885"
- 
- static void cx23885_input_process_measurements(struct cx23885_dev *dev,
-diff --git a/drivers/media/pci/cx23885/cx23885-ir.c b/drivers/media/pci/cx23885/cx23885-ir.c
-index 89dc4cc3e1ce..2cd5ac41ab75 100644
---- a/drivers/media/pci/cx23885/cx23885-ir.c
-+++ b/drivers/media/pci/cx23885/cx23885-ir.c
-@@ -16,12 +16,12 @@
-  *  GNU General Public License for more details.
-  */
- 
--#include <media/v4l2-device.h>
--
- #include "cx23885.h"
- #include "cx23885-ir.h"
- #include "cx23885-input.h"
- 
-+#include <media/v4l2-device.h>
-+
- #define CX23885_IR_RX_FIFO_SERVICE_REQ		0
- #define CX23885_IR_RX_END_OF_RX_DETECTED	1
- #define CX23885_IR_RX_HW_FIFO_OVERRUN		2
-diff --git a/drivers/media/pci/cx23885/cx23885-vbi.c b/drivers/media/pci/cx23885/cx23885-vbi.c
-index 75e7fa7b1121..369e545cac04 100644
---- a/drivers/media/pci/cx23885/cx23885-vbi.c
-+++ b/drivers/media/pci/cx23885/cx23885-vbi.c
-@@ -15,13 +15,13 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
- 
--#include "cx23885.h"
--
- static unsigned int vbibufs = 4;
- module_param(vbibufs, int, 0644);
- MODULE_PARM_DESC(vbibufs, "number of vbi buffers, range 2-32");
-@@ -32,7 +32,8 @@ MODULE_PARM_DESC(vbi_debug, "enable debug messages [vbi]");
- 
- #define dprintk(level, fmt, arg...)\
- 	do { if (vbi_debug >= level)\
--		printk(KERN_DEBUG "%s/0: " fmt, dev->name, ## arg);\
-+		printk(KERN_DEBUG pr_fmt("%s: vbi:" fmt), \
-+			__func__, ##arg); \
- 	} while (0)
- 
- /* ------------------------------------------------------------------ */
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index 92ff452e5886..ecc580af0148 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -15,6 +15,9 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+#include "cx23885-video.h"
-+
- #include <linux/init.h>
- #include <linux/list.h>
- #include <linux/module.h>
-@@ -27,8 +30,6 @@
- #include <linux/kthread.h>
- #include <asm/div64.h>
- 
--#include "cx23885.h"
--#include "cx23885-video.h"
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-event.h>
-@@ -66,7 +67,8 @@ MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
- 
- #define dprintk(level, fmt, arg...)\
- 	do { if (video_debug >= level)\
--		printk(KERN_DEBUG "%s: " fmt, dev->name, ## arg);\
-+		printk(KERN_DEBUG pr_fmt("%s: video:" fmt), \
-+			__func__, ##arg); \
- 	} while (0)
- 
- /* ------------------------------------------------------------------- */
-@@ -194,7 +196,7 @@ u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
- 
- 	ret = i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg[0], 2);
- 	if (ret != 2)
--		printk(KERN_ERR "%s() error\n", __func__);
-+		pr_err("%s() error\n", __func__);
- 
- 	return b1[0];
- }
-@@ -811,7 +813,6 @@ static int vidioc_log_status(struct file *file, void *priv)
- static int cx23885_query_audinput(struct file *file, void *priv,
- 	struct v4l2_audio *i)
- {
--	struct cx23885_dev *dev = video_drvdata(file);
- 	static const char *iname[] = {
- 		[0] = "Baseband L/R 1",
- 		[1] = "Baseband L/R 2",
-@@ -1000,7 +1001,7 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
- 		fe->ops.tuner_ops.set_analog_params(fe, &params);
- 	}
- 	else
--		printk(KERN_ERR "%s() No analog tuner, aborting\n", __func__);
-+		pr_err("%s() No analog tuner, aborting\n", __func__);
- 
- 	/* When changing channels it is required to reset TVAUDIO */
- 	msleep(100);
-@@ -1058,7 +1059,7 @@ int cx23885_video_irq(struct cx23885_dev *dev, u32 status)
- 		if (status & VID_BC_MSK_OPC_ERR) {
- 			dprintk(7, " (VID_BC_MSK_OPC_ERR 0x%08x)\n",
- 				VID_BC_MSK_OPC_ERR);
--			printk(KERN_WARNING "%s: video risc op code error\n",
-+			pr_warn("%s: video risc op code error\n",
- 				dev->name);
- 			cx23885_sram_channel_dump(dev,
- 				&dev->sram_channels[SRAM_CH01]);
-@@ -1296,11 +1297,11 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 	err = video_register_device(dev->video_dev, VFL_TYPE_GRABBER,
- 				    video_nr[dev->nr]);
- 	if (err < 0) {
--		printk(KERN_INFO "%s: can't register video device\n",
-+		pr_info("%s: can't register video device\n",
- 			dev->name);
- 		goto fail_unreg;
- 	}
--	printk(KERN_INFO "%s: registered device %s [v4l2]\n",
-+	pr_info("%s: registered device %s [v4l2]\n",
- 	       dev->name, video_device_node_name(dev->video_dev));
- 
- 	/* register VBI device */
-@@ -1310,11 +1311,11 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 	err = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
- 				    vbi_nr[dev->nr]);
- 	if (err < 0) {
--		printk(KERN_INFO "%s: can't register vbi device\n",
-+		pr_info("%s: can't register vbi device\n",
- 			dev->name);
- 		goto fail_unreg;
- 	}
--	printk(KERN_INFO "%s: registered device %s\n",
-+	pr_info("%s: registered device %s\n",
- 	       dev->name, video_device_node_name(dev->vbi_dev));
- 
- 	/* Register ALSA audio device */
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index a6735afe2269..cb714ab60d69 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -15,6 +15,8 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/pci.h>
- #include <linux/i2c.h>
- #include <linux/kdev_t.h>
-diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
-index 3115cfddab95..040323b0f945 100644
---- a/drivers/media/pci/cx23885/cx23888-ir.c
-+++ b/drivers/media/pci/cx23885/cx23888-ir.c
-@@ -16,15 +16,15 @@
-  *  GNU General Public License for more details.
-  */
- 
-+#include "cx23885.h"
-+#include "cx23888-ir.h"
-+
- #include <linux/kfifo.h>
- #include <linux/slab.h>
- 
- #include <media/v4l2-device.h>
- #include <media/rc-core.h>
- 
--#include "cx23885.h"
--#include "cx23888-ir.h"
--
- static unsigned int ir_888_debug;
- module_param(ir_888_debug, int, 0644);
- MODULE_PARM_DESC(ir_888_debug, "enable debug messages [CX23888 IR controller]");
-diff --git a/drivers/media/pci/cx23885/netup-eeprom.c b/drivers/media/pci/cx23885/netup-eeprom.c
-index b6542ee4385b..6384c12aa38e 100644
---- a/drivers/media/pci/cx23885/netup-eeprom.c
-+++ b/drivers/media/pci/cx23885/netup-eeprom.c
-@@ -52,7 +52,7 @@ int netup_eeprom_read(struct i2c_adapter *i2c_adap, u8 addr)
- 	ret = i2c_transfer(i2c_adap, msg, 2);
- 
- 	if (ret != 2) {
--		printk(KERN_ERR "eeprom i2c read error, status=%d\n", ret);
-+		pr_err("eeprom i2c read error, status=%d\n", ret);
- 		return -1;
- 	}
- 
-@@ -80,7 +80,7 @@ int netup_eeprom_write(struct i2c_adapter *i2c_adap, u8 addr, u8 data)
- 	ret = i2c_transfer(i2c_adap, msg, 1);
- 
- 	if (ret != 1) {
--		printk(KERN_ERR "eeprom i2c write error, status=%d\n", ret);
-+		pr_err("eeprom i2c write error, status=%d\n", ret);
- 		return -1;
- 	}
- 
-diff --git a/drivers/media/pci/cx23885/netup-init.c b/drivers/media/pci/cx23885/netup-init.c
-index 76d9487aafc8..6a27ef5d9ec2 100644
---- a/drivers/media/pci/cx23885/netup-init.c
-+++ b/drivers/media/pci/cx23885/netup-init.c
-@@ -40,7 +40,7 @@ static void i2c_av_write(struct i2c_adapter *i2c, u16 reg, u8 val)
- 	ret = i2c_transfer(i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: i2c write error!\n", __func__);
-+		pr_err("%s: i2c write error!\n", __func__);
- }
- 
- static void i2c_av_write4(struct i2c_adapter *i2c, u16 reg, u32 val)
-@@ -64,7 +64,7 @@ static void i2c_av_write4(struct i2c_adapter *i2c, u16 reg, u32 val)
- 	ret = i2c_transfer(i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: i2c write error!\n", __func__);
-+		pr_err("%s: i2c write error!\n", __func__);
- }
- 
- static u8 i2c_av_read(struct i2c_adapter *i2c, u16 reg)
-@@ -84,7 +84,7 @@ static u8 i2c_av_read(struct i2c_adapter *i2c, u16 reg)
- 	ret = i2c_transfer(i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: i2c write error!\n", __func__);
-+		pr_err("%s: i2c write error!\n", __func__);
- 
- 	msg.flags = I2C_M_RD;
- 	msg.len = 1;
-@@ -92,7 +92,7 @@ static u8 i2c_av_read(struct i2c_adapter *i2c, u16 reg)
- 	ret = i2c_transfer(i2c, &msg, 1);
- 
- 	if (ret != 1)
--		printk(KERN_ERR "%s: i2c read error!\n", __func__);
-+		pr_err("%s: i2c read error!\n", __func__);
- 
- 	return buf[0];
- }
+ EXPORT_SYMBOL(dib9000_remove_slave_frontend);
 -- 
 2.7.4
 
