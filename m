@@ -1,78 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 220-136-221-108.dynamic.hinet.net ([220.136.221.108]:44815 "HELO
-        hinet.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-        id S1752728AbcKASeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 Nov 2016 14:34:14 -0400
-Content-Disposition: attachment
-Subject: 225025525 linux-media
-Content-Transfer-Encoding: base64
-From: <gay.irwin@walton.k12.ga.us>
-To: <linux-media@vger.kernel.org>
-Message-ID: <147802524801.17921.10385082816015043536@hinet.net>
-Date: Tue, 01 Nov 2016 18:34:08 -0000
-Content-Type: application/zip; name="INFO_81144401_linux-media.zip"
-MIME-Version: 1.0
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:60644 "EHLO
+        resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752206AbcKPO3T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Nov 2016 09:29:19 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
+        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
+        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
+        laurent.pinchart@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH v4 2/3] media: change au0828 to use Media Device Allocator API
+Date: Wed, 16 Nov 2016 07:29:10 -0700
+Message-Id: <fdd68ce1fc71dae7504e9e9acd2877dbf970e8c6.1479271294.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1479271294.git.shuahkh@osg.samsung.com>
+References: <cover.1479271294.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1479271294.git.shuahkh@osg.samsung.com>
+References: <cover.1479271294.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-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
-BgAAAAABAAEAVAAAAAUNAAAAAA==
+Change au0828 to use Media Device Allocator API to allocate media device
+with the parent usb struct device as the key, so it can be shared with the
+snd_usb_audio driver.
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+Changes since v2:
+- Updated media_device_delete() to pass in module name.
+
+ drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
+ drivers/media/usb/au0828/au0828.h      |  1 +
+ 2 files changed, 5 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index bf53553..582f31f 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -157,9 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	dev->media_dev->enable_source = NULL;
+ 	dev->media_dev->disable_source = NULL;
+ 
+-	media_device_unregister(dev->media_dev);
+-	media_device_cleanup(dev->media_dev);
+-	kfree(dev->media_dev);
++	media_device_delete(dev->media_dev, KBUILD_MODNAME);
+ 	dev->media_dev = NULL;
+ #endif
+ }
+@@ -212,14 +210,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_device *mdev;
+ 
+-	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
++	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
+ 	if (!mdev)
+ 		return -ENOMEM;
+ 
+-	/* check if media device is already initialized */
+-	if (!mdev->dev)
+-		media_device_usb_init(mdev, udev, udev->product);
+-
+ 	dev->media_dev = mdev;
+ #endif
+ 	return 0;
+@@ -487,6 +481,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 		/* register media device */
+ 		ret = media_device_register(dev->media_dev);
+ 		if (ret) {
++			media_device_delete(dev->media_dev, KBUILD_MODNAME);
++			dev->media_dev = NULL;
+ 			dev_err(&udev->dev,
+ 				"Media Device Register Error: %d\n", ret);
+ 			return ret;
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index dd7b378..4bf1b0c 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -35,6 +35,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/media-device.h>
++#include <media/media-dev-allocator.h>
+ 
+ /* DVB */
+ #include "demux.h"
+-- 
+2.7.4
+
