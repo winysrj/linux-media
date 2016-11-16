@@ -1,157 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:47298 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753297AbcKUNrB (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49627 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753453AbcKPQnN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 08:47:01 -0500
-Subject: Re: [PATCH v2 06/10] [media] st-delta: add contiguous memory
- allocator
-To: Hugues Fruchet <hugues.fruchet@st.com>, linux-media@vger.kernel.org
-References: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
- <1479468336-26199-7-git-send-email-hugues.fruchet@st.com>
-Cc: kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <41a23991-114e-de14-5c90-0996abb3777e@xs4all.nl>
-Date: Mon, 21 Nov 2016 14:46:55 +0100
-MIME-Version: 1.0
-In-Reply-To: <1479468336-26199-7-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Wed, 16 Nov 2016 11:43:13 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 02/35] [media] stv090x: get rid of continuation lines
+Date: Wed, 16 Nov 2016 14:42:34 -0200
+Message-Id: <85ae069890df221a78d1b657b42a8210e8fc8214.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This needs a proper commit message since it is not clear who will use this.
+This driver has printk continuation lines for debugging purposes.
+Since commit 563873318d32 ("Merge branch 'printk-cleanups'")',
+this won't work as expected anymore.
 
-I'm not sure I would call it a 'contiguous memory allocator': this are 
-really
-just helper functions, if I understand it correctly.
+So, use %*ph and get rid of it.
 
-'contiguous memory allocator' is also what 'CMA' stands for, so that's 
-confusing.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-frontends/stv090x.c | 10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-Note: you have empty commit messages for other patches in this series as 
-well,
-please always provide a valid commit message!
+diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
+index 25bdf6e0f963..42d62cc9a357 100644
+--- a/drivers/media/dvb-frontends/stv090x.c
++++ b/drivers/media/dvb-frontends/stv090x.c
+@@ -739,14 +739,8 @@ static int stv090x_write_regs(struct stv090x_state *state, unsigned int reg, u8
+ 	buf[1] = reg & 0xff;
+ 	memcpy(&buf[2], data, count);
+ 
+-	if (unlikely(*state->verbose >= FE_DEBUGREG)) {
+-		int i;
+-
+-		printk(KERN_DEBUG "%s [0x%04x]:", __func__, reg);
+-		for (i = 0; i < count; i++)
+-			printk(" %02x", data[i]);
+-		printk("\n");
+-	}
++	dprintk(FE_DEBUGREG, 1, "%s [0x%04x]: %*ph",
++		__func__, reg, count, data);
+ 
+ 	ret = i2c_transfer(state->i2c, &i2c_msg, 1);
+ 	if (ret != 1) {
+-- 
+2.7.4
 
-Regards,
 
-	Hans
-
-On 18/11/16 12:25, Hugues Fruchet wrote:
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/platform/sti/delta/Makefile    |  2 +-
->  drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
->  drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
->  drivers/media/platform/sti/delta/delta.h     |  8 +++++
->  4 files changed, 74 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
->  create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
->
-> diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-> index 07ba7ad..cbfb1b5 100644
-> --- a/drivers/media/platform/sti/delta/Makefile
-> +++ b/drivers/media/platform/sti/delta/Makefile
-> @@ -1,2 +1,2 @@
->  obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
-> -st-delta-y := delta-v4l2.o
-> +st-delta-y := delta-v4l2.o delta-mem.o
-> diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
-> new file mode 100644
-> index 0000000..d7b53d3
-> --- /dev/null
-> +++ b/drivers/media/platform/sti/delta/delta-mem.c
-> @@ -0,0 +1,51 @@
-> +/*
-> + * Copyright (C) STMicroelectronics SA 2015
-> + * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-> + * License terms:  GNU General Public License (GPL), version 2
-> + */
-> +
-> +#include "delta.h"
-> +#include "delta-mem.h"
-> +
-> +int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-> +	     struct delta_buf *buf)
-> +{
-> +	struct delta_dev *delta = ctx->dev;
-> +	dma_addr_t dma_addr;
-> +	void *addr;
-> +	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
-> +
-> +	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
-> +			       GFP_KERNEL | __GFP_NOWARN, attrs);
-> +	if (!addr) {
-> +		dev_err(delta->dev,
-> +			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
-> +			ctx->name, name, size);
-> +		ctx->sys_errors++;
-> +		return -ENOMEM;
-> +	}
-> +
-> +	buf->size = size;
-> +	buf->paddr = dma_addr;
-> +	buf->vaddr = addr;
-> +	buf->name = name;
-> +	buf->attrs = attrs;
-> +
-> +	dev_dbg(delta->dev,
-> +		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-> +		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
-> +
-> +	return 0;
-> +}
-> +
-> +void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
-> +{
-> +	struct delta_dev *delta = ctx->dev;
-> +
-> +	dev_dbg(delta->dev,
-> +		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
-> +		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
-> +
-> +	dma_free_attrs(delta->dev, buf->size,
-> +		       buf->vaddr, buf->paddr, buf->attrs);
-> +}
-> diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
-> new file mode 100644
-> index 0000000..f8ca109
-> --- /dev/null
-> +++ b/drivers/media/platform/sti/delta/delta-mem.h
-> @@ -0,0 +1,14 @@
-> +/*
-> + * Copyright (C) STMicroelectronics SA 2015
-> + * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-> + * License terms:  GNU General Public License (GPL), version 2
-> + */
-> +
-> +#ifndef DELTA_MEM_H
-> +#define DELTA_MEM_H
-> +
-> +int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
-> +	     struct delta_buf *buf);
-> +void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
-> +
-> +#endif /* DELTA_MEM_H */
-> diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-> index 6b48460..d31cb9a 100644
-> --- a/drivers/media/platform/sti/delta/delta.h
-> +++ b/drivers/media/platform/sti/delta/delta.h
-> @@ -191,6 +191,14 @@ struct delta_dts {
->  	u64 val;
->  };
->
-> +struct delta_buf {
-> +	u32 size;
-> +	void *vaddr;
-> +	dma_addr_t paddr;
-> +	const char *name;
-> +	unsigned long attrs;
-> +};
-> +
->  struct delta_ctx;
->
->  /*
->
