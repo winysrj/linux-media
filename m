@@ -1,103 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35270 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752434AbcKHNzh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:37 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 18/21] media-device: Postpone graph object removal until free
-Date: Tue,  8 Nov 2016 15:55:27 +0200
-Message-Id: <1478613330-24691-18-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from shell.v3.sk ([92.60.52.57]:39675 "EHLO shell.v3.sk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752291AbcKPQV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Nov 2016 11:21:57 -0500
+Message-ID: <1479312671.14443.3.camel@v3.sk>
+Subject: Re: [PATCH] [media] usbtv: don't do DMA on stack
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Federico Simoncelli <fsimonce@redhat.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Nikola =?ISO-8859-1?Q?Forr=F3?= <nikola.forro@gmail.com>,
+        Insu Yun <wuninsu@gmail.com>
+Date: Wed, 16 Nov 2016 17:11:11 +0100
+In-Reply-To: <9c5e1833f754f55e9ccc05549a90c5fa439ce63e.1479309351.git.mchehab@s-opensource.com>
+References: <9c5e1833f754f55e9ccc05549a90c5fa439ce63e.1479309351.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The media device itself will be unregistered based on it being unbound and
-driver's remove callback being called. The graph objects themselves may
-still be in use; rely on the media device release callback to release
-them.
+On Wed, 2016-11-16 at 13:15 -0200, Mauro Carvalho Chehab wrote:
+> As reported by smatch:
+> 	drivers/media/usb/usbtv/usbtv-video.c:716 usbtv_s_ctrl() error:
+> doing dma on the stack (data)
+> 	drivers/media/usb/usbtv/usbtv-video.c:758 usbtv_s_ctrl() error:
+> doing dma on the stack (data)
+> 
+> We should not do it, as it won't work on Kernels 4.9 and upper.
+> So, alloc a buffer for it.
+> 
+> Fixes: c53a846c48f2 ("[media] usbtv: add video controls")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/usb/usbtv/usbtv-video.c | 18 +++++++++++++-----
+>  1 file changed, 13 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/usb/usbtv/usbtv-video.c
+> b/drivers/media/usb/usbtv/usbtv-video.c
+> index 86ffbf8780f2..d3b6d3dfaa09 100644
+> --- a/drivers/media/usb/usbtv/usbtv-video.c
+> +++ b/drivers/media/usb/usbtv/usbtv-video.c
+> @@ -704,10 +704,14 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>  	struct usbtv *usbtv = container_of(ctrl->handler, struct
+> usbtv,
+>  								ctrl
+> );
+> -	u8 data[3];
+> +	u8 *data;
+>  	u16 index, size;
+>  	int ret;
+>  
+> +	data = kmalloc(3, GFP_KERNEL);
+> +	if (!data)
+> +		return -ENOMEM;
+> +
+>  	/*
+>  	 * Read in the current brightness/contrast registers. We
+> need them
+>  	 * both, because the values are for some reason interleaved.
+> @@ -717,6 +721,8 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
+>  			usb_sndctrlpipe(usbtv->udev, 0),
+> USBTV_CONTROL_REG,
+>  			USB_DIR_OUT | USB_TYPE_VENDOR |
+> USB_RECIP_DEVICE,
+>  			0, USBTV_BASE + 0x0244, (void *)data, 3, 0);
+> +		if (ret < 0)
+> +			goto error;
+>  	}
+>  
+>  	switch (ctrl->id) {
+> @@ -752,6 +758,7 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		}
+>  		break;
+>  	default:
+> +		kfree(data);
+>  		return -EINVAL;
+>  	}
+>  
+> @@ -759,12 +766,13 @@ static int usbtv_s_ctrl(struct v4l2_ctrl *ctrl)
+>  			USBTV_CONTROL_REG,
+>  			USB_DIR_OUT | USB_TYPE_VENDOR |
+> USB_RECIP_DEVICE,
+>  			0, index, (void *)data, size, 0);
+> -	if (ret < 0) {
+> +
+> +error:
+> +	if (ret < 0)
+>  		dev_warn(usbtv->dev, "Failed to submit a control
+> request.\n");
+> -		return ret;
+> -	}
+>  
+> -	return 0;
+> +	kfree(data);
+> +	return ret;
+>  }
+>  
+>  static const struct v4l2_ctrl_ops usbtv_ctrl_ops = {
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/media-device.c | 44 ++++++++++++++++++++------------------------
- 1 file changed, 20 insertions(+), 24 deletions(-)
+Reviewed-by: Lubomir Rintel <lkundrak@v3.sk>
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index e9dfc87..7a5884e 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -717,6 +717,26 @@ EXPORT_SYMBOL_GPL(media_device_init);
- static void media_device_release(struct media_devnode *devnode)
- {
- 	struct media_device *mdev = to_media_device(devnode);
-+	struct media_entity *entity;
-+	struct media_entity *next;
-+	struct media_interface *intf, *tmp_intf;
-+	struct media_entity_notify *notify, *nextp;
-+
-+	/* Remove all entities from the media device */
-+	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
-+		__media_device_unregister_entity(entity);
-+
-+	/* Remove all entity_notify callbacks from the media device */
-+	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
-+		__media_device_unregister_entity_notify(mdev, notify);
-+
-+	/* Remove all interfaces from the media device */
-+	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
-+				 graph_obj.list) {
-+		__media_remove_intf_links(intf);
-+		media_gobj_destroy(&intf->graph_obj);
-+		kfree(intf);
-+	}
- 
- 	dev_dbg(devnode->parent, "Media device released\n");
- 
-@@ -797,38 +817,14 @@ EXPORT_SYMBOL_GPL(__media_device_register);
- 
- void media_device_unregister(struct media_device *mdev)
- {
--	struct media_entity *entity;
--	struct media_entity *next;
--	struct media_interface *intf, *tmp_intf;
--	struct media_entity_notify *notify, *nextp;
--
- 	if (mdev == NULL)
- 		return;
- 
- 	mutex_lock(&mdev->graph_mutex);
--
--	/* Check if mdev was ever registered at all */
- 	if (!media_devnode_is_registered(&mdev->devnode)) {
- 		mutex_unlock(&mdev->graph_mutex);
- 		return;
- 	}
--
--	/* Remove all entities from the media device */
--	list_for_each_entry_safe(entity, next, &mdev->entities, graph_obj.list)
--		__media_device_unregister_entity(entity);
--
--	/* Remove all entity_notify callbacks from the media device */
--	list_for_each_entry_safe(notify, nextp, &mdev->entity_notify, list)
--		__media_device_unregister_entity_notify(mdev, notify);
--
--	/* Remove all interfaces from the media device */
--	list_for_each_entry_safe(intf, tmp_intf, &mdev->interfaces,
--				 graph_obj.list) {
--		__media_remove_intf_links(intf);
--		media_gobj_destroy(&intf->graph_obj);
--		kfree(intf);
--	}
--
- 	mutex_unlock(&mdev->graph_mutex);
- 
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
--- 
-2.1.4
-
+Thank you,
+Lubo
