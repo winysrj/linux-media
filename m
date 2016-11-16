@@ -1,84 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55227
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S965294AbcKLN7z (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49704 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753821AbcKPQnQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:59:55 -0500
-Date: Sat, 12 Nov 2016 11:59:26 -0200
+        Wed, 16 Nov 2016 11:43:16 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
-Message-ID: <20161112115926.49fcd6cf@vela.lan>
-In-Reply-To: <CAA7C2qi-NmpnRJO6DGmh9O1_21vK=Q82A_qkfBJ0ujYPakL6XQ@mail.gmail.com>
-References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
-        <20161108155520.224229d5@vento.lan>
-        <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
-        <20161109073331.204b53c4@vento.lan>
-        <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
-        <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
-        <20161109153521.232b0956@vento.lan>
-        <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
-        <20161110060717.221e8d88@vento.lan>
-        <CAA7C2qiPZnqpJ8MYkQ3wGhnmHzK25kLEP_Sm-1UOu8aECzkOGA@mail.gmail.com>
-        <20161111104903.607428e5@vela.lan>
-        <CAA7C2qhAaA0KVj4MNBE4KejhGcfbWuN_7Pj0u=uKdbYc8yvYjQ@mail.gmail.com>
-        <20161111195353.3b4ee8e0@vela.lan>
-        <20161111201011.2ce05c47@vela.lan>
-        <CAA7C2qi-hj=2=wPqOtzhuUXWAkKfNiUb5ayG6rYS5MfDaJut+Q@mail.gmail.com>
-        <20161112061443.4c7cfd3b@vela.lan>
-        <CAA7C2qi-NmpnRJO6DGmh9O1_21vK=Q82A_qkfBJ0ujYPakL6XQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 35/35] [media] tveeprom: print log messages using pr_foo()
+Date: Wed, 16 Nov 2016 14:43:07 -0200
+Message-Id: <4088fcf5c93ae243308c089e4e86d646c19e60c5.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 12 Nov 2016 02:20:37 -0800
-VDR User <user.vdr@gmail.com> escreveu:
+Unfortunately, the callers of tveeprom don't do the right
+thing to initialize the device. So, it produces log messages
+like:
 
-> Ok, I think I had too much patching going on (I switched from 4.8.4
-> kernel drivers to media_build) so I started from scratch with a fresh
-> update to kernel 4.8.7. First I applied the dma stuff in this order:
-> 
-> (from https://patchwork.linuxtv.org/patch/37395/raw/)
-> v2-18-31-gp8psk-don-t-do-DMA-on-stack.patch
-> (from https://patchwork.linuxtv.org/patch/37386/raw/)
-> v2-19-31-gp8psk-don-t-go-past-the-buffer-size.patch
-> (from https://patchwork.linuxtv.org/patch/37929/raw/)
-> media-gp8psk-fix-gp8psk_usb_in_op-logic.patch
-> 
-> It works fine at this point but we still have the attach bug. Then I applied:
-> 
-> (from https://patchwork.linuxtv.org/patch/38040/raw/)
-> Question-about-2-gp8psk-patches-I-noticed-and-possible-bug..patch
-> 
-> Attach bug is fixed, tuning works, module unloads without crashing.
-> Everything seems ok! I think the gp8psk issues are resolved with the
-> above 4 patches. As you know, there are some other drivers which
-> attach the same way as gp8psk was.
-> 
-> Thanks for your help & patience!
+[  267.533010]  (null): Hauppauge model 42012, rev C186, serial# 2819348
+[  267.533012]  (null): tuner model is Philips FQ1236 MK3 (idx 86, type 43)
+[  267.533013]  (null): TV standards NTSC(M) (eeprom 0x08)
+[  267.533014]  (null): audio processor is MSP3445 (idx 12)
+[  267.533015]  (null): has radio
 
-Great!
+So, replace it to pr_foo(), as it should work fine.
 
-> 
-> One quick question.. Shouldn't gp8psk_fe be listed in the "used by"
-> column of dvb_usb_gp8psk or the other dvb_* modules?:
-> 
-> Module                  Size  Used by
-> gp8psk_fe               3803  1
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/common/tveeprom.c | 42 +++++++++++++++++++++--------------------
+ 1 file changed, 22 insertions(+), 20 deletions(-)
 
-No, the way dvb_attach works don't list what modules use it.
-There were a pathset fixing it back in 2008 or something, but
-it were never applied upstream.
+diff --git a/drivers/media/common/tveeprom.c b/drivers/media/common/tveeprom.c
+index e7d0d86f19aa..11976031aff8 100644
+--- a/drivers/media/common/tveeprom.c
++++ b/drivers/media/common/tveeprom.c
+@@ -28,6 +28,8 @@
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+@@ -496,12 +498,12 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 			len = eeprom_data[i] & 0x07;
+ 			++i;
+ 		} else {
+-			dev_warn(&c->dev, "Encountered bad packet header [%02x]. Corrupt or not a Hauppauge eeprom.\n",
++			pr_warn("Encountered bad packet header [%02x]. Corrupt or not a Hauppauge eeprom.\n",
+ 				eeprom_data[i]);
+ 			return;
+ 		}
+ 
+-		dev_dbg(&c->dev, "Tag [%02x] + %d bytes: %*ph\n",
++		pr_debug("Tag [%02x] + %d bytes: %*ph\n",
+ 			eeprom_data[i], len - 1, len, &eeprom_data[i]);
+ 
+ 		/* process by tag */
+@@ -642,14 +644,14 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 		/* case 0x12: tag 'InfoBits' */
+ 
+ 		default:
+-			dev_dbg(&c->dev, "Not sure what to do with tag [%02x]\n",
++			pr_debug("Not sure what to do with tag [%02x]\n",
+ 					tag);
+ 			/* dump the rest of the packet? */
+ 		}
+ 	}
+ 
+ 	if (!done) {
+-		dev_warn(&c->dev, "Ran out of data!\n");
++		pr_warn("Ran out of data!\n");
+ 		return;
+ 	}
+ 
+@@ -662,8 +664,8 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 	}
+ 
+ 	if (hasRadioTuner(tuner1) && !tvee->has_radio) {
+-		dev_info(&c->dev, "The eeprom says no radio is present, but the tuner type\n");
+-		dev_info(&c->dev, "indicates otherwise. I will assume that radio is present.\n");
++		pr_info("The eeprom says no radio is present, but the tuner type\n");
++		pr_info("indicates otherwise. I will assume that radio is present.\n");
+ 		tvee->has_radio = 1;
+ 	}
+ 
+@@ -698,46 +700,46 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 		}
+ 	}
+ 
+-	dev_info(&c->dev, "Hauppauge model %d, rev %s, serial# %u\n",
++	pr_info("Hauppauge model %d, rev %s, serial# %u\n",
+ 		tvee->model, tvee->rev_str, tvee->serial_number);
+ 	if (tvee->has_MAC_address == 1)
+-		dev_info(&c->dev, "MAC address is %pM\n", tvee->MAC_address);
+-	dev_info(&c->dev, "tuner model is %s (idx %d, type %d)\n",
++		pr_info("MAC address is %pM\n", tvee->MAC_address);
++	pr_info("tuner model is %s (idx %d, type %d)\n",
+ 		t_name1, tuner1, tvee->tuner_type);
+-	dev_info(&c->dev, "TV standards%s%s%s%s%s%s%s%s (eeprom 0x%02x)\n",
++	pr_info("TV standards%s%s%s%s%s%s%s%s (eeprom 0x%02x)\n",
+ 		t_fmt_name1[0], t_fmt_name1[1], t_fmt_name1[2],
+ 		t_fmt_name1[3],	t_fmt_name1[4], t_fmt_name1[5],
+ 		t_fmt_name1[6], t_fmt_name1[7],	t_format1);
+ 	if (tuner2)
+-		dev_info(&c->dev, "second tuner model is %s (idx %d, type %d)\n",
++		pr_info("second tuner model is %s (idx %d, type %d)\n",
+ 					t_name2, tuner2, tvee->tuner2_type);
+ 	if (t_format2)
+-		dev_info(&c->dev, "TV standards%s%s%s%s%s%s%s%s (eeprom 0x%02x)\n",
++		pr_info("TV standards%s%s%s%s%s%s%s%s (eeprom 0x%02x)\n",
+ 			t_fmt_name2[0], t_fmt_name2[1], t_fmt_name2[2],
+ 			t_fmt_name2[3],	t_fmt_name2[4], t_fmt_name2[5],
+ 			t_fmt_name2[6], t_fmt_name2[7], t_format2);
+ 	if (audioic < 0) {
+-		dev_info(&c->dev, "audio processor is unknown (no idx)\n");
++		pr_info("audio processor is unknown (no idx)\n");
+ 		tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
+ 	} else {
+ 		if (audioic < ARRAY_SIZE(audio_ic))
+-			dev_info(&c->dev, "audio processor is %s (idx %d)\n",
++			pr_info("audio processor is %s (idx %d)\n",
+ 					audio_ic[audioic].name, audioic);
+ 		else
+-			dev_info(&c->dev, "audio processor is unknown (idx %d)\n",
++			pr_info("audio processor is unknown (idx %d)\n",
+ 								audioic);
+ 	}
+ 	if (tvee->decoder_processor)
+-		dev_info(&c->dev, "decoder processor is %s (idx %d)\n",
++		pr_info("decoder processor is %s (idx %d)\n",
+ 			STRM(decoderIC, tvee->decoder_processor),
+ 			tvee->decoder_processor);
+ 	if (tvee->has_ir)
+-		dev_info(&c->dev, "has %sradio, has %sIR receiver, has %sIR transmitter\n",
++		pr_info("has %sradio, has %sIR receiver, has %sIR transmitter\n",
+ 				tvee->has_radio ? "" : "no ",
+ 				(tvee->has_ir & 2) ? "" : "no ",
+ 				(tvee->has_ir & 4) ? "" : "no ");
+ 	else
+-		dev_info(&c->dev, "has %sradio\n",
++		pr_info("has %sradio\n",
+ 				tvee->has_radio ? "" : "no ");
+ }
+ EXPORT_SYMBOL(tveeprom_hauppauge_analog);
+@@ -753,12 +755,12 @@ int tveeprom_read(struct i2c_client *c, unsigned char *eedata, int len)
+ 	buf = 0;
+ 	err = i2c_master_send(c, &buf, 1);
+ 	if (err != 1) {
+-		dev_info(&c->dev, "Huh, no eeprom present (err=%d)?\n", err);
++		pr_info("Huh, no eeprom present (err=%d)?\n", err);
+ 		return -1;
+ 	}
+ 	err = i2c_master_recv(c, eedata, len);
+ 	if (err != len) {
+-		dev_warn(&c->dev, "i2c eeprom read error (err=%d)\n", err);
++		pr_warn("i2c eeprom read error (err=%d)\n", err);
+ 		return -1;
+ 	}
+ 
+-- 
+2.7.4
 
-> dvb_usb_gp8psk          7344  19
-> dvb_usb                17495  1 dvb_usb_gp8psk
-> dvb_core               62327  1 dvb_usb
 
-
-
-
-Cheers,
-Mauro
