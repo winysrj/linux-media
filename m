@@ -1,114 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59712 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750749AbcKXDrc (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44288
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932855AbcKPOa7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 22:47:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Matt Ranostay <matt@ranostay.consulting>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
-        Luca Barbato <lu_zero@gentoo.org>
-Subject: Re: [PATCH v3] media: i2c-polling: add i2c-polling driver
-Date: Thu, 24 Nov 2016 05:47:01 +0200
-Message-ID: <5424666.GP8tthhb7m@avalon>
-In-Reply-To: <CAJ_EiSRhiLMpF=6exnnO8fbjRR6MT2t4MBB6vMa-dpr21U0Y5A@mail.gmail.com>
-References: <1479863920-14708-1-git-send-email-matt@ranostay.consulting> <2379913.pFkGVXK2x8@avalon> <CAJ_EiSRhiLMpF=6exnnO8fbjRR6MT2t4MBB6vMa-dpr21U0Y5A@mail.gmail.com>
+        Wed, 16 Nov 2016 09:30:59 -0500
+Date: Wed, 16 Nov 2016 12:30:51 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Manjunath Hadli <manjunath.hadli@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Muralidharan Karicheri <m-karicheri2@ti.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 06/34] [media] DaVinci-VPBE: Return an error code only
+ by a single variable in vpbe_initialize()
+Message-ID: <20161116123051.25f3a640@vento.lan>
+In-Reply-To: <31e1f827-3539-3bcf-e6c1-2b9df5fd3619@users.sourceforge.net>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+        <31e1f827-3539-3bcf-e6c1-2b9df5fd3619@users.sourceforge.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matt,
+Em Wed, 12 Oct 2016 16:40:22 +0200
+SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
 
-On Wednesday 23 Nov 2016 18:37:29 Matt Ranostay wrote:
-> On Wed, Nov 23, 2016 at 8:30 AM, Laurent Pinchart wrote:
-> > On Tuesday 22 Nov 2016 17:18:40 Matt Ranostay wrote:
-> >> There are several thermal sensors that only have a low-speed bus
-> >> interface but output valid video data. This patchset enables support
-> >> for the AMG88xx "Grid-Eye" sensor family.
-> >> 
-> >> Cc: Attila Kinali <attila@kinali.ch>
-> >> Cc: Marek Vasut <marex@denx.de>
-> >> Cc: Luca Barbato <lu_zero@gentoo.org>
-> >> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
-> >> ---
-> >> Changes from v1:
-> >> * correct i2c_polling_remove() operations
-> >> * fixed delay calcuation in buffer_queue()
-> >> * add include linux/slab.h
-> >> 
-> >> Changes from v2:
-> >> * fix build error due to typo in include of slab.h
-> >> 
-> >>  drivers/media/i2c/Kconfig       |   8 +
-> >>  drivers/media/i2c/Makefile      |   1 +
-> >>  drivers/media/i2c/i2c-polling.c | 469 ++++++++++++++++++++++++++++++++++
-> > 
-> > Just looking at the driver name I believe a rename is needed. i2c-polling
-> > is a very generic name and would mislead many people into thinking about
-> > an I2C subsystem core feature instead of a video driver. "video-i2c" is
-> > one option, I'm open to other ideas.
-> > 
-> >>  3 files changed, 478 insertions(+)
-> >>  create mode 100644 drivers/media/i2c/i2c-polling.c
-
-[snip]
-
-> >> diff --git a/drivers/media/i2c/i2c-polling.c
-> >> b/drivers/media/i2c/i2c-polling.c new file mode 100644
-> >> index 000000000000..46a4eecde2d2
-> >> --- /dev/null
-> >> +++ b/drivers/media/i2c/i2c-polling.c
-
-[snip]
-
-> >> +static const struct v4l2_ioctl_ops i2c_polling_ioctl_ops = {
-> >> +     .vidioc_querycap                = i2c_polling_querycap,
-> >> +     .vidioc_g_input                 = i2c_polling_g_input,
-> >> +     .vidioc_s_input                 = i2c_polling_s_input,
-> >> +     .vidioc_enum_input              = i2c_polling_enum_input,
-> >> +     .vidioc_enum_fmt_vid_cap        = i2c_polling_enum_fmt_vid_cap,
-> >> +     .vidioc_enum_framesizes         = i2c_polling_enum_framesizes,
-> >> +     .vidioc_enum_frameintervals     = i2c_polling_enum_frameintervals,
-> >> +     .vidioc_g_fmt_vid_cap           = i2c_polling_fmt_vid_cap,
-> >> +     .vidioc_s_fmt_vid_cap           = i2c_polling_fmt_vid_cap,
-> >> +     .vidioc_g_parm                  = i2c_polling_g_parm,
-> >> +     .vidioc_s_parm                  = i2c_polling_s_parm,
-> >> +     .vidioc_try_fmt_vid_cap         = i2c_polling_try_fmt_vid_cap,
-> >> +     .vidioc_reqbufs                 = vb2_ioctl_reqbufs,
-> >> +     .vidioc_create_bufs             = vb2_ioctl_create_bufs,
-> >> +     .vidioc_prepare_buf             = vb2_ioctl_prepare_buf,
-> >> +     .vidioc_querybuf                = vb2_ioctl_querybuf,
-> >> +     .vidioc_qbuf                    = vb2_ioctl_qbuf,
-> >> +     .vidioc_dqbuf                   = vb2_ioctl_dqbuf,
-> >> +     .vidioc_streamon                = vb2_ioctl_streamon,
-> >> +     .vidioc_streamoff               = vb2_ioctl_streamoff,
-> > 
-> > No need to set the buffer-related .vidioc_* pointers to vb2_ioctl_*
-> > explicitly, the core will use vb2 if the fields are left unset.
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Tue, 11 Oct 2016 14:15:57 +0200
 > 
-> Not so sure about that from getting these ioctl errors with those removed:
+> An error code was assigned to the local variable "err" in an if branch.
+> But this variable was not used further then.
 > 
-> avconv -f video4linux2 -s 8x8 -r 10 -i /dev/video0 test%3d.png
-> avconv version 8cd084d, Copyright (c) 2000-2016 the Libav developers
->   built on Nov  8 2016 02:26:17 with gcc 4.7.3 (Linaro GCC
-> 4.7-2013.02-01) 20130205 (prerelease)
-> [video4linux2 @ 0x10390c0] ioctl(VIDIOC_QUERYBUF)
-> /dev/video0: Inappropriate ioctl for device
+> Use the local variable "ret" instead like at other places in this function.
+> 
+> Fixes: 66715cdc3224a4e241c1a92856b9a4af3b70e06d ("[media] davinci vpbe:
+> VPBE display driver")
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/platform/davinci/vpbe.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index 4c4cd81..afa8ff7 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -665,7 +665,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  		if (err) {
+>  			v4l2_err(&vpbe_dev->v4l2_dev,
+>  				 "unable to initialize the OSD device");
+> -			err = -ENOMEM;
+> +			ret = -ENOMEM;
+>  			goto fail_dev_unregister;
+>  		}
+>  	}
 
-My comment was wrong, I've mistaken it with the control-related ioctls. I'm 
-very sorry about that.
+Hmm... why are you keeping both "err" and "ret" variables here?
+Just one var is needed. Also, why not just return the error code?
 
-> >> +     .vidioc_log_status              = v4l2_ctrl_log_status,
-> >> +     .vidioc_subscribe_event         = v4l2_ctrl_subscribe_event,
-> >> +     .vidioc_unsubscribe_event       = v4l2_event_unsubscribe,
-> >> +};
+If you want to cleanup the code, please look at the entire function,
+and not to just this occurrence.
 
--- 
-Regards,
+I mean, IMHO, this code (and all similar occurrences), should be, instead:
 
-Laurent Pinchart
+		ret = osd_device->ops.initialize(osd_device);
+                if (ret) {
+                        v4l2_err(&vpbe_dev->v4l2_dev,
+                                 "unable to initialize the OSD device");
+                        goto fail_dev_unregister;
+                }
 
+and the "err" var can probably be removed.
+
+
+Thanks,
+Mauro
