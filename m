@@ -1,88 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:38936 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965824AbcKOFjo (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44716
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933567AbcKPPTj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 00:39:44 -0500
-References: <87h97achun.fsf@edgarthier.net> <20161114141425.GT3217@valkosipuli.retiisi.org.uk>
-From: Edgar Thier <info@edgarthier.net>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Edgar Thier <info@edgarthier.net>, linux-media@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
-In-reply-to: <20161114141425.GT3217@valkosipuli.retiisi.org.uk>
-Date: Tue, 15 Nov 2016 06:39:41 +0100
-Message-ID: <8760np5mjm.fsf@edgarthier.net>
+        Wed, 16 Nov 2016 10:19:39 -0500
+Date: Wed, 16 Nov 2016 13:19:32 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: [GIT PULL] Samsung fixes for 4.8
+Message-ID: <20161116131932.7c2908e3@vento.lan>
+In-Reply-To: <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
+References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
+        <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
+        <20161021102607.2df96630@vento.lan>
+        <70cc3f35-e661-c76f-8620-dfeb74030183@samsung.com>
+        <20161116124600.66e4c9e4@vento.lan>
+        <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 16 Nov 2016 16:08:19 +0100
+Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
 
->From 10ce06db4ab3c037758b3cb5264007f59801f1a1 Mon Sep 17 00:00:00 2001
-From: Edgar Thier <info@edgarthier.net>
-Date: Tue, 15 Nov 2016 06:33:10 +0100
-Subject: [PATCH] uvcvideo: Add bayer 16-bit format patterns
+> On 11/16/2016 03:46 PM, Mauro Carvalho Chehab wrote:
+> >>>> Marek Szyprowski (1):  
+> >>>> > >>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()    
+> >> > 
+> >> > Mauro, this patch seems to had slipped through the cracks, I can't see it
+> >> > in neither media fixes nor the master branch. Could you please check it?  
+> >
+> > The patch seems to be on my tree:  
+> 
+> Oops, sorry, I didn't check it properly. Would be nice to see that
+> patch also in linux-next.
 
-Signed-off-by: Edgar Thier <info@edgarthier.net>
----
-drivers/media/usb/uvc/uvc_driver.c | 20 ++++++++++++++++++++
-drivers/media/usb/uvc/uvcvideo.h   | 12 ++++++++++++
-2 files changed, 32 insertions(+)
+I'll likely add all patches at linux-next today, after handling more
+patches.
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 87b2fc3b..9d1fc33 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -168,6 +168,26 @@ static struct uvc_format_desc uvc_fmts[] = {
-.guid		= UVC_GUID_FORMAT_RW10,
-.fcc		= V4L2_PIX_FMT_SRGGB10P,
-},
-+	{
-+			.name		= "Bayer 16-bit (SBGGR16)",
-+			.guid		= UVC_GUID_FORMAT_BG16,
-+			.fcc		= V4L2_PIX_FMT_SBGGR16,
-+	},
-+	{
-+			.name		= "Bayer 16-bit (SGBRG16)",
-+			.guid		= UVC_GUID_FORMAT_GB16,
-+			.fcc		= V4L2_PIX_FMT_SGBRG16,
-+	},
-+	{
-+			.name		= "Bayer 16-bit (SRGGB16)",
-+			.guid		= UVC_GUID_FORMAT_RG16,
-+			.fcc		= V4L2_PIX_FMT_SRGGB16,
-+	},
-+	{
-+			.name		= "Bayer 16-bit (SGRBG16)",
-+			.guid		= UVC_GUID_FORMAT_GR16,
-+			.fcc		= V4L2_PIX_FMT_SGRBG16,
-+	},
-};
-
-/* ------------------------------------------------------------------------
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 7e4d3ee..3d6cc62 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -106,6 +106,18 @@
-#define UVC_GUID_FORMAT_RGGB \
-{ 'R',  'G',  'G',  'B', 0x00, 0x00, 0x10, 0x00, \
-0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_BG16 \
-+	{ 'B',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_GB16 \
-+	{ 'G',  'B',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_RG16 \
-+	{ 'R',  'G',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-+#define UVC_GUID_FORMAT_GR16 \
-+	{ 'G',  'R',  '1',  '6', 0x00, 0x00, 0x10, 0x00, \
-+	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
-#define UVC_GUID_FORMAT_RGBP \
-{ 'R',  'G',  'B',  'P', 0x00, 0x00, 0x10, 0x00, \
-0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
---
-2.10.2
+Thanks,
+Mauro
