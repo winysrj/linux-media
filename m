@@ -1,107 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f49.google.com ([74.125.83.49]:34806 "EHLO
-        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754949AbcK2X5T (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49650 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753719AbcKPQnO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 18:57:19 -0500
-Received: by mail-pg0-f49.google.com with SMTP id x23so74807134pgx.1
-        for <linux-media@vger.kernel.org>; Tue, 29 Nov 2016 15:57:19 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v4 4/4] [media] dt-bindings: add TI VPIF documentation
-Date: Tue, 29 Nov 2016 15:57:12 -0800
-Message-Id: <20161129235712.29846-5-khilman@baylibre.com>
-In-Reply-To: <20161129235712.29846-1-khilman@baylibre.com>
-References: <20161129235712.29846-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Wed, 16 Nov 2016 11:43:14 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH 27/35] [media] v4l2-common: add a debug macro to be used with dev_foo()
+Date: Wed, 16 Nov 2016 14:42:59 -0200
+Message-Id: <bd33aafcefabffc59f7750afb0251fdd94c28a88.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- .../devicetree/bindings/media/ti,da850-vpif.txt    | 67 ++++++++++++++++++++++
- 1 file changed, 67 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+Currently, there's a mess at the V4L2 printk macros: some drivers
+use their own macros, others use pr_foo() or v4l_foo() macros,
+while more modern drivers use dev_foo() macros.
 
-diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-new file mode 100644
-index 000000000000..fa06dfdb6898
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-@@ -0,0 +1,67 @@
-+Texas Instruments VPIF
-+----------------------
+The best is to get rid of v4l_foo() macros, as they can be
+replaced by either dev_foo() or pr_foo(). Yet, such change can
+be disruptive, as dev_foo() cannot use KERN_CONT. So, the best
+is to do such change driver by driver.
+
+There are replacements for most v4l_foo() macros, but it lacks
+a way to enable debug messages per level. So, add such macro,
+in order to make the conversion easier.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-common.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 350cbf9fb10e..aac8b7b6e691 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -55,6 +55,13 @@
+ 			v4l_client_printk(KERN_DEBUG, client, fmt , ## arg); \
+ 	} while (0)
+ 
++/* Add a version of v4l_dbg to be used on drivers using dev_foo() macros */
++#define dev_dbg_lvl(__dev, __level, __debug, __fmt, __arg...)		\
++	do {								\
++		if (__debug >= (__level))				\
++			dev_printk(KERN_DEBUG, __dev, __fmt, ##__arg);	\
++	} while (0)
 +
-+The TI Video Port InterFace (VPIF) is the primary component for video
-+capture and display on the DA850/AM18x family of TI DaVinci/Sitara
-+SoCs.
-+
-+TI Document reference: SPRUH82C, Chapter 35
-+http://www.ti.com/lit/pdf/spruh82
-+
-+Required properties:
-+- compatible: must be "ti,da850-vpif"
-+- reg: physical base address and length of the registers set for the device;
-+- interrupts: should contain IRQ line for the VPIF
-+
-+Video Capture:
-+
-+VPIF has a 16-bit parallel bus input, supporting 2 8-bit channels or a
-+single 16-bit channel.  It should contain at least one port child node
-+with child 'endpoint' node. Please refer to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example using 2 8-bit input channels, one of which is connected to an
-+I2C-connected TVP5147 decoder:
-+
-+	vpif: vpif@217000 {
-+		compatible = "ti,da850-vpif";
-+		reg = <0x217000 0x1000>;
-+		interrupts = <92>;
-+
-+		port {
-+			vpif_ch0: endpoint@0 {
-+				  reg = <0>;
-+				  bus-width = <8>;
-+				  remote-endpoint = <&composite>;
-+			};
-+
-+			vpif_ch1: endpoint@1 {
-+				  reg = <1>;
-+				  bus-width = <8>;
-+				  data-shift = <8>;
-+			};
-+		};
-+	};
-+
-+[ ... ]
-+
-+&i2c0 {
-+
-+	tvp5147@5d {
-+		compatible = "ti,tvp5147";
-+		reg = <0x5d>;
-+		status = "okay";
-+
-+		port {
-+			composite: endpoint {
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				pclk-sample = <0>;
-+
-+				/* VPIF channel 0 (lower 8-bits) */
-+				remote-endpoint = <&vpif_ch0>;
-+				bus-width = <8>;
-+			};
-+		};
-+	};
-+};
+ /* ------------------------------------------------------------------------- */
+ 
+ /* These printk constructs can be used with v4l2_device and v4l2_subdev */
 -- 
-2.9.3
+2.7.4
+
 
