@@ -1,277 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33627 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966097AbcKLNNy (ORCPT
+Received: from mail-pg0-f50.google.com ([74.125.83.50]:34286 "EHLO
+        mail-pg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751955AbcKPLAe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:54 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 24/32] media: rcar-vin: add link notify for Gen3
-Date: Sat, 12 Nov 2016 14:12:08 +0100
-Message-Id: <20161112131216.22635-25-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 16 Nov 2016 06:00:34 -0500
+Received: by mail-pg0-f50.google.com with SMTP id x23so75387198pgx.1
+        for <linux-media@vger.kernel.org>; Wed, 16 Nov 2016 03:00:34 -0800 (PST)
+Received: from shambles.local (c122-106-153-7.carlnfd1.nsw.optusnet.com.au. [122.106.153.7])
+        by smtp.gmail.com with ESMTPSA id p125sm1926745pfg.33.2016.11.16.02.53.08
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 16 Nov 2016 02:53:09 -0800 (PST)
+Date: Wed, 16 Nov 2016 21:52:58 +1100
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: ir-keytable: infinite loops, segfaults
+Message-ID: <20161116105256.GA9998@shambles.local>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the ability to process media device link change request. Link
-enablement are a bit complicated on Gen3, if it's possible to enable a
-link depends on what other links already are enabled. On Gen3 the 8 VIN
-are split into two subgroups (VIN0-3 and VIN4-7) and from a routing
-perspective these two groups are independent of each other. Each
-subgroups routing is controlled by the subgroup VIN master instance
-(VIN0 and VIN4).
+Hi,
 
-There are a limited number of possible route setups available for each
-subgroup and the configuration of each setup is dictated by the
-hardware. On H3 for example there are 6 possible route setups for each
-subgroup to choose from.
+I have a fairly old dvico dual digital 4 tuner and remote.
+There seem to be some issues with support for it, can I help fix them?
 
-This leads to the media device link notification code being rather large
-since it will find the best routing configuration to try and accommodate
-as many links as possible. When it's not possible to enable a new link
-due to hardware constrains the link_notifier callback will return
--EBUSY.
+I am using ir-keytable 1.10.0-1 on Ubuntu 16.04 LTS,
+with kernel 4.4.0-47-generic (package version 4.4.0-47-generic)
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 205 ++++++++++++++++++++++++++++
- 1 file changed, 205 insertions(+)
+The remote's keymapping is the one in /lib/udev/rc_keymaps/dvico_mce;
+kernel support for the device is in media/usb/dvb-usb/cxusb.c.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index de75ca8..0092ab4 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -26,6 +26,209 @@
- #include "rcar-vin.h"
+Mostly it works, in that I get correct keycodes back from evtest
+and ir-keytable -t. But I want to change some of the keycode mappings
+and that is not working.
+
+  # cat >testfile
+  0xfe47 KEY_PAUSE
+  ^D
+  
+  # ir-keytable -v -d /dev/input/event15 -w testfile
+  Parsing testfile keycode file
+  parsing 0xfe47=KEY_PAUSE:   value=119
+  Opening /dev/input/event15
+  Input Protocol version: 0x00010001
+      fe47=0077
+  Wrote 1 keycode(s) to driver
+
+So far so good, yes? But evtest still reports the same keycode
+for the key I tried to modify.
+
+  # evtest
+  <select device 15>
+  <press PLAYPAUSE key on remote>
+  Event: time 1479206112.262746, type 1 (EV_KEY), code 164 (KEY_PLAYPAUSE), value 1
+  Event: time 1479206112.262746, -------------- SYN_REPORT ------------
+  Event: time 1479206112.262760, type 1 (EV_KEY), code 164 (KEY_PLAYPAUSE), value 0
+  Event: time 1479206112.262760, -------------- SYN_REPORT ------------
  
- /* -----------------------------------------------------------------------------
-+ * Media Controller link notification
-+ */
-+
-+static unsigned int rvin_group_csi_pad_to_chan(unsigned int pad)
-+{
-+	/*
-+	 * The CSI2 driver is rcar-csi2 and we know it's pad layout are
-+	 * 0: Source 1-4: Sinks so if we remove one from the pad we
-+	 * get the rcar-vin internal CSI2 channel number
-+	 */
-+	return pad - 1;
-+}
-+
-+/* group lock should be held when calling this function */
-+static int rvin_group_entity_to_vin_num(struct rvin_group *group,
-+					struct media_entity *entity)
-+{
-+	struct video_device *vdev;
-+	int i;
-+
-+	if (!is_media_entity_v4l2_video_device(entity))
-+		return -ENODEV;
-+
-+	vdev = media_entity_to_video_device(entity);
-+
-+	for (i = 0; i < RCAR_VIN_NUM; i++) {
-+		if (!group->vin[i])
-+			continue;
-+
-+		if (&group->vin[i]->vdev == vdev)
-+			return i;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+/* group lock should be held when calling this function */
-+static int rvin_group_entity_to_csi_num(struct rvin_group *group,
-+					struct media_entity *entity)
-+{
-+	struct v4l2_subdev *sd;
-+	int i;
-+
-+	if (!is_media_entity_v4l2_subdev(entity))
-+		return -ENODEV;
-+
-+	sd = media_entity_to_v4l2_subdev(entity);
-+
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (group->bridge[i].subdev == sd)
-+			return i;
-+
-+	return -ENODEV;
-+}
-+
-+/* group lock should be held when calling this function */
-+static void __rvin_group_build_link_list(struct rvin_group *group,
-+					 struct rvin_group_chsel *map,
-+					 int start, int len)
-+{
-+	struct media_pad *vin_pad, *remote_pad;
-+	unsigned int n;
-+
-+	for (n = 0; n < len; n++) {
-+		map[n].csi = -1;
-+		map[n].chan = -1;
-+
-+		if (!group->vin[start + n])
-+			continue;
-+
-+		vin_pad = &group->vin[start + n]->vdev.entity.pads[RVIN_SINK];
-+
-+		remote_pad = media_entity_remote_pad(vin_pad);
-+		if (!remote_pad)
-+			continue;
-+
-+		map[n].csi =
-+			rvin_group_entity_to_csi_num(group, remote_pad->entity);
-+		map[n].chan = rvin_group_csi_pad_to_chan(remote_pad->index);
-+	}
-+}
-+
-+/* group lock should be held when calling this function */
-+static int __rvin_group_try_get_chsel(struct rvin_group *group,
-+				      struct rvin_group_chsel *map,
-+				      int start, int len)
-+{
-+	const struct rvin_group_chsel *sel;
-+	unsigned int i, n;
-+	int chsel;
-+
-+	for (i = 0; i < group->vin[start]->info->num_chsels; i++) {
-+		chsel = i;
-+		for (n = 0; n < len; n++) {
-+
-+			/* If the link is not active it's OK */
-+			if (map[n].csi == -1)
-+				continue;
-+
-+			/* Check if chsel match requested link */
-+			sel = &group->vin[start]->info->chsels[start + n][i];
-+			if (map[n].csi != sel->csi ||
-+			    map[n].chan != sel->chan) {
-+				chsel = -1;
-+				break;
-+			}
-+		}
-+
-+		/* A chsel which satisfy the links have been found */
-+		if (chsel != -1)
-+			return chsel;
-+	}
-+
-+	/* No chsel can satisfy the requested links */
-+	return -1;
-+}
-+
-+/* group lock should be held when calling this function */
-+static bool rvin_group_in_use(struct rvin_group *group)
-+{
-+	struct media_entity *entity;
-+
-+	media_device_for_each_entity(entity, &group->mdev)
-+		if (entity->use_count)
-+			return true;
-+
-+	return false;
-+}
-+
-+static int rvin_group_link_notify(struct media_link *link, u32 flags,
-+				  unsigned int notification)
-+{
-+	struct rvin_group *group = container_of(link->graph_obj.mdev,
-+						struct rvin_group, mdev);
-+	struct rvin_group_chsel chsel_map[4];
-+	int vin_num, vin_master, csi_num, csi_chan;
-+	unsigned int chsel;
-+
-+	mutex_lock(&group->lock);
-+
-+	vin_num = rvin_group_entity_to_vin_num(group, link->sink->entity);
-+	csi_num = rvin_group_entity_to_csi_num(group, link->source->entity);
-+	csi_chan = rvin_group_csi_pad_to_chan(link->source->index);
-+
-+	/*
-+	 * Figure out which VIN node is the subgroup master.
-+	 *
-+	 * VIN0-3 are controlled by VIN0
-+	 * VIN4-7 are controlled by VIN4
-+	 */
-+	vin_master = vin_num < 4 ? 0 : 4;
-+
-+	/* If not all devices exists something is horribly wrong */
-+	if (vin_num < 0 || csi_num < 0 || !group->vin[vin_master])
-+		goto error;
-+
-+	/* Special checking only needed for links which are to be enabled */
-+	if (notification != MEDIA_DEV_NOTIFY_PRE_LINK_CH ||
-+	    !(flags & MEDIA_LNK_FL_ENABLED))
-+		goto out;
-+
-+	/* If any link in the group are in use, no new link can be enabled */
-+	if (rvin_group_in_use(group))
-+		goto error;
-+
-+	/* If the VIN already have a active link it's busy */
-+	if (media_entity_remote_pad(&link->sink->entity->pads[RVIN_SINK]))
-+		goto error;
-+
-+	/* Build list of active links */
-+	__rvin_group_build_link_list(group, chsel_map, vin_master, 4);
-+
-+	/* Add the new proposed link */
-+	chsel_map[vin_num - vin_master].csi = csi_num;
-+	chsel_map[vin_num - vin_master].chan = csi_chan;
-+
-+	/* See if there is a chsel value which match our link selection */
-+	chsel = __rvin_group_try_get_chsel(group, chsel_map, vin_master, 4);
-+
-+	/* No chsel can provide the request links */
-+	if (chsel == -1)
-+		goto error;
-+
-+	/* Update chsel value at group master */
-+	if (rvin_set_chsel(group->vin[vin_master], chsel))
-+		goto error;
-+
-+out:
-+	mutex_unlock(&group->lock);
-+
-+	return v4l2_pipeline_link_notify(link, flags, notification);
-+error:
-+	mutex_unlock(&group->lock);
-+
-+	return -EBUSY;
-+}
-+
-+
-+static const struct media_device_ops rvin_media_ops = {
-+	.link_notify = rvin_group_link_notify,
-+};
-+
-+/* -----------------------------------------------------------------------------
-  * Gen3 CSI2 Group Allocator
-  */
- 
-@@ -100,6 +303,8 @@ static struct rvin_group *rvin_group_allocate(struct rvin_dev *vin)
- 		mdev->driver_version = LINUX_VERSION_CODE;
- 		media_device_init(mdev);
- 
-+		mdev->ops = &rvin_media_ops;
-+
- 		ret = media_device_register(mdev);
- 		if (ret) {
- 			vin_err(vin, "Failed to register media device\n");
--- 
-2.10.2
+  # irkeytable -r -d /dev/input/event15 |grep PAUSE
+  Enabled protocols: unknown rc-5 sony nec sanyo mce-kbd rc-6 sharp xmp 
+  scancode 0xfe02 = KEY_PAUSE (0x77)
+  scancode 0xfe47 = KEY_PLAYPAUSE (0xa4)
 
+I thought that I might need to clear and replace the entire table
+to get things working. This is where the problems really start.
+
+First trying to clear the table causes an infinite loop.
+
+  # ir-keytable -d /dev/input/event15 -c
+  Opening /dev/input/event15
+  Input Protocol version: 0x00010001
+  Deleting entry 1
+  Deleting entry 2
+  Deleting entry 3
+  Deleting entry 4
+  ....
+  Deleting entry 2114689
+  Deleting entry 2114690
+  ^C
+
+Then I tried to load a modified version of dvico_mce
+The whole file was there, with just this change:
+--- dvico_mce   2016-11-13 22:50:11.442092350 +1100
++++ testfile    2016-11-16 20:46:29.361411631 +1100
+@@ -38,7 +38,7 @@
+ 0xfe03 KEY_0
+ 0xfe1f KEY_ZOOM
+ 0xfe43 KEY_REWIND
+-0xfe47 KEY_PLAYPAUSE
++0xfe47 KEY_PAUSE
+ 0xfe4f KEY_FASTFORWARD
+ 0xfe57 KEY_MUTE
+ 0xfe0d KEY_STOP
+
+The program seems to parse the modified file ok but then
+segaults while reading from the input device.
+
+  # ir-keytable -v -d /dev/input/event15 -w testfile
+  Parsing testfile keycode file
+  parsing 0xfe02=KEY_TV:  value=377
+  parsing 0xfe0e=KEY_MP3: value=391
+  parsing 0xfe1a=KEY_DVD: value=389
+  parsing 0xfe1e=KEY_FAVORITES:   value=364
+  parsing 0xfe16=KEY_SETUP:   value=141
+  parsing 0xfe46=KEY_POWER2:  value=356
+  parsing 0xfe0a=KEY_EPG: value=365
+  parsing 0xfe49=KEY_BACK:    value=158
+  parsing 0xfe4d=KEY_MENU:    value=139
+  parsing 0xfe51=KEY_UP:  value=103
+  parsing 0xfe5b=KEY_LEFT:    value=105
+  parsing 0xfe5f=KEY_RIGHT:   value=106
+  parsing 0xfe53=KEY_DOWN:    value=108
+  parsing 0xfe5e=KEY_OK:  value=352
+  parsing 0xfe59=KEY_INFO:    value=358
+  parsing 0xfe55=KEY_TAB: value=15
+  parsing 0xfe0f=KEY_PREVIOUSSONG:    value=165
+  parsing 0xfe12=KEY_NEXTSONG:    value=163
+  parsing 0xfe42=KEY_ENTER:   value=28
+  parsing 0xfe15=KEY_VOLUMEUP:    value=115
+  parsing 0xfe05=KEY_VOLUMEDOWN:  value=114
+  parsing 0xfe11=KEY_CHANNELUP:   value=402
+  parsing 0xfe09=KEY_CHANNELDOWN: value=403
+  parsing 0xfe52=KEY_CAMERA:  value=212
+  parsing 0xfe5a=KEY_TUNER:   value=386
+  parsing 0xfe19=KEY_OPEN:    value=134
+  parsing 0xfe0b=KEY_1:   value=2
+  parsing 0xfe17=KEY_2:   value=3
+  parsing 0xfe1b=KEY_3:   value=4
+  parsing 0xfe07=KEY_4:   value=5
+  parsing 0xfe50=KEY_5:   value=6
+  parsing 0xfe54=KEY_6:   value=7
+  parsing 0xfe48=KEY_7:   value=8
+  parsing 0xfe4c=KEY_8:   value=9
+  parsing 0xfe58=KEY_9:   value=10
+  parsing 0xfe13=KEY_ANGLE:   value=371
+  parsing 0xfe03=KEY_0:   value=11
+  parsing 0xfe1f=KEY_ZOOM:    value=372
+  parsing 0xfe43=KEY_REWIND:  value=168
+  parsing 0xfe47=KEY_PAUSE:   value=119
+  parsing 0xfe4f=KEY_FASTFORWARD: value=208
+  parsing 0xfe57=KEY_MUTE:    value=113
+  parsing 0xfe0d=KEY_STOP:    value=128
+  parsing 0xfe01=KEY_RECORD:  value=167
+  parsing 0xfe4e=KEY_POWER:   value=116
+  Read dvico_mce table
+  Opening /dev/input/event15
+  Input Protocol version: 0x00010001
+      fe4e=0074
+      fe01=00a7
+      fe0d=0080
+      fe57=0071
+      fe4f=00d0
+      fe47=0077
+      fe43=00a8
+      fe1f=0174
+      fe03=000b
+      fe13=0173
+      fe58=000a
+      fe4c=0009
+      fe48=0008
+      fe54=0007
+      fe50=0006
+      fe07=0005
+      fe1b=0004
+      fe17=0003
+      fe0b=0002
+      fe19=0086
+      fe5a=0182
+      fe52=00d4
+      fe09=0193
+      fe11=0192
+      fe05=0072
+      fe15=0073
+      fe42=001c
+      fe12=00a3
+      fe0f=00a5
+      fe55=000f
+      fe59=0166
+      fe5e=0160
+      fe53=006c
+      fe5f=006a
+      fe5b=0069
+      fe51=0067
+      fe4d=008b
+      fe49=009e
+      fe0a=016d
+      fe46=0164
+      fe16=008d
+      fe1e=016c
+      fe1a=0185
+      fe0e=0187
+      fe02=0179
+  Wrote 45 keycode(s) to driver
+  Segmentation fault (core dumped)
+ 
+Is this just operator error?
+What further diagnostics would help?
+
+Vince
+
+PS evtest reports this about the device:
+  # evtest /dev/input/event15
+  Input driver version is 1.0.1
+  Input device ID: bus 0x3 vendor 0xfe9 product 0xdb78 version 0x827b
+  Input device name: "IR-receiver inside an USB DVB receiver"
+  Supported events:
+    Event type 0 (EV_SYN)
+    Event type 1 (EV_KEY)
+    ...<elided>...
+    Event code 403 (KEY_CHANNELDOWN)
+  Properties:
+  Testing ... (interrupt to exit)
+  ^C
