@@ -1,45 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f173.google.com ([209.85.210.173]:35461 "EHLO
-        mail-wj0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755160AbcK3Vjd (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49736 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753832AbcKPQnS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 16:39:33 -0500
-Received: by mail-wj0-f173.google.com with SMTP id v7so187642250wjy.2
-        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2016 13:39:32 -0800 (PST)
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-To: Malcolm Priestley <tvboxspy@gmail.com>,
+        Wed, 16 Nov 2016 11:43:18 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mike Isely <isely@pobox.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] [media] lmedm04: use %phN for hex dump
-Date: Wed, 30 Nov 2016 22:39:09 +0100
-Message-Id: <1480541953-27256-1-git-send-email-linux@rasmusvillemoes.dk>
+Subject: [PATCH 13/35] [media] pvrusb2: use KERNEL_CONT where needed
+Date: Wed, 16 Nov 2016 14:42:45 -0200
+Message-Id: <9f915cfe2e5edf81ab793924810f8dfaed8bfaed.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Using the %ph printf extension for hex dumps like this makes the
-generated code quite a bit smaller.
+Some continuation messages are not using KERNEL_CONT.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
+this won't work as expected anymore. So, let's add KERN_CONT
+to those lines.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/usb/dvb-usb-v2/lmedm04.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 0e8fb89896c4..7692701878ba 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -99,9 +99,7 @@ static int dvb_usb_lme2510_debug;
- } while (0)
- #define deb_info(level, args...) lme_debug(dvb_usb_lme2510_debug, level, args)
- #define debug_data_snipet(level, name, p) \
--	 deb_info(level, name" (%02x%02x%02x%02x%02x%02x%02x%02x)", \
--		*p, *(p+1), *(p+2), *(p+3), *(p+4), \
--			*(p+5), *(p+6), *(p+7));
-+	 deb_info(level, name" (%8phN)", p);
- #define info(args...) pr_info(DVB_USB_LOG_PREFIX": "args)
- 
- module_param_named(debug, dvb_usb_lme2510_debug, int, 0644);
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+index 48d837e39a9c..cc63e5f4c26c 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
+@@ -491,18 +491,18 @@ static int pvr2_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 				"read" : "write"));
+ 			if ((ret > 0) || !(msgs[idx].flags & I2C_M_RD)) {
+ 				if (cnt > 8) cnt = 8;
+-				printk(" [");
++				printk(KERN_CONT " [");
+ 				for (offs = 0; offs < (cnt>8?8:cnt); offs++) {
+-					if (offs) printk(" ");
+-					printk("%02x",msgs[idx].buf[offs]);
++					if (offs) printk(KERN_CONT " ");
++					printk(KERN_CONT "%02x",msgs[idx].buf[offs]);
+ 				}
+-				if (offs < cnt) printk(" ...");
+-				printk("]");
++				if (offs < cnt) printk(KERN_CONT " ...");
++				printk(KERN_CONT "]");
+ 			}
+ 			if (idx+1 == num) {
+-				printk(" result=%d",ret);
++				printk(KERN_CONT " result=%d",ret);
+ 			}
+-			printk("\n");
++			printk(KERN_CONT "\n");
+ 		}
+ 		if (!num) {
+ 			printk(KERN_INFO
 -- 
-2.1.4
+2.7.4
+
 
