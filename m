@@ -1,73 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33424 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965873AbcKLNNr (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:23379 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752296AbcKPPI0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:47 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 17/32] media: rcar-vin: clarify error message from the digital notifier
-Date: Sat, 12 Nov 2016 14:12:01 +0100
-Message-Id: <20161112131216.22635-18-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 16 Nov 2016 10:08:26 -0500
+Subject: Re: [GIT PULL] Samsung fixes for 4.8
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
+Date: Wed, 16 Nov 2016 16:08:19 +0100
+MIME-version: 1.0
+In-reply-to: <20161116124600.66e4c9e4@vento.lan>
+Content-type: text/plain; charset=windows-1252
+Content-transfer-encoding: 7bit
+References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
+ <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
+ <20161021102607.2df96630@vento.lan>
+ <70cc3f35-e661-c76f-8620-dfeb74030183@samsung.com>
+ <20161116124600.66e4c9e4@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some of the parser functions previously only used by the digital
-subdevice OF/V4L2 async code will be shared with the CSI2 group
-notifiers. Clarify which notifier register error message and mark which
-functions are generic helpers.
+On 11/16/2016 03:46 PM, Mauro Carvalho Chehab wrote:
+>>>> Marek Szyprowski (1):
+>>>> > >>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()  
+>> > 
+>> > Mauro, this patch seems to had slipped through the cracks, I can't see it
+>> > in neither media fixes nor the master branch. Could you please check it?
+>
+> The patch seems to be on my tree:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Oops, sorry, I didn't check it properly. Would be nice to see that
+patch also in linux-next.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index def240b1..26e438a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -35,7 +35,7 @@ struct rvin_graph_entity *vin_to_entity(struct rvin_dev *vin)
- }
- 
- /* -----------------------------------------------------------------------------
-- * Async notifier
-+ * Async notifier helpers
-  */
- 
- #define notifier_to_vin(n) container_of(n, struct rvin_dev, notifier)
-@@ -77,6 +77,10 @@ static unsigned int rvin_pad_idx(struct v4l2_subdev *sd, int direction)
- 	return 0;
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Digital async notifier
-+ */
-+
- static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-@@ -242,7 +246,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- 	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
- 	if (ret < 0) {
--		vin_err(vin, "Notifier registration failed\n");
-+		vin_err(vin, "Digital notifier registration failed\n");
- 		return ret;
- 	}
- 
 -- 
-2.10.2
-
+Thanks!
+Sylwester
