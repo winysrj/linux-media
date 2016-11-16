@@ -1,139 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:42902 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753657AbcKRXVV (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49692 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753787AbcKPQnQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:21 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 24/35] media: ti-vpe: vpe: Fix vb2 buffer cleanup
-Date: Fri, 18 Nov 2016 17:20:34 -0600
-Message-ID: <20161118232045.24665-25-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Wed, 16 Nov 2016 11:43:16 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Patrick Boettcher <patrick.boettcher@posteo.de>
+Subject: [PATCH 16/35] [media] dib0070: use pr_foo() instead of printk()
+Date: Wed, 16 Nov 2016 14:42:48 -0200
+Message-Id: <bbf624944e008aa101f04e18aba338d922d9ce42.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When stop_streaming is called we need to cleanup the queued
-vb2 buffers properly.
-This was not previously being done which caused kernel
-warning when the application using the resources was killed.
-Kernel warnings were also generated on successful completion
-of a de-interlacing case as well as upon aborting a
-conversion.
+The dprintk() macro relies on continuation lines. This is not
+a good practice and will break after commit 563873318d32
+("Merge branch 'printk-cleanups").
 
-Make sure every vb2 buffers is properly handled in all cases.
+So, instead of directly calling printk(), use pr_foo() macros,
+adding a \n leading char on each macro call.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 62 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 60 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/dib0070.c | 52 +++++++++++++++++------------------
+ 1 file changed, 26 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index ef55fb45d0be..f92ad7a473c1 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -605,7 +605,10 @@ static void free_vbs(struct vpe_ctx *ctx)
- 	spin_lock_irqsave(&dev->lock, flags);
- 	if (ctx->src_vbs[2]) {
- 		v4l2_m2m_buf_done(ctx->src_vbs[2], VB2_BUF_STATE_DONE);
--		v4l2_m2m_buf_done(ctx->src_vbs[1], VB2_BUF_STATE_DONE);
-+		if (ctx->src_vbs[1] && (ctx->src_vbs[1] != ctx->src_vbs[2]))
-+			v4l2_m2m_buf_done(ctx->src_vbs[1], VB2_BUF_STATE_DONE);
-+		ctx->src_vbs[2] = NULL;
-+		ctx->src_vbs[1] = NULL;
+diff --git a/drivers/media/dvb-frontends/dib0070.c b/drivers/media/dvb-frontends/dib0070.c
+index ee7d66997ccd..ba25eb1b0543 100644
+--- a/drivers/media/dvb-frontends/dib0070.c
++++ b/drivers/media/dvb-frontends/dib0070.c
+@@ -24,6 +24,8 @@
+  *
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+@@ -38,13 +40,11 @@ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "turn on debugging (default: 0)");
+ 
+-#define dprintk(args...) do { \
+-	if (debug) { \
+-		printk(KERN_DEBUG "DiB0070: "); \
+-		printk(args); \
+-		printk("\n"); \
+-	} \
+-} while (0)
++#define dprintk(fmt, arg...) do {					\
++	if (debug)							\
++		printk(KERN_DEBUG pr_fmt("%s: " fmt),			\
++		       __func__ , ##arg);				\
++} while(0)
+ 
+ #define DIB0070_P1D  0x00
+ #define DIB0070_P1F  0x01
+@@ -87,7 +87,7 @@ static u16 dib0070_read_reg(struct dib0070_state *state, u8 reg)
+ 	u16 ret;
+ 
+ 	if (mutex_lock_interruptible(&state->i2c_buffer_lock) < 0) {
+-		dprintk("could not acquire lock");
++		dprintk("could not acquire lock\n");
+ 		return 0;
  	}
- 	spin_unlock_irqrestore(&dev->lock, flags);
+ 
+@@ -104,7 +104,7 @@ static u16 dib0070_read_reg(struct dib0070_state *state, u8 reg)
+ 	state->msg[1].len = 2;
+ 
+ 	if (i2c_transfer(state->i2c, state->msg, 2) != 2) {
+-		printk(KERN_WARNING "DiB0070 I2C read failed\n");
++		pr_warn("DiB0070 I2C read failed\n");
+ 		ret = 0;
+ 	} else
+ 		ret = (state->i2c_read_buffer[0] << 8)
+@@ -119,7 +119,7 @@ static int dib0070_write_reg(struct dib0070_state *state, u8 reg, u16 val)
+ 	int ret;
+ 
+ 	if (mutex_lock_interruptible(&state->i2c_buffer_lock) < 0) {
+-		dprintk("could not acquire lock");
++		dprintk("could not acquire lock\n");
+ 		return -EINVAL;
+ 	}
+ 	state->i2c_write_buffer[0] = reg;
+@@ -133,7 +133,7 @@ static int dib0070_write_reg(struct dib0070_state *state, u8 reg, u16 val)
+ 	state->msg[0].len = 3;
+ 
+ 	if (i2c_transfer(state->i2c, state->msg, 1) != 1) {
+-		printk(KERN_WARNING "DiB0070 I2C write failed\n");
++		pr_warn("DiB0070 I2C write failed\n");
+ 		ret = -EREMOTEIO;
+ 	} else
+ 		ret = 0;
+@@ -205,7 +205,7 @@ static int dib0070_captrim(struct dib0070_state *state, enum frontend_tune_state
+ 
+ 		adc = dib0070_read_reg(state, 0x19);
+ 
+-		dprintk("CAPTRIM=%hd; ADC = %hd (ADC) & %dmV", state->captrim, adc, (u32) adc*(u32)1800/(u32)1024);
++		dprintk("CAPTRIM=%hd; ADC = %hd (ADC) & %dmV\n", state->captrim, adc, (u32) adc*(u32)1800/(u32)1024);
+ 
+ 		if (adc >= 400) {
+ 			adc -= 400;
+@@ -216,7 +216,7 @@ static int dib0070_captrim(struct dib0070_state *state, enum frontend_tune_state
+ 		}
+ 
+ 		if (adc < state->adc_diff) {
+-			dprintk("CAPTRIM=%hd is closer to target (%hd/%hd)", state->captrim, adc, state->adc_diff);
++			dprintk("CAPTRIM=%hd is closer to target (%hd/%hd)\n", state->captrim, adc, state->adc_diff);
+ 			state->adc_diff = adc;
+ 			state->fcaptrim = state->captrim;
+ 		}
+@@ -241,7 +241,7 @@ static int dib0070_set_ctrl_lo5(struct dvb_frontend *fe, u8 vco_bias_trim, u8 hf
+ 	struct dib0070_state *state = fe->tuner_priv;
+ 	u16 lo5 = (third_order_filt << 14) | (0 << 13) | (1 << 12) | (3 << 9) | (cp_current << 6) | (hf_div_trim << 3) | (vco_bias_trim << 0);
+ 
+-	dprintk("CTRL_LO5: 0x%x", lo5);
++	dprintk("CTRL_LO5: 0x%x\n", lo5);
+ 	return dib0070_write_reg(state, 0x15, lo5);
  }
-@@ -1443,6 +1446,14 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
- 		ctx->src_vbs[1] = ctx->src_vbs[0];
+ 
+@@ -256,7 +256,7 @@ void dib0070_ctrl_agc_filter(struct dvb_frontend *fe, u8 open)
+ 		dib0070_write_reg(state, 0x1b, 0x4112);
+ 		if (state->cfg->vga_filter != 0) {
+ 			dib0070_write_reg(state, 0x1a, state->cfg->vga_filter);
+-			dprintk("vga filter register is set to %x", state->cfg->vga_filter);
++			dprintk("vga filter register is set to %x\n", state->cfg->vga_filter);
+ 		} else
+ 			dib0070_write_reg(state, 0x1a, 0x0009);
+ 	}
+@@ -380,7 +380,7 @@ static int dib0070_tune_digital(struct dvb_frontend *fe)
  	}
  
-+	/*
-+	 * Since the vb2_buf_done has already been called fir therse
-+	 * buffer we can now NULL them out so that we won't try
-+	 * to clean out stray pointer later on.
-+	*/
-+	ctx->src_vbs[0] = NULL;
-+	ctx->dst_vb = NULL;
-+
- 	ctx->bufs_completed++;
- 	if (ctx->bufs_completed < ctx->bufs_per_job && job_ready(ctx)) {
- 		device_run(ctx);
-@@ -2027,9 +2038,57 @@ static int vpe_start_streaming(struct vb2_queue *q, unsigned int count)
- static void vpe_stop_streaming(struct vb2_queue *q)
- {
- 	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
-+	struct vb2_v4l2_buffer *vb;
-+	unsigned long flags;
+ 	if (*tune_state == CT_TUNER_START) {
+-		dprintk("Tuning for Band: %hd (%d kHz)", band, freq);
++		dprintk("Tuning for Band: %hd (%d kHz)\n", band, freq);
+ 		if (state->current_rf != freq) {
+ 			u8 REFDIV;
+ 			u32 FBDiv, Rest, FREF, VCOF_kHz;
+@@ -458,12 +458,12 @@ static int dib0070_tune_digital(struct dvb_frontend *fe)
+ 			dib0070_write_reg(state, 0x20,
+ 				0x0040 | 0x0020 | 0x0010 | 0x0008 | 0x0002 | 0x0001 | state->current_tune_table_index->tuner_enable);
  
- 	vpe_dump_regs(ctx->dev);
- 	vpdma_dump_regs(ctx->dev->vpdma);
-+
-+	for (;;) {
-+		if (V4L2_TYPE_IS_OUTPUT(q->type))
-+			vb = v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
-+		else
-+			vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
-+		if (!vb)
-+			break;
-+		spin_lock_irqsave(&ctx->dev->lock, flags);
-+		v4l2_m2m_buf_done(vb, VB2_BUF_STATE_ERROR);
-+		spin_unlock_irqrestore(&ctx->dev->lock, flags);
-+	}
-+
-+	/*
-+	 * Cleanup the in-transit vb2 buffers that have been
-+	 * removed from their respective queue already but for
-+	 * which procecessing has not been completed yet.
-+	 */
-+	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
-+		spin_lock_irqsave(&ctx->dev->lock, flags);
-+
-+		if (ctx->src_vbs[2])
-+			v4l2_m2m_buf_done(ctx->src_vbs[2], VB2_BUF_STATE_ERROR);
-+
-+		if (ctx->src_vbs[1] && (ctx->src_vbs[1] != ctx->src_vbs[2]))
-+			v4l2_m2m_buf_done(ctx->src_vbs[1], VB2_BUF_STATE_ERROR);
-+
-+		if (ctx->src_vbs[0] &&
-+		    (ctx->src_vbs[0] != ctx->src_vbs[1]) &&
-+		    (ctx->src_vbs[0] != ctx->src_vbs[2]))
-+			v4l2_m2m_buf_done(ctx->src_vbs[0], VB2_BUF_STATE_ERROR);
-+
-+		ctx->src_vbs[2] = NULL;
-+		ctx->src_vbs[1] = NULL;
-+		ctx->src_vbs[0] = NULL;
-+
-+		spin_unlock_irqrestore(&ctx->dev->lock, flags);
-+	} else {
-+		if (ctx->dst_vb) {
-+			spin_lock_irqsave(&ctx->dev->lock, flags);
-+
-+			v4l2_m2m_buf_done(ctx->dst_vb, VB2_BUF_STATE_ERROR);
-+			ctx->dst_vb = NULL;
-+			spin_unlock_irqrestore(&ctx->dev->lock, flags);
-+		}
-+	}
+-			dprintk("REFDIV: %hd, FREF: %d", REFDIV, FREF);
+-			dprintk("FBDIV: %d, Rest: %d", FBDiv, Rest);
+-			dprintk("Num: %hd, Den: %hd, SD: %hd", (u16) Rest, Den, (state->lo4 >> 12) & 0x1);
+-			dprintk("HFDIV code: %hd", state->current_tune_table_index->hfdiv);
+-			dprintk("VCO = %hd", state->current_tune_table_index->vco_band);
+-			dprintk("VCOF: ((%hd*%d) << 1))", state->current_tune_table_index->vco_multi, freq);
++			dprintk("REFDIV: %hd, FREF: %d\n", REFDIV, FREF);
++			dprintk("FBDIV: %d, Rest: %d\n", FBDiv, Rest);
++			dprintk("Num: %hd, Den: %hd, SD: %hd\n", (u16) Rest, Den, (state->lo4 >> 12) & 0x1);
++			dprintk("HFDIV code: %hd\n", state->current_tune_table_index->hfdiv);
++			dprintk("VCO = %hd\n", state->current_tune_table_index->vco_band);
++			dprintk("VCOF: ((%hd*%d) << 1))\n", state->current_tune_table_index->vco_multi, freq);
+ 
+ 			*tune_state = CT_TUNER_STEP_0;
+ 		} else { /* we are already tuned to this frequency - the configuration is correct  */
+@@ -625,7 +625,7 @@ static void dib0070_wbd_offset_calibration(struct dib0070_state *state)
+ 	u8 gain;
+ 	for (gain = 6; gain < 8; gain++) {
+ 		state->wbd_offset_3_3[gain - 6] = ((dib0070_read_wbd_offset(state, gain) * 8 * 18 / 33 + 1) / 2);
+-		dprintk("Gain: %d, WBDOffset (3.3V) = %hd", gain, state->wbd_offset_3_3[gain-6]);
++		dprintk("Gain: %d, WBDOffset (3.3V) = %hd\n", gain, state->wbd_offset_3_3[gain-6]);
+ 	}
  }
  
- static const struct vb2_ops vpe_qops = {
-@@ -2222,7 +2281,6 @@ static int vpe_release(struct file *file)
- 	vpe_dbg(dev, "releasing instance %p\n", ctx);
+@@ -665,10 +665,10 @@ static int dib0070_reset(struct dvb_frontend *fe)
+ 	state->revision = DIB0070S_P1A;
  
- 	mutex_lock(&dev->dev_mutex);
--	free_vbs(ctx);
- 	free_mv_buffers(ctx);
- 	vpdma_free_desc_list(&ctx->desc_list);
- 	vpdma_free_desc_buf(&ctx->mmr_adb);
+ 	/* P1F or not */
+-	dprintk("Revision: %x", state->revision);
++	dprintk("Revision: %x\n", state->revision);
+ 
+ 	if (state->revision == DIB0070_P1D) {
+-		dprintk("Error: this driver is not to be used meant for P1D or earlier");
++		dprintk("Error: this driver is not to be used meant for P1D or earlier\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -761,7 +761,7 @@ struct dvb_frontend *dib0070_attach(struct dvb_frontend *fe, struct i2c_adapter
+ 	if (dib0070_reset(fe) != 0)
+ 		goto free_mem;
+ 
+-	printk(KERN_INFO "DiB0070: successfully identified\n");
++	pr_info("DiB0070: successfully identified\n");
+ 	memcpy(&fe->ops.tuner_ops, &dib0070_ops, sizeof(struct dvb_tuner_ops));
+ 
+ 	fe->tuner_priv = state;
 -- 
-2.9.0
+2.7.4
+
 
