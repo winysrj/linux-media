@@ -1,245 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f196.google.com ([209.85.161.196]:34364 "EHLO
-        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932462AbcKNTwD (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:49622 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752328AbcKPQnN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 14:52:03 -0500
-Date: Mon, 14 Nov 2016 13:52:00 -0600
-From: Rob Herring <robh@kernel.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        mark.rutland@arm.com, mchehab@kernel.org, hverkuil@xs4all.nl,
-        sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, geert+renesas@glider.be,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 5/5] media: platform: rcar_drif: Add DRIF support
-Message-ID: <20161114195200.s62ga2bnutsrocyf@rob-hp-laptop>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1478706284-59134-6-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <2857106.83gIJRJqtY@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2857106.83gIJRJqtY@avalon>
+        Wed, 16 Nov 2016 11:43:13 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 04/35] [media] bt8xx: use pr_foo() macros instead of printk()
+Date: Wed, 16 Nov 2016 14:42:36 -0200
+Message-Id: <1a0774cd15de89ddd5f15dc0eb92dbdd82c3fb20.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 10, 2016 at 11:22:20AM +0200, Laurent Pinchart wrote:
-> Hi Ramesh,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday 09 Nov 2016 15:44:44 Ramesh Shanmugasundaram wrote:
-> > This patch adds Digital Radio Interface (DRIF) support to R-Car Gen3 SoCs.
-> > The driver exposes each instance of DRIF as a V4L2 SDR device. A DRIF
-> > device represents a channel and each channel can have one or two
-> > sub-channels respectively depending on the target board.
-> > 
-> > DRIF supports only Rx functionality. It receives samples from a RF
-> > frontend tuner chip it is interfaced with. The combination of DRIF and the
-> > tuner device, which is registered as a sub-device, determines the receive
-> > sample rate and format.
-> > 
-> > In order to be compliant as a V4L2 SDR device, DRIF needs to bind with
-> > the tuner device, which can be provided by a third party vendor. DRIF acts
-> > as a slave device and the tuner device acts as a master transmitting the
-> > samples. The driver allows asynchronous binding of a tuner device that
-> > is registered as a v4l2 sub-device. The driver can learn about the tuner
-> > it is interfaced with based on port endpoint properties of the device in
-> > device tree. The V4L2 SDR device inherits the controls exposed by the
-> > tuner device.
-> > 
-> > The device can also be configured to use either one or both of the data
-> > pins at runtime based on the master (tuner) configuration.
-> > 
-> > Signed-off-by: Ramesh Shanmugasundaram
-> > <ramesh.shanmugasundaram@bp.renesas.com> ---
-> >  .../devicetree/bindings/media/renesas,drif.txt     |  136 ++
-> >  drivers/media/platform/Kconfig                     |   25 +
-> >  drivers/media/platform/Makefile                    |    1 +
-> >  drivers/media/platform/rcar_drif.c                 | 1574
-> > ++++++++++++++++++++ 4 files changed, 1736 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
-> > create mode 100644 drivers/media/platform/rcar_drif.c
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt
-> > b/Documentation/devicetree/bindings/media/renesas,drif.txt new file mode
-> > 100644
-> > index 0000000..d65368a
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-> > @@ -0,0 +1,136 @@
-> > +Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-> > +------------------------------------------------------------
-> > +
-> > +R-Car Gen3 DRIF is a serial slave device. It interfaces with a master
-> > +device as shown below
-> > +
-> > ++---------------------+                +---------------------+
-> > +|                     |-----SCK------->|CLK                  |
-> > +|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-> > +|                     |-----SD0------->|D0                   |
-> > +|                     |-----SD1------->|D1                   |
-> > ++---------------------+                +---------------------+
-> > +
-> > +Each DRIF channel (drifn) consists of two sub-channels (drifn0 & drifn1).
-> > +The sub-channels are like two individual channels in itself that share the
-> > +common CLK & SYNC. Each sub-channel has it's own dedicated resources like
-> > +irq, dma channels, address space & clock.
-> > +
-> > +The device tree model represents the channel and each of it's sub-channel
-> > +as a separate node. The parent channel ties the sub-channels together with
-> > +their phandles.
-> > +
-> > +Required properties of a sub-channel:
-> > +-------------------------------------
-> > +- compatible: "renesas,r8a7795-drif" if DRIF controller is a part of
-> > R8A7795 SoC.
-> > +	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible
-> > device.
-> > +	      When compatible with the generic version, nodes must list the
-> > +	      SoC-specific version corresponding to the platform first
-> > +	      followed by the generic version.
-> > +- reg: offset and length of that sub-channel.
-> > +- interrupts: associated with that sub-channel.
-> > +- clocks: phandle and clock specifier of that sub-channel.
-> > +- clock-names: clock input name string: "fck".
-> > +- dmas: phandles to the DMA channel of that sub-channel.
-> > +- dma-names: names of the DMA channel: "rx".
-> > +
-> > +Optional properties of a sub-channel:
-> > +-------------------------------------
-> > +- power-domains: phandle to the respective power domain.
-> > +
-> > +Required properties of a channel:
-> > +---------------------------------
-> > +- pinctrl-0: pin control group to be used for this channel.
-> > +- pinctrl-names: must be "default".
-> > +- sub-channels : phandles to the two sub-channels.
-> > +
-> > +Optional properties of a channel:
-> > +---------------------------------
-> > +- port: child port node of a channel that defines the local and remote
-> > +        endpoints. The remote endpoint is assumed to be a tuner subdevice
-> > +	endpoint.
-> > +- renesas,syncmd       : sync mode
-> > +			 0 (Frame start sync pulse mode. 1-bit width pulse
-> > +			    indicates start of a frame)
-> > +			 1 (L/R sync or I2S mode) (default)
-> > +- renesas,lsb-first    : empty property indicates lsb bit is received
-> > first.
-> > +			 When not defined msb bit is received first (default)
-> 
-> Shouldn't those two properties be instead queried from the tuner at runtime 
-> through the V4L2 subdev API ?
-> 
-> > +- renesas,syncac-pol-high  : empty property indicates sync signal polarity.
-> > +			 When defined, active high or high->low sync signal.
-> > +			 When not defined, active low or low->high sync signal
-> > +			 (default)
-> 
-> This could be queried too, except that an inverter could be present on the 
-> board, so it has to be specified in DT. I would however try to standardize it 
-> the same way that hsync-active and vsync-active are standardized in 
-> Documentation/devicetree/bindings/media/video-interfaces.txt.
-> 
-> > +- renesas,dtdl         : delay between sync signal and start of reception.
-> 
-> Are this and the next property meant to account for PCB traces delays ?
-> 
-> > +			 Must contain one of the following values:
-> > +			 0   (no bit delay)
-> > +			 50  (0.5-clock-cycle delay)
-> > +			 100 (1-clock-cycle delay) (default)
-> > +			 150 (1.5-clock-cycle delay)
-> > +			 200 (2-clock-cycle delay)
-> 
-> How about specifying the property in half clock cycle units, from 0 to 4 ?
-> 
-> > +- renesas,syncdl       : delay between end of reception and sync signal
-> > edge.
-> > +			 Must contain one of the following values:
-> > +			 0   (no bit delay) (default)
-> > +			 50  (0.5-clock-cycle delay)
-> > +			 100 (1-clock-cycle delay)
-> > +			 150 (1.5-clock-cycle delay)
-> > +			 200 (2-clock-cycle delay)
-> > +			 300 (3-clock-cycle delay)
-> > +
-> > +Example
-> > +--------
-> > +
-> > +SoC common dtsi file
-> > +
-> > +		drif00: rif@e6f40000 {
-> > +			compatible = "renesas,r8a7795-drif",
-> > +				     "renesas,rcar-gen3-drif";
-> > +			reg = <0 0xe6f40000 0 0x64>;
-> > +			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-> > +			clocks = <&cpg CPG_MOD 515>;
-> > +			clock-names = "fck";
-> > +			dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-> > +			dma-names = "rx", "rx";
+Replace printk() macros by their pr_foo() counterparts, using
+pr_cont() for continuation lines.
 
-rx, rx? That doesn't make sense. While we don't explicitly disallow 
-this, I'm thinking we should. I wonder if there's any case this is 
-valid. If not, then a dtc check for this could be added.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/pci/bt8xx/btcx-risc.c | 46 +++++++++++++++++++++----------------
+ drivers/media/pci/bt8xx/dvb-bt8xx.c | 25 +++++++++++---------
+ 2 files changed, 40 insertions(+), 31 deletions(-)
 
-> > +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> > +			status = "disabled";
-> > +		};
-> > +
-> > +		drif01: rif@e6f50000 {
-> > +			compatible = "renesas,r8a7795-drif",
-> > +				     "renesas,rcar-gen3-drif";
-> > +			reg = <0 0xe6f50000 0 0x64>;
-> > +			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-> > +			clocks = <&cpg CPG_MOD 514>;
-> > +			clock-names = "fck";
-> > +			dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-> > +			dma-names = "rx", "rx";
-> > +			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> > +			status = "disabled";
-> > +		};
-> > +
-> > +		drif0: rif@0 {
-> > +			compatible = "renesas,r8a7795-drif",
-> > +				     "renesas,rcar-gen3-drif";
-> > +			sub-channels = <&drif00>, <&drif01>;
-> > +			status = "disabled";
-> > +		};
-> 
-> I'm afraid this really hurts my eyes, especially using the same compatible 
-> string for both the channel and sub-channel nodes.
-> 
-> We need to decide how to model the hardware in DT. Given that the two channels 
-> are mostly independent having separate DT nodes makes sense to me. However, as 
-> they share the clock and sync signals, somehow grouping them makes sense. I 
-> see three ways to do so, and there might be more.
-> 
-> 1. Adding an extra DT node for the channels group, with phandles to the two 
-> channels. This is what you're proposing here.
-> 
-> 2. Adding an extra DT node for the channels group, as a parent of the two 
-> channels.
-> 
-> 3. Adding phandles to the channels, pointing to each other, or possibly a 
-> phandle from channel 0 pointing to channel 1.
-> 
-> Neither of these options seem perfect to me. I don't like option 1 as the 
-> group DT node really doesn't describe a hardware block. If we want to use a DT 
-> node to convey group information, option 2 seems better to me. However, it 
-> somehow abuses the DT parent-child model that is supposed to describe 
-> relationships from a control bus point of view. Option 3 has the drawback of 
-> not scaling properly, at least with phandles in both channels pointing to the 
-> other one.
-> 
-> Rob, Geert, tell me you have a fourth idea I haven't thought of that would 
-> solve all those problems :-)
+diff --git a/drivers/media/pci/bt8xx/btcx-risc.c b/drivers/media/pci/bt8xx/btcx-risc.c
+index 57c7f58c3af2..70bdf93fc020 100644
+--- a/drivers/media/pci/bt8xx/btcx-risc.c
++++ b/drivers/media/pci/bt8xx/btcx-risc.c
+@@ -22,6 +22,8 @@
+ 
+ */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+@@ -36,6 +38,13 @@ static unsigned int btcx_debug;
+ module_param(btcx_debug, int, 0644);
+ MODULE_PARM_DESC(btcx_debug,"debug messages, default is 0 (no)");
+ 
++#define dprintk(fmt, arg...) do {				\
++	if (btcx_debug)						\
++		printk(KERN_DEBUG pr_fmt("%s: " fmt),		\
++		       __func__, ##arg);			\
++} while (0)
++
++
+ /* ---------------------------------------------------------- */
+ /* allocate/free risc memory                                  */
+ 
+@@ -46,11 +55,11 @@ void btcx_riscmem_free(struct pci_dev *pci,
+ {
+ 	if (NULL == risc->cpu)
+ 		return;
+-	if (btcx_debug) {
+-		memcnt--;
+-		printk("btcx: riscmem free [%d] dma=%lx\n",
+-		       memcnt, (unsigned long)risc->dma);
+-	}
++
++	memcnt--;
++	dprintk("btcx: riscmem free [%d] dma=%lx\n",
++		memcnt, (unsigned long)risc->dma);
++
+ 	pci_free_consistent(pci, risc->size, risc->cpu, risc->dma);
+ 	memset(risc,0,sizeof(*risc));
+ }
+@@ -71,11 +80,10 @@ int btcx_riscmem_alloc(struct pci_dev *pci,
+ 		risc->cpu  = cpu;
+ 		risc->dma  = dma;
+ 		risc->size = size;
+-		if (btcx_debug) {
+-			memcnt++;
+-			printk("btcx: riscmem alloc [%d] dma=%lx cpu=%p size=%d\n",
+-			       memcnt, (unsigned long)dma, cpu, size);
+-		}
++
++		memcnt++;
++		dprintk("btcx: riscmem alloc [%d] dma=%lx cpu=%p size=%d\n",
++			memcnt, (unsigned long)dma, cpu, size);
+ 	}
+ 	memset(risc->cpu,0,risc->size);
+ 	return 0;
+@@ -137,9 +145,8 @@ btcx_align(struct v4l2_rect *win, struct v4l2_clip *clips, unsigned int n, int m
+ 	dx = nx - win->left;
+ 	win->left  = nx;
+ 	win->width = nw;
+-	if (btcx_debug)
+-		printk(KERN_DEBUG "btcx: window align %dx%d+%d+%d [dx=%d]\n",
+-		       win->width, win->height, win->left, win->top, dx);
++	dprintk("btcx: window align %dx%d+%d+%d [dx=%d]\n",
++	       win->width, win->height, win->left, win->top, dx);
+ 
+ 	/* fixup clips */
+ 	for (i = 0; i < n; i++) {
+@@ -149,10 +156,9 @@ btcx_align(struct v4l2_rect *win, struct v4l2_clip *clips, unsigned int n, int m
+ 			nw += mask+1;
+ 		clips[i].c.left  = nx;
+ 		clips[i].c.width = nw;
+-		if (btcx_debug)
+-			printk(KERN_DEBUG "btcx:   clip align %dx%d+%d+%d\n",
+-			       clips[i].c.width, clips[i].c.height,
+-			       clips[i].c.left, clips[i].c.top);
++		dprintk("btcx:   clip align %dx%d+%d+%d\n",
++		       clips[i].c.width, clips[i].c.height,
++		       clips[i].c.left, clips[i].c.top);
+ 	}
+ 	return 0;
+ }
+@@ -228,10 +234,10 @@ btcx_calc_skips(int line, int width, int *maxy,
+ 	*maxy = maxline;
+ 
+ 	if (btcx_debug) {
+-		printk(KERN_DEBUG "btcx: skips line %d-%d:",line,maxline);
++		dprintk("btcx: skips line %d-%d:", line, maxline);
+ 		for (skip = 0; skip < *nskips; skip++) {
+-			printk(" %d-%d",skips[skip].start,skips[skip].end);
++			pr_cont(" %d-%d", skips[skip].start, skips[skip].end);
+ 		}
+-		printk("\n");
++		pr_cont("\n");
+ 	}
+ }
+diff --git a/drivers/media/pci/bt8xx/dvb-bt8xx.c b/drivers/media/pci/bt8xx/dvb-bt8xx.c
+index e69d338ab9be..6100fa71ece8 100644
+--- a/drivers/media/pci/bt8xx/dvb-bt8xx.c
++++ b/drivers/media/pci/bt8xx/dvb-bt8xx.c
+@@ -19,7 +19,7 @@
+  *
+  */
+ 
+-#define pr_fmt(fmt) "dvb_bt8xx: " fmt
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/bitops.h>
+ #include <linux/module.h>
+@@ -44,10 +44,12 @@ MODULE_PARM_DESC(debug, "Turn on/off debugging (default:off).");
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+-#define dprintk( args... ) \
+-	do { \
+-		if (debug) printk(KERN_DEBUG args); \
+-	} while (0)
++#define dprintk(fmt, arg...) do {				\
++	if (debug)						\
++		printk(KERN_DEBUG pr_fmt("%s: " fmt),		\
++		       __func__, ##arg);			\
++} while (0)
++
+ 
+ #define IF_FREQUENCYx6 217    /* 6 * 36.16666666667MHz */
+ 
+@@ -55,7 +57,7 @@ static void dvb_bt8xx_task(unsigned long data)
+ {
+ 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *)data;
+ 
+-	//printk("%d ", card->bt->finished_block);
++	dprintk("%d\n", card->bt->finished_block);
+ 
+ 	while (card->bt->last_block != card->bt->finished_block) {
+ 		(card->bt->TS_Size ? dvb_dmx_swfilter_204 : dvb_dmx_swfilter)
+@@ -443,7 +445,7 @@ static void or51211_reset(struct dvb_frontend * fe)
+ 	/* reset & PRM1,2&4 are outputs */
+ 	int ret = bttv_gpio_enable(bt->bttv_nr, 0x001F, 0x001F);
+ 	if (ret != 0)
+-		printk(KERN_WARNING "or51211: Init Error - Can't Reset DVR (%i)\n", ret);
++		pr_warn("or51211: Init Error - Can't Reset DVR (%i)\n", ret);
+ 	bttv_write_gpio(bt->bttv_nr, 0x001F, 0x0000);   /* Reset */
+ 	msleep(20);
+ 	/* Now set for normal operation */
+@@ -560,7 +562,8 @@ static void digitv_alps_tded4_reset(struct dvb_bt8xx_card *bt)
+ 
+ 	int ret = bttv_gpio_enable(bt->bttv_nr, 0x08, 0x08);
+ 	if (ret != 0)
+-		printk(KERN_WARNING "digitv_alps_tded4: Init Error - Can't Reset DVR (%i)\n", ret);
++		pr_warn("digitv_alps_tded4: Init Error - Can't Reset DVR (%i)\n",
++			ret);
+ 
+ 	/* Pulse the reset line */
+ 	bttv_write_gpio(bt->bttv_nr, 0x08, 0x08); /* High */
+@@ -620,7 +623,7 @@ static void frontend_init(struct dvb_bt8xx_card *card, u32 type)
+ 			dvb_attach(simple_tuner_attach, card->fe,
+ 				   card->i2c_adapter, 0x61,
+ 				   TUNER_LG_TDVS_H06XF);
+-			dprintk ("dvb_bt8xx: lgdt330x detected\n");
++			dprintk("dvb_bt8xx: lgdt330x detected\n");
+ 		}
+ 		break;
+ 
+@@ -635,7 +638,7 @@ static void frontend_init(struct dvb_bt8xx_card *card, u32 type)
+ 		card->fe = dvb_attach(nxt6000_attach, &vp3021_alps_tded4_config, card->i2c_adapter);
+ 		if (card->fe != NULL) {
+ 			card->fe->ops.tuner_ops.set_params = vp3021_alps_tded4_tuner_set_params;
+-			dprintk ("dvb_bt8xx: an nxt6000 was detected on your digitv card\n");
++			dprintk("dvb_bt8xx: an nxt6000 was detected on your digitv card\n");
+ 			break;
+ 		}
+ 
+@@ -645,7 +648,7 @@ static void frontend_init(struct dvb_bt8xx_card *card, u32 type)
+ 
+ 		if (card->fe != NULL) {
+ 			card->fe->ops.tuner_ops.calc_regs = digitv_alps_tded4_tuner_calc_regs;
+-			dprintk ("dvb_bt8xx: an mt352 was detected on your digitv card\n");
++			dprintk("dvb_bt8xx: an mt352 was detected on your digitv card\n");
+ 		}
+ 		break;
+ 
+-- 
+2.7.4
 
-What's the purpose/need for grouping them?
 
-I'm fine with Option 2, though I want to make sure it is really needed.
-
-Rob
