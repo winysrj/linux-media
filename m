@@ -1,63 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Haggai Eran <haggaie@mellanox.com>
-References: <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
- <20161128165751.GB28381@obsidianresearch.com>
-Cc: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Max Gurtovoy <maxg@mellanox.com>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
-Date: Mon, 28 Nov 2016 11:20:27 -0700
-MIME-Version: 1.0
-In-Reply-To: <20161128165751.GB28381@obsidianresearch.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Received: from bombadil.infradead.org ([198.137.202.9]:49721 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753859AbcKPQnR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 16 Nov 2016 11:43:17 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: [PATCH 14/35] [media] ttusb_dec: use KERNEL_CONT where needed
+Date: Wed, 16 Nov 2016 14:42:46 -0200
+Message-Id: <700eaaeefec25ead60c1bba255fcf7ee242b7ff7.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Some continuation messages are not using KERNEL_CONT.
 
+Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
+this won't work as expected anymore. So, let's add KERN_CONT
+to those lines.
 
-On 28/11/16 09:57 AM, Jason Gunthorpe wrote:
->> On PeerDirect, we have some kind of a middle-ground solution for pinning
->> GPU memory. We create a non-ODP MR pointing to VRAM but rely on
->> user-space and the GPU not to migrate it. If they do, the MR gets
->> destroyed immediately.
-> 
-> That sounds horrible. How can that possibly work? What if the MR is
-> being used when the GPU decides to migrate? I would not support that
-> upstream without a lot more explanation..
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/ttusb-dec/ttusb_dec.c | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-Yup, this was our experience when playing around with PeerDirect. There
-was nothing we could do if the GPU decided to invalidate the P2P
-mapping. It just meant the application would fail or need complicated
-logic to detect this and redo just about everything. And given that it
-was a reasonably rare occurrence during development it probably means
-not a lot of applications will be developed to handle it and most would
-end up being randomly broken in environments with memory pressure.
+diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+index 559c823a4fe8..fc0219f1b7df 100644
+--- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
++++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
+@@ -329,7 +329,7 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
+ 				  int param_length, const u8 params[],
+ 				  int *result_length, u8 cmd_result[])
+ {
+-	int result, actual_len, i;
++	int result, actual_len;
+ 	u8 *b;
+ 
+ 	dprintk("%s\n", __func__);
+@@ -353,10 +353,8 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
+ 		memcpy(&b[4], params, param_length);
+ 
+ 	if (debug) {
+-		printk("%s: command: ", __func__);
+-		for (i = 0; i < param_length + 4; i++)
+-			printk("0x%02X ", b[i]);
+-		printk("\n");
++		printk(KERN_DEBUG "%s: command: %*ph\n",
++		       __func__, param_length, b);
+ 	}
+ 
+ 	result = usb_bulk_msg(dec->udev, dec->command_pipe, b,
+@@ -381,10 +379,8 @@ static int ttusb_dec_send_command(struct ttusb_dec *dec, const u8 command,
+ 		return result;
+ 	} else {
+ 		if (debug) {
+-			printk("%s: result: ", __func__);
+-			for (i = 0; i < actual_len; i++)
+-				printk("0x%02X ", b[i]);
+-			printk("\n");
++			printk(KERN_DEBUG "%s: result: %*ph\n",
++			       __func__, actual_len, b);
+ 		}
+ 
+ 		if (result_length)
+-- 
+2.7.4
 
-Logan
 
