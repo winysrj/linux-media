@@ -1,88 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:35999 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933666AbcKNKLy (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:57066 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752648AbcKPJFW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 05:11:54 -0500
-Received: by mail-wm0-f41.google.com with SMTP id g23so88503771wme.1
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 02:11:53 -0800 (PST)
-Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
- functions
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
- <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
- <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
- <a6557768-787d-7794-8cd0-781dc1ee9072@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <dd5c0fef-4994-4beb-952f-659ff5d17fb0@linaro.org>
-Date: Mon, 14 Nov 2016 12:11:51 +0200
-MIME-Version: 1.0
-In-Reply-To: <a6557768-787d-7794-8cd0-781dc1ee9072@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Wed, 16 Nov 2016 04:05:22 -0500
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>
+Subject: [PATCH 0/9] media: Exynos MFC driver improvements
+Date: Wed, 16 Nov 2016 10:04:49 +0100
+Message-id: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
+References: <CGME20161116090517eucas1p195d48a2b5a1fd0146c40537b70a05048@eucas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi!
 
-<cut>
+This is another collection of patches for Exynos MFC codec driver.
+It includes rebase of some improvements posted some time ago (which never
+got merged due to various reasons), huge rework of clock handling code
+and addition of Exynos 5433 variant support.
 
->>>
->>>> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
->>>> +{
->>>> +	struct venus_inst *inst = vb2_get_drv_priv(q);
->>>> +	struct venus_core *core = inst->core;
->>>> +	struct device *dev = core->dev;
->>>> +	struct vb2_queue *other_queue;
->>>> +	struct vidc_buffer *buf, *n;
->>>> +	enum vb2_buffer_state state;
->>>> +	int ret;
->>>> +
->>>> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->>>> +		other_queue = &inst->bufq_cap;
->>>> +	else
->>>> +		other_queue = &inst->bufq_out;
->>>> +
->>>> +	if (!vb2_is_streaming(other_queue))
->>>> +		return;
->>>
->>> This seems wrong to me: this return means that the buffers of queue q are never
->>> released. Either drop this 'if' or release both queues when the last queue
->>> stops streaming. I think dropping the 'if' is best.
->>
->> I have done this way because hfi_session_stop must be called only once,
->> and buffers will be released on first streamoff for both queues.
-> 
-> Are you sure the buffers are released for both queues? I may have missed that when
-> reviewing.
+Patches were tested on Odroid U3 and XU3 as well as TM2 boards (Exynos
+4412, 5422 and 5433).
 
-yes, hfi_session_stop will instruct the firmware to stop using provided
-buffers and return ownership to the host driver by fill_buf_done and
-empty_buf_done callbacks.
+Patches are based on git://linuxtv.org/snawrocki/samsung.git for-v4.10/media/next
+branch.
 
-> 
-> I would recommend to call hfi_session_stop when the first stop_streaming is called,
-> not when it is called for both queues. I say this because stopping streaming without
-> releasing the buffers is likely to cause problems.
+Best regards
+Marek Szyprowski
+Samsung R&D Institute Poland
 
-this is what I tried to implement with above
-!vb2_is_streaming(other_queue) thing.
 
-> 
-> Did you turn on CONFIG_VIDEO_ADV_DEBUG? If it is on, and you don't release buffers
-> then I think you will see warnings in the kernel log.
+Patch summary:
 
-OK I will enable it to be sure that warnings are missing.
+Douglas Anderson (1):
+  s5p-mfc: Set DMA_ATTR_ALLOC_SINGLE_PAGES
+
+Marek Szyprowski (8):
+  s5p-mfc: Use printk_ratelimited for reporting ioctl errors
+  s5p-mfc: Remove special clock rate management
+  s5p-mfc: Ensure that clock is disabled before turning power off
+  s5p-mfc: Remove dead conditional code
+  s5p-mfc: Kill all IS_ERR_OR_NULL in clocks management code
+  s5p-mfc: Don't keep clock prepared all the time
+  s5p-mfc: Rework clock handling
+  s5p-mfc: Add support for MFC v8 available in Exynos 5433 SoCs
+
+ .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |  61 +++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  10 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_debug.h     |   6 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |   2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c        | 139 ++++++++-------------
+ 7 files changed, 103 insertions(+), 118 deletions(-)
 
 -- 
-regards,
-Stan
+1.9.1
+
