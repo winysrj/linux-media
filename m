@@ -1,90 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38631 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753032AbcKTRhG (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44339
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S933341AbcKPOfl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Nov 2016 12:37:06 -0500
-Received: by mail-wm0-f46.google.com with SMTP id f82so109966158wmf.1
-        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2016 09:37:05 -0800 (PST)
+        Wed, 16 Nov 2016 09:35:41 -0500
+Date: Wed, 16 Nov 2016 12:35:34 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 07/34] [media] DaVinci-VPBE: Delete an unnecessary
+ variable initialisation in vpbe_initialize()
+Message-ID: <20161116123534.5fdbda6b@vento.lan>
+In-Reply-To: <a0386b6e-ba8c-1fae-edb2-27dfd8e1b6bf@users.sourceforge.net>
+References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
+        <a0386b6e-ba8c-1fae-edb2-27dfd8e1b6bf@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <20161028085224.GA9826@arch-desktop>
-References: <20161028085224.GA9826@arch-desktop>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Sun, 20 Nov 2016 14:37:04 -0300
-Message-ID: <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
-Subject: Re: [PATCH] stk1160: Give the chip some time to retrieve data from
- AC97 codec.
-To: Marcel Hasler <mahasler@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28 October 2016 at 05:52, Marcel Hasler <mahasler@gmail.com> wrote:
-> The STK1160 needs some time to transfer data from the AC97 registers into=
- its own. On some
-> systems reading the chip's own registers to soon will return wrong values=
-. The "proper" way to
-> handle this would be to poll STK1160_AC97CTL_0 after every read or write =
-command until the
-> command bit has been cleared, but this may not be worth the hassle.
->
-> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+Em Wed, 12 Oct 2016 16:42:31 +0200
+SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
+
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Wed, 12 Oct 2016 09:45:39 +0200
+> 
+> The local variable "ret" will be set to an appropriate value a bit later.
+> Thus omit the explicit initialisation at the beginning.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 > ---
->  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb=
-/stk1160/stk1160-ac97.c
-> index 31bdd60d..caa65a8 100644
-> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
-> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-> @@ -20,6 +20,7 @@
->   *
->   */
->
-> +#include <linux/delay.h>
->  #include <linux/module.h>
->
->  #include "stk1160.h"
-> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 r=
-eg)
->          */
->         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
->
-> +       /* Give the chip some time to transfer data */
-> +       usleep_range(20, 40);
-> +
+>  drivers/media/platform/davinci/vpbe.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index afa8ff7..9fdd8c0 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -597,7 +597,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  	struct osd_state *osd_device;
+>  	struct i2c_adapter *i2c_adap;
+>  	int num_encoders;
+> -	int ret = 0;
+> +	int ret;
+>  	int err;
 
-I don't recall any issues with this. In any case, we only read the register=
-s
-for debugging purposes, so it's not a big deal.
-
-Maybe it would be better to expand the comment a little bit,
-using your commit log:
-
-""
-The "proper" way to
-handle this would be to poll STK1160_AC97CTL_0 after
-every read or write command until the command bit
-has been cleared, but this may not be worth the hassle.
-""
-
-This way, if the sleep proves problematic in the future,
-the "proper way" is already documented.
-
->         /* Retrieve register value */
->         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
->         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
-> --
-> 2.10.1
->
+Please fold this change to the patch where you'll be addressing the
+issues with "err" var, as per my previous email.
 
 
 
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+
+Thanks,
+Mauro
