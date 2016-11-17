@@ -1,53 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:52004 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753005AbcKRVMy (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57283 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750928AbcKQVlF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 16:12:54 -0500
-Date: Fri, 18 Nov 2016 22:12:52 +0100
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: Olliver Schinagl <oliver@schinagl.nl>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        "Yann E. MORIN" <yann.morin.1998@free.fr>
-Subject: Re: [PATCH dtv-scan-tables] Rename pl-Krosno_Sucha_Gora with only
- ASCII characters
-Message-ID: <20161118221252.37882d92@free-electrons.com>
-In-Reply-To: <3081b3c9-4822-a40f-b119-5a75b65e3869@schinagl.nl>
-References: <1479157550-983-1-git-send-email-thomas.petazzoni@free-electrons.com>
-        <3081b3c9-4822-a40f-b119-5a75b65e3869@schinagl.nl>
+        Thu, 17 Nov 2016 16:41:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: Rob Herring <robh@kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
+        <linux-renesas-soc@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
+Date: Thu, 17 Nov 2016 23:41:14 +0200
+Message-ID: <8554630.UOVTySaAZP@avalon>
+In-Reply-To: <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com>
+References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1645400.RKG9rcP36z@avalon> <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Rob,
 
-On Fri, 18 Nov 2016 22:05:02 +0100, Olliver Schinagl wrote:
-
-> I agree for consistency sake and ease of use, to use plain ascii for 
-> pl-Krosno_Sucha_Gora as well. If someone feels that we should follow 
-> proper spelling using UTF-8, someone should fix up and correct all names 
-> in 1 rename patch.
+On Friday 14 Oct 2016 07:40:14 Rob Herring wrote:
+> On Sun, Oct 9, 2016 at 11:33 AM, Laurent Pinchartwrote:
+> > On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
+> >> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
+> >>> LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+> >>> Multiple incompatible data link layers have been used over time to
+> >>> transmit image data to LVDS panels. This binding supports display
+> >>> panels compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
+> >>> specifications.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart
+> >>> <laurent.pinchart+renesas@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>>  .../bindings/display/panel/panel-lvds.txt          | 119 +++++++++++++
+> >>>  1 file changed, 119 insertions(+)
+> >>>  create mode 100644
+> >>>  Documentation/devicetree/bindings/display/panel/panel-lvds.txt>
+> >>> 
+> >>> diff --git
+> >>> a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> >>> b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt new
+> >>> file
+> >>> mode 100644
+> >>> index 000000000000..250861f2673e
+> >>> --- /dev/null
+> >>> +++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
+> >>> @@ -0,0 +1,119 @@
+> >>> +Generic LVDS Panel
+> >>> +==================
+> >>> +
+> >>> +LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
+> >>> Multiple
+> >>> +incompatible data link layers have been used over time to transmit
+> >>> image data
+> >>> +to LVDS panels. This bindings supports display panels compatible with
+> >>> the
+> >>> +following specifications.
+> >>> +
+> >>> +[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999,
+> >>> February
+> >>> +1999 (Version 1.0), Japan Electronic Industry Development Association
+> >>> (JEIDA)
+> >>> +[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95), National
+> >>> +Semiconductor
+> >>> +[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0),
+> >>> Video
+> >>> +Electronics Standards Association (VESA)
+> >>> +
+> >>> +Device compatible with those specifications have been marketed under
+> >>> the
+> >>> +FPD-Link and FlatLink brands.
+> >>> +
+> >>> +
+> >>> +Required properties:
+> >>> +- compatible: shall contain "panel-lvds"
+> >> 
+> >> Maybe as a fallback, but on its own, no way.
+> > 
+> > Which brings an interesting question: when designing generic DT bindings,
+> > what's the rule regarding
 > 
-> Also there are various downstream users, which may simply not support 
-> UTF-8. So by using ascii we also reduce the risk of trouble there.
+> Call it "simple" so I can easily NAK it. :)
 > 
-> Thank you for the patch and it has been merged.
+> Define a generic structure, not a single binding trying to serve all.
+> 
+> >>> +- width-mm: panel display width in millimeters
+> >>> +- height-mm: panel display height in millimeters
+> >> 
+> >> This is already documented for all panels IIRC.
+> > 
+> > Note that this DT binding has nothing to do with the simple-panel binding.
+> > It is instead similar to the panel-dpi and panel-dsi-cm bindings (which
+> > currently don't but should specify the panel size in DT). The LVDS panel
+> > driver will *not* include any panel-specific information such as size or
+> > timings, these are specified in DT.
+> 
+> The panel bindings aren't really different. The biggest difference was
+> location in the tree, but we now generally allow panels to be either a
+> child of the LCD controller or connected with OF graph. We probably
+> need to work on restructuring the panel bindings a bit. We should have
+> an inheritance with a base panel binding of things like size, label,
+> graph, backlight, etc, then perhaps an interface specific bindings for
+> LVDS, DSI, and parallel, then a panel specific binding. With this the
+> panel specific binding is typically just a compatible string and which
+> inherited properties apply to it.
+> 
+> >>> +- data-mapping: the color signals mapping order, "jeida-18",
+> >>> "jeida-24"
+> >>> +  or "vesa-24"
+> >> 
+> >> Maybe this should be part of the compatible.
+> > 
+> > I've thought about it, but given that some panels support selecting
+> > between multiple modes (through a mode pin that is usually hardwired), I
+> > believe a separate DT property makes sense.
+> 
+> Okay.
+> 
+> > Furthermore, LVDS data organization is controlled by the combination of
+> > both data-mapping and data-mirror. It makes little sense from my point of
+> > view to handle one as part of the compatible string and the other one as
+> > a separate property.
+> > 
+> >>> +Optional properties:
+> >>> +- label: a symbolic name for the panel
+> >> 
+> >> Could be for any panel or display connector.
+> > 
+> > Yes, but I'm not sure to understand how that's relevant :-)
+> 
+> Meaning it should be a common property.
+> 
+> >>> +- avdd-supply: reference to the regulator that powers the panel
+> >>> analog supply
+> >>> +- dvdd-supply: reference to the regulator that powers the panel
+> >>> digital supply
+> >> 
+> >> Which one has to be powered on first, what voltage, and with what time
+> >> in between? This is why "generic" or "simple" bindings don't work.
+> > 
+> > The above-mentioned specifications also define connectors, pinouts and
+> > power supplies, but many LVDS panels compatible with the LVDS physical
+> > and data layers use a different connector with small differences in power
+> > supplies.
+> > 
+> > I believe the voltage is irrelevant here, it doesn't need to be controlled
+> > by the operating system. Power supplies order and timing is relevant,
+> > I'll investigate the level of differences between panels. I'm also fine
+> > with dropping those properties for now.
+> 
+> Whether you have control of the supplies is dependent on the board.
+> Dropping them is just puts us in the simple binding trap. The simple
+> bindings start out that way and then people keep adding to them.
+> 
+> >>> +- data-mirror: if set, reverse the bit order on all data lanes (6 to 0
+> >>> instead
+> >>> +  of 0 to 6)
+> 
+> On this one, make the name describe the order. "mirror" requires that
+> I know what is normal ordering. Perhaps "data-msb-first".
 
-Thanks a lot!
+The normal order is defined just below in the same document, and actually 
+transmits bits with MSB first (roughly). The bit ordering in LVDS is a bit 
+messed up, I've tried to follow the specs as much as possible for these 
+bindings. Data mirroring isn't defined in any spec I've found but is 
+implemented by some devices that got the spec wrong :-)
 
-I think encoding the correct name of the city in the file name is not a
-good idea. File name encoding is always problematic. Instead, what
-would be better is to have the proper city name inside the file itself.
-This way, you can specify that for the entire database, the files are
-encoded in UTF-8.
-
-Best regards,
-
-Thomas
 -- 
-Thomas Petazzoni, CTO, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Regards,
+
+Laurent Pinchart
+
