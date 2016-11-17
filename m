@@ -1,117 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33528 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965962AbcKLNNw (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:32042 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932465AbcKQDjK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:52 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 19/32] media: rcar-vin: add functions to manipulate Gen3 CHSEL value
-Date: Sat, 12 Nov 2016 14:12:03 +0100
-Message-Id: <20161112131216.22635-20-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 16 Nov 2016 22:39:10 -0500
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>
+Subject: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+Date: Thu, 17 Nov 2016 11:38:35 +0800
+Message-ID: <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI routing is controlled by the VnCSI_IFMD register. One
-feature of this register is that it's only present in the VIN0 and VIN4
-instances. The register in VIN0 controls the routing for VIN0-3 and the
-register in VIN4 controls routing for VIN4-7.
-
-To be able to control routing from a media device these functions need
-to control runtime PM for the subgroup master (VIN0 and VIN4). The
-subgroup master must be switched on before the register is manipulated,
-once the operation is complete it's safe to switch the master off and
-the new routing will still be in effect.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 43 ++++++++++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-vin.h |  3 +++
- 2 files changed, 46 insertions(+)
+This patch depends on: 
+  CCF "Add clock support for Mediatek MT2701"[1]
+  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 80958e6..322e4c1 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -16,6 +16,7 @@
+[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+[2] https://patchwork.kernel.org/patch/9164013/
+---
+ arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
+index 8f13c70..4dd5048 100644
+--- a/arch/arm/boot/dts/mt2701.dtsi
++++ b/arch/arm/boot/dts/mt2701.dtsi
+@@ -298,6 +298,20 @@
+ 		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+ 	};
  
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
- 
- #include <media/videobuf2-dma-contig.h>
- 
-@@ -1247,3 +1248,45 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
- 
- 	return ret;
- }
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,mt2701-jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
 +
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CHSEL manipulation
-+ */
-+
-+int rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
-+{
-+	u32 ifmd;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	/*
-+	 * Undocumented feature: Writing to VNCSI_IFMD_REG will go
-+	 * through and on read back look correct but won't have
-+	 * any effect if VNMC_REG is not first set to 0.
-+	 */
-+	rvin_write(vin, 0, VNMC_REG);
-+
-+	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-+		VNCSI_IFMD_CSI_CHSEL(chsel);
-+
-+	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-+
-+	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return 0;
-+}
-+
-+int rvin_get_chsel(struct rvin_dev *vin)
-+{
-+	int chsel;
-+
-+	pm_runtime_get_sync(vin->dev);
-+
-+	chsel = rvin_read(vin, VNCSI_IFMD_REG) & VNCSI_IFMD_CSI_CHSEL_MASK;
-+
-+	pm_runtime_put(vin->dev);
-+
-+	return chsel;
-+}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index b8f5634..a6a49a96 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -184,4 +184,7 @@ void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
- 		    u32 width, u32 height);
- void rvin_crop_scale_comp(struct rvin_dev *vin);
- 
-+int rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
-+int rvin_get_chsel(struct rvin_dev *vin);
-+
- #endif
+ 	vdecsys: syscon@16000000 {
+ 		compatible = "mediatek,mt2701-vdecsys", "syscon";
+ 		reg = <0 0x16000000 0 0x1000>;
 -- 
-2.10.2
+1.9.1
 
