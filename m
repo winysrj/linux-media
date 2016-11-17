@@ -1,40 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40542
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753847AbcKIL1P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 06:27:15 -0500
-Date: Wed, 9 Nov 2016 09:27:08 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Markus Heiser <markus.heiser@darmarit.de>,
-        Josh Triplett <josh@joshtriplett.org>,
-        Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        ksummit-discuss@lists.linuxfoundation.org,
-        linux-doc@vger.kernel.org
+Received: from bedivere.hansenpartnership.com ([66.63.167.143]:47482 "EHLO
+        bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934021AbcKQREb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 17 Nov 2016 12:04:31 -0500
+Message-ID: <1479399938.4225.28.camel@HansenPartnership.com>
 Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-Message-ID: <20161109092708.786f55da@vento.lan>
-In-Reply-To: <8737j0hpi0.fsf@intel.com>
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Theodore Ts'o <tytso@mit.edu>
+Cc: ksummit-discuss@lists.linuxfoundation.org,
+        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-media@vger.kernel.org
+Date: Thu, 17 Nov 2016 11:25:38 -0500
+In-Reply-To: <20161117131651.467943e0@vento.lan>
 References: <20161107075524.49d83697@vento.lan>
-        <20161107170133.4jdeuqydthbbchaq@x>
-        <A4091944-D727-45B5-AC24-FE3B2700298E@darmarit.de>
-        <8737j0hpi0.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+         <11020459.EheIgy38UF@wuerfel> <20161116182633.74559ffd@vento.lan>
+         <2923918.nyphv1Ma7d@wuerfel> <20161117145244.sksssz6jvnntsw5u@thunk.org>
+         <20161117131651.467943e0@vento.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 09 Nov 2016 13:16:55 +0200
-Jani Nikula <jani.nikula@linux.intel.com> escreveu:
-
-> >> 1) copy (or symlink) all rst files to Documentation/output (or to the
-> >>  build dir specified via O= directive) and generate the *.pdf there,
-> >>  and produce those converted images via Makefile.;  
+On Thu, 2016-11-17 at 13:16 -0200, Mauro Carvalho Chehab wrote:
+> Hi Ted,
 > 
-> We're supposed to solve problems, not create new ones.
+> Em Thu, 17 Nov 2016 09:52:44 -0500
+> Theodore Ts'o <tytso@mit.edu> escreveu:
+> 
+> > On Thu, Nov 17, 2016 at 12:07:15PM +0100, Arnd Bergmann wrote:
+> > > [adding Linus for clarification]
+> > > 
+> > > I understood the concern as being about binary files that you
+> > > cannot
+> > > modify with classic 'patch', which is a separate issue.  
+> > 
+> > I think the other complaint is that the image files aren't "source"
+> > in
+> > the proper term, since they are *not* the preferred form for
+> > modification --- that's the svg files.  Beyond the license
+> > compliance
+> > issues (which are satisified because the .svg files are included in
+> > the git tree), there is the SCM cleaniless argument of not
+> > including
+> > generated files in the distribution, since this increases the
+> > opportunites for the "real" source file and the generated source
+> > file
+> > to get out of sync.  (As just one example, if the patch can't
+> > represent the change to binary file.)
+> > 
+> > I do check in generated files on occasion --- usually because I
+> > don't
+> > trust autoconf to be a stable in terms of generating a correct
+> > configure file from a configure.in across different versions of
+> > autoconf and different macro libraries that might be installed on
+> > the
+> > system.  So this isn't a hard and fast rule by any means (although
+> > Linus may be more strict than I on that issue).
+> > 
+> > I don't understand why it's so terrible to have generate the image
+> > file from the .svg file in a Makefile rule, and then copy it
+> > somewhere
+> > else if Sphinx is too dumb to fetch it from the normal location?
+> 
+> The images whose source are in .svg are now generated via Makefile
+> for the PDF output (after my patches, already applied to the docs
+> -next
+> tree).
+> 
+> So, the problem that remains is for those images whose source
+> is a bitmap. If we want to stick with the Sphinx supported formats,
+> we have only two options for bitmaps: jpg or png. We could eventually
+> use uuencode or base64 to make sure that the patches won't use
+> git binary diff extension, or, as Arnd proposed, use a portable
+> bitmap format, in ascii, converting via Makefile, but losing
+> the alpha channel with makes the background transparent.
 
-So, what's your proposal?
+If it can use svg, why not use that?  SVG files can be a simple xml
+wrapper around a wide variety of graphic image formats which are
+embedded in the svg using the data-uri format, you know ...
 
-Thanks,
-Mauro
+Anything that handles SVGs should be able to handle all the embeddable
+image formats, which should give you a way around image restrictions
+whatever it is would otherwise have.
+
+James
+
