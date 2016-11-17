@@ -1,67 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:37441 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1760551AbcKDIGE (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:33493 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753617AbcKQSB7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Nov 2016 04:06:04 -0400
-Subject: Re: [PATCH 17/34] [media] DaVinci-VPFE-Capture: Improve another size
- determination in vpfe_enum_input()
-To: SF Markus Elfring <elfring@users.sourceforge.net>,
-        linux-media@vger.kernel.org
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
- <88b3de4c-5f3f-9f70-736b-039dca6b8a2e@users.sourceforge.net>
- <f214edb8-0af3-e1f5-8b45-9cfa0537f8b5@xs4all.nl>
- <6a3a4a79-d428-f5d9-87e0-97fd91b75c2a@users.sourceforge.net>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3c76f5d0-4469-01a4-3a7c-49401aeb84b7@xs4all.nl>
-Date: Fri, 4 Nov 2016 09:06:01 +0100
+        Thu, 17 Nov 2016 13:01:59 -0500
 MIME-Version: 1.0
-In-Reply-To: <6a3a4a79-d428-f5d9-87e0-97fd91b75c2a@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <2923918.nyphv1Ma7d@wuerfel>
+References: <20161107075524.49d83697@vento.lan> <11020459.EheIgy38UF@wuerfel>
+ <20161116182633.74559ffd@vento.lan> <2923918.nyphv1Ma7d@wuerfel>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 17 Nov 2016 08:02:50 -0800
+Message-ID: <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        ksummit-discuss@lists.linuxfoundation.org,
+        Josh Triplett <josh@joshtriplett.org>,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/11/16 22:05, SF Markus Elfring wrote:
->>> @@ -1091,7 +1091,7 @@ static int vpfe_enum_input(struct file *file, void *priv,
->>>          return -EINVAL;
->>>      }
->>>      sdinfo = &vpfe_dev->cfg->sub_devs[subdev];
->>> -    memcpy(inp, &sdinfo->inputs[index], sizeof(struct v4l2_input));
->>> +    memcpy(inp, &sdinfo->inputs[index], sizeof(*inp));
->>
->> If I am not mistaken this can be written as:
->>
->>     *inp = sdinfo->inputs[index];
->>
->> Much better.
+On Thu, Nov 17, 2016 at 3:07 AM, Arnd Bergmann <arnd@arndb.de> wrote:
 >
-> At which position would you like to integrate a second approach for such a change
-> from this patch series?
+> [adding Linus for clarification]
 >
-> * Do you expect me to send a "V2" for the whole series?
+> I understood the concern as being about binary files that you cannot
+> modify with classic 'patch', which is a separate issue.
 
-No, just for the patches I commented upon.
+No. That is how I *noticed* the issue. Those stupid pdf binary files
+have been around forever, I just didn't notice until the Fedora people
+started complaining about the patches.
 
->
-> * Will an update step be appropriate if I would rebase it on other
->   recently accepted suggestions?
+My real problem is not "binary" or even "editable", but SOURCE CODE.
 
-You can base it on 
-https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=for-v4.10a
+It's like including a "vmlinux" image in the git tree: sure, you can
+technically "edit" it with a hex editor, but that doesn't change the
+basic issue: it's not the original source code.
 
-That branch has all your other patches of this series merged and is part 
-of a pull
-request I posted yesterday.
+I don't want to see generated binary crap.
 
-	Hans
+That goes for png, that goes for gif, that goes for pdf - and in fact
+that goes for svg *too*, if the actual source of the svg was something
+else, and it was generated from some other data.
 
->
-> Regards,
-> Markus
->
+We have makefiles, but more importantly, few enough people actually
+*generate* the documentation, that I think if it's an option to just
+fix sphinx, we should do that instead. If it means that you have to
+have some development version of sphinx, so be it. Most people read
+the documentation either directly in the unprocessed text-files
+("source code") or on the web (by searching for pre-formatted docs)
+that I really don't think we need to worry too much about the
+toolchain.
+
+But what we *should* worry about is having the kernel source tree
+contain source.
+
+                 Linus
