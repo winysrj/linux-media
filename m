@@ -1,38 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:27049 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932283AbcK1NvH (ORCPT
+Received: from out2-smtp.messagingengine.com ([66.111.4.26]:57539 "EHLO
+        out2-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752084AbcKRWZj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 08:51:07 -0500
-Date: Mon, 28 Nov 2016 16:49:44 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Sakari Alius <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        wharms@bfs.de, linux-media@vger.kernel.org,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
-Message-ID: <20161128134358.GS6266@mwanda>
-References: <20161125102835.GA5856@mwanda>
- <2064794.XNX8XhaLMu@avalon>
- <58384F15.4040207@bfs.de>
- <11316049.HORSOXRmDr@avalon>
- <20161125192024.GI6266@mwanda>
- <20161127162145.GF16630@valkosipuli.retiisi.org.uk>
+        Fri, 18 Nov 2016 17:25:39 -0500
+Date: Fri, 18 Nov 2016 22:25:32 +0000
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        Sean Young <sean@mess.org>
+Subject: Re: [PATCH 09/35] [media] cx88: make checkpatch happier
+Message-ID: <20161118222532.GA19697@dell-m4800.home>
+References: <cover.1479314177.git.mchehab@s-opensource.com>
+ <d2948045c2dee0ea4b0e5f20fdd8facdd99e37a2.1479314177.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161127162145.GF16630@valkosipuli.retiisi.org.uk>
+In-Reply-To: <d2948045c2dee0ea4b0e5f20fdd8facdd99e37a2.1479314177.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I understand the comparison, but I just think it's better if people
-always keep track of what has been allocated and what has not.  I tried
-so hard to get Markus to stop sending those hundreds of patches where
-he's like "this function has a sanity check so we can pass pointers
-that weren't allocated"...  It's garbage code.
+On Wed, Nov 16, 2016 at 02:42:41PM -0200, Mauro Carvalho Chehab wrote:
+> This driver is old, and have lots of checkpatch violations.
+> As we're touching a lot on this driver due to the printk
+> conversions, let's run checkpatch --fix on it, in order to
+> solve some of those issues. Also, let's remove the FSF
+> address and use the usual coding style for the initial comments.
 
-But I understand that other people don't agree.
+Good idea to give checkpatch a run.
+Good job by checkpatch, really powerful tool.
 
-regards,
-dan carpenter
+Have proofread, no weirdness except for few places where vertical
+"table-alike" alignment across lines got broken.
 
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+Reviewed-by: Andrey Utkin <andrey_utkin@fastmail.com>
+
+> --- a/drivers/media/pci/cx88/cx88-cards.c
+> +++ b/drivers/media/pci/cx88/cx88-cards.c
+
+> @@ -2911,33 +2906,33 @@ static const struct {
+>  	int  fm;
+>  	const char *name;
+>  } gdi_tuner[] = {
+> -	[ 0x01 ] = { .id   = UNSET,
+> +	[0x01] = { .id   = UNSET,
+>  		     .name = "NTSC_M" },
+
+Alignment got broken
+
+> --- a/drivers/media/pci/cx88/cx88-vbi.c
+> +++ b/drivers/media/pci/cx88/cx88-vbi.c
+
+> @@ -57,9 +57,9 @@ static int cx8800_start_vbi_dma(struct cx8800_dev    *dev,
+>  	cx88_sram_channel_setup(dev->core, &cx88_sram_channels[SRAM_CH24],
+>  				VBI_LINE_LENGTH, buf->risc.dma);
+>  
+> -	cx_write(MO_VBOS_CONTROL, ( (1 << 18) |  // comb filter delay fixup
+> +	cx_write(MO_VBOS_CONTROL, ((1 << 18) |  // comb filter delay fixup
+
+Alignment got broken.
+
+> --- a/drivers/media/pci/cx88/cx88.h
+> +++ b/drivers/media/pci/cx88/cx88.h
+
+> @@ -385,8 +381,8 @@ struct cx88_core {
+>  	/* state info */
+>  	struct task_struct         *kthread;
+>  	v4l2_std_id                tvnorm;
+> -	unsigned		   width, height;
+> -	unsigned		   field;
+> +	unsigned int width, height;
+> +	unsigned int field;
+
+Alignment got broken
+
+> @@ -591,23 +587,23 @@ struct cx8802_dev {
+>  /* ----------------------------------------------------------- */
+>  
+>  #define cx_read(reg)             readl(core->lmmio + ((reg)>>2))
+> -#define cx_write(reg,value)      writel((value), core->lmmio + ((reg)>>2))
+> -#define cx_writeb(reg,value)     writeb((value), core->bmmio + (reg))
+> +#define cx_write(reg, value)      writel((value), core->lmmio + ((reg)>>2))
+> +#define cx_writeb(reg, value)     writeb((value), core->bmmio + (reg))
+
+Alignment got broken
+
+>  
+> -#define cx_andor(reg,mask,value) \
+> +#define cx_andor(reg, mask, value) \
+>    writel((readl(core->lmmio+((reg)>>2)) & ~(mask)) |\
+>    ((value) & (mask)), core->lmmio+((reg)>>2))
+> -#define cx_set(reg,bit)          cx_andor((reg),(bit),(bit))
+> -#define cx_clear(reg,bit)        cx_andor((reg),(bit),0)
+> +#define cx_set(reg, bit)          cx_andor((reg), (bit), (bit))
+> +#define cx_clear(reg, bit)        cx_andor((reg), (bit), 0)
+
+Alignment got broken
