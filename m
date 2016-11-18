@@ -1,64 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:49542 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932783AbcKOX2D (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47578 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752174AbcKRNuW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 18:28:03 -0500
-Date: Tue, 15 Nov 2016 23:27:54 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Pierre-Hugues Husson <phh@phh.me>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
-Subject: Re: [RFCv2 PATCH 2/5] drm/bridge: dw_hdmi: remove CEC engine
- register definitions
-Message-ID: <20161115232754.GB1041@n2100.armlinux.org.uk>
-References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
- <1479136968-24477-3-git-send-email-hverkuil@xs4all.nl>
- <CAJ-oXjS-VVkBuYh0inTGAvJbsKzvEqKYrgoSeG6UBQtW_1BEyQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAJ-oXjS-VVkBuYh0inTGAvJbsKzvEqKYrgoSeG6UBQtW_1BEyQ@mail.gmail.com>
+        Fri, 18 Nov 2016 08:50:22 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: arnd@arndb.de
+Subject: [PATCH 1/1] smiapp: Implement power-on and power-off sequences without runtime PM
+Date: Fri, 18 Nov 2016 15:50:16 +0200
+Message-Id: <1479477016-28450-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 16, 2016 at 12:23:50AM +0100, Pierre-Hugues Husson wrote:
-> Hi,
-> 
-> 
-> 2016-11-14 16:22 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
-> > From: Russell King <rmk+kernel@arm.linux.org.uk>
-> >
-> > We don't need the CEC engine register definitions, so let's remove them.
-> >
-> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> > ---
-> >  drivers/gpu/drm/bridge/dw-hdmi.h | 45 ----------------------------------------
-> >  1 file changed, 45 deletions(-)
-> >
-> > diff --git a/drivers/gpu/drm/bridge/dw-hdmi.h b/drivers/gpu/drm/bridge/dw-hdmi.h
-> > index fc9a560..26d6845 100644
-> > --- a/drivers/gpu/drm/bridge/dw-hdmi.h
-> > +++ b/drivers/gpu/drm/bridge/dw-hdmi.h
-> > @@ -478,51 +478,6 @@
-> >  #define HDMI_A_PRESETUP                         0x501A
-> >  #define HDMI_A_SRM_BASE                         0x5020
-> >
-> > -/* CEC Engine Registers */
-> > -#define HDMI_CEC_CTRL                           0x7D00
-> > -#define HDMI_CEC_STAT                           0x7D01
-> > -#define HDMI_CEC_MASK                           0x7D02
-> I don't know if this is relevant for a submission, but the build stops
-> working here because of a missing definition HDMI_CEC_MASK
-> Perhaps this should be inverted with 3/5 to make bissecting easier?
-> I was trying to bissect a kernel panic, and I had to fix this by hand
+Power on the sensor when the module is loaded and power it off when it is
+removed.
 
-Doesn't make sense - patch 3 doesn't reference HDMI_CEC_MASK.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Arnd and others,
 
-Please show the build error in full.
+The patch is tested with CONFIG_PM set, as the system does I was testing
+on did not boot with CONFIG_PM disabled. I'm not really too worried about
+this though, the patch is very simple.
 
+Kind regards,
+Sakari
+
+ drivers/media/i2c/smiapp/smiapp-core.c | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 59872b3..8624dc4 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2741,8 +2741,6 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
+  * I2C Driver
+  */
+ 
+-#ifdef CONFIG_PM
+-
+ static int smiapp_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -2783,13 +2781,6 @@ static int smiapp_resume(struct device *dev)
+ 	return rval;
+ }
+ 
+-#else
+-
+-#define smiapp_suspend	NULL
+-#define smiapp_resume	NULL
+-
+-#endif /* CONFIG_PM */
+-
+ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ {
+ 	struct smiapp_hwconfig *hwcfg;
+@@ -2915,7 +2906,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 
+ 	pm_runtime_enable(&client->dev);
+ 
++#ifdef CONFIG_PM
+ 	rval = pm_runtime_get_sync(&client->dev);
++#else
++	rval = smiapp_power_on(&client->dev);
++#endif
+ 	if (rval < 0) {
+ 		rval = -ENODEV;
+ 		goto out_power_off;
+@@ -3113,7 +3108,11 @@ static int smiapp_probe(struct i2c_client *client,
+ 	smiapp_cleanup(sensor);
+ 
+ out_power_off:
++#ifdef CONFIG_PM
+ 	pm_runtime_put(&client->dev);
++#else
++	smiapp_power_off(&client->dev);
++#endif
+ 	pm_runtime_disable(&client->dev);
+ 
+ 	return rval;
+@@ -3127,7 +3126,11 @@ static int smiapp_remove(struct i2c_client *client)
+ 
+ 	v4l2_async_unregister_subdev(subdev);
+ 
++#ifdef CONFIG_PM
+ 	pm_runtime_suspend(&client->dev);
++#else
++	smiapp_power_off(&client->dev);
++#endif
+ 	pm_runtime_disable(&client->dev);
+ 
+ 	for (i = 0; i < sensor->ssds_used; i++) {
 -- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+2.1.4
+
