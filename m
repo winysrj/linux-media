@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:52786 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751989AbcKRTgv (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:42910 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753736AbcKRXVZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 14:36:51 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran+renesas@ksquared.org.uk>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 2/3] [media] v4l: rcar_fdp1: add FCP dependency
-Date: Fri, 18 Nov 2016 20:36:26 +0100
-Message-ID: <3658477.0zLolAi2Y1@wuerfel>
-In-Reply-To: <CAMuHMdWj9_X-kgbJ4FHXMR2hnUzwKCkjXbOfu0kY6bk5rcVzfQ@mail.gmail.com>
-References: <20161118161621.798004-1-arnd@arndb.de> <20161118161621.798004-2-arnd@arndb.de> <CAMuHMdWj9_X-kgbJ4FHXMR2hnUzwKCkjXbOfu0kY6bk5rcVzfQ@mail.gmail.com>
+        Fri, 18 Nov 2016 18:21:25 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 34/35] media: ti-vpe: csc: Add debug support for multi-instance
+Date: Fri, 18 Nov 2016 17:20:44 -0600
+Message-ID: <20161118232045.24665-35-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, November 18, 2016 6:08:01 PM CET Geert Uytterhoeven wrote:
-> > diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> > index 3c5a0b6b23a9..cd0cab6e0e31 100644
-> > --- a/drivers/media/platform/Kconfig
-> > +++ b/drivers/media/platform/Kconfig
-> > @@ -311,6 +311,7 @@ config VIDEO_RENESAS_FDP1
-> >         tristate "Renesas Fine Display Processor"
-> >         depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
-> >         depends on ARCH_SHMOBILE || COMPILE_TEST
-> > +       depends on (!ARCH_RENESAS && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
-> 
-> Which tree and config is this? I don't have fdp1_pm_runtime_resume in my
-> renesas-drivers tree.
-> 
-> Why are the dummies for !CONFIG_VIDEO_RENESAS_FCP in include/media/rcar-fcp.h
-> not working?
+Since there might be more then one instance it is better to
+show the base address when dumping registers to help
+with debugging.
 
-Oops, I forgot to write a proper changelog.
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/ti-vpe/csc.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Commit 4710b752e029 ("[media] v4l: Add Renesas R-Car FDP1 Driver") in the
-v4l-dvb tree adds CONFIG_VIDEO_RENESAS_FDP1.
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index 9fc6f70adeeb..44b8465cf101 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -97,6 +97,8 @@ void csc_dump_regs(struct csc_data *csc)
+ #define DUMPREG(r) dev_dbg(dev, "%-35s %08x\n", #r, \
+ 	ioread32(csc->base + CSC_##r))
+ 
++	dev_dbg(dev, "CSC Registers @ %pa:\n", &csc->res->start);
++
+ 	DUMPREG(CSC00);
+ 	DUMPREG(CSC01);
+ 	DUMPREG(CSC02);
+-- 
+2.9.0
 
-It calls into the FCP driver, but when there is no dependency, FCP might
-be a module while FDP1 is built-in.
-
-We have the same logic in VIDEO_RENESAS_VSP1, which also depends on
-FCP not being a module when it is built-in itself.
-
-	Arnd
