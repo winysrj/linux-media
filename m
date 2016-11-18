@@ -1,57 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:55715 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932845AbcKJOS6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 09:18:58 -0500
-Date: Thu, 10 Nov 2016 14:18:55 +0000
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] ir-kbd-i2c: fix uninitialized variable reference
-Message-ID: <20161110141855.GA22393@gofer.mess.org>
-References: <c149b7bf-fd3f-678e-64d4-c4b752bed3d2@xs4all.nl>
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:17466 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752731AbcKRXU6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 18:20:58 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 01/35] media: ti-vpe: vpdma: Make vpdma library into its own module
+Date: Fri, 18 Nov 2016 17:20:11 -0600
+Message-ID: <20161118232045.24665-2-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <c149b7bf-fd3f-678e-64d4-c4b752bed3d2@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 10, 2016 at 08:45:24AM +0100, Hans Verkuil wrote:
-> Fix compiler warning about uninitialized variable reference:
-> 
-> ir-kbd-i2c.c: In function 'get_key_haup_common.isra.3':
-> ir-kbd-i2c.c:62:2: warning: 'toggle' may be used uninitialized in this function [-Wmaybe-uninitialized]
->   printk(KERN_DEBUG MODULE_NAME ": " fmt , ## arg)
->   ^~~~~~
-> ir-kbd-i2c.c:70:20: note: 'toggle' was declared here
->   int start, range, toggle, dev, code, ircode, vendor;
->                     ^~~~~~
+The VPDMA (Video Port DMA) as found in devices such as DRA7xx is
+used for both the Video Processing Engine (VPE) and the Video Input
+Port (VIP).
 
-Again this patch already exists (which does exactly the same).
+In preparation for this we need to turn vpdma into its own
+kernel module.
 
-https://patchwork.linuxtv.org/patch/37930/
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+---
+ drivers/media/platform/Kconfig         |  6 ++++++
+ drivers/media/platform/ti-vpe/Makefile |  4 +++-
+ drivers/media/platform/ti-vpe/vpdma.c  | 28 +++++++++++++++++++++++++++-
+ 3 files changed, 36 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 3c5a0b6b23a9..b52b6771fc4d 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -364,6 +364,7 @@ config VIDEO_TI_VPE
+ 	depends on HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select VIDEO_TI_VPDMA
+ 	default n
+ 	---help---
+ 	  Support for the TI VPE(Video Processing Engine) block
+@@ -377,6 +378,11 @@ config VIDEO_TI_VPE_DEBUG
+ 
+ endif # V4L_MEM2MEM_DRIVERS
+ 
++# TI VIDEO PORT Helper Modules
++# These will be selected by VPE and VIP
++config VIDEO_TI_VPDMA
++	tristate
++
+ menuconfig V4L_TEST_DRIVERS
+ 	bool "Media test drivers"
+ 	depends on MEDIA_CAMERA_SUPPORT
+diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
+index e236059a60ad..faca5e115c1d 100644
+--- a/drivers/media/platform/ti-vpe/Makefile
++++ b/drivers/media/platform/ti-vpe/Makefile
+@@ -1,6 +1,8 @@
+ obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
++obj-$(CONFIG_VIDEO_TI_VPDMA) += ti-vpdma.o
+ 
+-ti-vpe-y := vpe.o sc.o csc.o vpdma.o
++ti-vpe-y := vpe.o sc.o csc.o
++ti-vpdma-y := vpdma.o
+ 
+ ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 4aff05915051..7de0f3f55dcc 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -75,6 +75,7 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
+ 		.depth		= 16,
+ 	},
+ };
++EXPORT_SYMBOL(vpdma_yuv_fmts);
+ 
+ const struct vpdma_data_format vpdma_rgb_fmts[] = {
+ 	[VPDMA_DATA_FMT_RGB565] = {
+@@ -178,6 +179,7 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
+ 		.depth		= 32,
+ 	},
+ };
++EXPORT_SYMBOL(vpdma_rgb_fmts);
+ 
+ const struct vpdma_data_format vpdma_misc_fmts[] = {
+ 	[VPDMA_DATA_FMT_MV] = {
+@@ -186,6 +188,7 @@ const struct vpdma_data_format vpdma_misc_fmts[] = {
+ 		.depth		= 4,
+ 	},
+ };
++EXPORT_SYMBOL(vpdma_misc_fmts);
+ 
+ struct vpdma_channel_info {
+ 	int num;		/* VPDMA channel number */
+@@ -317,6 +320,7 @@ void vpdma_dump_regs(struct vpdma_data *vpdma)
+ 	DUMPREG(VIP_UP_UV_CSTAT);
+ 	DUMPREG(VPI_CTL_CSTAT);
+ }
++EXPORT_SYMBOL(vpdma_dump_regs);
+ 
+ /*
+  * Allocate a DMA buffer
+@@ -333,6 +337,7 @@ int vpdma_alloc_desc_buf(struct vpdma_buf *buf, size_t size)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(vpdma_alloc_desc_buf);
+ 
+ void vpdma_free_desc_buf(struct vpdma_buf *buf)
+ {
+@@ -341,6 +346,7 @@ void vpdma_free_desc_buf(struct vpdma_buf *buf)
+ 	buf->addr = NULL;
+ 	buf->size = 0;
+ }
++EXPORT_SYMBOL(vpdma_free_desc_buf);
+ 
+ /*
+  * map descriptor/payload DMA buffer, enabling DMA access
+@@ -361,6 +367,7 @@ int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(vpdma_map_desc_buf);
+ 
+ /*
+  * unmap descriptor/payload DMA buffer, disabling DMA access and
+@@ -375,6 +382,7 @@ void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
+ 
+ 	buf->mapped = false;
+ }
++EXPORT_SYMBOL(vpdma_unmap_desc_buf);
+ 
+ /*
+  * create a descriptor list, the user of this list will append configuration,
+@@ -396,6 +404,7 @@ int vpdma_create_desc_list(struct vpdma_desc_list *list, size_t size, int type)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(vpdma_create_desc_list);
+ 
+ /*
+  * once a descriptor list is parsed by VPDMA, we reset the list by emptying it,
+@@ -405,6 +414,7 @@ void vpdma_reset_desc_list(struct vpdma_desc_list *list)
+ {
+ 	list->next = list->buf.addr;
+ }
++EXPORT_SYMBOL(vpdma_reset_desc_list);
+ 
+ /*
+  * free the buffer allocated fot the VPDMA descriptor list, this should be
+@@ -416,11 +426,13 @@ void vpdma_free_desc_list(struct vpdma_desc_list *list)
+ 
+ 	list->next = NULL;
+ }
++EXPORT_SYMBOL(vpdma_free_desc_list);
+ 
+-static bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
++bool vpdma_list_busy(struct vpdma_data *vpdma, int list_num)
+ {
+ 	return read_reg(vpdma, VPDMA_LIST_STAT_SYNC) & BIT(list_num + 16);
+ }
++EXPORT_SYMBOL(vpdma_list_busy);
+ 
+ /*
+  * submit a list of DMA descriptors to the VPE VPDMA, do not wait for completion
+@@ -446,6 +458,7 @@ int vpdma_submit_descs(struct vpdma_data *vpdma, struct vpdma_desc_list *list)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(vpdma_submit_descs);
+ 
+ static void dump_cfd(struct vpdma_cfd *cfd)
+ {
+@@ -498,6 +511,7 @@ void vpdma_add_cfd_block(struct vpdma_desc_list *list, int client,
+ 
+ 	dump_cfd(cfd);
+ }
++EXPORT_SYMBOL(vpdma_add_cfd_block);
+ 
+ /*
+  * append a configuration descriptor to the given descriptor list, where the
+@@ -526,6 +540,7 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
+ 
+ 	dump_cfd(cfd);
+ };
++EXPORT_SYMBOL(vpdma_add_cfd_adb);
+ 
+ /*
+  * control descriptor format change based on what type of control descriptor it
+@@ -563,6 +578,7 @@ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ 
+ 	dump_ctd(ctd);
+ }
++EXPORT_SYMBOL(vpdma_add_sync_on_channel_ctd);
+ 
+ static void dump_dtd(struct vpdma_dtd *dtd)
+ {
+@@ -672,6 +688,7 @@ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 
+ 	dump_dtd(dtd);
+ }
++EXPORT_SYMBOL(vpdma_add_out_dtd);
+ 
+ /*
+  * append an inbound data transfer descriptor to the given descriptor list,
+@@ -745,6 +762,7 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+ 
+ 	dump_dtd(dtd);
+ }
++EXPORT_SYMBOL(vpdma_add_in_dtd);
+ 
+ /* set or clear the mask for list complete interrupt */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
+@@ -759,6 +777,7 @@ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int list_num,
+ 		val &= ~(1 << (list_num * 2));
+ 	write_reg(vpdma, VPDMA_INT_LIST0_MASK, val);
+ }
++EXPORT_SYMBOL(vpdma_enable_list_complete_irq);
+ 
+ /* clear previosuly occured list intterupts in the LIST_STAT register */
+ void vpdma_clear_list_stat(struct vpdma_data *vpdma)
+@@ -766,6 +785,7 @@ void vpdma_clear_list_stat(struct vpdma_data *vpdma)
+ 	write_reg(vpdma, VPDMA_INT_LIST0_STAT,
+ 		read_reg(vpdma, VPDMA_INT_LIST0_STAT));
+ }
++EXPORT_SYMBOL(vpdma_clear_list_stat);
+ 
+ /*
+  * configures the output mode of the line buffer for the given client, the
+@@ -780,6 +800,7 @@ void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
+ 	write_field_reg(vpdma, client_cstat, line_mode,
+ 		VPDMA_CSTAT_LINE_MODE_MASK, VPDMA_CSTAT_LINE_MODE_SHIFT);
+ }
++EXPORT_SYMBOL(vpdma_set_line_mode);
+ 
+ /*
+  * configures the event which should trigger VPDMA transfer for the given
+@@ -794,6 +815,7 @@ void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
+ 	write_field_reg(vpdma, client_cstat, fs_event,
+ 		VPDMA_CSTAT_FRAME_START_MASK, VPDMA_CSTAT_FRAME_START_SHIFT);
+ }
++EXPORT_SYMBOL(vpdma_set_frame_start_event);
+ 
+ static void vpdma_firmware_cb(const struct firmware *f, void *context)
+ {
+@@ -907,4 +929,8 @@ struct vpdma_data *vpdma_create(struct platform_device *pdev,
+ 
+ 	return vpdma;
+ }
++EXPORT_SYMBOL(vpdma_create);
++
++MODULE_AUTHOR("Texas Instruments Inc.");
+ MODULE_FIRMWARE(VPDMA_FIRMWARE);
++MODULE_LICENSE("GPL v2");
+-- 
+2.9.0
 
-Sean
-
-> 
-> Signed-off-by: Hans Verkuil <hansverk@cisco.com>
-> ---
-> diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-> index f95a6bc..cede397 100644
-> --- a/drivers/media/i2c/ir-kbd-i2c.c
-> +++ b/drivers/media/i2c/ir-kbd-i2c.c
-> @@ -118,7 +118,7 @@ static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
->  			*protocol = RC_TYPE_RC6_MCE;
->  			dev &= 0x7f;
->  			dprintk(1, "ir hauppauge (rc6-mce): t%d vendor=%d dev=%d code=%d\n",
-> -						toggle, vendor, dev, code);
-> +						*ptoggle, vendor, dev, code);
->  		} else {
->  			*ptoggle = 0;
->  			*protocol = RC_TYPE_RC6_6A_32;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
