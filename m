@@ -1,67 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:49736 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753832AbcKPQnS (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43688 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753306AbcKRPH7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 11:43:18 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mike Isely <isely@pobox.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: [PATCH 13/35] [media] pvrusb2: use KERNEL_CONT where needed
-Date: Wed, 16 Nov 2016 14:42:45 -0200
-Message-Id: <9f915cfe2e5edf81ab793924810f8dfaed8bfaed.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1479314177.git.mchehab@s-opensource.com>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
+        Fri, 18 Nov 2016 10:07:59 -0500
+Subject: patch "media: usb: uvc: remove unnecessary & operation" added to usb-testing
+To: felipe.balbi@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, mchehab@kernel.org
+From: <gregkh@linuxfoundation.org>
+Date: Fri, 18 Nov 2016 16:06:36 +0100
+Message-ID: <147948159617106@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some continuation messages are not using KERNEL_CONT.
 
-Since commit 563873318d32 ("Merge branch 'printk-cleanups"),
-this won't work as expected anymore. So, let's add KERN_CONT
-to those lines.
+This is a note to let you know that I've just added the patch titled
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+    media: usb: uvc: remove unnecessary & operation
+
+to my usb git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
+in the usb-testing branch.
+
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
+
+The patch will be merged to the usb-next branch sometime soon,
+after it passes testing, and the merge window is open.
+
+If you have any questions about this process, please let me know.
+
+
+>From 670216f4d38bb128aa525450fe6ff9a5b3a2b8b0 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Date: Wed, 28 Sep 2016 14:17:38 +0300
+Subject: media: usb: uvc: remove unnecessary & operation
+
+Now that usb_endpoint_maxp() only returns the lowest
+11 bits from wMaxPacketSize, we can remove the &
+operation from this driver.
+
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: <linux-media@vger.kernel.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 ---
- drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c | 14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/usb/uvc/uvc_video.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
-index 48d837e39a9c..cc63e5f4c26c 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-i2c-core.c
-@@ -491,18 +491,18 @@ static int pvr2_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				"read" : "write"));
- 			if ((ret > 0) || !(msgs[idx].flags & I2C_M_RD)) {
- 				if (cnt > 8) cnt = 8;
--				printk(" [");
-+				printk(KERN_CONT " [");
- 				for (offs = 0; offs < (cnt>8?8:cnt); offs++) {
--					if (offs) printk(" ");
--					printk("%02x",msgs[idx].buf[offs]);
-+					if (offs) printk(KERN_CONT " ");
-+					printk(KERN_CONT "%02x",msgs[idx].buf[offs]);
- 				}
--				if (offs < cnt) printk(" ...");
--				printk("]");
-+				if (offs < cnt) printk(KERN_CONT " ...");
-+				printk(KERN_CONT "]");
- 			}
- 			if (idx+1 == num) {
--				printk(" result=%d",ret);
-+				printk(KERN_CONT " result=%d",ret);
- 			}
--			printk("\n");
-+			printk(KERN_CONT "\n");
- 		}
- 		if (!num) {
- 			printk(KERN_INFO
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 11e0e5f4e1c2..f3c1c852e401 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1553,7 +1553,7 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
+ 	u16 psize;
+ 	u32 size;
+ 
+-	psize = usb_endpoint_maxp(&ep->desc) & 0x7ff;
++	psize = usb_endpoint_maxp(&ep->desc);
+ 	size = stream->ctrl.dwMaxPayloadTransferSize;
+ 	stream->bulk.max_payload_size = size;
+ 
 -- 
-2.7.4
+2.10.2
 
 
