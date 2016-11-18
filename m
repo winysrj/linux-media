@@ -1,163 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49638 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754583AbcKBN3s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:48 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 27/32] media: rcar-vin: start/stop the CSI2 bridge stream
-Date: Wed,  2 Nov 2016 14:23:24 +0100
-Message-Id: <20161102132329.436-28-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:60369 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753478AbcKRXVM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 18:21:12 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 11/35] media: ti-vpe: vpdma: Add support for setting max width height
+Date: Fri, 18 Nov 2016 17:20:21 -0600
+Message-ID: <20161118232045.24665-12-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI2 bridge stream needs to be start/stop in conjunction
-with the video source. Create helpers to deal with both the Gen2 single
-subdevice case and the Gen3 CSI2 group case.
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-In the Gen3 case there might be other simultaneous users of the bridge
-and source devices so examine each entity stream_count before acting on
-any particular device.
+Add a helper function to be able to set the maximum
+VPDMA transfer size to limit potential buffer overrun.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Added enums for max_width and max_height fields of the
+outbound data descriptor.
+
+Changed vpdma_add_out_dtd to accept two more arguments
+for max width and height.
+
+Make use of different max width & height sets for different
+of capture module (i.e. slices).
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/rcar-vin/rcar-dma.c | 84 +++++++++++++++++++++++++++---
- 1 file changed, 77 insertions(+), 7 deletions(-)
+ drivers/media/platform/ti-vpe/vpdma.c      | 27 ++++++++++++++++----
+ drivers/media/platform/ti-vpe/vpdma.h      | 32 ++++++++++++++++++++++--
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 40 +++---------------------------
+ drivers/media/platform/ti-vpe/vpe.c        |  7 +++++-
+ 4 files changed, 62 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 322e4c1..872f138 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1089,15 +1089,87 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 133154628543..1a0152842a17 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -493,6 +493,22 @@ void vpdma_update_dma_addr(struct vpdma_data *vpdma,
+ }
+ EXPORT_SYMBOL(vpdma_update_dma_addr);
+ 
++void vpdma_set_max_size(struct vpdma_data *vpdma, int reg_addr,
++			u32 width, u32 height)
++{
++	if (reg_addr != VPDMA_MAX_SIZE1 && reg_addr != VPDMA_MAX_SIZE2 &&
++	    reg_addr != VPDMA_MAX_SIZE3)
++		reg_addr = VPDMA_MAX_SIZE1;
++
++	write_field_reg(vpdma, reg_addr, width - 1,
++			VPDMA_MAX_SIZE_WIDTH_MASK, VPDMA_MAX_SIZE_WIDTH_SHFT);
++
++	write_field_reg(vpdma, reg_addr, height - 1,
++			VPDMA_MAX_SIZE_HEIGHT_MASK, VPDMA_MAX_SIZE_HEIGHT_SHFT);
++
++}
++EXPORT_SYMBOL(vpdma_set_max_size);
++
+ static void dump_cfd(struct vpdma_cfd *cfd)
+ {
+ 	int class;
+@@ -667,23 +683,25 @@ static void dump_dtd(struct vpdma_dtd *dtd)
+  * @c_rect: compose params of output image
+  * @fmt: vpdma data format of the buffer
+  * dma_addr: dma address as seen by VPDMA
++ * max_width: enum for maximum width of data transfer
++ * max_height: enum for maximum height of data transfer
+  * chan: VPDMA channel
+  * flags: VPDMA flags to configure some descriptor fileds
+  */
+ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		enum vpdma_channel chan, u32 flags)
++		int max_w, int max_h, enum vpdma_channel chan, u32 flags)
+ {
+ 	vpdma_rawchan_add_out_dtd(list, width, c_rect, fmt, dma_addr,
+-				  chan_info[chan].num, flags);
++				  max_w, max_h, chan_info[chan].num, flags);
+ }
+ EXPORT_SYMBOL(vpdma_add_out_dtd);
+ 
+ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		int raw_vpdma_chan, u32 flags)
++		int max_w, int max_h, int raw_vpdma_chan, u32 flags)
+ {
+ 	int priority = 0;
+ 	int field = 0;
+@@ -722,8 +740,7 @@ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 	dtd->pkt_ctl = dtd_pkt_ctl(!!(flags & VPDMA_DATA_MODE_TILED),
+ 				DTD_DIR_OUT, channel, priority, next_chan);
+ 	dtd->desc_write_addr = dtd_desc_write_addr(0, 0, 0, 0);
+-	dtd->max_width_height = dtd_max_width_height(MAX_OUT_WIDTH_1920,
+-					MAX_OUT_HEIGHT_1080);
++	dtd->max_width_height = dtd_max_width_height(max_w, max_h);
+ 	dtd->client_attr0 = 0;
+ 	dtd->client_attr1 = 0;
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 220dc7e793f6..32b9ed5191c5 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -117,6 +117,30 @@ enum vpdma_frame_start_event {
+ 	VPDMA_FSEVENT_CHANNEL_ACTIVE,
+ };
+ 
++/* max width configurations */
++enum vpdma_max_width {
++	MAX_OUT_WIDTH_UNLIMITED = 0,
++	MAX_OUT_WIDTH_REG1,
++	MAX_OUT_WIDTH_REG2,
++	MAX_OUT_WIDTH_REG3,
++	MAX_OUT_WIDTH_352,
++	MAX_OUT_WIDTH_768,
++	MAX_OUT_WIDTH_1280,
++	MAX_OUT_WIDTH_1920,
++};
++
++/* max height configurations */
++enum vpdma_max_height {
++	MAX_OUT_HEIGHT_UNLIMITED = 0,
++	MAX_OUT_HEIGHT_REG1,
++	MAX_OUT_HEIGHT_REG2,
++	MAX_OUT_HEIGHT_REG3,
++	MAX_OUT_HEIGHT_288,
++	MAX_OUT_HEIGHT_576,
++	MAX_OUT_HEIGHT_720,
++	MAX_OUT_HEIGHT_1080,
++};
++
+ /*
+  * VPDMA channel numbers
+  */
+@@ -198,11 +222,12 @@ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		enum vpdma_channel chan, u32 flags);
++		int max_w, int max_h, enum vpdma_channel chan, u32 flags);
+ void vpdma_rawchan_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+-		int raw_vpdma_chan, u32 flags);
++		int max_w, int max_h, int raw_vpdma_chan, u32 flags);
++
+ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+@@ -221,6 +246,9 @@ void vpdma_set_line_mode(struct vpdma_data *vpdma, int line_mode,
+ 		enum vpdma_channel chan);
+ void vpdma_set_frame_start_event(struct vpdma_data *vpdma,
+ 		enum vpdma_frame_start_event fs_event, enum vpdma_channel chan);
++void vpdma_set_max_size(struct vpdma_data *vpdma, int reg_addr,
++			u32 width, u32 height);
++
+ void vpdma_set_bg_color(struct vpdma_data *vpdma,
+ 			struct vpdma_data_format *fmt, u32 color);
+ void vpdma_dump_regs(struct vpdma_data *vpdma);
+diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
+index aeade5edc8ac..54b6aa866c74 100644
+--- a/drivers/media/platform/ti-vpe/vpdma_priv.h
++++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
+@@ -28,6 +28,10 @@
+ #define VPDMA_MAX_SIZE1		0x34
+ #define VPDMA_MAX_SIZE2		0x38
+ #define VPDMA_MAX_SIZE3		0x3c
++#define VPDMA_MAX_SIZE_WIDTH_MASK	0xffff
++#define VPDMA_MAX_SIZE_WIDTH_SHFT	16
++#define VPDMA_MAX_SIZE_HEIGHT_MASK	0xffff
++#define VPDMA_MAX_SIZE_HEIGHT_SHFT	0
+ 
+ /* Interrupts */
+ #define VPDMA_INT_CHAN_STAT(grp)	(0x40 + grp * 8)
+@@ -227,42 +231,6 @@ struct vpdma_dtd {
+ #define DTD_MAX_HEIGHT_MASK	0x07
+ #define DTD_MAX_HEIGHT_SHFT	0
+ 
+-/* max width configurations */
+- /* unlimited width */
+-#define	MAX_OUT_WIDTH_UNLIMITED		0
+-/* as specified in max_size1 reg */
+-#define MAX_OUT_WIDTH_REG1		1
+-/* as specified in max_size2 reg */
+-#define MAX_OUT_WIDTH_REG2		2
+-/* as specified in max_size3 reg */
+-#define	MAX_OUT_WIDTH_REG3		3
+-/* maximum of 352 pixels as width */
+-#define MAX_OUT_WIDTH_352		4
+-/* maximum of 768 pixels as width */
+-#define	MAX_OUT_WIDTH_768		5
+-/* maximum of 1280 pixels width */
+-#define	MAX_OUT_WIDTH_1280		6
+-/* maximum of 1920 pixels as width */
+-#define	MAX_OUT_WIDTH_1920		7
+-
+-/* max height configurations */
+- /* unlimited height */
+-#define	MAX_OUT_HEIGHT_UNLIMITED	0
+-/* as specified in max_size1 reg */
+-#define MAX_OUT_HEIGHT_REG1		1
+-/* as specified in max_size2 reg */
+-#define MAX_OUT_HEIGHT_REG2		2
+-/* as specified in max_size3 reg */
+-#define	MAX_OUT_HEIGHT_REG3		3
+-/* maximum of 288 lines as height */
+-#define MAX_OUT_HEIGHT_288		4
+-/* maximum of 576 lines as height */
+-#define	MAX_OUT_HEIGHT_576		5
+-/* maximum of 720 lines as height */
+-#define	MAX_OUT_HEIGHT_720		6
+-/* maximum of 1080 lines as height */
+-#define	MAX_OUT_HEIGHT_1080		7
+-
+ static inline u32 dtd_type_ctl_stride(int type, bool notify, int field,
+ 			bool one_d, bool even_line_skip, bool odd_line_skip,
+ 			int line_stride)
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index f2b90d42b408..151a9280bb85 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -44,6 +44,7 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "vpdma.h"
++#include "vpdma_priv.h"
+ #include "vpe_regs.h"
+ #include "sc.h"
+ #include "csc.h"
+@@ -1035,8 +1036,12 @@ static void add_out_dtd(struct vpe_ctx *ctx, int port)
+ 	if (q_data->flags & Q_DATA_MODE_TILED)
+ 		flags |= VPDMA_DATA_MODE_TILED;
+ 
++	vpdma_set_max_size(ctx->dev->vpdma, VPDMA_MAX_SIZE1,
++			   MAX_W, MAX_H);
++
+ 	vpdma_add_out_dtd(&ctx->desc_list, q_data->width, &q_data->c_rect,
+-		vpdma_fmt, dma_addr, p_data->channel, flags);
++			  vpdma_fmt, dma_addr, MAX_OUT_WIDTH_REG1,
++			  MAX_OUT_HEIGHT_REG1, p_data->channel, flags);
  }
  
-+static int __rvin_start_streaming(struct rvin_dev *vin)
-+{
-+	struct v4l2_subdev *source, *bridge = NULL;
-+	struct media_pipeline *pipe;
-+	int ret;
-+
-+	source = vin_to_source(vin);
-+	if (!source)
-+		return -EINVAL;
-+
-+	if (vin_have_bridge(vin)) {
-+		bridge = vin_to_bridge(vin);
-+
-+		if (!bridge)
-+			return -EINVAL;
-+
-+		mutex_lock(&vin->group->lock);
-+
-+		pipe = bridge->entity.pipe ? bridge->entity.pipe :
-+			&vin->vdev.pipe;
-+		ret = media_entity_pipeline_start(&vin->vdev.entity, pipe);
-+		if (ret) {
-+			mutex_unlock(&vin->group->lock);
-+			return ret;
-+		}
-+
-+		/* Only need to start stream if it's not running */
-+		if (bridge->entity.stream_count <= 1)
-+			v4l2_subdev_call(bridge, video, s_stream, 1);
-+		if (source->entity.stream_count <= 1)
-+			v4l2_subdev_call(source, video, s_stream, 1);
-+
-+		mutex_unlock(&vin->group->lock);
-+	} else {
-+		v4l2_subdev_call(source, video, s_stream, 1);
-+	}
-+
-+	return 0;
-+}
-+
-+static int __rvin_stop_streaming(struct rvin_dev *vin)
-+{
-+	struct v4l2_subdev *source, *bridge = NULL;
-+
-+	source = vin_to_source(vin);
-+	if (!source)
-+		return -EINVAL;
-+
-+	if (vin_have_bridge(vin)) {
-+		bridge = vin_to_bridge(vin);
-+
-+		if (!bridge)
-+			return -EINVAL;
-+
-+		mutex_lock(&vin->group->lock);
-+
-+		media_entity_pipeline_stop(&vin->vdev.entity);
-+
-+		/* Only need to stop stream if there are no other users */
-+		if (bridge->entity.stream_count <= 0)
-+			v4l2_subdev_call(bridge, video, s_stream, 0);
-+		if (source->entity.stream_count <= 0)
-+			v4l2_subdev_call(source, video, s_stream, 0);
-+
-+		mutex_unlock(&vin->group->lock);
-+	} else {
-+		v4l2_subdev_call(source, video, s_stream, 0);
-+	}
-+
-+	return 0;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = __rvin_start_streaming(vin);
-+	if (ret)
-+		return ret;
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1122,7 +1194,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* Return all buffers if something went wrong */
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		__rvin_stop_streaming(vin);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1133,7 +1205,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1172,8 +1243,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	__rvin_stop_streaming(vin);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
+ static void add_in_dtd(struct vpe_ctx *ctx, int port)
 -- 
-2.10.2
+2.9.0
 
