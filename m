@@ -1,132 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48424 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754580AbcKCNjf (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:42909 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753734AbcKRXVY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 09:39:35 -0400
-Subject: Re: [PATCH 1/1] v4l: compat: Prevent allocating excessive amounts of
- memory
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <1475670099-25242-1-git-send-email-sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8197fefa-cc36-7a24-435c-72ca781c3240@xs4all.nl>
-Date: Thu, 3 Nov 2016 14:39:32 +0100
+        Fri, 18 Nov 2016 18:21:24 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 33/35] media: ti-vpe: Make colorspace converter library into its own module
+Date: Fri, 18 Nov 2016 17:20:43 -0600
+Message-ID: <20161118232045.24665-34-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1475670099-25242-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/10/16 14:21, Sakari Ailus wrote:
-> get_v4l2_ext_controls32() is used to convert the 32-bit compat struct into
-> native 64-bit representation. The function multiplies the array length by
-> the entry length before validating size. Perform the size validation
-> first.
->
-> Also use unsigned values for size computation.
->
-> Make similar changes to get_v4l2_buffer32() for multi-plane buffers.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 28 +++++++++++++++------------
->  1 file changed, 16 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index bacecbd..7d98624 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -409,7 +409,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  	struct v4l2_plane32 __user *uplane32;
->  	struct v4l2_plane __user *uplane;
->  	compat_caddr_t p;
-> -	int num_planes;
->  	int ret;
->
->  	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
-> @@ -429,12 +428,15 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  			return -EFAULT;
->
->  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-> -		num_planes = kp->length;
-> -		if (num_planes == 0) {
-> +		int num_planes;
-> +
-> +		if (kp->length == 0) {
->  			kp->m.planes = NULL;
->  			/* num_planes == 0 is legal, e.g. when userspace doesn't
->  			 * need planes array on DQBUF*/
->  			return 0;
-> +		} else if (kp->length > VIDEO_MAX_PLANES) {
-> +			return -EINVAL;
->  		}
->
->  		if (get_user(p, &up->m.planes))
-> @@ -442,16 +444,16 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->
->  		uplane32 = compat_ptr(p);
->  		if (!access_ok(VERIFY_READ, uplane32,
-> -				num_planes * sizeof(struct v4l2_plane32)))
-> +				kp->length * sizeof(struct v4l2_plane32)))
->  			return -EFAULT;
->
->  		/* We don't really care if userspace decides to kill itself
->  		 * by passing a very big num_planes value */
-> -		uplane = compat_alloc_user_space(num_planes *
-> -						sizeof(struct v4l2_plane));
-> +		uplane = compat_alloc_user_space(kp->length *
-> +						 sizeof(struct v4l2_plane));
->  		kp->m.planes = (__force struct v4l2_plane *)uplane;
->
-> -		while (--num_planes >= 0) {
-> +		for (num_planes = kp->length; num_planes >= 0; num_planes--) {
+In preparation to add colorspace conversion support to VIP,
+we need to turn csc.c into its own kernel module.
 
-Can you change this to:
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/Kconfig         |  4 ++++
+ drivers/media/platform/ti-vpe/Makefile |  4 +++-
+ drivers/media/platform/ti-vpe/csc.c    | 16 +++++++++++++---
+ drivers/media/platform/ti-vpe/csc.h    |  2 +-
+ drivers/media/platform/ti-vpe/vpe.c    |  2 +-
+ 5 files changed, 22 insertions(+), 6 deletions(-)
 
-		for (num_planes = 0; num_planes < kp->length; num_planes++) {
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 5d7befad90e0..60e20e5f4282 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -366,6 +366,7 @@ config VIDEO_TI_VPE
+ 	select V4L2_MEM2MEM_DEV
+ 	select VIDEO_TI_VPDMA
+ 	select VIDEO_TI_SC
++	select VIDEO_TI_CSC
+ 	default n
+ 	---help---
+ 	  Support for the TI VPE(Video Processing Engine) block
+@@ -387,6 +388,9 @@ config VIDEO_TI_VPDMA
+ config VIDEO_TI_SC
+ 	tristate
+ 
++config VIDEO_TI_CSC
++	tristate
++
+ menuconfig V4L_TEST_DRIVERS
+ 	bool "Media test drivers"
+ 	depends on MEDIA_CAMERA_SUPPORT
+diff --git a/drivers/media/platform/ti-vpe/Makefile b/drivers/media/platform/ti-vpe/Makefile
+index 736558d309ad..32504b724b5d 100644
+--- a/drivers/media/platform/ti-vpe/Makefile
++++ b/drivers/media/platform/ti-vpe/Makefile
+@@ -1,10 +1,12 @@
+ obj-$(CONFIG_VIDEO_TI_VPE) += ti-vpe.o
+ obj-$(CONFIG_VIDEO_TI_VPDMA) += ti-vpdma.o
+ obj-$(CONFIG_VIDEO_TI_SC) += ti-sc.o
++obj-$(CONFIG_VIDEO_TI_CSC) += ti-csc.o
+ 
+-ti-vpe-y := vpe.o csc.o
++ti-vpe-y := vpe.o
+ ti-vpdma-y := vpdma.o
+ ti-sc-y := sc.o
++ti-csc-y := csc.o
+ 
+ ccflags-$(CONFIG_VIDEO_TI_VPE_DEBUG) += -DDEBUG
+ 
+diff --git a/drivers/media/platform/ti-vpe/csc.c b/drivers/media/platform/ti-vpe/csc.c
+index bec674994752..9fc6f70adeeb 100644
+--- a/drivers/media/platform/ti-vpe/csc.c
++++ b/drivers/media/platform/ti-vpe/csc.c
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/err.h>
+ #include <linux/io.h>
++#include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+@@ -105,11 +106,13 @@ void csc_dump_regs(struct csc_data *csc)
+ 
+ #undef DUMPREG
+ }
++EXPORT_SYMBOL(csc_dump_regs);
+ 
+ void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5)
+ {
+ 	*csc_reg5 |= CSC_BYPASS;
+ }
++EXPORT_SYMBOL(csc_set_coeff_bypass);
+ 
+ /*
+  * set the color space converter coefficient shadow register values
+@@ -160,8 +163,9 @@ void csc_set_coeff(struct csc_data *csc, u32 *csc_reg0,
+ 	for (; coeff < end_coeff; coeff += 2)
+ 		*shadow_csc++ = (*(coeff + 1) << 16) | *coeff;
+ }
++EXPORT_SYMBOL(csc_set_coeff);
+ 
+-struct csc_data *csc_create(struct platform_device *pdev)
++struct csc_data *csc_create(struct platform_device *pdev, const char *res_name)
+ {
+ 	struct csc_data *csc;
+ 
+@@ -176,9 +180,10 @@ struct csc_data *csc_create(struct platform_device *pdev)
+ 	csc->pdev = pdev;
+ 
+ 	csc->res = platform_get_resource_byname(pdev, IORESOURCE_MEM,
+-			"csc");
++						res_name);
+ 	if (csc->res == NULL) {
+-		dev_err(&pdev->dev, "missing platform resources data\n");
++		dev_err(&pdev->dev, "missing '%s' platform resources data\n",
++			res_name);
+ 		return ERR_PTR(-ENODEV);
+ 	}
+ 
+@@ -190,3 +195,8 @@ struct csc_data *csc_create(struct platform_device *pdev)
+ 
+ 	return csc;
+ }
++EXPORT_SYMBOL(csc_create);
++
++MODULE_DESCRIPTION("TI VIP/VPE Color Space Converter");
++MODULE_AUTHOR("Texas Instruments Inc.");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/platform/ti-vpe/csc.h b/drivers/media/platform/ti-vpe/csc.h
+index 1ad2b6dad561..024700b15152 100644
+--- a/drivers/media/platform/ti-vpe/csc.h
++++ b/drivers/media/platform/ti-vpe/csc.h
+@@ -63,6 +63,6 @@ void csc_set_coeff_bypass(struct csc_data *csc, u32 *csc_reg5);
+ void csc_set_coeff(struct csc_data *csc, u32 *csc_reg0,
+ 		enum v4l2_colorspace src_colorspace,
+ 		enum v4l2_colorspace dst_colorspace);
+-struct csc_data *csc_create(struct platform_device *pdev);
++struct csc_data *csc_create(struct platform_device *pdev, const char *res_name);
+ 
+ #endif
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 32489d6369ca..1e4d614bd3b6 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2496,7 +2496,7 @@ static int vpe_probe(struct platform_device *pdev)
+ 		goto runtime_put;
+ 	}
+ 
+-	dev->csc = csc_create(pdev);
++	dev->csc = csc_create(pdev, "csc");
+ 	if (IS_ERR(dev->csc)) {
+ 		ret = PTR_ERR(dev->csc);
+ 		goto runtime_put;
+-- 
+2.9.0
 
-Which is much easier on the eyes :-)
-
->  			ret = get_v4l2_plane32(uplane, uplane32, kp->memory);
->  			if (ret)
->  				return ret;
-> @@ -675,20 +677,22 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
->  		copy_from_user(kp->reserved, up->reserved,
->  			       sizeof(kp->reserved)))
->  			return -EFAULT;
-> -	n = kp->count;
-> -	if (n == 0) {
-> +	if (kp->count == 0) {
->  		kp->controls = NULL;
->  		return 0;
-> +	} else if (kp->count > V4L2_CID_MAX_CTRLS) {
-> +		return -EINVAL;
->  	}
->  	if (get_user(p, &up->controls))
->  		return -EFAULT;
->  	ucontrols = compat_ptr(p);
->  	if (!access_ok(VERIFY_READ, ucontrols,
-> -			n * sizeof(struct v4l2_ext_control32)))
-> +			kp->count * sizeof(struct v4l2_ext_control32)))
->  		return -EFAULT;
-> -	kcontrols = compat_alloc_user_space(n * sizeof(struct v4l2_ext_control));
-> +	kcontrols = compat_alloc_user_space(kp->count *
-> +					    sizeof(struct v4l2_ext_control));
->  	kp->controls = (__force struct v4l2_ext_control *)kcontrols;
-> -	while (--n >= 0) {
-> +	for (n = kp->count; n >= 0; n--) {
-
-Ditto.
-
->  		u32 id;
->
->  		if (copy_in_user(kcontrols, ucontrols, sizeof(*ucontrols)))
->
-
-Looks good otherwise.
-
-Regards,
-
-	Hans
