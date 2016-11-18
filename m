@@ -1,122 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:44847 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751074AbcKHEkE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Nov 2016 23:40:04 -0500
-Message-ID: <909a85379eb41b3de836ad94abc33a3e@smtp-cloud2.xs4all.net>
-Date: Tue, 08 Nov 2016 05:40:00 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga07.intel.com ([134.134.136.100]:64642 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752496AbcKRVW1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 16:22:27 -0500
+Date: Sat, 19 Nov 2016 05:21:28 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: [linuxtv-media:master] BUILD REGRESSION
+ c044170fcfca3783f7dd8eb69ff8b06d66fad5d8
+Message-ID: <582f70d8.3MVMHhZwl8j4uGqz%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+git://linuxtv.org/media_tree.git  master
+c044170fcfca3783f7dd8eb69ff8b06d66fad5d8  [media] media: rc: nuvoton: replace usage of spin_lock_irqsave in ISR
 
-Results of the daily build of media_tree:
+drivers/built-in.o:(.rodata+0x117278): undefined reference to `dvb_tuner_simple_release'
+drivers/built-in.o:(.rodata+0x27638): undefined reference to `dvb_tuner_simple_release'
+drivers/built-in.o:(.rodata+0x56358): undefined reference to `dvb_tuner_simple_release'
+drivers/media/dvb-core/dvb_frontend.h:274: warning: No description found for parameter 'fe'
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/fc0011.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/fc0012.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/fc0013.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/mc44s803.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/mt2060.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/mt20xx.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/mt2266.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/qt1010.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tda18218.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tda827x.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tea5761.ko] undefined!
+ERROR: "dvb_tuner_simple_release" [drivers/media/tuners/tea5767.ko] undefined!
+(.rodata+0x122cf8): undefined reference to `dvb_tuner_simple_release'
+(.rodata+0xb8ef8): undefined reference to `dvb_tuner_simple_release'
+(.text+0x15a35f): undefined reference to `dvb_tuner_simple_release'
+(.text+0x52ce16): undefined reference to `dvb_tuner_simple_release'
 
-date:			Tue Nov  8 05:00:17 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Error ids grouped by kconfigs:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+recent_errors
+├── i386-allnoconfig
+│   └── drivers-media-dvb-core-dvb_frontend.h:warning:No-description-found-for-parameter-fe
+├── i386-randconfig-i1-201646
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-fc0011.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mc44s803.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mt2060.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mt2x.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-tea5761.ko-undefined
+│   └── ERROR:dvb_tuner_simple_release-drivers-media-tuners-tea5767.ko-undefined
+├── i386-randconfig-r0-201646
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-fc0011.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-fc0012.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-fc0013.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mc44s803.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mt2060.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mt2266.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-mt2x.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-qt1010.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-tda18218.ko-undefined
+│   ├── ERROR:dvb_tuner_simple_release-drivers-media-tuners-tda827x.ko-undefined
+│   └── ERROR:dvb_tuner_simple_release-drivers-media-tuners-tea5767.ko-undefined
+├── i386-randconfig-s1-201646
+│   └── drivers-built-in.o:(.rodata):undefined-reference-to-dvb_tuner_simple_release
+├── x86_64-randconfig-g0-11181716
+│   └── (.rodata):undefined-reference-to-dvb_tuner_simple_release
+├── x86_64-randconfig-i0-201646
+│   ├── drivers-built-in.o:(.rodata):undefined-reference-to-dvb_tuner_simple_release
+│   └── (.text):undefined-reference-to-dvb_tuner_simple_release
+├── x86_64-randconfig-s0-11190349
+│   ├── drivers-built-in.o:(.rodata):undefined-reference-to-dvb_tuner_simple_release
+│   └── (.text):undefined-reference-to-dvb_tuner_simple_release
+└── x86_64-randconfig-s4-11190059
+    └── (.rodata):undefined-reference-to-dvb_tuner_simple_release
 
-Detailed results are available here:
+elapsed time: 117m
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+configs tested: 166
 
-Full logs are available here:
+alpha                               defconfig
+parisc                            allnoconfig
+parisc                         b180_defconfig
+parisc                        c3000_defconfig
+parisc                              defconfig
+i386                     randconfig-a0-201646
+x86_64                             acpi-redef
+x86_64                           allyesdebian
+x86_64                                nfsroot
+blackfin                BF526-EZBRD_defconfig
+blackfin                BF533-EZKIT_defconfig
+blackfin            BF561-EZKIT-SMP_defconfig
+blackfin                  TCM-BF537_defconfig
+cris                 etrax-100lx_v2_defconfig
+arm                     davinci_all_defconfig
+arm                            netx_defconfig
+mips                        generic_defconfig
+sh                                allnoconfig
+sh                          rsk7269_defconfig
+sh                  sh7785lcr_32bit_defconfig
+sh                            titan_defconfig
+i386                   randconfig-c0-11182335
+microblaze                       allyesconfig
+powerpc                    amigaone_defconfig
+powerpc                     kmp204x_defconfig
+x86_64                 randconfig-g0-11181716
+c6x                        evmc6678_defconfig
+h8300                    h8300h-sim_defconfig
+m32r                       m32104ut_defconfig
+m32r                     mappi3.smp_defconfig
+m32r                         opsput_defconfig
+m32r                           usrv_defconfig
+nios2                         10m50_defconfig
+score                      spct6600_defconfig
+xtensa                       common_defconfig
+xtensa                          iss_defconfig
+arm                              allyesconfig
+arm                           h5000_defconfig
+arm                       spear13xx_defconfig
+mips                      loongson3_defconfig
+sh                           se7751_defconfig
+x86_64                 randconfig-x010-201646
+x86_64                 randconfig-x011-201646
+x86_64                 randconfig-x012-201646
+x86_64                 randconfig-x013-201646
+x86_64                 randconfig-x014-201646
+x86_64                 randconfig-x015-201646
+x86_64                 randconfig-x016-201646
+x86_64                 randconfig-x017-201646
+x86_64                 randconfig-x018-201646
+x86_64                 randconfig-x019-201646
+m68k                       m5475evb_defconfig
+m68k                          multi_defconfig
+m68k                           sun3_defconfig
+i386                     randconfig-s0-201646
+i386                     randconfig-s1-201646
+x86_64                 randconfig-s0-11190349
+x86_64                 randconfig-s1-11190349
+x86_64                 randconfig-s2-11190349
+avr32                      atngw100_defconfig
+avr32                     atstk1006_defconfig
+frv                                 defconfig
+mn10300                     asb2364_defconfig
+openrisc                    or1ksim_defconfig
+tile                         tilegx_defconfig
+um                             i386_defconfig
+um                           x86_64_defconfig
+i386                             allmodconfig
+mips                           32r2_defconfig
+mips                         64r6el_defconfig
+mips                              allnoconfig
+mips                      fuloong2e_defconfig
+mips                                   jz4740
+mips                      malta_kvm_defconfig
+mips                                     txx9
+powerpc                           allnoconfig
+powerpc                             defconfig
+powerpc                       ppc64_defconfig
+s390                        default_defconfig
+x86_64                   randconfig-i0-201646
+mips                        nlm_xlp_defconfig
+powerpc                     tqm8560_defconfig
+s390                              allnoconfig
+microblaze                      mmu_defconfig
+microblaze                    nommu_defconfig
+i386                     randconfig-i0-201646
+i386                     randconfig-i1-201646
+x86_64                 randconfig-b0-11190034
+sparc                               defconfig
+sparc64                           allnoconfig
+sparc64                             defconfig
+x86_64                           allmodconfig
+arm                         s3c6400_defconfig
+sh                     sh7710voipgw_defconfig
+xtensa                           allmodconfig
+x86_64                 randconfig-u0-11190353
+m68k                        mvme147_defconfig
+x86_64                randconfig-ne0-11190411
+arm                             pxa_defconfig
+arm                         shannon_defconfig
+mips                                defconfig
+parisc                          712_defconfig
+i386                   randconfig-x010-201646
+i386                   randconfig-x011-201646
+i386                   randconfig-x012-201646
+i386                   randconfig-x013-201646
+i386                   randconfig-x014-201646
+i386                   randconfig-x015-201646
+i386                   randconfig-x016-201646
+i386                   randconfig-x017-201646
+i386                   randconfig-x018-201646
+i386                   randconfig-x019-201646
+x86_64                                    lkp
+x86_64                                   rhel
+x86_64                               rhel-7.2
+i386                     randconfig-n0-201646
+ia64                             alldefconfig
+ia64                              allnoconfig
+ia64                                defconfig
+i386                   randconfig-x070-201646
+i386                   randconfig-x071-201646
+i386                   randconfig-x072-201646
+i386                   randconfig-x073-201646
+i386                   randconfig-x074-201646
+i386                   randconfig-x075-201646
+i386                   randconfig-x076-201646
+i386                   randconfig-x077-201646
+i386                   randconfig-x078-201646
+i386                   randconfig-x079-201646
+x86_64                                  kexec
+arm                               allnoconfig
+arm                         at91_dt_defconfig
+arm                           efm32_defconfig
+arm                          exynos_defconfig
+arm                        multi_v5_defconfig
+arm                        multi_v7_defconfig
+arm                        shmobile_defconfig
+arm                           sunxi_defconfig
+arm64                             allnoconfig
+arm64                               defconfig
+x86_64                 randconfig-x000-201646
+x86_64                 randconfig-x001-201646
+x86_64                 randconfig-x002-201646
+x86_64                 randconfig-x003-201646
+x86_64                 randconfig-x004-201646
+x86_64                 randconfig-x005-201646
+x86_64                 randconfig-x006-201646
+x86_64                 randconfig-x007-201646
+x86_64                 randconfig-x008-201646
+x86_64                 randconfig-x009-201646
+i386                     randconfig-r0-201646
+x86_64                 randconfig-r0-11190044
+i386                   randconfig-x000-201646
+i386                   randconfig-x001-201646
+i386                   randconfig-x002-201646
+i386                   randconfig-x003-201646
+i386                   randconfig-x004-201646
+i386                   randconfig-x005-201646
+i386                   randconfig-x006-201646
+i386                   randconfig-x007-201646
+i386                   randconfig-x008-201646
+i386                   randconfig-x009-201646
+i386                             alldefconfig
+i386                              allnoconfig
+i386                                defconfig
+i386                   randconfig-x0-11190051
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Fengguang
