@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53916 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754284AbcKYN4Z (ORCPT
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:60383 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753698AbcKRXVY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 08:56:25 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH 4/5] media: entity: Split graph walk iteration into two functions
-Date: Fri, 25 Nov 2016 15:55:45 +0200
-Message-Id: <1480082146-25991-5-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com>
+        Fri, 18 Nov 2016 18:21:24 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 32/35] media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
+Date: Fri, 18 Nov 2016 17:20:42 -0600
+Message-ID: <20161118232045.24665-33-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With media_entity_graph_walk_next() getting more and more complicated (and
-especially so with has_routing() support added), split the function into
-two.
+Add RAW8 and RAW16 data type to VPDMA.
+To handle RAW format we are re-using the YUV CBY422
+vpdma data type so that we use the vpdma to re-order
+the incoming bytes, as the VIP parser assumes that the
+first byte presented on the bus is the MSB of a 2
+bytes value.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+RAW8 handles from 1 to 8 bits.
+RAW16 handles from 9 to 16 bits.
+
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/media-entity.c | 56 ++++++++++++++++++++++++--------------------
- 1 file changed, 30 insertions(+), 26 deletions(-)
+ drivers/media/platform/ti-vpe/vpdma.c | 23 +++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h |  6 ++++++
+ 2 files changed, 29 insertions(+)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 2bddebb..e242ead 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -338,6 +338,34 @@ void media_graph_walk_start(struct media_graph *graph,
- }
- EXPORT_SYMBOL_GPL(media_graph_walk_start);
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 2d13644a28a8..c8f842fd7f75 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -191,6 +191,29 @@ const struct vpdma_data_format vpdma_rgb_fmts[] = {
+ };
+ EXPORT_SYMBOL(vpdma_rgb_fmts);
  
-+static void graph_walk_iter(struct media_graph *graph)
-+{
-+	struct media_entity *entity = stack_top(graph);
-+	struct media_link *link;
-+	struct media_entity *next;
++/*
++ * To handle RAW format we are re-using the CBY422
++ * vpdma data type so that we use the vpdma to re-order
++ * the incoming bytes, as the parser assumes that the
++ * first byte presented on the bus is the MSB of a 2
++ * bytes value.
++ * RAW8 handles from 1 to 8 bits
++ * RAW16 handles from 9 to 16 bits
++ */
++const struct vpdma_data_format vpdma_raw_fmts[] = {
++	[VPDMA_DATA_FMT_RAW8] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
++		.data_type	= DATA_TYPE_CBY422,
++		.depth		= 8,
++	},
++	[VPDMA_DATA_FMT_RAW16] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
++		.data_type	= DATA_TYPE_CBY422,
++		.depth		= 16,
++	},
++};
++EXPORT_SYMBOL(vpdma_raw_fmts);
 +
-+	link = list_entry(link_top(graph), typeof(*link), list);
-+
-+	/* The link is not enabled so we do not follow. */
-+	if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
-+		link_top(graph) = link_top(graph)->next;
-+		return;
-+	}
-+
-+	/* Get the entity in the other end of the link . */
-+	next = media_entity_other(entity, link);
-+
-+	/* Has the entity already been visited? */
-+	if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
-+		link_top(graph) = link_top(graph)->next;
-+		return;
-+	}
-+
-+	/* Push the new entity to stack and start over. */
-+	link_top(graph) = link_top(graph)->next;
-+	stack_push(graph, next);
-+}
-+
- struct media_entity *media_graph_walk_next(struct media_graph *graph)
- {
- 	if (stack_top(graph) == NULL)
-@@ -348,32 +376,8 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
- 	 * top of the stack until no more entities on the level can be
- 	 * found.
- 	 */
--	while (link_top(graph) != &stack_top(graph)->links) {
--		struct media_entity *entity = stack_top(graph);
--		struct media_link *link;
--		struct media_entity *next;
--
--		link = list_entry(link_top(graph), typeof(*link), list);
--
--		/* The link is not enabled so we do not follow. */
--		if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
--			link_top(graph) = link_top(graph)->next;
--			continue;
--		}
--
--		/* Get the entity in the other end of the link . */
--		next = media_entity_other(entity, link);
--
--		/* Has the entity already been visited? */
--		if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
--			link_top(graph) = link_top(graph)->next;
--			continue;
--		}
--
--		/* Push the new entity to stack and start over. */
--		link_top(graph) = link_top(graph)->next;
--		stack_push(graph, next);
--	}
-+	while (link_top(graph) != &stack_top(graph)->links)
-+		graph_walk_iter(graph);
+ const struct vpdma_data_format vpdma_misc_fmts[] = {
+ 	[VPDMA_DATA_FMT_MV] = {
+ 		.type		= VPDMA_DATA_FMT_TYPE_MISC,
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 0df156b7c1cf..131700c112b2 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -104,12 +104,18 @@ enum vpdma_rgb_formats {
+ 	VPDMA_DATA_FMT_BGRA32,
+ };
  
- 	return stack_pop(graph);
- }
++enum vpdma_raw_formats {
++	VPDMA_DATA_FMT_RAW8 = 0,
++	VPDMA_DATA_FMT_RAW16,
++};
++
+ enum vpdma_misc_formats {
+ 	VPDMA_DATA_FMT_MV = 0,
+ };
+ 
+ extern const struct vpdma_data_format vpdma_yuv_fmts[];
+ extern const struct vpdma_data_format vpdma_rgb_fmts[];
++extern const struct vpdma_data_format vpdma_raw_fmts[];
+ extern const struct vpdma_data_format vpdma_misc_fmts[];
+ 
+ enum vpdma_frame_start_event {
 -- 
-2.1.4
+2.9.0
 
