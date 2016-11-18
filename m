@@ -1,58 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.dogan.ch ([77.109.151.89]:19075 "EHLO mail.dogan.ch"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755124AbcKCNan (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 09:30:43 -0400
-Date: Thu, 3 Nov 2016 14:21:34 +0100
-From: Attila Kinali <attila@kinali.ch>
-To: Matt Ranostay <matt@ranostay.consulting>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Marek Vasut <marex@denx.de>, Luca Barbato <lu_zero@gentoo.org>
-Subject: Re: [RFC] v4l2 support for thermopile devices
-Message-Id: <20161103142134.4a59dfc34c593391086c0508@kinali.ch>
-In-Reply-To: <CAJ_EiSQRai=XqOryMW1WLKvFDPZUVVmkjXSF3TyxpPNMsVsR_Q@mail.gmail.com>
-References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
-        <767cacf5-5f91-2596-90ef-31358b8e1db9@xs4all.nl>
-        <CAJ_EiSQ-yf7hmnz1qqOAA-XcByCq9f12z=7h=+rCeWQbua+dOg@mail.gmail.com>
-        <CAJ_EiSQRai=XqOryMW1WLKvFDPZUVVmkjXSF3TyxpPNMsVsR_Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:60374 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753523AbcKRXVN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 18:21:13 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 20/35] media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
+Date: Fri, 18 Nov 2016 17:20:30 -0600
+Message-ID: <20161118232045.24665-21-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2 Nov 2016 23:10:41 -0700
-Matt Ranostay <matt@ranostay.consulting> wrote:
+ti_vpe module currently does not get loaded automatically.
+Added MODULE_DEVICE_TABLE hint to the driver to assist.
 
-> 
-> So does anyone know of any software that is using V4L2_PIX_FMT_Y12
-> currently? Want to test my driver but seems there isn't anything that
-> uses that format (ffmpeg, mplayer, etc).
-> 
-> Raw data seems correct but would like to visualize it :). Suspect I'll
-> need to write a test case application though
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+---
+ drivers/media/platform/ti-vpe/vpe.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-I was pretty sure that MPlayer supports 12bit greyscale, but I cannot
-find where it was handled. You can of course pass it to the MPlayer
-internas as 8bit greyscale, which would be IMGFMT_Y8 or just pass
-it on as 16bit which would be IMGFMT_Y16_LE (LE = little endian).
-
-You can find the internal #defines of the image formats in
-libmpcodecs/img_format.h and can use https://www.fourcc.org/yuv.php
-to decode their meaning.
-
-The equivalent for libav would be libavutil/pixfmt.h
-
-Luca Barbato tells me that adding Y12 support to libav would be easy.
-
-			Attila Kinali
-
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index d3412accf564..05b793595ce9 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -2447,6 +2447,7 @@ static const struct of_device_id vpe_of_match[] = {
+ 	},
+ 	{},
+ };
++MODULE_DEVICE_TABLE(of, vpe_of_match);
+ #endif
+ 
+ static struct platform_driver vpe_pdrv = {
 -- 
-It is upon moral qualities that a society is ultimately founded. All 
-the prosperity and technological sophistication in the world is of no 
-use without that foundation.
-                 -- Miss Matheson, The Diamond Age, Neil Stephenson
+2.9.0
+
