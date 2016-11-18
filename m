@@ -1,93 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:60375 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933819AbcKDOSS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 10:18:18 -0400
-Message-ID: <1478269090.18909.8.camel@ndufresne.ca>
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-Reply-To: nicolas@ndufresne.ca
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        Randy Li <randy.li@rock-chips.com>,
-        "posciak@chromium.org" <posciak@chromium.org>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Florent Revest <florent.revest@free-electrons.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "herman.chen@rock-chips.com" <herman.chen@rock-chips.com>,
-        "eddie.cai" <eddie.cai@rock-chips.com>,
-        "linux-rockchip@lists.infradead.org"
-        <linux-rockchip@lists.infradead.org>,
-        "nicolas.dufresne@collabora.co.uk" <nicolas.dufresne@collabora.co.uk>,
-        =?UTF-8?Q?=E6=9E=97=E9=87=91=E5=8F=91?= <alpha.lin@rock-chips.com>
-Date: Fri, 04 Nov 2016 10:18:10 -0400
-In-Reply-To: <e6b89733-465e-74d3-45b9-0a39d1136779@st.com>
-References: <58C70A34B28DE743B9604C8841D375C2793D2999@SAFEX1MAIL5.st.com>
-         <aab23d5d-d41d-78e1-7324-77b9d98ee127@rock-chips.com>
-         <e6b89733-465e-74d3-45b9-0a39d1136779@st.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-/lWNLrjFYHOAxgWE6iwN"
-Mime-Version: 1.0
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:14826 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753535AbcKRXVP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 18:21:15 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 22/35] media: ti-vpe: vpdma: RGB data type yield inverted data
+Date: Fri, 18 Nov 2016 17:20:32 -0600
+Message-ID: <20161118232045.24665-23-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The VPDMA RGB data type definition have been updated
+to match with Errata i839.
 
---=-/lWNLrjFYHOAxgWE6iwN
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+But some of the ARGB definition appeared to be wrong
+in the document also. As they would yield RGBA instead.
+They have been corrected based on experimentation.
 
-Le vendredi 04 novembre 2016 =C3=A0 14:55 +0100, Hugues FRUCHET a =C3=A9cri=
-t=C2=A0:
-> >>
-> >> I can help on H264 on a code review basis based on the functional H264
-> >> setup I have in-house and codec knowledge, but I cannot provide
-> >> implementation in a reasonable timeframe, same for VP8.
-> >>
-> >>
-> >>
-> >> Apart of very details of each codec, we have also to state about gener=
-ic
-> >> concerns such as:
-> >>
-> >> -=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 new pixel form=
-at introduction (VP8 =3D> VP8F, H264 =3D> S264,
-> >> MPG2 =3D> MG2F, MPG4 =3D> MG4F)
-> > I don't think it is necessary.
->=20
-> But currently it is done that way in all patches proposals I have seen=C2=
-=A0
-> so far, including rockchip:
-> rockchip_decoder_v4l2.c:{VAProfileH264Baseline,V4L2_PIX_FMT_H264_SLICE},
->=20
-> We have to state about it all together. Seems natural to me to do this=C2=
-=A0
-> way instead of device caps.
-> Doing so user knows that the driver is based on "Frame API" -so=C2=A0
-> additional headers are required to decode input stream- and not
-> on "Stream API" -H264 stream can be decoded directly-.
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 49 ++++++++++++++++++------------
+ 1 file changed, 29 insertions(+), 20 deletions(-)
 
-We should probably use something else then "STREAMING" in the
-capabilities instead of duplicating all the encoding formats (exception
-to H264 byte-stream and H264 AVC, that also applies to streaming
-drivers and there is not easy way to introduce stream-format in the API
-atm). Other then that, this solution works, so it could just be
-considered the right way, I just find it less elegant personally.
-
-my two cents,
-Nicolas
-
---=-/lWNLrjFYHOAxgWE6iwN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iEYEABECAAYFAlgcmKIACgkQcVMCLawGqBxHtQCfYLV4JGXKWR9naxz2oiqzH2wg
-KWMAn0YB1mBwmWN+iIPIGyUclveK/q2q
-=1Ku1
------END PGP SIGNATURE-----
-
---=-/lWNLrjFYHOAxgWE6iwN--
+diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
+index f974a803fa27..72c7f13b4a9d 100644
+--- a/drivers/media/platform/ti-vpe/vpdma_priv.h
++++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
+@@ -101,26 +101,35 @@
+ #define DATA_TYPE_CBY422			0x27
+ #define DATA_TYPE_CRY422			0x37
+ 
+-#define DATA_TYPE_RGB16_565			0x0
+-#define DATA_TYPE_ARGB_1555			0x1
+-#define DATA_TYPE_ARGB_4444			0x2
+-#define DATA_TYPE_RGBA_5551			0x3
+-#define DATA_TYPE_RGBA_4444			0x4
+-#define DATA_TYPE_ARGB24_6666			0x5
+-#define DATA_TYPE_RGB24_888			0x6
+-#define DATA_TYPE_ARGB32_8888			0x7
+-#define DATA_TYPE_RGBA24_6666			0x8
+-#define DATA_TYPE_RGBA32_8888			0x9
+-#define DATA_TYPE_BGR16_565			0x10
+-#define DATA_TYPE_ABGR_1555			0x11
+-#define DATA_TYPE_ABGR_4444			0x12
+-#define DATA_TYPE_BGRA_5551			0x13
+-#define DATA_TYPE_BGRA_4444			0x14
+-#define DATA_TYPE_ABGR24_6666			0x15
+-#define DATA_TYPE_BGR24_888			0x16
+-#define DATA_TYPE_ABGR32_8888			0x17
+-#define DATA_TYPE_BGRA24_6666			0x18
+-#define DATA_TYPE_BGRA32_8888			0x19
++/*
++ * The RGB data type definition below are defined
++ * to follow Errata i819.
++ * The initial values were taken from:
++ * VPDMA_data_type_mapping_v0.2vayu_c.pdf
++ * But some of the ARGB definition appeared to be wrong
++ * in the document also. As they would yield RGBA instead.
++ * They have been corrected based on experimentation.
++ */
++#define DATA_TYPE_RGB16_565			0x10
++#define DATA_TYPE_ARGB_1555			0x13
++#define DATA_TYPE_ARGB_4444			0x14
++#define DATA_TYPE_RGBA_5551			0x11
++#define DATA_TYPE_RGBA_4444			0x12
++#define DATA_TYPE_ARGB24_6666			0x18
++#define DATA_TYPE_RGB24_888			0x16
++#define DATA_TYPE_ARGB32_8888			0x17
++#define DATA_TYPE_RGBA24_6666			0x15
++#define DATA_TYPE_RGBA32_8888			0x19
++#define DATA_TYPE_BGR16_565			0x0
++#define DATA_TYPE_ABGR_1555			0x3
++#define DATA_TYPE_ABGR_4444			0x4
++#define DATA_TYPE_BGRA_5551			0x1
++#define DATA_TYPE_BGRA_4444			0x2
++#define DATA_TYPE_ABGR24_6666			0x8
++#define DATA_TYPE_BGR24_888			0x6
++#define DATA_TYPE_ABGR32_8888			0x7
++#define DATA_TYPE_BGRA24_6666			0x5
++#define DATA_TYPE_BGRA32_8888			0x9
+ 
+ #define DATA_TYPE_MV				0x3
+ 
+-- 
+2.9.0
 
