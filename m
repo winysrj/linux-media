@@ -1,52 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f181.google.com ([209.85.210.181]:35958 "EHLO
-        mail-wj0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754141AbcKYJAK (ORCPT
+Received: from lelnx193.ext.ti.com ([198.47.27.77]:60375 "EHLO
+        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753457AbcKRXVO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 04:00:10 -0500
-Received: by mail-wj0-f181.google.com with SMTP id qp4so52943050wjc.3
-        for <linux-media@vger.kernel.org>; Fri, 25 Nov 2016 00:59:25 -0800 (PST)
+        Fri, 18 Nov 2016 18:21:14 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 21/35] media: ti-vpe: vpdma: Corrected YUV422 data type label.
+Date: Fri, 18 Nov 2016 17:20:31 -0600
+Message-ID: <20161118232045.24665-22-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <20161124133459.GA32385@gofer.mess.org>
-References: <20161117134526.GA8485@gofer.mess.org> <20161118121422.GA1986@shambles.local>
- <20161118174034.GA6167@gofer.mess.org> <20161118220107.GA3510@shambles.local>
- <20161120132948.GA23247@gofer.mess.org> <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
- <20161122092043.GA8630@gofer.mess.org> <20161123123851.GB14257@shambles.local>
- <20161123223419.GA25515@gofer.mess.org> <20161124121253.GA17639@shambles.local>
- <20161124133459.GA32385@gofer.mess.org>
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Date: Fri, 25 Nov 2016 19:59:21 +1100
-Message-ID: <CAEsFdVPbKm1cDmAynL+-PFC=hQ=+-gAcJ04ykXVM6Y6bappcUA@mail.gmail.com>
-Subject: Re: ir-keytable: infinite loops, segfaults
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/25/16, Sean Young <sean@mess.org> wrote:
->
-> So if I understand you correctly, if you change the keymap, like you
-> changed 0xfe47 to KEY_PAUSE, then "ir-keytable -s rc1 -t" show you the
-> correct (new) key? So as far as ir-keytable is concerned, everything
-> works?
->
-> However when you try to use the new mapping in some application then
-> it does not work?
+The YUV data type definition below are taken from
+both the TRM and i839 Errata information.
+Use the correct data type considering byte
+reordering of components.
 
-That's correct. ir-keytable seems to be doing the right thing, mapping
-the scancode to the input-event-codes.h key code I asked it to.
+Added the 2 missing YUV422 variant.
+Also since the single use of "C" in the 422 case
+to mean "Cr" (i.e. V component). It was decided
+to explicitly label them CR to remove any confusion.
+Bear in mind that the type label refer to the memory
+packed order (LSB - MSB).
 
-The application I am trying to use it with is the mythtv frontend.  I
-am doing the keycode munging from an SSH session while myth is still
-running on the main screen. I didn't think this would matter (since it
-worked for KEY_OK->KEY_ENTER) but perhaps it does. Obviously
-ir-keytable -t intercepts the scancodes when it is running, but when I
-kill it myth responds normally to some keys, but not all.
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c      | 18 ++++++++++++++----
+ drivers/media/platform/ti-vpe/vpdma.h      |  6 ++++--
+ drivers/media/platform/ti-vpe/vpdma_priv.h | 19 ++++++++++++++++---
+ drivers/media/platform/ti-vpe/vpe.c        |  8 ++++----
+ 4 files changed, 38 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index f85727a0ac44..8f0d608c70f6 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -59,9 +59,9 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
+ 		.data_type	= DATA_TYPE_C420,
+ 		.depth		= 4,
+ 	},
+-	[VPDMA_DATA_FMT_YC422] = {
++	[VPDMA_DATA_FMT_YCR422] = {
+ 		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+-		.data_type	= DATA_TYPE_YC422,
++		.data_type	= DATA_TYPE_YCR422,
+ 		.depth		= 16,
+ 	},
+ 	[VPDMA_DATA_FMT_YC444] = {
+@@ -69,9 +69,19 @@ const struct vpdma_data_format vpdma_yuv_fmts[] = {
+ 		.data_type	= DATA_TYPE_YC444,
+ 		.depth		= 24,
+ 	},
+-	[VPDMA_DATA_FMT_CY422] = {
++	[VPDMA_DATA_FMT_CRY422] = {
+ 		.type		= VPDMA_DATA_FMT_TYPE_YUV,
+-		.data_type	= DATA_TYPE_CY422,
++		.data_type	= DATA_TYPE_CRY422,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_CBY422] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
++		.data_type	= DATA_TYPE_CBY422,
++		.depth		= 16,
++	},
++	[VPDMA_DATA_FMT_YCB422] = {
++		.type		= VPDMA_DATA_FMT_TYPE_YUV,
++		.data_type	= DATA_TYPE_YCB422,
+ 		.depth		= 16,
+ 	},
+ };
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index ccf871ad8800..405a6febc254 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -74,9 +74,11 @@ enum vpdma_yuv_formats {
+ 	VPDMA_DATA_FMT_C444,
+ 	VPDMA_DATA_FMT_C422,
+ 	VPDMA_DATA_FMT_C420,
+-	VPDMA_DATA_FMT_YC422,
++	VPDMA_DATA_FMT_YCR422,
+ 	VPDMA_DATA_FMT_YC444,
+-	VPDMA_DATA_FMT_CY422,
++	VPDMA_DATA_FMT_CRY422,
++	VPDMA_DATA_FMT_CBY422,
++	VPDMA_DATA_FMT_YCB422,
+ };
+ 
+ enum vpdma_rgb_formats {
+diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
+index 54b6aa866c74..f974a803fa27 100644
+--- a/drivers/media/platform/ti-vpe/vpdma_priv.h
++++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
+@@ -77,16 +77,29 @@
+ #define VPDMA_LIST_TYPE_SHFT		16
+ #define VPDMA_LIST_SIZE_MASK		0xffff
+ 
+-/* VPDMA data type values for data formats */
++/*
++ * The YUV data type definition below are taken from
++ * both the TRM and i839 Errata information.
++ * Use the correct data type considering byte
++ * reordering of components.
++ *
++ * Also since the single use of "C" in the 422 case
++ * to mean "Cr" (i.e. V component). It was decided
++ * to explicitly label them CR to remove any confusion.
++ * Bear in mind that the type label refer to the memory
++ * packed order (LSB - MSB).
++ */
+ #define DATA_TYPE_Y444				0x0
+ #define DATA_TYPE_Y422				0x1
+ #define DATA_TYPE_Y420				0x2
+ #define DATA_TYPE_C444				0x4
+ #define DATA_TYPE_C422				0x5
+ #define DATA_TYPE_C420				0x6
+-#define DATA_TYPE_YC422				0x7
+ #define DATA_TYPE_YC444				0x8
+-#define DATA_TYPE_CY422				0x27
++#define DATA_TYPE_YCB422			0x7
++#define DATA_TYPE_YCR422			0x17
++#define DATA_TYPE_CBY422			0x27
++#define DATA_TYPE_CRY422			0x37
+ 
+ #define DATA_TYPE_RGB16_565			0x0
+ #define DATA_TYPE_ARGB_1555			0x1
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 05b793595ce9..ef55fb45d0be 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -237,7 +237,7 @@ struct vpe_fmt {
+ 
+ static struct vpe_fmt vpe_formats[] = {
+ 	{
+-		.name		= "YUV 422 co-planar",
++		.name		= "NV16 YUV 422 co-planar",
+ 		.fourcc		= V4L2_PIX_FMT_NV16,
+ 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
+ 		.coplanar	= 1,
+@@ -246,7 +246,7 @@ static struct vpe_fmt vpe_formats[] = {
+ 				  },
+ 	},
+ 	{
+-		.name		= "YUV 420 co-planar",
++		.name		= "NV12 YUV 420 co-planar",
+ 		.fourcc		= V4L2_PIX_FMT_NV12,
+ 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
+ 		.coplanar	= 1,
+@@ -259,7 +259,7 @@ static struct vpe_fmt vpe_formats[] = {
+ 		.fourcc		= V4L2_PIX_FMT_YUYV,
+ 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
+ 		.coplanar	= 0,
+-		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YC422],
++		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_YCB422],
+ 				  },
+ 	},
+ 	{
+@@ -267,7 +267,7 @@ static struct vpe_fmt vpe_formats[] = {
+ 		.fourcc		= V4L2_PIX_FMT_UYVY,
+ 		.types		= VPE_FMT_TYPE_CAPTURE | VPE_FMT_TYPE_OUTPUT,
+ 		.coplanar	= 0,
+-		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CY422],
++		.vpdma_fmt	= { &vpdma_yuv_fmts[VPDMA_DATA_FMT_CBY422],
+ 				  },
+ 	},
+ 	{
+-- 
+2.9.0
 
-
-I wanted to mention that the IR protocol is still showing as unknown.
-Is there anything that can be done to sort that out?
-
-Vince
