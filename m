@@ -1,69 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms.lwn.net ([45.79.88.28]:46396 "EHLO ms.lwn.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752181AbcKSRVP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 12:21:15 -0500
-Date: Sat, 19 Nov 2016 10:15:43 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Received: from mout.kundenserver.de ([212.227.126.133]:53915 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751989AbcKRQRJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 11:17:09 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>,
-        ksummit-discuss@lists.linuxfoundation.org,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-Message-ID: <20161119101543.12b89563@lwn.net>
-In-Reply-To: <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
-References: <20161107075524.49d83697@vento.lan>
-        <11020459.EheIgy38UF@wuerfel>
-        <20161116182633.74559ffd@vento.lan>
-        <2923918.nyphv1Ma7d@wuerfel>
-        <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Kieran Bingham <kieran+renesas@ksquared.org.uk>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] [media] v4l: rcar_fdp1: add FCP dependency
+Date: Fri, 18 Nov 2016 17:16:05 +0100
+Message-Id: <20161118161621.798004-2-arnd@arndb.de>
+In-Reply-To: <20161118161621.798004-1-arnd@arndb.de>
+References: <20161118161621.798004-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 17 Nov 2016 08:02:50 -0800
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+drivers/media/platform/rcar_fdp1.o: In function `fdp1_pm_runtime_resume':
+rcar_fdp1.c:(.text.fdp1_pm_runtime_resume+0x78): undefined reference to `rcar_fcp_enable'
+drivers/media/platform/rcar_fdp1.o: In function `fdp1_pm_runtime_suspend':
+rcar_fdp1.c:(.text.fdp1_pm_runtime_suspend+0x14): undefined reference to `rcar_fcp_disable'
+drivers/media/platform/rcar_fdp1.o: In function `fdp1_probe':
+rcar_fdp1.c:(.text.fdp1_probe+0x15c): undefined reference to `rcar_fcp_get'
 
-> We have makefiles, but more importantly, few enough people actually
-> *generate* the documentation, that I think if it's an option to just
-> fix sphinx, we should do that instead. If it means that you have to
-> have some development version of sphinx, so be it. Most people read
-> the documentation either directly in the unprocessed text-files
-> ("source code") or on the web (by searching for pre-formatted docs)
-> that I really don't think we need to worry too much about the
-> toolchain.
-> 
-> But what we *should* worry about is having the kernel source tree
-> contain source.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-I would be happy to take a shot at fixing sphinx; we clearly need to
-engage more with sphinx upstream in general.  But I guess I still haven't
-figured out what "fixing sphinx" means in this case.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 3c5a0b6b23a9..cd0cab6e0e31 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -311,6 +311,7 @@ config VIDEO_RENESAS_FDP1
+ 	tristate "Renesas Fine Display Processor"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+ 	depends on ARCH_SHMOBILE || COMPILE_TEST
++	depends on (!ARCH_RENESAS && !VIDEO_RENESAS_FCP) || VIDEO_RENESAS_FCP
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	---help---
+-- 
+2.9.0
 
-I don't know what the ultimate source of these images is (Mauro, perhaps
-you could shed some light there?).  Perhaps its SVG for some of the
-diagrams, but for the raster images, probably not; it's probably some
-weird-ass diagram-editor format.  We could put those in the tree, but
-they are likely to be harder to convert to a useful format and will raise
-all of the same obnoxious binary patch issues.
-
-Rather than beating our heads against the wall trying to convert between
-various image formats, maybe we need to take a step back.  We're trying
-to build better documentation, and there is certainly a place for
-diagrams and such in that documentation.  Johannes was asking about it
-for the 802.11 docs, and I know Paul has run into these issues with the
-RCU docs as well.  Might there be a tool or an extension out there that
-would allow us to express these diagrams in a text-friendly, editable
-form?
-
-With some effort, I bet we could get rid of a number of the images, and
-perhaps end up with something that makes sense when read in the .rst
-source files as an extra benefit.  But I'm not convinced that we can,
-say, sensibly express the differences between different video interlacing
-schemes that way.
-
-jon
