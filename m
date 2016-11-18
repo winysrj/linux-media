@@ -1,119 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:32551 "EHLO
-        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964938AbcKPLMs (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43572 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752446AbcKRPGy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 06:12:48 -0500
-Date: Wed, 16 Nov 2016 14:11:54 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Wolfram Sang <wsa-dev@sang-engineering.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch v2] [media] stk-webcam: fix an endian bug in
- stk_camera_read_reg()
-Message-ID: <20161116111154.GA27862@mwanda>
+        Fri, 18 Nov 2016 10:06:54 -0500
+Subject: patch "media: usbtv: core: make use of new usb_endpoint_maxp_mult()" added to usb-testing
+To: felipe.balbi@linux.intel.com, linux-media@vger.kernel.org,
+        mchehab@kernel.org
+From: <gregkh@linuxfoundation.org>
+Date: Fri, 18 Nov 2016 16:06:31 +0100
+Message-ID: <147948159148151@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161115094808.GA15424@mwanda>
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We pass an int pointer to stk_camera_read_reg() but only write to the
-highest byte.  It's a bug on big endian systems and generally a nasty
-thing to do and doesn't match the write function either.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+This is a note to let you know that I've just added the patch titled
+
+    media: usbtv: core: make use of new usb_endpoint_maxp_mult()
+
+to my usb git tree which can be found at
+    git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usb.git
+in the usb-testing branch.
+
+The patch will show up in the next release of the linux-next tree
+(usually sometime within the next 24 hours during the week.)
+
+The patch will be merged to the usb-next branch sometime soon,
+after it passes testing, and the merge window is open.
+
+If you have any questions about this process, please let me know.
+
+
+>From b72b7979c356f06a85ac1de03e5086b5bf461702 Mon Sep 17 00:00:00 2001
+From: Felipe Balbi <felipe.balbi@linux.intel.com>
+Date: Wed, 28 Sep 2016 13:20:17 +0300
+Subject: media: usbtv: core: make use of new usb_endpoint_maxp_mult()
+
+We have introduced a helper to calculate multiplier
+value from wMaxPacketSize. Start using it.
+
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: <linux-media@vger.kernel.org>
+Signed-off-by: Felipe Balbi <felipe.balbi@linux.intel.com>
 ---
-v2: I forgot to update stk-sensor.c in version 1.
+ drivers/media/usb/usbtv/usbtv-core.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
-index 9bbfa3d..92bb48e 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.h
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.h
-@@ -129,7 +129,7 @@ struct stk_camera {
- #define vdev_to_camera(d) container_of(d, struct stk_camera, vdev)
+diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
+index dc76fd41e00f..ceb953be0770 100644
+--- a/drivers/media/usb/usbtv/usbtv-core.c
++++ b/drivers/media/usb/usbtv/usbtv-core.c
+@@ -71,6 +71,7 @@ static int usbtv_probe(struct usb_interface *intf,
+ 	int size;
+ 	struct device *dev = &intf->dev;
+ 	struct usbtv *usbtv;
++	struct usb_host_endpoint *ep;
  
- int stk_camera_write_reg(struct stk_camera *, u16, u8);
--int stk_camera_read_reg(struct stk_camera *, u16, int *);
-+int stk_camera_read_reg(struct stk_camera *, u16, u8 *);
- 
- int stk_sensor_init(struct stk_camera *);
- int stk_sensor_configure(struct stk_camera *);
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 22a9aae..1c48f2f 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -144,7 +144,7 @@ int stk_camera_write_reg(struct stk_camera *dev, u16 index, u8 value)
- 		return 0;
- }
- 
--int stk_camera_read_reg(struct stk_camera *dev, u16 index, int *value)
-+int stk_camera_read_reg(struct stk_camera *dev, u16 index, u8 *value)
- {
- 	struct usb_device *udev = dev->udev;
- 	unsigned char *buf;
-@@ -163,7 +163,7 @@ int stk_camera_read_reg(struct stk_camera *dev, u16 index, int *value)
- 			sizeof(u8),
- 			500);
- 	if (ret >= 0)
--		memcpy(value, buf, sizeof(u8));
-+		*value = *buf;
- 
- 	kfree(buf);
- 	return ret;
-@@ -171,9 +171,10 @@ int stk_camera_read_reg(struct stk_camera *dev, u16 index, int *value)
- 
- static int stk_start_stream(struct stk_camera *dev)
- {
--	int value;
-+	u8 value;
- 	int i, ret;
--	int value_116, value_117;
-+	u8 value_116, value_117;
-+
- 
- 	if (!is_present(dev))
+ 	/* Checks that the device is what we think it is. */
+ 	if (intf->num_altsetting != 2)
+@@ -78,10 +79,12 @@ static int usbtv_probe(struct usb_interface *intf,
+ 	if (intf->altsetting[1].desc.bNumEndpoints != 4)
  		return -ENODEV;
-@@ -213,7 +214,7 @@ static int stk_start_stream(struct stk_camera *dev)
  
- static int stk_stop_stream(struct stk_camera *dev)
- {
--	int value;
-+	u8 value;
- 	int i;
- 	if (is_present(dev)) {
- 		stk_camera_read_reg(dev, 0x0100, &value);
-diff --git a/drivers/media/usb/stkwebcam/stk-sensor.c b/drivers/media/usb/stkwebcam/stk-sensor.c
-index e546b01..2dcc8d0 100644
---- a/drivers/media/usb/stkwebcam/stk-sensor.c
-+++ b/drivers/media/usb/stkwebcam/stk-sensor.c
-@@ -228,7 +228,7 @@
- static int stk_sensor_outb(struct stk_camera *dev, u8 reg, u8 val)
- {
- 	int i = 0;
--	int tmpval = 0;
-+	u8 tmpval = 0;
++	ep = &intf->altsetting[1].endpoint[0];
++
+ 	/* Packet size is split into 11 bits of base size and count of
+ 	 * extra multiplies of it.*/
+-	size = usb_endpoint_maxp(&intf->altsetting[1].endpoint[0].desc);
+-	size = (size & 0x07ff) * (((size & 0x1800) >> 11) + 1);
++	size = usb_endpoint_maxp(&ep->desc);
++	size = (size & 0x07ff) * usb_endpoint_maxp_mult(&ep->desc);
  
- 	if (stk_camera_write_reg(dev, STK_IIC_TX_INDEX, reg))
- 		return 1;
-@@ -253,7 +253,7 @@ static int stk_sensor_outb(struct stk_camera *dev, u8 reg, u8 val)
- static int stk_sensor_inb(struct stk_camera *dev, u8 reg, u8 *val)
- {
- 	int i = 0;
--	int tmpval = 0;
-+	u8 tmpval = 0;
- 
- 	if (stk_camera_write_reg(dev, STK_IIC_RX_INDEX, reg))
- 		return 1;
-@@ -274,7 +274,7 @@ static int stk_sensor_inb(struct stk_camera *dev, u8 reg, u8 *val)
- 	if (stk_camera_read_reg(dev, STK_IIC_RX_VALUE, &tmpval))
- 		return 1;
- 
--	*val = (u8) tmpval;
-+	*val = tmpval;
- 	return 0;
- }
- 
+ 	/* Device structure */
+ 	usbtv = kzalloc(sizeof(struct usbtv), GFP_KERNEL);
+-- 
+2.10.2
+
+
