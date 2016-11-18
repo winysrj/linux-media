@@ -1,303 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:34942 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751455AbcKNJma (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:35154 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752469AbcKRMOj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 04:42:30 -0500
-Received: by mail-wm0-f46.google.com with SMTP id a197so87013483wmd.0
-        for <linux-media@vger.kernel.org>; Mon, 14 Nov 2016 01:42:29 -0800 (PST)
-Subject: Re: [PATCH v3 3/9] media: venus: adding core part and helper
- functions
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-4-git-send-email-stanimir.varbanov@linaro.org>
- <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <2cdf728b-f58d-03fa-7ae4-58cbef4c4624@linaro.org>
-Date: Mon, 14 Nov 2016 11:42:25 +0200
+        Fri, 18 Nov 2016 07:14:39 -0500
+Received: by mail-pf0-f196.google.com with SMTP id i88so13489259pfk.2
+        for <linux-media@vger.kernel.org>; Fri, 18 Nov 2016 04:14:38 -0800 (PST)
+Date: Fri, 18 Nov 2016 23:14:25 +1100
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: ir-keytable: infinite loops, segfaults
+Message-ID: <20161118121422.GA1986@shambles.local>
+References: <20161116105256.GA9998@shambles.local>
+ <20161117134526.GA8485@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <f907ec9a-6d61-07f8-2135-f399e656d4e4@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161117134526.GA8485@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Thu, Nov 17, 2016 at 01:45:26PM +0000, Sean Young wrote:
+> On Wed, Nov 16, 2016 at 09:52:58PM +1100, Vincent McIntyre wrote:
+> > I have a fairly old dvico dual digital 4 tuner and remote.
+> > There seem to be some issues with support for it, can I help fix them?
+> > 
+> > I am using ir-keytable 1.10.0-1 on Ubuntu 16.04 LTS,
+> > with kernel 4.4.0-47-generic (package version 4.4.0-47-generic)
+> > 
+> > The remote's keymapping is the one in /lib/udev/rc_keymaps/dvico_mce;
+> > kernel support for the device is in media/usb/dvb-usb/cxusb.c.
+> > 
+> > Mostly it works, in that I get correct keycodes back from evtest
+> > and ir-keytable -t. But I want to change some of the keycode mappings
+> > and that is not working.
+> 
+> I suspect the problem here is rc-core is not used and 
+> legacy_dvb_usb_setkeycode has a bug (it has several problems).
+> 
+> It would be nicer if we could move it rc-core, but for that to work
+> we need to know what scancodes remote sends (and in what protocol).
+> A scancode of 0xfe47 is not a valid RC5 scancode.
+ 
+So are you saying that the hex codes in the rc_map_dvico_mce_table
+struct are invalid (at least in some cases)?
 
-Thanks for the comments!
+How can I tell what protocol is in use?
+0x00010001 doesn't mean much to me; I did search the linux source
+for the code but didn't find any helpful matches.
 
-On 11/11/2016 01:32 PM, Hans Verkuil wrote:
-> Hi Stanimir,
-> 
-> Some comments:
-> 
-> On 11/07/2016 06:33 PM, Stanimir Varbanov wrote:
->>  * core.c has implemented the platform dirver methods, file
->> operations and v4l2 registration.
->>
->>  * helpers.c has implemented common helper functions for:
->>    - buffer management
->>
->>    - vb2_ops and functions for format propagation,
->>
->>    - functions for allocating and freeing buffers for
->>    internal usage. The buffer parameters describing internal
->>    buffers depends on current format, resolution and codec.
->>
->>    - functions for calculation of current load of the
->>    hardware. Depending on the count of instances and
->>    resolutions it selects the best clock rate for the video
->>    core.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/venus/core.c    | 557 +++++++++++++++++++++++++
->>  drivers/media/platform/qcom/venus/core.h    | 261 ++++++++++++
->>  drivers/media/platform/qcom/venus/helpers.c | 612 ++++++++++++++++++++++++++++
->>  drivers/media/platform/qcom/venus/helpers.h |  43 ++
->>  4 files changed, 1473 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/venus/core.c
->>  create mode 100644 drivers/media/platform/qcom/venus/core.h
->>  create mode 100644 drivers/media/platform/qcom/venus/helpers.c
->>  create mode 100644 drivers/media/platform/qcom/venus/helpers.h
->>
-> 
-> <snip>
-> 
->> diff --git a/drivers/media/platform/qcom/venus/core.h b/drivers/media/platform/qcom/venus/core.h
->> new file mode 100644
->> index 000000000000..21ed053aeb17
->> --- /dev/null
->> +++ b/drivers/media/platform/qcom/venus/core.h
-> 
-> <snip>
-> 
->> +struct venus_ctrl {
->> +	u32 id;
->> +	enum v4l2_ctrl_type type;
->> +	s32 min;
->> +	s32 max;
->> +	s32 def;
->> +	u32 step;
->> +	u64 menu_skip_mask;
->> +	u32 flags;
->> +	const char * const *qmenu;
->> +};
-> 
-> Why duplicate struct v4l2_ctrl_config? Just use that struct to define custom controls
-> together with v4l2_ctrl_new_custom().
+> Would it be possible to test the remote with another device (say an
+> usb mce receiver or so) and see what scancodes it sends? Then we can
+> translate the keymap to a real one and make the cxusb driver send
+> correct scancodes to rc-core.
 
-OK, I will rework the controls to avoid struct v4l2_ctrl_config duplication.
+Great idea. Do you mean something like [1]?
+Or the (presumably generic) receiver that comes with [2]?
+Would a FLIRC work?
 
-> 
->> +
->> +/*
->> + * Offset base for buffers on the destination queue - used to distinguish
->> + * between source and destination buffers when mmapping - they receive the same
->> + * offsets but for different queues
->> + */
->> +#define DST_QUEUE_OFF_BASE	(1 << 30)
->> +
->> +static inline struct venus_inst *to_inst(struct file *filp)
->> +{
->> +	return container_of(filp->private_data, struct venus_inst, fh);
->> +}
->> +
->> +static inline void *to_hfi_priv(struct venus_core *core)
->> +{
->> +	return core->priv;
->> +}
->> +
->> +static inline struct vb2_queue *
->> +to_vb2q(struct file *file, enum v4l2_buf_type type)
->> +{
->> +	struct venus_inst *inst = to_inst(file);
->> +
->> +	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
->> +		return &inst->bufq_cap;
->> +	else if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->> +		return &inst->bufq_out;
->> +
->> +	return NULL;
->> +}
->> +
->> +#endif
->> diff --git a/drivers/media/platform/qcom/venus/helpers.c b/drivers/media/platform/qcom/venus/helpers.c
->> new file mode 100644
->> index 000000000000..c2d1446ad254
->> --- /dev/null
->> +++ b/drivers/media/platform/qcom/venus/helpers.c
-> 
-> <snip>
-> 
->> +void vidc_vb2_stop_streaming(struct vb2_queue *q)
->> +{
->> +	struct venus_inst *inst = vb2_get_drv_priv(q);
->> +	struct venus_core *core = inst->core;
->> +	struct device *dev = core->dev;
->> +	struct vb2_queue *other_queue;
->> +	struct vidc_buffer *buf, *n;
->> +	enum vb2_buffer_state state;
->> +	int ret;
->> +
->> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
->> +		other_queue = &inst->bufq_cap;
->> +	else
->> +		other_queue = &inst->bufq_out;
->> +
->> +	if (!vb2_is_streaming(other_queue))
->> +		return;
-> 
-> This seems wrong to me: this return means that the buffers of queue q are never
-> released. Either drop this 'if' or release both queues when the last queue
-> stops streaming. I think dropping the 'if' is best.
+Probably dumb question - in this machine I also have
+an iMon Remote (152c:ffdc)
+and Leadtek WinFast DTV Dongle Dual
+Do you think either of those would be helpful?
+I tried evtest with them and the remote, no responses.
 
-I have done this way because hfi_session_stop must be called only once,
-and buffers will be released on first streamoff for both queues.
+# ir-keytable
+Found /sys/class/rc/rce0/ (/dev/input/event5) with:
+    Driver imon, table rc-imon-mce
+    Supported protocols: rc-6 
+    Enabled protocols: rc-6 
+    Name: iMON Remote (15c2:ffdc)
+    bus: 3, vendor/product: 15c2:ffdc, version: 0x0000
+    Repeat delay = 500 ms, repeat period = 125 ms
+Found /sys/class/rc/rc1/ (/dev/input/event16) with:
+    Driver dvb_usb_af9035, table rc-empty
+    Supported protocols: nec 
+    Enabled protocols: 
+    Name: Leadtek WinFamst DTV Dongle Dual
+    bus: 3, vendor/product: 0413:6a05, version: 0x0200
+    Repeat delay = 500 mss, repeat period = 125 ms
 
-> 
->> +
->> +	ret = hfi_session_stop(inst);
->> +	if (ret) {
->> +		dev_err(dev, "session: stop failed (%d)\n", ret);
->> +		goto abort;
->> +	}
->> +
->> +	ret = hfi_session_unload_res(inst);
->> +	if (ret) {
->> +		dev_err(dev, "session: release resources failed (%d)\n", ret);
->> +		goto abort;
->> +	}
->> +
->> +	ret = session_unregister_bufs(inst);
->> +	if (ret) {
->> +		dev_err(dev, "failed to release capture buffers: %d\n", ret);
->> +		goto abort;
->> +	}
->> +
->> +	ret = intbufs_free(inst);
->> +
->> +	if (inst->state == INST_INVALID || core->state == CORE_INVALID)
->> +		ret = -EINVAL;
->> +
->> +abort:
->> +	if (ret)
->> +		hfi_session_abort(inst);
->> +
->> +	load_scale_clocks(core);
->> +
->> +	ret = hfi_session_deinit(inst);
->> +
->> +	pm_runtime_put_sync(dev);
->> +
->> +	mutex_lock(&inst->bufqueue_lock);
->> +
->> +	if (list_empty(&inst->bufqueue)) {
->> +		mutex_unlock(&inst->bufqueue_lock);
->> +		return;
->> +	}
->> +
->> +	if (ret)
->> +		state = VB2_BUF_STATE_ERROR;
->> +	else
->> +		state = VB2_BUF_STATE_DONE;
-> 
-> Are you sure that the state depends on 'ret'? Usually when stop_streaming is
-> called none of the pending buffers are filled with valid frame data, so the
-> state is set to ERROR.
-> 
-> STATE_DONE implies that the contents of the buffers has valid frame data.
+Thanks
+Vince
 
-OK I will return STATE_ERROR for all released buffers.
+[1] http://www.ebay.com.au/itm/New-HP-USB-MCE-IR-Wireless-Receiver-Windows-7-Vista-/261127073131
+[2] https://www.jaycar.com.au/home-theatre-pc-remote-control/p/XC4939
 
-> 
->> +
->> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
->> +		vb2_buffer_done(&buf->vb.vb2_buf, state);
->> +		list_del(&buf->list);
->> +	}
->> +
->> +	mutex_unlock(&inst->bufqueue_lock);
->> +}
->> +
->> +int vidc_vb2_start_streaming(struct venus_inst *inst)
->> +{
->> +	struct venus_core *core = inst->core;
->> +	struct vidc_buffer *buf, *n;
->> +	int ret;
->> +
->> +	ret = intbufs_alloc(inst);
->> +	if (ret)
->> +		return ret;
-> 
-> This should still release all buffers instead of returning an error.
-
-Yes, thanks for catching this.
-
-> 
->> +
->> +	ret = session_register_bufs(inst);
->> +	if (ret)
->> +		goto err_bufs_free;
->> +
->> +	load_scale_clocks(core);
->> +
->> +	ret = hfi_session_load_res(inst);
->> +	if (ret)
->> +		goto err_unreg_bufs;
->> +
->> +	ret = hfi_session_start(inst);
->> +	if (ret)
->> +		goto err_unload_res;
->> +
->> +	mutex_lock(&inst->bufqueue_lock);
->> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
->> +		ret = session_set_buf(&buf->vb.vb2_buf);
->> +		if (ret)
->> +			break;
->> +	}
->> +	mutex_unlock(&inst->bufqueue_lock);
->> +
->> +	if (ret)
->> +		goto err_session_stop;
->> +
->> +	return 0;
->> +
->> +err_session_stop:
->> +	hfi_session_stop(inst);
->> +err_unload_res:
->> +	hfi_session_unload_res(inst);
->> +err_unreg_bufs:
->> +	session_unregister_bufs(inst);
->> +err_bufs_free:
->> +	intbufs_free(inst);
->> +
->> +	mutex_lock(&inst->bufqueue_lock);
->> +
->> +	if (list_empty(&inst->bufqueue))
->> +		goto err_done;
->> +
->> +	list_for_each_entry_safe(buf, n, &inst->bufqueue, list) {
->> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
->> +		list_del(&buf->list);
->> +	}
-> 
-> I think this is done in the wrong place. The vdec has its own high level start_streaming
-> that calls this function, but that high level function doesn't release the buffers at
-> all if there is an error. Same for venc. I propose that you make a new function that
-> just releases the buffers and call that from the vdec/venc start_streaming function
-> whenever an error occurs.
-
-yes, that is a good suggestion.
-
-
--- 
-regards,
-Stan
