@@ -1,42 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.southpole.se ([37.247.8.11]:40693 "EHLO mail.southpole.se"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S966966AbcKLSYl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 13:24:41 -0500
-Subject: Re: [v4.9-rc4] dvb-usb/cinergyT2 NULL pointer dereference
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <CADDKRnD6sQLsxwObi1Bo6k69P5ceqQHw7beT6C7TqZjUsDby+w@mail.gmail.com>
- <CA+55aFxXoc3GzAXWPZL=RB2xhmhP1acR3m2S_mdoiO97+80kDA@mail.gmail.com>
- <20161108182215.41f1f3d2@vento.lan>
- <CADDKRnD_+uhQc7GyK3FfnDSRUkL5WkZNV7F+TsEhhDdo6O=Vmw@mail.gmail.com>
- <CA+55aFwsYHbXFimTL137Zwbc0bhOmR+XzDnUBmM=Pgn+8xBnWw@mail.gmail.com>
- <20161110064047.1e0a6b4b@vento.lan>
- <CADDKRnCfHL6P=g87+04XimCUvPcD2GQgGmrQwm4Mq_OjvLD5rA@mail.gmail.com>
- <20161111115535.6aebf1e2@vela.lan>
-Cc: "linux-media@vger.kernel.org >> Linux Media Mailing List"
-        <linux-media@vger.kernel.org>
-From: Benjamin Larsson <benjamin@southpole.se>
-Message-ID: <6119ad39-d191-cc2b-05a1-dd51fd5499d5@southpole.se>
-Date: Sat, 12 Nov 2016 19:24:36 +0100
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55769
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753157AbcKRMws (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 07:52:48 -0500
+Date: Fri, 18 Nov 2016 10:52:40 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 14/18] [media] RedRat3: Rename a jump label in
+ redrat3_init_rc_dev()
+Message-ID: <20161118105240.6d23990e@vento.lan>
+In-Reply-To: <172b54fe-559b-44a4-9902-96abece75a7f@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net>
+        <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+        <172b54fe-559b-44a4-9902-96abece75a7f@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <20161111115535.6aebf1e2@vela.lan>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/11/2016 02:55 PM, Mauro Carvalho Chehab wrote:
-> Em Thu, 10 Nov 2016 12:15:39 +0100
->
-> Benjamin,
->
-> Could you please test it?
->
-> Thanks!
-> Mauro
+Em Thu, 13 Oct 2016 18:42:16 +0200
+SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
 
-Hi, I the device is in use now. Can't test it with a new tree. I am 
-using an old tree for it.
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Thu, 13 Oct 2016 15:00:12 +0200
+> 
+> Adjust a jump label according to the Linux coding style convention.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> ---
+>  drivers/media/rc/redrat3.c | 5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+> index 74d93dd..055f214 100644
+> --- a/drivers/media/rc/redrat3.c
+> +++ b/drivers/media/rc/redrat3.c
+> @@ -890,12 +890,11 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+>  	ret = rc_register_device(rc);
+>  	if (ret < 0) {
+>  		dev_err(rr3->dev, "remote dev registration failed\n");
+> -		goto out;
+> +		goto free_device;
+>  	}
+>  
+>  	return rc;
+> -
+> -out:
+> +free_device:
+>  	rc_free_device(rc);
+>  	return NULL;
+>  }
 
-MvH
-Benjamin Larsson
+I don't see *any* sense on patches like this. Please don't flood me with
+useless patches like that.
+
+I'll silently ignore any patches like this during my review.
+
+Regards,
+Mauro
+
+
+
+Thanks,
+Mauro
