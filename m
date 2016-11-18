@@ -1,93 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33429 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965750AbcKLNNo (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:30007 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752483AbcKRLbB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:44 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 11/32] media: rcar-vin: refactor pad lookup code
-Date: Sat, 12 Nov 2016 14:11:55 +0100
-Message-Id: <20161112131216.22635-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 18 Nov 2016 06:31:01 -0500
+Date: Fri, 18 Nov 2016 14:30:24 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Thaissa Falbo <thaissa.falbo@gmail.com>,
+        Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+        Leo Sperling <leosperling97@gmail.com>,
+        sayli karnik <karniksayli1995@gmail.com>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] Staging: media: davinci_vpfe: unlock on error in
+ vpfe_reqbufs()
+Message-ID: <20161118113024.GA3150@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code to lookup which pad is source and sink can be broken out to a
-helper function.
+We should unlock before returning this error code in vpfe_reqbufs().
 
-A bad check is also dropped in this refactoring. If the subdeivce don't
-supply pad information the driver would not be able to use it if the
-check is kept.
+Fixes: 622897da67b3 ("[media] davinci: vpfe: add v4l2 video driver support")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index fb6368c..50058fe 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -66,11 +66,21 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- 	return false;
- }
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index c34bf46..353f3a8 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1362,7 +1362,7 @@ static int vpfe_reqbufs(struct file *file, void *priv,
+ 	ret = vb2_queue_init(q);
+ 	if (ret) {
+ 		v4l2_err(&vpfe_dev->v4l2_dev, "vb2_queue_init() failed\n");
+-		return ret;
++		goto unlock_out;
+ 	}
  
-+static unsigned int rvin_pad_idx(struct v4l2_subdev *sd, int direction)
-+{
-+	unsigned int pad_idx;
-+
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags == direction)
-+			return pad_idx;
-+
-+	return 0;
-+}
-+
- static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
- 	struct v4l2_subdev *sd = vin->digital.subdev;
--	unsigned int pad_idx;
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
-@@ -84,21 +94,8 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 		vin->digital.subdev->name, vin->digital.code);
- 
- 	/* Figure out source and sink pad ids */
--	vin->digital.source_pad_idx = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
--			break;
--	if (pad_idx >= sd->entity.num_pads)
--		return -EINVAL;
--
--	vin->digital.source_pad_idx = pad_idx;
--
--	vin->digital.sink_pad_idx = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->digital.sink_pad_idx = pad_idx;
--			break;
--		}
-+	vin->digital.source_pad_idx = rvin_pad_idx(sd, MEDIA_PAD_FL_SOURCE);
-+	vin->digital.sink_pad_idx = rvin_pad_idx(sd, MEDIA_PAD_FL_SINK);
- 
- 	vin_dbg(vin, "Found media pads for %s source: %d sink %d\n",
- 		vin->digital.subdev->name, vin->digital.source_pad_idx,
--- 
-2.10.2
-
+ 	fh->io_allowed = 1;
