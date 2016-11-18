@@ -1,62 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35517 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753640AbcK0LLy (ORCPT
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:17473 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753660AbcKRXVW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 27 Nov 2016 06:11:54 -0500
-Received: by mail-wm0-f67.google.com with SMTP id a20so14456817wme.2
-        for <linux-media@vger.kernel.org>; Sun, 27 Nov 2016 03:11:53 -0800 (PST)
-Date: Sun, 27 Nov 2016 12:11:48 +0100
-From: Marcel Hasler <mahasler@gmail.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
-Message-ID: <20161127111148.GA30483@arch-desktop>
+        Fri, 18 Nov 2016 18:21:22 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 25/35] media: ti-vpe: vpdma: Fix race condition for firmware loading
+Date: Fri, 18 Nov 2016 17:20:35 -0600
+Message-ID: <20161118232045.24665-26-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161127110732.GA5338@arch-desktop>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow setting a custom record gain for the internal AC97 codec (if available). This can be
-a value between 0 and 15, 8 is the default and should be suitable for most users. The Windows
-driver also sets this to 8 without any possibility for changing it.
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+vpdma_create API is supposed to allocated the struct vpdma_data and
+return it to the driver. Also, it would call the callback function
+when the VPDMA firmware is loaded.
+
+Typically, VPE driver have following function call:
+    dev->vpdma = vpdma_create(pdev, firmware_load_callback);
+And the callback implementation would continue the probe further.
+Also, the dev->vpdma is accessed from the callback implementation.
+
+This may lead to race condition between assignment of dev->vpdma
+and the callback function being triggered.
+This would lead to kernel crash because of NULL pointer access.
+
+Fix this by passing a driver wrapped &vpdma_data instead of allocating
+inside vpdma_create.
+Change the vpdma_create prototype accordingly and fix return paths.
+
+Also, update the VPE driver to use the updated API and
+initialize the dev->vpdma before hand so that the race condition
+is avoided.
+
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/stk1160/stk1160-ac97.c | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/platform/ti-vpe/vpdma.c | 17 +++++------------
+ drivers/media/platform/ti-vpe/vpdma.h |  2 +-
+ drivers/media/platform/ti-vpe/vpe.c   |  8 ++++----
+ 3 files changed, 10 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
-index 95648ac..60327af 100644
---- a/drivers/media/usb/stk1160/stk1160-ac97.c
-+++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-@@ -28,6 +28,11 @@
- #include "stk1160.h"
- #include "stk1160-reg.h"
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 8f0d608c70f6..070937fe1af6 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -1130,21 +1130,14 @@ static int vpdma_load_firmware(struct vpdma_data *vpdma)
+ 	return 0;
+ }
  
-+static u8 gain = 8;
-+
-+module_param(gain, byte, 0444);
-+MODULE_PARM_DESC(gain, "Set capture gain level if AC97 codec is available (0-15, default: 8)");
-+
- static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
+-struct vpdma_data *vpdma_create(struct platform_device *pdev,
++int vpdma_create(struct platform_device *pdev, struct vpdma_data *vpdma,
+ 		void (*cb)(struct platform_device *pdev))
  {
- 	/* Set codec register address */
-@@ -136,7 +141,10 @@ void stk1160_ac97_setup(struct stk1160 *dev)
- 	stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
- 	stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
- 	stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
--	stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
-+
-+	/* Record gain */
-+	gain = (gain > 15) ? 15 : gain;
-+	stk1160_write_ac97(dev, 0x1c, (gain<<8) | gain);
+ 	struct resource *res;
+-	struct vpdma_data *vpdma;
+ 	int r;
  
- #ifdef DEBUG
- 	stk1160_ac97_dump_regs(dev);
+ 	dev_dbg(&pdev->dev, "vpdma_create\n");
+ 
+-	vpdma = devm_kzalloc(&pdev->dev, sizeof(*vpdma), GFP_KERNEL);
+-	if (!vpdma) {
+-		dev_err(&pdev->dev, "couldn't alloc vpdma_dev\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+-
+ 	vpdma->pdev = pdev;
+ 	vpdma->cb = cb;
+ 	spin_lock_init(&vpdma->lock);
+@@ -1152,22 +1145,22 @@ struct vpdma_data *vpdma_create(struct platform_device *pdev,
+ 	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "vpdma");
+ 	if (res == NULL) {
+ 		dev_err(&pdev->dev, "missing platform resources data\n");
+-		return ERR_PTR(-ENODEV);
++		return -ENODEV;
+ 	}
+ 
+ 	vpdma->base = devm_ioremap(&pdev->dev, res->start, resource_size(res));
+ 	if (!vpdma->base) {
+ 		dev_err(&pdev->dev, "failed to ioremap\n");
+-		return ERR_PTR(-ENOMEM);
++		return -ENOMEM;
+ 	}
+ 
+ 	r = vpdma_load_firmware(vpdma);
+ 	if (r) {
+ 		pr_err("failed to load firmware %s\n", VPDMA_FIRMWARE);
+-		return ERR_PTR(r);
++		return r;
+ 	}
+ 
+-	return vpdma;
++	return 0;
+ }
+ EXPORT_SYMBOL(vpdma_create);
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 405a6febc254..0df156b7c1cf 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -273,7 +273,7 @@ void vpdma_set_bg_color(struct vpdma_data *vpdma,
+ void vpdma_dump_regs(struct vpdma_data *vpdma);
+ 
+ /* initialize vpdma, passed with VPE's platform device pointer */
+-struct vpdma_data *vpdma_create(struct platform_device *pdev,
++int vpdma_create(struct platform_device *pdev, struct vpdma_data *vpdma,
+ 		void (*cb)(struct platform_device *pdev));
+ 
+ #endif
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index f92ad7a473c1..15e846b95719 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -383,6 +383,7 @@ struct vpe_dev {
+ 	void __iomem		*base;
+ 	struct resource		*res;
+ 
++	struct vpdma_data	vpdma_data;
+ 	struct vpdma_data	*vpdma;		/* vpdma data handle */
+ 	struct sc_data		*sc;		/* scaler data handle */
+ 	struct csc_data		*csc;		/* csc data handle */
+@@ -2462,11 +2463,10 @@ static int vpe_probe(struct platform_device *pdev)
+ 		goto runtime_put;
+ 	}
+ 
+-	dev->vpdma = vpdma_create(pdev, vpe_fw_cb);
+-	if (IS_ERR(dev->vpdma)) {
+-		ret = PTR_ERR(dev->vpdma);
++	dev->vpdma = &dev->vpdma_data;
++	ret = vpdma_create(pdev, dev->vpdma, vpe_fw_cb);
++	if (ret)
+ 		goto runtime_put;
+-	}
+ 
+ 	return 0;
+ 
 -- 
-2.10.2
+2.9.0
 
