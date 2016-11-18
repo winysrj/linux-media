@@ -1,76 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58008 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753032AbcKTPb6 (ORCPT
+Received: from fllnx210.ext.ti.com ([198.47.19.17]:42895 "EHLO
+        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752730AbcKRXVK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Nov 2016 10:31:58 -0500
-Date: Sun, 20 Nov 2016 16:31:54 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161120153153.GD5189@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+        Fri, 18 Nov 2016 18:21:10 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 14/35] media: ti-vpe: vpdma: Clear IRQs for individual lists
+Date: Fri, 18 Nov 2016 17:20:24 -0600
+Message-ID: <20161118232045.24665-15-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="oj4kGyHlBMXGt3Le"
-Content-Disposition: inline
-In-Reply-To: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
---oj4kGyHlBMXGt3Le
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+VPDMA IRQs are registered for multiple lists
+When clearing an IRQ for a list interrupt, all the
+IRQs for the individual lists are to be cleared separately.
 
-Hi!
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 6 +++---
+ drivers/media/platform/ti-vpe/vpdma.h | 3 ++-
+ drivers/media/platform/ti-vpe/vpe.c   | 2 +-
+ 3 files changed, 6 insertions(+), 5 deletions(-)
 
-> > +	/* V4L2_CID_EXPOSURE */
-> > +	min =3D et8ek8_exposure_rows_to_us(sensor, 1);
-> > +	max =3D et8ek8_exposure_rows_to_us(sensor,
-> > +				sensor->current_reglist->mode.max_exp);
->=20
-> Haven't I suggested to use lines instead? I vaguely remember doing so...
-> this would remove quite some code from the driver.
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index ffc281d2b065..c0a4e035bc2a 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -953,12 +953,12 @@ unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num)
+ EXPORT_SYMBOL(vpdma_get_list_mask);
+ 
+ /* clear previosuly occured list intterupts in the LIST_STAT register */
+-void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num)
++void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
++			   int list_num)
+ {
+ 	u32 reg_addr = VPDMA_INT_LIST0_STAT + VPDMA_INTX_OFFSET * irq_num;
+ 
+-	write_reg(vpdma, reg_addr,
+-		read_reg(vpdma, reg_addr));
++	write_reg(vpdma, reg_addr, 3 << (list_num * 2));
+ }
+ EXPORT_SYMBOL(vpdma_clear_list_stat);
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index f08f4370ce4a..65961147e8f7 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -244,7 +244,8 @@ int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
+ /* vpdma list interrupt management */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
+ 		int list_num, bool enable);
+-void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num);
++void vpdma_clear_list_stat(struct vpdma_data *vpdma, int irq_num,
++			   int list_num);
+ unsigned int vpdma_get_list_stat(struct vpdma_data *vpdma, int irq_num);
+ unsigned int vpdma_get_list_mask(struct vpdma_data *vpdma, int irq_num);
+ 
+diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
+index 151a9280bb85..6fcdd0ea50e4 100644
+--- a/drivers/media/platform/ti-vpe/vpe.c
++++ b/drivers/media/platform/ti-vpe/vpe.c
+@@ -1326,7 +1326,7 @@ static irqreturn_t vpe_irq(int irq_vpe, void *data)
+ 
+ 	if (irqst0) {
+ 		if (irqst0 & VPE_INT0_LIST0_COMPLETE)
+-			vpdma_clear_list_stat(ctx->dev->vpdma, 0);
++			vpdma_clear_list_stat(ctx->dev->vpdma, 0, 0);
+ 
+ 		irqst0 &= ~(VPE_INT0_LIST0_COMPLETE);
+ 	}
+-- 
+2.9.0
 
-Lines ... lines ... no, I don't think I understand how to use lines
-here. I guess I could switch units from us to rows here...?
-
-Is it good idea? For userspace, microseconds are really a nice
-interface, because ... well, that's what photographers are used to
-think about (ISO 400, time 1/100). fcam also uses usec internally.
-
-In the current camera code, I do autogain in small resolution, then
-use same parameters (gain, time) at higher resolution. I guess I could
-do the same with the non-microseconds interface, but then I'd have to
-move the microsecond computation into userspace. And userspace is
-not really good place to do that, as it does not know (and should not
-have to know!) such low level details.
-
-So... can we keep the interface as it is?
-
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---oj4kGyHlBMXGt3Le
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgxwekACgkQMOfwapXb+vJTMgCgsUICeBsVljgpDShQEMHWKiwK
-rgwAnilLEH+dvLHuxG3DAUiTHR1f7hJw
-=kDlM
------END PGP SIGNATURE-----
-
---oj4kGyHlBMXGt3Le--
