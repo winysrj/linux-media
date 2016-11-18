@@ -1,124 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:41758 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750749AbcKVFGx (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:27370 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753130AbcKRL0N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 00:06:53 -0500
-Message-ID: <6f975bbb322cc7e86458fb66aabfd174@smtp-cloud6.xs4all.net>
-Date: Tue, 22 Nov 2016 06:06:49 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 18 Nov 2016 06:26:13 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v2 10/10] [media] st-delta: debug: trace stream/frame information & summary
+Date: Fri, 18 Nov 2016 12:25:36 +0100
+Message-ID: <1479468336-26199-11-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
+References: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/Makefile      |  2 +-
+ drivers/media/platform/sti/delta/delta-debug.c | 72 ++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-debug.h | 18 +++++++
+ drivers/media/platform/sti/delta/delta-v4l2.c  | 29 +++++++++--
+ 4 files changed, 116 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
 
-Results of the daily build of media_tree:
+diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
+index 663be70..f95580e 100644
+--- a/drivers/media/platform/sti/delta/Makefile
++++ b/drivers/media/platform/sti/delta/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
+-st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
++st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o delta-debug.o
+ 
+ # MJPEG support
+ st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
+diff --git a/drivers/media/platform/sti/delta/delta-debug.c b/drivers/media/platform/sti/delta/delta-debug.c
+new file mode 100644
+index 0000000..f1bc64e
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-debug.c
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
++ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include "delta.h"
++#include "delta-debug.h"
++
++char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
++			   unsigned int len)
++{
++	if (!s)
++		return NULL;
++
++	snprintf(str, len,
++		 "%4.4s %dx%d %s %s dpb=%d %s %s %s%dx%d@(%d,%d) %s%d/%d",
++		 (char *)&s->streamformat, s->width, s->height,
++		 s->profile, s->level, s->dpb,
++		 (s->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
++		 s->other,
++		 s->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
++		 s->crop.width, s->crop.height,
++		 s->crop.left, s->crop.top,
++		 s->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
++		 s->pixelaspect.numerator,
++		 s->pixelaspect.denominator);
++
++	return str;
++}
++
++char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
++			  unsigned int len)
++{
++	if (!f)
++		return NULL;
++
++	snprintf(str, len,
++		 "%4.4s %dx%d aligned %dx%d %s %s%dx%d@(%d,%d) %s%d/%d",
++		 (char *)&f->pixelformat, f->width, f->height,
++		 f->aligned_width, f->aligned_height,
++		 (f->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
++		 f->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
++		 f->crop.width, f->crop.height,
++		 f->crop.left, f->crop.top,
++		 f->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
++		 f->pixelaspect.numerator,
++		 f->pixelaspect.denominator);
++
++	return str;
++}
++
++void delta_trace_summary(struct delta_ctx *ctx)
++{
++	struct delta_dev *delta = ctx->dev;
++	struct delta_streaminfo *s = &ctx->streaminfo;
++	unsigned char str[100] = "";
++
++	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
++		return;
++
++	dev_info(delta->dev, "%s %s, %d frames decoded, %d frames output, %d frames dropped, %d stream errors, %d decode errors",
++		 ctx->name,
++		 delta_streaminfo_str(s, str, sizeof(str)),
++		 ctx->decoded_frames,
++		 ctx->output_frames,
++		 ctx->dropped_frames,
++		 ctx->stream_errors,
++		 ctx->decode_errors);
++}
+diff --git a/drivers/media/platform/sti/delta/delta-debug.h b/drivers/media/platform/sti/delta/delta-debug.h
+new file mode 100644
+index 0000000..955c158
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-debug.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
++ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#ifndef DELTA_DEBUG_H
++#define DELTA_DEBUG_H
++
++char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
++			   unsigned int len);
++char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
++			  unsigned int len);
++void delta_trace_summary(struct delta_ctx *ctx);
++
++#endif /* DELTA_DEBUG_H */
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 93a0f90..5586a97 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -17,6 +17,7 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "delta.h"
++#include "delta-debug.h"
+ #include "delta-ipc.h"
+ 
+ #define DELTA_NAME	"st-delta"
+@@ -438,11 +439,13 @@ static int delta_g_fmt_stream(struct file *file, void *fh,
+ 	struct delta_dev *delta = ctx->dev;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
++	unsigned char str[100] = "";
+ 
+ 	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
+ 		dev_dbg(delta->dev,
+-			"%s V4L2 GET_FMT (OUTPUT): no stream information available, using default\n",
+-			ctx->name);
++			"%s V4L2 GET_FMT (OUTPUT): no stream information available, default to %s\n",
++			ctx->name,
++			delta_streaminfo_str(streaminfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = streaminfo->streamformat;
+ 	pix->width = streaminfo->width;
+@@ -465,11 +468,13 @@ static int delta_g_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
++	unsigned char str[100] = "";
+ 
+ 	if (!(ctx->flags & DELTA_FLAG_FRAMEINFO))
+ 		dev_dbg(delta->dev,
+-			"%s V4L2 GET_FMT (CAPTURE): no frame information available, using default\n",
+-			ctx->name);
++			"%s V4L2 GET_FMT (CAPTURE): no frame information available, default to %s\n",
++			ctx->name,
++			delta_frameinfo_str(frameinfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = frameinfo->pixelformat;
+ 	pix->width = frameinfo->aligned_width;
+@@ -652,6 +657,7 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 	const struct delta_dec *dec = ctx->dec;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_frameinfo frameinfo;
++	unsigned char str[100] = "";
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+@@ -703,6 +709,10 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 
+ 	ctx->flags |= DELTA_FLAG_FRAMEINFO;
+ 	ctx->frameinfo = frameinfo;
++	dev_dbg(delta->dev,
++		"%s V4L2 SET_FMT (CAPTURE): frameinfo updated to %s\n",
++		ctx->name,
++		delta_frameinfo_str(&frameinfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = frameinfo.pixelformat;
+ 	pix->width = frameinfo.aligned_width;
+@@ -1321,10 +1331,12 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 	struct delta_dev *delta = ctx->dev;
+ 	const struct delta_dec *dec = ctx->dec;
+ 	struct delta_au *au;
++	unsigned char str2[100] = "";
+ 	int ret = 0;
+ 	struct vb2_v4l2_buffer *vbuf = NULL;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
+ 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
++	unsigned char str[100] = "";
+ 
+ 	if ((ctx->state != DELTA_STATE_WF_FORMAT) &&
+ 	    (ctx->state != DELTA_STATE_WF_STREAMINFO))
+@@ -1385,6 +1397,10 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 
+ 	ctx->state = DELTA_STATE_READY;
+ 
++	dev_info(delta->dev, "%s %s => %s\n", ctx->name,
++		 delta_streaminfo_str(streaminfo, str, sizeof(str)),
++		 delta_frameinfo_str(frameinfo, str2, sizeof(str2)));
++
+ 	delta_au_done(ctx, au, ret);
+ 	return 0;
+ 
+@@ -1705,6 +1721,11 @@ static int delta_release(struct file *file)
+ 	/* close decoder */
+ 	call_dec_op(dec, close, ctx);
+ 
++	/* trace a summary of instance
++	 * before closing (debug purpose)
++	 */
++	delta_trace_summary(ctx);
++
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 
+ 	v4l2_fh_del(&ctx->fh);
+-- 
+1.9.1
 
-date:			Tue Nov 22 05:00:22 CET 2016
-media-tree git hash:	8c1d254f2de803fc7d74269e8ded79047284c275
-media_build git hash:	0721d4bde661c71cd4e41de37afb24b0694c65a3
-v4l-utils git hash:	046f2376ac29b3f1b8f88f094527ff65814a5c9c
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: ERRORS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
