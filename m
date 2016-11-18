@@ -1,57 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:45599 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750786AbcKBEjd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 00:39:33 -0400
-Date: Wed, 02 Nov 2016 13:39:30 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: David =?iso-8859-15?Q?H=E4rdeman?= <david@hardeman.nu>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH v2 5/7] [media] ir-lirc-codec: don't wait any transmitting
- time for tx only devices
-Message-id: <20161102043929.eaf7nlje2cru7nky@gangnam.samsung>
-References: <20161027143601.GA5103@gofer.mess.org>
- <20160901171629.15422-1-andi.shyti@samsung.com>
- <20160901171629.15422-6-andi.shyti@samsung.com>
- <CGME20160902084206epcas1p26e535506ec1c418ede9ba230d40f0656@epcas1p2.samsung.com>
- <20160902084158.GA25342@gofer.mess.org>
- <20161027074401.wxg5icc6hcpwnfsf@gangnam.samsung>
- <7e2f88ed83c4044c30bc03aaea9f09e1@hardeman.nu>
- <20161031170526.GA8183@gofer.mess.org>
- <20161101065111.hofyxjps2iwmxpzj@gangnam.samsung>
- <20161101103408.GA15939@gofer.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20161101103408.GA15939@gofer.mess.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55796
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752084AbcKRNBH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 08:01:07 -0500
+Date: Fri, 18 Nov 2016 11:00:58 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 14/18] [media] RedRat3: Rename a jump label in
+ redrat3_init_rc_dev()
+Message-ID: <20161118110058.458a3a47@vento.lan>
+In-Reply-To: <20161118105240.6d23990e@vento.lan>
+References: <566ABCD9.1060404@users.sourceforge.net>
+        <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
+        <172b54fe-559b-44a4-9902-96abece75a7f@users.sourceforge.net>
+        <20161118105240.6d23990e@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Em Fri, 18 Nov 2016 10:52:40 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-> > > Andi, it would be good to know what the use-case for the original change is.
+> Em Thu, 13 Oct 2016 18:42:16 +0200
+> SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
+> 
+> > From: Markus Elfring <elfring@users.sourceforge.net>
+> > Date: Thu, 13 Oct 2016 15:00:12 +0200
 > > 
-> > the use case is the ir-spi itself which doesn't need the lirc to
-> > perform any waiting on its behalf.
+> > Adjust a jump label according to the Linux coding style convention.
+> > 
+> > Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> > ---
+> >  drivers/media/rc/redrat3.c | 5 ++---
+> >  1 file changed, 2 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+> > index 74d93dd..055f214 100644
+> > --- a/drivers/media/rc/redrat3.c
+> > +++ b/drivers/media/rc/redrat3.c
+> > @@ -890,12 +890,11 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+> >  	ret = rc_register_device(rc);
+> >  	if (ret < 0) {
+> >  		dev_err(rr3->dev, "remote dev registration failed\n");
+> > -		goto out;
+> > +		goto free_device;
+> >  	}
+> >  
+> >  	return rc;
+> > -
+> > -out:
+> > +free_device:
+> >  	rc_free_device(rc);
+> >  	return NULL;
+> >  }  
 > 
-> Here is the crux of the problem: in the ir-spi case no wait will actually 
-> happen here, and certainly no "over-wait". The patch below will not change
-> behaviour at all.
+> I don't see *any* sense on patches like this. Please don't flood me with
+> useless patches like that.
 > 
-> In the ir-spi case, "towait" will be 0 and no wait happens.
-> 
-> I think the code is already in good shape but somehow there is a 
-> misunderstanding. Did I miss something?
+> I'll silently ignore any patches like this during my review.
 
-We can just drop this patch, it's just something small that is
-bothering me.
+Btw:
+	[PATCH 14/18] [media] RedRat3: Rename a jump label in redrat3_init_rc_dev()
 
-I will send a new patchset without this one.
+Don't use CamelCase for the name of the driver. We don't use CamelCase
+inside the Kernel, as it violates its coding style. Also, it means
+nothing, as the name of this driver, and its c file is "redhat3".
 
 Thanks,
-Andi
+Mauro
