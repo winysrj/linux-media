@@ -1,122 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46930 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750714AbcKKFAZ (ORCPT
+Received: from lelnx194.ext.ti.com ([198.47.27.80]:14816 "EHLO
+        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753495AbcKRXVN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 00:00:25 -0500
-Message-ID: <5c094cd86507c0989178ce4540c89575@smtp-cloud3.xs4all.net>
-Date: Fri, 11 Nov 2016 06:00:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 18 Nov 2016 18:21:13 -0500
+From: Benoit Parrot <bparrot@ti.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <linux-kernel@vger.kernel.org>,
+        Tomi Valkeinen <tomi.valkeinen@ti.com>,
+        Jyri Sarha <jsarha@ti.com>,
+        Peter Ujfalusi <peter.ujfalusi@ti.com>,
+        Benoit Parrot <bparrot@ti.com>
+Subject: [Patch v2 12/35] media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
+Date: Fri, 18 Nov 2016 17:20:22 -0600
+Message-ID: <20161118232045.24665-13-bparrot@ti.com>
+In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
+References: <20161118232045.24665-1-bparrot@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Nikhil Devshatwar <nikhil.nd@ti.com>
 
-Results of the daily build of media_tree:
+Whenever VPDMA processes a data descriptor of a list, it processes it
+and sets up the channel for the DMA transaction. List manager holds the
+descriptor in the list until the DMA is complete. If sync_on_channel
+descriptor, or another descriptor for the same channel is present in
+the FIFO, list manager keeps them until the current channel is free.
 
-date:			Fri Nov 11 05:00:18 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	bce0dfbb3eca1600249a7ebc5eaea2e19bfaf56b
-v4l-utils git hash:	788b674f3827607c09c31be11c91638f816aa6ae
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+When the capture stream is closed suddenly while there are pending
+descriptors in the FIFO (streamON failed, application killed), it would
+keep the VPDMA in a busy state. Any further list post would fail with
+EBUSY.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+To avoid this, drivers need to stop the current processing list and
+cleanup all the resources VPDMA has taken and also clear the internal FSM
+of list manager. The state machine is cleared by issuing channel specific
+abort descriptor.
 
-Detailed results are available here:
+Therefore, the vpdma_list_cleanup accepts an array of channels for which
+abort_channel descriptors should be posted. It is driver's responsibility
+to post for all the channels or the channels which were used in the last
+context.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
+Signed-off-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 75 +++++++++++++++++++++++++++++++++++
+ drivers/media/platform/ti-vpe/vpdma.h |  6 +++
+ 2 files changed, 81 insertions(+)
 
-Full logs are available here:
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 1a0152842a17..7808c9c1828b 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -385,6 +385,56 @@ void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
+ EXPORT_SYMBOL(vpdma_unmap_desc_buf);
+ 
+ /*
++ * Cleanup all pending descriptors of a list
++ * First, stop the current list being processed.
++ * If the VPDMA was busy, this step makes vpdma to accept post lists.
++ * To cleanup the internal FSM, post abort list descriptor for all the
++ * channels from @channels array of size @size.
++ */
++int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
++		int *channels, int size)
++{
++	struct vpdma_desc_list abort_list;
++	int i, ret, timeout = 500;
++
++	write_reg(vpdma, VPDMA_LIST_ATTR,
++			(list_num << VPDMA_LIST_NUM_SHFT) |
++			(1 << VPDMA_LIST_STOP_SHFT));
++
++	if (size <= 0 || !channels)
++		return 0;
++
++	ret = vpdma_create_desc_list(&abort_list,
++		size * sizeof(struct vpdma_dtd), VPDMA_LIST_TYPE_NORMAL);
++	if (ret)
++		return ret;
++
++	for (i = 0; i < size; i++)
++		vpdma_add_abort_channel_ctd(&abort_list, channels[i]);
++
++	ret = vpdma_map_desc_buf(vpdma, &abort_list.buf);
++	if (ret)
++		return ret;
++	ret = vpdma_submit_descs(vpdma, &abort_list, list_num);
++	if (ret)
++		return ret;
++
++	while (vpdma_list_busy(vpdma, list_num) && timeout--)
++		;
++
++	if (timeout == 0) {
++		dev_err(&vpdma->pdev->dev, "Timed out cleaning up VPDMA list\n");
++		return -EBUSY;
++	}
++
++	vpdma_unmap_desc_buf(vpdma, &abort_list.buf);
++	vpdma_free_desc_buf(&abort_list.buf);
++
++	return 0;
++}
++EXPORT_SYMBOL(vpdma_list_cleanup);
++
++/*
+  * create a descriptor list, the user of this list will append configuration,
+  * control and data descriptors to this list, this list will be submitted to
+  * VPDMA. VPDMA's list parser will go through each descriptor and perform the
+@@ -629,6 +679,31 @@ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ }
+ EXPORT_SYMBOL(vpdma_add_sync_on_channel_ctd);
+ 
++/*
++ * append an 'abort_channel' type control descriptor to the given descriptor
++ * list, this descriptor aborts any DMA transaction happening using the
++ * specified channel
++ */
++void vpdma_add_abort_channel_ctd(struct vpdma_desc_list *list,
++		int chan_num)
++{
++	struct vpdma_ctd *ctd;
++
++	ctd = list->next;
++	WARN_ON((void *)(ctd + 1) > (list->buf.addr + list->buf.size));
++
++	ctd->w0 = 0;
++	ctd->w1 = 0;
++	ctd->w2 = 0;
++	ctd->type_source_ctl = ctd_type_source_ctl(chan_num,
++				CTD_TYPE_ABORT_CHANNEL);
++
++	list->next = ctd + 1;
++
++	dump_ctd(ctd);
++}
++EXPORT_SYMBOL(vpdma_add_abort_channel_ctd);
++
+ static void dump_dtd(struct vpdma_dtd *dtd)
+ {
+ 	int dir, chan;
+diff --git a/drivers/media/platform/ti-vpe/vpdma.h b/drivers/media/platform/ti-vpe/vpdma.h
+index 32b9ed5191c5..4dafc1bcf116 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.h
++++ b/drivers/media/platform/ti-vpe/vpdma.h
+@@ -163,6 +163,8 @@ enum vpdma_channel {
+ #define VIP_CHAN_YUV_PORTB_OFFSET	2
+ #define VIP_CHAN_RGB_PORTB_OFFSET	1
+ 
++#define VPDMA_MAX_CHANNELS		256
++
+ /* flags for VPDMA data descriptors */
+ #define VPDMA_DATA_ODD_LINE_SKIP	(1 << 0)
+ #define VPDMA_DATA_EVEN_LINE_SKIP	(1 << 1)
+@@ -219,6 +221,8 @@ void vpdma_add_cfd_adb(struct vpdma_desc_list *list, int client,
+ 		struct vpdma_buf *adb);
+ void vpdma_add_sync_on_channel_ctd(struct vpdma_desc_list *list,
+ 		enum vpdma_channel chan);
++void vpdma_add_abort_channel_ctd(struct vpdma_desc_list *list,
++		int chan_num);
+ void vpdma_add_out_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct v4l2_rect *c_rect,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+@@ -233,6 +237,8 @@ void vpdma_add_in_dtd(struct vpdma_desc_list *list, int width,
+ 		const struct vpdma_data_format *fmt, dma_addr_t dma_addr,
+ 		enum vpdma_channel chan, int field, u32 flags, int frame_width,
+ 		int frame_height, int start_h, int start_v);
++int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
++		int *channels, int size);
+ 
+ /* vpdma list interrupt management */
+ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
+-- 
+2.9.0
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
