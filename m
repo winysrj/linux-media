@@ -1,115 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Wed, 23 Nov 2016 08:49:02 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
- <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
- <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
- <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
- <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57617
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752430AbcKRTAB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 18 Nov 2016 14:00:01 -0500
+Date: Fri, 18 Nov 2016 16:59:51 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Thierry Escande <thierry.escande@collabora.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH v5] [media] vb2: Add support for
+ capture_dma_bidirectional queue flag
+Message-ID: <20161118165951.5940e21a@vento.lan>
+In-Reply-To: <1477383749-16208-1-git-send-email-thierry.escande@collabora.com>
+References: <1477383749-16208-1-git-send-email-thierry.escande@collabora.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 22, 2016 at 01:21:03PM -0800, Dan Williams wrote:
-> On Tue, Nov 22, 2016 at 1:03 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
-> > <serguei.sagalovitch@amd.com> wrote:
-> >>
-> >> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
-> >>>
-> >>> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com>
-> >>> wrote:
-> >>>>
-> >>>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
-> >>>> <serguei.sagalovitch@amd.com> wrote:
-> >>>>>
-> >>>>> I personally like "device-DAX" idea but my concerns are:
-> >>>>>
-> >>>>> -  How well it will co-exists with the  DRM infrastructure /
-> >>>>> implementations
-> >>>>>     in part dealing with CPU pointers?
-> >>>>
-> >>>> Inside the kernel a device-DAX range is "just memory" in the sense
-> >>>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
-> >>>> not migratable. To be honest I do not know how well that co-exists
-> >>>> with drm infrastructure.
-> >>>>
-> >>>>> -  How well we will be able to handle case when we need to
-> >>>>> "move"/"evict"
-> >>>>>     memory/data to the new location so CPU pointer should point to the
-> >>>>> new
-> >>>>> physical location/address
-> >>>>>      (and may be not in PCI device memory at all)?
-> >>>>
-> >>>> So, device-DAX deliberately avoids support for in-kernel migration or
-> >>>> overcommit. Those cases are left to the core mm or drm. The device-dax
-> >>>> interface is for cases where all that is needed is a direct-mapping to
-> >>>> a statically-allocated physical-address range be it persistent memory
-> >>>> or some other special reserved memory range.
-> >>>
-> >>> For some of the fancy use-cases (e.g. to be comparable to what HMM can
-> >>> pull off) I think we want all the magic in core mm, i.e. migration and
-> >>> overcommit. At least that seems to be the very strong drive in all
-> >>> general-purpose gpu abstractions and implementations, where memory is
-> >>> allocated with malloc, and then mapped/moved into vram/gpu address
-> >>> space through some magic,
-> >>
-> >> It is possible that there is other way around: memory is requested to be
-> >> allocated and should be kept in vram for  performance reason but due
-> >> to possible overcommit case we need at least temporally to "move" such
-> >> allocation to system memory.
-> >
-> > With migration I meant migrating both ways of course. And with stuff
-> > like numactl we can also influence where exactly the malloc'ed memory
-> > is allocated originally, at least if we'd expose the vram range as a
-> > very special numa node that happens to be far away and not hold any
-> > cpu cores.
+Em Tue, 25 Oct 2016 10:22:29 +0200
+Thierry Escande <thierry.escande@collabora.com> escreveu:
+
+> From: Pawel Osciak <posciak@chromium.org>
 > 
-> I don't think we should be using numa distance to reverse engineer a
-> certain allocation behavior.  The latency data should be truthful, but
-> you're right we'll need a mechanism to keep general purpose
-> allocations out of that range by default. Btw, strict isolation is
-> another design point of device-dax, but I think in this case we're
-> describing something between the two extremes of full isolation and
-> full compatibility with existing numactl apis.
+> When this flag is set for CAPTURE queues by the driver on calling
+> vb2_queue_init(), it forces the buffers on the queue to be
+> allocated/mapped with DMA_BIDIRECTIONAL direction flag instead of
+> DMA_FROM_DEVICE. This allows the device not only to write to the
+> buffers, but also read out from them. This may be useful e.g. for codec
+> hardware which may be using CAPTURE buffers as reference to decode
+> other buffers.
+> 
+> This flag is ignored for OUTPUT queues as we don't want to allow HW to
+> be able to write to OUTPUT buffers.
+> 
+> This patch introduces 2 macros:
+> VB2_DMA_DIR(q) returns the corresponding dma_dir for the passed queue
+> type, tanking care of the capture_dma_birectional flag.
+> 
+> VB2_DMA_DIR_CAPTURE(d) is a test macro returning true if the passed DMA
+> direction refers to a capture buffer. This test is used to map virtual
+> addresses for writing and to mark pages as dirty.
 
-Yes, agreed. My idea with exposing vram sections using numa nodes wasn't
-to reuse all the existing allocation policies directly, those won't work.
-So at boot-up your default numa policy would exclude any vram nodes.
+Why to add it? There's no other patch on this series with would
+justify its needs...
 
-But I think (as an -mm layman) that numa gives us a lot of the tools and
-policy interface that we need to implement what we want for gpus.
+> 
+> Signed-off-by: Pawel Osciak <posciak@chromium.org>
+> Tested-by: Pawel Osciak <posciak@chromium.org>
+> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
+> ---
+> 
+> Changes in v2:
+> - Renamed use_dma_bidirectional field as capture_dma_bidirectional
+> - Added a VB2_DMA_DIR() macro
+> 
+> Changes in v3:
+> - Get rid of dma_dir field and therefore squashed the previous patch
+> 
+> Changes in v4:
+> - Fixed typos in include/media/videobuf2-core.h
+> - Added VB2_DMA_DIR_CAPTURE() test macro
+> 
+> Changes in v5:
+> - Use is_output queue field in VB2_DMA_DIR() macro
+> 
+>  drivers/media/v4l2-core/videobuf2-core.c       |  9 +++------
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c |  2 +-
+>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  5 +++--
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  4 ++--
+>  include/media/videobuf2-core.h                 | 23 +++++++++++++++++++++++
+>  5 files changed, 32 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 21900202..22d6105 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -194,8 +194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
+>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>  	void *mem_priv;
+>  	int plane;
+>  	int ret = -ENOMEM;
+> @@ -978,8 +977,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+>  
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> @@ -1096,8 +1094,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
+>  	void *mem_priv;
+>  	unsigned int plane;
+>  	int ret = 0;
+> -	enum dma_data_direction dma_dir =
+> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
+> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
+>  	bool reacquired = vb->planes[0].mem_priv == NULL;
+>  
+>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index fb6a177..a44e383 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -507,7 +507,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->dma_dir = dma_dir;
+>  
+>  	offset = vaddr & ~PAGE_MASK;
+> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, VB2_DMA_DIR_CAPTURE(dma_dir));
+>  	if (IS_ERR(vec)) {
+>  		ret = PTR_ERR(vec);
+>  		goto fail_buf;
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index ecff8f49..51c98f6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -238,7 +238,8 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->offset = vaddr & ~PAGE_MASK;
+>  	buf->size = size;
+>  	buf->dma_sgt = &buf->sg_table;
+> -	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size,
+> +				  VB2_DMA_DIR_CAPTURE(buf->dma_dir));
+>  	if (IS_ERR(vec))
+>  		goto userptr_fail_pfnvec;
+>  	buf->vec = vec;
+> @@ -291,7 +292,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+>  		vm_unmap_ram(buf->vaddr, buf->num_pages);
+>  	sg_free_table(buf->dma_sgt);
+>  	while (--i >= 0) {
+> -		if (buf->dma_dir == DMA_FROM_DEVICE)
+> +		if (VB2_DMA_DIR_CAPTURE(buf->dma_dir))
+>  			set_page_dirty_lock(buf->pages[i]);
+>  	}
+>  	vb2_destroy_framevec(buf->vec);
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index ab3227b..76649bd 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -86,7 +86,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
+>  	buf->dma_dir = dma_dir;
+>  	offset = vaddr & ~PAGE_MASK;
+>  	buf->size = size;
+> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
+> +	vec = vb2_create_framevec(vaddr, size, VB2_DMA_DIR_CAPTURE(dma_dir));
+>  	if (IS_ERR(vec)) {
+>  		ret = PTR_ERR(vec);
+>  		goto fail_pfnvec_create;
+> @@ -136,7 +136,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+>  		pages = frame_vector_pages(buf->vec);
+>  		if (vaddr)
+>  			vm_unmap_ram((void *)vaddr, n_pages);
+> -		if (buf->dma_dir == DMA_FROM_DEVICE)
+> +		if (VB2_DMA_DIR_CAPTURE(buf->dma_dir))
+>  			for (i = 0; i < n_pages; i++)
+>  				set_page_dirty_lock(pages[i]);
+>  	} else {
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index ac5898a..11d2e51 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -433,6 +433,9 @@ struct vb2_buf_ops {
+>   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
+>   *              has not been called. This is a vb1 idiom that has been adopted
+>   *              also by vb2.
+> + * @capture_dma_bidirectional:	use DMA_BIDIRECTIONAL for CAPTURE buffers; this
+> + *				allows HW to read from the CAPTURE buffers in
+> + *				addition to writing; ignored for OUTPUT queues.
+>   * @lock:	pointer to a mutex that protects the vb2_queue struct. The
+>   *		driver can set this to a mutex to let the v4l2 core serialize
+>   *		the queuing ioctls. If the driver wants to handle locking
+> @@ -499,6 +502,7 @@ struct vb2_queue {
+>  	unsigned			fileio_write_immediately:1;
+>  	unsigned			allow_zero_bytesused:1;
+>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+> +	unsigned			capture_dma_bidirectional:1;
+>  
+>  	struct mutex			*lock;
+>  	void				*owner;
+> @@ -554,6 +558,25 @@ struct vb2_queue {
+>  #endif
+>  };
+>  
+> +/*
+> + * Returns the corresponding DMA direction given the vb2_queue type (capture or
+> + * output). Returns DMA_BIDIRECTIONAL for capture buffers if the vb2_queue field
+> + * capture_dma_bidirectional is set by the driver.
+> + */
+> +#define VB2_DMA_DIR(q) ((q)->is_output ? DMA_TO_DEVICE                  \
+> +				       : (q)->capture_dma_bidirectional \
+> +					 ? DMA_BIDIRECTIONAL            \
+> +					 : DMA_FROM_DEVICE)
+> +
+> +/*
+> + * Returns true if the DMA direction passed as parameter refers to a capture
+> + * buffer as capture buffers allow both FROM_DEVICE and BIDIRECTIONAL DMA
+> + * direction. This test is used to map virtual addresses for writing and to mark
+> + * pages as dirty.
+> + */
+> +#define VB2_DMA_DIR_CAPTURE(d) \
+> +			((d) == DMA_FROM_DEVICE || (d) == DMA_BIDIRECTIONAL)
+> +
+>  /**
+>   * vb2_plane_vaddr() - Return a kernel virtual address of a given plane
+>   * @vb:		vb2_buffer to which the plane in question belongs to
 
-Wrt isolation: There's a sliding scale of what different users expect,
-from full auto everything, including migrating pages around if needed to
-full isolation all seems to be on the table. As long as we keep vram nodes
-out of any default allocation numasets, full isolation should be possible.
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+
+Thanks,
+Mauro
