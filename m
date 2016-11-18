@@ -1,109 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:49114 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933653AbcKNPmm (ORCPT
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:37360 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752418AbcKRJLi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 10:42:42 -0500
-Subject: Re: [RFCv2 PATCH 2/5] drm/bridge: dw_hdmi: remove CEC engine register
- definitions
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
- <1479136968-24477-3-git-send-email-hverkuil@xs4all.nl>
- <20161114153926.GO1041@n2100.armlinux.org.uk>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d2689f8b-beed-25f5-e113-26195754b380@xs4all.nl>
-Date: Mon, 14 Nov 2016 16:42:37 +0100
+        Fri, 18 Nov 2016 04:11:38 -0500
+Received: by mail-wm0-f47.google.com with SMTP id t79so24117284wmt.0
+        for <linux-media@vger.kernel.org>; Fri, 18 Nov 2016 01:11:37 -0800 (PST)
+Subject: Re: [PATCH v3 4/9] media: venus: vdec: add video decoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
+ <63a91a5a-a97b-f3df-d16d-c8f76bf20c30@xs4all.nl>
+ <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <86442d1d-4a12-71c1-97fa-12bc73bb5045@linaro.org>
+Date: Fri, 18 Nov 2016 11:11:34 +0200
 MIME-Version: 1.0
-In-Reply-To: <20161114153926.GO1041@n2100.armlinux.org.uk>
+In-Reply-To: <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You're CC-ed for all, so if you don't receive it in the next 15 minutes
-let me know and I'll forward it to you. But my guess is that the mails were
-delayed for some reason and that they simply haven't arrived yet.
+Hi Hans,
 
-	Hans
+>>> +
+>>> +static int
+>>> +vdec_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
+>>> +{
+>>> +	struct vb2_queue *queue = to_vb2q(file, b->type);
+>>> +
+>>> +	if (!queue)
+>>> +		return -EINVAL;
+>>> +
+>>> +	return vb2_reqbufs(queue, b);
+>>> +}
+>>
+>> Is there any reason why the v4l2_m2m_ioctl_reqbufs et al helper functions
+>> can't be used? I strongly recommend that, unless there is a specific reason
+>> why that won't work.
+> 
+> So that means I need to completely rewrite the v4l2 part and adopt it
+> for mem2mem device APIs.
+> 
+> If that is what you meant I can invest some time to make a estimation
+> what would be the changes and time needed. After that we can decide what
+> to do - take the driver as is and port it to mem2mem device APIs later
+> on or wait for the this transition to happen before merging.
+> 
 
-On 11/14/2016 04:39 PM, Russell King - ARM Linux wrote:
-> I can't comment on these, you've not included me in patch 1 nor the
-> covering message.
-> 
-> On Mon, Nov 14, 2016 at 04:22:45PM +0100, Hans Verkuil wrote:
->> From: Russell King <rmk+kernel@arm.linux.org.uk>
->>
->> We don't need the CEC engine register definitions, so let's remove them.
->>
->> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->> ---
->>  drivers/gpu/drm/bridge/dw-hdmi.h | 45 ----------------------------------------
->>  1 file changed, 45 deletions(-)
->>
->> diff --git a/drivers/gpu/drm/bridge/dw-hdmi.h b/drivers/gpu/drm/bridge/dw-hdmi.h
->> index fc9a560..26d6845 100644
->> --- a/drivers/gpu/drm/bridge/dw-hdmi.h
->> +++ b/drivers/gpu/drm/bridge/dw-hdmi.h
->> @@ -478,51 +478,6 @@
->>  #define HDMI_A_PRESETUP                         0x501A
->>  #define HDMI_A_SRM_BASE                         0x5020
->>  
->> -/* CEC Engine Registers */
->> -#define HDMI_CEC_CTRL                           0x7D00
->> -#define HDMI_CEC_STAT                           0x7D01
->> -#define HDMI_CEC_MASK                           0x7D02
->> -#define HDMI_CEC_POLARITY                       0x7D03
->> -#define HDMI_CEC_INT                            0x7D04
->> -#define HDMI_CEC_ADDR_L                         0x7D05
->> -#define HDMI_CEC_ADDR_H                         0x7D06
->> -#define HDMI_CEC_TX_CNT                         0x7D07
->> -#define HDMI_CEC_RX_CNT                         0x7D08
->> -#define HDMI_CEC_TX_DATA0                       0x7D10
->> -#define HDMI_CEC_TX_DATA1                       0x7D11
->> -#define HDMI_CEC_TX_DATA2                       0x7D12
->> -#define HDMI_CEC_TX_DATA3                       0x7D13
->> -#define HDMI_CEC_TX_DATA4                       0x7D14
->> -#define HDMI_CEC_TX_DATA5                       0x7D15
->> -#define HDMI_CEC_TX_DATA6                       0x7D16
->> -#define HDMI_CEC_TX_DATA7                       0x7D17
->> -#define HDMI_CEC_TX_DATA8                       0x7D18
->> -#define HDMI_CEC_TX_DATA9                       0x7D19
->> -#define HDMI_CEC_TX_DATA10                      0x7D1a
->> -#define HDMI_CEC_TX_DATA11                      0x7D1b
->> -#define HDMI_CEC_TX_DATA12                      0x7D1c
->> -#define HDMI_CEC_TX_DATA13                      0x7D1d
->> -#define HDMI_CEC_TX_DATA14                      0x7D1e
->> -#define HDMI_CEC_TX_DATA15                      0x7D1f
->> -#define HDMI_CEC_RX_DATA0                       0x7D20
->> -#define HDMI_CEC_RX_DATA1                       0x7D21
->> -#define HDMI_CEC_RX_DATA2                       0x7D22
->> -#define HDMI_CEC_RX_DATA3                       0x7D23
->> -#define HDMI_CEC_RX_DATA4                       0x7D24
->> -#define HDMI_CEC_RX_DATA5                       0x7D25
->> -#define HDMI_CEC_RX_DATA6                       0x7D26
->> -#define HDMI_CEC_RX_DATA7                       0x7D27
->> -#define HDMI_CEC_RX_DATA8                       0x7D28
->> -#define HDMI_CEC_RX_DATA9                       0x7D29
->> -#define HDMI_CEC_RX_DATA10                      0x7D2a
->> -#define HDMI_CEC_RX_DATA11                      0x7D2b
->> -#define HDMI_CEC_RX_DATA12                      0x7D2c
->> -#define HDMI_CEC_RX_DATA13                      0x7D2d
->> -#define HDMI_CEC_RX_DATA14                      0x7D2e
->> -#define HDMI_CEC_RX_DATA15                      0x7D2f
->> -#define HDMI_CEC_LOCK                           0x7D30
->> -#define HDMI_CEC_WKUPCTRL                       0x7D31
->> -
->>  /* I2C Master Registers (E-DDC) */
->>  #define HDMI_I2CM_SLAVE                         0x7E00
->>  #define HDMI_I2CM_ADDRESS                       0x7E01
->> -- 
->> 2.8.1
->>
->>
->> _______________________________________________
->> linux-arm-kernel mailing list
->> linux-arm-kernel@lists.infradead.org
->> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+I made an attempt to adopt v4l2 part of the venus driver to m2m API's
+and the result was ~300 less lines of code, but with the price of few
+extensions in m2m APIs (and I still have issues with running
+simultaneously multiple instances).
+
+I have to add few functions/macros to iterate over a list (list_for_each
+and friends). This is used to find the returned from decoder buffers by
+address and associate them to vb2_buffer, because the decoder can change
+the order of the output buffers.
+
+The main problem I have is registering of the capture buffers before
+session_start. This is requirement (disadvantage) of the firmware
+implementation i.e. I need to announce capture buffers (address and size
+of the buffer) to the firmware before start buffer interaction by
+session_start.
+
+So having that I think I will need one more week to stabilize the driver
+to the state that it was before this m2m transition.
+
+Thoughts?
+
+-- 
+regards,
+Stan
