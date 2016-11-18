@@ -1,113 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx194.ext.ti.com ([198.47.27.80]:14812 "EHLO
-        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753303AbcKRXVD (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:48853 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752337AbcKRUBN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:03 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 05/35] media: ti-vpe: Use line average de-interlacing for first 2 frames
-Date: Fri, 18 Nov 2016 17:20:15 -0600
-Message-ID: <20161118232045.24665-6-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 18 Nov 2016 15:01:13 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Antti Palosaari <crope@iki.fi>,
+        Matthias Schwarzott <zzam@gentoo.org>,
+        Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH] [media] Kconfig: fix breakages when DVB_CORE is not selected
+Date: Fri, 18 Nov 2016 18:00:51 -0200
+Message-Id: <a4afb3ed430af793702c32ff2e68613263291e81.1479499245.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Archit Taneja <archit@ti.com>
+On some weird randconfigs, it is possible to select DVB
+drivers, without having the DVB_CORE:
 
-The motion detection block requires 3 fields to create the motion vector
-data. This means that using the default method the first progressive
-frame is only generated after 3rd field is consumed.
-Hence by default for N input field we would generate N - 2 progressive
-frames.
+CONFIG_DVB_AU8522=m
+CONFIG_DVB_AU8522_V4L=m
+CONFIG_DVB_TUNER_DIB0090=m
 
-In order to generate N progressive frames from N fields we use the
-line averaging mode of the de-interlacer for the first 2 fields and then
-revert back to the preferred Edge Directed Interpolation method (using
-the motion vector).
-Thus creating 2 line averaged frames + N - 2 motion based frames for a
-total of N frames.
+This was never supposed to work, but changeset 22a613e89825
+("[media] dvb_frontend: merge duplicate dvb_tuner_ops.release implementations")
+caused it to be exposed:
 
-Signed-off-by: Archit Taneja <archit@ti.com>
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
+   drivers/built-in.o: In function `fc0011_attach':
+   (.text+0x1598fb): undefined reference to `dvb_tuner_simple_release'
+   drivers/built-in.o:(.rodata+0x55e58): undefined reference to `dvb_tuner_simple_release'
+   drivers/built-in.o:(.rodata+0x57398): undefined reference to `dvb_tuner_simple_release'
+
+Fixes: 22a613e89825 ("[media] dvb_frontend: merge duplicate dvb_tuner_ops.release implementations")
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/ti-vpe/vpe.c | 33 +++++++++++++++++++++++++++++++--
- 1 file changed, 31 insertions(+), 2 deletions(-)
+ drivers/media/Kconfig               | 2 +-
+ drivers/media/dvb-frontends/Kconfig | 9 +++++----
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpe.c b/drivers/media/platform/ti-vpe/vpe.c
-index bd385c5bae2f..ad838b8a98c4 100644
---- a/drivers/media/platform/ti-vpe/vpe.c
-+++ b/drivers/media/platform/ti-vpe/vpe.c
-@@ -141,7 +141,7 @@ struct vpe_dei_regs {
-  */
- static const struct vpe_dei_regs dei_regs = {
- 	.mdt_spacial_freq_thr_reg = 0x020C0804u,
--	.edi_config_reg = 0x0118100Fu,
-+	.edi_config_reg = 0x0118100Cu,
- 	.edi_lut_reg0 = 0x08040200u,
- 	.edi_lut_reg1 = 0x1010100Cu,
- 	.edi_lut_reg2 = 0x10101010u,
-@@ -798,6 +798,23 @@ static void set_dei_shadow_registers(struct vpe_ctx *ctx)
- 	ctx->load_mmrs = true;
- }
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index bc643cbf813e..3512316e7a46 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -115,7 +115,7 @@ config MEDIA_CONTROLLER
  
-+static void config_edi_input_mode(struct vpe_ctx *ctx, int mode)
-+{
-+	struct vpe_mmr_adb *mmr_adb = ctx->mmr_adb.addr;
-+	u32 *edi_config_reg = &mmr_adb->dei_regs[3];
-+
-+	if (mode & 0x2)
-+		write_field(edi_config_reg, 1, 1, 2);	/* EDI_ENABLE_3D */
-+
-+	if (mode & 0x3)
-+		write_field(edi_config_reg, 1, 1, 3);	/* EDI_CHROMA_3D  */
-+
-+	write_field(edi_config_reg, mode, VPE_EDI_INP_MODE_MASK,
-+		VPE_EDI_INP_MODE_SHIFT);
-+
-+	ctx->load_mmrs = true;
-+}
-+
- /*
-  * Set the shadow registers whose values are modified when either the
-  * source or destination format is changed.
-@@ -1111,6 +1128,15 @@ static void device_run(void *priv)
- 	ctx->dst_vb = v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
- 	WARN_ON(ctx->dst_vb == NULL);
+ config MEDIA_CONTROLLER_DVB
+ 	bool "Enable Media controller for DVB (EXPERIMENTAL)"
+-	depends on MEDIA_CONTROLLER
++	depends on MEDIA_CONTROLLER && DVB_CORE
+ 	---help---
+ 	  Enable the media controller API support for DVB.
  
-+	if (ctx->deinterlacing) {
-+		/*
-+		 * we have output the first 2 frames through line average, we
-+		 * now switch to EDI de-interlacer
-+		 */
-+		if (ctx->sequence == 2)
-+			config_edi_input_mode(ctx, 0x3); /* EDI (Y + UV) */
-+	}
-+
- 	/* config descriptors */
- 	if (ctx->dev->loaded_mmrs != ctx->mmr_adb.dma_addr || ctx->load_mmrs) {
- 		vpdma_map_desc_buf(ctx->dev->vpdma, &ctx->mmr_adb);
-@@ -1864,7 +1890,10 @@ static void vpe_buf_queue(struct vb2_buffer *vb)
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index b71b747ee0ba..c841fa1770be 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -642,7 +642,7 @@ config DVB_S5H1409
+ 	  to support this frontend.
  
- static int vpe_start_streaming(struct vb2_queue *q, unsigned int count)
- {
--	/* currently we do nothing here */
-+	struct vpe_ctx *ctx = vb2_get_drv_priv(q);
-+
-+	if (ctx->deinterlacing)
-+		config_edi_input_mode(ctx, 0x0);
+ config DVB_AU8522
+-	depends on I2C
++	depends on DVB_CORE && I2C
+ 	tristate
  
- 	return 0;
- }
+ config DVB_AU8522_DTV
+@@ -656,7 +656,7 @@ config DVB_AU8522_DTV
+ 
+ config DVB_AU8522_V4L
+ 	tristate "Auvitek AU8522 based ATV demod"
+-	depends on VIDEO_V4L2 && I2C
++	depends on VIDEO_V4L2 && DVB_CORE && I2C
+ 	select DVB_AU8522
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+@@ -722,7 +722,7 @@ config DVB_PLL
+ 
+ config DVB_TUNER_DIB0070
+ 	tristate "DiBcom DiB0070 silicon base-band tuner"
+-	depends on I2C
++	depends on DVB_CORE && I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  A driver for the silicon baseband tuner DiB0070 from DiBcom.
+@@ -731,7 +731,7 @@ config DVB_TUNER_DIB0070
+ 
+ config DVB_TUNER_DIB0090
+ 	tristate "DiBcom DiB0090 silicon base-band tuner"
+-	depends on I2C
++	depends on DVB_CORE && I2C
+ 	default m if !MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  A driver for the silicon baseband tuner DiB0090 from DiBcom.
+@@ -879,5 +879,6 @@ comment "Tools to develop new frontends"
+ 
+ config DVB_DUMMY_FE
+ 	tristate "Dummy frontend driver"
++	depends on DVB_CORE
+ 	default n
+ endmenu
 -- 
-2.9.0
+2.7.4
 
