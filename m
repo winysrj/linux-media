@@ -1,86 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:21959 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755162AbcKVDrz (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:52004 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753005AbcKRVMy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 22:47:55 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>
-Subject: [PATCH v7 1/4] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-Date: Tue, 22 Nov 2016 11:46:14 +0800
-Message-ID: <1479786377-11567-2-git-send-email-rick.chang@mediatek.com>
-In-Reply-To: <1479786377-11567-1-git-send-email-rick.chang@mediatek.com>
-References: <1479786377-11567-1-git-send-email-rick.chang@mediatek.com>
+        Fri, 18 Nov 2016 16:12:54 -0500
+Date: Fri, 18 Nov 2016 22:12:52 +0100
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: Olliver Schinagl <oliver@schinagl.nl>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        "Yann E. MORIN" <yann.morin.1998@free.fr>
+Subject: Re: [PATCH dtv-scan-tables] Rename pl-Krosno_Sucha_Gora with only
+ ASCII characters
+Message-ID: <20161118221252.37882d92@free-electrons.com>
+In-Reply-To: <3081b3c9-4822-a40f-b119-5a75b65e3869@schinagl.nl>
+References: <1479157550-983-1-git-send-email-thomas.petazzoni@free-electrons.com>
+        <3081b3c9-4822-a40f-b119-5a75b65e3869@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation for Mediatek JPEG Decoder of
-MT2701 SoC.
+Hello,
 
-Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../bindings/media/mediatek-jpeg-decoder.txt       | 37 ++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+On Fri, 18 Nov 2016 22:05:02 +0100, Olliver Schinagl wrote:
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt b/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
-new file mode 100644
-index 0000000..3813947
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
-@@ -0,0 +1,37 @@
-+* Mediatek JPEG Decoder
-+
-+Mediatek JPEG Decoder is the JPEG decode hardware present in Mediatek SoCs
-+
-+Required properties:
-+- compatible : must be one of the following string:
-+	"mediatek,mt8173-jpgdec"
-+	"mediatek,mt2701-jpgdec"
-+- reg : physical base address of the jpeg decoder registers and length of
-+  memory mapped region.
-+- interrupts : interrupt number to the interrupt controller.
-+- clocks: device clocks, see
-+  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
-+- clock-names: must contain "jpgdec-smi" and "jpgdec".
-+- power-domains: a phandle to the power domain, see
-+  Documentation/devicetree/bindings/power/power_domain.txt for details.
-+- mediatek,larb: must contain the local arbiters in the current Socs, see
-+  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-+  for details.
-+- iommus: should point to the respective IOMMU block with master port as
-+  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-+  for details.
-+
-+Example:
-+	jpegdec: jpegdec@15004000 {
-+		compatible = "mediatek,mt2701-jpgdec";
-+		reg = <0 0x15004000 0 0x1000>;
-+		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-+		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-+			  <&imgsys CLK_IMG_JPGDEC>;
-+		clock-names = "jpgdec-smi",
-+			      "jpgdec";
-+		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-+		mediatek,larb = <&larb2>;
-+		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-+			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-+	};
+> I agree for consistency sake and ease of use, to use plain ascii for 
+> pl-Krosno_Sucha_Gora as well. If someone feels that we should follow 
+> proper spelling using UTF-8, someone should fix up and correct all names 
+> in 1 rename patch.
+> 
+> Also there are various downstream users, which may simply not support 
+> UTF-8. So by using ascii we also reduce the risk of trouble there.
+> 
+> Thank you for the patch and it has been merged.
+
+Thanks a lot!
+
+I think encoding the correct name of the city in the file name is not a
+good idea. File name encoding is always problematic. Instead, what
+would be better is to have the proper city name inside the file itself.
+This way, you can specify that for the entire database, the files are
+encoded in UTF-8.
+
+Best regards,
+
+Thomas
 -- 
-1.9.1
-
+Thomas Petazzoni, CTO, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
