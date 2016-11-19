@@ -1,638 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f177.google.com ([209.85.220.177]:33633 "EHLO
-        mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750780AbcKXGb0 (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:48088 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750958AbcKSRzS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 01:31:26 -0500
-Received: by mail-qk0-f177.google.com with SMTP id x190so40036099qkb.0
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 22:31:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <2379913.pFkGVXK2x8@avalon>
-References: <1479863920-14708-1-git-send-email-matt@ranostay.consulting> <2379913.pFkGVXK2x8@avalon>
-From: Matt Ranostay <matt@ranostay.consulting>
-Date: Wed, 23 Nov 2016 22:31:24 -0800
-Message-ID: <CAJ_EiSSjjf9KDVzA=Qyd0BqXC30Hb89UgcJ7Oinr8bWCN=JmHg@mail.gmail.com>
-Subject: Re: [PATCH v3] media: i2c-polling: add i2c-polling driver
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
-        Luca Barbato <lu_zero@gentoo.org>
-Content-Type: text/plain; charset=UTF-8
+        Sat, 19 Nov 2016 12:55:18 -0500
+Message-ID: <1479578112.4382.15.camel@infradead.org>
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+From: David Woodhouse <dwmw2@infradead.org>
+To: Jonathan Corbet <corbet@lwn.net>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        ksummit-discuss@lists.linuxfoundation.org,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+Date: Sat, 19 Nov 2016 09:55:12 -0800
+In-Reply-To: <20161119101543.12b89563@lwn.net>
+References: <20161107075524.49d83697@vento.lan>
+         <11020459.EheIgy38UF@wuerfel> <20161116182633.74559ffd@vento.lan>
+         <2923918.nyphv1Ma7d@wuerfel>
+         <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
+         <20161119101543.12b89563@lwn.net>
+Content-Type: multipart/signed; micalg="sha-256";
+        protocol="application/x-pkcs7-signature";
+        boundary="=-ugIEJpje4xSFKun2G51L"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 8:30 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Matt,
->
-> Thank you for the patch.
->
-> On Tuesday 22 Nov 2016 17:18:40 Matt Ranostay wrote:
->> There are several thermal sensors that only have a low-speed bus
->> interface but output valid video data. This patchset enables support
->> for the AMG88xx "Grid-Eye" sensor family.
->>
->> Cc: Attila Kinali <attila@kinali.ch>
->> Cc: Marek Vasut <marex@denx.de>
->> Cc: Luca Barbato <lu_zero@gentoo.org>
->> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
->> ---
->> Changes from v1:
->> * correct i2c_polling_remove() operations
->> * fixed delay calcuation in buffer_queue()
->> * add include linux/slab.h
->>
->> Changes from v2:
->> * fix build error due to typo in include of slab.h
->>
->>  drivers/media/i2c/Kconfig       |   8 +
->>  drivers/media/i2c/Makefile      |   1 +
->>  drivers/media/i2c/i2c-polling.c | 469 +++++++++++++++++++++++++++++++++++++
->
-> Just looking at the driver name I believe a rename is needed. i2c-polling is a
-> very generic name and would mislead many people into thinking about an I2C
-> subsystem core feature instead of a video driver. "video-i2c" is one option,
-> I'm open to other ideas.
->
->>  3 files changed, 478 insertions(+)
->>  create mode 100644 drivers/media/i2c/i2c-polling.c
->>
->> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
->> index b31fa6fae009..d840e7be0036 100644
->> --- a/drivers/media/i2c/Kconfig
->> +++ b/drivers/media/i2c/Kconfig
->> @@ -768,6 +768,14 @@ config VIDEO_M52790
->>
->>        To compile this driver as a module, choose M here: the
->>        module will be called m52790.
->> +
->> +config VIDEO_I2C_POLLING
->> +     tristate "I2C polling video support"
->> +     depends on VIDEO_V4L2 && I2C
->> +     select VIDEOBUF2_VMALLOC
->> +     ---help---
->> +       Enable the I2C polling video support which supports the following:
->> +        * Panasonic AMG88xx Grid-Eye Sensors
->>  endmenu
->>
->>  menu "Sensors used on soc_camera driver"
->> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
->> index 92773b2e6225..8182ec9f66b9 100644
->> --- a/drivers/media/i2c/Makefile
->> +++ b/drivers/media/i2c/Makefile
->> @@ -79,6 +79,7 @@ obj-$(CONFIG_VIDEO_LM3646)  += lm3646.o
->>  obj-$(CONFIG_VIDEO_SMIAPP_PLL)       += smiapp-pll.o
->>  obj-$(CONFIG_VIDEO_AK881X)           += ak881x.o
->>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
->> +obj-$(CONFIG_VIDEO_I2C_POLLING)      += i2c-polling.o
->>  obj-$(CONFIG_VIDEO_ML86V7667)        += ml86v7667.o
->>  obj-$(CONFIG_VIDEO_OV2659)   += ov2659.o
->>  obj-$(CONFIG_VIDEO_TC358743) += tc358743.o
->> diff --git a/drivers/media/i2c/i2c-polling.c
->> b/drivers/media/i2c/i2c-polling.c new file mode 100644
->> index 000000000000..46a4eecde2d2
->> --- /dev/null
->> +++ b/drivers/media/i2c/i2c-polling.c
->> @@ -0,0 +1,469 @@
->> +/*
->> + * i2c_polling.c - Support for polling I2C video devices
->> + *
->> + * Copyright (C) 2016 Matt Ranostay <mranostay@ranostay.consulting>
->> + *
->> + * Based on the orginal work drivers/media/parport/bw-qcam.c
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License as published by
->> + * the Free Software Foundation; either version 2 of the License, or
->> + * (at your option) any later version.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
->> + * GNU General Public License for more details.
->> + *
->> + * Supported:
->> + * - Panasonic AMG88xx Grid-Eye Sensors
->> + */
->> +
->> +#include <linux/module.h>
->> +#include <linux/of.h>
->
-> I don't think you implement device tree support, is linux/of.h needed ? Or
-> maybe you could implement device tree support ;-)
->
->> +#include <linux/delay.h>
->> +#include <linux/videodev2.h>
->> +#include <linux/mutex.h>
->> +#include <linux/slab.h>
->> +#include <linux/i2c.h>
->> +#include <media/v4l2-common.h>
->> +#include <media/v4l2-ioctl.h>
->> +#include <media/v4l2-device.h>
->> +#include <media/v4l2-fh.h>
->> +#include <media/v4l2-ctrls.h>
->> +#include <media/v4l2-event.h>
->
-> You don't implement any control, you can drop support for control events as
-> well.
->
->> +#include <media/videobuf2-vmalloc.h>
->
-> Please sort includes alphabetically, it makes it easier to locate duplicates.
->
->> +#define I2C_POLLING_DRIVER   "i2c-polling"
->> +
->> +struct i2c_polling_chip;
->> +
->> +struct i2c_polling_data {
->> +     struct i2c_client *client;
->> +     const struct i2c_polling_chip *chip;
->> +     struct mutex lock;
->> +     struct mutex queue_lock;
->> +     unsigned int last_update;
->> +
->> +     struct v4l2_device v4l2_dev;
->> +     struct video_device vdev;
->> +     struct vb2_queue vb_vidq;
->> +};
->> +
->> +static struct v4l2_fmtdesc amg88xx_format = {
->> +     .description = "12-bit Greyscale",
->> +     .pixelformat = V4L2_PIX_FMT_Y12,
->> +};
->> +
->> +static struct v4l2_frmsize_discrete amg88xx_size = {
->> +     .width = 8,
->> +     .height = 8,
->> +};
->> +
->> +struct i2c_polling_chip {
->> +     /* video dimensions */
->> +     struct v4l2_fmtdesc *format;
->> +     struct v4l2_frmsize_discrete *size;
->> +
->> +     /* max frames per second */
->> +     unsigned int max_fps;
->> +
->> +     /* pixel buffer size */
->> +     unsigned int buffer_size;
->> +
->> +     /* xfer function */
->> +     int (*xfer)(struct i2c_polling_data *data, char *buf);
->> +};
->> +
->> +enum {
->> +     AMG88XX = 0,
->> +     I2C_POLLING_CHIP_CNT,
->> +};
->> +
->> +static int amg88xx_xfer(struct i2c_polling_data *data, char *buf)
->> +{
->> +     struct i2c_client *client = data->client;
->> +     struct i2c_msg msg[2];
->> +     u8 reg = 0x80;
->> +     int ret;
->> +
->> +     msg[0].addr = client->addr;
->> +     msg[0].flags = 0;
->> +     msg[0].len = 1;
->> +     msg[0].buf  = (char *) &reg;
->> +
->> +     msg[1].addr = client->addr;
->> +     msg[1].flags = I2C_M_RD;
->> +     msg[1].len = data->chip->buffer_size;
->> +     msg[1].buf = (char *) buf;
->> +
->> +     ret = i2c_transfer(client->adapter, msg, 2);
->> +
->> +     return (ret == 2) ? 0 : -EIO;
->> +}
->> +
->> +static const struct i2c_polling_chip
->> i2c_polling_chips[I2C_POLLING_CHIP_CNT] = {
->> +     [AMG88XX] = {
->> +             .size           = &amg88xx_size,
->> +             .format         = &amg88xx_format,
->> +             .max_fps        = 10,
->> +             .buffer_size    = 128,
->> +             .xfer           = &amg88xx_xfer,
->> +     },
->> +};
->> +
->> +static const struct v4l2_file_operations i2c_polling_fops = {
->> +     .owner          = THIS_MODULE,
->> +     .open           = v4l2_fh_open,
->> +     .release        = vb2_fop_release,
->> +     .poll           = vb2_fop_poll,
->> +     .unlocked_ioctl = video_ioctl2,
->> +     .read           = vb2_fop_read,
->> +     .mmap           = vb2_fop_mmap,
->> +};
->> +
->> +static int queue_setup(struct vb2_queue *vq,
->> +                    unsigned int *nbuffers, unsigned int *nplanes,
->> +                    unsigned int sizes[], struct device *alloc_devs[])
->> +{
->> +     struct i2c_polling_data *data = vb2_get_drv_priv(vq);
->> +
->> +     if (!(*nbuffers))
->> +             *nbuffers = 3;
->> +
->> +     *nplanes = 1;
->> +     sizes[0] = data->chip->buffer_size;
->> +
->> +     return 0;
->> +}
->> +
->> +static void buffer_queue(struct vb2_buffer *vb)
->> +{
->> +     struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
->> +     unsigned int delay = 1000 / data->chip->max_fps;
->> +     int delta;
->> +
->> +     mutex_lock(&data->lock);
->> +
->> +     delta = jiffies - data->last_update;
->> +
->> +     if (delta < msecs_to_jiffies(delay)) {
->> +             int tmp = (delay - jiffies_to_msecs(delta)) * 1000;
->> +
->> +             usleep_range(tmp, tmp + 1000);
->> +     }
->> +     data->last_update = jiffies;
->> +
->> +     mutex_unlock(&data->lock);
->> +
->> +     vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
->> +}
->> +
->> +static void buffer_finish(struct vb2_buffer *vb)
->> +{
->> +     struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
->> +     void *vbuf = vb2_plane_vaddr(vb, 0);
->> +     int size = vb2_plane_size(vb, 0);
->> +     int ret;
->> +
->> +     mutex_lock(&data->lock);
->> +
->> +     ret = data->chip->xfer(data, vbuf);
->> +     if (ret < 0)
->> +             vb->state = VB2_BUF_STATE_ERROR;
->
-> That's not nice, the status should be set through vb2_buffer_done().
->
-> You can't transfer data in the buffer_queue handler is that function can't
-> sleep. Instead, I'm wondering whether it would make sense to perform transfers
-> in a workqueue, to making timings less dependent on userspace.
+
+--=-ugIEJpje4xSFKun2G51L
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, 2016-11-19 at 10:15 -0700, Jonathan Corbet wrote:
+> Might there be a tool or an extension out there that
+> would allow us to express these diagrams in a text-friendly, editable
+> form?
+
+I know it's unfashionable these days, but TeX always used to be bloody
+good at that kind of thing.
+
+--=20
+dwmw2
+
+--=-ugIEJpje4xSFKun2G51L
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExDzANBglghkgBZQMEAgEFADCABgkqhkiG9w0BBwEAAKCCEeAw
+ggXiMIIDyqADAgECAhBrp4p9CteI1lEK+Vnk57ThMA0GCSqGSIb3DQEBCwUAMH0xCzAJBgNVBAYT
+AklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSswKQYDVQQLEyJTZWN1cmUgRGlnaXRhbCBDZXJ0
+aWZpY2F0ZSBTaWduaW5nMSkwJwYDVQQDEyBTdGFydENvbSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
+eTAeFw0xNTEyMTYwMTAwMDVaFw0zMDEyMTYwMTAwMDVaMHUxCzAJBgNVBAYTAklMMRYwFAYDVQQK
+Ew1TdGFydENvbSBMdGQuMSkwJwYDVQQLEyBTdGFydENvbSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0
+eTEjMCEGA1UEAxMaU3RhcnRDb20gQ2xhc3MgMSBDbGllbnQgQ0EwggEiMA0GCSqGSIb3DQEBAQUA
+A4IBDwAwggEKAoIBAQC9fdr3w6J9g/Zbgv3bW1+uHht1wLUZr5gkrLtXedg17AkefMyUGwrQdvwO
+bhajcVmnKVxhrUwkZPXRAwZZosRHfEIi5FH7x6SV/8Sp5lZEuiMnvMFG2MzLA84J6Ws5T4NfXZ0q
+n4TPgnr3X2vPVS51M7Ua9nIJgn8jvTra4eyyQzxvuA/GZwKg7VQfDCmCS+kICslYYWgXOMt2xlsS
+slxLce0CGWRsT8EpMyt1iDflSjXZIsE7m1uTyHaKZspMLyIyz6mySu8j8BWWHpChNNeTrFuhVfrO
+AyDPFJVUvKZCLKBhibTLloyy+LatoWELrjdI4a8StZY8+dIR9t4APXGzAgMBAAGjggFkMIIBYDAO
+BgNVHQ8BAf8EBAMCAQYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMBIGA1UdEwEB/wQI
+MAYBAf8CAQAwMgYDVR0fBCswKTAnoCWgI4YhaHR0cDovL2NybC5zdGFydHNzbC5jb20vc2ZzY2Eu
+Y3JsMGYGCCsGAQUFBwEBBFowWDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Auc3RhcnRzc2wuY29t
+MDAGCCsGAQUFBzAChiRodHRwOi8vYWlhLnN0YXJ0c3NsLmNvbS9jZXJ0cy9jYS5jcnQwHQYDVR0O
+BBYEFCSBbDlhvkkPj7cbRivJKLUnSG1oMB8GA1UdIwQYMBaAFE4L7xqkQFulF2mHMMo0aEPQQa7y
+MD8GA1UdIAQ4MDYwNAYEVR0gADAsMCoGCCsGAQUFBwIBFh5odHRwOi8vd3d3LnN0YXJ0c3NsLmNv
+bS9wb2xpY3kwDQYJKoZIhvcNAQELBQADggIBAIvj94fsAYuErQ8BAluc4SMnIwS9NPBwAm5SH9uh
+2NCXTq7im61g7F1LIiNI/+wq37fUuaMbz4g7VarKQTgf8ubs0p7NZWcIe7Bvem2AWaXBsxsaRTYw
+5kG3DN8pd1hSEUuFoTa7DmNeFe8tiK1BrL3rbA/m48jp4AiFXgvxprJrW7izsyetOrRHPbkW4Y07
+v29MdhaPv3u1JELyszXqOzjIYo4sWlC8iDQXwgSW/ntvWy2n4LuiaozlCfXl149tKeqvwlvrla2Y
+klue/quWp9j9ou4T/OY0CXMuY+B8wNK0ohd2D4ShgFlMSjzAFRoHGKF81snTr2d1A7Ew02oF6UQy
+CkC2aNNsK5cWOojBar5c7HplX9aHYUCZouxIeU28SONJAxnATgR4cJ2jrpmYSz/kliUJ46S6UpVD
+o/ebn9c6PaM/XtDYCCaM/7XX6wc3s++sbQ7CtCn1Ax7df6ufQbwyO0V+oFa9H0KAsjHMzcwk3EV2
+B2NLatidKE/m7G+rB9m+FlVgIiSp0mGlg43QO9Kh1+JqvTCIzv2bJJkmPMLQJNuKKwHNL8F4GGp6
+jbAV+WL+LDeGfVcq8DHS3LrD+xyYEXQBiqZEdiPVOMxLDSUCXsDO0uCWpaNQ8j6y6S9p0xE/Ga0p
+eVLadVHhqf9nXqKaxnr358VgfrxzUIrvOaOjMIIF+TCCBOGgAwIBAgIQaRjuleoVgt0XsPAUByve
+JDANBgkqhkiG9w0BAQsFADB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRDb20gTHRkLjEp
+MCcGA1UECxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNVBAMTGlN0YXJ0
+Q29tIENsYXNzIDEgQ2xpZW50IENBMB4XDTE2MDMxMjE2MjEyNVoXDTE3MDMxMjE2MjEyNVowQjEc
+MBoGA1UEAwwTZHdtdzJAaW5mcmFkZWFkLm9yZzEiMCAGCSqGSIb3DQEJARYTZHdtdzJAaW5mcmFk
+ZWFkLm9yZzCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANBDAiGnoeOIQJ/Aolutct4z
+x6Yt3dOUI5d0YnydAMNOiyVLXzHuuuVjUpk/6nRxg1FN3e0i3TWe5MjSTD98760qWoAuF2g5BGU+
+tN/GUsyws26ZWOt82w7xhn4dcI8EhmASUtwDTZs5ZXPQzSkuNs6uX5SY0eKPlBNHkAtMf39hNc4m
+liy6WRDKApZxA1vCbiHsJQZdNEBYO35022bu8PZBe6LSAFKoncoGMHl1xNEkN6kfOJFYnLqBYeXO
+2mDA8KZ4h15EnQyyHGSghN92OUTc9stAWEt9a+q6TCtyW5zNgYTaaOtE41t5x2xDAgsnNU7sVM8f
+wSR3tYeW9IqTgU6eDUllb1a9FK7es3+j9UDg7OxNv9rnXIda6TdXlGWYfFltujF7FMwTofq3UG7t
+w68Ugk0MMfpZadhPhjYLI/qXiEDgQi8Xr+eWSo5P0ygaLvAz8OPcWAt8RG5Y8Id9hpb5neW1HTAR
+Q+k8lbpkx2wDPHZEft0ITROOupf76f9CNF4jYcyCKZNnjSsKeJv69VX1TsVaeqT1LJUEudXLa/BK
+FSb7x5M1KF4z46yImJrnagI19Nk/ufWn1usBXqXh8pY8cVN/I7C+TDPBY5SqIceTq7DaHZp19JQU
+IIWlyRsm2d4UoVcgIdTjX57Odap4Pjzrfp2RmC6hvkW2hQ5EreIPAgMBAAGjggG2MIIBsjAOBgNV
+HQ8BAf8EBAMCBLAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMAkGA1UdEwQCMAAwHQYD
+VR0OBBYEFBDmK2IjZJ7MKmBK0A7J/tKaSIdoMB8GA1UdIwQYMBaAFCSBbDlhvkkPj7cbRivJKLUn
+SG1oMG8GCCsGAQUFBwEBBGMwYTAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Auc3RhcnRzc2wuY29t
+MDkGCCsGAQUFBzAChi1odHRwOi8vYWlhLnN0YXJ0c3NsLmNvbS9jZXJ0cy9zY2EuY2xpZW50MS5j
+cnQwOAYDVR0fBDEwLzAtoCugKYYnaHR0cDovL2NybC5zdGFydHNzbC5jb20vc2NhLWNsaWVudDEu
+Y3JsMB4GA1UdEQQXMBWBE2R3bXcyQGluZnJhZGVhZC5vcmcwIwYDVR0SBBwwGoYYaHR0cDovL3d3
+dy5zdGFydHNzbC5jb20vMEYGA1UdIAQ/MD0wOwYLKwYBBAGBtTcBAgQwLDAqBggrBgEFBQcCARYe
+aHR0cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5MA0GCSqGSIb3DQEBCwUAA4IBAQAn5wvdgC0V
+kS226sFKAbqPnmVhc9jgrbsiXUcpdtYEzv6EZonARIeRC1UlIzK7jzZFRe95W5y4/qlcPQDoAeZL
+cSsbpW3AYPFFWdRgVp/eIR3iy9C5KEcAbkJES2lRUZWyRqAceW1Gur9kfvjM5H0kM6BBwJfCtoqo
+WragTXfsIXGNsF0F+60mUYYsKFPZzPmyz9J0Dr0xx9Lcp4fbD6UckDWCNJt2AJAiEPt/vPiiBzU8
+edaRzkYhzxd9f3pZAzhlzIf2CgTrGtKSL2X1bS/b3siREjQLhVrlGw4qxqllqER3APrDzyijLFuc
+CWpS8hxjTmYcNZSibv+3Oy6uU+wqMIIF+TCCBOGgAwIBAgIQaRjuleoVgt0XsPAUByveJDANBgkq
+hkiG9w0BAQsFADB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRDb20gTHRkLjEpMCcGA1UE
+CxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNVBAMTGlN0YXJ0Q29tIENs
+YXNzIDEgQ2xpZW50IENBMB4XDTE2MDMxMjE2MjEyNVoXDTE3MDMxMjE2MjEyNVowQjEcMBoGA1UE
+AwwTZHdtdzJAaW5mcmFkZWFkLm9yZzEiMCAGCSqGSIb3DQEJARYTZHdtdzJAaW5mcmFkZWFkLm9y
+ZzCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANBDAiGnoeOIQJ/Aolutct4zx6Yt3dOU
+I5d0YnydAMNOiyVLXzHuuuVjUpk/6nRxg1FN3e0i3TWe5MjSTD98760qWoAuF2g5BGU+tN/GUsyw
+s26ZWOt82w7xhn4dcI8EhmASUtwDTZs5ZXPQzSkuNs6uX5SY0eKPlBNHkAtMf39hNc4mliy6WRDK
+ApZxA1vCbiHsJQZdNEBYO35022bu8PZBe6LSAFKoncoGMHl1xNEkN6kfOJFYnLqBYeXO2mDA8KZ4
+h15EnQyyHGSghN92OUTc9stAWEt9a+q6TCtyW5zNgYTaaOtE41t5x2xDAgsnNU7sVM8fwSR3tYeW
+9IqTgU6eDUllb1a9FK7es3+j9UDg7OxNv9rnXIda6TdXlGWYfFltujF7FMwTofq3UG7tw68Ugk0M
+MfpZadhPhjYLI/qXiEDgQi8Xr+eWSo5P0ygaLvAz8OPcWAt8RG5Y8Id9hpb5neW1HTARQ+k8lbpk
+x2wDPHZEft0ITROOupf76f9CNF4jYcyCKZNnjSsKeJv69VX1TsVaeqT1LJUEudXLa/BKFSb7x5M1
+KF4z46yImJrnagI19Nk/ufWn1usBXqXh8pY8cVN/I7C+TDPBY5SqIceTq7DaHZp19JQUIIWlyRsm
+2d4UoVcgIdTjX57Odap4Pjzrfp2RmC6hvkW2hQ5EreIPAgMBAAGjggG2MIIBsjAOBgNVHQ8BAf8E
+BAMCBLAwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMEMAkGA1UdEwQCMAAwHQYDVR0OBBYE
+FBDmK2IjZJ7MKmBK0A7J/tKaSIdoMB8GA1UdIwQYMBaAFCSBbDlhvkkPj7cbRivJKLUnSG1oMG8G
+CCsGAQUFBwEBBGMwYTAkBggrBgEFBQcwAYYYaHR0cDovL29jc3Auc3RhcnRzc2wuY29tMDkGCCsG
+AQUFBzAChi1odHRwOi8vYWlhLnN0YXJ0c3NsLmNvbS9jZXJ0cy9zY2EuY2xpZW50MS5jcnQwOAYD
+VR0fBDEwLzAtoCugKYYnaHR0cDovL2NybC5zdGFydHNzbC5jb20vc2NhLWNsaWVudDEuY3JsMB4G
+A1UdEQQXMBWBE2R3bXcyQGluZnJhZGVhZC5vcmcwIwYDVR0SBBwwGoYYaHR0cDovL3d3dy5zdGFy
+dHNzbC5jb20vMEYGA1UdIAQ/MD0wOwYLKwYBBAGBtTcBAgQwLDAqBggrBgEFBQcCARYeaHR0cDov
+L3d3dy5zdGFydHNzbC5jb20vcG9saWN5MA0GCSqGSIb3DQEBCwUAA4IBAQAn5wvdgC0VkS226sFK
+AbqPnmVhc9jgrbsiXUcpdtYEzv6EZonARIeRC1UlIzK7jzZFRe95W5y4/qlcPQDoAeZLcSsbpW3A
+YPFFWdRgVp/eIR3iy9C5KEcAbkJES2lRUZWyRqAceW1Gur9kfvjM5H0kM6BBwJfCtoqoWragTXfs
+IXGNsF0F+60mUYYsKFPZzPmyz9J0Dr0xx9Lcp4fbD6UckDWCNJt2AJAiEPt/vPiiBzU8edaRzkYh
+zxd9f3pZAzhlzIf2CgTrGtKSL2X1bS/b3siREjQLhVrlGw4qxqllqER3APrDzyijLFucCWpS8hxj
+TmYcNZSibv+3Oy6uU+wqMYIEXjCCBFoCAQEwgYkwdTELMAkGA1UEBhMCSUwxFjAUBgNVBAoTDVN0
+YXJ0Q29tIEx0ZC4xKTAnBgNVBAsTIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MSMw
+IQYDVQQDExpTdGFydENvbSBDbGFzcyAxIENsaWVudCBDQQIQaRjuleoVgt0XsPAUByveJDANBglg
+hkgBZQMEAgEFAKCCAaUwGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
+MTYxMTE5MTc1NTEyWjAvBgkqhkiG9w0BCQQxIgQg209eF+PKZRNjg3atPQcwAqmTFRMVvXPmnXEd
+2+4sq8IwgZoGCSsGAQQBgjcQBDGBjDCBiTB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRD
+b20gTHRkLjEpMCcGA1UECxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNV
+BAMTGlN0YXJ0Q29tIENsYXNzIDEgQ2xpZW50IENBAhBpGO6V6hWC3Rew8BQHK94kMIGcBgsqhkiG
+9w0BCRACCzGBjKCBiTB1MQswCQYDVQQGEwJJTDEWMBQGA1UEChMNU3RhcnRDb20gTHRkLjEpMCcG
+A1UECxMgU3RhcnRDb20gQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkxIzAhBgNVBAMTGlN0YXJ0Q29t
+IENsYXNzIDEgQ2xpZW50IENBAhBpGO6V6hWC3Rew8BQHK94kMA0GCSqGSIb3DQEBAQUABIICADLx
+lyw/X4TdwtVvKm9d+NpwZoe3i8WRSEVD7lQL1FS6U/FtxMnaojeD8cY3a3wdyfoPjon4nQ91hksu
+pgz4gipLe1E0GfEFfcsAFrLGl8uOWcXj0W7/LepCdmH8cQ9tc40zam9rz2NUMZ+o6cYL+tjLAMGe
+EUi9Xqc1V55NnBa3N6vez33nWFStvv2v9QjsqD/u3z+J3/MTCdJkuJv4t3dVHbjb37pS1Z2mKIcU
+PQmVBQVRPaIu/9Cx/psVyv6mWJ2WrZ0XNNp2eMf8/1OQwykY+n+cKfjC0KElBMrrXIpSQ7g9U0Kg
+OJFc+UoreozIvIreR3hW1kuwWwDREHpWdo6pdSZMQeIDoGfNm7AE5rK2II4fm4wax9dsSR1DlsCe
+ptVJZ3JVLOzW8MrynxGX0Ywt79LCmqP74ljM/3UEDr21cozg9COcRXJUDXQdxkrQN8p+MYF1/hoB
+eQKDySKrlWGhD9ZyUbYxTSkRrxVr9fV0SLrXa5UK+I+XBtLbUdAXJwpRrDPJPKVoP8M/9e5opjwe
+AfWIYC8Yu4+F8MkXIsJoo3xG7oBPi6oE+MGxvYMnpeEBibDjQse7haee/PGnC3KchTlH9oodIVDL
+dpF1+rAyJvJkyosxGz+X7Qy23N2s7YXCQkr84YsRSzqZPbbJEz+8w5n78NMxahIC+ySau3QYAAAA
+AAAA
 
 
-About the workqueue how would one signal to that the buffer is written
-to buffer_queue/buffer_finish?
+--=-ugIEJpje4xSFKun2G51L--
 
-
->
->> +     mutex_unlock(&data->lock);
->> +
->> +     vb->timestamp = ktime_get_ns();
->> +     vb2_set_plane_payload(vb, 0, ret ? 0 : size);
->> +}
->> +
->> +static struct vb2_ops i2c_polling_video_qops = {
->> +     .queue_setup    = queue_setup,
->> +     .buf_queue      = buffer_queue,
->> +     .buf_finish     = buffer_finish,
->> +     .wait_prepare   = vb2_ops_wait_prepare,
->> +     .wait_finish    = vb2_ops_wait_finish,
->> +};
->> +
->> +static int i2c_polling_querycap(struct file *file, void  *priv,
->> +                             struct v4l2_capability *vcap)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(file);
->> +
->> +     strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
->> +     strlcpy(vcap->card, "I2C Polling Video", sizeof(vcap->card));
->> +
->> +     strlcpy(vcap->bus_info, "I2C:i2c-polling", sizeof(vcap->bus_info));
->
-> The bus_info field should contain information to locate the device in the
-> system. It correctly starts with I2C:, but should then be followed by the I2C
-> bus number and the device address.
->
->> +     vcap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
->> +                         V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
->> +     vcap->capabilities = vcap->device_caps | V4L2_CAP_DEVICE_CAPS;
->
-> You can set device_caps in the video_device structure instead, the code will
-> fill vcap->device_caps and vcap->capabilities for you.
->
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_g_input(struct file *file, void *fh, unsigned int
->> *inp)
->> +{
->> +     *inp = 0;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_s_input(struct file *file, void *fh, unsigned int
->> inp)
->> +{
->> +     return (inp > 0) ? -EINVAL : 0;
->> +}
->> +
->> +static int i2c_polling_enum_input(struct file *file, void *fh,
->> +                               struct v4l2_input *vin)
->> +{
->> +     if (vin->index > 0)
->> +             return -EINVAL;
->> +
->> +     strlcpy(vin->name, "Camera", sizeof(vin->name));
->> +
->> +     vin->type = V4L2_INPUT_TYPE_CAMERA;
->> +     vin->audioset = 0;
->> +     vin->tuner = 0;
->> +     vin->std = 0;
->> +     vin->status = 0;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_enum_fmt_vid_cap(struct file *file, void *fh,
->> +                                     struct v4l2_fmtdesc *fmt)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(file);
->> +     enum v4l2_buf_type type = fmt->type;
->> +
->> +     if (fmt->index > 0)
->> +             return -EINVAL;
->> +
->> +     *fmt = *data->chip->format;
->> +     fmt->type = type;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_enum_framesizes(struct file *file, void *fh,
->> +                                    struct v4l2_frmsizeenum *fsize)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(file);
->> +     struct v4l2_frmsize_discrete *size = data->chip->size;
->> +
->> +     /* currently only one frame size is allowed */
->> +     if (fsize->index > 0)
->> +             return -EINVAL;
->> +
->> +     if (fsize->pixel_format != data->chip->format->pixelformat)
->> +             return -EINVAL;
->> +
->> +     fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
->> +     fsize->discrete.width = size->width;
->> +     fsize->discrete.height = size->height;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_enum_frameintervals(struct file *file, void *priv,
->> +                                        struct v4l2_frmivalenum *fe)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(file);
->> +     struct v4l2_frmsize_discrete *size = data->chip->size;
->> +
->> +     if (fe->index > 0)
->> +             return -EINVAL;
->> +
->> +     if ((fe->width != size->width) || (fe->height != size->height))
->> +             return -EINVAL;
->
-> No need for the extra inner parentheses.
->
->> +
->> +     fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
->> +     fe->discrete.numerator = 1;
->> +     fe->discrete.denominator = data->chip->max_fps;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_try_fmt_vid_cap(struct file *file, void *fh,
->> +                                    struct v4l2_format *fmt)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(file);
->> +     struct v4l2_pix_format *pix = &fmt->fmt.pix;
->> +     struct v4l2_frmsize_discrete *size = data->chip->size;
->> +
->> +     pix->width = size->width;
->> +     pix->height = size->height;
->> +     pix->pixelformat = data->chip->format->pixelformat;
->> +     pix->field = V4L2_FIELD_NONE;
->> +     pix->bytesperline = pix->width * 2;
->> +     pix->sizeimage = pix->width * pix->height * 2;
->
-> The bytesperline and sizeimage values depend on the format. If you make the
-> format chip-specific, the computation should be generic as well.
->
-> It's very hard at this time to know how much genericity should be expected
-> from similar sensors. Unless you have more information about that, I would be
-> tempted to make a device-specific driver for now, and then refactor it later
-> to support more devices if the need arises (and if possible in a clean way).
->
->> +     pix->colorspace = V4L2_COLORSPACE_SRGB;
->> +     pix->priv = 0;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_fmt_vid_cap(struct file *file, void *fh,
->> +                                  struct v4l2_format *fmt)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(file);
->> +     int ret = i2c_polling_try_fmt_vid_cap(file, fh, fmt);
->> +
->> +     if (ret < 0)
->> +             return ret;
->> +
->> +     if (vb2_is_busy(&data->vb_vidq))
->> +             return -EBUSY;
->
-> A get format operation should be allowed even if the queue is busy, only set
-> format should return -EBUSY.
->
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_g_parm(struct file *filp, void *priv,
->> +                           struct v4l2_streamparm *parm)
->> +{
->> +     struct i2c_polling_data *data = video_drvdata(filp);
->> +
->> +     if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> +             return -EINVAL;
->> +
->> +     parm->parm.capture.readbuffers = 3;
->> +     parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
->> +     parm->parm.capture.timeperframe.numerator = 1;
->> +     parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
->> +
->> +     return 0;
->> +}
->> +
->> +static int i2c_polling_s_parm(struct file *filp, void *priv,
->> +                           struct v4l2_streamparm *parm)
->> +{
->> +     if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> +             return -EINVAL;
->> +
->> +     return i2c_polling_g_parm(filp, priv, parm);
->> +}
->> +
->> +static const struct v4l2_ioctl_ops i2c_polling_ioctl_ops = {
->> +     .vidioc_querycap                = i2c_polling_querycap,
->> +     .vidioc_g_input                 = i2c_polling_g_input,
->> +     .vidioc_s_input                 = i2c_polling_s_input,
->> +     .vidioc_enum_input              = i2c_polling_enum_input,
->> +     .vidioc_enum_fmt_vid_cap        = i2c_polling_enum_fmt_vid_cap,
->> +     .vidioc_enum_framesizes         = i2c_polling_enum_framesizes,
->> +     .vidioc_enum_frameintervals     = i2c_polling_enum_frameintervals,
->> +     .vidioc_g_fmt_vid_cap           = i2c_polling_fmt_vid_cap,
->> +     .vidioc_s_fmt_vid_cap           = i2c_polling_fmt_vid_cap,
->> +     .vidioc_g_parm                  = i2c_polling_g_parm,
->> +     .vidioc_s_parm                  = i2c_polling_s_parm,
->> +     .vidioc_try_fmt_vid_cap         = i2c_polling_try_fmt_vid_cap,
->> +     .vidioc_reqbufs                 = vb2_ioctl_reqbufs,
->> +     .vidioc_create_bufs             = vb2_ioctl_create_bufs,
->> +     .vidioc_prepare_buf             = vb2_ioctl_prepare_buf,
->> +     .vidioc_querybuf                = vb2_ioctl_querybuf,
->> +     .vidioc_qbuf                    = vb2_ioctl_qbuf,
->> +     .vidioc_dqbuf                   = vb2_ioctl_dqbuf,
->> +     .vidioc_streamon                = vb2_ioctl_streamon,
->> +     .vidioc_streamoff               = vb2_ioctl_streamoff,
->
-> No need to set the buffer-related .vidioc_* pointers to vb2_ioctl_*
-> explicitly, the core will use vb2 if the fields are left unset.
->
->> +     .vidioc_log_status              = v4l2_ctrl_log_status,
->> +     .vidioc_subscribe_event         = v4l2_ctrl_subscribe_event,
->> +     .vidioc_unsubscribe_event       = v4l2_event_unsubscribe,
->> +};
->> +
->> +static int i2c_polling_probe(struct i2c_client *client,
->> +                          const struct i2c_device_id *id)
->> +{
->> +     struct i2c_polling_data *data;
->> +     struct v4l2_device *v4l2_dev;
->> +     struct vb2_queue *queue;
->> +     int ret;
->> +
->> +     data = kzalloc(sizeof(*data), GFP_KERNEL);
->> +     if (!data)
->> +             return -ENOMEM;
->> +
->> +     data->chip = &i2c_polling_chips[id->driver_data];
->> +     data->client = client;
->> +     data->last_update = jiffies;
->> +     v4l2_dev = &data->v4l2_dev;
->> +     strlcpy(v4l2_dev->name, I2C_POLLING_DRIVER, sizeof(v4l2_dev->name));
->> +
->> +     ret = v4l2_device_register(&client->dev, v4l2_dev);
->> +     if (ret < 0)
->> +             goto error_free_device;
->> +
->> +     mutex_init(&data->lock);
->> +     mutex_init(&data->queue_lock);
->> +
->> +     queue = &data->vb_vidq;
->> +     queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->> +     queue->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
->> +     queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->
-> Please also set one of V4L2_BUF_FLAG_TSTAMP_SRC_SOF or
-> V4L2_BUF_FLAG_TSTAMP_SRC_EOF.
->
->> +     queue->drv_priv = data;
->> +     queue->ops = &i2c_polling_video_qops;
->> +     queue->mem_ops = &vb2_vmalloc_memops;
->> +
->> +     ret = vb2_queue_init(queue);
->> +     if (ret < 0)
->> +             goto error_free_device;
->> +
->> +     data->vdev.queue = queue;
->> +     data->vdev.queue->lock = &data->queue_lock;
->> +
->> +     strlcpy(data->vdev.name, "I2C Polling Video", sizeof(data-
->>vdev.name));
->> +
->> +     data->vdev.v4l2_dev = v4l2_dev;
->> +     data->vdev.fops = &i2c_polling_fops;
->> +     data->vdev.lock = &data->lock;
->> +     data->vdev.ioctl_ops = &i2c_polling_ioctl_ops;
->> +     data->vdev.release = video_device_release_empty;
->
-> You should implement a release function and free the data structure there.
-> Freeing data in the remove operation is a bad idea, as your driver will crash
-> if the device is unbound from the driver during video streaming.
-> Unregistration of the v4l2_device instance can also happen in the release
-> callback. The video_device instance obviously has to be unregistered in the
-> remove operation as done now.
->
->> +
->> +     video_set_drvdata(&data->vdev, data);
->> +     i2c_set_clientdata(client, data);
->> +
->> +     ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
->> +     if (ret < 0)
->> +             goto error_unregister_device;
->> +
->> +     return 0;
->> +
->> +error_unregister_device:
->> +     v4l2_device_unregister(v4l2_dev);
->> +
->> +error_free_device:
->> +     kfree(data);
->> +
->> +     return ret;
->> +}
->> +
->> +static int i2c_polling_remove(struct i2c_client *client)
->> +{
->> +     struct i2c_polling_data *data = i2c_get_clientdata(client);
->> +
->> +     v4l2_device_unregister(&data->v4l2_dev);
->> +     video_unregister_device(&data->vdev);
->> +     kfree(data);
->> +
->> +     return 0;
->> +}
->> +
->> +static const struct i2c_device_id i2c_polling_id_table[] = {
->> +     { "amg88xx", AMG88XX },
->> +     {}
->> +};
->> +MODULE_DEVICE_TABLE(i2c, i2c_polling_id_table);
->> +
->> +static struct i2c_driver i2c_polling_driver = {
->> +     .driver = {
->> +             .name   = I2C_POLLING_DRIVER,
->> +     },
->> +     .probe          = i2c_polling_probe,
->> +     .remove         = i2c_polling_remove,
->> +     .id_table       = i2c_polling_id_table,
->> +};
->> +
->> +module_i2c_driver(i2c_polling_driver);
->> +
->> +MODULE_AUTHOR("Matt Ranostay <mranostay@ranostay.consulting>");
->> +MODULE_DESCRIPTION("I2C polling video support");
->> +MODULE_LICENSE("GPL");
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
