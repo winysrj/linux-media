@@ -1,123 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f42.google.com ([74.125.83.42]:33883 "EHLO
-        mail-pg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754365AbcKVBoU (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36239 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753020AbcKSVJm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 20:44:20 -0500
-Received: by mail-pg0-f42.google.com with SMTP id x23so1585895pgx.1
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2016 17:44:15 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v2 4/4] [media] dt-bindings: add TI VPIF documentation
-Date: Mon, 21 Nov 2016 17:44:08 -0800
-Message-Id: <20161122014408.22388-5-khilman@baylibre.com>
-In-Reply-To: <20161122014408.22388-1-khilman@baylibre.com>
-References: <20161122014408.22388-1-khilman@baylibre.com>
+        Sat, 19 Nov 2016 16:09:42 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161119185433.331a132b@vento.lan>
+References: <20161107075524.49d83697@vento.lan> <11020459.EheIgy38UF@wuerfel>
+ <20161116182633.74559ffd@vento.lan> <2923918.nyphv1Ma7d@wuerfel>
+ <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
+ <20161119101543.12b89563@lwn.net> <20161119185433.331a132b@vento.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sat, 19 Nov 2016 13:09:40 -0800
+Message-ID: <CA+55aFxabyppB3NgH_78J0jOFJDQ4rDe6sw3ijmoANSzXuKcDw@mail.gmail.com>
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Jonathan Corbet <corbet@lwn.net>, Arnd Bergmann <arnd@arndb.de>,
+        ksummit-discuss@lists.linuxfoundation.org,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Rob Herring <robh@kernel.org>
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
- .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
- 2 files changed, 73 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+On Sat, Nov 19, 2016 at 12:54 PM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+>
+> I did some research on Friday trying to identify where those images
+> came. It turns that, for the oldest images (before I took the media
+> maintainership), PDF were actually their "source", as far as I could track,
+> in the sense that the *.gif images were produced from the PDF.
+>
+> The images seem to be generated using some LaTeX tool. Their original
+> format were probably EPS.
 
-diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
-new file mode 100644
-index 000000000000..bdd93267301f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
-@@ -0,0 +1,65 @@
-+Texas Instruments VPIF Capture
-+------------------------------
-+
-+The TI Video Port InterFace (VPIF) capture component is the primary
-+component for video capture on the DA850 family of TI DaVinci SoCs.
-+
-+TI Document number reference: SPRUH82C
-+
-+Required properties:
-+- compatible: must be "ti,da850-vpif-capture"
-+- reg: physical base address and length of the registers set for the device;
-+- interrupts: should contain IRQ line for the VPIF
-+
-+VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
-+channels or a single 16-bit channel.  It should contain at least one
-+port child node with child 'endpoint' node. Please refer to the
-+bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Example using 2 8-bit input channels, one of which is connected to an
-+I2C-connected TVP5147 decoder:
-+
-+	vpif_capture: video-capture@0x00217000 {
-+		compatible = "ti,vpif-capture";
-+		reg = <0x00217000 0x1000>;
-+		interrupts = <92>;
-+
-+		port {
-+			vpif_ch0: endpoint@0 {
-+				  reg = <0>;
-+				  bus-width = <8>;
-+				  remote-endpoint = <&composite>;
-+			};
-+
-+			vpif_ch1: endpoint@1 {
-+				  reg = <1>;
-+				  bus-width = <8>;
-+				  data-shift = <8>;
-+			};
-+		};
-+	};
-+
-+[ ... ]
-+
-+&i2c0 {
-+
-+	tvp5147@5d {
-+		compatible = "ti,tvp5147";
-+		reg = <0x5d>;
-+		status = "okay";
-+
-+		port {
-+			composite: endpoint {
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				pclk-sample = <0>;
-+
-+				/* VPIF channel 0 (lower 8-bits) */
-+				remote-endpoint = <&vpif_ch0>;
-+				bus-width = <8>;
-+			};
-+		};
-+	};
-+
-+};
-diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-new file mode 100644
-index 000000000000..d004e600aabe
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
-@@ -0,0 +1,8 @@
-+Texas Instruments VPIF
-+----------------------
-+
-+The Video Port InterFace (VPIF) is the core component for video output
-+and capture on DA850 TI Davinci SoCs.
-+
-+- compatible: must be "ti,da850-vpif"
-+- reg: physical base address and length of the registers set for the device;
--- 
-2.9.3
+The original format was almost certainly xfig.
 
+Converting fig files to eps and pdf to then encapsulate them into
+LaTeX was a very common way to do documentation with simple figures.
+Iirc, xfig natively supported "export as eps".
+
+                Linus
