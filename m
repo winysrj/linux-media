@@ -1,738 +1,746 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-05v.sys.comcast.net ([96.114.154.164]:49656 "EHLO
-        resqmta-po-05v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932995AbcKPOgA (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:59650 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752754AbcKSO5H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 09:36:00 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
-        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
-        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
-        laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH v4 3/3] sound/usb: Use Media Controller API to share media resources
-Date: Wed, 16 Nov 2016 07:29:11 -0700
-Message-Id: <74947bf781245a9220d7713d13efde768ce7bca2.1479271294.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1479271294.git.shuahkh@osg.samsung.com>
-References: <cover.1479271294.git.shuahkh@osg.samsung.com>
-In-Reply-To: <cover.1479271294.git.shuahkh@osg.samsung.com>
-References: <cover.1479271294.git.shuahkh@osg.samsung.com>
+        Sat, 19 Nov 2016 09:57:07 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jarod Wilson <jarod@redhat.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/3] [media] dvb_net: prepare to split a very complex function
+Date: Sat, 19 Nov 2016 12:56:58 -0200
+Message-Id: <ede5fe8a813bd439768fe37036b37eddc2fcf7e4.1479567006.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479567006.git.mchehab@s-opensource.com>
+References: <20161027150848.3623829-1-arnd@arndb.de>
+ <cover.1479567006.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1479567006.git.mchehab@s-opensource.com>
+References: <cover.1479567006.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change ALSA driver to use Media Controller API to share media resources
-with DVB, and V4L2 drivers on a AU0828 media device.
+The dvb_net code has a really complex function, meant to handle
+DVB network packages: it is long, has several loops and ifs
+inside, and even cause warnings with gcc5.
 
-Media Controller specific initialization is done after sound card is
-registered.  ALSA creates Media interface and entity function graph
-nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
+Prepare it to be split into smaller functions by storing all
+arguments and internal vars inside a struct.
 
-snd_usb_hw_params() will call Media Controller enable source handler
-interface to request the media resource. If resource request is granted,
-it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
-returned.
-
-Media specific cleanup is done in usb_audio_disconnect().
-
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Changes to patch 0003 since the last version in 4.7-rc1:
-- Included fixes to bugs found during testing. 
-- Updated to use the Media Allocator API.
+ drivers/media/dvb-core/dvb_net.c | 465 +++++++++++++++++++++------------------
+ 1 file changed, 245 insertions(+), 220 deletions(-)
 
- sound/usb/Kconfig        |   4 +
- sound/usb/Makefile       |   2 +
- sound/usb/card.c         |  14 +++
- sound/usb/card.h         |   3 +
- sound/usb/media.c        | 314 +++++++++++++++++++++++++++++++++++++++++++++++
- sound/usb/media.h        |  73 +++++++++++
- sound/usb/mixer.h        |   3 +
- sound/usb/pcm.c          |  28 ++++-
- sound/usb/quirks-table.h |   1 +
- sound/usb/stream.c       |   2 +
- sound/usb/usbaudio.h     |   6 +
- 11 files changed, 445 insertions(+), 5 deletions(-)
- create mode 100644 sound/usb/media.c
- create mode 100644 sound/usb/media.h
-
-diff --git a/sound/usb/Kconfig b/sound/usb/Kconfig
-index a452ad7..d14bf41 100644
---- a/sound/usb/Kconfig
-+++ b/sound/usb/Kconfig
-@@ -15,6 +15,7 @@ config SND_USB_AUDIO
- 	select SND_RAWMIDI
- 	select SND_PCM
- 	select BITREVERSE
-+	select SND_USB_AUDIO_USE_MEDIA_CONTROLLER if MEDIA_CONTROLLER && (MEDIA_SUPPORT=y || MEDIA_SUPPORT=SND_USB_AUDIO)
- 	help
- 	  Say Y here to include support for USB audio and USB MIDI
- 	  devices.
-@@ -22,6 +23,9 @@ config SND_USB_AUDIO
- 	  To compile this driver as a module, choose M here: the module
- 	  will be called snd-usb-audio.
- 
-+config SND_USB_AUDIO_USE_MEDIA_CONTROLLER
-+	bool
-+
- config SND_USB_UA101
- 	tristate "Edirol UA-101/UA-1000 driver"
- 	select SND_PCM
-diff --git a/sound/usb/Makefile b/sound/usb/Makefile
-index 2d2d122..8dca3c4 100644
---- a/sound/usb/Makefile
-+++ b/sound/usb/Makefile
-@@ -15,6 +15,8 @@ snd-usb-audio-objs := 	card.o \
- 			quirks.o \
- 			stream.o
- 
-+snd-usb-audio-$(CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER) += media.o
-+
- snd-usbmidi-lib-objs := midi.o
- 
- # Toplevel Module Dependency
-diff --git a/sound/usb/card.c b/sound/usb/card.c
-index 9e5276d..2750e56 100644
---- a/sound/usb/card.c
-+++ b/sound/usb/card.c
-@@ -66,6 +66,7 @@
- #include "format.h"
- #include "power.h"
- #include "stream.h"
-+#include "media.h"
- 
- MODULE_AUTHOR("Takashi Iwai <tiwai@suse.de>");
- MODULE_DESCRIPTION("USB Audio");
-@@ -615,6 +616,11 @@ static int usb_audio_probe(struct usb_interface *intf,
- 	if (err < 0)
- 		goto __error;
- 
-+	if (quirk && quirk->media_device) {
-+		/* don't want to fail when media_snd_device_create() fails */
-+		media_snd_device_create(chip, intf);
-+	}
-+
- 	usb_chip[chip->index] = chip;
- 	chip->num_interfaces++;
- 	usb_set_intfdata(intf, chip);
-@@ -671,6 +677,14 @@ static void usb_audio_disconnect(struct usb_interface *intf)
- 		list_for_each(p, &chip->midi_list) {
- 			snd_usbmidi_disconnect(p);
- 		}
-+		/*
-+		 * Nice to check quirk && quirk->media_device and
-+		 * then call media_snd_device_delete(). Don't have
-+		 * access to quirk here. media_snd_device_delete()
-+		 * acceses mixer_list
-+		 */
-+		media_snd_device_delete(chip);
-+
- 		/* release mixer resources */
- 		list_for_each_entry(mixer, &chip->mixer_list, list) {
- 			snd_usb_mixer_disconnect(mixer);
-diff --git a/sound/usb/card.h b/sound/usb/card.h
-index 111b0f0..6ef8e88 100644
---- a/sound/usb/card.h
-+++ b/sound/usb/card.h
-@@ -105,6 +105,8 @@ struct snd_usb_endpoint {
- 	struct list_head list;
- };
- 
-+struct media_ctl;
-+
- struct snd_usb_substream {
- 	struct snd_usb_stream *stream;
- 	struct usb_device *dev;
-@@ -156,6 +158,7 @@ struct snd_usb_substream {
- 	} dsd_dop;
- 
- 	bool trigger_tstamp_pending_update; /* trigger timestamp being updated from initial estimate */
-+	struct media_ctl *media_ctl;
- };
- 
- struct snd_usb_stream {
-diff --git a/sound/usb/media.c b/sound/usb/media.c
-new file mode 100644
-index 0000000..ccdc4d9
---- /dev/null
-+++ b/sound/usb/media.c
-@@ -0,0 +1,314 @@
-+/*
-+ * media.c - Media Controller specific ALSA driver code
-+ *
-+ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ *
-+ * This file is released under the GPLv2.
-+ */
-+
-+/*
-+ * This file adds Media Controller support to ALSA driver
-+ * to use the Media Controller API to share tuner with DVB
-+ * and V4L2 drivers that control media device. Media device
-+ * is created based on existing quirks framework. Using this
-+ * approach, the media controller API usage can be added for
-+ * a specific device.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/usb.h>
-+
-+#include <sound/pcm.h>
-+#include <sound/core.h>
-+
-+#include "usbaudio.h"
-+#include "card.h"
-+#include "mixer.h"
-+#include "media.h"
-+
-+static int media_snd_enable_source(struct media_ctl *mctl)
-+{
-+	if (mctl && mctl->media_dev->enable_source)
-+		return mctl->media_dev->enable_source(&mctl->media_entity,
-+						      &mctl->media_pipe);
-+	return 0;
-+}
-+
-+static void media_snd_disable_source(struct media_ctl *mctl)
-+{
-+	if (mctl && mctl->media_dev->disable_source)
-+		mctl->media_dev->disable_source(&mctl->media_entity);
-+}
-+
-+int media_snd_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
-+			int stream)
-+{
-+	struct media_device *mdev;
-+	struct media_ctl *mctl;
-+	struct device *pcm_dev = &pcm->streams[stream].dev;
-+	u32 intf_type;
-+	int ret = 0;
-+	u16 mixer_pad;
-+	struct media_entity *entity;
-+
-+	mdev = subs->stream->chip->media_dev;
-+	if (!mdev)
-+		return 0;
-+
-+	if (subs->media_ctl)
-+		return 0;
-+
-+	/* allocate media_ctl */
-+	mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
-+	if (!mctl)
-+		return -ENOMEM;
-+
-+	mctl->media_dev = mdev;
-+	if (stream == SNDRV_PCM_STREAM_PLAYBACK) {
-+		intf_type = MEDIA_INTF_T_ALSA_PCM_PLAYBACK;
-+		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_PLAYBACK;
-+		mctl->media_pad.flags = MEDIA_PAD_FL_SOURCE;
-+		mixer_pad = 1;
-+	} else {
-+		intf_type = MEDIA_INTF_T_ALSA_PCM_CAPTURE;
-+		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_CAPTURE;
-+		mctl->media_pad.flags = MEDIA_PAD_FL_SINK;
-+		mixer_pad = 2;
-+	}
-+	mctl->media_entity.name = pcm->name;
-+	media_entity_pads_init(&mctl->media_entity, 1, &mctl->media_pad);
-+	ret =  media_device_register_entity(mctl->media_dev,
-+					    &mctl->media_entity);
-+	if (ret)
-+		goto free_mctl;
-+
-+	mctl->intf_devnode = media_devnode_create(mdev, intf_type, 0,
-+						  MAJOR(pcm_dev->devt),
-+						  MINOR(pcm_dev->devt));
-+	if (!mctl->intf_devnode) {
-+		ret = -ENOMEM;
-+		goto unregister_entity;
-+	}
-+	mctl->intf_link = media_create_intf_link(&mctl->media_entity,
-+						 &mctl->intf_devnode->intf,
-+						 MEDIA_LNK_FL_ENABLED);
-+	if (!mctl->intf_link) {
-+		ret = -ENOMEM;
-+		goto devnode_remove;
-+	}
-+
-+	/* create link between mixer and audio */
-+	media_device_for_each_entity(entity, mdev) {
-+		switch (entity->function) {
-+		case MEDIA_ENT_F_AUDIO_MIXER:
-+			ret = media_create_pad_link(entity, mixer_pad,
-+						    &mctl->media_entity, 0,
-+						    MEDIA_LNK_FL_ENABLED);
-+			if (ret)
-+				goto remove_intf_link;
-+			break;
-+		}
-+	}
-+
-+	subs->media_ctl = mctl;
-+	return 0;
-+
-+remove_intf_link:
-+	media_remove_intf_link(mctl->intf_link);
-+devnode_remove:
-+	media_devnode_remove(mctl->intf_devnode);
-+unregister_entity:
-+	media_device_unregister_entity(&mctl->media_entity);
-+free_mctl:
-+	kfree(mctl);
-+	return ret;
-+}
-+
-+void media_snd_stream_delete(struct snd_usb_substream *subs)
-+{
-+	struct media_ctl *mctl = subs->media_ctl;
-+
-+	if (mctl && mctl->media_dev) {
-+		struct media_device *mdev;
-+
-+		mdev = mctl->media_dev;
-+		if (mdev && media_devnode_is_registered(mdev->devnode)) {
-+			media_devnode_remove(mctl->intf_devnode);
-+			media_device_unregister_entity(&mctl->media_entity);
-+			media_entity_cleanup(&mctl->media_entity);
-+		}
-+		kfree(mctl);
-+		subs->media_ctl = NULL;
-+	}
-+}
-+
-+int media_snd_start_pipeline(struct snd_usb_substream *subs)
-+{
-+	struct media_ctl *mctl = subs->media_ctl;
-+
-+	if (mctl)
-+		return media_snd_enable_source(mctl);
-+	return 0;
-+}
-+
-+void media_snd_stop_pipeline(struct snd_usb_substream *subs)
-+{
-+	struct media_ctl *mctl = subs->media_ctl;
-+
-+	if (mctl)
-+		media_snd_disable_source(mctl);
-+}
-+
-+static int media_snd_mixer_init(struct snd_usb_audio *chip)
-+{
-+	struct device *ctl_dev = &chip->card->ctl_dev;
-+	struct media_intf_devnode *ctl_intf;
-+	struct usb_mixer_interface *mixer;
-+	struct media_device *mdev = chip->media_dev;
-+	struct media_mixer_ctl *mctl;
-+	u32 intf_type = MEDIA_INTF_T_ALSA_CONTROL;
-+	int ret;
-+
-+	if (!mdev)
-+		return -ENODEV;
-+
-+	ctl_intf = chip->ctl_intf_media_devnode;
-+	if (!ctl_intf) {
-+		ctl_intf = media_devnode_create(mdev, intf_type, 0,
-+						MAJOR(ctl_dev->devt),
-+						MINOR(ctl_dev->devt));
-+		if (!ctl_intf)
-+			return -ENOMEM;
-+		chip->ctl_intf_media_devnode = ctl_intf;
-+	}
-+
-+	list_for_each_entry(mixer, &chip->mixer_list, list) {
-+
-+		if (mixer->media_mixer_ctl)
-+			continue;
-+
-+		/* allocate media_mixer_ctl */
-+		mctl = kzalloc(sizeof(*mctl), GFP_KERNEL);
-+		if (!mctl)
-+			return -ENOMEM;
-+
-+		mctl->media_dev = mdev;
-+		mctl->media_entity.function = MEDIA_ENT_F_AUDIO_MIXER;
-+		mctl->media_entity.name = chip->card->mixername;
-+		mctl->media_pad[0].flags = MEDIA_PAD_FL_SINK;
-+		mctl->media_pad[1].flags = MEDIA_PAD_FL_SOURCE;
-+		mctl->media_pad[2].flags = MEDIA_PAD_FL_SOURCE;
-+		media_entity_pads_init(&mctl->media_entity, MEDIA_MIXER_PAD_MAX,
-+				  mctl->media_pad);
-+		ret =  media_device_register_entity(mctl->media_dev,
-+						    &mctl->media_entity);
-+		if (ret) {
-+			kfree(mctl);
-+			return ret;
-+		}
-+
-+		mctl->intf_link = media_create_intf_link(&mctl->media_entity,
-+							 &ctl_intf->intf,
-+							 MEDIA_LNK_FL_ENABLED);
-+		if (!mctl->intf_link) {
-+			media_device_unregister_entity(&mctl->media_entity);
-+			media_entity_cleanup(&mctl->media_entity);
-+			kfree(mctl);
-+			return -ENOMEM;
-+		}
-+		mctl->intf_devnode = ctl_intf;
-+		mixer->media_mixer_ctl = mctl;
-+	}
-+	return 0;
-+}
-+
-+static void media_snd_mixer_delete(struct snd_usb_audio *chip)
-+{
-+	struct usb_mixer_interface *mixer;
-+	struct media_device *mdev = chip->media_dev;
-+
-+	if (!mdev)
-+		return;
-+
-+	list_for_each_entry(mixer, &chip->mixer_list, list) {
-+		struct media_mixer_ctl *mctl;
-+
-+		mctl = mixer->media_mixer_ctl;
-+		if (!mixer->media_mixer_ctl)
-+			continue;
-+
-+		if (media_devnode_is_registered(mdev->devnode)) {
-+			media_device_unregister_entity(&mctl->media_entity);
-+			media_entity_cleanup(&mctl->media_entity);
-+		}
-+		kfree(mctl);
-+		mixer->media_mixer_ctl = NULL;
-+	}
-+	if (media_devnode_is_registered(mdev->devnode))
-+		media_devnode_remove(chip->ctl_intf_media_devnode);
-+	chip->ctl_intf_media_devnode = NULL;
-+}
-+
-+int media_snd_device_create(struct snd_usb_audio *chip,
-+			struct usb_interface *iface)
-+{
-+	struct media_device *mdev;
-+	struct usb_device *usbdev = interface_to_usbdev(iface);
-+	int ret;
-+
-+	mdev = media_device_usb_allocate(usbdev, KBUILD_MODNAME);
-+	if (!mdev)
-+		return -ENOMEM;
-+
-+	if (!media_devnode_is_registered(mdev->devnode)) {
-+		/* register media_device */
-+		ret = media_device_register(mdev);
-+		if (ret) {
-+			media_device_delete(mdev, KBUILD_MODNAME);
-+			dev_err(&usbdev->dev,
-+				"Couldn't register media device. Error: %d\n",
-+				ret);
-+			return ret;
-+		}
-+	}
-+
-+	/* save media device - avoid lookups */
-+	chip->media_dev = mdev;
-+
-+	/* Create media entities for mixer and control dev */
-+	ret = media_snd_mixer_init(chip);
-+	if (ret) {
-+		dev_err(&usbdev->dev,
-+			"Couldn't create media mixer entities. Error: %d\n",
-+			ret);
-+
-+		/* clear saved media_dev */
-+		chip->media_dev = NULL;
-+
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+void media_snd_device_delete(struct snd_usb_audio *chip)
-+{
-+	struct media_device *mdev = chip->media_dev;
-+	struct snd_usb_stream *stream;
-+
-+	/* release resources */
-+	list_for_each_entry(stream, &chip->pcm_list, list) {
-+		media_snd_stream_delete(&stream->substream[0]);
-+		media_snd_stream_delete(&stream->substream[1]);
-+	}
-+
-+	media_snd_mixer_delete(chip);
-+
-+	if (mdev) {
-+		media_device_delete(mdev, KBUILD_MODNAME);
-+		chip->media_dev = NULL;
-+	}
-+}
-diff --git a/sound/usb/media.h b/sound/usb/media.h
-new file mode 100644
-index 0000000..d204375
---- /dev/null
-+++ b/sound/usb/media.h
-@@ -0,0 +1,73 @@
-+/*
-+ * media.h - Media Controller specific ALSA driver code
-+ *
-+ * Copyright (c) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ *
-+ * This file is released under the GPLv2.
-+ */
-+
-+/*
-+ * This file adds Media Controller support to ALSA driver
-+ * to use the Media Controller API to share tuner with DVB
-+ * and V4L2 drivers that control media device. Media device
-+ * is created based on existing quirks framework. Using this
-+ * approach, the media controller API usage can be added for
-+ * a specific device.
-+ */
-+#ifndef __MEDIA_H
-+
-+#ifdef CONFIG_SND_USB_AUDIO_USE_MEDIA_CONTROLLER
-+
-+#include <media/media-device.h>
-+#include <media/media-entity.h>
-+#include <media/media-dev-allocator.h>
-+#include <sound/asound.h>
-+
-+struct media_ctl {
-+	struct media_device *media_dev;
-+	struct media_entity media_entity;
-+	struct media_intf_devnode *intf_devnode;
-+	struct media_link *intf_link;
-+	struct media_pad media_pad;
-+	struct media_pipeline media_pipe;
-+};
-+
-+/*
-+ * One source pad each for SNDRV_PCM_STREAM_CAPTURE and
-+ * SNDRV_PCM_STREAM_PLAYBACK. One for sink pad to link
-+ * to AUDIO Source
-+ */
-+#define MEDIA_MIXER_PAD_MAX    (SNDRV_PCM_STREAM_LAST + 2)
-+
-+struct media_mixer_ctl {
-+	struct media_device *media_dev;
-+	struct media_entity media_entity;
-+	struct media_intf_devnode *intf_devnode;
-+	struct media_link *intf_link;
-+	struct media_pad media_pad[MEDIA_MIXER_PAD_MAX];
-+	struct media_pipeline media_pipe;
-+};
-+
-+int media_snd_device_create(struct snd_usb_audio *chip,
-+			    struct usb_interface *iface);
-+void media_snd_device_delete(struct snd_usb_audio *chip);
-+int media_snd_stream_init(struct snd_usb_substream *subs, struct snd_pcm *pcm,
-+			  int stream);
-+void media_snd_stream_delete(struct snd_usb_substream *subs);
-+int media_snd_start_pipeline(struct snd_usb_substream *subs);
-+void media_snd_stop_pipeline(struct snd_usb_substream *subs);
-+#else
-+static inline int media_snd_device_create(struct snd_usb_audio *chip,
-+					  struct usb_interface *iface)
-+						{ return 0; }
-+static inline void media_snd_device_delete(struct snd_usb_audio *chip) { }
-+static inline int media_snd_stream_init(struct snd_usb_substream *subs,
-+					struct snd_pcm *pcm, int stream)
-+						{ return 0; }
-+static inline void media_snd_stream_delete(struct snd_usb_substream *subs) { }
-+static inline int media_snd_start_pipeline(struct snd_usb_substream *subs)
-+					{ return 0; }
-+static inline void media_snd_stop_pipeline(struct snd_usb_substream *subs) { }
-+#endif
-+#endif /* __MEDIA_H */
-diff --git a/sound/usb/mixer.h b/sound/usb/mixer.h
-index 3417ef3..f378944 100644
---- a/sound/usb/mixer.h
-+++ b/sound/usb/mixer.h
-@@ -3,6 +3,8 @@
- 
- #include <sound/info.h>
- 
-+struct media_mixer_ctl;
-+
- struct usb_mixer_interface {
- 	struct snd_usb_audio *chip;
- 	struct usb_host_interface *hostif;
-@@ -22,6 +24,7 @@ struct usb_mixer_interface {
- 	struct urb *rc_urb;
- 	struct usb_ctrlrequest *rc_setup_packet;
- 	u8 rc_buffer[6];
-+	struct media_mixer_ctl *media_mixer_ctl;
- };
- 
- #define MAX_CHANNELS	16	/* max logical channels */
-diff --git a/sound/usb/pcm.c b/sound/usb/pcm.c
-index 44d178e..0e4e0640 100644
---- a/sound/usb/pcm.c
-+++ b/sound/usb/pcm.c
-@@ -35,6 +35,7 @@
- #include "pcm.h"
- #include "clock.h"
- #include "power.h"
-+#include "media.h"
- 
- #define SUBSTREAM_FLAG_DATA_EP_STARTED	0
- #define SUBSTREAM_FLAG_SYNC_EP_STARTED	1
-@@ -717,10 +718,14 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
- 	struct audioformat *fmt;
- 	int ret;
- 
-+	ret = media_snd_start_pipeline(subs);
-+	if (ret)
-+		return ret;
-+
- 	ret = snd_pcm_lib_alloc_vmalloc_buffer(substream,
- 					       params_buffer_bytes(hw_params));
- 	if (ret < 0)
--		return ret;
-+		goto err_ret;
- 
- 	subs->pcm_format = params_format(hw_params);
- 	subs->period_bytes = params_period_bytes(hw_params);
-@@ -734,22 +739,27 @@ static int snd_usb_hw_params(struct snd_pcm_substream *substream,
- 		dev_dbg(&subs->dev->dev,
- 			"cannot set format: format = %#x, rate = %d, channels = %d\n",
- 			   subs->pcm_format, subs->cur_rate, subs->channels);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto err_ret;
- 	}
- 
- 	ret = snd_usb_lock_shutdown(subs->stream->chip);
- 	if (ret < 0)
--		return ret;
-+		goto err_ret;
- 	ret = set_format(subs, fmt);
- 	snd_usb_unlock_shutdown(subs->stream->chip);
- 	if (ret < 0)
--		return ret;
-+		goto err_ret;
- 
- 	subs->interface = fmt->iface;
- 	subs->altset_idx = fmt->altset_idx;
- 	subs->need_setup_ep = true;
- 
- 	return 0;
-+
-+err_ret:
-+	media_snd_stop_pipeline(subs);
-+	return ret;
- }
- 
- /*
-@@ -761,6 +771,7 @@ static int snd_usb_hw_free(struct snd_pcm_substream *substream)
- {
- 	struct snd_usb_substream *subs = substream->runtime->private_data;
- 
-+	media_snd_stop_pipeline(subs);
- 	subs->cur_audiofmt = NULL;
- 	subs->cur_rate = 0;
- 	subs->period_bytes = 0;
-@@ -1221,6 +1232,7 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
- 	struct snd_usb_stream *as = snd_pcm_substream_chip(substream);
- 	struct snd_pcm_runtime *runtime = substream->runtime;
- 	struct snd_usb_substream *subs = &as->substream[direction];
-+	int ret;
- 
- 	subs->interface = -1;
- 	subs->altset_idx = 0;
-@@ -1234,7 +1246,12 @@ static int snd_usb_pcm_open(struct snd_pcm_substream *substream, int direction)
- 	subs->dsd_dop.channel = 0;
- 	subs->dsd_dop.marker = 1;
- 
--	return setup_hw_info(runtime, subs);
-+	ret = setup_hw_info(runtime, subs);
-+	if (ret == 0)
-+		ret = media_snd_stream_init(subs, as->pcm, direction);
-+	if (ret)
-+		snd_usb_autosuspend(subs->stream->chip);
-+	return ret;
- }
- 
- static int snd_usb_pcm_close(struct snd_pcm_substream *substream, int direction)
-@@ -1243,6 +1260,7 @@ static int snd_usb_pcm_close(struct snd_pcm_substream *substream, int direction)
- 	struct snd_usb_substream *subs = &as->substream[direction];
- 
- 	stop_endpoints(subs, true);
-+	media_snd_stop_pipeline(subs);
- 
- 	if (subs->interface >= 0 &&
- 	    !snd_usb_lock_shutdown(subs->stream->chip)) {
-diff --git a/sound/usb/quirks-table.h b/sound/usb/quirks-table.h
-index 8a59d47..164e249 100644
---- a/sound/usb/quirks-table.h
-+++ b/sound/usb/quirks-table.h
-@@ -2886,6 +2886,7 @@ YAMAHA_DEVICE(0x7010, "UB99"),
- 		.product_name = pname, \
- 		.ifnum = QUIRK_ANY_INTERFACE, \
- 		.type = QUIRK_AUDIO_ALIGN_TRANSFER, \
-+		.media_device = 1, \
- 	} \
- }
- 
-diff --git a/sound/usb/stream.c b/sound/usb/stream.c
-index 8e9548bc..6fe7f21 100644
---- a/sound/usb/stream.c
-+++ b/sound/usb/stream.c
-@@ -36,6 +36,7 @@
- #include "format.h"
- #include "clock.h"
- #include "stream.h"
-+#include "media.h"
- 
- /*
-  * free a substream
-@@ -52,6 +53,7 @@ static void free_substream(struct snd_usb_substream *subs)
- 		kfree(fp);
- 	}
- 	kfree(subs->rate_list.list);
-+	media_snd_stream_delete(subs);
- }
- 
- 
-diff --git a/sound/usb/usbaudio.h b/sound/usb/usbaudio.h
-index 4d5c89a..89b6853 100644
---- a/sound/usb/usbaudio.h
-+++ b/sound/usb/usbaudio.h
-@@ -30,6 +30,9 @@
-  *
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index b9a46d5a1bb5..6fef0fc61cd2 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -311,323 +311,348 @@ static inline void reset_ule( struct dvb_net_priv *p )
+  * Decode ULE SNDUs according to draft-ietf-ipdvb-ule-03.txt from a sequence of
+  * TS cells of a single PID.
   */
+-static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+-{
+-	struct dvb_net_priv *priv = netdev_priv(dev);
+-	unsigned long skipped = 0L;
+-	const u8 *ts, *ts_end, *from_where = NULL;
+-	u8 ts_remain = 0, how_much = 0, new_ts = 1;
+-	struct ethhdr *ethh = NULL;
+-	bool error = false;
  
-+struct media_device;
-+struct media_intf_devnode;
++struct dvb_net_ule_handle {
++	struct net_device *dev;
++	struct dvb_net_priv *priv;
++	struct ethhdr *ethh;
++	const u8 *buf;
++	size_t buf_len;
++	unsigned long skipped;
++	const u8 *ts, *ts_end, *from_where;
++	u8 ts_remain, how_much, new_ts;
++	bool error;
+ #ifdef ULE_DEBUG
+-	/* The code inside ULE_DEBUG keeps a history of the last 100 TS cells processed. */
++	/*
++	 * The code inside ULE_DEBUG keeps a history of the
++	 * last 100 TS cells processed.
++	 */
+ 	static unsigned char ule_hist[100*TS_SZ];
+ 	static unsigned char *ule_where = ule_hist, ule_dump;
+ #endif
++};
 +
- struct snd_usb_audio {
- 	int index;
- 	struct usb_device *dev;
-@@ -61,6 +64,8 @@ struct snd_usb_audio {
- 	bool autoclock;			/* from the 'autoclock' module param */
++static void dvb_net_ule(struct net_device *dev, const u8 *buf, size_t buf_len)
++{
++	struct dvb_net_ule_handle h = {
++		.dev = dev,
++		.buf = buf,
++		.buf_len = buf_len,
++		.skipped = 0L,
++		.ts = NULL,
++		.ts_end = NULL,
++		.from_where = NULL,
++		.ts_remain = 0,
++		.how_much = 0,
++		.new_ts = 1,
++		.ethh = NULL,
++		.error = false,
++#ifdef ULE_DEBUG
++		.ule_where = ule_hist,
++#endif
++	};
  
- 	struct usb_host_interface *ctrl_intf;	/* the audio control interface */
-+	struct media_device *media_dev;
-+	struct media_intf_devnode *ctl_intf_media_devnode;
- };
+ 	/* For all TS cells in current buffer.
+ 	 * Appearently, we are called for every single TS cell.
+ 	 */
+-	for (ts = buf, ts_end = buf + buf_len; ts < ts_end; /* no default incr. */ ) {
+-
+-		if (new_ts) {
++	for (h.ts = h.buf, h.ts_end = h.buf + h.buf_len; h.ts < h.ts_end; /* no incr. */ ) {
++		if (h.new_ts) {
+ 			/* We are about to process a new TS cell. */
  
- #define usb_audio_err(chip, fmt, args...) \
-@@ -111,6 +116,7 @@ struct snd_usb_audio_quirk {
- 	const char *product_name;
- 	int16_t ifnum;
- 	uint16_t type;
-+	bool media_device;
- 	const void *data;
- };
+ #ifdef ULE_DEBUG
+-			if (ule_where >= &ule_hist[100*TS_SZ]) ule_where = ule_hist;
+-			memcpy( ule_where, ts, TS_SZ );
+-			if (ule_dump) {
+-				hexdump( ule_where, TS_SZ );
+-				ule_dump = 0;
++			if (h.ule_where >= &h.ule_hist[100*TS_SZ]) h.ule_where = h.ule_hist;
++			memcpy( h.ule_where, h.ts, TS_SZ );
++			if (h.ule_dump) {
++				hexdump( h.ule_where, TS_SZ );
++				h.ule_dump = 0;
+ 			}
+-			ule_where += TS_SZ;
++			h.ule_where += TS_SZ;
+ #endif
  
+-			/* Check TS error conditions: sync_byte, transport_error_indicator, scrambling_control . */
+-			if ((ts[0] != TS_SYNC) || (ts[1] & TS_TEI) || ((ts[3] & TS_SC) != 0)) {
++			/* Check TS h.error conditions: sync_byte, transport_error_indicator, scrambling_control . */
++			if ((h.ts[0] != TS_SYNC) || (h.ts[1] & TS_TEI) || ((h.ts[3] & TS_SC) != 0)) {
+ 				pr_warn("%lu: Invalid TS cell: SYNC %#x, TEI %u, SC %#x.\n",
+-				       priv->ts_count, ts[0],
+-				       (ts[1] & TS_TEI) >> 7,
+-				       (ts[3] & TS_SC) >> 6);
++				       h.priv->ts_count, h.ts[0],
++				       (h.ts[1] & TS_TEI) >> 7,
++				       (h.ts[3] & TS_SC) >> 6);
+ 
+ 				/* Drop partly decoded SNDU, reset state, resync on PUSI. */
+-				if (priv->ule_skb) {
+-					dev_kfree_skb( priv->ule_skb );
++				if (h.priv->ule_skb) {
++					dev_kfree_skb( h.priv->ule_skb );
+ 					/* Prepare for next SNDU. */
+-					dev->stats.rx_errors++;
+-					dev->stats.rx_frame_errors++;
++					h.dev->stats.rx_errors++;
++					h.dev->stats.rx_frame_errors++;
+ 				}
+-				reset_ule(priv);
+-				priv->need_pusi = 1;
++				reset_ule(h.priv);
++				h.priv->need_pusi = 1;
+ 
+ 				/* Continue with next TS cell. */
+-				ts += TS_SZ;
+-				priv->ts_count++;
++				h.ts += TS_SZ;
++				h.priv->ts_count++;
+ 				continue;
+ 			}
+ 
+-			ts_remain = 184;
+-			from_where = ts + 4;
++			h.ts_remain = 184;
++			h.from_where = h.ts + 4;
+ 		}
+ 		/* Synchronize on PUSI, if required. */
+-		if (priv->need_pusi) {
+-			if (ts[1] & TS_PUSI) {
++		if (h.priv->need_pusi) {
++			if (h.ts[1] & TS_PUSI) {
+ 				/* Find beginning of first ULE SNDU in current TS cell. */
+ 				/* Synchronize continuity counter. */
+-				priv->tscc = ts[3] & 0x0F;
++				h.priv->tscc = h.ts[3] & 0x0F;
+ 				/* There is a pointer field here. */
+-				if (ts[4] > ts_remain) {
++				if (h.ts[4] > h.ts_remain) {
+ 					pr_err("%lu: Invalid ULE packet (pointer field %d)\n",
+-					       priv->ts_count, ts[4]);
+-					ts += TS_SZ;
+-					priv->ts_count++;
++					       h.priv->ts_count, h.ts[4]);
++					h.ts += TS_SZ;
++					h.priv->ts_count++;
+ 					continue;
+ 				}
+ 				/* Skip to destination of pointer field. */
+-				from_where = &ts[5] + ts[4];
+-				ts_remain -= 1 + ts[4];
+-				skipped = 0;
++				h.from_where = &h.ts[5] + h.ts[4];
++				h.ts_remain -= 1 + h.ts[4];
++				h.skipped = 0;
+ 			} else {
+-				skipped++;
+-				ts += TS_SZ;
+-				priv->ts_count++;
++				h.skipped++;
++				h.ts += TS_SZ;
++				h.priv->ts_count++;
+ 				continue;
+ 			}
+ 		}
+ 
+-		if (new_ts) {
++		if (h.new_ts) {
+ 			/* Check continuity counter. */
+-			if ((ts[3] & 0x0F) == priv->tscc)
+-				priv->tscc = (priv->tscc + 1) & 0x0F;
++			if ((h.ts[3] & 0x0F) == h.priv->tscc)
++				h.priv->tscc = (h.priv->tscc + 1) & 0x0F;
+ 			else {
+ 				/* TS discontinuity handling: */
+ 				pr_warn("%lu: TS discontinuity: got %#x, expected %#x.\n",
+-					priv->ts_count, ts[3] & 0x0F,
+-					priv->tscc);
++					h.priv->ts_count, h.ts[3] & 0x0F,
++					h.priv->tscc);
+ 				/* Drop partly decoded SNDU, reset state, resync on PUSI. */
+-				if (priv->ule_skb) {
+-					dev_kfree_skb( priv->ule_skb );
++				if (h.priv->ule_skb) {
++					dev_kfree_skb( h.priv->ule_skb );
+ 					/* Prepare for next SNDU. */
+-					// reset_ule(priv);  moved to below.
+-					dev->stats.rx_errors++;
+-					dev->stats.rx_frame_errors++;
++					// reset_ule(h.priv);  moved to below.
++					h.dev->stats.rx_errors++;
++					h.dev->stats.rx_frame_errors++;
+ 				}
+-				reset_ule(priv);
++				reset_ule(h.priv);
+ 				/* skip to next PUSI. */
+-				priv->need_pusi = 1;
++				h.priv->need_pusi = 1;
+ 				continue;
+ 			}
+ 			/* If we still have an incomplete payload, but PUSI is
+ 			 * set; some TS cells are missing.
+ 			 * This is only possible here, if we missed exactly 16 TS
+ 			 * cells (continuity counter wrap). */
+-			if (ts[1] & TS_PUSI) {
+-				if (! priv->need_pusi) {
+-					if (!(*from_where < (ts_remain-1)) || *from_where != priv->ule_sndu_remain) {
++			if (h.ts[1] & TS_PUSI) {
++				if (! h.priv->need_pusi) {
++					if (!(*h.from_where < (h.ts_remain-1)) || *h.from_where != h.priv->ule_sndu_remain) {
+ 						/* Pointer field is invalid.  Drop this TS cell and any started ULE SNDU. */
+ 						pr_warn("%lu: Invalid pointer field: %u.\n",
+-							priv->ts_count,
+-							*from_where);
++							h.priv->ts_count,
++							*h.from_where);
+ 
+ 						/* Drop partly decoded SNDU, reset state, resync on PUSI. */
+-						if (priv->ule_skb) {
+-							error = true;
+-							dev_kfree_skb(priv->ule_skb);
++						if (h.priv->ule_skb) {
++							h.error = true;
++							dev_kfree_skb(h.priv->ule_skb);
+ 						}
+ 
+-						if (error || priv->ule_sndu_remain) {
+-							dev->stats.rx_errors++;
+-							dev->stats.rx_frame_errors++;
+-							error = false;
++						if (h.error || h.priv->ule_sndu_remain) {
++							h.dev->stats.rx_errors++;
++							h.dev->stats.rx_frame_errors++;
++							h.error = false;
+ 						}
+ 
+-						reset_ule(priv);
+-						priv->need_pusi = 1;
++						reset_ule(h.priv);
++						h.priv->need_pusi = 1;
+ 						continue;
+ 					}
+ 					/* Skip pointer field (we're processing a
+ 					 * packed payload). */
+-					from_where += 1;
+-					ts_remain -= 1;
++					h.from_where += 1;
++					h.ts_remain -= 1;
+ 				} else
+-					priv->need_pusi = 0;
++					h.priv->need_pusi = 0;
+ 
+-				if (priv->ule_sndu_remain > 183) {
++				if (h.priv->ule_sndu_remain > 183) {
+ 					/* Current SNDU lacks more data than there could be available in the
+ 					 * current TS cell. */
+-					dev->stats.rx_errors++;
+-					dev->stats.rx_length_errors++;
+-					pr_warn("%lu: Expected %d more SNDU bytes, but got PUSI (pf %d, ts_remain %d).  Flushing incomplete payload.\n",
+-						priv->ts_count,
+-						priv->ule_sndu_remain,
+-						ts[4], ts_remain);
+-					dev_kfree_skb(priv->ule_skb);
++					h.dev->stats.rx_errors++;
++					h.dev->stats.rx_length_errors++;
++					pr_warn("%lu: Expected %d more SNDU bytes, but got PUSI (pf %d, h.ts_remain %d).  Flushing incomplete payload.\n",
++						h.priv->ts_count,
++						h.priv->ule_sndu_remain,
++						h.ts[4], h.ts_remain);
++					dev_kfree_skb(h.priv->ule_skb);
+ 					/* Prepare for next SNDU. */
+-					reset_ule(priv);
++					reset_ule(h.priv);
+ 					/* Resync: go to where pointer field points to: start of next ULE SNDU. */
+-					from_where += ts[4];
+-					ts_remain -= ts[4];
++					h.from_where += h.ts[4];
++					h.ts_remain -= h.ts[4];
+ 				}
+ 			}
+ 		}
+ 
+ 		/* Check if new payload needs to be started. */
+-		if (priv->ule_skb == NULL) {
++		if (h.priv->ule_skb == NULL) {
+ 			/* Start a new payload with skb.
+ 			 * Find ULE header.  It is only guaranteed that the
+ 			 * length field (2 bytes) is contained in the current
+ 			 * TS.
+-			 * Check ts_remain has to be >= 2 here. */
+-			if (ts_remain < 2) {
++			 * Check h.ts_remain has to be >= 2 here. */
++			if (h.ts_remain < 2) {
+ 				pr_warn("Invalid payload packing: only %d bytes left in TS.  Resyncing.\n",
+-					ts_remain);
+-				priv->ule_sndu_len = 0;
+-				priv->need_pusi = 1;
+-				ts += TS_SZ;
++					h.ts_remain);
++				h.priv->ule_sndu_len = 0;
++				h.priv->need_pusi = 1;
++				h.ts += TS_SZ;
+ 				continue;
+ 			}
+ 
+-			if (! priv->ule_sndu_len) {
++			if (! h.priv->ule_sndu_len) {
+ 				/* Got at least two bytes, thus extrace the SNDU length. */
+-				priv->ule_sndu_len = from_where[0] << 8 | from_where[1];
+-				if (priv->ule_sndu_len & 0x8000) {
++				h.priv->ule_sndu_len = h.from_where[0] << 8 | h.from_where[1];
++				if (h.priv->ule_sndu_len & 0x8000) {
+ 					/* D-Bit is set: no dest mac present. */
+-					priv->ule_sndu_len &= 0x7FFF;
+-					priv->ule_dbit = 1;
++					h.priv->ule_sndu_len &= 0x7FFF;
++					h.priv->ule_dbit = 1;
+ 				} else
+-					priv->ule_dbit = 0;
++					h.priv->ule_dbit = 0;
+ 
+-				if (priv->ule_sndu_len < 5) {
++				if (h.priv->ule_sndu_len < 5) {
+ 					pr_warn("%lu: Invalid ULE SNDU length %u. Resyncing.\n",
+-						priv->ts_count,
+-						priv->ule_sndu_len);
+-					dev->stats.rx_errors++;
+-					dev->stats.rx_length_errors++;
+-					priv->ule_sndu_len = 0;
+-					priv->need_pusi = 1;
+-					new_ts = 1;
+-					ts += TS_SZ;
+-					priv->ts_count++;
++						h.priv->ts_count,
++						h.priv->ule_sndu_len);
++					h.dev->stats.rx_errors++;
++					h.dev->stats.rx_length_errors++;
++					h.priv->ule_sndu_len = 0;
++					h.priv->need_pusi = 1;
++					h.new_ts = 1;
++					h.ts += TS_SZ;
++					h.priv->ts_count++;
+ 					continue;
+ 				}
+-				ts_remain -= 2;	/* consume the 2 bytes SNDU length. */
+-				from_where += 2;
++				h.ts_remain -= 2;	/* consume the 2 bytes SNDU length. */
++				h.from_where += 2;
+ 			}
+ 
+-			priv->ule_sndu_remain = priv->ule_sndu_len + 2;
++			h.priv->ule_sndu_remain = h.priv->ule_sndu_len + 2;
+ 			/*
+ 			 * State of current TS:
+-			 *   ts_remain (remaining bytes in the current TS cell)
++			 *   h.ts_remain (remaining bytes in the current TS cell)
+ 			 *   0	ule_type is not available now, we need the next TS cell
+ 			 *   1	the first byte of the ule_type is present
+ 			 * >=2	full ULE header present, maybe some payload data as well.
+ 			 */
+-			switch (ts_remain) {
++			switch (h.ts_remain) {
+ 				case 1:
+-					priv->ule_sndu_remain--;
+-					priv->ule_sndu_type = from_where[0] << 8;
+-					priv->ule_sndu_type_1 = 1; /* first byte of ule_type is set. */
+-					ts_remain -= 1; from_where += 1;
++					h.priv->ule_sndu_remain--;
++					h.priv->ule_sndu_type = h.from_where[0] << 8;
++					h.priv->ule_sndu_type_1 = 1; /* first byte of ule_type is set. */
++					h.ts_remain -= 1; h.from_where += 1;
+ 					/* Continue w/ next TS. */
+ 				case 0:
+-					new_ts = 1;
+-					ts += TS_SZ;
+-					priv->ts_count++;
++					h.new_ts = 1;
++					h.ts += TS_SZ;
++					h.priv->ts_count++;
+ 					continue;
+ 
+ 				default: /* complete ULE header is present in current TS. */
+ 					/* Extract ULE type field. */
+-					if (priv->ule_sndu_type_1) {
+-						priv->ule_sndu_type_1 = 0;
+-						priv->ule_sndu_type |= from_where[0];
+-						from_where += 1; /* points to payload start. */
+-						ts_remain -= 1;
++					if (h.priv->ule_sndu_type_1) {
++						h.priv->ule_sndu_type_1 = 0;
++						h.priv->ule_sndu_type |= h.from_where[0];
++						h.from_where += 1; /* points to payload start. */
++						h.ts_remain -= 1;
+ 					} else {
+ 						/* Complete type is present in new TS. */
+-						priv->ule_sndu_type = from_where[0] << 8 | from_where[1];
+-						from_where += 2; /* points to payload start. */
+-						ts_remain -= 2;
++						h.priv->ule_sndu_type = h.from_where[0] << 8 | h.from_where[1];
++						h.from_where += 2; /* points to payload start. */
++						h.ts_remain -= 2;
+ 					}
+ 					break;
+ 			}
+ 
+ 			/* Allocate the skb (decoder target buffer) with the correct size, as follows:
+ 			 * prepare for the largest case: bridged SNDU with MAC address (dbit = 0). */
+-			priv->ule_skb = dev_alloc_skb( priv->ule_sndu_len + ETH_HLEN + ETH_ALEN );
+-			if (priv->ule_skb == NULL) {
++			h.priv->ule_skb = dev_alloc_skb( h.priv->ule_sndu_len + ETH_HLEN + ETH_ALEN );
++			if (h.priv->ule_skb == NULL) {
+ 				pr_notice("%s: Memory squeeze, dropping packet.\n",
+-					  dev->name);
+-				dev->stats.rx_dropped++;
++					  h.dev->name);
++				h.dev->stats.rx_dropped++;
+ 				return;
+ 			}
+ 
+ 			/* This includes the CRC32 _and_ dest mac, if !dbit. */
+-			priv->ule_sndu_remain = priv->ule_sndu_len;
+-			priv->ule_skb->dev = dev;
++			h.priv->ule_sndu_remain = h.priv->ule_sndu_len;
++			h.priv->ule_skb->dev = h.dev;
+ 			/* Leave space for Ethernet or bridged SNDU header (eth hdr plus one MAC addr). */
+-			skb_reserve( priv->ule_skb, ETH_HLEN + ETH_ALEN );
++			skb_reserve( h.priv->ule_skb, ETH_HLEN + ETH_ALEN );
+ 		}
+ 
+ 		/* Copy data into our current skb. */
+-		how_much = min(priv->ule_sndu_remain, (int)ts_remain);
+-		memcpy(skb_put(priv->ule_skb, how_much), from_where, how_much);
+-		priv->ule_sndu_remain -= how_much;
+-		ts_remain -= how_much;
+-		from_where += how_much;
++		h.how_much = min(h.priv->ule_sndu_remain, (int)h.ts_remain);
++		memcpy(skb_put(h.priv->ule_skb, h.how_much), h.from_where, h.how_much);
++		h.priv->ule_sndu_remain -= h.how_much;
++		h.ts_remain -= h.how_much;
++		h.from_where += h.how_much;
+ 
+ 		/* Check for complete payload. */
+-		if (priv->ule_sndu_remain <= 0) {
++		if (h.priv->ule_sndu_remain <= 0) {
+ 			/* Check CRC32, we've got it in our skb already. */
+-			__be16 ulen = htons(priv->ule_sndu_len);
+-			__be16 utype = htons(priv->ule_sndu_type);
++			__be16 ulen = htons(h.priv->ule_sndu_len);
++			__be16 utype = htons(h.priv->ule_sndu_type);
+ 			const u8 *tail;
+ 			struct kvec iov[3] = {
+ 				{ &ulen, sizeof ulen },
+ 				{ &utype, sizeof utype },
+-				{ priv->ule_skb->data, priv->ule_skb->len - 4 }
++				{ h.priv->ule_skb->data, h.priv->ule_skb->len - 4 }
+ 			};
+ 			u32 ule_crc = ~0L, expected_crc;
+-			if (priv->ule_dbit) {
++			if (h.priv->ule_dbit) {
+ 				/* Set D-bit for CRC32 verification,
+ 				 * if it was set originally. */
+ 				ulen |= htons(0x8000);
+ 			}
+ 
+ 			ule_crc = iov_crc32(ule_crc, iov, 3);
+-			tail = skb_tail_pointer(priv->ule_skb);
++			tail = skb_tail_pointer(h.priv->ule_skb);
+ 			expected_crc = *(tail - 4) << 24 |
+ 				       *(tail - 3) << 16 |
+ 				       *(tail - 2) << 8 |
+ 				       *(tail - 1);
+ 			if (ule_crc != expected_crc) {
+-				pr_warn("%lu: CRC32 check FAILED: %08x / %08x, SNDU len %d type %#x, ts_remain %d, next 2: %x.\n",
+-				       priv->ts_count, ule_crc, expected_crc,
+-				       priv->ule_sndu_len, priv->ule_sndu_type,
+-				       ts_remain,
+-				       ts_remain > 2 ? *(unsigned short *)from_where : 0);
++				pr_warn("%lu: CRC32 check FAILED: %08x / %08x, SNDU len %d type %#x, h.ts_remain %d, next 2: %x.\n",
++				       h.priv->ts_count, ule_crc, expected_crc,
++				       h.priv->ule_sndu_len, h.priv->ule_sndu_type,
++				       h.ts_remain,
++				       h.ts_remain > 2 ? *(unsigned short *)h.from_where : 0);
+ 
+ #ifdef ULE_DEBUG
+ 				hexdump( iov[0].iov_base, iov[0].iov_len );
+ 				hexdump( iov[1].iov_base, iov[1].iov_len );
+ 				hexdump( iov[2].iov_base, iov[2].iov_len );
+ 
+-				if (ule_where == ule_hist) {
+-					hexdump( &ule_hist[98*TS_SZ], TS_SZ );
+-					hexdump( &ule_hist[99*TS_SZ], TS_SZ );
+-				} else if (ule_where == &ule_hist[TS_SZ]) {
+-					hexdump( &ule_hist[99*TS_SZ], TS_SZ );
+-					hexdump( ule_hist, TS_SZ );
++				if (h.ule_where == h.ule_hist) {
++					hexdump( &h.ule_hist[98*TS_SZ], TS_SZ );
++					hexdump( &h.ule_hist[99*TS_SZ], TS_SZ );
++				} else if (h.ule_where == &h.ule_hist[TS_SZ]) {
++					hexdump( &h.ule_hist[99*TS_SZ], TS_SZ );
++					hexdump( h.ule_hist, TS_SZ );
+ 				} else {
+-					hexdump( ule_where - TS_SZ - TS_SZ, TS_SZ );
+-					hexdump( ule_where - TS_SZ, TS_SZ );
++					hexdump( h.ule_where - TS_SZ - TS_SZ, TS_SZ );
++					hexdump( h.ule_where - TS_SZ, TS_SZ );
+ 				}
+-				ule_dump = 1;
++				h.ule_dump = 1;
+ #endif
+ 
+-				dev->stats.rx_errors++;
+-				dev->stats.rx_crc_errors++;
+-				dev_kfree_skb(priv->ule_skb);
++				h.dev->stats.rx_errors++;
++				h.dev->stats.rx_crc_errors++;
++				dev_kfree_skb(h.priv->ule_skb);
+ 			} else {
+ 				/* CRC32 verified OK. */
+ 				u8 dest_addr[ETH_ALEN];
+@@ -635,10 +660,10 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 					{ [ 0 ... ETH_ALEN-1] = 0xff };
+ 
+ 				/* CRC32 was OK. Remove it from skb. */
+-				priv->ule_skb->tail -= 4;
+-				priv->ule_skb->len -= 4;
++				h.priv->ule_skb->tail -= 4;
++				h.priv->ule_skb->len -= 4;
+ 
+-				if (!priv->ule_dbit) {
++				if (!h.priv->ule_dbit) {
+ 					/*
+ 					 * The destination MAC address is the
+ 					 * next data in the skb.  It comes
+@@ -648,26 +673,26 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 					 * should be passed up the stack.
+ 					 */
+ 					register int drop = 0;
+-					if (priv->rx_mode != RX_MODE_PROMISC) {
+-						if (priv->ule_skb->data[0] & 0x01) {
++					if (h.priv->rx_mode != RX_MODE_PROMISC) {
++						if (h.priv->ule_skb->data[0] & 0x01) {
+ 							/* multicast or broadcast */
+-							if (!ether_addr_equal(priv->ule_skb->data, bc_addr)) {
++							if (!ether_addr_equal(h.priv->ule_skb->data, bc_addr)) {
+ 								/* multicast */
+-								if (priv->rx_mode == RX_MODE_MULTI) {
++								if (h.priv->rx_mode == RX_MODE_MULTI) {
+ 									int i;
+-									for(i = 0; i < priv->multi_num &&
+-									    !ether_addr_equal(priv->ule_skb->data,
+-											      priv->multi_macs[i]); i++)
++									for(i = 0; i < h.priv->multi_num &&
++									    !ether_addr_equal(h.priv->ule_skb->data,
++											      h.priv->multi_macs[i]); i++)
+ 										;
+-									if (i == priv->multi_num)
++									if (i == h.priv->multi_num)
+ 										drop = 1;
+-								} else if (priv->rx_mode != RX_MODE_ALL_MULTI)
++								} else if (h.priv->rx_mode != RX_MODE_ALL_MULTI)
+ 									drop = 1; /* no broadcast; */
+ 								/* else: all multicast mode: accept all multicast packets */
+ 							}
+ 							/* else: broadcast */
+ 						}
+-						else if (!ether_addr_equal(priv->ule_skb->data, dev->dev_addr))
++						else if (!ether_addr_equal(h.priv->ule_skb->data, h.dev->dev_addr))
+ 							drop = 1;
+ 						/* else: destination address matches the MAC address of our receiver device */
+ 					}
+@@ -675,94 +700,94 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 
+ 					if (drop) {
+ #ifdef ULE_DEBUG
+-						netdev_dbg(dev, "Dropping SNDU: MAC destination address does not match: dest addr: %pM, dev addr: %pM\n",
+-							   priv->ule_skb->data, dev->dev_addr);
++						netdev_dbg(h.dev, "Dropping SNDU: MAC destination address does not match: dest addr: %pM, h.dev addr: %pM\n",
++							   h.priv->ule_skb->data, h.dev->dev_addr);
+ #endif
+-						dev_kfree_skb(priv->ule_skb);
++						dev_kfree_skb(h.priv->ule_skb);
+ 						goto sndu_done;
+ 					}
+ 					else
+ 					{
+-						skb_copy_from_linear_data(priv->ule_skb,
++						skb_copy_from_linear_data(h.priv->ule_skb,
+ 							      dest_addr,
+ 							      ETH_ALEN);
+-						skb_pull(priv->ule_skb, ETH_ALEN);
++						skb_pull(h.priv->ule_skb, ETH_ALEN);
+ 					}
+ 				}
+ 
+ 				/* Handle ULE Extension Headers. */
+-				if (priv->ule_sndu_type < ETH_P_802_3_MIN) {
++				if (h.priv->ule_sndu_type < ETH_P_802_3_MIN) {
+ 					/* There is an extension header.  Handle it accordingly. */
+-					int l = handle_ule_extensions(priv);
++					int l = handle_ule_extensions(h.priv);
+ 					if (l < 0) {
+ 						/* Mandatory extension header unknown or TEST SNDU.  Drop it. */
+ 						// pr_warn("Dropping SNDU, extension headers.\n" );
+-						dev_kfree_skb(priv->ule_skb);
++						dev_kfree_skb(h.priv->ule_skb);
+ 						goto sndu_done;
+ 					}
+-					skb_pull(priv->ule_skb, l);
++					skb_pull(h.priv->ule_skb, l);
+ 				}
+ 
+ 				/*
+ 				 * Construct/assure correct ethernet header.
+-				 * Note: in bridged mode (priv->ule_bridged !=
++				 * Note: in bridged mode (h.priv->ule_bridged !=
+ 				 * 0) we already have the (original) ethernet
+ 				 * header at the start of the payload (after
+ 				 * optional dest. address and any extension
+ 				 * headers).
+ 				 */
+ 
+-				if (!priv->ule_bridged) {
+-					skb_push(priv->ule_skb, ETH_HLEN);
+-					ethh = (struct ethhdr *)priv->ule_skb->data;
+-					if (!priv->ule_dbit) {
+-						 /* dest_addr buffer is only valid if priv->ule_dbit == 0 */
+-						memcpy(ethh->h_dest, dest_addr, ETH_ALEN);
+-						eth_zero_addr(ethh->h_source);
++				if (!h.priv->ule_bridged) {
++					skb_push(h.priv->ule_skb, ETH_HLEN);
++					h.ethh = (struct ethhdr *)h.priv->ule_skb->data;
++					if (!h.priv->ule_dbit) {
++						 /* dest_addr buffer is only valid if h.priv->ule_dbit == 0 */
++						memcpy(h.ethh->h_dest, dest_addr, ETH_ALEN);
++						eth_zero_addr(h.ethh->h_source);
+ 					}
+ 					else /* zeroize source and dest */
+-						memset( ethh, 0, ETH_ALEN*2 );
++						memset( h.ethh, 0, ETH_ALEN*2 );
+ 
+-					ethh->h_proto = htons(priv->ule_sndu_type);
++					h.ethh->h_proto = htons(h.priv->ule_sndu_type);
+ 				}
+ 				/* else:  skb is in correct state; nothing to do. */
+-				priv->ule_bridged = 0;
++				h.priv->ule_bridged = 0;
+ 
+ 				/* Stuff into kernel's protocol stack. */
+-				priv->ule_skb->protocol = dvb_net_eth_type_trans(priv->ule_skb, dev);
++				h.priv->ule_skb->protocol = dvb_net_eth_type_trans(h.priv->ule_skb, h.dev);
+ 				/* If D-bit is set (i.e. destination MAC address not present),
+ 				 * receive the packet anyhow. */
+-				/* if (priv->ule_dbit && skb->pkt_type == PACKET_OTHERHOST)
+-					priv->ule_skb->pkt_type = PACKET_HOST; */
+-				dev->stats.rx_packets++;
+-				dev->stats.rx_bytes += priv->ule_skb->len;
+-				netif_rx(priv->ule_skb);
++				/* if (h.priv->ule_dbit && skb->pkt_type == PACKET_OTHERHOST)
++					h.priv->ule_skb->pkt_type = PACKET_HOST; */
++				h.dev->stats.rx_packets++;
++				h.dev->stats.rx_bytes += h.priv->ule_skb->len;
++				netif_rx(h.priv->ule_skb);
+ 			}
+ 			sndu_done:
+ 			/* Prepare for next SNDU. */
+-			reset_ule(priv);
++			reset_ule(h.priv);
+ 		}
+ 
+ 		/* More data in current TS (look at the bytes following the CRC32)? */
+-		if (ts_remain >= 2 && *((unsigned short *)from_where) != 0xFFFF) {
++		if (h.ts_remain >= 2 && *((unsigned short *)h.from_where) != 0xFFFF) {
+ 			/* Next ULE SNDU starts right there. */
+-			new_ts = 0;
+-			priv->ule_skb = NULL;
+-			priv->ule_sndu_type_1 = 0;
+-			priv->ule_sndu_len = 0;
++			h.new_ts = 0;
++			h.priv->ule_skb = NULL;
++			h.priv->ule_sndu_type_1 = 0;
++			h.priv->ule_sndu_len = 0;
+ 			// pr_warn("More data in current TS: [%#x %#x %#x %#x]\n",
+-			//	*(from_where + 0), *(from_where + 1),
+-			//	*(from_where + 2), *(from_where + 3));
+-			// pr_warn("ts @ %p, stopped @ %p:\n", ts, from_where + 0);
+-			// hexdump(ts, 188);
++			//	*(h.from_where + 0), *(h.from_where + 1),
++			//	*(h.from_where + 2), *(h.from_where + 3));
++			// pr_warn("h.ts @ %p, stopped @ %p:\n", h.ts, h.from_where + 0);
++			// hexdump(h.ts, 188);
+ 		} else {
+-			new_ts = 1;
+-			ts += TS_SZ;
+-			priv->ts_count++;
+-			if (priv->ule_skb == NULL) {
+-				priv->need_pusi = 1;
+-				priv->ule_sndu_type_1 = 0;
+-				priv->ule_sndu_len = 0;
++			h.new_ts = 1;
++			h.ts += TS_SZ;
++			h.priv->ts_count++;
++			if (h.priv->ule_skb == NULL) {
++				h.priv->need_pusi = 1;
++				h.priv->ule_sndu_type_1 = 0;
++				h.priv->ule_sndu_len = 0;
+ 			}
+ 		}
+ 	}	/* for all available TS cells */
 -- 
 2.7.4
+
 
