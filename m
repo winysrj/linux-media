@@ -1,74 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Logan Gunthorpe <logang@deltatee.com>,
-        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
-CC: Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <3d92687e-e327-0474-2b3b-4c3301b2c57c@amd.com>
-Date: Fri, 25 Nov 2016 12:59:07 -0500
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:40008 "EHLO
+        out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752851AbcKSWc3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 19 Nov 2016 17:32:29 -0500
+Date: Sat, 19 Nov 2016 22:32:24 +0000
+From: Andrey Utkin <andrey_utkin@fastmail.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Wei Yongjun <weiyongjun1@huawei.com>,
+        Sean Young <sean@mess.org>
+Subject: Re: [PATCH v2] [media] cx88: make checkpatch.pl happy
+Message-ID: <20161119223224.GB11418@dell-m4800.home>
+References: <451cfbe8b2a968992c49edac0fad57a6425caad6.1479590802.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-In-Reply-To: <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <451cfbe8b2a968992c49edac0fad57a6425caad6.1479590802.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Thanks for your hard work at beautification of this driver :)
+>From reviewing the diff over v1, it looks good.
 
-> Well, I guess there's some consensus building to do. The existing
-> options are:
->
-> * Device DAX: which could work but the problem I see with it is that it
-> only allows one application to do these transfers. Or there would have
-> to be some user-space coordination to figure which application gets what
-> memeroy.
-About one application restriction: so it is per memory mapping? I assume 
-that
-it should not be problem for one application to do transfer to the 
-several devices
-simultaneously? Am I right?
+Also thanks for deep explanations you gave me for my comments.
 
-May be we should follow RDMA MR design and register memory for p2p 
-transfer from user
-space?
+On Sat, Nov 19, 2016 at 07:27:30PM -0200, Mauro Carvalho Chehab wrote:
+> 
+> Suggested-by: Andrey Utkin <andrey_utkin@fastmail.com>
+> Fixes: 65bc2fe86e66 ("[media] cx88: convert it to use pr_foo() macros")
+> Fixes: 7b61ba8ff838 ("[media] cx88: make checkpatch happier")
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
 
-What about the following:
+Reviewed-by: Andrey Utkin <andrey_utkin@fastmail.com>
 
-a)  Device DAX is created
-b) "Normal" (movable, etc.) allocation will be done for PCIe memory and 
-CPU pointer/access will
-be requested.
-c)  p2p_mr_register() will be called and CPU pointer (mmap( on DAX 
-Device)) will be returned.
-Accordingly such memory will be marked as "unmovable" by e.g. graphics 
-driver.
-d) When p2p is not needed then p2p_mr_unregister() will be called.
+> --- a/drivers/media/pci/cx88/cx88-input.c
+> +++ b/drivers/media/pci/cx88/cx88-input.c
+> @@ -62,11 +62,15 @@ static int ir_debug;
+>  module_param(ir_debug, int, 0644);	/* debug level [IR] */
+>  MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
+>  
+> -#define ir_dprintk(fmt, arg...)	if (ir_debug) \
+> -	printk(KERN_DEBUG "%s IR: " fmt, ir->core->name, ##arg)
+> +#define ir_dprintk(fmt, arg...)	do {					\
+> +	if (ir_debug)							\
+> +		printk(KERN_DEBUG "%s IR: " fmt, ir->core->name, ##arg);\
+> +} while (0)
 
-What do you think? Will it work?
-
-
+Oh ok, so when the patch is applied, the backslash doesn't stand out, it
+just looks this way in the diff.
