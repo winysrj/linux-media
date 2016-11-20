@@ -1,96 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:36128 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753009AbcKBT6H (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 15:58:07 -0400
-Subject: Re: [PATCH v3 0/6] Add support for IR transmitters
-To: Andi Shyti <andi.shyti@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi@etezian.org>
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <d94abce2-d11d-3776-3724-e2560c217ed2@gmail.com>
-Date: Wed, 2 Nov 2016 20:57:55 +0100
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:58008 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753032AbcKTPb6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Nov 2016 10:31:58 -0500
+Date: Sun, 20 Nov 2016 16:31:54 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161120153153.GD5189@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <20161102104010.26959-1-andi.shyti@samsung.com>
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="oj4kGyHlBMXGt3Le"
+Content-Disposition: inline
+In-Reply-To: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.11.2016 um 11:40 schrieb Andi Shyti:
-> Hi,
-> 
-> The main goal is to add support in the rc framework for IR
-> transmitters, which currently is only supported by lirc but that
-> is not the preferred way.
-> 
-> The last patch adds support for an IR transmitter driven by
-> the MOSI line of an SPI controller, it's the case of the Samsung
-> TM2(e) board which support is currently ongoing.
-> 
-> The last patch adds support for an IR transmitter driven by
-> the MOSI line of an SPI controller, it's the case of the Samsung
-> TM2(e) board which support is currently ongoing.
-> 
-> Thanks Sean for your prompt reviews.
-> 
-> Andi
-> 
-> Changelog from version 1:
-> 
-> The RFC is now PATCH. The main difference is that this version
-> doesn't try to add the any bit streaming protocol and doesn't
-> modify any LIRC interface specification.
-> 
-> patch 1: updates all the drivers using rc_allocate_device
-> patch 2: fixed errors and warning reported from the kbuild test
->          robot
-> patch 5: this patch has been dropped and replaced with a new one
->          which avoids waiting for transmitters.
-> patch 6: added new properties to the dts specification
-> patch 7: the driver uses the pulse/space input and converts it to
->          a bit stream.
-> 
-> 
-> Changelog from version 2:
-> 
-> The original patch number 5 has been abandoned because it was not
-> bringing much benenfit.
-> 
-> patch 1: rebased on the new kernel.
-> patch 3: removed the sysfs attribute protocol for transmitters
-> patch 5: the binding has been moved to the leds section instead
->          of the media. Fixed all the comments from Rob
-> patch 6: fixed all the comments from Sean added also Sean's
->          review.
-> 
-> Andi Shyti (6):
->   [media] rc-main: assign driver type during allocation
->   [media] rc-main: split setup and unregister functions
->   [media] rc-core: add support for IR raw transmitters
->   [media] rc-ir-raw: do not generate any receiving thread for raw
->     transmitters
->   Documentation: bindings: add documentation for ir-spi device driver
->   [media] rc: add support for IR LEDs driven through SPI
-> 
-Hi Andi,
 
-at least patches 1 and 2 conflict with recent extensions. See commits
-ddbf7d5a698c "rc: core: add managed versions of rc_allocate_device and
-rc_register_device" and b6f3ece38733 "[media] rc: nuvoton: use managed
-versions of rc_allocate_device and rc_register_device".
+--oj4kGyHlBMXGt3Le
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-It would be good if you could rebase your patch set on top of the
-latest master branch of media tree. Most likely you will have to make
-changes to the recently introduced managed versions of
-rc_allocate_device and rc_register_device.
+Hi!
 
-Rgds, Heiner
+> > +	/* V4L2_CID_EXPOSURE */
+> > +	min =3D et8ek8_exposure_rows_to_us(sensor, 1);
+> > +	max =3D et8ek8_exposure_rows_to_us(sensor,
+> > +				sensor->current_reglist->mode.max_exp);
+>=20
+> Haven't I suggested to use lines instead? I vaguely remember doing so...
+> this would remove quite some code from the driver.
 
+Lines ... lines ... no, I don't think I understand how to use lines
+here. I guess I could switch units from us to rows here...?
+
+Is it good idea? For userspace, microseconds are really a nice
+interface, because ... well, that's what photographers are used to
+think about (ISO 400, time 1/100). fcam also uses usec internally.
+
+In the current camera code, I do autogain in small resolution, then
+use same parameters (gain, time) at higher resolution. I guess I could
+do the same with the non-microseconds interface, but then I'd have to
+move the microsecond computation into userspace. And userspace is
+not really good place to do that, as it does not know (and should not
+have to know!) such low level details.
+
+So... can we keep the interface as it is?
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--oj4kGyHlBMXGt3Le
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlgxwekACgkQMOfwapXb+vJTMgCgsUICeBsVljgpDShQEMHWKiwK
+rgwAnilLEH+dvLHuxG3DAUiTHR1f7hJw
+=kDlM
+-----END PGP SIGNATURE-----
+
+--oj4kGyHlBMXGt3Le--
