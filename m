@@ -1,128 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57012 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757251AbcKCSes (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 14:34:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Rick Chang <rick.chang@mediatek.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        srv_heupstream@mediatek.com, linux-mediatek@lists.infradead.org,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Subject: Re: [PATCH v2 1/3] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-Date: Thu, 03 Nov 2016 20:34:45 +0200
-Message-ID: <1838616.gXE7Zi2nyC@avalon>
-In-Reply-To: <5665939.z4I9T3nobc@avalon>
-References: <1477898217-19250-1-git-send-email-rick.chang@mediatek.com> <1477898217-19250-2-git-send-email-rick.chang@mediatek.com> <5665939.z4I9T3nobc@avalon>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:37323 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753032AbcKTRg6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Nov 2016 12:36:58 -0500
+Received: by mail-wm0-f50.google.com with SMTP id t79so109588270wmt.0
+        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2016 09:36:57 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20161027203515.GA847@arch-desktop>
+References: <cover.1477592284.git.mahasler@gmail.com> <20161027203515.GA847@arch-desktop>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Sun, 20 Nov 2016 14:36:55 -0300
+Message-ID: <CAAEAJfAiK+MmT7dY-eGV2QwL6voLzBnMhrjVy=au5zT83JtjqA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] stk1160: Add module param for setting the record gain.
+To: Marcel Hasler <mahasler@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rick,
+On 27 October 2016 at 17:35, Marcel Hasler <mahasler@gmail.com> wrote:
+> Allow setting a custom record gain for the internal AC97 codec (if availa=
+ble). This can be
+> a value between 0 and 15, 8 is the default and should be suitable for mos=
+t users. The Windows
+> driver also sets this to 8 without any possibility for changing it.
+>
+> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+> ---
+>  drivers/media/usb/stk1160/stk1160-ac97.c | 11 ++++++++++-
+>  1 file changed, 10 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb=
+/stk1160/stk1160-ac97.c
+> index 6dbc39f..31bdd60d 100644
+> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+> @@ -25,6 +25,11 @@
+>  #include "stk1160.h"
+>  #include "stk1160-reg.h"
+>
+> +static u8 gain =3D 8;
+> +
+> +module_param(gain, byte, 0444);
+> +MODULE_PARM_DESC(gain, "Set capture gain level if AC97 codec is availabl=
+e (0-15, default: 8)");
+> +
+>  static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
+>  {
+>         /* Set codec register address */
+> @@ -122,7 +127,11 @@ void stk1160_ac97_setup(struct stk1160 *dev)
+>         stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
+>         stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
+>         stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
+> -       stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
+> +
+> +       /* Record gain */
+> +       gain =3D (gain > 15) ? 15 : gain;
+> +       stk1160_info("Setting capture gain to %d.", gain);
 
-A few more comments.
+This message doesn't add anything useful, can we drop it?
 
-On Thursday 03 Nov 2016 20:33:12 Laurent Pinchart wrote:
-> On Monday 31 Oct 2016 15:16:55 Rick Chang wrote:
-> > Add a DT binding documentation for Mediatek JPEG Decoder of
-> > MT2701 SoC.
-> > 
-> > Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > ---
-> > 
-> >  .../bindings/media/mediatek-jpeg-codec.txt         | 35 ++++++++++++++++
-> >  1 file changed, 35 insertions(+)
-> >  create mode 100644
-> > Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-> > 
-> > diff --git
-> > a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-> > b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt new
-> > file mode 100644
-> > index 0000000..514e656
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-> > @@ -0,0 +1,35 @@
-> > +* Mediatek JPEG Codec
-> 
-> Is it a codec or a decoder only ?
-> 
-> > +Mediatek JPEG Codec device driver is a v4l2 driver which can decode
-> > +JPEG-encoded video frames.
-> 
-> DT bindings should not reference drivers, they are OS-agnostic.
-> 
-> > +Required properties:
-> > +  - compatible : "mediatek,mt2701-jpgdec"
+> +       stk1160_write_ac97(dev, 0x1c, (gain<<8) | gain);
+>
+>  #ifdef DEBUG
+>         stk1160_ac97_dump_regs(dev);
+> --
+> 2.10.1
+>
 
-Is the JPEG decoder found in MT2701 only, or in other Mediatek SoCs as well ?
 
-> > +  - reg : Physical base address of the jpeg codec registers and length of
-> > +        memory mapped region.
-> > +  - interrupts : interrupt number to the cpu.
-> 
-> That's actually not correct, the interrupt number is local to the interrupt
-> controller, not to the CPU.
-> 
-> > +  - clocks : clock name from clock manager
-> 
-> The clocks property doesn't contain a name.
 
-Furthermore you should document which clocks need to be specified here. There 
-are two of them in the example below, the documentation should explain this 
-clearly.
-
-> Until we provide standardized descriptions for those properties, I recommend
-> copying the compatible, reg, interrupts, clocks, clock-names, power-domains
-> and iommus properties descriptions from good DT bindings. Which DT bindings
-> are good source of inspiration here is left as an exercise for the reader
-> I'm afraid :-(
-> 
-> > +  - clock-names: the clocks of the jpeg codec H/W
-> > +  - power-domains : a phandle to the power domain.
-> > +  - larb : must contain the larbes of current platform
-> 
-> Shouldn't this be mediatek,larb ? And what is a larb ?
-> 
-> > +  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
-> > +        the multimedia H/W. and there is only one multimedia iommu
-> > domain.
-> > +        "iommus = <&iommu portid>" the "portid" is from
-> > +        dt-bindings\iommu\mt2701-iommu-port.h, it means that this portid
-> > will
-> > +        enable iommu. The portid default is disable iommu if "<&iommu>
-> 
-> portid>"
-> 
-> > +        don't be added.
-> 
-> There are two iommus instances in your example below, this should be
-> documented. This description is not very clear I'm afraid.
-> 
-> > +
-> > +Example:
-> > +	jpegdec: jpegdec@15004000 {
-> > +		compatible = "mediatek,mt2701-jpgdec";
-> > +		reg = <0 0x15004000 0 0x1000>;
-> > +		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-> > +		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-> > +			  <&imgsys CLK_IMG_JPGDEC>;
-> > +		clock-names = "jpgdec-smi",
-> > +			      "jpgdec";
-> > +		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-> > +		mediatek,larb = <&larb2>;
-> > +		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-> > +			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-> > +	};
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
