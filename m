@@ -1,87 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:59577 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964877AbcKJQrq (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:38631 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753032AbcKTRhG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 11:47:46 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        x86@kernel.org, linux-kbuild@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: [PATCH v2 02/11] NFSv4.1: work around -Wmaybe-uninitialized warning
-Date: Thu, 10 Nov 2016 17:44:45 +0100
-Message-Id: <20161110164454.293477-3-arnd@arndb.de>
-In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
-References: <20161110164454.293477-1-arnd@arndb.de>
+        Sun, 20 Nov 2016 12:37:06 -0500
+Received: by mail-wm0-f46.google.com with SMTP id f82so109966158wmf.1
+        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2016 09:37:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20161028085224.GA9826@arch-desktop>
+References: <20161028085224.GA9826@arch-desktop>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Sun, 20 Nov 2016 14:37:04 -0300
+Message-ID: <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
+Subject: Re: [PATCH] stk1160: Give the chip some time to retrieve data from
+ AC97 codec.
+To: Marcel Hasler <mahasler@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A bugfix introduced a harmless gcc warning in nfs4_slot_seqid_in_use
-if we enable -Wmaybe-uninitialized again:
+On 28 October 2016 at 05:52, Marcel Hasler <mahasler@gmail.com> wrote:
+> The STK1160 needs some time to transfer data from the AC97 registers into=
+ its own. On some
+> systems reading the chip's own registers to soon will return wrong values=
+. The "proper" way to
+> handle this would be to poll STK1160_AC97CTL_0 after every read or write =
+command until the
+> command bit has been cleared, but this may not be worth the hassle.
+>
+> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+> ---
+>  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb=
+/stk1160/stk1160-ac97.c
+> index 31bdd60d..caa65a8 100644
+> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+> @@ -20,6 +20,7 @@
+>   *
+>   */
+>
+> +#include <linux/delay.h>
+>  #include <linux/module.h>
+>
+>  #include "stk1160.h"
+> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 r=
+eg)
+>          */
+>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
+>
+> +       /* Give the chip some time to transfer data */
+> +       usleep_range(20, 40);
+> +
 
-fs/nfs/nfs4session.c:203:54: error: 'cur_seq' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+I don't recall any issues with this. In any case, we only read the register=
+s
+for debugging purposes, so it's not a big deal.
 
-gcc is not smart enough to conclude that the IS_ERR/PTR_ERR pair
-results in a nonzero return value here. Using PTR_ERR_OR_ZERO()
-instead makes this clear to the compiler.
+Maybe it would be better to expand the comment a little bit,
+using your commit log:
 
-Fixes: e09c978aae5b ("NFSv4.1: Fix Oopsable condition in server callback races")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-First submitted on Aug 31, but ended up not getting applied then
-as the warning was disabled in v4.8-rc
+""
+The "proper" way to
+handle this would be to poll STK1160_AC97CTL_0 after
+every read or write command until the command bit
+has been cleared, but this may not be worth the hassle.
+""
 
-Anna Schumaker said at the kernel summit that she had applied
-it and would send it for 4.9, but as of 2016-11-09 it has not
-made it into linux-next.
+This way, if the sleep proves problematic in the future,
+the "proper way" is already documented.
 
- fs/nfs/nfs4session.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+>         /* Retrieve register value */
+>         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
+>         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
+> --
+> 2.10.1
+>
 
-diff --git a/fs/nfs/nfs4session.c b/fs/nfs/nfs4session.c
-index b629730..150c5a1 100644
---- a/fs/nfs/nfs4session.c
-+++ b/fs/nfs/nfs4session.c
-@@ -178,12 +178,14 @@ static int nfs4_slot_get_seqid(struct nfs4_slot_table  *tbl, u32 slotid,
- 	__must_hold(&tbl->slot_tbl_lock)
- {
- 	struct nfs4_slot *slot;
-+	int ret;
- 
- 	slot = nfs4_lookup_slot(tbl, slotid);
--	if (IS_ERR(slot))
--		return PTR_ERR(slot);
--	*seq_nr = slot->seq_nr;
--	return 0;
-+	ret = PTR_ERR_OR_ZERO(slot);
-+	if (!ret)
-+		*seq_nr = slot->seq_nr;
-+
-+	return ret;
- }
- 
- /*
--- 
-2.9.0
 
+
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
