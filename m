@@ -1,69 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:37434 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936514AbcKKJHi (ORCPT
+Received: from [61.153.232.119] ([61.153.232.119]:59224 "EHLO
+        email.haining.info" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1753255AbcKVO7X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 04:07:38 -0500
-Received: by mail-wm0-f43.google.com with SMTP id t79so79885454wmt.0
-        for <linux-media@vger.kernel.org>; Fri, 11 Nov 2016 01:07:37 -0800 (PST)
-Subject: Re: [PATCH v3 8/9] media: venus: add Makefiles and Kconfig files
-To: Vivek Gautam <vivek.gautam@codeaurora.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-9-git-send-email-stanimir.varbanov@linaro.org>
- <CAFp+6iGPo0aC0Nf+Y5O7bAqSpjGGzwBUZWupgf=bwnicDD04Lg@mail.gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <75434223-9473-94f4-d721-fcd675c234de@linaro.org>
-Date: Fri, 11 Nov 2016 11:07:34 +0200
+        Tue, 22 Nov 2016 09:59:23 -0500
+Reply-To: <emailqunfa@163.com>
+Message-ID: <20161120234039165825@haining.info>
+From: txoraw@vger.kernel.org
+Subject: =?utf-8?B?4piF4piF4piF44CK5Ye65Zu95Y+C5bGV6YKA6K+35Ye944CLMjAxN+esrDUy5bGK?=
+        =?utf-8?B?5LiW55WMSkVD5aSN5ZCI5p2Q5paZ5bGV6KeI5Y+K5Lya6K6u77yM6K+36L2s4oCU4oCU6JGj?=
+        =?utf-8?B?5LqL6ZW/L+aAu+e7j+eQhu+8iOaUtu+8iSAgIHxnRDQvTDEw?=
+        =?utf-8?B?MC1NfCBsaW5tbXJAcHVibGljLmU=?=
+        =?utf-8?B?YXN0LmM=?=
+Date: Sun, 20 Nov 2016 23:40:27 +0800
 MIME-Version: 1.0
-In-Reply-To: <CAFp+6iGPo0aC0Nf+Y5O7bAqSpjGGzwBUZWupgf=bwnicDD04Lg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+        charset="utf-8"
+Content-Transfer-Encoding: base64
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vivek,
+endqQGhhaW5pbmcuaW5mbw0K77yI5Yet5q2k6YKu5Lu25LyY5oOgMTAwMOWFgy/lhazlj7jvvIzp
+nIDlm57kv6HkuJPnlKjmjqXmlLbpgq7nrrHigJwxMjgwOTM5NUBxcS5jb23igJ3miqXlkI3lj4Ll
+sZXvvIkNCuOAgOOAgA0K44CA44CADQpKRUMgd29ybGQgQ29tcG9zaXRlcyBTaG93ICYgQ29uZmVy
+ZW5jZXMgMjAxNw0KMjAxN+esrDUy5bGKSkVD5LiW55WM5aSN5ZCI5p2Q5paZ5bGV6KeI5Y+K5Lya
+6K6uDQrjgIDjgIANCuKAlOKAlCDlj4LliqBKRUPlsZXkvJrmmK/kuIDkuKrlpI3lkIjmnZDmlpnl
+j4rmlrDmnZDmlpnkvIHkuJrotbDlkJHlm73pmYXljJbnmoTmoIflv5flkozpgJTlvoQNCuOAgOOA
+gA0K44CQ5Lit5paH5ZCN56ew44CRIDIwMTfnrKw1MuWxiuS4lueVjEpFQ+WkjeWQiOadkOaWmeWx
+leiniOWPiuS8muiuru+8iOazleWbveW3tOm7ju+8iQ0K44CQ6Iux5paH5ZCN56ew44CRIFRoZSA1
+MnRoIEpFQyBDb21wb3NpdGVzIFNob3cgJiBDb25mZXJlbmNlcyAyMDE3IGluIFBhcmlzIEZyYW5j
+ZSDvvIhKRUMgd29ybGQgMjAxN++8iQ0K44CA44CADQrjgJDlsZXkvJrml7bpl7TjgJEgMjAxN+W5
+tDAz5pyIMTQtMTbml6UNCuOAkOWxleS8muWcsOeCueOAkSDms5Xlm73lt7Tpu47ljJfnu7Tli5Ln
+j63lsZXop4jkuK3lv4Mg77yIUGFyaXMgTm9yZCBWaWxsZXBpbnRlIEV4aGliaXRpb24gQ2VudGVy
+77yJDQrjgIDjgIANCuOAkOWxleS8muWRqOacn+OAkSDkuIDlubTkuIDlsYog77yI5pys5bm05bqm
+5Li656ysNTLlsYrvvIkNCuOAkOaKpeWQjeaIquatouOAkSAyMDE25bm0MTDmnIgyOOaXpQ0K44CA
+44CADQrjgJDkuLvlip7ljZXkvY3jgJEg5rOV5Zu9SkVD5aSN5ZCI5p2Q5paZ5Y+R5bGV5L+D6L+b
+5Lya44CB5rOV5Zu9SkVD6ZuG5ZuiDQrjgJDnu4Tlip7ljZXkvY3jgJEg5Lit5Zu95Zu96ZmF5aSN
+5ZCI5p2Q5paZ5Y2P5Lya44CBIOaYoOW+t+WbvemZheS8muWxlembhuWbouS4reWbveS7o+ihqOWk
+hOOAgSDppqjlvrfkvJrlsZXkuqfkuJrnrqHnkIbmnInpmZDlhazlj7gNCuOAgOOAgA0K44CQ5Zyo
+57q/5a6i5pyN44CRIOmCrueusS8gMTI4MDkzOTUjcXEuY29t77ybIFFRLyA4Mjc3NTUwN++8myDl
+vq7kv6EvIHlvbmRleHBv77ybIOW+ruWNmi8gaHR0cDovL3dlaWJvLmNvbS9qZWNzaG93IA0K44CQ
+5ZKo6K+i55S16K+d44CRIDQwMDAtNTgwLTg1MO+8iOi9rDgxNDTjgIE1MjIw77yJ77ybIDEzOS0x
+MDMxLTgxNDTvvJsgMDEw4oCUODY5OS03MTU177ybDQrjgIDjgIANCuOAgOOAgA0K44CQ5biC5Zy6
+5py66YGH44CRDQrjgIDjgIDmlrDmnZDmlpnkuLoyMeS4lue6quS4ieWkp+WFseaAp+WFs+mUruaK
+gOacr+S5i+S4gO+8jOW3suaIkOS4uuWFqOeQg+e7j+a1jui/hemAn+WinumVv+eahOa6kOWKqOWK
+m+WSjOaPkOWNh+aguOW/g+ernuS6ieWKm+eahOaImOeVpeeEpueCueOAgg0K44CA44CA5p2Q5paZ
+5L2c5Li65Yi26YCg5Lia55qE5Z+656GA77yM54m55Yir5piv5paw5p2Q5paZ56CU56m25ZKM5Lqn
+5Lia5Y+R5bGV55qE5rC05bmz5LiO6KeE5qih77yM5bey57uP5oiQ5Li66KGh6YeP5LiA5Liq5Zu9
+5a6256eR5oqA6L+b5q2l5ZKM57u85ZCI5a6e5Yqb55qE6YeN6KaB5qCH5b+X44CCDQrjgIDjgIDl
+nKjmlrDmnZDmlpnlj5HlsZXkuI7lupTnlKjkuK3vvIzlpI3lkIjmnZDmlpnljaDmnInnm7jlvZPp
+h43opoHnmoTlnLDkvY3vvIznibnliKvlub/ms5vnmoTlupTnlKjlnKjmsb3ovabjgIHkuqTpgJrj
+gIHpo47og73jgIHoiKrnqbrjgIHoiKrlpKnjgIHlhbXlmajjgIHoiLnoiLbjgIHlm73pmLLjgIHm
+nLrmorDjgIHnlLXlrZDjgIHljJblt6XjgIHlu7rnrZHjgIHlhpzkuJrjgIHmuJTkuJrjgIHnurrn
+u4fjgIHov5DliqjlmajmnZDnrYnpoobln5/vvIzkuIDnm7TmmK/kuJbnlYzlkITlm73kvJjlhYjl
+j5HlsZXlkoznq57kuonmv4Dng4jnmoTph43opoHooYzkuJrjgIINCuOAgOOAgA0K44CA44CADQrj
+gJDmnKzlsZXnroDku4vjgJENCuOAgOOAgOKAnEpFQ+S4lueVjOWkjeWQiOadkOaWmeWxleiniOWP
+iuS8muiuruKAne+8iEpFQyB3b3JsZCBDb21wb3NpdGVzIFNob3cgJiBDb25mZXJlbmNlc++8ieWI
+m+WKnuS6jjE5NjPlubTvvIzmr4/lubTkuL7lip7kuIDlsYrvvIzoh7MyMDE25bm05oC75YWx5Li+
+5Yqe5LqGNTHlsYrvvIzkuLvlip7ljZXkvY3mmK/ms5Xlm71KRUPlpI3lkIjmnZDmlpnlj5HlsZXk
+v4Pov5vkvJovSkVD6ZuG5Zui77yM5Lit5Zu95oC75bGV5Zui5bGV5ZWG57uE57uH5Y2V5L2N5Li6
+5pig5b635Lya5bGV77yI5Lit5Zu977yJ5pyJ6ZmQ5YWs5Y+477yM5Zyo5YyX5Lqs44CB5LiK5rW3
+562J5Zyw6K6+5pyJ5YiG5pSv5py65p6E77yM6LSf6LSj6K+l5bGV5Lya5Zyo5Lit5Zu955qE5o6o
+5bm/5ZKM5oub5ZWG5bel5L2c77yISkVD5Lit5Zu95oC75bGV5Zui5oql5ZCN54Ot57q/77yaNDAw
+MC02ODAtODYw6L2sODE0NOOAgTUyMjDvvInjgIJKRUPlpI3lkIjmnZDmlpnlsZXlt7LmiJDkuLrk
+uJbnlYzkuIrljoblj7LmnIDmgqDkuYXjgIHop4TmqKHmnIDlpKfnmoTlpI3lkIjmnZDmlpnooYzk
+uJrkuJPkuJrlsZXop4jkvJrvvIzlsZXnpLrlkozlj43mmKDkuoblvZPliY3lpI3lkIjmnZDmlpno
+oYzkuJrnmoTmnIDmlrDmioDmnK/lkozlupTnlKjmiJDmnpzjgIINCuOAgOOAgEpFQ+WkjeWQiOad
+kOaWmeWxleiniOWPiuS8muiuruS7peasp+a0suS4uuWfuuehgOiHtOWKm+S6juaJk+mAoOS4gOS4
+quWkjeWQiOadkOaWmeS6pOa1geOAgei0uOaYk+eahOW5s+WPsOOAguWcqOacgOi/keeahDEw5bm0
+5Lit77yM5LiT5Lia6KeC5LyX5pWw6YeP5aKe6ZW/5LqGODYl77yM5YW25Lit6KeC5LyX5p2l5rqQ
+5pyA5aSa55qE5Zu95a625L6d5qyh5Li65b635Zu944CB6Iux5Zu944CB5oSP5aSn5Yip44CB5q+U
+5Yip5pe244CB576O5Zu944CB6I235YWw44CB6KW/54+t54mZ44CB55Ge5aOr44CB5L+E572X5pav
+5ZKM5Lit5Zu944CC5YWz5rOo5aSN5ZCI5p2Q5paZ5pyA5aSa55qE6KGM5Lia5Li65rG96L2m5Yi2
+6YCg44CB6Iiq56m65Yi26YCg5ZKM5bu6562R5p2Q5paZ44CC5Y+C5bGV5bGV5ZOB5bqU55So6aKG
+5Z+f5aSa5Li65rG96L2m44CB6Ii56Ii25ri46ImH44CB6Iiq5aSp6Iiq56m644CB5bu6562R5p2Q
+5paZ44CB6L2o6YGT5Lqk6YCa44CB6aOO5Yqb5Y+R55S144CB5LyR6Zey5Lqn5ZOB44CB566h6YGT
+5ZKM55S15Yqb77yM6L6Q5bCE6KGM5Lia5LmL5bm/5piv5YW25LuW5ZCM57G75bGV5Lya5peg5rOV
+5Yy55pWM55qE44CCSkVD5aSN5ZCI5p2Q5paZ5bGV6KeI5Y+K5Lya6K6u5piv5ZSv5LiA5LiA5Liq
+5bCG5YWo55CD5aSN5ZCI5p2Q5paZ5bel5Lia6IGU5ZCI6LW35p2l55qE5bGV6KeI5Lya77yM5Lmf
+5piv5LiA5Liq5aSN5ZCI5p2Q5paZ5bqU55So5ZWG5LiO5L6b5bqU5ZWG44CB55u45YWz56eR56CU
+5Lq65ZGY5Y+K5LiT5a625bm/5rOb5Lqk5rWB55qE5bmz5Y+w77yM6L+Y5piv5LiA5Liq5LyB5Lia
+6LWw5ZCR5Zu96ZmF5YyW55qE5qCH5b+X5ZKM6YCU5b6E44CCDQrjgIDjgIAyMDE15bm0M+aciDEw
+LTEy5pel5Li+5Yqe55qE56ysNTDlsYrmrKfmtLJKRUPlpI3lkIjmnZDmlpnlsZXlj4LlsZXllYbo
+toXov4cyMDAw5a6277yM5LiT5Lia6KeC5LyX6LaF6L+HMzc1MDDkurrvvIzlsZXlh7rpnaLnp6/o
+toXov4c1NjUwMOW5s+aWueexs++8jOWxleekuuS6huihjOS4muS4reeahOacgOaWsOaKgOacr+OA
+geaWsOadkOaWmeOAgeaWsOW3peiJuuOAgeaWsOaWueazle+8jOWQjOacn+S4vuWKnuacieS4sOWv
+jOeahOWtpuacr+S6pOa1gea0u+WKqO+8jOWFqOmdouWRiOeOsOW9k+S7iuWbvemZheacgOaWsOS6
+p+S4muWKqOaAgeWPiuWPkeWxlei2i+WKv+OAgg0K44CA44CA5Li65LqG5aKe6L+b5Zu95YaF5aSW
+5aSN5ZCI5p2Q5paZ6KGM5Lia55qE5Lqk5rWB5LiO5ZCI5L2c77yM5ZCM5pe25bGV56S65oiR5Zu9
+5aSN5ZCI5p2Q5paZ5Lqn5Lia55qE5Y+R5bGV5LiO5oiQ5bCx77yM5biu5Yqp5aKD5YaF5LyB5Lia
+5byA5ouT5Zu95YaF5aSW5biC5Zy677yM5Lit5Zu95Zu96ZmF5aSN5p2Q5Y2P5Lya44CB5pig5b63
+5Zu96ZmF5Lya5bGV6ZuG5Zui77yIWU9ORCBFWFBP77yJ5Lit5Zu95Luj6KGo5aSE5bey6L+R5Y2B
+5bm057uE57uH5Lit5Zu95LyB5Lia5Y+C5LiO6K+l5bGV5Lya77yM5Li65Lit5Zu95aSN5ZCI5p2Q
+5paZ6ZuG5Zui44CB5Lit5p2Q56eR5oqA44CB5Lit6ZKi6ZuG5Zui44CB5Lit5Zu95bu65p2Q6ZuG
+5Zui44CB5Lit5Zu95ZWG6aOe44CB5YyX5Lqs54676ZKi6Zmi44CB5LiK5rW35p2w5LqL5p2w5paw
+5p2Q5paZ6ZuG5Zui44CB6YeN5bqG5Zu96ZmF5aSN5ZCI5p2Q5paZ44CB5Lit5Y2X5o6n6IKh6ZuG
+5Zui44CB56em55qH5bKb6ICA5Y2O546755KD6ZKi44CB54Of5Y+w5rCo57q244CB5aSp6ams6ZuG
+5Zui44CB5Y2O5Lic55CG5bel5aSn5a2m44CB5ZOI5bCU5ruo5bel5Lia5aSn5a2m44CB5beo55+z
+6ZuG5Zui44CB5Lit5Ya26ZuG5Zui44CB6YeR5YWJ6ZuG5Zui44CB5rGf6IuP5oGS56We57qk57u0
+5p2Q5paZ44CB6YeN5bqG5aSn5a2m44CB5LiK5rW3546755KD6ZKi56CU56m26Zmi44CB5Lit5Y2X
+5aSn5a2m44CB5ZOI5bCU5ruo546755KD6ZKi56CU56m26Zmi562J5LyX5aSa6KGM5Lia5beo5aS0
+5ZKM55+l5ZCN5py65p6E5o+Q5L6b5LqG5LyY6LSo6auY5pWI55qE5aKD5aSW5bGV6LS45pyN5Yqh
+44CCDQrjgIDjgIDigJxKRUMgd29ybGQgMjAxNyDnrKw1MuWxiuS4lueVjOWkjeWQiOadkOaWmeWx
+leiniOWPiuS8muiuruKAneWwhuS6juKAnDPmnIgxNC0xNuaXpeKAneWcqOKAnOazleWbveW3tOm7
+juWMl+e7tOWLkuePreWxleiniOS4reW/g+KAneWGjeW6puS4vuihjO+8jOaIkeS7rOivmumCgOWF
+qOWbveWQhOWcsOWkjeWQiOadkOaWmeWPiuaWsOadkOaWmeebuOWFs+WNleS9jeS4juS4mueVjOS6
+uuWjq+WKoOWFpeWSseS7rOeahOS4reWbveaAu+WxleWbouWJjeW+gOWPguWxleWPguinguOAgkpF
+Q+S4reWbveaAu+WxleWbouaKpeWQjeeDree6v++8mjQwMDAtNjgwLTg2MOi9rDgxNDTjgIE1MjIw
+44CCDQrjgIDjgIANCuOAgOOAgA0K44CQ5Y6G5bGK5Zue6aG+44CRDQrjgIDjgIAyMDA45bm05Y+C
+5bGV5ZWG6LaF6L+HOTAw5a6277yM5LiT5Lia6KeC5LyXMjU1MDDkurrvvIzlsZXlh7rpnaLnp68z
+NjUwMOW5s+aWueexs+OAgg0K44CA44CAMjAwOeW5tOWPguWxleWVhui2hei/hzEwMDDlrrbvvIzk
+uJPkuJrop4LkvJcyNzMzNuS6uu+8jOWxleWHuumdouenrzM5MDAw5bmz5pa557Gz44CCIA0K44CA
+44CAMjAxMOW5tOWPguWxleWVhuaciTEwNTPlrrbvvIzkuJPkuJrop4LkvJczMDAwMOS6uu+8jOWx
+leWHuumdouenr+i+vjQzNTAw5bmz5pa557Gz44CCDQrjgIDjgIAyMDEx5bm05Y+C5bGV5ZWG5pyJ
+MTEyMOWutu+8jOS4k+S4muinguS8lzMyMDAw5Lq677yM5bGV5Ye66Z2i56ev6L6+NDg1MDDlubPm
+lrnnsbPjgIINCuOAgOOAgDIwMTTlubTlj4LlsZXllYbotoXov4cyMDAw5a6277yM5LiT5Lia6KeC
+5LyX6LaF6L+HMzc1MDDkurrvvIzlsZXlh7rpnaLnp6/otoXov4c1NjUwMOW5s+aWueexs+OAgg0K
+44CA44CADQrjgIDjgIANCuOAkOWxleWTgeiMg+WbtOOAkQ0K4peGIOaIkOWTgeW6lOeUqOexu++8
+miDlupTnlKjkuo7ovabovobjgIHoiLnoiYfjgIHkuqTpgJrjgIHpo47og73jgIHlu7rnrZHjgIHo
+iKrnqbrjgIHoiKrlpKnjgIHlm73pmLLjgIHmnLrmorDjgIHnlLXlrZDjgIHpmLLohZDjgIHlhpzm
+npfjgIHmuJTkuJrjgIHnurrnu4fjgIHml6XluLjnlJ/mtLvnrYnpoobln5/nmoTlpI3lkIjmnZDm
+lpkv546755KD6ZKi5paw5Lqn5ZOB44CB5paw5oqA5pyv77ybDQril4Yg5Y6f5p2Q5paZ57G777ya
+IOe6pOe7tOexu++8jOeOu+eSg+e6pOe7tO+8jOeOu+eSg+mSou+8jOWhq+aWme+8jOeis+e6pOe7
+tO+8jOehvOe6pOe7tO+8jOeis+WMluehhee6pOe7tO+8jOmZtueTt+e6pOe7tO+8jOiBmuS5meeD
+r+e6pOe7tO+8jOefs+iLseajie+8jOiBmumFr+eOu+e6pOW4g++8jOiBmuS5meS6pOmFr++8jOaz
+oeayq+e6pOe7tO+8jOiGqOWMlue6pOe7tO+8jOWkqeeEtue6pOe7tO+8jOefvuWcn++8jOeis+mF
+uOmSme+8jOW+ruePoOS4juWuj+ePoO+8jOW+ruehheeyie+8jOehheeBsOefs+eyie+8jOagkeiE
+guexu++8jOeOr+awp+agkeiEgu+8jOiBmumGr+iDuu+8jOiBmueis+mFuOmFr++8jOWhq+WKoOWJ
+guexu++8jOaKl+a1ruWJgu+8jOiEseaooeWJgu+8jOafk+aWme+8jOminOaWme+8jOWinuWhkeWJ
+gu+8jOaMpOWhkeWJgu+8jOe7h+eJqe+8jOavoeeJh+etie+8myAgDQril4Yg5Yqg5bel5py65qKw
+57G777yaIOWWt+iDtuacuuWZqO+8jOacuuWZqOi+ueahhuWSjOmDqOS7tu+8jOazqOWhkeacuu+8
+jOWGsuWOi+aooeWhkeacuu+8jOinpuWOi+aIkOWei+acuu+8jOe6pOe7tOe8oOe7leacuu+8jOag
+keiEguS8oOmAkuaIkOWei+acuu+8jOiBmuS6muWuiemFr+acuuaisO+8jOeOu+eSg+e6pOe7tOWW
+t+a8huacuu+8jFNNQ+WSjFRSReWKoOW3peacuuWZqO+8jOaIkOWei+ayueWOi+acuu+8jOiwg+aV
+tOWGsuaooeeUqOWOi+WKm+acuu+8jOaLieaMpOaIkOWei+acuuaisO+8jOWCrOWMluWJgumFjeWJ
+guWZqO+8jOW9ouS7tuWIhuemu+acuuWZqO+8jOaooeWFt++8jOaooeWFt+e7tOaKpOWSjOa4hea0
+ge+8jOaKm+WFieiGj++8jOi2heWjsOazouaOouS8pO+8jOawtOWwhOa1geWIh+WJsu+8jOa/gOWF
+ieiuvuWkh++8jOacuuaisOWKoOW3peiuvuWkh++8jOaIkOWei+aooeWFt+iuvuiuoeWKoOW3peaK
+gOacr+etie+8mw0K4peGIOeUn+S6p+e6v+exu++8miDng63lm7rmgKfloZHog7bliqDlt6XvvIzn
+g63loZHmgKfliqDlt6XvvIzpq5jkvY7ljovmqKHlhbfnlJ/kuqfvvIzmqKHljovmiJDlnovvvIzm
+oJHohILkvKDpgJLmiJDlnovvvIzms6jloZHnhIrmjqXvvIznnJ/nqbrmiJDlnovvvIzmtrLljovm
+iJDlnovvvIzns4rmiJDlnovvvIzllrflsITmiJDlnovvvIznuqTnu7TnvKDnu5XmiJDlnovvvIzm
+i4nmjKTmiJDlnovvvIzng63ljovnvZDmiJDlnovvvIzpmpTohpzmiJDlnovvvIzov4Hnp7vmiJDl
+novvvIzlj43lupTms6jlsITmiJDlnovvvIzova/ohpzohqjog4DmiJDlnovvvIzlhrLljovmiJDl
+novvvIzmianmlaPnhIrmjqXvvIznsonmnKvlhrbph5HvvIzng63ovafvvIzng63mi5TvvIzkuqfl
+k4HotKjph4/mo4DpqozmioDmnK/lj4roo4XlpIfvvIznlJ/kuqfoh6rliqjljJbmjqfliLbkuI7o
+va/ku7bvvIzotKjph4/nm5HmjqfmioDmnK/vvIzml6DmjZ/mo4DmtYvmioDmnK/lj4rku6rlmajn
+rYnjgIINCuOAgOOAgA0K44CA44CADQrjgJDlj4LlsZXlvaLlvI/jgJENCuKXhiDlj4Ig5bGV77ya
+IOenn+i1geOAkOWxleS9jeOAke+8jOWxleekuuS8geS4muW9ouixoeWPiuS6p+WTge+8jOS4u+im
+gei0ueeUqOacieOAkOWxleS9jei0ueOAkeOAkOi/kOi+k+i0ueOAkeOAkOaQreW7uui0ueOAkeOA
+kOS6uuWRmOi0ueOAkeetieOAgg0K4peGIOWPgiDop4LvvJog5rS+6YGj44CQ5Lq65ZGY44CR77yM
+6I6F5Li05bGV5Zy65Y+C6KeC5Y+K6ICD5a+f77yM5Li76KaB6LS555So5pyJ44CQ5oql5ZCN6LS5
+44CR44CQ5rOo5YaM6LS544CR44CQ5Lqk6YCa6LS544CR44CQ6aOf5a6/6LS544CR562J44CCDQrj
+gIDjgIANCuOAgOOAgA0K44CQ5Y+C5bGV6IGU57O744CRDQrmnInlhbPlj4LlsZXlj4Lop4LigJxK
+RUPkuJbnlYzlpI3lkIjmnZDmlpnlsZXigJ3kuovlrpzvvIzor7fogZTnu5zjgJDkuK3lm73mgLvl
+sZXlm6LjgJHnu4Tlip7mlrnvvJoNCuWKnuWFrOWcsOWdgO+8miDljJfkuqzluILmnJ3pmLPljLrl
+jJfkuInnjq/kuJzot6/lha3lj7fkuK3lm73lm73pmYXlsZXop4jkuK3lv4Plm5vlsYINCuWPguWx
+lemhvumXru+8miDnjovlhYjnlJ/jgIEg5byg5YWI55Sf44CBIOWtmeWwj+WnkOOAgSDlkLTlsI/l
+p5ANCuWPguWxleeDree6v++8miAxMzktMTAzMS04MTQ044CBIDEzMS0yNjYyLTUyMDbvvJsgIDAx
+MOKAlCA4Njk5LSA3MTU1Lg0K5Zyo57q/5a6i5pyN77yaIOmCrueusS8gMTI4MDkzOTUjcXEuY29t
+77ybIFFRLyA4Mjc3NTUwN++8myDlvq7kv6EvIHlvbmRleHBv77ybIOW+ruWNmi8gaHR0cDovL3dl
+aWJvLmNvbS95b25kZXhwbw0K5YWo5Zu957uf5LiA5a6i5pyN54Ot57q/77yaIDQwMDAtIDU4MC0g
+ODUwLu+8iOWIhuacujo4ODg4IC84MTQ0IC81MjIwIC81MjA277yJDQrlhajlm73nu5/kuIDmiqXl
+kI3kuJPnur/vvJogNDAwMC0gNjgwLSA4NjAu77yI5YW85Lyg55yf77yJDQrjgIDjgIANCuOAgOOA
+gA0K44CA44CADQrjgJDlhazkvJflubPlj7DjgJENCuOAgOOAgA0K5b6u5L+h77yaIOWPguWxlea2
+iOaBryDvvIhJRO+8mkNhblpoYW5YaWFvWGnvvInigJTigJQg5ZOB54mM5omp5byg55qE5bmz5Y+w
+44CA5biC5Zy65byA5ouT55qE5qGl5qKBDQrlvq7kv6HvvJog5bGV5ZWG5LmL5a62IO+8iElE77ya
+WmhhblNoYW5nWmhpSmlh77yJ4oCU4oCUIOS4uuWxleWVhuaPkOS+m+acgOS9s+iQpeWcsOOAgOS4
+uumYgeS4i+iQpemAoOWPguWxleS7t+WAvA0K44CA44CADQrjgIDjgIANCuOAgOOAgA0K44CA44CA
+DQrjgIDjgIANCueZvuS4h+e+pOWPkeezu+e7n3zkuLrmgqjlj5HpgIF85aaC5LiN5biM5pyb5YaN
+5pS25Yiw5q2k6KGM5Lia6LWE6K6vfOivt+WbnuWkjeKAnOmAgOiuoitKRUPigJ3oh7Ppgq7nrrEx
+MDU1ODAwODEyQHFxLmNvbQ0K
 
-On 11/11/2016 08:12 AM, Vivek Gautam wrote:
-> On Mon, Nov 7, 2016 at 11:04 PM, Stanimir Varbanov
-> <stanimir.varbanov@linaro.org> wrote:
->> Makefile and Kconfig files to build the Venus video codec driver.
->>
->> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
->> ---
->>  drivers/media/platform/qcom/Kconfig        |  7 +++++++
->>  drivers/media/platform/qcom/Makefile       |  1 +
->>  drivers/media/platform/qcom/venus/Makefile | 15 +++++++++++++++
->>  3 files changed, 23 insertions(+)
->>  create mode 100644 drivers/media/platform/qcom/Kconfig
->>  create mode 100644 drivers/media/platform/qcom/Makefile
->>  create mode 100644 drivers/media/platform/qcom/venus/Makefile
->>
->> diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
->> new file mode 100644
->> index 000000000000..bf4d2fcce924
->> --- /dev/null
->> +++ b/drivers/media/platform/qcom/Kconfig
->> @@ -0,0 +1,7 @@
->> +
->> +menuconfig VIDEO_QCOM_VENUS
->> +        tristate "Qualcomm Venus V4L2 encoder/decoder driver"
->> +        depends on ARCH_QCOM && VIDEO_V4L2
-> 
-> Let's also enable this for COMPILE_TEST.
 
-I agree, but it needs changes in other dependency drivers like qcom_scm
-one. I will try to come out with something in the next version.
-
--- 
-regards,
-Stan
