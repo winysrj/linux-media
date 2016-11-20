@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:59342 "EHLO
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57384 "EHLO
         lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932785AbcKQE1P (ORCPT
+        by vger.kernel.org with ESMTP id S1753014AbcKTE1X (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 23:27:15 -0500
-Message-ID: <d28988904162c5b4c946824d2cf19372@smtp-cloud2.xs4all.net>
-Date: Thu, 17 Nov 2016 05:27:12 +0100
+        Sat, 19 Nov 2016 23:27:23 -0500
+Message-ID: <ea647014b2579d7ce60063c297dc7f42@smtp-cloud2.xs4all.net>
+Date: Sun, 20 Nov 2016 05:27:20 +0100
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: ERRORS
@@ -17,26 +17,26 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Thu Nov 17 05:00:19 CET 2016
-media-tree git hash:	36f94a5cf0f9afb527f18166ae56bd3cc7204f63
-media_build git hash:	bce0dfbb3eca1600249a7ebc5eaea2e19bfaf56b
-v4l-utils git hash:	cad302175706a503fb0b73ff2032cbfc22d58c7a
+date:			Sun Nov 20 05:00:15 CET 2016
+media-tree git hash:	f2709c206d8a3e11729e68d80c57e7470bbe8e5e
+media_build git hash:	bd61d1f4217e104f91df1ba1b5a4594e379829de
+v4l-utils git hash:	046f2376ac29b3f1b8f88f094527ff65814a5c9c
 gcc version:		i686-linux-gcc (GCC) 6.2.0
 sparse version:		v0.5.0-3553-g78b2ea6
 smatch version:		v0.5.0-3553-g78b2ea6
 host hardware:		x86_64
 host os:		4.7.0-164
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: ERRORS
-linux-git-blackfin-bf561: ERRORS
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
 linux-git-i686: OK
 linux-git-m32r: OK
-linux-git-mips: ERRORS
+linux-git-mips: OK
 linux-git-powerpc64: OK
-linux-git-sh: ERRORS
+linux-git-sh: OK
 linux-git-x86_64: OK
 linux-2.6.36.4-i686: ERRORS
 linux-2.6.37.6-i686: ERRORS
@@ -71,7 +71,7 @@ linux-4.5.7-i686: ERRORS
 linux-4.6.7-i686: ERRORS
 linux-4.7.5-i686: ERRORS
 linux-4.8-i686: ERRORS
-linux-4.9-rc1-i686: ERRORS
+linux-4.9-rc5-i686: ERRORS
 linux-2.6.36.4-x86_64: ERRORS
 linux-2.6.37.6-x86_64: ERRORS
 linux-2.6.38.8-x86_64: ERRORS
@@ -105,23 +105,19 @@ linux-4.5.7-x86_64: ERRORS
 linux-4.6.7-x86_64: ERRORS
 linux-4.7.5-x86_64: ERRORS
 linux-4.8-x86_64: ERRORS
-linux-4.9-rc1-x86_64: ERRORS
+linux-4.9-rc5-x86_64: ERRORS
 apps: WARNINGS
 spec-git: OK
 smatch: ERRORS
-ABI WARNING: change for i686
-ABI WARNING: change for m32r
-ABI WARNING: change for powerpc64
-ABI WARNING: change for x86_64
 sparse: WARNINGS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
