@@ -1,132 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:42803 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752684AbcKRRkh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 12:40:37 -0500
-Date: Fri, 18 Nov 2016 17:40:34 +0000
-From: Sean Young <sean@mess.org>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ir-keytable: infinite loops, segfaults
-Message-ID: <20161118174034.GA6167@gofer.mess.org>
-References: <20161116105256.GA9998@shambles.local>
- <20161117134526.GA8485@gofer.mess.org>
- <20161118121422.GA1986@shambles.local>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57748 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752889AbcKTPVa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 20 Nov 2016 10:21:30 -0500
+Date: Sun, 20 Nov 2016 16:21:27 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161120152127.GC5189@amd>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="pAwQNkOnpTn9IO2O"
 Content-Disposition: inline
-In-Reply-To: <20161118121422.GA1986@shambles.local>
+In-Reply-To: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 18, 2016 at 11:14:25PM +1100, Vincent McIntyre wrote:
-> On Thu, Nov 17, 2016 at 01:45:26PM +0000, Sean Young wrote:
-> > On Wed, Nov 16, 2016 at 09:52:58PM +1100, Vincent McIntyre wrote:
-> > > I have a fairly old dvico dual digital 4 tuner and remote.
-> > > There seem to be some issues with support for it, can I help fix them?
-> > > 
-> > > I am using ir-keytable 1.10.0-1 on Ubuntu 16.04 LTS,
-> > > with kernel 4.4.0-47-generic (package version 4.4.0-47-generic)
-> > > 
-> > > The remote's keymapping is the one in /lib/udev/rc_keymaps/dvico_mce;
-> > > kernel support for the device is in media/usb/dvb-usb/cxusb.c.
-> > > 
-> > > Mostly it works, in that I get correct keycodes back from evtest
-> > > and ir-keytable -t. But I want to change some of the keycode mappings
-> > > and that is not working.
-> > 
-> > I suspect the problem here is rc-core is not used and 
-> > legacy_dvb_usb_setkeycode has a bug (it has several problems).
-> > 
-> > It would be nicer if we could move it rc-core, but for that to work
-> > we need to know what scancodes remote sends (and in what protocol).
-> > A scancode of 0xfe47 is not a valid RC5 scancode.
->  
-> So are you saying that the hex codes in the rc_map_dvico_mce_table
-> struct are invalid (at least in some cases)?
 
-Most likely the remote produces IR in a standard protocol (e.g. rc5, rc6). 
-If we first get the keymap right then the remote can be used with any 
-IR receiver that can deal with its protocol; conversely, if we know 
-what protocol the IR receiver can receive, and we make it produce the 
-scancodes in the right format, it can then be used with any remote that 
-uses the protocol it understands.
+--pAwQNkOnpTn9IO2O
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So at the moment we don't know what protocol it is, and even if it is 
-rc5 then some bit shifting might be needed to make it into a proper
-rc5 scancode (both driver and keymap).
+Hi!
 
-> How can I tell what protocol is in use?
-> 0x00010001 doesn't mean much to me; I did search the linux source
-> for the code but didn't find any helpful matches.
+> > +static void et8ek8_reglist_to_mbus(const struct et8ek8_reglist *reglis=
+t,
+> > +				   struct v4l2_mbus_framefmt *fmt)
+> > +{
+> > +	fmt->width =3D reglist->mode.window_width;
+> > +	fmt->height =3D reglist->mode.window_height;
+> > +
+> > +	if (reglist->mode.pixel_format =3D=3D V4L2_PIX_FMT_SGRBG10DPCM8)
+>=20
+> The driver doesn't really need to deal with pixel formats. Could you use
+> media bus formats instead, and rename the fields accordingly?
+>=20
+> The reason why it did use pixel formats was that (V4L2) media bus formats
+> did not exist when the driver was written. :-)
 
-At the moment it's not easy to determine what protocol an remote uses;
-I would like to change that but for now, the following is probably
-the easiest way.
+Makes sense...
 
-cd /sys/class/rc/rc1 # replace rc1 with your receiver
-for i in $(<protocols); do echo +$i > protocols; done
-echo 3 > /sys/module/rc_core/parameters/debug
-journal -f -k
+Something like this? [untested, will test complete changes.]
 
-Protocol numbers are defined in enum rc_type, see include/media/rc-map.h
+									Pavel
 
-> > Would it be possible to test the remote with another device (say an
-> > usb mce receiver or so) and see what scancodes it sends? Then we can
-> > translate the keymap to a real one and make the cxusb driver send
-> > correct scancodes to rc-core.
-> 
-> Great idea. Do you mean something like [1]?
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
+t8ek8/et8ek8_driver.c
+index 0301e81..eb131b2 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
+@@ -395,11 +395,7 @@ static void et8ek8_reglist_to_mbus(const struct et8ek8=
+_reglist *reglist,
+ {
+ 	fmt->width =3D reglist->mode.window_width;
+ 	fmt->height =3D reglist->mode.window_height;
+-
+-	if (reglist->mode.pixel_format =3D=3D V4L2_PIX_FMT_SGRBG10DPCM8)
+-		fmt->code =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8;
+-	else
+-		fmt->code =3D MEDIA_BUS_FMT_SGRBG10_1X10;
++	fmt->code =3D reglist->mode.bus_format;
+ }
+=20
+ static struct et8ek8_reglist *et8ek8_reglist_find_mode_fmt(
+@@ -538,7 +534,7 @@ static int et8ek8_reglist_import(struct i2c_client *cli=
+ent,
+ 		       __func__,
+ 		       list->type,
+ 		       list->mode.window_width, list->mode.window_height,
+-		       list->mode.pixel_format,
++		       list->mode.bus_format,
+ 		       list->mode.timeperframe.numerator,
+ 		       list->mode.timeperframe.denominator,
+ 		       (void *)meta->reglist[nlists].ptr);
+@@ -967,21 +963,18 @@ static int et8ek8_enum_mbus_code(struct v4l2_subdev *=
+subdev,
+ 			continue;
+=20
+ 		for (i =3D 0; i < npixelformat; i++) {
+-			if (pixelformat[i] =3D=3D mode->pixel_format)
++			if (pixelformat[i] =3D=3D mode->bus_format)
+ 				break;
+ 		}
+ 		if (i !=3D npixelformat)
+ 			continue;
+=20
+ 		if (code->index =3D=3D npixelformat) {
+-			if (mode->pixel_format =3D=3D V4L2_PIX_FMT_SGRBG10DPCM8)
+-				code->code =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8;
+-			else
+-				code->code =3D MEDIA_BUS_FMT_SGRBG10_1X10;
++			code->code =3D mode->bus_format;
+ 			return 0;
+ 		}
+=20
+-		pixelformat[npixelformat] =3D mode->pixel_format;
++		pixelformat[npixelformat] =3D mode->bus_format;
+ 		npixelformat++;
+ 	}
+=20
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_mode.c b/drivers/media/i2c/et8=
+ek8/et8ek8_mode.c
+index 956fc60..12998d8 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_mode.c
++++ b/drivers/media/i2c/et8ek8/et8ek8_mode.c
+@@ -59,7 +59,7 @@ static struct et8ek8_reglist mode1_poweron_mode2_16vga_25=
+92x1968_12_07fps =3D {
+ 		},
+ 		.max_exp =3D 2012,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -160,7 +160,7 @@ static struct et8ek8_reglist mode1_16vga_2592x1968_13_1=
+2fps_dpcm10_8 =3D {
+ 		},
+ 		.max_exp =3D 2012,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10DPCM8,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -216,7 +216,7 @@ static struct et8ek8_reglist mode3_4vga_1296x984_29_99f=
+ps_dpcm10_8 =3D {
+ 		},
+ 		.max_exp =3D 1004,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10DPCM8,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -272,7 +272,7 @@ static struct et8ek8_reglist mode4_svga_864x656_29_88fp=
+s =3D {
+ 		},
+ 		.max_exp =3D 668,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -328,7 +328,7 @@ static struct et8ek8_reglist mode5_vga_648x492_29_93fps=
+ =3D {
+ 		},
+ 		.max_exp =3D 500,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -384,7 +384,7 @@ static struct et8ek8_reglist mode2_16vga_2592x1968_3_99=
+fps =3D {
+ 		},
+ 		.max_exp =3D 6092,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -439,7 +439,7 @@ static struct et8ek8_reglist mode_648x492_5fps =3D {
+ 		},
+ 		.max_exp =3D 500,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -495,7 +495,7 @@ static struct et8ek8_reglist mode3_4vga_1296x984_5fps =
+=3D {
+ 		},
+ 		.max_exp =3D 2996,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_1X10,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+@@ -551,7 +551,7 @@ static struct et8ek8_reglist mode_4vga_1296x984_25fps_d=
+pcm10_8 =3D {
+ 		},
+ 		.max_exp =3D 1052,
+ 		/* .max_gain =3D 0, */
+-		.pixel_format =3D V4L2_PIX_FMT_SGRBG10DPCM8,
++		.bus_format =3D MEDIA_BUS_FMT_SGRBG10_DPCM8_1X8,
+ 		.sensitivity =3D 65536
+ 	},
+ 	.regs =3D {
+diff --git a/drivers/media/i2c/et8ek8/et8ek8_reg.h b/drivers/media/i2c/et8e=
+k8/et8ek8_reg.h
+index 9970bff..64a8fb7 100644
+--- a/drivers/media/i2c/et8ek8/et8ek8_reg.h
++++ b/drivers/media/i2c/et8ek8/et8ek8_reg.h
+@@ -48,7 +48,7 @@ struct et8ek8_mode {
+ 	u32 ext_clock;			/* in Hz */
+ 	struct v4l2_fract timeperframe;
+ 	u32 max_exp;			/* Maximum exposure value */
+-	u32 pixel_format;		/* V4L2_PIX_FMT_xxx */
++	u32 bus_format;			/* MEDIA_BUS_FMT_ */
+ 	u32 sensitivity;		/* 16.16 fixed point */
+ };
+=20
 
-Yes, it would be a receiver like that.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-> Or the (presumably generic) receiver that comes with [2]?
+--pAwQNkOnpTn9IO2O
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-It's not clear what usb receiver it uses.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-> Would a FLIRC work?
+iEYEARECAAYFAlgxv3cACgkQMOfwapXb+vJ0LQCgsb+Rgq6MJWJX9s13zWIXsMjl
+fVoAoL4Y/uJ0YXGcGF6Vggw0j1NXkw1X
+=3NEi
+-----END PGP SIGNATURE-----
 
-I hadn't heard of flirc, looks like it doesn't have a kernel driver. Maybe
-I'll go and get one. :)
-
-> Probably dumb question - in this machine I also have
-> an iMon Remote (152c:ffdc)
-> and Leadtek WinFast DTV Dongle Dual
-> Do you think either of those would be helpful?
-> I tried evtest with them and the remote, no responses.
-> 
-> # ir-keytable
-> Found /sys/class/rc/rce0/ (/dev/input/event5) with:
->     Driver imon, table rc-imon-mce
->     Supported protocols: rc-6 
->     Enabled protocols: rc-6 
->     Name: iMON Remote (15c2:ffdc)
->     bus: 3, vendor/product: 15c2:ffdc, version: 0x0000
->     Repeat delay = 500 ms, repeat period = 125 ms
-> Found /sys/class/rc/rc1/ (/dev/input/event16) with:
->     Driver dvb_usb_af9035, table rc-empty
->     Supported protocols: nec 
->     Enabled protocols: 
->     Name: Leadtek WinFamst DTV Dongle Dual
->     bus: 3, vendor/product: 0413:6a05, version: 0x0200
->     Repeat delay = 500 mss, repeat period = 125 ms
-
-Looks like it's neither rc6 nor nec then.
-
-If you don't have the right receiver then all of this a bit academic.
-Maybe it's possible to port to rc-core with the existing scancodes.
-
-Thanks
-Sean
-
-> 
-> Thanks
-> Vince
-> 
-> [1] http://www.ebay.com.au/itm/New-HP-USB-MCE-IR-Wireless-Receiver-Windows-7-Vista-/261127073131
-> [2] https://www.jaycar.com.au/home-theatre-pc-remote-control/p/XC4939
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--pAwQNkOnpTn9IO2O--
