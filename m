@@ -1,213 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:57707 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752778AbcKTPUn (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:39083 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754079AbcKUN6O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Nov 2016 10:20:43 -0500
-Date: Sun, 20 Nov 2016 16:20:36 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161120152034.GA5189@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+        Mon, 21 Nov 2016 08:58:14 -0500
+Subject: Re: [PATCH v2 08/10] [media] st-delta: EOS (End Of Stream) support
+To: Hugues Fruchet <hugues.fruchet@st.com>, linux-media@vger.kernel.org
+References: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
+ <1479468336-26199-9-git-send-email-hugues.fruchet@st.com>
+Cc: kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <cb0c3f2d-d036-d109-6837-71b52cddd25d@xs4all.nl>
+Date: Mon, 21 Nov 2016 14:58:11 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="bg08WKrSYDhXBjb5"
-Content-Disposition: inline
-In-Reply-To: <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+In-Reply-To: <1479468336-26199-9-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Same here: no commit message.
 
---bg08WKrSYDhXBjb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 18/11/16 12:25, Hugues Fruchet wrote:
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/platform/sti/delta/delta-v4l2.c | 143 +++++++++++++++++++++++++-
+>  drivers/media/platform/sti/delta/delta.h      |  23 +++++
+>  2 files changed, 165 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+> index a155883..c076849 100644
+> --- a/drivers/media/platform/sti/delta/delta-v4l2.c
+> +++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+> @@ -106,7 +106,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
+>  	vbuf->sequence = ctx->frame_num++;
+>  	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+>
+> -	ctx->output_frames++;
+> +	if (frame->info.size)/* ignore EOS */
 
-Hi!
+Add space before '/*'
 
-> > +	u32 min, max;
-> > +
-> > +	v4l2_ctrl_handler_init(&sensor->ctrl_handler, 4);
-> > +
-> > +	/* V4L2_CID_GAIN */
-> > +	v4l2_ctrl_new_std(&sensor->ctrl_handler, &et8ek8_ctrl_ops,
-> > +			  V4L2_CID_GAIN, 0, ARRAY_SIZE(et8ek8_gain_table) - 1,
-> > +			  1, 0);
-> > +
-> > +	/* V4L2_CID_EXPOSURE */
-> > +	min =3D et8ek8_exposure_rows_to_us(sensor, 1);
-> > +	max =3D et8ek8_exposure_rows_to_us(sensor,
-> > +				sensor->current_reglist->mode.max_exp);
->=20
-> Haven't I suggested to use lines instead? I vaguely remember doing so...
-> this would remove quite some code from the driver.
+> +		ctx->output_frames++;
+>  }
+>
+>  static void requeue_free_frames(struct delta_ctx *ctx)
+> @@ -774,6 +775,132 @@ static int delta_s_selection(struct file *file, void *fh,
+>  	return delta_g_selection(file, fh, s);
+>  }
+>
+> +static void delta_complete_eos(struct delta_ctx *ctx,
+> +			       struct delta_frame *frame)
+> +{
+> +	struct delta_dev *delta = ctx->dev;
+> +	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
+> +
+> +	/* Send EOS to user:
+> +	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
+> +	 * - and then send EOS event
+> +	 */
+> +
+> +	/* empty frame */
+> +	frame->info.size = 0;
+> +
+> +	/* set the last buffer flag */
+> +	frame->flags |= V4L2_BUF_FLAG_LAST;
+> +
+> +	/* release frame to user */
+> +	delta_frame_done(ctx, frame, 0);
+> +
+> +	/* send EOS event */
+> +	v4l2_event_queue_fh(&ctx->fh, &ev);
+> +
+> +	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
+> +}
+> +
+> +static int delta_try_decoder_cmd(struct file *file, void *fh,
+> +				 struct v4l2_decoder_cmd *cmd)
+> +{
+> +	if (cmd->cmd != V4L2_DEC_CMD_STOP)
+> +		return -EINVAL;
+> +
+> +	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
+> +		return -EINVAL;
+> +
+> +	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
+> +	    (cmd->stop.pts != 0))
+> +		return -EINVAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
+> +{
+> +	const struct delta_dec *dec = ctx->dec;
+> +	struct delta_dev *delta = ctx->dev;
+> +	struct delta_frame *frame = NULL;
+> +	int ret = 0;
+> +
+> +	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
+> +
+> +	if (ctx->state != DELTA_STATE_READY)
+> +		return 0;
+> +
+> +	/* drain the decoder */
+> +	call_dec_op(dec, drain, ctx);
+> +
+> +	/* release to user drained frames */
+> +	while (1) {
+> +		frame = NULL;
+> +		ret = call_dec_op(dec, get_frame, ctx, &frame);
+> +		if (ret == -ENODATA) {
+> +			/* no more decoded frames */
+> +			break;
+> +		}
+> +		if (frame) {
+> +			dev_dbg(delta->dev, "%s drain frame[%d]\n",
+> +				ctx->name, frame->index);
+> +
+> +			/* pop timestamp and mark frame with it */
+> +			delta_pop_dts(ctx, &frame->dts);
+> +
+> +			/* release decoded frame to user */
+> +			delta_frame_done(ctx, frame, 0);
+> +		}
+> +	}
+> +
+> +	/* try to complete EOS */
+> +	ret = delta_get_free_frame(ctx, &frame);
+> +	if (ret)
+> +		goto delay_eos;
+> +
+> +	/* new frame available, EOS can now be completed */
+> +	delta_complete_eos(ctx, frame);
+> +
+> +	ctx->state = DELTA_STATE_EOS;
+> +
+> +	return 0;
+> +
+> +delay_eos:
+> +	/* EOS completion from driver is delayed because
+> +	 * we don't have a free empty frame available.
+> +	 * EOS completion is so delayed till next frame_queue() call
+> +	 * to be sure to have a free empty frame available.
+> +	 */
+> +	ctx->state = DELTA_STATE_WF_EOS;
+> +	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
+> +
+> +	return 0;
+> +}
+> +
+> +int delta_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
+> +{
+> +	struct delta_ctx *ctx = to_ctx(fh);
+> +	int ret = 0;
+> +
+> +	ret = delta_try_decoder_cmd(file, fh, cmd);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return delta_decoder_stop_cmd(ctx, fh);
+> +}
+> +
+> +static int delta_subscribe_event(struct v4l2_fh *fh,
+> +				 const struct v4l2_event_subscription *sub)
+> +{
+> +	switch (sub->type) {
+> +	case V4L2_EVENT_EOS:
+> +		return v4l2_event_subscribe(fh, sub, 2, NULL);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+>  /* v4l2 ioctl ops */
+>  static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+>  	.vidioc_querycap = delta_querycap,
+> @@ -795,6 +922,10 @@ static int delta_s_selection(struct file *file, void *fh,
+>  	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+>  	.vidioc_g_selection = delta_g_selection,
+>  	.vidioc_s_selection = delta_s_selection,
+> +	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
+> +	.vidioc_decoder_cmd = delta_decoder_cmd,
+> +	.vidioc_subscribe_event = delta_subscribe_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+>
+>  /*
+> @@ -1381,6 +1512,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
+>  	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+>  	struct delta_frame *frame = to_frame(vbuf);
+>
+> +	if (ctx->state == DELTA_STATE_WF_EOS) {
+> +		/* new frame available, EOS can now be completed */
+> +		delta_complete_eos(ctx, frame);
+> +
+> +		ctx->state = DELTA_STATE_EOS;
+> +
+> +		/* return, no need to recycle this buffer to decoder */
+> +		return;
+> +	}
+> +
+>  	/* recycle this frame */
+>  	delta_recycle(ctx, frame);
+>  }
+> diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+> index 076e0fc..c8a315b 100644
+> --- a/drivers/media/platform/sti/delta/delta.h
+> +++ b/drivers/media/platform/sti/delta/delta.h
+> @@ -27,11 +27,19 @@
+>   *@DELTA_STATE_READY:
+>   *	Decoding instance is ready to decode compressed access unit.
+>   *
+> + *@DELTA_STATE_WF_EOS:
+> + *	Decoding instance is waiting for EOS (End Of Stream) completion.
+> + *
+> + *@DELTA_STATE_EOS:
+> + *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
+> + *	should then be closed.
+>   */
+>  enum delta_state {
+>  	DELTA_STATE_WF_FORMAT,
+>  	DELTA_STATE_WF_STREAMINFO,
+>  	DELTA_STATE_READY,
+> +	DELTA_STATE_WF_EOS,
+> +	DELTA_STATE_EOS
+>  };
+>
+>  /*
+> @@ -237,6 +245,7 @@ struct delta_ipc_param {
+>   * @get_frame:		get the next decoded frame available, see below
+>   * @recycle:		recycle the given frame, see below
+>   * @flush:		(optional) flush decoder, see below
+> + * @drain:		(optional) drain decoder, see below
+>   */
+>  struct delta_dec {
+>  	const char *name;
+> @@ -371,6 +380,18 @@ struct delta_dec {
+>  	 * decoding logic.
+>  	 */
+>  	void (*flush)(struct delta_ctx *ctx);
+> +
+> +	/*
+> +	 * drain() - drain decoder
+> +	 * @ctx:	(in) instance
+> +	 *
+> +	 * Optional.
+> +	 * Mark decoder pending frames (decoded but not yet output) as ready
+> +	 * so that they can be output to client at EOS (End Of Stream).
+> +	 * get_frame() is to be called in a loop right after drain() to
+> +	 * get all those pending frames.
+> +	 */
+> +	void (*drain)(struct delta_ctx *ctx);
+>  };
+>
+>  struct delta_dev;
+> @@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
+>  		return "P";
+>  	if (flags & V4L2_BUF_FLAG_BFRAME)
+>  		return "B";
+> +	if (flags & V4L2_BUF_FLAG_LAST)
+> +		return "EOS";
+>  	return "?";
+>  }
+>
+>
 
-Do you have some more hints? I'll try to figure it out...
+Regards,
 
-> > +#ifdef CONFIG_PM
-> > +
-> > +static int et8ek8_suspend(struct device *dev)
->=20
-> static int __maybe_unused ...
->=20
-> Please check the smiapp patches I just sent to the list. The smiapp driver
-> had similar issues.
-
-Ok, I guess I figured it out from other code (no network at the
-moment).
-
-> > +	if (sensor->power_count) {
-> > +		gpiod_set_value(sensor->reset, 0);
-> > +		clk_disable_unprepare(sensor->ext_clk);
-> > +		sensor->power_count =3D 0;
-> > +	}
-> > +
->=20
-> You're missing v4l2_async_unregister_subdev() here.
-
-Added.
-
-> > +	v4l2_device_unregister_subdev(&sensor->subdev);
-> > +	device_remove_file(&client->dev, &dev_attr_priv_mem);
-> > +	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
-> > +	media_entity_cleanup(&sensor->subdev.entity);
-> > +
-> > +	return 0;
-> > +}
-
-> > +MODULE_DEVICE_TABLE(i2c, et8ek8_id_table);
-> > +
-> > +static const struct dev_pm_ops et8ek8_pm_ops =3D {
-> > +	.suspend	=3D et8ek8_suspend,
-> > +	.resume		=3D et8ek8_resume,
->=20
-> How about using  SET_SYSTEM_SLEEP_PM_OPS() here?
-
-Ok, I guess that saves few lines.
-
-> > +module_i2c_driver(et8ek8_i2c_driver);
-> > +
-> > +MODULE_AUTHOR("Sakari Ailus <sakari.ailus@iki.fi>");
->=20
-> You should put your name here as well. :-)
->=20
-> It's been a long time I even tried to use it. :-i
-
-Me? Ok, I can list myself there, but I don't really know much about
-that driver.
-
-> > + * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-> > + *          Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
->=20
-> Tuukka's e-mail is wrong here (the correct address is elsewhere in the
-> patch).
-
-Fixed.
-
-Ok, these cleanups are here.
-
-									Pavel
-
-diff --git a/drivers/media/i2c/et8ek8/et8ek8_driver.c b/drivers/media/i2c/e=
-t8ek8/et8ek8_driver.c
-index eb131b2..eb8c1b4 100644
---- a/drivers/media/i2c/et8ek8/et8ek8_driver.c
-+++ b/drivers/media/i2c/et8ek8/et8ek8_driver.c
-@@ -5,6 +5,7 @@
-  *
-  * Contact: Sakari Ailus <sakari.ailus@iki.fi>
-  *          Tuukka Toivonen <tuukkat76@gmail.com>
-+ *          Pavel Machek <pavel@ucw.cz>
-  *
-  * Based on code from Toni Leinonen <toni.leinonen@offcode.fi>.
-  *
-@@ -1435,9 +1436,7 @@ static const struct v4l2_subdev_internal_ops et8ek8_i=
-nternal_ops =3D {
- /* -----------------------------------------------------------------------=
----
-  * I2C driver
-  */
--#ifdef CONFIG_PM
--
--static int et8ek8_suspend(struct device *dev)
-+static int __maybe_unused et8ek8_suspend(struct device *dev)
- {
- 	struct i2c_client *client =3D to_i2c_client(dev);
- 	struct v4l2_subdev *subdev =3D i2c_get_clientdata(client);
-@@ -1449,7 +1448,7 @@ static int et8ek8_suspend(struct device *dev)
- 	return __et8ek8_set_power(sensor, false);
- }
-=20
--static int et8ek8_resume(struct device *dev)
-+static int __maybe_unused et8ek8_resume(struct device *dev)
- {
- 	struct i2c_client *client =3D to_i2c_client(dev);
- 	struct v4l2_subdev *subdev =3D i2c_get_clientdata(client);
-@@ -1461,13 +1460,6 @@ static int et8ek8_resume(struct device *dev)
- 	return __et8ek8_set_power(sensor, true);
- }
-=20
--#else
--
--#define et8ek8_suspend NULL
--#define et8ek8_resume NULL
--
--#endif /* CONFIG_PM */
--
- static int et8ek8_probe(struct i2c_client *client,
- 			const struct i2c_device_id *devid)
- {
-@@ -1542,6 +1534,7 @@ static int __exit et8ek8_remove(struct i2c_client *cl=
-ient)
- 	v4l2_device_unregister_subdev(&sensor->subdev);
- 	device_remove_file(&client->dev, &dev_attr_priv_mem);
- 	v4l2_ctrl_handler_free(&sensor->ctrl_handler);
-+	v4l2_async_unregister_subdev(&sensor->subdev);
- 	media_entity_cleanup(&sensor->subdev.entity);
-=20
- 	return 0;
-@@ -1559,8 +1552,7 @@ static const struct i2c_device_id et8ek8_id_table[] =
-=3D {
- MODULE_DEVICE_TABLE(i2c, et8ek8_id_table);
-=20
- static const struct dev_pm_ops et8ek8_pm_ops =3D {
--	.suspend	=3D et8ek8_suspend,
--	.resume		=3D et8ek8_resume,
-+	SET_SYSTEM_SLEEP_PM_OPS(et8ek8_suspend, et8ek8_resume)
- };
-=20
- static struct i2c_driver et8ek8_i2c_driver =3D {
-@@ -1576,6 +1568,6 @@ static struct i2c_driver et8ek8_i2c_driver =3D {
-=20
- module_i2c_driver(et8ek8_i2c_driver);
-=20
--MODULE_AUTHOR("Sakari Ailus <sakari.ailus@iki.fi>");
-+MODULE_AUTHOR("Sakari Ailus <sakari.ailus@iki.fi>, Pavel Machek <pavel@ucw=
-=2Ecz");
- MODULE_DESCRIPTION("Toshiba ET8EK8 camera sensor driver");
- MODULE_LICENSE("GPL");
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---bg08WKrSYDhXBjb5
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlgxv0IACgkQMOfwapXb+vIPlwCfXlUct8HIH+F57HWhhAryjbfP
-6k4AnjgoDMfh7m0GC5Ve1Kutw4zmQN/s
-=QoW+
------END PGP SIGNATURE-----
-
---bg08WKrSYDhXBjb5--
+	Hans
