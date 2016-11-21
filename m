@@ -1,123 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49652
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S934789AbcKKAfW (ORCPT
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37809 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752814AbcKUP3V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 19:35:22 -0500
-Subject: Re: [RFC v4 08/21] media: Enable allocating the media device
- dynamically
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1698237.M9v6idgxsX@avalon>
- <87a7cdf5-7964-8a5a-51a8-bd2d440d3f8d@osg.samsung.com>
- <2592222.PCoxoX7ZGe@avalon>
-Cc: Shuah Khan <shuahkhan@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        mchehab@osg.samsung.com, Sakari Ailus <sakari.ailus@iki.fi>,
-        Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <28c6d507-5a71-a551-268c-ba6143e222e5@osg.samsung.com>
-Date: Thu, 10 Nov 2016 17:35:18 -0700
+        Mon, 21 Nov 2016 10:29:21 -0500
+Received: by mail-wm0-f51.google.com with SMTP id t79so150766318wmt.0
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2016 07:29:20 -0800 (PST)
+Subject: Re: [PATCH v3 4/9] media: venus: vdec: add video decoder files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
+ <63a91a5a-a97b-f3df-d16d-c8f76bf20c30@xs4all.nl>
+ <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
+ <86442d1d-4a12-71c1-97fa-12bc73bb5045@linaro.org>
+ <9ff4f3cf-f6d1-cebe-6f1a-e4209c55e4f4@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <15975057-dd6a-6946-07ac-93a748b6a176@linaro.org>
+Date: Mon, 21 Nov 2016 17:29:17 +0200
 MIME-Version: 1.0
-In-Reply-To: <2592222.PCoxoX7ZGe@avalon>
+In-Reply-To: <9ff4f3cf-f6d1-cebe-6f1a-e4209c55e4f4@xs4all.nl>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/10/2016 05:19 PM, Laurent Pinchart wrote:
-> Hi Shuah,
-> 
-> On Thursday 10 Nov 2016 17:16:31 Shuah Khan wrote:
->> On 11/10/2016 05:11 PM, Laurent Pinchart wrote:
->>> On Thursday 10 Nov 2016 17:00:16 Shuah Khan wrote:
->>>> On 11/10/2016 04:53 PM, Laurent Pinchart wrote:
->>>>> On Tuesday 08 Nov 2016 12:20:29 Shuah Khan wrote:
->>>>>> On Tue, Nov 8, 2016 at 6:55 AM, Sakari Ailus wrote:
->>>>>>> From: Sakari Ailus <sakari.ailus@iki.fi>
->>>>>>>
->>>>>>> Allow allocating the media device dynamically. As the struct
->>>>>>> media_device embeds struct media_devnode, the lifetime of that object
->>>>>>> is that same than that of the media_device.
->>>>>>>
->>>>>>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->>>>>>> ---
->>>>>>>
->>>>>>>  drivers/media/media-device.c | 15 +++++++++++++++
->>>>>>>  include/media/media-device.h | 13 +++++++++++++
->>>>>>>  2 files changed, 28 insertions(+)
->>>>>>>
->>>>>>> diff --git a/drivers/media/media-device.c
->>>>>>> b/drivers/media/media-device.c
->>>>>>> index a31329d..496195e 100644
->>>>>>> --- a/drivers/media/media-device.c
->>>>>>> +++ b/drivers/media/media-device.c
->>>>>>> @@ -684,6 +684,21 @@ void media_device_init(struct media_device *mdev)
->>>>>>>  }
->>>>>>>  EXPORT_SYMBOL_GPL(media_device_init);
->>>>>>>
->>>>>>> +struct media_device *media_device_alloc(struct device *dev)
->>>>>>> +{
->>>>>>> +       struct media_device *mdev;
->>>>>>> +
->>>>>>> +       mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
->>>>>>> +       if (!mdev)
->>>>>>> +               return NULL;
->>>>>>> +
->>>>>>> +       mdev->dev = dev;
->>>>>>> +       media_device_init(mdev);
->>>>>>> +
->>>>>>> +       return mdev;
->>>>>>> +}
->>>>>>> +EXPORT_SYMBOL_GPL(media_device_alloc);
->>>>>>> +
->>>>>>
->>>>>> One problem with this allocation is, this media device can't be shared
->>>>>> across drivers. For au0828 and snd-usb-audio should be able to share
->>>>>> the media_device. That is what the Media Allocator API patch series
->>>>>> does.
->>>>>
->>>>> No disagreement here, Sakari's patches don't address the issues that the
->>>>> media allocator API fixes. The media allocator API, when ready, should
->>>>> replace (or at least complement, if we decide to keep a simpler API for
->>>>> drivers that don't need to share a media device, but I have no opinion
->>>>> on this at this time) this allocation function.
->>>>
->>>> Media Device Allocator API is ready and reviewed. au0828 uses it as the
->>>> first driver using it. I will be sending out snd-usb-audio patch soon
->>>> that makes use of the shared media device.
->>>
->>> I don't think it would be too difficult to rebase this series on top of
->>> the media allocator API, as all that is needed here is a way to
->>> dynamically allocate the media device in a clean fashion. I don't think
->>> Sakari's patches depend on a specific implementation of
->>> media_device_alloc(). Sakari, please let me know if I got this wrong.
+Hi Hans,
+
+On 11/21/2016 05:04 PM, Hans Verkuil wrote:
+> On 18/11/16 10:11, Stanimir Varbanov wrote:
+>> Hi Hans,
 >>
->> Media Device Allocator API is independent as well. It doesn't make any
->> assumptions on media_device register and doesn't care really whether it
->> is shared or not. So I think Sakari's work can use the Media Device
->> Allocator API instead of the allocator routine it is adding.
+>>>>> +
+>>>>> +static int
+>>>>> +vdec_reqbufs(struct file *file, void *fh, struct
+>>>>> v4l2_requestbuffers *b)
+>>>>> +{
+>>>>> +    struct vb2_queue *queue = to_vb2q(file, b->type);
+>>>>> +
+>>>>> +    if (!queue)
+>>>>> +        return -EINVAL;
+>>>>> +
+>>>>> +    return vb2_reqbufs(queue, b);
+>>>>> +}
+>>>>
+>>>> Is there any reason why the v4l2_m2m_ioctl_reqbufs et al helper
+>>>> functions
+>>>> can't be used? I strongly recommend that, unless there is a specific
+>>>> reason
+>>>> why that won't work.
+>>>
+>>> So that means I need to completely rewrite the v4l2 part and adopt it
+>>> for mem2mem device APIs.
+>>>
+>>> If that is what you meant I can invest some time to make a estimation
+>>> what would be the changes and time needed. After that we can decide what
+>>> to do - take the driver as is and port it to mem2mem device APIs later
+>>> on or wait for the this transition to happen before merging.
+>>>
+>>
+>> I made an attempt to adopt v4l2 part of the venus driver to m2m API's
+>> and the result was ~300 less lines of code, but with the price of few
+>> extensions in m2m APIs (and I still have issues with running
+>> simultaneously multiple instances).
+>>
+>> I have to add few functions/macros to iterate over a list (list_for_each
+>> and friends). This is used to find the returned from decoder buffers by
+>> address and associate them to vb2_buffer, because the decoder can change
+>> the order of the output buffers.
+>>
+>> The main problem I have is registering of the capture buffers before
+>> session_start. This is requirement (disadvantage) of the firmware
+>> implementation i.e. I need to announce capture buffers (address and size
+>> of the buffer) to the firmware before start buffer interaction by
+>> session_start.
+>>
+>> So having that I think I will need one more week to stabilize the driver
+>> to the state that it was before this m2m transition.
+>>
+>> Thoughts?
+>>
 > 
-> I think you're right, and the goal is certainly to merge both. The question is 
-> just which series should go in first. I have no strong opinion on that, 
-> whichever series is ready first can probably get merged first. I'd just like 
-> to get a confirmation from Sakari that both orders would be equally fine.
+> It sounds like this it worth doing, since if you need these extensions,
+> then
+> it is likely someone else will need it as well.
+
+Meanwhile I have found bigger obstacle - I cannot run multiple instances
+simultaneously. By m2m design it can execute only one job (m2m context)
+at a time per m2m device. Can you confirm that my observation is correct?
+
+If so one solution could be on every fops::open I can create m2m_dev and
+init m2m_cxt.
+
 > 
-> This being said, I'd of course like to test the combination of both series to 
-> make sure neither introduce an issue for the other one.
+> Can you mail me a preliminary patch with the core m2m changes? That will be
+> helpful for me to look at.
 
-Audio maintainer has been waiting for the snd-usb-audio media controller api
-work to use it as a reference for changing other drivers to use media controller
-api.
+Something like below diffs:
 
-I have an urgency here to get the snd-usb-audio. So I am going to work
-towards getting Media Device Allocator API, au0828, and snd-usb-audio patches
-that uses Media Device Allocator API into 4.10
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
+b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 61d56c940f80..52e22ec0f67b 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -136,6 +136,28 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx
+*q_ctx)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
 
-Sakari's work could take longer as it requires driver changes. So I am going
-to assume, it will happen after the work I am doing.
++struct vb2_v4l2_buffer *
++v4l2_m2m_buf_remove_match(struct v4l2_m2m_queue_ctx *q_ctx, void *priv,
++                          int (*match)(void *priv, struct
+vb2_v4l2_buffer *vb))
++{
++       struct v4l2_m2m_buffer *b, *tmp;
++       struct vb2_v4l2_buffer *ret = NULL;
++       unsigned long flags;
++
++       spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
++       list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
++               if (match(priv, &b->vb)) {
++                       list_del(&b->list);
++                       ret = &b->vb;
++                       break;
++               }
++       }
++       spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
++
++       return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_match);
++
+ /*
+  * Scheduling handlers
+  */
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 64e1819ea66d..e943609209ba 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -263,6 +263,24 @@ static inline void *v4l2_m2m_dst_buf_remove(struct
+v4l2_m2m_ctx *m2m_ctx)
+        return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
+ }
 
-thanks,
--- Shuah
++struct vb2_v4l2_buffer *
++v4l2_m2m_buf_remove_match(struct v4l2_m2m_queue_ctx *q_ctx, void *priv,
++                       int (*match)(void *priv, struct vb2_v4l2_buffer
+*vb));
++
++static inline struct vb2_v4l2_buffer *
++v4l2_m2m_src_buf_remove_match(struct v4l2_m2m_ctx *m2m_ctx, void *priv,
++                       int (*match)(void *priv, struct vb2_v4l2_buffer
+*vb))
++{
++       return v4l2_m2m_buf_remove_match(&m2m_ctx->out_q_ctx, priv, match);
++}
++
++static inline struct vb2_v4l2_buffer *
++v4l2_m2m_dst_buf_remove_match(struct v4l2_m2m_ctx *m2m_ctx, void *priv,
++                       int (*match)(void *priv, struct vb2_v4l2_buffer
+*vb))
++{
++       return v4l2_m2m_buf_remove_match(&m2m_ctx->cap_q_ctx, priv, match);
++}
 
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 5a9597dd1ee0..64e1819ea66d 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -211,6 +211,12 @@ static inline void *v4l2_m2m_next_dst_buf(struct
+v4l2_m2m_ctx *m2m_ctx)
+        return v4l2_m2m_next_buf(&m2m_ctx->cap_q_ctx);
+ }
+
++#define v4l2_m2m_for_each_dst_buf(q_ctx, b)    \
++       list_for_each_entry(b, &q_ctx->cap_q_ctx.rdy_queue, list)
++
++#define v4l2_m2m_for_each_src_buf(q_ctx, b)    \
++       list_for_each_entry(b, &q_ctx->out_q_ctx.rdy_queue, list)
++
+ /**
+  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
+  *
+
+-- 
+regards,
+Stan
