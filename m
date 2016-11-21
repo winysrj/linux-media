@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47693 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932372AbcKVRVO (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55959 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754646AbcKUOhY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 12:21:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 1/2] uvc_v4l2: Use memdup_user() rather than duplicating its implementation
-Date: Tue, 22 Nov 2016 19:21:24 +0200
-Message-ID: <3466616.R2EqhFMbZP@avalon>
-In-Reply-To: <4181a4b7-3527-4ddf-4c7f-42fcd47977ca@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net> <95aa5fcd-8610-debc-70b0-30b2ed3302d2@users.sourceforge.net> <4181a4b7-3527-4ddf-4c7f-42fcd47977ca@users.sourceforge.net>
+        Mon, 21 Nov 2016 09:37:24 -0500
+Subject: Re: [PATCH 2/4] [media] davinci: vpif_capture: don't lock over
+ s_stream
+To: Kevin Hilman <khilman@baylibre.com>, linux-media@vger.kernel.org
+References: <20161119003208.10550-1-khilman@baylibre.com>
+ <20161119003208.10550-2-khilman@baylibre.com>
+Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?Q?Bartosz_Go=c5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f385c65b-1f73-a5b1-b498-43916d5bdfb6@xs4all.nl>
+Date: Mon, 21 Nov 2016 15:37:20 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20161119003208.10550-2-khilman@baylibre.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
-
-Thank you for the patch.
-
-On Friday 19 Aug 2016 11:23:18 SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Fri, 19 Aug 2016 10:50:05 +0200
-> 
-> Reuse existing functionality from memdup_user() instead of keeping
-> duplicate source code.
-> 
-> This issue was detected by using the Coccinelle software.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
+On 19/11/16 01:32, Kevin Hilman wrote:
+> Video capture subdevs may be over I2C and may sleep during xfer, so we
+> cannot do IRQ-disabled locking when calling the subdev.
+>
+> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 > ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 11 +++--------
->  1 file changed, 3 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index 05eed4b..a7e12fd 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -70,14 +70,9 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
-> *chain, }
-> 
->  		size = xmap->menu_count * sizeof(*map->menu_info);
-> -		map->menu_info = kmalloc(size, GFP_KERNEL);
-> -		if (map->menu_info == NULL) {
-> -			ret = -ENOMEM;
-> -			goto done;
-> -		}
-> -
-> -		if (copy_from_user(map->menu_info, xmap->menu_info, size)) {
-> -			ret = -EFAULT;
-> +		map->menu_info = memdup_user(xmap->menu_info, size);
-> +		if (IS_ERR(map->menu_info)) {
-> +			ret = PTR_ERR(map->menu_info);
->  			goto done;
+>  drivers/media/platform/davinci/vpif_capture.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+>
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index 79cef74e164f..becc3e63b472 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -193,12 +193,16 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
 >  		}
+>  	}
+>
+> +	spin_unlock_irqrestore(&common->irqlock, flags);
+> +
+>  	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
+>  	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+>  		vpif_dbg(1, debug, "stream on failed in subdev\n");
+>  		goto err;
+>  	}
+>
+> +	spin_lock_irqsave(&common->irqlock, flags);
 
--- 
-Regards,
+This needs to be moved to right after the v4l2_subdev_call, otherwise the
+goto err above will not have the spinlock.
 
-Laurent Pinchart
+	Hans
 
+> +
+>  	/* Call vpif_set_params function to set the parameters and addresses */
+>  	ret = vpif_set_video_params(vpif, ch->channel_id);
+>  	if (ret < 0) {
+>
