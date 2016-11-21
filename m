@@ -1,70 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60632 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754107AbcKIOYU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 09:24:20 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Ulf Hansson <ulf.hansson@linaro.org>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH 12/12] exynos-gsc: Use of_device_get_match_data() helper
-Date: Wed, 09 Nov 2016 15:24:01 +0100
-Message-id: <1478701441-29107-13-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478701441-29107-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161109142412eucas1p17e8eeb9c289771e8a093d35d1fde28f7@eucas1p1.samsung.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43030 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754060AbcKUOwD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Nov 2016 09:52:03 -0500
+Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
+ Decoder
+To: Rick Chang <rick.chang@mediatek.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+ <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        srv_heupstream@mediatek.com, linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
+Date: Mon, 21 Nov 2016 15:51:59 +0100
+MIME-Version: 1.0
+In-Reply-To: <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace open-coded driver data extraction code with generic helper.
+On 17/11/16 04:38, Rick Chang wrote:
+> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> ---
+> This patch depends on:
+>   CCF "Add clock support for Mediatek MT2701"[1]
+>   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
+>
+> [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+> [2] https://patchwork.kernel.org/patch/9164013/
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-core.c | 15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+I assume that 1 & 2 will appear in 4.10? So this patch needs to go in 
+after the
+other two are merged in 4.10?
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-index ac4c96c..664398c 100644
---- a/drivers/media/platform/exynos-gsc/gsc-core.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-@@ -24,6 +24,7 @@
- #include <linux/slab.h>
- #include <linux/clk.h>
- #include <linux/of.h>
-+#include <linux/of_device.h>
- #include <media/v4l2-ioctl.h>
- 
- #include "gsc-core.h"
-@@ -975,24 +976,12 @@ static irqreturn_t gsc_irq_handler(int irq, void *priv)
- };
- MODULE_DEVICE_TABLE(of, exynos_gsc_match);
- 
--static void *gsc_get_drv_data(struct platform_device *pdev)
--{
--	struct gsc_driverdata *driver_data = NULL;
--	const struct of_device_id *match;
--
--	match = of_match_node(exynos_gsc_match, pdev->dev.of_node);
--	if (match)
--		driver_data = (struct gsc_driverdata *)match->data;
--
--	return driver_data;
--}
--
- static int gsc_probe(struct platform_device *pdev)
- {
- 	struct gsc_dev *gsc;
- 	struct resource *res;
--	struct gsc_driverdata *drv_data = gsc_get_drv_data(pdev);
- 	struct device *dev = &pdev->dev;
-+	const struct gsc_driverdata *drv_data = of_device_get_match_data(dev);
- 	int ret;
- 
- 	gsc = devm_kzalloc(dev, sizeof(struct gsc_dev), GFP_KERNEL);
--- 
-1.9.1
+Regards,
 
+	Hans
+
+> ---
+>  arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
+> index 8f13c70..4dd5048 100644
+> --- a/arch/arm/boot/dts/mt2701.dtsi
+> +++ b/arch/arm/boot/dts/mt2701.dtsi
+> @@ -298,6 +298,20 @@
+>  		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+>  	};
+>
+> +	jpegdec: jpegdec@15004000 {
+> +		compatible = "mediatek,mt2701-jpgdec";
+> +		reg = <0 0x15004000 0 0x1000>;
+> +		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
+> +		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
+> +			  <&imgsys CLK_IMG_JPGDEC>;
+> +		clock-names = "jpgdec-smi",
+> +			      "jpgdec";
+> +		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+> +		mediatek,larb = <&larb2>;
+> +		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
+> +			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
+> +	};
+> +
+>  	vdecsys: syscon@16000000 {
+>  		compatible = "mediatek,mt2701-vdecsys", "syscon";
+>  		reg = <0 0x16000000 0 0x1000>;
+>
