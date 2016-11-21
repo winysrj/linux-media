@@ -1,262 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f178.google.com ([209.85.192.178]:36717 "EHLO
-        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935029AbcKWX0K (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:45777 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754532AbcKUPE6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 18:26:10 -0500
-Received: by mail-pf0-f178.google.com with SMTP id 189so5687240pfz.3
-        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 15:26:10 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: Re: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
-References: <20161122155244.802-1-khilman@baylibre.com>
-        <20161122155244.802-4-khilman@baylibre.com>
-        <20161123153723.GE16630@valkosipuli.retiisi.org.uk>
-Date: Wed, 23 Nov 2016 15:25:32 -0800
-In-Reply-To: <20161123153723.GE16630@valkosipuli.retiisi.org.uk> (Sakari
-        Ailus's message of "Wed, 23 Nov 2016 17:37:23 +0200")
-Message-ID: <m2a8cpvkwj.fsf@baylibre.com>
+        Mon, 21 Nov 2016 10:04:58 -0500
+Subject: Re: [PATCH v3 4/9] media: venus: vdec: add video decoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
+ <63a91a5a-a97b-f3df-d16d-c8f76bf20c30@xs4all.nl>
+ <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
+ <86442d1d-4a12-71c1-97fa-12bc73bb5045@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9ff4f3cf-f6d1-cebe-6f1a-e4209c55e4f4@xs4all.nl>
+Date: Mon, 21 Nov 2016 16:04:55 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <86442d1d-4a12-71c1-97fa-12bc73bb5045@linaro.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Sakari Ailus <sakari.ailus@iki.fi> writes:
-
-> On Tue, Nov 22, 2016 at 07:52:43AM -0800, Kevin Hilman wrote:
->> Allow getting of subdevs from DT ports and endpoints.
->> 
->> The _get_pdata() function was larely inspired by (i.e. stolen from)
+On 18/11/16 10:11, Stanimir Varbanov wrote:
+> Hi Hans,
 >
-> vpif_capture_get_pdata and "largely"?
-
-Yes, thanks.
-
->> am437x-vpfe.c
->> 
->> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->>  drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++++++++++++-
->>  include/media/davinci/vpif_types.h            |   9 +-
->>  2 files changed, 133 insertions(+), 6 deletions(-)
->> 
->> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
->> index 94ee6cf03f02..47a4699157e7 100644
->> --- a/drivers/media/platform/davinci/vpif_capture.c
->> +++ b/drivers/media/platform/davinci/vpif_capture.c
->> @@ -26,6 +26,8 @@
->>  #include <linux/slab.h>
->>  
->>  #include <media/v4l2-ioctl.h>
->> +#include <media/v4l2-of.h>
->> +#include <media/i2c/tvp514x.h>
+>>>> +
+>>>> +static int
+>>>> +vdec_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
+>>>> +{
+>>>> +	struct vb2_queue *queue = to_vb2q(file, b->type);
+>>>> +
+>>>> +	if (!queue)
+>>>> +		return -EINVAL;
+>>>> +
+>>>> +	return vb2_reqbufs(queue, b);
+>>>> +}
+>>>
+>>> Is there any reason why the v4l2_m2m_ioctl_reqbufs et al helper functions
+>>> can't be used? I strongly recommend that, unless there is a specific reason
+>>> why that won't work.
+>>
+>> So that means I need to completely rewrite the v4l2 part and adopt it
+>> for mem2mem device APIs.
+>>
+>> If that is what you meant I can invest some time to make a estimation
+>> what would be the changes and time needed. After that we can decide what
+>> to do - take the driver as is and port it to mem2mem device APIs later
+>> on or wait for the this transition to happen before merging.
+>>
 >
-> Do you need this header?
+> I made an attempt to adopt v4l2 part of the venus driver to m2m API's
+> and the result was ~300 less lines of code, but with the price of few
+> extensions in m2m APIs (and I still have issues with running
+> simultaneously multiple instances).
 >
-
-Yes, based on discussion with Hans, since there is no DT binding for
-selecting the input pins of the TVP514x, I have to select it in the
-driver, so I need the defines from this header.  More on this below...
-
->>  
->>  #include "vpif.h"
->>  #include "vpif_capture.h"
->> @@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
->>  
->>  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
->>  
->> +	if (!chan_cfg)
->> +		return -1;
->> +	if (input_index >= chan_cfg->input_count)
->> +		return -1;
->>  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
->>  	if (subdev_name == NULL)
->>  		return -1;
->> @@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
->>  	/* loop through the sub device list to get the sub device info */
->>  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
->>  		subdev_info = &vpif_cfg->subdev_info[i];
->> -		if (!strcmp(subdev_info->name, subdev_name))
->> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
->>  			return i;
->>  	}
->>  	return -1;
->> @@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
->>  {
->>  	int i;
->>  
->> +	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
->> +		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
->> +		const struct device_node *node = _asd->match.of.node;
->> +
->> +		if (node == subdev->of_node) {
->> +			vpif_obj.sd[i] = subdev;
->> +			vpif_obj.config->chan_config->inputs[i].subdev_name =
->> +				(char *)subdev->of_node->full_name;
->> +			vpif_dbg(2, debug,
->> +				 "%s: setting input %d subdev_name = %s\n",
->> +				 __func__, i, subdev->of_node->full_name);
->> +			return 0;
->> +		}
->> +	}
->> +
->>  	for (i = 0; i < vpif_obj.config->subdev_count; i++)
->>  		if (!strcmp(vpif_obj.config->subdev_info[i].name,
->>  			    subdev->name)) {
->> @@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
->>  	return vpif_probe_complete();
->>  }
->>  
->> +static struct vpif_capture_config *
->> +vpif_capture_get_pdata(struct platform_device *pdev)
->> +{
->> +	struct device_node *endpoint = NULL;
->> +	struct v4l2_of_endpoint bus_cfg;
->> +	struct vpif_capture_config *pdata;
->> +	struct vpif_subdev_info *sdinfo;
->> +	struct vpif_capture_chan_config *chan;
->> +	unsigned int i;
->> +
->> +	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
->> +
->> +	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
->> +		return pdev->dev.platform_data;
->> +
->> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
->> +	if (!pdata)
->> +		return NULL;
->> +	pdata->subdev_info =
->> +		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
->> +			     VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
->> +
->> +	if (!pdata->subdev_info)
->> +		return NULL;
->> +	dev_dbg(&pdev->dev, "%s\n", __func__);
->> +
->> +	for (i = 0; ; i++) {
->> +		struct device_node *rem;
->> +		unsigned int flags;
->> +		int err;
->> +
->> +		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
->> +						      endpoint);
->> +		if (!endpoint)
->> +			break;
->> +
->> +		sdinfo = &pdata->subdev_info[i];
+> I have to add few functions/macros to iterate over a list (list_for_each
+> and friends). This is used to find the returned from decoder buffers by
+> address and associate them to vb2_buffer, because the decoder can change
+> the order of the output buffers.
 >
-> subdev_info[] has got VPIF_CAPTURE_MAX_CHANNELS entries only.
+> The main problem I have is registering of the capture buffers before
+> session_start. This is requirement (disadvantage) of the firmware
+> implementation i.e. I need to announce capture buffers (address and size
+> of the buffer) to the firmware before start buffer interaction by
+> session_start.
+>
+> So having that I think I will need one more week to stabilize the driver
+> to the state that it was before this m2m transition.
+>
+> Thoughts?
 >
 
-Right, I need to make the loop only go for a max of
-VPIF_CAPTURE_MAX_CHANNELS iterations.
+It sounds like this it worth doing, since if you need these extensions, then
+it is likely someone else will need it as well.
 
->> +		chan = &pdata->chan_config[i];
->> +		chan->inputs = devm_kzalloc(&pdev->dev,
->> +					    sizeof(*chan->inputs) *
->> +					    VPIF_DISPLAY_MAX_CHANNELS,
->> +					    GFP_KERNEL);
->> +
->> +		chan->input_count++;
->> +		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
->
-> I wonder what's the purpose of using index i on this array as well.
+Can you mail me a preliminary patch with the core m2m changes? That will be
+helpful for me to look at.
 
-The number of endpoints in DT is the number of input channels configured
-(up to a max of VPIF_CAPTURE_MAX_CHANNELS.)
+Regards,
 
-> If you use that to access a corresponding entry in a different array, I'd
-> just create a struct that contains the port configuration and the async
-> sub-device. The omap3isp driver does that, for instance; see
-> isp_of_parse_nodes() in drivers/media/platform/omap3isp/isp.c if you're
-> interested. Up to you.
-
-OK, I'll have a look at that driver. The goal here with this series is
-just to get this working with DT, but also not break the existing legacy
-platform_device support, so I'm trying not to mess with the
-driver-interal data structures too much.
-
->> +		chan->inputs[i].input.std = V4L2_STD_ALL;
->> +		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
->> +
->> +		/* FIXME: need a new property? ch0:composite ch1: s-video */
->> +		if (i == 0)
->
-> Can you assume that the first endopoint has got a particular kind of input?
-> What if it's not connected?
-
-On all the boards I know of (there aren't many using this SoC), it's a
-safe assumption.
-
-> If this is a different physical port (not in the meaning another) in the
-> device, I'd use the reg property for this. Please see
-> Documentation/devicetree/bindings/media/video-interfaces.txt .
-
-My understanding (which is admittedly somewhat fuzzy) of the TVP514x is
-that it's not physically a different port.  Instead, it's just telling
-the TVP514x which pin(s) will be active inputs (and what kind of signal
-will be present.)
-
-I'm open to a better way to describe this input select from DT, but
-based on what I heard from Hans, there isn't currently a good way to do
-that except for in the driver:
-(c.f. https://marc.info/?l=linux-arm-kernel&m=147887871615788)
-
-Based on further discussion in that thread, it sounds like there may be
-a way forward coming soon, and I'll be glad to switch to that when it
-arrives.
-
->> +			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
->> +		else
->> +			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
->> +		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
->> +
->> +		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
->> +		if (err) {
->> +			dev_err(&pdev->dev, "Could not parse the endpoint\n");
->> +			goto done;
->> +		}
->> +		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
->> +			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
->> +		flags = bus_cfg.bus.parallel.flags;
->> +
->> +		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->> +			chan->vpif_if.hd_pol = 1;
->> +
->> +		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->> +			chan->vpif_if.vd_pol = 1;
->> +
->> +		chan->vpif_if.if_type = VPIF_IF_BT656;
->> +		rem = of_graph_get_remote_port_parent(endpoint);
->> +		if (!rem) {
->> +			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
->> +				endpoint->full_name);
->> +			goto done;
->> +		}
->> +
->> +		dev_dbg(&pdev->dev, "Remote device %s, %s found\n",
->> +			rem->name, rem->full_name);
->> +		sdinfo->name = rem->full_name;
->> +
->> +		pdata->asd[i] = devm_kzalloc(&pdev->dev,
->> +					     sizeof(struct v4l2_async_subdev),
->> +					     GFP_KERNEL);
->
-> Do you ensure somewhere that i isn't overrunning the pdata->asd[] array?
-> It's got VPIF_CAPTURE_MAX_CHANNELS entries.
-
-Oops, no.  That will be fixed by making the outer for loop only iterate
-for i = i..VPIF_CAPTURE_MAX_CHANNELS.
-
-
-Thanks for the review,
-
-Kevin
+	Hans
