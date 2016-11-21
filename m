@@ -1,93 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49078 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754304AbcKAUJO (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:16514 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753240AbcKULQw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 Nov 2016 16:09:14 -0400
-Date: Tue, 1 Nov 2016 22:08:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161101200831.GE3217@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
- <20161023203315.GC6391@amd>
- <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
- <20161101153921.GA15268@amd>
+        Mon, 21 Nov 2016 06:16:52 -0500
+Message-ID: <1479726989.25126.2.camel@mtksdaap41>
+Subject: Re: [PATCH] [media] VPU: mediatek: fix dereference of pdev before
+ checking it is null
+From: andrew-ct chen <andrew-ct.chen@mediatek.com>
+To: Colin King <colin.king@canonical.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Wei Yongjun" <yongjun_wei@trendmicro.com.cn>,
+        <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+Date: Mon, 21 Nov 2016 19:16:29 +0800
+In-Reply-To: <20161116191650.11486-1-colin.king@canonical.com>
+References: <20161116191650.11486-1-colin.king@canonical.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161101153921.GA15268@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
-
-On Tue, Nov 01, 2016 at 04:39:21PM +0100, Pavel Machek wrote:
-> Hi!
+On Wed, 2016-11-16 at 19:16 +0000, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> > > I'll have to go through the patches, et8ek8 driver is probably not
-> > > enough to get useful video. platform/video-bus-switch.c is needed for
-> > > camera switching, then some omap3isp patches to bind flash and
-> > > autofocus into the subdevice.
-> > > 
-> > > Then, device tree support on n900 can be added.
-> > 
-> > I briefly discussed with with Sebastian.
-> > 
-> > Do you think the elusive support for the secondary camera is worth keeping
-> > out the main camera from the DT in mainline? As long as there's a reasonable
-> > way to get it working, I'd just merge that. If someone ever gets the
-> > secondary camera working properly and nicely with the video bus switch,
-> > that's cool, we'll somehow deal with the problem then. But frankly I don't
-> > think it's very useful even if we get there: the quality is really
-> > bad.
+> pdev is dereferenced using platform_get_drvdata before a check to
+> see if it is null, hence there could be a potential null pointer
+> dereference issue. Instead, first check if pdev is null and only then
+> deference pdev when initializing vpu.
 > 
-> Well, I am a little bit worried that /dev/video* entries will
-> renumber themself when the the front camera support is merged,
-> breaking userspace.
+> Found with static analysis by CoverityScan, CID 1357797
 > 
-> But the first step is still the same: get et8ek8 support merged :-).
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> ---
 
-Do you happen to have a patch for the DT part as well? People could more
-easily test this...
+Reviewed-by: Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
-> > > > Do all the modes work for you currently btw.?
-> > > 
-> > > I don't think I got 5MP mode to work. Even 2.5MP mode is tricky (needs
-> > > a lot of continuous memory).
-> > 
-> > The OMAP 3 ISP has got an MMU, getting some contiguous memory is not really
-> > a problem when you have a 4 GiB empty space to use.
+>  drivers/media/platform/mtk-vpu/mtk_vpu.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
 > 
-> Ok, maybe it is something else. 2.5MP mode seems to work better when
-> there is free memory.
+> diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+> index c9bf58c..41f31b2 100644
+> --- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
+> +++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
+> @@ -523,9 +523,9 @@ static int load_requested_vpu(struct mtk_vpu *vpu,
+>  
+>  int vpu_load_firmware(struct platform_device *pdev)
+>  {
+> -	struct mtk_vpu *vpu = platform_get_drvdata(pdev);
+> +	struct mtk_vpu *vpu;
+>  	struct device *dev = &pdev->dev;
+> -	struct vpu_run *run = &vpu->run;
+> +	struct vpu_run *run;
+>  	const struct firmware *vpu_fw = NULL;
+>  	int ret;
+>  
+> @@ -533,6 +533,8 @@ int vpu_load_firmware(struct platform_device *pdev)
+>  		dev_err(dev, "VPU platform device is invalid\n");
+>  		return -EINVAL;
+>  	}
+> +	vpu = platform_get_drvdata(pdev);
+> +	run = &vpu->run;
+>  
+>  	mutex_lock(&vpu->vpu_mutex);
+>  	if (vpu->fw_loaded) {
 
-That's very odd. Do you use MMAP or USERPTR buffers btw.? I remember the
-cache was different on 3430, that could be an issue as well (VIVT AFAIR, so
-flushing requires making sure there are no other mappings or flushing the
-entire cache).
 
-> > > Anyway, I have to start somewhere, and I believe this is a good
-> > > starting place; I'd like to get the code cleaned up and merged, then
-> > > move to the next parts.
-> > 
-> > I wonder if something else could be the problem. I think the data rate is
-> > higher in the 5 MP mode, and that might be the reason. I don't remember how
-> > similar is the clock tree in the 3430 to the 3630. Could it be that the ISP
-> > clock is lower than it should be for some reason, for instance?
-> 
-> No idea, really. I'd like to get the support merged, and then debug
-> the code when we have common code base in the mainline.
-
-Yes. It's much easier then. Which is why it'd be very nice to have the DT
-content, too.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
