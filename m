@@ -1,132 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49250 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752746AbcKVWP4 (ORCPT
+Received: from bedivere.hansenpartnership.com ([66.63.167.143]:54748 "EHLO
+        bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754061AbcKUPlt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 17:15:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-        shuahkh@osg.samsung.com
-Subject: Re: [RFC v4 14/21] media device: Get the media device driver's device
-Date: Wed, 23 Nov 2016 00:16:08 +0200
-Message-ID: <3403508.4A2ibvd3Sz@avalon>
-In-Reply-To: <29c9f484-8ae0-8ccf-7b9c-46bbe6f8955b@xs4all.nl>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk> <2186924.rYqionKDuf@avalon> <29c9f484-8ae0-8ccf-7b9c-46bbe6f8955b@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Mon, 21 Nov 2016 10:41:49 -0500
+Message-ID: <1479742905.2309.16.camel@HansenPartnership.com>
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Johannes Berg <johannes@sipsolutions.net>
+Cc: ksummit-discuss@lists.linuxfoundation.org,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon, 21 Nov 2016 07:41:45 -0800
+In-Reply-To: <20161121120657.31eaeca4@vento.lan>
+References: <20161107075524.49d83697@vento.lan>
+         <11020459.EheIgy38UF@wuerfel> <20161116182633.74559ffd@vento.lan>
+         <2923918.nyphv1Ma7d@wuerfel>
+         <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
+         <20161119101543.12b89563@lwn.net>
+         <1479724781.8662.18.camel@sipsolutions.net>
+         <20161121120657.31eaeca4@vento.lan>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 22 Nov 2016 11:58:43 Hans Verkuil wrote:
-> On 22/11/16 10:58, Laurent Pinchart wrote:
-> > Hi Hans,
+On Mon, 2016-11-21 at 12:06 -0200, Mauro Carvalho Chehab wrote:
+> Em Mon, 21 Nov 2016 11:39:41 +0100
+> Johannes Berg <johannes@sipsolutions.net> escreveu:
+> > On Sat, 2016-11-19 at 10:15 -0700, Jonathan Corbet wrote:
 > > 
-> > On Tuesday 22 Nov 2016 10:46:31 Hans Verkuil wrote:
-> >> On 08/11/16 14:55, Sakari Ailus wrote:
-> >>> The struct device of the media device driver (i.e. not that of the media
-> >>> devnode) is pointed to by the media device. The struct device pointer is
-> >>> mostly used for debug prints.
-> >>> 
-> >>> Ensure it will stay around as long as the media device does.
-> >>> 
-> >>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >>> ---
-> >>> 
-> >>>  drivers/media/media-device.c | 9 ++++++++-
-> >>>  1 file changed, 8 insertions(+), 1 deletion(-)
-> >>> 
-> >>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> >>> index 2e52e44..648c64c 100644
-> >>> --- a/drivers/media/media-device.c
-> >>> +++ b/drivers/media/media-device.c
-> >>> @@ -724,6 +724,7 @@ static void media_device_release(struct
-> >>> media_devnode
-> >>> *devnode)
-> >>> 
-> >>>  	mdev->entity_internal_idx_max = 0;
-> >>>  	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-> >>>  	mutex_destroy(&mdev->graph_mutex);
-> >>> 
-> >>> +	put_device(mdev->dev);
-> >>> 
-> >>>  	kfree(mdev);
-> >>>  
-> >>>  }
-> >>> 
-> >>> @@ -732,9 +733,15 @@ struct media_device *media_device_alloc(struct
-> >>> device
-> >>> *dev)
-> >>> 
-> >>>  {
-> >>>  
-> >>>  	struct media_device *mdev;
-> >>> 
-> >>> +	dev = get_device(dev);
-> >>> +	if (!dev)
-> >>> +		return NULL;
-> >> 
-> >> I don't think this is right. When you allocate the media_device struct
-> >> it should just be initialized, but not have any side effects until it is
-> >> actually registered.
-> >> 
-> >> When the device is registered the device_add call will increase the
-> >> parent's refcount as it should, thus ensuring it stays around for as
-> >> long as is needed.
+> > > Rather than beating our heads against the wall trying to convert
+> > > between various image formats, maybe we need to take a step
+> > > back.  We're trying to build better documentation, and there is
+> > > certainly a place for diagrams and such in that
+> > > documentation.  Johannes was asking about it for the 802.11 docs, 
+> > > and I know Paul has run into these issues with the RCU docs as
+> > > well.  Might there be a tool or an extension out there that would
+> > > allow us to express these diagrams in a text-friendly, editable
+> > > form?
+> > > 
+> > > With some effort, I bet we could get rid of a number of the 
+> > > images, and perhaps end up with something that makes sense when 
+> > > read in the .rst source files as an extra benefit.   
 > > 
-> > We're storing a pointer to dev in mdev a few lines below. As dev is
-> > refcounted, we need to ensure that we take a reference appropriately. We
-> > can either borrow a reference taken elsewhere or take our own reference.
+> > I tend to agree, and I think that having this readable in the text
+> > would be good.
 > > 
-> > Borrowing a reference is only valid if we know it will exist for at least
-> > as long as we need to borrow it. That might be the case when creating the
-> > media device as the driver performing the operation should hold a
-> > reference to the struct device instance (especially given that allocation
-> > and registration are usually - but not always - performed at probe time
-> > for that driver), but it's harder to guarantee at unregistration time,
-> > especially when userspace can keep device nodes open across
-> > unregistration. This patch ensures that the pointer always remains valid
-> > until we stop needing it.
+> > You had pointed me to this plugin before
+> > https://pythonhosted.org/sphinxcontrib-aafig/
+> > 
+> > but I don't think it can actually represent any of the pictures.
 > 
-> I disagree. There is no reason to keep the parent device in memory once the
-> media devnode is unregistered.
+> No, but there are some ascii art images inside some txt/rst files
+> and inside some kernel-doc comments. We could either use the above
+> extension for them or to convert into some image. The ascii art
+> images I saw seem to be diagrams, so Graphviz would allow replacing
+> most of them, if not all.
 
-There's a very big one: the media device is accessed through a large number of 
-APIs, not only through its own devnode. It can for instance be accessed 
-through V4L2 devnodes, and thus has to live as long as *anything* can access 
-it.
+Please don't replace ASCII art that effectively conveys conceptual
+diagrams.  If you do, we'll wind up in situations where someone hasn't
+built the docs and doesn't possess the tools to see a diagram that was
+previously shown by every text editor (or can't be bothered to dig out
+the now separate file).  In the name of creating "prettier" diagrams
+(and final doc), we'll have damaged capacity to understand stuff by
+just reading the source if this diagram is in kernel doc comments.  I
+think this is a good application of "if it ain't broke, don't fix it".
 
-struct media_devnode was a very very bad idea. The original goal was to share 
-the implementation with the V4L2 devnodes, but when that got rejected I really 
-should have merged struct media_device and struct media_devnode into a single 
-structure. We can keep media_devnode separate if that is believed to improve 
-readability of the code, but there is absolutely no reason for allocating 
-media_devnode separately from media_device.
-
-> It seems to be pretty much only used for some debugging. I suspect that in
-> almost all cases the debugging happens when the devnode is registered, and
-> not when it is unregistered. But in that case you can also use &devnode.dev
-> as the device pointer for dev_dbg, or use pr_debug.
-> 
-> Looking at what the CEC framework does I see that I pass a device pointer
-> to the allocate function, but I really don't need to do that. It is not
-> used anywhere until the register function, so the parent device pointer
-> should be passed as an argument to the register function, not to the
-> allocate function.
-> 
-> BTW, I would very much prefer it if mdev->dev is renamed to mdev->parent.
-> Or better yet, just dropped completely since it is also available as
-> mdev->devnode.parent. And even devnode.parent can be dropped and just
-> use mdev->devnode.dev.parent.
-> 
-> I plan on posting such a patch for the cec framework as well, since
-> it avoids having duplicates of the same device parent pointer in the
-> data structures.
-
--- 
-Regards,
-
-Laurent Pinchart
+James
 
