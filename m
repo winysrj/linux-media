@@ -1,107 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38148 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756324AbcKKMto (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:60171 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752833AbcKUE1N (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 07:49:44 -0500
-Date: Fri, 11 Nov 2016 10:49:03 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: VDR User <user.vdr@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        LMML <linux-media@vger.kernel.org>
-Subject: Re: Question about 2 gp8psk patches I noticed, and possible bug.
-Message-ID: <20161111104903.607428e5@vela.lan>
-In-Reply-To: <CAA7C2qiPZnqpJ8MYkQ3wGhnmHzK25kLEP_Sm-1UOu8aECzkOGA@mail.gmail.com>
-References: <CAA7C2qjXSkmmCB=zc7Y-Btpwzm_B=_ok0t6qMRuCy+gfrEhcMw@mail.gmail.com>
-        <20161108155520.224229d5@vento.lan>
-        <CAA7C2qiY5MddsP4Ghky1PAhYuvTbBUR5QwejM=z8wCMJCwRw7g@mail.gmail.com>
-        <20161109073331.204b53c4@vento.lan>
-        <CAA7C2qhK0x9bwHH-Q8ufz3zdOgiPs3c=d27s0BRNfmcv9+T+Gg@mail.gmail.com>
-        <CAA7C2qi2tk9Out3Q4=uj-kJwhczfG1vK55a7EN4Wg_ibbn0HzA@mail.gmail.com>
-        <20161109153521.232b0956@vento.lan>
-        <CAA7C2qjojJD17Y+=+NpxnJns_0Uby4mARzsXAx_+3gjQ+NzmQQ@mail.gmail.com>
-        <20161110060717.221e8d88@vento.lan>
-        <CAA7C2qiPZnqpJ8MYkQ3wGhnmHzK25kLEP_Sm-1UOu8aECzkOGA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Sun, 20 Nov 2016 23:27:13 -0500
+Message-ID: <5acc4ffe5779cc7009c413dca4333cca@smtp-cloud2.xs4all.net>
+Date: Mon, 21 Nov 2016 05:27:09 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 10 Nov 2016 07:01:44 -0800
-VDR User <user.vdr@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> > commit 0c979a12309af49894bb1dc60e747c3cd53fa888
-> > Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > Date:   Wed Nov 9 15:33:17 2016 -0200
-> >
-> >     [media] gp8psk: Fix DVB frontend attach
-> >
-> >     it should be calling module_get() at attach, as otherwise
-> >     module_put() will crash.
-> >
-> >     Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> >
-> > diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-> > index cede0d8b0f8a..24eb6c6c8e24 100644
-> > --- a/drivers/media/usb/dvb-usb/gp8psk.c
-> > +++ b/drivers/media/usb/dvb-usb/gp8psk.c
-> > @@ -250,7 +250,7 @@ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
-> >
-> >  static int gp8psk_frontend_attach(struct dvb_usb_adapter *adap)
-> >  {
-> > -       adap->fe_adap[0].fe = gp8psk_fe_attach(adap->dev);
-> > +       adap->fe_adap[0].fe = dvb_attach(gp8psk_fe_attach, adap->dev);
-> >         return 0;
-> >  }  
-> 
-> This gives:
-> 
-> [119150.498863] DVB: Unable to find symbol gp8psk_fe_attach()
-> [119150.498928] dvb-usb: no frontend was attached by 'Genpix
-> SkyWalker-2 DVB-S receiver'
+Results of the daily build of media_tree:
 
-Hmm... dvb_attach() assumes that the symbol is exported. Please try
-this patch. If it fixes the bug, I'll likely do something else, to
-avoid the need of EXPORT_SYMBOL.
+date:			Mon Nov 21 05:00:17 CET 2016
+media-tree git hash:	f2709c206d8a3e11729e68d80c57e7470bbe8e5e
+media_build git hash:	bd61d1f4217e104f91df1ba1b5a4594e379829de
+v4l-utils git hash:	046f2376ac29b3f1b8f88f094527ff65814a5c9c
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.7.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9-rc5-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9-rc5-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
-[PATCH] [media] gp8psk: Fix DVB frontend attach
+Detailed results are available here:
 
-it should be calling module_get() at attach, as otherwise
-module_put() will crash.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Full logs are available here:
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk-fe.c b/drivers/media/usb/dvb-usb/gp8psk-fe.c
-index db6eb79cde07..ab7c6093436b 100644
---- a/drivers/media/usb/dvb-usb/gp8psk-fe.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk-fe.c
-@@ -326,6 +326,7 @@ struct dvb_frontend * gp8psk_fe_attach(struct dvb_usb_device *d)
- success:
- 	return &s->fe;
- }
-+EXPORT_SYMBOL_GPL(gp8psk_fe_attach);
- 
- 
- static struct dvb_frontend_ops gp8psk_fe_ops = {
-diff --git a/drivers/media/usb/dvb-usb/gp8psk.c b/drivers/media/usb/dvb-usb/gp8psk.c
-index 2829e3082d15..c3762c50e93b 100644
---- a/drivers/media/usb/dvb-usb/gp8psk.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk.c
-@@ -250,7 +250,7 @@ static int gp8psk_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 
- static int gp8psk_frontend_attach(struct dvb_usb_adapter *adap)
- {
--	adap->fe_adap[0].fe = gp8psk_fe_attach(adap->dev);
-+	adap->fe_adap[0].fe = dvb_attach(gp8psk_fe_attach, adap->dev);
- 	return 0;
- }
- 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
 
-
-
-
-Cheers,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/index.html
