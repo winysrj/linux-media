@@ -1,83 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:36303 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753042AbcKOXfZ (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37237
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753157AbcKUOHF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 18:35:25 -0500
+        Mon, 21 Nov 2016 09:07:05 -0500
+Date: Mon, 21 Nov 2016 12:06:57 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Johannes Berg <johannes@sipsolutions.net>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        ksummit-discuss@lists.linuxfoundation.org,
+        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
+Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
+Message-ID: <20161121120657.31eaeca4@vento.lan>
+In-Reply-To: <1479724781.8662.18.camel@sipsolutions.net>
+References: <20161107075524.49d83697@vento.lan>
+        <11020459.EheIgy38UF@wuerfel>
+        <20161116182633.74559ffd@vento.lan>
+        <2923918.nyphv1Ma7d@wuerfel>
+        <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
+        <20161119101543.12b89563@lwn.net>
+        <1479724781.8662.18.camel@sipsolutions.net>
 MIME-Version: 1.0
-In-Reply-To: <20161115232754.GB1041@n2100.armlinux.org.uk>
-References: <1479136968-24477-1-git-send-email-hverkuil@xs4all.nl>
- <1479136968-24477-3-git-send-email-hverkuil@xs4all.nl> <CAJ-oXjS-VVkBuYh0inTGAvJbsKzvEqKYrgoSeG6UBQtW_1BEyQ@mail.gmail.com>
- <20161115232754.GB1041@n2100.armlinux.org.uk>
-From: Pierre-Hugues Husson <phh@phh.me>
-Date: Wed, 16 Nov 2016 00:35:03 +0100
-Message-ID: <CAJ-oXjTgYmnNhGh8dW4Ke=zFDN5wwHNoJ40bFUKp0T5dTGLrbw@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 2/5] drm/bridge: dw_hdmi: remove CEC engine register definitions
-To: Russell King - ARM Linux <linux@armlinux.org.uk>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-11-16 0:27 GMT+01:00 Russell King - ARM Linux <linux@armlinux.org.uk>:
-> On Wed, Nov 16, 2016 at 12:23:50AM +0100, Pierre-Hugues Husson wrote:
->> Hi,
->>
->>
->> 2016-11-14 16:22 GMT+01:00 Hans Verkuil <hverkuil@xs4all.nl>:
->> > From: Russell King <rmk+kernel@arm.linux.org.uk>
->> >
->> > We don't need the CEC engine register definitions, so let's remove the=
-m.
->> >
->> > Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
->> > ---
->> >  drivers/gpu/drm/bridge/dw-hdmi.h | 45 -------------------------------=
----------
->> >  1 file changed, 45 deletions(-)
->> >
->> > diff --git a/drivers/gpu/drm/bridge/dw-hdmi.h b/drivers/gpu/drm/bridge=
-/dw-hdmi.h
->> > index fc9a560..26d6845 100644
->> > --- a/drivers/gpu/drm/bridge/dw-hdmi.h
->> > +++ b/drivers/gpu/drm/bridge/dw-hdmi.h
->> > @@ -478,51 +478,6 @@
->> >  #define HDMI_A_PRESETUP                         0x501A
->> >  #define HDMI_A_SRM_BASE                         0x5020
->> >
->> > -/* CEC Engine Registers */
->> > -#define HDMI_CEC_CTRL                           0x7D00
->> > -#define HDMI_CEC_STAT                           0x7D01
->> > -#define HDMI_CEC_MASK                           0x7D02
->> I don't know if this is relevant for a submission, but the build stops
->> working here because of a missing definition HDMI_CEC_MASK
->> Perhaps this should be inverted with 3/5 to make bissecting easier?
->> I was trying to bissect a kernel panic, and I had to fix this by hand
->
-> Doesn't make sense - patch 3 doesn't reference HDMI_CEC_MASK.
->
-> Please show the build error in full.
-The build is actually fixed with patch 4.
+Em Mon, 21 Nov 2016 11:39:41 +0100
+Johannes Berg <johannes@sipsolutions.net> escreveu:
 
-Building after patch 2 fails with:
-drivers/gpu/drm/bridge/dw-hdmi.c: In function =E2=80=98initialize_hdmi_ih_m=
-utes=E2=80=99:
-drivers/gpu/drm/bridge/dw-hdmi.c:1300:26: error: =E2=80=98HDMI_CEC_MASK=E2=
-=80=99
-undeclared (first use in this function)
-  hdmi_writeb(hdmi, 0xff, HDMI_CEC_MASK);
+> On Sat, 2016-11-19 at 10:15 -0700, Jonathan Corbet wrote:
+> > 
+> > I don't know what the ultimate source of these images is (Mauro,
+> > perhaps you could shed some light there?).  
+> 
+> I'd argue that it probably no longer matters. Whether it's xfig, svg,
+> graphviz originally etc. - the source is probably long lost. Recreating
+> these images in any other format is probably not very difficult for
+> most or almost all of them.
 
-The point of switching patch 3 and patch 2, is that the build works
-with patch 1,3 applied.
-Applying patch 2 breaks the build, but doesn't change any active code,
-so it's ok.
+I did it already. I converted one image to Graphviz and the rest
+to SVG.
 
-So with the order 1,3,2,4,5, the build is broken only after 2, while
-with 1,2,3,4,5, it is broken after 2 and 3.
+> 
+> > Rather than beating our heads against the wall trying to convert
+> > between various image formats, maybe we need to take a step
+> > back.  We're trying to build better documentation, and there is
+> > certainly a place for diagrams and such in that
+> > documentation.  Johannes was asking about it for the 802.11 docs, and
+> > I know Paul has run into these issues with the RCU docs as
+> > well.  Might there be a tool or an extension out there that would
+> > allow us to express these diagrams in a text-friendly, editable
+> > form?
+> > 
+> > With some effort, I bet we could get rid of a number of the images,
+> > and perhaps end up with something that makes sense when read in the
+> > .rst source files as an extra benefit.   
+> 
+> I tend to agree, and I think that having this readable in the text
+> would be good.
+> 
+> You had pointed me to this plugin before
+> https://pythonhosted.org/sphinxcontrib-aafig/
+> 
+> but I don't think it can actually represent any of the pictures.
 
-I hope this makes my remark more explicit.
+No, but there are some ascii art images inside some txt/rst files
+and inside some kernel-doc comments. We could either use the above
+extension for them or to convert into some image. The ascii art
+images I saw seem to be diagrams, so Graphviz would allow replacing
+most of them, if not all.
 
-If it doesn't, I think it is quite safe to just ignore it
+> Some surely could be represented directly by having the graphviz source
+> inside the rst file:
+> http://www.sphinx-doc.org/en/1.4.8/ext/graphviz.html
+> 
+> (that's even an included plugin, no need to install anything extra)
+
+Yes, but it seems that the existing plugin mis some things that
+the .. figure:: tag does, like allowing to specify the alternate and
+placing a caption to the figure (or tables) [1].
+
+Also, as SVG is currently broken on Sphinx for PDF output, we'll
+need to pre-process the image before calling Sphinx anyway. So,
+IMHO, the best for now would be to use the same approach for both
+cases.
+
+On my patchsets, they're doing both SVG and Graphviz handling via
+Makefile, before calling Sphinx.
+
+When we have the needed features either at Sphinx upstream or as a
+plugin, we could then switch to such solution.
+
+[1] Another missing feature with regards to that is that Sphinx
+doesn't seem to be able to produce a list of figures and tables.
+Eventually, the image extension (or upstream improvements) that
+would implement proper support for SVG and Graphviz could also
+implement support for such indexes.
+
+> graphviz is actually quite powerful, so I suspect things like
+> dvbstb.png can be represented there, perhaps not pixel-identically, but
+> at least semantically equivalently.
+
+Yes, but we'll still need SVG for more complex things. I actually
+converted (actually, I rewrote) dvbstb.png as SVG.
+
+> However, I don't think we'll actually find a catch-all solution, so we
+> need to continue this discussion here for a fallback anyway - as you
+> stated (I snipped that quote, sorry), a picture describing the video
+> formats will likely not be representable in text.
+> 
+> As far as my use-case for sequence diagrams is concerned, I'd really
+> like to see this integrated with the toolchain since the source format
+> for them is in fact a text format.
+
+Yes, for sure having support for Graphviz will be very useful.
+
+Thanks,
+Mauro
