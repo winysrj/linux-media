@@ -1,113 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40406 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754284AbcKYN53 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 08:57:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Markus Elfring <elfring@users.sourceforge.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
-Date: Fri, 25 Nov 2016 15:57:51 +0200
-Message-ID: <2064794.XNX8XhaLMu@avalon>
-In-Reply-To: <20161125102835.GA5856@mwanda>
-References: <20161125102835.GA5856@mwanda>
+Received: from mga14.intel.com ([192.55.52.115]:25262 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754619AbcKUNv7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Nov 2016 08:51:59 -0500
+Subject: Re: [PATCH 1/1] v4l: videodev2: Include linux/time.h for timeval and
+ timespec structs
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+References: <1477565451-3621-1-git-send-email-sakari.ailus@linux.intel.com>
+ <20161121113311.0ec196f7@vento.lan>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <5832FBFC.6070004@linux.intel.com>
+Date: Mon, 21 Nov 2016 15:51:56 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20161121113311.0ec196f7@vento.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
+Hi Mauro,
 
-Thank you for the patch.
-
-On Friday 25 Nov 2016 13:28:35 Dan Carpenter wrote:
-> A recent cleanup introduced a potential dereference of -EFAULT when we
-> call kfree(map->menu_info).
-
-I should have caught that, my apologies :-(
-
-Thinking a bit more about this class of problems, would the following patch 
-make sense ?
-
-commit 034b71306510643f9f059249a0c14418099eb436
-Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date:   Fri Nov 25 15:54:22 2016 +0200
-
-    mm/slab: WARN_ON error pointers passed to kfree()
-    
-    Passing an error pointer to kfree() is invalid and can lead to crashes
-    or memory corruption. Reject those pointers and WARN in order to catch
-    the problems and fix them in the callers.
-    
-    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-diff --git a/mm/slab.c b/mm/slab.c
-index 0b0550ca85b4..a7eb830c6684 100644
---- a/mm/slab.c
-+++ b/mm/slab.c
-@@ -3819,6 +3819,8 @@ void kfree(const void *objp)
- 
- 	if (unlikely(ZERO_OR_NULL_PTR(objp)))
- 		return;
-+	if (WARN_ON(IS_ERR(objp)))
-+		return;
- 	local_irq_save(flags);
- 	kfree_debugcheck(objp);
- 	c = virt_to_cache(objp);
-
-> Fixes: 4cc5bed1caeb ("[media] uvcvideo: Use memdup_user() rather than
-> duplicating its implementation")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Mauro, the bug is present in your branch only at the moment and queued for 
-v4.10. Could you please pick this patch up as well ?
-
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index a7e12fd..3e7e283 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -66,14 +66,14 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
-> *chain, if (xmap->menu_count == 0 ||
->  		    xmap->menu_count > UVC_MAX_CONTROL_MENU_ENTRIES) {
->  			ret = -EINVAL;
-> -			goto done;
-> +			goto free_map;
->  		}
+On 11/21/16 15:33, Mauro Carvalho Chehab wrote:
+> Em Thu, 27 Oct 2016 13:50:51 +0300
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 > 
->  		size = xmap->menu_count * sizeof(*map->menu_info);
->  		map->menu_info = memdup_user(xmap->menu_info, size);
->  		if (IS_ERR(map->menu_info)) {
->  			ret = PTR_ERR(map->menu_info);
-> -			goto done;
-> +			goto free_map;
->  		}
+>> struct timeval and struct timespec are defined in linux/time.h. Explicitly
+>> include the header if __KERNEL__ is defined.
 > 
->  		map->menu_count = xmap->menu_count;
-> @@ -83,13 +83,13 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
-> *chain, uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
->  			  "%u.\n", xmap->v4l2_type);
->  		ret = -ENOTTY;
-> -		goto done;
-> +		goto free_map;
->  	}
+> The patch below doesn't do what you're mentioned above. It unconditionally
+> include linux/time.h, and, for userspace, it will *also* include
+> sys/time.h...
+
+My bad... I thought writing a single line patch would be easy. ;-) Will fix.
+
 > 
->  	ret = uvc_ctrl_add_mapping(chain, map);
+> I suspect that this would cause problems on userspace.
 > 
-> -done:
->  	kfree(map->menu_info);
-> +free_map:
->  	kfree(map);
-> 
->  	return ret;
+> Btw, you didn't mention on your description what's the bug you're
+> trying to fix.
+
+The problem is a compiler error due to lacking defition for a struct.
+I'll add that to v2.
 
 -- 
 Regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@linux.intel.com
