@@ -1,141 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:60865 "EHLO
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:49414 "EHLO
         lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932234AbcKVKFw (ORCPT
+        by vger.kernel.org with ESMTP id S1753680AbcKUOQt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 05:05:52 -0500
-Subject: Re: [RFC v4 19/21] omap3isp: Allocate the media device dynamically
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
- <1478613330-24691-19-git-send-email-sakari.ailus@linux.intel.com>
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
+        Mon, 21 Nov 2016 09:16:49 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <99e22b20-12fd-1343-e682-c1fa0c79f074@xs4all.nl>
-Date: Tue, 22 Nov 2016 11:05:49 +0100
+Subject: [GIT PULL FOR v4.10] ti-vpe: fixes and enhancements + davinci compile
+ warning fix
+Message-ID: <8dea2fe5-6b80-3d9f-b40d-4f25cd1a666b@xs4all.nl>
+Date: Mon, 21 Nov 2016 15:16:46 +0100
 MIME-Version: 1.0
-In-Reply-To: <1478613330-24691-19-git-send-email-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/11/16 14:55, Sakari Ailus wrote:
-> Use the new media_device_alloc() API to allocate and release the media
-> device.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/platform/omap3isp/isp.c      | 24 +++++++++++++-----------
->  drivers/media/platform/omap3isp/isp.h      |  2 +-
->  drivers/media/platform/omap3isp/ispvideo.c |  2 +-
->  3 files changed, 15 insertions(+), 13 deletions(-)
->
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 2e1b17e..8bc7a7c 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -1601,8 +1601,8 @@ static void isp_unregister_entities(struct isp_device *isp)
->  	omap3isp_stat_unregister_entities(&isp->isp_hist);
->
->  	v4l2_device_unregister(&isp->v4l2_dev);
-> -	media_device_unregister(&isp->media_dev);
-> -	media_device_cleanup(&isp->media_dev);
-> +	media_device_unregister(isp->media_dev);
-> +	media_device_put(isp->media_dev);
->  }
->
->  static int isp_link_entity(
-> @@ -1680,14 +1680,16 @@ static int isp_register_entities(struct isp_device *isp)
->  {
->  	int ret;
->
-> -	isp->media_dev.dev = isp->dev;
-> -	strlcpy(isp->media_dev.model, "TI OMAP3 ISP",
-> -		sizeof(isp->media_dev.model));
-> -	isp->media_dev.hw_revision = isp->revision;
-> -	isp->media_dev.ops = &isp_media_ops;
-> -	media_device_init(&isp->media_dev);
-> +	isp->media_dev = media_device_alloc(isp->dev, isp);
-> +	if (!isp->media_dev)
-> +		return -ENOMEM;
-> +
-> +	strlcpy(isp->media_dev->model, "TI OMAP3 ISP",
-> +		sizeof(isp->media_dev->model));
-> +	isp->media_dev->hw_revision = isp->revision;
-> +	isp->media_dev->ops = &isp_media_ops;
->
-> -	isp->v4l2_dev.mdev = &isp->media_dev;
-> +	isp->v4l2_dev.mdev = isp->media_dev;
->  	ret = v4l2_device_register(isp->dev, &isp->v4l2_dev);
->  	if (ret < 0) {
->  		dev_err(isp->dev, "%s: V4L2 device registration failed (%d)\n",
-> @@ -2165,7 +2167,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
->  	struct isp_bus_cfg *bus;
->  	int ret;
->
-> -	ret = media_entity_enum_init(&isp->crashed, &isp->media_dev);
-> +	ret = media_entity_enum_init(&isp->crashed, isp->media_dev);
->  	if (ret)
->  		return ret;
->
-> @@ -2183,7 +2185,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
->  	if (ret < 0)
->  		return ret;
->
-> -	return media_device_register(&isp->media_dev);
-> +	return media_device_register(isp->media_dev);
+See 
+http://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1275718.html for
+details.
 
-I wonder if this is correct. Usually if the register fails, then the 
-release/delete function
-has to be called explicitly. That doesn't happen here.
-
-E.g. from adv7604.c:
-
-static int adv76xx_registered(struct v4l2_subdev *sd)
-{
-         struct adv76xx_state *state = to_state(sd);
-         int err;
-
-         err = cec_register_adapter(state->cec_adap);
-         if (err)
-                 cec_delete_adapter(state->cec_adap);
-         return err;
-}
-
->  }
->
->  /*
-> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
-> index 7e6f663..7378279 100644
-> --- a/drivers/media/platform/omap3isp/isp.h
-> +++ b/drivers/media/platform/omap3isp/isp.h
-> @@ -176,7 +176,7 @@ struct isp_xclk {
->  struct isp_device {
->  	struct v4l2_device v4l2_dev;
->  	struct v4l2_async_notifier notifier;
-> -	struct media_device media_dev;
-> +	struct media_device *media_dev;
->  	struct device *dev;
->  	u32 revision;
->
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-> index 7354469..33e74b9 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -1104,7 +1104,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
->  	pipe = video->video.entity.pipe
->  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
->
-> -	ret = media_entity_enum_init(&pipe->ent_enum, &video->isp->media_dev);
-> +	ret = media_entity_enum_init(&pipe->ent_enum, video->isp->media_dev);
->  	if (ret)
->  		goto err_enum_init;
->
->
+Also added a davinci compile warning fix that I encountered while 
+compiling this
+series.
 
 Regards,
 
 	Hans
+
+The following changes since commit f2709c206d8a3e11729e68d80c57e7470bbe8e5e:
+
+   Revert "[media] dvb_frontend: merge duplicate dvb_tuner_ops.release 
+implementations" (2016-11-18 20:44:33 -0200)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hverkuil/media_tree.git vpe
+
+for you to fetch changes up to bfafa9565c306a462b6e5dc2f8ddb1e633382e5c:
+
+   vpfe_capture: fix compiler warning (2016-11-21 15:02:06 +0100)
+
+----------------------------------------------------------------
+Archit Taneja (1):
+       media: ti-vpe: Use line average de-interlacing for first 2 frames
+
+Benoit Parrot (16):
+       media: ti-vpe: vpdma: Make vpdma library into its own module
+       media: ti-vpe: vpdma: Add multi-instance and multi-client support
+       media: ti-vpe: vpdma: Add helper to set a background color
+       media: ti-vpe: vpdma: Fix bus error when vpdma is writing a 
+descriptor
+       media: ti-vpe: vpe: Added MODULE_DEVICE_TABLE hint
+       media: ti-vpe: vpdma: Corrected YUV422 data type label.
+       media: ti-vpe: vpdma: RGB data type yield inverted data
+       media: ti-vpe: vpe: Fix vb2 buffer cleanup
+       media: ti-vpe: vpe: Enable DMABUF export
+       media: ti-vpe: Make scaler library into its own module
+       media: ti-vpe: scaler: Add debug support for multi-instance
+       media: ti-vpe: vpe: Make sure frame size dont exceed scaler capacity
+       media: ti-vpe: vpdma: Add RAW8 and RAW16 data types
+       media: ti-vpe: Make colorspace converter library into its own module
+       media: ti-vpe: csc: Add debug support for multi-instance
+       media: ti-vpe: vpe: Add proper support single and multi-plane buffer
+
+Hans Verkuil (1):
+       vpfe_capture: fix compiler warning
+
+Harinarayan Bhatta (2):
+       media: ti-vpe: Increasing max buffer height and width
+       media: ti-vpe: Free vpdma buffers in vpe_release
+
+Nikhil Devshatwar (16):
+       media: ti-vpe: vpe: Do not perform job transaction atomically
+       media: ti-vpe: Add support for SEQ_TB buffers
+       media: ti-vpe: vpe: Return NULL for invalid buffer type
+       media: ti-vpe: vpdma: Add support for setting max width height
+       media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs
+       media: ti-vpe: vpdma: Make list post atomic operation
+       media: ti-vpe: vpdma: Clear IRQs for individual lists
+       media: ti-vpe: vpe: configure line mode separately
+       media: ti-vpe: vpe: Setup srcdst parameters in start_streaming
+       media: ti-vpe: vpe: Post next descriptor only for list complete IRQ
+       media: ti-vpe: vpe: Add RGB565 and RGB5551 support
+       media: ti-vpe: vpdma: allocate and maintain hwlist
+       media: ti-vpe: sc: Fix incorrect optimization
+       media: ti-vpe: vpdma: Fix race condition for firmware loading
+       media: ti-vpe: vpdma: Use bidirectional cached buffers
+       media: ti-vpe: vpe: Fix line stride for output motion vector
+
+  drivers/media/platform/Kconfig                |  14 ++
+  drivers/media/platform/davinci/vpfe_capture.c |   4 +-
+  drivers/media/platform/ti-vpe/Makefile        |  10 +-
+  drivers/media/platform/ti-vpe/csc.c           |  18 ++-
+  drivers/media/platform/ti-vpe/csc.h           |   2 +-
+  drivers/media/platform/ti-vpe/sc.c            |  28 ++--
+  drivers/media/platform/ti-vpe/sc.h            |  11 +-
+  drivers/media/platform/ti-vpe/vpdma.c         | 349 
++++++++++++++++++++++++++++++++++++++++-----
+  drivers/media/platform/ti-vpe/vpdma.h         |  85 ++++++++++-
+  drivers/media/platform/ti-vpe/vpdma_priv.h    | 130 ++++++++---------
+  drivers/media/platform/ti-vpe/vpe.c           | 450 
++++++++++++++++++++++++++++++++++++++++++++++++----------
+  11 files changed, 894 insertions(+), 207 deletions(-)
