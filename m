@@ -1,638 +1,1027 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:33110 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751292AbcKHHSe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 8 Nov 2016 02:18:34 -0500
-Received: by mail-qk0-f196.google.com with SMTP id x190so13854391qkb.0
-        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 23:18:03 -0800 (PST)
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:42708 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753548AbcKUOea (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Nov 2016 09:34:30 -0500
+Subject: Re: [RFC] [media] Add Synopsys Designware HDMI RX PHY e405 driver
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org
+References: <cb99f39ef3c02b57bf0b2fe360763121c4da38bc.1478713150.git.joabreu@synopsys.com>
+ <7f819d27-0d85-ffe0-76cd-e8ffb5a7c680@xs4all.nl>
+ <cea764a7-1e55-08a9-9bc8-e20c1a87e990@synopsys.com>
+Cc: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <76b31de7-a969-c299-14ae-47fad62ddbce@xs4all.nl>
+Date: Mon, 21 Nov 2016 15:34:27 +0100
 MIME-Version: 1.0
-In-Reply-To: <1476466481-24030-8-git-send-email-p.zabel@pengutronix.de>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de> <1476466481-24030-8-git-send-email-p.zabel@pengutronix.de>
-From: Ying Liu <gnuiyl@gmail.com>
-Date: Tue, 8 Nov 2016 15:18:02 +0800
-Message-ID: <CAOcKUNUdDV9O+nYgvEmU6=3-XRYTRHfU9EPeGHTNBaVB83A0hQ@mail.gmail.com>
-Subject: Re: [PATCH v2 07/21] [media] imx-ipu: Add i.MX IPUv3 CSI subdevice driver
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        kernel@pengutronix.de, Sascha Hauer <s.hauer@pengutronix.de>,
-        Marc Kleine-Budde <mkl@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <cea764a7-1e55-08a9-9bc8-e20c1a87e990@synopsys.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On 14/11/16 17:46, Jose Abreu wrote:
+> Hi Hans,
+>
+>
+>
+> On 11-11-2016 14:52, Hans Verkuil wrote:
+>> Hi Jose,
+>>
+>> On 11/09/2016 06:43 PM, Jose Abreu wrote:
+>>> Hi All,
+>>>
+>>> This is a RFC patch for Synopsys Designware HDMI RX PHY e405.
+>>> This phy receives and decodes HDMI video that is delivered to
+>>> a controller. The controller bit is not yet ready for submission
+>>> but we are planning to submit it as soon as possible.
+>>>
+>>> Main included features in this driver are:
+>>> 	- Equalizer algorithm that chooses phy best settings
+>>> 	according to detected HDMI cable characteristics.
+>>> 	- Support for scrambling
+>>> 	- Support for HDMI 2.0 modes up to 6G (HDMI 4k@60Hz)
+>>>
+>>> The driver was implemented as a V4L2 subdevice and the phy
+>>> interface with the controller was implemented using V4L2 ioctls.
+>>> I do not know if this is the best option but it is not possible
+>>> to use the existing API functions directly as we need specific
+>>> functions that will be called by the controller at specific
+>>> configuration stages. For example, we can only set scrambling
+>>> when the sink detects the corresponding bit set in SCDC.
+>>>
+>>> Please notice that we plan to submit more phy drivers as they
+>>> are released, maintaining the newly created interface
+>>> (dw-phy-pdata.h) and using only one controller driver.
+>>>
+>>> I realize that this code needs a lot of polishment, specially
+>>> the equalizer part so I would really apreciate some feedback.
+>>>
+>>> Looking forward to your comments!
+>> I looked it over and I didn't see anything alarming :-)
+>>
+>> But it is hard to review without seeing the controller driver as well.
+>> When I can see how it is used by the controller driver then I can see
+>> if using ioctls here makes sense or not.
+>>
+>> Typically ioctls in subdevs are used for very device-specific actions.
+>> But perhaps what is happening here is required for all HDMI phys, and in
+>> that case new subdev ops could be added instead.
+>>
+>> Or we start with ioctls and later convert it to ops when it is clear that
+>> other phys need to do the same.
+>>
+>> Anyway, I think I'll have to wait until the controller is posted before I
+>> can do a proper review.
+>>
+>> Regards,
+>>
+>> 	Hans
+>
+> Thanks for your answer! I am not sure about other controllers
+> phys but ours needs a special configuration when in HDMI 2.0
+> modes (like 4k@60Hz)
 
-On Sat, Oct 15, 2016 at 1:34 AM, Philipp Zabel <p.zabel@pengutronix.de> wrote:
-> This adds a V4L2 subdevice driver for the two CMOS Sensor Interface (CSI)
-> modules contained in each IPUv3. These sample video data from the
-> parallel CSI0/1 pads or from the the MIPI CSI-2 bridge via IOMUXC video
-> bus multiplexers and write to IPU internal FIFOs to deliver data to
-> either the IDMAC or IC modules.
->
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Signed-off-by: Marc Kleine-Budde <mkl@pengutronix.de>
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v1:
->  - Propagate field and colorspace in ipucsi_subdev_set_format.
->  - Recursively call s_stream on upstream subdev.
-> ---
->  drivers/media/platform/imx/Kconfig         |   7 +
->  drivers/media/platform/imx/Makefile        |   1 +
->  drivers/media/platform/imx/imx-ipuv3-csi.c | 547 +++++++++++++++++++++++++++++
->  3 files changed, 555 insertions(+)
->  create mode 100644 drivers/media/platform/imx/imx-ipuv3-csi.c
->
-> diff --git a/drivers/media/platform/imx/Kconfig b/drivers/media/platform/imx/Kconfig
-> index 1662bb0b..a88c4f7 100644
-> --- a/drivers/media/platform/imx/Kconfig
-> +++ b/drivers/media/platform/imx/Kconfig
-> @@ -8,3 +8,10 @@ config MEDIA_IMX
->
->  config VIDEO_IMX_IPU_COMMON
->         tristate
-> +
-> +config VIDEO_IMX_IPU_CSI
-> +       tristate "i.MX5/6 CMOS Sensor Interface driver"
-> +       depends on VIDEO_DEV && IMX_IPUV3_CORE && MEDIA_IMX
+That's fairly typical of 4kp60 phys.
 
-Should depend on VIDEO_V4L2_SUBDEV_API, otherwise
-v4l2_subdev_get_try_format() would break build.
+>  and also a special bit set when in
+> scrambling mode so that the equalizing algorithm stabilizes
+> faster. Besides this it needs configuration parameters, that in
+> this case are passed by platform data.
+>
+> I will then wait until I have the controller driver ready and
+> send a RFC with these two blocks.
+
+Looking forward to that!
 
 Regards,
-Liu Ying
 
-> +       select VIDEO_IMX_IPUV3
-> +       ---help---
-> +         This is a v4l2 subdevice driver for two CSI modules in each IPUv3.
-> diff --git a/drivers/media/platform/imx/Makefile b/drivers/media/platform/imx/Makefile
-> index 0ba601a..82a3616 100644
-> --- a/drivers/media/platform/imx/Makefile
-> +++ b/drivers/media/platform/imx/Makefile
-> @@ -1,2 +1,3 @@
->  obj-$(CONFIG_MEDIA_IMX)                        += imx-media.o
->  obj-$(CONFIG_VIDEO_IMX_IPU_COMMON)     += imx-ipu.o
-> +obj-$(CONFIG_VIDEO_IMX_IPU_CSI)                += imx-ipuv3-csi.o
-> diff --git a/drivers/media/platform/imx/imx-ipuv3-csi.c b/drivers/media/platform/imx/imx-ipuv3-csi.c
-> new file mode 100644
-> index 0000000..83e0511
-> --- /dev/null
-> +++ b/drivers/media/platform/imx/imx-ipuv3-csi.c
-> @@ -0,0 +1,547 @@
-> +/*
-> + * i.MX IPUv3 CSI V4L2 Subdevice Driver
-> + *
-> + * Copyright (C) 2016, Pengutronix, Philipp Zabel <kernel@pengutronix.de>
-> + *
-> + * Based on code
-> + * Copyright (C) 2006, Sascha Hauer, Pengutronix
-> + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-> + * Copyright (C) 2008, Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-> + * Copyright (C) 2009, Darius Augulis <augulis.darius@gmail.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +#include <linux/clk.h>
-> +#include <linux/device.h>
-> +#include <linux/dma-mapping.h>
-> +#include <linux/errno.h>
-> +#include <linux/init.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/kernel.h>
-> +#include <linux/mm.h>
-> +#include <linux/module.h>
-> +#include <linux/moduleparam.h>
-> +#include <linux/mutex.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +#include <linux/time.h>
-> +#include <linux/version.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <media/v4l2-common.h>
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-mc.h>
-> +#include <media/v4l2-of.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +
-> +#include <video/imx-ipu-v3.h>
-> +
-> +#include "imx-ipu.h"
-> +
-> +#define DRIVER_NAME "imx-ipuv3-csi"
-> +
-> +struct ipucsi {
-> +       struct v4l2_subdev              subdev;
-> +
-> +       struct device                   *dev;
-> +       u32                             id;
-> +
-> +       struct ipu_csi                  *csi;
-> +       struct ipu_soc                  *ipu;
-> +       struct v4l2_of_endpoint         endpoint;
-> +       enum ipu_csi_dest               csi_dest;
-> +
-> +       struct media_pad                subdev_pad[2];
-> +       struct v4l2_mbus_framefmt       format_mbus[2];
-> +       struct v4l2_fract               timeperframe[2];
-> +};
-> +
-> +static int ipu_csi_get_mbus_config(struct ipucsi *ipucsi,
-> +                                  struct v4l2_mbus_config *config)
-> +{
-> +       struct v4l2_subdev *sd;
-> +       struct media_pad *pad;
-> +       int ret;
-> +
-> +       /*
-> +        * Retrieve media bus configuration from the entity connected directly
-> +        * to the CSI subdev sink pad.
-> +        */
-> +       pad = media_entity_remote_pad(&ipucsi->subdev_pad[0]);
-> +       if (!pad) {
-> +               dev_err(ipucsi->dev,
-> +                       "failed to retrieve mbus config from source entity\n");
-> +               return -ENODEV;
-> +       }
-> +       sd = media_entity_to_v4l2_subdev(pad->entity);
-> +       ret = v4l2_subdev_call(sd, video, g_mbus_config, config);
-> +       if (ret == -ENOIOCTLCMD) {
-> +               /* Fall back to static mbus configuration from device tree */
-> +               config->type = ipucsi->endpoint.bus_type;
-> +               config->flags = ipucsi->endpoint.bus.parallel.flags;
-> +               ret = 0;
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +static struct v4l2_mbus_framefmt *
-> +__ipucsi_get_pad_format(struct v4l2_subdev *sd,
-> +                       struct v4l2_subdev_pad_config *cfg,
-> +                       unsigned int pad, u32 which)
-> +{
-> +       struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
-> +
-> +       switch (which) {
-> +       case V4L2_SUBDEV_FORMAT_TRY:
-> +               return v4l2_subdev_get_try_format(sd, cfg, pad);
-> +       case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +               return &ipucsi->format_mbus[pad ? 1 : 0];
-> +       default:
-> +               return NULL;
-> +       }
-> +}
-> +
-> +static int ipucsi_subdev_log_status(struct v4l2_subdev *subdev)
-> +{
-> +       struct ipucsi *ipucsi = container_of(subdev, struct ipucsi, subdev);
-> +
-> +       ipu_csi_dump(ipucsi->csi);
-> +
-> +       return 0;
-> +}
-> +
-> +static int ipucsi_subdev_get_format(struct v4l2_subdev *sd,
-> +               struct v4l2_subdev_pad_config *cfg,
-> +               struct v4l2_subdev_format *sdformat)
-> +{
-> +       sdformat->format = *__ipucsi_get_pad_format(sd, cfg, sdformat->pad,
-> +                                                   sdformat->which);
-> +       return 0;
-> +}
-> +
-> +static bool ipucsi_mbus_code_supported(const u32 mbus_code)
-> +{
-> +       static const u32 mbus_codes[] = {
-> +               MEDIA_BUS_FMT_Y8_1X8,
-> +               MEDIA_BUS_FMT_Y10_1X10,
-> +               MEDIA_BUS_FMT_Y12_1X12,
-> +               MEDIA_BUS_FMT_UYVY8_2X8,
-> +               MEDIA_BUS_FMT_YUYV8_2X8,
-> +               MEDIA_BUS_FMT_UYVY8_1X16,
-> +               MEDIA_BUS_FMT_YUYV8_1X16,
-> +       };
-> +       int i;
-> +
-> +       for (i = 0; i < ARRAY_SIZE(mbus_codes); i++) {
-> +               if (mbus_code == mbus_codes[i])
-> +                       return true;
-> +       }
-> +
-> +       return false;
-> +}
-> +
-> +static int ipucsi_subdev_set_format(struct v4l2_subdev *sd,
-> +               struct v4l2_subdev_pad_config *cfg,
-> +               struct v4l2_subdev_format *sdformat)
-> +{
-> +       struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
-> +       struct v4l2_mbus_framefmt *mbusformat;
-> +       unsigned int width, height;
-> +       bool supported;
-> +
-> +       supported = ipucsi_mbus_code_supported(sdformat->format.code);
-> +       if (!supported)
-> +               return -EINVAL;
-> +
-> +       mbusformat = __ipucsi_get_pad_format(sd, cfg, sdformat->pad,
-> +                                            sdformat->which);
-> +
-> +       if (sdformat->pad == 0) {
-> +               width = clamp_t(unsigned int, sdformat->format.width, 16, 8192);
-> +               height = clamp_t(unsigned int, sdformat->format.height, 16, 4096);
-> +               mbusformat->field = sdformat->format.field ?: V4L2_FIELD_NONE;
-> +               mbusformat->colorspace = sdformat->format.colorspace ?:
-> +                                        V4L2_COLORSPACE_SRGB;
-> +       } else {
-> +               struct v4l2_mbus_framefmt *infmt = &ipucsi->format_mbus[0];
-> +
-> +               width = infmt->width;
-> +               height = infmt->height;
-> +               mbusformat->field = infmt->field;
-> +               mbusformat->colorspace = infmt->colorspace;
-> +       }
-> +
-> +       mbusformat->width = width;
-> +       mbusformat->height = height;
-> +       mbusformat->code = sdformat->format.code;
-> +
-> +       if (mbusformat->field == V4L2_FIELD_SEQ_TB &&
-> +           mbusformat->width == 720 && mbusformat->height == 480 &&
-> +           ipucsi->endpoint.bus_type == V4L2_MBUS_BT656) {
-> +               /* We capture NTSC bottom field first */
-> +               mbusformat->field = V4L2_FIELD_SEQ_BT;
-> +       }
-> +
-> +       sdformat->format = *mbusformat;
-> +
-> +       return 0;
-> +}
-> +
-> +static int ipucsi_subdev_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +       struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
-> +       struct v4l2_subdev *upstream_sd;
-> +       struct media_pad *pad;
-> +       int ret;
-> +
-> +       pad = media_entity_remote_pad(&sd->entity.pads[0]);
-> +       if (!pad) {
-> +               dev_err(ipucsi->dev, "Failed to find remote source pad\n");
-> +               return -ENOLINK;
-> +       }
-> +
-> +       if (!is_media_entity_v4l2_subdev(pad->entity)) {
-> +               dev_err(ipucsi->dev, "Upstream entity is not a v4l2 subdev\n");
-> +               return -ENODEV;
-> +       }
-> +
-> +       upstream_sd = media_entity_to_v4l2_subdev(pad->entity);
-> +
-> +       ret = v4l2_subdev_call(upstream_sd, video, s_stream, enable);
-> +       if (ret)
-> +               return ret;
-> +
-> +       if (enable) {
-> +               struct v4l2_mbus_framefmt *fmt = ipucsi->format_mbus;
-> +               struct v4l2_mbus_config mbus_config;
-> +               struct v4l2_rect window;
-> +               bool mux_mct;
-> +               int ret;
-> +
-> +               ret = ipu_csi_get_mbus_config(ipucsi, &mbus_config);
-> +               if (ret)
-> +                       return ret;
-> +
-> +               window.left = 0;
-> +               window.top = 0;
-> +               window.width = fmt[0].width;
-> +               window.height = fmt[0].height;
-> +               ipu_csi_set_window(ipucsi->csi, &window);
-> +
-> +               /* Is CSI data source MCT (MIPI)? */
-> +               mux_mct = (mbus_config.type == V4L2_MBUS_CSI2);
-> +
-> +               ipu_set_csi_src_mux(ipucsi->ipu, ipucsi->id, mux_mct);
-> +               if (mux_mct)
-> +                       ipu_csi_set_mipi_datatype(ipucsi->csi, /*VC*/ 0,
-> +                                                 &fmt[0]);
-> +
-> +               ret = ipu_csi_init_interface(ipucsi->csi, &mbus_config,
-> +                                            &fmt[0]);
-> +               if (ret) {
-> +                       dev_err(ipucsi->dev, "Failed to initialize CSI\n");
-> +                       return ret;
-> +               }
-> +
-> +               ipu_csi_set_dest(ipucsi->csi, ipucsi->csi_dest);
-> +
-> +               ipu_csi_enable(ipucsi->csi);
-> +       } else {
-> +               ipu_csi_disable(ipucsi->csi);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +static int ipucsi_subdev_g_frame_interval(struct v4l2_subdev *subdev,
-> +                                         struct v4l2_subdev_frame_interval *fi)
-> +{
-> +       struct ipucsi *ipucsi = container_of(subdev, struct ipucsi, subdev);
-> +
-> +       if (fi->pad > 4)
-> +               return -EINVAL;
-> +
-> +       fi->interval = ipucsi->timeperframe[(fi->pad == 0) ? 0 : 1];
-> +
-> +       return 0;
-> +}
-> +
-> +/*
-> + * struct ipucsi_skip_desc - CSI frame skipping descriptor
-> + * @keep - number of frames kept per max_ratio frames
-> + * @max_ratio - width of skip_smfc, written to MAX_RATIO bitfield
-> + * @skip_smfc - skip pattern written to the SKIP_SMFC bitfield
-> + */
-> +struct ipucsi_skip_desc {
-> +       u8 keep;
-> +       u8 max_ratio;
-> +       u8 skip_smfc;
-> +};
-> +
-> +static const struct ipucsi_skip_desc ipucsi_skip[12] = {
-> +       { 1, 1, 0x00 }, /* Keep all frames */
-> +       { 5, 6, 0x10 }, /* Skip every sixth frame */
-> +       { 4, 5, 0x08 }, /* Skip every fifth frame */
-> +       { 3, 4, 0x04 }, /* Skip every fourth frame */
-> +       { 2, 3, 0x02 }, /* Skip every third frame */
-> +       { 3, 5, 0x0a }, /* Skip frames 1 and 3 of every 5 */
-> +       { 1, 2, 0x01 }, /* Skip every second frame */
-> +       { 2, 5, 0x0b }, /* Keep frames 1 and 4 of every 5 */
-> +       { 1, 3, 0x03 }, /* Keep one in three frames */
-> +       { 1, 4, 0x07 }, /* Keep one in four frames */
-> +       { 1, 5, 0x0f }, /* Keep one in five frames */
-> +       { 1, 6, 0x1f }, /* Keep one in six frames */
-> +};
-> +
-> +static int ipucsi_subdev_s_frame_interval(struct v4l2_subdev *subdev,
-> +                                         struct v4l2_subdev_frame_interval *fi)
-> +{
-> +       struct ipucsi *ipucsi = container_of(subdev, struct ipucsi, subdev);
-> +       const struct ipucsi_skip_desc *skip;
-> +       struct v4l2_fract *want, *in;
-> +       u32 min_err = UINT_MAX;
-> +       int i, best_i = 0;
-> +       u64 want_us;
-> +
-> +       if (fi->pad > 4)
-> +               return -EINVAL;
-> +
-> +       if (fi->pad == 0) {
-> +               /* Believe what we are told about the input frame rate */
-> +               ipucsi->timeperframe[0] = fi->interval;
-> +               /* Reset output frame rate to input frame rate */
-> +               ipucsi->timeperframe[1] = fi->interval;
-> +               return 0;
-> +       }
-> +
-> +       want = &fi->interval;
-> +       in = &ipucsi->timeperframe[0];
-> +
-> +       if (want->numerator == 0 || want->denominator == 0 ||
-> +           in->denominator == 0) {
-> +               ipucsi->timeperframe[1] = ipucsi->timeperframe[0];
-> +               fi->interval = ipucsi->timeperframe[1];
-> +               return 0;
-> +       }
-> +
-> +       want_us = 1000000ULL * want->numerator;
-> +       do_div(want_us, want->denominator);
-> +
-> +       /* Find the reduction closest to the requested timeperframe */
-> +       for (i = 0; i < ARRAY_SIZE(ipucsi_skip); i++) {
-> +               u64 tmp;
-> +               u32 err;
-> +
-> +               skip = &ipucsi_skip[i];
-> +               tmp = 1000000ULL * in->numerator * skip->max_ratio;
-> +               do_div(tmp, in->denominator * skip->keep);
-> +               err = (tmp > want_us) ? (tmp - want_us) : (want_us - tmp);
-> +               if (err < min_err) {
-> +                       min_err = err;
-> +                       best_i = i;
-> +               }
-> +       }
-> +
-> +       skip = &ipucsi_skip[best_i];
-> +
-> +       ipu_csi_set_skip_smfc(ipucsi->csi, skip->skip_smfc, skip->max_ratio - 1,
-> +                             0);
-> +
-> +       fi->interval.numerator = in->numerator * skip->max_ratio;
-> +       fi->interval.denominator = in->denominator * skip->keep;
-> +       ipucsi->timeperframe[1] = fi->interval;
-> +
-> +       dev_dbg(ipucsi->dev, "skip: %d/%d -> %d/%d frames:%d pattern:0x%x\n",
-> +              in->numerator, in->denominator,
-> +              fi->interval.numerator, fi->interval.denominator,
-> +              skip->max_ratio, skip->skip_smfc);
-> +
-> +       return 0;
-> +}
-> +
-> +static struct v4l2_subdev_core_ops ipucsi_subdev_core_ops = {
-> +       .log_status = ipucsi_subdev_log_status,
-> +};
-> +
-> +static struct v4l2_subdev_pad_ops ipucsi_subdev_pad_ops = {
-> +       .get_fmt = ipucsi_subdev_get_format,
-> +       .set_fmt = ipucsi_subdev_set_format,
-> +};
-> +
-> +static struct v4l2_subdev_video_ops ipucsi_subdev_video_ops = {
-> +       .s_stream = ipucsi_subdev_s_stream,
-> +       .g_frame_interval = ipucsi_subdev_g_frame_interval,
-> +       .s_frame_interval = ipucsi_subdev_s_frame_interval,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ipucsi_subdev_ops = {
-> +       .core   = &ipucsi_subdev_core_ops,
-> +       .pad    = &ipucsi_subdev_pad_ops,
-> +       .video  = &ipucsi_subdev_video_ops,
-> +};
-> +
-> +static int ipu_csi_link_setup(struct media_entity *entity,
-> +                             const struct media_pad *local,
-> +                             const struct media_pad *remote, u32 flags)
-> +{
-> +       struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
-> +       struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
-> +
-> +       ipucsi->csi_dest = IPU_CSI_DEST_IDMAC;
-> +
-> +       return 0;
-> +}
-> +
-> +struct media_entity_operations ipucsi_entity_ops = {
-> +       .link_setup = ipu_csi_link_setup,
-> +       .link_validate = v4l2_subdev_link_validate,
-> +};
-> +
-> +static int ipu_csi_registered(struct v4l2_subdev *sd)
-> +{
-> +       struct ipucsi *ipucsi = container_of(sd, struct ipucsi, subdev);
-> +       struct device_node *rpp;
-> +
-> +       /*
-> +        * Add source subdevice to asynchronous subdevice waiting list.
-> +        */
-> +       rpp = of_graph_get_remote_port_parent(ipucsi->endpoint.base.local_node);
-> +       if (rpp) {
-> +               struct v4l2_async_subdev *asd;
-> +
-> +               asd = devm_kzalloc(sd->dev, sizeof(*asd), GFP_KERNEL);
-> +               if (!asd) {
-> +                       of_node_put(rpp);
-> +                       return -ENOMEM;
-> +               }
-> +
-> +               asd->match_type = V4L2_ASYNC_MATCH_OF;
-> +               asd->match.of.node = rpp;
-> +
-> +               __v4l2_async_notifier_add_subdev(sd->notifier, asd);
-> +       }
-> +
-> +       return 0;
-> +}
-> +
-> +struct v4l2_subdev_internal_ops ipu_csi_internal_ops = {
-> +       .registered = ipu_csi_registered,
-> +};
-> +
-> +static int ipucsi_subdev_init(struct ipucsi *ipucsi, struct device_node *node)
-> +{
-> +       struct device_node *endpoint;
-> +       int ret;
-> +
-> +       v4l2_subdev_init(&ipucsi->subdev, &ipucsi_subdev_ops);
-> +       ipucsi->subdev.dev = ipucsi->dev;
-> +
-> +       snprintf(ipucsi->subdev.name, sizeof(ipucsi->subdev.name), "%s%d %s%d",
-> +                "IPU", ipu_get_num(ipucsi->ipu), "CSI", ipucsi->id);
-> +
-> +       endpoint = of_get_next_child(node, NULL);
-> +       if (endpoint)
-> +               v4l2_of_parse_endpoint(endpoint, &ipucsi->endpoint);
-> +
-> +       ipucsi->subdev.entity.ops = &ipucsi_entity_ops;
-> +
-> +       ipucsi->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +       ipucsi->subdev.of_node = node;
-> +
-> +       ipucsi->subdev_pad[0].flags = MEDIA_PAD_FL_SINK;
-> +       ipucsi->subdev_pad[1].flags = MEDIA_PAD_FL_SOURCE;
-> +       ret = media_entity_pads_init(&ipucsi->subdev.entity, 2,
-> +                                    ipucsi->subdev_pad);
-> +       if (ret < 0)
-> +               return ret;
-> +
-> +       ipucsi->subdev.internal_ops = &ipu_csi_internal_ops;
-> +       ret = v4l2_async_register_subdev(&ipucsi->subdev);
-> +       if (ret < 0) {
-> +               dev_err(ipucsi->dev, "Failed to register CSI subdev \"%s\": %d\n",
-> +                       ipucsi->subdev.name, ret);
-> +       }
-> +
-> +       return ret;
-> +}
-> +
-> +static u64 camera_mask = DMA_BIT_MASK(32);
-> +
-> +static int ipucsi_probe(struct platform_device *pdev)
-> +{
-> +       struct ipu_client_platformdata *pdata = pdev->dev.platform_data;
-> +       struct ipu_soc *ipu = dev_get_drvdata(pdev->dev.parent);
-> +       struct ipucsi *ipucsi;
-> +       int ret;
-> +       struct device_node *node;
-> +
-> +       pdev->dev.dma_mask = &camera_mask;
-> +       pdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-> +
-> +       if (!pdata)
-> +               return -EINVAL;
-> +
-> +       ipucsi = devm_kzalloc(&pdev->dev, sizeof(*ipucsi), GFP_KERNEL);
-> +       if (!ipucsi)
-> +               return -ENOMEM;
-> +
-> +       ipucsi->ipu = ipu;
-> +       ipucsi->id = pdata->csi;
-> +       ipucsi->dev = &pdev->dev;
-> +
-> +       node = of_graph_get_port_by_id(pdev->dev.parent->of_node, ipucsi->id);
-> +       if (!node) {
-> +               dev_err(&pdev->dev, "cannot find node port@%d\n", ipucsi->id);
-> +               return -ENODEV;
-> +       }
-> +
-> +       ipucsi->csi = ipu_csi_get(ipu, ipucsi->id);
-> +       if (IS_ERR(ipucsi->csi))
-> +               return PTR_ERR(ipucsi->csi);
-> +
-> +       ret = ipucsi_subdev_init(ipucsi, node);
-> +       if (ret)
-> +               return ret;
-> +
-> +       of_node_put(node);
-> +
-> +       platform_set_drvdata(pdev, ipucsi);
-> +
-> +       dev_info(&pdev->dev, "loaded\n");
-> +
-> +       return 0;
-> +}
-> +
-> +static struct platform_driver ipucsi_driver = {
-> +       .driver = {
-> +               .name = DRIVER_NAME,
-> +       },
-> +       .probe = ipucsi_probe,
-> +};
-> +
-> +static int __init ipucsi_init(void)
-> +{
-> +       return platform_driver_register(&ipucsi_driver);
-> +}
-> +
-> +static void __exit ipucsi_exit(void)
-> +{
-> +       return platform_driver_unregister(&ipucsi_driver);
-> +}
-> +
-> +subsys_initcall(ipucsi_init);
-> +module_exit(ipucsi_exit);
-> +
-> +MODULE_DESCRIPTION("i.MX IPUv3 capture interface driver");
-> +MODULE_AUTHOR("Sascha Hauer, Pengutronix");
-> +MODULE_AUTHOR("Philipp Zabel, Pengutronix");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_ALIAS("platform:" DRIVER_NAME);
-> --
-> 2.9.3
+	Hans
+
+>
+> Best regards,
+> Jose Miguel Abreu
+>
+>
+>>> Best regards,
+>>> Jose Miguel Abreu
+>>>
+>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>>> Cc: Carlos Palminha <palminha@synopsys.com>
+>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>>> Cc: linux-kernel@vger.kernel.org
+>>> Cc: linux-media@vger.kernel.org
+>>> ---
+>>>  drivers/media/platform/Kconfig           |   1 +
+>>>  drivers/media/platform/Makefile          |   2 +
+>>>  drivers/media/platform/dw/Kconfig        |   8 +
+>>>  drivers/media/platform/dw/Makefile       |   3 +
+>>>  drivers/media/platform/dw/dw-phy-e405.c  | 732 +++++++++++++++++++++++++++++++
+>>>  drivers/media/platform/dw/dw-phy-e405.h  |  48 ++
+>>>  drivers/media/platform/dw/dw-phy-pdata.h |  47 ++
+>>>  7 files changed, 841 insertions(+)
+>>>  create mode 100644 drivers/media/platform/dw/Kconfig
+>>>  create mode 100644 drivers/media/platform/dw/Makefile
+>>>  create mode 100644 drivers/media/platform/dw/dw-phy-e405.c
+>>>  create mode 100644 drivers/media/platform/dw/dw-phy-e405.h
+>>>  create mode 100644 drivers/media/platform/dw/dw-phy-pdata.h
+>>>
+>>> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+>>> index 754edbf1..9e8e67f 100644
+>>> --- a/drivers/media/platform/Kconfig
+>>> +++ b/drivers/media/platform/Kconfig
+>>> @@ -120,6 +120,7 @@ source "drivers/media/platform/am437x/Kconfig"
+>>>  source "drivers/media/platform/xilinx/Kconfig"
+>>>  source "drivers/media/platform/rcar-vin/Kconfig"
+>>>  source "drivers/media/platform/atmel/Kconfig"
+>>> +source "drivers/media/platform/dw/Kconfig"
+>>>
+>>>  config VIDEO_TI_CAL
+>>>  	tristate "TI CAL (Camera Adaptation Layer) driver"
+>>> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+>>> index f842933..fb2cf01 100644
+>>> --- a/drivers/media/platform/Makefile
+>>> +++ b/drivers/media/platform/Makefile
+>>> @@ -68,3 +68,5 @@ obj-$(CONFIG_VIDEO_MEDIATEK_VPU)	+= mtk-vpu/
+>>>  obj-$(CONFIG_VIDEO_MEDIATEK_VCODEC)	+= mtk-vcodec/
+>>>
+>>>  obj-$(CONFIG_VIDEO_MEDIATEK_MDP)	+= mtk-mdp/
+>>> +
+>>> +obj-y += dw/
+>>> diff --git a/drivers/media/platform/dw/Kconfig b/drivers/media/platform/dw/Kconfig
+>>> new file mode 100644
+>>> index 0000000..b3d7044
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/dw/Kconfig
+>>> @@ -0,0 +1,8 @@
+>>> +config VIDEO_DW_PHY_E405
+>>> +	tristate "Synopsys Designware HDMI RX PHY e405 driver"
+>>> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>>> +	help
+>>> +	   Support for Synopsys Designware HDMI RX PHY. Version is e405.
+>>> +
+>>> +	   To compile this driver as a module, choose M here. The module
+>>> +	   will be called dw-phy-e405.
+>>> diff --git a/drivers/media/platform/dw/Makefile b/drivers/media/platform/dw/Makefile
+>>> new file mode 100644
+>>> index 0000000..decc494
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/dw/Makefile
+>>> @@ -0,0 +1,3 @@
+>>> +# Makefile for Synopsys Designware HDMI RX
+>>> +
+>>> +obj-$(CONFIG_VIDEO_DW_PHY_E405) += dw-phy-e405.o
+>>> diff --git a/drivers/media/platform/dw/dw-phy-e405.c b/drivers/media/platform/dw/dw-phy-e405.c
+>>> new file mode 100644
+>>> index 0000000..e9c9cdf
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/dw/dw-phy-e405.c
+>>> @@ -0,0 +1,732 @@
+>>> +/*
+>>> + * Synopsys Designware HDMI RX PHY e405 driver
+>>> + *
+>>> + * Copyright (C) 2016 Synopsys, Inc.
+>>> + * Jose Abreu <joabreu@synopsys.com>
+>>> + *
+>>> + * This file is licensed under the terms of the GNU General Public
+>>> + * License version 2. This program is licensed "as is" without any
+>>> + * warranty of any kind, whether express or implied.
+>>> + */
+>>> +
+>>> +#include <linux/delay.h>
+>>> +#include <linux/module.h>
+>>> +#include <linux/platform_device.h>
+>>> +#include <linux/types.h>
+>>> +#include <media/v4l2-subdev.h>
+>>> +#include "dw-phy-e405.h"
+>>> +#include "dw-phy-pdata.h"
+>>> +
+>>> +MODULE_AUTHOR("Jose Abreu <joabreu@synopsys.com>");
+>>> +MODULE_DESCRIPTION("Designware HDMI RX PHY e405 driver");
+>>> +MODULE_LICENSE("GPL");
+>>> +MODULE_ALIAS("platform:dw-phy-e405");
+>>> +
+>>> +#define PHY_EQ_WAIT_TIME_START			3
+>>> +#define PHY_EQ_SLEEP_TIME_CDR			30
+>>> +#define PHY_EQ_SLEEP_TIME_ACQ			1
+>>> +#define PHY_EQ_BOUNDSPREAD			20
+>>> +#define PHY_EQ_MIN_ACQ_STABLE			3
+>>> +#define PHY_EQ_ACC_LIMIT			360
+>>> +#define PHY_EQ_ACC_MIN_LIMIT			0
+>>> +#define PHY_EQ_MAX_SETTING			13
+>>> +#define PHY_EQ_SHORT_CABLE_SETTING		4
+>>> +#define PHY_EQ_ERROR_CABLE_SETTING		4
+>>> +#define PHY_EQ_MIN_SLOPE			50
+>>> +#define PHY_EQ_AVG_ACQ				5
+>>> +#define PHY_EQ_MINMAX_NTRIES			3
+>>> +#define PHY_EQ_EQUALIZED_COUNTER_VAL		512
+>>> +#define PHY_EQ_EQUALIZED_COUNTER_VAL_HDMI20	512
+>>> +#define PHY_EQ_MINMAX_MAXDIFF			4
+>>> +#define PHY_EQ_MINMAX_MAXDIFF_HDMI20		2
+>>> +#define PHY_EQ_FATBIT_MASK			0x0000
+>>> +#define PHY_EQ_FATBIT_MASK_4K			0x0c03
+>>> +#define PHY_EQ_FATBIT_MASK_HDMI20		0x0e03
+>>> +
+>>> +struct dw_phy_eq_ch {
+>>> +	u16 best_long_setting;
+>>> +	u8 valid_long_setting;
+>>> +	u16 best_short_setting;
+>>> +	u8 valid_short_setting;
+>>> +	u16 best_setting;
+>>> +	u16 acc;
+>>> +	u16 acq;
+>>> +	u16 last_acq;
+>>> +	u16 upper_bound_acq;
+>>> +	u16 lower_bound_acq;
+>>> +	u16 out_bound_acq;
+>>> +	u16 read_acq;
+>>> +};
+>>> +
+>>> +static const struct dw_phy_mpll_config {
+>>> +	u16 addr;
+>>> +	u16 val;
+>>> +} dw_phy_e405_mpll_cfg[] = {
+>>> +	{ 0x27, 0x1B94 },
+>>> +	{ 0x28, 0x16D2 },
+>>> +	{ 0x29, 0x12D9 },
+>>> +	{ 0x2A, 0x3249 },
+>>> +	{ 0x2B, 0x3653 },
+>>> +	{ 0x2C, 0x3436 },
+>>> +	{ 0x2D, 0x124D },
+>>> +	{ 0x2E, 0x0001 },
+>>> +	{ 0xCE, 0x0505 },
+>>> +	{ 0xCF, 0x0505 },
+>>> +	{ 0xD0, 0x0000 },
+>>> +	{ 0x00, 0x0000 },
+>>> +};
+>>> +
+>>> +struct dw_phy_dev {
+>>> +	struct device *dev;
+>>> +	struct dw_phy_pdata *config;
+>>> +	bool phy_enabled;
+>>> +	struct v4l2_subdev sd;
+>>> +};
+>>> +
+>>> +static inline struct dw_phy_dev *to_dw_dev(struct v4l2_subdev *sd)
+>>> +{
+>>> +	return container_of(sd, struct dw_phy_dev, sd);
+>>> +}
+>>> +
+>>> +static void phy_write(struct dw_phy_dev *dw_dev, u16 val, u16 addr)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	dw_dev->config->funcs->write(arg, val, addr);
+>>> +}
+>>> +
+>>> +static u16 phy_read(struct dw_phy_dev *dw_dev, u16 addr)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	return dw_dev->config->funcs->read(arg, addr);
+>>> +}
+>>> +
+>>> +static void phy_reset(struct dw_phy_dev *dw_dev, int enable)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	dw_dev->config->funcs->reset(arg, enable);
+>>> +}
+>>> +
+>>> +static void phy_pddq(struct dw_phy_dev *dw_dev, int enable)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	dw_dev->config->funcs->pddq(arg, enable);
+>>> +}
+>>> +
+>>> +static void phy_svsmode(struct dw_phy_dev *dw_dev, int enable)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	dw_dev->config->funcs->svsmode(arg, enable);
+>>> +}
+>>> +
+>>> +static void phy_zcal_reset(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	dw_dev->config->funcs->zcal_reset(arg);
+>>> +}
+>>> +
+>>> +static bool phy_zcal_done(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	return dw_dev->config->funcs->zcal_done(arg);
+>>> +}
+>>> +
+>>> +static bool phy_tmds_valid(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	void *arg = dw_dev->config->funcs_arg;
+>>> +
+>>> +	return dw_dev->config->funcs->tmds_valid(arg);
+>>> +}
+>>> +
+>>> +static int dw_phy_eq_test(struct dw_phy_dev *dw_dev,
+>>> +		u16 *fat_bit_mask, int *min_max_length)
+>>> +{
+>>> +	u16 main_fsm_status, val;
+>>> +	int i;
+>>> +
+>>> +	for (i = 0; i < PHY_EQ_WAIT_TIME_START; i++) {
+>>> +		main_fsm_status = phy_read(dw_dev, PHY_MAINFSM_STATUS1);
+>>> +		if (main_fsm_status & 0x100)
+>>> +			break;
+>>> +		msleep(PHY_EQ_SLEEP_TIME_CDR);
+>>> +	}
+>>> +
+>>> +	if (i == PHY_EQ_WAIT_TIME_START) {
+>>> +		dev_err(dw_dev->dev, "phy start conditions not achieved\n");
+>>> +		return -ETIMEDOUT;
+>>> +	}
+>>> +
+>>> +	if (main_fsm_status & 0x400) {
+>>> +		dev_err(dw_dev->dev, "invalid pll rate\n");
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	val = (phy_read(dw_dev, PHY_CDR_CTRL_CNT) & 0x300) >> 8;
+>>> +	if (val == 0x1) {
+>>> +		/* HDMI 2.0 */
+>>> +		*fat_bit_mask = PHY_EQ_FATBIT_MASK_HDMI20;
+>>> +		*min_max_length = PHY_EQ_MINMAX_MAXDIFF_HDMI20;
+>>> +		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 2.0 values\n");
+>>> +	} else if (!(main_fsm_status & 0x600)) {
+>>> +		/* HDMI 1.4 (pll rate = 0) */
+>>> +		*fat_bit_mask = PHY_EQ_FATBIT_MASK_4K;
+>>> +		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
+>>> +		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4@4k values\n");
+>>> +	} else {
+>>> +		/* HDMI 1.4 */
+>>> +		*fat_bit_mask = PHY_EQ_FATBIT_MASK;
+>>> +		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
+>>> +		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4 values\n");
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_default(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	phy_write(dw_dev, 0x08A8, PHY_CH0_EQ_CTRL1);
+>>> +	phy_write(dw_dev, 0x0020, PHY_CH0_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x08A8, PHY_CH1_EQ_CTRL1);
+>>> +	phy_write(dw_dev, 0x0020, PHY_CH1_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x08A8, PHY_CH2_EQ_CTRL1);
+>>> +	phy_write(dw_dev, 0x0020, PHY_CH2_EQ_CTRL2);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_single(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	phy_write(dw_dev, 0x0211, PHY_CH0_EQ_CTRL1);
+>>> +	phy_write(dw_dev, 0x0211, PHY_CH1_EQ_CTRL1);
+>>> +	phy_write(dw_dev, 0x0211, PHY_CH2_EQ_CTRL1);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_equal_setting(struct dw_phy_dev *dw_dev,
+>>> +		u16 lock_vector)
+>>> +{
+>>> +	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
+>>> +	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
+>>> +	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
+>>> +	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
+>>> +	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
+>>> +	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
+>>> +	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
+>>> +	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
+>>> +	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_equal_setting_ch0(struct dw_phy_dev *dw_dev,
+>>> +		u16 lock_vector)
+>>> +{
+>>> +	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
+>>> +	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
+>>> +	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_equal_setting_ch1(struct dw_phy_dev *dw_dev,
+>>> +		u16 lock_vector)
+>>> +{
+>>> +	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
+>>> +	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
+>>> +	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_equal_setting_ch2(struct dw_phy_dev *dw_dev,
+>>> +		u16 lock_vector)
+>>> +{
+>>> +	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
+>>> +	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
+>>> +	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
+>>> +	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_auto_calib(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
+>>> +	phy_write(dw_dev, 0x1819, PHY_MAINFSM_CTRL);
+>>> +	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_init_vars(struct dw_phy_eq_ch *ch)
+>>> +{
+>>> +	ch->acc = 0;
+>>> +	ch->acq = 0;
+>>> +	ch->last_acq = 0;
+>>> +	ch->valid_long_setting = 0;
+>>> +	ch->valid_short_setting = 0;
+>>> +	ch->best_setting = PHY_EQ_SHORT_CABLE_SETTING;
+>>> +}
+>>> +
+>>> +static void dw_phy_eq_acquire_early_cnt(struct dw_phy_dev *dw_dev,
+>>> +		u16 setting, u16 acq, struct dw_phy_eq_ch *ch0,
+>>> +		struct dw_phy_eq_ch *ch1, struct dw_phy_eq_ch *ch2)
+>>> +{
+>>> +	u16 lock_vector = 0x1;
+>>> +	int i;
+>>> +
+>>> +	lock_vector <<= setting;
+>>> +	ch0->out_bound_acq = 0;
+>>> +	ch1->out_bound_acq = 0;
+>>> +	ch2->out_bound_acq = 0;
+>>> +	ch0->acq = 0;
+>>> +	ch1->acq = 0;
+>>> +	ch2->acq = 0;
+>>> +
+>>> +	dw_phy_eq_equal_setting(dw_dev, lock_vector);
+>>> +	dw_phy_eq_auto_calib(dw_dev);
+>>> +
+>>> +	msleep(PHY_EQ_SLEEP_TIME_CDR);
+>>> +	if (!phy_tmds_valid(dw_dev))
+>>> +		dev_dbg(dw_dev->dev, "TMDS is NOT valid\n");
+>>> +
+>>> +	ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
+>>> +	ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
+>>> +	ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
+>>> +
+>>> +	ch0->acq += ch0->read_acq;
+>>> +	ch1->acq += ch1->read_acq;
+>>> +	ch2->acq += ch2->read_acq;
+>>> +
+>>> +	ch0->upper_bound_acq = ch0->read_acq + PHY_EQ_BOUNDSPREAD;
+>>> +	ch0->lower_bound_acq = ch0->read_acq - PHY_EQ_BOUNDSPREAD;
+>>> +	ch1->upper_bound_acq = ch1->read_acq + PHY_EQ_BOUNDSPREAD;
+>>> +	ch1->lower_bound_acq = ch1->read_acq - PHY_EQ_BOUNDSPREAD;
+>>> +	ch2->upper_bound_acq = ch2->read_acq + PHY_EQ_BOUNDSPREAD;
+>>> +	ch2->lower_bound_acq = ch2->read_acq - PHY_EQ_BOUNDSPREAD;
+>>> +
+>>> +	for (i = 1; i < acq; i++) {
+>>> +		dw_phy_eq_auto_calib(dw_dev);
+>>> +		mdelay(PHY_EQ_SLEEP_TIME_ACQ);
+>>> +
+>>> +		if ((ch0->read_acq > ch0->upper_bound_acq) ||
+>>> +				(ch0->read_acq < ch0->lower_bound_acq))
+>>> +			ch0->out_bound_acq++;
+>>> +		if ((ch1->read_acq > ch1->upper_bound_acq) ||
+>>> +				(ch1->read_acq < ch1->lower_bound_acq))
+>>> +			ch1->out_bound_acq++;
+>>> +		if ((ch2->read_acq > ch2->upper_bound_acq) ||
+>>> +				(ch2->read_acq < ch1->lower_bound_acq))
+>>> +			ch2->out_bound_acq++;
+>>> +
+>>> +		if (i == PHY_EQ_MIN_ACQ_STABLE) {
+>>> +			if ((ch0->out_bound_acq == 0) &&
+>>> +					(ch1->out_bound_acq == 0) &&
+>>> +					(ch2->out_bound_acq == 0)) {
+>>> +				acq = 3;
+>>> +				break;
+>>> +			}
+>>> +		}
+>>> +
+>>> +		ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
+>>> +		ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
+>>> +		ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
+>>> +
+>>> +		ch0->acq += ch0->read_acq;
+>>> +		ch1->acq += ch1->read_acq;
+>>> +		ch2->acq += ch2->read_acq;
+>>> +	}
+>>> +
+>>> +	ch0->acq = ch0->acq / acq;
+>>> +	ch1->acq = ch1->acq / acq;
+>>> +	ch2->acq = ch2->acq / acq;
+>>> +
+>>> +	dev_dbg(dw_dev->dev, "setting=%d: ch0.acq=%d, ch1.acq=%d, ch2.acq=%d\n",
+>>> +			setting, ch0->acq, ch1->acq, ch2->acq);
+>>> +}
+>>> +
+>>> +static int dw_phy_eq_test_type(u16 setting, struct dw_phy_eq_ch *ch)
+>>> +{
+>>> +	u16 step_slope = 0;
+>>> +
+>>> +	if (ch->acq < ch->last_acq) {
+>>> +		/* Long cable equalization */
+>>> +		ch->acc += ch->last_acq - ch->acq;
+>>> +		if ((!ch->valid_long_setting) && (ch->acq < 512) &&
+>>> +				(ch->acc > 0)) {
+>>> +			ch->best_long_setting = setting;
+>>> +			ch->valid_long_setting = 1;
+>>> +		}
+>>> +
+>>> +		step_slope = ch->last_acq - ch->acq;
+>>> +	}
+>>> +
+>>> +	if (!ch->valid_short_setting) {
+>>> +		/* Short cable equalization */
+>>> +		if ((setting < PHY_EQ_SHORT_CABLE_SETTING) &&
+>>> +				(ch->acq < PHY_EQ_EQUALIZED_COUNTER_VAL)) {
+>>> +			ch->best_short_setting = setting;
+>>> +			ch->valid_short_setting = 1;
+>>> +		}
+>>> +
+>>> +		if (setting == PHY_EQ_SHORT_CABLE_SETTING) {
+>>> +			ch->best_short_setting = PHY_EQ_SHORT_CABLE_SETTING;
+>>> +			ch->valid_short_setting = 1;
+>>> +		}
+>>> +	}
+>>> +
+>>> +	if (ch->valid_long_setting && (ch->acc > PHY_EQ_ACC_LIMIT)) {
+>>> +		ch->best_setting = ch->best_long_setting;
+>>> +		return 1;
+>>> +	}
+>>> +
+>>> +	if ((setting == PHY_EQ_MAX_SETTING) && (ch->acc < PHY_EQ_ACC_LIMIT) &&
+>>> +			ch->valid_short_setting) {
+>>> +		ch->best_setting = ch->best_short_setting;
+>>> +		return 2;
+>>> +	}
+>>> +
+>>> +	if ((setting == PHY_EQ_MAX_SETTING) && (ch->acc > PHY_EQ_ACC_LIMIT) &&
+>>> +			(step_slope > PHY_EQ_MIN_SLOPE)) {
+>>> +		ch->best_setting = PHY_EQ_MAX_SETTING;
+>>> +		return 3;
+>>> +	}
+>>> +
+>>> +	if (setting == PHY_EQ_MAX_SETTING) {
+>>> +		ch->best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static bool dw_phy_eq_setting_finder(struct dw_phy_dev *dw_dev, u16 acq,
+>>> +		struct dw_phy_eq_ch *ch0, struct dw_phy_eq_ch *ch1,
+>>> +		struct dw_phy_eq_ch *ch2)
+>>> +{
+>>> +	u16 act = 0;
+>>> +	int ret_ch0 = 0, ret_ch1 = 0, ret_ch2 = 0;
+>>> +
+>>> +	dw_phy_eq_init_vars(ch0);
+>>> +	dw_phy_eq_init_vars(ch1);
+>>> +	dw_phy_eq_init_vars(ch2);
+>>> +
+>>> +	dw_phy_eq_acquire_early_cnt(dw_dev, act, acq, ch0, ch1, ch2);
+>>> +
+>>> +	while ((!ret_ch0) || (!ret_ch1) || (!ret_ch2)) {
+>>> +		act++;
+>>> +
+>>> +		ch0->last_acq = ch0->acq;
+>>> +		ch1->last_acq = ch1->acq;
+>>> +		ch2->last_acq = ch2->acq;
+>>> +
+>>> +		dw_phy_eq_acquire_early_cnt(dw_dev, act, acq, ch0, ch1, ch2);
+>>> +
+>>> +		if (!ret_ch0)
+>>> +			ret_ch0 = dw_phy_eq_test_type(act, ch0);
+>>> +		if (!ret_ch1)
+>>> +			ret_ch1 = dw_phy_eq_test_type(act, ch1);
+>>> +		if (!ret_ch2)
+>>> +			ret_ch2 = dw_phy_eq_test_type(act, ch2);
+>>> +	}
+>>> +
+>>> +	if ((ret_ch0 < 0) || (ret_ch1 < 0) || (ret_ch2 < 0))
+>>> +		return false;
+>>> +	return true;
+>>> +}
+>>> +
+>>> +static bool dw_phy_eq_maxvsmin(u16 ch0_setting, u16 ch1_setting,
+>>> +		u16 ch2_setting, u16 min_max_length)
+>>> +{
+>>> +	u16 min = ch0_setting, max = ch0_setting;
+>>> +
+>>> +	if (ch1_setting > max)
+>>> +		max = ch1_setting;
+>>> +	if (ch2_setting > max)
+>>> +		max = ch2_setting;
+>>> +	if (ch1_setting < min)
+>>> +		min = ch1_setting;
+>>> +	if (ch2_setting < min)
+>>> +		min = ch2_setting;
+>>> +
+>>> +	if ((max - min) > min_max_length)
+>>> +		return false;
+>>> +	return true;
+>>> +}
+>>> +
+>>> +static int dw_phy_eq_init(struct dw_phy_dev *dw_dev, u16 acq)
+>>> +{
+>>> +	struct dw_phy_pdata *phy = dw_dev->config;
+>>> +	struct dw_phy_eq_ch ch0, ch1, ch2;
+>>> +	u16 fat_bit_mask, lock_vector = 0x1;
+>>> +	int min_max_length, i, ret = 0;
+>>> +
+>>> +	if (phy->version < 401)
+>>> +		return 0;
+>>> +
+>>> +	phy_write(dw_dev, 0x00, PHY_MAINFSM_OVR2);
+>>> +	phy_write(dw_dev, 0x00, PHY_CH0_EQ_CTRL3);
+>>> +	phy_write(dw_dev, 0x00, PHY_CH1_EQ_CTRL3);
+>>> +	phy_write(dw_dev, 0x00, PHY_CH2_EQ_CTRL3);
+>>> +
+>>> +	ret = dw_phy_eq_test(dw_dev, &fat_bit_mask, &min_max_length);
+>>> +	if (ret) {
+>>> +		if (ret == -EINVAL) /* Means equalizer is not needed */
+>>> +			return 0;
+>>> +		dw_phy_eq_default(dw_dev);
+>>> +		phy_pddq(dw_dev, 1);
+>>> +		phy_pddq(dw_dev, 0);
+>>> +		return ret;
+>>> +	}
+>>> +
+>>> +	dw_phy_eq_single(dw_dev);
+>>> +	dw_phy_eq_equal_setting(dw_dev, 0x0001);
+>>> +	phy_write(dw_dev, fat_bit_mask, PHY_CH0_EQ_CTRL6);
+>>> +	phy_write(dw_dev, fat_bit_mask, PHY_CH0_EQ_CTRL6);
+>>> +	phy_write(dw_dev, fat_bit_mask, PHY_CH0_EQ_CTRL6);
+>>> +
+>>> +	for (i = 0; i < PHY_EQ_MINMAX_NTRIES; i++) {
+>>> +		if (dw_phy_eq_setting_finder(dw_dev, acq, &ch0, &ch1, &ch2)) {
+>>> +			if (dw_phy_eq_maxvsmin(ch0.best_setting,
+>>> +						ch1.best_setting,
+>>> +						ch2.best_setting,
+>>> +						min_max_length))
+>>> +				break;
+>>> +		}
+>>> +
+>>> +		ch0.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>>> +		ch1.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>>> +		ch2.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
+>>> +	}
+>>> +
+>>> +	dev_dbg(dw_dev->dev, "settings:ch0=0x%x, ch1=0x%x, ch1=0x%x\n",
+>>> +			ch0.best_setting, ch1.best_setting, ch2.best_setting);
+>>> +
+>>> +	if (i == PHY_EQ_MINMAX_NTRIES)
+>>> +		ret = -EINVAL;
+>>> +
+>>> +	lock_vector = 0x1;
+>>> +	lock_vector <<= ch0.best_setting;
+>>> +	dw_phy_eq_equal_setting_ch0(dw_dev, lock_vector);
+>>> +
+>>> +	lock_vector = 0x1;
+>>> +	lock_vector <<= ch1.best_setting;
+>>> +	dw_phy_eq_equal_setting_ch1(dw_dev, lock_vector);
+>>> +
+>>> +	lock_vector = 0x1;
+>>> +	lock_vector <<= ch2.best_setting;
+>>> +	dw_phy_eq_equal_setting_ch2(dw_dev, lock_vector);
+>>> +
+>>> +	phy_pddq(dw_dev, 1);
+>>> +	phy_pddq(dw_dev, 0);
+>>> +
+>>> +	return ret;
+>>> +}
+>>> +
+>>> +static void dw_phy_set_hdmi2(struct dw_phy_dev *dw_dev, bool on)
+>>> +{
+>>> +	u16 val;
+>>> +
+>>> +	/* Set phy in configuration mode */
+>>> +	phy_pddq(dw_dev, 1);
+>>> +
+>>> +	/* Operation for data rates between 3.4Gbps and 6Gbps */
+>>> +	val = phy_read(dw_dev, PHY_CDR_CTRL_CNT);
+>>> +	if (on)
+>>> +		val |= BIT(8);
+>>> +	else
+>>> +		val &= ~BIT(8);
+>>> +	phy_write(dw_dev, val, PHY_CDR_CTRL_CNT);
+>>> +
+>>> +	/* Enable phy */
+>>> +	phy_pddq(dw_dev, 0);
+>>> +}
+>>> +
+>>> +static void dw_phy_set_scrambling(struct dw_phy_dev *dw_dev, bool on)
+>>> +{
+>>> +	u16 val;
+>>> +
+>>> +	val = phy_read(dw_dev, PHY_OVL_PROT_CTRL);
+>>> +	if (on)
+>>> +		val |= GENMASK(7, 6);
+>>> +	else
+>>> +		val &= ~GENMASK(7, 6);
+>>> +	phy_write(dw_dev, val, PHY_OVL_PROT_CTRL);
+>>> +}
+>>> +
+>>> +static int dw_phy_config(struct dw_phy_dev *dw_dev, unsigned char res,
+>>> +		bool data_rate_6g)
+>>> +{
+>>> +	struct device *dev = dw_dev->dev;
+>>> +	struct dw_phy_pdata *phy = dw_dev->config;
+>>> +	const struct dw_phy_mpll_config *mpll_cfg = dw_phy_e405_mpll_cfg;
+>>> +	bool zcal_done;
+>>> +	u16 val, res_idx;
+>>> +	int timeout = 100;
+>>> +
+>>> +	dev_dbg(dev, "configuring phy: res=%d, hdmi2=%d\n", res, data_rate_6g);
+>>> +
+>>> +	switch (res) {
+>>> +	case 8:
+>>> +		res_idx = 0x0;
+>>> +		break;
+>>> +	case 10:
+>>> +		res_idx = 0x1;
+>>> +		break;
+>>> +	case 12:
+>>> +		res_idx = 0x2;
+>>> +		break;
+>>> +	case 16:
+>>> +		res_idx = 0x3;
+>>> +		break;
+>>> +	default:
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	phy_reset(dw_dev, 1);
+>>> +	phy_pddq(dw_dev, 1);
+>>> +	phy_svsmode(dw_dev, 1);
+>>> +
+>>> +	phy_zcal_reset(dw_dev);
+>>> +	do {
+>>> +		udelay(1000);
+>>> +		zcal_done = phy_zcal_done(dw_dev);
+>>> +	} while (!zcal_done && timeout--);
+>>> +
+>>> +	if (!zcal_done) {
+>>> +		dev_err(dw_dev->dev, "Zcal calibration failed\n");
+>>> +		return -ETIMEDOUT;
+>>> +	}
+>>> +
+>>> +	phy_reset(dw_dev, 0);
+>>> +
+>>> +	/* CMU */
+>>> +	val = (0x08 << 10) | (0x01 << 9);
+>>> +	val |= (phy->cfg_clk * 4) & GENMASK(8, 0);
+>>> +	phy_write(dw_dev, val, PHY_CMU_CONFIG);
+>>> +
+>>> +	/* Color Depth and enable fast switching */
+>>> +	val = phy_read(dw_dev, PHY_SYSTEM_CONFIG);
+>>> +	val = (val & ~0x60) | (res_idx << 5) | BIT(11);
+>>> +	phy_write(dw_dev, val, PHY_SYSTEM_CONFIG);
+>>> +
+>>> +	/* MPLL */
+>>> +	for (; mpll_cfg->addr != 0x0; mpll_cfg++)
+>>> +		phy_write(dw_dev, mpll_cfg->val, mpll_cfg->addr);
+>>> +
+>>> +	/* Operation for data rates between 3.4Gbps and 6Gbps */
+>>> +	val = phy_read(dw_dev, PHY_CDR_CTRL_CNT);
+>>> +	if (data_rate_6g)
+>>> +		val |= BIT(8);
+>>> +	else
+>>> +		val &= ~BIT(8);
+>>> +	phy_write(dw_dev, val, PHY_CDR_CTRL_CNT);
+>>> +
+>>> +	/* Enable phy */
+>>> +	phy_pddq(dw_dev, 0);
+>>> +
+>>> +	dw_dev->phy_enabled = true;
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static void dw_phy_disable(struct dw_phy_dev *dw_dev)
+>>> +{
+>>> +	if (!dw_dev->phy_enabled)
+>>> +		return;
+>>> +
+>>> +	phy_reset(dw_dev, 1);
+>>> +	phy_pddq(dw_dev, 1);
+>>> +	dw_dev->phy_enabled = false;
+>>> +}
+>>> +
+>>> +static long dw_phy_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+>>> +{
+>>> +	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
+>>> +	struct dw_phy_command *a = arg;
+>>> +
+>>> +	dev_dbg(dw_dev->dev, "%s: cmd=%d\n", __func__, cmd);
+>>> +
+>>> +	switch (cmd) {
+>>> +	case DW_PHY_IOCTL_EQ_INIT:
+>>> +		a->result = dw_phy_eq_init(dw_dev, a->nacq);
+>>> +		break;
+>>> +	case DW_PHY_IOCTL_SET_HDMI2:
+>>> +		dw_phy_set_hdmi2(dw_dev, a->hdmi2);
+>>> +		a->result = 0;
+>>> +		break;
+>>> +	case DW_PHY_IOCTL_SET_SCRAMBLING:
+>>> +		dw_phy_set_scrambling(dw_dev, a->scrambling);
+>>> +		a->result = 0;
+>>> +		break;
+>>> +	case DW_PHY_IOCTL_CONFIG:
+>>> +		a->result = dw_phy_config(dw_dev, a->res, a->hdmi2);
+>>> +		dw_phy_set_scrambling(dw_dev, a->scrambling);
+>>> +		break;
+>>> +	default:
+>>> +		return -ENOIOCTLCMD;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static int dw_phy_s_power(struct v4l2_subdev *sd, int on)
+>>> +{
+>>> +	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
+>>> +
+>>> +	dev_dbg(dw_dev->dev, "%s: on=%d\n", __func__, on);
+>>> +
+>>> +	if (!on)
+>>> +		dw_phy_disable(dw_dev);
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static const struct v4l2_subdev_core_ops dw_phy_core_ops = {
+>>> +	.ioctl = dw_phy_ioctl,
+>>> +	.s_power = dw_phy_s_power,
+>>> +};
+>>> +
+>>> +static const struct v4l2_subdev_ops dw_phy_sd_ops = {
+>>> +	.core = &dw_phy_core_ops,
+>>> +};
+>>> +
+>>> +static int dw_phy_probe(struct platform_device *pdev)
+>>> +{
+>>> +	struct device *dev = &pdev->dev;
+>>> +	struct dw_phy_dev *dw_dev;
+>>> +	struct dw_phy_pdata *pdata = pdev->dev.platform_data;
+>>> +	struct v4l2_subdev *sd;
+>>> +
+>>> +	/* Resource allocation */
+>>> +	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
+>>> +	if (!dw_dev)
+>>> +		return -ENOMEM;
+>>> +
+>>> +	/* Resource initialization */
+>>> +	if (!pdata)
+>>> +		return -EINVAL;
+>>> +
+>>> +	dw_dev->dev = dev;
+>>> +	dw_dev->config = pdata;
+>>> +
+>>> +	/* V4L2 initialization */
+>>> +	sd = &dw_dev->sd;
+>>> +	v4l2_subdev_init(sd, &dw_phy_sd_ops);
+>>> +	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
+>>> +
+>>> +	/* All done */
+>>> +	dev_set_drvdata(dev, sd);
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static int dw_phy_remove(struct platform_device *pdev)
+>>> +{
+>>> +	return 0;
+>>> +}
+>>> +
+>>> +static struct platform_driver dw_phy_e405_driver = {
+>>> +	.probe = dw_phy_probe,
+>>> +	.remove = dw_phy_remove,
+>>> +	.driver = {
+>>> +		.name = "dw-phy-e405",
+>>> +	}
+>>> +};
+>>> +module_platform_driver(dw_phy_e405_driver);
+>>> +
+>>> diff --git a/drivers/media/platform/dw/dw-phy-e405.h b/drivers/media/platform/dw/dw-phy-e405.h
+>>> new file mode 100644
+>>> index 0000000..a2a9057
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/dw/dw-phy-e405.h
+>>> @@ -0,0 +1,48 @@
+>>> +/*
+>>> + * Synopsys Designware HDMI RX PHY e405 driver
+>>> + *
+>>> + * Copyright (C) 2016 Synopsys, Inc.
+>>> + * Jose Abreu <joabreu@synopsys.com>
+>>> + *
+>>> + * This file is licensed under the terms of the GNU General Public
+>>> + * License version 2. This program is licensed "as is" without any
+>>> + * warranty of any kind, whether express or implied.
+>>> + */
+>>> +
+>>> +#ifndef __DW_PHY_E405_H__
+>>> +#define __DW_PHY_E405_H__
+>>> +
+>>> +#define PHY_CMU_CONFIG				0x02
+>>> +#define PHY_SYSTEM_CONFIG			0x03
+>>> +#define PHY_MAINFSM_CTRL			0x05
+>>> +#define PHY_MAINFSM_OVR2			0x08
+>>> +#define PHY_MAINFSM_STATUS1			0x09
+>>> +#define PHY_OVL_PROT_CTRL			0x0D
+>>> +#define PHY_CDR_CTRL_CNT			0x0E
+>>> +#define PHY_CH0_EQ_CTRL1			0x32
+>>> +#define PHY_CH0_EQ_CTRL2			0x33
+>>> +#define PHY_CH0_EQ_STATUS			0x34
+>>> +#define PHY_CH0_EQ_CTRL3			0x3E
+>>> +#define PHY_CH0_EQ_CTRL4			0x3F
+>>> +#define PHY_CH0_EQ_STATUS2			0x40
+>>> +#define PHY_CH0_EQ_STATUS3			0x42
+>>> +#define PHY_CH0_EQ_CTRL6			0x43
+>>> +#define PHY_CH1_EQ_CTRL1			0x52
+>>> +#define PHY_CH1_EQ_CTRL2			0x53
+>>> +#define PHY_CH1_EQ_STATUS			0x54
+>>> +#define PHY_CH1_EQ_CTRL3			0x5E
+>>> +#define PHY_CH1_EQ_CTRL4			0x5F
+>>> +#define PHY_CH1_EQ_STATUS2			0x60
+>>> +#define PHY_CH1_EQ_STATUS3			0x62
+>>> +#define PHY_CH1_EQ_CTRL6			0x63
+>>> +#define PHY_CH2_EQ_CTRL1			0x72
+>>> +#define PHY_CH2_EQ_CTRL2			0x73
+>>> +#define PHY_CH2_EQ_STATUS			0x74
+>>> +#define PHY_CH2_EQ_CTRL3			0x7E
+>>> +#define PHY_CH2_EQ_CTRL4			0x7F
+>>> +#define PHY_CH2_EQ_STATUS2			0x80
+>>> +#define PHY_CH2_EQ_STATUS3			0x82
+>>> +#define PHY_CH2_EQ_CTRL6			0x83
+>>> +
+>>> +#endif /* __DW_PHY_E405_H__ */
+>>> +
+>>> diff --git a/drivers/media/platform/dw/dw-phy-pdata.h b/drivers/media/platform/dw/dw-phy-pdata.h
+>>> new file mode 100644
+>>> index 0000000..b728a50
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/dw/dw-phy-pdata.h
+>>> @@ -0,0 +1,47 @@
+>>> +/*
+>>> + * Synopsys Designware HDMI RX PHY generic interface
+>>> + *
+>>> + * Copyright (C) 2016 Synopsys, Inc.
+>>> + * Jose Abreu <joabreu@synopsys.com>
+>>> + *
+>>> + * This file is licensed under the terms of the GNU General Public
+>>> + * License version 2. This program is licensed "as is" without any
+>>> + * warranty of any kind, whether express or implied.
+>>> + */
+>>> +
+>>> +#ifndef __DW_PHY_PDATA_H__
+>>> +#define __DW_PHY_PDATA_H__
+>>> +
+>>> +#define DW_PHY_IOCTL_EQ_INIT		_IOW('R', 1, int)
+>>> +#define DW_PHY_IOCTL_SET_HDMI2		_IOW('R', 2, int)
+>>> +#define DW_PHY_IOCTL_SET_SCRAMBLING	_IOW('R', 3, int)
+>>> +#define DW_PHY_IOCTL_CONFIG		_IOW('R', 4, int)
+>>> +
+>>> +struct dw_phy_command {
+>>> +	int result;
+>>> +	unsigned char res;
+>>> +	bool hdmi2;
+>>> +	bool nacq;
+>>> +	bool scrambling;
+>>> +};
+>>> +
+>>> +struct dw_phy_funcs {
+>>> +	void (*write)(void *arg, u16 val, u16 addr);
+>>> +	u16 (*read)(void *arg, u16 addr);
+>>> +	void (*reset)(void *arg, int enable);
+>>> +	void (*pddq)(void *arg, int enable);
+>>> +	void (*svsmode)(void *arg, int enable);
+>>> +	void (*zcal_reset)(void *arg);
+>>> +	bool (*zcal_done)(void *arg);
+>>> +	bool (*tmds_valid)(void *arg);
+>>> +};
+>>> +
+>>> +struct dw_phy_pdata {
+>>> +	unsigned int version;
+>>> +	unsigned int cfg_clk;
+>>> +	const struct dw_phy_funcs *funcs;
+>>> +	void *funcs_arg;
+>>> +};
+>>> +
+>>> +#endif /* __DW_PHY_PDATA_H__ */
+>>> +
+>>>
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
