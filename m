@@ -1,53 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from resqmta-po-03v.sys.comcast.net ([96.114.154.162]:51449 "EHLO
-        resqmta-po-03v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932369AbcKGPlU (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:16207 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755913AbcKVPxg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 7 Nov 2016 10:41:20 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@kernel.org, javier@osg.samsung.com, arnd@arndb.de,
-        sean@mess.org
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: Fix get_key_haup_common.isra.4() debug message to print ptoggle value
-Date: Mon,  7 Nov 2016 08:41:11 -0700
-Message-Id: <20161107154114.26803-1-shuahkh@osg.samsung.com>
+        Tue, 22 Nov 2016 10:53:36 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v3 02/10] ARM: dts: STiH410: add DELTA dt node
+Date: Tue, 22 Nov 2016 16:53:19 +0100
+Message-ID: <1479830007-29767-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the debug message in get_key_haup_common.isra.4() doesn't print the
-correct toggle value. Fix it. This shows up as an used uninitialized warn
-message:
+This patch adds DT node for STMicroelectronics
+DELTA V4L2 video decoder
 
-drivers/media/i2c/ir-kbd-i2c.c: In function ‘get_key_haup_common.isra.4’:
- drivers/media/i2c/ir-kbd-i2c.c:62:2: warning: ‘toggle’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-   printk(KERN_DEBUG MODULE_NAME ": " fmt , ## arg)
-   ^~~~~~
- drivers/media/i2c/ir-kbd-i2c.c:70:20: note: ‘toggle’ was declared here
-   int start, range, toggle, dev, code, ircode, vendor;
-                     ^~~~~~
-
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/i2c/ir-kbd-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/boot/dts/stih410.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index f95a6bc..cede397 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -118,7 +118,7 @@ static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
- 			*protocol = RC_TYPE_RC6_MCE;
- 			dev &= 0x7f;
- 			dprintk(1, "ir hauppauge (rc6-mce): t%d vendor=%d dev=%d code=%d\n",
--						toggle, vendor, dev, code);
-+						*ptoggle, vendor, dev, code);
- 		} else {
- 			*ptoggle = 0;
- 			*protocol = RC_TYPE_RC6_6A_32;
+diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
+index a3ef734..fb03cb67 100644
+--- a/arch/arm/boot/dts/stih410.dtsi
++++ b/arch/arm/boot/dts/stih410.dtsi
+@@ -259,5 +259,15 @@
+ 			clocks = <&clk_sysin>;
+ 			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
+ 		};
++		delta0 {
++			compatible = "st,st-delta";
++			clock-names = "delta",
++				      "delta-st231",
++				      "delta-flash-promip";
++			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
++				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
++				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
++		};
++
+ 	};
+ };
 -- 
-2.9.3
+1.9.1
 
