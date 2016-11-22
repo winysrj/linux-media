@@ -1,232 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55342 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1756666AbcK2JWj (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42912
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755411AbcKVOOs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 04:22:39 -0500
-Date: Tue, 29 Nov 2016 11:22:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@kernel.org, mkrufky@linuxtv.org, klock.android@gmail.com,
-        elfring@users.sourceforge.net, max@duempel.org,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
-        laurent.pinchart+renesas@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: protect enable and disable source handler
- checks and calls
-Message-ID: <20161129092230.GL16630@valkosipuli.retiisi.org.uk>
-References: <cover.1480384155.git.shuahkh@osg.samsung.com>
- <54975937478803ef4883e9caecb8af0ef282e35c.1480384155.git.shuahkh@osg.samsung.com>
+        Tue, 22 Nov 2016 09:14:48 -0500
+Date: Tue, 22 Nov 2016 12:14:40 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Rob Herring <robh@kernel.org>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        linux-leds@vger.kernel.org, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Subject: Re: [RFC] Documentation: media, leds: move IR LED remote
+ controllers from media to LED
+Message-ID: <20161122121440.627f1c16@vento.lan>
+In-Reply-To: <20161110132650.5109-1-andi.shyti@samsung.com>
+References: <20161110132650.5109-1-andi.shyti@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <54975937478803ef4883e9caecb8af0ef282e35c.1480384155.git.shuahkh@osg.samsung.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Em Thu, 10 Nov 2016 22:26:50 +0900
+Andi Shyti <andi.shyti@samsung.com> escreveu:
 
-On Mon, Nov 28, 2016 at 07:15:14PM -0700, Shuah Khan wrote:
-> Protect enable and disable source handler checks and calls from dvb-core
-> and v4l2-core. Hold graph_mutex to check if enable and disable source
-> handlers are present and invoke them while holding the mutex. This change
-> ensures these handlers will not be removed while they are being checked
-> and invoked.
+> Hi,
 > 
-> au08282 enable and disable source handlers are changed to not hold the
-> graph_mutex.
+> this is purely a request for comments after a discussion had with
+> Rob and Jacek [*] about where to place the ir leds binding. Rob wants
+> the binding to be under led, while Jacek wants it in media...
+> "Ubi maior minor cessat": it goes to LED and they can be organized
+> in a subdirectory.
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/dvb-core/dvb_frontend.c  | 24 ++++++++++++++++++------
->  drivers/media/usb/au0828/au0828-core.c | 17 +++++------------
->  drivers/media/v4l2-core/v4l2-mc.c      | 26 ++++++++++++++++++--------
->  3 files changed, 41 insertions(+), 26 deletions(-)
+> Standing to Rob "Bindings are grouped by types of h/w and IR LEDs
+> are a type of LED": all remote controllers have an IR LED as core
+> device, even though the framework is under drivers/media/rc/, thus
+> they naturally belong to the LED binding group.
 > 
-> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-> index 01511e5..2f09c7e 100644
-> --- a/drivers/media/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb-core/dvb_frontend.c
-> @@ -2527,9 +2527,13 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
->  		fepriv->voltage = -1;
->  
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -		if (fe->dvb->mdev && fe->dvb->mdev->enable_source) {
-> -			ret = fe->dvb->mdev->enable_source(dvbdev->entity,
-> +		if (fe->dvb->mdev) {
-> +			mutex_lock(&fe->dvb->mdev->graph_mutex);
-> +			if (fe->dvb->mdev->enable_source)
-> +				ret = fe->dvb->mdev->enable_source(
-> +							   dvbdev->entity,
->  							   &fepriv->pipe);
-> +			mutex_unlock(&fe->dvb->mdev->graph_mutex);
+> Please, let me know if this is the right approach.
 
-You have to make sure the media device actually will stay aronud while it is
-being accessed. In this case, when dvb_frontend_open() runs, it will proceed
-to access the media device without knowing whether it's going to stay around
-or not. Without doing so, it may well be in the process of being removed by
-au0828_unregister_media_device() at the same time.
+IMHO, this is wrong. 
 
-The approach I took in my patchset was that the device that requires the
-media device will acquire a reference to it, this way the media device will
-stick around as long as other data structures have references to it. The
-current set did not yet implement this to dvb devices but I can add that.
-Then there's no even a need for the frontend driver to acquire the graph
-lock just to call the enable_source() callback.
+Ok, if you look at just the diode, the physics of an IR Light-emitting Diode
+(LED) is identical  to the one for a visible light LED, just like the physics
+of the LED diodes inside a display. Btw, the physics of an IR detector
+diode is almost identical to the physics of a LED.
 
->  			if (ret) {
->  				dev_err(fe->dvb->device,
->  					"Tuner is busy. Error %d\n", ret);
-> @@ -2553,8 +2557,12 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
->  
->  err3:
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -	if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
-> -		fe->dvb->mdev->disable_source(dvbdev->entity);
-> +	if (fe->dvb->mdev) {
-> +		mutex_lock(&fe->dvb->mdev->graph_mutex);
-> +		if (fe->dvb->mdev->disable_source)
-> +			fe->dvb->mdev->disable_source(dvbdev->entity);
-> +		mutex_unlock(&fe->dvb->mdev->graph_mutex);
-> +	}
->  err2:
->  #endif
->  	dvb_generic_release(inode, file);
-> @@ -2586,8 +2594,12 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
->  	if (dvbdev->users == -1) {
->  		wake_up(&fepriv->wait_queue);
->  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
-> -		if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
-> -			fe->dvb->mdev->disable_source(dvbdev->entity);
-> +		if (fe->dvb->mdev) {
-> +			mutex_lock(&fe->dvb->mdev->graph_mutex);
-> +			if (fe->dvb->mdev->disable_source)
-> +				fe->dvb->mdev->disable_source(dvbdev->entity);
-> +			mutex_unlock(&fe->dvb->mdev->graph_mutex);
-> +		}
->  #endif
->  		if (fe->exit != DVB_FE_NO_EXIT)
->  			wake_up(&dvbdev->wait_queue);
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index a1f696a..bfd6482 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -280,6 +280,7 @@ static void au0828_media_graph_notify(struct media_entity *new,
->  	}
->  }
->  
-> +/* Callers should hold graph_mutex */
->  static int au0828_enable_source(struct media_entity *entity,
->  				struct media_pipeline *pipe)
->  {
-> @@ -293,8 +294,6 @@ static int au0828_enable_source(struct media_entity *entity,
->  	if (!mdev)
->  		return -ENODEV;
->  
-> -	mutex_lock(&mdev->graph_mutex);
-> -
->  	dev = mdev->source_priv;
->  
->  	/*
-> @@ -421,12 +420,12 @@ static int au0828_enable_source(struct media_entity *entity,
->  		 dev->active_source->name, dev->active_sink->name,
->  		 dev->active_link_owner->name, ret);
->  end:
-> -	mutex_unlock(&mdev->graph_mutex);
->  	pr_debug("au0828_enable_source() end %s %d %d\n",
->  		 entity->name, entity->function, ret);
->  	return ret;
->  }
->  
-> +/* Callers should hold graph_mutex */
->  static void au0828_disable_source(struct media_entity *entity)
->  {
->  	int ret = 0;
-> @@ -436,13 +435,10 @@ static void au0828_disable_source(struct media_entity *entity)
->  	if (!mdev)
->  		return;
->  
-> -	mutex_lock(&mdev->graph_mutex);
->  	dev = mdev->source_priv;
->  
-> -	if (!dev->active_link) {
-> -		ret = -ENODEV;
-> -		goto end;
-> -	}
-> +	if (!dev->active_link)
-> +		return;
->  
->  	/* link is active - stop pipeline from source (tuner) */
->  	if (dev->active_link->sink->entity == dev->active_sink &&
-> @@ -452,7 +448,7 @@ static void au0828_disable_source(struct media_entity *entity)
->  		 * has active pipeline
->  		*/
->  		if (dev->active_link_owner != entity)
-> -			goto end;
-> +			return;
->  		__media_entity_pipeline_stop(entity);
->  		ret = __media_entity_setup_link(dev->active_link, 0);
->  		if (ret)
-> @@ -467,9 +463,6 @@ static void au0828_disable_source(struct media_entity *entity)
->  		dev->active_source = NULL;
->  		dev->active_sink = NULL;
->  	}
-> -
-> -end:
-> -	mutex_unlock(&mdev->graph_mutex);
->  }
->  #endif
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-> index 8bef433..b169d24 100644
-> --- a/drivers/media/v4l2-core/v4l2-mc.c
-> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> @@ -198,14 +198,20 @@ EXPORT_SYMBOL_GPL(v4l2_mc_create_media_graph);
->  int v4l_enable_media_source(struct video_device *vdev)
->  {
->  	struct media_device *mdev = vdev->entity.graph_obj.mdev;
-> -	int ret;
-> +	int ret = 0, err;
->  
-> -	if (!mdev || !mdev->enable_source)
-> +	if (!mdev)
->  		return 0;
-> -	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
-> -	if (ret)
-> -		return -EBUSY;
-> -	return 0;
-> +
-> +	mutex_lock(&mdev->graph_mutex);
-> +	if (!mdev->enable_source)
-> +		goto end;
-> +	err = mdev->enable_source(&vdev->entity, &vdev->pipe);
-> +	if (err)
-> +		ret = -EBUSY;
-> +end:
-> +	mutex_unlock(&mdev->graph_mutex);
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(v4l_enable_media_source);
->  
-> @@ -213,8 +219,12 @@ void v4l_disable_media_source(struct video_device *vdev)
->  {
->  	struct media_device *mdev = vdev->entity.graph_obj.mdev;
->  
-> -	if (mdev && mdev->disable_source)
-> -		mdev->disable_source(&vdev->entity);
-> +	if (mdev) {
-> +		mutex_lock(&mdev->graph_mutex);
-> +		if (mdev->disable_source)
-> +			mdev->disable_source(&vdev->entity);
-> +		mutex_unlock(&mdev->graph_mutex);
-> +	}
->  }
->  EXPORT_SYMBOL_GPL(v4l_disable_media_source);
->  
+Yet, the hardware where those diodes are connected are very different,
+and so their purpose.
 
--- 
-Kind regards,
+The same way I don't think it would make sense to represent a LED
+display using the same approach as a flash light, I don't think we
+should to it for IR LEDs.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+A visible light LED is used either to work as a flash light for a camera
+or as a way to indicate a status. No machine2machine protocol there.
+The circuitry for them is usually just a gatway that will turn it on
+or off.
+
+With regards to the IR hardware, an IR LED is used for machine2machine
+signaling. It is part of a modulator circuit that uses a carrier of about
+40kHz to modulate 16 or 32 bits words.
+
+The IR device hardware usually also have another diode (the IR detector)
+that receives IR rays. Visually, they look identical.
+
+IMHO, it makes much more sense to keep both IR detector and light-emitting
+diodes described together, as they are part of the same circuitry and
+have a way more similarities than a flash light or a LED display.
+
+Regards,
+Mauro
