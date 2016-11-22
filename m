@@ -1,110 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53520 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757512AbcKBVTp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 17:19:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RESEND] media: omap3isp: Use dma_request_chan() to requesting DMA channel
-Date: Wed, 02 Nov 2016 23:19:36 +0200
-Message-ID: <1758201.F0bdTd4b9u@avalon>
-In-Reply-To: <20161102123959.6098-1-peter.ujfalusi@ti.com>
-References: <20161102123959.6098-1-peter.ujfalusi@ti.com>
+Received: from mail-pf0-f180.google.com ([209.85.192.180]:35457 "EHLO
+        mail-pf0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755539AbcKVPws (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Nov 2016 10:52:48 -0500
+Received: by mail-pf0-f180.google.com with SMTP id i88so4808655pfk.2
+        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2016 07:52:48 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+Subject: [PATCH v3 2/4] [media] davinci: vpif_capture: don't lock over s_stream
+Date: Tue, 22 Nov 2016 07:52:42 -0800
+Message-Id: <20161122155244.802-3-khilman@baylibre.com>
+In-Reply-To: <20161122155244.802-1-khilman@baylibre.com>
+References: <20161122155244.802-1-khilman@baylibre.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Video capture subdevs may be over I2C and may sleep during xfer, so we
+cannot do IRQ-disabled locking when calling the subdev.
 
-Thank you for the patch.
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-On Wednesday 02 Nov 2016 14:39:59 Peter Ujfalusi wrote:
-> With the new dma_request_chan() the client driver does not need to look for
-> the DMA resource and it does not need to pass filter_fn anymore.
-> By switching to the new API the driver can now support deferred probing
-> against DMA.
-
-I believe this breaks the OMAP3 ISP driver. dma_request_slave_channel_compat() 
-is a superset of dma_request_chan() that will, when called with 
-omap_dma_filter_fn, return as a fallback any free channel handled by the OMAP 
-DMA engine driver. This feature is actively used by this driver and must be 
-preserved.
-
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> ---
-> Hi,
-> 
-> the original patch was sent 29.04.2016:
-> https://patchwork.kernel.org/patch/8981811/
-> 
-> I have rebased it on top of linux-next.
-> 
-> Regards,
-> Peter
-> 
->  drivers/media/platform/omap3isp/isphist.c | 27 +++++++++------------------
->  1 file changed, 9 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isphist.c
-> b/drivers/media/platform/omap3isp/isphist.c index
-> 7138b043a4aa..e163e3d92517 100644
-> --- a/drivers/media/platform/omap3isp/isphist.c
-> +++ b/drivers/media/platform/omap3isp/isphist.c
-> @@ -18,7 +18,6 @@
->  #include <linux/delay.h>
->  #include <linux/device.h>
->  #include <linux/dmaengine.h>
-> -#include <linux/omap-dmaengine.h>
->  #include <linux/slab.h>
->  #include <linux/uaccess.h>
-> 
-> @@ -486,27 +485,19 @@ int omap3isp_hist_init(struct isp_device *isp)
->  	hist->isp = isp;
-> 
->  	if (HIST_CONFIG_DMA) {
-> -		struct platform_device *pdev = to_platform_device(isp->dev);
-> -		struct resource *res;
-> -		unsigned int sig = 0;
-> -		dma_cap_mask_t mask;
-> -
-> -		dma_cap_zero(mask);
-> -		dma_cap_set(DMA_SLAVE, mask);
-> -
-> -		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
-> -						   "hist");
-> -		if (res)
-> -			sig = res->start;
-> -
-> -		hist->dma_ch = dma_request_slave_channel_compat(mask,
-> -				omap_dma_filter_fn, &sig, isp->dev, "hist");
-> -		if (!hist->dma_ch)
-> +		hist->dma_ch = dma_request_chan(isp->dev, "hist");
-> +		if (IS_ERR(hist->dma_ch)) {
-> +			ret = PTR_ERR(hist->dma_ch);
-> +			if (ret == -EPROBE_DEFER)
-> +				return ret;
-> +
-> +			hist->dma_ch = NULL;
->  			dev_warn(isp->dev,
->  				 "hist: DMA channel request failed, using 
-PIO\n");
-> -		else
-> +		} else {
->  			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
->  				dma_chan_name(hist->dma_ch));
-> +		}
->  	}
-> 
->  	hist->ops = &hist_ops;
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 87ee1e2c3864..94ee6cf03f02 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -193,7 +193,10 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		}
+ 	}
+ 
++	spin_unlock_irqrestore(&common->irqlock, flags);
+ 	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
++	spin_lock_irqsave(&common->irqlock, flags);
++
+ 	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+ 		vpif_dbg(1, debug, "stream on failed in subdev\n");
+ 		goto err;
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.3
 
