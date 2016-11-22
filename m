@@ -1,120 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52794 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934269AbcKWM2U (ORCPT
+Received: from mail-pg0-f51.google.com ([74.125.83.51]:35809 "EHLO
+        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754303AbcKVBoT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 23 Nov 2016 07:28:20 -0500
-Subject: Re: [PATCH] v4l: vsp1: Prevent commencing pipelines before they are
- setup
-To: laurent.pinchart@ideasonboard.com
-References: <1478860318-14792-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <ac4eeacc-4211-830b-8b70-2cc88d03f01c@ideasonboard.com>
-Date: Wed, 23 Nov 2016 12:28:15 +0000
+        Mon, 21 Nov 2016 20:44:19 -0500
+Received: by mail-pg0-f51.google.com with SMTP id p66so1562806pga.2
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2016 17:44:12 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+Subject: [PATCH v2 1/4] [media] davinci: add support for DT init
+Date: Mon, 21 Nov 2016 17:44:05 -0800
+Message-Id: <20161122014408.22388-2-khilman@baylibre.com>
+In-Reply-To: <20161122014408.22388-1-khilman@baylibre.com>
+References: <20161122014408.22388-1-khilman@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <1478860318-14792-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just FYI,
+Add basic support for initialization via DT.
 
-Whilst this patch is functional on its own, it is likely to be
-superseded before it gets a chance to be integrated as I am currently
-reworking vsp1_video_start_streaming(), in particular the use of
-vsp1_video_setup_pipeline().
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/media/platform/davinci/vpif.c         |  9 +++++++++
+ drivers/media/platform/davinci/vpif_capture.c | 14 ++++++++++++++
+ 2 files changed, 23 insertions(+)
 
-The re-work will of course also consider and tackle the issue repaired here.
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 0380cf2e5775..d4434f614141 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -464,8 +464,17 @@ static const struct dev_pm_ops vpif_pm = {
+ #define vpif_pm_ops NULL
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id vpif_of_match[] = {
++	{ .compatible = "ti,da850-vpif", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, vpif_of_match);
++#endif
++
+ static struct platform_driver vpif_driver = {
+ 	.driver = {
++		.of_match_table = of_match_ptr(vpif_of_match),
+ 		.name	= "vpif",
+ 		.pm	= vpif_pm_ops,
+ 	},
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 5104cc0ee40e..87ee1e2c3864 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1435,6 +1435,11 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	int res_idx = 0;
+ 	int i, err;
+ 
++	if (!pdev->dev.platform_data) {
++		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
++		return -EINVAL;
++	}
++
+ 	vpif_dev = &pdev->dev;
+ 
+ 	err = initialize_vpif();
+@@ -1618,8 +1623,17 @@ static int vpif_resume(struct device *dev)
+ 
+ static SIMPLE_DEV_PM_OPS(vpif_pm_ops, vpif_suspend, vpif_resume);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id vpif_capture_of_match[] = {
++	{ .compatible = "ti,da850-vpif-capture", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, vpif_capture_of_match);
++#endif
++
+ static __refdata struct platform_driver vpif_driver = {
+ 	.driver	= {
++		.of_match_table = of_match_ptr(vpif_capture_of_match),
+ 		.name	= VPIF_DRIVER_NAME,
+ 		.pm	= &vpif_pm_ops,
+ 	},
+-- 
+2.9.3
 
---
-Regards
-
-Kieran
-
-On 11/11/16 10:31, Kieran Bingham wrote:
-> With multiple inputs through the BRU it is feasible for the streams to
-> race each other at stream-on. In the case of the video pipelines, this
-> can present two serious issues.
-> 
->  1) A null-dereference if the pipe->dl is committed at the same time as
->     the vsp1_video_setup_pipeline() is processing
-> 
->  2) A hardware hang, where a display list is committed without having
->     called vsp1_video_setup_pipeline() first.
-> 
-> To prevent these scenarios from occurring, we ensure that only the thread
-> that calls the vsp1_video_setup_pipeline() is capable of committing and
-> commencing the display list.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
-> 
-> I considered a few options to fix this issue. If anyone disagrees with my
-> reasoning, and believes one of the below approaches should be used, let me
-> know and I'll rework the patch.
-> 
->  A) Moving the vsp1_video_pipeline_run() call into the upper if block.
->   - This changes the locking, and brings in unneccessary nested locking
-> 
->  B) Adapting vsp1_pipeline_ready() such that it checks for a configured
->     pipeline event as well.
-> 
->   - This was tempting - but this particular issue is local to this
->     function only. Changing vsp1_pipeline_ready() to watch for a flag
->     set by vsp1_video_setup_pipeline() would require adding unneccessary
->     changes to the vsp1_drm objects to cater for this.
-> 
-> To test this race, I have used the vsp-unit-test-0007.sh from Laurent's
-> VSP-Tests [0] in iteration. Without this patch, failures can be seen be
-> seen anywhere up to the 150 iterations mark.
-> 
-> With this patch in place, tests have successfully iterated over 1500
-> loops.
-> 
-> The function affected by this change appears to have been around since
-> v4.6-rc2-105-g351bbf99f245 and thus may want inclusion in stable trees
-> from that point forward. The issue may have been prevalent before that
-> but the solution would need reworking for earlier version.
-> 
-> [0] http://git.ideasonboard.com/renesas/vsp-tests.git
-> 
->  drivers/media/platform/vsp1/vsp1_video.c | 10 +++++++++-
->  1 file changed, 9 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-> index 94b428596c4f..cc44b27f3e47 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -813,6 +813,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	struct vsp1_video *video = vb2_get_drv_priv(vq);
->  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
->  	unsigned long flags;
-> +	bool configured = false;
->  	int ret;
->  
->  	mutex_lock(&pipe->lock);
-> @@ -822,13 +823,20 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
->  			mutex_unlock(&pipe->lock);
->  			return ret;
->  		}
-> +
-> +		/*
-> +		 * Multiple streams will execute this function in parallel.
-> +		 * Only the thread which configures the pipeline is allowed to
-> +		 * execute the vsp1_video_pipeline_run() call below
-> +		 */
-> +		configured = true;
->  	}
->  
->  	pipe->stream_count++;
->  	mutex_unlock(&pipe->lock);
->  
->  	spin_lock_irqsave(&pipe->irqlock, flags);
-> -	if (vsp1_pipeline_ready(pipe))
-> +	if (vsp1_pipeline_ready(pipe) && configured)
->  		vsp1_video_pipeline_run(pipe);
->  	spin_unlock_irqrestore(&pipe->irqlock, flags);
->  
-> 
