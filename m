@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40359 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49165 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754439AbcKYNme (ORCPT
+        with ESMTP id S1751433AbcKVViI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 08:42:34 -0500
+        Tue, 22 Nov 2016 16:38:08 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shailendra Verma <shailendra.v@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Shailendra Verma <shailendra.capricorn@gmail.com>,
-        vidushi.koul@samsung.com
-Subject: Re: [PATCH] Media: platform: vsp1: - Do not forget to call
-Date: Fri, 25 Nov 2016 15:42:56 +0200
-Message-ID: <1783860.DaiEZqNPo1@avalon>
-In-Reply-To: <1480050477-21189-1-git-send-email-shailendra.v@samsung.com>
-References: <1480050477-21189-1-git-send-email-shailendra.v@samsung.com>
+To: Leo Sperling <leosperling97@gmail.com>
+Cc: mchehab@kernel.org, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Staging: media: davinci_vpfe: fix indentation issue in vpfe_video.c
+Date: Tue, 22 Nov 2016 23:38:25 +0200
+Message-ID: <20015099.LXK91D2HKf@avalon>
+In-Reply-To: <1477224143-22653-1-git-send-email-leosperling97@gmail.com>
+References: <1477224143-22653-1-git-send-email-leosperling97@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shailendra,
+Hi Leo,
 
-Thank you for the patch.
+Thank you for the patch, and sorry for the late reply.
 
-The subject line is missing something (and has an extra -), I would phrase it 
-as
-
-"v4l: vsp1: Clean up file handle in open() error path"
-
-(Mauro's scripts will add the "[media]" prefix when applying, so there's no 
-need to add it manually)
-
-The same comment holds for all other patches in this series.
-
-On Friday 25 Nov 2016 10:37:57 Shailendra Verma wrote:
-> v4l2_fh_init is already done.So call the v4l2_fh_exit in error condition
-> before returing from the function.
+On Sunday 23 Oct 2016 14:02:23 Leo Sperling wrote:
+> This is a patch to the vpfe_video.c file that fixes an indentation
+> warning reported by checkpatch.pl
 > 
-> Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+> Signed-off-by: Leo Sperling <leosperling97@gmail.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree. I will send a pull request for v4.11.
+
 > ---
->  drivers/media/platform/vsp1/vsp1_video.c |    1 +
->  1 file changed, 1 insertion(+)
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index d351b9c..cc58163 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -1044,6 +1044,7 @@ static int vsp1_video_open(struct file *file)
->  	ret = vsp1_device_get(video->vsp1);
->  	if (ret < 0) {
->  		v4l2_fh_del(vfh);
-> +		v4l2_fh_exit(vfh);
->  		kfree(vfh);
->  	}
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 8be9f85..c34bf46
+> 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -1143,8 +1143,8 @@ static int vpfe_buffer_prepare(struct vb2_buffer *vb)
+>  	/* Initialize buffer */
+>  	vb2_set_plane_payload(vb, 0, video->fmt.fmt.pix.sizeimage);
+>  	if (vb2_plane_vaddr(vb, 0) &&
+> -		vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
+> -			return -EINVAL;
+> +	    vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0))
+> +		return -EINVAL;
+> 
+>  	addr = vb2_dma_contig_plane_dma_addr(vb, 0);
+>  	/* Make sure user addresses are aligned to 32 bytes */
 
 -- 
 Regards,
