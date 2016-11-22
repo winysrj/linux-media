@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:39223 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966250AbcKXPtP (ORCPT
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:38190 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753543AbcKVHd4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 10:49:15 -0500
-Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OH5002YTL9VCM30@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Nov 2016 15:49:07 +0000 (GMT)
-Subject: Re: [PATCH v4l-utils v7 6/7] mediactl: libv4l2subdev: add support for
- comparing mbus formats
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
-        hverkuil@xs4all.nl, mchehab@kernel.org, m.szyprowski@samsung.com,
-        s.nawrocki@samsung.com
-From: Jacek Anaszewski <j.anaszewski@samsung.com>
-Message-id: <a9a61524-4162-8930-a943-7356bc385564@samsung.com>
-Date: Thu, 24 Nov 2016 16:49:04 +0100
-MIME-version: 1.0
-In-reply-to: <20161124143642.GS16630@valkosipuli.retiisi.org.uk>
-Content-type: text/plain; charset=windows-1252; format=flowed
-Content-transfer-encoding: 7bit
-References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
- <1476282922-11544-7-git-send-email-j.anaszewski@samsung.com>
- <CGME20161124143650epcas5p3290a3fb266d9a3062da1f0963dfeadf3@epcas5p3.samsung.com>
- <20161124143642.GS16630@valkosipuli.retiisi.org.uk>
+        Tue, 22 Nov 2016 02:33:56 -0500
+Received: by mail-wm0-f41.google.com with SMTP id f82so9500800wmf.1
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2016 23:33:56 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20161120132948.GA23247@gofer.mess.org>
+References: <20161116105256.GA9998@shambles.local> <20161117134526.GA8485@gofer.mess.org>
+ <20161118121422.GA1986@shambles.local> <20161118174034.GA6167@gofer.mess.org>
+ <20161118220107.GA3510@shambles.local> <20161120132948.GA23247@gofer.mess.org>
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Date: Tue, 22 Nov 2016 18:25:59 +1100
+Message-ID: <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
+Subject: Re: ir-keytable: infinite loops, segfaults
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/24/2016 03:36 PM, Sakari Ailus wrote:
-> Hi Jacek,
+On 11/21/16, Sean Young <sean@mess.org> wrote:
+>>
+>> Ah. Here we have a problem. The device (/dev/input/event15)
+>> doesn't have a corresponding rcX node, see ir-keytable output below.
+>> I had it explained to me like this:
 >
-> On Wed, Oct 12, 2016 at 04:35:21PM +0200, Jacek Anaszewski wrote:
->> This patch adds a function for checking whether two mbus formats
->> are compatible.
+> As I said you would need to use a raw IR receiver which has rc-core support
+> to determine the protocol, so never mind. Please can you try this patch:
 >
-> Compatible doesn't in general case mean the same as... the same.
+> I don't have the hardware to test this so your input would be appreciated.
 >
-> On parallel busses a 10-bit source can be connected to an 8-bit sink-for
-> instance.
->
-> How about moving this to the plugin, and if someone else needs it, then we
-> move it out later?
 
-This is a good idea, as I am checking not all fields of
-v4l2_mbus_framefmt, but only those which matter during Exynos4 media
-devuce pipeline format negotiation.
+Thanks for this. I have got it to build within the media_build setup
+but will need to find some windows in the schedule for testing. More
+in a couple of days. Are there specific things you would like me to
+test?
 
--- 
-Best regards,
-Jacek Anaszewski
+Vince
