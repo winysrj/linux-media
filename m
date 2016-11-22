@@ -1,102 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49138 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751167AbcKVVhn (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:52094 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755406AbcKVPxg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 16:37:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        mchehab@osg.samsung.com,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thaissa Falbo <thaissa.falbo@gmail.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] staging: davinci_vpfe: fix W=1 build warnings
-Date: Tue, 22 Nov 2016 23:37:35 +0200
-Message-ID: <11488827.cnathbQq6s@avalon>
-In-Reply-To: <20160620154852.2336421-1-arnd@arndb.de>
-References: <20160620154852.2336421-1-arnd@arndb.de>
+        Tue, 22 Nov 2016 10:53:36 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v3 01/10] Documentation: DT: add bindings for ST DELTA
+Date: Tue, 22 Nov 2016 16:53:18 +0100
+Message-ID: <1479830007-29767-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+This patch adds DT binding documentation for STMicroelectronics
+DELTA V4L2 video decoder.
 
-Thank you for the patch, and sorry for the late reply.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ Documentation/devicetree/bindings/media/st,st-delta.txt | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
 
-On Monday 20 Jun 2016 17:47:56 Arnd Bergmann wrote:
-> When building with "make W=1", we get multiple harmless build warnings
-> for the vpfe driver:
-> 
-> drivers/staging/media/davinci_vpfe/dm365_resizer.c:241:1: error: 'static' is
-> not at beginning of declaration [-Werror=old-style-declaration]
-> drivers/staging/media/davinci_vpfe/dm365_resizer.c: In function
-> 'resizer_set_defualt_configuration':
-> drivers/staging/media/davinci_vpfe/dm365_resizer.c:831:16: error:
-> initialized field overwritten [-Werror=override-init]
-> drivers/staging/media/davinci_vpfe/dm365_resizer.c:831:16: note: (near
-> initialization for 'rsz_default_config.rsz_rsc_param[0].h_typ_c')
-> drivers/staging/media/davinci_vpfe/dm365_resizer.c:849:16: error:
-> initialized field overwritten [-Werror=override-init]
-> drivers/staging/media/davinci_vpfe/dm365_resizer.c:849:16: note: (near
-> initialization for 'rsz_default_config.rsz_rsc_param[1].h_typ_c')
-> 
-> All of them are trivial to fix without changing the behavior of the
-> driver, as "static const" is interpreted the same as "const static",
-> and VPFE_RSZ_INTP_CUBIC is defined as zero, so the initializations
-> are not really needed.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. I will send a pull request for v4.11.
-> ---
->  drivers/staging/media/davinci_vpfe/dm365_resizer.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> b/drivers/staging/media/davinci_vpfe/dm365_resizer.c index
-> 3cd56cc132c7..567f995fd0f9 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> @@ -237,9 +237,8 @@ resizer_calculate_resize_ratios(struct
-> vpfe_resizer_device *resizer, int index) ((informat->width) * 256) /
-> (outformat->width);
->  }
-> 
-> -void
-> -static resizer_enable_422_420_conversion(struct resizer_params *param,
-> -					 int index, bool en)
-> +static void resizer_enable_422_420_conversion(struct resizer_params *param,
-> +					      int index, bool en)
->  {
->  	param->rsz_rsc_param[index].cen = en;
->  	param->rsz_rsc_param[index].yen = en;
-> @@ -825,7 +824,7 @@ resizer_set_defualt_configuration(struct
-> vpfe_resizer_device *resizer) .o_hsz = WIDTH_O - 1,
->  				.v_dif = 256,
->  				.v_typ_y = VPFE_RSZ_INTP_CUBIC,
-> -				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
-> +				.v_typ_c = VPFE_RSZ_INTP_CUBIC,
->  				.h_dif = 256,
->  				.h_typ_y = VPFE_RSZ_INTP_CUBIC,
->  				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
-> @@ -843,7 +842,7 @@ resizer_set_defualt_configuration(struct
-> vpfe_resizer_device *resizer) .o_hsz = WIDTH_O - 1,
->  				.v_dif = 256,
->  				.v_typ_y = VPFE_RSZ_INTP_CUBIC,
-> -				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
-> +				.v_typ_c = VPFE_RSZ_INTP_CUBIC,
->  				.h_dif = 256,
->  				.h_typ_y = VPFE_RSZ_INTP_CUBIC,
->  				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
-
+diff --git a/Documentation/devicetree/bindings/media/st,st-delta.txt b/Documentation/devicetree/bindings/media/st,st-delta.txt
+new file mode 100644
+index 0000000..a538ab3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/st,st-delta.txt
+@@ -0,0 +1,17 @@
++* STMicroelectronics DELTA multi-format video decoder
++
++Required properties:
++- compatible: should be "st,st-delta".
++- clocks: from common clock binding: handle hardware IP needed clocks, the
++  number of clocks may depend on the SoC type.
++  See ../clock/clock-bindings.txt for details.
++- clock-names: names of the clocks listed in clocks property in the same order.
++
++Example:
++	delta0 {
++		compatible = "st,st-delta";
++		clock-names = "delta", "delta-st231", "delta-flash-promip";
++		clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
++			 <&clk_s_c0_flexgen CLK_ST231_DMU>,
++			 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
