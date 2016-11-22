@@ -1,76 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58651
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751012AbcKGJzb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 04:55:31 -0500
-Date: Mon, 7 Nov 2016 07:55:24 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Cc: Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org,
-        ksummit-discuss@lists.linuxfoundation.org
-Subject: Including images on Sphinx documents
-Message-ID: <20161107075524.49d83697@vento.lan>
+Received: from mail-pg0-f45.google.com ([74.125.83.45]:33417 "EHLO
+        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753695AbcKVAKV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 21 Nov 2016 19:10:21 -0500
+Received: by mail-pg0-f45.google.com with SMTP id 3so793579pgd.0
+        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2016 16:10:21 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+Subject: Re: [PATCH 2/4] [media] davinci: vpif_capture: don't lock over s_stream
+References: <20161119003208.10550-1-khilman@baylibre.com>
+        <20161119003208.10550-2-khilman@baylibre.com>
+        <f385c65b-1f73-a5b1-b498-43916d5bdfb6@xs4all.nl>
+Date: Mon, 21 Nov 2016 16:10:19 -0800
+In-Reply-To: <f385c65b-1f73-a5b1-b498-43916d5bdfb6@xs4all.nl> (Hans Verkuil's
+        message of "Mon, 21 Nov 2016 15:37:20 +0100")
+Message-ID: <m237ik1ij8.fsf@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-I'm trying to sort out the next steps to do after KS, with regards to
-images included on RST files.
+> On 19/11/16 01:32, Kevin Hilman wrote:
+>> Video capture subdevs may be over I2C and may sleep during xfer, so we
+>> cannot do IRQ-disabled locking when calling the subdev.
+>>
+>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_capture.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+>> index 79cef74e164f..becc3e63b472 100644
+>> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> @@ -193,12 +193,16 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+>>  		}
+>>  	}
+>>
+>> +	spin_unlock_irqrestore(&common->irqlock, flags);
+>> +
+>>  	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
+>>  	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+>>  		vpif_dbg(1, debug, "stream on failed in subdev\n");
+>>  		goto err;
+>>  	}
+>>
+>> +	spin_lock_irqsave(&common->irqlock, flags);
+>
+> This needs to be moved to right after the v4l2_subdev_call, otherwise the
+> goto err above will not have the spinlock.
 
-The issue is that Sphinx image support highly depends on the output
-format. Also, despite TexLive support for svg and png images[1], Sphinx
-doesn't produce the right LaTeX commands to use svg[2]. On my tests
-with PNG on my notebook, it also didn't seem to do the right thing for
-PNG either. So, it seems that the only safe way to support images is
-to convert all of them to PDF for latex/pdf build.
+Yes indeed.  Will respin.
 
-[1] On Fedora, via texlive-dvipng and texlive-svg
-[2] https://github.com/sphinx-doc/sphinx/issues/1907
-
-As far as I understand from KS, two decisions was taken:
-
-- We're not adding a sphinx extension to run generic commands;
-- The PDF images should be build in runtime from their source files
-  (either svg or bitmap), and not ship anymore the corresponding
-  PDF files generated from its source.
-
-As you know, we use several images at the media documentation:
-	https://www.kernel.org/doc/html/latest/_images/
-
-Those images are tightly coupled with the explanation texts. So,
-maintaining them away from the documentation is not an option.
-
-I was originally thinking that adding a graphviz extension would solve the
-issue, but, in fact, most of the images aren't diagrams. Instead, there are 
-several ones with images showing the result of passing certain parameters to
-the ioctls, explaining things like scale and cropping and how bytes are
-packed on some image formats.
-
-Linus proposed to call some image conversion tool like ImageMagick or
-inkscape to convert them to PDF when building the pdfdocs or latexdocs
-target at Makefile, but there's an issue with that: Sphinx doesn't read
-files from Documentation/output, and writing them directly at the
-source dir would be against what it is expected when the "O=" argument
-is passed to make. 
-
-So, we have a few alternatives:
-
-1) copy (or symlink) all rst files to Documentation/output (or to the
-   build dir specified via O= directive) and generate the *.pdf there,
-   and produce those converted images via Makefile.;
-
-2) add an Sphinx extension that would internally call ImageMagick and/or
-   inkscape to convert the bitmap;
-
-3) if possible, add an extension to trick Sphinx for it to consider the 
-   output dir as a source dir too.
-
-Comments?
-
-Regards,
-Mauro
+Kevin
