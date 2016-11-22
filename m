@@ -1,48 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:33029 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932123AbcKPNBG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 08:01:06 -0500
-From: Geliang Tang <geliangtang@gmail.com>
-To: Sergey Kozlov <serjk@netup.ru>, Abylay Ospan <aospan@netup.ru>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Geliang Tang <geliangtang@gmail.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] netup_unidvb: use module_pci_driver
-Date: Wed, 16 Nov 2016 21:00:56 +0800
-Message-Id: <3c6dc0c2b50e9ade60eb484a2e8e4e6234432ec0.1479278622.git.geliangtang@gmail.com>
+MIME-Version: 1.0
+In-Reply-To: <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Tue, 22 Nov 2016 21:10:43 +0100
+Message-ID: <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use module_pci_driver() helper to simplify the code.
+On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
+> <serguei.sagalovitch@amd.com> wrote:
+>> I personally like "device-DAX" idea but my concerns are:
+>>
+>> -  How well it will co-exists with the  DRM infrastructure / implementations
+>>    in part dealing with CPU pointers?
+>
+> Inside the kernel a device-DAX range is "just memory" in the sense
+> that you can perform pfn_to_page() on it and issue I/O, but the vma is
+> not migratable. To be honest I do not know how well that co-exists
+> with drm infrastructure.
+>
+>> -  How well we will be able to handle case when we need to "move"/"evict"
+>>    memory/data to the new location so CPU pointer should point to the new
+>> physical location/address
+>>     (and may be not in PCI device memory at all)?
+>
+> So, device-DAX deliberately avoids support for in-kernel migration or
+> overcommit. Those cases are left to the core mm or drm. The device-dax
+> interface is for cases where all that is needed is a direct-mapping to
+> a statically-allocated physical-address range be it persistent memory
+> or some other special reserved memory range.
 
-Signed-off-by: Geliang Tang <geliangtang@gmail.com>
----
- drivers/media/pci/netup_unidvb/netup_unidvb_core.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
-
-diff --git a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-index b078ac2..191bd82 100644
---- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-+++ b/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
-@@ -1030,15 +1030,4 @@ static struct pci_driver netup_unidvb_pci_driver = {
- 	.resume   = NULL,
- };
- 
--static int __init netup_unidvb_init(void)
--{
--	return pci_register_driver(&netup_unidvb_pci_driver);
--}
--
--static void __exit netup_unidvb_fini(void)
--{
--	pci_unregister_driver(&netup_unidvb_pci_driver);
--}
--
--module_init(netup_unidvb_init);
--module_exit(netup_unidvb_fini);
-+module_pci_driver(netup_unidvb_pci_driver);
+For some of the fancy use-cases (e.g. to be comparable to what HMM can
+pull off) I think we want all the magic in core mm, i.e. migration and
+overcommit. At least that seems to be the very strong drive in all
+general-purpose gpu abstractions and implementations, where memory is
+allocated with malloc, and then mapped/moved into vram/gpu address
+space through some magic, but still visible on both the cpu and gpu
+side in some form. Special device to allocate memory, and not being
+able to migrate stuff around sound like misfeatures from that pov.
+-Daniel
 -- 
-2.9.3
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
