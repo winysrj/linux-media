@@ -1,96 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:34573 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751218AbcKZOHo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Nov 2016 09:07:44 -0500
-Received: by mail-io0-f196.google.com with SMTP id r94so14284009ioe.1
-        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 06:07:44 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
-References: <20161028085224.GA9826@arch-desktop> <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
-From: Marcel Hasler <mahasler@gmail.com>
-Date: Sat, 26 Nov 2016 15:07:03 +0100
-Message-ID: <CAOJOY2Mc-4ZJOJu4QfYXQxwj=ubwm4M4Hr=YK3JYuCrxriM7Rg@mail.gmail.com>
-Subject: Re: [PATCH] stk1160: Give the chip some time to retrieve data from
- AC97 codec.
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+ <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 22 Nov 2016 12:24:32 -0800
+Message-ID: <CAPcyv4gT8QojYe0__EsR5o59+tAoLAqBWbj=rj-HnqHJo3tYOA@mail.gmail.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-11-20 18:37 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
-> On 28 October 2016 at 05:52, Marcel Hasler <mahasler@gmail.com> wrote:
->> The STK1160 needs some time to transfer data from the AC97 registers int=
-o its own. On some
->> systems reading the chip's own registers to soon will return wrong value=
-s. The "proper" way to
->> handle this would be to poll STK1160_AC97CTL_0 after every read or write=
- command until the
->> command bit has been cleared, but this may not be worth the hassle.
+On Tue, Nov 22, 2016 at 12:10 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
+>> <serguei.sagalovitch@amd.com> wrote:
+>>> I personally like "device-DAX" idea but my concerns are:
+>>>
+>>> -  How well it will co-exists with the  DRM infrastructure / implementations
+>>>    in part dealing with CPU pointers?
 >>
->> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
->> ---
->>  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
->>  1 file changed, 4 insertions(+)
+>> Inside the kernel a device-DAX range is "just memory" in the sense
+>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
+>> not migratable. To be honest I do not know how well that co-exists
+>> with drm infrastructure.
 >>
->> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
-b/stk1160/stk1160-ac97.c
->> index 31bdd60d..caa65a8 100644
->> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
->> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
->> @@ -20,6 +20,7 @@
->>   *
->>   */
+>>> -  How well we will be able to handle case when we need to "move"/"evict"
+>>>    memory/data to the new location so CPU pointer should point to the new
+>>> physical location/address
+>>>     (and may be not in PCI device memory at all)?
 >>
->> +#include <linux/delay.h>
->>  #include <linux/module.h>
->>
->>  #include "stk1160.h"
->> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 =
-reg)
->>          */
->>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
->>
->> +       /* Give the chip some time to transfer data */
->> +       usleep_range(20, 40);
->> +
+>> So, device-DAX deliberately avoids support for in-kernel migration or
+>> overcommit. Those cases are left to the core mm or drm. The device-dax
+>> interface is for cases where all that is needed is a direct-mapping to
+>> a statically-allocated physical-address range be it persistent memory
+>> or some other special reserved memory range.
 >
-> I don't recall any issues with this. In any case, we only read the regist=
-ers
-> for debugging purposes, so it's not a big deal.
->
+> For some of the fancy use-cases (e.g. to be comparable to what HMM can
+> pull off) I think we want all the magic in core mm, i.e. migration and
+> overcommit. At least that seems to be the very strong drive in all
+> general-purpose gpu abstractions and implementations, where memory is
+> allocated with malloc, and then mapped/moved into vram/gpu address
+> space through some magic, but still visible on both the cpu and gpu
+> side in some form. Special device to allocate memory, and not being
+> able to migrate stuff around sound like misfeatures from that pov.
 
-I actually just re-tested this, as I recently replaced my computer's
-main board. I didn't happen with my old one, but it does with my new
-one, just as with both of my notebooks.
-
-> Maybe it would be better to expand the comment a little bit,
-> using your commit log:
->
-> ""
-> The "proper" way to
-> handle this would be to poll STK1160_AC97CTL_0 after
-> every read or write command until the command bit
-> has been cleared, but this may not be worth the hassle.
-> ""
->
-> This way, if the sleep proves problematic in the future,
-> the "proper way" is already documented.
->
->>         /* Retrieve register value */
->>         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
->>         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
->> --
->> 2.10.1
->>
->
->
->
-> --
-> Ezequiel Garc=C3=ADa, VanguardiaSur
-> www.vanguardiasur.com.ar
+Agreed. For general purpose P2P use cases where all you want is
+direct-I/O to a memory range that happens to be on a PCIe device then
+I think a special device fits the bill. For gpu P2P use cases that
+already have migration/overcommit expectations then it is not a good
+fit.
