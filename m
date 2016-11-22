@@ -1,99 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44446
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44130
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932816AbcKPOkZ (ORCPT
+        with ESMTP id S934562AbcKVSmD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 09:40:25 -0500
-Subject: Re: [PATCH v4 2/3] media: change au0828 to use Media Device Allocator
- API
-To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
-        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
-        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
-        laurent.pinchart@ideasonboard.com
-References: <cover.1479271294.git.shuahkh@osg.samsung.com>
- <fdd68ce1fc71dae7504e9e9acd2877dbf970e8c6.1479271294.git.shuahkh@osg.samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+        Tue, 22 Nov 2016 13:42:03 -0500
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
+ as needed
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+References: <20161109154608.1e578f9e@vento.lan>
+ <20161114132722.GR3217@valkosipuli.retiisi.org.uk>
+ <20161122154429.62ab1825@vento.lan>
+ <a93b03fc-7bbc-f8a6-5359-105382dcad84@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+        Shuah Khan <shuahkh@osg.samsung.com>
 From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <d44d611d-c74d-5311-f30d-f22af6c10811@osg.samsung.com>
-Date: Wed, 16 Nov 2016 07:40:23 -0700
+Message-ID: <fad16b20-9397-bc32-de7f-74e82773c9cd@osg.samsung.com>
+Date: Tue, 22 Nov 2016 11:41:52 -0700
 MIME-Version: 1.0
-In-Reply-To: <fdd68ce1fc71dae7504e9e9acd2877dbf970e8c6.1479271294.git.shuahkh@osg.samsung.com>
+In-Reply-To: <a93b03fc-7bbc-f8a6-5359-105382dcad84@xs4all.nl>
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry for the duplicates. Replying to catch bounced emails on the original
-patch emails from git send-email
+On 11/22/2016 11:13 AM, Hans Verkuil wrote:
+> On 22/11/16 18:44, Mauro Carvalho Chehab wrote:
+>>> * media: fix use-after-free in cdev_put() when app exits after driver unbind
+>>>   5b28dde51d0c
+>>>
+>>> The patch avoids the problem of deleting a character device (cdev_del())
+>>> after its memory has been released. The change is sound as such but the
+>>> problem is addressed by another, a lot more simple patch in my series:
+>>>
+>>> <URL:http://git.retiisi.org.uk/?p=~sailus/linux.git;a=commitdiff;h=26fa8c1a3df5859d34cef8ef953e3a29a432a17b>
+>>
+>> Your approach is not clean, as it is based on a cdev's hack of doing:
+>>
+>>     devnode->cdev.kobj.parent = &devnode->dev.kobj;
+>>
+>> That is an ugly hack, as it touches inside cdev's internal stuff,
+>> to do something that the driver's core doesn't expect. This is the
+>> kind of patch that could cause messy errors, by cheating with the
+>> cdev's internal refcount checking.
+> 
+> Actually, this is what many frameworks in the kernel do:
+> 
+> $ git grep "kobj.parent = " drivers/
+> drivers/base/bus.c:     dev->kobj.parent = parent_of_root;
+> drivers/base/core.c:            dev->kobj.parent = kobj;
+> drivers/char/tpm/tpm-chip.c:    chip->cdev.kobj.parent = &chip->dev.kobj;
+> drivers/dax/dax.c:      cdev->kobj.parent = &dev->kobj;
+> drivers/gpio/gpiolib.c: gdev->chrdev.kobj.parent = &gdev->dev.kobj;
+> drivers/iio/industrialio-core.c:        indio_dev->chrdev.kobj.parent = &indio_dev->dev.kobj;
+> drivers/infiniband/core/user_mad.c:     port->cdev.kobj.parent = &umad_dev->kobj;
+> drivers/infiniband/core/user_mad.c:     port->sm_cdev.kobj.parent = &umad_dev->kobj;
+> drivers/infiniband/core/uverbs_main.c:  uverbs_dev->cdev.kobj.parent = &uverbs_dev->kobj;
+> drivers/infiniband/hw/hfi1/device.c:    cdev->kobj.parent = parent;
+> drivers/input/evdev.c:  evdev->cdev.kobj.parent = &evdev->dev.kobj;
+> drivers/input/joydev.c: joydev->cdev.kobj.parent = &joydev->dev.kobj;
+> drivers/input/mousedev.c:       mousedev->cdev.kobj.parent = &mousedev->dev.kobj;
+> drivers/media/cec/cec-core.c:   devnode->cdev.kobj.parent = &devnode->dev.kobj;
+> drivers/media/media-devnode.c:  devnode->cdev.kobj.parent = &devnode->dev.kobj;
+> drivers/platform/chrome/cros_ec_dev.c:  ec->cdev.kobj.parent = &ec->class_dev.kobj;
+> drivers/rtc/rtc-dev.c:  rtc->char_dev.kobj.parent = &rtc->dev.kobj;
+> 
+> And it is what Russell King told me to use in CEC as well.
 
-On 11/16/2016 07:29 AM, Shuah Khan wrote:
-> Change au0828 to use Media Device Allocator API to allocate media device
-> with the parent usb struct device as the key, so it can be shared with the
-> snd_usb_audio driver.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
-> Changes since v2:
-> - Updated media_device_delete() to pass in module name.
-> 
->  drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
->  drivers/media/usb/au0828/au0828.h      |  1 +
->  2 files changed, 5 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index bf53553..582f31f 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -157,9 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
->  	dev->media_dev->enable_source = NULL;
->  	dev->media_dev->disable_source = NULL;
->  
-> -	media_device_unregister(dev->media_dev);
-> -	media_device_cleanup(dev->media_dev);
-> -	kfree(dev->media_dev);
-> +	media_device_delete(dev->media_dev, KBUILD_MODNAME);
->  	dev->media_dev = NULL;
->  #endif
->  }
-> @@ -212,14 +210,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_device *mdev;
->  
-> -	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-> +	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
->  	if (!mdev)
->  		return -ENOMEM;
->  
-> -	/* check if media device is already initialized */
-> -	if (!mdev->dev)
-> -		media_device_usb_init(mdev, udev, udev->product);
-> -
->  	dev->media_dev = mdev;
->  #endif
->  	return 0;
-> @@ -487,6 +481,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->  		/* register media device */
->  		ret = media_device_register(dev->media_dev);
->  		if (ret) {
-> +			media_device_delete(dev->media_dev, KBUILD_MODNAME);
-> +			dev->media_dev = NULL;
->  			dev_err(&udev->dev,
->  				"Media Device Register Error: %d\n", ret);
->  			return ret;
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index dd7b378..4bf1b0c 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -35,6 +35,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-fh.h>
->  #include <media/media-device.h>
-> +#include <media/media-dev-allocator.h>
->  
->  /* DVB */
->  #include "demux.h"
-> 
+Hans recommended the approach to me when I tied cdev to media_devnode
+as its parent while fixing the media_device lifetime issues.
 
+> drivers/media/media-devnode.c:  devnode->cdev.kobj.parent = &devnode->dev.kobj;
+
+> 
+> fs/chardev.c currently doesn't have a function that sets cdev.kobj.parent,
+> even though it does use it internally to call kobject_get/put on the
+> parent kobject. It really expects the caller to set cdev.kobj.parent.
+> 
+> It ensures that when cdev_add/del is called the parent gets correctly
+> refcounted as well.
+
+Yes this is what is done now to make sure cdev lifetime matches its
+parent and parent doesn't get released while cdev is in use. There is
+seem to some concerns about referencing cdev private object in other
+parts of the kernel. However, that is something that could be solved
+by adding cdev interface to set parent.
+
+thanks,
+-- Shuah
