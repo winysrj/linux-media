@@ -1,79 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:38613 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938700AbcKXNQx (ORCPT
+Received: from mail-pg0-f53.google.com ([74.125.83.53]:33508 "EHLO
+        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755692AbcKVPwu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 08:16:53 -0500
-Received: by mail-wm0-f52.google.com with SMTP id f82so60995375wmf.1
-        for <linux-media@vger.kernel.org>; Thu, 24 Nov 2016 05:16:21 -0800 (PST)
-Subject: Re: [PATCH v3 4/9] media: venus: vdec: add video decoder files
-To: nicolas@ndufresne.ca,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
- <1478540043-24558-5-git-send-email-stanimir.varbanov@linaro.org>
- <63a91a5a-a97b-f3df-d16d-c8f76bf20c30@xs4all.nl>
- <4ec31084-1720-845a-30f6-60ddfe285ff1@linaro.org>
- <86442d1d-4a12-71c1-97fa-12bc73bb5045@linaro.org>
- <9ff4f3cf-f6d1-cebe-6f1a-e4209c55e4f4@xs4all.nl>
- <15975057-dd6a-6946-07ac-93a748b6a176@linaro.org>
- <aed4a795-3abe-2d5a-abc4-c638cd4f4d61@xs4all.nl>
- <113772f1-8eb9-dd44-42c6-4f109200dff7@linaro.org>
- <1479932682.29275.1.camel@ndufresne.ca>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Message-ID: <6d0d477f-22c7-5315-6eae-027a2525345c@linaro.org>
-Date: Thu, 24 Nov 2016 15:16:16 +0200
+        Tue, 22 Nov 2016 10:52:50 -0500
+Received: by mail-pg0-f53.google.com with SMTP id 3so8905992pgd.0
+        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2016 07:52:50 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+Subject: [PATCH v3 4/4] [media] dt-bindings: add TI VPIF documentation
+Date: Tue, 22 Nov 2016 07:52:44 -0800
+Message-Id: <20161122155244.802-5-khilman@baylibre.com>
+In-Reply-To: <20161122155244.802-1-khilman@baylibre.com>
+References: <20161122155244.802-1-khilman@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <1479932682.29275.1.camel@ndufresne.ca>
-Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nicolas,
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
+ .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
+ 2 files changed, 73 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
+ create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
 
-On 11/23/2016 10:24 PM, Nicolas Dufresne wrote:
-> Le lundi 21 novembre 2016 à 18:09 +0200, Stanimir Varbanov a écrit :
->>>> Meanwhile I have found bigger obstacle - I cannot run multiple
->> instances
->>>> simultaneously. By m2m design it can execute only one job (m2m
->> context)
->>>> at a time per m2m device. Can you confirm that my observation is
->> correct?
->>>  
->>> The m2m framework assumes a single HW instance, yes. Do you have
->> multiple
->>> HW decoders? I might not understand what you mean...
->>>  
->>
->> I mean that I can start and execute up to 16 decoder sessions
->> simultaneously. Its a firmware responsibility how those sessions are
->> scheduled and how the hardware is shared between them. Of course
->> depending on the resolution the firmware can refuse to start the
->> session
->> because the hardware will be overloaded and will not be able to
->> satisfy
->> the bitrate requirements.
-> 
-> This is similar to S5P-MFC driver, which you may have notice not use
-> m2m framework.
-
-Thanks for the note.
-
-I have started to look into m2m because Hans asked me to reuse the ioctl
-helpers that it provides.
-
-I have no problem with usage of the m2m API if they help me to reduce
-code size and doesn't impact performance.
-
-
+diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
+new file mode 100644
+index 000000000000..c447ac482c1d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
+@@ -0,0 +1,65 @@
++Texas Instruments VPIF Capture
++------------------------------
++
++The TI Video Port InterFace (VPIF) capture component is the primary
++component for video capture on the DA850 family of TI DaVinci SoCs.
++
++TI Document number reference: SPRUH82C
++
++Required properties:
++- compatible: must be "ti,da850-vpif-capture"
++- reg: physical base address and length of the registers set for the device;
++- interrupts: should contain IRQ line for the VPIF
++
++VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
++channels or a single 16-bit channel.  It should contain at least one
++port child node with child 'endpoint' node. Please refer to the
++bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example using 2 8-bit input channels, one of which is connected to an
++I2C-connected TVP5147 decoder:
++
++	vpif_capture: video-capture@0x00217000 {
++		compatible = "ti,da850-vpif-capture";
++		reg = <0x00217000 0x1000>;
++		interrupts = <92>;
++
++		port {
++			vpif_ch0: endpoint@0 {
++				  reg = <0>;
++				  bus-width = <8>;
++				  remote-endpoint = <&composite>;
++			};
++
++			vpif_ch1: endpoint@1 {
++				  reg = <1>;
++				  bus-width = <8>;
++				  data-shift = <8>;
++			};
++		};
++	};
++
++[ ... ]
++
++&i2c0 {
++
++	tvp5147@5d {
++		compatible = "ti,tvp5147";
++		reg = <0x5d>;
++		status = "okay";
++
++		port {
++			composite: endpoint {
++				hsync-active = <1>;
++				vsync-active = <1>;
++				pclk-sample = <0>;
++
++				/* VPIF channel 0 (lower 8-bits) */
++				remote-endpoint = <&vpif_ch0>;
++				bus-width = <8>;
++			};
++		};
++	};
++
++};
+diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+new file mode 100644
+index 000000000000..d004e600aabe
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+@@ -0,0 +1,8 @@
++Texas Instruments VPIF
++----------------------
++
++The Video Port InterFace (VPIF) is the core component for video output
++and capture on DA850 TI Davinci SoCs.
++
++- compatible: must be "ti,da850-vpif"
++- reg: physical base address and length of the registers set for the device;
 -- 
-regards,
-Stan
+2.9.3
+
