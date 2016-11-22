@@ -1,75 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:54200 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932231AbcKVKUw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 05:20:52 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] [media] vpdma: remove vpdma_enable_list_notify_irq()
-Date: Tue, 22 Nov 2016 08:20:19 -0200
-Message-Id: <239fc19d9a462b02d2b4f3a84cb83b637ad88513.1479810016.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail.kapsi.fi ([217.30.184.167]:47109 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751952AbcKVJGa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Nov 2016 04:06:30 -0500
+Received: from [82.128.187.197] (helo=localhost.localdomain)
+        by mail.kapsi.fi with esmtpsa (TLS1.2:DHE_RSA_AES_128_CBC_SHA1:128)
+        (Exim 4.80)
+        (envelope-from <crope@iki.fi>)
+        id 1c9723-0004Ag-Cx
+        for linux-media@vger.kernel.org; Tue, 22 Nov 2016 11:06:27 +0200
+To: LMML <linux-media@vger.kernel.org>
+From: Antti Palosaari <crope@iki.fi>
+Subject: [GIT PULL] mn88473 statistics
+Message-ID: <02a5fdf0-3309-bfa5-17d1-0f9f08423ac4@iki.fi>
+Date: Tue, 22 Nov 2016 11:06:26 +0200
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Despite being exported, there's no prototype for it at the
-headers, as warned by sparse:
+The following changes since commit c60b4088108c44529e6f679d9e991e3d3c945950:
 
-Fixes this sparse warning:
-	drivers/media/platform/ti-vpe/vpdma.c:1000:6: warning: no previous prototype for 'vpdma_enable_list_notify_irq' [-Wmissing-prototypes]
-	 void vpdma_enable_list_notify_irq(struct vpdma_data *vpdma, int irq_num,
-	      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   [media] serial_ir: fix reference to 8250 serial code (2016-11-22 
+06:17:44 -0200)
 
-Worse than that, it is not even used, as making it static it
-would produce:
+are available in the git repository at:
 
-	drivers/media/platform/ti-vpe/vpdma.c:1000:13: warning: 'vpdma_enable_list_notify_irq' defined but not used [-Wunused-function]
-	 static void vpdma_enable_list_notify_irq(struct vpdma_data *vpdma, int irq_num,
-	             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   git://linuxtv.org/anttip/media_tree.git mn88473
 
-So, let's just get rid of the dead code. If needed in the future,
-someone could re-add it.
+for you to fetch changes up to 5d575830372914df634d4ed7e6eb6a4b7ac7c9cb:
 
-Cc: Benoit Parrot <bparrot@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 16 ----------------
- 1 file changed, 16 deletions(-)
+   mn88473: refactor and fix statistics (2016-11-22 11:02:20 +0200)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index c8f842fd7f75..13bfd7184160 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -996,22 +996,6 @@ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
- }
- EXPORT_SYMBOL(vpdma_enable_list_complete_irq);
- 
--/* set or clear the mask for list complete interrupt */
--void vpdma_enable_list_notify_irq(struct vpdma_data *vpdma, int irq_num,
--		int list_num, bool enable)
--{
--	u32 reg_addr = VPDMA_INT_LIST0_MASK + VPDMA_INTX_OFFSET * irq_num;
--	u32 val;
--
--	val = read_reg(vpdma, reg_addr);
--	if (enable)
--		val |= (1 << ((list_num * 2) + 1));
--	else
--		val &= ~(1 << ((list_num * 2) + 1));
--	write_reg(vpdma, reg_addr, val);
--}
--EXPORT_SYMBOL(vpdma_enable_list_notify_irq);
--
- /* get the LIST_STAT register */
- unsigned int vpdma_get_list_stat(struct vpdma_data *vpdma, int irq_num)
- {
+----------------------------------------------------------------
+Antti Palosaari (1):
+       mn88473: refactor and fix statistics
+
+Martin Blumenstingl (1):
+       mn88473: add DVBv5 statistics support
+
+  drivers/media/dvb-frontends/mn88473.c      | 201 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------
+  drivers/media/dvb-frontends/mn88473_priv.h |   2 ++
+  2 files changed, 184 insertions(+), 19 deletions(-)
+
+
 -- 
-2.9.3
-
+http://palosaari.fi/
