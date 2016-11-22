@@ -1,116 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:46070 "EHLO
-        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755037AbcKJKbk (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:42063 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755912AbcKVPxg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 05:31:40 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Ingi Kim <ingi2.kim@samsung.com>
-Subject: [PATCH 2/4] s5p-mfc: Fix MFC context buffer size
-Date: Thu, 10 Nov 2016 11:31:21 +0100
-Message-id: <1478773883-12083-3-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1478773883-12083-1-git-send-email-m.szyprowski@samsung.com>
-References: <1478773883-12083-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161110103135eucas1p19c34152fc71576793beab5a818a6bdf5@eucas1p1.samsung.com>
+        Tue, 22 Nov 2016 10:53:36 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v3 00/10] Add support for DELTA video decoder of STMicroelectronics STiH4xx SoC series
+Date: Tue, 22 Nov 2016 16:53:17 +0100
+Message-ID: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ingi Kim <ingi2.kim@samsung.com>
+This patchset introduces a basic support for DELTA multi-format video
+decoder of STMicroelectronics STiH4xx SoC series.
 
-When video file was decoded by H/W MFCv8. It occured IOMMU page fault
-because of accessing abnormal memory of mfc ctx buf
+DELTA hardware IP is controlled by a remote firmware loaded in a ST231
+coprocessor. Communication with firmware is done within an IPC layer
+using rpmsg kernel framework and a shared memory for messages handling.
+This driver is compatible with firmware version 21.1-3.
+While a single firmware is loaded in ST231 coprocessor, it is composed
+of several firmwares, one per video format family.
 
-So this patch supports buffer size of mfc context more.
-Relevant page fault error is below.
+This DELTA V4L2 driver is designed around files:
+  - delta-v4l2.c   : handles V4L2 APIs using M2M framework and calls decoder ops
+  - delta-<codec>* : implements <codec> decoder calling its associated
+                     video firmware (for ex. MJPEG) using IPC layer
+  - delta-ipc.c    : IPC layer which handles communication with firmware using rpmsg
 
-[ 3524.617147] PAGE FAULT occurred at 0x10108000 by 11200000.sysmmu(Page table base: 0x6d86c000)
-[ 3524.624192]  Lv1 entry: 0x6c27d001
-[ 3524.627567]   Lv2 entry: 0x0
-[ 3524.630482] ------------[ cut here ]------------
-[ 3524.635020] kernel BUG at drivers/iommu/exynos-iommu.c:358!
-[ 3524.640567] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP ARM
-[ 3524.646373] Modules linked in:
-[ 3524.649410] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 4.0.0-00001-g0ff9b87-dirty #18
-[ 3524.657117] Hardware name: SAMSUNG EXYNOS (Flattened Device Tree)
-[ 3524.663184] task: c0e4aff0 ti: c0e3c000 task.ti: c0e3c000
-[ 3524.668566] PC is at exynos_sysmmu_irq+0x1b8/0x2c4
-[ 3524.673330] LR is at vprintk_emit+0x2b8/0x58c
-[ 3524.677657] pc : [<c037cc78>]    lr : [<c00704a4>]    psr: 600d0193
-[ 3524.677657] sp : c0e3dd90  ip : 00000000  fp : c0e3ddcc
-[ 3524.689092] r10: ee29a110  r9 : 00000000  r8 : ee29a128
-[ 3524.694292] r7 : ed812810  r6 : 10108000  r5 : ed86c000  r4 : 00000000
-[ 3524.700791] r3 : c0ec9bd8  r2 : 00000000  r1 : 00000000  r0 : ed82ff00
-[ 3524.707292] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-[ 3524.714656] Control: 10c5387d  Table: 6b08c06a  DAC: 00000015
-[ 3524.720375] Process swapper/0 (pid: 0, stack limit = 0xc0e3c210)
-[ 3524.726354] Stack: (0xc0e3dd90 to 0xc0e3e000)
-[ 3524.730689] dd80:                                     c0e3dd9c c0069d68 ee58c338 6d86c000
-[ 3524.738836] dda0: ee58c338 ee298c40 ee2915a0 0000003b c0e64ef4 c0e3c000 00000000 00000000
-[ 3524.746981] ddc0: c0e3de14 c0e3ddd0 c0071ef4 c037cacc ffffffff a00d0193 c0e3ddf4 ee291540
-[ 3524.755126] dde0: c0ec793c c0ec7928 7fffffff ee291540 ee2915a0 ee298c40 c0e64ef4 ee004660
-[ 3524.763272] de00: ee010800 c0e3df00 c0e3de34 c0e3de18 c0072138 c0071e9c 00020000 ee291540
-[ 3524.771418] de20: ee2915a0 00000016 c0e3de4c c0e3de38 c0075130 c00720f8 0000003b ee028300
-[ 3524.779563] de40: c0e3de64 c0e3de50 c0071450 c0075068 00000100 00000012 c0e3de8c c0e3de68
-[ 3524.787708] de60: c030d240 c0071420 c030d19c 00000016 00000000 00000016 00000000 00000001
-[ 3524.795854] de80: c0e3dea4 c0e3de90 c0071450 c030d1a8 00000092 c0e37a1c c0e3ded4 c0e3dea8
-[ 3524.804000] dea0: c0071790 c0071420 c0e3df00 f000200c 00000016 c0e440a8 c0e3df00 f0002000
-[ 3524.812145] dec0: c095bc8c 00000001 c0e3defc c0e3ded8 c0008730 c0071710 c0010d88 c0010d8c
-[ 3524.820290] dee0: 600d0013 ffffffff c0e3df34 c0ec7eb4 c0e3df54 c0e3df00 c0014780 c00086fc
-[ 3524.828436] df00: 00000001 00000000 00000000 c0020780 c0e3c000 c0e43530 00000000 00000000
-[ 3524.836581] df20: c0ec7eb4 c095bc8c 00000001 c0e3df54 c0e3df58 c0e3df48 c0010d88 c0010d8c
-[ 3524.844727] df40: 600d0013 ffffffff c0e3df94 c0e3df58 c0062690 c0010d50 c0ec75f0 00000001
-[ 3524.852872] df60: c0e3df84 c0e4353c c0e39580 c0e43e84 c0e3c000 00000002 c0e3df58 c0e38b88
-[ 3524.861018] df80: c0952b9c ffffffff c0e3dfac c0e3df98 c094d1b8 c00622d4 c0e3c000 c0e43e10
-[ 3524.869163] dfa0: c0e3dff4 c0e3dfb0 c0d86d30 c094d130 ffffffff ffffffff c0d866f0 00000000
-[ 3524.877309] dfc0: 00000000 c0df06d8 00000000 c0ee3f14 c0e434c0 c0df06d4 c0e4c20c 4000406a
-[ 3524.885454] dfe0: 410fc073 00000000 00000000 c0e3dff8 40008074 c0d86970 00000000 00000000
-[ 3524.893610] [<c037cc78>] (exynos_sysmmu_irq) from [<c0071ef4>] (handle_irq_event_percpu+0x64/0x25c)
-[ 3524.902615] [<c0071ef4>] (handle_irq_event_percpu) from [<c0072138>] (handle_irq_event+0x4c/0x6c)
-[ 3524.911454] [<c0072138>] (handle_irq_event) from [<c0075130>] (handle_level_irq+0xd4/0x14c)
-[ 3524.919773] [<c0075130>] (handle_level_irq) from [<c0071450>] (generic_handle_irq+0x3c/0x4c)
-[ 3524.928180] [<c0071450>] (generic_handle_irq) from [<c030d240>] (combiner_handle_cascade_irq+0xa4/0x110)
-[ 3524.937624] [<c030d240>] (combiner_handle_cascade_irq) from [<c0071450>] (generic_handle_irq+0x3c/0x4c)
-[ 3524.946981] [<c0071450>] (generic_handle_irq) from [<c0071790>] (__handle_domain_irq+0x8c/0xfc)
-[ 3524.955646] [<c0071790>] (__handle_domain_irq) from [<c0008730>] (gic_handle_irq+0x40/0x78)
-[ 3524.963966] [<c0008730>] (gic_handle_irq) from [<c0014780>] (__irq_svc+0x40/0x74)
-[ 3524.971412] Exception stack(0xc0e3df00 to 0xc0e3df48)
-[ 3524.976441] df00: 00000001 00000000 00000000 c0020780 c0e3c000 c0e43530 00000000 00000000
-[ 3524.984586] df20: c0ec7eb4 c095bc8c 00000001 c0e3df54 c0e3df58 c0e3df48 c0010d88 c0010d8c
-[ 3524.992729] df40: 600d0013 ffffffff
-[ 3524.996205] [<c0014780>] (__irq_svc) from [<c0010d8c>] (arch_cpu_idle+0x48/0x4c)
-[ 3525.003567] [<c0010d8c>] (arch_cpu_idle) from [<c0062690>] (cpu_startup_entry+0x3c8/0x4a4)
-[ 3525.011805] [<c0062690>] (cpu_startup_entry) from [<c094d1b8>] (rest_init+0x94/0x98)
-[ 3525.019516] [<c094d1b8>] (rest_init) from [<c0d86d30>] (start_kernel+0x3cc/0x3d8)
-[ 3525.026963] Code: e34c30ec e5932004 e3520000 ca000018 (e7f001f2)
-[ 3525.033028] ---[ end trace 71ed544f653b4d46 ]---
+This first basic support implements only MJPEG hardware acceleration but
+the driver structure is in place to support all the features of the
+DELTA video decoder hardware IP.
 
-Signed-off-by: Ingi Kim <ingi2.kim@samsung.com>
-Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This driver depends on:
+  - ST remoteproc/rpmsg: patchset posted at https://lkml.org/lkml/2016/9/6/77
+  - ST DELTA firmware: its license is under review. When available,
+    pull request will be done on linux-firmware.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-index cc7cbec..4d1c375 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
-@@ -90,7 +90,7 @@
- #define S5P_FIMV_E_H264_OPTIONS_V8		0xfb54
- 
- /* MFCv8 Context buffer sizes */
--#define MFC_CTX_BUF_SIZE_V8		(30 * SZ_1K)	/*  30KB */
-+#define MFC_CTX_BUF_SIZE_V8		(36 * SZ_1K)	/*  36KB */
- #define MFC_H264_DEC_CTX_BUF_SIZE_V8	(2 * SZ_1M)	/*  2MB */
- #define MFC_OTHER_DEC_CTX_BUF_SIZE_V8	(20 * SZ_1K)	/*  20KB */
- #define MFC_H264_ENC_CTX_BUF_SIZE_V8	(100 * SZ_1K)	/* 100KB */
+===========
+= history =
+===========
+version 3
+  - update after v2 review:
+    - fixed m2m_buf_done missing on start_streaming error case
+    - fixed q->dev missing in queue_init()
+    - removed unsupported s_selection
+    - refactored string namings in delta-debug.c
+    - fixed space before comment
+    - all commits have commit messages
+    - reword memory allocator helper commit
+
+version 2
+  - update after v1 review:
+    - simplified tracing
+    - G_/S_SELECTION reworked to fit COMPOSE(CAPTURE)
+    - fixed m2m_buf_done missing on start_streaming error case
+    - fixed q->dev missing in queue_init()
+  - switch to kernel-4.9 rpmsg API
+  - DELTA support added in multi_v7_defconfig
+  - minor typo fixes & code cleanup
+
+version 1:
+  - Initial submission
+
+===================
+= v4l2-compliance =
+===================
+Below is the v4l2-compliance report for the version 3 of the DELTA video
+decoder driver. v4l2-compliance has been build from SHA1:
+600492351ddf40cc524aab73802153674d7d287b (libdvb5: Fix multiple definition of dvb_dev_remote_init linking error)
+
+root@sti-4:~# v4l2-compliance -d /dev/video0
+v4l2-compliance SHA   : 600492351ddf40cc524aab73802153674d7d287b
+
+Driver Info:
+	Driver name   : st-delta
+	Card type     : st-delta-21.1-3
+	Bus info      : platform:soc:delta0
+	Driver version: 4.9.0
+	Capabilities  : 0x84208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04208000
+		Video Memory-to-Memory
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+		test VIDIOC_QUERYCTRL: OK (Not Supported)
+		test VIDIOC_G/S_CTRL: OK (Not Supported)
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK (Not Supported)
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(717): TRY_FMT cannot handle an invalid pixelformat.
+		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(718): This may or may not be a problem. For more information see:
+		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(719): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_TRY_FMT: OK
+		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(977): S_FMT cannot handle an invalid pixelformat.
+		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(978): This may or may not be a problem. For more information see:
+		warn: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(979): http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		fail: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1457): doioctl(node, VIDIOC_S_SELECTION, &sel_compose) != EINVAL
+		fail: sources/v4l-utils/utils/v4l2-compliance/v4l2-test-formats.cpp(1501): testBasicCompose(node, V4L2_BUF_TYPE_VIDEO_CAPTURE)
+		test Composing: FAIL
+		test Scaling: OK
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 42, Failed: 1, Warnings: 6
+
+Hugues Fruchet (10):
+  Documentation: DT: add bindings for ST DELTA
+  ARM: dts: STiH410: add DELTA dt node
+  ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
+  [media] MAINTAINERS: add st-delta driver
+  [media] st-delta: STiH4xx multi-format video decoder v4l2 driver
+  [media] st-delta: add memory allocator helper functions
+  [media] st-delta: rpmsg ipc support
+  [media] st-delta: EOS (End Of Stream) support
+  [media] st-delta: add mjpeg support
+  [media] st-delta: debug: trace stream/frame information & summary
+
+ .../devicetree/bindings/media/st,st-delta.txt      |   17 +
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/stih410.dtsi                     |   10 +
+ arch/arm/configs/multi_v7_defconfig                |    1 +
+ drivers/media/platform/Kconfig                     |   27 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/sti/delta/Makefile          |    6 +
+ drivers/media/platform/sti/delta/delta-cfg.h       |   63 +
+ drivers/media/platform/sti/delta/delta-debug.c     |   72 +
+ drivers/media/platform/sti/delta/delta-debug.h     |   18 +
+ drivers/media/platform/sti/delta/delta-ipc.c       |  590 ++++++
+ drivers/media/platform/sti/delta/delta-ipc.h       |   76 +
+ drivers/media/platform/sti/delta/delta-mem.c       |   51 +
+ drivers/media/platform/sti/delta/delta-mem.h       |   14 +
+ drivers/media/platform/sti/delta/delta-mjpeg-dec.c |  454 +++++
+ drivers/media/platform/sti/delta/delta-mjpeg-fw.h  |  221 +++
+ drivers/media/platform/sti/delta/delta-mjpeg-hdr.c |  150 ++
+ drivers/media/platform/sti/delta/delta-mjpeg.h     |   35 +
+ drivers/media/platform/sti/delta/delta-v4l2.c      | 1973 ++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta.h           |  566 ++++++
+ 20 files changed, 4354 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/st,st-delta.txt
+ create mode 100644 drivers/media/platform/sti/delta/Makefile
+ create mode 100644 drivers/media/platform/sti/delta/delta-cfg.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
+ create mode 100644 drivers/media/platform/sti/delta/delta-v4l2.c
+ create mode 100644 drivers/media/platform/sti/delta/delta.h
+
 -- 
 1.9.1
 
