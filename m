@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-From: Logan Gunthorpe <logang@deltatee.com>
-Message-ID: <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
-Date: Wed, 23 Nov 2016 10:13:03 -0700
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47693 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932372AbcKVRVO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Nov 2016 12:21:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org,
+        Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 1/2] uvc_v4l2: Use memdup_user() rather than duplicating its implementation
+Date: Tue, 22 Nov 2016 19:21:24 +0200
+Message-ID: <3466616.R2EqhFMbZP@avalon>
+In-Reply-To: <4181a4b7-3527-4ddf-4c7f-42fcd47977ca@users.sourceforge.net>
+References: <566ABCD9.1060404@users.sourceforge.net> <95aa5fcd-8610-debc-70b0-30b2ed3302d2@users.sourceforge.net> <4181a4b7-3527-4ddf-4c7f-42fcd47977ca@users.sourceforge.net>
 MIME-Version: 1.0
-In-Reply-To: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+Hi Markus,
 
-On 22/11/16 11:59 AM, Serguei Sagalovitch wrote:
-> -  How well we will be able to handle case when we need to "move"/"evict"
->    memory/data to the new location so CPU pointer should point to the
-> new physical location/address
->     (and may be not in PCI device memory at all)?
+Thank you for the patch.
 
-IMO any memory that has been registered for a P2P transaction should be
-locked from being evicted. So if there's a get_user_pages call it needs
-to be pinned until the put_page. The main issue being with the RDMA
-case: handling an eviction when a chunk of memory has been registered as
-an MR would be very tricky. The MR may be relied upon by another host
-and the kernel would have to inform user-space the MR was invalid then
-user-space would have to tell the remote application. This seems like a
-lot of burden to place on applications and may be subject to timing
-issues. Either that or all RDMA applications need to be written with the
-assumption that their target memory could go away at any time.
+On Friday 19 Aug 2016 11:23:18 SF Markus Elfring wrote:
+> From: Markus Elfring <elfring@users.sourceforge.net>
+> Date: Fri, 19 Aug 2016 10:50:05 +0200
+> 
+> Reuse existing functionality from memdup_user() instead of keeping
+> duplicate source code.
+> 
+> This issue was detected by using the Coccinelle software.
+> 
+> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 
-More generally, if you tell one PCI device to do a DMA transfer to
-another PCI device's BAR space, and the target memory gets evicted then
-DMA transaction needs to be aborted which means every driver doing the
-transfer would need special support for this. If the memory can be
-relied on to not be evicted than existing drivers should work unmodified
-(ie O_DIRECT to/from an NVMe card would just work).
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I feel the better approach is to pin memory subject to P2P transactions
-as is typically done with DMA transfers to main memory.
+and applied to my tree.
 
-Logan
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c | 11 +++--------
+>  1 file changed, 3 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index 05eed4b..a7e12fd 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -70,14 +70,9 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
+> *chain, }
+> 
+>  		size = xmap->menu_count * sizeof(*map->menu_info);
+> -		map->menu_info = kmalloc(size, GFP_KERNEL);
+> -		if (map->menu_info == NULL) {
+> -			ret = -ENOMEM;
+> -			goto done;
+> -		}
+> -
+> -		if (copy_from_user(map->menu_info, xmap->menu_info, size)) {
+> -			ret = -EFAULT;
+> +		map->menu_info = memdup_user(xmap->menu_info, size);
+> +		if (IS_ERR(map->menu_info)) {
+> +			ret = PTR_ERR(map->menu_info);
+>  			goto done;
+>  		}
+
+-- 
+Regards,
+
+Laurent Pinchart
 
