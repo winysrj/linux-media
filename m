@@ -1,108 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58404
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753342AbcKYJZQ (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54200 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932231AbcKVKUw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 04:25:16 -0500
-Date: Fri, 25 Nov 2016 07:25:07 -0200
+        Tue, 22 Nov 2016 05:20:52 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
-        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
-        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
-        laurent.pinchart@ideasonboard.com, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v4 2/3] media: change au0828 to use Media Device
- Allocator API
-Message-ID: <20161125072507.65d0a14f@vento.lan>
-In-Reply-To: <fdd68ce1fc71dae7504e9e9acd2877dbf970e8c6.1479271294.git.shuahkh@osg.samsung.com>
-References: <cover.1479271294.git.shuahkh@osg.samsung.com>
-        <fdd68ce1fc71dae7504e9e9acd2877dbf970e8c6.1479271294.git.shuahkh@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] [media] vpdma: remove vpdma_enable_list_notify_irq()
+Date: Tue, 22 Nov 2016 08:20:19 -0200
+Message-Id: <239fc19d9a462b02d2b4f3a84cb83b637ad88513.1479810016.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Nov 2016 07:29:10 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Despite being exported, there's no prototype for it at the
+headers, as warned by sparse:
 
-> Change au0828 to use Media Device Allocator API to allocate media device
-> with the parent usb struct device as the key, so it can be shared with the
-> snd_usb_audio driver.
-> 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Fixes this sparse warning:
+	drivers/media/platform/ti-vpe/vpdma.c:1000:6: warning: no previous prototype for 'vpdma_enable_list_notify_irq' [-Wmissing-prototypes]
+	 void vpdma_enable_list_notify_irq(struct vpdma_data *vpdma, int irq_num,
+	      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-I missed a v5 for this patch. This one looks OK.
+Worse than that, it is not even used, as making it static it
+would produce:
 
-If you don't change this anymore, please add on the v6:
+	drivers/media/platform/ti-vpe/vpdma.c:1000:13: warning: 'vpdma_enable_list_notify_irq' defined but not used [-Wunused-function]
+	 static void vpdma_enable_list_notify_irq(struct vpdma_data *vpdma, int irq_num,
+	             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Reviewed-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+So, let's just get rid of the dead code. If needed in the future,
+someone could re-add it.
 
-> ---
-> Changes since v2:
-> - Updated media_device_delete() to pass in module name.
-> 
->  drivers/media/usb/au0828/au0828-core.c | 12 ++++--------
->  drivers/media/usb/au0828/au0828.h      |  1 +
->  2 files changed, 5 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-> index bf53553..582f31f 100644
-> --- a/drivers/media/usb/au0828/au0828-core.c
-> +++ b/drivers/media/usb/au0828/au0828-core.c
-> @@ -157,9 +157,7 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
->  	dev->media_dev->enable_source = NULL;
->  	dev->media_dev->disable_source = NULL;
->  
-> -	media_device_unregister(dev->media_dev);
-> -	media_device_cleanup(dev->media_dev);
-> -	kfree(dev->media_dev);
-> +	media_device_delete(dev->media_dev, KBUILD_MODNAME);
->  	dev->media_dev = NULL;
->  #endif
->  }
-> @@ -212,14 +210,10 @@ static int au0828_media_device_init(struct au0828_dev *dev,
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	struct media_device *mdev;
->  
-> -	mdev = kzalloc(sizeof(*mdev), GFP_KERNEL);
-> +	mdev = media_device_usb_allocate(udev, KBUILD_MODNAME);
->  	if (!mdev)
->  		return -ENOMEM;
->  
-> -	/* check if media device is already initialized */
-> -	if (!mdev->dev)
-> -		media_device_usb_init(mdev, udev, udev->product);
-> -
->  	dev->media_dev = mdev;
->  #endif
->  	return 0;
-> @@ -487,6 +481,8 @@ static int au0828_media_device_register(struct au0828_dev *dev,
->  		/* register media device */
->  		ret = media_device_register(dev->media_dev);
->  		if (ret) {
-> +			media_device_delete(dev->media_dev, KBUILD_MODNAME);
-> +			dev->media_dev = NULL;
->  			dev_err(&udev->dev,
->  				"Media Device Register Error: %d\n", ret);
->  			return ret;
-> diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-> index dd7b378..4bf1b0c 100644
-> --- a/drivers/media/usb/au0828/au0828.h
-> +++ b/drivers/media/usb/au0828/au0828.h
-> @@ -35,6 +35,7 @@
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-fh.h>
->  #include <media/media-device.h>
-> +#include <media/media-dev-allocator.h>
->  
->  /* DVB */
->  #include "demux.h"
+Cc: Benoit Parrot <bparrot@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/ti-vpe/vpdma.c | 16 ----------------
+ 1 file changed, 16 deletions(-)
 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index c8f842fd7f75..13bfd7184160 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -996,22 +996,6 @@ void vpdma_enable_list_complete_irq(struct vpdma_data *vpdma, int irq_num,
+ }
+ EXPORT_SYMBOL(vpdma_enable_list_complete_irq);
+ 
+-/* set or clear the mask for list complete interrupt */
+-void vpdma_enable_list_notify_irq(struct vpdma_data *vpdma, int irq_num,
+-		int list_num, bool enable)
+-{
+-	u32 reg_addr = VPDMA_INT_LIST0_MASK + VPDMA_INTX_OFFSET * irq_num;
+-	u32 val;
+-
+-	val = read_reg(vpdma, reg_addr);
+-	if (enable)
+-		val |= (1 << ((list_num * 2) + 1));
+-	else
+-		val &= ~(1 << ((list_num * 2) + 1));
+-	write_reg(vpdma, reg_addr, val);
+-}
+-EXPORT_SYMBOL(vpdma_enable_list_notify_irq);
+-
+ /* get the LIST_STAT register */
+ unsigned int vpdma_get_list_stat(struct vpdma_data *vpdma, int irq_num)
+ {
+-- 
+2.9.3
 
-
-Thanks,
-Mauro
