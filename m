@@ -1,124 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48951 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752563AbcKXHUb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 02:20:31 -0500
-Message-ID: <0576b938ba88db9c5af35852a5e39f91@smtp-cloud2.xs4all.net>
-Date: Thu, 24 Nov 2016 08:20:27 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+MIME-Version: 1.0
+In-Reply-To: <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com> <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+ <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com> <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
+From: Daniel Vetter <daniel@ffwll.ch>
+Date: Tue, 22 Nov 2016 22:03:09 +0100
+Message-ID: <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
+<serguei.sagalovitch@amd.com> wrote:
+>
+> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
+>>
+>> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com>
+>> wrote:
+>>>
+>>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
+>>> <serguei.sagalovitch@amd.com> wrote:
+>>>>
+>>>> I personally like "device-DAX" idea but my concerns are:
+>>>>
+>>>> -  How well it will co-exists with the  DRM infrastructure /
+>>>> implementations
+>>>>     in part dealing with CPU pointers?
+>>>
+>>> Inside the kernel a device-DAX range is "just memory" in the sense
+>>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
+>>> not migratable. To be honest I do not know how well that co-exists
+>>> with drm infrastructure.
+>>>
+>>>> -  How well we will be able to handle case when we need to
+>>>> "move"/"evict"
+>>>>     memory/data to the new location so CPU pointer should point to the
+>>>> new
+>>>> physical location/address
+>>>>      (and may be not in PCI device memory at all)?
+>>>
+>>> So, device-DAX deliberately avoids support for in-kernel migration or
+>>> overcommit. Those cases are left to the core mm or drm. The device-dax
+>>> interface is for cases where all that is needed is a direct-mapping to
+>>> a statically-allocated physical-address range be it persistent memory
+>>> or some other special reserved memory range.
+>>
+>> For some of the fancy use-cases (e.g. to be comparable to what HMM can
+>> pull off) I think we want all the magic in core mm, i.e. migration and
+>> overcommit. At least that seems to be the very strong drive in all
+>> general-purpose gpu abstractions and implementations, where memory is
+>> allocated with malloc, and then mapped/moved into vram/gpu address
+>> space through some magic,
+>
+> It is possible that there is other way around: memory is requested to be
+> allocated and should be kept in vram for  performance reason but due
+> to possible overcommit case we need at least temporally to "move" such
+> allocation to system memory.
 
-Results of the daily build of media_tree:
-
-date:			Thu Nov 24 05:00:19 CET 2016
-media-tree git hash:	4cc5bed1caeb6d40f2f41c4c5eb83368691fbffb
-media_build git hash:	538c0b2692a7ca59253385180954ac6c7d9b7817
-v4l-utils git hash:	e853648f9ff0682f0b217de541d96f398509ff0b
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+With migration I meant migrating both ways of course. And with stuff
+like numactl we can also influence where exactly the malloc'ed memory
+is allocated originally, at least if we'd expose the vram range as a
+very special numa node that happens to be far away and not hold any
+cpu cores.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
