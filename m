@@ -1,50 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33438 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933047AbcKOMGb (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49138 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751167AbcKVVhn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 07:06:31 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 2/2] vivid: Set color_enc on HSV formats
-Date: Tue, 15 Nov 2016 13:06:25 +0100
-Message-Id: <20161115120625.3015-2-ricardo.ribalda@gmail.com>
-In-Reply-To: <20161115120625.3015-1-ricardo.ribalda@gmail.com>
-References: <20161115120625.3015-1-ricardo.ribalda@gmail.com>
+        Tue, 22 Nov 2016 16:37:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        mchehab@osg.samsung.com,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thaissa Falbo <thaissa.falbo@gmail.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] staging: davinci_vpfe: fix W=1 build warnings
+Date: Tue, 22 Nov 2016 23:37:35 +0200
+Message-ID: <11488827.cnathbQq6s@avalon>
+In-Reply-To: <20160620154852.2336421-1-arnd@arndb.de>
+References: <20160620154852.2336421-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HSV formats were missing the color encoding, which leads to an invalid
-ycbcr_enc value during get_fmt and try_fmt.
+Hi Arnd,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/platform/vivid/vivid-vid-common.c | 2 ++
- 1 file changed, 2 insertions(+)
+Thank you for the patch, and sorry for the late reply.
 
-diff --git a/drivers/media/platform/vivid/vivid-vid-common.c b/drivers/media/platform/vivid/vivid-vid-common.c
-index 3d003fb913ed..5fc010f6ce67 100644
---- a/drivers/media/platform/vivid/vivid-vid-common.c
-+++ b/drivers/media/platform/vivid/vivid-vid-common.c
-@@ -447,6 +447,7 @@ struct vivid_fmt vivid_formats[] = {
- 	},
- 	{
- 		.fourcc   = V4L2_PIX_FMT_HSV24, /* HSV 24bits */
-+		.color_enc = TGP_COLOR_ENC_HSV,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 24 },
- 		.planes   = 1,
-@@ -454,6 +455,7 @@ struct vivid_fmt vivid_formats[] = {
- 	},
- 	{
- 		.fourcc   = V4L2_PIX_FMT_HSV32, /* HSV 32bits */
-+		.color_enc = TGP_COLOR_ENC_HSV,
- 		.vdownsampling = { 1 },
- 		.bit_depth = { 32 },
- 		.planes   = 1,
+On Monday 20 Jun 2016 17:47:56 Arnd Bergmann wrote:
+> When building with "make W=1", we get multiple harmless build warnings
+> for the vpfe driver:
+> 
+> drivers/staging/media/davinci_vpfe/dm365_resizer.c:241:1: error: 'static' is
+> not at beginning of declaration [-Werror=old-style-declaration]
+> drivers/staging/media/davinci_vpfe/dm365_resizer.c: In function
+> 'resizer_set_defualt_configuration':
+> drivers/staging/media/davinci_vpfe/dm365_resizer.c:831:16: error:
+> initialized field overwritten [-Werror=override-init]
+> drivers/staging/media/davinci_vpfe/dm365_resizer.c:831:16: note: (near
+> initialization for 'rsz_default_config.rsz_rsc_param[0].h_typ_c')
+> drivers/staging/media/davinci_vpfe/dm365_resizer.c:849:16: error:
+> initialized field overwritten [-Werror=override-init]
+> drivers/staging/media/davinci_vpfe/dm365_resizer.c:849:16: note: (near
+> initialization for 'rsz_default_config.rsz_rsc_param[1].h_typ_c')
+> 
+> All of them are trivial to fix without changing the behavior of the
+> driver, as "static const" is interpreted the same as "const static",
+> and VPFE_RSZ_INTP_CUBIC is defined as zero, so the initializations
+> are not really needed.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree. I will send a pull request for v4.11.
+> ---
+>  drivers/staging/media/davinci_vpfe/dm365_resizer.c | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> b/drivers/staging/media/davinci_vpfe/dm365_resizer.c index
+> 3cd56cc132c7..567f995fd0f9 100644
+> --- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> +++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+> @@ -237,9 +237,8 @@ resizer_calculate_resize_ratios(struct
+> vpfe_resizer_device *resizer, int index) ((informat->width) * 256) /
+> (outformat->width);
+>  }
+> 
+> -void
+> -static resizer_enable_422_420_conversion(struct resizer_params *param,
+> -					 int index, bool en)
+> +static void resizer_enable_422_420_conversion(struct resizer_params *param,
+> +					      int index, bool en)
+>  {
+>  	param->rsz_rsc_param[index].cen = en;
+>  	param->rsz_rsc_param[index].yen = en;
+> @@ -825,7 +824,7 @@ resizer_set_defualt_configuration(struct
+> vpfe_resizer_device *resizer) .o_hsz = WIDTH_O - 1,
+>  				.v_dif = 256,
+>  				.v_typ_y = VPFE_RSZ_INTP_CUBIC,
+> -				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
+> +				.v_typ_c = VPFE_RSZ_INTP_CUBIC,
+>  				.h_dif = 256,
+>  				.h_typ_y = VPFE_RSZ_INTP_CUBIC,
+>  				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
+> @@ -843,7 +842,7 @@ resizer_set_defualt_configuration(struct
+> vpfe_resizer_device *resizer) .o_hsz = WIDTH_O - 1,
+>  				.v_dif = 256,
+>  				.v_typ_y = VPFE_RSZ_INTP_CUBIC,
+> -				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
+> +				.v_typ_c = VPFE_RSZ_INTP_CUBIC,
+>  				.h_dif = 256,
+>  				.h_typ_y = VPFE_RSZ_INTP_CUBIC,
+>  				.h_typ_c = VPFE_RSZ_INTP_CUBIC,
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
