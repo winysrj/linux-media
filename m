@@ -1,73 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Haggai Eran <haggaie@mellanox.com>
-References: <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <20161125193252.GC16504@obsidianresearch.com>
- <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
- <20161128165751.GB28381@obsidianresearch.com>
- <1480357179.19407.13.camel@mellanox.com>
- <20161128190244.GA21975@obsidianresearch.com>
- <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
- <20161130162353.GA24639@obsidianresearch.com>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
-        "christian.koenig@amd.com" <christian.koenig@amd.com>,
-        "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>,
-        "John.Bridgman@amd.com" <John.Bridgman@amd.com>,
-        "Alexander.Deucher@amd.com" <Alexander.Deucher@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-        "logang@deltatee.com" <logang@deltatee.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Paul.Blinzer@amd.com" <Paul.Blinzer@amd.com>,
-        "Felix.Kuehling@amd.com" <Felix.Kuehling@amd.com>,
-        "ben.sander@amd.com" <ben.sander@amd.com>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <2560aab2-426c-6e58-cb4f-77ec76e0c941@amd.com>
-Date: Wed, 30 Nov 2016 12:28:24 -0500
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40020 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755596AbcKVKBW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Nov 2016 05:01:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, shuahkh@osg.samsung.com
+Subject: Re: [RFC v4 01/21] Revert "[media] media: fix media devnode ioctl/syscall and unregister race"
+Date: Tue, 22 Nov 2016 12:01:39 +0200
+Message-ID: <5398240.2zSPZQBYuK@avalon>
+In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk> <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20161130162353.GA24639@obsidianresearch.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-11-30 11:23 AM, Jason Gunthorpe wrote:
->> Yes, that sounds fine. Can we simply kill the process from the GPU driver?
->> Or do we need to extend the OOM killer to manage GPU pages?
-> I don't know..
-We could use send_sig_info to send signal from  kernel  to user space. 
-So theoretically GPU driver
-could issue KILL signal to some process.
+Hi Sakari,
 
-> On Wed, Nov 30, 2016 at 12:45:58PM +0200, Haggai Eran wrote:
->> I think we can achieve the kernel's needs with ZONE_DEVICE and DMA-API support
->> for peer to peer. I'm not sure we need vmap. We need a way to have a scatterlist
->> of MMIO pfns, and ZONE_DEVICE allows that.
-I do not think that using DMA-API as it is is the best solution (at 
-least in the current form):
+Thank you for the patch.
 
--  It deals with handles/fd for the whole allocation but client 
-could/will use sub-allocation as
-well as theoretically possible to "merge" several allocations in one 
-from GPU perspective.
--  It require knowledge to export but because "sharing" is controlled 
-from user space it
-means that we must "export" all allocation by default
-- It deals with 'fd'/handles but user application may work with 
-addresses/pointers.
+On Tuesday 08 Nov 2016 15:55:10 Sakari Ailus wrote:
+> This reverts commit 6f0dd24a084a ("[media] media: fix media devnode
+> ioctl/syscall and unregister race"). The commit was part of an original
+> patchset to avoid crashes when an unregistering device is in use.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Also current  DMA-API force each time to do all DMA table programming 
-unrelated if
-location was changed or not. With  vma / mmu  we are  able to install 
-notifier to intercept
-changes in location and update  translation tables only as needed (we do 
-not need to keep
-get_user_pages()  lock).
+For 01/21 to 03/21,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/media-device.c  | 15 +++++++--------
+>  drivers/media/media-devnode.c |  8 +-------
+>  include/media/media-devnode.h | 16 ++--------------
+>  3 files changed, 10 insertions(+), 29 deletions(-)
+> 
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 2783531..f2525eb 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -730,7 +730,6 @@ int __must_check __media_device_register(struct
+> media_device *mdev, if (ret < 0) {
+>  		/* devnode free is handled in media_devnode_*() */
+>  		mdev->devnode = NULL;
+> -		media_devnode_unregister_prepare(devnode);
+>  		media_devnode_unregister(devnode);
+>  		return ret;
+>  	}
+> @@ -787,9 +786,6 @@ void media_device_unregister(struct media_device *mdev)
+>  		return;
+>  	}
+> 
+> -	/* Clear the devnode register bit to avoid races with media dev open 
+*/
+> -	media_devnode_unregister_prepare(mdev->devnode);
+> -
+>  	/* Remove all entities from the media device */
+>  	list_for_each_entry_safe(entity, next, &mdev->entities, 
+graph_obj.list)
+>  		__media_device_unregister_entity(entity);
+> @@ -810,10 +806,13 @@ void media_device_unregister(struct media_device
+> *mdev)
+> 
+>  	dev_dbg(mdev->dev, "Media device unregistered\n");
+> 
+> -	device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+> -	media_devnode_unregister(mdev->devnode);
+> -	/* devnode free is handled in media_devnode_*() */
+> -	mdev->devnode = NULL;
+> +	/* Check if mdev devnode was registered */
+> +	if (media_devnode_is_registered(mdev->devnode)) {
+> +		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
+> +		media_devnode_unregister(mdev->devnode);
+> +		/* devnode free is handled in media_devnode_*() */
+> +		mdev->devnode = NULL;
+> +	}
+>  }
+>  EXPORT_SYMBOL_GPL(media_device_unregister);
+> 
+> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
+> index f2772ba..5b605ff 100644
+> --- a/drivers/media/media-devnode.c
+> +++ b/drivers/media/media-devnode.c
+> @@ -287,7 +287,7 @@ int __must_check media_devnode_register(struct
+> media_device *mdev, return ret;
+>  }
+> 
+> -void media_devnode_unregister_prepare(struct media_devnode *devnode)
+> +void media_devnode_unregister(struct media_devnode *devnode)
+>  {
+>  	/* Check if devnode was ever registered at all */
+>  	if (!media_devnode_is_registered(devnode))
+> @@ -295,12 +295,6 @@ void media_devnode_unregister_prepare(struct
+> media_devnode *devnode)
+> 
+>  	mutex_lock(&media_devnode_lock);
+>  	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
+> -	mutex_unlock(&media_devnode_lock);
+> -}
+> -
+> -void media_devnode_unregister(struct media_devnode *devnode)
+> -{
+> -	mutex_lock(&media_devnode_lock);
+>  	/* Delete the cdev on this minor as well */
+>  	cdev_del(&devnode->cdev);
+>  	mutex_unlock(&media_devnode_lock);
+> diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
+> index cd23e91..d55ec2b 100644
+> --- a/include/media/media-devnode.h
+> +++ b/include/media/media-devnode.h
+> @@ -128,26 +128,14 @@ int __must_check media_devnode_register(struct
+> media_device *mdev, struct module *owner);
+> 
+>  /**
+> - * media_devnode_unregister_prepare - clear the media device node register
+> bit - * @devnode: the device node to prepare for unregister
+> - *
+> - * This clears the passed device register bit. Future open calls will be
+> met - * with errors. Should be called before media_devnode_unregister() to
+> avoid - * races with unregister and device file open calls.
+> - *
+> - * This function can safely be called if the device node has never been
+> - * registered or has already been unregistered.
+> - */
+> -void media_devnode_unregister_prepare(struct media_devnode *devnode);
+> -
+> -/**
+>   * media_devnode_unregister - unregister a media device node
+>   * @devnode: the device node to unregister
+>   *
+>   * This unregisters the passed device. Future open calls will be met with
+>   * errors.
+>   *
+> - * Should be called after media_devnode_unregister_prepare()
+> + * This function can safely be called if the device node has never been
+> + * registered or has already been unregistered.
+>   */
+>  void media_devnode_unregister(struct media_devnode *devnode);
+
+-- 
+Regards,
+
+Laurent Pinchart
+
