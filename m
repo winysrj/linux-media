@@ -1,53 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44088 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752851AbcKSWYf (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.131]:53968 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752140AbcKVUw7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 17:24:35 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: arnd@arndb.de
-Subject: [PATCH v2 2/2] smiapp: Make suspend and resume functions __maybe_unused
-Date: Sun, 20 Nov 2016 00:24:26 +0200
-Message-Id: <1479594266-3034-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1479594266-3034-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1479594266-3034-1-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 22 Nov 2016 15:52:59 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] DaVinci-VPFE-Capture: fix error handling
+Date: Tue, 22 Nov 2016 21:52:17 +0100
+Message-Id: <20161122205231.799066-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The smiapp_suspend() and smiapp_resume() functions will end up being unused
-if CONFIG_PM is enabled but CONFIG_PM_SLEEP is disabled, causing a
-compiler warning from both of the function definitions. Fix this by
-marking the functions with __maybe_unused.
+A recent cleanup had the right idea to remove the initialization
+of the error variable, but missed the actual benefit of that,
+which is that we get warnings if there is a bug in it. Now
+we get a warning about a bug that was introduced by this cleanup:
 
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+drivers/media/platform/davinci/vpfe_capture.c: In function 'vpfe_probe':
+drivers/media/platform/davinci/vpfe_capture.c:1992:9: error: 'ret' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+
+This adds the missing initialization that the warning is about,
+and another one that was preexisting and that we did not get
+a warning for. That second bug has existed since the driver
+was first added.
+
+Fixes: efb74461f5a6 ("[media] DaVinci-VPFE-Capture: Delete an unnecessary variable initialisation in vpfe_probe()")
+Fixes: 7da8a6cb3e5b ("V4L/DVB (12248): v4l: vpfe capture bridge driver for DM355 and DM6446")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/i2c/smiapp/smiapp-core.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/davinci/vpfe_capture.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index b20886f..ab48a85 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2741,7 +2741,7 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
-  * I2C Driver
-  */
+diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+index 6c41782b3ba0..ee1cd79739c8 100644
+--- a/drivers/media/platform/davinci/vpfe_capture.c
++++ b/drivers/media/platform/davinci/vpfe_capture.c
+@@ -1847,8 +1847,10 @@ static int vpfe_probe(struct platform_device *pdev)
  
--static int smiapp_suspend(struct device *dev)
-+static int __maybe_unused smiapp_suspend(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-@@ -2766,7 +2766,7 @@ static int smiapp_suspend(struct device *dev)
- 	return 0;
- }
+ 	/* Allocate memory for ccdc configuration */
+ 	ccdc_cfg = kmalloc(sizeof(*ccdc_cfg), GFP_KERNEL);
+-	if (!ccdc_cfg)
++	if (!ccdc_cfg) {
++		ret = -ENOMEM;
+ 		goto probe_free_dev_mem;
++	}
  
--static int smiapp_resume(struct device *dev)
-+static int __maybe_unused smiapp_resume(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	mutex_lock(&ccdc_lock);
+ 
+@@ -1964,6 +1966,7 @@ static int vpfe_probe(struct platform_device *pdev)
+ 			v4l2_info(&vpfe_dev->v4l2_dev,
+ 				  "v4l2 sub device %s register fails\n",
+ 				  sdinfo->name);
++			ret = -ENXIO;
+ 			goto probe_sd_out;
+ 		}
+ 	}
 -- 
-2.1.4
+2.9.0
 
