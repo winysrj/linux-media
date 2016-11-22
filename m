@@ -1,220 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37538 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965251AbcKNXjm (ORCPT
+Received: from mail-pf0-f179.google.com ([209.85.192.179]:33665 "EHLO
+        mail-pf0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756122AbcKVPuJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 18:39:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: Rob Herring <robh@kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
-Date: Tue, 15 Nov 2016 01:39:47 +0200
-Message-ID: <3216002.PGtbontoS9@avalon>
-In-Reply-To: <1488637.i0jADhlNmg@avalon>
-References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <CAL_JsqKPWifCvwSxOa-m7WB-f13Y4n96Q895fDMx78YhBxWo_g@mail.gmail.com> <1488637.i0jADhlNmg@avalon>
+        Tue, 22 Nov 2016 10:50:09 -0500
+Received: by mail-pf0-f179.google.com with SMTP id d2so4836284pfd.0
+        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2016 07:50:08 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 4/4] [media] dt-bindings: add TI VPIF documentation
+References: <20161122014408.22388-1-khilman@baylibre.com>
+        <20161122014408.22388-5-khilman@baylibre.com>
+        <6699f003-a125-1e1b-e161-e9453dad7bdc@xs4all.nl>
+Date: Tue, 22 Nov 2016 07:50:06 -0800
+In-Reply-To: <6699f003-a125-1e1b-e161-e9453dad7bdc@xs4all.nl> (Hans Verkuil's
+        message of "Tue, 22 Nov 2016 13:47:20 +0100")
+Message-ID: <m2wpfvzf81.fsf@baylibre.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Ping ?
-
-On Monday 17 Oct 2016 15:42:56 Laurent Pinchart wrote:
-> On Friday 14 Oct 2016 07:40:14 Rob Herring wrote:
-> > On Sun, Oct 9, 2016 at 11:33 AM, Laurent Pinchart wrote:
-> >> On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
-> >>> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
-> >>>> LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
-> >>>> Multiple incompatible data link layers have been used over time to
-> >>>> transmit image data to LVDS panels. This binding supports display
-> >>>> panels compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
-> >>>> specifications.
-> >>>> 
-> >>>> Signed-off-by: Laurent Pinchart
-> >>>> <laurent.pinchart+renesas@ideasonboard.com>
-> >>>> ---
-> >>>> 
-> >>>>  .../bindings/display/panel/panel-lvds.txt          | 119 ++++++++++++
-> >>>>  1 file changed, 119 insertions(+)
-> >>>>  create mode 100644
-> >>>>  Documentation/devicetree/bindings/display/panel/panel-lvds.txt>
-> >>>> 
-> >>>> diff --git
-> >>>> a/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
-> >>>> b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
-> >>>> new file mode 100644
-> >>>> index 000000000000..250861f2673e
-> >>>> --- /dev/null
-> >>>> +++ b/Documentation/devicetree/bindings/display/panel/panel-lvds.txt
-> >>>> @@ -0,0 +1,119 @@
-> >>>> +Generic LVDS Panel
-> >>>> +==================
-> >>>> +
-> >>>> +LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
-> >>>> Multiple
-> >>>> +incompatible data link layers have been used over time to transmit
-> >>>> image data
-> >>>> +to LVDS panels. This bindings supports display panels compatible with
-> >>>> the
-> >>>> +following specifications.
-> >>>> +
-> >>>> +[JEIDA] "Digital Interface Standards for Monitor", JEIDA-59-1999,
-> >>>> February
-> >>>> +1999 (Version 1.0), Japan Electronic Industry Development Association
-> >>>> (JEIDA)
-> >>>> +[LDI] "Open LVDS Display Interface", May 1999 (Version 0.95),
-> >>>> National
-> >>>> +Semiconductor
-> >>>> +[VESA] "VESA Notebook Panel Standard", October 2007 (Version 1.0),
-> >>>> Video
-> >>>> +Electronics Standards Association (VESA)
-> >>>> +
-> >>>> +Device compatible with those specifications have been marketed under
-> >>>> the
-> >>>> +FPD-Link and FlatLink brands.
-> >>>> +
-> >>>> +
-> >>>> +Required properties:
-> >>>> +- compatible: shall contain "panel-lvds"
-> >>> 
-> >>> Maybe as a fallback, but on its own, no way.
-> >> 
-> >> Which brings an interesting question: when designing generic DT
-> >> bindings, what's the rule regarding
-> 
-> Looks like I forgot part of the question. I meant to ask what is the rule
-> regarding usage of more precise compatible strings ?
-> 
-> For instance (but perhaps not the best example), the
-> input/rotary-encoder.txt bindings define a "rotary-encoder" compatible
-> string, with no other bindings defining more precise compatible strings for
-> the exact rotary encoder model. When it comes to panels I believe it makes
-> sense to define model-specific compatible strings even if they're unused by
-> drivers. I'm however wondering what the rule is there, and where those
-> device-specific compatible strings should be defined. I'd like to avoid
-> using one file per panel model as done today for the simple-panel bindings.
-> 
-> > Call it "simple" so I can easily NAK it. :)
-> > 
-> > Define a generic structure, not a single binding trying to serve all.
-> > 
-> >>> > +- width-mm: panel display width in millimeters
-> >>> > +- height-mm: panel display height in millimeters
-> >>> 
-> >>> This is already documented for all panels IIRC.
-> >> 
-> >> Note that this DT binding has nothing to do with the simple-panel
-> >> binding. It is instead similar to the panel-dpi and panel-dsi-cm bindings
-> >> (which currently don't but should specify the panel size in DT). The LVDS
-> >> panel driver will *not* include any panel-specific information such as
-> >> size or timings, these are specified in DT.
-> > 
-> > The panel bindings aren't really different. The biggest difference was
-> > location in the tree, but we now generally allow panels to be either a
-> > child of the LCD controller or connected with OF graph. We probably
-> > need to work on restructuring the panel bindings a bit. We should have
-> > an inheritance with a base panel binding of things like size, label,
-> > graph, backlight, etc, then perhaps an interface specific bindings for
-> > LVDS, DSI, and parallel, then a panel specific binding. With this the
-> > panel specific binding is typically just a compatible string and which
-> > inherited properties apply to it.
-> 
-> That sounds good to me, but we have multiple models for panel bindings.
-> 
-> As you mentioned panels can be referenced through an LCD controller node
-> property containing a phandle to the panel node, or through OF graph. That's
-> a situation we have today, and we need to keep supporting both (at least
-> for existing panels, perhaps not for the new ones).
-> 
-> Another difference is how to express panel data such as size and timings.
-> The simple-panel DT bindings don't contain such data and expects the
-> drivers to contain a table of panel data for all models supported, while
-> the DPI, DSI and now the proposed LVDS panel bindings contain properties
-> for panel data.
-> 
-> How would you like to reconcile all that ?
-> 
-> >>>> +- data-mapping: the color signals mapping order, "jeida-18",
-> >>>> "jeida-24"
-> >>>> +  or "vesa-24"
-> >>> 
-> >>> Maybe this should be part of the compatible.
-> >> 
-> >> I've thought about it, but given that some panels support selecting
-> >> between multiple modes (through a mode pin that is usually hardwired), I
-> >> believe a separate DT property makes sense.
-> > 
-> > Okay.
-> > 
-> >> Furthermore, LVDS data organization is controlled by the combination of
-> >> both data-mapping and data-mirror. It makes little sense from my point
-> >> of view to handle one as part of the compatible string and the other one
-> >> as a separate property.
-> >> 
-> >>> > +Optional properties:
-> >>> > +- label: a symbolic name for the panel
-> >>> 
-> >>> Could be for any panel or display connector.
-> >> 
-> >> Yes, but I'm not sure to understand how that's relevant :-)
-> > 
-> > Meaning it should be a common property.
-> 
-> Sure. So you expect me to reorganize all the panels and connectors DT
-> bindings in order to get this one merged ? :-)
-> 
-> >>>> +- avdd-supply: reference to the regulator that powers the panel
-> >>>> analog supply
-> >>>> +- dvdd-supply: reference to the regulator that powers the panel
-> >>>> digital supply
-> >>> 
-> >>> Which one has to be powered on first, what voltage, and with what time
-> >>> in between? This is why "generic" or "simple" bindings don't work.
-> >> 
-> >> The above-mentioned specifications also define connectors, pinouts and
-> >> power supplies, but many LVDS panels compatible with the LVDS physical
-> >> and data layers use a different connector with small differences in
-> >> power
-> >> supplies.
-> >> 
-> >> I believe the voltage is irrelevant here, it doesn't need to be
-> >> controlled by the operating system. Power supplies order and timing is
-> >> relevant, I'll investigate the level of differences between panels. I'm
-> >> also fine with dropping those properties for now.
-> > 
-> > Whether you have control of the supplies is dependent on the board.
-> > Dropping them is just puts us in the simple binding trap. The simple
-> > bindings start out that way and then people keep adding to them.
-> 
-> Damn, you can't be fooled easily ;-)
-> 
-> On a more serious note, I'd like to design the bindings in a way that
-> wouldn't require adding device-specific code in the driver for each panel
-> model, given that in most cases power supply handling will be generic.
-> What's your opinion about a generic power supply model that would be used
-> in the default case, with the option to override it with device-specific
-> code when needed ?
+> On 22/11/16 02:44, Kevin Hilman wrote:
+>> Cc: Rob Herring <robh@kernel.org>
+>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+>> ---
+>>  .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
+>>  .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
+>>  2 files changed, 73 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
+>>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
+>> new file mode 100644
+>> index 000000000000..bdd93267301f
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
+>> @@ -0,0 +1,65 @@
+>> +Texas Instruments VPIF Capture
+>> +------------------------------
+>> +
+>> +The TI Video Port InterFace (VPIF) capture component is the primary
+>> +component for video capture on the DA850 family of TI DaVinci SoCs.
+>> +
+>> +TI Document number reference: SPRUH82C
+>> +
+>> +Required properties:
+>> +- compatible: must be "ti,da850-vpif-capture"
+>> +- reg: physical base address and length of the registers set for the device;
+>> +- interrupts: should contain IRQ line for the VPIF
+>> +
+>> +VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
+>> +channels or a single 16-bit channel.  It should contain at least one
+>> +port child node with child 'endpoint' node. Please refer to the
+>> +bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> +
+>> +Example using 2 8-bit input channels, one of which is connected to an
+>> +I2C-connected TVP5147 decoder:
+>> +
+>> +	vpif_capture: video-capture@0x00217000 {
+>> +		compatible = "ti,vpif-capture";
 >
-> >>>> +- data-mirror: if set, reverse the bit order on all data lanes (6 to
-> >>>> 0 instead
-> >>>> +  of 0 to 6)
-> > 
-> > On this one, make the name describe the order. "mirror" requires that
-> > I know what is normal ordering. Perhaps "data-msb-first".
-> 
-> Sounds good to me, I'll use that.
+> Did you forget to update the compatible string to ti,da850-vpif-capture?
+>
 
--- 
-Regards,
+Ugh, yup.   v3 coming right up.
 
-Laurent Pinchart
+Kevin
+
 
