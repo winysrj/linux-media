@@ -1,73 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37952 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1758257AbcKCVtg (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:58455 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1754639AbcKVDMO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 17:49:36 -0400
-Date: Thu, 3 Nov 2016 23:49:00 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>,
-        pali.rohar@gmail.com, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20161103214900.GH3217@valkosipuli.retiisi.org.uk>
-References: <20160527205140.GA26767@amd>
- <20160805102611.GA13116@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <20160810120105.GP3182@valkosipuli.retiisi.org.uk>
- <20160808232323.GC2946@xo-6d-61-c0.localdomain>
- <20160811111633.GR3182@valkosipuli.retiisi.org.uk>
- <20160818104539.GA7427@amd>
- <20160818202559.GF3182@valkosipuli.retiisi.org.uk>
- <20161103102727.GA10084@amd>
+        Mon, 21 Nov 2016 22:12:14 -0500
+Message-ID: <1479784325.8964.10.camel@mtksdaap41>
+Subject: Re: [PATCH v6 0/3] Add Mediatek JPEG Decoder
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        "Rob Herring" <robh+dt@kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Date: Tue, 22 Nov 2016 11:12:05 +0800
+In-Reply-To: <ac60814a-f54d-a11a-fc65-bdc733682535@xs4all.nl>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+         <ac60814a-f54d-a11a-fc65-bdc733682535@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161103102727.GA10084@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 03, 2016 at 11:27:27AM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > > > > > Yeah. I just compiled it but haven't tested it. I presume it'll work. :-)
-> > > > > 
-> > > > > I'm testing it on n900. I guess simpler hardware with ad5820 would be better for the
-> > > > > test...
-> > > > > 
-> > > > > What hardware do you have?
-> > > > 
-> > > > N900. What else could it be? :-) :-)
-> > > 
-> > > Heh. Basically anything is easier to develop for than n900 :-(.
-> > 
-> > Is it?
-> > 
-> > I actually find the old Nokia devices very practical. It's easy to boot your
-> > own kernel and things just work... until musb broke a bit recently. It
-> > requires reconnecting the usb cable again to function.
-> > 
-> > I have to admit I mostly use an N9.
-> 
-> Well, if you compare that to development on PC, I prefer PC.
-> 
-> Even arm development boards are usually easier, as they don't need too
-> complex userspace, and do have working serial ports.
-> 
-> But I do have a serial adapter for N900 now (thanks, sre), so my main
-> problem now is that N900 takes a lot of time to boot into usable
-> state.
+Hi Hans,
 
-Yeah... I just upgraded my Debian installation (armel over NFS) a few major
-numbers and I find it a lot slower than it used to do. I presume that's
-mostly because of systemd...
+Ok, I will include it in patch v7.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+On Mon, 2016-11-21 at 15:53 +0100, Hans Verkuil wrote:
+> I'm missing a MAINTAINERS patch for this new driver.
+> 
+> Can you post a patch for that?
+> 
+> It's the only thing preventing this from being merged.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 17/11/16 04:38, Rick Chang wrote:
+> > This series of patches provide a v4l2 driver to control Mediatek JPEG decoder
+> > for decoding JPEG image and Motion JPEG bitstream.
+> >
+> > changes since v5:
+> > - remove redundant name from struct mtk_jpeg_fmt
+> > - Set state of all buffers to VB2_BUF_STATE_QUEUED if fail in start streaming
+> > - Remove VB2_USERPTR
+> > - Add check for buffer index
+> >
+> > changes since v4:
+> > - Change file name of binding documentation
+> > - Revise DT binding documentation
+> > - Revise compatible string
+> >
+> > changes since v3:
+> > - Revise DT binding documentation
+> > - Revise compatible string
+> >
+> > changes since v2:
+> > - Revise DT binding documentation
+> >
+> > changes since v1:
+> > - Rebase for v4.9-rc1.
+> > - Update Compliance test version and result
+> > - Remove redundant path in Makefile
+> > - Fix potential build error without CONFIG_PM_RUNTIME and CONFIG_PM_SLEEP
+> > - Fix warnings from patch check and smatch check
+> >
+> > * Dependency
+> > The patch "arm: dts: mt2701: Add node for JPEG decoder" depends on:
+> >   CCF "Add clock support for Mediatek MT2701"[1]
+> >   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
+> >
+> > [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+> > [2] https://patchwork.kernel.org/patch/9164013/
+> >
+> > * Compliance test
+> > v4l2-compliance SHA   : 4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
+> >
+> > Driver Info:
+> >         Driver name   : mtk-jpeg decode
+> >         Card type     : mtk-jpeg decoder
+> >         Bus info      : platform:15004000.jpegdec
+> >         Driver version: 4.9.0
+> >         Capabilities  : 0x84204000
+> >                 Video Memory-to-Memory Multiplanar
+> >                 Streaming
+> >                 Extended Pix Format
+> >                 Device Capabilities
+> >         Device Caps   : 0x04204000
+> >                 Video Memory-to-Memory Multiplanar
+> >                 Streaming
+> >                 Extended Pix Format
+> >
+> > Compliance test for device /dev/video3 (not using libv4l2):
+> >
+> > Required ioctls:
+> >         test VIDIOC_QUERYCAP: OK
+> >
+> > Allow for multiple opens:
+> >         test second video open: OK
+> >         test VIDIOC_QUERYCAP: OK
+> >         test VIDIOC_G/S_PRIORITY: OK
+> >         test for unlimited opens: OK
+> >
+> > Debug ioctls:
+> >         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+> >         test VIDIOC_LOG_STATUS: OK (Not Supported)
+> >
+> > Input ioctls:
+> >         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+> >         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+> >         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+> >         test VIDIOC_ENUMAUDIO: OK (Not Supported)
+> >         test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+> >         test VIDIOC_G/S_AUDIO: OK (Not Supported)
+> >         Inputs: 0 Audio Inputs: 0 Tuners: 0
+> >
+> > Output ioctls:
+> >         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+> >         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+> >         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+> >         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+> >         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+> >         Outputs: 0 Audio Outputs: 0 Modulators: 0
+> >
+> > Input/Output configuration ioctls:
+> >         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+> >         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+> >         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> >         test VIDIOC_G/S_EDID: OK (Not Supported)
+> >
+> >         Control ioctls:
+> >                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+> >                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+> >                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+> >                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+> >                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+> >                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> >                 Standard Controls: 0 Private Controls: 0
+> >
+> >         Format ioctls:
+> >                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+> >                 test VIDIOC_G/S_PARM: OK (Not Supported)
+> >                 test VIDIOC_G_FBUF: OK (Not Supported)
+> >                 test VIDIOC_G_FMT: OK
+> >                 test VIDIOC_TRY_FMT: OK
+> >                 test VIDIOC_S_FMT: OK
+> >                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> >                 test Cropping: OK (Not Supported)
+> >                 test Composing: OK
+> >                 test Scaling: OK
+> >
+> >         Codec ioctls:
+> >                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+> >                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+> >                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> >
+> >         Buffer ioctls:
+> >                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+> >                 test VIDIOC_EXPBUF: OK
+> >
+> > Test input 0:
+> >
+> >
+> > Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+> >
+> > Rick Chang (3):
+> >   dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+> >   vcodec: mediatek: Add Mediatek JPEG Decoder Driver
+> >   arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+> >
+> >  .../bindings/media/mediatek-jpeg-decoder.txt       |   37 +
+> >  arch/arm/boot/dts/mt2701.dtsi                      |   14 +
+> >  drivers/media/platform/Kconfig                     |   15 +
+> >  drivers/media/platform/Makefile                    |    2 +
+> >  drivers/media/platform/mtk-jpeg/Makefile           |    2 +
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1303 ++++++++++++++++++++
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h    |  139 +++
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c      |  417 +++++++
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h      |   91 ++
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c   |  160 +++
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h   |   25 +
+> >  drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h     |   58 +
+> >  12 files changed, 2263 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
+> >  create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
+> >
+
+
