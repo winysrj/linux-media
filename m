@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:59889 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754542AbcKJK5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 05:57:43 -0500
-Date: Thu, 10 Nov 2016 10:57:41 +0000
-From: Sean Young <sean@mess.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: dib0700_core.c: uninitialized variable warning, not sure how to
- fix
-Message-ID: <20161110105741.GA7346@gofer.mess.org>
-References: <aa490920-cb2e-bb3d-a031-f18e6f0ded9b@xs4all.nl>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:19312 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755857AbcKVPxi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Nov 2016 10:53:38 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v3 03/10] ARM: multi_v7_defconfig: enable STMicroelectronics DELTA Support
+Date: Tue, 22 Nov 2016 16:53:20 +0100
+Message-ID: <1479830007-29767-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <aa490920-cb2e-bb3d-a031-f18e6f0ded9b@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 10, 2016 at 08:49:43AM +0100, Hans Verkuil wrote:
-> The daily build produces this compiler warning:
-> 
-> dib0700_core.c: In function 'dib0700_rc_urb_completion':
-> dib0700_core.c:787:2: warning: 'protocol' may be used uninitialized in this function [-Wmaybe-uninitialized]
->   rc_keydown(d->rc_dev, protocol, keycode, toggle);
->   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> 
-> This is indeed correct as there is a path in that function where protocol is
-> uninitialized, but I lack the knowledge how this should be fixed.
-> 
-> Mauro, can you take a look?
-> 
-> It goes wrong in the switch in case RC_BIT_NEC if the first 'if' is true.
-> Note that keycode is also uninitialized, but it is declared as uninitialized_var(),
-> although why you would want to do that instead of just initializing it to 0 or
-> something like that is a mystery to me.
+Enables support of STMicroelectronics STiH4xx SoC series
+DELTA multi-format video decoder V4L2 driver.
 
-This is already solved in this patch:
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ arch/arm/configs/multi_v7_defconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-https://patchwork.linuxtv.org/patch/37516/
+diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+index 11f37ed..8500f75 100644
+--- a/arch/arm/configs/multi_v7_defconfig
++++ b/arch/arm/configs/multi_v7_defconfig
+@@ -562,6 +562,7 @@ CONFIG_V4L_MEM2MEM_DRIVERS=y
+ CONFIG_VIDEO_SAMSUNG_S5P_JPEG=m
+ CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
+ CONFIG_VIDEO_STI_BDISP=m
++CONFIG_VIDEO_STI_DELTA=m
+ CONFIG_VIDEO_RENESAS_JPU=m
+ CONFIG_VIDEO_RENESAS_VSP1=m
+ CONFIG_V4L_TEST_DRIVERS=y
+-- 
+1.9.1
 
-
-Sean
