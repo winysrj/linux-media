@@ -1,247 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:27370 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753130AbcKRL0N (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:35769 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752746AbcKWBdK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 06:26:13 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v2 10/10] [media] st-delta: debug: trace stream/frame information & summary
-Date: Fri, 18 Nov 2016 12:25:36 +0100
-Message-ID: <1479468336-26199-11-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
-References: <1479468336-26199-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 22 Nov 2016 20:33:10 -0500
+Date: Tue, 22 Nov 2016 17:31:02 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Andrew Duggan <aduggan@synaptics.com>,
+        Chris Healy <cphealy@gmail.com>, linux-input@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Nick Dyer <nick@shmanahar.org>,
+        Hans Verkuil <hansverk@cisco.com>, linux-media@vger.kernel.org
+Subject: Re: [RFC] Input: synaptics-rmi4 - fix out-of-bounds memory access
+Message-ID: <20161123013102.GA21078@dtor-ws>
+References: <1479613618-11440-1-git-send-email-linux@roeck-us.net>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1479613618-11440-1-git-send-email-linux@roeck-us.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/sti/delta/Makefile      |  2 +-
- drivers/media/platform/sti/delta/delta-debug.c | 72 ++++++++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-debug.h | 18 +++++++
- drivers/media/platform/sti/delta/delta-v4l2.c  | 29 +++++++++--
- 4 files changed, 116 insertions(+), 5 deletions(-)
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
- create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
+Hi Guenter,
 
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index 663be70..f95580e 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,5 +1,5 @@
- obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
--st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
-+st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o delta-debug.o
- 
- # MJPEG support
- st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
-diff --git a/drivers/media/platform/sti/delta/delta-debug.c b/drivers/media/platform/sti/delta/delta-debug.c
-new file mode 100644
-index 0000000..f1bc64e
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-debug.c
-@@ -0,0 +1,72 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
-+ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
-+ *          for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-debug.h"
-+
-+char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
-+			   unsigned int len)
-+{
-+	if (!s)
-+		return NULL;
-+
-+	snprintf(str, len,
-+		 "%4.4s %dx%d %s %s dpb=%d %s %s %s%dx%d@(%d,%d) %s%d/%d",
-+		 (char *)&s->streamformat, s->width, s->height,
-+		 s->profile, s->level, s->dpb,
-+		 (s->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
-+		 s->other,
-+		 s->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
-+		 s->crop.width, s->crop.height,
-+		 s->crop.left, s->crop.top,
-+		 s->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
-+		 s->pixelaspect.numerator,
-+		 s->pixelaspect.denominator);
-+
-+	return str;
-+}
-+
-+char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
-+			  unsigned int len)
-+{
-+	if (!f)
-+		return NULL;
-+
-+	snprintf(str, len,
-+		 "%4.4s %dx%d aligned %dx%d %s %s%dx%d@(%d,%d) %s%d/%d",
-+		 (char *)&f->pixelformat, f->width, f->height,
-+		 f->aligned_width, f->aligned_height,
-+		 (f->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
-+		 f->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
-+		 f->crop.width, f->crop.height,
-+		 f->crop.left, f->crop.top,
-+		 f->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
-+		 f->pixelaspect.numerator,
-+		 f->pixelaspect.denominator);
-+
-+	return str;
-+}
-+
-+void delta_trace_summary(struct delta_ctx *ctx)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	struct delta_streaminfo *s = &ctx->streaminfo;
-+	unsigned char str[100] = "";
-+
-+	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
-+		return;
-+
-+	dev_info(delta->dev, "%s %s, %d frames decoded, %d frames output, %d frames dropped, %d stream errors, %d decode errors",
-+		 ctx->name,
-+		 delta_streaminfo_str(s, str, sizeof(str)),
-+		 ctx->decoded_frames,
-+		 ctx->output_frames,
-+		 ctx->dropped_frames,
-+		 ctx->stream_errors,
-+		 ctx->decode_errors);
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-debug.h b/drivers/media/platform/sti/delta/delta-debug.h
-new file mode 100644
-index 0000000..955c158
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-debug.h
-@@ -0,0 +1,18 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
-+ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
-+ *          for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_DEBUG_H
-+#define DELTA_DEBUG_H
-+
-+char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
-+			   unsigned int len);
-+char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
-+			  unsigned int len);
-+void delta_trace_summary(struct delta_ctx *ctx);
-+
-+#endif /* DELTA_DEBUG_H */
-diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-index 93a0f90..5586a97 100644
---- a/drivers/media/platform/sti/delta/delta-v4l2.c
-+++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-@@ -17,6 +17,7 @@
- #include <media/videobuf2-dma-contig.h>
- 
- #include "delta.h"
-+#include "delta-debug.h"
- #include "delta-ipc.h"
- 
- #define DELTA_NAME	"st-delta"
-@@ -438,11 +439,13 @@ static int delta_g_fmt_stream(struct file *file, void *fh,
- 	struct delta_dev *delta = ctx->dev;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
-+	unsigned char str[100] = "";
- 
- 	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
- 		dev_dbg(delta->dev,
--			"%s V4L2 GET_FMT (OUTPUT): no stream information available, using default\n",
--			ctx->name);
-+			"%s V4L2 GET_FMT (OUTPUT): no stream information available, default to %s\n",
-+			ctx->name,
-+			delta_streaminfo_str(streaminfo, str, sizeof(str)));
- 
- 	pix->pixelformat = streaminfo->streamformat;
- 	pix->width = streaminfo->width;
-@@ -465,11 +468,13 @@ static int delta_g_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
- 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
-+	unsigned char str[100] = "";
- 
- 	if (!(ctx->flags & DELTA_FLAG_FRAMEINFO))
- 		dev_dbg(delta->dev,
--			"%s V4L2 GET_FMT (CAPTURE): no frame information available, using default\n",
--			ctx->name);
-+			"%s V4L2 GET_FMT (CAPTURE): no frame information available, default to %s\n",
-+			ctx->name,
-+			delta_frameinfo_str(frameinfo, str, sizeof(str)));
- 
- 	pix->pixelformat = frameinfo->pixelformat;
- 	pix->width = frameinfo->aligned_width;
-@@ -652,6 +657,7 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
- 	const struct delta_dec *dec = ctx->dec;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct delta_frameinfo frameinfo;
-+	unsigned char str[100] = "";
- 	struct vb2_queue *vq;
- 	int ret;
- 
-@@ -703,6 +709,10 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
- 
- 	ctx->flags |= DELTA_FLAG_FRAMEINFO;
- 	ctx->frameinfo = frameinfo;
-+	dev_dbg(delta->dev,
-+		"%s V4L2 SET_FMT (CAPTURE): frameinfo updated to %s\n",
-+		ctx->name,
-+		delta_frameinfo_str(&frameinfo, str, sizeof(str)));
- 
- 	pix->pixelformat = frameinfo.pixelformat;
- 	pix->width = frameinfo.aligned_width;
-@@ -1321,10 +1331,12 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
- 	struct delta_dev *delta = ctx->dev;
- 	const struct delta_dec *dec = ctx->dec;
- 	struct delta_au *au;
-+	unsigned char str2[100] = "";
- 	int ret = 0;
- 	struct vb2_v4l2_buffer *vbuf = NULL;
- 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
- 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
-+	unsigned char str[100] = "";
- 
- 	if ((ctx->state != DELTA_STATE_WF_FORMAT) &&
- 	    (ctx->state != DELTA_STATE_WF_STREAMINFO))
-@@ -1385,6 +1397,10 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
- 
- 	ctx->state = DELTA_STATE_READY;
- 
-+	dev_info(delta->dev, "%s %s => %s\n", ctx->name,
-+		 delta_streaminfo_str(streaminfo, str, sizeof(str)),
-+		 delta_frameinfo_str(frameinfo, str2, sizeof(str2)));
-+
- 	delta_au_done(ctx, au, ret);
- 	return 0;
- 
-@@ -1705,6 +1721,11 @@ static int delta_release(struct file *file)
- 	/* close decoder */
- 	call_dec_op(dec, close, ctx);
- 
-+	/* trace a summary of instance
-+	 * before closing (debug purpose)
-+	 */
-+	delta_trace_summary(ctx);
-+
- 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
- 
- 	v4l2_fh_del(&ctx->fh);
+On Sat, Nov 19, 2016 at 07:46:58PM -0800, Guenter Roeck wrote:
+> Kasan reports:
+> 
+> BUG: KASAN: slab-out-of-bounds in __fill_v4l2_buffer+0xc3/0x540
+> 	[videobuf2_v4l2] at addr ffff8806c5e0c6cc
+> Read of size 4 by task heatmap/14414
+> CPU: 2 PID: 14414 Comm: heatmap Tainted: G    B      OE 4.9.0-rc5+ #1
+> Hardware name: MSI MS-7924/H97M-G43(MS-7924), BIOS V2.0 04/15/2014
+> ffff88010cf57940 ffffffff81606978 ffff8806fe803080 ffff8806c5e0c500
+> ffff88010cf57968 ffffffff812fd131 ffff88010cf579f8 ffff8806c5e0c500
+> ffff8806fe803080 ffff88010cf579e8 ffffffff812fd3ca 0000000000000010
+> Call Trace:
+> [<ffffffff81606978>] dump_stack+0x63/0x8b
+> [<ffffffff812fd131>] kasan_object_err+0x21/0x70
+> [<ffffffff812fd3ca>] kasan_report_error+0x1fa/0x4d0
+> [<ffffffff812fdaf9>] kasan_report+0x39/0x40
+> [<ffffffff812fc000>] ? __asan_load4+0x80/0x80
+> [<ffffffffa0ae0553>] ? __fill_v4l2_buffer+0xc3/0x540 [videobuf2_v4l2]
+> [<ffffffff812fbfe1>] __asan_load4+0x61/0x80
+> [<ffffffffa0ae0553>] __fill_v4l2_buffer+0xc3/0x540 [videobuf2_v4l2]
+> [<ffffffffa0ad038d>] ? __enqueue_in_driver+0xed/0x180 [videobuf2_core]
+> [<ffffffffa0ad3021>] vb2_core_qbuf+0x191/0x320 [videobuf2_core]
+> [<ffffffffa0ae1ba9>] vb2_qbuf+0x69/0x90 [videobuf2_v4l2]
+> [<ffffffffa0ae1c43>] vb2_ioctl_qbuf+0x73/0x80 [videobuf2_v4l2]
+> [<ffffffffa0a811b0>] v4l_qbuf+0x50/0x60 [videodev]
+> [<ffffffffa0a8020f>] __video_do_ioctl+0x46f/0x4f0 [videodev]
+> [<ffffffffa0a7fda0>] ? video_ioctl2+0x20/0x20 [videodev]
+> [<ffffffff8112c6f4>] ? __wake_up+0x44/0x50
+> [<ffffffffa0a7fa24>] video_usercopy+0x3b4/0x710 [videodev]
+> [<ffffffffa0a7fda0>] ? video_ioctl2+0x20/0x20 [videodev]
+> [<ffffffffa0a7f670>] ? v4l_enum_fmt+0x1290/0x1290 [videodev]
+> [<ffffffff8132cb80>] ? do_loop_readv_writev+0x130/0x130
+> [<ffffffffa0a7fd95>] video_ioctl2+0x15/0x20 [videodev]
+> [<ffffffffa0a78a53>] v4l2_ioctl+0x123/0x160 [videodev]
+> [<ffffffff8134dcce>] do_vfs_ioctl+0x12e/0x8c0
+> [<ffffffff8134dba0>] ? ioctl_preallocate+0x140/0x140
+> [<ffffffff8139927c>] ? __fsnotify_parent+0x2c/0x130
+> [<ffffffff810d8e1a>] ? SyS_rt_sigaction+0xfa/0x160
+> [<ffffffff810d8d20>] ? SyS_sigprocmask+0x1f0/0x1f0
+> [<ffffffff8135e907>] ? __fget_light+0xa7/0xc0
+> [<ffffffff8134e4d9>] SyS_ioctl+0x79/0x90
+> [<ffffffff81c9a33b>] entry_SYSCALL_64_fastpath+0x1e/0xad
+> Object at ffff8806c5e0c500, in cache kmalloc-512 size: 512
+> Allocated:
+> PID = 14414
+> [<ffffffff8105ef2b>] save_stack_trace+0x1b/0x20
+> [<ffffffff812fc4a6>] save_stack+0x46/0xd0
+> [<ffffffff812fc71d>] kasan_kmalloc+0xad/0xe0
+> [<ffffffff812f992f>] __kmalloc+0x12f/0x210
+> [<ffffffffa0ad44ed>] __vb2_queue_alloc+0x9d/0x6a0 [videobuf2_core]
+> [<ffffffffa0ad4dca>] vb2_core_reqbufs+0x2da/0x640 [videobuf2_core]
+> [<ffffffffa0ae0ab8>] vb2_ioctl_reqbufs+0xd8/0x130 [videobuf2_v4l2]
+> [<ffffffffa0a81fa0>] v4l_reqbufs+0x60/0x70 [videodev]
+> [<ffffffffa0a8020f>] __video_do_ioctl+0x46f/0x4f0 [videodev]
+> [<ffffffffa0a7fa24>] video_usercopy+0x3b4/0x710 [videodev]
+> [<ffffffffa0a7fd95>] video_ioctl2+0x15/0x20 [videodev]
+> [<ffffffffa0a78a53>] v4l2_ioctl+0x123/0x160 [videodev]
+> [<ffffffff8134dcce>] do_vfs_ioctl+0x12e/0x8c0
+> [<ffffffff8134e4d9>] SyS_ioctl+0x79/0x90
+> [<ffffffff81c9a33b>] entry_SYSCALL_64_fastpath+0x1e/0xad
+> Freed:
+> PID = 1717
+> [<ffffffff8105ef2b>] save_stack_trace+0x1b/0x20
+> [<ffffffff812fc4a6>] save_stack+0x46/0xd0
+> [<ffffffff812fcd01>] kasan_slab_free+0x71/0xb0
+> [<ffffffff812f8b14>] kfree+0x94/0x190
+> [<ffffffff81295f6a>] kvfree+0x2a/0x40
+> [<ffffffffa0647e46>] i915_gem_execbuffer2+0x1d6/0x2e0 [i915]
+> [<ffffffffa051969b>] drm_ioctl+0x35b/0x640 [drm]
+> [<ffffffff8134dcce>] do_vfs_ioctl+0x12e/0x8c0
+> [<ffffffff8134e4d9>] SyS_ioctl+0x79/0x90
+> [<ffffffff81c9a33b>] entry_SYSCALL_64_fastpath+0x1e/0xad
+> 
+> The problematic code is
+> 	b->flags = vbuf->flags;
+> and all other code in __fill_v4l2_buffer() accessing variables from
+> struct vb2_v4l2_buffer. That buffer is actually allocated as struct
+> vb2_buffer. Accessing the flags in struct vb2_v4l2_buffer beyond struct
+> vb2_buffer is causing the KASAN report.
+> 
+> Fixes: 3a762dbd5347 ("[media] Input: synaptics-rmi4 - add support for F54 ...")
+> Cc: Nick Dyer <nick@shmanahar.org>
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> RFC because if I have no idea if the fix is correct. Sure, KASAN is silent with
+> this fix, but what bothers me is that the error is reported when copying
+> variables from struct vb2_v4l2_buffer to struct v4l2_buffer, not earlier.
+> This suggests that those variables (flags, field, timecode, sequence) are never
+> written in the first place. Maybe that is as expected, and the variables are
+> not supposed to be written, but I don't know that subsystem well enough to
+> know the expected behavior.
+
+I think we best ask media folks (CCed).
+
+> 
+>  drivers/input/rmi4/rmi_f54.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/input/rmi4/rmi_f54.c b/drivers/input/rmi4/rmi_f54.c
+> index cf805b960866..ef91633acb6b 100644
+> --- a/drivers/input/rmi4/rmi_f54.c
+> +++ b/drivers/input/rmi4/rmi_f54.c
+> @@ -363,7 +363,7 @@ static const struct vb2_ops rmi_f54_queue_ops = {
+>  static const struct vb2_queue rmi_f54_queue = {
+>  	.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+>  	.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ,
+> -	.buf_struct_size = sizeof(struct vb2_buffer),
+> +	.buf_struct_size = sizeof(struct vb2_v4l2_buffer),
+>  	.ops = &rmi_f54_queue_ops,
+>  	.mem_ops = &vb2_vmalloc_memops,
+>  	.timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
+> -- 
+> 2.5.0
+> 
+
 -- 
-1.9.1
-
+Dmitry
