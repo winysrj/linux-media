@@ -1,19 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-References: <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
- <20161123193228.GC12146@obsidianresearch.com>
- <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
- <20161123203332.GA15062@obsidianresearch.com>
- <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
- <20161123215510.GA16311@obsidianresearch.com>
- <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
- <20161124164249.GD20818@obsidianresearch.com>
- <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
- <7ff3cf70-b0c3-028e-fea8-c370a1185b65@amd.com>
- <20161125193410.GD16504@obsidianresearch.com>
-CC: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
+Date: Wed, 23 Nov 2016 13:33:32 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>,
         Dan Williams <dan.j.williams@intel.com>,
         "Deucher, Alexander" <Alexander.Deucher@amd.com>,
         "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
@@ -23,38 +12,73 @@ CC: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
         "Bridgman, John" <John.Bridgman@amd.com>,
         "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
         "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
         "Sander, Ben" <ben.sander@amd.com>,
         "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
         "Blinzer, Paul" <Paul.Blinzer@amd.com>,
         "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
         Haggai Eran <haggaie@mellanox.com>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <80aae3e6-278e-49af-7d09-bea87ffd19e8@amd.com>
-Date: Fri, 25 Nov 2016 14:49:50 -0500
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161123203332.GA15062@obsidianresearch.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
 MIME-Version: 1.0
-In-Reply-To: <20161125193410.GD16504@obsidianresearch.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2016-11-25 02:34 PM, Jason Gunthorpe wrote:
-> On Fri, Nov 25, 2016 at 12:16:30PM -0500, Serguei Sagalovitch wrote:
->
->> b) Allocation may not  have CPU address  at all - only GPU one.
-> But you don't expect RDMA to work in the case, right?
->
-> GPU people need to stop doing this windowed memory stuff :)
-GPU could perfectly access all VRAM.  It is only issue for p2p without
-special interconnect and CPU access. Strictly speaking as long as we
-have "bus address"  we could have RDMA but  I agreed that for
-RDMA we could/should(?) always "request"  CPU address (I hope that we
-could forget about 32-bit application :-)).
+On Wed, Nov 23, 2016 at 02:58:38PM -0500, Serguei Sagalovitch wrote:
 
-BTW/FYI: About CPU access: Some user-level API is mainly handle based
-so there is no need for CPU access by default.
+>    We do not want to have "highly" dynamic translation due to
+>    performance cost.  We need to support "overcommit" but would
+>    like to minimize impact.  To support RDMA MRs for GPU/VRAM/PCIe
+>    device memory (which is must) we need either globally force
+>    pinning for the scope of "get_user_pages() / "put_pages" or have
+>    special handling for RDMA MRs and similar cases.
 
-About "visible" / non-visible VRAM parts: I assume  that going
-forward we will be able to get rid from it completely as soon as support
-for resizable PCI BAR will be implemented and/or old/current h/w
-will become obsolete.
+As I said, there is no possible special handling. Standard IB hardware
+does not support changing the DMA address once a MR is created. Forget
+about doing that.
+
+Only ODP hardware allows changing the DMA address on the fly, and it
+works at the page table level. We do not need special handling for
+RDMA.
+
+>    Generally it could be difficult to correctly handle "DMA in
+>    progress" due to the facts that (a) DMA could originate from
+>    numerous PCIe devices simultaneously including requests to
+>    receive network data.
+
+We handle all of this today in kernel via the page pinning mechanism.
+This needs to be copied into peer-peer memory and GPU memory schemes
+as well. A pinned page means the DMA address channot be changed and
+there is active non-CPU access to it.
+
+Any hardware that does not support page table mirroring must go this
+route.
+
+> (b) in HSA case DMA could originated from user space without kernel
+>    driver knowledge.  So without corresponding h/w support
+>    everywhere I do not see how it could be solved effectively.
+
+All true user triggered DMA must go through some kind of coherent page
+table mirroring scheme (eg this is what CAPI does, presumably AMDs HSA
+is similar). A page table mirroring scheme is basically the same as
+what ODP does.
+
+Like I said, this is the direction the industry seems to be moving in,
+so any solution here should focus on VMAs/page tables as the way to link
+the peer-peer devices.
+
+To me this means at least items #1 and #3 should be removed from
+Alexander's list.
+
+Jason
