@@ -1,57 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:59781 "EHLO
-        mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757615AbcKDKFL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 06:05:11 -0400
-Subject: Re: [PATCH] media: s5p-mfc include buffer size in error message
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <b1a9fa02-6821-7637-881c-a31719e891c9@samsung.com>
-Date: Fri, 04 Nov 2016 11:05:02 +0100
-MIME-version: 1.0
-In-reply-to: <20161018004337.26831-1-shuahkh@osg.samsung.com>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <20161018004337.26831-1-shuahkh@osg.samsung.com>
- <CGME20161104100504eucas1p196456ab351847ffabb60f51e76eab707@eucas1p1.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51534 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933544AbcKWIzp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Nov 2016 03:55:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Cc: horms@verge.net.au, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, magnus.damm@gmail.com,
+        hans.verkuil@cisco.com, niklas.soderlund@ragnatech.se,
+        geert@linux-m68k.org, sergei.shtylyov@cogentembedded.com,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v2 3/3] ARM: dts: gose: add composite video input
+Date: Wed, 23 Nov 2016 10:56:02 +0200
+Message-ID: <7242337.y1x3Jtg9DJ@avalon>
+In-Reply-To: <2343930.U8AiEBNJBl@avalon>
+References: <1476802943-5189-1-git-send-email-ulrich.hecht+renesas@gmail.com> <1476802943-5189-4-git-send-email-ulrich.hecht+renesas@gmail.com> <2343930.U8AiEBNJBl@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/18/2016 02:43 AM, Shuah Khan wrote:
-> Include buffer size in s5p_mfc_alloc_priv_buf() the error message when it
-> fails to allocate the buffer. Remove the debug message that does the same.
+Hello device tree maintainers,
+
+On Tuesday 18 Oct 2016 18:50:39 Laurent Pinchart wrote:
+> On Tuesday 18 Oct 2016 17:02:23 Ulrich Hecht wrote:
+> > Signed-off-by: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+> > ---
+> > 
+> >  arch/arm/boot/dts/r8a7793-gose.dts | 36 +++++++++++++++++++++++++++++++
+> >  1 file changed, 36 insertions(+)
+> > 
+> > diff --git a/arch/arm/boot/dts/r8a7793-gose.dts
+> > b/arch/arm/boot/dts/r8a7793-gose.dts index a47ea4b..2606021 100644
+> > --- a/arch/arm/boot/dts/r8a7793-gose.dts
+> > +++ b/arch/arm/boot/dts/r8a7793-gose.dts
+
+[snip]
+
+> > +	composite-in@20 {
+> > +		compatible = "adi,adv7180";
+> > +		reg = <0x20>;
+> > +		remote = <&vin1>;
+> > +
+> > +		port {
+> > +			adv7180: endpoint {
+> > +				bus-width = <8>;
+> > +				remote-endpoint = <&vin1ep>;
+> > +			};
+> > +		};
 > 
-> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
+> As explained before, you need to update the ADV7180 DT bindings first to
+> document ports. I've discussed this with Hans last week, and we agreed that
+> DT should model physical ports. Unfortunately the ADV7180 comes in four
+> different packages with different feature sets that affect ports.
 > 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-> index 1e72502..eee16a1 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-> @@ -40,12 +40,11 @@ void s5p_mfc_init_regs(struct s5p_mfc_dev *dev)
->  int s5p_mfc_alloc_priv_buf(struct device *dev, dma_addr_t base,
->  					struct s5p_mfc_priv_buf *b)
->  {
-> -	mfc_debug(3, "Allocating priv: %zu\n", b->size);
+> ADV7180  K CP32 Z               32-Lead Lead Frame Chip Scale Package
+> ADV7180  B CP32 Z               32-Lead Lead Frame Chip Scale Package
+> ADV7180 WB CP32 Z               32-Lead Lead Frame Chip Scale Package
+> 
+> ADV7180  B CP   Z               40-Lead Lead Frame Chip Scale Package
+> ADV7180 WB CP   Z               40-Lead Lead Frame Chip Scale Package
+> 
+> ADV7180  K ST48 Z               48-Lead Low Profile Quad Flat Package
+> ADV7180  B ST48 Z               48-Lead Low Profile Quad Flat Package
+> ADV7180 WB ST48 Z               48-Lead Low Profile Quad Flat Package
+> 
+> ADV7180  B ST   Z               64-Lead Low Profile Quad Flat Package
+> ADV7180 WB ST   Z               64-Lead Low Profile Quad Flat Package
+> 
+> W tells whether the part is qualified for automotive applications. It has no
+> impact from a software point of view. K and B indicate the temperature
+> range, and also have no software impact. The Z suffix indicates that the
+> part is RoHS compliant (they all are) and also has no impact.
+> 
+> Unfortunately the W and K/B qualifiers come before the package qualifier.
+> I'm not sure whether we could simply drop W, K/B and W and specify the
+> following compatible strings
+> 
+> - adv7180cp32
+> - adv7180cp
+> - adv7180st48
+> - adv7180st
+> 
+> or if we need more compatible strings that would match the full chip name.
+> Feedback on that from the device tree maintainers would be appreciated.
 
-How about keeping this debug message, I think it would be useful
-to leave that information in the debug logs.
+Your input would be appreciated on this.
 
->  	b->virt = dma_alloc_coherent(dev, b->size, &b->dma, GFP_KERNEL);
->  
->  	if (!b->virt) {
-> -		mfc_err("Allocating private buffer failed\n");
-> +		mfc_err("Allocating private buffer of size %zu failed\n",
-> +			b->size);
->  		return -ENOMEM;
->  	}
+> Regardless of what compatible strings end up being used, the bindings should
+> document 3 or 6 input ports depending on the model, and one output port.
+> You can number the input ports from 0 to 2 or 0 to 5 depending on the model
+> and the output port 3 or 6. Another option would be to number the output
+> port 0 and the input ports 1 to 3 or 1 to 6 depending on the model. That
+> would give a fixed number for the output port across all models, but might
+> be a bit consuming as most bindings number input ports before output ports.
+> 
+> For the Gose board you should then add one composite connector to the device
+> tree ("composite-video-connector") and connect it to port 0 of the
+> ADV7180WBCP32.
+> 
+> > +	};
+> > +
 
---
-Thanks,
-Sylwester
+-- 
+Regards,
+
+Laurent Pinchart
+
