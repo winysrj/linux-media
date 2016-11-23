@@ -1,58 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:54955 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933391AbcKJOYi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 09:24:38 -0500
-Date: Thu, 10 Nov 2016 14:24:32 +0000
-From: Sean Young <sean@mess.org>
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] [media] serial_ir: port lirc_serial to rc-core
-Message-ID: <20161110142432.GA7376@gofer.mess.org>
-References: <1478108285-12046-1-git-send-email-sean@mess.org>
- <201611030352.kXJ0FvOv%fengguang.wu@intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48681
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753319AbcKWOZt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 23 Nov 2016 09:25:49 -0500
+Subject: Re: [PATCH] v4l: async: make v4l2 coexists with devicetree nodes in a
+ dt overlay
+To: Javi Merino <javi.merino@kernel.org>, linux-media@vger.kernel.org
+References: <1479895797-7946-1-git-send-email-javi.merino@kernel.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        Pantelis Antoniou <pantelis.antoniou@konsulko.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <cf31105b-e8c1-4379-cd03-0bdcbdea64d6@osg.samsung.com>
+Date: Wed, 23 Nov 2016 11:25:39 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201611030352.kXJ0FvOv%fengguang.wu@intel.com>
+In-Reply-To: <1479895797-7946-1-git-send-email-javi.merino@kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 03, 2016 at 03:39:31AM +0800, kbuild test robot wrote:
-> Hi Sean,
-> 
-> [auto build test WARNING on linuxtv-media/master]
-> [also build test WARNING on v4.9-rc3 next-20161028]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> [Suggest to use git(>=2.9.0) format-patch --base=<commit> (or --base=auto for convenience) to record what (public, well-known) commit your patch series was built on]
-> [Check https://git-scm.com/docs/git-format-patch for more information]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Sean-Young/serial_ir-port-lirc_serial-to-rc-core/20161103-014155
-> base:   git://linuxtv.org/media_tree.git master
-> config: parisc-allyesconfig (attached as .config)
-> compiler: hppa-linux-gnu-gcc (Debian 6.1.1-9) 6.1.1 20160705
-> reproduce:
->         wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         make.cross ARCH=parisc 
-> 
-> All warnings (new ones prefixed by >>):
-> 
->    drivers/media/rc/serial_ir.c: In function 'serial_ir_irq_handler':
-> >> drivers/media/rc/serial_ir.c:592:1: warning: the frame size of 1196 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+Hello Javi,
 
-Since ktime_t is in nanoseconds, ktime_to_us() does a 64 bit division by 1000
-which quite some instructions/stack space on 32 bit parisc. Since the 
-ktime_to_us() is just for a printk() it can simply report in nanoseconds
-(so use ktime_to_ns() instead). The resulting machine code on parisc 32 bit
-is much shorter and the warning goes away.
+On 11/23/2016 07:09 AM, Javi Merino wrote:
+> In asd's configured with V4L2_ASYNC_MATCH_OF, if the v4l2 subdev is in
+> a devicetree overlay, its of_node pointer will be different each time
+> the overlay is applied.  We are not interested in matching the
+> pointer, what we want to match is that the path is the one we are
+> expecting.  Change to use of_node_cmp() so that we continue matching
+> after the overlay has been removed and reapplied.
+>
 
-I'll send out a new version of this patch shortly. Please ignore this
-version.
+I'm still not that familiar with DT overlays (and I guess others aren't
+either) so I think that including an example of a base tree and overlay
+DTS where this is an issue, could make things more clear in the commit.
 
-Thanks,
+IIUC, it should be something like this?
 
-Sean
+-- base tree --
+
+&i2c1 {
+	camera: camera@10 {
+		reg = <0x10>;
+		port {
+			cam_ep: endpoint {
+				...
+			};
+		};
+	};
+};
+
+&media_bridge {
+	...
+	ports {
+		port@0 {
+			reg = <0>;
+			ep: endpoint {
+				remote-endpoint = <&cam_ep>;
+			};
+		};
+	};
+};
+
+-- overlay --
+
+/plugin/;
+/ {
+	...
+	fragment@0 {
+		target = <&camera>;
+		__overlay__ {
+			compatible = "foo,bar";
+			...
+			port {
+				cam_ep: endpoint {
+					...
+				};
+			};
+		};
+	}
+}
+
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Javi Merino <javi.merino@kernel.org>
+> ---
+> Hi,
+> 
+> I feel it is a bit of a hack, but I couldn't think of anything better.
+> I'm ccing devicetree@ and Pantelis because there may be a simpler
+> solution.
+>
+
+I also couldn't think a better way to do this, since IIUC the node's name is
+the only thing that doesn't change, and is available at the time the bridge
+driver calls v4l2_async_notifier_register() when parsing the base tree.
+
+>  drivers/media/v4l2-core/v4l2-async.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 5bada20..d33a17c 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -42,7 +42,8 @@ static bool match_devname(struct v4l2_subdev *sd,
+>  
+>  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+> -	return sd->of_node == asd->match.of.node;
+> +	return !of_node_cmp(of_node_full_name(sd->of_node),
+> +			    of_node_full_name(asd->match.of.node));
+>  }
+>  
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> 
+
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
