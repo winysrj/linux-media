@@ -1,46 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33587 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752899AbcKPRSa (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:57312 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750710AbcKWFA5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 12:18:30 -0500
-Date: Wed, 16 Nov 2016 19:18:24 +0200
-From: Krzysztof Kozlowski <krzk@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>
-Subject: Re: [PATCH 9/9] s5p-mfc: Add support for MFC v8 available in Exynos
- 5433 SoCs
-Message-ID: <20161116171824.GA4983@kozik-lap>
-References: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161116090523eucas1p12a4b95363e9d2b0a823141a2f1c226e1@eucas1p1.samsung.com>
- <1479287098-30493-10-git-send-email-m.szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1479287098-30493-10-git-send-email-m.szyprowski@samsung.com>
+        Wed, 23 Nov 2016 00:00:57 -0500
+Message-ID: <a0bdcef847ffbe0de7702865c6f2ba1e@smtp-cloud2.xs4all.net>
+Date: Wed, 23 Nov 2016 06:00:54 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 16, 2016 at 10:04:58AM +0100, Marek Szyprowski wrote:
-> Exynos5433 SoC has MFC v8 hardware module, but it has more complex clock
-> hierarchy, so a new compatible has been added.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  Documentation/devicetree/bindings/media/s5p-mfc.txt |  1 +
->  drivers/media/platform/s5p-mfc/s5p_mfc.c            | 14 ++++++++++++++
->  2 files changed, 15 insertions(+)
-> 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Krzysztof Kozlowski <krzk@kernel.org>
+Results of the daily build of media_tree:
 
-Best regards,
-Krzysztof
+date:			Wed Nov 23 05:00:19 CET 2016
+media-tree git hash:	30f88a42b65858d777b8dfb40bb222fa31d5f0d9
+media_build git hash:	58cd8fdcbbce4964c4646bad0235695cb336e238
+v4l-utils git hash:	e853648f9ff0682f0b217de541d96f398509ff0b
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc5-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
