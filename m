@@ -1,81 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s3.sipsolutions.net ([5.9.151.49]:33608 "EHLO sipsolutions.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752075AbcKUKjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 05:39:47 -0500
-Message-ID: <1479724781.8662.18.camel@sipsolutions.net>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-From: Johannes Berg <johannes@sipsolutions.net>
-To: Jonathan Corbet <corbet@lwn.net>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        ksummit-discuss@lists.linuxfoundation.org,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
-Date: Mon, 21 Nov 2016 11:39:41 +0100
-In-Reply-To: <20161119101543.12b89563@lwn.net>
-References: <20161107075524.49d83697@vento.lan>
-         <11020459.EheIgy38UF@wuerfel> <20161116182633.74559ffd@vento.lan>
-         <2923918.nyphv1Ma7d@wuerfel>
-         <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
-         <20161119101543.12b89563@lwn.net>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Date: Wed, 23 Nov 2016 08:49:02 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+ <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
+ <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
+ <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
+ <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2016-11-19 at 10:15 -0700, Jonathan Corbet wrote:
-> 
-> I don't know what the ultimate source of these images is (Mauro,
-> perhaps you could shed some light there?).
-
-I'd argue that it probably no longer matters. Whether it's xfig, svg,
-graphviz originally etc. - the source is probably long lost. Recreating
-these images in any other format is probably not very difficult for
-most or almost all of them.
-
-> Rather than beating our heads against the wall trying to convert
-> between various image formats, maybe we need to take a step
-> back.  We're trying to build better documentation, and there is
-> certainly a place for diagrams and such in that
-> documentation.  Johannes was asking about it for the 802.11 docs, and
-> I know Paul has run into these issues with the RCU docs as
-> well.  Might there be a tool or an extension out there that would
-> allow us to express these diagrams in a text-friendly, editable
-> form?
+On Tue, Nov 22, 2016 at 01:21:03PM -0800, Dan Williams wrote:
+> On Tue, Nov 22, 2016 at 1:03 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> > On Tue, Nov 22, 2016 at 9:35 PM, Serguei Sagalovitch
+> > <serguei.sagalovitch@amd.com> wrote:
+> >>
+> >> On 2016-11-22 03:10 PM, Daniel Vetter wrote:
+> >>>
+> >>> On Tue, Nov 22, 2016 at 9:01 PM, Dan Williams <dan.j.williams@intel.com>
+> >>> wrote:
+> >>>>
+> >>>> On Tue, Nov 22, 2016 at 10:59 AM, Serguei Sagalovitch
+> >>>> <serguei.sagalovitch@amd.com> wrote:
+> >>>>>
+> >>>>> I personally like "device-DAX" idea but my concerns are:
+> >>>>>
+> >>>>> -  How well it will co-exists with the  DRM infrastructure /
+> >>>>> implementations
+> >>>>>     in part dealing with CPU pointers?
+> >>>>
+> >>>> Inside the kernel a device-DAX range is "just memory" in the sense
+> >>>> that you can perform pfn_to_page() on it and issue I/O, but the vma is
+> >>>> not migratable. To be honest I do not know how well that co-exists
+> >>>> with drm infrastructure.
+> >>>>
+> >>>>> -  How well we will be able to handle case when we need to
+> >>>>> "move"/"evict"
+> >>>>>     memory/data to the new location so CPU pointer should point to the
+> >>>>> new
+> >>>>> physical location/address
+> >>>>>      (and may be not in PCI device memory at all)?
+> >>>>
+> >>>> So, device-DAX deliberately avoids support for in-kernel migration or
+> >>>> overcommit. Those cases are left to the core mm or drm. The device-dax
+> >>>> interface is for cases where all that is needed is a direct-mapping to
+> >>>> a statically-allocated physical-address range be it persistent memory
+> >>>> or some other special reserved memory range.
+> >>>
+> >>> For some of the fancy use-cases (e.g. to be comparable to what HMM can
+> >>> pull off) I think we want all the magic in core mm, i.e. migration and
+> >>> overcommit. At least that seems to be the very strong drive in all
+> >>> general-purpose gpu abstractions and implementations, where memory is
+> >>> allocated with malloc, and then mapped/moved into vram/gpu address
+> >>> space through some magic,
+> >>
+> >> It is possible that there is other way around: memory is requested to be
+> >> allocated and should be kept in vram for  performance reason but due
+> >> to possible overcommit case we need at least temporally to "move" such
+> >> allocation to system memory.
+> >
+> > With migration I meant migrating both ways of course. And with stuff
+> > like numactl we can also influence where exactly the malloc'ed memory
+> > is allocated originally, at least if we'd expose the vram range as a
+> > very special numa node that happens to be far away and not hold any
+> > cpu cores.
 > 
-> With some effort, I bet we could get rid of a number of the images,
-> and perhaps end up with something that makes sense when read in the
-> .rst source files as an extra benefit. 
+> I don't think we should be using numa distance to reverse engineer a
+> certain allocation behavior.  The latency data should be truthful, but
+> you're right we'll need a mechanism to keep general purpose
+> allocations out of that range by default. Btw, strict isolation is
+> another design point of device-dax, but I think in this case we're
+> describing something between the two extremes of full isolation and
+> full compatibility with existing numactl apis.
 
-I tend to agree, and I think that having this readable in the text
-would be good.
+Yes, agreed. My idea with exposing vram sections using numa nodes wasn't
+to reuse all the existing allocation policies directly, those won't work.
+So at boot-up your default numa policy would exclude any vram nodes.
 
-You had pointed me to this plugin before
-https://pythonhosted.org/sphinxcontrib-aafig/
+But I think (as an -mm layman) that numa gives us a lot of the tools and
+policy interface that we need to implement what we want for gpus.
 
-but I don't think it can actually represent any of the pictures.
-
-Some surely could be represented directly by having the graphviz source
-inside the rst file:
-http://www.sphinx-doc.org/en/1.4.8/ext/graphviz.html
-
-(that's even an included plugin, no need to install anything extra)
-
-graphviz is actually quite powerful, so I suspect things like
-dvbstb.png can be represented there, perhaps not pixel-identically, but
-at least semantically equivalently.
-
-
-However, I don't think we'll actually find a catch-all solution, so we
-need to continue this discussion here for a fallback anyway - as you
-stated (I snipped that quote, sorry), a picture describing the video
-formats will likely not be representable in text.
-
-
-As far as my use-case for sequence diagrams is concerned, I'd really
-like to see this integrated with the toolchain since the source format
-for them is in fact a text format.
-
-johannes
+Wrt isolation: There's a sliding scale of what different users expect,
+from full auto everything, including migrating pages around if needed to
+full isolation all seems to be on the table. As long as we keep vram nodes
+out of any default allocation numasets, full isolation should be possible.
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
