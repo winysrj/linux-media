@@ -1,59 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49062 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755665AbcKVVfj (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51055
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755376AbcKWVbM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 16:35:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Manuel Rodriguez <manuel2982@gmail.com>
-Cc: mchehab@osg.samsung.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Staging: media: davinci_vpfe: Fix spelling error on a comment
-Date: Tue, 22 Nov 2016 23:35:23 +0200
-Message-ID: <1625650.Ctaqjj1OdI@avalon>
-In-Reply-To: <1457421366-4146-1-git-send-email-manuel2982@gmail.com>
-References: <1457421366-4146-1-git-send-email-manuel2982@gmail.com>
+        Wed, 23 Nov 2016 16:31:12 -0500
+Date: Wed, 23 Nov 2016 19:31:06 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/6] mt2060: add i2c bindings
+Message-ID: <20161123193106.2ce8ddd2@vento.lan>
+In-Reply-To: <1463883231-14329-1-git-send-email-crope@iki.fi>
+References: <1463883231-14329-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manuel,
+Hi Antti,
 
-Thank you for the patch and sorry for the late reply.
+Em Sun, 22 May 2016 05:13:46 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-On Tuesday 08 Mar 2016 01:16:06 Manuel Rodriguez wrote:
-> Fix spelling error on a comment, change 'wether' to 'whether'
+> Add proper i2c driver model bindings.
+
+Just like version 1 of this series, I'm marking it as RFC.
+
+Please add those patches into a git tree and send me a pull request
+when you believe that they're ready for merging.
+
+Thanks!
+Mauro
+
 > 
-> Signed-off-by: Manuel Rodriguez <manuel2982@gmail.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree. I will send a pull request for v4.11.
-
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 > ---
->  drivers/staging/media/davinci_vpfe/vpfe_video.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/media/tuners/mt2060.c      | 83 ++++++++++++++++++++++++++++++++++++++
+>  drivers/media/tuners/mt2060.h      | 20 +++++++++
+>  drivers/media/tuners/mt2060_priv.h |  2 +
+>  3 files changed, 105 insertions(+)
 > 
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 0a65405..e4b953a
-> 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -195,7 +195,7 @@ static int vpfe_update_pipe_state(struct
-> vpfe_video_device *video) return 0;
+> diff --git a/drivers/media/tuners/mt2060.c b/drivers/media/tuners/mt2060.c
+> index b87b254..aa8280a 100644
+> --- a/drivers/media/tuners/mt2060.c
+> +++ b/drivers/media/tuners/mt2060.c
+> @@ -397,6 +397,89 @@ struct dvb_frontend * mt2060_attach(struct dvb_frontend *fe, struct i2c_adapter
 >  }
-> 
-> -/* checks wether pipeline is ready for enabling */
-> +/* checks whether pipeline is ready for enabling */
->  int vpfe_video_is_pipe_ready(struct vpfe_pipeline *pipe)
->  {
->  	int i;
+>  EXPORT_SYMBOL(mt2060_attach);
+>  
+> +static int mt2060_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	struct mt2060_platform_data *pdata = client->dev.platform_data;
+> +	struct dvb_frontend *fe;
+> +	struct mt2060_priv *dev;
+> +	int ret;
+> +	u8 chip_id;
+> +
+> +	dev_dbg(&client->dev, "\n");
+> +
+> +	if (!pdata) {
+> +		dev_err(&client->dev, "Cannot proceed without platform data\n");
+> +		ret = -EINVAL;
+> +		goto err;
+> +	}
+> +
+> +	dev = devm_kzalloc(&client->dev, sizeof(*dev), GFP_KERNEL);
+> +	if (!dev) {
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	fe = pdata->dvb_frontend;
+> +	dev->config.i2c_address = client->addr;
+> +	dev->config.clock_out = pdata->clock_out;
+> +	dev->cfg = &dev->config;
+> +	dev->i2c = client->adapter;
+> +	dev->if1_freq = pdata->if1 ? pdata->if1 : 1220;
+> +	dev->client = client;
+> +
+> +	ret = mt2060_readreg(dev, REG_PART_REV, &chip_id);
+> +	if (ret) {
+> +		ret = -ENODEV;
+> +		goto err;
+> +	}
+> +
+> +	dev_dbg(&client->dev, "chip id=%02x\n", chip_id);
+> +
+> +	if (chip_id != PART_REV) {
+> +		ret = -ENODEV;
+> +		goto err;
+> +	}
+> +
+> +	dev_info(&client->dev, "Microtune MT2060 successfully identified\n");
+> +	memcpy(&fe->ops.tuner_ops, &mt2060_tuner_ops, sizeof(fe->ops.tuner_ops));
+> +	fe->ops.tuner_ops.release = NULL;
+> +	fe->tuner_priv = dev;
+> +	i2c_set_clientdata(client, dev);
+> +
+> +	mt2060_calibrate(dev);
+> +
+> +	return 0;
+> +err:
+> +	dev_dbg(&client->dev, "failed=%d\n", ret);
+> +	return ret;
+> +}
+> +
+> +static int mt2060_remove(struct i2c_client *client)
+> +{
+> +	dev_dbg(&client->dev, "\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id mt2060_id_table[] = {
+> +	{"mt2060", 0},
+> +	{}
+> +};
+> +MODULE_DEVICE_TABLE(i2c, mt2060_id_table);
+> +
+> +static struct i2c_driver mt2060_driver = {
+> +	.driver = {
+> +		.name = "mt2060",
+> +		.suppress_bind_attrs = true,
+> +	},
+> +	.probe		= mt2060_probe,
+> +	.remove		= mt2060_remove,
+> +	.id_table	= mt2060_id_table,
+> +};
+> +
+> +module_i2c_driver(mt2060_driver);
+> +
+>  MODULE_AUTHOR("Olivier DANET");
+>  MODULE_DESCRIPTION("Microtune MT2060 silicon tuner driver");
+>  MODULE_LICENSE("GPL");
+> diff --git a/drivers/media/tuners/mt2060.h b/drivers/media/tuners/mt2060.h
+> index 6efed35..05c0d55 100644
+> --- a/drivers/media/tuners/mt2060.h
+> +++ b/drivers/media/tuners/mt2060.h
+> @@ -25,6 +25,26 @@
+>  struct dvb_frontend;
+>  struct i2c_adapter;
+>  
+> +/*
+> + * I2C address
+> + * 0x60, ...
+> + */
+> +
+> +/**
+> + * struct mt2060_platform_data - Platform data for the mt2060 driver
+> + * @clock_out: Clock output setting. 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1.
+> + * @if1: First IF used [MHz]. 0 defaults to 1220.
+> + * @dvb_frontend: DVB frontend.
+> + */
+> +
+> +struct mt2060_platform_data {
+> +	u8 clock_out;
+> +	u16 if1;
+> +	struct dvb_frontend *dvb_frontend;
+> +};
+> +
+> +
+> +/* configuration struct for mt2060_attach() */
+>  struct mt2060_config {
+>  	u8 i2c_address;
+>  	u8 clock_out; /* 0 = off, 1 = CLK/4, 2 = CLK/2, 3 = CLK/1 */
+> diff --git a/drivers/media/tuners/mt2060_priv.h b/drivers/media/tuners/mt2060_priv.h
+> index 2b60de6..dfc4a06 100644
+> --- a/drivers/media/tuners/mt2060_priv.h
+> +++ b/drivers/media/tuners/mt2060_priv.h
+> @@ -95,6 +95,8 @@
+>  struct mt2060_priv {
+>  	struct mt2060_config *cfg;
+>  	struct i2c_adapter   *i2c;
+> +	struct i2c_client *client;
+> +	struct mt2060_config config;
+>  
+>  	u32 frequency;
+>  	u16 if1_freq;
 
--- 
-Regards,
 
-Laurent Pinchart
-
+Thanks,
+Mauro
