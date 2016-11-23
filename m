@@ -1,51 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:35739 "EHLO
-        mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752570AbcK2X5Q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 18:57:16 -0500
-Received: by mail-pf0-f174.google.com with SMTP id i88so34649466pfk.2
-        for <linux-media@vger.kernel.org>; Tue, 29 Nov 2016 15:57:16 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v4 1/4] [media] davinci: vpif_capture: don't lock over s_stream
-Date: Tue, 29 Nov 2016 15:57:09 -0800
-Message-Id: <20161129235712.29846-2-khilman@baylibre.com>
-In-Reply-To: <20161129235712.29846-1-khilman@baylibre.com>
-References: <20161129235712.29846-1-khilman@baylibre.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Dan Williams <dan.j.williams@intel.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <CAPcyv4htu4gayz_Dpe0pnfLN4v_Kcy-fTx3B-HEfadCHvzJnhA@mail.gmail.com>
+ <CAKMK7uGoXAYoazyGLbGU7svVD10WmaBtpko8BpHeNpRhST8F7g@mail.gmail.com>
+ <a99fd9ea-64d8-c5d3-0b96-f96c92369601@amd.com>
+ <CAKMK7uF+k5LvcPEHvtdcXQFrpKVbFxwZ32EexoU3rZ9LFhVSow@mail.gmail.com>
+ <CAPcyv4ind0fxek7g25MX=49rDfT5X151tb4=TYudMBmUJFZZNQ@mail.gmail.com>
+ <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Message-ID: <7ce9026f-871e-d50a-20cf-19f7e2d90649@linux.intel.com>
+Date: Wed, 23 Nov 2016 09:03:33 -0800
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161123074902.ph7a5cmlw3pclugx@phenom.ffwll.local>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video capture subdevs may be over I2C and may sleep during xfer, so we
-cannot do IRQ-disabled locking when calling the subdev.
+On 11/22/2016 11:49 PM, Daniel Vetter wrote:
+> Yes, agreed. My idea with exposing vram sections using numa nodes wasn't
+> to reuse all the existing allocation policies directly, those won't work.
+> So at boot-up your default numa policy would exclude any vram nodes.
+> 
+> But I think (as an -mm layman) that numa gives us a lot of the tools and
+> policy interface that we need to implement what we want for gpus.
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5104cc0ee40e..9f8f41c0f251 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -193,7 +193,10 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		}
- 	}
- 
-+	spin_unlock_irqrestore(&common->irqlock, flags);
- 	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
-+	spin_lock_irqsave(&common->irqlock, flags);
-+
- 	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
- 		vpif_dbg(1, debug, "stream on failed in subdev\n");
- 		goto err;
--- 
-2.9.3
-
+Are you suggesting creating NUMA nodes for video RAM (I assume that's
+what you mean by vram) where that RAM is not at all CPU-accessible?
