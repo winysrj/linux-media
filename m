@@ -1,136 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:32228 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753677AbcKDEVg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 00:21:36 -0400
-Message-ID: <1478233287.23008.17.camel@mtksdaap41>
-Subject: Re: [PATCH v2 1/3] dt-bindings: mediatek: Add a binding for
- Mediatek JPEG Decoder
-From: Rick Chang <rick.chang@mediatek.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        "Minghsiu Tsai" <minghsiu.tsai@mediatek.com>
-Date: Fri, 4 Nov 2016 12:21:27 +0800
-In-Reply-To: <5665939.z4I9T3nobc@avalon>
-References: <1477898217-19250-1-git-send-email-rick.chang@mediatek.com>
-         <1477898217-19250-2-git-send-email-rick.chang@mediatek.com>
-         <5665939.z4I9T3nobc@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Dan Williams <dan.j.williams@intel.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
+ <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
+ <20161123191215.GB12146@obsidianresearch.com>
+CC: Bart Van Assche <bart.vanassche@sandisk.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <1dffffdf-55e2-0842-60f0-ffbfbd70aa2d@amd.com>
+Date: Wed, 23 Nov 2016 14:24:33 -0500
 MIME-Version: 1.0
+In-Reply-To: <20161123191215.GB12146@obsidianresearch.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thanks for your patient review.I will fix them in the next patch (v3).
 
-On Thu, 2016-11-03 at 20:33 +0200, Laurent Pinchart wrote:
-> Hi Rick,
-> 
-> Thank you for the patch.
-> 
-> On Monday 31 Oct 2016 15:16:55 Rick Chang wrote:
-> > Add a DT binding documentation for Mediatek JPEG Decoder of
-> > MT2701 SoC.
-> > 
-> > Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> > ---
-> >  .../bindings/media/mediatek-jpeg-codec.txt         | 35 +++++++++++++++++++
-> >  1 file changed, 35 insertions(+)
-> >  create mode 100644
-> > Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-> > b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt new file
-> > mode 100644
-> > index 0000000..514e656
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-codec.txt
-> > @@ -0,0 +1,35 @@
-> > +* Mediatek JPEG Codec
-> 
-> Is it a codec or a decoder only ?
-
-It's a decoder precisely.
-
-> > +Mediatek JPEG Codec device driver is a v4l2 driver which can decode
-> > +JPEG-encoded video frames.
-> 
-> DT bindings should not reference drivers, they are OS-agnostic.
-
-OK.
-
-> > +Required properties:
-> > +  - compatible : "mediatek,mt2701-jpgdec"
-> > +  - reg : Physical base address of the jpeg codec registers and length of
-> > +        memory mapped region.
-> > +  - interrupts : interrupt number to the cpu.
-> 
-> That's actually not correct, the interrupt number is local to the interrupt 
-> controller, not to the CPU.
-
-OK.
-
-> > +  - clocks : clock name from clock manager
-> 
-> The clocks property doesn't contain a name.
-
-OK.
-
-> Until we provide standardized descriptions for those properties, I recommend 
-> copying the compatible, reg, interrupts, clocks, clock-names, power-domains 
-> and iommus properties descriptions from good DT bindings. Which DT bindings 
-> are good source of inspiration here is left as an exercise for the reader I'm 
-> afraid :-(
-
-Thank you for the advice. I will revise the descriptions with the
-statements in existed upstream documents.
-
-> > +  - clock-names: the clocks of the jpeg codec H/W
-> > +  - power-domains : a phandle to the power domain.
-> > +  - larb : must contain the larbes of current platform
-> 
-> Shouldn't this be mediatek,larb ? And what is a larb ?
-
-It should be mediatek,larb.
-
-> > +  - iommus : Mediatek IOMMU H/W has designed the fixed associations with
-> > +        the multimedia H/W. and there is only one multimedia iommu domain.
-> > +        "iommus = <&iommu portid>" the "portid" is from
-> > +        dt-bindings\iommu\mt2701-iommu-port.h, it means that this portid
-> > will
-> > +        enable iommu. The portid default is disable iommu if "<&iommu> 
-> portid>"
-> > +        don't be added.
-> 
-> There are two iommus instances in your example below, this should be 
-> documented. This description is not very clear I'm afraid.
-
-OK.
-
-> > +
-> > +Example:
-> > +	jpegdec: jpegdec@15004000 {
-> > +		compatible = "mediatek,mt2701-jpgdec";
-> > +		reg = <0 0x15004000 0 0x1000>;
-> > +		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-> > +		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-> > +			  <&imgsys CLK_IMG_JPGDEC>;
-> > +		clock-names = "jpgdec-smi",
-> > +			      "jpgdec";
-> > +		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-> > +		mediatek,larb = <&larb2>;
-> > +		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-> > +			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-> > +	};
-> 
-
+On 2016-11-23 02:12 PM, Jason Gunthorpe wrote:
+> On Wed, Nov 23, 2016 at 10:40:47AM -0800, Dan Williams wrote:
+>
+>> I don't think that was designed for the case where the backing memory
+>> is a special/static physical address range rather than anonymous
+>> "System RAM", right?
+> The hardware doesn't care where the memory is. ODP is just a generic
+> mechanism to provide demand-fault behavior for a mirrored page table.
+>
+> ODP has the same issue as everything else, it needs to translate a
+> page table entry into a DMA address, and we have no API to do that
+> when the page table points to peer-peer memory.
+>
+> Jason
+I would like to note that for graphics applications (especially for VR 
+support) we
+should  avoid ODP  case at any cost during graphics commands execution  due
+to requirement to have smooth and predictable playback. We want to load 
+/ "pin"
+all required resources before graphics processor begin to touch them. 
+This is not
+so critical for compute applications. Because only graphics / compute stack
+knows which resource will be in used as well as all statistics 
+accordingly only graphics
+stack is capable to make the correct decision when and _where_ evict as 
+well
+as when and _where_ to put memory back.
 
