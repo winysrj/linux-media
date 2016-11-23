@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:57706 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750761AbcKFVBJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 6 Nov 2016 16:01:09 -0500
-Subject: [PATCH v2 17/34] [media] DaVinci-VPFE-Capture: Replace a memcpy()
- call by an assignment in vpfe_enum_input()
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+Received: from mailgw01.mediatek.com ([210.61.82.183]:33309 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753420AbcKWByZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 22 Nov 2016 20:54:25 -0500
+Message-ID: <1479866054.8964.21.camel@mtksdaap41>
+Subject: Re: [PATCH v6 3/3] arm: dts: mt2701: Add node for Mediatek JPEG
+ Decoder
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <a99f89f2-a3be-9b5f-95c1-e0912a7d78f3@users.sourceforge.net>
- <88b3de4c-5f3f-9f70-736b-039dca6b8a2e@users.sourceforge.net>
- <f214edb8-0af3-e1f5-8b45-9cfa0537f8b5@xs4all.nl>
- <6a3a4a79-d428-f5d9-87e0-97fd91b75c2a@users.sourceforge.net>
- <3c76f5d0-4469-01a4-3a7c-49401aeb84b7@xs4all.nl>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <57b1ce94-7b3c-99e2-e02e-1784cb0eef0f@users.sourceforge.net>
-Date: Sun, 6 Nov 2016 22:00:53 +0100
-MIME-Version: 1.0
-In-Reply-To: <3c76f5d0-4469-01a4-3a7c-49401aeb84b7@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        "Rob Herring" <robh+dt@kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Date: Wed, 23 Nov 2016 09:54:14 +0800
+In-Reply-To: <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
+References: <1479353915-5043-1-git-send-email-rick.chang@mediatek.com>
+         <1479353915-5043-4-git-send-email-rick.chang@mediatek.com>
+         <d602365a-e87b-5bae-8698-bd43063ef079@xs4all.nl>
+         <1479784905.8964.15.camel@mtksdaap41>
+         <badf8125-27ed-9c5b-fbc0-75716ffdfb0e@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 6 Nov 2016 21:54:38 +0100
+Hi Hans,
 
-Use a direct assignment for an array element which can be set over the
-pointer variable "inp" instead of calling the function "memcpy" here.
+On Tue, 2016-11-22 at 13:43 +0100, Hans Verkuil wrote:
+> On 22/11/16 04:21, Rick Chang wrote:
+> > Hi Hans,
+> >
+> > On Mon, 2016-11-21 at 15:51 +0100, Hans Verkuil wrote:
+> >> On 17/11/16 04:38, Rick Chang wrote:
+> >>> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> >>> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> >>> ---
+> >>> This patch depends on:
+> >>>   CCF "Add clock support for Mediatek MT2701"[1]
+> >>>   iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
+> >>>
+> >>> [1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+> >>> [2] https://patchwork.kernel.org/patch/9164013/
+> >>
+> >> I assume that 1 & 2 will appear in 4.10? So this patch needs to go in
+> >> after the
+> >> other two are merged in 4.10?
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >
+> > [1] will appear in 4.10, but [2] will appear latter than 4.10.So this
+> > patch needs to go in after [1] & [2] will be merged in 4.11.
+> 
+> So what should I do? Merge the driver for 4.11 and wait with this patch
+> until [2] is merged in 4.11? Does that sound reasonable?
+> 
+> Regards,
+> 
+> 	Hans
 
-Suggested-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/platform/davinci/vpfe_capture.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+What do you think about this? You merge the driver first and I send this
+patch again after [1] & [2] is merged.
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index 8314c39..5417f6b 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1091,7 +1091,7 @@ static int vpfe_enum_input(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
- 	sdinfo = &vpfe_dev->cfg->sub_devs[subdev];
--	memcpy(inp, &sdinfo->inputs[index], sizeof(struct v4l2_input));
-+	*inp = sdinfo->inputs[index];
- 	return 0;
- }
- 
--- 
-2.10.2
+
 
