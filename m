@@ -1,72 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49144 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753217AbcKAUL1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52794 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934269AbcKWM2U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 1 Nov 2016 16:11:27 -0400
-Date: Tue, 1 Nov 2016 22:11:23 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161101201122.GF3217@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
- <20161023203315.GC6391@amd>
- <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
- <7bf0bd23-e7fc-8dae-8d57-2477b942acbc@gmail.com>
+        Wed, 23 Nov 2016 07:28:20 -0500
+Subject: Re: [PATCH] v4l: vsp1: Prevent commencing pipelines before they are
+ setup
+To: laurent.pinchart@ideasonboard.com
+References: <1478860318-14792-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <ac4eeacc-4211-830b-8b70-2cc88d03f01c@ideasonboard.com>
+Date: Wed, 23 Nov 2016 12:28:15 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7bf0bd23-e7fc-8dae-8d57-2477b942acbc@gmail.com>
+In-Reply-To: <1478860318-14792-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivaylo,
+Just FYI,
 
-On Tue, Nov 01, 2016 at 08:36:57AM +0200, Ivaylo Dimitrov wrote:
-> Hi,
+Whilst this patch is functional on its own, it is likely to be
+superseded before it gets a chance to be integrated as I am currently
+reworking vsp1_video_start_streaming(), in particular the use of
+vsp1_video_setup_pipeline().
+
+The re-work will of course also consider and tackle the issue repaired here.
+
+--
+Regards
+
+Kieran
+
+On 11/11/16 10:31, Kieran Bingham wrote:
+> With multiple inputs through the BRU it is feasible for the streams to
+> race each other at stream-on. In the case of the video pipelines, this
+> can present two serious issues.
 > 
-> On  1.11.2016 00:54, Sakari Ailus wrote:
-> >Hi Pavel,
-> >
-> >On Sun, Oct 23, 2016 at 10:33:15PM +0200, Pavel Machek wrote:
-> >>Hi!
-> >>
-> >>>Thanks, this answered half of my questions already. ;-)
-> >>
-> >>:-).
-> >>
-> >>I'll have to go through the patches, et8ek8 driver is probably not
-> >>enough to get useful video. platform/video-bus-switch.c is needed for
-> >>camera switching, then some omap3isp patches to bind flash and
-> >>autofocus into the subdevice.
-> >>
-> >>Then, device tree support on n900 can be added.
-> >
-> >I briefly discussed with with Sebastian.
-> >
-> >Do you think the elusive support for the secondary camera is worth keeping
-> >out the main camera from the DT in mainline? As long as there's a reasonable
-> >way to get it working, I'd just merge that. If someone ever gets the
-> >secondary camera working properly and nicely with the video bus switch,
-> >that's cool, we'll somehow deal with the problem then. But frankly I don't
-> >think it's very useful even if we get there: the quality is really bad.
-> >
+>  1) A null-dereference if the pipe->dl is committed at the same time as
+>     the vsp1_video_setup_pipeline() is processing
 > 
-> Yes, lets merge what we have till now, it will be way easier to improve on
-> it once it is part of the mainline.
+>  2) A hardware hang, where a display list is committed without having
+>     called vsp1_video_setup_pipeline() first.
 > 
-> BTW, I have (had) patched VBS working almost without problems, when it comes
-> to it I'll dig it.
-
-I wonder if I'm the only one who wonders what VBS is here. Don't tell me its
-the old MS thing. :-) ;-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> To prevent these scenarios from occurring, we ensure that only the thread
+> that calls the vsp1_video_setup_pipeline() is capable of committing and
+> commencing the display list.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+> 
+> I considered a few options to fix this issue. If anyone disagrees with my
+> reasoning, and believes one of the below approaches should be used, let me
+> know and I'll rework the patch.
+> 
+>  A) Moving the vsp1_video_pipeline_run() call into the upper if block.
+>   - This changes the locking, and brings in unneccessary nested locking
+> 
+>  B) Adapting vsp1_pipeline_ready() such that it checks for a configured
+>     pipeline event as well.
+> 
+>   - This was tempting - but this particular issue is local to this
+>     function only. Changing vsp1_pipeline_ready() to watch for a flag
+>     set by vsp1_video_setup_pipeline() would require adding unneccessary
+>     changes to the vsp1_drm objects to cater for this.
+> 
+> To test this race, I have used the vsp-unit-test-0007.sh from Laurent's
+> VSP-Tests [0] in iteration. Without this patch, failures can be seen be
+> seen anywhere up to the 150 iterations mark.
+> 
+> With this patch in place, tests have successfully iterated over 1500
+> loops.
+> 
+> The function affected by this change appears to have been around since
+> v4.6-rc2-105-g351bbf99f245 and thus may want inclusion in stable trees
+> from that point forward. The issue may have been prevalent before that
+> but the solution would need reworking for earlier version.
+> 
+> [0] http://git.ideasonboard.com/renesas/vsp-tests.git
+> 
+>  drivers/media/platform/vsp1/vsp1_video.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index 94b428596c4f..cc44b27f3e47 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -813,6 +813,7 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+>  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+>  	unsigned long flags;
+> +	bool configured = false;
+>  	int ret;
+>  
+>  	mutex_lock(&pipe->lock);
+> @@ -822,13 +823,20 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  			mutex_unlock(&pipe->lock);
+>  			return ret;
+>  		}
+> +
+> +		/*
+> +		 * Multiple streams will execute this function in parallel.
+> +		 * Only the thread which configures the pipeline is allowed to
+> +		 * execute the vsp1_video_pipeline_run() call below
+> +		 */
+> +		configured = true;
+>  	}
+>  
+>  	pipe->stream_count++;
+>  	mutex_unlock(&pipe->lock);
+>  
+>  	spin_lock_irqsave(&pipe->irqlock, flags);
+> -	if (vsp1_pipeline_ready(pipe))
+> +	if (vsp1_pipeline_ready(pipe) && configured)
+>  		vsp1_video_pipeline_run(pipe);
+>  	spin_unlock_irqrestore(&pipe->irqlock, flags);
+>  
+> 
