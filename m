@@ -1,89 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:35154 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752469AbcKRMOj (ORCPT
+Received: from mail-wj0-f194.google.com ([209.85.210.194]:36633 "EHLO
+        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965195AbcKWQD1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 07:14:39 -0500
-Received: by mail-pf0-f196.google.com with SMTP id i88so13489259pfk.2
-        for <linux-media@vger.kernel.org>; Fri, 18 Nov 2016 04:14:38 -0800 (PST)
-Date: Fri, 18 Nov 2016 23:14:25 +1100
-From: Vincent McIntyre <vincent.mcintyre@gmail.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: ir-keytable: infinite loops, segfaults
-Message-ID: <20161118121422.GA1986@shambles.local>
-References: <20161116105256.GA9998@shambles.local>
- <20161117134526.GA8485@gofer.mess.org>
+        Wed, 23 Nov 2016 11:03:27 -0500
+Date: Wed, 23 Nov 2016 16:03:13 +0000
+From: Javi Merino <javi.merino@kernel.org>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Pantelis Antoniou <pantelis.antoniou@konsulko.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH] v4l: async: make v4l2 coexists with devicetree nodes in
+ a dt overlay
+Message-ID: <20161123160313.GA1753@ct-lt-587>
+References: <1479895797-7946-1-git-send-email-javi.merino@kernel.org>
+ <cf31105b-e8c1-4379-cd03-0bdcbdea64d6@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20161117134526.GA8485@gofer.mess.org>
+In-Reply-To: <cf31105b-e8c1-4379-cd03-0bdcbdea64d6@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 17, 2016 at 01:45:26PM +0000, Sean Young wrote:
-> On Wed, Nov 16, 2016 at 09:52:58PM +1100, Vincent McIntyre wrote:
-> > I have a fairly old dvico dual digital 4 tuner and remote.
-> > There seem to be some issues with support for it, can I help fix them?
-> > 
-> > I am using ir-keytable 1.10.0-1 on Ubuntu 16.04 LTS,
-> > with kernel 4.4.0-47-generic (package version 4.4.0-47-generic)
-> > 
-> > The remote's keymapping is the one in /lib/udev/rc_keymaps/dvico_mce;
-> > kernel support for the device is in media/usb/dvb-usb/cxusb.c.
-> > 
-> > Mostly it works, in that I get correct keycodes back from evtest
-> > and ir-keytable -t. But I want to change some of the keycode mappings
-> > and that is not working.
+On Wed, Nov 23, 2016 at 11:25:39AM -0300, Javier Martinez Canillas wrote:
+> Hello Javi,
 > 
-> I suspect the problem here is rc-core is not used and 
-> legacy_dvb_usb_setkeycode has a bug (it has several problems).
+> On 11/23/2016 07:09 AM, Javi Merino wrote:
+> > In asd's configured with V4L2_ASYNC_MATCH_OF, if the v4l2 subdev is in
+> > a devicetree overlay, its of_node pointer will be different each time
+> > the overlay is applied.  We are not interested in matching the
+> > pointer, what we want to match is that the path is the one we are
+> > expecting.  Change to use of_node_cmp() so that we continue matching
+> > after the overlay has been removed and reapplied.
+> >
 > 
-> It would be nicer if we could move it rc-core, but for that to work
-> we need to know what scancodes remote sends (and in what protocol).
-> A scancode of 0xfe47 is not a valid RC5 scancode.
- 
-So are you saying that the hex codes in the rc_map_dvico_mce_table
-struct are invalid (at least in some cases)?
+> I'm still not that familiar with DT overlays (and I guess others aren't
+> either) so I think that including an example of a base tree and overlay
+> DTS where this is an issue, could make things more clear in the commit.
+> 
+> IIUC, it should be something like this?
+> 
+> -- base tree --
+> 
+> &i2c1 {
+> 	camera: camera@10 {
+> 		reg = <0x10>;
+> 		port {
+> 			cam_ep: endpoint {
+> 				...
+> 			};
+> 		};
+> 	};
+> };
+> 
+> &media_bridge {
+> 	...
+> 	ports {
+> 		port@0 {
+> 			reg = <0>;
+> 			ep: endpoint {
+> 				remote-endpoint = <&cam_ep>;
+> 			};
+> 		};
+> 	};
+> };
+> 
+> -- overlay --
+> 
+> /plugin/;
+> / {
+> 	...
+> 	fragment@0 {
+> 		target = <&camera>;
+> 		__overlay__ {
+> 			compatible = "foo,bar";
+> 			...
+> 			port {
+> 				cam_ep: endpoint {
+> 					...
+> 				};
+> 			};
+> 		};
+> 	}
+> }
 
-How can I tell what protocol is in use?
-0x00010001 doesn't mean much to me; I did search the linux source
-for the code but didn't find any helpful matches.
+Yes, that's right.  What I have is that the whole camera can be
+plugged or unplugged, so the overlay adds/removes the camera node:
 
-> Would it be possible to test the remote with another device (say an
-> usb mce receiver or so) and see what scancodes it sends? Then we can
-> translate the keymap to a real one and make the cxusb driver send
-> correct scancodes to rc-core.
+/ {
+	fragment@0 {
+		target-path = "/i2c0";
+		__overlay__ {
+			my_cam {
+				compatible = "foo,bar";
+				port {
+					camera0: endpoint {
+						remote-endpoint = <&vin2a>;
+						...
+					};
+				};
+			};
+		};
+	};
 
-Great idea. Do you mean something like [1]?
-Or the (presumably generic) receiver that comes with [2]?
-Would a FLIRC work?
+I will add it to the commit message.
 
-Probably dumb question - in this machine I also have
-an iMon Remote (152c:ffdc)
-and Leadtek WinFast DTV Dongle Dual
-Do you think either of those would be helpful?
-I tried evtest with them and the remote, no responses.
-
-# ir-keytable
-Found /sys/class/rc/rce0/ (/dev/input/event5) with:
-    Driver imon, table rc-imon-mce
-    Supported protocols: rc-6 
-    Enabled protocols: rc-6 
-    Name: iMON Remote (15c2:ffdc)
-    bus: 3, vendor/product: 15c2:ffdc, version: 0x0000
-    Repeat delay = 500 ms, repeat period = 125 ms
-Found /sys/class/rc/rc1/ (/dev/input/event16) with:
-    Driver dvb_usb_af9035, table rc-empty
-    Supported protocols: nec 
-    Enabled protocols: 
-    Name: Leadtek WinFamst DTV Dongle Dual
-    bus: 3, vendor/product: 0413:6a05, version: 0x0200
-    Repeat delay = 500 mss, repeat period = 125 ms
-
-Thanks
-Vince
-
-[1] http://www.ebay.com.au/itm/New-HP-USB-MCE-IR-Wireless-Receiver-Windows-7-Vista-/261127073131
-[2] https://www.jaycar.com.au/home-theatre-pc-remote-control/p/XC4939
-
+> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> > Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> > Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > Signed-off-by: Javi Merino <javi.merino@kernel.org>
+> > ---
+> > Hi,
+> > 
+> > I feel it is a bit of a hack, but I couldn't think of anything better.
+> > I'm ccing devicetree@ and Pantelis because there may be a simpler
+> > solution.
+> >
+> 
+> I also couldn't think a better way to do this, since IIUC the node's name is
+> the only thing that doesn't change, and is available at the time the bridge
+> driver calls v4l2_async_notifier_register() when parsing the base tree.
+> 
+> >  drivers/media/v4l2-core/v4l2-async.c | 3 ++-
+> >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index 5bada20..d33a17c 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -42,7 +42,8 @@ static bool match_devname(struct v4l2_subdev *sd,
+> >  
+> >  static bool match_of(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> >  {
+> > -	return sd->of_node == asd->match.of.node;
+> > +	return !of_node_cmp(of_node_full_name(sd->of_node),
+> > +			    of_node_full_name(asd->match.of.node));
+> >  }
+> >  
+> >  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> > 
+> 
+> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> 
+> Best regards,
+> -- 
+> Javier Martinez Canillas
+> Open Source Group
+> Samsung Research America
