@@ -1,94 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:32832 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753507AbcKOMGF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 07:06:05 -0500
-Received: by mail-wm0-f65.google.com with SMTP id u144so25074049wmu.0
-        for <linux-media@vger.kernel.org>; Tue, 15 Nov 2016 04:06:05 -0800 (PST)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Hans de Goede <hdegoede@redhat.com>,
-        linux-media@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 3/3] qv4l2: Support for HSV encodings
-Date: Tue, 15 Nov 2016 13:05:58 +0100
-Message-Id: <20161115120558.2872-3-ricardo.ribalda@gmail.com>
-In-Reply-To: <20161115120558.2872-1-ricardo.ribalda@gmail.com>
-References: <20161115120558.2872-1-ricardo.ribalda@gmail.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Logan Gunthorpe <logang@deltatee.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+CC: Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+Date: Wed, 23 Nov 2016 14:14:40 -0500
+MIME-Version: 1.0
+In-Reply-To: <20161123190515.GA12146@obsidianresearch.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support set/get and override of HSV encodings.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- utils/qv4l2/general-tab.cpp | 4 +++-
- utils/qv4l2/qv4l2.cpp       | 5 ++++-
- utils/qv4l2/tpg-tab.cpp     | 4 +++-
- 3 files changed, 10 insertions(+), 3 deletions(-)
-
-diff --git a/utils/qv4l2/general-tab.cpp b/utils/qv4l2/general-tab.cpp
-index c74847935194..0d98d6569c49 100644
---- a/utils/qv4l2/general-tab.cpp
-+++ b/utils/qv4l2/general-tab.cpp
-@@ -780,8 +780,10 @@ void GeneralTab::formatSection(v4l2_fmtdesc fmt)
- 		m_ycbcrEnc->addItem("BT.2020", QVariant(V4L2_YCBCR_ENC_BT2020));
- 		m_ycbcrEnc->addItem("BT.2020 Constant Luminance", QVariant(V4L2_YCBCR_ENC_BT2020_CONST_LUM));
- 		m_ycbcrEnc->addItem("SMPTE 240M", QVariant(V4L2_YCBCR_ENC_SMPTE240M));
-+		m_ycbcrEnc->addItem("Hue 0 - 179", QVariant(V4L2_HSV_ENC_180));
-+		m_ycbcrEnc->addItem("Hue 0 - 255", QVariant(V4L2_HSV_ENC_256));
- 
--		addLabel("Y'CbCr Encoding");
-+		addLabel("Y'CbCr / HSV Encoding");
- 		addWidget(m_ycbcrEnc);
- 		connect(m_ycbcrEnc, SIGNAL(activated(int)), SLOT(ycbcrEncChanged(int)));
- 
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index 4f0a52d96d39..a093fbf48913 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -213,7 +213,7 @@ ApplicationWindow::ApplicationWindow() :
- 	connect(grp, SIGNAL(triggered(QAction *)), this, SLOT(overrideXferFuncChanged(QAction *)));
- 
- 	m_overrideYCbCrEnc = -1;
--	menu = new QMenu("Override Y'CbCr Encoding");
-+	menu = new QMenu("Override Y'CbCr / HSV Encoding");
- 	m_overrideYCbCrEncMenu = menu;
- 	grp = new QActionGroup(menu);
- 	addSubMenuItem(grp, menu, "No Override", -1)->setChecked(true);
-@@ -224,6 +224,9 @@ ApplicationWindow::ApplicationWindow() :
- 	addSubMenuItem(grp, menu, "BT.2020", V4L2_YCBCR_ENC_BT2020);
- 	addSubMenuItem(grp, menu, "BT.2020 Constant Luminance", V4L2_YCBCR_ENC_BT2020_CONST_LUM);
- 	addSubMenuItem(grp, menu, "SMPTE 240M", V4L2_YCBCR_ENC_SMPTE240M);
-+	addSubMenuItem(grp, menu, "Hue 0 - 179", V4L2_HSV_ENC_180);
-+	addSubMenuItem(grp, menu, "Hue 0 - 255", V4L2_HSV_ENC_256);
-+
- 	connect(grp, SIGNAL(triggered(QAction *)), this, SLOT(overrideYCbCrEncChanged(QAction *)));
- 
- 	m_overrideQuantization = -1;
-diff --git a/utils/qv4l2/tpg-tab.cpp b/utils/qv4l2/tpg-tab.cpp
-index 386509de986b..e234b7dbfa1c 100644
---- a/utils/qv4l2/tpg-tab.cpp
-+++ b/utils/qv4l2/tpg-tab.cpp
-@@ -177,7 +177,7 @@ void ApplicationWindow::addTpgTab(int m_winWidth)
- 	addWidget(grid, m_tpgXferFunc);
- 	connect(m_tpgXferFunc, SIGNAL(activated(int)), SLOT(tpgXferFuncChanged()));
- 
--	addLabel(grid, "Y'CbCr Encoding");
-+	addLabel(grid, "Y'CbCr / HSV Encoding");
- 	m_tpgYCbCrEnc = new QComboBox(w);
- 	m_tpgYCbCrEnc->addItem("Use Format", QVariant(V4L2_YCBCR_ENC_DEFAULT));
- 	m_tpgYCbCrEnc->addItem("ITU-R 601", QVariant(V4L2_YCBCR_ENC_601));
-@@ -187,6 +187,8 @@ void ApplicationWindow::addTpgTab(int m_winWidth)
- 	m_tpgYCbCrEnc->addItem("BT.2020", QVariant(V4L2_YCBCR_ENC_BT2020));
- 	m_tpgYCbCrEnc->addItem("BT.2020 Constant Luminance", QVariant(V4L2_YCBCR_ENC_BT2020_CONST_LUM));
- 	m_tpgYCbCrEnc->addItem("SMPTE 240M", QVariant(V4L2_YCBCR_ENC_SMPTE240M));
-+	m_tpgYCbCrEnc->addItem("Hue 0 - 179", QVariant(V4L2_HSV_ENC_180));
-+	m_tpgYCbCrEnc->addItem("Hue 0 - 255", QVariant(V4L2_HSV_ENC_256));
- 	addWidget(grid, m_tpgYCbCrEnc);
- 	connect(m_tpgYCbCrEnc, SIGNAL(activated(int)), SLOT(tpgColorspaceChanged()));
- 
--- 
-2.10.2
+On 2016-11-23 02:05 PM, Jason Gunthorpe wrote:
+> On Wed, Nov 23, 2016 at 10:13:03AM -0700, Logan Gunthorpe wrote:
+>
+>> an MR would be very tricky. The MR may be relied upon by another host
+>> and the kernel would have to inform user-space the MR was invalid then
+>> user-space would have to tell the remote application.
+> As Bart says, it would be best to be combined with something like
+> Mellanox's ODP MRs, which allows a page to be evicted and then trigger
+> a CPU interrupt if a DMA is attempted so it can be brought back.
+Please note that in the general case (including  MR one) we could have
+"page fault" from the different PCIe device. So all  PCIe device must
+be synchronized.
+> includes the usual fencing mechanism so the CPU can block, flush, and
+> then evict a page coherently.
+>
+> This is the general direction the industry is going in: Link PCI DMA
+> directly to dynamic user page tabels, including support for demand
+> faulting and synchronicity.
+>
+> Mellanox ODP is a rough implementation of mirroring a process's page
+> table via the kernel, while IBM's CAPI (and CCIX, PCI ATS?) is
+> probably a good example of where this is ultimately headed.
+>
+> CAPI allows a PCI DMA to directly target an ASID associated with a
+> user process and then use the usual CPU machinery to do the page
+> translation for the DMA. This includes page faults for evicted pages,
+> and obviously allows eviction and migration..
+>
+> So, of all the solutions in the original list, I would discard
+> anything that isn't VMA focused. Emulating what CAPI does in hardware
+> with software is probably the best choice, or we have to do it all
+> again when CAPI style hardware broadly rolls out :(
+>
+> DAX and GPU allocators should create VMAs and manipulate them in the
+> usual way to achieve migration, windowing, cache&mirror, movement or
+> swap of the potentially peer-peer memory pages. They would have to
+> respect the usual rules for a VMA, including pinning.
+>
+> DMA drivers would use the usual approaches for dealing with DMA from
+> a VMA: short term pin or long term coherent translation mirror.
+>
+> So, to my view (looking from RDMA), the main problem with peer-peer is
+> how do you DMA translate VMA's that point at non struct page memory?
+>
+> Does HMM solve the peer-peer problem? Does it do it generically or
+> only for drivers that are mirroring translation tables?
+In current form HMM doesn't solve peer-peer problem. Currently it allow
+"mirroring" of  "malloc" memory on GPU which is not always what needed.
+Additionally  there is need to have opportunity to share VRAM allocations
+between  different processes.
+>  From a RDMA perspective we could use something other than
+> get_user_pages() to pin and DMA translate a VMA if the core community
+> could decide on an API. eg get_user_dma_sg() would probably be quite
+> usable.
+>
+> Jason
 
