@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:60237 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752760AbcKJJzK (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:55080 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965375AbcKWPkg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 04:55:10 -0500
-From: Shailendra Verma <shailendra.v@samsung.com>
-To: Jarod Wilson <jarod@wilsonet.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Shailendra Verma <shailendra.v@samsung.com>,
-        Shailendra Verma <shailendra.capricorn@gmail.com>
-Cc: linux-kernel@vger.kernel.org, vidushi.koul@samsung.com
-Subject: [PATCH 2/2] Staging: Media: Lirc - Improvement in code readability
-Date: Thu, 10 Nov 2016 15:22:38 +0530
-Message-id: <1478771558-1314-1-git-send-email-shailendra.v@samsung.com>
+        Wed, 23 Nov 2016 10:40:36 -0500
+Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 808E72005A
+        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 16:40:30 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.10] Davinci staging updates
+Date: Wed, 23 Nov 2016 17:40:52 +0200
+Message-ID: <3704737.qNc3EHZKID@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Shailendra Verma" <shailendra.v@samsung.com>
+Hi Mauro,
 
-There is no need to call kfree() if memdup_user() fails, as no memory
-was allocated and the error in the error-valued pointer should be returned.
+The following changes since commit 30f88a42b65858d777b8dfb40bb222fa31d5f0d9:
 
-Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
----
- drivers/staging/media/lirc/lirc_imon.c  |    5 ++---
- drivers/staging/media/lirc/lirc_sasem.c |    5 ++---
- 2 files changed, 4 insertions(+), 6 deletions(-)
+  [media] staging: lirc: Improvement in code readability (2016-11-22 12:21:25 
+-0200)
 
-diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
-index 198a805..610d38c 100644
---- a/drivers/staging/media/lirc/lirc_imon.c
-+++ b/drivers/staging/media/lirc/lirc_imon.c
-@@ -408,9 +408,8 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
- 
- 	data_buf = memdup_user(buf, n_bytes);
- 	if (IS_ERR(data_buf)) {
--		retval = PTR_ERR(data_buf);
--		data_buf = NULL;
--		goto exit;
-+		mutex_unlock(&context->ctx_lock);
-+		return PTR_ERR(data_buf);
- 	}
- 
- 	memcpy(context->tx.data_buf, data_buf, n_bytes);
-diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
-index 4678ae1..4fd810b 100644
---- a/drivers/staging/media/lirc/lirc_sasem.c
-+++ b/drivers/staging/media/lirc/lirc_sasem.c
-@@ -384,9 +384,8 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
- 
- 	data_buf = memdup_user(buf, n_bytes);
- 	if (IS_ERR(data_buf)) {
--		retval = PTR_ERR(data_buf);
--		data_buf = NULL;
--		goto exit;
-+		mutex_unlock(&context->ctx_lock);
-+		return PTR_ERR(data_buf);
- 	}
- 
- 	memcpy(context->tx.data_buf, data_buf, n_bytes);
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git davinci
+
+for you to fetch changes up to 110134c57b54a8fc2e6400703ae35364c4c8df3d:
+
+  staging: media: davinci_vpfe: unlock on error in vpfe_reqbufs() (2016-11-22 
+23:40:12 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      staging: media: davinci_vfpe: allow modular build
+      staging: media: davinci_vpfe: fix W=1 build warnings
+
+Dan Carpenter (1):
+      staging: media: davinci_vpfe: unlock on error in vpfe_reqbufs()
+
+Leo Sperling (1):
+      staging: media: davinci_vpfe: Fix indentation issue in vpfe_video.c
+
+Manuel Rodriguez (1):
+      staging: media: davinci_vpfe: Fix spelling error on a comment
+
+Saatvik Arya (1):
+      staging: media: davinci_vpfe: dm365_resizer: Fix some spelling mistakes
+
+ drivers/staging/media/davinci_vpfe/Makefile        |  4 +++-
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c | 31 +++++++++++----------
+ drivers/staging/media/davinci_vpfe/dm365_resizer.h |  2 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |  8 ++++----
+ 4 files changed, 23 insertions(+), 22 deletions(-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
