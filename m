@@ -1,150 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52116 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753343AbcKBMqj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60198 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S965229AbcKWPiD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Nov 2016 08:46:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 04/11] cec: add CEC_MSG_FL_REPLY_TO_FOLLOWERS
-Date: Wed,  2 Nov 2016 13:46:28 +0100
-Message-Id: <20161102124635.11989-5-hverkuil@xs4all.nl>
-In-Reply-To: <20161102124635.11989-1-hverkuil@xs4all.nl>
-References: <20161102124635.11989-1-hverkuil@xs4all.nl>
+        Wed, 23 Nov 2016 10:38:03 -0500
+Date: Wed, 23 Nov 2016 17:37:23 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+Subject: Re: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
+Message-ID: <20161123153723.GE16630@valkosipuli.retiisi.org.uk>
+References: <20161122155244.802-1-khilman@baylibre.com>
+ <20161122155244.802-4-khilman@baylibre.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161122155244.802-4-khilman@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Kevin,
 
-Give the caller more control over how replies to a transmit are
-handled. By default the reply will only go to the filehandle that
-called CEC_TRANSMIT. If this new flag is set, then the reply will
-also go to all followers.
+On Tue, Nov 22, 2016 at 07:52:43AM -0800, Kevin Hilman wrote:
+> Allow getting of subdevs from DT ports and endpoints.
+> 
+> The _get_pdata() function was larely inspired by (i.e. stolen from)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/cec/cec-ioc-receive.rst | 22 +++++++++++++++++++++-
- drivers/staging/media/cec/TODO                   |  4 ----
- drivers/staging/media/cec/cec-adap.c             |  6 +++---
- drivers/staging/media/cec/cec-api.c              |  1 +
- include/linux/cec.h                              |  5 ++++-
- 5 files changed, 29 insertions(+), 9 deletions(-)
+vpif_capture_get_pdata and "largely"?
 
-diff --git a/Documentation/media/uapi/cec/cec-ioc-receive.rst b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-index 21a88df..b4dffd2 100644
---- a/Documentation/media/uapi/cec/cec-ioc-receive.rst
-+++ b/Documentation/media/uapi/cec/cec-ioc-receive.rst
-@@ -119,7 +119,7 @@ result.
- 	transmit.
-     * - __u32
-       - ``flags``
--      - Flags. No flags are defined yet, so set this to 0.
-+      - Flags. See :ref:`cec-msg-flags` for a list of available flags.
-     * - __u8
-       - ``tx_status``
-       - The status bits of the transmitted message. See
-@@ -180,6 +180,26 @@ result.
- 	valid if the :ref:`CEC_TX_STATUS_ERROR <CEC-TX-STATUS-ERROR>` status bit is set.
- 
- 
-+.. _cec-msg-flags:
-+
-+.. flat-table:: Flags for struct cec_msg
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths:       3 1 4
-+
-+    * .. _`CEC-MSG-FL-REPLY-TO-FOLLOWERS`:
-+
-+      - ``CEC_MSG_FL_REPLY_TO_FOLLOWERS``
-+      - 1
-+      - If a CEC transmit expects a reply, then by default that reply is only sent to
-+	the filehandle that called :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`. If this
-+	flag is set, then the reply is also sent to all followers, if any. If the
-+	filehandle that called :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>` is also a
-+	follower, then that filehandle will receive the reply twice: once as the
-+	result of the :ref:`ioctl CEC_TRANSMIT <CEC_TRANSMIT>`, and once via
-+	:ref:`ioctl CEC_RECEIVE <CEC_RECEIVE>`.
-+
-+
- .. tabularcolumns:: |p{5.6cm}|p{0.9cm}|p{11.0cm}|
- 
- .. _cec-tx-status:
-diff --git a/drivers/staging/media/cec/TODO b/drivers/staging/media/cec/TODO
-index 0841206..ce69001 100644
---- a/drivers/staging/media/cec/TODO
-+++ b/drivers/staging/media/cec/TODO
-@@ -13,10 +13,6 @@ Hopefully this will happen later in 2016.
- Other TODOs:
- 
- - There are two possible replies to CEC_MSG_INITIATE_ARC. How to handle that?
--- If the reply field of cec_msg is set then when the reply arrives it
--  is only sent to the filehandle that transmitted the original message
--  and not to any followers. Should this behavior change or perhaps
--  controlled through a cec_msg flag?
- - Should CEC_LOG_ADDR_TYPE_SPECIFIC be replaced by TYPE_2ND_TV and TYPE_PROCESSOR?
-   And also TYPE_SWITCH and TYPE_CDC_ONLY in addition to the TYPE_UNREGISTERED?
-   This should give the framework more information about the device type
-diff --git a/drivers/staging/media/cec/cec-adap.c b/drivers/staging/media/cec/cec-adap.c
-index 589e457..6aceb1d 100644
---- a/drivers/staging/media/cec/cec-adap.c
-+++ b/drivers/staging/media/cec/cec-adap.c
-@@ -587,7 +587,6 @@ int cec_transmit_msg_fh(struct cec_adapter *adap, struct cec_msg *msg,
- 	msg->tx_nack_cnt = 0;
- 	msg->tx_low_drive_cnt = 0;
- 	msg->tx_error_cnt = 0;
--	msg->flags = 0;
- 	msg->sequence = ++adap->sequence;
- 	if (!msg->sequence)
- 		msg->sequence = ++adap->sequence;
-@@ -823,6 +822,7 @@ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg)
- 			dst->rx_status = msg->rx_status;
- 			if (abort)
- 				dst->rx_status |= CEC_RX_STATUS_FEATURE_ABORT;
-+			msg->flags = dst->flags;
- 			/* Remove it from the wait_queue */
- 			list_del_init(&data->list);
- 
-@@ -1575,8 +1575,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	}
- 
- skip_processing:
--	/* If this was a reply, then we're done */
--	if (is_reply)
-+	/* If this was a reply, then we're done, unless otherwise specified */
-+	if (is_reply && !(msg->flags & CEC_MSG_FL_REPLY_TO_FOLLOWERS))
- 		return 0;
- 
- 	/*
-diff --git a/drivers/staging/media/cec/cec-api.c b/drivers/staging/media/cec/cec-api.c
-index 040ca7d..54148a6 100644
---- a/drivers/staging/media/cec/cec-api.c
-+++ b/drivers/staging/media/cec/cec-api.c
-@@ -190,6 +190,7 @@ static long cec_transmit(struct cec_adapter *adap, struct cec_fh *fh,
- 		return -ENOTTY;
- 	if (copy_from_user(&msg, parg, sizeof(msg)))
- 		return -EFAULT;
-+	msg.flags &= CEC_MSG_FL_REPLY_TO_FOLLOWERS;
- 	mutex_lock(&adap->lock);
- 	if (!adap->is_configured)
- 		err = -ENONET;
-diff --git a/include/linux/cec.h b/include/linux/cec.h
-index 825455f..3f2f076 100644
---- a/include/linux/cec.h
-+++ b/include/linux/cec.h
-@@ -175,7 +175,10 @@ static inline void cec_msg_set_reply_to(struct cec_msg *msg,
- 	msg->reply = msg->timeout = 0;
- }
- 
--/* cec status field */
-+/* cec_msg flags field */
-+#define CEC_MSG_FL_REPLY_TO_FOLLOWERS	(1 << 0)
-+
-+/* cec_msg tx/rx_status field */
- #define CEC_TX_STATUS_OK		(1 << 0)
- #define CEC_TX_STATUS_ARB_LOST		(1 << 1)
- #define CEC_TX_STATUS_NACK		(1 << 2)
+> am437x-vpfe.c
+> 
+> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+> ---
+>  drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++++++++++++-
+>  include/media/davinci/vpif_types.h            |   9 +-
+>  2 files changed, 133 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index 94ee6cf03f02..47a4699157e7 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -26,6 +26,8 @@
+>  #include <linux/slab.h>
+>  
+>  #include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-of.h>
+> +#include <media/i2c/tvp514x.h>
+
+Do you need this header?
+
+>  
+>  #include "vpif.h"
+>  #include "vpif_capture.h"
+> @@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
+>  
+>  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
+>  
+> +	if (!chan_cfg)
+> +		return -1;
+> +	if (input_index >= chan_cfg->input_count)
+> +		return -1;
+>  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
+>  	if (subdev_name == NULL)
+>  		return -1;
+> @@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
+>  	/* loop through the sub device list to get the sub device info */
+>  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
+>  		subdev_info = &vpif_cfg->subdev_info[i];
+> -		if (!strcmp(subdev_info->name, subdev_name))
+> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
+>  			return i;
+>  	}
+>  	return -1;
+> @@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+>  {
+>  	int i;
+>  
+> +	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
+> +		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
+> +		const struct device_node *node = _asd->match.of.node;
+> +
+> +		if (node == subdev->of_node) {
+> +			vpif_obj.sd[i] = subdev;
+> +			vpif_obj.config->chan_config->inputs[i].subdev_name =
+> +				(char *)subdev->of_node->full_name;
+> +			vpif_dbg(2, debug,
+> +				 "%s: setting input %d subdev_name = %s\n",
+> +				 __func__, i, subdev->of_node->full_name);
+> +			return 0;
+> +		}
+> +	}
+> +
+>  	for (i = 0; i < vpif_obj.config->subdev_count; i++)
+>  		if (!strcmp(vpif_obj.config->subdev_info[i].name,
+>  			    subdev->name)) {
+> @@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+>  	return vpif_probe_complete();
+>  }
+>  
+> +static struct vpif_capture_config *
+> +vpif_capture_get_pdata(struct platform_device *pdev)
+> +{
+> +	struct device_node *endpoint = NULL;
+> +	struct v4l2_of_endpoint bus_cfg;
+> +	struct vpif_capture_config *pdata;
+> +	struct vpif_subdev_info *sdinfo;
+> +	struct vpif_capture_chan_config *chan;
+> +	unsigned int i;
+> +
+> +	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
+> +		return pdev->dev.platform_data;
+> +
+> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		return NULL;
+> +	pdata->subdev_info =
+> +		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
+> +			     VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
+> +
+> +	if (!pdata->subdev_info)
+> +		return NULL;
+> +	dev_dbg(&pdev->dev, "%s\n", __func__);
+> +
+> +	for (i = 0; ; i++) {
+> +		struct device_node *rem;
+> +		unsigned int flags;
+> +		int err;
+> +
+> +		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
+> +						      endpoint);
+> +		if (!endpoint)
+> +			break;
+> +
+> +		sdinfo = &pdata->subdev_info[i];
+
+subdev_info[] has got VPIF_CAPTURE_MAX_CHANNELS entries only.
+
+> +		chan = &pdata->chan_config[i];
+> +		chan->inputs = devm_kzalloc(&pdev->dev,
+> +					    sizeof(*chan->inputs) *
+> +					    VPIF_DISPLAY_MAX_CHANNELS,
+> +					    GFP_KERNEL);
+> +
+> +		chan->input_count++;
+> +		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
+
+I wonder what's the purpose of using index i on this array as well.
+
+If you use that to access a corresponding entry in a different array, I'd
+just create a struct that contains the port configuration and the async
+sub-device. The omap3isp driver does that, for instance; see
+isp_of_parse_nodes() in drivers/media/platform/omap3isp/isp.c if you're
+interested. Up to you.
+
+> +		chan->inputs[i].input.std = V4L2_STD_ALL;
+> +		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
+> +
+> +		/* FIXME: need a new property? ch0:composite ch1: s-video */
+> +		if (i == 0)
+
+Can you assume that the first endopoint has got a particular kind of input?
+What if it's not connected?
+
+If this is a different physical port (not in the meaning another) in the
+device, I'd use the reg property for this. Please see
+Documentation/devicetree/bindings/media/video-interfaces.txt .
+
+> +			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
+> +		else
+> +			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
+> +		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
+> +
+> +		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> +		if (err) {
+> +			dev_err(&pdev->dev, "Could not parse the endpoint\n");
+> +			goto done;
+> +		}
+> +		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
+> +			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
+> +		flags = bus_cfg.bus.parallel.flags;
+> +
+> +		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +			chan->vpif_if.hd_pol = 1;
+> +
+> +		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +			chan->vpif_if.vd_pol = 1;
+> +
+> +		chan->vpif_if.if_type = VPIF_IF_BT656;
+> +		rem = of_graph_get_remote_port_parent(endpoint);
+> +		if (!rem) {
+> +			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
+> +				endpoint->full_name);
+> +			goto done;
+> +		}
+> +
+> +		dev_dbg(&pdev->dev, "Remote device %s, %s found\n",
+> +			rem->name, rem->full_name);
+> +		sdinfo->name = rem->full_name;
+> +
+> +		pdata->asd[i] = devm_kzalloc(&pdev->dev,
+> +					     sizeof(struct v4l2_async_subdev),
+> +					     GFP_KERNEL);
+
+Do you ensure somewhere that i isn't overrunning the pdata->asd[] array?
+It's got VPIF_CAPTURE_MAX_CHANNELS entries.
+
+> +		if (!pdata->asd[i]) {
+> +			of_node_put(rem);
+> +			pdata = NULL;
+> +			goto done;
+> +		}
+> +
+> +		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_OF;
+> +		pdata->asd[i]->match.of.node = rem;
+> +		of_node_put(rem);
+> +	}
+> +
+> +done:
+> +	pdata->asd_sizes[0] = i;
+> +	pdata->subdev_count = i;
+> +	pdata->card_name = "DA850/OMAP-L138 Video Capture";
+> +
+> +	return pdata;
+> +}
+> +
+>  /**
+>   * vpif_probe : This function probes the vpif capture driver
+>   * @pdev: platform device pointer
+> @@ -1438,6 +1563,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+>  	int res_idx = 0;
+>  	int i, err;
+>  
+> +	pdev->dev.platform_data = vpif_capture_get_pdata(pdev);
+>  	if (!pdev->dev.platform_data) {
+>  		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
+>  		return -EINVAL;
+> @@ -1480,7 +1606,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+>  		goto vpif_unregister;
+>  	}
+>  
+> -	if (!vpif_obj.config->asd_sizes) {
+> +	if (!vpif_obj.config->asd_sizes[0]) {
+>  		i2c_adap = i2c_get_adapter(1);
+>  		for (i = 0; i < subdev_count; i++) {
+>  			subdevdata = &vpif_obj.config->subdev_info[i];
+> diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+> index 3cb1704a0650..4ee3b41975db 100644
+> --- a/include/media/davinci/vpif_types.h
+> +++ b/include/media/davinci/vpif_types.h
+> @@ -65,14 +65,14 @@ struct vpif_display_config {
+>  
+>  struct vpif_input {
+>  	struct v4l2_input input;
+> -	const char *subdev_name;
+> +	char *subdev_name;
+>  	u32 input_route;
+>  	u32 output_route;
+>  };
+>  
+>  struct vpif_capture_chan_config {
+>  	struct vpif_interface vpif_if;
+> -	const struct vpif_input *inputs;
+> +	struct vpif_input *inputs;
+>  	int input_count;
+>  };
+>  
+> @@ -83,7 +83,8 @@ struct vpif_capture_config {
+>  	struct vpif_subdev_info *subdev_info;
+>  	int subdev_count;
+>  	const char *card_name;
+> -	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+> -	int *asd_sizes;		/* 0-terminated array of asd group sizes */
+> +
+> +	struct v4l2_async_subdev *asd[VPIF_CAPTURE_MAX_CHANNELS];
+> +	int asd_sizes[VPIF_CAPTURE_MAX_CHANNELS];
+>  };
+>  #endif /* _VPIF_TYPES_H */
+
 -- 
-2.10.1
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
