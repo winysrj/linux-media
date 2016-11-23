@@ -1,79 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:37323 "EHLO
-        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753032AbcKTRg6 (ORCPT
+Received: from mail-pf0-f178.google.com ([209.85.192.178]:36717 "EHLO
+        mail-pf0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935029AbcKWX0K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 20 Nov 2016 12:36:58 -0500
-Received: by mail-wm0-f50.google.com with SMTP id t79so109588270wmt.0
-        for <linux-media@vger.kernel.org>; Sun, 20 Nov 2016 09:36:57 -0800 (PST)
+        Wed, 23 Nov 2016 18:26:10 -0500
+Received: by mail-pf0-f178.google.com with SMTP id 189so5687240pfz.3
+        for <linux-media@vger.kernel.org>; Wed, 23 Nov 2016 15:26:10 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>
+Subject: Re: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
+References: <20161122155244.802-1-khilman@baylibre.com>
+        <20161122155244.802-4-khilman@baylibre.com>
+        <20161123153723.GE16630@valkosipuli.retiisi.org.uk>
+Date: Wed, 23 Nov 2016 15:25:32 -0800
+In-Reply-To: <20161123153723.GE16630@valkosipuli.retiisi.org.uk> (Sakari
+        Ailus's message of "Wed, 23 Nov 2016 17:37:23 +0200")
+Message-ID: <m2a8cpvkwj.fsf@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <20161027203515.GA847@arch-desktop>
-References: <cover.1477592284.git.mahasler@gmail.com> <20161027203515.GA847@arch-desktop>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Sun, 20 Nov 2016 14:36:55 -0300
-Message-ID: <CAAEAJfAiK+MmT7dY-eGV2QwL6voLzBnMhrjVy=au5zT83JtjqA@mail.gmail.com>
-Subject: Re: [PATCH v2 3/3] stk1160: Add module param for setting the record gain.
-To: Marcel Hasler <mahasler@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 October 2016 at 17:35, Marcel Hasler <mahasler@gmail.com> wrote:
-> Allow setting a custom record gain for the internal AC97 codec (if availa=
-ble). This can be
-> a value between 0 and 15, 8 is the default and should be suitable for mos=
-t users. The Windows
-> driver also sets this to 8 without any possibility for changing it.
->
-> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
-> ---
->  drivers/media/usb/stk1160/stk1160-ac97.c | 11 ++++++++++-
->  1 file changed, 10 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb=
-/stk1160/stk1160-ac97.c
-> index 6dbc39f..31bdd60d 100644
-> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
-> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-> @@ -25,6 +25,11 @@
->  #include "stk1160.h"
->  #include "stk1160-reg.h"
->
-> +static u8 gain =3D 8;
-> +
-> +module_param(gain, byte, 0444);
-> +MODULE_PARM_DESC(gain, "Set capture gain level if AC97 codec is availabl=
-e (0-15, default: 8)");
-> +
->  static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
->  {
->         /* Set codec register address */
-> @@ -122,7 +127,11 @@ void stk1160_ac97_setup(struct stk1160 *dev)
->         stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
->         stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
->         stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
-> -       stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
-> +
-> +       /* Record gain */
-> +       gain =3D (gain > 15) ? 15 : gain;
-> +       stk1160_info("Setting capture gain to %d.", gain);
+Hi Sakari,
 
-This message doesn't add anything useful, can we drop it?
+Sakari Ailus <sakari.ailus@iki.fi> writes:
 
-> +       stk1160_write_ac97(dev, 0x1c, (gain<<8) | gain);
+> On Tue, Nov 22, 2016 at 07:52:43AM -0800, Kevin Hilman wrote:
+>> Allow getting of subdevs from DT ports and endpoints.
+>> 
+>> The _get_pdata() function was larely inspired by (i.e. stolen from)
 >
->  #ifdef DEBUG
->         stk1160_ac97_dump_regs(dev);
-> --
-> 2.10.1
+> vpif_capture_get_pdata and "largely"?
+
+Yes, thanks.
+
+>> am437x-vpfe.c
+>> 
+>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++++++++++++-
+>>  include/media/davinci/vpif_types.h            |   9 +-
+>>  2 files changed, 133 insertions(+), 6 deletions(-)
+>> 
+>> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+>> index 94ee6cf03f02..47a4699157e7 100644
+>> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> @@ -26,6 +26,8 @@
+>>  #include <linux/slab.h>
+>>  
+>>  #include <media/v4l2-ioctl.h>
+>> +#include <media/v4l2-of.h>
+>> +#include <media/i2c/tvp514x.h>
+>
+> Do you need this header?
 >
 
+Yes, based on discussion with Hans, since there is no DT binding for
+selecting the input pins of the TVP514x, I have to select it in the
+driver, so I need the defines from this header.  More on this below...
+
+>>  
+>>  #include "vpif.h"
+>>  #include "vpif_capture.h"
+>> @@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
+>>  
+>>  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
+>>  
+>> +	if (!chan_cfg)
+>> +		return -1;
+>> +	if (input_index >= chan_cfg->input_count)
+>> +		return -1;
+>>  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
+>>  	if (subdev_name == NULL)
+>>  		return -1;
+>> @@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
+>>  	/* loop through the sub device list to get the sub device info */
+>>  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
+>>  		subdev_info = &vpif_cfg->subdev_info[i];
+>> -		if (!strcmp(subdev_info->name, subdev_name))
+>> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
+>>  			return i;
+>>  	}
+>>  	return -1;
+>> @@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+>>  {
+>>  	int i;
+>>  
+>> +	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
+>> +		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
+>> +		const struct device_node *node = _asd->match.of.node;
+>> +
+>> +		if (node == subdev->of_node) {
+>> +			vpif_obj.sd[i] = subdev;
+>> +			vpif_obj.config->chan_config->inputs[i].subdev_name =
+>> +				(char *)subdev->of_node->full_name;
+>> +			vpif_dbg(2, debug,
+>> +				 "%s: setting input %d subdev_name = %s\n",
+>> +				 __func__, i, subdev->of_node->full_name);
+>> +			return 0;
+>> +		}
+>> +	}
+>> +
+>>  	for (i = 0; i < vpif_obj.config->subdev_count; i++)
+>>  		if (!strcmp(vpif_obj.config->subdev_info[i].name,
+>>  			    subdev->name)) {
+>> @@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+>>  	return vpif_probe_complete();
+>>  }
+>>  
+>> +static struct vpif_capture_config *
+>> +vpif_capture_get_pdata(struct platform_device *pdev)
+>> +{
+>> +	struct device_node *endpoint = NULL;
+>> +	struct v4l2_of_endpoint bus_cfg;
+>> +	struct vpif_capture_config *pdata;
+>> +	struct vpif_subdev_info *sdinfo;
+>> +	struct vpif_capture_chan_config *chan;
+>> +	unsigned int i;
+>> +
+>> +	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
+>> +
+>> +	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
+>> +		return pdev->dev.platform_data;
+>> +
+>> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+>> +	if (!pdata)
+>> +		return NULL;
+>> +	pdata->subdev_info =
+>> +		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
+>> +			     VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
+>> +
+>> +	if (!pdata->subdev_info)
+>> +		return NULL;
+>> +	dev_dbg(&pdev->dev, "%s\n", __func__);
+>> +
+>> +	for (i = 0; ; i++) {
+>> +		struct device_node *rem;
+>> +		unsigned int flags;
+>> +		int err;
+>> +
+>> +		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
+>> +						      endpoint);
+>> +		if (!endpoint)
+>> +			break;
+>> +
+>> +		sdinfo = &pdata->subdev_info[i];
+>
+> subdev_info[] has got VPIF_CAPTURE_MAX_CHANNELS entries only.
+>
+
+Right, I need to make the loop only go for a max of
+VPIF_CAPTURE_MAX_CHANNELS iterations.
+
+>> +		chan = &pdata->chan_config[i];
+>> +		chan->inputs = devm_kzalloc(&pdev->dev,
+>> +					    sizeof(*chan->inputs) *
+>> +					    VPIF_DISPLAY_MAX_CHANNELS,
+>> +					    GFP_KERNEL);
+>> +
+>> +		chan->input_count++;
+>> +		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
+>
+> I wonder what's the purpose of using index i on this array as well.
+
+The number of endpoints in DT is the number of input channels configured
+(up to a max of VPIF_CAPTURE_MAX_CHANNELS.)
+
+> If you use that to access a corresponding entry in a different array, I'd
+> just create a struct that contains the port configuration and the async
+> sub-device. The omap3isp driver does that, for instance; see
+> isp_of_parse_nodes() in drivers/media/platform/omap3isp/isp.c if you're
+> interested. Up to you.
+
+OK, I'll have a look at that driver. The goal here with this series is
+just to get this working with DT, but also not break the existing legacy
+platform_device support, so I'm trying not to mess with the
+driver-interal data structures too much.
+
+>> +		chan->inputs[i].input.std = V4L2_STD_ALL;
+>> +		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
+>> +
+>> +		/* FIXME: need a new property? ch0:composite ch1: s-video */
+>> +		if (i == 0)
+>
+> Can you assume that the first endopoint has got a particular kind of input?
+> What if it's not connected?
+
+On all the boards I know of (there aren't many using this SoC), it's a
+safe assumption.
+
+> If this is a different physical port (not in the meaning another) in the
+> device, I'd use the reg property for this. Please see
+> Documentation/devicetree/bindings/media/video-interfaces.txt .
+
+My understanding (which is admittedly somewhat fuzzy) of the TVP514x is
+that it's not physically a different port.  Instead, it's just telling
+the TVP514x which pin(s) will be active inputs (and what kind of signal
+will be present.)
+
+I'm open to a better way to describe this input select from DT, but
+based on what I heard from Hans, there isn't currently a good way to do
+that except for in the driver:
+(c.f. https://marc.info/?l=linux-arm-kernel&m=147887871615788)
+
+Based on further discussion in that thread, it sounds like there may be
+a way forward coming soon, and I'll be glad to switch to that when it
+arrives.
+
+>> +			chan->inputs[i].input_route = INPUT_CVBS_VI2B;
+>> +		else
+>> +			chan->inputs[i].input_route = INPUT_SVIDEO_VI2C_VI1C;
+>> +		chan->inputs[i].output_route = OUTPUT_10BIT_422_EMBEDDED_SYNC;
+>> +
+>> +		err = v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+>> +		if (err) {
+>> +			dev_err(&pdev->dev, "Could not parse the endpoint\n");
+>> +			goto done;
+>> +		}
+>> +		dev_dbg(&pdev->dev, "Endpoint %s, bus_width = %d\n",
+>> +			endpoint->full_name, bus_cfg.bus.parallel.bus_width);
+>> +		flags = bus_cfg.bus.parallel.flags;
+>> +
+>> +		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+>> +			chan->vpif_if.hd_pol = 1;
+>> +
+>> +		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+>> +			chan->vpif_if.vd_pol = 1;
+>> +
+>> +		chan->vpif_if.if_type = VPIF_IF_BT656;
+>> +		rem = of_graph_get_remote_port_parent(endpoint);
+>> +		if (!rem) {
+>> +			dev_dbg(&pdev->dev, "Remote device at %s not found\n",
+>> +				endpoint->full_name);
+>> +			goto done;
+>> +		}
+>> +
+>> +		dev_dbg(&pdev->dev, "Remote device %s, %s found\n",
+>> +			rem->name, rem->full_name);
+>> +		sdinfo->name = rem->full_name;
+>> +
+>> +		pdata->asd[i] = devm_kzalloc(&pdev->dev,
+>> +					     sizeof(struct v4l2_async_subdev),
+>> +					     GFP_KERNEL);
+>
+> Do you ensure somewhere that i isn't overrunning the pdata->asd[] array?
+> It's got VPIF_CAPTURE_MAX_CHANNELS entries.
+
+Oops, no.  That will be fixed by making the outer for loop only iterate
+for i = i..VPIF_CAPTURE_MAX_CHANNELS.
 
 
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+Thanks for the review,
+
+Kevin
