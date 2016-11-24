@@ -1,51 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:35868 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751701AbcKONFf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 08:05:35 -0500
+Date: Thu, 24 Nov 2016 09:24:22 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: "Sagalovitch, Serguei" <Serguei.Sagalovitch@amd.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161124162422.GB20818@obsidianresearch.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <SN1PR12MB0703CE07F4878243164299C4FEB70@SN1PR12MB0703.namprd12.prod.outlook.com>
 MIME-Version: 1.0
-In-Reply-To: <20161112122911.19079-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112122911.19079-1-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 15 Nov 2016 14:05:33 +0100
-Message-ID: <CAMuHMdWTzdV_-FLo3=pb+bkKPVu-di8XfkLsMbbCRkunYjBZrA@mail.gmail.com>
-Subject: Re: [PATCHv4] media: rcar-csi2: add Renesas R-Car MIPI CSI-2 driver
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <SN1PR12MB0703CE07F4878243164299C4FEB70@SN1PR12MB0703.namprd12.prod.outlook.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 12, 2016 at 1:29 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/rcar-csi2.txt
+On Thu, Nov 24, 2016 at 12:40:37AM +0000, Sagalovitch, Serguei wrote:
+> On Wed, Nov 23, 2016 at 02:11:29PM -0700, Logan Gunthorpe wrote:
+> 
+> > Perhaps I am not following what Serguei is asking for, but I
+> > understood the desire was for a complex GPU allocator that could
+> > migrate pages between GPU and CPU memory under control of the GPU
+> > driver, among other things. The desire is for DMA to continue to work
+> > even after these migrations happen.
+> 
+> The main issue is to  how to solve use cases when p2p is 
+> requested/initiated via CPU pointers where such pointers could 
+> point to non-system memory location e.g.  VRAM.  
 
-> +The device node should contain two 'port' child nodes according to the
-> +bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt. Port 0 should connect the node that is the video
-> +source for to the CSI-2. Port 1 should connect all the R-Car VIN
+Okay, but your list is conflating a whole bunch of problems..
 
-Trailing space at the end of previous line.
+ 1) How to go from a __user pointer to a p2p DMA address
+  a) How to validate, setup iommu and maybe worst case bounce buffer
+     these p2p DMAs
+ 2) How to allow drivers (ie GPU allocator) dynamically
+    remap pages in a VMA to/from p2p DMA addresses
+ 3) How to expose uncachable p2p DMA address to user space via mmap
 
-Gr{oetje,eeting}s,
+> to allow "get_user_pages"  to work transparently similar 
+> how it is/was done for "DAX Device" case. Unfortunately 
+> based on my understanding "DAX Device" implementation 
+> deal only with permanently  "locked" memory  (fixed location) 
+> unrelated to "get_user_pages"/"put_page" scope  
+> which doesn't satisfy requirements  for "eviction" / "moving" of 
+> memory keeping CPU address intact.  
 
-                        Geert
+Hurm, isn't that issue with DAX only to do with being coherent with
+the page cache?
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
+A GPU allocator would not use the page cache, it would have to
+construct VMAs some other way.
 
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+> My understanding is that It will not solve RDMA MR issue where "lock" 
+> could be during the whole  application life but  (a) it will not make 
+> RDMA MR case worse  (b) should be enough for all other cases for 
+> "get_user_pages"/"put_page" controlled by  kernel.
+
+Right. There is no solution to the RDMA MR issue on old hardware. Apps
+that are using GPU+RDMA+Old hardware will have to use short lived MRs
+and pay that performance cost, or give up on migration.
+
+Jason
