@@ -1,91 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49467 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754222AbcKBN3j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:39 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 11/32] media: rcar-vin: refactor pad lookup code
-Date: Wed,  2 Nov 2016 14:23:08 +0100
-Message-Id: <20161102132329.436-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Date: Thu, 24 Nov 2016 09:42:49 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161124164249.GD20818@obsidianresearch.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code to lookup which pad is source and sink can be broken out to a
-helper function.
+On Wed, Nov 23, 2016 at 06:25:21PM -0700, Logan Gunthorpe wrote:
+> 
+> 
+> On 23/11/16 02:55 PM, Jason Gunthorpe wrote:
+> >>> Only ODP hardware allows changing the DMA address on the fly, and it
+> >>> works at the page table level. We do not need special handling for
+> >>> RDMA.
+> >>
+> >> I am aware of ODP but, noted by others, it doesn't provide a general
+> >> solution to the points above.
+> > 
+> > How do you mean?
+> 
+> I was only saying it wasn't general in that it wouldn't work for IB
+> hardware that doesn't support ODP or other hardware  that doesn't do
+> similar things (like an NVMe drive).
 
-A bad check is also dropped in this refactoring. If the subdeivce don't
-supply pad information the driver would not be able to use it if the
-check is kept.
+There are three cases to worry about:
+ - Coherent long lived page table mirroring (RDMA ODP MR)
+ - Non-coherent long lived page table mirroring (RDMA MR)
+ - Short lived DMA mapping (everything else)
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 29 +++++++++++++----------------
- 1 file changed, 13 insertions(+), 16 deletions(-)
+Like you say below we have to handle short lived in the usual way, and
+that covers basically every device except IB MRs, including the
+command queue on a NVMe drive.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index fb6368c..50058fe 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -66,11 +66,21 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- 	return false;
- }
- 
-+static unsigned int rvin_pad_idx(struct v4l2_subdev *sd, int direction)
-+{
-+	unsigned int pad_idx;
-+
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags == direction)
-+			return pad_idx;
-+
-+	return 0;
-+}
-+
- static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
- 	struct v4l2_subdev *sd = vin->digital.subdev;
--	unsigned int pad_idx;
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
-@@ -84,21 +94,8 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 		vin->digital.subdev->name, vin->digital.code);
- 
- 	/* Figure out source and sink pad ids */
--	vin->digital.source_pad_idx = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
--			break;
--	if (pad_idx >= sd->entity.num_pads)
--		return -EINVAL;
--
--	vin->digital.source_pad_idx = pad_idx;
--
--	vin->digital.sink_pad_idx = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->digital.sink_pad_idx = pad_idx;
--			break;
--		}
-+	vin->digital.source_pad_idx = rvin_pad_idx(sd, MEDIA_PAD_FL_SOURCE);
-+	vin->digital.sink_pad_idx = rvin_pad_idx(sd, MEDIA_PAD_FL_SINK);
- 
- 	vin_dbg(vin, "Found media pads for %s source: %d sink %d\n",
- 		vin->digital.subdev->name, vin->digital.source_pad_idx,
--- 
-2.10.2
+> any complex allocators (GPU or otherwise) should respect that. And that
+> seems like it should be the default way most of this works -- and I
+> think it wouldn't actually take too much effort to make it all work now
+> as is. (Our iopmem work is actually quite small and simple.)
 
+Yes, absolutely, some kind of page pinning like locking is a hard
+requirement.
+
+> Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
+> memory working for some time. I'd say it's a good fit. The main question
+> we've had is how to expose PCIe bars to userspace to be used as MRs and
+> such.
+
+Is there any progress on that?
+
+I still don't quite get what iopmem was about.. I thought the
+objection to uncachable ZONE_DEVICE & DAX made sense, so running DAX
+over iopmem and still ending up with uncacheable mmaps still seems
+like a non-starter to me...
+
+Serguei, what is your plan in GPU land for migration? Ie if I have a
+CPU mapped page and the GPU moves it to VRAM, it becomes non-cachable
+- do you still allow the CPU to access it? Or do you swap it back to
+cachable memory if the CPU touches it?
+
+One approach might be to mmap the uncachable ZONE_DEVICE memory and
+mark it inaccessible to the CPU - DMA could still translate. If the
+CPU needs it then the kernel migrates it to system memory so it
+becomes cachable. ??
+
+Jason
