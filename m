@@ -1,82 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57066 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934006AbcKPJFl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 04:05:41 -0500
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>
-Subject: [PATCH 9/9] s5p-mfc: Add support for MFC v8 available in Exynos 5433
- SoCs
-Date: Wed, 16 Nov 2016 10:04:58 +0100
-Message-id: <1479287098-30493-10-git-send-email-m.szyprowski@samsung.com>
-In-reply-to: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
-References: <1479287098-30493-1-git-send-email-m.szyprowski@samsung.com>
- <CGME20161116090523eucas1p12a4b95363e9d2b0a823141a2f1c226e1@eucas1p1.samsung.com>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
+ <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
+ <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+Date: Wed, 23 Nov 2016 18:25:21 -0700
+MIME-Version: 1.0
+In-Reply-To: <20161123215510.GA16311@obsidianresearch.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos5433 SoC has MFC v8 hardware module, but it has more complex clock
-hierarchy, so a new compatible has been added.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- Documentation/devicetree/bindings/media/s5p-mfc.txt |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c            | 14 ++++++++++++++
- 2 files changed, 15 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index 92c94f5ecbf1..2c901286d818 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -12,6 +12,7 @@ Required properties:
- 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
- 	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
- 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
-+	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
- 
-   - reg : Physical base address of the IP registers and length of memory
- 	  mapped region.
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index fa674e8e09a8..d11a2405b3d2 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1530,6 +1530,17 @@ static int s5p_mfc_resume(struct device *dev)
- 	.num_clocks	= 1,
- };
- 
-+static struct s5p_mfc_variant mfc_drvdata_v8_5433 = {
-+	.version	= MFC_VERSION_V8,
-+	.version_bit	= MFC_V8_BIT,
-+	.port_num	= MFC_NUM_PORTS_V8,
-+	.buf_size	= &buf_size_v8,
-+	.buf_align	= &mfc_buf_align_v8,
-+	.fw_name[0]     = "s5p-mfc-v8.fw",
-+	.clk_names	= {"pclk", "aclk", "aclk_xiu"},
-+	.num_clocks	= 3,
-+};
-+
- static const struct of_device_id exynos_mfc_match[] = {
- 	{
- 		.compatible = "samsung,mfc-v5",
-@@ -1543,6 +1554,9 @@ static int s5p_mfc_resume(struct device *dev)
- 	}, {
- 		.compatible = "samsung,mfc-v8",
- 		.data = &mfc_drvdata_v8,
-+	}, {
-+		.compatible = "samsung,exynos5433-mfc",
-+		.data = &mfc_drvdata_v8_5433,
- 	},
- 	{},
- };
--- 
-1.9.1
+On 23/11/16 02:55 PM, Jason Gunthorpe wrote:
+>>> Only ODP hardware allows changing the DMA address on the fly, and it
+>>> works at the page table level. We do not need special handling for
+>>> RDMA.
+>>
+>> I am aware of ODP but, noted by others, it doesn't provide a general
+>> solution to the points above.
+> 
+> How do you mean?
 
+I was only saying it wasn't general in that it wouldn't work for IB
+hardware that doesn't support ODP or other hardware  that doesn't do
+similar things (like an NVMe drive).
+
+It makes sense for hardware that supports ODP to allow MRs to not pin
+the underlying memory and provide for migrations that the hardware can
+follow. But most DMA engines will require the memory to be pinned and
+any complex allocators (GPU or otherwise) should respect that. And that
+seems like it should be the default way most of this works -- and I
+think it wouldn't actually take too much effort to make it all work now
+as is. (Our iopmem work is actually quite small and simple.)
+
+>> It's also worth noting that #4 makes use of ZONE_DEVICE (#2) so they are
+>> really the same option. iopmem is really just one way to get BAR
+>> addresses to user-space while inside the kernel it's ZONE_DEVICE.
+> 
+> Seems fine for RDMA?
+
+Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
+memory working for some time. I'd say it's a good fit. The main question
+we've had is how to expose PCIe bars to userspace to be used as MRs and
+such.
+
+
+Logan
