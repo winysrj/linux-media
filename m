@@ -1,99 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx194.ext.ti.com ([198.47.27.80]:14826 "EHLO
-        lelnx194.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753535AbcKRXVP (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:41515 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936409AbcKXLxF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:15 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 22/35] media: ti-vpe: vpdma: RGB data type yield inverted data
-Date: Fri, 18 Nov 2016 17:20:32 -0600
-Message-ID: <20161118232045.24665-23-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Thu, 24 Nov 2016 06:53:05 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: [PATCH v2 2/3] [media] ivtv: use pr_foo() instead of calling printk() directly
+Date: Thu, 24 Nov 2016 09:52:34 -0200
+Message-Id: <ac5ad00c236047cfc2ba984734b01c79e0427eb6.1479988339.git.mchehab@s-opensource.com>
+In-Reply-To: <4231325064779b4dcbec980439f4be08c7cfabe7.1479988339.git.mchehab@s-opensource.com>
+References: <4231325064779b4dcbec980439f4be08c7cfabe7.1479988339.git.mchehab@s-opensource.com>
+In-Reply-To: <4231325064779b4dcbec980439f4be08c7cfabe7.1479988339.git.mchehab@s-opensource.com>
+References: <4231325064779b4dcbec980439f4be08c7cfabe7.1479988339.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VPDMA RGB data type definition have been updated
-to match with Errata i839.
+pr_foo() provides a convenient way for printk's, enforcing
+that they'll all prepend the error message with the driver's
+name.
 
-But some of the ARGB definition appeared to be wrong
-in the document also. As they would yield RGBA instead.
-They have been corrected based on experimentation.
+Use it inside ivtv.
 
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/ti-vpe/vpdma_priv.h | 49 ++++++++++++++++++------------
- 1 file changed, 29 insertions(+), 20 deletions(-)
+ drivers/media/pci/ivtv/ivtv-alsa-main.c | 11 +++++------
+ drivers/media/pci/ivtv/ivtv-driver.c    | 12 ++++++------
+ drivers/media/pci/ivtv/ivtvfb.c         |  6 +++---
+ 3 files changed, 14 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma_priv.h b/drivers/media/platform/ti-vpe/vpdma_priv.h
-index f974a803fa27..72c7f13b4a9d 100644
---- a/drivers/media/platform/ti-vpe/vpdma_priv.h
-+++ b/drivers/media/platform/ti-vpe/vpdma_priv.h
-@@ -101,26 +101,35 @@
- #define DATA_TYPE_CBY422			0x27
- #define DATA_TYPE_CRY422			0x37
+diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+index 67ab73ef2bca..f7a036844f02 100644
+--- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
++++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+@@ -34,10 +34,11 @@
+ int ivtv_alsa_debug;
+ static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;
  
--#define DATA_TYPE_RGB16_565			0x0
--#define DATA_TYPE_ARGB_1555			0x1
--#define DATA_TYPE_ARGB_4444			0x2
--#define DATA_TYPE_RGBA_5551			0x3
--#define DATA_TYPE_RGBA_4444			0x4
--#define DATA_TYPE_ARGB24_6666			0x5
--#define DATA_TYPE_RGB24_888			0x6
--#define DATA_TYPE_ARGB32_8888			0x7
--#define DATA_TYPE_RGBA24_6666			0x8
--#define DATA_TYPE_RGBA32_8888			0x9
--#define DATA_TYPE_BGR16_565			0x10
--#define DATA_TYPE_ABGR_1555			0x11
--#define DATA_TYPE_ABGR_4444			0x12
--#define DATA_TYPE_BGRA_5551			0x13
--#define DATA_TYPE_BGRA_4444			0x14
--#define DATA_TYPE_ABGR24_6666			0x15
--#define DATA_TYPE_BGR24_888			0x16
--#define DATA_TYPE_ABGR32_8888			0x17
--#define DATA_TYPE_BGRA24_6666			0x18
--#define DATA_TYPE_BGRA32_8888			0x19
-+/*
-+ * The RGB data type definition below are defined
-+ * to follow Errata i819.
-+ * The initial values were taken from:
-+ * VPDMA_data_type_mapping_v0.2vayu_c.pdf
-+ * But some of the ARGB definition appeared to be wrong
-+ * in the document also. As they would yield RGBA instead.
-+ * They have been corrected based on experimentation.
-+ */
-+#define DATA_TYPE_RGB16_565			0x10
-+#define DATA_TYPE_ARGB_1555			0x13
-+#define DATA_TYPE_ARGB_4444			0x14
-+#define DATA_TYPE_RGBA_5551			0x11
-+#define DATA_TYPE_RGBA_4444			0x12
-+#define DATA_TYPE_ARGB24_6666			0x18
-+#define DATA_TYPE_RGB24_888			0x16
-+#define DATA_TYPE_ARGB32_8888			0x17
-+#define DATA_TYPE_RGBA24_6666			0x15
-+#define DATA_TYPE_RGBA32_8888			0x19
-+#define DATA_TYPE_BGR16_565			0x0
-+#define DATA_TYPE_ABGR_1555			0x3
-+#define DATA_TYPE_ABGR_4444			0x4
-+#define DATA_TYPE_BGRA_5551			0x1
-+#define DATA_TYPE_BGRA_4444			0x2
-+#define DATA_TYPE_ABGR24_6666			0x8
-+#define DATA_TYPE_BGR24_888			0x6
-+#define DATA_TYPE_ABGR32_8888			0x7
-+#define DATA_TYPE_BGRA24_6666			0x5
-+#define DATA_TYPE_BGRA32_8888			0x9
+-#define IVTV_DEBUG_ALSA_INFO(fmt, arg...) \
++#define IVTV_DEBUG_ALSA_INFO(__fmt, __arg...) \
+ 	do { \
+ 		if (ivtv_alsa_debug & 2) \
+-			pr_info("%s: " fmt, "ivtv-alsa", ## arg); \
++			printk(KERN_INFO pr_fmt("%s: alsa:" __fmt),	\
++			       __func__, ##__arg);			\
+ 	} while (0)
  
- #define DATA_TYPE_MV				0x3
+ module_param_named(debug, ivtv_alsa_debug, int, 0644);
+@@ -226,8 +227,7 @@ static int ivtv_alsa_load(struct ivtv *itv)
  
+ 	s = &itv->streams[IVTV_ENC_STREAM_TYPE_PCM];
+ 	if (s->vdev.v4l2_dev == NULL) {
+-		IVTV_DEBUG_ALSA_INFO("%s: PCM stream for card is disabled - skipping\n",
+-				     __func__);
++		IVTV_DEBUG_ALSA_INFO("PCM stream for card is disabled - skipping\n");
+ 		return 0;
+ 	}
+ 
+@@ -241,8 +241,7 @@ static int ivtv_alsa_load(struct ivtv *itv)
+ 		IVTV_ALSA_ERR("%s: failed to create struct snd_ivtv_card\n",
+ 			      __func__);
+ 	} else {
+-		IVTV_DEBUG_ALSA_INFO("%s: created ivtv ALSA interface instance \n",
+-				     __func__);
++		IVTV_DEBUG_ALSA_INFO("created ivtv ALSA interface instance\n");
+ 	}
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
+index 0a3b80a4bd69..ab2ae53618e8 100644
+--- a/drivers/media/pci/ivtv/ivtv-driver.c
++++ b/drivers/media/pci/ivtv/ivtv-driver.c
+@@ -1452,7 +1452,7 @@ static void ivtv_remove(struct pci_dev *pdev)
+ 	for (i = 0; i < IVTV_VBI_FRAMES; i++)
+ 		kfree(itv->vbi.sliced_mpeg_data[i]);
+ 
+-	printk(KERN_INFO "ivtv: Removed %s\n", itv->card_name);
++	pr_info("Removed %s\n", itv->card_name);
+ 
+ 	v4l2_device_unregister(&itv->v4l2_dev);
+ 	kfree(itv);
+@@ -1468,25 +1468,25 @@ static struct pci_driver ivtv_pci_driver = {
+ 
+ static int __init module_start(void)
+ {
+-	printk(KERN_INFO "ivtv: Start initialization, version %s\n", IVTV_VERSION);
++	pr_info("Start initialization, version %s\n", IVTV_VERSION);
+ 
+ 	/* Validate parameters */
+ 	if (ivtv_first_minor < 0 || ivtv_first_minor >= IVTV_MAX_CARDS) {
+-		printk(KERN_ERR "ivtv: Exiting, ivtv_first_minor must be between 0 and %d\n",
++		pr_err("Exiting, ivtv_first_minor must be between 0 and %d\n",
+ 		     IVTV_MAX_CARDS - 1);
+ 		return -1;
+ 	}
+ 
+ 	if (ivtv_debug < 0 || ivtv_debug > 2047) {
+ 		ivtv_debug = 0;
+-		printk(KERN_INFO "ivtv: Debug value must be >= 0 and <= 2047\n");
++		pr_info("Debug value must be >= 0 and <= 2047\n");
+ 	}
+ 
+ 	if (pci_register_driver(&ivtv_pci_driver)) {
+-		printk(KERN_ERR "ivtv: Error detecting PCI card\n");
++		pr_err("Error detecting PCI card\n");
+ 		return -ENODEV;
+ 	}
+-	printk(KERN_INFO "ivtv: End initialization\n");
++	pr_info("End initialization\n");
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+index b59b60d605eb..621b2f613d81 100644
+--- a/drivers/media/pci/ivtv/ivtvfb.c
++++ b/drivers/media/pci/ivtv/ivtvfb.c
+@@ -1270,7 +1270,7 @@ static int __init ivtvfb_init(void)
+ 
+ 
+ 	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
+-		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
++		pr_err("ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
+ 		     IVTV_MAX_CARDS - 1);
+ 		return -EINVAL;
+ 	}
+@@ -1279,7 +1279,7 @@ static int __init ivtvfb_init(void)
+ 	err = driver_for_each_device(drv, NULL, &registered, ivtvfb_callback_init);
+ 	(void)err;	/* suppress compiler warning */
+ 	if (!registered) {
+-		printk(KERN_ERR "ivtvfb:  no cards found\n");
++		pr_err("no cards found\n");
+ 		return -ENODEV;
+ 	}
+ 	return 0;
+@@ -1290,7 +1290,7 @@ static void ivtvfb_cleanup(void)
+ 	struct device_driver *drv;
+ 	int err;
+ 
+-	printk(KERN_INFO "ivtvfb:  Unloading framebuffer module\n");
++	pr_info("Unloading framebuffer module\n");
+ 
+ 	drv = driver_find("ivtv", &pci_bus_type);
+ 	err = driver_for_each_device(drv, NULL, NULL, ivtvfb_callback_cleanup);
 -- 
-2.9.0
+2.9.3
 
