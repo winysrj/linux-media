@@ -1,70 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:35654 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754740AbcKIS0X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 9 Nov 2016 13:26:23 -0500
-Date: Wed, 9 Nov 2016 12:26:21 -0600
-From: Rob Herring <robh@kernel.org>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Andi Shyti <andi.shyti@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
- ir-spi device driver
-Message-ID: <20161109182621.ttfxtdt32q3cqce7@rob-hp-laptop>
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
- <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
- <20161102104010.26959-6-andi.shyti@samsung.com>
- <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
- <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
- <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <70e31ed5-e1ec-cac3-3c3d-02c75f1418bd@samsung.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:52027 "EHLO
+        mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966506AbcKXPjw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 24 Nov 2016 10:39:52 -0500
+Received: from eucas1p2.samsung.com (unknown [182.198.249.207])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OH500B2EKUDWP40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Nov 2016 15:39:49 +0000 (GMT)
+Subject: Re: [PATCH v4l-utils v7 4/7] mediactl: Add media_device creation
+ helpers
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl, mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com
+From: Jacek Anaszewski <j.anaszewski@samsung.com>
+Message-id: <01d05a40-ab67-1b9a-42ce-12f1e20ebb78@samsung.com>
+Date: Thu, 24 Nov 2016 16:39:46 +0100
+MIME-version: 1.0
+In-reply-to: <20161124143226.GR16630@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=windows-1252; format=flowed
+Content-transfer-encoding: 7bit
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+ <1476282922-11544-5-git-send-email-j.anaszewski@samsung.com>
+ <CGME20161124121817epcas3p24fa27e9afedce6356c75bf3e63730432@epcas3p2.samsung.com>
+ <20161124121731.GF16630@valkosipuli.retiisi.org.uk>
+ <65435934-bbbd-83ac-b101-63244c1a5651@samsung.com>
+ <20161124143226.GR16630@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 03, 2016 at 11:39:21AM +0100, Jacek Anaszewski wrote:
-> On 11/03/2016 11:10 AM, Andi Shyti wrote:
-> > Hi Jacek,
-> > 
-> > > Only DT bindings of LED class drivers should be placed in
-> > > Documentation/devicetree/bindings/leds. Please move it to the
-> > > media bindings.
-> > 
-> > that's where I placed it first, but Rob asked me to put it in the
-> > LED directory and Cc the LED mailining list.
-> > 
-> > That's the discussion of the version 2:
-> > 
-> > https://lkml.org/lkml/2016/9/12/380
-> > 
-> > Rob, Jacek, could you please agree where I can put the binding?
-> 
-> I'm not sure if this is a good approach. I've noticed also that
-> backlight bindings have been moved to leds, whereas they don't look
-> similarly.
-> 
-> We have common.txt LED bindings, that all LED class drivers' bindings
-> have to follow. Neither backlight bindings nor these ones do that,
-> which introduces some mess.
+On 11/24/2016 03:32 PM, Sakari Ailus wrote:
+[...]
+>>>> +	sprintf(device_dir_path, "/sys/class/video4linux/%s/device/", p + 1);
+>>>> +
+>>>> +	device_dir = opendir(device_dir_path);
+>>>> +	if (device_dir == NULL)
+>>>> +		return NULL;
+>>>> +
+>>>> +	while ((entry = readdir(device_dir))) {
+>>>> +		if (strncmp(entry->d_name, "media", 4))
+>>>
+>>> Why 4? And isn't entry->d_name nul-terminated, so you could use strcmp()?
+>>
+>> Media devices, as other devices, have numerical postfix, which is
+>> not of our interest.
+>
+> Right. But still 5 would be the right number as we should also check the
+> last "a".
 
-And there are probably LED bindings that don't follow common.txt either. 
+Of course, this needs to be fixed, thanks.
 
-> Eventually adding a sub-directory, e.g. remote_control could make it
-> somehow logically justified, but still - shouldn't bindings be
-> placed in the documentation directory related to the subsystem of the
-> driver they are predestined to?
-
-No. While binding directories often mirror the driver directories, they 
-are not the same. Bindings are grouped by types of h/w and IR LEDs are a 
-type of LED.
-
-If you prefer a sub-dir, that is fine with me.
-
-Rob
+-- 
+Best regards,
+Jacek Anaszewski
