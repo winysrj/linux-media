@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:47863 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755862AbcK3DJ6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 22:09:58 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Bin Liu <bin.liu@mediatek.com>
-Subject: [PATCH v8 3/4] arm: dts: mt2701: Add node for Mediatek JPEG Decoder
-Date: Wed, 30 Nov 2016 11:08:59 +0800
-Message-ID: <1480475340-21893-4-git-send-email-rick.chang@mediatek.com>
-In-Reply-To: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
-References: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+References: <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+ <20161123232503.GA13965@obsidianresearch.com>
+ <a33ec1cd-051f-8a24-0587-68707459c25c@amd.com>
+ <20161124162620.GC20818@obsidianresearch.com>
+CC: Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <87e6cfce-c65d-2d9f-a3c6-e4224cb94b2c@amd.com>
+Date: Thu, 24 Nov 2016 12:00:14 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20161124162620.GC20818@obsidianresearch.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
----
-This patch depends on: 
-  CCF "Add clock support for Mediatek MT2701"[1]
-  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
 
-[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-[2] https://patchwork.kernel.org/patch/9164013/
----
- arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+On 2016-11-24 11:26 AM, Jason Gunthorpe wrote:
+> On Thu, Nov 24, 2016 at 10:45:18AM +0100, Christian König wrote:
+>> Am 24.11.2016 um 00:25 schrieb Jason Gunthorpe:
+>>> There is certainly nothing about the hardware that cares
+>>> about ZONE_DEVICE vs System memory.
+>> Well that is clearly not so simple. When your ZONE_DEVICE pages describe a
+>> PCI BAR and another PCI device initiates a DMA to this address the DMA
+>> subsystem must be able to check if the interconnection really works.
+> I said the hardware doesn't care.. You are right, we still have an
+> outstanding problem in Linux of how to generically DMA map a P2P
+> address - which is a different issue from getting the P2P address from
+> a __user pointer...
+>
+> Jason
+I agreed but the problem is that one issue immediately introduce another 
+one
+to solve and so on (if we do not want to cut corners). I would think  that
+a lot of them interconnected because the way how one problem could be
+solved may impact solution for another.
 
-diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
-index 8f13c70..4dd5048 100644
---- a/arch/arm/boot/dts/mt2701.dtsi
-+++ b/arch/arm/boot/dts/mt2701.dtsi
-@@ -298,6 +298,20 @@
- 		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
- 	};
- 
-+	jpegdec: jpegdec@15004000 {
-+		compatible = "mediatek,mt2701-jpgdec";
-+		reg = <0 0x15004000 0 0x1000>;
-+		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-+		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-+			  <&imgsys CLK_IMG_JPGDEC>;
-+		clock-names = "jpgdec-smi",
-+			      "jpgdec";
-+		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-+		mediatek,larb = <&larb2>;
-+		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-+			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-+	};
-+
- 	vdecsys: syscon@16000000 {
- 		compatible = "mediatek,mt2701-vdecsys", "syscon";
- 		reg = <0 0x16000000 0 0x1000>;
--- 
-1.9.1
-
+btw: about "DMA map a p2p address": Right now to enable  p2p between 
+devices
+it is required/recommended to disable iommu support  (e.g. intel iommu 
+driver
+has special logic for graphics and  comment "Reserve all PCI MMIO to avoid
+peer-to-peer access").
