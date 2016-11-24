@@ -1,144 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33369 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964936AbcKLNNj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:39 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 00/32] rcar-vin: Add Gen3 with media controller support
-Date: Sat, 12 Nov 2016 14:11:44 +0100
-Message-Id: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Koenig, Christian" <Christian.Koenig@amd.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+From: Logan Gunthorpe <logang@deltatee.com>
+Message-ID: <9cc22068-ede8-c1bc-5d8b-cf6224a7ce05@deltatee.com>
+Date: Thu, 24 Nov 2016 11:11:34 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161124164249.GD20818@obsidianresearch.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
 
-This series enable Gen3 VIN support in rcar-vin driver for Renesas
-r8a7795 and r8a7796. It is based on top of v4.9-rc1.
 
-Parts of this series was previously part of an different series from me
-which enabled Gen3 support in a different way (using s_input instead of
-a media controller) but after feedback during ELCE the Gen3 enablement
-is now almost completely rewritten.
+On 24/11/16 09:42 AM, Jason Gunthorpe wrote:
+> There are three cases to worry about:
+>  - Coherent long lived page table mirroring (RDMA ODP MR)
+>  - Non-coherent long lived page table mirroring (RDMA MR)
+>  - Short lived DMA mapping (everything else)
+> 
+> Like you say below we have to handle short lived in the usual way, and
+> that covers basically every device except IB MRs, including the
+> command queue on a NVMe drive.
 
- Patch 1-2: pick-up media entity features from Laurent which the driver
- depends on.
+Yes, this makes sense to me. Though I thought regular IB MRs with
+regular memory currently pinned the pages (despite being long lived)
+that's why we can run up against the "max locked memory" limit. It
+doesn't seem so terrible if GPU memory had a similar restriction until
+ODP like solutions get implemented.
 
- Patch 3-5: fix small issues in the driver.
+>> Yeah, we've had RDMA and O_DIRECT transfers to PCIe backed ZONE_DEVICE
+>> memory working for some time. I'd say it's a good fit. The main question
+>> we've had is how to expose PCIe bars to userspace to be used as MRs and
+>> such.
 
- Patch 6-13: changes the driver from attaching to a video source
- subdevice at probe time to when the video device node (/dev/videoX) are
- opened. It also allows for the subdevice which is attached is not the
- same as last time it was opened, but only at the time the first user
- opens, i.e. when v4l2_fh_is_singular_file() is true.
+> Is there any progress on that?
 
- Patch 14-15: prepare the internal data structures for Gen3.
+Well, I guess there's some consensus building to do. The existing
+options are:
 
- Patch 16-17: small refactoring preparing for Gen3 additions.
+* Device DAX: which could work but the problem I see with it is that it
+only allows one application to do these transfers. Or there would have
+to be some user-space coordination to figure which application gets what
+memeroy.
 
- Patch 18-19: add logic to work with the Gen3 hardware registers
+* Regular DAX in the FS doesn't work at this time because the FS can
+move the file you think your transfer to out from under you. Though I
+understand there's been some work with XFS to solve that issue.
 
- Patch 20-24: add media control support, link setup and link notify
- handlers.
+Though, we've been considering that the backed memory would be
+non-volatile which adds some of this complexity. If the memory were
+volatile the kernel would just need to do some relatively straight
+forward allocation to user-space when asked. For example, with NVMe, the
+kernel could give chunks of the CMB buffer to userspace via an mmap call
+to /dev/nvmeX. Though I think there's been some push back against things
+like that as well.
 
- Patch 25-29: add logic to the driver to work together with the media
- controller.
+> I still don't quite get what iopmem was about.. I thought the
+> objection to uncachable ZONE_DEVICE & DAX made sense, so running DAX
+> over iopmem and still ending up with uncacheable mmaps still seems
+> like a non-starter to me...
 
- Patch 30-32: document the new Gen3 DT bindings, add r8a7795 and r8a7796
- definitions and device info structures.
+The latest incarnation of iopmem simply created a block device backed by
+ZONE_DEVICE memory on a PCIe BAR. We then put a DAX FS on it and
+user-space could mmap the files and send them to other devices to do P2P
+transfers.
 
-The driver is tested on both Renesas H3 (r8a7795) and M3-W (r8a7796)
-together with the new rcar-csi2 driver (posted separately) and a
-prototype driver of the ADV7482 (not ready for upstream but publicly
-available). It is possible to capture both CVBS and HDMI video streams,
-v4l2-compliance passes with no errors (there is one warning due the
-ADV7482 driver) and media-ctl can be used to change the routing from the
-different CSI-2 sources to the different VIN consumers.
+I don't think there was a hard objection to uncachable ZONE_DEVICE and
+DAX. We did try our experimental hardware with cached ZONE_DEVICE and it
+did work but the performance was beyond unusable (which may be a
+hardware issue). In the end I feel the driver would have to decide the
+most appropriate caching for the hardware and I don't understand why WC
+or UC wouldn't work with ZONE_DEVICE.
 
-Gen2 compatibility is verified on Koelsch and no problems where found,
-video can be captured just like before and v4l2-compliance passes
-without errors or warnings.
-
-I have started on a very basic test suite for the VIN driver at:
-
-  https://git.ragnatech.se/vin-tests
-
-And as before the state of the driver and information about how to test it can 
-be found on the elinux wiki:
-
-  http://elinux.org/R-Car/Tests:rcar-vin
-
-* Changes since v1
-- Remove unneeded casts as pointed out by Geert.
-- Fix spelling and DT documentation as pointed out by Geert and Sergei, thanks!
-- Refresh patch 2/32 with an updated version, thanks Sakari for pointing this 
-  out.
-- Add Sakaris Ack to patch 1/32.
-- Rebase on top of v4.9-rc1 instead of v4.9-rc3 to ease integration testing 
-  together with renesas-drivers tree.
-
-Laurent Pinchart (2):
-  media: entity: Add has_route entity operation
-  media: entity: Add media_entity_has_route() function
-
-Niklas Söderlund (30):
-  media: rcar-vin: reset bytesperline and sizeimage when resetting
-    format
-  media: rcar-vin: use rvin_reset_format() in S_DV_TIMINGS
-  media: rcar-vin: fix how pads are handled for v4l2 subdeivce
-    operations
-  media: rcar-vin: fix standard in input enumeration
-  media: rcar-vin: add wrapper to get rvin_graph_entity
-  media: rcar-vin: move subdev source and sink pad index to
-    rvin_graph_entity
-  media: rcar-vin: move pad number discovery to async complete handler
-  media: rcar-vin: use pad information when verifying media bus format
-  media: rcar-vin: refactor pad lookup code
-  media: rcar-vin: split rvin_s_fmt_vid_cap()
-  media: rcar-vin: register the video device early
-  media: rcar-vin: move chip information to own struct
-  media: rcar-vin: move max width and height information to chip
-    information
-  media: rcar-vin: change name of video device
-  media: rcar-vin: clarify error message from the digital notifier
-  media: rcar-vin: enable Gen3 hardware configuration
-  media: rcar-vin: add functions to manipulate Gen3 CHSEL value
-  media: rcar-vin: expose a sink pad if we are on Gen3
-  media: rcar-vin: add group allocator functions
-  media: rcar-vin: add chsel information to rvin_info
-  media: rcar-vin: parse Gen3 OF and setup media graph
-  media: rcar-vin: add link notify for Gen3
-  media: rcar-vin: enable CSI2 group subdevices in lookup helpers
-  media: rcar-vin: add helpers for bridge
-  media: rcar-vin: start/stop the CSI2 bridge stream
-  media: rcar-vin: propagate format to bridge
-  media: rcar-vin: attach to CSI2 group when the video device is opened
-  media: rcar-vin: add Gen3 devicetree bindings documentation
-  media: rcar-vin: enable support for r8a7795
-  media: rcar-vin: enable support for r8a7796
-
- .../devicetree/bindings/media/rcar_vin.txt         |  117 +-
- drivers/media/media-entity.c                       |   16 +
- drivers/media/platform/rcar-vin/Kconfig            |    2 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 1138 +++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-dma.c         |  240 ++++-
- drivers/media/platform/rcar-vin/rcar-v4l2.c        |  394 ++++---
- drivers/media/platform/rcar-vin/rcar-vin.h         |  112 +-
- include/media/media-entity.h                       |   22 +
- 8 files changed, 1795 insertions(+), 246 deletions(-)
-
--- 
-2.10.2
-
+Logan
