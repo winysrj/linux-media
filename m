@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:28881 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752400AbcKBNHx (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:57687 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750749AbcKXCxx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 2 Nov 2016 09:07:53 -0400
-Subject: Re: [PATCH -next] [media] c8sectpfe: fix error return code in
- c8sectpfe_probe()
-To: Wei Yongjun <weiyj.lk@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1477792390-24533-1-git-send-email-weiyj.lk@gmail.com>
-CC: Wei Yongjun <weiyongjun1@huawei.com>,
-        <linux-arm-kernel@lists.infradead.org>, <kernel@stlinux.com>,
-        <linux-media@vger.kernel.org>
-From: Patrice Chotard <patrice.chotard@st.com>
-Message-ID: <331417b4-9924-6bd4-8c13-ad6ff9fba19f@st.com>
-Date: Wed, 2 Nov 2016 14:07:09 +0100
-MIME-Version: 1.0
-In-Reply-To: <1477792390-24533-1-git-send-email-weiyj.lk@gmail.com>
-Content-Type: text/plain; charset="windows-1252"
+        Wed, 23 Nov 2016 21:53:53 -0500
+Message-ID: <1479956028.8964.33.camel@mtksdaap41>
+Subject: Re: [PATCH v7 4/4] vcodec: mediatek: Add Maintainers entry for
+ Mediatek JPEG driver
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        "Minghsiu Tsai" <minghsiu.tsai@mediatek.com>
+Date: Thu, 24 Nov 2016 10:53:48 +0800
+In-Reply-To: <1479786377-11567-5-git-send-email-rick.chang@mediatek.com>
+References: <1479786377-11567-1-git-send-email-rick.chang@mediatek.com>
+         <1479786377-11567-5-git-send-email-rick.chang@mediatek.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
+Is it possible to update this patch? or I should create another new one.
 
-On 10/30/2016 02:53 AM, Wei Yongjun wrote:
-> From: Wei Yongjun <weiyongjun1@huawei.com>
-> 
-> Fix to return error code -ENODEV from the error handling
-> case instead of 0, as done elsewhere in this function.
-> 
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+I may need to update it.
+
+Sorry for the inconvenience.
+
+On Tue, 2016-11-22 at 11:46 +0800, Rick Chang wrote:
+> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 > ---
->  drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c | 2 ++
->  1 file changed, 2 insertions(+)
+>  MAINTAINERS | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> index 42b123f..69d9a16 100644
-> --- a/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> +++ b/drivers/media/platform/sti/c8sectpfe/c8sectpfe-core.c
-> @@ -813,6 +813,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
->  		i2c_bus = of_parse_phandle(child, "i2c-bus", 0);
->  		if (!i2c_bus) {
->  			dev_err(&pdev->dev, "No i2c-bus found\n");
-> +			ret = -ENODEV;
->  			goto err_clk_disable;
->  		}
->  		tsin->i2c_adapter =
-> @@ -820,6 +821,7 @@ static int c8sectpfe_probe(struct platform_device *pdev)
->  		if (!tsin->i2c_adapter) {
->  			dev_err(&pdev->dev, "No i2c adapter found\n");
->  			of_node_put(i2c_bus);
-> +			ret = -ENODEV;
->  			goto err_clk_disable;
->  		}
->  		of_node_put(i2c_bus);
-> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 93e9f42..a9e7ee0 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7818,6 +7818,13 @@ L:	netdev@vger.kernel.org
+>  S:	Maintained
+>  F:	drivers/net/ethernet/mediatek/
+>  
+> +MEDIATEK JPEG DRIVER
+> +M:	Rick Chang <rick.chang@mediatek.com>
+> +M:	Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+> +S:	Supported
+> +F:	drivers/media/platform/mtk-jpeg/
+> +F:	Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+> +
+>  MEDIATEK MEDIA DRIVER
+>  M:	Tiffany Lin <tiffany.lin@mediatek.com>
+>  M:	Andrew-CT Chen <andrew-ct.chen@mediatek.com>
 
-Hi Wei
 
-Acked-by: Patrice Chotard <patrice.chotard@st.com>
-
-Thanks
