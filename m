@@ -1,118 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33452 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965741AbcKLNNn (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56962 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757204AbcKXOdA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:43 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 09/32] media: rcar-vin: move pad number discovery to async complete handler
-Date: Sat, 12 Nov 2016 14:11:53 +0100
-Message-Id: <20161112131216.22635-10-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 24 Nov 2016 09:33:00 -0500
+Date: Thu, 24 Nov 2016 16:32:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacek Anaszewski <j.anaszewski@samsung.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl, mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com
+Subject: Re: [PATCH v4l-utils v7 4/7] mediactl: Add media_device creation
+ helpers
+Message-ID: <20161124143226.GR16630@valkosipuli.retiisi.org.uk>
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+ <1476282922-11544-5-git-send-email-j.anaszewski@samsung.com>
+ <CGME20161124121817epcas3p24fa27e9afedce6356c75bf3e63730432@epcas3p2.samsung.com>
+ <20161124121731.GF16630@valkosipuli.retiisi.org.uk>
+ <65435934-bbbd-83ac-b101-63244c1a5651@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <65435934-bbbd-83ac-b101-63244c1a5651@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rvin_v4l2_probe() handler will with Gen3 support need to handle more
-then one subdevice. To prepare for this move the digital subdev pad
-number discover to the digital specific async notification complete
-function.
+Hi Jacek,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 18 +-----------------
- 2 files changed, 24 insertions(+), 17 deletions(-)
+On Thu, Nov 24, 2016 at 02:50:39PM +0100, Jacek Anaszewski wrote:
+> Hi Sakari,
+> 
+> Thanks for the review.
+> 
+> On 11/24/2016 01:17 PM, Sakari Ailus wrote:
+> >Hi Jacek,
+> >
+> >Thanks for the patchset.
+> >
+> >On Wed, Oct 12, 2016 at 04:35:19PM +0200, Jacek Anaszewski wrote:
+> >>Add helper functions that allow for easy instantiation of media_device
+> >>object basing on whether the media device contains v4l2 subdev with
+> >>given file descriptor.
+> >
+> >Doesn't this work with video nodes as well? That's what you seem to be using
+> >it for later on. And I think that's actually more useful.
+> 
+> Exactly, thanks for spotting this.
+> 
+> s/v4l2 subdev/video device opened/
+> 
+> >
+> >The existing implementation uses udev to look up devices. Could you use
+> >libudev device enumeration API to find the media devices, and fall back to
+> >sysfs if udev doesn't work? There seems to be a reasonable-looking example
+> >here:
+> >
+> ><URL:http://stackoverflow.com/questions/25361042/how-to-list-usb-mass-storage-devices-programatically-using-libudev-in-linux>
+> 
+> I'll check that, thanks.
+> 
+> >>
+> >>Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> >>Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>---
+> >> utils/media-ctl/libmediactl.c | 131 +++++++++++++++++++++++++++++++++++++++++-
+> >> utils/media-ctl/mediactl.h    |  27 +++++++++
+> >> 2 files changed, 156 insertions(+), 2 deletions(-)
+> >>
+> >>diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+> >>index 155b65f..d347a40 100644
+> >>--- a/utils/media-ctl/libmediactl.c
+> >>+++ b/utils/media-ctl/libmediactl.c
+> >>@@ -27,6 +27,7 @@
+> >> #include <sys/sysmacros.h>
+> >>
+> >> #include <ctype.h>
+> >>+#include <dirent.h>
+> >> #include <errno.h>
+> >> #include <fcntl.h>
+> >> #include <stdbool.h>
+> >>@@ -440,8 +441,9 @@ static int media_get_devname_udev(struct udev *udev,
+> >> 		return -EINVAL;
+> >>
+> >> 	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
+> >>-	media_dbg(entity->media, "looking up device: %u:%u\n",
+> >>-		  major(devnum), minor(devnum));
+> >>+	if (entity->media)
+> >>+		media_dbg(entity->media, "looking up device: %u:%u\n",
+> >>+			  major(devnum), minor(devnum));
+> >> 	device = udev_device_new_from_devnum(udev, 'c', devnum);
+> >> 	if (device) {
+> >> 		p = udev_device_get_devnode(device);
+> >>@@ -523,6 +525,7 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+> >> 	return 0;
+> >> }
+> >>
+> >>+
+> >
+> >Unrelated change.
+> >
+> >> static int media_enum_entities(struct media_device *media)
+> >> {
+> >> 	struct media_entity *entity;
+> >>@@ -707,6 +710,92 @@ struct media_device *media_device_new(const char *devnode)
+> >> 	return media;
+> >> }
+> >>
+> >>+struct media_device *media_device_new_by_subdev_fd(int fd, struct media_entity **fd_entity)
+> >>+{
+> >>+	char video_devname[32], device_dir_path[256], media_dev_path[256], media_major_minor[10];
+> >>+	struct media_device *media = NULL;
+> >>+	struct dirent *entry;
+> >>+	struct media_entity tmp_entity;
+> >>+	DIR *device_dir;
+> >>+	struct udev *udev;
+> >>+	char *p;
+> >>+	int ret, i;
+> >>+
+> >>+	if (fd_entity == NULL)
+> >>+		return NULL;
+> >>+
+> >>+	ret = media_get_devname_by_fd(fd, video_devname);
+> >>+	if (ret < 0)
+> >>+		return NULL;
+> >>+
+> >>+	p = strrchr(video_devname, '/');
+> >>+	if (p == NULL)
+> >>+		return NULL;
+> >>+
+> >>+	ret = media_udev_open(&udev);
+> >>+	if (ret < 0)
+> >>+		return NULL;
+> >>+
+> >>+	sprintf(device_dir_path, "/sys/class/video4linux/%s/device/", p + 1);
+> >>+
+> >>+	device_dir = opendir(device_dir_path);
+> >>+	if (device_dir == NULL)
+> >>+		return NULL;
+> >>+
+> >>+	while ((entry = readdir(device_dir))) {
+> >>+		if (strncmp(entry->d_name, "media", 4))
+> >
+> >Why 4? And isn't entry->d_name nul-terminated, so you could use strcmp()?
+> 
+> Media devices, as other devices, have numerical postfix, which is
+> not of our interest.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 89a9280..2c40b6a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -68,6 +68,8 @@ static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
- static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- {
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct v4l2_subdev *sd = vin->digital.subdev;
-+	unsigned int pad_idx;
- 	int ret;
- 
- 	/* Verify subdevices mbus format */
-@@ -80,6 +82,27 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 	vin_dbg(vin, "Found media bus format for %s: %d\n",
- 		vin->digital.subdev->name, vin->digital.code);
- 
-+	/* Figure out source and sink pad ids */
-+	vin->digital.source_pad_idx = 0;
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
-+			break;
-+	if (pad_idx >= sd->entity.num_pads)
-+		return -EINVAL;
-+
-+	vin->digital.source_pad_idx = pad_idx;
-+
-+	vin->digital.sink_pad_idx = 0;
-+	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
-+		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
-+			vin->digital.sink_pad_idx = pad_idx;
-+			break;
-+		}
-+
-+	vin_dbg(vin, "Found media pads for %s source: %d sink %d\n",
-+		vin->digital.subdev->name, vin->digital.source_pad_idx,
-+		vin->digital.sink_pad_idx);
-+
- 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
- 	if (ret < 0) {
- 		vin_err(vin, "Failed to register subdev nodes\n");
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f8ff7c4..51324c6 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -905,7 +905,7 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
--	int pad_idx, ret;
-+	int ret;
- 
- 	v4l2_set_subdev_hostdata(sd, vin);
- 
-@@ -951,22 +951,6 @@ int rvin_v4l2_probe(struct rvin_dev *vin)
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
--	vin->digital.source_pad_idx = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SOURCE)
--			break;
--	if (pad_idx >= sd->entity.num_pads)
--		return -EINVAL;
--
--	vin->digital.source_pad_idx = pad_idx;
--
--	vin->digital.sink_pad_idx = 0;
--	for (pad_idx = 0; pad_idx < sd->entity.num_pads; pad_idx++)
--		if (sd->entity.pads[pad_idx].flags == MEDIA_PAD_FL_SINK) {
--			vin->digital.sink_pad_idx = pad_idx;
--			break;
--		}
--
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
- 	rvin_reset_format(vin);
- 
+Right. But still 5 would be the right number as we should also check the
+last "a".
+
+> 
+> >>+			continue;
+> >>+
+> >>+		sprintf(media_dev_path, "%s%s/dev", device_dir_path, entry->d_name);
+> >>+
+> >>+		fd = open(media_dev_path, O_RDONLY);
+> >>+		if (fd < 0)
+> >>+			continue;
+> >>+
+> >>+		ret = read(fd, media_major_minor, sizeof(media_major_minor));
+> >>+		if (ret < 0)
+> >>+			continue;
+> >>+
+> >>+		sscanf(media_major_minor, "%d:%d", &tmp_entity.info.dev.major, &tmp_entity.info.dev.minor);
+> >
+> >This would be better split on two lines.
+> 
+> OK.
+> 
+> >>+
+> >>+		/* Try to get the device name via udev */
+> >>+		if (media_get_devname_udev(udev, &tmp_entity)) {
+> >>+			/* Fall back to get the device name via sysfs */
+> >>+			if (media_get_devname_sysfs(&tmp_entity))
+> >>+				continue;
+> >>+		}
+> >>+
+> >>+		media = media_device_new(tmp_entity.devname);
+> >>+		if (media == NULL)
+> >>+			continue;
+> >>+
+> >>+		ret = media_device_enumerate(media);
+> >>+		if (ret < 0) {
+> >>+			media_dbg(media, "Failed to enumerate %s (%d)\n",
+> >>+				  tmp_entity.devname, ret);
+> >>+			media_device_unref(media);
+> >>+			media = NULL;
+> >>+			continue;
+> >>+		}
+> >>+
+> >>+		/* Get the entity associated with given fd */
+> >>+		for (i = 0; i < media->entities_count; i++) {
+> >>+			struct media_entity *entity = &media->entities[i];
+> >>+
+> >>+			if (!strcmp(entity->devname, video_devname)) {
+> >>+				*fd_entity = &media->entities[i];
+> >>+				break;
+> >>+			}
+> >>+		}
+> >
+> >What if you exit the loop without finding the entity you were looking for?
+> 
+> Ah, right, this case is unhandled.
+> 
+> Adding below condition should cover that:
+> 
+> if (i == media->entities_count)
+>     media = NULL;
+
+and media_device_unref()?
+
+You could have a label for handling that at the end of the loop basic block
+so you could implement handling of that just once to avoid such issues in
+the future.
+
+> 
+> >>+
+> >>+		break;
+> 
+> This break should be removed and the one in the inner for loop above
+> should be replaced with goto here. Are you OK with that?
+
+Um, yeah. There are indeed two loops. In Perl you could get out nicely but
+in C we have to do something else. Two labels perhaps?
+
+> 
+> >>+	}
+> >>+
+> >>+	media_udev_close(udev);
+> >>+
+> >>+	return media;
+> >>+}
+> >>+
+> >> struct media_device *media_device_new_emulated(struct media_device_info *info)
+> >> {
+> >> 	struct media_device *media;
+
 -- 
-2.10.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
