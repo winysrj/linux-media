@@ -1,61 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:17460 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752417AbcKPLsD (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34247 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965905AbcKXP6W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 06:48:03 -0500
-Subject: Re: [GIT PULL] Samsung fixes for 4.8
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <70cc3f35-e661-c76f-8620-dfeb74030183@samsung.com>
-Date: Wed, 16 Nov 2016 12:47:57 +0100
-MIME-version: 1.0
-In-reply-to: <20161021102607.2df96630@vento.lan>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
-References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
- <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
- <20161021102607.2df96630@vento.lan>
+        Thu, 24 Nov 2016 10:58:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Matt Ranostay <matt@ranostay.consulting>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel <linux-kernel@vger.kernel.org>,
+        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
+        Luca Barbato <lu_zero@gentoo.org>
+Subject: Re: [PATCH v3] media: i2c-polling: add i2c-polling driver
+Date: Thu, 24 Nov 2016 17:58:42 +0200
+Message-ID: <2959136.pq40D4COK1@avalon>
+In-Reply-To: <CAJ_EiSSsRjHO-BEArFA5BsyWQNnEtD024wwYrnFJ32p0SVNpqQ@mail.gmail.com>
+References: <1479863920-14708-1-git-send-email-matt@ranostay.consulting> <CAJ_EiSSjjf9KDVzA=Qyd0BqXC30Hb89UgcJ7Oinr8bWCN=JmHg@mail.gmail.com> <CAJ_EiSSsRjHO-BEArFA5BsyWQNnEtD024wwYrnFJ32p0SVNpqQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/21/2016 02:26 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 16 Sep 2016 15:33:33 +0200
-> Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
-> 
->> Hi Mauro,
->>
->> The following changes since commit 7892a1f64a447b6f65fe2888688883b7c26d81d3:
->>
->>   [media] rcar-fcp: Make sure rcar_fcp_enable() returns 0 on success (2016-09-15 09:02:16 -0300)
->>
->> are available in the git repository at:
->>
->>   git://linuxtv.org/snawrocki/samsung.git for-v4.9/media/fixes
->>
->> for you to fetch changes up to 8beaa9d0595aa2ae1f63be364c80189e53cbfe15:
->>
->>   exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag (2016-09-16 15:25:55 +0200)
->>
->> ----------------------------------------------------------------
->> Marek Szyprowski (1):
->>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()
+Hi Matt,
 
-Mauro, this patch seems to had slipped through the cracks, I can't see it
-in neither media fixes nor the master branch. Could you please check it?
+On Thursday 24 Nov 2016 00:04:24 Matt Ranostay wrote:
+> On Wed, Nov 23, 2016 at 10:31 PM, Matt Ranostay wrote:
+> > On Wed, Nov 23, 2016 at 8:30 AM, Laurent Pinchart wrote:
+> >> On Tuesday 22 Nov 2016 17:18:40 Matt Ranostay wrote:
+> >>> There are several thermal sensors that only have a low-speed bus
+> >>> interface but output valid video data. This patchset enables support
+> >>> for the AMG88xx "Grid-Eye" sensor family.
+> >>> 
+> >>> Cc: Attila Kinali <attila@kinali.ch>
+> >>> Cc: Marek Vasut <marex@denx.de>
+> >>> Cc: Luca Barbato <lu_zero@gentoo.org>
+> >>> Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+> >>> ---
+> >>> Changes from v1:
+> >>> * correct i2c_polling_remove() operations
+> >>> * fixed delay calcuation in buffer_queue()
+> >>> * add include linux/slab.h
+> >>> 
+> >>> Changes from v2:
+> >>> * fix build error due to typo in include of slab.h
+> >>> 
+> >>>  drivers/media/i2c/Kconfig       |   8 +
+> >>>  drivers/media/i2c/Makefile      |   1 +
+> >>>  drivers/media/i2c/i2c-polling.c | 469 +++++++++++++++++++++++++++++++++
+> >> 
+> >> Just looking at the driver name I believe a rename is needed. i2c-polling
+> >> is a very generic name and would mislead many people into thinking about
+> >> an I2C subsystem core feature instead of a video driver. "video-i2c" is
+> >> one option, I'm open to other ideas.
+> >> 
+> >>>  3 files changed, 478 insertions(+)
+> >>>  create mode 100644 drivers/media/i2c/i2c-polling.c
 
->> Sylwester Nawrocki (1):
->>       exynos4-is: Clear I2C_ISP adapter's power.ignore_children flag
-> 
-> This patch didn't apply fine. Could you please rebase it?
-> 
-> Applying patch patches/0002-exynos4-is-Clear-I2C_ISP-adapter-s-power.ignore_chil.patch
-> patching file drivers/media/platform/exynos4-is/fimc-is-i2c.c
-> Hunk #1 NOT MERGED at 74-99, already applied at 101-104, already applied at 111.
-> Applied patch patches/0002-exynos4-is-Clear-I2C_ISP-adapter-s-power.ignore_chil.patch (forced; needs refresh)
+[snip]
 
---
-Thanks,
-Sylwester
+> >>> diff --git a/drivers/media/i2c/i2c-polling.c
+> >>> b/drivers/media/i2c/i2c-polling.c new file mode 100644
+> >>> index 000000000000..46a4eecde2d2
+> >>> --- /dev/null
+> >>> +++ b/drivers/media/i2c/i2c-polling.c
+
+[snip]
+
+> >>> +static void buffer_queue(struct vb2_buffer *vb)
+> >>> +{
+> >>> +     struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
+> >>> +     unsigned int delay = 1000 / data->chip->max_fps;
+> >>> +     int delta;
+> >>> +
+> >>> +     mutex_lock(&data->lock);
+> >>> +
+> >>> +     delta = jiffies - data->last_update;
+> >>> +
+> >>> +     if (delta < msecs_to_jiffies(delay)) {
+> >>> +             int tmp = (delay - jiffies_to_msecs(delta)) * 1000;
+> >>> +
+> >>> +             usleep_range(tmp, tmp + 1000);
+> >>> +     }
+> >>> +     data->last_update = jiffies;
+> >>> +
+> >>> +     mutex_unlock(&data->lock);
+> >>> +
+> >>> +     vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> >>> +}
+> >>> +
+> >>> +static void buffer_finish(struct vb2_buffer *vb)
+> >>> +{
+> >>> +     struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
+> >>> +     void *vbuf = vb2_plane_vaddr(vb, 0);
+> >>> +     int size = vb2_plane_size(vb, 0);
+> >>> +     int ret;
+> >>> +
+> >>> +     mutex_lock(&data->lock);
+> >>> +
+> >>> +     ret = data->chip->xfer(data, vbuf);
+> >>> +     if (ret < 0)
+> >>> +             vb->state = VB2_BUF_STATE_ERROR;
+> >> 
+> >> That's not nice, the status should be set through vb2_buffer_done().
+> >> 
+> >> You can't transfer data in the buffer_queue handler is that function
+> >> can't sleep. Instead, I'm wondering whether it would make sense to
+> >> perform transfers in a workqueue, to making timings less dependent on
+> >> userspace.
+> > 
+> > About the workqueue how would one signal to that the buffer is written
+> > to buffer_queue/buffer_finish?
+> 
+> Testing the workqueue way and it isn't fine enough... need to use some
+> form of the high resolution timers. Need to figure the best way to do
+> that with signaling back to the queue functions.. would completion
+> queues make sense?
+
+How about a kthread, as done in the vivid driver ?
+
+> >>> +     mutex_unlock(&data->lock);
+> >>> +
+> >>> +     vb->timestamp = ktime_get_ns();
+> >>> +     vb2_set_plane_payload(vb, 0, ret ? 0 : size);
+> >>> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
+
