@@ -1,124 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:57384 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753014AbcKTE1X (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:56777 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S938695AbcKXMNe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 23:27:23 -0500
-Message-ID: <ea647014b2579d7ce60063c297dc7f42@smtp-cloud2.xs4all.net>
-Date: Sun, 20 Nov 2016 05:27:20 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 24 Nov 2016 07:13:34 -0500
+Subject: Re: [PATCH v2 2/3] [media] ivtv: use pr_foo() instead of calling
+ printk() directly
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4231325064779b4dcbec980439f4be08c7cfabe7.1479988339.git.mchehab@s-opensource.com>
+ <ac5ad00c236047cfc2ba984734b01c79e0427eb6.1479988339.git.mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bad04d5c-f445-b3c1-1aa2-9c976927c118@xs4all.nl>
+Date: Thu, 24 Nov 2016 13:13:13 +0100
+MIME-Version: 1.0
+In-Reply-To: <ac5ad00c236047cfc2ba984734b01c79e0427eb6.1479988339.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 11/24/16 12:52, Mauro Carvalho Chehab wrote:
+> pr_foo() provides a convenient way for printk's, enforcing
+> that they'll all prepend the error message with the driver's
+> name.
+>
+> Use it inside ivtv.
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Results of the daily build of media_tree:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-date:			Sun Nov 20 05:00:15 CET 2016
-media-tree git hash:	f2709c206d8a3e11729e68d80c57e7470bbe8e5e
-media_build git hash:	bd61d1f4217e104f91df1ba1b5a4594e379829de
-v4l-utils git hash:	046f2376ac29b3f1b8f88f094527ff65814a5c9c
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Thanks!
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-rc5-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-rc5-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> ---
+>  drivers/media/pci/ivtv/ivtv-alsa-main.c | 11 +++++------
+>  drivers/media/pci/ivtv/ivtv-driver.c    | 12 ++++++------
+>  drivers/media/pci/ivtv/ivtvfb.c         |  6 +++---
+>  3 files changed, 14 insertions(+), 15 deletions(-)
+>
+> diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> index 67ab73ef2bca..f7a036844f02 100644
+> --- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> +++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> @@ -34,10 +34,11 @@
+>  int ivtv_alsa_debug;
+>  static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;
+>
+> -#define IVTV_DEBUG_ALSA_INFO(fmt, arg...) \
+> +#define IVTV_DEBUG_ALSA_INFO(__fmt, __arg...) \
+>  	do { \
+>  		if (ivtv_alsa_debug & 2) \
+> -			pr_info("%s: " fmt, "ivtv-alsa", ## arg); \
+> +			printk(KERN_INFO pr_fmt("%s: alsa:" __fmt),	\
+> +			       __func__, ##__arg);			\
+>  	} while (0)
+>
+>  module_param_named(debug, ivtv_alsa_debug, int, 0644);
+> @@ -226,8 +227,7 @@ static int ivtv_alsa_load(struct ivtv *itv)
+>
+>  	s = &itv->streams[IVTV_ENC_STREAM_TYPE_PCM];
+>  	if (s->vdev.v4l2_dev == NULL) {
+> -		IVTV_DEBUG_ALSA_INFO("%s: PCM stream for card is disabled - skipping\n",
+> -				     __func__);
+> +		IVTV_DEBUG_ALSA_INFO("PCM stream for card is disabled - skipping\n");
+>  		return 0;
+>  	}
+>
+> @@ -241,8 +241,7 @@ static int ivtv_alsa_load(struct ivtv *itv)
+>  		IVTV_ALSA_ERR("%s: failed to create struct snd_ivtv_card\n",
+>  			      __func__);
+>  	} else {
+> -		IVTV_DEBUG_ALSA_INFO("%s: created ivtv ALSA interface instance \n",
+> -				     __func__);
+> +		IVTV_DEBUG_ALSA_INFO("created ivtv ALSA interface instance\n");
+>  	}
+>  	return 0;
+>  }
+> diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
+> index 0a3b80a4bd69..ab2ae53618e8 100644
+> --- a/drivers/media/pci/ivtv/ivtv-driver.c
+> +++ b/drivers/media/pci/ivtv/ivtv-driver.c
+> @@ -1452,7 +1452,7 @@ static void ivtv_remove(struct pci_dev *pdev)
+>  	for (i = 0; i < IVTV_VBI_FRAMES; i++)
+>  		kfree(itv->vbi.sliced_mpeg_data[i]);
+>
+> -	printk(KERN_INFO "ivtv: Removed %s\n", itv->card_name);
+> +	pr_info("Removed %s\n", itv->card_name);
+>
+>  	v4l2_device_unregister(&itv->v4l2_dev);
+>  	kfree(itv);
+> @@ -1468,25 +1468,25 @@ static struct pci_driver ivtv_pci_driver = {
+>
+>  static int __init module_start(void)
+>  {
+> -	printk(KERN_INFO "ivtv: Start initialization, version %s\n", IVTV_VERSION);
+> +	pr_info("Start initialization, version %s\n", IVTV_VERSION);
+>
+>  	/* Validate parameters */
+>  	if (ivtv_first_minor < 0 || ivtv_first_minor >= IVTV_MAX_CARDS) {
+> -		printk(KERN_ERR "ivtv: Exiting, ivtv_first_minor must be between 0 and %d\n",
+> +		pr_err("Exiting, ivtv_first_minor must be between 0 and %d\n",
+>  		     IVTV_MAX_CARDS - 1);
+>  		return -1;
+>  	}
+>
+>  	if (ivtv_debug < 0 || ivtv_debug > 2047) {
+>  		ivtv_debug = 0;
+> -		printk(KERN_INFO "ivtv: Debug value must be >= 0 and <= 2047\n");
+> +		pr_info("Debug value must be >= 0 and <= 2047\n");
+>  	}
+>
+>  	if (pci_register_driver(&ivtv_pci_driver)) {
+> -		printk(KERN_ERR "ivtv: Error detecting PCI card\n");
+> +		pr_err("Error detecting PCI card\n");
+>  		return -ENODEV;
+>  	}
+> -	printk(KERN_INFO "ivtv: End initialization\n");
+> +	pr_info("End initialization\n");
+>  	return 0;
+>  }
+>
+> diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
+> index b59b60d605eb..621b2f613d81 100644
+> --- a/drivers/media/pci/ivtv/ivtvfb.c
+> +++ b/drivers/media/pci/ivtv/ivtvfb.c
+> @@ -1270,7 +1270,7 @@ static int __init ivtvfb_init(void)
+>
+>
+>  	if (ivtvfb_card_id < -1 || ivtvfb_card_id >= IVTV_MAX_CARDS) {
+> -		printk(KERN_ERR "ivtvfb:  ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
+> +		pr_err("ivtvfb_card_id parameter is out of range (valid range: -1 - %d)\n",
+>  		     IVTV_MAX_CARDS - 1);
+>  		return -EINVAL;
+>  	}
+> @@ -1279,7 +1279,7 @@ static int __init ivtvfb_init(void)
+>  	err = driver_for_each_device(drv, NULL, &registered, ivtvfb_callback_init);
+>  	(void)err;	/* suppress compiler warning */
+>  	if (!registered) {
+> -		printk(KERN_ERR "ivtvfb:  no cards found\n");
+> +		pr_err("no cards found\n");
+>  		return -ENODEV;
+>  	}
+>  	return 0;
+> @@ -1290,7 +1290,7 @@ static void ivtvfb_cleanup(void)
+>  	struct device_driver *drv;
+>  	int err;
+>
+> -	printk(KERN_INFO "ivtvfb:  Unloading framebuffer module\n");
+> +	pr_info("Unloading framebuffer module\n");
+>
+>  	drv = driver_find("ivtv", &pci_bus_type);
+>  	err = driver_for_each_device(drv, NULL, NULL, ivtvfb_callback_cleanup);
+>
