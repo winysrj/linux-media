@@ -1,114 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59789
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752315AbcKSMQS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 07:16:18 -0500
-Date: Sat, 19 Nov 2016 10:16:09 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Wei Yongjun <weiyongjun1@huawei.com>,
-        Sean Young <sean@mess.org>
-Subject: Re: [PATCH 08/35] [media] cx88: convert it to use pr_foo() macros
-Message-ID: <20161119101609.4543eac6@vento.lan>
-In-Reply-To: <20161118222742.GG26324@dell-m4800.home>
-References: <cover.1479314177.git.mchehab@s-opensource.com>
-        <cf30cb9b17879d4496c627501b35d85c34247084.1479314177.git.mchehab@s-opensource.com>
-        <20161118222742.GG26324@dell-m4800.home>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Logan Gunthorpe <logang@deltatee.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Dan Williams <dan.j.williams@intel.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+ <20161123232503.GA13965@obsidianresearch.com>
+ <a33ec1cd-051f-8a24-0587-68707459c25c@amd.com>
+ <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
+CC: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <c60815a1-aaac-52eb-1714-66abb28bdc01@amd.com>
+Date: Fri, 25 Nov 2016 14:06:21 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 18 Nov 2016 22:27:42 +0000
-Andrey Utkin <andrey_utkin@fastmail.com> escreveu:
+Am 24.11.2016 um 18:55 schrieb Logan Gunthorpe:
+> Hey,
+>
+> On 24/11/16 02:45 AM, Christian König wrote:
+>> E.g. it can happen that PCI device A exports it's BAR using ZONE_DEVICE.
+>> Not PCI device B (a SATA device) can directly read/write to it because
+>> it is on the same bus segment, but PCI device C (a network card for
+>> example) can't because it is on a different bus segment and the bridge
+>> can't handle P2P transactions.
+> Yeah, that could be an issue but in our experience we have yet to see
+> it. We've tested with two separate PCI buses on different CPUs connected
+> through QPI links and it works fine. (It is rather slow but I understand
+> Intel has improved the bottleneck in newer CPUs than the ones we tested.)
 
-> On Wed, Nov 16, 2016 at 02:42:40PM -0200, Mauro Carvalho Chehab wrote:
-> > From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > 
-> > Instead of calling printk() directly, use pr_foo()
-> > macros, as suggested at the Kernel's coding style.
-> > 
-> > Please notice that a conversion to dev_foo() is not trivial,
-> > as several parts on this driver uses pr_cont().  
-> 
-> Haven't followed closely the current discussion about line continuation,
-> so commenting on logical part is not up to me, at last I don't see
-> anything weird. So I will be an alignment-proofreading monkey :)
-> 
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
-> 
-> Reviewed-by: Andrey Utkin <andrey_utkin@fastmail.com>
-> 
-> > --- a/drivers/media/pci/cx88/cx88-cards.c
-> > +++ b/drivers/media/pci/cx88/cx88-cards.c  
-> 
-> > @@ -3646,8 +3626,8 @@ static int cx88_pci_quirks(const char *name, struct pci_dev *pci)
-> >  		pci_write_config_byte(pci, CX88X_DEVCTRL, value);
-> >  	}
-> >  	if (UNSET != lat) {
-> > -		printk(KERN_INFO "%s: setting pci latency timer to %d\n",
-> > -		       name, latency);
-> > +		pr_info("setting pci latency timer to %d\n",
-> > +			latency);  
-> 
-> Can fit single line.
-> This wasn't handled by checkpatch in next patch, so manual fix would be
-> nice.
-> 
-> > --- a/drivers/media/pci/cx88/cx88-core.c
-> > +++ b/drivers/media/pci/cx88/cx88-core.c  
-> 
-> > @@ -60,10 +61,15 @@ static unsigned int nocomb;
-> >  module_param(nocomb,int,0644);
-> >  MODULE_PARM_DESC(nocomb,"disable comb filter");
-> >  
-> > -#define dprintk(level,fmt, arg...)	do {				\
-> > -	if (cx88_core_debug >= level)					\
-> > -		printk(KERN_DEBUG "%s: " fmt, core->name , ## arg);	\
-> > -	} while(0)
-> > +#define dprintk0(fmt, arg...)				\
-> > +	printk(KERN_DEBUG pr_fmt("%s: core:" fmt),	\
-> > +		__func__, ##arg)			\
-> > +  
-> 
-> Could fit single line
-> 
-> > @@ -399,12 +405,12 @@ static int cx88_risc_decode(u32 risc)
-> >  	};
-> >  	int i;
-> >  
-> > -	printk(KERN_DEBUG "0x%08x [ %s", risc,
-> > +	dprintk0("0x%08x [ %s", risc,
-> >  	       instr[risc >> 28] ? instr[risc >> 28] : "INVALID");  
-> 
-> Alignment got broken here and in quite some similar places :(
-> And checkpatch hasn't gone after it. What if you run it with --strict
-> --fix-inplace to make it check brace alignment and fix it at once?
+Well Serguei send me a couple of documents about QPI when we started to 
+discuss this internally as well and that's exactly one of the cases I 
+had in mind when writing this.
 
-Ok, I ran with --strict, with solved some other issues, but caused
-others ;)
+If I understood it correctly for such systems P2P is technical possible, 
+but not necessary a good idea. Usually it is faster to just use a 
+bouncing buffer when the peers are a bit "father" apart.
 
-Anyway, fixed the remaining issues by hand, and made sure that
-checkpatch (on non-strict mode) would make sense. Patch sent.
+That this problem is solved on newer hardware is good, but doesn't helps 
+us at all if we at want to support at least systems from the last five 
+years or so.
 
-Please review.
+> It may just be older hardware that has this issue. I expect that as long
+> as a failed transfer can be handled gracefully by the initiator I don't
+> see a need to predetermine whether a device can see another devices memory.
 
-Thanks,
-Mauro
+I don't want to predetermine whether a device can see another devices 
+memory at get_user_pages() time.
+
+My thinking was more going into the direction of a whitelist to figure 
+out during dma_map_single()/dma_map_sg() time if we should use a 
+bouncing buffer or not.
+
+Christian.
+
+>
+>
+> Logan
+
+
