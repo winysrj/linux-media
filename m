@@ -1,104 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35302 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752104AbcKHNzg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:36 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 12/21] media device: Initialise media devnode in media_device_init()
-Date: Tue,  8 Nov 2016 15:55:21 +0200
-Message-Id: <1478613330-24691-12-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+In-Reply-To: <20161125193410.GD16504@obsidianresearch.com>
+References: <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com> <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com> <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com> <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com> <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com> <7ff3cf70-b0c3-028e-fea8-c370a1185b65@amd.com>
+ <20161125193410.GD16504@obsidianresearch.com>
+From: Alex Deucher <alexdeucher@gmail.com>
+Date: Fri, 25 Nov 2016 18:41:21 -0500
+Message-ID: <CADnq5_PEBzxO7MVxV3q4Jy3uZNTfKWXo-gsvZQA8BdTMOSPjmw@mail.gmail.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Call media_devnode_init() from media_device_init(). This has the effect of
-creating a struct device for the media_devnode before it is registered,
-making it possible to obtain a reference to it for e.g. video devices.
+On Fri, Nov 25, 2016 at 2:34 PM, Jason Gunthorpe
+<jgunthorpe@obsidianresearch.com> wrote:
+> On Fri, Nov 25, 2016 at 12:16:30PM -0500, Serguei Sagalovitch wrote:
+>
+>> b) Allocation may not  have CPU address  at all - only GPU one.
+>
+> But you don't expect RDMA to work in the case, right?
+>
+> GPU people need to stop doing this windowed memory stuff :)
+>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c | 26 ++++++++++++--------------
- 1 file changed, 12 insertions(+), 14 deletions(-)
+Blame 32 bit systems and GPUs with tons of vram :)
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index e9f6e76..2e52e44 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -708,6 +708,8 @@ void media_device_init(struct media_device *mdev)
- 	mutex_init(&mdev->graph_mutex);
- 	ida_init(&mdev->entity_internal_idx);
- 
-+	media_devnode_init(&mdev->devnode);
-+
- 	dev_dbg(mdev->dev, "Media device initialized\n");
- }
- EXPORT_SYMBOL_GPL(media_device_init);
-@@ -718,7 +720,10 @@ static void media_device_release(struct media_devnode *devnode)
- 
- 	dev_dbg(devnode->parent, "Media device released\n");
- 
--	media_device_cleanup(mdev);
-+	ida_destroy(&mdev->entity_internal_idx);
-+	mdev->entity_internal_idx_max = 0;
-+	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
-+	mutex_destroy(&mdev->graph_mutex);
- 
- 	kfree(mdev);
- }
-@@ -746,6 +751,7 @@ void media_device_cleanup(struct media_device *mdev)
- 	mdev->entity_internal_idx_max = 0;
- 	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
- 	mutex_destroy(&mdev->graph_mutex);
-+	media_device_put(mdev);
- }
- EXPORT_SYMBOL_GPL(media_device_cleanup);
- 
-@@ -761,26 +767,19 @@ int __must_check __media_device_register(struct media_device *mdev,
- 	/* Set version 0 to indicate user-space that the graph is static */
- 	mdev->topology_version = 0;
- 
--	media_devnode_init(&mdev->devnode);
--
- 	ret = media_devnode_register(&mdev->devnode, owner);
- 	if (ret < 0)
--		goto out_put;
-+		return ret;
- 
- 	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
--	if (ret < 0)
--		goto out_unregister;
-+	if (ret < 0) {
-+		media_devnode_unregister(&mdev->devnode);
-+		return ret;
-+	}
- 
- 	dev_dbg(mdev->dev, "Media device registered\n");
- 
- 	return 0;
--
--out_unregister:
--	media_devnode_unregister(&mdev->devnode);
--out_put:
--	put_device(&mdev->devnode.dev);
--
--	return ret;
- }
- EXPORT_SYMBOL_GPL(__media_device_register);
- 
-@@ -823,7 +822,6 @@ void media_device_unregister(struct media_device *mdev)
- 	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
- 	dev_dbg(mdev->dev, "Media device unregistering\n");
- 	media_devnode_unregister(&mdev->devnode);
--	put_device(&mdev->devnode.dev);
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
- 
--- 
-2.1.4
+I think resizable bars are finally coming in a useful way so this
+should go away soon.
 
+Alex
