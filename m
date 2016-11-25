@@ -1,110 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53825
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752747AbcK3WBZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43382 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752264AbcKYHso (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 17:01:25 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
-        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
-        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
-        laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH v6 0/3] Media Device Allocator API
-Date: Wed, 30 Nov 2016 15:01:13 -0700
-Message-Id: <cover.1480539942.git.shuahkh@osg.samsung.com>
+        Fri, 25 Nov 2016 02:48:44 -0500
+Date: Fri, 25 Nov 2016 09:48:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: Re: [PATCH 1/1] smiapp: Implement power-on and power-off sequences
+ without runtime PM
+Message-ID: <20161125074838.GA16630@valkosipuli.retiisi.org.uk>
+References: <2929151.g7xCm3YOsX@avalon>
+ <Pine.LNX.4.44L0.1611242112030.20545-100000@netrider.rowland.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1611242112030.20545-100000@netrider.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media Device Allocator API to allows multiple drivers share a media device.
-Using this API, drivers can allocate a media device with the shared struct
-device as the key. Once the media device is allocated by a driver, other
-drivers can get a reference to it. The media device is released when all
-the references are released.
+Hi Alan and others,
 
-Patches 0001 and 0002 are rebased to 4.9-rc7. Patch 0003 for snd-usb-audio
-is a rebase of the patch that was tested with the original Media Device
-Allocator patch series.
+On Thu, Nov 24, 2016 at 09:15:39PM -0500, Alan Stern wrote:
+> On Fri, 25 Nov 2016, Laurent Pinchart wrote:
+> 
+> > Dear linux-pm developers, what's the suggested way to ensure that a runtime-
+> > pm-enabled driver can run fine on a system with CONFIG_PM disabled ?
+> 
+> The exact point of your question isn't entirely clear.  In the most 
+> literal sense, the best ways to ensure this are (1) audit the code, and 
+> (2) actually try it.
+> 
+> I have a feeling this doesn't quite answer your question, however.  :-)
 
-snd-usb-audio patch includes the fixes found during 4.7-rc1 time in the
-original snd-usb-audio patch.
-
-Changes to patches in this series:
-Changes to patch 0001 since v5: (comments from Mauro and Sakari)
-- Removed struct device from media_device_instance. mdev.dev is used instead.
-- Added documentation.
-
-Changes to patch 0002:
-- No changes since patch v2, applies cleanly on top of the following:
-media: Protect enable_source and disable_source handler code paths
-https://lkml.org/lkml/2016/11/29/1001
- 
-Changes to patch 0003:
-- Changed to hold graph_mutex to check and call enable_source and
-  disable_source handlers - to match au0828 doing the same in:
-media: Protect enable_source and disable_source handler code paths 
-https://lkml.org/lkml/2016/11/29/1001
-
-Changes to patch 0001 since v4:
-- Addressed Sakari's review comments with the exception of
-  opting to not introduce media_device_usb_allocate() macro,
-  and to not add a new routine to find media device instance
-  to avoid a one line check.
-
-Changes to patch 0001 since v3:
-- Fixed undefined reference to `__media_device_usb_init compile error when
-  CONFIG_USB is disabled.
-- Fixed kernel paging error when accessing /dev/mediaX after rmmod of the
-  module that owns the media_device. The fix bumps the reference count for
-  the owner when second driver comes along to share the media_device. If
-  au0828 owns the media_device, then snd_usb_audio will bump the refcount
-  for au0828, so it won't get deleted and vice versa.
-
-Changes to patch 0002 since v2:
-- Updated media_device_delete() to pass in module name.
-
-Changes to patch 0003 since the last version in 4.7-rc1:
-- Included fixes to bugs found during testing. 
-- Updated to use the Media Allocator API.
-
-This patch series has been tested with au0828 and snd-usb-audio drivers.
-Ran bind and unbind loop tests on each driver with mc_nextgen_test and
-media_device_test app loop tests while checking lsmod and dmesg.
-
-Please refer to tools/testing/selftests/media_tests/regression_test.txt
-for testing done on this series.
-
-Shuah Khan (3):
-  media: Media Device Allocator API
-  media: change au0828 to use Media Device Allocator API
-  sound/usb: Use Media Controller API to share media resources
-
- Documentation/media/kapi/mc-core.rst   |  37 ++++
- drivers/media/Makefile                 |   3 +-
- drivers/media/media-dev-allocator.c    | 133 ++++++++++++++
- drivers/media/usb/au0828/au0828-core.c |  12 +-
- drivers/media/usb/au0828/au0828.h      |   1 +
- include/media/media-dev-allocator.h    |  54 ++++++
- sound/usb/Kconfig                      |   4 +
- sound/usb/Makefile                     |   2 +
- sound/usb/card.c                       |  14 ++
- sound/usb/card.h                       |   3 +
- sound/usb/media.c                      | 326 +++++++++++++++++++++++++++++++++
- sound/usb/media.h                      |  73 ++++++++
- sound/usb/mixer.h                      |   3 +
- sound/usb/pcm.c                        |  28 ++-
- sound/usb/quirks-table.h               |   1 +
- sound/usb/stream.c                     |   2 +
- sound/usb/usbaudio.h                   |   6 +
- 17 files changed, 688 insertions(+), 14 deletions(-)
- create mode 100644 drivers/media/media-dev-allocator.c
- create mode 100644 include/media/media-dev-allocator.h
- create mode 100644 sound/usb/media.c
- create mode 100644 sound/usb/media.h
+The question is related to devices that require certain power-up and
+power-down sequences that are now implemented as PM runtime hooks that,
+without CONFIG_PM defined, will not be executed. Is there a better way than
+to handle this than have an implementation in the driver for the PM runtime
+and non-PM runtime case separately?
 
 -- 
-2.7.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
