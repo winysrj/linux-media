@@ -1,162 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:49928 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935225AbcKJQqu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 11:46:50 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        x86@kernel.org, linux-kbuild@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: [PATCH v2 09/11] [v3] infiniband: shut up a maybe-uninitialized warning
-Date: Thu, 10 Nov 2016 17:44:52 +0100
-Message-Id: <20161110164454.293477-10-arnd@arndb.de>
-In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
-References: <20161110164454.293477-1-arnd@arndb.de>
+Received: from ns.mm-sol.com ([37.157.136.199]:39769 "EHLO extserv.mm-sol.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753651AbcKYPFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 10:05:36 -0500
+From: Todor Tomov <todor.tomov@linaro.org>
+To: mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org,
+        Todor Tomov <todor.tomov@linaro.org>
+Subject: [PATCH 10/10] media: camss: Add Makefiles and Kconfig files
+Date: Fri, 25 Nov 2016 16:57:40 +0200
+Message-Id: <1480085860-28330-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some configurations produce this harmless warning when built with
-gcc -Wmaybe-uninitialized:
+Add Makefiles and Kconfig files to build the camss driver.
 
-infiniband/core/cma.c: In function 'cma_get_net_dev':
-infiniband/core/cma.c:1242:12: warning: 'src_addr_storage.sin_addr.s_addr' may be used uninitialized in this function [-Wmaybe-uninitialized]
-
-I previously reported this for the powerpc64 defconfig, but have now
-reproduced the same thing for x86 as well, using gcc-5 or higher.
-
-The code looks correct to me, and this change just rearranges it
-by making sure we alway initialize the entire address structure
-to make the warning disappear. My first approach added an
-initialization at the time of the declaration, which Doug commented
-may be too costly, so I hope this version doesn't add overhead.
-
-Link: http://arm-soc.lixom.net/buildlogs/mainline/v4.7-rc6/buildall.powerpc.ppc64_defconfig.log.passed
-Link: https://patchwork.kernel.org/patch/9212825/
-Acked-by: Haggai Eran <haggaie@mellanox.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
+Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 ---
-This is marked v2 as the rest of the series but is actually version
-three of the patch as I had to do some other changes already.
+ drivers/media/platform/qcom/Kconfig             |  5 +++++
+ drivers/media/platform/qcom/Makefile            |  1 +
+ drivers/media/platform/qcom/camss-8x16/Makefile | 12 ++++++++++++
+ 3 files changed, 18 insertions(+)
+ create mode 100644 drivers/media/platform/qcom/Kconfig
+ create mode 100644 drivers/media/platform/qcom/Makefile
+ create mode 100644 drivers/media/platform/qcom/camss-8x16/Makefile
 
-v3: remove accidental leftover change of the original patch
-
- drivers/infiniband/core/cma.c | 54 ++++++++++++++++++++++---------------------
- 1 file changed, 28 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 36bf50e..89a6b05 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1094,47 +1094,47 @@ static void cma_save_ib_info(struct sockaddr *src_addr,
- 	}
- }
- 
--static void cma_save_ip4_info(struct sockaddr *src_addr,
--			      struct sockaddr *dst_addr,
-+static void cma_save_ip4_info(struct sockaddr_in *src_addr,
-+			      struct sockaddr_in *dst_addr,
- 			      struct cma_hdr *hdr,
- 			      __be16 local_port)
- {
--	struct sockaddr_in *ip4;
--
- 	if (src_addr) {
--		ip4 = (struct sockaddr_in *)src_addr;
--		ip4->sin_family = AF_INET;
--		ip4->sin_addr.s_addr = hdr->dst_addr.ip4.addr;
--		ip4->sin_port = local_port;
-+		*src_addr = (struct sockaddr_in) {
-+			.sin_family = AF_INET,
-+			.sin_addr.s_addr = hdr->dst_addr.ip4.addr,
-+			.sin_port = local_port,
-+		};
- 	}
- 
- 	if (dst_addr) {
--		ip4 = (struct sockaddr_in *)dst_addr;
--		ip4->sin_family = AF_INET;
--		ip4->sin_addr.s_addr = hdr->src_addr.ip4.addr;
--		ip4->sin_port = hdr->port;
-+		*dst_addr = (struct sockaddr_in) {
-+			.sin_family = AF_INET,
-+			.sin_addr.s_addr = hdr->src_addr.ip4.addr,
-+			.sin_port = hdr->port,
-+		};
- 	}
- }
- 
--static void cma_save_ip6_info(struct sockaddr *src_addr,
--			      struct sockaddr *dst_addr,
-+static void cma_save_ip6_info(struct sockaddr_in6 *src_addr,
-+			      struct sockaddr_in6 *dst_addr,
- 			      struct cma_hdr *hdr,
- 			      __be16 local_port)
- {
--	struct sockaddr_in6 *ip6;
--
- 	if (src_addr) {
--		ip6 = (struct sockaddr_in6 *)src_addr;
--		ip6->sin6_family = AF_INET6;
--		ip6->sin6_addr = hdr->dst_addr.ip6;
--		ip6->sin6_port = local_port;
-+		*src_addr = (struct sockaddr_in6) {
-+			.sin6_family = AF_INET6,
-+			.sin6_addr = hdr->dst_addr.ip6,
-+			.sin6_port = local_port,
-+		};
- 	}
- 
- 	if (dst_addr) {
--		ip6 = (struct sockaddr_in6 *)dst_addr;
--		ip6->sin6_family = AF_INET6;
--		ip6->sin6_addr = hdr->src_addr.ip6;
--		ip6->sin6_port = hdr->port;
-+		*dst_addr = (struct sockaddr_in6) {
-+			.sin6_family = AF_INET6,
-+			.sin6_addr = hdr->src_addr.ip6,
-+			.sin6_port = hdr->port,
-+		};
- 	}
- }
- 
-@@ -1159,10 +1159,12 @@ static int cma_save_ip_info(struct sockaddr *src_addr,
- 
- 	switch (cma_get_ip_ver(hdr)) {
- 	case 4:
--		cma_save_ip4_info(src_addr, dst_addr, hdr, port);
-+		cma_save_ip4_info((struct sockaddr_in *)src_addr,
-+				  (struct sockaddr_in *)dst_addr, hdr, port);
- 		break;
- 	case 6:
--		cma_save_ip6_info(src_addr, dst_addr, hdr, port);
-+		cma_save_ip6_info((struct sockaddr_in6 *)src_addr,
-+				  (struct sockaddr_in6 *)dst_addr, hdr, port);
- 		break;
- 	default:
- 		return -EAFNOSUPPORT;
+diff --git a/drivers/media/platform/qcom/Kconfig b/drivers/media/platform/qcom/Kconfig
+new file mode 100644
+index 0000000..743ab88
+--- /dev/null
++++ b/drivers/media/platform/qcom/Kconfig
+@@ -0,0 +1,5 @@
++
++menuconfig VIDEO_QCOM_CAMSS
++	tristate "Qualcomm 8x16 V4L2 Camera Subsystem driver"
++	depends on ARCH_QCOM && VIDEO_V4L2
++	select VIDEOBUF2_DMA_CONTIG
+diff --git a/drivers/media/platform/qcom/Makefile b/drivers/media/platform/qcom/Makefile
+new file mode 100644
+index 0000000..2d73819
+--- /dev/null
++++ b/drivers/media/platform/qcom/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_VIDEO_QCOM_CAMSS)    += camss-8x16/
+diff --git a/drivers/media/platform/qcom/camss-8x16/Makefile b/drivers/media/platform/qcom/camss-8x16/Makefile
+new file mode 100644
+index 0000000..839e5f6
+--- /dev/null
++++ b/drivers/media/platform/qcom/camss-8x16/Makefile
+@@ -0,0 +1,12 @@
++# Makefile for Qualcomm CAMSS driver
++
++ccflags-y += -Idrivers/media/platform/qcom/camss
++qcom-camss-objs += \
++		camss.o \
++		csid.o \
++		csiphy.o \
++		ispif.o \
++		vfe.o \
++		video.o \
++
++obj-$(CONFIG_VIDEO_QCOM_CAMSS) += qcom-camss.o
 -- 
-2.9.0
+1.9.1
 
