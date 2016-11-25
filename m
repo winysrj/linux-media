@@ -1,125 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:58664 "EHLO
-        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751127AbcKMFLG (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38130 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750696AbcKYAnf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Nov 2016 00:11:06 -0500
-Message-ID: <d7770fedb34de7d158ee7b905b797019@smtp-cloud3.xs4all.net>
-Date: Sun, 13 Nov 2016 06:11:03 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 24 Nov 2016 19:43:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-pm@vger.kernel.org
+Subject: Re: [PATCH 1/1] smiapp: Implement power-on and power-off sequences without runtime PM
+Date: Fri, 25 Nov 2016 02:43:50 +0200
+Message-ID: <2929151.g7xCm3YOsX@avalon>
+In-Reply-To: <3671263.RFBLxrVu2U@wuerfel>
+References: <1479477016-28450-1-git-send-email-sakari.ailus@linux.intel.com> <1883244.ZIXkBXos04@avalon> <3671263.RFBLxrVu2U@wuerfel>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of media_tree:
+(CC'ing the linux-pm mailing list)
 
-date:			Sun Nov 13 05:00:16 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	bce0dfbb3eca1600249a7ebc5eaea2e19bfaf56b
-v4l-utils git hash:	db397c130912446d58c9ad3e0a81bacc0c54c159
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+On Tuesday 22 Nov 2016 21:58:32 Arnd Bergmann wrote:
+> On Tuesday, November 22, 2016 8:31:42 PM CET Laurent Pinchart wrote:
+> >>> @@ -2915,7 +2906,11 @@ static int smiapp_probe(struct i2c_client
+> >>> *client,
+> >>> 
+> >>>     pm_runtime_enable(&client->dev);
+> >>> 
+> >>> +#ifdef CONFIG_PM
+> >>>     rval = pm_runtime_get_sync(&client->dev);
+> >>> +#else
+> >>> +   rval = smiapp_power_on(&client->dev);
+> >>> +#endif
+> >>>     if (rval < 0) {
+> >>>             rval = -ENODEV;
+> >>>             goto out_power_off;
+> >> 
+> >> I would suggest writing this as
+> >> 
+> >>       if (IS_ENABLED(CONFIG_PM))
+> >>               rval = pm_runtime_get_sync(&client->dev);
+> >>       else
+> >>               rval = smiapp_power_on(&client->dev);
+> >> 
+> >> though that is a purely cosmetic change.
+> > 
+> > Are all drivers really supposed to code this kind of construct ? Shouldn't
+> > this be handled in the PM core ? A very naive approach would be to call
+> > .runtime_resume() and .runtime_suspend() from the non-CONFIG_PM versions
+> > of pm_runtime_enable() and pm_runtime_disable() respectively. I assume
+> > that would break things, but can't we implement something similar to that
+> > that wouldn't require all drivers to open-code it ?
+> 
+> I know nothing about the details of how the suspend/resume code should
+> do this, I was just commenting on the syntax above, preferring an
+> IS_ENABLED() check over an #ifdef.
 
-linux-git-Module.symvers: ERRORS
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+Dear linux-pm developers, what's the suggested way to ensure that a runtime-
+pm-enabled driver can run fine on a system with CONFIG_PM disabled ?
 
-Detailed results are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Laurent Pinchart
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
