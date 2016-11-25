@@ -1,89 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:50439 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935138AbcKJQrZ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41389 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753474AbcKYQCX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 11:47:25 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        x86@kernel.org, linux-kbuild@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: [PATCH v2 08/11] crypto: aesni: shut up -Wmaybe-uninitialized warning
-Date: Thu, 10 Nov 2016 17:44:51 +0100
-Message-Id: <20161110164454.293477-9-arnd@arndb.de>
-In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
-References: <20161110164454.293477-1-arnd@arndb.de>
+        Fri, 25 Nov 2016 11:02:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: wharms@bfs.de
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        Sakari Alius <sakari.ailus@iki.fi>
+Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
+Date: Fri, 25 Nov 2016 18:02:45 +0200
+Message-ID: <11316049.HORSOXRmDr@avalon>
+In-Reply-To: <58384F15.4040207@bfs.de>
+References: <20161125102835.GA5856@mwanda> <2064794.XNX8XhaLMu@avalon> <58384F15.4040207@bfs.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The rfc4106 encrypy/decrypt helper functions cause an annoying
-false-positive warning in allmodconfig if we turn on
--Wmaybe-uninitialized warnings again:
+Hi Walter,
 
-arch/x86/crypto/aesni-intel_glue.c: In function ‘helper_rfc4106_decrypt’:
-include/linux/scatterlist.h:67:31: warning: ‘dst_sg_walk.sg’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+On Friday 25 Nov 2016 15:47:49 walter harms wrote:
+> Am 25.11.2016 14:57, schrieb Laurent Pinchart:
+> > On Friday 25 Nov 2016 13:28:35 Dan Carpenter wrote:
+> >> A recent cleanup introduced a potential dereference of -EFAULT when we
+> >> call kfree(map->menu_info).
+> > 
+> > I should have caught that, my apologies :-(
+> > 
+> > Thinking a bit more about this class of problems, would the following
+> > patch make sense ?
+> > 
+> > commit 034b71306510643f9f059249a0c14418099eb436
+> > Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Date:   Fri Nov 25 15:54:22 2016 +0200
+> > 
+> >     mm/slab: WARN_ON error pointers passed to kfree()
+> >     
+> >     Passing an error pointer to kfree() is invalid and can lead to crashes
+> >     or memory corruption. Reject those pointers and WARN in order to catch
+> >     the problems and fix them in the callers.
+> >     
+> >     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > diff --git a/mm/slab.c b/mm/slab.c
+> > index 0b0550ca85b4..a7eb830c6684 100644
+> > --- a/mm/slab.c
+> > +++ b/mm/slab.c
+> > @@ -3819,6 +3819,8 @@ void kfree(const void *objp)
+> >  	if (unlikely(ZERO_OR_NULL_PTR(objp)))
+> >  		return;
+> > 
+> > +	if (WARN_ON(IS_ERR(objp)))
+> > +		return;
+> >  	local_irq_save(flags);
+> >  	kfree_debugcheck(objp);
+> >  	c = virt_to_cache(objp);
+> 
+> I this is better in kfree_debugcheck().
+> 1. it has the right name
+> 2. is contains already a check
 
-The problem seems to be that the compiler doesn't track the state of the
-'one_entry_in_sg' variable across the kernel_fpu_begin/kernel_fpu_end
-section.
+Sakari Ailus (CC'ed) has expressed the opinion that we might want to go one 
+step further and treat error pointers the same way we treat NULL or ZERO 
+pointers today, by just returning without logging anything. The reasoning is 
+that accepting a NULL pointer in kfree() was decided before we made extensive 
+use of allocation APIs returning error pointers, so it could be time to update 
+kfree() based on the current allocation usage patterns.
 
-This takes the easy way out by adding a bogus initialization, which
-should be harmless enough to get the patch into v4.9 so we can turn
-on this warning again by default without producing useless output.
-A follow-up patch for v4.10 rearranges the code to make the warning
-go away.
+> static void kfree_debugcheck(const void *objp)
+>  {
+>          if (!virt_addr_valid(objp)) {
+>                  pr_err("kfree_debugcheck: out of range ptr %lxh\n",
+>                         (unsigned long)objp);
+>                  BUG();
+>          }
+>   }
+> 
+> btw: should this read %p ?
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/x86/crypto/aesni-intel_glue.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/arch/x86/crypto/aesni-intel_glue.c b/arch/x86/crypto/aesni-intel_glue.c
-index 0ab5ee1..aa8b067 100644
---- a/arch/x86/crypto/aesni-intel_glue.c
-+++ b/arch/x86/crypto/aesni-intel_glue.c
-@@ -888,7 +888,7 @@ static int helper_rfc4106_encrypt(struct aead_request *req)
- 	unsigned long auth_tag_len = crypto_aead_authsize(tfm);
- 	u8 iv[16] __attribute__ ((__aligned__(AESNI_ALIGN)));
- 	struct scatter_walk src_sg_walk;
--	struct scatter_walk dst_sg_walk;
-+	struct scatter_walk dst_sg_walk = {};
- 	unsigned int i;
- 
- 	/* Assuming we are supporting rfc4106 64-bit extended */
-@@ -968,7 +968,7 @@ static int helper_rfc4106_decrypt(struct aead_request *req)
- 	u8 iv[16] __attribute__ ((__aligned__(AESNI_ALIGN)));
- 	u8 authTag[16];
- 	struct scatter_walk src_sg_walk;
--	struct scatter_walk dst_sg_walk;
-+	struct scatter_walk dst_sg_walk = {};
- 	unsigned int i;
- 
- 	if (unlikely(req->assoclen != 16 && req->assoclen != 20))
 -- 
-2.9.0
+Regards,
+
+Laurent Pinchart
 
