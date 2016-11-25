@@ -1,56 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps0.lunn.ch ([178.209.37.122]:45838 "EHLO vps0.lunn.ch"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752380AbcKSRix (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 12:38:53 -0500
-Date: Sat, 19 Nov 2016 18:38:46 +0100
-From: Andrew Lunn <andrew@lunn.ch>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        ksummit-discuss@lists.linuxfoundation.org,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-Message-ID: <20161119173846.GB25398@lunn.ch>
-References: <20161107075524.49d83697@vento.lan>
- <11020459.EheIgy38UF@wuerfel>
- <20161116182633.74559ffd@vento.lan>
- <2923918.nyphv1Ma7d@wuerfel>
- <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
- <20161119101543.12b89563@lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161119101543.12b89563@lwn.net>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:45289 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750977AbcKYFI6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 00:08:58 -0500
+Message-ID: <de1f93bfbfe0ae13e5fb8ddf05cf1819@smtp-cloud2.xs4all.net>
+Date: Fri, 25 Nov 2016 06:08:35 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Rather than beating our heads against the wall trying to convert between
-> various image formats, maybe we need to take a step back.  We're trying
-> to build better documentation, and there is certainly a place for
-> diagrams and such in that documentation.  Johannes was asking about it
-> for the 802.11 docs, and I know Paul has run into these issues with the
-> RCU docs as well.  Might there be a tool or an extension out there that
-> would allow us to express these diagrams in a text-friendly, editable
-> form?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Hi Jonathan
+Results of the daily build of media_tree:
 
-A lot depends on what the diagram is supposed to show. I've used
-graphviz dot in documents which get processes with Sphinx. That works
-well for state machine, linked lists, etc. It uses a mainline Sphinx
-extension.
+date:			Fri Nov 25 05:00:20 CET 2016
+media-tree git hash:	4cc5bed1caeb6d40f2f41c4c5eb83368691fbffb
+media_build git hash:	538c0b2692a7ca59253385180954ac6c7d9b7817
+v4l-utils git hash:	d7f2c410fc35841fe817c4bb9cf94070994e0f01
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-It does however increase the size of your documents toolchain, you
-need graphviz. But i doubt there is a distribution which does not have
-it.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc5-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
-If you are worried about getting all these needed tools installed, i
-think tools/perf might be a useful guide. When you compile it, it
-gives helpful hints:
+Detailed results are available here:
 
-No libdw DWARF unwind found, Please install elfutils-devel/libdw-dev >= 0.158
-No sys/sdt.h found, no SDT events are defined, please install systemtap-sdt-devel or systemtap-sdt-dev
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-     Andrew
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
