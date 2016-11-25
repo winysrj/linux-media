@@ -1,44 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33397 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932211AbcKOMGa (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38096 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750708AbcKYAZk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 07:06:30 -0500
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 1/2] v4l2-tpg: Init hv_enc field with a valid value
-Date: Tue, 15 Nov 2016 13:06:24 +0100
-Message-Id: <20161115120625.3015-1-ricardo.ribalda@gmail.com>
+        Thu, 24 Nov 2016 19:25:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: vsp1: Prevent commencing pipelines before they are setup
+Date: Fri, 25 Nov 2016 02:26:01 +0200
+Message-ID: <1835906.9KsnRA2js0@avalon>
+In-Reply-To: <ac4eeacc-4211-830b-8b70-2cc88d03f01c@ideasonboard.com>
+References: <1478860318-14792-1-git-send-email-kieran.bingham+renesas@ideasonboard.com> <ac4eeacc-4211-830b-8b70-2cc88d03f01c@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zero is not a valid value for hsv_enc. Set the field to a valid
-initial value.
+Hi Kieran,
 
-This is not a problem for vivid, because it sets the field to 180 via
-tpg_s_hsv_enc() on the control initialization, but it might be a source
-of errors for other drivers that use this code.
+On Wednesday 23 Nov 2016 12:28:15 Kieran Bingham wrote:
+> Just FYI,
+> 
+> Whilst this patch is functional on its own, it is likely to be
+> superseded before it gets a chance to be integrated as I am currently
+> reworking vsp1_video_start_streaming(), in particular the use of
+> vsp1_video_setup_pipeline().
+> 
+> The re-work will of course also consider and tackle the issue repaired here.
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/media/common/v4l2-tpg/v4l2-tpg-core.c | 1 +
- 1 file changed, 1 insertion(+)
+OK, I'll ignore this patch then.
 
-diff --git a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-index 28d7b072d867..e47b46e2d26c 100644
---- a/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-+++ b/drivers/media/common/v4l2-tpg/v4l2-tpg-core.c
-@@ -117,6 +117,7 @@ void tpg_init(struct tpg_data *tpg, unsigned w, unsigned h)
- 	tpg_s_fourcc(tpg, V4L2_PIX_FMT_RGB24);
- 	tpg->colorspace = V4L2_COLORSPACE_SRGB;
- 	tpg->perc_fill = 100;
-+	tpg->hsv_enc = V4L2_HSV_ENC_180;
- }
- EXPORT_SYMBOL_GPL(tpg_init);
- 
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
