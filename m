@@ -1,551 +1,738 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f49.google.com ([74.125.83.49]:34316 "EHLO
-        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755726AbcKWBTw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 20:19:52 -0500
-Received: by mail-pg0-f49.google.com with SMTP id x23so13338461pgx.1
-        for <linux-media@vger.kernel.org>; Tue, 22 Nov 2016 17:19:52 -0800 (PST)
-From: Matt Ranostay <matt@ranostay.consulting>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Matt Ranostay <matt@ranostay.consulting>,
-        Attila Kinali <attila@kinali.ch>, Marek Vasut <marex@denx.de>,
-        Luca Barbato <lu_zero@gentoo.org>
-Subject: [PATCH v3] media: i2c-polling: add i2c-polling driver
-Date: Tue, 22 Nov 2016 17:18:40 -0800
-Message-Id: <1479863920-14708-1-git-send-email-matt@ranostay.consulting>
+Received: from foss.arm.com ([217.140.101.70]:51122 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754852AbcKYQtZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 11:49:25 -0500
+From: Brian Starkey <brian.starkey@arm.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, daniel@ffwll.ch, gustavo@padovan.org,
+        laurent.pinchart@ideasonboard.com, eric@anholt.net,
+        ville.syrjala@linux.intel.com, liviu.dudau@arm.com
+Subject: [PATCH 1/6] drm: Add writeback connector type
+Date: Fri, 25 Nov 2016 16:48:59 +0000
+Message-Id: <1480092544-1725-2-git-send-email-brian.starkey@arm.com>
+In-Reply-To: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several thermal sensors that only have a low-speed bus
-interface but output valid video data. This patchset enables support
-for the AMG88xx "Grid-Eye" sensor family.
+Writeback connectors represent writeback engines which can write the
+CRTC output to a memory framebuffer. Add a writeback connector type and
+related support functions.
 
-Cc: Attila Kinali <attila@kinali.ch>
-Cc: Marek Vasut <marex@denx.de>
-Cc: Luca Barbato <lu_zero@gentoo.org>
-Signed-off-by: Matt Ranostay <matt@ranostay.consulting>
+Drivers should initialize a writeback connector with
+drm_writeback_connector_init() which takes care of setting up all the
+writeback-specific details on top of the normal functionality of
+drm_connector_init().
+
+Writeback connectors have a WRITEBACK_FB_ID property, used to set the
+output framebuffer, and a PIXEL_FORMATS blob used to expose the
+supported writeback formats to userspace.
+
+When a framebuffer is attached to a writeback connector with the
+WRITEBACK_FB_ID property, it is used only once (for the commit in which
+it was included), and userspace can never read back the value of
+WRITEBACK_FB_ID. WRITEBACK_FB_ID can only be set if the connector is
+attached to a CRTC.
+
+Changes since v1:
+ - Added drm_writeback.c + documentation
+ - Added helper to initialize writeback connector in one go
+ - Added core checks
+ - Squashed into a single commit
+ - Dropped the client cap
+ - Writeback framebuffers are no longer persistent
+
+Changes since v2:
+ Daniel Vetter:
+ - Subclass drm_connector to drm_writeback_connector
+ - Relax check to allow CRTC to be set without an FB
+ - Add some writeback_ prefixes
+ - Drop PIXEL_FORMATS_SIZE property, as it was unnecessary
+ Gustavo Padovan:
+ - Add drm_writeback_job to handle writeback signalling centrally
+
+Signed-off-by: Brian Starkey <brian.starkey@arm.com>
 ---
-Changes from v1:
-* correct i2c_polling_remove() operations
-* fixed delay calcuation in buffer_queue()
-* add include linux/slab.h
+ Documentation/gpu/drm-kms.rst       |    9 ++
+ drivers/gpu/drm/Makefile            |    2 +-
+ drivers/gpu/drm/drm_atomic.c        |  130 ++++++++++++++++++++
+ drivers/gpu/drm/drm_atomic_helper.c |    6 +
+ drivers/gpu/drm/drm_connector.c     |    4 +-
+ drivers/gpu/drm/drm_writeback.c     |  230 +++++++++++++++++++++++++++++++++++
+ include/drm/drm_atomic.h            |    3 +
+ include/drm/drm_connector.h         |   13 ++
+ include/drm/drm_mode_config.h       |   14 +++
+ include/drm/drm_writeback.h         |   78 ++++++++++++
+ include/uapi/drm/drm_mode.h         |    1 +
+ 11 files changed, 488 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/gpu/drm/drm_writeback.c
+ create mode 100644 include/drm/drm_writeback.h
 
-Changes from v2:
-* fix build error due to typo in include of slab.h
-
- drivers/media/i2c/Kconfig       |   8 +
- drivers/media/i2c/Makefile      |   1 +
- drivers/media/i2c/i2c-polling.c | 469 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 478 insertions(+)
- create mode 100644 drivers/media/i2c/i2c-polling.c
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index b31fa6fae009..d840e7be0036 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -768,6 +768,14 @@ config VIDEO_M52790
+diff --git a/Documentation/gpu/drm-kms.rst b/Documentation/gpu/drm-kms.rst
+index 568f3c2..3a4f35b 100644
+--- a/Documentation/gpu/drm-kms.rst
++++ b/Documentation/gpu/drm-kms.rst
+@@ -122,6 +122,15 @@ Connector Functions Reference
+ .. kernel-doc:: drivers/gpu/drm/drm_connector.c
+    :export:
  
- 	 To compile this driver as a module, choose M here: the
- 	 module will be called m52790.
++Writeback Connectors
++--------------------
 +
-+config VIDEO_I2C_POLLING
-+	tristate "I2C polling video support"
-+	depends on VIDEO_V4L2 && I2C
-+	select VIDEOBUF2_VMALLOC
-+	---help---
-+	  Enable the I2C polling video support which supports the following:
-+	   * Panasonic AMG88xx Grid-Eye Sensors
- endmenu
++.. kernel-doc:: drivers/gpu/drm/drm_writeback.c
++  :doc: overview
++
++.. kernel-doc:: drivers/gpu/drm/drm_writeback.c
++  :export:
++
+ Encoder Abstraction
+ ===================
  
- menu "Sensors used on soc_camera driver"
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 92773b2e6225..8182ec9f66b9 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -79,6 +79,7 @@ obj-$(CONFIG_VIDEO_LM3646)	+= lm3646.o
- obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
- obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
- obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
-+obj-$(CONFIG_VIDEO_I2C_POLLING)	+= i2c-polling.o
- obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
- obj-$(CONFIG_VIDEO_OV2659)	+= ov2659.o
- obj-$(CONFIG_VIDEO_TC358743)	+= tc358743.o
-diff --git a/drivers/media/i2c/i2c-polling.c b/drivers/media/i2c/i2c-polling.c
-new file mode 100644
-index 000000000000..46a4eecde2d2
---- /dev/null
-+++ b/drivers/media/i2c/i2c-polling.c
-@@ -0,0 +1,469 @@
-+/*
-+ * i2c_polling.c - Support for polling I2C video devices
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index 883f3e7..3209aa4 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -16,7 +16,7 @@ drm-y       :=	drm_auth.o drm_bufs.o drm_cache.o \
+ 		drm_framebuffer.o drm_connector.o drm_blend.o \
+ 		drm_encoder.o drm_mode_object.o drm_property.o \
+ 		drm_plane.o drm_color_mgmt.o drm_print.o \
+-		drm_dumb_buffers.o drm_mode_config.o
++		drm_dumb_buffers.o drm_mode_config.o drm_writeback.o
+ 
+ drm-$(CONFIG_COMPAT) += drm_ioc32.o
+ drm-$(CONFIG_DRM_GEM_CMA_HELPER) += drm_gem_cma_helper.o
+diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+index b476ec5..343e2b7 100644
+--- a/drivers/gpu/drm/drm_atomic.c
++++ b/drivers/gpu/drm/drm_atomic.c
+@@ -31,6 +31,7 @@
+ #include <drm/drm_mode.h>
+ #include <drm/drm_plane_helper.h>
+ #include <drm/drm_print.h>
++#include <drm/drm_writeback.h>
+ #include <linux/sync_file.h>
+ 
+ #include "drm_crtc_internal.h"
+@@ -659,6 +660,46 @@ static void drm_atomic_crtc_print_state(struct drm_printer *p,
+ }
+ 
+ /**
++ * drm_atomic_connector_check - check connector state
++ * @connector: connector to check
++ * @state: connector state to check
 + *
-+ * Copyright (C) 2016 Matt Ranostay <mranostay@ranostay.consulting>
++ * Provides core sanity checks for connector state.
 + *
-+ * Based on the orginal work drivers/media/parport/bw-qcam.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * Supported:
-+ * - Panasonic AMG88xx Grid-Eye Sensors
++ * RETURNS:
++ * Zero on success, error code on failure
 + */
-+
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/delay.h>
-+#include <linux/videodev2.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <media/videobuf2-vmalloc.h>
-+
-+#define I2C_POLLING_DRIVER	"i2c-polling"
-+
-+struct i2c_polling_chip;
-+
-+struct i2c_polling_data {
-+	struct i2c_client *client;
-+	const struct i2c_polling_chip *chip;
-+	struct mutex lock;
-+	struct mutex queue_lock;
-+	unsigned int last_update;
-+
-+	struct v4l2_device v4l2_dev;
-+	struct video_device vdev;
-+	struct vb2_queue vb_vidq;
-+};
-+
-+static struct v4l2_fmtdesc amg88xx_format = {
-+	.description = "12-bit Greyscale",
-+	.pixelformat = V4L2_PIX_FMT_Y12,
-+};
-+
-+static struct v4l2_frmsize_discrete amg88xx_size = {
-+	.width = 8,
-+	.height = 8,
-+};
-+
-+struct i2c_polling_chip {
-+	/* video dimensions */
-+	struct v4l2_fmtdesc *format;
-+	struct v4l2_frmsize_discrete *size;
-+
-+	/* max frames per second */
-+	unsigned int max_fps;
-+
-+	/* pixel buffer size */
-+	unsigned int buffer_size;
-+
-+	/* xfer function */
-+	int (*xfer)(struct i2c_polling_data *data, char *buf);
-+};
-+
-+enum {
-+	AMG88XX	= 0,
-+	I2C_POLLING_CHIP_CNT,
-+};
-+
-+static int amg88xx_xfer(struct i2c_polling_data *data, char *buf)
++static int drm_atomic_connector_check(struct drm_connector *connector,
++		struct drm_connector_state *state)
 +{
-+	struct i2c_client *client = data->client;
-+	struct i2c_msg msg[2];
-+	u8 reg = 0x80;
-+	int ret;
++	struct drm_crtc_state *crtc_state;
++	struct drm_writeback_job *writeback_job = state->writeback_job;
 +
-+	msg[0].addr = client->addr;
-+	msg[0].flags = 0;
-+	msg[0].len = 1;
-+	msg[0].buf  = (char *) &reg;
++	if ((connector->connector_type != DRM_MODE_CONNECTOR_WRITEBACK) ||
++	    !writeback_job)
++		return 0;
 +
-+	msg[1].addr = client->addr;
-+	msg[1].flags = I2C_M_RD;
-+	msg[1].len = data->chip->buffer_size;
-+	msg[1].buf = (char *) buf;
-+
-+	ret = i2c_transfer(client->adapter, msg, 2);
-+
-+	return (ret == 2) ? 0 : -EIO;
-+}
-+
-+static const struct i2c_polling_chip i2c_polling_chips[I2C_POLLING_CHIP_CNT] = {
-+	[AMG88XX] = {
-+		.size		= &amg88xx_size,
-+		.format		= &amg88xx_format,
-+		.max_fps	= 10,
-+		.buffer_size	= 128,
-+		.xfer		= &amg88xx_xfer,
-+	},
-+};
-+
-+static const struct v4l2_file_operations i2c_polling_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= v4l2_fh_open,
-+	.release	= vb2_fop_release,
-+	.poll		= vb2_fop_poll,
-+	.unlocked_ioctl = video_ioctl2,
-+	.read		= vb2_fop_read,
-+	.mmap		= vb2_fop_mmap,
-+};
-+
-+static int queue_setup(struct vb2_queue *vq,
-+		       unsigned int *nbuffers, unsigned int *nplanes,
-+		       unsigned int sizes[], struct device *alloc_devs[])
-+{
-+	struct i2c_polling_data *data = vb2_get_drv_priv(vq);
-+
-+	if (!(*nbuffers))
-+		*nbuffers = 3;
-+
-+	*nplanes = 1;
-+	sizes[0] = data->chip->buffer_size;
-+
-+	return 0;
-+}
-+
-+static void buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
-+	unsigned int delay = 1000 / data->chip->max_fps;
-+	int delta;
-+
-+	mutex_lock(&data->lock);
-+
-+	delta = jiffies - data->last_update;
-+
-+	if (delta < msecs_to_jiffies(delay)) {
-+		int tmp = (delay - jiffies_to_msecs(delta)) * 1000;
-+
-+		usleep_range(tmp, tmp + 1000);
++	if (writeback_job->fb && !state->crtc) {
++		DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] framebuffer without CRTC\n",
++				 connector->base.id, connector->name);
++		return -EINVAL;
 +	}
-+	data->last_update = jiffies;
 +
-+	mutex_unlock(&data->lock);
++	if (state->crtc)
++		crtc_state = drm_atomic_get_existing_crtc_state(state->state,
++								state->crtc);
 +
-+	vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+}
-+
-+static void buffer_finish(struct vb2_buffer *vb)
-+{
-+	struct i2c_polling_data *data = vb2_get_drv_priv(vb->vb2_queue);
-+	void *vbuf = vb2_plane_vaddr(vb, 0);
-+	int size = vb2_plane_size(vb, 0);
-+	int ret;
-+
-+	mutex_lock(&data->lock);
-+
-+	ret = data->chip->xfer(data, vbuf);
-+	if (ret < 0)
-+		vb->state = VB2_BUF_STATE_ERROR;
-+
-+	mutex_unlock(&data->lock);
-+
-+	vb->timestamp = ktime_get_ns();
-+	vb2_set_plane_payload(vb, 0, ret ? 0 : size);
-+}
-+
-+static struct vb2_ops i2c_polling_video_qops = {
-+	.queue_setup	= queue_setup,
-+	.buf_queue	= buffer_queue,
-+	.buf_finish	= buffer_finish,
-+	.wait_prepare	= vb2_ops_wait_prepare,
-+	.wait_finish	= vb2_ops_wait_finish,
-+};
-+
-+static int i2c_polling_querycap(struct file *file, void  *priv,
-+				struct v4l2_capability *vcap)
-+{
-+	struct i2c_polling_data *data = video_drvdata(file);
-+
-+	strlcpy(vcap->driver, data->v4l2_dev.name, sizeof(vcap->driver));
-+	strlcpy(vcap->card, "I2C Polling Video", sizeof(vcap->card));
-+
-+	strlcpy(vcap->bus_info, "I2C:i2c-polling", sizeof(vcap->bus_info));
-+	vcap->device_caps = V4L2_CAP_VIDEO_CAPTURE |
-+			    V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-+	vcap->capabilities = vcap->device_caps | V4L2_CAP_DEVICE_CAPS;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_g_input(struct file *file, void *fh, unsigned int *inp)
-+{
-+	*inp = 0;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_s_input(struct file *file, void *fh, unsigned int inp)
-+{
-+	return (inp > 0) ? -EINVAL : 0;
-+}
-+
-+static int i2c_polling_enum_input(struct file *file, void *fh,
-+				  struct v4l2_input *vin)
-+{
-+	if (vin->index > 0)
++	if (writeback_job->fb && !crtc_state->active) {
++		DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] has framebuffer, but [CRTC:%d] is off\n",
++				 connector->base.id, connector->name,
++				 state->crtc->base.id);
 +		return -EINVAL;
-+
-+	strlcpy(vin->name, "Camera", sizeof(vin->name));
-+
-+	vin->type = V4L2_INPUT_TYPE_CAMERA;
-+	vin->audioset = 0;
-+	vin->tuner = 0;
-+	vin->std = 0;
-+	vin->status = 0;
++	}
 +
 +	return 0;
 +}
 +
-+static int i2c_polling_enum_fmt_vid_cap(struct file *file, void *fh,
-+					struct v4l2_fmtdesc *fmt)
-+{
-+	struct i2c_polling_data *data = video_drvdata(file);
-+	enum v4l2_buf_type type = fmt->type;
-+
-+	if (fmt->index > 0)
-+		return -EINVAL;
-+
-+	*fmt = *data->chip->format;
-+	fmt->type = type;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_enum_framesizes(struct file *file, void *fh,
-+				       struct v4l2_frmsizeenum *fsize)
-+{
-+	struct i2c_polling_data *data = video_drvdata(file);
-+	struct v4l2_frmsize_discrete *size = data->chip->size;
-+
-+	/* currently only one frame size is allowed */
-+	if (fsize->index > 0)
-+		return -EINVAL;
-+
-+	if (fsize->pixel_format != data->chip->format->pixelformat)
-+		return -EINVAL;
-+
-+	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+	fsize->discrete.width = size->width;
-+	fsize->discrete.height = size->height;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_enum_frameintervals(struct file *file, void *priv,
-+					   struct v4l2_frmivalenum *fe)
-+{
-+	struct i2c_polling_data *data = video_drvdata(file);
-+	struct v4l2_frmsize_discrete *size = data->chip->size;
-+
-+	if (fe->index > 0)
-+		return -EINVAL;
-+
-+	if ((fe->width != size->width) || (fe->height != size->height))
-+		return -EINVAL;
-+
-+	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
-+	fe->discrete.numerator = 1;
-+	fe->discrete.denominator = data->chip->max_fps;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_try_fmt_vid_cap(struct file *file, void *fh,
-+				       struct v4l2_format *fmt)
-+{
-+	struct i2c_polling_data *data = video_drvdata(file);
-+	struct v4l2_pix_format *pix = &fmt->fmt.pix;
-+	struct v4l2_frmsize_discrete *size = data->chip->size;
-+
-+	pix->width = size->width;
-+	pix->height = size->height;
-+	pix->pixelformat = data->chip->format->pixelformat;
-+	pix->field = V4L2_FIELD_NONE;
-+	pix->bytesperline = pix->width * 2;
-+	pix->sizeimage = pix->width * pix->height * 2;
-+	pix->colorspace = V4L2_COLORSPACE_SRGB;
-+	pix->priv = 0;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_fmt_vid_cap(struct file *file, void *fh,
-+				     struct v4l2_format *fmt)
-+{
-+	struct i2c_polling_data *data = video_drvdata(file);
-+	int ret = i2c_polling_try_fmt_vid_cap(file, fh, fmt);
-+
-+	if (ret < 0)
++/**
+  * drm_atomic_get_plane_state - get plane state
+  * @state: global atomic state object
+  * @plane: plane to get state object for
+@@ -1087,6 +1128,12 @@ int drm_atomic_connector_set_property(struct drm_connector *connector,
+ 		 * now?) atomic writes to DPMS property:
+ 		 */
+ 		return -EINVAL;
++	} else if (property == config->writeback_fb_id_property) {
++		struct drm_framebuffer *fb = drm_framebuffer_lookup(dev, val);
++		int ret = drm_atomic_set_writeback_fb_for_connector(state, fb);
++		if (fb)
++			drm_framebuffer_unreference(fb);
 +		return ret;
+ 	} else if (connector->funcs->atomic_set_property) {
+ 		return connector->funcs->atomic_set_property(connector,
+ 				state, property, val);
+@@ -1135,6 +1182,9 @@ static void drm_atomic_connector_print_state(struct drm_printer *p,
+ 		*val = (state->crtc) ? state->crtc->base.id : 0;
+ 	} else if (property == config->dpms_property) {
+ 		*val = connector->dpms;
++	} else if (property == config->writeback_fb_id_property) {
++		/* Writeback framebuffer is one-shot, write and forget */
++		*val = 0;
+ 	} else if (connector->funcs->atomic_get_property) {
+ 		return connector->funcs->atomic_get_property(connector,
+ 				state, property, val);
+@@ -1347,6 +1397,75 @@ int drm_atomic_get_property(struct drm_mode_object *obj,
+ }
+ EXPORT_SYMBOL(drm_atomic_set_crtc_for_connector);
+ 
++/*
++ * drm_atomic_get_writeback_job - return or allocate a writeback job
++ * @conn_state: Connector state to get the job for
++ *
++ * Writeback jobs have a different lifetime to the atomic state they are
++ * associated with. This convenience function takes care of allocating a job
++ * if there isn't yet one associated with the connector state, otherwise
++ * it just returns the existing job.
++ *
++ * Returns: The writeback job for the given connector state
++ */
++static struct drm_writeback_job *
++drm_atomic_get_writeback_job(struct drm_connector_state *conn_state)
++{
++	WARN_ON(conn_state->connector->connector_type !=
++		DRM_MODE_CONNECTOR_WRITEBACK);
 +
-+	if (vb2_is_busy(&data->vb_vidq))
-+		return -EBUSY;
++	if (!conn_state->writeback_job)
++		conn_state->writeback_job =
++			kzalloc(sizeof(*conn_state->writeback_job), GFP_KERNEL);
 +
-+	return 0;
++	return conn_state->writeback_job;
 +}
 +
-+static int i2c_polling_g_parm(struct file *filp, void *priv,
-+			      struct v4l2_streamparm *parm)
++/**
++ * drm_atomic_set_writeback_fb_for_connector - set writeback framebuffer
++ * @conn_state: atomic state object for the connector
++ * @fb: fb to use for the connector
++ *
++ * This is used to set the framebuffer for a writeback connector, which outputs
++ * to a buffer instead of an actual physical connector.
++ * Changing the assigned framebuffer requires us to grab a reference to the new
++ * fb and drop the reference to the old fb, if there is one. This function
++ * takes care of all these details besides updating the pointer in the
++ * state object itself.
++ *
++ * Note: The only way conn_state can already have an fb set is if the commit
++ * sets the property more than once.
++ *
++ * See also: drm_writeback_connector_init()
++ *
++ * Returns: 0 on success
++ */
++int drm_atomic_set_writeback_fb_for_connector(
++		struct drm_connector_state *conn_state,
++		struct drm_framebuffer *fb)
 +{
-+	struct i2c_polling_data *data = video_drvdata(filp);
-+
-+	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	parm->parm.capture.readbuffers = 3;
-+	parm->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-+	parm->parm.capture.timeperframe.numerator = 1;
-+	parm->parm.capture.timeperframe.denominator = data->chip->max_fps;
-+
-+	return 0;
-+}
-+
-+static int i2c_polling_s_parm(struct file *filp, void *priv,
-+			      struct v4l2_streamparm *parm)
-+{
-+	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	return i2c_polling_g_parm(filp, priv, parm);
-+}
-+
-+static const struct v4l2_ioctl_ops i2c_polling_ioctl_ops = {
-+	.vidioc_querycap		= i2c_polling_querycap,
-+	.vidioc_g_input			= i2c_polling_g_input,
-+	.vidioc_s_input			= i2c_polling_s_input,
-+	.vidioc_enum_input		= i2c_polling_enum_input,
-+	.vidioc_enum_fmt_vid_cap	= i2c_polling_enum_fmt_vid_cap,
-+	.vidioc_enum_framesizes		= i2c_polling_enum_framesizes,
-+	.vidioc_enum_frameintervals	= i2c_polling_enum_frameintervals,
-+	.vidioc_g_fmt_vid_cap		= i2c_polling_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap		= i2c_polling_fmt_vid_cap,
-+	.vidioc_g_parm			= i2c_polling_g_parm,
-+	.vidioc_s_parm			= i2c_polling_s_parm,
-+	.vidioc_try_fmt_vid_cap		= i2c_polling_try_fmt_vid_cap,
-+	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-+	.vidioc_querybuf		= vb2_ioctl_querybuf,
-+	.vidioc_qbuf			= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_streamon		= vb2_ioctl_streamon,
-+	.vidioc_streamoff		= vb2_ioctl_streamoff,
-+	.vidioc_log_status		= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-+};
-+
-+static int i2c_polling_probe(struct i2c_client *client,
-+			     const struct i2c_device_id *id)
-+{
-+	struct i2c_polling_data *data;
-+	struct v4l2_device *v4l2_dev;
-+	struct vb2_queue *queue;
-+	int ret;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data)
++	struct drm_writeback_job *job =
++		drm_atomic_get_writeback_job(conn_state);
++	if (!job)
 +		return -ENOMEM;
 +
-+	data->chip = &i2c_polling_chips[id->driver_data];
-+	data->client = client;
-+	data->last_update = jiffies;
-+	v4l2_dev = &data->v4l2_dev;
-+	strlcpy(v4l2_dev->name, I2C_POLLING_DRIVER, sizeof(v4l2_dev->name));
++	if (job->fb)
++		drm_framebuffer_unreference(job->fb);
++	if (fb)
++		drm_framebuffer_reference(fb);
++	job->fb = fb;
 +
-+	ret = v4l2_device_register(&client->dev, v4l2_dev);
-+	if (ret < 0)
-+		goto error_free_device;
++	if (fb)
++		DRM_DEBUG_ATOMIC("Set [FB:%d] for connector state %p\n",
++				 fb->base.id, conn_state);
++	else
++		DRM_DEBUG_ATOMIC("Set [NOFB] for connector state %p\n",
++				 conn_state);
 +
-+	mutex_init(&data->lock);
-+	mutex_init(&data->queue_lock);
++	return 0;
++}
++EXPORT_SYMBOL(drm_atomic_set_writeback_fb_for_connector);
 +
-+	queue = &data->vb_vidq;
-+	queue->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	queue->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-+	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	queue->drv_priv = data;
-+	queue->ops = &i2c_polling_video_qops;
-+	queue->mem_ops = &vb2_vmalloc_memops;
+ /**
+  * drm_atomic_add_affected_connectors - add connectors for crtc
+  * @state: atomic state
+@@ -1501,6 +1620,8 @@ int drm_atomic_check_only(struct drm_atomic_state *state)
+ 	struct drm_plane_state *plane_state;
+ 	struct drm_crtc *crtc;
+ 	struct drm_crtc_state *crtc_state;
++	struct drm_connector *conn;
++	struct drm_connector_state *conn_state;
+ 	int i, ret = 0;
+ 
+ 	DRM_DEBUG_ATOMIC("checking %p\n", state);
+@@ -1523,6 +1644,15 @@ int drm_atomic_check_only(struct drm_atomic_state *state)
+ 		}
+ 	}
+ 
++	for_each_connector_in_state(state, conn, conn_state, i) {
++		ret = drm_atomic_connector_check(conn, conn_state);
++		if (ret) {
++			DRM_DEBUG_ATOMIC("[CONNECTOR:%d:%s] atomic core check failed\n",
++					 conn->base.id, conn->name);
++			return ret;
++		}
++	}
 +
-+	ret = vb2_queue_init(queue);
-+	if (ret < 0)
-+		goto error_free_device;
+ 	if (config->funcs->atomic_check)
+ 		ret = config->funcs->atomic_check(state->dev, state);
+ 
+diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
+index 0b16587..75812b9 100644
+--- a/drivers/gpu/drm/drm_atomic_helper.c
++++ b/drivers/gpu/drm/drm_atomic_helper.c
+@@ -30,6 +30,7 @@
+ #include <drm/drm_plane_helper.h>
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_atomic_helper.h>
++#include <drm/drm_writeback.h>
+ #include <linux/dma-fence.h>
+ 
+ #include "drm_crtc_internal.h"
+@@ -3192,6 +3193,9 @@ void drm_atomic_helper_connector_reset(struct drm_connector *connector)
+ 	memcpy(state, connector->state, sizeof(*state));
+ 	if (state->crtc)
+ 		drm_connector_reference(connector);
 +
-+	data->vdev.queue = queue;
-+	data->vdev.queue->lock = &data->queue_lock;
++	/* Don't copy over a writeback job, they are used only once */
++	state->writeback_job = NULL;
+ }
+ EXPORT_SYMBOL(__drm_atomic_helper_connector_duplicate_state);
+ 
+@@ -3319,6 +3323,8 @@ struct drm_atomic_state *
+ 	 */
+ 	if (state->crtc)
+ 		drm_connector_unreference(state->connector);
++	if (state->writeback_job)
++		drm_writeback_cleanup_job(state->writeback_job);
+ }
+ EXPORT_SYMBOL(__drm_atomic_helper_connector_destroy_state);
+ 
+diff --git a/drivers/gpu/drm/drm_connector.c b/drivers/gpu/drm/drm_connector.c
+index b5c6a8e..6bbd93f 100644
+--- a/drivers/gpu/drm/drm_connector.c
++++ b/drivers/gpu/drm/drm_connector.c
+@@ -86,6 +86,7 @@ struct drm_conn_prop_enum_list {
+ 	{ DRM_MODE_CONNECTOR_VIRTUAL, "Virtual" },
+ 	{ DRM_MODE_CONNECTOR_DSI, "DSI" },
+ 	{ DRM_MODE_CONNECTOR_DPI, "DPI" },
++	{ DRM_MODE_CONNECTOR_WRITEBACK, "Writeback" },
+ };
+ 
+ void drm_connector_ida_init(void)
+@@ -235,7 +236,8 @@ int drm_connector_init(struct drm_device *dev,
+ 	list_add_tail(&connector->head, &config->connector_list);
+ 	config->num_connector++;
+ 
+-	if (connector_type != DRM_MODE_CONNECTOR_VIRTUAL)
++	if ((connector_type != DRM_MODE_CONNECTOR_VIRTUAL) &&
++	    (connector_type != DRM_MODE_CONNECTOR_WRITEBACK))
+ 		drm_object_attach_property(&connector->base,
+ 					      config->edid_property,
+ 					      0);
+diff --git a/drivers/gpu/drm/drm_writeback.c b/drivers/gpu/drm/drm_writeback.c
+new file mode 100644
+index 0000000..75a1dbf
+--- /dev/null
++++ b/drivers/gpu/drm/drm_writeback.c
+@@ -0,0 +1,230 @@
++/*
++ * (C) COPYRIGHT 2016 ARM Limited. All rights reserved.
++ * Author: Brian Starkey <brian.starkey@arm.com>
++ *
++ * This program is free software and is provided to you under the terms of the
++ * GNU General Public License version 2 as published by the Free Software
++ * Foundation, and any use by you of this program is subject to the terms
++ * of such GNU licence.
++ */
 +
-+	strlcpy(data->vdev.name, "I2C Polling Video", sizeof(data->vdev.name));
++#include <drm/drm_crtc.h>
++#include <drm/drm_property.h>
++#include <drm/drm_writeback.h>
++#include <drm/drmP.h>
 +
-+	data->vdev.v4l2_dev = v4l2_dev;
-+	data->vdev.fops = &i2c_polling_fops;
-+	data->vdev.lock = &data->lock;
-+	data->vdev.ioctl_ops = &i2c_polling_ioctl_ops;
-+	data->vdev.release = video_device_release_empty;
++/**
++ * DOC: overview
++ *
++ * Writeback connectors are used to expose hardware which can write the output
++ * from a CRTC to a memory buffer. They are used and act similarly to other
++ * types of connectors, with some important differences:
++ *  - Writeback connectors don't provide a way to output visually to the user.
++ *  - Writeback connectors should always report as "disconnected" (so that
++ *    clients which don't understand them will ignore them).
++ *  - Writeback connectors don't have EDID.
++ *
++ * A framebuffer may only be attached to a writeback connector when the
++ * connector is attached to a CRTC. The WRITEBACK_FB_ID property which sets the
++ * framebuffer applies only to a single commit (see below). A framebuffer may
++ * not be attached while the CRTC is off.
++ *
++ * Writeback connectors have some additional properties, which userspace
++ * can use to query and control them:
++ *
++ *  "WRITEBACK_FB_ID":
++ *	Write-only object property storing a DRM_MODE_OBJECT_FB: it stores the
++ *	framebuffer to be written by the writeback connector. This property is
++ *	similar to the FB_ID property on planes, but will always read as zero
++ *	and is not preserved across commits.
++ *	Userspace must set this property to an output buffer every time it
++ *	wishes the buffer to get filled.
++ *
++ *  "PIXEL_FORMATS":
++ *	Immutable blob property to store the supported pixel formats table. The
++ *	data is an array of u32 DRM_FORMAT_* fourcc values.
++ *	Userspace can use this blob to find out what pixel formats are supported
++ *	by the connector's writeback engine.
++ */
 +
-+	video_set_drvdata(&data->vdev, data);
-+	i2c_set_clientdata(client, data);
++static bool create_writeback_properties(struct drm_device *dev)
++{
++	struct drm_property *prop;
 +
-+	ret = video_register_device(&data->vdev, VFL_TYPE_GRABBER, -1);
-+	if (ret < 0)
-+		goto error_unregister_device;
++	if (!dev->mode_config.writeback_fb_id_property) {
++		prop = drm_property_create_object(dev, DRM_MODE_PROP_ATOMIC,
++						  "WRITEBACK_FB_ID",
++						  DRM_MODE_OBJECT_FB);
++		if (!prop)
++			return false;
++		dev->mode_config.writeback_fb_id_property = prop;
++	}
++
++	if (!dev->mode_config.writeback_pixel_formats_property) {
++		prop = drm_property_create(dev, DRM_MODE_PROP_BLOB | DRM_MODE_PROP_IMMUTABLE,
++					   "PIXEL_FORMATS", 0);
++		if (!prop)
++			return false;
++		dev->mode_config.writeback_pixel_formats_property = prop;
++	}
++
++	return true;
++}
++
++/**
++ * drm_writeback_connector_init - Initialize a writeback connector and its properties
++ * @dev: DRM device
++ * @wb_connector: Writeback connector to initialize
++ * @funcs: Connector funcs vtable
++ * @formats: Array of supported pixel formats for the writeback engine
++ * @n_formats: Length of the formats array
++ *
++ * This function creates the writeback-connector-specific properties if they
++ * have not been already created, initializes the connector as
++ * type DRM_MODE_CONNECTOR_WRITEBACK, and correctly initializes the property
++ * values.
++ *
++ * Drivers should always use this function instead of drm_connector_init() to
++ * set up writeback connectors.
++ *
++ * Returns: 0 on success, or a negative error code
++ */
++int drm_writeback_connector_init(struct drm_device *dev,
++				 struct drm_writeback_connector *wb_connector,
++				 const struct drm_connector_funcs *funcs,
++				 u32 *formats, int n_formats)
++{
++	int ret;
++	struct drm_property_blob *blob;
++	struct drm_connector *connector = &wb_connector->base;
++	struct drm_mode_config *config = &dev->mode_config;
++
++	if (!create_writeback_properties(dev))
++		return -EINVAL;
++
++	blob = drm_property_create_blob(dev, n_formats * sizeof(*formats),
++					formats);
++	if (IS_ERR(blob))
++		return PTR_ERR(blob);
++
++	ret = drm_connector_init(dev, connector, funcs,
++				 DRM_MODE_CONNECTOR_WRITEBACK);
++	if (ret)
++		goto fail;
++
++	INIT_LIST_HEAD(&wb_connector->job_queue);
++	spin_lock_init(&wb_connector->job_lock);
++
++	drm_object_attach_property(&connector->base,
++				   config->writeback_fb_id_property, 0);
++
++	drm_object_attach_property(&connector->base,
++				   config->writeback_pixel_formats_property,
++				   blob->base.id);
++	wb_connector->pixel_formats_blob_ptr = blob;
 +
 +	return 0;
 +
-+error_unregister_device:
-+	v4l2_device_unregister(v4l2_dev);
-+
-+error_free_device:
-+	kfree(data);
-+
++fail:
++	drm_property_unreference_blob(blob);
 +	return ret;
 +}
++EXPORT_SYMBOL(drm_writeback_connector_init);
 +
-+static int i2c_polling_remove(struct i2c_client *client)
++/**
++ * @drm_writeback_queue_job: Queue a writeback job for later signalling
++ * @wb_connector: The writeback connector to queue a job on
++ * @job: The job to queue
++ *
++ * This function adds a job to the job_queue for a writeback connector. It
++ * should be considered to take ownership of the writeback job, and so any other
++ * references to the job must be cleared after calling this function.
++ *
++ * Drivers must ensure that for a given writeback connector, jobs are queued in
++ * exactly the same order as they will be completed by the hardware (and
++ * signaled via drm_writeback_signal_completion).
++ *
++ * For every call to drm_writeback_queue_job() there must be exactly one call to
++ * drm_writeback_signal_completion()
++ *
++ * See also: drm_writeback_signal_completion()
++ */
++void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
++			     struct drm_writeback_job *job)
 +{
-+	struct i2c_polling_data *data = i2c_get_clientdata(client);
++	unsigned long flags;
 +
-+	v4l2_device_unregister(&data->v4l2_dev);
-+	video_unregister_device(&data->vdev);
-+	kfree(data);
++	spin_lock_irqsave(&wb_connector->job_lock, flags);
++	list_add_tail(&job->list_entry, &wb_connector->job_queue);
++	spin_unlock_irqrestore(&wb_connector->job_lock, flags);
++}
++EXPORT_SYMBOL(drm_writeback_queue_job);
 +
-+	return 0;
++/**
++ * @drm_writeback_cleanup_job: Cleanup and free a writeback job
++ * @job: The writeback job to free
++ *
++ * Drops any references held by the writeback job, and frees the structure.
++ */
++void drm_writeback_cleanup_job(struct drm_writeback_job *job)
++{
++	if (!job)
++		return;
++
++	if (job->fb)
++		drm_framebuffer_unreference(job->fb);
++	kfree(job);
++}
++EXPORT_SYMBOL(drm_writeback_cleanup_job);
++
++/*
++ * @cleanup_work: deferred cleanup of a writeback job
++ *
++ * The job cannot be cleaned up directly in drm_writeback_signal_completion,
++ * because it may be called in interrupt context. Dropping the framebuffer
++ * reference can sleep, and so the cleanup is deferred to a workqueue.
++ */
++static void cleanup_work(struct work_struct *work)
++{
++	struct drm_writeback_job *job = container_of(work,
++						     struct drm_writeback_job,
++						     cleanup_work);
++	drm_writeback_cleanup_job(job);
 +}
 +
-+static const struct i2c_device_id i2c_polling_id_table[] = {
-+	{ "amg88xx", AMG88XX },
-+	{}
++/**
++ * @drm_writeback_signal_completion: Signal the completion of a writeback job
++ * @wb_connector: The writeback connector whose job is complete
++ *
++ * Drivers should call this to signal the completion of a previously queued
++ * writeback job. It should be called as soon as possible after the hardware
++ * has finished writing, and may be called from interrupt context.
++ * It is the driver's responsibility to ensure that for a given connector, the
++ * hardware completes writeback jobs in the same order as they are queued.
++ *
++ * Unless the driver is holding its own reference to the framebuffer, it must
++ * not be accessed after calling this function.
++ *
++ * See also: drm_writeback_queue_job()
++ */
++void
++drm_writeback_signal_completion(struct drm_writeback_connector *wb_connector)
++{
++	unsigned long flags;
++	struct drm_writeback_job *job;
++
++	spin_lock_irqsave(&wb_connector->job_lock, flags);
++	job = list_first_entry_or_null(&wb_connector->job_queue,
++				       struct drm_writeback_job,
++				       list_entry);
++	if (job)
++		list_del(&job->list_entry);
++	spin_unlock_irqrestore(&wb_connector->job_lock, flags);
++
++	if (WARN_ON(!job))
++		return;
++
++	INIT_WORK(&job->cleanup_work, cleanup_work);
++	queue_work(system_long_wq, &job->cleanup_work);
++}
++EXPORT_SYMBOL(drm_writeback_signal_completion);
+diff --git a/include/drm/drm_atomic.h b/include/drm/drm_atomic.h
+index c0eaec7..476561d 100644
+--- a/include/drm/drm_atomic.h
++++ b/include/drm/drm_atomic.h
+@@ -351,6 +351,9 @@ void drm_atomic_set_fence_for_plane(struct drm_plane_state *plane_state,
+ int __must_check
+ drm_atomic_set_crtc_for_connector(struct drm_connector_state *conn_state,
+ 				  struct drm_crtc *crtc);
++int drm_atomic_set_writeback_fb_for_connector(
++		struct drm_connector_state *conn_state,
++		struct drm_framebuffer *fb);
+ int __must_check
+ drm_atomic_add_affected_connectors(struct drm_atomic_state *state,
+ 				   struct drm_crtc *crtc);
+diff --git a/include/drm/drm_connector.h b/include/drm/drm_connector.h
+index 34f9741..dc4910d6 100644
+--- a/include/drm/drm_connector.h
++++ b/include/drm/drm_connector.h
+@@ -214,6 +214,19 @@ struct drm_connector_state {
+ 	struct drm_encoder *best_encoder;
+ 
+ 	struct drm_atomic_state *state;
++
++	/**
++	 * @writeback_job: Writeback job for writeback connectors
++	 *
++	 * Holds the framebuffer for a writeback connector. As the writeback
++	 * completion may be asynchronous to the normal commit cycle, the
++	 * writeback job lifetime is managed separately from the normal atomic
++	 * state by this object.
++	 *
++	 * See also: drm_writeback_queue_job() and
++	 * drm_writeback_signal_completion()
++	 */
++	struct drm_writeback_job *writeback_job;
+ };
+ 
+ /**
+diff --git a/include/drm/drm_mode_config.h b/include/drm/drm_mode_config.h
+index bf9991b2..3d3d07f 100644
+--- a/include/drm/drm_mode_config.h
++++ b/include/drm/drm_mode_config.h
+@@ -634,6 +634,20 @@ struct drm_mode_config {
+ 	 */
+ 	struct drm_property *suggested_y_property;
+ 
++	/**
++	 * @writeback_fb_id_property: Property for writeback connectors, storing
++	 * the ID of the output framebuffer.
++	 * See also: drm_writeback_connector_init()
++	 */
++	struct drm_property *writeback_fb_id_property;
++	/**
++	 * @writeback_pixel_formats_property: Property for writeback connectors,
++	 * storing an array of the supported pixel formats for the writeback
++	 * engine (read-only).
++	 * See also: drm_writeback_connector_init()
++	 */
++	struct drm_property *writeback_pixel_formats_property;
++
+ 	/* dumb ioctl parameters */
+ 	uint32_t preferred_depth, prefer_shadow;
+ 
+diff --git a/include/drm/drm_writeback.h b/include/drm/drm_writeback.h
+new file mode 100644
+index 0000000..6b2ac45
+--- /dev/null
++++ b/include/drm/drm_writeback.h
+@@ -0,0 +1,78 @@
++/*
++ * (C) COPYRIGHT 2016 ARM Limited. All rights reserved.
++ * Author: Brian Starkey <brian.starkey@arm.com>
++ *
++ * This program is free software and is provided to you under the terms of the
++ * GNU General Public License version 2 as published by the Free Software
++ * Foundation, and any use by you of this program is subject to the terms
++ * of such GNU licence.
++ */
++
++#ifndef __DRM_WRITEBACK_H__
++#define __DRM_WRITEBACK_H__
++#include <drm/drm_connector.h>
++#include <linux/workqueue.h>
++
++struct drm_writeback_connector {
++	struct drm_connector base;
++
++	/**
++	 * @pixel_formats_blob_ptr:
++	 *
++	 * DRM blob property data for the pixel formats list on writeback
++	 * connectors
++	 * See also drm_writeback_connector_init()
++	 */
++	struct drm_property_blob *pixel_formats_blob_ptr;
++
++	/** @job_lock: Protects job_queue */
++	spinlock_t job_lock;
++	/**
++	 * @job_queue:
++	 *
++	 * Holds a list of a connector's writeback jobs; the last item is the
++	 * most recent. The first item may be either waiting for the hardware
++	 * to begin writing, or currently being written.
++	 *
++	 * See also: drm_writeback_queue_job() and
++	 * drm_writeback_signal_completion()
++	 */
++	struct list_head job_queue;
 +};
-+MODULE_DEVICE_TABLE(i2c, i2c_polling_id_table);
 +
-+static struct i2c_driver i2c_polling_driver = {
-+	.driver = {
-+		.name	= I2C_POLLING_DRIVER,
-+	},
-+	.probe		= i2c_polling_probe,
-+	.remove		= i2c_polling_remove,
-+	.id_table	= i2c_polling_id_table,
++struct drm_writeback_job {
++	/**
++	 * @cleanup_work:
++	 *
++	 * Used to allow drm_writeback_signal_completion to defer dropping the
++	 * framebuffer reference to a workqueue.
++	 */
++	struct work_struct cleanup_work;
++	/**
++	 * @list_entry:
++	 *
++	 * List item for the connector's @job_queue
++	 */
++	struct list_head list_entry;
++	/**
++	 * @fb:
++	 *
++	 * Framebuffer to be written to by the writeback connector. Do not set
++	 * directly, use drm_atomic_set_writeback_fb_for_connector()
++	 */
++	struct drm_framebuffer *fb;
 +};
 +
-+module_i2c_driver(i2c_polling_driver);
++int drm_writeback_connector_init(struct drm_device *dev,
++				 struct drm_writeback_connector *wb_connector,
++				 const struct drm_connector_funcs *funcs,
++				 u32 *formats, int n_formats);
 +
-+MODULE_AUTHOR("Matt Ranostay <mranostay@ranostay.consulting>");
-+MODULE_DESCRIPTION("I2C polling video support");
-+MODULE_LICENSE("GPL");
++void drm_writeback_queue_job(struct drm_writeback_connector *wb_connector,
++			     struct drm_writeback_job *job);
++
++void drm_writeback_cleanup_job(struct drm_writeback_job *job);
++
++void
++drm_writeback_signal_completion(struct drm_writeback_connector *wb_connector);
++#endif
+diff --git a/include/uapi/drm/drm_mode.h b/include/uapi/drm/drm_mode.h
+index ebf622f..ae5e4f7 100644
+--- a/include/uapi/drm/drm_mode.h
++++ b/include/uapi/drm/drm_mode.h
+@@ -263,6 +263,7 @@ struct drm_mode_get_encoder {
+ #define DRM_MODE_CONNECTOR_VIRTUAL      15
+ #define DRM_MODE_CONNECTOR_DSI		16
+ #define DRM_MODE_CONNECTOR_DPI		17
++#define DRM_MODE_CONNECTOR_WRITEBACK	18
+ 
+ struct drm_mode_get_connector {
+ 
 -- 
-2.7.4
+1.7.9.5
 
