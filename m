@@ -1,1698 +1,1302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:35027 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753519AbcKGRfl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 12:35:41 -0500
-Received: by mail-wm0-f54.google.com with SMTP id a197so197057173wmd.0
-        for <linux-media@vger.kernel.org>; Mon, 07 Nov 2016 09:34:36 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v3 5/9] media: venus: venc: add video encoder files
-Date: Mon,  7 Nov 2016 19:33:59 +0200
-Message-Id: <1478540043-24558-6-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1478540043-24558-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53902 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754076AbcKYN4X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 08:56:23 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH 3/5] media: Rename graph and pipeline structs and functions
+Date: Fri, 25 Nov 2016 15:55:44 +0200
+Message-Id: <1480082146-25991-4-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds encoder part of the driver plus encoder controls.
+The media_entity_pipeline_start() and media_entity_pipeline_stop()
+functions are renamed as media_pipeline_start() and media_pipeline_stop(),
+respectively. The reason is two-fold: the pipeline struct is, rightly,
+already called media_pipeline (rather than media_entity_pipeline) and what
+this really is about is a pipeline. A pipeline consists of entities ---
+and, well, other objects embedded in these entities.
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+As the pipeline object will be in the future moved from entities to pads
+in order to support multiple pipelines through a single entity, do the
+renaming now.
+
+Similarly, functions operating on struct media_entity_graph as well as the
+struct itself are renamed by dropping the "entity_" part from the prefix
+of the function family and the data structure. The graph traversal which
+is what the functions are about is not specifically about entities only
+and will operate on pads for the same reason as the media pipeline.
+
+The patch has been generated using the following command:
+
+git grep -l media_entity |xargs perl -i -pe '
+	s/media_entity_pipeline/media_pipeline/g;
+	s/media_entity_graph/media_graph/g'
+
+And a few manual edits related to line start alignment and line wrapping.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/platform/qcom/venus/venc.c       | 1212 ++++++++++++++++++++++++
- drivers/media/platform/qcom/venus/venc.h       |   32 +
- drivers/media/platform/qcom/venus/venc_ctrls.c |  396 ++++++++
- 3 files changed, 1640 insertions(+)
- create mode 100644 drivers/media/platform/qcom/venus/venc.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.h
- create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+ Documentation/media/kapi/mc-core.rst               | 18 ++---
+ drivers/media/media-device.c                       |  8 +--
+ drivers/media/media-entity.c                       | 77 +++++++++++-----------
+ drivers/media/platform/exynos4-is/fimc-capture.c   |  8 +--
+ drivers/media/platform/exynos4-is/fimc-isp-video.c |  8 +--
+ drivers/media/platform/exynos4-is/fimc-lite.c      |  8 +--
+ drivers/media/platform/exynos4-is/media-dev.c      | 16 ++---
+ drivers/media/platform/exynos4-is/media-dev.h      |  2 +-
+ drivers/media/platform/omap3isp/ispvideo.c         | 16 ++---
+ drivers/media/platform/s3c-camif/camif-capture.c   |  6 +-
+ drivers/media/platform/vsp1/vsp1_drm.c             |  4 +-
+ drivers/media/platform/vsp1/vsp1_video.c           | 16 ++---
+ drivers/media/platform/xilinx/xilinx-dma.c         | 16 ++---
+ drivers/media/usb/au0828/au0828-core.c             |  4 +-
+ drivers/media/v4l2-core/v4l2-mc.c                  | 18 ++---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    | 25 ++++---
+ drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 +-
+ drivers/staging/media/omap4iss/iss_video.c         | 32 ++++-----
+ include/media/media-device.h                       |  2 +-
+ include/media/media-entity.h                       | 65 +++++++++---------
+ 20 files changed, 174 insertions(+), 177 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
-new file mode 100644
-index 000000000000..35572eaffb9e
---- /dev/null
-+++ b/drivers/media/platform/qcom/venus/venc.c
-@@ -0,0 +1,1212 @@
-+/*
-+ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/pm_runtime.h>
-+#include <media/videobuf2-dma-sg.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-ctrls.h>
-+
-+#include "core.h"
-+#include "helpers.h"
-+#include "venc.h"
-+
-+#define NUM_B_FRAMES_MAX	4
-+
-+static u32 get_framesize_uncompressed(unsigned int plane, u32 width, u32 height)
-+{
-+	u32 y_stride, uv_stride, y_plane;
-+	u32 y_sclines, uv_sclines, uv_plane;
-+	u32 size;
-+
-+	y_stride = ALIGN(width, 128);
-+	uv_stride = ALIGN(width, 128);
-+	y_sclines = ALIGN(height, 32);
-+	uv_sclines = ALIGN(((height + 1) >> 1), 16);
-+
-+	y_plane = y_stride * y_sclines;
-+	uv_plane = uv_stride * uv_sclines + SZ_4K;
-+	size = y_plane + uv_plane + SZ_8K;
-+	size = ALIGN(size, SZ_4K);
-+
-+	return size;
-+}
-+
-+static u32 get_framesize_compressed(u32 width, u32 height)
-+{
-+	u32 sz = ALIGN(height, 32) * ALIGN(width, 32) * 3 / 2;
-+
-+	return ALIGN(sz, SZ_4K);
-+}
-+
-+static const struct venus_format venc_formats[] = {
-+	{
-+		.pixfmt = V4L2_PIX_FMT_NV12,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
-+	}, {
-+		.pixfmt = V4L2_PIX_FMT_MPEG4,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-+	}, {
-+		.pixfmt = V4L2_PIX_FMT_H263,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-+	}, {
-+		.pixfmt = V4L2_PIX_FMT_H264,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-+	}, {
-+		.pixfmt = V4L2_PIX_FMT_VP8,
-+		.num_planes = 1,
-+		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-+	},
-+};
-+
-+static const struct venus_format *find_format(u32 pixfmt, int type)
-+{
-+	const struct venus_format *fmt = venc_formats;
-+	unsigned int size = ARRAY_SIZE(venc_formats);
-+	unsigned int i;
-+
-+	for (i = 0; i < size; i++) {
-+		if (fmt[i].pixfmt == pixfmt)
-+			break;
-+	}
-+
-+	if (i == size || fmt[i].type != type)
-+		return NULL;
-+
-+	return &fmt[i];
-+}
-+
-+static const struct venus_format *find_format_by_index(int index, int type)
-+{
-+	const struct venus_format *fmt = venc_formats;
-+	unsigned int size = ARRAY_SIZE(venc_formats);
-+	int i, k = 0;
-+
-+	if (index < 0 || index > size)
-+		return NULL;
-+
-+	for (i = 0; i < size; i++) {
-+		if (fmt[i].type != type)
-+			continue;
-+		if (k == index)
-+			break;
-+		k++;
-+	}
-+
-+	if (i == size)
-+		return NULL;
-+
-+	return &fmt[i];
-+}
-+
-+static int venc_v4l2_to_hfi(int id, int value)
-+{
-+	switch (id) {
-+	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_0:
-+		default:
-+			return HFI_MPEG4_LEVEL_0;
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_0B:
-+			return HFI_MPEG4_LEVEL_0b;
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_1:
-+			return HFI_MPEG4_LEVEL_1;
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_2:
-+			return HFI_MPEG4_LEVEL_2;
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_3:
-+			return HFI_MPEG4_LEVEL_3;
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_4:
-+			return HFI_MPEG4_LEVEL_4;
-+		case V4L2_MPEG_VIDEO_MPEG4_LEVEL_5:
-+			return HFI_MPEG4_LEVEL_5;
-+		}
-+	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE:
-+		default:
-+			return HFI_MPEG4_PROFILE_SIMPLE;
-+		case V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE:
-+			return HFI_MPEG4_PROFILE_ADVANCEDSIMPLE;
-+		}
-+	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE:
-+			return HFI_H264_PROFILE_BASELINE;
-+		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
-+			return HFI_H264_PROFILE_CONSTRAINED_BASE;
-+		case V4L2_MPEG_VIDEO_H264_PROFILE_MAIN:
-+			return HFI_H264_PROFILE_MAIN;
-+		case V4L2_MPEG_VIDEO_H264_PROFILE_HIGH:
-+		default:
-+			return HFI_H264_PROFILE_HIGH;
-+		}
-+	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_1_0:
-+			return HFI_H264_LEVEL_1;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_1B:
-+			return HFI_H264_LEVEL_1b;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_1_1:
-+			return HFI_H264_LEVEL_11;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_1_2:
-+			return HFI_H264_LEVEL_12;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_1_3:
-+			return HFI_H264_LEVEL_13;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_2_0:
-+			return HFI_H264_LEVEL_2;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_2_1:
-+			return HFI_H264_LEVEL_21;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_2_2:
-+			return HFI_H264_LEVEL_22;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_3_0:
-+			return HFI_H264_LEVEL_3;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_3_1:
-+			return HFI_H264_LEVEL_31;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_3_2:
-+			return HFI_H264_LEVEL_32;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_4_0:
-+			return HFI_H264_LEVEL_4;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_4_1:
-+			return HFI_H264_LEVEL_41;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_4_2:
-+			return HFI_H264_LEVEL_42;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_5_0:
-+		default:
-+			return HFI_H264_LEVEL_5;
-+		case V4L2_MPEG_VIDEO_H264_LEVEL_5_1:
-+			return HFI_H264_LEVEL_51;
-+		}
-+	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
-+		switch (value) {
-+		case V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC:
-+		default:
-+			return HFI_H264_ENTROPY_CAVLC;
-+		case V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC:
-+			return HFI_H264_ENTROPY_CABAC;
-+		}
-+	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
-+		switch (value) {
-+		case 0:
-+		default:
-+			return HFI_VPX_PROFILE_VERSION_0;
-+		case 1:
-+			return HFI_VPX_PROFILE_VERSION_1;
-+		case 2:
-+			return HFI_VPX_PROFILE_VERSION_2;
-+		case 3:
-+			return HFI_VPX_PROFILE_VERSION_3;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int
-+venc_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
-+{
-+	strlcpy(cap->driver, "qcom-venus", sizeof(cap->driver));
-+	strlcpy(cap->card, "Qualcomm Venus video encoder", sizeof(cap->card));
-+	strlcpy(cap->bus_info, "platform:qcom-venus", sizeof(cap->bus_info));
-+
-+	return 0;
-+}
-+
-+static int venc_enum_fmt(struct file *file, void *fh, struct v4l2_fmtdesc *f)
-+{
-+	const struct venus_format *fmt;
-+
-+	fmt = find_format_by_index(f->index, f->type);
-+
-+	memset(f->reserved, 0, sizeof(f->reserved));
-+
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	f->pixelformat = fmt->pixfmt;
-+
-+	return 0;
-+}
-+
-+static const struct venus_format *
-+venc_try_fmt_common(struct venus_inst *inst, struct v4l2_format *f)
-+{
-+	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
-+	struct v4l2_plane_pix_format *pfmt = pixmp->plane_fmt;
-+	const struct venus_format *fmt;
-+	unsigned int p;
-+
-+	memset(pfmt[0].reserved, 0, sizeof(pfmt[0].reserved));
-+	memset(pixmp->reserved, 0, sizeof(pixmp->reserved));
-+
-+	fmt = find_format(pixmp->pixelformat, f->type);
-+	if (!fmt) {
-+		if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+			pixmp->pixelformat = V4L2_PIX_FMT_H264;
-+		else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+			pixmp->pixelformat = V4L2_PIX_FMT_NV12;
-+		else
-+			return NULL;
-+		fmt = find_format(pixmp->pixelformat, f->type);
-+		pixmp->width = 1280;
-+		pixmp->height = 720;
-+	}
-+
-+	pixmp->width = clamp(pixmp->width, inst->cap_width.min,
-+			     inst->cap_width.max);
-+	pixmp->height = clamp(pixmp->height, inst->cap_height.min,
-+			      inst->cap_height.max);
-+
-+	pixmp->height = ALIGN(pixmp->height, 32);
-+
-+	if (pixmp->field == V4L2_FIELD_ANY)
-+		pixmp->field = V4L2_FIELD_NONE;
-+	pixmp->num_planes = fmt->num_planes;
-+	pixmp->flags = 0;
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		for (p = 0; p < pixmp->num_planes; p++) {
-+			pfmt[p].sizeimage =
-+				get_framesize_uncompressed(p, pixmp->width,
-+							   pixmp->height);
-+
-+			pfmt[p].bytesperline = ALIGN(pixmp->width, 128);
-+		}
-+	} else {
-+		pfmt[0].sizeimage = get_framesize_compressed(pixmp->width,
-+							     pixmp->height);
-+		pfmt[0].bytesperline = 0;
-+	}
-+
-+	return fmt;
-+}
-+
-+static int venc_try_fmt(struct file *file, void *fh, struct v4l2_format *f)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+	const struct venus_format *fmt;
-+
-+	fmt = venc_try_fmt_common(inst, f);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int venc_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
-+	struct v4l2_pix_format_mplane orig_pixmp;
-+	const struct venus_format *fmt;
-+	struct v4l2_format format;
-+	u32 pixfmt_out = 0, pixfmt_cap = 0;
-+
-+	orig_pixmp = *pixmp;
-+
-+	fmt = venc_try_fmt_common(inst, f);
-+	if (!fmt)
-+		return -EINVAL;
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		pixfmt_out = pixmp->pixelformat;
-+		pixfmt_cap = inst->fmt_cap->pixfmt;
-+	} else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		pixfmt_cap = pixmp->pixelformat;
-+		pixfmt_out = inst->fmt_out->pixfmt;
-+	}
-+
-+	memset(&format, 0, sizeof(format));
-+
-+	format.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	format.fmt.pix_mp.pixelformat = pixfmt_out;
-+	format.fmt.pix_mp.width = orig_pixmp.width;
-+	format.fmt.pix_mp.height = orig_pixmp.height;
-+	venc_try_fmt_common(inst, &format);
-+	inst->out_width = format.fmt.pix_mp.width;
-+	inst->out_height = format.fmt.pix_mp.height;
-+	inst->colorspace = pixmp->colorspace;
-+	inst->ycbcr_enc = pixmp->ycbcr_enc;
-+	inst->quantization = pixmp->quantization;
-+	inst->xfer_func = pixmp->xfer_func;
-+
-+	memset(&format, 0, sizeof(format));
-+
-+	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	format.fmt.pix_mp.pixelformat = pixfmt_cap;
-+	format.fmt.pix_mp.width = orig_pixmp.width;
-+	format.fmt.pix_mp.height = orig_pixmp.height;
-+	venc_try_fmt_common(inst, &format);
-+	inst->width = format.fmt.pix_mp.width;
-+	inst->height = format.fmt.pix_mp.height;
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		inst->fmt_out = fmt;
-+	else if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		inst->fmt_cap = fmt;
-+
-+	return 0;
-+}
-+
-+static int venc_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
-+{
-+	struct v4l2_pix_format_mplane *pixmp = &f->fmt.pix_mp;
-+	struct venus_inst *inst = to_inst(file);
-+	const struct venus_format *fmt;
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		fmt = inst->fmt_cap;
-+	else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		fmt = inst->fmt_out;
-+	else
-+		return -EINVAL;
-+
-+	pixmp->pixelformat = fmt->pixfmt;
-+
-+	if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		pixmp->width = inst->width;
-+		pixmp->height = inst->height;
-+		pixmp->colorspace = inst->colorspace;
-+		pixmp->ycbcr_enc = inst->ycbcr_enc;
-+		pixmp->quantization = inst->quantization;
-+		pixmp->xfer_func = inst->xfer_func;
-+	} else if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		pixmp->width = inst->out_width;
-+		pixmp->height = inst->out_height;
-+	}
-+
-+	venc_try_fmt_common(inst, f);
-+
-+	return 0;
-+}
-+
-+static int
-+venc_g_selection(struct file *file, void *fh, struct v4l2_selection *s)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		s->r.width = inst->width;
-+		s->r.height = inst->height;
-+		break;
-+	case V4L2_SEL_TGT_CROP:
-+		s->r.width = inst->out_width;
-+		s->r.height = inst->out_height;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	s->r.top = 0;
-+	s->r.left = 0;
-+
-+	return 0;
-+}
-+
-+static int
-+venc_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+
-+	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		return -EINVAL;
-+
-+	switch (s->target) {
-+	case V4L2_SEL_TGT_CROP:
-+		if (s->r.width != inst->out_width ||
-+		    s->r.height != inst->out_height ||
-+		    s->r.top != 0 || s->r.left != 0)
-+			return -EINVAL;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int
-+venc_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_reqbufs(queue, b);
-+}
-+
-+static int venc_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->type);
-+	unsigned int p;
-+	int ret;
-+
-+	ret = vb2_querybuf(queue, b);
-+	if (ret)
-+		return ret;
-+
-+	if (b->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
-+	    b->memory == V4L2_MEMORY_MMAP) {
-+		for (p = 0; p < b->length; p++)
-+			b->m.planes[p].m.mem_offset += DST_QUEUE_OFF_BASE;
-+	}
-+
-+	return 0;
-+}
-+
-+static int venc_create_bufs(struct file *file, void *fh,
-+			    struct v4l2_create_buffers *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->format.type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_create_bufs(queue, b);
-+}
-+
-+static int venc_prepare_buf(struct file *file, void *fh, struct v4l2_buffer *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_prepare_buf(queue, b);
-+}
-+
-+static int venc_qbuf(struct file *file, void *fh, struct v4l2_buffer *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_qbuf(queue, b);
-+}
-+
-+static int
-+venc_exportbuf(struct file *file, void *fh, struct v4l2_exportbuffer *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_expbuf(queue, b);
-+}
-+
-+static int venc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, b->type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_dqbuf(queue, b, file->f_flags & O_NONBLOCK);
-+}
-+
-+static int venc_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_streamon(queue, type);
-+}
-+
-+static int venc_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
-+{
-+	struct vb2_queue *queue = to_vb2q(file, type);
-+
-+	if (!queue)
-+		return -EINVAL;
-+
-+	return vb2_streamoff(queue, type);
-+}
-+
-+static int venc_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+	struct v4l2_outputparm *out = &a->parm.output;
-+	struct v4l2_fract *timeperframe = &out->timeperframe;
-+	u64 us_per_frame, fps;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
-+	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		return -EINVAL;
-+
-+	memset(out->reserved, 0, sizeof(out->reserved));
-+
-+	if (!timeperframe->denominator)
-+		timeperframe->denominator = inst->timeperframe.denominator;
-+	if (!timeperframe->numerator)
-+		timeperframe->numerator = inst->timeperframe.numerator;
-+
-+	out->capability = V4L2_CAP_TIMEPERFRAME;
-+
-+	us_per_frame = timeperframe->numerator * (u64)USEC_PER_SEC;
-+	do_div(us_per_frame, timeperframe->denominator);
-+
-+	if (!us_per_frame)
-+		return -EINVAL;
-+
-+	fps = (u64)USEC_PER_SEC;
-+	do_div(fps, us_per_frame);
-+
-+	inst->timeperframe = *timeperframe;
-+	inst->fps = fps;
-+
-+	return 0;
-+}
-+
-+static int venc_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE &&
-+	    a->type != V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		return -EINVAL;
-+
-+	a->parm.output.capability |= V4L2_CAP_TIMEPERFRAME;
-+	a->parm.output.timeperframe = inst->timeperframe;
-+
-+	return 0;
-+}
-+
-+static int venc_enum_framesizes(struct file *file, void *fh,
-+				struct v4l2_frmsizeenum *fsize)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+	const struct venus_format *fmt;
-+
-+	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
-+
-+	fmt = find_format(fsize->pixel_format,
-+			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
-+	if (!fmt) {
-+		fmt = find_format(fsize->pixel_format,
-+				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
-+		if (!fmt)
-+			return -EINVAL;
-+	}
-+
-+	if (fsize->index)
-+		return -EINVAL;
-+
-+	fsize->stepwise.min_width = inst->cap_width.min;
-+	fsize->stepwise.max_width = inst->cap_width.max;
-+	fsize->stepwise.step_width = inst->cap_width.step_size;
-+	fsize->stepwise.min_height = inst->cap_height.min;
-+	fsize->stepwise.max_height = inst->cap_height.max;
-+	fsize->stepwise.step_height = inst->cap_height.step_size;
-+
-+	return 0;
-+}
-+
-+static int venc_enum_frameintervals(struct file *file, void *fh,
-+				    struct v4l2_frmivalenum *fival)
-+{
-+	struct venus_inst *inst = to_inst(file);
-+	const struct venus_format *fmt;
-+
-+	fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
-+
-+	fmt = find_format(fival->pixel_format,
-+			  V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE);
-+	if (!fmt) {
-+		fmt = find_format(fival->pixel_format,
-+				  V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE);
-+		if (!fmt)
-+			return -EINVAL;
-+	}
-+
-+	if (fival->index)
-+		return -EINVAL;
-+
-+	if (!fival->width || !fival->height)
-+		return -EINVAL;
-+
-+	if (fival->width > inst->cap_width.max ||
-+	    fival->width < inst->cap_width.min ||
-+	    fival->height > inst->cap_height.max ||
-+	    fival->height < inst->cap_height.min)
-+		return -EINVAL;
-+
-+	fival->stepwise.min.numerator = 1;
-+	fival->stepwise.min.denominator = inst->cap_framerate.max;
-+	fival->stepwise.max.numerator = 1;
-+	fival->stepwise.max.denominator = inst->cap_framerate.min;
-+	fival->stepwise.step.numerator = 1;
-+	fival->stepwise.step.denominator = inst->cap_framerate.max;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops venc_ioctl_ops = {
-+	.vidioc_querycap = venc_querycap,
-+	.vidioc_enum_fmt_vid_cap_mplane = venc_enum_fmt,
-+	.vidioc_enum_fmt_vid_out_mplane = venc_enum_fmt,
-+	.vidioc_s_fmt_vid_cap_mplane = venc_s_fmt,
-+	.vidioc_s_fmt_vid_out_mplane = venc_s_fmt,
-+	.vidioc_g_fmt_vid_cap_mplane = venc_g_fmt,
-+	.vidioc_g_fmt_vid_out_mplane = venc_g_fmt,
-+	.vidioc_try_fmt_vid_cap_mplane = venc_try_fmt,
-+	.vidioc_try_fmt_vid_out_mplane = venc_try_fmt,
-+	.vidioc_g_selection = venc_g_selection,
-+	.vidioc_s_selection = venc_s_selection,
-+	.vidioc_reqbufs = venc_reqbufs,
-+	.vidioc_querybuf = venc_querybuf,
-+	.vidioc_create_bufs = venc_create_bufs,
-+	.vidioc_prepare_buf = venc_prepare_buf,
-+	.vidioc_qbuf = venc_qbuf,
-+	.vidioc_expbuf = venc_exportbuf,
-+	.vidioc_dqbuf = venc_dqbuf,
-+	.vidioc_streamon = venc_streamon,
-+	.vidioc_streamoff = venc_streamoff,
-+	.vidioc_s_parm = venc_s_parm,
-+	.vidioc_g_parm = venc_g_parm,
-+	.vidioc_enum_framesizes = venc_enum_framesizes,
-+	.vidioc_enum_frameintervals = venc_enum_frameintervals,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-+};
-+
-+static int venc_set_properties(struct venus_inst *inst)
-+{
-+	struct venc_controls *ctr = &inst->controls.enc;
-+	struct hfi_intra_period intra_period;
-+	struct hfi_profile_level pl;
-+	struct hfi_framerate frate;
-+	struct hfi_bitrate brate;
-+	struct hfi_idr_period idrp;
-+	u32 ptype, rate_control, bitrate, profile = 0, level = 0;
-+	int ret;
-+
-+	ptype = HFI_PROPERTY_CONFIG_FRAME_RATE;
-+	frate.buffer_type = HFI_BUFFER_OUTPUT;
-+	frate.framerate = inst->fps * (1 << 16);
-+
-+	ret = hfi_session_set_property(inst, ptype, &frate);
-+	if (ret)
-+		return ret;
-+
-+	if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
-+		struct hfi_h264_vui_timing_info info;
-+
-+		ptype = HFI_PROPERTY_PARAM_VENC_H264_VUI_TIMING_INFO;
-+		info.enable = 1;
-+		info.fixed_framerate = 1;
-+		info.time_scale = NSEC_PER_SEC;
-+
-+		ret = hfi_session_set_property(inst, ptype, &info);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	ptype = HFI_PROPERTY_CONFIG_VENC_IDR_PERIOD;
-+	idrp.idr_period = ctr->gop_size;
-+	ret = hfi_session_set_property(inst, ptype, &idrp);
-+	if (ret)
-+		return ret;
-+
-+	if (ctr->num_b_frames) {
-+		u32 max_num_b_frames = NUM_B_FRAMES_MAX;
-+
-+		ptype = HFI_PROPERTY_PARAM_VENC_MAX_NUM_B_FRAMES;
-+		ret = hfi_session_set_property(inst, ptype, &max_num_b_frames);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/* intra_period = pframes + bframes + 1 */
-+	if (!ctr->num_p_frames)
-+		ctr->num_p_frames = 2 * 15 - 1,
-+
-+	ptype = HFI_PROPERTY_CONFIG_VENC_INTRA_PERIOD;
-+	intra_period.pframes = ctr->num_p_frames;
-+	intra_period.bframes = ctr->num_b_frames;
-+
-+	ret = hfi_session_set_property(inst, ptype, &intra_period);
-+	if (ret)
-+		return ret;
-+
-+	if (ctr->bitrate_mode == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR)
-+		rate_control = HFI_RATE_CONTROL_VBR_CFR;
-+	else
-+		rate_control = HFI_RATE_CONTROL_CBR_CFR;
-+
-+	ptype = HFI_PROPERTY_PARAM_VENC_RATE_CONTROL;
-+	ret = hfi_session_set_property(inst, ptype, &rate_control);
-+	if (ret)
-+		return ret;
-+
-+	if (!ctr->bitrate)
-+		bitrate = 64000;
-+	else
-+		bitrate = ctr->bitrate;
-+
-+	ptype = HFI_PROPERTY_CONFIG_VENC_TARGET_BITRATE;
-+	brate.bitrate = bitrate;
-+	brate.layer_id = 0;
-+
-+	ret = hfi_session_set_property(inst, ptype, &brate);
-+	if (ret)
-+		return ret;
-+
-+	if (!ctr->bitrate_peak)
-+		bitrate *= 2;
-+	else
-+		bitrate = ctr->bitrate_peak;
-+
-+	ptype = HFI_PROPERTY_CONFIG_VENC_MAX_BITRATE;
-+	brate.bitrate = bitrate;
-+	brate.layer_id = 0;
-+
-+	ret = hfi_session_set_property(inst, ptype, &brate);
-+	if (ret)
-+		return ret;
-+
-+	if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
-+		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_H264_PROFILE,
-+					   ctr->profile);
-+		level = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_H264_LEVEL,
-+					 ctr->level);
-+	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_VP8) {
-+		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_VPX_PROFILE,
-+					   ctr->profile);
-+		level = 0;
-+	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_MPEG4) {
-+		profile = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
-+					   ctr->profile);
-+		level = venc_v4l2_to_hfi(V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
-+					 ctr->level);
-+	} else if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H263) {
-+		profile = 0;
-+		level = 0;
-+	}
-+
-+	ptype = HFI_PROPERTY_PARAM_PROFILE_LEVEL_CURRENT;
-+	pl.profile = profile;
-+	pl.level = level;
-+
-+	ret = hfi_session_set_property(inst, ptype, &pl);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int venc_init_session(struct venus_inst *inst)
-+{
-+	u32 pixfmt = inst->fmt_cap->pixfmt;
-+	struct hfi_framesize fs;
-+	u32 ptype;
-+	int ret;
-+
-+	ret = hfi_session_init(inst, pixfmt, VIDC_SESSION_TYPE_ENC);
-+	if (ret)
-+		return ret;
-+
-+	ptype = HFI_PROPERTY_PARAM_FRAME_SIZE;
-+	fs.buffer_type = HFI_BUFFER_INPUT;
-+	fs.width = inst->out_width;
-+	fs.height = inst->out_height;
-+
-+	ret = hfi_session_set_property(inst, ptype, &fs);
-+	if (ret)
-+		goto err;
-+
-+	fs.buffer_type = HFI_BUFFER_OUTPUT;
-+	fs.width = inst->width;
-+	fs.height = inst->height;
-+
-+	ret = hfi_session_set_property(inst, ptype, &fs);
-+	if (ret)
-+		goto err;
-+
-+	pixfmt = inst->fmt_out->pixfmt;
-+
-+	ret = vidc_set_color_format(inst, HFI_BUFFER_INPUT, pixfmt);
-+	if (ret)
-+		goto err;
-+
-+	return 0;
-+err:
-+	hfi_session_deinit(inst);
-+	return ret;
-+}
-+
-+static int venc_out_num_buffers(struct venus_inst *inst, unsigned int *num)
-+{
-+	struct hfi_buffer_requirements bufreq;
-+	struct device *dev = inst->core->dev;
-+	int ret, ret2;
-+
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = venc_init_session(inst);
-+	if (ret)
-+		goto put_sync;
-+
-+	ret = vidc_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
-+
-+	*num = bufreq.count_actual;
-+
-+	hfi_session_deinit(inst);
-+
-+put_sync:
-+	ret2 = pm_runtime_put_sync(dev);
-+
-+	return ret ? ret : ret2;
-+}
-+
-+static int venc_queue_setup(struct vb2_queue *q,
-+			    unsigned int *num_buffers, unsigned int *num_planes,
-+			    unsigned int sizes[], struct device *alloc_devs[])
-+{
-+	struct venus_inst *inst = vb2_get_drv_priv(q);
-+	unsigned int p, num;
-+	int ret = 0;
-+
-+	switch (q->type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		*num_planes = inst->fmt_out->num_planes;
-+
-+		ret = venc_out_num_buffers(inst, &num);
-+		if (ret)
-+			break;
-+
-+		*num_buffers = max(*num_buffers, num);
-+		inst->num_input_bufs = *num_buffers;
-+
-+		for (p = 0; p < *num_planes; ++p)
-+			sizes[p] = get_framesize_uncompressed(p, inst->width,
-+							      inst->height);
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		*num_planes = inst->fmt_cap->num_planes;
-+		inst->num_output_bufs = *num_buffers;
-+		sizes[0] = get_framesize_compressed(inst->width, inst->height);
-+		break;
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+	return ret;
-+}
-+
-+static int venc_check_configuration(struct venus_inst *inst)
-+{
-+	struct hfi_buffer_requirements bufreq;
-+	int ret;
-+
-+	ret = vidc_get_bufreq(inst, HFI_BUFFER_OUTPUT, &bufreq);
-+	if (ret)
-+		return ret;
-+
-+	if (inst->num_output_bufs < bufreq.count_actual ||
-+	    inst->num_output_bufs < bufreq.count_min)
-+		return -EINVAL;
-+
-+	ret = vidc_get_bufreq(inst, HFI_BUFFER_INPUT, &bufreq);
-+	if (ret)
-+		return ret;
-+
-+	if (inst->num_input_bufs < bufreq.count_actual ||
-+	    inst->num_input_bufs < bufreq.count_min)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int venc_start_streaming(struct vb2_queue *q, unsigned int count)
-+{
-+	struct venus_inst *inst = vb2_get_drv_priv(q);
-+	struct device *dev = inst->core->dev;
-+	struct hfi_buffer_count_actual buf_count;
-+	struct vb2_queue *other_queue;
-+	u32 ptype;
-+	int ret;
-+
-+	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		other_queue = &inst->bufq_cap;
-+	else
-+		other_queue = &inst->bufq_out;
-+
-+	if (!vb2_is_streaming(other_queue))
-+		return 0;
-+
-+	inst->sequence = 0;
-+
-+	ret = pm_runtime_get_sync(dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = venc_init_session(inst);
-+	if (ret)
-+		goto put_sync;
-+
-+	ret = venc_set_properties(inst);
-+	if (ret)
-+		goto deinit_sess;
-+
-+	ret = venc_check_configuration(inst);
-+	if (ret)
-+		goto deinit_sess;
-+
-+	ptype = HFI_PROPERTY_PARAM_BUFFER_COUNT_ACTUAL;
-+	buf_count.type = HFI_BUFFER_OUTPUT;
-+	buf_count.count_actual = inst->num_output_bufs;
-+
-+	ret = hfi_session_set_property(inst, ptype, &buf_count);
-+	if (ret)
-+		goto deinit_sess;
-+
-+	buf_count.type = HFI_BUFFER_INPUT;
-+	buf_count.count_actual = inst->num_input_bufs;
-+
-+	ret = hfi_session_set_property(inst, ptype, &buf_count);
-+	if (ret)
-+		goto deinit_sess;
-+
-+	ret = vidc_vb2_start_streaming(inst);
-+	if (ret)
-+		goto deinit_sess;
-+
-+	return 0;
-+
-+deinit_sess:
-+	hfi_session_deinit(inst);
-+put_sync:
-+	pm_runtime_put_sync(dev);
-+	return ret;
-+}
-+
-+static const struct vb2_ops venc_vb2_ops = {
-+	.queue_setup = venc_queue_setup,
-+	.buf_init = vidc_vb2_buf_init,
-+	.buf_prepare = vidc_vb2_buf_prepare,
-+	.start_streaming = venc_start_streaming,
-+	.stop_streaming = vidc_vb2_stop_streaming,
-+	.buf_queue = vidc_vb2_buf_queue,
-+};
-+
-+static int venc_empty_buf_done(struct venus_inst *inst, u32 addr, u32 bytesused,
-+			       u32 data_offset, u32 flags)
-+{
-+	struct vb2_v4l2_buffer *vbuf;
-+	enum vb2_buffer_state state;
-+	struct vb2_buffer *vb;
-+
-+	vbuf = vidc_vb2_find_buf(inst, addr);
-+	if (!vbuf)
-+		return -EINVAL;
-+
-+	vb = &vbuf->vb2_buf;
-+	vb->planes[0].bytesused = bytesused;
-+	vb->planes[0].data_offset = data_offset;
-+	vbuf->flags = flags;
-+	state = VB2_BUF_STATE_DONE;
-+
-+	if (data_offset > vb->planes[0].length ||
-+	    bytesused > vb->planes[0].length)
-+		state = VB2_BUF_STATE_ERROR;
-+
-+	vb2_buffer_done(vb, state);
-+
-+	return 0;
-+}
-+
-+static int venc_fill_buf_done(struct venus_inst *inst, u32 addr, u32 bytesused,
-+			      u32 data_offset, u32 flags, u64 timestamp_us)
-+{
-+	struct vb2_v4l2_buffer *vbuf;
-+	enum vb2_buffer_state state;
-+	struct vb2_buffer *vb;
-+
-+	vbuf = vidc_vb2_find_buf(inst, addr);
-+	if (!vbuf)
-+		return -EINVAL;
-+
-+	vb = &vbuf->vb2_buf;
-+	vb->planes[0].bytesused = bytesused;
-+	vb->planes[0].data_offset = data_offset;
-+	vb->timestamp = timestamp_us * NSEC_PER_USEC;
-+	vbuf->flags = flags;
-+	vbuf->sequence = inst->sequence++;
-+	state = VB2_BUF_STATE_DONE;
-+
-+	if (data_offset > vb->planes[0].length ||
-+	    bytesused > vb->planes[0].length)
-+		state = VB2_BUF_STATE_ERROR;
-+
-+	vb2_buffer_done(vb, state);
-+
-+	return 0;
-+}
-+
-+static int venc_event_notify(struct venus_inst *inst, u32 event,
-+			     struct hfi_event_data *data)
-+{
-+	struct device *dev = inst->core->dev;
-+
-+	switch (event) {
-+	case EVT_SESSION_ERROR:
-+		if (inst) {
-+			mutex_lock(&inst->lock);
-+			inst->state = INST_INVALID;
-+			mutex_unlock(&inst->lock);
-+		}
-+		dev_err(dev, "enc: event session error (inst:%p)\n", inst);
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct hfi_inst_ops venc_hfi_ops = {
-+	.empty_buf_done = venc_empty_buf_done,
-+	.fill_buf_done = venc_fill_buf_done,
-+	.event_notify = venc_event_notify,
-+};
-+
-+static void venc_inst_init(struct venus_inst *inst)
-+{
-+	inst->fmt_cap = &venc_formats[2];
-+	inst->fmt_out = &venc_formats[0];
-+	inst->width = 1280;
-+	inst->height = ALIGN(720, 32);
-+	inst->fps = 15;
-+	inst->timeperframe.numerator = 1;
-+	inst->timeperframe.denominator = 15;
-+
-+	inst->cap_width.min = 64;
-+	inst->cap_width.max = 1920;
-+	inst->cap_width.step_size = 1;
-+	inst->cap_height.min = 64;
-+	inst->cap_height.max = ALIGN(1080, 32);
-+	inst->cap_height.step_size = 1;
-+	inst->cap_framerate.min = 1;
-+	inst->cap_framerate.max = 30;
-+	inst->cap_framerate.step_size = 1;
-+	inst->cap_mbs_per_frame.min = 16;
-+	inst->cap_mbs_per_frame.max = 8160;
-+}
-+
-+int venc_init(struct venus_core *core, struct video_device *enc,
-+	      const struct v4l2_file_operations *fops)
-+{
-+	int ret;
-+
-+	enc->release = video_device_release;
-+	enc->fops = fops;
-+	enc->ioctl_ops = &venc_ioctl_ops;
-+	enc->vfl_dir = VFL_DIR_M2M;
-+	enc->v4l2_dev = &core->v4l2_dev;
-+	enc->device_caps = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING;
-+
-+	ret = video_register_device(enc, VFL_TYPE_GRABBER, -1);
-+	if (ret)
-+		return ret;
-+
-+	video_set_drvdata(enc, core);
-+
-+	return 0;
-+}
-+
-+void venc_deinit(struct venus_core *core, struct video_device *enc)
-+{
-+	video_unregister_device(enc);
-+}
-+
-+int venc_open(struct venus_inst *inst)
-+{
-+	struct vb2_queue *q;
-+	int ret;
-+
-+	ret = venc_ctrl_init(inst);
-+	if (ret)
-+		return ret;
-+
-+	ret = hfi_session_create(inst, &venc_hfi_ops);
-+	if (ret)
-+		goto err_ctrl_deinit;
-+
-+	venc_inst_init(inst);
-+
-+	q = &inst->bufq_cap;
-+	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF;
-+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	q->ops = &venc_vb2_ops;
-+	q->mem_ops = &vb2_dma_sg_memops;
-+	q->drv_priv = inst;
-+	q->buf_struct_size = sizeof(struct vidc_buffer);
-+	q->allow_zero_bytesused = 1;
-+	q->min_buffers_needed = 2;
-+	q->dev = inst->core->dev;
-+	ret = vb2_queue_init(q);
-+	if (ret)
-+		goto err_session_destroy;
-+
-+	q = &inst->bufq_out;
-+	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	q->io_modes = VB2_MMAP | VB2_DMABUF;
-+	q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	q->ops = &venc_vb2_ops;
-+	q->mem_ops = &vb2_dma_sg_memops;
-+	q->drv_priv = inst;
-+	q->buf_struct_size = sizeof(struct vidc_buffer);
-+	q->allow_zero_bytesused = 1;
-+	q->dev = inst->core->dev;
-+	ret = vb2_queue_init(q);
-+	if (ret)
-+		goto err_cap_queue_release;
-+
-+	return 0;
-+
-+err_cap_queue_release:
-+	vb2_queue_release(&inst->bufq_cap);
-+err_session_destroy:
-+	hfi_session_destroy(inst);
-+err_ctrl_deinit:
-+	venc_ctrl_deinit(inst);
-+	return ret;
-+}
-+
-+void venc_close(struct venus_inst *inst)
-+{
-+	vb2_queue_release(&inst->bufq_out);
-+	vb2_queue_release(&inst->bufq_cap);
-+	venc_ctrl_deinit(inst);
-+	hfi_session_destroy(inst);
-+}
-diff --git a/drivers/media/platform/qcom/venus/venc.h b/drivers/media/platform/qcom/venus/venc.h
-new file mode 100644
-index 000000000000..e48226a70b88
---- /dev/null
-+++ b/drivers/media/platform/qcom/venus/venc.h
-@@ -0,0 +1,32 @@
-+/*
-+ * Copyright (c) 2012-2014, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+#ifndef __VIDC_VENC_H__
-+#define __VIDC_VENC_H__
-+
-+struct venus_core;
-+struct video_device;
-+struct venus_inst;
-+struct v4l2_file_operations;
-+
-+int venc_init(struct venus_core *core, struct video_device *enc,
-+	      const struct v4l2_file_operations *fops);
-+void venc_deinit(struct venus_core *core, struct video_device *enc);
-+int venc_open(struct venus_inst *inst);
-+void venc_close(struct venus_inst *inst);
-+
-+int venc_ctrl_init(struct venus_inst *inst);
-+void venc_ctrl_deinit(struct venus_inst *inst);
-+
-+#endif
-diff --git a/drivers/media/platform/qcom/venus/venc_ctrls.c b/drivers/media/platform/qcom/venus/venc_ctrls.c
-new file mode 100644
-index 000000000000..27a5c9401e2e
---- /dev/null
-+++ b/drivers/media/platform/qcom/venus/venc_ctrls.c
-@@ -0,0 +1,396 @@
-+/*
-+ * Copyright (c) 2012-2015, The Linux Foundation. All rights reserved.
-+ * Copyright (C) 2016 Linaro Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+#include <linux/types.h>
-+#include <media/v4l2-ctrls.h>
-+
-+#include "core.h"
-+
-+#define BITRATE_MIN		32000
-+#define BITRATE_MAX		160000000
-+#define BITRATE_DEFAULT		1000000
-+#define BITRATE_DEFAULT_PEAK	(BITRATE_DEFAULT * 2)
-+#define BITRATE_STEP		100
-+#define SLICE_BYTE_SIZE_MAX	1024
-+#define SLICE_BYTE_SIZE_MIN	1024
-+#define SLICE_MB_SIZE_MAX	300
-+#define INTRA_REFRESH_MBS_MAX	300
-+#define AT_SLICE_BOUNDARY	\
-+	V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY
-+static struct venus_ctrl venc_ctrls[] = {
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_BITRATE_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_BITRATE_MODE_VBR,
-+		.max = V4L2_MPEG_VIDEO_BITRATE_MODE_CBR,
-+		.def = V4L2_MPEG_VIDEO_BITRATE_MODE_VBR,
-+		.menu_skip_mask = ~((1 << V4L2_MPEG_VIDEO_BITRATE_MODE_VBR) |
-+				    (1 << V4L2_MPEG_VIDEO_BITRATE_MODE_CBR)),
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_BITRATE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = BITRATE_MIN,
-+		.max = BITRATE_MAX,
-+		.def = BITRATE_DEFAULT,
-+		.step = BITRATE_STEP,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_BITRATE_PEAK,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = BITRATE_MIN,
-+		.max = BITRATE_MAX,
-+		.def = BITRATE_DEFAULT_PEAK,
-+		.step = BITRATE_STEP,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC,
-+		.max = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CABAC,
-+		.def = V4L2_MPEG_VIDEO_H264_ENTROPY_MODE_CAVLC,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
-+		.max = V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_CODING_EFFICIENCY,
-+		.def = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
-+		.menu_skip_mask = ~(
-+			(1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE) |
-+			(1 << V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE)
-+		),
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_MPEG4_LEVEL_0,
-+		.max = V4L2_MPEG_VIDEO_MPEG4_LEVEL_5,
-+		.def = V4L2_MPEG_VIDEO_MPEG4_LEVEL_0,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_PROFILE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE,
-+		.max = V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH,
-+		.def = V4L2_MPEG_VIDEO_H264_PROFILE_HIGH,
-+		.menu_skip_mask = ~(
-+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_BASELINE) |
-+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE) |
-+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MAIN) |
-+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_HIGH) |
-+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_STEREO_HIGH) |
-+		(1 << V4L2_MPEG_VIDEO_H264_PROFILE_MULTIVIEW_HIGH)
-+		),
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_LEVEL,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
-+		.max = V4L2_MPEG_VIDEO_H264_LEVEL_5_1,
-+		.def = V4L2_MPEG_VIDEO_H264_LEVEL_5_0,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_PROFILE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 0,
-+		.max = 3,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 51,
-+		.def = 26,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 51,
-+		.def = 28,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 51,
-+		.def = 30,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_MIN_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 51,
-+		.def = 1,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_MAX_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 51,
-+		.def = 51,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
-+		.max = V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES,
-+		.def = V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = SLICE_BYTE_SIZE_MIN,
-+		.max = SLICE_BYTE_SIZE_MAX,
-+		.def = SLICE_BYTE_SIZE_MIN,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = SLICE_MB_SIZE_MAX,
-+		.def = 1,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = -6,
-+		.max = 6,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = -6,
-+		.max = 6,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_ENABLED,
-+		.max = AT_SLICE_BOUNDARY,
-+		.def = V4L2_MPEG_VIDEO_H264_LOOP_FILTER_MODE_DISABLED,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_HEADER_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE,
-+		.max = V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
-+		.def = V4L2_MPEG_VIDEO_HEADER_MODE_SEPARATE,
-+		.menu_skip_mask =
-+			1 << V4L2_MPEG_VIDEO_HEADER_MODE_JOINED_WITH_1ST_FRAME,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 0,
-+		.max = INTRA_REFRESH_MBS_MAX,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.min = 0,
-+		.max = 1,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.min = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED,
-+		.max = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED,
-+		.def = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_GOP_SIZE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 0,
-+		.max = (1 << 16) - 1,
-+		.def = 12,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 0,
-+		.max = (1 << 16) - 1,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.min = 0,
-+		.max = 1,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_MIN_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 128,
-+		.def = 1,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_VPX_MAX_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 1,
-+		.max = 128,
-+		.def = 128,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_B_FRAMES,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 0,
-+		.max = INT_MAX,
-+		.def = 0,
-+		.step = 1,
-+	}, {
-+		.id = V4L2_CID_MPEG_VIDEO_H264_I_PERIOD,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.min = 0,
-+		.max = (1 << 16) - 1,
-+		.step = 1,
-+		.def = 0,
-+	},
-+};
-+
-+#define NUM_CTRLS	ARRAY_SIZE(venc_ctrls)
-+
-+static int venc_op_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct venus_inst *inst = ctrl_to_inst(ctrl);
-+	struct venc_controls *ctr = &inst->controls.enc;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
-+		ctr->bitrate_mode = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_BITRATE:
-+		ctr->bitrate = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK:
-+		ctr->bitrate_peak = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
-+		ctr->h264_entropy_mode = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
-+	case V4L2_CID_MPEG_VIDEO_H264_PROFILE:
-+	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
-+		ctr->profile = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
-+	case V4L2_CID_MPEG_VIDEO_H264_LEVEL:
-+		ctr->level = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_I_FRAME_QP:
-+		ctr->h264_i_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_P_FRAME_QP:
-+		ctr->h264_p_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_B_FRAME_QP:
-+		ctr->h264_b_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_MIN_QP:
-+		ctr->h264_min_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_MAX_QP:
-+		ctr->h264_max_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
-+		ctr->multi_slice_mode = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:
-+		ctr->multi_slice_max_bytes = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:
-+		ctr->multi_slice_max_mb = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_ALPHA:
-+		ctr->h264_loop_filter_alpha = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_BETA:
-+		ctr->h264_loop_filter_beta = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_LOOP_FILTER_MODE:
-+		ctr->h264_loop_filter_mode = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
-+		ctr->header_mode = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_CYCLIC_INTRA_REFRESH_MB:
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
-+		ctr->gop_size = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_I_PERIOD:
-+		ctr->h264_i_period = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
-+	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
-+	case V4L2_CID_MPEG_VIDEO_H264_CPB_SIZE:
-+	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_MIN_QP:
-+		ctr->vp8_min_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_VPX_MAX_QP:
-+		ctr->vp8_max_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_B_FRAMES:
-+		ctr->num_b_frames = ctrl->val;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops venc_ctrl_ops = {
-+	.s_ctrl = venc_op_s_ctrl,
-+};
-+
-+int venc_ctrl_init(struct venus_inst *inst)
-+{
-+	unsigned int i;
-+	int ret;
-+
-+	ret = v4l2_ctrl_handler_init(&inst->ctrl_handler, NUM_CTRLS);
-+	if (ret)
-+		return ret;
-+
-+	for (i = 0; i < NUM_CTRLS; i++) {
-+		struct v4l2_ctrl *ctrl;
-+
-+		if (venc_ctrls[i].type == V4L2_CTRL_TYPE_MENU) {
-+			ctrl = v4l2_ctrl_new_std_menu(&inst->ctrl_handler,
-+					&venc_ctrl_ops, venc_ctrls[i].id,
-+					venc_ctrls[i].max,
-+					venc_ctrls[i].menu_skip_mask,
-+					venc_ctrls[i].def);
-+		} else {
-+			ctrl = v4l2_ctrl_new_std(&inst->ctrl_handler,
-+					&venc_ctrl_ops, venc_ctrls[i].id,
-+					venc_ctrls[i].min,
-+					venc_ctrls[i].max,
-+					venc_ctrls[i].step,
-+					venc_ctrls[i].def);
-+		}
-+
-+		ret = inst->ctrl_handler.error;
-+		if (ret) {
-+			v4l2_ctrl_handler_free(&inst->ctrl_handler);
-+			return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+void venc_ctrl_deinit(struct venus_inst *inst)
-+{
-+	v4l2_ctrl_handler_free(&inst->ctrl_handler);
-+}
+diff --git a/Documentation/media/kapi/mc-core.rst b/Documentation/media/kapi/mc-core.rst
+index 1a738e5..0c05503 100644
+--- a/Documentation/media/kapi/mc-core.rst
++++ b/Documentation/media/kapi/mc-core.rst
+@@ -162,13 +162,13 @@ framework provides a depth-first graph traversal API for that purpose.
+    currently defined as 16.
+ 
+ Drivers initiate a graph traversal by calling
+-:c:func:`media_entity_graph_walk_start()`
++:c:func:`media_graph_walk_start()`
+ 
+ The graph structure, provided by the caller, is initialized to start graph
+ traversal at the given entity.
+ 
+ Drivers can then retrieve the next entity by calling
+-:c:func:`media_entity_graph_walk_next()`
++:c:func:`media_graph_walk_next()`
+ 
+ When the graph traversal is complete the function will return ``NULL``.
+ 
+@@ -206,7 +206,7 @@ Pipelines and media streams
+ 
+ When starting streaming, drivers must notify all entities in the pipeline to
+ prevent link states from being modified during streaming by calling
+-:c:func:`media_entity_pipeline_start()`.
++:c:func:`media_pipeline_start()`.
+ 
+ The function will mark all entities connected to the given entity through
+ enabled links, either directly or indirectly, as streaming.
+@@ -218,17 +218,17 @@ in higher-level pipeline structures and can then access the
+ pipeline through the struct :c:type:`media_entity`
+ pipe field.
+ 
+-Calls to :c:func:`media_entity_pipeline_start()` can be nested.
++Calls to :c:func:`media_pipeline_start()` can be nested.
+ The pipeline pointer must be identical for all nested calls to the function.
+ 
+-:c:func:`media_entity_pipeline_start()` may return an error. In that case,
++:c:func:`media_pipeline_start()` may return an error. In that case,
+ it will clean up any of the changes it did by itself.
+ 
+ When stopping the stream, drivers must notify the entities with
+-:c:func:`media_entity_pipeline_stop()`.
++:c:func:`media_pipeline_stop()`.
+ 
+-If multiple calls to :c:func:`media_entity_pipeline_start()` have been
+-made the same number of :c:func:`media_entity_pipeline_stop()` calls
++If multiple calls to :c:func:`media_pipeline_start()` have been
++made the same number of :c:func:`media_pipeline_stop()` calls
+ are required to stop streaming.
+ The :c:type:`media_entity`.\ ``pipe`` field is reset to ``NULL`` on the last
+ nested stop call.
+@@ -245,7 +245,7 @@ operation must be done with the media_device graph_mutex held.
+ Link validation
+ ^^^^^^^^^^^^^^^
+ 
+-Link validation is performed by :c:func:`media_entity_pipeline_start()`
++Link validation is performed by :c:func:`media_pipeline_start()`
+ for any entity which has sink pads in the pipeline. The
+ :c:type:`media_entity`.\ ``link_validate()`` callback is used for that
+ purpose. In ``link_validate()`` callback, entity driver should check
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 2783531..1f9b661 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -601,19 +601,19 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 
+ 	if (mdev->entity_internal_idx_max
+ 	    >= mdev->pm_count_walk.ent_enum.idx_max) {
+-		struct media_entity_graph new = { .top = 0 };
++		struct media_graph new = { .top = 0 };
+ 
+ 		/*
+ 		 * Initialise the new graph walk before cleaning up
+ 		 * the old one in order not to spoil the graph walk
+ 		 * object of the media device if graph walk init fails.
+ 		 */
+-		ret = media_entity_graph_walk_init(&new, mdev);
++		ret = media_graph_walk_init(&new, mdev);
+ 		if (ret) {
+ 			mutex_unlock(&mdev->graph_mutex);
+ 			return ret;
+ 		}
+-		media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
++		media_graph_walk_cleanup(&mdev->pm_count_walk);
+ 		mdev->pm_count_walk = new;
+ 	}
+ 	mutex_unlock(&mdev->graph_mutex);
+@@ -695,7 +695,7 @@ void media_device_cleanup(struct media_device *mdev)
+ {
+ 	ida_destroy(&mdev->entity_internal_idx);
+ 	mdev->entity_internal_idx_max = 0;
+-	media_entity_graph_walk_cleanup(&mdev->pm_count_walk);
++	media_graph_walk_cleanup(&mdev->pm_count_walk);
+ 	mutex_destroy(&mdev->graph_mutex);
+ }
+ EXPORT_SYMBOL_GPL(media_device_cleanup);
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 82dd0bc..2bddebb 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -268,7 +268,7 @@ media_entity_other(struct media_entity *entity, struct media_link *link)
+ }
+ 
+ /* push an entity to traversal stack */
+-static void stack_push(struct media_entity_graph *graph,
++static void stack_push(struct media_graph *graph,
+ 		       struct media_entity *entity)
+ {
+ 	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
+@@ -280,7 +280,7 @@ static void stack_push(struct media_entity_graph *graph,
+ 	graph->stack[graph->top].entity = entity;
+ }
+ 
+-static struct media_entity *stack_pop(struct media_entity_graph *graph)
++static struct media_entity *stack_pop(struct media_graph *graph)
+ {
+ 	struct media_entity *entity;
+ 
+@@ -299,35 +299,35 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+ #define MEDIA_ENTITY_MAX_PADS		512
+ 
+ /**
+- * media_entity_graph_walk_init - Allocate resources for graph walk
++ * media_graph_walk_init - Allocate resources for graph walk
+  * @graph: Media graph structure that will be used to walk the graph
+  * @mdev: Media device
+  *
+  * Reserve resources for graph walk in media device's current
+  * state. The memory must be released using
+- * media_entity_graph_walk_free().
++ * media_graph_walk_free().
+  *
+  * Returns error on failure, zero on success.
+  */
+-__must_check int media_entity_graph_walk_init(
+-	struct media_entity_graph *graph, struct media_device *mdev)
++__must_check int media_graph_walk_init(
++	struct media_graph *graph, struct media_device *mdev)
+ {
+ 	return media_entity_enum_init(&graph->ent_enum, mdev);
+ }
+-EXPORT_SYMBOL_GPL(media_entity_graph_walk_init);
++EXPORT_SYMBOL_GPL(media_graph_walk_init);
+ 
+ /**
+- * media_entity_graph_walk_cleanup - Release resources related to graph walking
++ * media_graph_walk_cleanup - Release resources related to graph walking
+  * @graph: Media graph structure that was used to walk the graph
+  */
+-void media_entity_graph_walk_cleanup(struct media_entity_graph *graph)
++void media_graph_walk_cleanup(struct media_graph *graph)
+ {
+ 	media_entity_enum_cleanup(&graph->ent_enum);
+ }
+-EXPORT_SYMBOL_GPL(media_entity_graph_walk_cleanup);
++EXPORT_SYMBOL_GPL(media_graph_walk_cleanup);
+ 
+-void media_entity_graph_walk_start(struct media_entity_graph *graph,
+-				   struct media_entity *entity)
++void media_graph_walk_start(struct media_graph *graph,
++			    struct media_entity *entity)
+ {
+ 	media_entity_enum_zero(&graph->ent_enum);
+ 	media_entity_enum_set(&graph->ent_enum, entity);
+@@ -336,10 +336,9 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 	graph->stack[graph->top].entity = NULL;
+ 	stack_push(graph, entity);
+ }
+-EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
++EXPORT_SYMBOL_GPL(media_graph_walk_start);
+ 
+-struct media_entity *
+-media_entity_graph_walk_next(struct media_entity_graph *graph)
++struct media_entity *media_graph_walk_next(struct media_graph *graph)
+ {
+ 	if (stack_top(graph) == NULL)
+ 		return NULL;
+@@ -378,30 +377,30 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 
+ 	return stack_pop(graph);
+ }
+-EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
++EXPORT_SYMBOL_GPL(media_graph_walk_next);
+ 
+ /* -----------------------------------------------------------------------------
+  * Pipeline management
+  */
+ 
+-__must_check int __media_entity_pipeline_start(struct media_entity *entity,
+-					       struct media_pipeline *pipe)
++__must_check int __media_pipeline_start(struct media_entity *entity,
++					struct media_pipeline *pipe)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+-	struct media_entity_graph *graph = &pipe->graph;
++	struct media_graph *graph = &pipe->graph;
+ 	struct media_entity *entity_err = entity;
+ 	struct media_link *link;
+ 	int ret;
+ 
+ 	if (!pipe->streaming_count++) {
+-		ret = media_entity_graph_walk_init(&pipe->graph, mdev);
++		ret = media_graph_walk_init(&pipe->graph, mdev);
+ 		if (ret)
+ 			goto error_graph_walk_start;
+ 	}
+ 
+-	media_entity_graph_walk_start(&pipe->graph, entity);
++	media_graph_walk_start(&pipe->graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(graph))) {
++	while ((entity = media_graph_walk_next(graph))) {
+ 		DECLARE_BITMAP(active, MEDIA_ENTITY_MAX_PADS);
+ 		DECLARE_BITMAP(has_no_links, MEDIA_ENTITY_MAX_PADS);
+ 
+@@ -480,9 +479,9 @@ __must_check int __media_entity_pipeline_start(struct media_entity *entity,
+ 	 * Link validation on graph failed. We revert what we did and
+ 	 * return the error.
+ 	 */
+-	media_entity_graph_walk_start(graph, entity_err);
++	media_graph_walk_start(graph, entity_err);
+ 
+-	while ((entity_err = media_entity_graph_walk_next(graph))) {
++	while ((entity_err = media_graph_walk_next(graph))) {
+ 		/* Sanity check for negative stream_count */
+ 		if (!WARN_ON_ONCE(entity_err->stream_count <= 0)) {
+ 			entity_err->stream_count--;
+@@ -500,35 +499,35 @@ __must_check int __media_entity_pipeline_start(struct media_entity *entity,
+ 
+ error_graph_walk_start:
+ 	if (!--pipe->streaming_count)
+-		media_entity_graph_walk_cleanup(graph);
++		media_graph_walk_cleanup(graph);
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(__media_entity_pipeline_start);
++EXPORT_SYMBOL_GPL(__media_pipeline_start);
+ 
+-__must_check int media_entity_pipeline_start(struct media_entity *entity,
+-					     struct media_pipeline *pipe)
++__must_check int media_pipeline_start(struct media_entity *entity,
++				      struct media_pipeline *pipe)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	ret = __media_entity_pipeline_start(entity, pipe);
++	ret = __media_pipeline_start(entity, pipe);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
++EXPORT_SYMBOL_GPL(media_pipeline_start);
+ 
+-void __media_entity_pipeline_stop(struct media_entity *entity)
++void __media_pipeline_stop(struct media_entity *entity)
+ {
+-	struct media_entity_graph *graph = &entity->pipe->graph;
++	struct media_graph *graph = &entity->pipe->graph;
+ 	struct media_pipeline *pipe = entity->pipe;
+ 
+ 
+ 	WARN_ON(!pipe->streaming_count);
+-	media_entity_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(graph))) {
++	while ((entity = media_graph_walk_next(graph))) {
+ 		/* Sanity check for negative stream_count */
+ 		if (!WARN_ON_ONCE(entity->stream_count <= 0)) {
+ 			entity->stream_count--;
+@@ -538,20 +537,20 @@ void __media_entity_pipeline_stop(struct media_entity *entity)
+ 	}
+ 
+ 	if (!--pipe->streaming_count)
+-		media_entity_graph_walk_cleanup(graph);
++		media_graph_walk_cleanup(graph);
+ 
+ }
+-EXPORT_SYMBOL_GPL(__media_entity_pipeline_stop);
++EXPORT_SYMBOL_GPL(__media_pipeline_stop);
+ 
+-void media_entity_pipeline_stop(struct media_entity *entity)
++void media_pipeline_stop(struct media_entity *entity)
+ {
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	__media_entity_pipeline_stop(entity);
++	__media_pipeline_stop(entity);
+ 	mutex_unlock(&mdev->graph_mutex);
+ }
+-EXPORT_SYMBOL_GPL(media_entity_pipeline_stop);
++EXPORT_SYMBOL_GPL(media_pipeline_stop);
+ 
+ /* -----------------------------------------------------------------------------
+  * Module use count
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index 964f4a6..7bde62f 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -536,7 +536,7 @@ static int fimc_capture_release(struct file *file)
+ 	mutex_lock(&fimc->lock);
+ 
+ 	if (close && vc->streaming) {
+-		media_entity_pipeline_stop(&vc->ve.vdev.entity);
++		media_pipeline_stop(&vc->ve.vdev.entity);
+ 		vc->streaming = false;
+ 	}
+ 
+@@ -1195,7 +1195,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	if (fimc_capture_active(fimc))
+ 		return -EBUSY;
+ 
+-	ret = media_entity_pipeline_start(entity, &vc->ve.pipe->mp);
++	ret = media_pipeline_start(entity, &vc->ve.pipe->mp);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1229,7 +1229,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	}
+ 
+ err_p_stop:
+-	media_entity_pipeline_stop(entity);
++	media_pipeline_stop(entity);
+ 	return ret;
+ }
+ 
+@@ -1244,7 +1244,7 @@ static int fimc_cap_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_entity_pipeline_stop(&vc->ve.vdev.entity);
++	media_pipeline_stop(&vc->ve.vdev.entity);
+ 	vc->streaming = false;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp-video.c b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+index 400ce0c..55ba696 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp-video.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp-video.c
+@@ -312,7 +312,7 @@ static int isp_video_release(struct file *file)
+ 	mutex_lock(&isp->video_lock);
+ 
+ 	if (v4l2_fh_is_singular_file(file) && ivc->streaming) {
+-		media_entity_pipeline_stop(entity);
++		media_pipeline_stop(entity);
+ 		ivc->streaming = 0;
+ 	}
+ 
+@@ -489,7 +489,7 @@ static int isp_video_streamon(struct file *file, void *priv,
+ 	struct media_entity *me = &ve->vdev.entity;
+ 	int ret;
+ 
+-	ret = media_entity_pipeline_start(me, &ve->pipe->mp);
++	ret = media_pipeline_start(me, &ve->pipe->mp);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -504,7 +504,7 @@ static int isp_video_streamon(struct file *file, void *priv,
+ 	isp->video_capture.streaming = 1;
+ 	return 0;
+ p_stop:
+-	media_entity_pipeline_stop(me);
++	media_pipeline_stop(me);
+ 	return ret;
+ }
+ 
+@@ -519,7 +519,7 @@ static int isp_video_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_entity_pipeline_stop(&video->ve.vdev.entity);
++	media_pipeline_stop(&video->ve.vdev.entity);
+ 	video->streaming = 0;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index b91abf1..b4c4a33 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -524,7 +524,7 @@ static int fimc_lite_release(struct file *file)
+ 	if (v4l2_fh_is_singular_file(file) &&
+ 	    atomic_read(&fimc->out_path) == FIMC_IO_DMA) {
+ 		if (fimc->streaming) {
+-			media_entity_pipeline_stop(entity);
++			media_pipeline_stop(entity);
+ 			fimc->streaming = false;
+ 		}
+ 		fimc_lite_stop_capture(fimc, false);
+@@ -832,7 +832,7 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 	if (fimc_lite_active(fimc))
+ 		return -EBUSY;
+ 
+-	ret = media_entity_pipeline_start(entity, &fimc->ve.pipe->mp);
++	ret = media_pipeline_start(entity, &fimc->ve.pipe->mp);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -849,7 +849,7 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 	}
+ 
+ err_p_stop:
+-	media_entity_pipeline_stop(entity);
++	media_pipeline_stop(entity);
+ 	return 0;
+ }
+ 
+@@ -863,7 +863,7 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_entity_pipeline_stop(&fimc->ve.vdev.entity);
++	media_pipeline_stop(&fimc->ve.vdev.entity);
+ 	fimc->streaming = false;
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index e3a8709..735221a 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1117,7 +1117,7 @@ static int __fimc_md_modify_pipeline(struct media_entity *entity, bool enable)
+ 
+ /* Locking: called with entity->graph_obj.mdev->graph_mutex mutex held. */
+ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+-				      struct media_entity_graph *graph)
++				      struct media_graph *graph)
+ {
+ 	struct media_entity *entity_err = entity;
+ 	int ret;
+@@ -1128,9 +1128,9 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+ 	 * through active links. This is needed as we cannot power on/off the
+ 	 * subdevs in random order.
+ 	 */
+-	media_entity_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(graph))) {
++	while ((entity = media_graph_walk_next(graph))) {
+ 		if (!is_media_entity_v4l2_video_device(entity))
+ 			continue;
+ 
+@@ -1143,9 +1143,9 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+ 	return 0;
+ 
+ err:
+-	media_entity_graph_walk_start(graph, entity_err);
++	media_graph_walk_start(graph, entity_err);
+ 
+-	while ((entity_err = media_entity_graph_walk_next(graph))) {
++	while ((entity_err = media_graph_walk_next(graph))) {
+ 		if (!is_media_entity_v4l2_video_device(entity_err))
+ 			continue;
+ 
+@@ -1161,7 +1161,7 @@ static int __fimc_md_modify_pipelines(struct media_entity *entity, bool enable,
+ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
+ 				unsigned int notification)
+ {
+-	struct media_entity_graph *graph =
++	struct media_graph *graph =
+ 		&container_of(link->graph_obj.mdev, struct fimc_md,
+ 			      media_dev)->link_setup_graph;
+ 	struct media_entity *sink = link->sink->entity;
+@@ -1169,7 +1169,7 @@ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
+ 
+ 	/* Before link disconnection */
+ 	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH) {
+-		ret = media_entity_graph_walk_init(graph,
++		ret = media_graph_walk_init(graph,
+ 						   link->graph_obj.mdev);
+ 		if (ret)
+ 			return ret;
+@@ -1183,7 +1183,7 @@ static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
+ 	} else if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH) {
+ 		if (link->flags & MEDIA_LNK_FL_ENABLED)
+ 			ret = __fimc_md_modify_pipelines(sink, true, graph);
+-		media_entity_graph_walk_cleanup(graph);
++		media_graph_walk_cleanup(graph);
+ 	}
+ 
+ 	return ret ? -EPIPE : 0;
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index ed122cb..957787a 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -154,7 +154,7 @@ struct fimc_md {
+ 	bool user_subdev_api;
+ 	spinlock_t slock;
+ 	struct list_head pipelines;
+-	struct media_entity_graph link_setup_graph;
++	struct media_graph link_setup_graph;
+ };
+ 
+ static inline
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 7354469..5b0d16e 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -225,22 +225,22 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
+ static int isp_video_get_graph_data(struct isp_video *video,
+ 				    struct isp_pipeline *pipe)
+ {
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct isp_video *far_end = NULL;
+ 	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	ret = media_graph_walk_init(&graph, entity->graph_obj.mdev);
+ 	if (ret) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return ret;
+ 	}
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_graph_walk_next(&graph))) {
+ 		struct isp_video *__video;
+ 
+ 		media_entity_enum_set(&pipe->ent_enum, entity);
+@@ -261,7 +261,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 
+ 	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		pipe->input = far_end;
+@@ -1112,7 +1112,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+ 	pipe->max_rate = pipe->l3_ick;
+ 
+-	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	ret = media_pipeline_start(&video->video.entity, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto err_pipeline_start;
+ 
+@@ -1169,7 +1169,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_check_format:
+-	media_entity_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(&video->video.entity);
+ err_pipeline_start:
+ 	/* TODO: Implement PM QoS */
+ 	/* The DMA queue must be emptied here, otherwise CCDC interrupts that
+@@ -1236,7 +1236,7 @@ isp_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->error = false;
+ 
+ 	/* TODO: Implement PM QoS */
+-	media_entity_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(&video->video.entity);
+ 
+ 	media_entity_enum_cleanup(&pipe->ent_enum);
+ 
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 0413a86..e01ecca 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -856,13 +856,13 @@ static int s3c_camif_streamon(struct file *file, void *priv,
+ 	if (s3c_vp_active(vp))
+ 		return 0;
+ 
+-	ret = media_entity_pipeline_start(sensor, camif->m_pipeline);
++	ret = media_pipeline_start(sensor, camif->m_pipeline);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	ret = camif_pipeline_validate(camif);
+ 	if (ret < 0) {
+-		media_entity_pipeline_stop(sensor);
++		media_pipeline_stop(sensor);
+ 		return ret;
+ 	}
+ 
+@@ -886,7 +886,7 @@ static int s3c_camif_streamoff(struct file *file, void *priv,
+ 
+ 	ret = vb2_streamoff(&vp->vb_queue, type);
+ 	if (ret == 0)
+-		media_entity_pipeline_stop(&camif->sensor.sd->entity);
++		media_pipeline_stop(&camif->sensor.sd->entity);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index cd209dc..b4b583f 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -90,7 +90,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ 		if (ret == -ETIMEDOUT)
+ 			dev_err(vsp1->dev, "DRM pipeline stop timeout\n");
+ 
+-		media_entity_pipeline_stop(&pipe->output->entity.subdev.entity);
++		media_pipeline_stop(&pipe->output->entity.subdev.entity);
+ 
+ 		for (i = 0; i < bru->entity.source_pad; ++i) {
+ 			vsp1->drm->inputs[i].enabled = false;
+@@ -196,7 +196,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int width,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = media_entity_pipeline_start(&pipe->output->entity.subdev.entity,
++	ret = media_pipeline_start(&pipe->output->entity.subdev.entity,
+ 					  &pipe->pipe);
+ 	if (ret < 0) {
+ 		dev_dbg(vsp1->dev, "%s: pipeline start failed\n", __func__);
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index 41e8b09..e6592b5 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -548,20 +548,20 @@ static int vsp1_video_pipeline_build_branch(struct vsp1_pipeline *pipe,
+ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 				     struct vsp1_video *video)
+ {
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	unsigned int i;
+ 	int ret;
+ 
+ 	/* Walk the graph to locate the entities and video nodes. */
+-	ret = media_entity_graph_walk_init(&graph, mdev);
++	ret = media_graph_walk_init(&graph, mdev);
+ 	if (ret)
+ 		return ret;
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_graph_walk_next(&graph))) {
+ 		struct v4l2_subdev *subdev;
+ 		struct vsp1_rwpf *rwpf;
+ 		struct vsp1_entity *e;
+@@ -590,7 +590,7 @@ static int vsp1_video_pipeline_build(struct vsp1_pipeline *pipe,
+ 		}
+ 	}
+ 
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 
+ 	/* We need one output and at least one input. */
+ 	if (pipe->num_inputs == 0 || !pipe->output)
+@@ -848,7 +848,7 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
+ 	}
+ 	mutex_unlock(&pipe->lock);
+ 
+-	media_entity_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(&video->video.entity);
+ 	vsp1_video_pipeline_put(pipe);
+ 
+ 	/* Remove all buffers from the IRQ queue. */
+@@ -980,7 +980,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		return PTR_ERR(pipe);
+ 	}
+ 
+-	ret = __media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	ret = __media_pipeline_start(&video->video.entity, &pipe->pipe);
+ 	if (ret < 0) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		goto err_pipe;
+@@ -1003,7 +1003,7 @@ vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	return 0;
+ 
+ err_stop:
+-	media_entity_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(&video->video.entity);
+ err_pipe:
+ 	vsp1_video_pipeline_put(pipe);
+ 	return ret;
+diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
+index 1d5836c..065df82 100644
+--- a/drivers/media/platform/xilinx/xilinx-dma.c
++++ b/drivers/media/platform/xilinx/xilinx-dma.c
+@@ -177,7 +177,7 @@ static int xvip_pipeline_set_stream(struct xvip_pipeline *pipe, bool on)
+ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 				  struct xvip_dma *start)
+ {
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ 	struct media_entity *entity = &start->video.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	unsigned int num_inputs = 0;
+@@ -187,15 +187,15 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+ 	/* Walk the graph to locate the video nodes. */
+-	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	ret = media_graph_walk_init(&graph, entity->graph_obj.mdev);
+ 	if (ret) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return ret;
+ 	}
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_graph_walk_next(&graph))) {
+ 		struct xvip_dma *dma;
+ 
+ 		if (entity->function != MEDIA_ENT_F_IO_V4L)
+@@ -213,7 +213,7 @@ static int xvip_pipeline_validate(struct xvip_pipeline *pipe,
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 
+ 	/* We need exactly one output and zero or one input. */
+ 	if (num_outputs != 1 || num_inputs > 1)
+@@ -409,7 +409,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	pipe = dma->video.entity.pipe
+ 	     ? to_xvip_pipeline(&dma->video.entity) : &dma->pipe;
+ 
+-	ret = media_entity_pipeline_start(&dma->video.entity, &pipe->pipe);
++	ret = media_pipeline_start(&dma->video.entity, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto error;
+ 
+@@ -435,7 +435,7 @@ static int xvip_dma_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	return 0;
+ 
+ error_stop:
+-	media_entity_pipeline_stop(&dma->video.entity);
++	media_pipeline_stop(&dma->video.entity);
+ 
+ error:
+ 	/* Give back all queued buffers to videobuf2. */
+@@ -463,7 +463,7 @@ static void xvip_dma_stop_streaming(struct vb2_queue *vq)
+ 
+ 	/* Cleanup the pipeline and mark it as being stopped. */
+ 	xvip_pipeline_cleanup(pipe);
+-	media_entity_pipeline_stop(&dma->video.entity);
++	media_pipeline_stop(&dma->video.entity);
+ 
+ 	/* Give back all queued buffers to videobuf2. */
+ 	spin_lock_irq(&dma->queued_lock);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index bf53553..c61f898 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -397,7 +397,7 @@ static int au0828_enable_source(struct media_entity *entity,
+ 		goto end;
+ 	}
+ 
+-	ret = __media_entity_pipeline_start(entity, pipe);
++	ret = __media_pipeline_start(entity, pipe);
+ 	if (ret) {
+ 		pr_err("Start Pipeline: %s->%s Error %d\n",
+ 			source->name, entity->name, ret);
+@@ -451,7 +451,7 @@ static void au0828_disable_source(struct media_entity *entity)
+ 		*/
+ 		if (dev->active_link_owner != entity)
+ 			goto end;
+-		__media_entity_pipeline_stop(entity);
++		__media_pipeline_stop(entity);
+ 		ret = __media_entity_setup_link(dev->active_link, 0);
+ 		if (ret)
+ 			pr_err("Deactivate link Error %d\n", ret);
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 8bef433..fcf614a 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -256,13 +256,13 @@ EXPORT_SYMBOL_GPL(v4l_vb2q_enable_media_source);
+  * Return the total number of users of all video device nodes in the pipeline.
+  */
+ static int pipeline_pm_use_count(struct media_entity *entity,
+-	struct media_entity_graph *graph)
++	struct media_graph *graph)
+ {
+ 	int use = 0;
+ 
+-	media_entity_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(graph))) {
++	while ((entity = media_graph_walk_next(graph))) {
+ 		if (is_media_entity_v4l2_video_device(entity))
+ 			use += entity->use_count;
+ 	}
+@@ -315,7 +315,7 @@ static int pipeline_pm_power_one(struct media_entity *entity, int change)
+  * Return 0 on success or a negative error code on failure.
+  */
+ static int pipeline_pm_power(struct media_entity *entity, int change,
+-	struct media_entity_graph *graph)
++	struct media_graph *graph)
+ {
+ 	struct media_entity *first = entity;
+ 	int ret = 0;
+@@ -323,18 +323,18 @@ static int pipeline_pm_power(struct media_entity *entity, int change,
+ 	if (!change)
+ 		return 0;
+ 
+-	media_entity_graph_walk_start(graph, entity);
++	media_graph_walk_start(graph, entity);
+ 
+-	while (!ret && (entity = media_entity_graph_walk_next(graph)))
++	while (!ret && (entity = media_graph_walk_next(graph)))
+ 		if (is_media_entity_v4l2_subdev(entity))
+ 			ret = pipeline_pm_power_one(entity, change);
+ 
+ 	if (!ret)
+ 		return ret;
+ 
+-	media_entity_graph_walk_start(graph, first);
++	media_graph_walk_start(graph, first);
+ 
+-	while ((first = media_entity_graph_walk_next(graph))
++	while ((first = media_graph_walk_next(graph))
+ 	       && first != entity)
+ 		if (is_media_entity_v4l2_subdev(first))
+ 			pipeline_pm_power_one(first, -change);
+@@ -368,7 +368,7 @@ EXPORT_SYMBOL_GPL(v4l2_pipeline_pm_use);
+ int v4l2_pipeline_link_notify(struct media_link *link, u32 flags,
+ 			      unsigned int notification)
+ {
+-	struct media_entity_graph *graph = &link->graph_obj.mdev->pm_count_walk;
++	struct media_graph *graph = &link->graph_obj.mdev->pm_count_walk;
+ 	struct media_entity *source = link->source->entity;
+ 	struct media_entity *sink = link->sink->entity;
+ 	int source_use;
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 8be9f85..c607822 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -129,7 +129,7 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
+ /* make a note of pipeline details */
+ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ {
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ 	struct media_entity *entity = &video->video_dev.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct vpfe_pipeline *pipe = &video->pipe;
+@@ -145,13 +145,13 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		pipe->outputs[pipe->output_num++] = video;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	ret = media_graph_walk_init(&graph, entity->graph_obj.mdev);
+ 	if (ret) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return -ENOMEM;
+ 	}
+-	media_entity_graph_walk_start(&graph, entity);
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	media_graph_walk_start(&graph, entity);
++	while ((entity = media_graph_walk_next(&graph))) {
+ 		if (entity == &video->video_dev.entity)
+ 			continue;
+ 		if (!is_media_entity_v4l2_video_device(entity))
+@@ -162,7 +162,7 @@ static int vpfe_prepare_pipeline(struct vpfe_video_device *video)
+ 		else
+ 			pipe->outputs[pipe->output_num++] = far_end;
+ 	}
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+ 	return 0;
+@@ -300,12 +300,11 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	ret = media_entity_graph_walk_init(&pipe->graph,
+-					   entity->graph_obj.mdev);
++	ret = media_graph_walk_init(&pipe->graph, entity->graph_obj.mdev);
+ 	if (ret)
+ 		goto out;
+-	media_entity_graph_walk_start(&pipe->graph, entity);
+-	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
++	media_graph_walk_start(&pipe->graph, entity);
++	while ((entity = media_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+@@ -316,7 +315,7 @@ static int vpfe_pipeline_enable(struct vpfe_pipeline *pipe)
+ 	}
+ out:
+ 	if (ret)
+-		media_entity_graph_walk_cleanup(&pipe->graph);
++		media_graph_walk_cleanup(&pipe->graph);
+ 	mutex_unlock(&mdev->graph_mutex);
+ 	return ret;
+ }
+@@ -346,9 +345,9 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 
+ 	mdev = entity->graph_obj.mdev;
+ 	mutex_lock(&mdev->graph_mutex);
+-	media_entity_graph_walk_start(&pipe->graph, entity);
++	media_graph_walk_start(&pipe->graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&pipe->graph))) {
++	while ((entity = media_graph_walk_next(&pipe->graph))) {
+ 
+ 		if (!is_media_entity_v4l2_subdev(entity))
+ 			continue;
+@@ -359,7 +358,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
+ 	}
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+-	media_entity_graph_walk_cleanup(&pipe->graph);
++	media_graph_walk_cleanup(&pipe->graph);
+ 	return ret ? -ETIMEDOUT : 0;
+ }
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+index aaec440..22136d3 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
+@@ -52,7 +52,7 @@ enum vpfe_video_state {
+ struct vpfe_pipeline {
+ 	/* media pipeline */
+ 	struct media_pipeline		*pipe;
+-	struct media_entity_graph	graph;
++	struct media_graph	graph;
+ 	/* state of the pipeline, continuous,
+ 	 * single-shot or stopped
+ 	 */
+diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
+index c16927a..f4b0e66 100644
+--- a/drivers/staging/media/omap4iss/iss_video.c
++++ b/drivers/staging/media/omap4iss/iss_video.c
+@@ -205,21 +205,21 @@ iss_video_remote_subdev(struct iss_video *video, u32 *pad)
+ static struct iss_video *
+ iss_video_far_end(struct iss_video *video)
+ {
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+ 	struct media_device *mdev = entity->graph_obj.mdev;
+ 	struct iss_video *far_end = NULL;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+-	if (media_entity_graph_walk_init(&graph, mdev)) {
++	if (media_graph_walk_init(&graph, mdev)) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return NULL;
+ 	}
+ 
+-	media_entity_graph_walk_start(&graph, entity);
++	media_graph_walk_start(&graph, entity);
+ 
+-	while ((entity = media_entity_graph_walk_next(&graph))) {
++	while ((entity = media_graph_walk_next(&graph))) {
+ 		if (entity == &video->video.entity)
+ 			continue;
+ 
+@@ -235,7 +235,7 @@ iss_video_far_end(struct iss_video *video)
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+ 
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 
+ 	return far_end;
+ }
+@@ -854,7 +854,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ {
+ 	struct iss_video_fh *vfh = to_iss_video_fh(fh);
+ 	struct iss_video *video = video_drvdata(file);
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+ 	enum iss_pipeline_state state;
+ 	struct iss_pipeline *pipe;
+@@ -880,19 +880,19 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	if (ret)
+ 		goto err_graph_walk_init;
+ 
+-	ret = media_entity_graph_walk_init(&graph, entity->graph_obj.mdev);
++	ret = media_graph_walk_init(&graph, entity->graph_obj.mdev);
+ 	if (ret)
+ 		goto err_graph_walk_init;
+ 
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, true);
+ 
+-	ret = media_entity_pipeline_start(entity, &pipe->pipe);
++	ret = media_pipeline_start(entity, &pipe->pipe);
+ 	if (ret < 0)
+-		goto err_media_entity_pipeline_start;
++		goto err_media_pipeline_start;
+ 
+-	media_entity_graph_walk_start(&graph, entity);
+-	while ((entity = media_entity_graph_walk_next(&graph)))
++	media_graph_walk_start(&graph, entity);
++	while ((entity = media_graph_walk_next(&graph)))
+ 		media_entity_enum_set(&pipe->ent_enum, entity);
+ 
+ 	/* Verify that the currently configured format matches the output of
+@@ -963,7 +963,7 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		spin_unlock_irqrestore(&video->qlock, flags);
+ 	}
+ 
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 
+ 	mutex_unlock(&video->stream_lock);
+ 
+@@ -972,13 +972,13 @@ iss_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ err_omap4iss_set_stream:
+ 	vb2_streamoff(&vfh->queue, type);
+ err_iss_video_check_format:
+-	media_entity_pipeline_stop(&video->video.entity);
+-err_media_entity_pipeline_start:
++	media_pipeline_stop(&video->video.entity);
++err_media_pipeline_start:
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, false);
+ 	video->queue = NULL;
+ 
+-	media_entity_graph_walk_cleanup(&graph);
++	media_graph_walk_cleanup(&graph);
+ 
+ err_graph_walk_init:
+ 	media_entity_enum_cleanup(&pipe->ent_enum);
+@@ -1026,7 +1026,7 @@ iss_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
+ 
+ 	if (video->iss->pdata->set_constraints)
+ 		video->iss->pdata->set_constraints(video->iss, false);
+-	media_entity_pipeline_stop(&video->video.entity);
++	media_pipeline_stop(&video->video.entity);
+ 
+ done:
+ 	mutex_unlock(&video->stream_lock);
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index ef93e21..1200532 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -152,7 +152,7 @@ struct media_device {
+ 
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
+-	struct media_entity_graph pm_count_walk;
++	struct media_graph pm_count_walk;
+ 
+ 	void *source_priv;
+ 	int (*enable_source)(struct media_entity *entity,
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index aa8d3c5..fd4ec8c 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -86,7 +86,7 @@ struct media_entity_enum {
+ };
+ 
+ /**
+- * struct media_entity_graph - Media graph traversal state
++ * struct media_graph - Media graph traversal state
+  *
+  * @stack:		Graph traversal stack; the stack contains information
+  *			on the path the media entities to be walked and the
+@@ -94,7 +94,7 @@ struct media_entity_enum {
+  * @ent_enum:		Visited entities
+  * @top:		The top of the stack
+  */
+-struct media_entity_graph {
++struct media_graph {
+ 	struct {
+ 		struct media_entity *entity;
+ 		struct list_head *link;
+@@ -112,7 +112,7 @@ struct media_entity_graph {
+  */
+ struct media_pipeline {
+ 	int streaming_count;
+-	struct media_entity_graph graph;
++	struct media_graph graph;
+ };
+ 
+ /**
+@@ -179,7 +179,7 @@ struct media_pad {
+  *			return an error, in which case link setup will be
+  *			cancelled. Optional.
+  * @link_validate:	Return whether a link is valid from the entity point of
+- *			view. The media_entity_pipeline_start() function
++ *			view. The media_pipeline_start() function
+  *			validates all links by calling this operation. Optional.
+  *
+  * .. note::
+@@ -825,13 +825,13 @@ struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+ struct media_entity *media_entity_get(struct media_entity *entity);
+ 
+ /**
+- * media_entity_graph_walk_init - Allocate resources used by graph walk.
++ * media_graph_walk_init - Allocate resources used by graph walk.
+  *
+  * @graph: Media graph structure that will be used to walk the graph
+  * @mdev: Pointer to the &media_device that contains the object
+  */
+-__must_check int media_entity_graph_walk_init(
+-	struct media_entity_graph *graph, struct media_device *mdev);
++__must_check int media_graph_walk_init(
++	struct media_graph *graph, struct media_device *mdev);
+ 
+ /**
+  * media_entity_has_route - Check if two entity pads are connected internally
+@@ -851,11 +851,11 @@ bool media_entity_has_route(struct media_entity *entity, unsigned int pad0,
+ 			    unsigned int pad1);
+ 
+ /**
+- * media_entity_graph_walk_cleanup - Release resources used by graph walk.
++ * media_graph_walk_cleanup - Release resources used by graph walk.
+  *
+  * @graph: Media graph structure that will be used to walk the graph
+  */
+-void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
++void media_graph_walk_cleanup(struct media_graph *graph);
+ 
+ /**
+  * media_entity_put - Release the reference to the parent module
+@@ -869,40 +869,39 @@ void media_entity_graph_walk_cleanup(struct media_entity_graph *graph);
+ void media_entity_put(struct media_entity *entity);
+ 
+ /**
+- * media_entity_graph_walk_start - Start walking the media graph at a
++ * media_graph_walk_start - Start walking the media graph at a
+  *	given entity
+  *
+  * @graph: Media graph structure that will be used to walk the graph
+  * @entity: Starting entity
+  *
+- * Before using this function, media_entity_graph_walk_init() must be
++ * Before using this function, media_graph_walk_init() must be
+  * used to allocate resources used for walking the graph. This
+  * function initializes the graph traversal structure to walk the
+  * entities graph starting at the given entity. The traversal
+  * structure must not be modified by the caller during graph
+  * traversal. After the graph walk, the resources must be released
+- * using media_entity_graph_walk_cleanup().
++ * using media_graph_walk_cleanup().
+  */
+-void media_entity_graph_walk_start(struct media_entity_graph *graph,
+-				   struct media_entity *entity);
++void media_graph_walk_start(struct media_graph *graph,
++			    struct media_entity *entity);
+ 
+ /**
+- * media_entity_graph_walk_next - Get the next entity in the graph
++ * media_graph_walk_next - Get the next entity in the graph
+  * @graph: Media graph structure
+  *
+  * Perform a depth-first traversal of the given media entities graph.
+  *
+  * The graph structure must have been previously initialized with a call to
+- * media_entity_graph_walk_start().
++ * media_graph_walk_start().
+  *
+  * Return: returns the next entity in the graph or %NULL if the whole graph
+  * have been traversed.
+  */
+-struct media_entity *
+-media_entity_graph_walk_next(struct media_entity_graph *graph);
++struct media_entity *media_graph_walk_next(struct media_graph *graph);
+ 
+ /**
+- * media_entity_pipeline_start - Mark a pipeline as streaming
++ * media_pipeline_start - Mark a pipeline as streaming
+  * @entity: Starting entity
+  * @pipe: Media pipeline to be assigned to all entities in the pipeline.
+  *
+@@ -911,45 +910,45 @@ media_entity_graph_walk_next(struct media_entity_graph *graph);
+  * to every entity in the pipeline and stored in the media_entity pipe field.
+  *
+  * Calls to this function can be nested, in which case the same number of
+- * media_entity_pipeline_stop() calls will be required to stop streaming. The
++ * media_pipeline_stop() calls will be required to stop streaming. The
+  * pipeline pointer must be identical for all nested calls to
+- * media_entity_pipeline_start().
++ * media_pipeline_start().
+  */
+-__must_check int media_entity_pipeline_start(struct media_entity *entity,
+-					     struct media_pipeline *pipe);
++__must_check int media_pipeline_start(struct media_entity *entity,
++				      struct media_pipeline *pipe);
+ /**
+- * __media_entity_pipeline_start - Mark a pipeline as streaming
++ * __media_pipeline_start - Mark a pipeline as streaming
+  *
+  * @entity: Starting entity
+  * @pipe: Media pipeline to be assigned to all entities in the pipeline.
+  *
+- * ..note:: This is the non-locking version of media_entity_pipeline_start()
++ * ..note:: This is the non-locking version of media_pipeline_start()
+  */
+-__must_check int __media_entity_pipeline_start(struct media_entity *entity,
+-					       struct media_pipeline *pipe);
++__must_check int __media_pipeline_start(struct media_entity *entity,
++					struct media_pipeline *pipe);
+ 
+ /**
+- * media_entity_pipeline_stop - Mark a pipeline as not streaming
++ * media_pipeline_stop - Mark a pipeline as not streaming
+  * @entity: Starting entity
+  *
+  * Mark all entities connected to a given entity through enabled links, either
+  * directly or indirectly, as not streaming. The media_entity pipe field is
+  * reset to %NULL.
+  *
+- * If multiple calls to media_entity_pipeline_start() have been made, the same
++ * If multiple calls to media_pipeline_start() have been made, the same
+  * number of calls to this function are required to mark the pipeline as not
+  * streaming.
+  */
+-void media_entity_pipeline_stop(struct media_entity *entity);
++void media_pipeline_stop(struct media_entity *entity);
+ 
+ /**
+- * __media_entity_pipeline_stop - Mark a pipeline as not streaming
++ * __media_pipeline_stop - Mark a pipeline as not streaming
+  *
+  * @entity: Starting entity
+  *
+- * .. note:: This is the non-locking version of media_entity_pipeline_stop()
++ * .. note:: This is the non-locking version of media_pipeline_stop()
+  */
+-void __media_entity_pipeline_stop(struct media_entity *entity);
++void __media_pipeline_stop(struct media_entity *entity);
+ 
+ /**
+  * media_devnode_create() - creates and initializes a device node interface
 -- 
-2.7.4
+2.1.4
 
