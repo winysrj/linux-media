@@ -1,119 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59713 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934249AbcKDPqR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 11:46:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Cc: mchehab@osg.samsung.com, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] media: omap3isp: Use dma_request_chan_by_mask() to request the DMA channel
-Date: Fri, 04 Nov 2016 17:46:03 +0200
-Message-ID: <4166499.xzsPgrmGQ7@avalon>
-In-Reply-To: <20161104075802.19063-1-peter.ujfalusi@ti.com>
-References: <20161104075802.19063-1-peter.ujfalusi@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from foss.arm.com ([217.140.101.70]:51186 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932625AbcKYQtc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 11:49:32 -0500
+From: Brian Starkey <brian.starkey@arm.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, daniel@ffwll.ch, gustavo@padovan.org,
+        laurent.pinchart@ideasonboard.com, eric@anholt.net,
+        ville.syrjala@linux.intel.com, liviu.dudau@arm.com
+Subject: [PATCH 5/6] drm: mali-dp: Add RGB writeback formats for DP550/DP650
+Date: Fri, 25 Nov 2016 16:49:03 +0000
+Message-Id: <1480092544-1725-6-git-send-email-brian.starkey@arm.com>
+In-Reply-To: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
+References: <1480092544-1725-1-git-send-email-brian.starkey@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Add a layer bit for the SE memory-write, and add it to the pixel format
+matrix for DP550/DP650.
 
-Thank you for the patch.
+Signed-off-by: Brian Starkey <brian.starkey@arm.com>
+---
+ drivers/gpu/drm/arm/malidp_hw.c |   28 ++++++++++++++--------------
+ drivers/gpu/drm/arm/malidp_hw.h |    1 +
+ 2 files changed, 15 insertions(+), 14 deletions(-)
 
-On Friday 04 Nov 2016 09:58:02 Peter Ujfalusi wrote:
-> When requesting the DMA channel it was mandatory that we do not have DMA
-> resource nor valid DMA channel via DT. In this case the
-> dma_request_slave_channel_compat() would fall back and request any channel
-> with SW trigger.
-> 
-> The same can be achieved with the dma_request_chan_by_mask() without the
-> misleading use of the DMAengine API - implying that the omap3isp does
-> need to have DMA resource or valid dma binding in DT.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
-> CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> CC: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and added to my tree.
-
-> ---
-> Hi,
-> 
-> Changes sicne v1:
-> - use dma_request_chan_by_mask() to request the channel as for the histogram
-> data reading we do not have hw syncronisation. Add comment about this also
-> to clarify the reason.
-> 
-> Regards,
-> Peter
-> 
->  drivers/media/platform/omap3isp/isphist.c | 28 +++++++++++++++-------------
-> 1 file changed, 15 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isphist.c
-> b/drivers/media/platform/omap3isp/isphist.c index
-> 7138b043a4aa..a4ed5d140d48 100644
-> --- a/drivers/media/platform/omap3isp/isphist.c
-> +++ b/drivers/media/platform/omap3isp/isphist.c
-> @@ -18,7 +18,6 @@
->  #include <linux/delay.h>
->  #include <linux/device.h>
->  #include <linux/dmaengine.h>
-> -#include <linux/omap-dmaengine.h>
->  #include <linux/slab.h>
->  #include <linux/uaccess.h>
-> 
-> @@ -486,27 +485,30 @@ int omap3isp_hist_init(struct isp_device *isp)
->  	hist->isp = isp;
-> 
->  	if (HIST_CONFIG_DMA) {
-> -		struct platform_device *pdev = to_platform_device(isp->dev);
-> -		struct resource *res;
-> -		unsigned int sig = 0;
->  		dma_cap_mask_t mask;
-> 
-> +		/*
-> +		 * We need slave capable channel without DMA request line for
-> +		 * reading out the data.
-> +		 * For this we can use dma_request_chan_by_mask() as we are
-> +		 * happy with any channel as long as it is capable of slave
-> +		 * configuration.
-> +		 */
->  		dma_cap_zero(mask);
->  		dma_cap_set(DMA_SLAVE, mask);
-> +		hist->dma_ch = dma_request_chan_by_mask(&mask);
-> +		if (IS_ERR(hist->dma_ch)) {
-> +			ret = PTR_ERR(hist->dma_ch);
-> +			if (ret == -EPROBE_DEFER)
-> +				return ret;
-> 
-> -		res = platform_get_resource_byname(pdev, IORESOURCE_DMA,
-> -						   "hist");
-> -		if (res)
-> -			sig = res->start;
-> -
-> -		hist->dma_ch = dma_request_slave_channel_compat(mask,
-> -				omap_dma_filter_fn, &sig, isp->dev, "hist");
-> -		if (!hist->dma_ch)
-> +			hist->dma_ch = NULL;
->  			dev_warn(isp->dev,
->  				 "hist: DMA channel request failed, using 
-PIO\n");
-> -		else
-> +		} else {
->  			dev_dbg(isp->dev, "hist: using DMA channel %s\n",
->  				dma_chan_name(hist->dma_ch));
-> +		}
->  	}
-> 
->  	hist->ops = &hist_ops;
-
+diff --git a/drivers/gpu/drm/arm/malidp_hw.c b/drivers/gpu/drm/arm/malidp_hw.c
+index c696e67..be17631 100644
+--- a/drivers/gpu/drm/arm/malidp_hw.c
++++ b/drivers/gpu/drm/arm/malidp_hw.c
+@@ -46,20 +46,20 @@
+ 
+ #define MALIDP_COMMON_FORMATS \
+ 	/*    fourcc,   layers supporting the format,      internal id   */ \
+-	{ DRM_FORMAT_ARGB2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 0) }, \
+-	{ DRM_FORMAT_ABGR2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 1) }, \
+-	{ DRM_FORMAT_RGBA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 2) }, \
+-	{ DRM_FORMAT_BGRA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(0, 3) }, \
+-	{ DRM_FORMAT_ARGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 0) }, \
+-	{ DRM_FORMAT_ABGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 1) }, \
+-	{ DRM_FORMAT_RGBA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 2) }, \
+-	{ DRM_FORMAT_BGRA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(1, 3) }, \
+-	{ DRM_FORMAT_XRGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 0) }, \
+-	{ DRM_FORMAT_XBGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 1) }, \
+-	{ DRM_FORMAT_RGBX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 2) }, \
+-	{ DRM_FORMAT_BGRX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART, MALIDP_ID(2, 3) }, \
+-	{ DRM_FORMAT_RGB888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(3, 0) }, \
+-	{ DRM_FORMAT_BGR888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(3, 1) }, \
++	{ DRM_FORMAT_ARGB2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 0) }, \
++	{ DRM_FORMAT_ABGR2101010, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 1) }, \
++	{ DRM_FORMAT_RGBA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 2) }, \
++	{ DRM_FORMAT_BGRA1010102, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(0, 3) }, \
++	{ DRM_FORMAT_ARGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 0) }, \
++	{ DRM_FORMAT_ABGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 1) }, \
++	{ DRM_FORMAT_RGBA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 2) }, \
++	{ DRM_FORMAT_BGRA8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(1, 3) }, \
++	{ DRM_FORMAT_XRGB8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 0) }, \
++	{ DRM_FORMAT_XBGR8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 1) }, \
++	{ DRM_FORMAT_RGBX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 2) }, \
++	{ DRM_FORMAT_BGRX8888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | DE_SMART | SE_MEMWRITE, MALIDP_ID(2, 3) }, \
++	{ DRM_FORMAT_RGB888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(3, 0) }, \
++	{ DRM_FORMAT_BGR888, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2 | SE_MEMWRITE, MALIDP_ID(3, 1) }, \
+ 	{ DRM_FORMAT_RGBA5551, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(4, 0) }, \
+ 	{ DRM_FORMAT_ABGR1555, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(4, 1) }, \
+ 	{ DRM_FORMAT_RGB565, DE_VIDEO1 | DE_GRAPHICS1 | DE_VIDEO2, MALIDP_ID(4, 2) }, \
+diff --git a/drivers/gpu/drm/arm/malidp_hw.h b/drivers/gpu/drm/arm/malidp_hw.h
+index 091171d..8056efa 100644
+--- a/drivers/gpu/drm/arm/malidp_hw.h
++++ b/drivers/gpu/drm/arm/malidp_hw.h
+@@ -33,6 +33,7 @@ enum {
+ 	DE_GRAPHICS2 = BIT(2), /* used only in DP500 */
+ 	DE_VIDEO2 = BIT(3),
+ 	DE_SMART = BIT(4),
++	SE_MEMWRITE = BIT(5),
+ };
+ 
+ struct malidp_format_id {
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
