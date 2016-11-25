@@ -1,70 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lelnx193.ext.ti.com ([198.47.27.77]:60380 "EHLO
-        lelnx193.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753676AbcKRXVW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 18:21:22 -0500
-From: Benoit Parrot <bparrot@ti.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <linux-kernel@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        Jyri Sarha <jsarha@ti.com>,
-        Peter Ujfalusi <peter.ujfalusi@ti.com>,
-        Benoit Parrot <bparrot@ti.com>
-Subject: [Patch v2 26/35] media: ti-vpe: vpdma: Use bidirectional cached buffers
-Date: Fri, 18 Nov 2016 17:20:36 -0600
-Message-ID: <20161118232045.24665-27-bparrot@ti.com>
-In-Reply-To: <20161118232045.24665-1-bparrot@ti.com>
-References: <20161118232045.24665-1-bparrot@ti.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+References: <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+Cc: Haggai Eran <haggaie@mellanox.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <deathsimple@vodafone.de>
+Message-ID: <a98185d9-ffb1-6469-4272-2d1222600825@vodafone.de>
+Date: Fri, 25 Nov 2016 21:40:10 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20161125193252.GC16504@obsidianresearch.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Nikhil Devshatwar <nikhil.nd@ti.com>
+Am 25.11.2016 um 20:32 schrieb Jason Gunthorpe:
+> On Fri, Nov 25, 2016 at 02:22:17PM +0100, Christian König wrote:
+>
+>>> Like you say below we have to handle short lived in the usual way, and
+>>> that covers basically every device except IB MRs, including the
+>>> command queue on a NVMe drive.
+>> Well a problem which wasn't mentioned so far is that while GPUs do have a
+>> page table to mirror the CPU page table, they usually can't recover from
+>> page faults.
+>> So what we do is making sure that all memory accessed by the GPU Jobs stays
+>> in place while those jobs run (pretty much the same pinning you do for the
+>> DMA).
+> Yes, it is DMA, so this is a valid approach.
+>
+> But, you don't need page faults from the GPU to do proper coherent
+> page table mirroring. Basically when the driver submits the work to
+> the GPU it 'faults' the pages into the CPU and mirror translation
+> table (instead of pinning).
+>
+> Like in ODP, MMU notifiers/HMM are used to monitor for translation
+> changes. If a change comes in the GPU driver checks if an executing
+> command is touching those pages and blocks the MMU notifier until the
+> command flushes, then unfaults the page (blocking future commands) and
+> unblocks the mmu notifier.
 
-VPDMA buffer will be used by CPU as well as by the VPDMA.
-CPU will write/update the VPDMA descriptors containing data
-about the video buffer DMA addresses.
-VPDMA will write the "write descriptor" containing the
-data about the DMA operation.
+Yeah, we have a function to "import" anonymous pages from a CPU pointer 
+which works exactly that way as well.
 
-When mapping/unmapping the buffer, driver has to take care of
-WriteBack and invalidation of the cache so that all the
-coherency is maintained from both directions.
+We call this "userptr" and it's just a combination of get_user_pages() 
+on command submission and making sure the returned list of pages stays 
+valid using a MMU notifier.
 
-Use DMA_BIDIRECTIONAL to maintain coherency between CPU and VPDMA.
+The "big" problem with this approach is that it is horrible slow. I mean 
+seriously horrible slow so that we actually can't use it for some of the 
+purposes we wanted to use it.
 
-Signed-off-by: Nikhil Devshatwar <nikhil.nd@ti.com>
-Signed-off-by: Benoit Parrot <bparrot@ti.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/ti-vpe/vpdma.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+> The code moving the page will move it and the next GPU command that
+> needs it will refault it in the usual way, just like the CPU would.
 
-diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
-index 070937fe1af6..2d13644a28a8 100644
---- a/drivers/media/platform/ti-vpe/vpdma.c
-+++ b/drivers/media/platform/ti-vpe/vpdma.c
-@@ -367,7 +367,7 @@ int vpdma_map_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
- 
- 	WARN_ON(buf->mapped);
- 	buf->dma_addr = dma_map_single(dev, buf->addr, buf->size,
--				DMA_TO_DEVICE);
-+				DMA_BIDIRECTIONAL);
- 	if (dma_mapping_error(dev, buf->dma_addr)) {
- 		dev_err(dev, "failed to map buffer\n");
- 		return -EINVAL;
-@@ -388,7 +388,8 @@ void vpdma_unmap_desc_buf(struct vpdma_data *vpdma, struct vpdma_buf *buf)
- 	struct device *dev = &vpdma->pdev->dev;
- 
- 	if (buf->mapped)
--		dma_unmap_single(dev, buf->dma_addr, buf->size, DMA_TO_DEVICE);
-+		dma_unmap_single(dev, buf->dma_addr, buf->size,
-+				DMA_BIDIRECTIONAL);
- 
- 	buf->mapped = false;
- }
--- 
-2.9.0
+And here comes the problem. CPU do this on a page by page basis, so they 
+fault only what needed and everything else gets filled in on demand. 
+This results that faulting a page is relatively light weight operation.
+
+But for GPU command submission we don't know which pages might be 
+accessed beforehand, so what we do is walking all possible pages and 
+make sure all of them are present.
+
+Now as far as I understand it the I/O subsystem for example assumes that 
+it can easily change the CPU page tables without much overhead. So for 
+example when a page can't modified it is temporary marked as readonly 
+AFAIK (you are probably way deeper into this than me, so please confirm).
+
+That absolutely kills any performance for GPU command submissions. We 
+have use cases where we practically ended up playing ping/pong between 
+the GPU driver trying to grab the page with get_user_pages() and sombody 
+else in the kernel marking it readonly.
+
+> This might be much more efficient since it optimizes for the common
+> case of unchanging translation tables.
+
+Yeah, completely agree. It works perfectly fine as long as you don't 
+have two drivers trying to mess with the same page.
+
+> This assumes the commands are fairly short lived of course, the
+> expectation of the mmu notifiers is that a flush is reasonably prompt
+
+Correct, this is another problem. GFX command submissions usually don't 
+take longer than a few milliseconds, but compute command submission can 
+easily take multiple hours.
+
+I can easily imagine what would happen when kswapd is blocked by a GPU 
+command submission for an hour or so while the system is under memory 
+pressure :)
+
+I'm thinking on this problem for about a year now and going in circles 
+for quite a while. So if you have ideas on this even if they sound 
+totally crazy, feel free to come up.
+
+Cheers,
+Christian.
 
