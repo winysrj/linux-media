@@ -1,44 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:54722 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754504AbcKUN7Y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 08:59:24 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] vpfe_capture: fix compiler warning
-Message-ID: <b24501c0-b70a-5030-0373-e23e059b66d5@xs4all.nl>
-Date: Mon, 21 Nov 2016 14:59:20 +0100
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Logan Gunthorpe <logang@deltatee.com>,
+        =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Dan Williams <dan.j.williams@intel.com>
+References: <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
+ <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
+ <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <CAPcyv4jVDC=8AbVa9v6LcXm9n8QHgizv_+gQJC4RTd-wtTESWQ@mail.gmail.com>
+ <20161123232503.GA13965@obsidianresearch.com>
+ <a33ec1cd-051f-8a24-0587-68707459c25c@amd.com>
+ <5e1de9ee-34f5-136d-a07e-f949d492864f@deltatee.com>
+ <c60815a1-aaac-52eb-1714-66abb28bdc01@amd.com>
+ <209107c7-3098-ca70-7d62-b55021d01faa@deltatee.com>
+CC: "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Haggai Eran <haggaie@mellanox.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <ea52d962-6c8e-92d9-eb1b-3ace4bf56126@amd.com>
+Date: Fri, 25 Nov 2016 12:20:47 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <209107c7-3098-ca70-7d62-b55021d01faa@deltatee.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-davinci/vpfe_capture.c: In function 'vpfe_probe':
-davinci/vpfe_capture.c:1992:9: warning: 'ret' may be used uninitialized 
-in this function [-Wmaybe-uninitialized]
-   return ret;
-          ^~~
 
-This is indeed correct, so if the kmalloc fails set ret to -ENOMEM.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c 
-b/drivers/media/platform/davinci/vpfe_capture.c
-index 6c41782..bc2c62b 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1847,8 +1847,10 @@ static int vpfe_probe(struct platform_device *pdev)
-
-  	/* Allocate memory for ccdc configuration */
-  	ccdc_cfg = kmalloc(sizeof(*ccdc_cfg), GFP_KERNEL);
--	if (!ccdc_cfg)
-+	if (!ccdc_cfg) {
-+		ret = -ENOMEM;
-  		goto probe_free_dev_mem;
-+	}
-
-  	mutex_lock(&ccdc_lock);
+> A white list may end up being rather complicated if it has to cover
+> different CPU generations and system architectures. I feel this is a
+> decision user space could easily make.
+>
+> Logan
+I agreed that it is better to leave up to user space to check what is 
+working
+and what is not. I found that write is practically always working but 
+read very
+often not. Also sometimes system BIOS update could fix the issue.
 
