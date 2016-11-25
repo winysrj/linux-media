@@ -1,137 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35094 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932923AbcKMKbg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 13 Nov 2016 05:31:36 -0500
-Date: Sun, 13 Nov 2016 11:31:46 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        sayli karnik <karniksayli1995@gmail.com>,
-        Mark Brown <broonie@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Linux Kbuild mailing list <linux-kbuild@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        arcml <linux-snps-arc@lists.infradead.org>,
-        nios2-dev@lists.rocketboards.org,
-        linux-s390 <linux-s390@vger.kernel.org>,
-        Linux Crypto Mailing List <linux-crypto@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux NFS Mailing List <linux-nfs@vger.kernel.org>
-Subject: Re: [PATCH v2 00/11] getting back -Wmaybe-uninitialized
-Message-ID: <20161113103146.GA8319@kroah.com>
-References: <20161110164454.293477-1-arnd@arndb.de>
- <CA+55aFx_scFVFKU__TBmoffw_iHvrdAU2dj5u1WKfWJXAkS4QA@mail.gmail.com>
- <2695221.kyRJMsRMjs@wuerfel>
- <f6dccd27-09d2-1842-220b-24aa84043674@kernel.org>
- <20161113084741.GA5225@kroah.com>
+Received: from mga05.intel.com ([192.55.52.43]:58464 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752669AbcKYHjV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 02:39:21 -0500
+Subject: Re: [PATCH 1/1] media: Drop FSF's postal address from the source code
+ files
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+References: <1477658633-2536-1-git-send-email-sakari.ailus@linux.intel.com>
+ <13836325.hF0BpjAJel@avalon>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Message-ID: <5837E9EE.1080401@linux.intel.com>
+Date: Fri, 25 Nov 2016 09:36:14 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20161113084741.GA5225@kroah.com>
+In-Reply-To: <13836325.hF0BpjAJel@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Nov 13, 2016 at 09:47:41AM +0100, Greg KH wrote:
-> On Sat, Nov 12, 2016 at 01:27:12PM +0000, Jonathan Cameron wrote:
-> > On 11/11/16 19:49, Arnd Bergmann wrote:
-> > > On Friday, November 11, 2016 9:13:00 AM CET Linus Torvalds wrote:
-> > >> On Thu, Nov 10, 2016 at 8:44 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > >>>
-> > >>> Please merge these directly if you are happy with the result.
-> > >>
-> > >> I will take this.
-> > > 
-> > > Thanks a lot!
-> > >  
-> > >> I do see two warnings, but they both seem to be valid and recent,
-> > >> though, so I have no issues with the spurious cases.
-> > > 
-> > > Ok, both of them should have my fixes coming your way already.
-> > > 
-> > >> Warning #1:
-> > >>
-> > >>   sound/soc/qcom/lpass-platform.c: In function ‘lpass_platform_pcmops_open’:
-> > >>   sound/soc/qcom/lpass-platform.c:83:29: warning: ‘dma_ch’ may be used
-> > >> uninitialized in this function [-Wmaybe-uninitialized]
-> > >>     drvdata->substream[dma_ch] = substream;
-> > >>     ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
-> > >>
-> > >> and 'dma_ch' usage there really is crazy and wrong. Broken by
-> > >> 022d00ee0b55 ("ASoC: lpass-platform: Fix broken pcm data usage")
-> > > 
-> > > Right, the patches crossed here, the bugfix patch that introduced
-> > > this came into linux-next over the kernel summit, and the fix I
-> > > sent on Tuesday made it into Mark Brown's tree on Wednesday but not
-> > > before you pulled alsa tree. It should be fixed the next time you
-> > > pull from the alsa tree, the commit is
-> > > 
-> > > 3b89e4b77ef9 ("ASoC: lpass-platform: initialize dma channel number")
-> > >  
-> > >> Warning #2 is not a real bug, but it's reasonable that gcc doesn't
-> > >> know that storage_bytes (chip->read_size) has to be 2/4. Again,
-> > >> introduced recently by commit 231147ee77f3 ("iio: maxim_thermocouple:
-> > >> Align 16 bit big endian value of raw reads"), so you didn't see it.
-> > > 
-> > > This is the one I mentioned in the commit message as one that
-> > > is fixed in linux-next and that should make it in soon.
-> > > 
-> > >>   drivers/iio/temperature/maxim_thermocouple.c: In function
-> > >> ‘maxim_thermocouple_read_raw’:
-> > >>   drivers/iio/temperature/maxim_thermocouple.c:141:5: warning: ‘ret’
-> > >> may be used uninitialized in this function [-Wmaybe-uninitialized]
-> > >>     if (ret)
-> > >>        ^
-> > >>   drivers/iio/temperature/maxim_thermocouple.c:128:6: note: ‘ret’ was
-> > >> declared here
-> > >>     int ret;
-> > >>         ^~~
-> > >>
-> > >> and I guess that code can just initialize 'ret' to '-EINVAL' or
-> > >> something to just make the theoretical "somehow we had a wrong
-> > >> chip->read_size" case error out cleanly.
-> > > 
-> > > Right, that was my conclusion too. I sent the bugfix on Oct 25
-> > > for linux-next but it didn't make it in until this Monday, after
-> > > you pulled the patch that introduced it on Oct 29.
-> > > 
-> > > The commit in staging-testing is
-> > > 32cb7d27e65d ("iio: maxim_thermocouple: detect invalid storage size in read()")
-> > > 
-> > > Greg and Jonathan, I see now that this is part of the 'iio-for-4.10b'
-> > > branch, so I suspect you were not planning to send this before the
-> > > merge window. Could you make sure this ends up in v4.9 so we get
-> > > a clean build when -Wmaybe-uninitialized gets enabled again?
-> > I'll queue this up and send a pull to Greg tomorrow.
-> > 
-> > Was highly doubtful that a false warning suppression (be it an
-> > understandable one) was worth sending mid cycle, hence it was
-> > taking the slow route.
+Hi Laurent,
+
+On 11/25/16 04:03, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> I can just cherry-pick this, no need to send a separate pull request.
+> Thank you for the patch.
+> 
+> On Friday 28 Oct 2016 15:43:53 Sakari Ailus wrote:
+>> Drop the FSF's postal address from the source code files that typically
+>> contain mostly the license text. The patch has been created with the
+>> following command without manual edits:
+>>
+>> git grep -l "675 Mass Ave\|59 Temple Place\|51 Franklin St" -- \
+>> 	drivers/media/ include/media|while read i; do i=$i perl -e '
+>> open(F,"< $ENV{i}");
+>> $a=join("", <F>);
+>> $a =~ s/[ \t]*\*\n.*You should.*\n.*along with.*\n.*(\n.*USA.*$)?\n//m
+>> 	&& $a =~ s/(^.*)Or, (point your browser to) /$1To obtain the license,
+>> $2\n$1/m; close(F);
+> 
+> Do we really need to keep the "To obtain the license, point your browser 
+> to..." text ?
 
-Now done and sent to Linus, so all should be good here.
+In order not to change the existing text unnecessarily, I did that in
+the patch. I'm certainly ok with dropping it as it does not seemingly
+really has no value.
 
-thanks,
+-- 
+Regards,
 
-greg k-h
+Sakari Ailus
+sakari.ailus@linux.intel.com
