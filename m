@@ -1,124 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:42256 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751308AbcK2FK7 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40527 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754867AbcKYOhm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 00:10:59 -0500
-Message-ID: <5aef08024d353aeca4c25b1f09cdd11c@smtp-cloud3.xs4all.net>
-Date: Tue, 29 Nov 2016 06:10:56 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 25 Nov 2016 09:37:42 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shailendra Verma <shailendra.v@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shailendra Verma <shailendra.capricorn@gmail.com>,
+        vidushi.koul@samsung.com
+Subject: Re: [PATCH] Media: Platform: Omap3isp: Do not forget to call
+Date: Fri, 25 Nov 2016 16:27:49 +0200
+Message-ID: <2236670.bOO96ZUSu8@avalon>
+In-Reply-To: <1480049072-20019-1-git-send-email-shailendra.v@samsung.com>
+References: <1480049072-20019-1-git-send-email-shailendra.v@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Shailendra,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:			Tue Nov 29 05:00:17 CET 2016
-media-tree git hash:	d3d83ee20afda16ad0133ba00f63c11a8d842a35
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	dab9bf5687eddea2f4cb8cdb38b3bbc5b079a037
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+On Friday 25 Nov 2016 10:14:32 Shailendra Verma wrote:
+> v4l2_fh_init is already done.So call the v4l2_fh_exit in error condition
+> before returing from the function.
+> 
+> Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+> ---
+>  drivers/media/platform/omap3isp/ispvideo.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> b/drivers/media/platform/omap3isp/ispvideo.c index 7354469..2822e2f 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -1350,6 +1350,7 @@ static int isp_video_open(struct file *file)
+>  done:
+>  	if (ret < 0) {
+>  		v4l2_fh_del(&handle->vfh);
+> +		v4l2_fh_exit(&handle->vfh);
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+While at it you should call v4l2_fh_exit() in the isp_video_release() function 
+as well. I propose updating the commit message to
 
-Detailed results are available here:
+    v4l: omap3isp: Clean up file handle in open() and release()
+    
+    Both functions initialize the file handle with v4l2_fh_init() and thus
+    need to call clean up with v4l2_fh_exit() as appropriate. Fix it.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Same comment for the OMAP4 ISS patches you've submitted.
 
-Full logs are available here:
+>  		kfree(handle);
+>  	}
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+-- 
+Regards,
 
-The Media Infrastructure API from this daily build is here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
