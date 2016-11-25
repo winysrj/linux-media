@@ -1,90 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:37585 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752307AbcKNLR4 (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:18540 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751532AbcKYV3W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 06:17:56 -0500
-Subject: Re: [PATCH v4 5/8] media: adv7180: implement g_parm
-To: Steve Longerbeam <slongerbeam@gmail.com>, lars@metafoo.de
-References: <1470247430-11168-1-git-send-email-steve_longerbeam@mentor.com>
- <1470247430-11168-6-git-send-email-steve_longerbeam@mentor.com>
-Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4c463b74-6156-53f9-fbaf-48d2fda59481@xs4all.nl>
-Date: Mon, 14 Nov 2016 12:17:50 +0100
+        Fri, 25 Nov 2016 16:29:22 -0500
+Date: Sat, 26 Nov 2016 00:28:34 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Benoit Parrot <bparrot@ti.com>,
+        Nikhil Devshatwar <nikhil.nd@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] media: ti-vpe: vpdma: fix a timeout loop
+Message-ID: <20161125201957.GA30161@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <1470247430-11168-6-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/03/2016 08:03 PM, Steve Longerbeam wrote:
-> Implement g_parm to return the current standard's frame period.
-> 
-> Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> Tested-by: Tim Harvey <tharvey@gateworks.com>
-> Acked-by: Tim Harvey <tharvey@gateworks.com>
-> 
-> ---
-> v4: no changes
-> v3: no changes
-> v2: no changes
-> ---
->  drivers/media/i2c/adv7180.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-> index b2df181..9705e24 100644
-> --- a/drivers/media/i2c/adv7180.c
-> +++ b/drivers/media/i2c/adv7180.c
-> @@ -764,6 +764,27 @@ static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
->  	return 0;
->  }
->  
-> +static int adv7180_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *a)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +	struct v4l2_captureparm *cparm = &a->parm.capture;
-> +
-> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +
-> +	memset(a, 0, sizeof(*a));
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+The check assumes that we end on zero but actually we end on -1.  Change
+the post-op to a pre-op so that we do end on zero.  Techinically now we
+only loop 499 times instead of 500 but that's fine.
 
-Don't memset this, it is the responsibility of the caller to do that,
-not of the subdev.
+Fixes: dc12b124353b ("[media] media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs")
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-The caller may have set other fields in the struct that the memset would
-wipe out.
-
-Regards,
-
-	Hans
-
-> +	if (state->curr_norm & V4L2_STD_525_60) {
-> +		cparm->timeperframe.numerator = 1001;
-> +		cparm->timeperframe.denominator = 30000;
-> +	} else {
-> +		cparm->timeperframe.numerator = 1;
-> +		cparm->timeperframe.denominator = 25;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *cropcap)
->  {
->  	struct adv7180_state *state = to_state(sd);
-> @@ -822,6 +843,7 @@ static int adv7180_subscribe_event(struct v4l2_subdev *sd,
->  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->  	.s_std = adv7180_s_std,
->  	.g_std = adv7180_g_std,
-> +	.g_parm = adv7180_g_parm,
->  	.querystd = adv7180_querystd,
->  	.g_input_status = adv7180_g_input_status,
->  	.s_routing = adv7180_s_routing,
-> 
+diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+index 13bfd71..23472e3 100644
+--- a/drivers/media/platform/ti-vpe/vpdma.c
++++ b/drivers/media/platform/ti-vpe/vpdma.c
+@@ -453,7 +453,7 @@ int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
+ 	if (ret)
+ 		return ret;
+ 
+-	while (vpdma_list_busy(vpdma, list_num) && timeout--)
++	while (vpdma_list_busy(vpdma, list_num) && --timeout)
+ 		;
+ 
+ 	if (timeout == 0) {
