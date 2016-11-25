@@ -1,112 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49578 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754524AbcKBN3o (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:44 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 20/32] media: rcar-vin: expose a sink pad if we are on Gen3
-Date: Wed,  2 Nov 2016 14:23:17 +0100
-Message-Id: <20161102132329.436-21-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40406 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754284AbcKYN53 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 08:57:29 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Markus Elfring <elfring@users.sourceforge.net>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
+Date: Fri, 25 Nov 2016 15:57:51 +0200
+Message-ID: <2064794.XNX8XhaLMu@avalon>
+In-Reply-To: <20161125102835.GA5856@mwanda>
+References: <20161125102835.GA5856@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refactor the probe code path to look for the digital subdevice, if one
-is found use it just like the driver did before (Gen2 mode) but if it's
-not found prepare for a Gen3 mode by registering a pad for the media
-controller API to use.
+Hi Dan,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 21 ++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 +++++++++
- 2 files changed, 29 insertions(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index f961957..ce8b59a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -308,6 +308,25 @@ static const struct of_device_id rvin_of_id_table[] = {
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+On Friday 25 Nov 2016 13:28:35 Dan Carpenter wrote:
+> A recent cleanup introduced a potential dereference of -EFAULT when we
+> call kfree(map->menu_info).
+
+I should have caught that, my apologies :-(
+
+Thinking a bit more about this class of problems, would the following patch 
+make sense ?
+
+commit 034b71306510643f9f059249a0c14418099eb436
+Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date:   Fri Nov 25 15:54:22 2016 +0200
+
+    mm/slab: WARN_ON error pointers passed to kfree()
+    
+    Passing an error pointer to kfree() is invalid and can lead to crashes
+    or memory corruption. Reject those pointers and WARN in order to catch
+    the problems and fix them in the callers.
+    
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+diff --git a/mm/slab.c b/mm/slab.c
+index 0b0550ca85b4..a7eb830c6684 100644
+--- a/mm/slab.c
++++ b/mm/slab.c
+@@ -3819,6 +3819,8 @@ void kfree(const void *objp)
  
-+static int rvin_graph_init(struct rvin_dev *vin)
-+{
-+	int ret;
-+
-+	/* Try to get digital video pipe */
-+	ret = rvin_digital_graph_init(vin);
-+
-+	/* No digital pipe and we are on Gen3 try to joint CSI2 group */
-+	if (ret == -ENODEV && vin->info->chip == RCAR_GEN3) {
-+
-+		vin->pads[RVIN_SINK].flags = MEDIA_PAD_FL_SINK;
-+		ret = media_entity_pads_init(&vin->vdev.entity, 1, vin->pads);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return ret;
-+}
-+
- static int rcar_vin_probe(struct platform_device *pdev)
- {
- 	const struct of_device_id *match;
-@@ -343,7 +362,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = rvin_digital_graph_init(vin);
-+	ret = rvin_graph_init(vin);
- 	if (ret < 0)
- 		goto error;
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index a6a49a96..8ed43be 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -36,6 +36,11 @@ enum chip_id {
- 	RCAR_GEN3,
- };
- 
-+enum rvin_pads {
-+	RVIN_SINK,
-+	RVIN_PAD_MAX,
-+};
-+
- /**
-  * STOPPED  - No operation in progress
-  * RUNNING  - Operation in progress have buffers
-@@ -115,6 +120,8 @@ struct rvin_info {
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-  *
-+ * @pads:		pads for media controller
-+ *
-  * @lock:		protects @queue
-  * @queue:		vb2 buffers queue
-  *
-@@ -144,6 +151,8 @@ struct rvin_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity digital;
- 
-+	struct media_pad pads[RVIN_PAD_MAX];
-+
- 	struct mutex lock;
- 	struct vb2_queue queue;
- 
+ 	if (unlikely(ZERO_OR_NULL_PTR(objp)))
+ 		return;
++	if (WARN_ON(IS_ERR(objp)))
++		return;
+ 	local_irq_save(flags);
+ 	kfree_debugcheck(objp);
+ 	c = virt_to_cache(objp);
+
+> Fixes: 4cc5bed1caeb ("[media] uvcvideo: Use memdup_user() rather than
+> duplicating its implementation")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Mauro, the bug is present in your branch only at the moment and queued for 
+v4.10. Could you please pick this patch up as well ?
+
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index a7e12fd..3e7e283 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -66,14 +66,14 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
+> *chain, if (xmap->menu_count == 0 ||
+>  		    xmap->menu_count > UVC_MAX_CONTROL_MENU_ENTRIES) {
+>  			ret = -EINVAL;
+> -			goto done;
+> +			goto free_map;
+>  		}
+> 
+>  		size = xmap->menu_count * sizeof(*map->menu_info);
+>  		map->menu_info = memdup_user(xmap->menu_info, size);
+>  		if (IS_ERR(map->menu_info)) {
+>  			ret = PTR_ERR(map->menu_info);
+> -			goto done;
+> +			goto free_map;
+>  		}
+> 
+>  		map->menu_count = xmap->menu_count;
+> @@ -83,13 +83,13 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
+> *chain, uvc_trace(UVC_TRACE_CONTROL, "Unsupported V4L2 control type "
+>  			  "%u.\n", xmap->v4l2_type);
+>  		ret = -ENOTTY;
+> -		goto done;
+> +		goto free_map;
+>  	}
+> 
+>  	ret = uvc_ctrl_add_mapping(chain, map);
+> 
+> -done:
+>  	kfree(map->menu_info);
+> +free_map:
+>  	kfree(map);
+> 
+>  	return ret;
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
