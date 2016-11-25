@@ -1,125 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:52782 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750701AbcKPFLd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 16 Nov 2016 00:11:33 -0500
-Message-ID: <87c00a4ed6d944349031e7e187cca3fe@smtp-cloud2.xs4all.net>
-Date: Wed, 16 Nov 2016 06:11:30 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Date: Fri, 25 Nov 2016 14:18:46 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Christian =?iso-8859-1?Q?K=F6nig?= <deathsimple@vodafone.de>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Haggai Eran <haggaie@mellanox.com>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161125211846.GA22521@obsidianresearch.com>
+References: <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <a98185d9-ffb1-6469-4272-2d1222600825@vodafone.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <a98185d9-ffb1-6469-4272-2d1222600825@vodafone.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Nov 25, 2016 at 09:40:10PM +0100, Christian König wrote:
 
-Results of the daily build of media_tree:
+> We call this "userptr" and it's just a combination of get_user_pages() on
+> command submission and making sure the returned list of pages stays valid
+> using a MMU notifier.
 
-date:			Wed Nov 16 05:00:17 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	bce0dfbb3eca1600249a7ebc5eaea2e19bfaf56b
-v4l-utils git hash:	db397c130912446d58c9ad3e0a81bacc0c54c159
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Doesn't that still pin the page?
 
-linux-git-Module.symvers: ERRORS
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc1-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+> The "big" problem with this approach is that it is horrible slow. I mean
+> seriously horrible slow so that we actually can't use it for some of the
+> purposes we wanted to use it.
+> 
+> >The code moving the page will move it and the next GPU command that
+> >needs it will refault it in the usual way, just like the CPU would.
+> 
+> And here comes the problem. CPU do this on a page by page basis, so they
+> fault only what needed and everything else gets filled in on demand. This
+> results that faulting a page is relatively light weight operation.
+>
+> But for GPU command submission we don't know which pages might be accessed
+> beforehand, so what we do is walking all possible pages and make sure all of
+> them are present.
 
-Detailed results are available here:
+Little confused why this is slow? So you fault the entire user MM into
+your page tables at start of day and keep track of it with mmu
+notifiers?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> >This might be much more efficient since it optimizes for the common
+> >case of unchanging translation tables.
+> 
+> Yeah, completely agree. It works perfectly fine as long as you don't have
+> two drivers trying to mess with the same page.
 
-Full logs are available here:
+Well, the idea would be to not have the GPU block the other driver
+beyond hinting that the page shouldn't be swapped out.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> >This assumes the commands are fairly short lived of course, the
+> >expectation of the mmu notifiers is that a flush is reasonably prompt
+> 
+> Correct, this is another problem. GFX command submissions usually don't take
+> longer than a few milliseconds, but compute command submission can easily
+> take multiple hours.
 
-The Media Infrastructure API from this daily build is here:
+So, that won't work - you have the same issue as RDMA with work loads
+like that.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+If you can't somehow fence the hardware then pinning is the only
+solution. Felix has the right kind of suggestion for what is needed -
+globally stop the GPU, fence the DMA, fix the page tables, and start
+it up again. :\
+
+> I can easily imagine what would happen when kswapd is blocked by a GPU
+> command submission for an hour or so while the system is under memory
+> pressure :)
+
+Right. The advantage of pinning is it tells the other stuff not to
+touch the page and doesn't block it, MMU notifiers have to be able to
+block&fence quickly.
+
+> I'm thinking on this problem for about a year now and going in circles for
+> quite a while. So if you have ideas on this even if they sound totally
+> crazy, feel free to come up.
+
+Well, it isn't a software problem. From what I've seen in this thread
+the GPU application requires coherent page table mirroring, so the
+only full & complete solution is going to be to actually implement
+that somehow in GPU hardware.
+
+Everything else is going to be deeply flawed somehow. Linux just
+doesn't have the support for this kind of stuff - and I'm honestly not
+sure something better is even possible considering the hardware
+constraints....
+
+This doesn't have to be faulting, but really anything that lets you
+pause the GPU DMA and reload the page tables.
+
+You might look at trying to use the IOMMU and/or PCI ATS in very new
+hardware. IIRC the physical IOMMU hardware can do the fault and fence
+and block stuff, but I'm not sure about software support for using the
+IOMMU to create coherent user page table mirrors - that is something
+Linux doesn't do today. But there is demand for this kind of capability..
+
+Jason
