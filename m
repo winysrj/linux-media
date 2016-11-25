@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Dan Williams <dan.j.williams@intel.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
- <CAPcyv4jsgrsQaeewFedUzcD1XLSQ8vQ5Zyr8EoB_5ORUqmL4nQ@mail.gmail.com>
- <20161123191215.GB12146@obsidianresearch.com>
-CC: Bart Van Assche <bart.vanassche@sandisk.com>,
-        Logan Gunthorpe <logang@deltatee.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Message-ID: <1dffffdf-55e2-0842-60f0-ffbfbd70aa2d@amd.com>
-Date: Wed, 23 Nov 2016 14:24:33 -0500
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35612 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751522AbcKYLcy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 25 Nov 2016 06:32:54 -0500
+To: linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [GIT PULL FOR v4.10] cec: pass parent device in register(), not
+ allocate()
+Message-ID: <e62b59c4-076a-14b6-fe5e-d0b09f7d2303@xs4all.nl>
+Date: Fri, 25 Nov 2016 12:31:37 +0100
 MIME-Version: 1.0
-In-Reply-To: <20161123191215.GB12146@obsidianresearch.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
+It's just a single patch, but I'd like to get that into 4.10. Now that the
+cec framework moves out of staging I prefer to get this kernel API change
+in before more CEC drivers are added.
 
-On 2016-11-23 02:12 PM, Jason Gunthorpe wrote:
-> On Wed, Nov 23, 2016 at 10:40:47AM -0800, Dan Williams wrote:
->
->> I don't think that was designed for the case where the backing memory
->> is a special/static physical address range rather than anonymous
->> "System RAM", right?
-> The hardware doesn't care where the memory is. ODP is just a generic
-> mechanism to provide demand-fault behavior for a mirrored page table.
->
-> ODP has the same issue as everything else, it needs to translate a
-> page table entry into a DMA address, and we have no API to do that
-> when the page table points to peer-peer memory.
->
-> Jason
-I would like to note that for graphics applications (especially for VR 
-support) we
-should  avoid ODP  case at any cost during graphics commands execution  due
-to requirement to have smooth and predictable playback. We want to load 
-/ "pin"
-all required resources before graphics processor begin to touch them. 
-This is not
-so critical for compute applications. Because only graphics / compute stack
-knows which resource will be in used as well as all statistics 
-accordingly only graphics
-stack is capable to make the correct decision when and _where_ evict as 
-well
-as when and _where_ to put memory back.
+Regards,
 
+	Hans
+
+The following changes since commit 4cc5bed1caeb6d40f2f41c4c5eb83368691fbffb:
+
+  [media] uvcvideo: Use memdup_user() rather than duplicating its implementation (2016-11-23 20:06:41 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cec-reg
+
+for you to fetch changes up to f2684fe2abba97b9ca2c5966c4113644afca181b:
+
+  cec: pass parent device in register(), not allocate() (2016-11-25 09:23:34 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      cec: pass parent device in register(), not allocate()
+
+ Documentation/media/kapi/cec-core.rst     | 14 ++++++--------
+ drivers/media/cec/cec-api.c               |  2 +-
+ drivers/media/cec/cec-core.c              | 18 ++++++++++--------
+ drivers/media/i2c/adv7511.c               |  5 +++--
+ drivers/media/i2c/adv7604.c               |  6 +++---
+ drivers/media/i2c/adv7842.c               |  6 +++---
+ drivers/media/platform/vivid/vivid-cec.c  |  3 +--
+ drivers/media/platform/vivid/vivid-cec.h  |  1 -
+ drivers/media/platform/vivid/vivid-core.c |  9 ++++-----
+ drivers/media/usb/pulse8-cec/pulse8-cec.c |  4 ++--
+ drivers/staging/media/s5p-cec/s5p_cec.c   |  5 ++---
+ drivers/staging/media/st-cec/stih-cec.c   |  5 ++---
+ include/media/cec.h                       | 10 ++++------
+ 13 files changed, 41 insertions(+), 47 deletions(-)
