@@ -1,329 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:32961 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753823AbcKLKey (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 05:34:54 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 6/9] it913x: change driver model from i2c to platform
-Date: Sat, 12 Nov 2016 12:33:58 +0200
-Message-Id: <1478946841-2807-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1478946841-2807-1-git-send-email-crope@iki.fi>
-References: <1478946841-2807-1-git-send-email-crope@iki.fi>
+Received: from mail-io0-f196.google.com ([209.85.223.196]:36766 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751192AbcKZNxW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Nov 2016 08:53:22 -0500
+Received: by mail-io0-f196.google.com with SMTP id k19so14229813iod.3
+        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 05:53:21 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAAEAJfAiK+MmT7dY-eGV2QwL6voLzBnMhrjVy=au5zT83JtjqA@mail.gmail.com>
+References: <cover.1477592284.git.mahasler@gmail.com> <20161027203515.GA847@arch-desktop>
+ <CAAEAJfAiK+MmT7dY-eGV2QwL6voLzBnMhrjVy=au5zT83JtjqA@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sat, 26 Nov 2016 14:52:40 +0100
+Message-ID: <CAOJOY2OBcdhf+CKuP9wQQ9FiyHCmCUL5ugCTqmF7gyGJ9hd5TA@mail.gmail.com>
+Subject: Re: [PATCH v2 3/3] stk1160: Add module param for setting the record gain.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That tuner is integrated to demodulator and communicates via
-demodulators address space. We cannot register both demodulator
-and tuner having same address to same I2C bus, so better to change
-it platform driver in order to implement I2C adapter correctly.
+2016-11-20 18:36 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
+> On 27 October 2016 at 17:35, Marcel Hasler <mahasler@gmail.com> wrote:
+>> Allow setting a custom record gain for the internal AC97 codec (if avail=
+able). This can be
+>> a value between 0 and 15, 8 is the default and should be suitable for mo=
+st users. The Windows
+>> driver also sets this to 8 without any possibility for changing it.
+>>
+>> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+>> ---
+>>  drivers/media/usb/stk1160/stk1160-ac97.c | 11 ++++++++++-
+>>  1 file changed, 10 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
+b/stk1160/stk1160-ac97.c
+>> index 6dbc39f..31bdd60d 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+>> @@ -25,6 +25,11 @@
+>>  #include "stk1160.h"
+>>  #include "stk1160-reg.h"
+>>
+>> +static u8 gain =3D 8;
+>> +
+>> +module_param(gain, byte, 0444);
+>> +MODULE_PARM_DESC(gain, "Set capture gain level if AC97 codec is availab=
+le (0-15, default: 8)");
+>> +
+>>  static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
+>>  {
+>>         /* Set codec register address */
+>> @@ -122,7 +127,11 @@ void stk1160_ac97_setup(struct stk1160 *dev)
+>>         stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
+>>         stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
+>>         stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
+>> -       stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
+>> +
+>> +       /* Record gain */
+>> +       gain =3D (gain > 15) ? 15 : gain;
+>> +       stk1160_info("Setting capture gain to %d.", gain);
+>
+> This message doesn't add anything useful, can we drop it?
+>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/it913x.c | 89 +++++++++++++++++--------------------------
- drivers/media/tuners/it913x.h | 29 ++++++--------
- 2 files changed, 48 insertions(+), 70 deletions(-)
+I think it would make sense to have some kind of feedback, at least
+when the default value has been overridden. How about making this
+conditional?
 
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index 6c3ef21..085e33c 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -21,10 +21,11 @@
-  */
- 
- #include "it913x.h"
-+#include <linux/platform_device.h>
- #include <linux/regmap.h>
- 
- struct it913x_dev {
--	struct i2c_client *client;
-+	struct platform_device *pdev;
- 	struct regmap *regmap;
- 	struct dvb_frontend *fe;
- 	u8 chip_ver:2;
-@@ -39,13 +40,14 @@ struct it913x_dev {
- static int it913x_init(struct dvb_frontend *fe)
- {
- 	struct it913x_dev *dev = fe->tuner_priv;
-+	struct platform_device *pdev = dev->pdev;
- 	int ret;
- 	unsigned int utmp;
- 	u8 iqik_m_cal, nv_val, buf[2];
- 	static const u8 nv[] = {48, 32, 24, 16, 12, 8, 6, 4, 2};
- 	unsigned long timeout;
- 
--	dev_dbg(&dev->client->dev, "role %u\n", dev->role);
-+	dev_dbg(&pdev->dev, "role %u\n", dev->role);
- 
- 	ret = regmap_write(dev->regmap, 0x80ec4c, 0x68);
- 	if (ret)
-@@ -73,7 +75,7 @@ static int it913x_init(struct dvb_frontend *fe)
- 		iqik_m_cal = 6;
- 		break;
- 	default:
--		dev_err(&dev->client->dev, "unknown clock identifier %d\n", utmp);
-+		dev_err(&pdev->dev, "unknown clock identifier %d\n", utmp);
- 		goto err;
- 	}
- 
-@@ -98,14 +100,14 @@ static int it913x_init(struct dvb_frontend *fe)
- 			break;
- 	}
- 
--	dev_dbg(&dev->client->dev, "r_fbc_m_bdry took %u ms, val %u\n",
-+	dev_dbg(&pdev->dev, "r_fbc_m_bdry took %u ms, val %u\n",
- 			jiffies_to_msecs(jiffies) -
- 			(jiffies_to_msecs(timeout) - TIMEOUT), utmp);
- 
- 	dev->fn_min = dev->xtal * utmp;
- 	dev->fn_min /= (dev->fdiv * nv_val);
- 	dev->fn_min *= 1000;
--	dev_dbg(&dev->client->dev, "fn_min %u\n", dev->fn_min);
-+	dev_dbg(&pdev->dev, "fn_min %u\n", dev->fn_min);
- 
- 	/*
- 	 * Chip version BX never sets that flag so we just wait 50ms in that
-@@ -125,7 +127,7 @@ static int it913x_init(struct dvb_frontend *fe)
- 				break;
- 		}
- 
--		dev_dbg(&dev->client->dev, "p_tsm_init_mode took %u ms, val %u\n",
-+		dev_dbg(&pdev->dev, "p_tsm_init_mode took %u ms, val %u\n",
- 				jiffies_to_msecs(jiffies) -
- 				(jiffies_to_msecs(timeout) - TIMEOUT), utmp);
- 	} else {
-@@ -152,16 +154,17 @@ static int it913x_init(struct dvb_frontend *fe)
- 
- 	return 0;
- err:
--	dev_dbg(&dev->client->dev, "failed %d\n", ret);
-+	dev_dbg(&pdev->dev, "failed %d\n", ret);
- 	return ret;
- }
- 
- static int it913x_sleep(struct dvb_frontend *fe)
- {
- 	struct it913x_dev *dev = fe->tuner_priv;
-+	struct platform_device *pdev = dev->pdev;
- 	int ret, len;
- 
--	dev_dbg(&dev->client->dev, "role %u\n", dev->role);
-+	dev_dbg(&pdev->dev, "role %u\n", dev->role);
- 
- 	dev->active = false;
- 
-@@ -178,7 +181,7 @@ static int it913x_sleep(struct dvb_frontend *fe)
- 	else
- 		len = 15;
- 
--	dev_dbg(&dev->client->dev, "role %u, len %d\n", dev->role, len);
-+	dev_dbg(&pdev->dev, "role %u, len %d\n", dev->role, len);
- 
- 	ret = regmap_bulk_write(dev->regmap, 0x80ec02,
- 			"\x3f\x1f\x3f\x3e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-@@ -210,13 +213,14 @@ static int it913x_sleep(struct dvb_frontend *fe)
- 
- 	return 0;
- err:
--	dev_dbg(&dev->client->dev, "failed %d\n", ret);
-+	dev_dbg(&pdev->dev, "failed %d\n", ret);
- 	return ret;
- }
- 
- static int it913x_set_params(struct dvb_frontend *fe)
- {
- 	struct it913x_dev *dev = fe->tuner_priv;
-+	struct platform_device *pdev = dev->pdev;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
- 	unsigned int utmp;
-@@ -224,7 +228,7 @@ static int it913x_set_params(struct dvb_frontend *fe)
- 	u16 iqik_m_cal, n_div;
- 	u8 u8tmp, n, l_band, lna_band;
- 
--	dev_dbg(&dev->client->dev, "role=%u, frequency %u, bandwidth_hz %u\n",
-+	dev_dbg(&pdev->dev, "role=%u, frequency %u, bandwidth_hz %u\n",
- 			dev->role, c->frequency, c->bandwidth_hz);
- 
- 	if (!dev->active) {
-@@ -290,7 +294,7 @@ static int it913x_set_params(struct dvb_frontend *fe)
- 	pre_lo_freq += (u32) n << 13;
- 	/* Frequency OMEGA_IQIK_M_CAL_MID*/
- 	t_cal_freq = pre_lo_freq + (u32)iqik_m_cal;
--	dev_dbg(&dev->client->dev, "t_cal_freq %u, pre_lo_freq %u\n",
-+	dev_dbg(&pdev->dev, "t_cal_freq %u, pre_lo_freq %u\n",
- 			t_cal_freq, pre_lo_freq);
- 
- 	if (c->frequency <=         440000000) {
-@@ -369,7 +373,7 @@ static int it913x_set_params(struct dvb_frontend *fe)
- 
- 	return 0;
- err:
--	dev_dbg(&dev->client->dev, "failed %d\n", ret);
-+	dev_dbg(&pdev->dev, "failed %d\n", ret);
- 	return ret;
- }
- 
-@@ -385,40 +389,31 @@ static const struct dvb_tuner_ops it913x_tuner_ops = {
- 	.set_params = it913x_set_params,
- };
- 
--static int it913x_probe(struct i2c_client *client,
--		const struct i2c_device_id *id)
-+static int it913x_probe(struct platform_device *pdev)
- {
--	struct it913x_config *cfg = client->dev.platform_data;
--	struct dvb_frontend *fe = cfg->fe;
-+	struct it913x_platform_data *pdata = pdev->dev.platform_data;
-+	struct dvb_frontend *fe = pdata->fe;
- 	struct it913x_dev *dev;
- 	int ret;
- 	char *chip_ver_str;
--	static const struct regmap_config regmap_config = {
--		.reg_bits = 24,
--		.val_bits = 8,
--	};
- 
- 	dev = kzalloc(sizeof(struct it913x_dev), GFP_KERNEL);
- 	if (dev == NULL) {
- 		ret = -ENOMEM;
--		dev_err(&client->dev, "kzalloc() failed\n");
-+		dev_err(&pdev->dev, "kzalloc() failed\n");
- 		goto err;
- 	}
- 
--	dev->client = client;
--	dev->fe = cfg->fe;
--	dev->chip_ver = cfg->chip_ver;
--	dev->role = cfg->role;
--	dev->regmap = regmap_init_i2c(client, &regmap_config);
--	if (IS_ERR(dev->regmap)) {
--		ret = PTR_ERR(dev->regmap);
--		goto err_kfree;
--	}
-+	dev->pdev = pdev;
-+	dev->regmap = pdata->regmap;
-+	dev->fe = pdata->fe;
-+	dev->chip_ver = pdata->chip_ver;
-+	dev->role = pdata->role;
- 
- 	fe->tuner_priv = dev;
- 	memcpy(&fe->ops.tuner_ops, &it913x_tuner_ops,
- 			sizeof(struct dvb_tuner_ops));
--	i2c_set_clientdata(client, dev);
-+	platform_set_drvdata(pdev, dev);
- 
- 	if (dev->chip_ver == 1)
- 		chip_ver_str = "AX";
-@@ -427,51 +422,39 @@ static int it913x_probe(struct i2c_client *client,
- 	else
- 		chip_ver_str = "??";
- 
--	dev_info(&dev->client->dev, "ITE IT913X %s successfully attached\n",
--			chip_ver_str);
--	dev_dbg(&dev->client->dev, "chip_ver %u, role %u\n",
--			dev->chip_ver, dev->role);
-+	dev_info(&pdev->dev, "ITE IT913X %s successfully attached\n",
-+		 chip_ver_str);
-+	dev_dbg(&pdev->dev, "chip_ver %u, role %u\n", dev->chip_ver, dev->role);
- 	return 0;
--
--err_kfree:
--	kfree(dev);
- err:
--	dev_dbg(&client->dev, "failed %d\n", ret);
-+	dev_dbg(&pdev->dev, "failed %d\n", ret);
- 	return ret;
- }
- 
--static int it913x_remove(struct i2c_client *client)
-+static int it913x_remove(struct platform_device *pdev)
- {
--	struct it913x_dev *dev = i2c_get_clientdata(client);
-+	struct it913x_dev *dev = platform_get_drvdata(pdev);
- 	struct dvb_frontend *fe = dev->fe;
- 
--	dev_dbg(&client->dev, "\n");
-+	dev_dbg(&pdev->dev, "\n");
- 
- 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
- 	fe->tuner_priv = NULL;
--	regmap_exit(dev->regmap);
- 	kfree(dev);
- 
- 	return 0;
- }
- 
--static const struct i2c_device_id it913x_id_table[] = {
--	{"it913x", 0},
--	{}
--};
--MODULE_DEVICE_TABLE(i2c, it913x_id_table);
--
--static struct i2c_driver it913x_driver = {
-+static struct platform_driver it913x_driver = {
- 	.driver = {
- 		.name	= "it913x",
- 		.suppress_bind_attrs	= true,
- 	},
- 	.probe		= it913x_probe,
- 	.remove		= it913x_remove,
--	.id_table	= it913x_id_table,
- };
- 
--module_i2c_driver(it913x_driver);
-+module_platform_driver(it913x_driver);
- 
- MODULE_DESCRIPTION("ITE IT913X silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
-diff --git a/drivers/media/tuners/it913x.h b/drivers/media/tuners/it913x.h
-index 33de53d..aa18862 100644
---- a/drivers/media/tuners/it913x.h
-+++ b/drivers/media/tuners/it913x.h
-@@ -25,30 +25,25 @@
- 
- #include "dvb_frontend.h"
- 
--/*
-- * I2C address
-- * 0x38, 0x3a, 0x3c, 0x3e
-+/**
-+ * struct it913x_platform_data - Platform data for the it913x driver
-+ * @regmap: af9033 demod driver regmap.
-+ * @dvb_frontend: af9033 demod driver DVB frontend.
-+ * @chip_ver: Used chip version. 1=IT9133 AX, 2=IT9133 BX.
-+ * @role: Chip role, single or dual configuration.
-  */
--struct it913x_config {
--	/*
--	 * pointer to DVB frontend
--	 */
--	struct dvb_frontend *fe;
- 
--	/*
--	 * chip version
--	 * 1 = IT9135 AX
--	 * 2 = IT9135 BX
--	 */
-+struct it913x_platform_data {
-+	struct regmap *regmap;
-+	struct dvb_frontend *fe;
- 	unsigned int chip_ver:2;
--
--	/*
--	 * tuner role
--	 */
- #define IT913X_ROLE_SINGLE         0
- #define IT913X_ROLE_DUAL_MASTER    1
- #define IT913X_ROLE_DUAL_SLAVE     2
- 	unsigned int role:2;
- };
- 
-+/* Backwards compatibility */
-+#define it913x_config it913x_platform_data
-+
- #endif
--- 
-http://palosaari.fi/
-
+>> +       stk1160_write_ac97(dev, 0x1c, (gain<<8) | gain);
+>>
+>>  #ifdef DEBUG
+>>         stk1160_ac97_dump_regs(dev);
+>> --
+>> 2.10.1
+>>
+>
+>
+>
+> --
+> Ezequiel Garc=C3=ADa, VanguardiaSur
+> www.vanguardiasur.com.ar
