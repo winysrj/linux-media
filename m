@@ -1,75 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:49521 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755723AbcKVPts (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:49:48 -0500
-Date: Tue, 22 Nov 2016 15:49:44 +0000
-From: Sean Young <sean@mess.org>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] nec decoder: wrong bit order for nec32 protocol
-Message-ID: <20161122154943.GA11405@gofer.mess.org>
-References: <1478708015-1164-5-git-send-email-sean@mess.org>
- <20161122113506.1a604721@vento.lan>
- <20161122141919.GF21644@redhat.com>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:33357 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751218AbcKZNuj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Nov 2016 08:50:39 -0500
+Received: by mail-io0-f195.google.com with SMTP id j92so14305455ioi.0
+        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 05:50:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161122141919.GF21644@redhat.com>
+In-Reply-To: <CAAEAJfAFxtnRkc9+iZtGSc=vJPGq1Aay6-aBKTD9S3_dLPLZWw@mail.gmail.com>
+References: <cover.1477592284.git.mahasler@gmail.com> <20161027203454.GA32566@arch-desktop>
+ <CAAEAJfAFxtnRkc9+iZtGSc=vJPGq1Aay6-aBKTD9S3_dLPLZWw@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sat, 26 Nov 2016 14:49:58 +0100
+Message-ID: <CAOJOY2NHSeaMk57aAGnvLo7bQrDiLQXF74MeLpG1crXLzqK8=Q@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] stk1160: Check whether to use AC97 codec or
+ internal ADC.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 22, 2016 at 09:19:19AM -0500, Jarod Wilson wrote:
-> On Tue, Nov 22, 2016 at 11:35:06AM -0200, Mauro Carvalho Chehab wrote:
-> > Em Wed,  9 Nov 2016 16:13:35 +0000
-> > Sean Young <sean@mess.org> escreveu:
-> > 
-> > > The bits are sent in lsb first. Hardware decoders also send nec32
-> > > in this order (e.g. dib0700). This should be consistent, however
-> > > I have no way of knowing which order the LME2510 and Tivo keymaps
-> > > are (the only two kernel keymaps with NEC32).
-> > 
-> > Hmm.. the lme2510 receives the scancode directly. So, this
-> > patch shouldn't affect it. So, we're stuck with the Tivo IR.
-> > 
-> > On Tivo, only a few keys (with duplicated scancodes) don't start with
-> > 0xa10c. So, it *seems* that this is an address.
+2016-11-20 18:36 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
+> On 27 October 2016 at 17:34, Marcel Hasler <mahasler@gmail.com> wrote:
+>> Some STK1160-based devices use the chip's internal 8-bit ADC. This is co=
+nfigured through a strap
+>> pin. The value of this and other pins can be read through the POSVA regi=
+ster. If the internal
+>> ADC is used, there's no point trying to setup the unavailable AC97 codec=
+.
+>>
+>> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+>> ---
+>>  drivers/media/usb/stk1160/stk1160-ac97.c | 15 +++++++++++++++
+>>  drivers/media/usb/stk1160/stk1160-core.c |  3 +--
+>>  drivers/media/usb/stk1160/stk1160-reg.h  |  3 +++
+>>  3 files changed, 19 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
+b/stk1160/stk1160-ac97.c
+>> index d3665ce..6dbc39f 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+>> @@ -90,8 +90,23 @@ void stk1160_ac97_dump_regs(struct stk1160 *dev)
+>>  }
+>>  #endif
+>>
+>> +int stk1160_has_ac97(struct stk1160 *dev)
+>> +{
+>> +       u8 value;
+>> +
+>> +       stk1160_read_reg(dev, STK1160_POSVA, &value);
+>> +
+>> +       /* Bit 2 high means internal ADC */
+>> +       return !(value & 0x04);
+>
+> How about define a macro such as:
+>
+> diff --git a/drivers/media/usb/stk1160/stk1160-reg.h
+> b/drivers/media/usb/stk1160/stk1160-reg.h
+> index a4ab586fcee1..4922249d7d34 100644
+> --- a/drivers/media/usb/stk1160/stk1160-reg.h
+> +++ b/drivers/media/usb/stk1160/stk1160-reg.h
+> @@ -28,6 +28,7 @@
+>
+>  /* Power-on Strapping Data */
+>  #define STK1160_POSVA                  0x010
+> +#define  STK1160_POSVA_ACSYNC          BIT(2)
+>
 
-The problem here is that each *byte* is sent lsb first, so only the 
-ordering within each byte would change. 
+Good idea, I'll do that.
 
-> > The best here would be to try to get a Tivo remote controller[1], and
-> > do some tests with a driver that has a hardware decoder capable of
-> > output NEC32 data, and some driver that receives raw IR data in
-> > order to be sure.
-> > 
-> > In any case, we need to patch both the NEC32 decoder and the table
-> > at the same time, to be 100% sure.
-> > 
-> > [1] or some universal remote controller that could emulate
-> > the Tivo's scan codes. I suspect that the IR in question is
-> > this one, but maybe Jarod could shed some light here:
-> > 	https://www.amazon.com/TiVo-Remote-Control-Universal-Replacement/dp/B00DYYKA04
-> 
-> Been away from the game for a few years now, so there are a good number of
-> cobwebs in this section of my brain... I'm pretty sure I do have both a
-> remote and receiver on hand that would fit the bill here though. Is the
-> question primarily about what actually gets emitted by the TiVo remote?
+> Also, the spec mentions another POSVA bit relevant
+> to audio ACDOUT. Should we check that too?
+>
 
-Yes, it is. Hardware nec decoders send each byte lsb first, but 
-ir-nec-decoder.c decoder does msb first for nec32 (not for extended nec or
-plain nec).
+Yes, that would make sense.
 
-If we have a mode2 recording of the remote (and if we know what button it
-is), then we can replay it against a hardware nec decoder and the software
-decoder. Rather than mode2, this can also be done with ir-ctl which is in
-v4l-utils git.
-
-Alternatively simply checking if the tivo keymap works with the
-software decoder (mceusb hardware for example) should be sufficient.
-
-That would be really helpful, thanks.
-
-
-Sean
+>> +}
+>> +
+>>  void stk1160_ac97_setup(struct stk1160 *dev)
+>>  {
+>> +       if (!stk1160_has_ac97(dev)) {
+>> +               stk1160_info("Device uses internal 8-bit ADC, skipping A=
+C97 setup.");
+>> +               return;
+>> +       }
+>> +
+>>         /* Two-step reset AC97 interface and hardware codec */
+>>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
+>>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
+>> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/us=
+b/stk1160/stk1160-core.c
+>> index f3c9b8a..c86eb61 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-core.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+>> @@ -20,8 +20,7 @@
+>>   *
+>>   * TODO:
+>>   *
+>> - * 1. (Try to) detect if we must register ac97 mixer
+>> - * 2. Support stream at lower speed: lower frame rate or lower frame si=
+ze.
+>> + * 1. Support stream at lower speed: lower frame rate or lower frame si=
+ze.
+>>   *
+>>   */
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-reg.h b/drivers/media/usb=
+/stk1160/stk1160-reg.h
+>> index 81ff3a1..a4ab586 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-reg.h
+>> +++ b/drivers/media/usb/stk1160/stk1160-reg.h
+>> @@ -26,6 +26,9 @@
+>>  /* Remote Wakup Control */
+>>  #define STK1160_RMCTL                  0x00c
+>>
+>> +/* Power-on Strapping Data */
+>> +#define STK1160_POSVA                  0x010
+>> +
+>>  /*
+>>   * Decoder Control Register:
+>>   * This byte controls capture start/stop
+>> --
+>> 2.10.1
+>>
+>
+>
+>
+> --
+> Ezequiel Garc=C3=ADa, VanguardiaSur
+> www.vanguardiasur.com.ar
