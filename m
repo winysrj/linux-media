@@ -1,165 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:33623 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966087AbcKLNNy (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:35926 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751192AbcKZOAe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 12 Nov 2016 08:13:54 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCHv2 27/32] media: rcar-vin: start/stop the CSI2 bridge stream
-Date: Sat, 12 Nov 2016 14:12:11 +0100
-Message-Id: <20161112131216.22635-28-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161112131216.22635-1-niklas.soderlund+renesas@ragnatech.se>
+        Sat, 26 Nov 2016 09:00:34 -0500
+Received: by mail-io0-f196.google.com with SMTP id k19so14250463iod.3
+        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 06:00:34 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
+References: <20161028085224.GA9826@arch-desktop> <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sat, 26 Nov 2016 14:59:53 +0100
+Message-ID: <CAOJOY2OA+3RBkR+JEvOmUtePanw7k8UXTXU+6MyNzmD7SVDZsw@mail.gmail.com>
+Subject: Re: [PATCH] stk1160: Give the chip some time to retrieve data from
+ AC97 codec.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the CSI2 bridge stream needs to be start/stop in conjunction
-with the video source. Create helpers to deal with both the Gen2 single
-subdevice case and the Gen3 CSI2 group case.
+2016-11-20 18:37 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
+> On 28 October 2016 at 05:52, Marcel Hasler <mahasler@gmail.com> wrote:
+>> The STK1160 needs some time to transfer data from the AC97 registers int=
+o its own. On some
+>> systems reading the chip's own registers to soon will return wrong value=
+s. The "proper" way to
+>> handle this would be to poll STK1160_AC97CTL_0 after every read or write=
+ command until the
+>> command bit has been cleared, but this may not be worth the hassle.
+>>
+>> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+>> ---
+>>  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
+b/stk1160/stk1160-ac97.c
+>> index 31bdd60d..caa65a8 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+>> @@ -20,6 +20,7 @@
+>>   *
+>>   */
+>>
+>> +#include <linux/delay.h>
+>>  #include <linux/module.h>
+>>
+>>  #include "stk1160.h"
+>> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 =
+reg)
+>>          */
+>>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
+>>
+>> +       /* Give the chip some time to transfer data */
+>> +       usleep_range(20, 40);
+>> +
+>
+> I don't recall any issues with this. In any case, we only read the regist=
+ers
+> for debugging purposes, so it's not a big deal.
+>
+> Maybe it would be better to expand the comment a little bit,
+> using your commit log:
+>
+> ""
+> The "proper" way to
+> handle this would be to poll STK1160_AC97CTL_0 after
+> every read or write command until the command bit
+> has been cleared, but this may not be worth the hassle.
+> ""
+>
+> This way, if the sleep proves problematic in the future,
+> the "proper way" is already documented.
+>
 
-In the Gen3 case there might be other simultaneous users of the bridge
-and source devices so examine each entity stream_count before acting on
-any particular device.
+Of course, since the register dump isn't needed anymore, this function
+could also be dropped. But then again, I think it would make sense to
+keep it, even if it's just for documentation. There might be use for
+it in the future. I'll add a comment as suggested. Let me know whether
+I should remove the dump, I guess there's no need to keep it. I'll
+then prepare a new patchset with all four patches as soon as I can.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 84 +++++++++++++++++++++++++++---
- 1 file changed, 77 insertions(+), 7 deletions(-)
+>>         /* Retrieve register value */
+>>         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
+>>         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
+>> --
+>> 2.10.1
+>>
+>
+>
+>
+> --
+> Ezequiel Garc=C3=ADa, VanguardiaSur
+> www.vanguardiasur.com.ar
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 322e4c1..872f138 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1089,15 +1089,87 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- }
- 
-+static int __rvin_start_streaming(struct rvin_dev *vin)
-+{
-+	struct v4l2_subdev *source, *bridge = NULL;
-+	struct media_pipeline *pipe;
-+	int ret;
-+
-+	source = vin_to_source(vin);
-+	if (!source)
-+		return -EINVAL;
-+
-+	if (vin_have_bridge(vin)) {
-+		bridge = vin_to_bridge(vin);
-+
-+		if (!bridge)
-+			return -EINVAL;
-+
-+		mutex_lock(&vin->group->lock);
-+
-+		pipe = bridge->entity.pipe ? bridge->entity.pipe :
-+			&vin->vdev.pipe;
-+		ret = media_entity_pipeline_start(&vin->vdev.entity, pipe);
-+		if (ret) {
-+			mutex_unlock(&vin->group->lock);
-+			return ret;
-+		}
-+
-+		/* Only need to start stream if it's not running */
-+		if (bridge->entity.stream_count <= 1)
-+			v4l2_subdev_call(bridge, video, s_stream, 1);
-+		if (source->entity.stream_count <= 1)
-+			v4l2_subdev_call(source, video, s_stream, 1);
-+
-+		mutex_unlock(&vin->group->lock);
-+	} else {
-+		v4l2_subdev_call(source, video, s_stream, 1);
-+	}
-+
-+	return 0;
-+}
-+
-+static int __rvin_stop_streaming(struct rvin_dev *vin)
-+{
-+	struct v4l2_subdev *source, *bridge = NULL;
-+
-+	source = vin_to_source(vin);
-+	if (!source)
-+		return -EINVAL;
-+
-+	if (vin_have_bridge(vin)) {
-+		bridge = vin_to_bridge(vin);
-+
-+		if (!bridge)
-+			return -EINVAL;
-+
-+		mutex_lock(&vin->group->lock);
-+
-+		media_entity_pipeline_stop(&vin->vdev.entity);
-+
-+		/* Only need to stop stream if there are no other users */
-+		if (bridge->entity.stream_count <= 0)
-+			v4l2_subdev_call(bridge, video, s_stream, 0);
-+		if (source->entity.stream_count <= 0)
-+			v4l2_subdev_call(source, video, s_stream, 0);
-+
-+		mutex_unlock(&vin->group->lock);
-+	} else {
-+		v4l2_subdev_call(source, video, s_stream, 0);
-+	}
-+
-+	return 0;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = __rvin_start_streaming(vin);
-+	if (ret)
-+		return ret;
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1122,7 +1194,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	/* Return all buffers if something went wrong */
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		__rvin_stop_streaming(vin);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1133,7 +1205,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1172,8 +1243,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	__rvin_stop_streaming(vin);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
--- 
-2.10.2
-
+Best regards
+Marcel
