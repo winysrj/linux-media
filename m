@@ -1,279 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:52139 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755947AbcKVPxp (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:34573 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751218AbcKZOHo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 10:53:45 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v3 08/10] [media] st-delta: EOS (End Of Stream) support
-Date: Tue, 22 Nov 2016 16:53:25 +0100
-Message-ID: <1479830007-29767-9-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
-References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+        Sat, 26 Nov 2016 09:07:44 -0500
+Received: by mail-io0-f196.google.com with SMTP id r94so14284009ioe.1
+        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 06:07:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
+References: <20161028085224.GA9826@arch-desktop> <CAAEAJfCMaaJbsJrx-hJfGnrx2K-sASOG7FCwACF0KbQgrhwE_A@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sat, 26 Nov 2016 15:07:03 +0100
+Message-ID: <CAOJOY2Mc-4ZJOJu4QfYXQxwj=ubwm4M4Hr=YK3JYuCrxriM7Rg@mail.gmail.com>
+Subject: Re: [PATCH] stk1160: Give the chip some time to retrieve data from
+ AC97 codec.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-EOS (End Of Stream) support allows user to get
-all the potential decoded frames remaining in decoder
-pipeline after having reached the end of video bitstream.
-To do so, user calls VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
-which will drain the decoder and get the drained frames
-that are then returned to user.
-User is informed of EOS completion in two ways:
- - dequeue of an empty frame flagged to V4L2_BUF_FLAG_LAST
- - reception of a V4L2_EVENT_EOS event.
-If, unfortunately, no buffer is available on CAPTURE queue
-to return the empty frame, EOS is delayed till user queue
-one CAPTURE buffer.
+2016-11-20 18:37 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
+> On 28 October 2016 at 05:52, Marcel Hasler <mahasler@gmail.com> wrote:
+>> The STK1160 needs some time to transfer data from the AC97 registers int=
+o its own. On some
+>> systems reading the chip's own registers to soon will return wrong value=
+s. The "proper" way to
+>> handle this would be to poll STK1160_AC97CTL_0 after every read or write=
+ command until the
+>> command bit has been cleared, but this may not be worth the hassle.
+>>
+>> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
+>> ---
+>>  drivers/media/usb/stk1160/stk1160-ac97.c | 4 ++++
+>>  1 file changed, 4 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
+b/stk1160/stk1160-ac97.c
+>> index 31bdd60d..caa65a8 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+>> @@ -20,6 +20,7 @@
+>>   *
+>>   */
+>>
+>> +#include <linux/delay.h>
+>>  #include <linux/module.h>
+>>
+>>  #include "stk1160.h"
+>> @@ -61,6 +62,9 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 =
+reg)
+>>          */
+>>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
+>>
+>> +       /* Give the chip some time to transfer data */
+>> +       usleep_range(20, 40);
+>> +
+>
+> I don't recall any issues with this. In any case, we only read the regist=
+ers
+> for debugging purposes, so it's not a big deal.
+>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/platform/sti/delta/delta-v4l2.c | 143 +++++++++++++++++++++++++-
- drivers/media/platform/sti/delta/delta.h      |  23 +++++
- 2 files changed, 165 insertions(+), 1 deletion(-)
+I actually just re-tested this, as I recently replaced my computer's
+main board. I didn't happen with my old one, but it does with my new
+one, just as with both of my notebooks.
 
-diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-index 70b8051..6c8ec07 100644
---- a/drivers/media/platform/sti/delta/delta-v4l2.c
-+++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-@@ -106,7 +106,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
- 	vbuf->sequence = ctx->frame_num++;
- 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
--	ctx->output_frames++;
-+	if (frame->info.size) /* ignore EOS */
-+		ctx->output_frames++;
- }
- 
- static void requeue_free_frames(struct delta_ctx *ctx)
-@@ -756,6 +757,132 @@ static int delta_g_selection(struct file *file, void *fh,
- 	return 0;
- }
- 
-+static void delta_complete_eos(struct delta_ctx *ctx,
-+			       struct delta_frame *frame)
-+{
-+	struct delta_dev *delta = ctx->dev;
-+	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
-+
-+	/* Send EOS to user:
-+	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
-+	 * - and then send EOS event
-+	 */
-+
-+	/* empty frame */
-+	frame->info.size = 0;
-+
-+	/* set the last buffer flag */
-+	frame->flags |= V4L2_BUF_FLAG_LAST;
-+
-+	/* release frame to user */
-+	delta_frame_done(ctx, frame, 0);
-+
-+	/* send EOS event */
-+	v4l2_event_queue_fh(&ctx->fh, &ev);
-+
-+	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
-+}
-+
-+static int delta_try_decoder_cmd(struct file *file, void *fh,
-+				 struct v4l2_decoder_cmd *cmd)
-+{
-+	if (cmd->cmd != V4L2_DEC_CMD_STOP)
-+		return -EINVAL;
-+
-+	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
-+		return -EINVAL;
-+
-+	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
-+	    (cmd->stop.pts != 0))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
-+{
-+	const struct delta_dec *dec = ctx->dec;
-+	struct delta_dev *delta = ctx->dev;
-+	struct delta_frame *frame = NULL;
-+	int ret = 0;
-+
-+	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
-+
-+	if (ctx->state != DELTA_STATE_READY)
-+		return 0;
-+
-+	/* drain the decoder */
-+	call_dec_op(dec, drain, ctx);
-+
-+	/* release to user drained frames */
-+	while (1) {
-+		frame = NULL;
-+		ret = call_dec_op(dec, get_frame, ctx, &frame);
-+		if (ret == -ENODATA) {
-+			/* no more decoded frames */
-+			break;
-+		}
-+		if (frame) {
-+			dev_dbg(delta->dev, "%s drain frame[%d]\n",
-+				ctx->name, frame->index);
-+
-+			/* pop timestamp and mark frame with it */
-+			delta_pop_dts(ctx, &frame->dts);
-+
-+			/* release decoded frame to user */
-+			delta_frame_done(ctx, frame, 0);
-+		}
-+	}
-+
-+	/* try to complete EOS */
-+	ret = delta_get_free_frame(ctx, &frame);
-+	if (ret)
-+		goto delay_eos;
-+
-+	/* new frame available, EOS can now be completed */
-+	delta_complete_eos(ctx, frame);
-+
-+	ctx->state = DELTA_STATE_EOS;
-+
-+	return 0;
-+
-+delay_eos:
-+	/* EOS completion from driver is delayed because
-+	 * we don't have a free empty frame available.
-+	 * EOS completion is so delayed till next frame_queue() call
-+	 * to be sure to have a free empty frame available.
-+	 */
-+	ctx->state = DELTA_STATE_WF_EOS;
-+	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+int delta_decoder_cmd(struct file *file, void *fh, struct v4l2_decoder_cmd *cmd)
-+{
-+	struct delta_ctx *ctx = to_ctx(fh);
-+	int ret = 0;
-+
-+	ret = delta_try_decoder_cmd(file, fh, cmd);
-+	if (ret)
-+		return ret;
-+
-+	return delta_decoder_stop_cmd(ctx, fh);
-+}
-+
-+static int delta_subscribe_event(struct v4l2_fh *fh,
-+				 const struct v4l2_event_subscription *sub)
-+{
-+	switch (sub->type) {
-+	case V4L2_EVENT_EOS:
-+		return v4l2_event_subscribe(fh, sub, 2, NULL);
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
- /* v4l2 ioctl ops */
- static const struct v4l2_ioctl_ops delta_ioctl_ops = {
- 	.vidioc_querycap = delta_querycap,
-@@ -776,6 +903,10 @@ static int delta_g_selection(struct file *file, void *fh,
- 	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
- 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
- 	.vidioc_g_selection = delta_g_selection,
-+	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
-+	.vidioc_decoder_cmd = delta_decoder_cmd,
-+	.vidioc_subscribe_event = delta_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- /*
-@@ -1362,6 +1493,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
- 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
- 	struct delta_frame *frame = to_frame(vbuf);
- 
-+	if (ctx->state == DELTA_STATE_WF_EOS) {
-+		/* new frame available, EOS can now be completed */
-+		delta_complete_eos(ctx, frame);
-+
-+		ctx->state = DELTA_STATE_EOS;
-+
-+		/* return, no need to recycle this buffer to decoder */
-+		return;
-+	}
-+
- 	/* recycle this frame */
- 	delta_recycle(ctx, frame);
- }
-diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
-index 076e0fc..c8a315b 100644
---- a/drivers/media/platform/sti/delta/delta.h
-+++ b/drivers/media/platform/sti/delta/delta.h
-@@ -27,11 +27,19 @@
-  *@DELTA_STATE_READY:
-  *	Decoding instance is ready to decode compressed access unit.
-  *
-+ *@DELTA_STATE_WF_EOS:
-+ *	Decoding instance is waiting for EOS (End Of Stream) completion.
-+ *
-+ *@DELTA_STATE_EOS:
-+ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
-+ *	should then be closed.
-  */
- enum delta_state {
- 	DELTA_STATE_WF_FORMAT,
- 	DELTA_STATE_WF_STREAMINFO,
- 	DELTA_STATE_READY,
-+	DELTA_STATE_WF_EOS,
-+	DELTA_STATE_EOS
- };
- 
- /*
-@@ -237,6 +245,7 @@ struct delta_ipc_param {
-  * @get_frame:		get the next decoded frame available, see below
-  * @recycle:		recycle the given frame, see below
-  * @flush:		(optional) flush decoder, see below
-+ * @drain:		(optional) drain decoder, see below
-  */
- struct delta_dec {
- 	const char *name;
-@@ -371,6 +380,18 @@ struct delta_dec {
- 	 * decoding logic.
- 	 */
- 	void (*flush)(struct delta_ctx *ctx);
-+
-+	/*
-+	 * drain() - drain decoder
-+	 * @ctx:	(in) instance
-+	 *
-+	 * Optional.
-+	 * Mark decoder pending frames (decoded but not yet output) as ready
-+	 * so that they can be output to client at EOS (End Of Stream).
-+	 * get_frame() is to be called in a loop right after drain() to
-+	 * get all those pending frames.
-+	 */
-+	void (*drain)(struct delta_ctx *ctx);
- };
- 
- struct delta_dev;
-@@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
- 		return "P";
- 	if (flags & V4L2_BUF_FLAG_BFRAME)
- 		return "B";
-+	if (flags & V4L2_BUF_FLAG_LAST)
-+		return "EOS";
- 	return "?";
- }
- 
--- 
-1.9.1
-
+> Maybe it would be better to expand the comment a little bit,
+> using your commit log:
+>
+> ""
+> The "proper" way to
+> handle this would be to poll STK1160_AC97CTL_0 after
+> every read or write command until the command bit
+> has been cleared, but this may not be worth the hassle.
+> ""
+>
+> This way, if the sleep proves problematic in the future,
+> the "proper way" is already documented.
+>
+>>         /* Retrieve register value */
+>>         stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
+>>         stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
+>> --
+>> 2.10.1
+>>
+>
+>
+>
+> --
+> Ezequiel Garc=C3=ADa, VanguardiaSur
+> www.vanguardiasur.com.ar
