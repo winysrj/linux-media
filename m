@@ -1,150 +1,339 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:33804 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751749AbcKOUKz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 15:10:55 -0500
+Received: from mail-io0-f193.google.com ([209.85.223.193]:33592 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751099AbcKZNim (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 26 Nov 2016 08:38:42 -0500
+Received: by mail-io0-f193.google.com with SMTP id j92so14269309ioi.0
+        for <linux-media@vger.kernel.org>; Sat, 26 Nov 2016 05:38:41 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4350940.43ZWQivOUU@avalon>
-References: <1475598210-26857-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1488637.i0jADhlNmg@avalon> <CAL_JsqL_41VGf8ZFEzQyqPU_EeK=Ms+jdt_N9cvRyLFkXF2MTg@mail.gmail.com>
- <4350940.43ZWQivOUU@avalon>
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 15 Nov 2016 14:10:29 -0600
-Message-ID: <CAL_Jsq+GZC6HwdnRm7QmyUN5GAbuvYo94ykgS3qkN2qWvAh1ag@mail.gmail.com>
-Subject: Re: [PATCH 1/2] devicetree/bindings: display: Add bindings for LVDS panels
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        dri-devel <dri-devel@lists.freedesktop.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "open list:MEDIA DRIVERS FOR RENESAS - FCP"
-        <linux-renesas-soc@vger.kernel.org>,
-        Tomi Valkeinen <tomi.valkeinen@ti.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <CAAEAJfDe256zcu+=CCSAZNWPEEH3Hd_Vp-VakQfgbF1yra0BPQ@mail.gmail.com>
+References: <cover.1477592284.git.mahasler@gmail.com> <20161027203434.GA31859@arch-desktop>
+ <CAAEAJfDe256zcu+=CCSAZNWPEEH3Hd_Vp-VakQfgbF1yra0BPQ@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sat, 26 Nov 2016 14:38:00 +0100
+Message-ID: <CAOJOY2MnWdBfXYeKyi_-yTZuTCohtT25T284Lk-JGE5Qe24HOQ@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] stk1160: Remove stk1160-mixer and setup internal
+ AC97 codec automatically.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 14, 2016 at 8:11 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Rob,
+Hello, and thanks for your feedback.
+
+2016-11-20 18:36 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
+> Marcel,
 >
-> On Monday 14 Nov 2016 19:40:26 Rob Herring wrote:
->> On Mon, Oct 17, 2016 at 7:42 AM, Laurent Pinchart wrote:
->> > On Friday 14 Oct 2016 07:40:14 Rob Herring wrote:
->> >> On Sun, Oct 9, 2016 at 11:33 AM, Laurent Pinchart wrote:
->> >>> On Saturday 08 Oct 2016 20:29:39 Rob Herring wrote:
->> >>>> On Tue, Oct 04, 2016 at 07:23:29PM +0300, Laurent Pinchart wrote:
->> >>>>> LVDS is a physical layer specification defined in ANSI/TIA/EIA-644-A.
->> >>>>> Multiple incompatible data link layers have been used over time to
->> >>>>> transmit image data to LVDS panels. This binding supports display
->> >>>>> panels compatible with the JEIDA-59-1999, Open-LDI and VESA SWPG
->> >>>>> specifications.
-
-[...]
-
->> >>> Furthermore, LVDS data organization is controlled by the combination of
->> >>> both data-mapping and data-mirror. It makes little sense from my point
->> >>> of view to handle one as part of the compatible string and the other one
->> >>> as a separate property.
->> >>>
->> >>>> > +Optional properties:
->> >>>> > +- label: a symbolic name for the panel
->> >>>>
->> >>>> Could be for any panel or display connector.
->> >>>
->> >>> Yes, but I'm not sure to understand how that's relevant :-)
->> >>
->> >> Meaning it should be a common property.
->> >
->> > Sure. So you expect me to reorganize all the panels and connectors DT
->> > bindings in order to get this one merged ? :-)
+> On 27 October 2016 at 17:34, Marcel Hasler <mahasler@gmail.com> wrote:
+>> Exposing all the channels of the device's internal AC97 codec to userspa=
+ce is unnecessary and
+>> confusing. Instead the driver should setup the codec with proper values.=
+ This patch removes the
+>> mixer and sets up the codec using optimal values, i.e. the same values s=
+et by the Windows
+>> driver. This also makes the device work out-of-the-box, without the need=
+ for the user to
+>> reconfigure the device every time it's plugged in.
 >>
->> No, because I don't think label is widely defined. Just put it in a
->> common place and reference it. Any other panels can be fixed later.
->> Really, the "simple panel" binding should probably morph into the
->> common binding.
+>> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
 >
-> The "label" property is actually defined in the "Devicetree Specification,
-
-Yes, so is reg, interrupts, etc. but we still list when those are used.
-
-> Release 0.1" as recently published on devicetree.org. Where would you like me
-> to define it in the bindings ?
-
-Just split things into 2 files. Move everything that's used in other
-panel bindings (label, width-mm, ports, etc.) to a panel/common.txt.
-Then in lvds-panel.txt, it just refers to common.txt and is just the
-LVDS specific things. Bonus points if simple-panel (should just go
-away), panel-dpi, panel-dsi-cm are converted.
-
->> >>>>> +- avdd-supply: reference to the regulator that powers the panel
->> >>>>> analog supply
->> >>>>> +- dvdd-supply: reference to the regulator that powers the panel
->> >>>>> digital supply
-
-I would not be against these being common either. It's somewhat better
-than simple-panel's "power-supply" property.
-
->> >>>>
->> >>>> Which one has to be powered on first, what voltage, and with what time
->> >>>> in between? This is why "generic" or "simple" bindings don't work.
->> >>>
->> >>> The above-mentioned specifications also define connectors, pinouts and
->> >>> power supplies, but many LVDS panels compatible with the LVDS physical
->> >>> and data layers use a different connector with small differences in
->> >>> power supplies.
->> >>>
->> >>> I believe the voltage is irrelevant here, it doesn't need to be
->> >>> controlled by the operating system. Power supplies order and timing is
->> >>> relevant, I'll investigate the level of differences between panels. I'm
->> >>> also fine with dropping those properties for now.
->> >>
->> >> Whether you have control of the supplies is dependent on the board.
->> >> Dropping them is just puts us in the simple binding trap. The simple
->> >> bindings start out that way and then people keep adding to them.
->> >
->> > Damn, you can't be fooled easily ;-)
->>
->> I guess you can count all the simple bindings to see how many times I
->> can be fooled. :)
->>
->> > On a more serious note, I'd like to design the bindings in a way that
->> > wouldn't require adding device-specific code in the driver for each panel
->> > model, given that in most cases power supply handling will be generic.
->> > What's your opinion about a generic power supply model that would be used
->> > in the default case, with the option to override it with device-specific
->> > code when needed ?
->>
->> I don't agree. Read Thierry's post on the subject[1].
+> This patch is *awesome*.
 >
-> I'm not sure you understood me correctly (and writing a clarification at
-> 4:00am might not help :-)). My point here is that a fair number of panels
-> don't care about power sequencing and have no control GPIOs (that's certainly
-> the case of the two Mitsubishi panels I use here that have a single power
-> supply - good luck trying to convince me that this needs to be sequenced :-) -
-> and no enable or reset control pin). This kind of panel should obviously be
-> modelled in DT with both a specific and a generic ("panel-lvds") compatible
-> string, to ensure that we'll have enough information available on the
-> operating system side to control the panel properly. The power supply(ies)
-> should be documented in relation to the specific compatible string and not
-> mentioned by the generic bindings (whether that should go in one or multiple
-> text files is bikeshedding).
+> You've re-written the file ;-), so if you want to put your
+> copyright on stk1160-ac97.c, be my guest.
+>
 
-Let me rephrase, I don't agree with generic bindings, but I fully
-support having a generic driver. So you can have a generic driver
-function that can handle your case. Even slightly more complicated can
-be handled: turn on all the supplies listed, de-assert any reset
-gpios, assert any enable gpios (this is why I push for common naming
-of "enable-gpios"). If this is enough for a panel, then the generic
-compatible will work. If not, sorry, provide your own power sequencing
-code and match on the more specific compatible.
+Thanks, will do :-)
 
-> This being said, on the driver side, I don't see a reason to list the specific
-> compatible strings explicitly for those panels when a generic implementation
-> matching the generic compatible string can handle them fine. This has no
-> impact on the bindings and is an Linux implementation decision.
+> Also, just a minor comment, see below.
+>
+>> ---
+>>  drivers/media/usb/stk1160/Kconfig        |  10 +--
+>>  drivers/media/usb/stk1160/Makefile       |   4 +-
+>>  drivers/media/usb/stk1160/stk1160-ac97.c | 121 +++++++++++-------------=
+-------
+>>  drivers/media/usb/stk1160/stk1160-core.c |   5 +-
+>>  drivers/media/usb/stk1160/stk1160.h      |   9 +--
+>>  5 files changed, 47 insertions(+), 102 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/stk1160/Kconfig b/drivers/media/usb/stk11=
+60/Kconfig
+>> index 95584c1..22dff4f 100644
+>> --- a/drivers/media/usb/stk1160/Kconfig
+>> +++ b/drivers/media/usb/stk1160/Kconfig
+>> @@ -8,17 +8,9 @@ config VIDEO_STK1160_COMMON
+>>           To compile this driver as a module, choose M here: the
+>>           module will be called stk1160
+>>
+>> -config VIDEO_STK1160_AC97
+>> -       bool "STK1160 AC97 codec support"
+>> -       depends on VIDEO_STK1160_COMMON && SND
+>> -
+>> -       ---help---
+>> -         Enables AC97 codec support for stk1160 driver.
+>> -
+>>  config VIDEO_STK1160
+>>         tristate
+>> -       depends on (!VIDEO_STK1160_AC97 || (SND=3D'n') || SND) && VIDEO_=
+STK1160_COMMON
+>> +       depends on VIDEO_STK1160_COMMON
+>>         default y
+>>         select VIDEOBUF2_VMALLOC
+>>         select VIDEO_SAA711X
+>> -       select SND_AC97_CODEC if SND
+>> diff --git a/drivers/media/usb/stk1160/Makefile b/drivers/media/usb/stk1=
+160/Makefile
+>> index dfe3e90..42d0546 100644
+>> --- a/drivers/media/usb/stk1160/Makefile
+>> +++ b/drivers/media/usb/stk1160/Makefile
+>> @@ -1,10 +1,8 @@
+>> -obj-stk1160-ac97-$(CONFIG_VIDEO_STK1160_AC97) :=3D stk1160-ac97.o
+>> -
+>>  stk1160-y :=3D   stk1160-core.o \
+>>                 stk1160-v4l.o \
+>>                 stk1160-video.o \
+>>                 stk1160-i2c.o \
+>> -               $(obj-stk1160-ac97-y)
+>> +               stk1160-ac97.o
+>>
+>>  obj-$(CONFIG_VIDEO_STK1160) +=3D stk1160.o
+>>
+>> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
+b/stk1160/stk1160-ac97.c
+>> index 2dd308f..d3665ce 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+>> @@ -21,19 +21,12 @@
+>>   */
+>>
+>>  #include <linux/module.h>
+>> -#include <sound/core.h>
+>> -#include <sound/initval.h>
+>> -#include <sound/ac97_codec.h>
+>>
+>>  #include "stk1160.h"
+>>  #include "stk1160-reg.h"
+>>
+>> -static struct snd_ac97 *stk1160_ac97;
+>> -
+>> -static void stk1160_write_ac97(struct snd_ac97 *ac97, u16 reg, u16 valu=
+e)
+>> +static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
+>>  {
+>> -       struct stk1160 *dev =3D ac97->private_data;
+>> -
+>>         /* Set codec register address */
+>>         stk1160_write_reg(dev, STK1160_AC97_ADDR, reg);
+>>
+>> @@ -48,9 +41,9 @@ static void stk1160_write_ac97(struct snd_ac97 *ac97, =
+u16 reg, u16 value)
+>>         stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
+>>  }
+>>
+>> -static u16 stk1160_read_ac97(struct snd_ac97 *ac97, u16 reg)
+>> +#ifdef DEBUG
+>> +static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
+>>  {
+>> -       struct stk1160 *dev =3D ac97->private_data;
+>>         u8 vall =3D 0;
+>>         u8 valh =3D 0;
+>>
+>> @@ -70,81 +63,53 @@ static u16 stk1160_read_ac97(struct snd_ac97 *ac97, =
+u16 reg)
+>>         return (valh << 8) | vall;
+>>  }
+>>
+>> -static void stk1160_reset_ac97(struct snd_ac97 *ac97)
+>> +void stk1160_ac97_dump_regs(struct stk1160 *dev)
+>
+> static void stk1160_ac97_dump_regs ?
+>
 
-I think we're in agreement.
+Right, this was just to test the issue addressed in the last patch
+that I submitted separately. I didn't know at that point, whether the
+issue was with writing or reading the registers, or both. This can of
+course be removed, since it's not really needed for anything anymore.
 
-Rob
+>>  {
+>> -       struct stk1160 *dev =3D ac97->private_data;
+>> -       /* Two-step reset AC97 interface and hardware codec */
+>> -       stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
+>> -       stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x88);
+>> +       u16 value;
+>>
+>> -       /* Set 16-bit audio data and choose L&R channel*/
+>> -       stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
+>> -}
+>> +       value =3D stk1160_read_ac97(dev, 0x12); /* CD volume */
+>> +       stk1160_dbg("0x12 =3D=3D 0x%04x", value);
+>>
+>> -static struct snd_ac97_bus_ops stk1160_ac97_ops =3D {
+>> -       .read   =3D stk1160_read_ac97,
+>> -       .write  =3D stk1160_write_ac97,
+>> -       .reset  =3D stk1160_reset_ac97,
+>> -};
+>> +       value =3D stk1160_read_ac97(dev, 0x10); /* Line-in volume */
+>> +       stk1160_dbg("0x10 =3D=3D 0x%04x", value);
+>>
+>> -int stk1160_ac97_register(struct stk1160 *dev)
+>> -{
+>> -       struct snd_card *card =3D NULL;
+>> -       struct snd_ac97_bus *ac97_bus;
+>> -       struct snd_ac97_template ac97_template;
+>> -       int rc;
+>> +       value =3D stk1160_read_ac97(dev, 0x0e); /* MIC volume (mono) */
+>> +       stk1160_dbg("0x0e =3D=3D 0x%04x", value);
+>>
+>> -       /*
+>> -        * Just want a card to access ac96 controls,
+>> -        * the actual capture interface will be handled by snd-usb-audio
+>> -        */
+>> -       rc =3D snd_card_new(dev->dev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_=
+STR1,
+>> -                         THIS_MODULE, 0, &card);
+>> -       if (rc < 0)
+>> -               return rc;
+>> -
+>> -       /* TODO: I'm not sure where should I get these names :-( */
+>> -       snprintf(card->shortname, sizeof(card->shortname),
+>> -                "stk1160-mixer");
+>> -       snprintf(card->longname, sizeof(card->longname),
+>> -                "stk1160 ac97 codec mixer control");
+>> -       strlcpy(card->driver, dev->dev->driver->name, sizeof(card->drive=
+r));
+>> -
+>> -       rc =3D snd_ac97_bus(card, 0, &stk1160_ac97_ops, NULL, &ac97_bus)=
+;
+>> -       if (rc)
+>> -               goto err;
+>> -
+>> -       /* We must set private_data before calling snd_ac97_mixer */
+>> -       memset(&ac97_template, 0, sizeof(ac97_template));
+>> -       ac97_template.private_data =3D dev;
+>> -       ac97_template.scaps =3D AC97_SCAP_SKIP_MODEM;
+>> -       rc =3D snd_ac97_mixer(ac97_bus, &ac97_template, &stk1160_ac97);
+>> -       if (rc)
+>> -               goto err;
+>> -
+>> -       dev->snd_card =3D card;
+>> -       rc =3D snd_card_register(card);
+>> -       if (rc)
+>> -               goto err;
+>> -
+>> -       return 0;
+>> -
+>> -err:
+>> -       dev->snd_card =3D NULL;
+>> -       snd_card_free(card);
+>> -       return rc;
+>> +       value =3D stk1160_read_ac97(dev, 0x16); /* Aux volume */
+>> +       stk1160_dbg("0x16 =3D=3D 0x%04x", value);
+>> +
+>> +       value =3D stk1160_read_ac97(dev, 0x1a); /* Record select */
+>> +       stk1160_dbg("0x1a =3D=3D 0x%04x", value);
+>> +
+>> +       value =3D stk1160_read_ac97(dev, 0x02); /* Master volume */
+>> +       stk1160_dbg("0x02 =3D=3D 0x%04x", value);
+>> +
+>> +       value =3D stk1160_read_ac97(dev, 0x1c); /* Record gain */
+>> +       stk1160_dbg("0x1c =3D=3D 0x%04x", value);
+>>  }
+>> +#endif
+>>
+>> -int stk1160_ac97_unregister(struct stk1160 *dev)
+>> +void stk1160_ac97_setup(struct stk1160 *dev)
+>>  {
+>> -       struct snd_card *card =3D dev->snd_card;
+>> -
+>> -       /*
+>> -        * We need to check usb_device,
+>> -        * because ac97 release attempts to communicate with codec
+>> -        */
+>> -       if (card && dev->udev)
+>> -               snd_card_free(card);
+>> +       /* Two-step reset AC97 interface and hardware codec */
+>> +       stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x94);
+>> +       stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
+>>
+>> -       return 0;
+>> +       /* Set 16-bit audio data and choose L&R channel*/
+>> +       stk1160_write_reg(dev, STK1160_AC97CTL_1 + 2, 0x01);
+>> +       stk1160_write_reg(dev, STK1160_AC97CTL_1 + 3, 0x00);
+>> +
+>> +       /* Setup channels */
+>> +       stk1160_write_ac97(dev, 0x12, 0x8808); /* CD volume */
+>> +       stk1160_write_ac97(dev, 0x10, 0x0808); /* Line-in volume */
+>> +       stk1160_write_ac97(dev, 0x0e, 0x0008); /* MIC volume (mono) */
+>> +       stk1160_write_ac97(dev, 0x16, 0x0808); /* Aux volume */
+>> +       stk1160_write_ac97(dev, 0x1a, 0x0404); /* Record select */
+>> +       stk1160_write_ac97(dev, 0x02, 0x0000); /* Master volume */
+>> +       stk1160_write_ac97(dev, 0x1c, 0x0808); /* Record gain */
+>> +
+>> +#ifdef DEBUG
+>> +       stk1160_ac97_dump_regs(dev);
+>> +#endif
+>>  }
+>> diff --git a/drivers/media/usb/stk1160/stk1160-core.c b/drivers/media/us=
+b/stk1160/stk1160-core.c
+>> index bc02947..f3c9b8a 100644
+>> --- a/drivers/media/usb/stk1160/stk1160-core.c
+>> +++ b/drivers/media/usb/stk1160/stk1160-core.c
+>> @@ -373,7 +373,7 @@ static int stk1160_probe(struct usb_interface *inter=
+face,
+>>         /* select default input */
+>>         stk1160_select_input(dev);
+>>
+>> -       stk1160_ac97_register(dev);
+>> +       stk1160_ac97_setup(dev);
+>>
+>>         rc =3D stk1160_video_register(dev);
+>>         if (rc < 0)
+>> @@ -411,9 +411,6 @@ static void stk1160_disconnect(struct usb_interface =
+*interface)
+>>         /* Here is the only place where isoc get released */
+>>         stk1160_uninit_isoc(dev);
+>>
+>> -       /* ac97 unregister needs to be done before usb_device is cleared=
+ */
+>> -       stk1160_ac97_unregister(dev);
+>> -
+>>         stk1160_clear_queue(dev);
+>>
+>>         video_unregister_device(&dev->vdev);
+>> diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk=
+1160/stk1160.h
+>> index 1ed1cc4..e85e12e 100644
+>> --- a/drivers/media/usb/stk1160/stk1160.h
+>> +++ b/drivers/media/usb/stk1160/stk1160.h
+>> @@ -197,11 +197,4 @@ int stk1160_read_reg_req_len(struct stk1160 *dev, u=
+8 req, u16 reg,
+>>  void stk1160_select_input(struct stk1160 *dev);
+>>
+>>  /* Provided by stk1160-ac97.c */
+>> -#ifdef CONFIG_VIDEO_STK1160_AC97
+>> -int stk1160_ac97_register(struct stk1160 *dev);
+>> -int stk1160_ac97_unregister(struct stk1160 *dev);
+>> -#else
+>> -static inline int stk1160_ac97_register(struct stk1160 *dev) { return 0=
+; }
+>> -static inline int stk1160_ac97_unregister(struct stk1160 *dev) { return=
+ 0; }
+>> -#endif
+>> -
+>> +void stk1160_ac97_setup(struct stk1160 *dev);
+>> --
+>> 2.10.1
+>>
+>
+>
+>
+> --
+> Ezequiel Garc=C3=ADa, VanguardiaSur
+> www.vanguardiasur.com.ar
+
+Marcel
