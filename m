@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:46889 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750898AbcKCKLG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 06:11:06 -0400
-Date: Thu, 03 Nov 2016 19:10:48 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Jacek Anaszewski <j.anaszewski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 5/6] Documentation: bindings: add documentation for
- ir-spi device driver
-Message-id: <20161103101048.ofyoko4mkcypf44u@gangnam.samsung>
-References: <20161102104010.26959-1-andi.shyti@samsung.com>
- <CGME20161102104149epcas5p4da68197e232df7ad922f2f9cb0714a43@epcas5p4.samsung.com>
- <20161102104010.26959-6-andi.shyti@samsung.com>
- <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <70f4426b-e2e6-1fb7-187a-65ed4bce0668@samsung.com>
+Received: from gofer.mess.org ([80.229.237.210]:44107 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752406AbcK0TfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 27 Nov 2016 14:35:12 -0500
+Date: Sun, 27 Nov 2016 19:35:10 +0000
+From: Sean Young <sean@mess.org>
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: ir-keytable: infinite loops, segfaults
+Message-ID: <20161127193510.GA20548@gofer.mess.org>
+References: <20161118174034.GA6167@gofer.mess.org>
+ <20161118220107.GA3510@shambles.local>
+ <20161120132948.GA23247@gofer.mess.org>
+ <CAEsFdVNAGexZJSQb6dABq1uXs3wLP+kKsKw-XEUXd4nb_3yf=A@mail.gmail.com>
+ <20161122092043.GA8630@gofer.mess.org>
+ <20161123123851.GB14257@shambles.local>
+ <20161123223419.GA25515@gofer.mess.org>
+ <20161124121253.GA17639@shambles.local>
+ <20161124133459.GA32385@gofer.mess.org>
+ <CAEsFdVPbKm1cDmAynL+-PFC=hQ=+-gAcJ04ykXVM6Y6bappcUA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAEsFdVPbKm1cDmAynL+-PFC=hQ=+-gAcJ04ykXVM6Y6bappcUA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacek,
+On Fri, Nov 25, 2016 at 07:59:21PM +1100, Vincent McIntyre wrote:
+> On 11/25/16, Sean Young <sean@mess.org> wrote:
+> >
+> > So if I understand you correctly, if you change the keymap, like you
+> > changed 0xfe47 to KEY_PAUSE, then "ir-keytable -s rc1 -t" show you the
+> > correct (new) key? So as far as ir-keytable is concerned, everything
+> > works?
+> >
+> > However when you try to use the new mapping in some application then
+> > it does not work?
+> 
+> That's correct. ir-keytable seems to be doing the right thing, mapping
+> the scancode to the input-event-codes.h key code I asked it to.
 
-> Only DT bindings of LED class drivers should be placed in
-> Documentation/devicetree/bindings/leds. Please move it to the
-> media bindings.
+ir-keytable reads from the input layer, so that's the key being sent. The
+problem is elsewhere.
 
-that's where I placed it first, but Rob asked me to put it in the
-LED directory and Cc the LED mailining list.
+> The application I am trying to use it with is the mythtv frontend.  I
+> am doing the keycode munging from an SSH session while myth is still
+> running on the main screen. I didn't think this would matter (since it
+> worked for KEY_OK->KEY_ENTER) but perhaps it does. Obviously
+> ir-keytable -t intercepts the scancodes when it is running, but when I
+> kill it myth responds normally to some keys, but not all.
 
-That's the discussion of the version 2:
+X and keycodes is a bit messy. You might need xmodmap mappings. You
+can check them xev. I don't know much about this, I'm afraid. What
+linux distribution, version and keyboard layout are you using? I could
+try and see if I can reproduce/fix this.
+ 
+> I wanted to mention that the IR protocol is still showing as unknown.
+> Is there anything that can be done to sort that out?
 
-https://lkml.org/lkml/2016/9/12/380
+It would be nice if that could be sorted out, although that would be 
+a separate patch.
 
-Rob, Jacek, could you please agree where I can put the binding?
+So all we know right now is what scancode the IR receiver hardware
+produces but we have no idea what IR protocol is being used. In order to
+figure this out we need a recording of the IR the remote sends, for which
+a different IR receiver is needed. Neither your imon nor your 
+dvb_usb_af9035 can do this, something like a mce usb IR receiver would
+be best. Do you have access to one? One with an IR emitter would be
+best.
 
-Thanks,
-Andi
+So with that we can have a recording of the IR the remote sends, and
+with the emitter we can see which IR protocols the IR receiver 
+understands.
+
+
+Sean
