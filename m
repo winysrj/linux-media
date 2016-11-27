@@ -1,126 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:46994 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750861AbcKCEjm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 3 Nov 2016 00:39:42 -0400
-Message-ID: <2719f0969f8230e62214e6ef22ebf14a@smtp-cloud6.xs4all.net>
-Date: Thu, 03 Nov 2016 05:39:38 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Haggai Eran <haggaie@mellanox.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+References: <20161123190515.GA12146@obsidianresearch.com>
+ <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+ <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+CC: Logan Gunthorpe <logang@deltatee.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Max Gurtovoy <maxg@mellanox.com>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>
+Message-ID: <0087fba9-7bcb-8bb3-c26e-4ef3e4970c34@amd.com>
+Date: Sun, 27 Nov 2016 15:07:22 +0100
+MIME-Version: 1.0
+In-Reply-To: <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Am 27.11.2016 um 15:02 schrieb Haggai Eran:
+> On 11/25/2016 9:32 PM, Jason Gunthorpe wrote:
+>> On Fri, Nov 25, 2016 at 02:22:17PM +0100, Christian König wrote:
+>>
+>>>> Like you say below we have to handle short lived in the usual way, and
+>>>> that covers basically every device except IB MRs, including the
+>>>> command queue on a NVMe drive.
+>>> Well a problem which wasn't mentioned so far is that while GPUs do have a
+>>> page table to mirror the CPU page table, they usually can't recover from
+>>> page faults.
+>>> So what we do is making sure that all memory accessed by the GPU Jobs stays
+>>> in place while those jobs run (pretty much the same pinning you do for the
+>>> DMA).
+>> Yes, it is DMA, so this is a valid approach.
+>>
+>> But, you don't need page faults from the GPU to do proper coherent
+>> page table mirroring. Basically when the driver submits the work to
+>> the GPU it 'faults' the pages into the CPU and mirror translation
+>> table (instead of pinning).
+>>
+>> Like in ODP, MMU notifiers/HMM are used to monitor for translation
+>> changes. If a change comes in the GPU driver checks if an executing
+>> command is touching those pages and blocks the MMU notifier until the
+>> command flushes, then unfaults the page (blocking future commands) and
+>> unblocks the mmu notifier.
+> I think blocking mmu notifiers against something that is basically
+> controlled by user-space can be problematic. This can block things like
+> memory reclaim. If you have user-space access to the device's queues,
+> user-space can block the mmu notifier forever.
+Really good point.
 
-Results of the daily build of media_tree:
+I think this means the bare minimum if we don't have recoverable page 
+faults is to have preemption support like Felix described in his answer 
+as well.
 
-date:			Thu Nov  3 05:00:14 CET 2016
-media-tree git hash:	bd676c0c04ec94bd830b9192e2c33f2c4532278d
-media_build git hash:	dac8db4dd7fa3cc87715cb19ace554e080690b39
-v4l-utils git hash:	7bcf9c69b0fe38fbff8c8e5798b3fb31c34ee1c7
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.7.0-164
+Going to keep that in mind,
+Christian.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: WARNINGS
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: WARNINGS
-linux-4.9-rc1-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-ABI WARNING: change for arm-davinci
-ABI WARNING: change for arm-multi
-ABI WARNING: change for blackfin-bf561
-ABI WARNING: change for mips
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
