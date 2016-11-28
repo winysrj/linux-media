@@ -1,74 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55769
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753157AbcKRMws (ORCPT
+Received: from fllnx209.ext.ti.com ([198.47.19.16]:50527 "EHLO
+        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932857AbcK1Qvm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 18 Nov 2016 07:52:48 -0500
-Date: Fri, 18 Nov 2016 10:52:40 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Mon, 28 Nov 2016 11:51:42 -0500
+Date: Mon, 28 Nov 2016 10:51:37 -0600
+From: Benoit Parrot <bparrot@ti.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Nikhil Devshatwar <nikhil.nd@ti.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org,
-        Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [PATCH 14/18] [media] RedRat3: Rename a jump label in
- redrat3_init_rc_dev()
-Message-ID: <20161118105240.6d23990e@vento.lan>
-In-Reply-To: <172b54fe-559b-44a4-9902-96abece75a7f@users.sourceforge.net>
-References: <566ABCD9.1060404@users.sourceforge.net>
-        <81cef537-4ad0-3a74-8bde-94707dcd03f4@users.sourceforge.net>
-        <172b54fe-559b-44a4-9902-96abece75a7f@users.sourceforge.net>
+        <linux-media@vger.kernel.org>, <kernel-janitors@vger.kernel.org>
+Subject: Re: [patch] [media] media: ti-vpe: vpdma: fix a timeout loop
+Message-ID: <20161128165137.GE5954@ti.com>
+References: <20161125201957.GA30161@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20161125201957.GA30161@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 13 Oct 2016 18:42:16 +0200
-SF Markus Elfring <elfring@users.sourceforge.net> escreveu:
+Dan,
 
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Thu, 13 Oct 2016 15:00:12 +0200
+Thanks for the patch.
+
+Acked-by: Benoit Parrot <bparrot@ti.com>
+
+Dan Carpenter <dan.carpenter@oracle.com> wrote on Sat [2016-Nov-26 00:28:34 +0300]:
+> The check assumes that we end on zero but actually we end on -1.  Change
+> the post-op to a pre-op so that we do end on zero.  Techinically now we
+> only loop 499 times instead of 500 but that's fine.
 > 
-> Adjust a jump label according to the Linux coding style convention.
+> Fixes: dc12b124353b ("[media] media: ti-vpe: vpdma: Add abort channel desc and cleanup APIs")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 > 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/rc/redrat3.c | 5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-> index 74d93dd..055f214 100644
-> --- a/drivers/media/rc/redrat3.c
-> +++ b/drivers/media/rc/redrat3.c
-> @@ -890,12 +890,11 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
->  	ret = rc_register_device(rc);
->  	if (ret < 0) {
->  		dev_err(rr3->dev, "remote dev registration failed\n");
-> -		goto out;
-> +		goto free_device;
->  	}
+> diff --git a/drivers/media/platform/ti-vpe/vpdma.c b/drivers/media/platform/ti-vpe/vpdma.c
+> index 13bfd71..23472e3 100644
+> --- a/drivers/media/platform/ti-vpe/vpdma.c
+> +++ b/drivers/media/platform/ti-vpe/vpdma.c
+> @@ -453,7 +453,7 @@ int vpdma_list_cleanup(struct vpdma_data *vpdma, int list_num,
+>  	if (ret)
+>  		return ret;
 >  
->  	return rc;
-> -
-> -out:
-> +free_device:
->  	rc_free_device(rc);
->  	return NULL;
->  }
-
-I don't see *any* sense on patches like this. Please don't flood me with
-useless patches like that.
-
-I'll silently ignore any patches like this during my review.
-
-Regards,
-Mauro
-
-
-
-Thanks,
-Mauro
+> -	while (vpdma_list_busy(vpdma, list_num) && timeout--)
+> +	while (vpdma_list_busy(vpdma, list_num) && --timeout)
+>  		;
+>  
+>  	if (timeout == 0) {
