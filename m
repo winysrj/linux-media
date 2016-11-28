@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37638 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755180AbcKOA1Z (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 19:27:25 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: [PATCH] ARM: shmobile: dts: Switch to panel-lvds bindings for Mitsubishi panels
-Date: Tue, 15 Nov 2016 02:27:29 +0200
-Message-Id: <1479169649-11315-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Date: Mon, 28 Nov 2016 15:24:52 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>,
+        Haggai Eran <haggaie@mellanox.com>,
+        Christian K??nig <christian.koenig@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Max Gurtovoy <maxg@mellanox.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161128222452.GA744@obsidianresearch.com>
+References: <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+ <20161128165751.GB28381@obsidianresearch.com>
+ <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
+ <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610@amd.com>
+ <c8c25265-9f59-f3d6-6249-07500e73930e@deltatee.com>
+ <1ac2f9e7-f1ee-a2c9-0134-ffaa28c706af@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1ac2f9e7-f1ee-a2c9-0134-ffaa28c706af@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The aa104xd12 and aa121td01 panels are LVDS panels, not DPI panels.
-Use the correct DT bindings.
+On Mon, Nov 28, 2016 at 04:55:23PM -0500, Serguei Sagalovitch wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- arch/arm/boot/dts/r8a77xx-aa104xd12-panel.dtsi | 3 ++-
- arch/arm/boot/dts/r8a77xx-aa121td01-panel.dtsi | 3 ++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+> >We haven't touch this in a long time and perhaps it changed, but there
+> >definitely was a call back in the PeerDirect API to allow the GPU to
+> >invalidate the mapping. That's what we don't want.
 
-Hello,
+> I assume that you are talking about "invalidate_peer_memory()' callback?
+> I was told that it is the "last resort" because HCA (and driver) is not
+> able to handle  it in the safe manner so it is basically "abort" everything.
 
-This patch is an example of how the panel-lvds bindings should be used for
-display panels. It isn't meant to be merged upstream at the moment as the
-bindings haven't been accepted yet but can already be used as both an example
-and a test base for LVDS mode selection.
+If it is a last resort to save system stability then kill the impacted
+process, that will release the MRs.
 
-diff --git a/arch/arm/boot/dts/r8a77xx-aa104xd12-panel.dtsi b/arch/arm/boot/dts/r8a77xx-aa104xd12-panel.dtsi
-index 65cb50f0c29f..238d14bb0ebe 100644
---- a/arch/arm/boot/dts/r8a77xx-aa104xd12-panel.dtsi
-+++ b/arch/arm/boot/dts/r8a77xx-aa104xd12-panel.dtsi
-@@ -10,10 +10,11 @@
- 
- / {
- 	panel {
--		compatible = "mitsubishi,aa104xd12", "panel-dpi";
-+		compatible = "mitsubishi,aa104xd12", "panel-lvds";
- 
- 		width-mm = <210>;
- 		height-mm = <158>;
-+		data-mapping = "jeida-18";
- 
- 		panel-timing {
- 			/* 1024x768 @65Hz */
-diff --git a/arch/arm/boot/dts/r8a77xx-aa121td01-panel.dtsi b/arch/arm/boot/dts/r8a77xx-aa121td01-panel.dtsi
-index a07ebf8f6938..04aafd479775 100644
---- a/arch/arm/boot/dts/r8a77xx-aa121td01-panel.dtsi
-+++ b/arch/arm/boot/dts/r8a77xx-aa121td01-panel.dtsi
-@@ -10,10 +10,11 @@
- 
- / {
- 	panel {
--		compatible = "mitsubishi,aa121td01", "panel-dpi";
-+		compatible = "mitsubishi,aa121td01", "panel-lvds";
- 
- 		width-mm = <261>;
- 		height-mm = <163>;
-+		data-mapping = "jeida-18";
- 
- 		panel-timing {
- 			/* 1280x800 @60Hz */
--- 
-Regards,
-
-Laurent Pinchart
-
+Jason
