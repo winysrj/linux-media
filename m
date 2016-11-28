@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:60994
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752505AbcKNNa4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 08:30:56 -0500
-Date: Mon, 14 Nov 2016 11:30:50 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        Jani Nikula <jani.nikula@intel.com>, linux-doc@vger.kernel.org,
-        ksummit-discuss@lists.linuxfoundation.org
-Subject: Re: Including images on Sphinx documents
-Message-ID: <20161114113050.26198f19@vento.lan>
-In-Reply-To: <20161113125250.779df4dd@lwn.net>
-References: <20161107075524.49d83697@vento.lan>
-        <20161113125250.779df4dd@lwn.net>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Logan Gunthorpe <logang@deltatee.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Haggai Eran <haggaie@mellanox.com>
+References: <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+ <20161128165751.GB28381@obsidianresearch.com>
+ <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
+CC: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Max Gurtovoy <maxg@mellanox.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610@amd.com>
+Date: Mon, 28 Nov 2016 14:35:08 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 13 Nov 2016 12:52:50 -0700
-Jonathan Corbet <corbet@lwn.net> escreveu:
+On 2016-11-28 01:20 PM, Logan Gunthorpe wrote:
+>
+> On 28/11/16 09:57 AM, Jason Gunthorpe wrote:
+>>> On PeerDirect, we have some kind of a middle-ground solution for pinning
+>>> GPU memory. We create a non-ODP MR pointing to VRAM but rely on
+>>> user-space and the GPU not to migrate it. If they do, the MR gets
+>>> destroyed immediately.
+>> That sounds horrible. How can that possibly work? What if the MR is
+>> being used when the GPU decides to migrate? I would not support that
+>> upstream without a lot more explanation..
+> Yup, this was our experience when playing around with PeerDirect. There
+> was nothing we could do if the GPU decided to invalidate the P2P
+> mapping.
+As soon as PeerDirect mapping is called then GPU must not "move" the
+such memory.  It is by PeerDirect design. It is similar how it is works
+with system memory and RDMA MR: when "get_user_pages" is called then the
+memory is pinned.
 
-> On Mon, 7 Nov 2016 07:55:24 -0200
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> 
-> > So, we have a few alternatives:
-> > 
-> > 1) copy (or symlink) all rst files to Documentation/output (or to the
-> >    build dir specified via O= directive) and generate the *.pdf there,
-> >    and produce those converted images via Makefile.;
-> > 
-> > 2) add an Sphinx extension that would internally call ImageMagick and/or
-> >    inkscape to convert the bitmap;
-> > 
-> > 3) if possible, add an extension to trick Sphinx for it to consider the 
-> >    output dir as a source dir too.  
-> 
-> So, obviously, I've been letting this go by while dealing with other
-> stuff...
-> 
-> I really think that 2) is the one we want.  Copying all the stuff and
-> operating on the copies, beyond being a bit of a hack, just seems like a
-> recipe for weird build problems in the future.
-
-Yes, (2) sounds to be the best option.
-
-> We should figure out why PNG files don't work.  Maybe I'll give that a
-> try at some point soon, if I can find a moment.  Working around tools
-> bugs seems like the wrong approach.
-
-I appreciate any efforts on that.
-
-> Working from .svg seems optimial, but I don't like the --shell-escape
-> thing at all.
-> 
-> [Along those lines, we've picked up a lot of lines like this:
-> 
-> 	 restricted \write18 enabled.
-> 
-> That, too, is shell execution stuff.  I've not been able to figure out
-> where it came from, but I would sure like to get rid of it...]
-
-Didn't know that! I'm new to LaTeX. Frankly, the log output sounds
-very scary to me, as there are lots of warnings there, and debugging
-each of them takes time. I don't see any \write18 inside the generated
-.tex files or inside the sphinx.sty file. Perhaps it comes from some
-Tex extension, like adjustbox?
-
-> 
-> jon
-
-
-
-Thanks,
-Mauro
