@@ -1,68 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44089
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S933922AbcKVS1f (ORCPT
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:48501 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751664AbcK1FMg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 13:27:35 -0500
-Date: Tue, 22 Nov 2016 16:27:29 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/1] doc-rst: Specify raw bayer format variant used in
- the examples
-Message-ID: <20161122162729.22e4721a@vento.lan>
-In-Reply-To: <1479246583-18789-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1479246583-18789-1-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mon, 28 Nov 2016 00:12:36 -0500
+Message-ID: <99db8aee86c528f2f4843dadc3f8d4e1@smtp-cloud3.xs4all.net>
+Date: Mon, 28 Nov 2016 06:11:06 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 15 Nov 2016 23:49:43 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> The documentation simply mentioned that one of the four pixel orders was
-> used in the example. Now specify the exact pixelformat instead.
-> 
-> for i in pixfmt-s*.rst; do i=$i perl -i -pe '
-> 	my $foo=$ENV{i};
-> 	$foo =~ s/pixfmt-[a-z]+([0-9].*).rst/$1/;
-> 	$foo = uc $foo;
-> 	s/one of these formats/a small V4L2_PIX_FMT_SBGGR$foo image/' $i;
-> done
+Results of the daily build of media_tree:
 
-Patch is nice, except that it doesn't apply :-)
+date:			Mon Nov 28 05:00:16 CET 2016
+media-tree git hash:	d3d83ee20afda16ad0133ba00f63c11a8d842a35
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	dab9bf5687eddea2f4cb8cdb38b3bbc5b079a037
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-If it depends on some other patch, please send it together with
-its dependency or at least mention it at the patch, after the 
--- line.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc5-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
-Thanks,
-Mauro
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-$ quilt push -f --merge
-Applying patch patches/lmml_38129_1_1_doc_rst_specify_raw_bayer_format_variant_used_in_the_examples.patch
-patching file Documentation/media/uapi/v4l/pixfmt-srggb10p.rst
-patching file Documentation/media/uapi/v4l/pixfmt-srggb12.rst
-can't find file to patch at input line 62
-Perhaps you used the wrong -p or --strip option?
-The text leading up to this was:
---------------------------
-|diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb16.rst b/Documentation/media/uapi/v4l/pixfmt-srggb16.rst
-|index 06facc9..d407b2b 100644
-|--- a/Documentation/media/uapi/v4l/pixfmt-srggb16.rst
-|+++ b/Documentation/media/uapi/v4l/pixfmt-srggb16.rst
---------------------------
-No file to patch.  Skipping patch.
-1 out of 1 hunk ignored
-patching file Documentation/media/uapi/v4l/pixfmt-srggb8.rst
+The Media Infrastructure API from this daily build is here:
 
-
-Regards,
-Mauro
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/index.html
