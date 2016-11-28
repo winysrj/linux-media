@@ -1,86 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:34659 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752415AbcKOO1a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 15 Nov 2016 09:27:30 -0500
+Date: Mon, 28 Nov 2016 09:57:51 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Haggai Eran <haggaie@mellanox.com>
+Cc: Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Max Gurtovoy <maxg@mellanox.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161128165751.GB28381@obsidianresearch.com>
+References: <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
 MIME-Version: 1.0
-In-Reply-To: <1478282032-17571-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1478282032-17571-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <1478282032-17571-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 15 Nov 2016 15:27:29 +0100
-Message-ID: <CAMuHMdUUXkJxbNxKJ0Od3N40+N4TNRoMFBjVCjvCO9x_xR1=tA@mail.gmail.com>
-Subject: Re: [PATCHv2 2/2] v4l: vsp1: Provide a writeback video device
-To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 4, 2016 at 6:53 PM, Kieran Bingham
-<kieran.bingham+renesas@ideasonboard.com> wrote:
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+On Sun, Nov 27, 2016 at 04:02:16PM +0200, Haggai Eran wrote:
 
-> +static void vsp1_video_wb_process_buffer(struct vsp1_video *video)
-> +{
+> > Like in ODP, MMU notifiers/HMM are used to monitor for translation
+> > changes. If a change comes in the GPU driver checks if an executing
+> > command is touching those pages and blocks the MMU notifier until the
+> > command flushes, then unfaults the page (blocking future commands) and
+> > unblocks the mmu notifier.
 
-> +       if (buf) {
-> +               video->rwpf->mem = buf->mem;
-> +
-> +               /*
-> +                * Store this buffer as pending. It will commence at the next
-> +                * frame start interrupt
-> +                */
-> +               video->pending = buf;
-> +               list_del(&buf->queue);
-> +       } else {
-> +               /* Disable writeback with no buffer */
-> +               video->rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
+> I think blocking mmu notifiers against something that is basically
+> controlled by user-space can be problematic. This can block things like
+> memory reclaim. If you have user-space access to the device's queues,
+> user-space can block the mmu notifier forever.
 
-drivers/media/platform/vsp1/vsp1_video.c:946:30: warning: missing
-braces around initializer [-Wmissing-braces]
-   video->rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
+Right, I mentioned that..
 
-> +static void vsp1_video_wb_stop_streaming(struct vb2_queue *vq)
-> +{
-> +       struct vsp1_video *video = vb2_get_drv_priv(vq);
-> +       struct vsp1_rwpf *rwpf = video->rwpf;
-> +       struct vsp1_pipeline *pipe = rwpf->pipe;
-> +       struct vsp1_vb2_buffer *buffer;
-> +       unsigned long flags;
-> +
-> +       /*
-> +        * Disable the completion interrupts, and clear the WPF memory to
-> +        * prevent writing out frames
-> +        */
-> +       spin_lock_irqsave(&video->irqlock, flags);
-> +       video->frame_end = NULL;
-> +       rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
+> On PeerDirect, we have some kind of a middle-ground solution for pinning
+> GPU memory. We create a non-ODP MR pointing to VRAM but rely on
+> user-space and the GPU not to migrate it. If they do, the MR gets
+> destroyed immediately.
 
-drivers/media/platform/vsp1/vsp1_video.c:1008:22: warning: missing
-braces around initializer [-Wmissing-braces]
-  rwpf->mem = (struct vsp1_rwpf_memory) { 0 };
+That sounds horrible. How can that possibly work? What if the MR is
+being used when the GPU decides to migrate? I would not support that
+upstream without a lot more explanation..
 
-Either drop the "0":
+I know people don't like requiring new hardware, but in this case we
+really do need ODP hardware to get all the semantics people want..
 
-        mem = (struct vsp1_rwpf_memory) { };
+> Another thing I think is that while HMM is good for user-space
+> applications, for kernel p2p use there is no need for that. Using
 
-or add an additional pair of braces:
+>From what I understand we are not really talking about kernel p2p,
+everything proposed so far is being mediated by a userspace VMA, so
+I'd focus on making that work.
 
-        mem = (struct vsp1_rwpf_memory) { { 0 } };
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Jason
