@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35612 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751522AbcKYLcy (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:40918
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751015AbcK1ToX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 25 Nov 2016 06:32:54 -0500
-To: linux-media@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.10] cec: pass parent device in register(), not
- allocate()
-Message-ID: <e62b59c4-076a-14b6-fe5e-d0b09f7d2303@xs4all.nl>
-Date: Fri, 25 Nov 2016 12:31:37 +0100
+        Mon, 28 Nov 2016 14:44:23 -0500
+Date: Mon, 28 Nov 2016 17:44:14 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        LMML <linux-media@vger.kernel.org>,
+        linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: [GIT PULL] Samsung fixes for 4.8
+Message-ID: <20161128174414.1ab8cb7e@vento.lan>
+In-Reply-To: <d56c3d6d-6cbf-2f98-80d8-c72cd20f3957@osg.samsung.com>
+References: <CGME20160916133335eucas1p2417ec5672f250c3eaca8e424293ce783@eucas1p2.samsung.com>
+        <8001c83d-0e3a-61cb-bf53-8c2b497bd0ed@samsung.com>
+        <20161021102607.2df96630@vento.lan>
+        <70cc3f35-e661-c76f-8620-dfeb74030183@samsung.com>
+        <20161116124600.66e4c9e4@vento.lan>
+        <d9d745c8-3128-c637-1fa7-c46606fca2af@samsung.com>
+        <20161116131932.7c2908e3@vento.lan>
+        <d56c3d6d-6cbf-2f98-80d8-c72cd20f3957@osg.samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Mon, 28 Nov 2016 16:29:25 -0300
+Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
 
-It's just a single patch, but I'd like to get that into 4.10. Now that the
-cec framework moves out of staging I prefer to get this kernel API change
-in before more CEC drivers are added.
+> Hello Mauro,
+> 
+> On 11/16/2016 12:19 PM, Mauro Carvalho Chehab wrote:
+> > Em Wed, 16 Nov 2016 16:08:19 +0100
+> > Sylwester Nawrocki <s.nawrocki@samsung.com> escreveu:
+> >   
+> >> On 11/16/2016 03:46 PM, Mauro Carvalho Chehab wrote:  
+> >>>>>> Marek Szyprowski (1):    
+> >>>>>>>>>       s5p-mfc: fix failure path of s5p_mfc_alloc_memdev()      
+> >>>>>
+> >>>>> Mauro, this patch seems to had slipped through the cracks, I can't see it
+> >>>>> in neither media fixes nor the master branch. Could you please check it?    
+> >>>
+> >>> The patch seems to be on my tree:    
+> >>  
+> 
+> This patch is indeed in your tree as commit:
+> 
+> https://git.linuxtv.org/media_tree.git/commit/?id=3467c9a7e7f9
+> 
+> and also in present in the media/v4.9-2 tag.
+> 
+> But the patch never made to mainline. In fact, I don't see any of the
+> patches in the media/v4.9-2 tag to be merged in v4.9-rc7.
+
+It is part of a group of 187 patches for Kernel 4.10. There aren't
+anything there that fixes a regression on 4.8 or 4.9. So, no
+hush.
+
+I double-checked and all the patches at media/v4.9-2 are there at
+media master. So, should be sent to 4.10.
 
 Regards,
-
-	Hans
-
-The following changes since commit 4cc5bed1caeb6d40f2f41c4c5eb83368691fbffb:
-
-  [media] uvcvideo: Use memdup_user() rather than duplicating its implementation (2016-11-23 20:06:41 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git cec-reg
-
-for you to fetch changes up to f2684fe2abba97b9ca2c5966c4113644afca181b:
-
-  cec: pass parent device in register(), not allocate() (2016-11-25 09:23:34 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      cec: pass parent device in register(), not allocate()
-
- Documentation/media/kapi/cec-core.rst     | 14 ++++++--------
- drivers/media/cec/cec-api.c               |  2 +-
- drivers/media/cec/cec-core.c              | 18 ++++++++++--------
- drivers/media/i2c/adv7511.c               |  5 +++--
- drivers/media/i2c/adv7604.c               |  6 +++---
- drivers/media/i2c/adv7842.c               |  6 +++---
- drivers/media/platform/vivid/vivid-cec.c  |  3 +--
- drivers/media/platform/vivid/vivid-cec.h  |  1 -
- drivers/media/platform/vivid/vivid-core.c |  9 ++++-----
- drivers/media/usb/pulse8-cec/pulse8-cec.c |  4 ++--
- drivers/staging/media/s5p-cec/s5p_cec.c   |  5 ++---
- drivers/staging/media/st-cec/stih-cec.c   |  5 ++---
- include/media/cec.h                       | 10 ++++------
- 13 files changed, 41 insertions(+), 47 deletions(-)
+Mauro
