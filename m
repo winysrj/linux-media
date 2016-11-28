@@ -1,155 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f176.google.com ([209.85.192.176]:36168 "EHLO
-        mail-pf0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753632AbcK1WQE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 28 Nov 2016 17:16:04 -0500
-Received: by mail-pf0-f176.google.com with SMTP id 189so27094959pfz.3
-        for <linux-media@vger.kernel.org>; Mon, 28 Nov 2016 14:16:03 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Rob Herring <robh@kernel.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: Re: [PATCH v3 4/4] [media] dt-bindings: add TI VPIF documentation
-References: <20161122155244.802-1-khilman@baylibre.com>
-        <20161122155244.802-5-khilman@baylibre.com>
-        <20161128213822.26oeyzkht5jz5gd3@rob-hp-laptop>
-Date: Mon, 28 Nov 2016 14:16:01 -0800
-In-Reply-To: <20161128213822.26oeyzkht5jz5gd3@rob-hp-laptop> (Rob Herring's
-        message of "Mon, 28 Nov 2016 15:38:22 -0600")
-Message-ID: <m2y403s126.fsf@baylibre.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Logan Gunthorpe <logang@deltatee.com>,
+        Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Haggai Eran <haggaie@mellanox.com>
+References: <20161123193228.GC12146@obsidianresearch.com>
+ <c2c88376-5ba7-37d1-4d3e-592383ebb00a@amd.com>
+ <20161123203332.GA15062@obsidianresearch.com>
+ <dd60bca8-0a35-7a3a-d3ab-b95bc3d9b973@deltatee.com>
+ <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+ <20161128165751.GB28381@obsidianresearch.com>
+ <f3bb8372-ae2e-2f5e-5505-4ecaddbfb16e@deltatee.com>
+ <0d3d56e2-4d2b-85b7-9487-b7ae2aaea610@amd.com>
+ <c8c25265-9f59-f3d6-6249-07500e73930e@deltatee.com>
+CC: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
+        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
+        "Bridgman, John" <John.Bridgman@amd.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "Sander, Ben" <ben.sander@amd.com>,
+        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
+        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        Max Gurtovoy <maxg@mellanox.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <1ac2f9e7-f1ee-a2c9-0134-ffaa28c706af@amd.com>
+Date: Mon, 28 Nov 2016 16:55:23 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <c8c25265-9f59-f3d6-6249-07500e73930e@deltatee.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rob Herring <robh@kernel.org> writes:
 
-> On Tue, Nov 22, 2016 at 07:52:44AM -0800, Kevin Hilman wrote:
->> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->>  .../bindings/media/ti,da850-vpif-capture.txt       | 65 ++++++++++++++++++++++
->>  .../devicetree/bindings/media/ti,da850-vpif.txt    |  8 +++
->>  2 files changed, 73 insertions(+)
->>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->>  create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> 
->> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->> new file mode 100644
->> index 000000000000..c447ac482c1d
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
->> @@ -0,0 +1,65 @@
->> +Texas Instruments VPIF Capture
->> +------------------------------
->> +
->> +The TI Video Port InterFace (VPIF) capture component is the primary
->> +component for video capture on the DA850 family of TI DaVinci SoCs.
->> +
->> +TI Document number reference: SPRUH82C
->> +
->> +Required properties:
->> +- compatible: must be "ti,da850-vpif-capture"
->> +- reg: physical base address and length of the registers set for the device;
->> +- interrupts: should contain IRQ line for the VPIF
->> +
->> +VPIF capture has a 16-bit parallel bus input, supporting 2 8-bit
->> +channels or a single 16-bit channel.  It should contain at least one
->> +port child node with child 'endpoint' node. Please refer to the
->> +bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Example using 2 8-bit input channels, one of which is connected to an
->> +I2C-connected TVP5147 decoder:
->> +
->> +	vpif_capture: video-capture@0x00217000 {
->
-> Drop the 0x00.
->
->> +		compatible = "ti,da850-vpif-capture";
->> +		reg = <0x00217000 0x1000>;
->> +		interrupts = <92>;
->> +
->> +		port {
->> +			vpif_ch0: endpoint@0 {
->> +				  reg = <0>;
->
-> This is missing #size-cells and #addr-cells.
->
-
-Yup.
-
->> +				  bus-width = <8>;
->> +				  remote-endpoint = <&composite>;
->> +			};
->> +
->> +			vpif_ch1: endpoint@1 {
->
-> I think probably channels here should be ports rather than endpoints. 
-> AIUI, having multiple endpoints is for cases like a mux or 1 to many 
-> connections. There's only one data flow, but multiple sources or sinks.
-
-OK.
-
->> +				  reg = <1>;
->> +				  bus-width = <8>;
->> +				  data-shift = <8>;
->> +			};
->> +		};
->> +	};
->> +
->> +[ ... ]
->> +
->> +&i2c0 {
->> +
->> +	tvp5147@5d {
->> +		compatible = "ti,tvp5147";
->> +		reg = <0x5d>;
->> +		status = "okay";
->> +
->> +		port {
->> +			composite: endpoint {
->> +				hsync-active = <1>;
->> +				vsync-active = <1>;
->> +				pclk-sample = <0>;
->> +
->> +				/* VPIF channel 0 (lower 8-bits) */
->> +				remote-endpoint = <&vpif_ch0>;
->> +				bus-width = <8>;
->> +			};
->> +		};
->> +	};
->> +
->> +};
->> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> new file mode 100644
->> index 000000000000..d004e600aabe
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> @@ -0,0 +1,8 @@
->> +Texas Instruments VPIF
->> +----------------------
->> +
->> +The Video Port InterFace (VPIF) is the core component for video output
->> +and capture on DA850 TI Davinci SoCs.
->> +
->> +- compatible: must be "ti,da850-vpif"
->> +- reg: physical base address and length of the registers set for the device;
->
-> That's it? How does this block relate to the capture block?
-
-I separated them because the current legacy drivers are separated into 3
-different platform drivers.
-
-However, after some discussions with Laurent, I'm going to just create a
-single VPIF node with input (capture) and output (display) ports, and
-then have to tweak the existing drivers a bit more than I had wanted to.
-
-IOW, I was lazy.
-
-Kevin
+On 2016-11-28 04:36 PM, Logan Gunthorpe wrote:
+> On 28/11/16 12:35 PM, Serguei Sagalovitch wrote:
+>> As soon as PeerDirect mapping is called then GPU must not "move" the
+>> such memory.  It is by PeerDirect design. It is similar how it is works
+>> with system memory and RDMA MR: when "get_user_pages" is called then the
+>> memory is pinned.
+> We haven't touch this in a long time and perhaps it changed, but there
+> definitely was a call back in the PeerDirect API to allow the GPU to
+> invalidate the mapping. That's what we don't want.
+I assume that you are talking about "invalidate_peer_memory()' callback?
+I was told that it is the "last resort" because HCA (and driver) is not
+able to handle  it in the safe manner so it is basically "abort" 
+everything.
 
