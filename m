@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imap.thunk.org ([74.207.234.97]:56030 "EHLO imap.thunk.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932568AbcKQREA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 17 Nov 2016 12:04:00 -0500
-Date: Thu, 17 Nov 2016 09:52:44 -0500
-From: Theodore Ts'o <tytso@mit.edu>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        ksummit-discuss@lists.linuxfoundation.org,
-        Josh Triplett <josh@joshtriplett.org>,
-        linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-Message-ID: <20161117145244.sksssz6jvnntsw5u@thunk.org>
-References: <20161107075524.49d83697@vento.lan>
- <11020459.EheIgy38UF@wuerfel>
- <20161116182633.74559ffd@vento.lan>
- <2923918.nyphv1Ma7d@wuerfel>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:62382 "EHLO
+        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932874AbcK1NzK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 28 Nov 2016 08:55:10 -0500
+Date: Mon, 28 Nov 2016 14:54:58 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+cc: Sakari Alius <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        wharms@bfs.de, linux-media@vger.kernel.org,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
+In-Reply-To: <20161128134358.GS6266@mwanda>
+Message-ID: <alpine.DEB.2.10.1611281453100.2967@hadrien>
+References: <20161125102835.GA5856@mwanda> <2064794.XNX8XhaLMu@avalon> <58384F15.4040207@bfs.de> <11316049.HORSOXRmDr@avalon> <20161125192024.GI6266@mwanda> <20161127162145.GF16630@valkosipuli.retiisi.org.uk> <20161128134358.GS6266@mwanda>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2923918.nyphv1Ma7d@wuerfel>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 17, 2016 at 12:07:15PM +0100, Arnd Bergmann wrote:
-> [adding Linus for clarification]
-> 
-> I understood the concern as being about binary files that you cannot
-> modify with classic 'patch', which is a separate issue.
 
-I think the other complaint is that the image files aren't "source" in
-the proper term, since they are *not* the preferred form for
-modification --- that's the svg files.  Beyond the license compliance
-issues (which are satisified because the .svg files are included in
-the git tree), there is the SCM cleaniless argument of not including
-generated files in the distribution, since this increases the
-opportunites for the "real" source file and the generated source file
-to get out of sync.  (As just one example, if the patch can't
-represent the change to binary file.)
 
-I do check in generated files on occasion --- usually because I don't
-trust autoconf to be a stable in terms of generating a correct
-configure file from a configure.in across different versions of
-autoconf and different macro libraries that might be installed on the
-system.  So this isn't a hard and fast rule by any means (although
-Linus may be more strict than I on that issue).
+On Mon, 28 Nov 2016, Dan Carpenter wrote:
 
-I don't understand why it's so terrible to have generate the image
-file from the .svg file in a Makefile rule, and then copy it somewhere
-else if Sphinx is too dumb to fetch it from the normal location?
+> I understand the comparison, but I just think it's better if people
+> always keep track of what has been allocated and what has not.  I tried
+> so hard to get Markus to stop sending those hundreds of patches where
+> he's like "this function has a sanity check so we can pass pointers
+> that weren't allocated"...  It's garbage code.
+>
+> But I understand that other people don't agree.
 
-     	       	      	      	       - Ted
+In my opinion, it is good for code understanding to only do what is useful
+to do.  It's not a hard and fast rule, but I think it is something to take
+into account.
+
+julia
+
+>
+> regards,
+> dan carpenter
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
