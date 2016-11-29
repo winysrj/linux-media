@@ -1,134 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:34017 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753016AbcK2RfG (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46559
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752395AbcK2RHc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 12:35:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: stern@rowland.harvard.edu, linux-media@vger.kernel.org,
-        linux-pm@vger.kernel.org
-Subject: Re: [PATCH v2.1 1/2] smiapp: Implement power-on and power-off sequences without runtime PM
-Date: Tue, 29 Nov 2016 19:35:17 +0200
-Message-ID: <1930557.lG90R1cLyV@avalon>
-In-Reply-To: <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1479594266-3034-2-git-send-email-sakari.ailus@linux.intel.com> <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 29 Nov 2016 12:07:32 -0500
+Subject: Re: [PATCH 0/2] media protect enable and disable source handler paths
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <cover.1480384155.git.shuahkh@osg.samsung.com>
+ <20161129071526.5a004b75@vento.lan>
+Cc: mchehab@kernel.org, mkrufky@linuxtv.org, klock.android@gmail.com,
+        elfring@users.sourceforge.net, max@duempel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <9881c3f5-6d6a-14d0-8c22-da8a2eb8d268@osg.samsung.com>
+Date: Tue, 29 Nov 2016 10:07:21 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20161129071526.5a004b75@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 11/29/2016 02:15 AM, Mauro Carvalho Chehab wrote:
+> Em Mon, 28 Nov 2016 19:15:12 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> These two patches fix enable and disable source handler paths. These
+>> aren't dependent patches, grouped because they fix similar problems.
+> 
+> Those two patches should be fold, as applying just the first patch
+> would cause au0828 to try to double lock.
+> 
 
-Thank you for the patch.
+No it doesn't. The first patch holds the lock to just clear and set
+enable disable source handlers and doesn't change any other paths.
+The second patch removes lock hold from enable and disable source
+handlers and the callers to hold the lock.
 
-On Tuesday 29 Nov 2016 19:28:53 Sakari Ailus wrote:
-> Power on the sensor when the module is loaded and power it off when it is
-> removed.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Alan and Laurent,
-> 
-> I hope this should be good then. I'm only enabling runtime PM at the end
-> of probe() when all is well, which reduces need for error handling.
-> 
-> Regards,
-> Sakari
-> 
->  drivers/media/i2c/smiapp/smiapp-core.c | 28 +++++++++-------------------
->  1 file changed, 9 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
-> b/drivers/media/i2c/smiapp/smiapp-core.c index 59872b3..683a3e0 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -2741,8 +2741,6 @@ static const struct v4l2_subdev_internal_ops
-> smiapp_internal_ops = { * I2C Driver
->   */
-> 
-> -#ifdef CONFIG_PM
-> -
->  static int smiapp_suspend(struct device *dev)
->  {
->  	struct i2c_client *client = to_i2c_client(dev);
-> @@ -2783,13 +2781,6 @@ static int smiapp_resume(struct device *dev)
->  	return rval;
->  }
-> 
-> -#else
-> -
-> -#define smiapp_suspend	NULL
-> -#define smiapp_resume	NULL
-> -
-> -#endif /* CONFIG_PM */
-> -
->  static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
->  {
->  	struct smiapp_hwconfig *hwcfg;
-> @@ -2913,13 +2904,9 @@ static int smiapp_probe(struct i2c_client *client,
->  	if (IS_ERR(sensor->xshutdown))
->  		return PTR_ERR(sensor->xshutdown);
-> 
-> -	pm_runtime_enable(&client->dev);
-> -
-> -	rval = pm_runtime_get_sync(&client->dev);
-> -	if (rval < 0) {
-> -		rval = -ENODEV;
-> -		goto out_power_off;
-> -	}
-> +	rval = smiapp_power_on(&client->dev);
-> +	if (rval < 0)
-> +		return rval;
-> 
->  	rval = smiapp_identify_module(sensor);
->  	if (rval) {
-> @@ -3100,6 +3087,9 @@ static int smiapp_probe(struct i2c_client *client,
->  	if (rval < 0)
->  		goto out_media_entity_cleanup;
-> 
-> +	pm_runtime_set_active(&client->dev);
-> +	pm_runtime_get_noresume(&client->dev);
-> +	pm_runtime_enable(&client->dev);
->  	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
->  	pm_runtime_use_autosuspend(&client->dev);
->  	pm_runtime_put_autosuspend(&client->dev);
+However, I can easily fold them together and not a problem.
 
-This looks better to me, although these 6 lines really call for a new helper 
-function.
+>>
+>> This work is triggered by a review comment from Mauro Chehab on a
+>> snd_usb_audio patch about protecting the enable and disabel handler
+>> path in it.
+>>
+>> Ran tests to make sure enable and disable handler paths work. When
+>> digital stream is active, analog app finds the tuner busy and vice
+>> versa. Also ran the Sakari's unbind while video stream is active test.
+> 
+> Sorry, but your patches descriptions don't make things clear:
 
-However, I still believe a helper that calls the runtime PM handlers directly 
-when CONFIG_PM=n and rely on runtime PM when CONFIG_PM=y would be the cleanest 
-solution from a driver point of view.
-
-> @@ -3113,8 +3103,7 @@ static int smiapp_probe(struct i2c_client *client,
->  	smiapp_cleanup(sensor);
-> 
->  out_power_off:
-> -	pm_runtime_put(&client->dev);
-> -	pm_runtime_disable(&client->dev);
-> +	smiapp_power_off(&client->dev);
-> 
->  	return rval;
->  }
-> @@ -3127,8 +3116,9 @@ static int smiapp_remove(struct i2c_client *client)
-> 
->  	v4l2_async_unregister_subdev(subdev);
-> 
-> -	pm_runtime_suspend(&client->dev);
->  	pm_runtime_disable(&client->dev);
-> +	pm_runtime_set_suspended(&client->dev);
-> +	smiapp_power_off(&client->dev);
-
-The device could be powered off already.
+Right. I should have explained it better.
 
 > 
->  	for (i = 0; i < sensor->ssds_used; i++) {
->  		v4l2_device_unregister_subdev(&sensor->ssds[i].sd);
+> - It doesn't present any OOPS or logs that would help to
+>   understand what you're trying to fix;
+> 
+> - From what I understood, you're moving the lock out of
+>   enable/disable handlers, and letting their callers to do
+>   the locks themselves. Why? Are there any condition where it
+>   won't need to be locked?
 
--- 
-Regards,
+So here is the scenario these patches fix. Say user app starts
+and during start of video streaming v4l2 checks to see if enable
+source handler is defined. This check is done without holding the
+graph_mutex. If unbind happens to be in progress, au0828 could
+clear enable and disable source handlers. So these could race.
+I am not how large this window is, but could happen.
 
-Laurent Pinchart
+If graph_mutex protects the check for enable source handler not
+being null, then it has to be released before calling enable source
+handler as shown below:
+
+if (mdev) {
+	mutex_lock(&mdev->graph_mutex);
+	if (mdev->disable_source) {
+		mutex_unlock(&mdev->graph_mutex);
+		mdev->disable_source(&vdev->entity);
+	} else
+		mutex_unlock(&mdev->graph_mutex);
+}
+
+The above will leave another window for handlers to be cleared.
+That is why it would make sense for the caller to hold the lock
+and the call enable and disable source handlers.
+
+> 
+> - It is not touching documentation. If now the callbacks should
+>   not implement locks, this should be explicitly described.
+
+Yes documentation needs to be updated and I can do that in v2 if
+we are okay with this approach.
+
+> 
+> Btw, I think it is a bad idea to let the callers to handle
+> the locks. The best would be, instead, to change the code in
+> some other way to avoid it, if possible. If not possible at all,
+> clearly describe why it is not possible and insert some comments
+> inside the code, to avoid some cleanup patch to mess up with this.
+> 
+
+Hope the above explanation helps answer the question. We do need a
+way to protect enable and disable handler access and the call itself.
+I am using the same graph_mutex for both, hence I decided to have the
+caller hold the lock. Any other ideas welcome.
+
+thanks,
+-- Shuah
 
