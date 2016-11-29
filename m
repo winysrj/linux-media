@@ -1,154 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34622 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752721AbcKGMro (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 7 Nov 2016 07:47:44 -0500
+Received: from gofer.mess.org ([80.229.237.210]:47973 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756691AbcK2UXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 29 Nov 2016 15:23:44 -0500
+Date: Tue, 29 Nov 2016 20:23:41 +0000
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.10] lirc cdev fixes for 4.10
+Message-ID: <20161129202341.GA13152@gofer.mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20161102132329.436-31-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se> <20161102132329.436-31-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Mon, 7 Nov 2016 13:47:42 +0100
-Message-ID: <CAMuHMdUa4hnAZDD-yUk=+=eYdutHoALQhfAj4wcNd90ocX+vMw@mail.gmail.com>
-Subject: Re: [PATCH 30/32] media: rcar-vin: add Gen3 devicetree bindings documentation
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Fukawa <tomoharu.fukawa.eb@renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 2, 2016 at 2:23 PM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> Document the Gen3 devicetree bindings. The new bindings are all handled
-> in the port@1 node, if a endpoint is described as on Gen2 in port@0 the
+Hi Mauro,
 
-an endpoint
+Just one fix to prevent double free or NULL deref in error path.
 
-> driver will work in Gen2 mode and this is supported on Gen3. The new
-> CSI-2 video sources are only supported on Gen3.
->
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> ---
->  .../devicetree/bindings/media/rcar_vin.txt         | 116 +++++++++++++++=
-++++--
->  1 file changed, 106 insertions(+), 10 deletions(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
-entation/devicetree/bindings/media/rcar_vin.txt
-> index 6a4e61c..a51cf70 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -2,8 +2,12 @@ Renesas RCar Video Input driver (rcar_vin)
->  ------------------------------------------
->
->  The rcar_vin device provides video input capabilities for the Renesas R-=
-Car
-> -family of devices. The current blocks are always slaves and suppot one i=
-nput
-> -channel which can be either RGB, YUYV or BT656.
-> +family of devices.
-> +
-> +On Gen2 the current blocks are always slaves and support one input chann=
-el
-> +which can be either RGB, YUYV or BT656. On Gen3 the current blocks are
-> +always slaves and support multiple input channels which can be ether RGB=
-,
+Thanks,
+Sean
 
-either
+The following changes since commit a000f0d3995f622410d433a01e94fbfb45969e27:
 
-> +YUVU, BT656 or CSI-2.
+  [media] vivid: Set color_enc on HSV formats (2016-11-29 12:12:32 -0200)
 
-> @@ -92,6 +105,89 @@ Board setup example (vin1 composite video input)
->          };
->  };
->
-> +Device node example Gen3
-> +------------------------
-> +
-> +        aliases {
-> +                vin0 =3D &vin0;
-> +        };
-> +
-> +        vin1: video@e6ef1000 {
-> +                compatible =3D "renesas,vin-r8a7796";
-> +                reg =3D  <0 0xe6ef1000 0 0x1000>;
-> +                interrupts =3D <0 189 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 810>;
-> +                power-domains =3D <&cpg>;
+are available in the git repository at:
 
-Please update the power-domains property to match reality.
+  git://linuxtv.org/syoung/media_tree.git for-v4.10
 
-> +                status =3D "disabled";
-> +
-> +                ports {
-> +                        #address-cells =3D <1>;
-> +                        #size-cells =3D <0>;
-> +
-> +                        port@1 {
-> +                                #address-cells =3D <1>;
-> +                                #size-cells =3D <0>;
-> +
-> +                                reg =3D <1>;
-> +
-> +                                vin1csi20: endpoint@0 {
-> +                                        reg =3D <0>;
-> +                                        remote-endpoint=3D <&csi20vin1>;
-> +                                };
-> +                        };
-> +                };
-> +        };
-> +
-> +        csi20: csi2@fea80000 {
-> +                compatible =3D "renesas,r8a7796-csi2";
-> +                reg =3D <0 0xfea80000 0 0x10000>;
-> +                interrupts =3D <0 184 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 714>;
-> +                power-domains =3D <&cpg>;
+for you to fetch changes up to 90a0560777a72ea91b0fb1147264614dd236853c:
 
-Likewise.
+  [media] lirc: fix error paths in lirc_cdev_add() (2016-11-29 20:05:25 +0000)
 
-> +                status =3D "disabled";
-> +
-> +                ports {
-> +                        #address-cells =3D <1>;
-> +                        #size-cells =3D <0>;
-> +
-> +                        port@1 {
-> +                                #address-cells =3D <1>;
-> +                                #size-cells =3D <0>;
-> +
-> +                                reg =3D <1>;
-> +
-> +                                csi20vin1: endpoint@1 {
-> +                                        reg =3D <1>;
-> +                                        remote-endpoint =3D <&vin1csi20>=
-;
-> +                                };
-> +                        };
-> +                };
-> +        };
+----------------------------------------------------------------
+Sean Young (1):
+      [media] lirc: fix error paths in lirc_cdev_add()
 
-
-
-
---=20
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+ drivers/media/rc/lirc_dev.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
