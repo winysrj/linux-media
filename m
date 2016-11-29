@@ -1,42 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:60299 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750968AbcKYEqx (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42846
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750754AbcK2CPU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 24 Nov 2016 23:46:53 -0500
-From: Shailendra Verma <shailendra.v@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Shailendra Verma <shailendra.v@samsung.com>,
-        Shailendra Verma <shailendra.capricorn@gmail.com>
-Cc: vidushi.koul@samsung.com
-Subject: [PATCH] Media: Platform: Omap3isp: Do not forget to call
-Date: Fri, 25 Nov 2016 10:14:32 +0530
-Message-id: <1480049072-20019-1-git-send-email-shailendra.v@samsung.com>
+        Mon, 28 Nov 2016 21:15:20 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@kernel.org, mkrufky@linuxtv.org, klock.android@gmail.com,
+        elfring@users.sourceforge.net, max@duempel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart+renesas@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 0/2] media protect enable and disable source handler paths
+Date: Mon, 28 Nov 2016 19:15:12 -0700
+Message-Id: <cover.1480384155.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_fh_init is already done.So call the v4l2_fh_exit in error condition
-before returing from the function.
+These two patches fix enable and disable source handler paths. These
+aren't dependent patches, grouped because they fix similar problems.
 
-Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
----
- drivers/media/platform/omap3isp/ispvideo.c |    1 +
- 1 file changed, 1 insertion(+)
+This work is triggered by a review comment from Mauro Chehab on a
+snd_usb_audio patch about protecting the enable and disabel handler
+path in it.
 
-diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
-index 7354469..2822e2f 100644
---- a/drivers/media/platform/omap3isp/ispvideo.c
-+++ b/drivers/media/platform/omap3isp/ispvideo.c
-@@ -1350,6 +1350,7 @@ static int isp_video_open(struct file *file)
- done:
- 	if (ret < 0) {
- 		v4l2_fh_del(&handle->vfh);
-+		v4l2_fh_exit(&handle->vfh);
- 		kfree(handle);
- 	}
- 
+Ran tests to make sure enable and disable handler paths work. When
+digital stream is active, analog app finds the tuner busy and vice
+versa. Also ran the Sakari's unbind while video stream is active test.
+
+Shuah Khan (2):
+  media: au0828 fix to protect enable/disable source set and clear
+  media: protect enable and disable source handler checks and calls
+
+ drivers/media/dvb-core/dvb_frontend.c  | 24 ++++++++++++++++++------
+ drivers/media/usb/au0828/au0828-core.c | 21 +++++++++------------
+ drivers/media/v4l2-core/v4l2-mc.c      | 26 ++++++++++++++++++--------
+ 3 files changed, 45 insertions(+), 26 deletions(-)
+
 -- 
-1.7.9.5
+2.7.4
 
