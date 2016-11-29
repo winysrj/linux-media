@@ -1,235 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([46.235.227.227]:38595 "EHLO
-        bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754072AbcKVNa6 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:48623
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753895AbcK3AAD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 08:30:58 -0500
-Subject: Re: [PATCH v5] [media] vb2: Add support for capture_dma_bidirectional
- queue flag
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1477383749-16208-1-git-send-email-thierry.escande@collabora.com>
- <20161118165951.5940e21a@vento.lan>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-From: Thierry Escande <thierry.escande@collabora.com>
-Message-ID: <91cc5440-a04e-b34b-9d5e-eb3400bddbc6@collabora.com>
-Date: Tue, 22 Nov 2016 14:30:47 +0100
-MIME-Version: 1.0
-In-Reply-To: <20161118165951.5940e21a@vento.lan>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Tue, 29 Nov 2016 19:00:03 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@kernel.org, mkrufky@linuxtv.org, klock.android@gmail.com,
+        elfring@users.sourceforge.net, max@duempel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart+renesas@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] media: Protect enable_source and disable_source handler code paths
+Date: Tue, 29 Nov 2016 16:59:54 -0700
+Message-Id: <20161129235954.8186-1-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Drivers might try to access and run enable_source and disable_source
+handlers when the driver that implements these handlers is clearing
+the handlers during its unregister.
 
-On 18/11/2016 19:59, Mauro Carvalho Chehab wrote:
-> Em Tue, 25 Oct 2016 10:22:29 +0200
-> Thierry Escande <thierry.escande@collabora.com> escreveu:
->
->> From: Pawel Osciak <posciak@chromium.org>
->>
->> When this flag is set for CAPTURE queues by the driver on calling
->> vb2_queue_init(), it forces the buffers on the queue to be
->> allocated/mapped with DMA_BIDIRECTIONAL direction flag instead of
->> DMA_FROM_DEVICE. This allows the device not only to write to the
->> buffers, but also read out from them. This may be useful e.g. for codec
->> hardware which may be using CAPTURE buffers as reference to decode
->> other buffers.
->>
->> This flag is ignored for OUTPUT queues as we don't want to allow HW to
->> be able to write to OUTPUT buffers.
->>
->> This patch introduces 2 macros:
->> VB2_DMA_DIR(q) returns the corresponding dma_dir for the passed queue
->> type, tanking care of the capture_dma_birectional flag.
->>
->> VB2_DMA_DIR_CAPTURE(d) is a test macro returning true if the passed DMA
->> direction refers to a capture buffer. This test is used to map virtual
->> addresses for writing and to mark pages as dirty.
->
-> Why to add it? There's no other patch on this series with would
-> justify its needs...
+Fix the following race condition:
 
-It is used by a Rockchip vpu driver which is only in the chromeos public 
-tree for now and will be upstreamed soon.
+process 1				process 2
 
-Regards,
-  Thierry
+request video streaming			unbind au0828
+v4l2 checks if tuner is free
+...					...
 
->>
->> Signed-off-by: Pawel Osciak <posciak@chromium.org>
->> Tested-by: Pawel Osciak <posciak@chromium.org>
->> Signed-off-by: Thierry Escande <thierry.escande@collabora.com>
->> ---
->>
->> Changes in v2:
->> - Renamed use_dma_bidirectional field as capture_dma_bidirectional
->> - Added a VB2_DMA_DIR() macro
->>
->> Changes in v3:
->> - Get rid of dma_dir field and therefore squashed the previous patch
->>
->> Changes in v4:
->> - Fixed typos in include/media/videobuf2-core.h
->> - Added VB2_DMA_DIR_CAPTURE() test macro
->>
->> Changes in v5:
->> - Use is_output queue field in VB2_DMA_DIR() macro
->>
->>  drivers/media/v4l2-core/videobuf2-core.c       |  9 +++------
->>  drivers/media/v4l2-core/videobuf2-dma-contig.c |  2 +-
->>  drivers/media/v4l2-core/videobuf2-dma-sg.c     |  5 +++--
->>  drivers/media/v4l2-core/videobuf2-vmalloc.c    |  4 ++--
->>  include/media/videobuf2-core.h                 | 23 +++++++++++++++++++++++
->>  5 files changed, 32 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->> index 21900202..22d6105 100644
->> --- a/drivers/media/v4l2-core/videobuf2-core.c
->> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->> @@ -194,8 +194,7 @@ static void __enqueue_in_driver(struct vb2_buffer *vb);
->>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->>  {
->>  	struct vb2_queue *q = vb->vb2_queue;
->> -	enum dma_data_direction dma_dir =
->> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
->>  	void *mem_priv;
->>  	int plane;
->>  	int ret = -ENOMEM;
->> @@ -978,8 +977,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
->>  	void *mem_priv;
->>  	unsigned int plane;
->>  	int ret = 0;
->> -	enum dma_data_direction dma_dir =
->> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
->>  	bool reacquired = vb->planes[0].mem_priv == NULL;
->>
->>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
->> @@ -1096,8 +1094,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
->>  	void *mem_priv;
->>  	unsigned int plane;
->>  	int ret = 0;
->> -	enum dma_data_direction dma_dir =
->> -		q->is_output ? DMA_TO_DEVICE : DMA_FROM_DEVICE;
->> +	enum dma_data_direction dma_dir = VB2_DMA_DIR(q);
->>  	bool reacquired = vb->planes[0].mem_priv == NULL;
->>
->>  	memset(planes, 0, sizeof(planes[0]) * vb->num_planes);
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> index fb6a177..a44e383 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
->> @@ -507,7 +507,7 @@ static void *vb2_dc_get_userptr(struct device *dev, unsigned long vaddr,
->>  	buf->dma_dir = dma_dir;
->>
->>  	offset = vaddr & ~PAGE_MASK;
->> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
->> +	vec = vb2_create_framevec(vaddr, size, VB2_DMA_DIR_CAPTURE(dma_dir));
->>  	if (IS_ERR(vec)) {
->>  		ret = PTR_ERR(vec);
->>  		goto fail_buf;
->> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
->> index ecff8f49..51c98f6 100644
->> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
->> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
->> @@ -238,7 +238,8 @@ static void *vb2_dma_sg_get_userptr(struct device *dev, unsigned long vaddr,
->>  	buf->offset = vaddr & ~PAGE_MASK;
->>  	buf->size = size;
->>  	buf->dma_sgt = &buf->sg_table;
->> -	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
->> +	vec = vb2_create_framevec(vaddr, size,
->> +				  VB2_DMA_DIR_CAPTURE(buf->dma_dir));
->>  	if (IS_ERR(vec))
->>  		goto userptr_fail_pfnvec;
->>  	buf->vec = vec;
->> @@ -291,7 +292,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->>  		vm_unmap_ram(buf->vaddr, buf->num_pages);
->>  	sg_free_table(buf->dma_sgt);
->>  	while (--i >= 0) {
->> -		if (buf->dma_dir == DMA_FROM_DEVICE)
->> +		if (VB2_DMA_DIR_CAPTURE(buf->dma_dir))
->>  			set_page_dirty_lock(buf->pages[i]);
->>  	}
->>  	vb2_destroy_framevec(buf->vec);
->> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
->> index ab3227b..76649bd 100644
->> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
->> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
->> @@ -86,7 +86,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
->>  	buf->dma_dir = dma_dir;
->>  	offset = vaddr & ~PAGE_MASK;
->>  	buf->size = size;
->> -	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
->> +	vec = vb2_create_framevec(vaddr, size, VB2_DMA_DIR_CAPTURE(dma_dir));
->>  	if (IS_ERR(vec)) {
->>  		ret = PTR_ERR(vec);
->>  		goto fail_pfnvec_create;
->> @@ -136,7 +136,7 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
->>  		pages = frame_vector_pages(buf->vec);
->>  		if (vaddr)
->>  			vm_unmap_ram((void *)vaddr, n_pages);
->> -		if (buf->dma_dir == DMA_FROM_DEVICE)
->> +		if (VB2_DMA_DIR_CAPTURE(buf->dma_dir))
->>  			for (i = 0; i < n_pages; i++)
->>  				set_page_dirty_lock(pages[i]);
->>  	} else {
->> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
->> index ac5898a..11d2e51 100644
->> --- a/include/media/videobuf2-core.h
->> +++ b/include/media/videobuf2-core.h
->> @@ -433,6 +433,9 @@ struct vb2_buf_ops {
->>   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
->>   *              has not been called. This is a vb1 idiom that has been adopted
->>   *              also by vb2.
->> + * @capture_dma_bidirectional:	use DMA_BIDIRECTIONAL for CAPTURE buffers; this
->> + *				allows HW to read from the CAPTURE buffers in
->> + *				addition to writing; ignored for OUTPUT queues.
->>   * @lock:	pointer to a mutex that protects the vb2_queue struct. The
->>   *		driver can set this to a mutex to let the v4l2 core serialize
->>   *		the queuing ioctls. If the driver wants to handle locking
->> @@ -499,6 +502,7 @@ struct vb2_queue {
->>  	unsigned			fileio_write_immediately:1;
->>  	unsigned			allow_zero_bytesused:1;
->>  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
->> +	unsigned			capture_dma_bidirectional:1;
->>
->>  	struct mutex			*lock;
->>  	void				*owner;
->> @@ -554,6 +558,25 @@ struct vb2_queue {
->>  #endif
->>  };
->>
->> +/*
->> + * Returns the corresponding DMA direction given the vb2_queue type (capture or
->> + * output). Returns DMA_BIDIRECTIONAL for capture buffers if the vb2_queue field
->> + * capture_dma_bidirectional is set by the driver.
->> + */
->> +#define VB2_DMA_DIR(q) ((q)->is_output ? DMA_TO_DEVICE                  \
->> +				       : (q)->capture_dma_bidirectional \
->> +					 ? DMA_BIDIRECTIONAL            \
->> +					 : DMA_FROM_DEVICE)
->> +
->> +/*
->> + * Returns true if the DMA direction passed as parameter refers to a capture
->> + * buffer as capture buffers allow both FROM_DEVICE and BIDIRECTIONAL DMA
->> + * direction. This test is used to map virtual addresses for writing and to mark
->> + * pages as dirty.
->> + */
->> +#define VB2_DMA_DIR_CAPTURE(d) \
->> +			((d) == DMA_FROM_DEVICE || (d) == DMA_BIDIRECTIONAL)
->> +
->>  /**
->>   * vb2_plane_vaddr() - Return a kernel virtual address of a given plane
->>   * @vb:		vb2_buffer to which the plane in question belongs to
->
->
-> Thanks,
-> Mauro
->
+					au0828_unregister_media_device()
+...					...
+					(doesn't hold graph_mutex)
+					mdev->enable_source = NULL;
+if (mdev && mdev->enable_source)	mdev->disable_source = NULL;
+	mdev->enable_source()
+(enable_source holds graph_mutex)
+
+As shown above enable_source check is done without holding the graph_mutex.
+If unbind happens to be in progress, au0828 could clear enable_source and
+disable_source handlers leading to null pointer de-reference.
+
+Fix it by protecting enable_source and disable_source set and clear and
+protecting enable_source and disable_source handler access and the call
+itself.
+
+process 1				process 2
+
+request video streaming			unbind au0828
+v4l2 checks if tuner is free
+...					...
+
+					au0828_unregister_media_device()
+...					...
+					(hold graph_mutex while clearing)
+					mdev->enable_source = NULL;
+if (mdev)				mdev->disable_source = NULL;
+(hold graph_mutex to check and
+ call enable_source)
+    if (mdev->enable_source)
+	mdev->enable_source()
+
+If graph_mutex is held to just heck for handler being null and needs to be
+released before calling the handler, there will be another window for the
+handlers to be cleared. Hence, enable_source and disable_source handlers
+no longer hold the graph_mutex and expect callers to hold it to avoid
+forcing them release the graph_mutex before calling the handlers.
+
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+
+Changes since v1:
+- Collapsed two patches into one.
+- Updated changelog for clarity
+- Updated Documentation
+
+ drivers/media/dvb-core/dvb_frontend.c  | 24 ++++++++++++++++++------
+ drivers/media/usb/au0828/au0828-core.c | 21 +++++++++------------
+ drivers/media/v4l2-core/v4l2-mc.c      | 26 ++++++++++++++++++--------
+ include/media/media-device.h           |  2 ++
+ 4 files changed, 47 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 01511e5..2f09c7e 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2527,9 +2527,13 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+ 		fepriv->voltage = -1;
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-		if (fe->dvb->mdev && fe->dvb->mdev->enable_source) {
+-			ret = fe->dvb->mdev->enable_source(dvbdev->entity,
++		if (fe->dvb->mdev) {
++			mutex_lock(&fe->dvb->mdev->graph_mutex);
++			if (fe->dvb->mdev->enable_source)
++				ret = fe->dvb->mdev->enable_source(
++							   dvbdev->entity,
+ 							   &fepriv->pipe);
++			mutex_unlock(&fe->dvb->mdev->graph_mutex);
+ 			if (ret) {
+ 				dev_err(fe->dvb->device,
+ 					"Tuner is busy. Error %d\n", ret);
+@@ -2553,8 +2557,12 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+ 
+ err3:
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
+-		fe->dvb->mdev->disable_source(dvbdev->entity);
++	if (fe->dvb->mdev) {
++		mutex_lock(&fe->dvb->mdev->graph_mutex);
++		if (fe->dvb->mdev->disable_source)
++			fe->dvb->mdev->disable_source(dvbdev->entity);
++		mutex_unlock(&fe->dvb->mdev->graph_mutex);
++	}
+ err2:
+ #endif
+ 	dvb_generic_release(inode, file);
+@@ -2586,8 +2594,12 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
+ 	if (dvbdev->users == -1) {
+ 		wake_up(&fepriv->wait_queue);
+ #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-		if (fe->dvb->mdev && fe->dvb->mdev->disable_source)
+-			fe->dvb->mdev->disable_source(dvbdev->entity);
++		if (fe->dvb->mdev) {
++			mutex_lock(&fe->dvb->mdev->graph_mutex);
++			if (fe->dvb->mdev->disable_source)
++				fe->dvb->mdev->disable_source(dvbdev->entity);
++			mutex_unlock(&fe->dvb->mdev->graph_mutex);
++		}
+ #endif
+ 		if (fe->exit != DVB_FE_NO_EXIT)
+ 			wake_up(&dvbdev->wait_queue);
+diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
+index bf53553..bfd6482 100644
+--- a/drivers/media/usb/au0828/au0828-core.c
++++ b/drivers/media/usb/au0828/au0828-core.c
+@@ -153,9 +153,11 @@ static void au0828_unregister_media_device(struct au0828_dev *dev)
+ 	}
+ 
+ 	/* clear enable_source, disable_source */
++	mutex_lock(&mdev->graph_mutex);
+ 	dev->media_dev->source_priv = NULL;
+ 	dev->media_dev->enable_source = NULL;
+ 	dev->media_dev->disable_source = NULL;
++	mutex_unlock(&mdev->graph_mutex);
+ 
+ 	media_device_unregister(dev->media_dev);
+ 	media_device_cleanup(dev->media_dev);
+@@ -278,6 +280,7 @@ static void au0828_media_graph_notify(struct media_entity *new,
+ 	}
+ }
+ 
++/* Callers should hold graph_mutex */
+ static int au0828_enable_source(struct media_entity *entity,
+ 				struct media_pipeline *pipe)
+ {
+@@ -291,8 +294,6 @@ static int au0828_enable_source(struct media_entity *entity,
+ 	if (!mdev)
+ 		return -ENODEV;
+ 
+-	mutex_lock(&mdev->graph_mutex);
+-
+ 	dev = mdev->source_priv;
+ 
+ 	/*
+@@ -419,12 +420,12 @@ static int au0828_enable_source(struct media_entity *entity,
+ 		 dev->active_source->name, dev->active_sink->name,
+ 		 dev->active_link_owner->name, ret);
+ end:
+-	mutex_unlock(&mdev->graph_mutex);
+ 	pr_debug("au0828_enable_source() end %s %d %d\n",
+ 		 entity->name, entity->function, ret);
+ 	return ret;
+ }
+ 
++/* Callers should hold graph_mutex */
+ static void au0828_disable_source(struct media_entity *entity)
+ {
+ 	int ret = 0;
+@@ -434,13 +435,10 @@ static void au0828_disable_source(struct media_entity *entity)
+ 	if (!mdev)
+ 		return;
+ 
+-	mutex_lock(&mdev->graph_mutex);
+ 	dev = mdev->source_priv;
+ 
+-	if (!dev->active_link) {
+-		ret = -ENODEV;
+-		goto end;
+-	}
++	if (!dev->active_link)
++		return;
+ 
+ 	/* link is active - stop pipeline from source (tuner) */
+ 	if (dev->active_link->sink->entity == dev->active_sink &&
+@@ -450,7 +448,7 @@ static void au0828_disable_source(struct media_entity *entity)
+ 		 * has active pipeline
+ 		*/
+ 		if (dev->active_link_owner != entity)
+-			goto end;
++			return;
+ 		__media_entity_pipeline_stop(entity);
+ 		ret = __media_entity_setup_link(dev->active_link, 0);
+ 		if (ret)
+@@ -465,9 +463,6 @@ static void au0828_disable_source(struct media_entity *entity)
+ 		dev->active_source = NULL;
+ 		dev->active_sink = NULL;
+ 	}
+-
+-end:
+-	mutex_unlock(&mdev->graph_mutex);
+ }
+ #endif
+ 
+@@ -549,9 +544,11 @@ static int au0828_media_device_register(struct au0828_dev *dev,
+ 		return ret;
+ 	}
+ 	/* set enable_source */
++	mutex_lock(&dev->media_dev->graph_mutex);
+ 	dev->media_dev->source_priv = (void *) dev;
+ 	dev->media_dev->enable_source = au0828_enable_source;
+ 	dev->media_dev->disable_source = au0828_disable_source;
++	mutex_unlock(&dev->media_dev->graph_mutex);
+ #endif
+ 	return 0;
+ }
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 8bef433..b169d24 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -198,14 +198,20 @@ EXPORT_SYMBOL_GPL(v4l2_mc_create_media_graph);
+ int v4l_enable_media_source(struct video_device *vdev)
+ {
+ 	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+-	int ret;
++	int ret = 0, err;
+ 
+-	if (!mdev || !mdev->enable_source)
++	if (!mdev)
+ 		return 0;
+-	ret = mdev->enable_source(&vdev->entity, &vdev->pipe);
+-	if (ret)
+-		return -EBUSY;
+-	return 0;
++
++	mutex_lock(&mdev->graph_mutex);
++	if (!mdev->enable_source)
++		goto end;
++	err = mdev->enable_source(&vdev->entity, &vdev->pipe);
++	if (err)
++		ret = -EBUSY;
++end:
++	mutex_unlock(&mdev->graph_mutex);
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l_enable_media_source);
+ 
+@@ -213,8 +219,12 @@ void v4l_disable_media_source(struct video_device *vdev)
+ {
+ 	struct media_device *mdev = vdev->entity.graph_obj.mdev;
+ 
+-	if (mdev && mdev->disable_source)
+-		mdev->disable_source(&vdev->entity);
++	if (mdev) {
++		mutex_lock(&mdev->graph_mutex);
++		if (mdev->disable_source)
++			mdev->disable_source(&vdev->entity);
++		mutex_unlock(&mdev->graph_mutex);
++	}
+ }
+ EXPORT_SYMBOL_GPL(v4l_disable_media_source);
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 633f2e3..1189ac8 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -123,6 +123,8 @@ struct media_device_ops {
+  *    bridge driver finds the media_device during probe.
+  *    Bridge driver sets source_priv with information
+  *    necessary to run @enable_source and @disable_source handlers.
++ *    Callers should hold graph_mutex to access and call @enable_source
++ *    and @disable_source handlers.
+  */
+ struct media_device {
+ 	/* dev->driver_data points to this struct. */
+-- 
+2.7.4
+
