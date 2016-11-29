@@ -1,182 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35198 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751423AbcKHNzd (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34017 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753016AbcK2RfG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 8 Nov 2016 08:55:33 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: mchehab@osg.samsung.com, shuahkh@osg.samsung.com,
-        laurent.pinchart@ideasonboard.com
-Subject: [RFC v4 02/21] Revert "[media] media: fix use-after-free in cdev_put() when app exits after driver unbind"
-Date: Tue,  8 Nov 2016 15:55:11 +0200
-Message-Id: <1478613330-24691-2-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
+        Tue, 29 Nov 2016 12:35:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: stern@rowland.harvard.edu, linux-media@vger.kernel.org,
+        linux-pm@vger.kernel.org
+Subject: Re: [PATCH v2.1 1/2] smiapp: Implement power-on and power-off sequences without runtime PM
+Date: Tue, 29 Nov 2016 19:35:17 +0200
+Message-ID: <1930557.lG90R1cLyV@avalon>
+In-Reply-To: <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1479594266-3034-2-git-send-email-sakari.ailus@linux.intel.com> <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit 5b28dde51d0c ("[media] media: fix use-after-free in
-cdev_put() when app exits after driver unbind"). The commit was part of an
-original patchset to avoid crashes when an unregistering device is in use.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/media-device.c  |  6 ++----
- drivers/media/media-devnode.c | 48 +++++++++++++++++--------------------------
- 2 files changed, 21 insertions(+), 33 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index f2525eb..6f5ed09 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -721,16 +721,16 @@ int __must_check __media_device_register(struct media_device *mdev,
- 
- 	ret = media_devnode_register(mdev, devnode, owner);
- 	if (ret < 0) {
--		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
-+		kfree(devnode);
- 		return ret;
- 	}
- 
- 	ret = device_create_file(&devnode->dev, &dev_attr_model);
- 	if (ret < 0) {
--		/* devnode free is handled in media_devnode_*() */
- 		mdev->devnode = NULL;
- 		media_devnode_unregister(devnode);
-+		kfree(devnode);
- 		return ret;
- 	}
- 
-@@ -810,8 +810,6 @@ void media_device_unregister(struct media_device *mdev)
- 	if (media_devnode_is_registered(mdev->devnode)) {
- 		device_remove_file(&mdev->devnode->dev, &dev_attr_model);
- 		media_devnode_unregister(mdev->devnode);
--		/* devnode free is handled in media_devnode_*() */
--		mdev->devnode = NULL;
- 	}
- }
- EXPORT_SYMBOL_GPL(media_device_unregister);
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 5b605ff..ecdc02d 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -63,8 +63,13 @@ static void media_devnode_release(struct device *cd)
- 	struct media_devnode *devnode = to_media_devnode(cd);
- 
- 	mutex_lock(&media_devnode_lock);
-+
-+	/* Delete the cdev on this minor as well */
-+	cdev_del(&devnode->cdev);
-+
- 	/* Mark device node number as free */
- 	clear_bit(devnode->minor, media_devnode_nums);
-+
- 	mutex_unlock(&media_devnode_lock);
- 
- 	/* Release media_devnode and perform other cleanups as needed. */
-@@ -72,7 +77,6 @@ static void media_devnode_release(struct device *cd)
- 		devnode->release(devnode);
- 
- 	kfree(devnode);
--	pr_debug("%s: Media Devnode Deallocated\n", __func__);
- }
- 
- static struct bus_type media_bus_type = {
-@@ -201,8 +205,6 @@ static int media_release(struct inode *inode, struct file *filp)
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	put_device(&devnode->dev);
--
--	pr_debug("%s: Media Release\n", __func__);
- 	return 0;
- }
- 
-@@ -233,7 +235,6 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	if (minor == MEDIA_NUM_DEVICES) {
- 		mutex_unlock(&media_devnode_lock);
- 		pr_err("could not get a free minor\n");
--		kfree(devnode);
- 		return -ENFILE;
- 	}
- 
-@@ -243,31 +244,27 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 	devnode->minor = minor;
- 	devnode->media_dev = mdev;
- 
--	/* Part 1: Initialize dev now to use dev.kobj for cdev.kobj.parent */
--	devnode->dev.bus = &media_bus_type;
--	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
--	devnode->dev.release = media_devnode_release;
--	if (devnode->parent)
--		devnode->dev.parent = devnode->parent;
--	dev_set_name(&devnode->dev, "media%d", devnode->minor);
--	device_initialize(&devnode->dev);
--
- 	/* Part 2: Initialize and register the character device */
- 	cdev_init(&devnode->cdev, &media_devnode_fops);
- 	devnode->cdev.owner = owner;
--	devnode->cdev.kobj.parent = &devnode->dev.kobj;
- 
- 	ret = cdev_add(&devnode->cdev, MKDEV(MAJOR(media_dev_t), devnode->minor), 1);
- 	if (ret < 0) {
- 		pr_err("%s: cdev_add failed\n", __func__);
--		goto cdev_add_error;
-+		goto error;
- 	}
- 
--	/* Part 3: Add the media device */
--	ret = device_add(&devnode->dev);
-+	/* Part 3: Register the media device */
-+	devnode->dev.bus = &media_bus_type;
-+	devnode->dev.devt = MKDEV(MAJOR(media_dev_t), devnode->minor);
-+	devnode->dev.release = media_devnode_release;
-+	if (devnode->parent)
-+		devnode->dev.parent = devnode->parent;
-+	dev_set_name(&devnode->dev, "media%d", devnode->minor);
-+	ret = device_register(&devnode->dev);
- 	if (ret < 0) {
--		pr_err("%s: device_add failed\n", __func__);
--		goto device_add_error;
-+		pr_err("%s: device_register failed\n", __func__);
-+		goto error;
- 	}
- 
- 	/* Part 4: Activate this minor. The char device can now be used. */
-@@ -275,15 +272,12 @@ int __must_check media_devnode_register(struct media_device *mdev,
- 
- 	return 0;
- 
--device_add_error:
--	cdev_del(&devnode->cdev);
--cdev_add_error:
-+error:
- 	mutex_lock(&media_devnode_lock);
-+	cdev_del(&devnode->cdev);
- 	clear_bit(devnode->minor, media_devnode_nums);
--	devnode->media_dev = NULL;
- 	mutex_unlock(&media_devnode_lock);
- 
--	put_device(&devnode->dev);
- 	return ret;
- }
- 
-@@ -295,12 +289,8 @@ void media_devnode_unregister(struct media_devnode *devnode)
- 
- 	mutex_lock(&media_devnode_lock);
- 	clear_bit(MEDIA_FLAG_REGISTERED, &devnode->flags);
--	/* Delete the cdev on this minor as well */
--	cdev_del(&devnode->cdev);
- 	mutex_unlock(&media_devnode_lock);
--	device_del(&devnode->dev);
--	devnode->media_dev = NULL;
--	put_device(&devnode->dev);
-+	device_unregister(&devnode->dev);
- }
- 
- /*
+On Tuesday 29 Nov 2016 19:28:53 Sakari Ailus wrote:
+> Power on the sensor when the module is loaded and power it off when it is
+> removed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Alan and Laurent,
+> 
+> I hope this should be good then. I'm only enabling runtime PM at the end
+> of probe() when all is well, which reduces need for error handling.
+> 
+> Regards,
+> Sakari
+> 
+>  drivers/media/i2c/smiapp/smiapp-core.c | 28 +++++++++-------------------
+>  1 file changed, 9 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c
+> b/drivers/media/i2c/smiapp/smiapp-core.c index 59872b3..683a3e0 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2741,8 +2741,6 @@ static const struct v4l2_subdev_internal_ops
+> smiapp_internal_ops = { * I2C Driver
+>   */
+> 
+> -#ifdef CONFIG_PM
+> -
+>  static int smiapp_suspend(struct device *dev)
+>  {
+>  	struct i2c_client *client = to_i2c_client(dev);
+> @@ -2783,13 +2781,6 @@ static int smiapp_resume(struct device *dev)
+>  	return rval;
+>  }
+> 
+> -#else
+> -
+> -#define smiapp_suspend	NULL
+> -#define smiapp_resume	NULL
+> -
+> -#endif /* CONFIG_PM */
+> -
+>  static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+>  {
+>  	struct smiapp_hwconfig *hwcfg;
+> @@ -2913,13 +2904,9 @@ static int smiapp_probe(struct i2c_client *client,
+>  	if (IS_ERR(sensor->xshutdown))
+>  		return PTR_ERR(sensor->xshutdown);
+> 
+> -	pm_runtime_enable(&client->dev);
+> -
+> -	rval = pm_runtime_get_sync(&client->dev);
+> -	if (rval < 0) {
+> -		rval = -ENODEV;
+> -		goto out_power_off;
+> -	}
+> +	rval = smiapp_power_on(&client->dev);
+> +	if (rval < 0)
+> +		return rval;
+> 
+>  	rval = smiapp_identify_module(sensor);
+>  	if (rval) {
+> @@ -3100,6 +3087,9 @@ static int smiapp_probe(struct i2c_client *client,
+>  	if (rval < 0)
+>  		goto out_media_entity_cleanup;
+> 
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_get_noresume(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+>  	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
+>  	pm_runtime_use_autosuspend(&client->dev);
+>  	pm_runtime_put_autosuspend(&client->dev);
+
+This looks better to me, although these 6 lines really call for a new helper 
+function.
+
+However, I still believe a helper that calls the runtime PM handlers directly 
+when CONFIG_PM=n and rely on runtime PM when CONFIG_PM=y would be the cleanest 
+solution from a driver point of view.
+
+> @@ -3113,8 +3103,7 @@ static int smiapp_probe(struct i2c_client *client,
+>  	smiapp_cleanup(sensor);
+> 
+>  out_power_off:
+> -	pm_runtime_put(&client->dev);
+> -	pm_runtime_disable(&client->dev);
+> +	smiapp_power_off(&client->dev);
+> 
+>  	return rval;
+>  }
+> @@ -3127,8 +3116,9 @@ static int smiapp_remove(struct i2c_client *client)
+> 
+>  	v4l2_async_unregister_subdev(subdev);
+> 
+> -	pm_runtime_suspend(&client->dev);
+>  	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +	smiapp_power_off(&client->dev);
+
+The device could be powered off already.
+
+> 
+>  	for (i = 0; i < sensor->ssds_used; i++) {
+>  		v4l2_device_unregister_subdev(&sensor->ssds[i].sd);
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
