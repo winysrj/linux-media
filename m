@@ -1,128 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56750 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756531AbcKKNsC (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:46660
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1757153AbcK2RRg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 11 Nov 2016 08:48:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        sakari.ailus@linux.intel.com, crope@iki.fi,
-        chris.paterson2@renesas.com, geert+renesas@glider.be,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 2/5] media: i2c: max2175: Add MAX2175 support
-Date: Fri, 11 Nov 2016 15:48:04 +0200
-Message-ID: <1903855.3Xg5AI8ucK@avalon>
-In-Reply-To: <46394837-c3f0-8487-750b-95dae7bcf859@xs4all.nl>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <1478706284-59134-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com> <46394837-c3f0-8487-750b-95dae7bcf859@xs4all.nl>
+        Tue, 29 Nov 2016 12:17:36 -0500
+Date: Tue, 29 Nov 2016 15:17:26 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org
+Cc: mchehab@kernel.org, mkrufky@linuxtv.org, klock.android@gmail.com,
+        elfring@users.sourceforge.net, max@duempel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 0/2] media protect enable and disable source handler
+ paths
+Message-ID: <20161129151726.1c19a883@vento.lan>
+In-Reply-To: <9881c3f5-6d6a-14d0-8c22-da8a2eb8d268@osg.samsung.com>
+References: <cover.1480384155.git.shuahkh@osg.samsung.com>
+        <20161129071526.5a004b75@vento.lan>
+        <9881c3f5-6d6a-14d0-8c22-da8a2eb8d268@osg.samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Tue, 29 Nov 2016 10:07:21 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-On Friday 11 Nov 2016 14:21:22 Hans Verkuil wrote:
-> On 11/09/2016 04:44 PM, Ramesh Shanmugasundaram wrote:
-> > This patch adds driver support for MAX2175 chip. This is Maxim
-> > Integrated's RF to Bits tuner front end chip designed for software-defined
-> > radio solutions. This driver exposes the tuner as a sub-device instance
-> > with standard and custom controls to configure the device.
+> On 11/29/2016 02:15 AM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 28 Nov 2016 19:15:12 -0700
+> > Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> >   
+> >> These two patches fix enable and disable source handler paths. These
+> >> aren't dependent patches, grouped because they fix similar problems.  
 > > 
-> > Signed-off-by: Ramesh Shanmugasundaram
-> > <ramesh.shanmugasundaram@bp.renesas.com> ---
+> > Those two patches should be fold, as applying just the first patch
+> > would cause au0828 to try to double lock.
+> >   
+> 
+> No it doesn't. The first patch holds the lock to just clear and set
+> enable disable source handlers and doesn't change any other paths.
+> The second patch removes lock hold from enable and disable source
+> handlers and the callers to hold the lock.
+> 
+> However, I can easily fold them together and not a problem.
+> 
+> >>
+> >> This work is triggered by a review comment from Mauro Chehab on a
+> >> snd_usb_audio patch about protecting the enable and disabel handler
+> >> path in it.
+> >>
+> >> Ran tests to make sure enable and disable handler paths work. When
+> >> digital stream is active, analog app finds the tuner busy and vice
+> >> versa. Also ran the Sakari's unbind while video stream is active test.  
 > > 
-> >  .../devicetree/bindings/media/i2c/max2175.txt      |   61 +
-> >  drivers/media/i2c/Kconfig                          |    4 +
-> >  drivers/media/i2c/Makefile                         |    2 +
-> >  drivers/media/i2c/max2175/Kconfig                  |    8 +
-> >  drivers/media/i2c/max2175/Makefile                 |    4 +
-> >  drivers/media/i2c/max2175/max2175.c                | 1558 +++++++++++++++
-> >  drivers/media/i2c/max2175/max2175.h                |  108 ++
-> >  7 files changed, 1745 insertions(+)
-> >  create mode 100644
-> >  Documentation/devicetree/bindings/media/i2c/max2175.txt
-> >  create mode 100644 drivers/media/i2c/max2175/Kconfig
-> >  create mode 100644 drivers/media/i2c/max2175/Makefile
-> >  create mode 100644 drivers/media/i2c/max2175/max2175.c
-> >  create mode 100644 drivers/media/i2c/max2175/max2175.h
+> > Sorry, but your patches descriptions don't make things clear:  
 > 
-> <snip>
+> Right. I should have explained it better.
 > 
-> > diff --git a/drivers/media/i2c/max2175/max2175.c
-> > b/drivers/media/i2c/max2175/max2175.c new file mode 100644
-> > index 0000000..ec45b52
-> > --- /dev/null
-> > +++ b/drivers/media/i2c/max2175/max2175.c
-> > @@ -0,0 +1,1558 @@
+> > 
+> > - It doesn't present any OOPS or logs that would help to
+> >   understand what you're trying to fix;
+> > 
+> > - From what I understood, you're moving the lock out of
+> >   enable/disable handlers, and letting their callers to do
+> >   the locks themselves. Why? Are there any condition where it
+> >   won't need to be locked?  
 > 
-> <snip>
+> So here is the scenario these patches fix. Say user app starts
+> and during start of video streaming v4l2 checks to see if enable
+> source handler is defined. This check is done without holding the
+> graph_mutex.
+
+Why? You need to hold the graph_mutex before navigating at the
+media graph, or to convert MC to use a lockless protection (like 
+RCU or restartable sequence).
+
+> If unbind happens to be in progress, au0828 could
+> clear enable and disable source handlers. So these could race.
+> I am not how large this window is, but could happen.
 > 
-> > +/* Read/Write bit(s) on top of regmap */
-> > +static int max2175_read(struct max2175 *ctx, u8 idx, u8 *val)
-> > +{
-> > +	u32 regval;
-> > +	int ret = regmap_read(ctx->regmap, idx, &regval);
-> > +
-> > +	if (ret)
-> > +		v4l2_err(ctx->client, "read ret(%d): idx 0x%02x\n", ret, idx);
-
-By the way, I think I've seen a proposal to get rid of v4l2_err() in favour of 
-dev_err(), was I dreaming or should this patch use dev_err() already ?
-
-> > +
-> > +	*val = regval;
+> If graph_mutex protects the check for enable source handler not
+> being null, then it has to be released before calling enable source
+> handler as shown below:
 > 
-> Does regmap_read initialize regval even if it returns an error? If not,
-> then I would initialize regval to 0 to prevent *val being uninitialized.
-
-Better than that the error should be propagated to the caller and handled.
-
-> > +	return ret;
-> > +}
-
-[snip]
-
-> > +static int max2175_band_from_freq(u32 freq)
-> > +{
-> > +	if (freq >= 144000 && freq <= 26100000)
-> > +		return MAX2175_BAND_AM;
-> > +	else if (freq >= 65000000 && freq <= 108000000)
-> > +		return MAX2175_BAND_FM;
-> > +	else
+> if (mdev) {
+> 	mutex_lock(&mdev->graph_mutex);
+> 	if (mdev->disable_source) {
+> 		mutex_unlock(&mdev->graph_mutex);
+> 		mdev->disable_source(&vdev->entity);
+> 	} else
+> 		mutex_unlock(&mdev->graph_mutex);
+> }
 > 
-> No need for these 'else' keywords.
+> The above will leave another window for handlers to be cleared.
+> That is why it would make sense for the caller to hold the lock
+> and the call enable and disable source handlers.
 
-Indeed by in my opinion they improve readability :-)
-
-> > +		return MAX2175_BAND_VHF;
-> > +}
-
-[snip]
-
-> > +static const struct v4l2_ctrl_config max2175_na_rx_mode = {
-> > +	.ops = &max2175_ctrl_ops,
-> > +	.id = V4L2_CID_MAX2175_RX_MODE,
-> > +	.name = "RX MODE",
-> > +	.type = V4L2_CTRL_TYPE_MENU,
-> > +	.max = ARRAY_SIZE(max2175_ctrl_na_rx_modes) - 1,
-> > +	.def = 0,
-> > +	.qmenu = max2175_ctrl_na_rx_modes,
-> > +};
+I see. Please add such explanation at the patch description,
+showing how it should happen, instead.
 > 
-> Please document all these controls better. This is part of the public API,
-> so you need to give more information what this means exactly.
+> > 
+> > - It is not touching documentation. If now the callbacks should
+> >   not implement locks, this should be explicitly described.  
+> 
+> Yes documentation needs to be updated and I can do that in v2 if
+> we are okay with this approach.
+> 
+> > 
+> > Btw, I think it is a bad idea to let the callers to handle
+> > the locks. The best would be, instead, to change the code in
+> > some other way to avoid it, if possible. If not possible at all,
+> > clearly describe why it is not possible and insert some comments
+> > inside the code, to avoid some cleanup patch to mess up with this.
+> >   
+> 
+> Hope the above explanation helps answer the question. We do need a
+> way to protect enable and disable handler access and the call itself.
+> I am using the same graph_mutex for both, hence I decided to have the
+> caller hold the lock. Any other ideas welcome.
+> 
+> thanks,
+> -- Shuah
+> 
 
-Should that go to Documentation/media/v4l-drivers/ ? If so "[PATCH v4 3/4] 
-v4l: Add Renesas R-Car FDP1 Driver" can be used as an example.
 
-[snip]
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Mauro
