@@ -1,47 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f45.google.com ([74.125.83.45]:35807 "EHLO
-        mail-pg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754185AbcKVBoT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40766 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1758181AbcK3QLm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 21 Nov 2016 20:44:19 -0500
-Received: by mail-pg0-f45.google.com with SMTP id p66so1562669pga.2
-        for <linux-media@vger.kernel.org>; Mon, 21 Nov 2016 17:44:11 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: [PATCH v2 0/4] [media] davinci: VPIF: add DT support
-Date: Mon, 21 Nov 2016 17:44:04 -0800
-Message-Id: <20161122014408.22388-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        Wed, 30 Nov 2016 11:11:42 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: stern@rowland.harvard.edu
+Cc: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-pm@vger.kernel.org
+Subject: [PATCH v2.2 1/2] smiapp: Implement power-on and power-off sequences without runtime PM
+Date: Wed, 30 Nov 2016 18:11:36 +0200
+Message-Id: <1480522296-24006-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1480440533-32685-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DT support, including getting subdevs from DT ports/endpoints.
+Power on the sensor when the module is loaded and power it off when it is
+removed.
 
-Changes since v1:
-- more specific compatible strings, based on SoC: ti,da850-vpif*
-- fix locking bug when unlocking over subdev s_stream
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v2.1:
 
-Kevin Hilman (4):
-  [media] davinci: add support for DT init
-  [media] davinci: vpif_capture: don't lock over s_stream
-  [media] davinci: vpif_capture: get subdevs from DT
-  [media] dt-bindings: add TI VPIF documentation
+- Power off conditionally, i.e. only if the device was powered.
+  pm_runtime_status_suspended() returns false if CONFIG_PM is not set.
 
- .../bindings/media/ti,da850-vpif-capture.txt       |  65 +++++++++
- .../devicetree/bindings/media/ti,da850-vpif.txt    |   8 ++
- drivers/media/platform/davinci/vpif.c              |   9 ++
- drivers/media/platform/davinci/vpif_capture.c      | 147 ++++++++++++++++++++-
- include/media/davinci/vpif_types.h                 |   9 +-
- 5 files changed, 232 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif-capture.txt
- create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+ drivers/media/i2c/smiapp/smiapp-core.c | 29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 59872b3..620f8ce 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2741,8 +2741,6 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
+  * I2C Driver
+  */
+ 
+-#ifdef CONFIG_PM
+-
+ static int smiapp_suspend(struct device *dev)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+@@ -2783,13 +2781,6 @@ static int smiapp_resume(struct device *dev)
+ 	return rval;
+ }
+ 
+-#else
+-
+-#define smiapp_suspend	NULL
+-#define smiapp_resume	NULL
+-
+-#endif /* CONFIG_PM */
+-
+ static struct smiapp_hwconfig *smiapp_get_hwconfig(struct device *dev)
+ {
+ 	struct smiapp_hwconfig *hwcfg;
+@@ -2913,13 +2904,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (IS_ERR(sensor->xshutdown))
+ 		return PTR_ERR(sensor->xshutdown);
+ 
+-	pm_runtime_enable(&client->dev);
+-
+-	rval = pm_runtime_get_sync(&client->dev);
+-	if (rval < 0) {
+-		rval = -ENODEV;
+-		goto out_power_off;
+-	}
++	rval = smiapp_power_on(&client->dev);
++	if (rval < 0)
++		return rval;
+ 
+ 	rval = smiapp_identify_module(sensor);
+ 	if (rval) {
+@@ -3100,6 +3087,9 @@ static int smiapp_probe(struct i2c_client *client,
+ 	if (rval < 0)
+ 		goto out_media_entity_cleanup;
+ 
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_get_noresume(&client->dev);
++	pm_runtime_enable(&client->dev);
+ 	pm_runtime_set_autosuspend_delay(&client->dev, 1000);
+ 	pm_runtime_use_autosuspend(&client->dev);
+ 	pm_runtime_put_autosuspend(&client->dev);
+@@ -3113,8 +3103,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 	smiapp_cleanup(sensor);
+ 
+ out_power_off:
+-	pm_runtime_put(&client->dev);
+-	pm_runtime_disable(&client->dev);
++	smiapp_power_off(&client->dev);
+ 
+ 	return rval;
+ }
+@@ -3127,8 +3116,10 @@ static int smiapp_remove(struct i2c_client *client)
+ 
+ 	v4l2_async_unregister_subdev(subdev);
+ 
+-	pm_runtime_suspend(&client->dev);
+ 	pm_runtime_disable(&client->dev);
++	if (!pm_runtime_status_suspended(&client->dev))
++		smiapp_power_off(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
+ 
+ 	for (i = 0; i < sensor->ssds_used; i++) {
+ 		v4l2_device_unregister_subdev(&sensor->ssds[i].sd);
 -- 
-2.9.3
+2.1.4
 
