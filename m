@@ -1,53 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www381.your-server.de ([78.46.137.84]:59224 "EHLO
-        www381.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757303AbcK2LXz (ORCPT
+Received: from mailgw01.mediatek.com ([210.61.82.183]:47863 "EHLO
+        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755862AbcK3DJ6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 29 Nov 2016 06:23:55 -0500
-From: Lars-Peter Clausen <lars@metafoo.de>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, Lars-Peter Clausen <lars@metafoo.de>
-Subject: [PATCH] [media] adv7604: Initialize drive strength to default when using DT
-Date: Tue, 29 Nov 2016 12:23:48 +0100
-Message-Id: <1480418628-21879-1-git-send-email-lars@metafoo.de>
+        Tue, 29 Nov 2016 22:09:58 -0500
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>
+Subject: [PATCH v8 3/4] arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+Date: Wed, 30 Nov 2016 11:08:59 +0800
+Message-ID: <1480475340-21893-4-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
+References: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The adv7604 driver platform data contains fields for configuring the drive
-strength of the output pins. When probing the driver through DT these
-fields are not explicitly initialized, which means they are left at 0. This
-is a reserved setting for the drive strength configuration though and can
-cause signal integrity issues.
-
-Whether these signal integrity issues are visible depends on the PCB
-specifics (e.g. the higher the load capacitance for the output the more
-visible the issue). But it has been observed on existing solutions at high
-pixel clock rates.
-
-Initialize the drive strength settings to the power-on-reset value of the
-device when probing through devicetree to avoid this issue.
-
-Fixes: 0e158be0162b ("adv7604: Add DT support")
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 ---
- drivers/media/i2c/adv7604.c | 3 +++
- 1 file changed, 3 insertions(+)
+This patch depends on: 
+  CCF "Add clock support for Mediatek MT2701"[1]
+  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
 
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-index 5630eb2..a4dc64a 100644
---- a/drivers/media/i2c/adv7604.c
-+++ b/drivers/media/i2c/adv7604.c
-@@ -3132,6 +3132,9 @@ static int adv76xx_parse_dt(struct adv76xx_state *state)
- 	state->pdata.blank_data = 1;
- 	state->pdata.op_format_mode_sel = ADV7604_OP_FORMAT_MODE0;
- 	state->pdata.bus_order = ADV7604_BUS_ORDER_RGB;
-+	state->pdata.dr_str_data = ADV76XX_DR_STR_MEDIUM_HIGH;
-+	state->pdata.dr_str_clk = ADV76XX_DR_STR_MEDIUM_HIGH;
-+	state->pdata.dr_str_sync = ADV76XX_DR_STR_MEDIUM_HIGH;
+[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+[2] https://patchwork.kernel.org/patch/9164013/
+---
+ arch/arm/boot/dts/mt2701.dtsi | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/arch/arm/boot/dts/mt2701.dtsi b/arch/arm/boot/dts/mt2701.dtsi
+index 8f13c70..4dd5048 100644
+--- a/arch/arm/boot/dts/mt2701.dtsi
++++ b/arch/arm/boot/dts/mt2701.dtsi
+@@ -298,6 +298,20 @@
+ 		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
+ 	};
  
- 	return 0;
- }
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,mt2701-jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
++
+ 	vdecsys: syscon@16000000 {
+ 		compatible = "mediatek,mt2701-vdecsys", "syscon";
+ 		reg = <0 0x16000000 0 0x1000>;
 -- 
-2.1.4
+1.9.1
 
