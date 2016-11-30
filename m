@@ -1,85 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.131]:50852 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935157AbcKJQr0 (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:60147 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755402AbcK3DJl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 11:47:26 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Tue, 29 Nov 2016 22:09:41 -0500
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        x86@kernel.org, linux-kbuild@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: [PATCH v2 03/11] x86: apm: avoid uninitialized data
-Date: Thu, 10 Nov 2016 17:44:46 +0100
-Message-Id: <20161110164454.293477-4-arnd@arndb.de>
-In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
-References: <20161110164454.293477-1-arnd@arndb.de>
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>
+Subject: [PATCH v8 1/4] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+Date: Wed, 30 Nov 2016 11:08:57 +0800
+Message-ID: <1480475340-21893-2-git-send-email-rick.chang@mediatek.com>
+In-Reply-To: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
+References: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-apm_bios_call() can fail, and return a status in its argument
-structure. If that status however is zero during a call from
-apm_get_power_status(), we end up using data that may have
-never been set, as reported by "gcc -Wmaybe-uninitialized":
+Add a DT binding documentation for Mediatek JPEG Decoder of
+MT2701 SoC.
 
-arch/x86/kernel/apm_32.c: In function ‘apm’:
-arch/x86/kernel/apm_32.c:1729:17: error: ‘bx’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-arch/x86/kernel/apm_32.c:1835:5: error: ‘cx’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-arch/x86/kernel/apm_32.c:1730:17: note: ‘cx’ was declared here
-arch/x86/kernel/apm_32.c:1842:27: error: ‘dx’ may be used uninitialized in this function [-Werror=maybe-uninitialized]
-arch/x86/kernel/apm_32.c:1731:17: note: ‘dx’ was declared here
-
-This changes the function to return "APM_NO_ERROR" here, which
-makes the code more robust to broken BIOS versions, and avoids
-the warning.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Jiri Kosina <jkosina@suse.cz>
-Reviewed-by: Luis R. Rodriguez <mcgrof@kernel.org>
+Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+Acked-by: Rob Herring <robh@kernel.org>
 ---
- arch/x86/kernel/apm_32.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ .../bindings/media/mediatek-jpeg-decoder.txt       | 37 ++++++++++++++++++++++
+ 1 file changed, 37 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
 
-diff --git a/arch/x86/kernel/apm_32.c b/arch/x86/kernel/apm_32.c
-index c7364bd..51287cd 100644
---- a/arch/x86/kernel/apm_32.c
-+++ b/arch/x86/kernel/apm_32.c
-@@ -1042,8 +1042,11 @@ static int apm_get_power_status(u_short *status, u_short *bat, u_short *life)
- 
- 	if (apm_info.get_power_status_broken)
- 		return APM_32_UNSUPPORTED;
--	if (apm_bios_call(&call))
-+	if (apm_bios_call(&call)) {
-+		if (!call.err)
-+			return APM_NO_ERROR;
- 		return call.err;
-+	}
- 	*status = call.ebx;
- 	*bat = call.ecx;
- 	if (apm_info.get_power_status_swabinminutes) {
+diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt b/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+new file mode 100644
+index 0000000..3813947
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+@@ -0,0 +1,37 @@
++* Mediatek JPEG Decoder
++
++Mediatek JPEG Decoder is the JPEG decode hardware present in Mediatek SoCs
++
++Required properties:
++- compatible : must be one of the following string:
++	"mediatek,mt8173-jpgdec"
++	"mediatek,mt2701-jpgdec"
++- reg : physical base address of the jpeg decoder registers and length of
++  memory mapped region.
++- interrupts : interrupt number to the interrupt controller.
++- clocks: device clocks, see
++  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
++- clock-names: must contain "jpgdec-smi" and "jpgdec".
++- power-domains: a phandle to the power domain, see
++  Documentation/devicetree/bindings/power/power_domain.txt for details.
++- mediatek,larb: must contain the local arbiters in the current Socs, see
++  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
++  for details.
++- iommus: should point to the respective IOMMU block with master port as
++  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
++  for details.
++
++Example:
++	jpegdec: jpegdec@15004000 {
++		compatible = "mediatek,mt2701-jpgdec";
++		reg = <0 0x15004000 0 0x1000>;
++		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
++		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
++			  <&imgsys CLK_IMG_JPGDEC>;
++		clock-names = "jpgdec-smi",
++			      "jpgdec";
++		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
++		mediatek,larb = <&larb2>;
++		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
++			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
++	};
 -- 
-2.9.0
+1.9.1
 
