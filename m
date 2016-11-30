@@ -1,139 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:49502 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754682AbcKBN3u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 2 Nov 2016 09:29:50 -0400
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        tomoharu.fukawa.eb@renesas.com,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH 31/32] media: rcar-vin: enable support for r8a7795
-Date: Wed,  2 Nov 2016 14:23:28 +0100
-Message-Id: <20161102132329.436-32-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20161102132329.436-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from userp1040.oracle.com ([156.151.31.81]:51846 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753532AbcK3Oqq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Nov 2016 09:46:46 -0500
+Date: Wed, 30 Nov 2016 17:45:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>,
+        Sakari Alius <sakari.ailus@iki.fi>, wharms@bfs.de,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
+Message-ID: <20161130144522.GJ28558@mwanda>
+References: <20161125102835.GA5856@mwanda>
+ <13737175.iVr8OcoHqv@avalon>
+ <20161130123326.GH28558@mwanda>
+ <3099994.m2oKJeJMud@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3099994.m2oKJeJMud@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas Salvator-X H3 (r8a7795)
-board.
+On Wed, Nov 30, 2016 at 03:53:03PM +0200, Laurent Pinchart wrote:
+> But then you get the following patch (which, apart from being totally made up, 
+> probably shows what I've watched yesterday evening).
+> 
+> @@ ... @@
+>  		return -ENOMEM;
+>  	}
+>  
+> +	ret = check_time_vortex();
+> +	if (ret < 0)
+> +		goto power_off_tardis;
+> +
+> 	matt_smith = alloc_regeneration();
+> 	if (math_smith->status != OK) {
+> 		ret = -E_NEEDS_FISH_FINGERS_AND_CUSTARD;
+> 
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/Kconfig     |  2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 71 +++++++++++++++++++++++++++++
- 2 files changed, 72 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index 111d2a1..e0e981c 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -5,7 +5,7 @@ config VIDEO_RCAR_VIN
- 	select VIDEOBUF2_DMA_CONTIG
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index a409157..2124f0a 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -1130,6 +1130,73 @@ static const struct rvin_info rcar_info_m1 = {
- 	.max_height = 2048,
- };
- 
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.chip = RCAR_GEN3,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 6,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_CSI21, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI41, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+			{ .csi = RVIN_CSI21, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI41, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_CSI21, .chan = 1 },
-+			{ .csi = RVIN_CSI41, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+			{ .csi = RVIN_CSI21, .chan = 3 },
-+		},
-+	},
-+};
-+
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
- 	.max_width = 2048,
-@@ -1138,6 +1205,10 @@ static const struct rvin_info rcar_info_gen2 = {
- 
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = (void *)&rcar_info_r8a7795,
-+	},
-+	{
- 		.compatible = "renesas,vin-r8a7794",
- 		.data = (void *)&rcar_info_gen2,
- 	},
--- 
-2.10.2
+I don't get it.  Did we power on the tardis on the lines before?  That's
+all the state that you need to keep in your head is just the most
+recently allocated thing.
+
+> >From that code only you can't tell whether the jump label is the right one. If 
+> a single jump label is used with an unwinding code block that supports non-
+> allocated resources, you don't have to ask yourself any question.
+> 
+
+You absolutely do have to ask that question, you just can't answer it
+without jumping back and forth.  Doing everything at once is logically
+more complicated than doing them one thing at a time, and empirically
+just from looking at which code has the most bugs, then single exit
+labels are the most buggy.
+
+regards,
+dan carpenter
 
