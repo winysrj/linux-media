@@ -1,133 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52220 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754273AbcKCIOi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 3 Nov 2016 04:14:38 -0400
-Date: Thu, 3 Nov 2016 09:14:33 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161103081433.GA12609@amd>
-References: <20161023200355.GA5391@amd>
- <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
- <20161023203315.GC6391@amd>
- <20161031225408.GB3217@valkosipuli.retiisi.org.uk>
- <20161101153921.GA15268@amd>
- <20161101200831.GE3217@valkosipuli.retiisi.org.uk>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
+        Haggai Eran <haggaie@mellanox.com>
+References: <20161123215510.GA16311@obsidianresearch.com>
+ <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
+ <20161124164249.GD20818@obsidianresearch.com>
+ <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
+ <20161125193252.GC16504@obsidianresearch.com>
+ <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
+ <20161128165751.GB28381@obsidianresearch.com>
+ <1480357179.19407.13.camel@mellanox.com>
+ <20161128190244.GA21975@obsidianresearch.com>
+ <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
+ <20161130162353.GA24639@obsidianresearch.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
+        "christian.koenig@amd.com" <christian.koenig@amd.com>,
+        "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>,
+        "John.Bridgman@amd.com" <John.Bridgman@amd.com>,
+        "Alexander.Deucher@amd.com" <Alexander.Deucher@amd.com>,
+        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
+        "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
+        "logang@deltatee.com" <logang@deltatee.com>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "Paul.Blinzer@amd.com" <Paul.Blinzer@amd.com>,
+        "Felix.Kuehling@amd.com" <Felix.Kuehling@amd.com>,
+        "ben.sander@amd.com" <ben.sander@amd.com>
+From: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
+Message-ID: <2560aab2-426c-6e58-cb4f-77ec76e0c941@amd.com>
+Date: Wed, 30 Nov 2016 12:28:24 -0500
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="WIyZ46R2i8wDzkSu"
-Content-Disposition: inline
-In-Reply-To: <20161101200831.GE3217@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20161130162353.GA24639@obsidianresearch.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 2016-11-30 11:23 AM, Jason Gunthorpe wrote:
+>> Yes, that sounds fine. Can we simply kill the process from the GPU driver?
+>> Or do we need to extend the OOM killer to manage GPU pages?
+> I don't know..
+We could use send_sig_info to send signal from  kernel  to user space. 
+So theoretically GPU driver
+could issue KILL signal to some process.
 
---WIyZ46R2i8wDzkSu
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Wed, Nov 30, 2016 at 12:45:58PM +0200, Haggai Eran wrote:
+>> I think we can achieve the kernel's needs with ZONE_DEVICE and DMA-API support
+>> for peer to peer. I'm not sure we need vmap. We need a way to have a scatterlist
+>> of MMIO pfns, and ZONE_DEVICE allows that.
+I do not think that using DMA-API as it is is the best solution (at 
+least in the current form):
 
-Hi!
+-  It deals with handles/fd for the whole allocation but client 
+could/will use sub-allocation as
+well as theoretically possible to "merge" several allocations in one 
+from GPU perspective.
+-  It require knowledge to export but because "sharing" is controlled 
+from user space it
+means that we must "export" all allocation by default
+- It deals with 'fd'/handles but user application may work with 
+addresses/pointers.
 
-> > > > I'll have to go through the patches, et8ek8 driver is probably not
-> > > > enough to get useful video. platform/video-bus-switch.c is needed f=
-or
-> > > > camera switching, then some omap3isp patches to bind flash and
-> > > > autofocus into the subdevice.
-> > > >=20
-> > > > Then, device tree support on n900 can be added.
-> > >=20
-> > > I briefly discussed with with Sebastian.
-> > >=20
-> > > Do you think the elusive support for the secondary camera is worth ke=
-eping
-> > > out the main camera from the DT in mainline? As long as there's a rea=
-sonable
-> > > way to get it working, I'd just merge that. If someone ever gets the
-> > > secondary camera working properly and nicely with the video bus switc=
-h,
-> > > that's cool, we'll somehow deal with the problem then. But frankly I =
-don't
-> > > think it's very useful even if we get there: the quality is really
-> > > bad.
-> >=20
-> > Well, I am a little bit worried that /dev/video* entries will
-> > renumber themself when the the front camera support is merged,
-> > breaking userspace.
-> >=20
-> > But the first step is still the same: get et8ek8 support merged :-).
->=20
-> Do you happen to have a patch for the DT part as well? People could more
-> easily test this...
-
-If you want complete/working tree for testing, it is at
-
-https://git.kernel.org/cgit/linux/kernel/git/pavel/linux-n900.git/?h=3Dcame=
-ra-v4.9
-
-If you want userspace to go with that, there's fcam-dev. It is on
-gitlab:
-
-https://gitlab.com/pavelm/fcam-dev
-
-
-> > > > > Do all the modes work for you currently btw.?
-> > > >=20
-> > > > I don't think I got 5MP mode to work. Even 2.5MP mode is tricky (ne=
-eds
-> > > > a lot of continuous memory).
-> > >=20
-> > > The OMAP 3 ISP has got an MMU, getting some contiguous memory is not =
-really
-> > > a problem when you have a 4 GiB empty space to use.
-> >=20
-> > Ok, maybe it is something else. 2.5MP mode seems to work better when
-> > there is free memory.
->=20
-> That's very odd. Do you use MMAP or USERPTR buffers btw.? I remember the
-> cache was different on 3430, that could be an issue as well (VIVT AFAIR, =
-so
-> flushing requires making sure there are no other mappings or flushing the
-> entire cache).
-
-The userland code I'm using does
-
- struct v4l2_requestbuffers req;
- memset(&req, 0, sizeof(req));
- req.type   =3D V4L2_BUF_TYPE_VIDEO_CAPTURE;
- req.memory =3D V4L2_MEMORY_MMAP;
- req.count  =3D 8;
- printf("Reqbufs\n");
- if (ioctl(fd, VIDIOC_REQBUFS, &req) < 0) {
- ...
-	=09
-
-so I guess answer to your question is "MMAP". The v4l interface is at
-
-https://gitlab.com/pavelm/fcam-dev/blob/master/src/N900/V4L2Sensor.cpp
-
-=2E
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---WIyZ46R2i8wDzkSu
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlga8ekACgkQMOfwapXb+vKWggCfS0GP6sM8tAu27F9KckDAYRWy
-Jj8AoLoOWFJdFOqMATESI+M5JppUtVdj
-=pXf2
------END PGP SIGNATURE-----
-
---WIyZ46R2i8wDzkSu--
+Also current  DMA-API force each time to do all DMA table programming 
+unrelated if
+location was changed or not. With  vma / mmu  we are  able to install 
+notifier to intercept
+changes in location and update  translation tables only as needed (we do 
+not need to keep
+get_user_pages()  lock).
