@@ -1,102 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:42983 "HELO
-        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1750947AbcKZUKa (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:36232 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754165AbcK3Vje (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 26 Nov 2016 15:10:30 -0500
-Date: Sat, 26 Nov 2016 15:10:28 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sakari Ailus <sakari.ailus@iki.fi>, Arnd Bergmann <arnd@arndb.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        <linux-media@vger.kernel.org>, <linux-pm@vger.kernel.org>
-Subject: Re: [PATCH 1/1] smiapp: Implement power-on and power-off sequences
- without runtime PM
-In-Reply-To: <3007760.0ebxS8fqmr@avalon>
-Message-ID: <Pine.LNX.4.44L0.1611261451230.32289-100000@netrider.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+        Wed, 30 Nov 2016 16:39:34 -0500
+Received: by mail-wm0-f46.google.com with SMTP id g23so281216537wme.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2016 13:39:34 -0800 (PST)
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+To: Malcolm Priestley <tvboxspy@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/4] [media] lmedm04: change some static variables to automatic
+Date: Wed, 30 Nov 2016 22:39:10 +0100
+Message-Id: <1480541953-27256-2-git-send-email-linux@rasmusvillemoes.dk>
+In-Reply-To: <1480541953-27256-1-git-send-email-linux@rasmusvillemoes.dk>
+References: <1480541953-27256-1-git-send-email-linux@rasmusvillemoes.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 25 Nov 2016, Laurent Pinchart wrote:
+ibuf and rbuf in lme2510_int_response are always assigned to before they
+are read, and their addresses do not escape the function, so they have
+no reason to be static.
 
-> Hi Alan,
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+---
+ drivers/media/usb/dvb-usb-v2/lmedm04.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Hello.
-
-> On Friday 25 Nov 2016 10:21:21 Alan Stern wrote:
-> > On Fri, 25 Nov 2016, Sakari Ailus wrote:
-> > > On Thu, Nov 24, 2016 at 09:15:39PM -0500, Alan Stern wrote:
-> > >> On Fri, 25 Nov 2016, Laurent Pinchart wrote:
-> > >>> Dear linux-pm developers, what's the suggested way to ensure that a
-> > >>> runtime- pm-enabled driver can run fine on a system with CONFIG_PM
-> > >>> disabled ?
-> > >>
-> > >> The exact point of your question isn't entirely clear.  In the most
-> > >> literal sense, the best ways to ensure this are (1) audit the code, and
-> > >> (2) actually try it.
-> > >> 
-> > >> I have a feeling this doesn't quite answer your question, however.  :-)
-> > > 
-> > > The question is related to devices that require certain power-up and
-> > > power-down sequences that are now implemented as PM runtime hooks that,
-> > > without CONFIG_PM defined, will not be executed. Is there a better way
-> > > than to handle this than have an implementation in the driver for the PM
-> > > runtime and non-PM runtime case separately?
-> > 
-> > Yes, there is a better way.  For the initial power-up and final
-> > power-down sequences, don't rely on the PM core to invoke the
-> > callbacks.  Just call them directly, yourself.
-> > 
-> > For example, as part of the probe routine, instead of doing this:
-> > 
-> > 	pm_runtime_set_suspended(dev);
-> > 	pm_runtime_enable(dev);
-> > 	pm_runtime_get_sync(dev);
-> > 
-> > Do this:
-> > 
-> > 	pm_runtime_set_active(dev);
-> > 	pm_runtime_get_noresume(dev);
-> > 	pm_runtime_enable(dev);
-> > 	/*
-> > 	 * In case CONFIG_PM is disabled, invoke the runtime-resume
-> > 	 * callback directly.
-> > 	 */
-> > 	my_runtime_resume(dev);
-> 
-> Wouldn't it be cleaner for drivers not to have to handle this manually (which 
-> gives an opportunity to get it wrong) but instead have pm_runtime_enable() 
-> call the runtime resume callback when CONFIG_PM is disabled ?
-
-Well, I admit it would be nicer if drivers didn't have to worry about 
-whether or not CONFIG_PM was enabled.  A slightly cleaner approach 
-from the one outlined above would have the probe routine do this:
-
-	my_power_up(dev);
-	pm_runtime_set_active(dev);
-	pm_runtime_get_noresume(dev);
-	pm_runtime_enable(dev);
-
-and have the runtime-resume callback routine call my_power_up() to do
-its work.  (Or make my_power_up() actually be the runtime-resume
-callback routine.)  That's pretty straightforward and hard to mess up.
-
-In theory, we could have pm_runtime_enable() invoke the runtime-resume
-callback when CONFIG_PM is disabled.  In practice, it would be rather 
-awkward.  drivers/base/power/runtime.c, which is where 
-pm_runtime_enable() is defined and the runtime-PM callbacks are 
-invoked, doesn't even get compiled if CONFIG_PM is off.
-
-(Also, it would run against the grain.  CONFIG_PM=n means the kernel
-ignores runtime PM, so pm_runtime_enable() shouldn't do anything.)
-
-There's a corollary aspect to this.  If you depend on runtime PM for
-powering up your device during probe, does that mean you also depend on
-runtime PM for powering down the device during remove?  That is likely
-not to work, because the user can prevent runtime suspends by writing
-to /sys/.../power/control.
-
-Alan Stern
+diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+index 7692701878ba..cd463f09ebc7 100644
+--- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
++++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
+@@ -315,7 +315,7 @@ static void lme2510_int_response(struct urb *lme_urb)
+ {
+ 	struct dvb_usb_adapter *adap = lme_urb->context;
+ 	struct lme2510_state *st = adap_to_priv(adap);
+-	static u8 *ibuf, *rbuf;
++	u8 *ibuf, *rbuf;
+ 	int i = 0, offset;
+ 	u32 key;
+ 	u8 signal_lock = 0;
+-- 
+2.1.4
 
