@@ -1,44 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:36239 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753020AbcKSVJm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35988 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754884AbcK3IcU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 19 Nov 2016 16:09:42 -0500
+        Wed, 30 Nov 2016 03:32:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kevin Hilman <khilman@baylibre.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
+        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 1/4] [media] davinci: vpif_capture: don't lock over s_stream
+Date: Wed, 30 Nov 2016 10:32:33 +0200
+Message-ID: <4747860.QGGHSuFRpz@avalon>
+In-Reply-To: <20161129235712.29846-2-khilman@baylibre.com>
+References: <20161129235712.29846-1-khilman@baylibre.com> <20161129235712.29846-2-khilman@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <20161119185433.331a132b@vento.lan>
-References: <20161107075524.49d83697@vento.lan> <11020459.EheIgy38UF@wuerfel>
- <20161116182633.74559ffd@vento.lan> <2923918.nyphv1Ma7d@wuerfel>
- <CA+55aFyFrhRefTuRvE2rjrp6d4+wuBmKfT_+a65i0-4tpxa46w@mail.gmail.com>
- <20161119101543.12b89563@lwn.net> <20161119185433.331a132b@vento.lan>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 19 Nov 2016 13:09:40 -0800
-Message-ID: <CA+55aFxabyppB3NgH_78J0jOFJDQ4rDe6sw3ijmoANSzXuKcDw@mail.gmail.com>
-Subject: Re: [Ksummit-discuss] Including images on Sphinx documents
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, Arnd Bergmann <arnd@arndb.de>,
-        ksummit-discuss@lists.linuxfoundation.org,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Nov 19, 2016 at 12:54 PM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
->
-> I did some research on Friday trying to identify where those images
-> came. It turns that, for the oldest images (before I took the media
-> maintainership), PDF were actually their "source", as far as I could track,
-> in the sense that the *.gif images were produced from the PDF.
->
-> The images seem to be generated using some LaTeX tool. Their original
-> format were probably EPS.
+Hi Kevin,
 
-The original format was almost certainly xfig.
+Thank you for the patch.
 
-Converting fig files to eps and pdf to then encapsulate them into
-LaTeX was a very common way to do documentation with simple figures.
-Iirc, xfig natively supported "export as eps".
+On Tuesday 29 Nov 2016 15:57:09 Kevin Hilman wrote:
+> Video capture subdevs may be over I2C and may sleep during xfer, so we
+> cannot do IRQ-disabled locking when calling the subdev.
+> 
+> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+> ---
+>  drivers/media/platform/davinci/vpif_capture.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c
+> b/drivers/media/platform/davinci/vpif_capture.c index
+> 5104cc0ee40e..9f8f41c0f251 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -193,7 +193,10 @@ static int vpif_start_streaming(struct vb2_queue *vq,
+> unsigned int count) }
+>  	}
+> 
+> +	spin_unlock_irqrestore(&common->irqlock, flags);
+>  	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
+> +	spin_lock_irqsave(&common->irqlock, flags);
 
-                Linus
+I always get anxious when I see a spinlock being released randomly with an 
+operation in the middle of a protected section. Looking at the code it looks 
+like the spinlock is abused here. irqlock should only protect the dma_queue 
+and should thus only be taken around the following code:
+
+spin_lock_irqsave(&common->irqlock, flags);
+/* Get the next frame from the buffer queue */
+common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
+                            struct vpif_cap_buffer, list);
+/* Remove buffer from the buffer queue */
+list_del(&common->cur_frm->list);
+spin_unlock_irqrestore(&common->irqlock, flags);
+
+The code that is currently protected by the lock in the start and stop 
+streaming functions should be protected by a mutex instead.
+
+> +
+>  	if (ret && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+>  		vpif_dbg(1, debug, "stream on failed in subdev\n");
+>  		goto err;
+
+-- 
+Regards,
+
+Laurent Pinchart
+
