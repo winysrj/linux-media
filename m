@@ -1,76 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:35618 "EHLO
-        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933931AbcKDFLh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 4 Nov 2016 01:11:37 -0400
-Received: by mail-qk0-f169.google.com with SMTP id n204so74443934qke.2
-        for <linux-media@vger.kernel.org>; Thu, 03 Nov 2016 22:11:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0e410f78-840b-842a-c9ab-bc0ffc159249@gentoo.org>
-References: <CAJ_EiSRM=zn--oFV=7YTE-kipP_ctT2sgSzv64bGrh_MNJbYaQ@mail.gmail.com>
- <767cacf5-5f91-2596-90ef-31358b8e1db9@xs4all.nl> <CAJ_EiSQ-yf7hmnz1qqOAA-XcByCq9f12z=7h=+rCeWQbua+dOg@mail.gmail.com>
- <CAJ_EiSQRai=XqOryMW1WLKvFDPZUVVmkjXSF3TyxpPNMsVsR_Q@mail.gmail.com>
- <20161103142134.4a59dfc34c593391086c0508@kinali.ch> <0e410f78-840b-842a-c9ab-bc0ffc159249@gentoo.org>
-From: Matt Ranostay <matt@ranostay.consulting>
-Date: Thu, 3 Nov 2016 22:11:36 -0700
-Message-ID: <CAJ_EiSSHjfpamgo9Ehu76iaemq9_P0fbxBWLNKRXsSGcadj6ww@mail.gmail.com>
-Subject: Re: [RFC] v4l2 support for thermopile devices
-To: Luca Barbato <lu_zero@gentoo.org>
-Cc: Attila Kinali <attila@kinali.ch>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:35133 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752058AbcK3Lry (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Nov 2016 06:47:54 -0500
+Subject: Re: [PATCH v2] [media] vivid: support for contiguous DMA buffers
+To: Vincent ABRIOU <vincent.abriou@st.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <1473670047-24670-1-git-send-email-vincent.abriou@st.com>
+ <CABxcv=mXfRg+ocF5wVmWU8cwaqh-TJS_cO-s296kmpS6+Cyx2w@mail.gmail.com>
+ <18facd88-0bcf-799a-432d-f8b327746b39@st.com>
+Cc: Javier Martinez Canillas <javier@dowhile0.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel <linux-kernel@vger.kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Marek Vasut <marex@denx.de>
-Content-Type: text/plain; charset=UTF-8
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues FRUCHET <hugues.fruchet@st.com>,
+        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <61e91afb-2255-d46d-7ebe-310c5da3b1ff@xs4all.nl>
+Date: Wed, 30 Nov 2016 12:47:46 +0100
+MIME-Version: 1.0
+In-Reply-To: <18facd88-0bcf-799a-432d-f8b327746b39@st.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 3, 2016 at 8:11 AM, Luca Barbato <lu_zero@gentoo.org> wrote:
-> On 03/11/2016 14:21, Attila Kinali wrote:
->> On Wed, 2 Nov 2016 23:10:41 -0700
->> Matt Ranostay <matt@ranostay.consulting> wrote:
+On 11/22/16 14:18, Vincent ABRIOU wrote:
+> Hi Hans,
+>
+> Is there any issue so that those 2 patches cannot be merged?
+> [media] vivid: support for contiguous DMA buffer
+> [media] uvcvideo: support for contiguous DMA buffers
+
+Lack of time, really. I'll see if I can take a look at these soonish.
+
+Regards,
+
+	Hans
+
+>
+> They both have same approach and have been tested against ARM and X86
+> platform.
+>
+> Thanks.
+> BR
+> Vincent
+>
+> On 09/12/2016 05:56 PM, Javier Martinez Canillas wrote:
+>> Hello Vincent,
 >>
+>> On Mon, Sep 12, 2016 at 4:47 AM, Vincent Abriou <vincent.abriou@st.com> wrote:
+>>> It allows to simulate the behavior of hardware with such limitations or
+>>> to connect vivid to real hardware with such limitations.
 >>>
->>> So does anyone know of any software that is using V4L2_PIX_FMT_Y12
->>> currently? Want to test my driver but seems there isn't anything that
->>> uses that format (ffmpeg, mplayer, etc).
+>>> Add the "allocators" module parameter option to let vivid use the
+>>> dma-contig instead of vmalloc.
 >>>
->>> Raw data seems correct but would like to visualize it :). Suspect I'll
->>> need to write a test case application though
+>>> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Signed-off-by: Vincent Abriou <vincent.abriou@st.com>
+>>>
+>>> Cc: Philipp Zabel <p.zabel@pengutronix.de>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
 >>
->> I was pretty sure that MPlayer supports 12bit greyscale, but I cannot
->> find where it was handled. You can of course pass it to the MPlayer
->> internas as 8bit greyscale, which would be IMGFMT_Y8 or just pass
->> it on as 16bit which would be IMGFMT_Y16_LE (LE = little endian).
+>> The patch looks good to me.
 >>
->> You can find the internal #defines of the image formats in
->> libmpcodecs/img_format.h and can use https://www.fourcc.org/yuv.php
->> to decode their meaning.
+>> Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 >>
->> The equivalent for libav would be libavutil/pixfmt.h
+>> I've also tested on an Exynos5 board to share DMA buffers between a
+>> vivid capture device and the Exynos DRM driver, so:
 >>
->> Luca Barbato tells me that adding Y12 support to libav would be easy.
+>> Tested-by: Javier Martinez Canillas <javier@osg.samsung.com>
 >>
->>                       Attila Kinali
+>> Before $SUBJECT, when vivid was always using the vb2 vmalloc memory
+>> allocator, the Exynos DRM driver wasn't able to import the dma-buf
+>> because the GEM buffers are non-contiguous:
 >>
->
-> So easy that is [done][1], it still needs to be tested/reviewed/polished
-> though.
-
-Cool. Although needs to be processed since it is signed value, and
-because it it is really just 0C based readings with 0.25C steps.. But
-will look into that when I get a chance.
-
-Anyway did hack in basic support so v4l2grab so I could test the
-sensor, and seems to work well but needs some colorized processing to
-be useful of course.
-
-Soldering iron about 1 meter from sensor -> http://imgur.com/a/8totG
-
-
->
-> [1]:https://github.com/lu-zero/libav/commits/gray12
->
-> lu
+>> $ gst-launch-1.0 v4l2src device=/dev/video7 io-mode=dmabuf ! kmssink
+>> Setting pipeline to PAUSED ...
+>> Pipeline is live and does not need PREROLL ...
+>> Setting pipeline to PLAYING ...
+>> New clock: GstSystemClock
+>> 0:00:00.853895814  2957    0xd6260 ERROR           kmsallocator
+>> gstkmsallocator.c:334:gst_kms_allocator_add_fb:<KMSMemory::allocator>
+>> Failed to bind to framebuffer: Invalid argument (-22)
+>>
+>> [ 1757.390564] [drm:exynos_drm_framebuffer_init] *ERROR* cannot use
+>> this gem memory type for fb.
+>>
+>> The issue goes away when using the the vb2 DMA contig memory allocator.
+>>
+>> Best regards,
+>> Javier
+>> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
