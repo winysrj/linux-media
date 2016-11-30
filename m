@@ -1,48 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Logan Gunthorpe <logang@deltatee.com>,
-        Serguei Sagalovitch <serguei.sagalovitch@amd.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
-CC: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>
-From: Bart Van Assche <bart.vanassche@sandisk.com>
-Message-ID: <eca737c1-415c-bcd4-80b9-628010638051@sandisk.com>
-Date: Wed, 23 Nov 2016 09:27:42 -0800
+Received: from mail-io0-f194.google.com ([209.85.223.194]:36325 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751583AbcK3WDx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Nov 2016 17:03:53 -0500
+Date: Wed, 30 Nov 2016 16:03:50 -0600
+From: Rob Herring <robh@kernel.org>
+To: Todor Tomov <todor.tomov@linaro.org>
+Cc: mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, mark.rutland@arm.com,
+        devicetree@vger.kernel.org, bjorn.andersson@linaro.org,
+        srinivas.kandagatla@linaro.org
+Subject: Re: [PATCH 01/10] doc: DT: camss: Binding document for Qualcomm
+ Camera subsystem driver
+Message-ID: <20161130220350.q37rbo2biaeg2sad@rob-hp-laptop>
+References: <1480085813-28235-1-git-send-email-todor.tomov@linaro.org>
 MIME-Version: 1.0
-In-Reply-To: <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1480085813-28235-1-git-send-email-todor.tomov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/23/2016 09:13 AM, Logan Gunthorpe wrote:
-> IMO any memory that has been registered for a P2P transaction should be
-> locked from being evicted. So if there's a get_user_pages call it needs
-> to be pinned until the put_page. The main issue being with the RDMA
-> case: handling an eviction when a chunk of memory has been registered as
-> an MR would be very tricky. The MR may be relied upon by another host
-> and the kernel would have to inform user-space the MR was invalid then
-> user-space would have to tell the remote application.
+On Fri, Nov 25, 2016 at 04:56:53PM +0200, Todor Tomov wrote:
+> Add DT binding document for Qualcomm Camera subsystem driver.
+> 
+> Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
+> ---
+>  .../devicetree/bindings/media/qcom,camss.txt       | 196 +++++++++++++++++++++
+>  1 file changed, 196 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/qcom,camss.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/qcom,camss.txt b/Documentation/devicetree/bindings/media/qcom,camss.txt
+> new file mode 100644
+> index 0000000..76ad89a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/qcom,camss.txt
+> @@ -0,0 +1,196 @@
+> +Qualcomm Camera Subsystem
+> +
+> +* Properties
+> +
+> +- compatible:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain:
+> +		- "qcom,8x16-camss"
 
-Hello Logan,
+Don't use wildcards in compatible strings. One string per SoC.
 
-Are you aware that the Linux kernel already supports ODP (On Demand 
-Paging)? See also the output of git grep -nHi on.demand.paging. See also 
-https://www.openfabrics.org/images/eventpresos/workshops2014/DevWorkshop/presos/Tuesday/pdf/04_ODP_update.pdf.
+> +- reg:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: Register ranges as listed in the reg-names property.
+> +- reg-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "csiphy0"
+> +		- "csiphy0_clk_mux"
+> +		- "csiphy1"
+> +		- "csiphy1_clk_mux"
+> +		- "csid0"
+> +		- "csid1"
+> +		- "ispif"
+> +		- "csi_clk_mux"
+> +		- "vfe0"
 
-Bart.
+Kind of looks like the phy's should be separate nodes since each phy has 
+its own register range, irq, clocks, etc.
+
+> +- interrupts:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: Interrupts as listed in the interrupt-names property.
+> +- interrupt-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "csiphy0"
+> +		- "csiphy1"
+> +		- "csid0"
+> +		- "csid1"
+> +		- "ispif"
+> +		- "vfe0"
+> +- power-domains:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A phandle and power domain specifier pairs to the
+> +		    power domain which is responsible for collapsing
+> +		    and restoring power to the peripheral.
+> +- clocks:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A list of phandle and clock specifier pairs as listed
+> +		    in clock-names property.
+> +- clock-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "camss_top_ahb_clk"
+> +		- "ispif_ahb_clk"
+> +		- "csiphy0_timer_clk"
+> +		- "csiphy1_timer_clk"
+> +		- "csi0_ahb_clk"
+> +		- "csi0_clk"
+> +		- "csi0_phy_clk"
+> +		- "csi0_pix_clk"
+> +		- "csi0_rdi_clk"
+> +		- "csi1_ahb_clk"
+> +		- "csi1_clk"
+> +		- "csi1_phy_clk"
+> +		- "csi1_pix_clk"
+> +		- "csi1_rdi_clk"
+> +		- "camss_ahb_clk"
+> +		- "camss_vfe_vfe_clk"
+> +		- "camss_csi_vfe_clk"
+> +		- "iface_clk"
+> +		- "bus_clk"
+> +- vdda-supply:
+> +	Usage: required
+> +	Value type: <phandle>
+> +	Definition: A phandle to voltage supply for CSI2.
+> +- iommus:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A list of phandle and IOMMU specifier pairs.
+> +
+> +* Nodes
+> +
+> +- ports:
+> +	Usage: required
+> +	Definition: As described in video-interfaces.txt in same directory.
+> +	Properties:
+> +		- reg:
+> +			Usage: required
+> +			Value type: <u32>
+> +			Definition: Selects CSI2 PHY interface - PHY0 or PHY1.
+> +	Endpoint node properties:
+> +		- clock-lanes:
+> +			Usage: required
+> +			Value type: <u32>
+> +			Definition: The clock lane.
+> +		- data-lanes:
+> +			Usage: required
+> +			Value type: <prop-encoded-array>
+> +			Definition: An array of data lanes.
+> +		- qcom,settle-cnt:
+
+This should go in phy node ideally.
+
+> +			Usage: required
+> +			Value type: <u32>
+> +			Definition: The settle count parameter for CSI PHY.
+> +
+> +* An Example
+> +
+> +	camss: camss@1b00000 {
+> +		compatible = "qcom,8x16-camss";
+> +		reg = <0x1b0ac00 0x200>,
+> +			<0x1b00030 0x4>,
+> +			<0x1b0b000 0x200>,
+> +			<0x1b00038 0x4>,
+> +			<0x1b08000 0x100>,
+> +			<0x1b08400 0x100>,
+> +			<0x1b0a000 0x500>,
+> +			<0x1b00020 0x10>,
+> +			<0x1b10000 0x1000>;
+> +		reg-names = "csiphy0",
+> +			"csiphy0_clk_mux",
+> +			"csiphy1",
+> +			"csiphy1_clk_mux",
+> +			"csid0",
+> +			"csid1",
+> +			"ispif",
+> +			"csi_clk_mux",
+> +			"vfe0";
+> +		interrupts = <GIC_SPI 78 0>,
+> +			<GIC_SPI 79 0>,
+> +			<GIC_SPI 51 0>,
+> +			<GIC_SPI 52 0>,
+> +			<GIC_SPI 55 0>,
+> +			<GIC_SPI 57 0>;
+> +		interrupt-names = "csiphy0",
+> +			"csiphy1",
+> +			"csid0",
+> +			"csid1",
+> +			"ispif",
+> +			"vfe0";
+> +		power-domains = <&gcc VFE_GDSC>;
+> +		clocks = <&gcc GCC_CAMSS_TOP_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_ISPIF_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0PHYTIMER_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1PHYTIMER_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0PHY_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0PIX_CLK>,
+> +			<&gcc GCC_CAMSS_CSI0RDI_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1PHY_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1PIX_CLK>,
+> +			<&gcc GCC_CAMSS_CSI1RDI_CLK>,
+> +			<&gcc GCC_CAMSS_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_VFE0_CLK>,
+> +			<&gcc GCC_CAMSS_CSI_VFE0_CLK>,
+> +			<&gcc GCC_CAMSS_VFE_AHB_CLK>,
+> +			<&gcc GCC_CAMSS_VFE_AXI_CLK>;
+> +		clock-names = "camss_top_ahb_clk",
+> +			"ispif_ahb_clk",
+> +			"csiphy0_timer_clk",
+> +			"csiphy1_timer_clk",
+> +			"csi0_ahb_clk",
+> +			"csi0_clk",
+> +			"csi0_phy_clk",
+> +			"csi0_pix_clk",
+> +			"csi0_rdi_clk",
+> +			"csi1_ahb_clk",
+> +			"csi1_clk",
+> +			"csi1_phy_clk",
+> +			"csi1_pix_clk",
+> +			"csi1_rdi_clk",
+> +			"camss_ahb_clk",
+> +			"camss_vfe_vfe_clk",
+> +			"camss_csi_vfe_clk",
+> +			"iface_clk",
+> +			"bus_clk";
+> +		vdda-supply = <&pm8916_l2>;
+> +		iommus = <&apps_iommu 3>;
+> +		ports {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +			port@0 {
+> +				reg = <0>;
+> +				csiphy0_ep: endpoint {
+> +					clock-lanes = <1>;
+> +					data-lanes = <0 2>;
+> +					qcom,settle-cnt = <0xe>;
+> +					remote-endpoint = <&ov5645_ep>;
+> +				};
+> +			};
+> +		};
+> +	};
+> -- 
+> 1.9.1
+> 
