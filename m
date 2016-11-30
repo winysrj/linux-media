@@ -1,64 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:16298 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755430AbcKVNTB (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53825
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752747AbcK3WBZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 22 Nov 2016 08:19:01 -0500
-From: Vincent ABRIOU <vincent.abriou@st.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-CC: Javier Martinez Canillas <javier@dowhile0.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues FRUCHET <hugues.fruchet@st.com>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Date: Tue, 22 Nov 2016 14:18:50 +0100
-Subject: Re: [PATCH v2] [media] vivid: support for contiguous DMA buffers
-Message-ID: <18facd88-0bcf-799a-432d-f8b327746b39@st.com>
-References: <1473670047-24670-1-git-send-email-vincent.abriou@st.com>
- <CABxcv=mXfRg+ocF5wVmWU8cwaqh-TJS_cO-s296kmpS6+Cyx2w@mail.gmail.com>
-In-Reply-To: <CABxcv=mXfRg+ocF5wVmWU8cwaqh-TJS_cO-s296kmpS6+Cyx2w@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Wed, 30 Nov 2016 17:01:25 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
+        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
+        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
+        laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH v6 0/3] Media Device Allocator API
+Date: Wed, 30 Nov 2016 15:01:13 -0700
+Message-Id: <cover.1480539942.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgSGFucywNCg0KSXMgdGhlcmUgYW55IGlzc3VlIHNvIHRoYXQgdGhvc2UgMiBwYXRjaGVzIGNh
-bm5vdCBiZSBtZXJnZWQ/DQpbbWVkaWFdIHZpdmlkOiBzdXBwb3J0IGZvciBjb250aWd1b3VzIERN
-QSBidWZmZXINClttZWRpYV0gdXZjdmlkZW86IHN1cHBvcnQgZm9yIGNvbnRpZ3VvdXMgRE1BIGJ1
-ZmZlcnMNCg0KVGhleSBib3RoIGhhdmUgc2FtZSBhcHByb2FjaCBhbmQgaGF2ZSBiZWVuIHRlc3Rl
-ZCBhZ2FpbnN0IEFSTSBhbmQgWDg2IA0KcGxhdGZvcm0uDQoNClRoYW5rcy4NCkJSDQpWaW5jZW50
-DQoNCk9uIDA5LzEyLzIwMTYgMDU6NTYgUE0sIEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyB3cm90
-ZToNCj4gSGVsbG8gVmluY2VudCwNCj4NCj4gT24gTW9uLCBTZXAgMTIsIDIwMTYgYXQgNDo0NyBB
-TSwgVmluY2VudCBBYnJpb3UgPHZpbmNlbnQuYWJyaW91QHN0LmNvbT4gd3JvdGU6DQo+PiBJdCBh
-bGxvd3MgdG8gc2ltdWxhdGUgdGhlIGJlaGF2aW9yIG9mIGhhcmR3YXJlIHdpdGggc3VjaCBsaW1p
-dGF0aW9ucyBvcg0KPj4gdG8gY29ubmVjdCB2aXZpZCB0byByZWFsIGhhcmR3YXJlIHdpdGggc3Vj
-aCBsaW1pdGF0aW9ucy4NCj4+DQo+PiBBZGQgdGhlICJhbGxvY2F0b3JzIiBtb2R1bGUgcGFyYW1l
-dGVyIG9wdGlvbiB0byBsZXQgdml2aWQgdXNlIHRoZQ0KPj4gZG1hLWNvbnRpZyBpbnN0ZWFkIG9m
-IHZtYWxsb2MuDQo+Pg0KPj4gU2lnbmVkLW9mZi1ieTogUGhpbGlwcCBaYWJlbCA8cC56YWJlbEBw
-ZW5ndXRyb25peC5kZT4NCj4+IFNpZ25lZC1vZmYtYnk6IEhhbnMgVmVya3VpbCA8aGFucy52ZXJr
-dWlsQGNpc2NvLmNvbT4NCj4+IFNpZ25lZC1vZmYtYnk6IFZpbmNlbnQgQWJyaW91IDx2aW5jZW50
-LmFicmlvdUBzdC5jb20+DQo+Pg0KPj4gQ2M6IFBoaWxpcHAgWmFiZWwgPHAuemFiZWxAcGVuZ3V0
-cm9uaXguZGU+DQo+PiBDYzogSGFucyBWZXJrdWlsIDxoYW5zLnZlcmt1aWxAY2lzY28uY29tPg0K
-Pj4gLS0tDQo+DQo+IFRoZSBwYXRjaCBsb29rcyBnb29kIHRvIG1lLg0KPg0KPiBSZXZpZXdlZC1i
-eTogSmF2aWVyIE1hcnRpbmV6IENhbmlsbGFzIDxqYXZpZXJAb3NnLnNhbXN1bmcuY29tPg0KPg0K
-PiBJJ3ZlIGFsc28gdGVzdGVkIG9uIGFuIEV4eW5vczUgYm9hcmQgdG8gc2hhcmUgRE1BIGJ1ZmZl
-cnMgYmV0d2VlbiBhDQo+IHZpdmlkIGNhcHR1cmUgZGV2aWNlIGFuZCB0aGUgRXh5bm9zIERSTSBk
-cml2ZXIsIHNvOg0KPg0KPiBUZXN0ZWQtYnk6IEphdmllciBNYXJ0aW5leiBDYW5pbGxhcyA8amF2
-aWVyQG9zZy5zYW1zdW5nLmNvbT4NCj4NCj4gQmVmb3JlICRTVUJKRUNULCB3aGVuIHZpdmlkIHdh
-cyBhbHdheXMgdXNpbmcgdGhlIHZiMiB2bWFsbG9jIG1lbW9yeQ0KPiBhbGxvY2F0b3IsIHRoZSBF
-eHlub3MgRFJNIGRyaXZlciB3YXNuJ3QgYWJsZSB0byBpbXBvcnQgdGhlIGRtYS1idWYNCj4gYmVj
-YXVzZSB0aGUgR0VNIGJ1ZmZlcnMgYXJlIG5vbi1jb250aWd1b3VzOg0KPg0KPiAkIGdzdC1sYXVu
-Y2gtMS4wIHY0bDJzcmMgZGV2aWNlPS9kZXYvdmlkZW83IGlvLW1vZGU9ZG1hYnVmICEga21zc2lu
-aw0KPiBTZXR0aW5nIHBpcGVsaW5lIHRvIFBBVVNFRCAuLi4NCj4gUGlwZWxpbmUgaXMgbGl2ZSBh
-bmQgZG9lcyBub3QgbmVlZCBQUkVST0xMIC4uLg0KPiBTZXR0aW5nIHBpcGVsaW5lIHRvIFBMQVlJ
-TkcgLi4uDQo+IE5ldyBjbG9jazogR3N0U3lzdGVtQ2xvY2sNCj4gMDowMDowMC44NTM4OTU4MTQg
-IDI5NTcgICAgMHhkNjI2MCBFUlJPUiAgICAgICAgICAga21zYWxsb2NhdG9yDQo+IGdzdGttc2Fs
-bG9jYXRvci5jOjMzNDpnc3Rfa21zX2FsbG9jYXRvcl9hZGRfZmI6PEtNU01lbW9yeTo6YWxsb2Nh
-dG9yPg0KPiBGYWlsZWQgdG8gYmluZCB0byBmcmFtZWJ1ZmZlcjogSW52YWxpZCBhcmd1bWVudCAo
-LTIyKQ0KPg0KPiBbIDE3NTcuMzkwNTY0XSBbZHJtOmV4eW5vc19kcm1fZnJhbWVidWZmZXJfaW5p
-dF0gKkVSUk9SKiBjYW5ub3QgdXNlDQo+IHRoaXMgZ2VtIG1lbW9yeSB0eXBlIGZvciBmYi4NCj4N
-Cj4gVGhlIGlzc3VlIGdvZXMgYXdheSB3aGVuIHVzaW5nIHRoZSB0aGUgdmIyIERNQSBjb250aWcg
-bWVtb3J5IGFsbG9jYXRvci4NCj4NCj4gQmVzdCByZWdhcmRzLA0KPiBKYXZpZXINCj4=
+Media Device Allocator API to allows multiple drivers share a media device.
+Using this API, drivers can allocate a media device with the shared struct
+device as the key. Once the media device is allocated by a driver, other
+drivers can get a reference to it. The media device is released when all
+the references are released.
+
+Patches 0001 and 0002 are rebased to 4.9-rc7. Patch 0003 for snd-usb-audio
+is a rebase of the patch that was tested with the original Media Device
+Allocator patch series.
+
+snd-usb-audio patch includes the fixes found during 4.7-rc1 time in the
+original snd-usb-audio patch.
+
+Changes to patches in this series:
+Changes to patch 0001 since v5: (comments from Mauro and Sakari)
+- Removed struct device from media_device_instance. mdev.dev is used instead.
+- Added documentation.
+
+Changes to patch 0002:
+- No changes since patch v2, applies cleanly on top of the following:
+media: Protect enable_source and disable_source handler code paths
+https://lkml.org/lkml/2016/11/29/1001
+ 
+Changes to patch 0003:
+- Changed to hold graph_mutex to check and call enable_source and
+  disable_source handlers - to match au0828 doing the same in:
+media: Protect enable_source and disable_source handler code paths 
+https://lkml.org/lkml/2016/11/29/1001
+
+Changes to patch 0001 since v4:
+- Addressed Sakari's review comments with the exception of
+  opting to not introduce media_device_usb_allocate() macro,
+  and to not add a new routine to find media device instance
+  to avoid a one line check.
+
+Changes to patch 0001 since v3:
+- Fixed undefined reference to `__media_device_usb_init compile error when
+  CONFIG_USB is disabled.
+- Fixed kernel paging error when accessing /dev/mediaX after rmmod of the
+  module that owns the media_device. The fix bumps the reference count for
+  the owner when second driver comes along to share the media_device. If
+  au0828 owns the media_device, then snd_usb_audio will bump the refcount
+  for au0828, so it won't get deleted and vice versa.
+
+Changes to patch 0002 since v2:
+- Updated media_device_delete() to pass in module name.
+
+Changes to patch 0003 since the last version in 4.7-rc1:
+- Included fixes to bugs found during testing. 
+- Updated to use the Media Allocator API.
+
+This patch series has been tested with au0828 and snd-usb-audio drivers.
+Ran bind and unbind loop tests on each driver with mc_nextgen_test and
+media_device_test app loop tests while checking lsmod and dmesg.
+
+Please refer to tools/testing/selftests/media_tests/regression_test.txt
+for testing done on this series.
+
+Shuah Khan (3):
+  media: Media Device Allocator API
+  media: change au0828 to use Media Device Allocator API
+  sound/usb: Use Media Controller API to share media resources
+
+ Documentation/media/kapi/mc-core.rst   |  37 ++++
+ drivers/media/Makefile                 |   3 +-
+ drivers/media/media-dev-allocator.c    | 133 ++++++++++++++
+ drivers/media/usb/au0828/au0828-core.c |  12 +-
+ drivers/media/usb/au0828/au0828.h      |   1 +
+ include/media/media-dev-allocator.h    |  54 ++++++
+ sound/usb/Kconfig                      |   4 +
+ sound/usb/Makefile                     |   2 +
+ sound/usb/card.c                       |  14 ++
+ sound/usb/card.h                       |   3 +
+ sound/usb/media.c                      | 326 +++++++++++++++++++++++++++++++++
+ sound/usb/media.h                      |  73 ++++++++
+ sound/usb/mixer.h                      |   3 +
+ sound/usb/pcm.c                        |  28 ++-
+ sound/usb/quirks-table.h               |   1 +
+ sound/usb/stream.c                     |   2 +
+ sound/usb/usbaudio.h                   |   6 +
+ 17 files changed, 688 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/media/media-dev-allocator.c
+ create mode 100644 include/media/media-dev-allocator.h
+ create mode 100644 sound/usb/media.c
+ create mode 100644 sound/usb/media.h
+
+-- 
+2.7.4
+
