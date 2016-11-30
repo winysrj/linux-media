@@ -1,133 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:52714 "EHLO
-        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752849AbcKNJzL (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37009 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756882AbcK3Nwu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 14 Nov 2016 04:55:11 -0500
-Subject: Re: [RFC] V4L2 unified low-level decoder API
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        "florent.revest@free-electrons.com"
-        <florent.revest@free-electrons.com>,
-        "hans.verkuil@cisco.com" <hans.verkuil@cisco.com>,
-        "posciak@chromium.org" <posciak@chromium.org>,
-        "jung.zhao@rock-chips.com" <jung.zhao@rock-chips.com>,
-        "randy.li@rock-chips.com" <randy.li@rock-chips.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <816ba2d8-f1e7-ce34-3524-b2a3f1bf3d74@xs4all.nl>
-Date: Mon, 14 Nov 2016 10:55:04 +0100
+        Wed, 30 Nov 2016 08:52:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>,
+        Sakari Alius <sakari.ailus@iki.fi>, wharms@bfs.de,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
+Date: Wed, 30 Nov 2016 15:53:03 +0200
+Message-ID: <3099994.m2oKJeJMud@avalon>
+In-Reply-To: <20161130123326.GH28558@mwanda>
+References: <20161125102835.GA5856@mwanda> <13737175.iVr8OcoHqv@avalon> <20161130123326.GH28558@mwanda>
 MIME-Version: 1.0
-In-Reply-To: <2890f845-eef2-5689-f154-fc76ae6abc8b@st.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/27/2016 09:42 AM, Hugues FRUCHET wrote:
-> Hi,
+Hi Dan,
+
+On Wednesday 30 Nov 2016 15:33:26 Dan Carpenter wrote:
+> On Mon, Nov 28, 2016 at 04:49:36PM +0200, Laurent Pinchart wrote:
+> > On Monday 28 Nov 2016 14:54:58 Julia Lawall wrote:
+> >> On Mon, 28 Nov 2016, Dan Carpenter wrote:
+> >>> I understand the comparison, but I just think it's better if people
+> >>> always keep track of what has been allocated and what has not.  I
+> >>> tried so hard to get Markus to stop sending those hundreds of patches
+> >>> where he's like "this function has a sanity check so we can pass
+> >>> pointers that weren't allocated"...  It's garbage code.
+> >>> 
+> >>> But I understand that other people don't agree.
+> >> 
+> >> In my opinion, it is good for code understanding to only do what is
+> >> useful to do.  It's not a hard and fast rule, but I think it is
+> >> something to take into account.
+> > 
+> > On the other hand it complicates the error handling code by increasing the
+> > number of goto labels, and it then becomes pretty easy when reworking code
+> > to goto the wrong label. This is even more of an issue when the rework
+> > doesn't touch the error handling code, in which case the reviewers can
+> > easily miss the issue if they don't open the original source file to
+> > check the goto labels.
+>
+> It's really not.  I've looked at a lot of error handling in the past
+> five years and sent hundreds of fixes for error paths, more than any
+> other kernel developer during that time.  Although it seems obvious in
+> retrospect, it took me years to realize this but the canonical way of
+> doing error handling is the least error prone.
 > 
-> This RFC aims to start discussions in order to define the codec specific 
-> controls structures to fulfill the low-level decoder API needed by non 
-> "Stream API" based decoders ("stateless" or "Frame API" based decoders).
-
-Let's refer to this as 'stateful' decoders and 'stateless' decoders. This
-is the preferred terminology (and much more descriptive than 'Stream' vs
-'Frame'). It's also not really a new API, although it does rely on the
-Request API.
-
-> Several implementation exists now which runs on several SoC and various 
-> software frameworks.
-> The idea is to find the communalities between all those implementations 
-> and SoC to define a single unified interface in V4L2 includes.
-> Even if "Request API" is needed to pass those codec specific controls 
-> from userspace down to kernel on a per-buffer basis, we can start 
-> discussions and define the controls in parallel of its development.
-> We can even propose some implementations based on existing V4L2 control 
-> framework (which doesn't support "per-frame" basis) by ensuring 
-> atomicity of sequence S_EXT_CTRL(header[i])/QBUF(stream[i]). Constraint 
-> can then be relaxed when "Request API" is merged.
+> Counting the labels is the wrong way to measure complexity.  That's like
+> counting the number of functions.  Code with lots of functions is not
+> necessarily more complicated than if it's just one big function.
 > 
-> I would like to propose to work on a "per-codec" basis, having at least 
-> 2 different SoC and 2 different frameworks to test and validate controls.
-> To do so, I have tried to identify some people that have worked on this 
-> subject and have proposed some implementations, feel free to correct me 
-> and enhance the list if needed:
-> * MPEG2/MPEG4
->     - Florent Revest for Allwinner A13 CedarX support [1] tested with 
-> VLC -> libVA + sunxi-cedrus-drv-video -> V4L2
->     - Myself for STMicroelectronics Delta support [2] tested with 
-> GStreamer V4L2 -> libv4l2 + libv4l-delta plugin -> V4L2
+> Part of the key to unwinding correctly is using good label names.  It
+> should say what the label does.  Some people use come-from labels names
+> like "goto kmalloc_failed".  Those are totally useless.  It's like
+> naming your functions "called_from_foo()".  If there is only one goto
+> then come-from label names are useless and if there are more than one
+> goto which go to the same label then it's useless *and* misleading.
+
+Yes, label naming is (or at least should be) largely agreed upon, they should 
+name the unwinding action, not the cause of the failure.
+
+> Functions should be written so you can read them from top to bottom
+> without scrolling back and forth.
 > 
-> * VP8
-> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [3] tested with 
-> Chromium -> V4L2
-> - Jung Zhao for Rockchip RK3288 VPU support [4] <cannot find the 
-> framework used>
+> 	a = alloc();
+> 	if (!a)
+> 		return -ENOMEM;
 > 
-> * H264
-> - Pawel Osciak for Rockchip RK3288, RK3399? VPU Support [5] tested with 
-> Chromium -> V4L2
-> - Randy Li for Rockchip RK3288  VPU support [6] tested with VLC? -> 
-> libVA + rockchip-va-driver -> V4L2
-> VLC? -> libVDPAU + rockchip-va-driver -> V4L2
+> 	b = alloc();
+> 	if (!b) {
+> 		ret = -ENOMEM;
+> 		goto free_a;
+> 	}
+
+But then you get the following patch (which, apart from being totally made up, 
+probably shows what I've watched yesterday evening).
+
+@@ ... @@
+ 		return -ENOMEM;
+ 	}
+ 
++	ret = check_time_vortex();
++	if (ret < 0)
++		goto power_off_tardis;
++
+	matt_smith = alloc_regeneration();
+	if (math_smith->status != OK) {
+		ret = -E_NEEDS_FISH_FINGERS_AND_CUSTARD;
+
+>From that code only you can't tell whether the jump label is the right one. If 
+a single jump label is used with an unwinding code block that supports non-
+allocated resources, you don't have to ask yourself any question.
+
+> That code tells a complete story without any scrolling.  It's future
+> proof too.  You can tell the goto is correct just from the name.  But
+> when it's:
 > 
-> I can work to define MPEG2/MPEG4 controls and propose functional 
-> implementations for those codecs, and will be glad to co-work with you 
-> Florent.
-> I can help on H264 on a code review basis based on the functional H264 
-> setup I have in-house and codec knowledge, but I cannot provide 
-> implementation in a reasonable timeframe, same for VP8.
+> 	a = alloc();
+> 	if (!a)
+> 		goto out;
+> 	b = alloc();
+> 		goto out;
 > 
-> Apart of very details of each codec, we have also to state about generic 
-> concerns such as:
-> - new pixel format introduction (VP8 => VP8F, H264 => S264, MPG2 => 
-> MG2F, MPG4 => MG4F)
-> - new device caps to indicate that driver requires extra headers ? maybe 
-> not needed because redundant with new pixel format
+> That code doesn't have enough information to be understandable on it's
+> own.  It's way more bug prone than the first sample.
 
-That's indeed typically signaled through the pixelformat.
-
-> - continue to modify v4l2-controls.h ? or do we add some new specific 
-> header files (H264 is huge!) ?
-> - how to manage sequence header & picture header, optional/extended 
-> controls (MPEG2 sequence/picture extensions, H264 SEI, ...). Personally 
-> I have added flags inside a single control structure, H264 is done in a 
-> different way using several controls (SPS/PPS/SLICE/DECODE/...)
-> 
-> Thanks you to all of you for your attention and feel free to react on 
-> this topic if you are interested to work on this subject.
-
-As long as the V4L2 driver underpins the various solutions I am happy :-)
-
-I do think that having a libv4l plugin will be useful since it will make
-it easy for applications that support the stateful decoder to use the
-same code for a stateless decoder by seamlessly using the plugin.
-
-This does not prevent other approaches at the same time, of course.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> Best regards,
-> Hugues.
-> 
-> [0] [ANN] Codec & Request API Brainstorm meeting Oct 10 & 
-> 11https://www.spinics.net/lists/linux-media/msg106699.html
-> [1] MPEG2 A13 CedarXhttp://www.spinics.net/lists/linux-media/msg104823.html
-> [1] MPEG4 A13 CedarXhttp://www.spinics.net/lists/linux-media/msg104817.html
-> [2] MPEG2 STi4xx 
-> Deltahttp://www.spinics.net/lists/linux-media/msg106240.html
-> [2] MPEG4 STi4xx Delta is also supported but not yet pushed
-> [3] VP8 Rockchip RK3288, RK3399? 
-> VPUhttps://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0002-CHROMIUM-v4l-Add-VP8-low-level-decoder-API-controls.patch 
-> [4] VP8 Rockchip RK3288 
-> VPUhttp://www.spinics.net/lists/linux-media/msg97997.html
-> [5] H264 Rockchip RK3288, RK3399? 
-> VPUhttps://chromium.googlesource.com/chromiumos/overlays/chromiumos-overlay/+/refs/heads/master/sys-kernel/linux-headers/files/0001-CHROMIUM-media-headers-Import-V4L2-headers-from-Chro.patch
-> [6] H264 Rockchip RK3288 
-> VPUhttp://www.spinics.net/lists/linux-media/msg105095.html
-> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
-> 
