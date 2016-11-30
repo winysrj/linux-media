@@ -1,63 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39841 "EHLO comal.ext.ti.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752502AbcKDIFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 4 Nov 2016 04:05:31 -0400
-Subject: Re: [PATCH RESEND] media: omap3isp: Use dma_request_chan() to
- requesting DMA channel
+Received: from userp1040.oracle.com ([156.151.31.81]:42638 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752557AbcK3Me7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 30 Nov 2016 07:34:59 -0500
+Date: Wed, 30 Nov 2016 15:33:26 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20161102123959.6098-1-peter.ujfalusi@ti.com>
- <9b482d6b-5750-9c9d-e9a8-b113788fbb67@ti.com>
- <6d504f4d-44b0-467d-de21-6fd12771dfc5@ti.com> <5665893.fe4E5jvxvE@avalon>
-CC: <mchehab@osg.samsung.com>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-Message-ID: <8af57c52-5fc9-bad8-1a9e-905e457831e2@ti.com>
-Date: Fri, 4 Nov 2016 10:05:27 +0200
+Cc: Julia Lawall <julia.lawall@lip6.fr>,
+        Sakari Alius <sakari.ailus@iki.fi>, wharms@bfs.de,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] uvcvideo: freeing an error pointer
+Message-ID: <20161130123326.GH28558@mwanda>
+References: <20161125102835.GA5856@mwanda>
+ <20161128134358.GS6266@mwanda>
+ <alpine.DEB.2.10.1611281453100.2967@hadrien>
+ <13737175.iVr8OcoHqv@avalon>
 MIME-Version: 1.0
-In-Reply-To: <5665893.fe4E5jvxvE@avalon>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <13737175.iVr8OcoHqv@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 11/03/2016 05:12 PM, Laurent Pinchart wrote:
->> It is a bit misleading that it used dma_request_slave_channel_compat()
->> for getting the channel.
->>
->> I think what would be correct is:
->> dma_cap_mask_t mask;
->>
->> dma_cap_zero(mask);
->> dma_cap_set(DMA_SLAVE, mask);
->> hist->dma_ch = dma_request_chan_by_mask(&mask);
->>
->> We will get any DMA channel capable of slave configuration, but we will
->> configure no DMA request number for the channel.
+On Mon, Nov 28, 2016 at 04:49:36PM +0200, Laurent Pinchart wrote:
+> Hi Julia and Dan,
 > 
-> I believe that should work. It could in theory result in a different behaviour 
-> as it could return a DMA channel not handled by the OMAP SDMA engine, but I 
-> don't think that would be an issue.
-
-Yes, that could be the case if we would have more than one DMAs in SoCs
-where the omap3isp is used, but we only have sDMA.
-
-The reason why I would like to move the driver to use the generic API is
-that my plan is to remove the legacy sDMA support in the future so the
-filter_fn is not going to be available outside of the DMAengine driver.
-
-I do believe that this is safe to do in this way and if the IP shows up
-somewhere else where we have more than one DMAs - which is unlikely -
-I'm sure it can be fixed up, but w/o device it is hard to guess what
-needs to be done.
-FWIW: if omap3isp shows up where we have sDMA and eDMA we can set the
-mask as DMA_SLAVE | DMA_MEMCPY as eDMA does not set both for a channel -
-it is either slave or memcpy.
-
->> and document this in the driver...
+> On Monday 28 Nov 2016 14:54:58 Julia Lawall wrote:
+> > On Mon, 28 Nov 2016, Dan Carpenter wrote:
+> > > I understand the comparison, but I just think it's better if people
+> > > always keep track of what has been allocated and what has not.  I tried
+> > > so hard to get Markus to stop sending those hundreds of patches where
+> > > he's like "this function has a sanity check so we can pass pointers
+> > > that weren't allocated"...  It's garbage code.
+> > > 
+> > > But I understand that other people don't agree.
+> > 
+> > In my opinion, it is good for code understanding to only do what is useful
+> > to do.  It's not a hard and fast rule, but I think it is something to take
+> > into account.
+> 
+> On the other hand it complicates the error handling code by increasing the 
+> number of goto labels, and it then becomes pretty easy when reworking code to 
+> goto the wrong label. This is even more of an issue when the rework doesn't 
+> touch the error handling code, in which case the reviewers can easily miss the 
+> issue if they don't open the original source file to check the goto labels.
 > 
 
--- 
-Péter
+It's really not.  I've looked at a lot of error handling in the past
+five years and sent hundreds of fixes for error paths, more than any
+other kernel developer during that time.  Although it seems obvious in
+retrospect, it took me years to realize this but the canonical way of
+doing error handling is the least error prone.
+
+Counting the labels is the wrong way to measure complexity.  That's like
+counting the number of functions.  Code with lots of functions is not
+necessarily more complicated than if it's just one big function.
+
+Part of the key to unwinding correctly is using good label names.  It
+should say what the label does.  Some people use come-from labels names
+like "goto kmalloc_failed".  Those are totally useless.  It's like
+naming your functions "called_from_foo()".  If there is only one goto
+then come-from label names are useless and if there are more than one
+goto which go to the same label then it's useless *and* misleading.
+
+Functions should be written so you can read them from top to bottom
+without scrolling back and forth.
+
+	a = alloc();
+	if (!a)
+		return -ENOMEM;
+
+	b = alloc();
+	if (!b) {
+		ret = -ENOMEM;
+		goto free_a;
+	}
+
+That code tells a complete story without any scrolling.  It's future
+proof too.  You can tell the goto is correct just from the name.  But
+when it's:
+
+	a = alloc();
+	if (!a)
+		goto out;
+	b = alloc();
+		goto out;
+
+That code doesn't have enough information to be understandable on it's
+own.  It's way more bug prone than the first sample.
+
+regards,
+dan carpenter
