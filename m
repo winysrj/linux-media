@@ -1,134 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35197 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751593AbcLJJoR (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:47309 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750975AbcLAEpV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Dec 2016 04:44:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH for v4.10 4/6] cec: replace cec_report_features by cec_fill_msg_report_features
-Date: Sat, 10 Dec 2016 10:44:11 +0100
-Message-Id: <20161210094413.8832-5-hverkuil@xs4all.nl>
-In-Reply-To: <20161210094413.8832-1-hverkuil@xs4all.nl>
-References: <20161210094413.8832-1-hverkuil@xs4all.nl>
+        Wed, 30 Nov 2016 23:45:21 -0500
+From: Shailendra Verma <shailendra.v@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shailendra Verma <shailendra.v@samsung.com>,
+        Shailendra Verma <shailendra.capricorn@gmail.com>
+Cc: vidushi.koul@samsung.com
+Subject: [PATCH] Platform: Exynos-gsc: Clean up file handle in open() error
+ path.
+Date: Thu, 01 Dec 2016 10:12:44 +0530
+Message-id: <1480567364-12963-1-git-send-email-shailendra.v@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+The File handle is not yet added in the vfd list.So no need to call
+v4l2_fh_del(&ctx->fh) if it fails to create control.
 
-The fill function just fills in the cec_msg struct, it doesn't transmit
-the message. This is now done explicitly.
-
-This makes it possible to switch to transmitting this message with adap->lock
-held.
-
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
 ---
- drivers/media/cec/cec-adap.c | 48 ++++++++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 22 deletions(-)
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index f3fef48..2b66851 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -30,8 +30,10 @@
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 9f03b79..5ea97c1 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -664,8 +664,8 @@ static int gsc_m2m_open(struct file *file)
  
- #include "cec-priv.h"
- 
--static int cec_report_features(struct cec_adapter *adap, unsigned int la_idx);
- static int cec_report_phys_addr(struct cec_adapter *adap, unsigned int la_idx);
-+static void cec_fill_msg_report_features(struct cec_adapter *adap,
-+					 struct cec_msg *msg,
-+					 unsigned int la_idx);
- 
- /*
-  * 400 ms is the time it takes for one 16 byte message to be
-@@ -1258,16 +1260,21 @@ static int cec_config_thread_func(void *arg)
- 	mutex_unlock(&adap->lock);
- 
- 	for (i = 0; i < las->num_log_addrs; i++) {
-+		struct cec_msg msg = {};
-+
- 		if (las->log_addr[i] == CEC_LOG_ADDR_INVALID ||
- 		    (las->flags & CEC_LOG_ADDRS_FL_CDC_ONLY))
- 			continue;
- 
--		/*
--		 * Report Features must come first according
--		 * to CEC 2.0
--		 */
--		if (las->log_addr[i] != CEC_LOG_ADDR_UNREGISTERED)
--			cec_report_features(adap, i);
-+		msg.msg[0] = (las->log_addr[i] << 4) | 0x0f;
-+
-+		/* Report Features must come first according to CEC 2.0 */
-+		if (las->log_addr[i] != CEC_LOG_ADDR_UNREGISTERED &&
-+		    adap->log_addrs.cec_version >= CEC_OP_CEC_VERSION_2_0) {
-+			cec_fill_msg_report_features(adap, &msg, i);
-+			cec_transmit_msg(adap, &msg, false);
-+		}
-+
- 		cec_report_phys_addr(adap, i);
- 	}
- 	mutex_lock(&adap->lock);
-@@ -1526,36 +1533,32 @@ EXPORT_SYMBOL_GPL(cec_s_log_addrs);
- 
- /* High-level core CEC message handling */
- 
--/* Transmit the Report Features message */
--static int cec_report_features(struct cec_adapter *adap, unsigned int la_idx)
-+/* Fill in the Report Features message */
-+static void cec_fill_msg_report_features(struct cec_adapter *adap,
-+					 struct cec_msg *msg,
-+					 unsigned int la_idx)
- {
--	struct cec_msg msg = { };
- 	const struct cec_log_addrs *las = &adap->log_addrs;
- 	const u8 *features = las->features[la_idx];
- 	bool op_is_dev_features = false;
- 	unsigned int idx;
- 
--	/* This is 2.0 and up only */
--	if (adap->log_addrs.cec_version < CEC_OP_CEC_VERSION_2_0)
--		return 0;
--
- 	/* Report Features */
--	msg.msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
--	msg.len = 4;
--	msg.msg[1] = CEC_MSG_REPORT_FEATURES;
--	msg.msg[2] = adap->log_addrs.cec_version;
--	msg.msg[3] = las->all_device_types[la_idx];
-+	msg->msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
-+	msg->len = 4;
-+	msg->msg[1] = CEC_MSG_REPORT_FEATURES;
-+	msg->msg[2] = adap->log_addrs.cec_version;
-+	msg->msg[3] = las->all_device_types[la_idx];
- 
- 	/* Write RC Profiles first, then Device Features */
- 	for (idx = 0; idx < ARRAY_SIZE(las->features[0]); idx++) {
--		msg.msg[msg.len++] = features[idx];
-+		msg->msg[msg->len++] = features[idx];
- 		if ((features[idx] & CEC_OP_FEAT_EXT) == 0) {
- 			if (op_is_dev_features)
- 				break;
- 			op_is_dev_features = true;
- 		}
- 	}
--	return cec_transmit_msg(adap, &msg, false);
- }
- 
- /* Transmit the Report Physical Address message */
-@@ -1779,7 +1782,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
- 	case CEC_MSG_GIVE_FEATURES:
- 		if (adap->log_addrs.cec_version < CEC_OP_CEC_VERSION_2_0)
- 			return cec_feature_abort(adap, msg);
--		return cec_report_features(adap, la_idx);
-+		cec_fill_msg_report_features(adap, &tx_cec_msg, la_idx);
-+		return cec_transmit_msg(adap, &tx_cec_msg, false);
- 
- 	default:
- 		/*
+ error_ctrls:
+ 	gsc_ctrls_delete(ctx);
+-error_fh:
+ 	v4l2_fh_del(&ctx->fh);
++error_fh:
+ 	v4l2_fh_exit(&ctx->fh);
+ 	kfree(ctx);
+ unlock:
 -- 
-2.10.2
+1.7.9.5
 
