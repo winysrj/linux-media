@@ -1,73 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:59362 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964887AbcKJQru (ORCPT
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:36718 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751758AbcLAAON (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 10 Nov 2016 11:47:50 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Anna Schumaker <anna.schumaker@netapp.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Herbert Xu <herbert@gondor.apana.org.au>,
-        Ilya Dryomov <idryomov@gmail.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Jiri Kosina <jikos@kernel.org>,
-        Jonathan Cameron <jic23@kernel.org>,
-        Ley Foon Tan <lftan@altera.com>,
-        "Luis R . Rodriguez" <mcgrof@kernel.org>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Marek <mmarek@suse.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sean Young <sean@mess.org>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Trond Myklebust <trond.myklebust@primarydata.com>,
-        x86@kernel.org, linux-kbuild@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-snps-arc@lists.infradead.org,
-        nios2-dev@lists.rocketboards.org, linux-s390@vger.kernel.org,
-        linux-crypto@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-nfs@vger.kernel.org
-Subject: [PATCH v2 07/11] [media] rc: print correct variable for z8f0811
-Date: Thu, 10 Nov 2016 17:44:50 +0100
-Message-Id: <20161110164454.293477-8-arnd@arndb.de>
-In-Reply-To: <20161110164454.293477-1-arnd@arndb.de>
-References: <20161110164454.293477-1-arnd@arndb.de>
+        Wed, 30 Nov 2016 19:14:13 -0500
+Received: by mail-pf0-f182.google.com with SMTP id 189so41949939pfz.3
+        for <linux-media@vger.kernel.org>; Wed, 30 Nov 2016 16:14:13 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        devicetree@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
+References: <20161122155244.802-1-khilman@baylibre.com>
+        <20161122155244.802-4-khilman@baylibre.com>
+        <20161123153723.GE16630@valkosipuli.retiisi.org.uk>
+        <m2a8cpvkwj.fsf@baylibre.com>
+        <20161130225136.GO16630@valkosipuli.retiisi.org.uk>
+Date: Wed, 30 Nov 2016 16:14:11 -0800
+In-Reply-To: <20161130225136.GO16630@valkosipuli.retiisi.org.uk> (Sakari
+        Ailus's message of "Thu, 1 Dec 2016 00:51:36 +0200")
+Message-ID: <m2zikgh5f0.fsf@baylibre.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent rework accidentally left a debugging printk untouched
-while changing the meaning of the variables, leading to an
-uninitialized variable being printed:
+Sakari Ailus <sakari.ailus@iki.fi> writes:
 
-drivers/media/i2c/ir-kbd-i2c.c: In function 'get_key_haup_common':
-drivers/media/i2c/ir-kbd-i2c.c:62:2: error: 'toggle' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+> Hi Kevin,
+>
+> On Wed, Nov 23, 2016 at 03:25:32PM -0800, Kevin Hilman wrote:
+>> Hi Sakari,
+>> 
+>> Sakari Ailus <sakari.ailus@iki.fi> writes:
+>> 
+>> > On Tue, Nov 22, 2016 at 07:52:43AM -0800, Kevin Hilman wrote:
+>> >> Allow getting of subdevs from DT ports and endpoints.
+>> >> 
+>> >> The _get_pdata() function was larely inspired by (i.e. stolen from)
+>> >
+>> > vpif_capture_get_pdata and "largely"?
+>> 
+>> Yes, thanks.
+>> 
+>> >> am437x-vpfe.c
+>> >> 
+>> >> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+>> >> ---
+>> >>  drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++++++++++++-
+>> >>  include/media/davinci/vpif_types.h            |   9 +-
+>> >>  2 files changed, 133 insertions(+), 6 deletions(-)
+>> >> 
+>> >> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+>> >> index 94ee6cf03f02..47a4699157e7 100644
+>> >> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> >> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> >> @@ -26,6 +26,8 @@
+>> >>  #include <linux/slab.h>
+>> >>  
+>> >>  #include <media/v4l2-ioctl.h>
+>> >> +#include <media/v4l2-of.h>
+>> >> +#include <media/i2c/tvp514x.h>
+>> >
+>> > Do you need this header?
+>> >
+>> 
+>> Yes, based on discussion with Hans, since there is no DT binding for
+>> selecting the input pins of the TVP514x, I have to select it in the
+>> driver, so I need the defines from this header.  More on this below...
+>> 
+>> >>  
+>> >>  #include "vpif.h"
+>> >>  #include "vpif_capture.h"
+>> >> @@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
+>> >>  
+>> >>  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
+>> >>  
+>> >> +	if (!chan_cfg)
+>> >> +		return -1;
+>> >> +	if (input_index >= chan_cfg->input_count)
+>> >> +		return -1;
+>> >>  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
+>> >>  	if (subdev_name == NULL)
+>> >>  		return -1;
+>> >> @@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
+>> >>  	/* loop through the sub device list to get the sub device info */
+>> >>  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
+>> >>  		subdev_info = &vpif_cfg->subdev_info[i];
+>> >> -		if (!strcmp(subdev_info->name, subdev_name))
+>> >> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
+>> >>  			return i;
+>> >>  	}
+>> >>  	return -1;
+>> >> @@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+>> >>  {
+>> >>  	int i;
+>> >>  
+>> >> +	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
+>> >> +		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
+>> >> +		const struct device_node *node = _asd->match.of.node;
+>> >> +
+>> >> +		if (node == subdev->of_node) {
+>> >> +			vpif_obj.sd[i] = subdev;
+>> >> +			vpif_obj.config->chan_config->inputs[i].subdev_name =
+>> >> +				(char *)subdev->of_node->full_name;
+>> >> +			vpif_dbg(2, debug,
+>> >> +				 "%s: setting input %d subdev_name = %s\n",
+>> >> +				 __func__, i, subdev->of_node->full_name);
+>> >> +			return 0;
+>> >> +		}
+>> >> +	}
+>> >> +
+>> >>  	for (i = 0; i < vpif_obj.config->subdev_count; i++)
+>> >>  		if (!strcmp(vpif_obj.config->subdev_info[i].name,
+>> >>  			    subdev->name)) {
+>> >> @@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+>> >>  	return vpif_probe_complete();
+>> >>  }
+>> >>  
+>> >> +static struct vpif_capture_config *
+>> >> +vpif_capture_get_pdata(struct platform_device *pdev)
+>> >> +{
+>> >> +	struct device_node *endpoint = NULL;
+>> >> +	struct v4l2_of_endpoint bus_cfg;
+>> >> +	struct vpif_capture_config *pdata;
+>> >> +	struct vpif_subdev_info *sdinfo;
+>> >> +	struct vpif_capture_chan_config *chan;
+>> >> +	unsigned int i;
+>> >> +
+>> >> +	dev_dbg(&pdev->dev, "vpif_get_pdata\n");
+>> >> +
+>> >> +	if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
+>> >> +		return pdev->dev.platform_data;
+>> >> +
+>> >> +	pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
+>> >> +	if (!pdata)
+>> >> +		return NULL;
+>> >> +	pdata->subdev_info =
+>> >> +		devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
+>> >> +			     VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
+>> >> +
+>> >> +	if (!pdata->subdev_info)
+>> >> +		return NULL;
+>> >> +	dev_dbg(&pdev->dev, "%s\n", __func__);
+>> >> +
+>> >> +	for (i = 0; ; i++) {
+>> >> +		struct device_node *rem;
+>> >> +		unsigned int flags;
+>> >> +		int err;
+>> >> +
+>> >> +		endpoint = of_graph_get_next_endpoint(pdev->dev.of_node,
+>> >> +						      endpoint);
+>> >> +		if (!endpoint)
+>> >> +			break;
+>> >> +
+>> >> +		sdinfo = &pdata->subdev_info[i];
+>> >
+>> > subdev_info[] has got VPIF_CAPTURE_MAX_CHANNELS entries only.
+>> >
+>> 
+>> Right, I need to make the loop only go for a max of
+>> VPIF_CAPTURE_MAX_CHANNELS iterations.
+>> 
+>> >> +		chan = &pdata->chan_config[i];
+>> >> +		chan->inputs = devm_kzalloc(&pdev->dev,
+>> >> +					    sizeof(*chan->inputs) *
+>> >> +					    VPIF_DISPLAY_MAX_CHANNELS,
+>> >> +					    GFP_KERNEL);
+>> >> +
+>> >> +		chan->input_count++;
+>> >> +		chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
+>> >
+>> > I wonder what's the purpose of using index i on this array as well.
+>> 
+>> The number of endpoints in DT is the number of input channels configured
+>> (up to a max of VPIF_CAPTURE_MAX_CHANNELS.)
+>> 
+>> > If you use that to access a corresponding entry in a different array, I'd
+>> > just create a struct that contains the port configuration and the async
+>> > sub-device. The omap3isp driver does that, for instance; see
+>> > isp_of_parse_nodes() in drivers/media/platform/omap3isp/isp.c if you're
+>> > interested. Up to you.
+>> 
+>> OK, I'll have a look at that driver. The goal here with this series is
+>> just to get this working with DT, but also not break the existing legacy
+>> platform_device support, so I'm trying not to mess with the
+>> driver-interal data structures too much.
+>
+> Ack.
+>
+>> 
+>> >> +		chan->inputs[i].input.std = V4L2_STD_ALL;
+>> >> +		chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
+>> >> +
+>> >> +		/* FIXME: need a new property? ch0:composite ch1: s-video */
+>> >> +		if (i == 0)
+>> >
+>> > Can you assume that the first endopoint has got a particular kind of input?
+>> > What if it's not connected?
+>> 
+>> On all the boards I know of (there aren't many using this SoC), it's a
+>> safe assumption.
+>> 
+>> > If this is a different physical port (not in the meaning another) in the
+>> > device, I'd use the reg property for this. Please see
+>> > Documentation/devicetree/bindings/media/video-interfaces.txt .
+>> 
+>> My understanding (which is admittedly somewhat fuzzy) of the TVP514x is
+>> that it's not physically a different port.  Instead, it's just telling
+>> the TVP514x which pin(s) will be active inputs (and what kind of signal
+>> will be present.)
+>> 
+>> I'm open to a better way to describe this input select from DT, but
+>> based on what I heard from Hans, there isn't currently a good way to do
+>> that except for in the driver:
+>> (c.f. https://marc.info/?l=linux-arm-kernel&m=147887871615788)
+>> 
+>> Based on further discussion in that thread, it sounds like there may be
+>> a way forward coming soon, and I'll be glad to switch to that when it
+>> arrives.
+>
+> I'm not sure that properly supporting connectors will provide any help here.
+>
+> Looking at the s_routing() API, it's the calling driver that has to be aware
+> of sub-device specific function parameters. As such it's not a very good
+> idea to require that a driver is aware of the value range of another
+> driver's parameter. I wonder if a simple enumeration interface would help
+> here --- if I understand correctly, the purpose is just to provide a way to
+> choose the input using VIDIOC_S_INPUT.
+>
+> I guess that's somehow ok as long as you have no other combinations of these
+> devices but this is hardly future-proof. (And certainly not a problem
+> created by this patch.)
 
-This prints the correct one instead, as we did before the patch.
+Yeah, this is far from future proof.
 
-Fixes: 00bb820755ed ("[media] rc: Hauppauge z8f0811 can decode RC6")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/i2c/ir-kbd-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> It'd be still nice to fix that as presumably we don't have the option of
+> reworking how we expect the device tree to look like.
 
-I submitted this repeatedly as it is a v4.9 regression, but
-I never saw a reply for it.
+Agreed.
 
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index f95a6bc..cede397 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -118,7 +118,7 @@ static int get_key_haup_common(struct IR_i2c *ir, enum rc_type *protocol,
- 			*protocol = RC_TYPE_RC6_MCE;
- 			dev &= 0x7f;
- 			dprintk(1, "ir hauppauge (rc6-mce): t%d vendor=%d dev=%d code=%d\n",
--						toggle, vendor, dev, code);
-+						*ptoggle, vendor, dev, code);
- 		} else {
- 			*ptoggle = 0;
- 			*protocol = RC_TYPE_RC6_6A_32;
--- 
-2.9.0
+I'm just hoping someone can shed som light on "how we expect the device
+tree to look".  ;)
+
+Kevin
 
