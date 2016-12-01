@@ -1,50 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35141 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753088AbcLHPxu (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:43080 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755402AbcLAExA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 10:53:50 -0500
-Message-ID: <1481212429.2673.7.camel@pengutronix.de>
-Subject: Re: [PATCH 7/9] [media] coda: fix frame index to returned error
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Michael Tretter <m.tretter@pengutronix.de>
-Cc: linux-media@vger.kernel.org
-Date: Thu, 08 Dec 2016 16:53:49 +0100
-In-Reply-To: <20161208152416.16031-7-m.tretter@pengutronix.de>
-References: <20161208152416.16031-1-m.tretter@pengutronix.de>
-         <20161208152416.16031-7-m.tretter@pengutronix.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 30 Nov 2016 23:53:00 -0500
+From: Shailendra Verma <shailendra.v@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org,
+        Shailendra Verma <shailendra.v@samsung.com>,
+        Shailendra Verma <shailendra.capricorn@gmail.com>
+Cc: vidushi.koul@samsung.com
+Subject: [PATCH] Platform: vsp1: Clean up file handle in open() error path.
+Date: Thu, 01 Dec 2016 10:20:18 +0530
+Message-id: <1480567818-13363-1-git-send-email-shailendra.v@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 08.12.2016, 16:24 +0100 schrieb Michael Tretter:
-> display_idx refers to the frame that will be returned in the next round.
-> The currently processed frame is ctx->display_idx and errors should be
-> reported for this frame.
-> 
-> Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
-> ---
->  drivers/media/platform/coda/coda-bit.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-> index b662504..309eb4e 100644
-> --- a/drivers/media/platform/coda/coda-bit.c
-> +++ b/drivers/media/platform/coda/coda-bit.c
-> @@ -2057,7 +2057,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
->  		}
->  		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
->  
-> -		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
-> +		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[ctx->display_idx] ?
->  				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
->  
->  		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+v4l2_fh_init is already done.So call the v4l2_fh_exit in error condition
+before returing from the function.
 
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-regards
-Philipp
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index d351b9c..cc58163 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -1044,6 +1044,7 @@ static int vsp1_video_open(struct file *file)
+ 	ret = vsp1_device_get(video->vsp1);
+ 	if (ret < 0) {
+ 		v4l2_fh_del(vfh);
++		v4l2_fh_exit(vfh);
+ 		kfree(vfh);
+ 	}
+ 
+-- 
+1.7.9.5
 
