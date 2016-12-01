@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:45514 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751563AbcLJJoQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Dec 2016 04:44:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH for v4.10 3/6] cec: update log_addr[] before finishing configuration
-Date: Sat, 10 Dec 2016 10:44:10 +0100
-Message-Id: <20161210094413.8832-4-hverkuil@xs4all.nl>
-In-Reply-To: <20161210094413.8832-1-hverkuil@xs4all.nl>
-References: <20161210094413.8832-1-hverkuil@xs4all.nl>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40702 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755561AbcLAK2Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 05:28:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shailendra Verma <shailendra.v@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shailendra Verma <shailendra.capricorn@gmail.com>,
+        vidushi.koul@samsung.com
+Subject: Re: [PATCH] V4l: omap3isp: Clean up file handle in open() and release().
+Date: Thu, 01 Dec 2016 12:28:39 +0200
+Message-ID: <1835003.usQhLsQOpN@avalon>
+In-Reply-To: <1480567540-13119-1-git-send-email-shailendra.v@samsung.com>
+References: <1480567540-13119-1-git-send-email-shailendra.v@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Hi Shailendra,
 
-The loop that sets the unused logical addresses to INVALID should be
-done before 'configured' is set to true. This ensures that cec_log_addrs
-is consistent before it will be used.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
----
- drivers/media/cec/cec-adap.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+On Thursday 01 Dec 2016 10:15:40 Shailendra Verma wrote:
+> Both functions initialize the file handle with v4l2_fh_init()
+> and thus need to call clean up with v4l2_fh_exit() as appropriate.
+> 
+> Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
 
-diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
-index c05956f..f3fef48 100644
---- a/drivers/media/cec/cec-adap.c
-+++ b/drivers/media/cec/cec-adap.c
-@@ -1250,6 +1250,8 @@ static int cec_config_thread_func(void *arg)
- 		for (i = 1; i < las->num_log_addrs; i++)
- 			las->log_addr[i] = CEC_LOG_ADDR_INVALID;
- 	}
-+	for (i = las->num_log_addrs; i < CEC_MAX_LOG_ADDRS; i++)
-+		las->log_addr[i] = CEC_LOG_ADDR_INVALID;
- 	adap->is_configured = true;
- 	adap->is_configuring = false;
- 	cec_post_state_event(adap);
-@@ -1268,8 +1270,6 @@ static int cec_config_thread_func(void *arg)
- 			cec_report_features(adap, i);
- 		cec_report_phys_addr(adap, i);
- 	}
--	for (i = las->num_log_addrs; i < CEC_MAX_LOG_ADDRS; i++)
--		las->log_addr[i] = CEC_LOG_ADDR_INVALID;
- 	mutex_lock(&adap->lock);
- 	adap->kthread_config = NULL;
- 	mutex_unlock(&adap->lock);
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and applied to my tree for v4.11.
+
+> ---
+>  drivers/media/platform/omap3isp/ispvideo.c |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> b/drivers/media/platform/omap3isp/ispvideo.c index 7354469..9f966e8 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -1350,6 +1350,7 @@ static int isp_video_open(struct file *file)
+>  done:
+>  	if (ret < 0) {
+>  		v4l2_fh_del(&handle->vfh);
+> +		v4l2_fh_exit(&handle->vfh);
+>  		kfree(handle);
+>  	}
+> 
+> @@ -1373,6 +1374,7 @@ static int isp_video_release(struct file *file)
+> 
+>  	/* Release the file handle. */
+>  	v4l2_fh_del(vfh);
+> +	v4l2_fh_exit(vfh);
+>  	kfree(handle);
+>  	file->private_data = NULL;
+
 -- 
-2.10.2
+Regards,
+
+Laurent Pinchart
 
