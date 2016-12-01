@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48414 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754916AbcLPKaN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 05:30:13 -0500
-Date: Fri, 16 Dec 2016 12:30:06 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gen-errors.rst: document EIO
-Message-ID: <20161216103006.GH16630@valkosipuli.retiisi.org.uk>
-References: <3c05072b-f3ee-4018-d5a8-d341e66fedfe@xs4all.nl>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57744
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751148AbcLAPSF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 10:18:05 -0500
+Date: Thu, 1 Dec 2016 13:17:58 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: David Howells <dhowells@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
+        gnomes@lxorguk.ukuu.org.uk, minyard@acm.org,
+        linux-security-module@vger.kernel.org, keyrings@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 29/39] Annotate hardware config module parameters in
+ drivers/staging/media/
+Message-ID: <20161201131758.348be20a@vento.lan>
+In-Reply-To: <18435.1480604396@warthog.procyon.org.uk>
+References: <20161201125420.5b397933@vento.lan>
+        <148059537897.31612.9461043954611464597.stgit@warthog.procyon.org.uk>
+        <148059561006.31612.6396069416948435055.stgit@warthog.procyon.org.uk>
+        <18435.1480604396@warthog.procyon.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3c05072b-f3ee-4018-d5a8-d341e66fedfe@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 16, 2016 at 10:22:08AM +0100, Hans Verkuil wrote:
-> Document the EIO error since this can happen anywhere anytime and applications
-> should be aware of this.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> diff --git a/Documentation/media/uapi/gen-errors.rst b/Documentation/media/uapi/gen-errors.rst
-> index 6e983b9..ee224b9 100644
-> --- a/Documentation/media/uapi/gen-errors.rst
-> +++ b/Documentation/media/uapi/gen-errors.rst
-> @@ -94,6 +94,14 @@ Generic Error Codes
->         -  Permission denied. Can be returned if the device needs write
->  	  permission, or some special capabilities is needed (e. g. root)
-> 
-> +    -  .. row 11
-> +
-> +       -  ``EIO``
-> +
-> +       -  I/O error. Typically used when there are problems communicating with
-> +          a hardware device. This could indicate broken or flaky hardware.
-> +	  It's a 'Something is wrong, I give up!' type of error.
-> +
->  .. note::
-> 
->    #. This list is not exaustive; ioctls may return other error codes.
+Em Thu, 01 Dec 2016 14:59:56 +0000
+David Howells <dhowells@redhat.com> escreveu:
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 
+> > drivers/staging/media/lirc/lirc_parallel.c:728:19: error: Expected ) in function declarator  
+> 
+> Did you apply patch 1 first?  That defines module_param_hw*.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+No. Applying it at the media upstream tree can be risky if it ends
+by being merged with some changes.
+
+On what tree do you intend patch 1 to be merged?
+
+> 
+> David
+
+
+
+Thanks,
+Mauro
