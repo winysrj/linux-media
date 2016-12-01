@@ -1,847 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:57231 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755266AbcLTRud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Dec 2016 12:50:33 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-        Christoph Bartelmus <lirc@bartelmus.de>
-Subject: [PATCH 3/5] [media] staging: lirc_parallel: remove
-Date: Tue, 20 Dec 2016 17:50:26 +0000
-Message-Id: <c973c9ec3936d79c83099319cd0109ef1bcc89cf.1482255894.git.sean@mess.org>
-In-Reply-To: <cover.1482255894.git.sean@mess.org>
-References: <cover.1482255894.git.sean@mess.org>
-In-Reply-To: <cover.1482255894.git.sean@mess.org>
-References: <cover.1482255894.git.sean@mess.org>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58300
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750856AbcLAQvV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 11:51:21 -0500
+Subject: Re: [PATCH 2/2] media: protect enable and disable source handler
+ checks and calls
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <cover.1480384155.git.shuahkh@osg.samsung.com>
+ <54975937478803ef4883e9caecb8af0ef282e35c.1480384155.git.shuahkh@osg.samsung.com>
+ <20161129092230.GL16630@valkosipuli.retiisi.org.uk>
+ <4249d032-ecdc-06bb-d11a-cf88b7a8d86c@osg.samsung.com>
+ <20161201135125.GR16630@valkosipuli.retiisi.org.uk>
+Cc: mchehab@kernel.org, mkrufky@linuxtv.org, klock.android@gmail.com,
+        elfring@users.sourceforge.net, max@duempel.org,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, sakari.ailus@linux.intel.com,
+        laurent.pinchart+renesas@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <63c00d12-b88c-1b0b-028f-dd3e4a302d79@osg.samsung.com>
+Date: Thu, 1 Dec 2016 09:51:08 -0700
+MIME-Version: 1.0
+In-Reply-To: <20161201135125.GR16630@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lirc_parallel driver was merged in 2010 and noone has attempted
-to do the work necessary to get it out of staging (i.e. port it to
-rc-core). I have not been able to find one of these devices, and
-a machine with a parallel port is pretty rare too.
+Hi Sakari,
 
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>
----
- drivers/staging/media/lirc/Kconfig         |   6 -
- drivers/staging/media/lirc/Makefile        |   1 -
- drivers/staging/media/lirc/lirc_parallel.c | 741 -----------------------------
- drivers/staging/media/lirc/lirc_parallel.h |  26 -
- 4 files changed, 774 deletions(-)
- delete mode 100644 drivers/staging/media/lirc/lirc_parallel.c
- delete mode 100644 drivers/staging/media/lirc/lirc_parallel.h
+On 12/01/2016 06:51 AM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Tue, Nov 29, 2016 at 10:41:51AM -0700, Shuah Khan wrote:
+>> On 11/29/2016 02:22 AM, Sakari Ailus wrote:
+>>> Hi Shuah,
+>>>
+>>> On Mon, Nov 28, 2016 at 07:15:14PM -0700, Shuah Khan wrote:
+>>>> Protect enable and disable source handler checks and calls from dvb-core
+>>>> and v4l2-core. Hold graph_mutex to check if enable and disable source
+>>>> handlers are present and invoke them while holding the mutex. This change
+>>>> ensures these handlers will not be removed while they are being checked
+>>>> and invoked.
+>>>>
+>>>> au08282 enable and disable source handlers are changed to not hold the
+>>>> graph_mutex.
+>>>>
+>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>> ---
+>>>>  drivers/media/dvb-core/dvb_frontend.c  | 24 ++++++++++++++++++------
+>>>>  drivers/media/usb/au0828/au0828-core.c | 17 +++++------------
+>>>>  drivers/media/v4l2-core/v4l2-mc.c      | 26 ++++++++++++++++++--------
+>>>>  3 files changed, 41 insertions(+), 26 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+>>>> index 01511e5..2f09c7e 100644
+>>>> --- a/drivers/media/dvb-core/dvb_frontend.c
+>>>> +++ b/drivers/media/dvb-core/dvb_frontend.c
+>>>> @@ -2527,9 +2527,13 @@ static int dvb_frontend_open(struct inode *inode, struct file *file)
+>>>>  		fepriv->voltage = -1;
+>>>>  
+>>>>  #ifdef CONFIG_MEDIA_CONTROLLER_DVB
+>>>> -		if (fe->dvb->mdev && fe->dvb->mdev->enable_source) {
+>>>> -			ret = fe->dvb->mdev->enable_source(dvbdev->entity,
+>>>> +		if (fe->dvb->mdev) {
+>>>> +			mutex_lock(&fe->dvb->mdev->graph_mutex);
+>>>> +			if (fe->dvb->mdev->enable_source)
+>>>> +				ret = fe->dvb->mdev->enable_source(
+>>>> +							   dvbdev->entity,
+>>>>  							   &fepriv->pipe);
+>>>> +			mutex_unlock(&fe->dvb->mdev->graph_mutex);
+>>>
+>>> You have to make sure the media device actually will stay aronud while it is
+>>> being accessed. In this case, when dvb_frontend_open() runs, it will proceed
+>>> to access the media device without knowing whether it's going to stay around
+>>> or not. Without doing so, it may well be in the process of being removed by
+>>> au0828_unregister_media_device() at the same time.
+>>
+>> Right. What this is trying to protect is just the check for enable_source
+>> and disable handlers before calling them.
+> 
+> Yes, but that's not enough.
+> 
+> The other handlers in the ops structure must stay there as long as the media
+> device does. So we need to make sure it does. One, perhaps the only way to
+> do that could be to obtain a reference to the device that first set those
+> callbacks.
+> 
+>>
+>>>
+>>> The approach I took in my patchset was that the device that requires the
+>>> media device will acquire a reference to it, this way the media device will
+>>> stick around as long as other data structures have references to it. The
+>>> current set did not yet implement this to dvb devices but I can add that.
+>>> Then there's no even a need for the frontend driver to acquire the graph
+>>> lock just to call the enable_source() callback.
+>>
+>> Taking reference to media_device alone will not solve this problem of enable
+>> and disable handlers going away. au0828_unregister_media_device() will clear
+>> the handlers and then call media_device_unregister() and it also does
+>> media_device_cleanup(). Your patch set and media dev allocator api I did solve
+> 
+> Then, that should be applied to all the other callbacks in the ops structure
+> as well. Not only to the callbacks that the au0828 driver needs. All the
+> callbacks are really need to stay unchanged as long as the device may be in
+> use.
 
-diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
-index 56e5fd7..7923d3f 100644
---- a/drivers/staging/media/lirc/Kconfig
-+++ b/drivers/staging/media/lirc/Kconfig
-@@ -26,12 +26,6 @@ config LIRC_IMON
- 
- 	  Current generation iMON devices use the input layer imon driver.
- 
--config LIRC_PARALLEL
--	tristate "Homebrew Parallel Port Receiver"
--	depends on LIRC && PARPORT
--	help
--	  Driver for Homebrew Parallel Port Receivers
--
- config LIRC_SASEM
- 	tristate "Sasem USB IR Remote"
- 	depends on LIRC && USB
-diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
-index 7f919ea..ed3091e 100644
---- a/drivers/staging/media/lirc/Makefile
-+++ b/drivers/staging/media/lirc/Makefile
-@@ -5,7 +5,6 @@
- 
- obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
- obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
--obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
- obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
- obj-$(CONFIG_LIRC_SIR)		+= lirc_sir.o
- obj-$(CONFIG_LIRC_ZILOG)	+= lirc_zilog.o
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-deleted file mode 100644
-index bfb76a4..0000000
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ /dev/null
-@@ -1,741 +0,0 @@
--/*
-- * lirc_parallel.c
-- *
-- * lirc_parallel - device driver for infra-red signal receiving and
-- *                 transmitting unit built by the author
-- *
-- * Copyright (C) 1998 Christoph Bartelmus <lirc@bartelmus.de>
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-- *
-- */
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--/*** Includes ***/
--
--#include <linux/module.h>
--#include <linux/sched.h>
--#include <linux/errno.h>
--#include <linux/signal.h>
--#include <linux/fs.h>
--#include <linux/kernel.h>
--#include <linux/ioport.h>
--#include <linux/ktime.h>
--#include <linux/mm.h>
--#include <linux/delay.h>
--
--#include <linux/io.h>
--#include <linux/irq.h>
--#include <linux/uaccess.h>
--#include <asm/div64.h>
--
--#include <linux/poll.h>
--#include <linux/parport.h>
--#include <linux/platform_device.h>
--
--#include <media/lirc.h>
--#include <media/lirc_dev.h>
--
--#include "lirc_parallel.h"
--
--#define LIRC_DRIVER_NAME "lirc_parallel"
--
--#ifndef LIRC_IRQ
--#define LIRC_IRQ 7
--#endif
--#ifndef LIRC_PORT
--#define LIRC_PORT 0x378
--#endif
--#ifndef LIRC_TIMER
--#define LIRC_TIMER 65536
--#endif
--
--/*** Global Variables ***/
--
--static bool debug;
--static bool check_pselecd;
--
--static unsigned int irq = LIRC_IRQ;
--static unsigned int io = LIRC_PORT;
--#ifdef LIRC_TIMER
--static unsigned int timer;
--static unsigned int default_timer = LIRC_TIMER;
--#endif
--
--#define RBUF_SIZE (256) /* this must be a power of 2 larger than 1 */
--
--static int rbuf[RBUF_SIZE];
--
--static DECLARE_WAIT_QUEUE_HEAD(lirc_wait);
--
--static unsigned int rptr;
--static unsigned int wptr;
--static unsigned int lost_irqs;
--static int is_open;
--
--static struct parport *pport;
--static struct pardevice *ppdevice;
--static int is_claimed;
--
--static unsigned int tx_mask = 1;
--
--/*** Internal Functions ***/
--
--static unsigned int in(int offset)
--{
--	switch (offset) {
--	case LIRC_LP_BASE:
--		return parport_read_data(pport);
--	case LIRC_LP_STATUS:
--		return parport_read_status(pport);
--	case LIRC_LP_CONTROL:
--		return parport_read_control(pport);
--	}
--	return 0; /* make compiler happy */
--}
--
--static void out(int offset, int value)
--{
--	switch (offset) {
--	case LIRC_LP_BASE:
--		parport_write_data(pport, value);
--		break;
--	case LIRC_LP_CONTROL:
--		parport_write_control(pport, value);
--		break;
--	case LIRC_LP_STATUS:
--		pr_info("attempt to write to status register\n");
--		break;
--	}
--}
--
--static unsigned int lirc_get_timer(void)
--{
--	return in(LIRC_PORT_TIMER) & LIRC_PORT_TIMER_BIT;
--}
--
--static unsigned int lirc_get_signal(void)
--{
--	return in(LIRC_PORT_SIGNAL) & LIRC_PORT_SIGNAL_BIT;
--}
--
--static void lirc_on(void)
--{
--	out(LIRC_PORT_DATA, tx_mask);
--}
--
--static void lirc_off(void)
--{
--	out(LIRC_PORT_DATA, 0);
--}
--
--static unsigned int init_lirc_timer(void)
--{
--	ktime_t kt, now, timeout;
--	unsigned int level, newlevel, timeelapsed, newtimer;
--	int count = 0;
--
--	kt = ktime_get();
--	/* wait max. 1 sec. */
--	timeout = ktime_add_ns(kt, NSEC_PER_SEC);
--	level = lirc_get_timer();
--	do {
--		newlevel = lirc_get_timer();
--		if (level == 0 && newlevel != 0)
--			count++;
--		level = newlevel;
--		now = ktime_get();
--	} while (count < 1000 && (ktime_before(now, timeout)));
--	timeelapsed = ktime_us_delta(now, kt);
--	if (count >= 1000 && timeelapsed > 0) {
--		if (default_timer == 0) {
--			/* autodetect timer */
--			newtimer = (1000000 * count) / timeelapsed;
--			pr_info("%u Hz timer detected\n", newtimer);
--			return newtimer;
--		}
--		newtimer = (1000000 * count) / timeelapsed;
--		if (abs(newtimer - default_timer) > default_timer / 10) {
--			/* bad timer */
--			pr_notice("bad timer: %u Hz\n", newtimer);
--			pr_notice("using default timer: %u Hz\n",
--				  default_timer);
--			return default_timer;
--		}
--		pr_info("%u Hz timer detected\n", newtimer);
--		return newtimer; /* use detected value */
--	}
--
--	pr_notice("no timer detected\n");
--	return 0;
--}
--
--static int lirc_claim(void)
--{
--	if (parport_claim(ppdevice) != 0) {
--		pr_warn("could not claim port\n");
--		pr_warn("waiting for port becoming available\n");
--		if (parport_claim_or_block(ppdevice) < 0) {
--			pr_notice("could not claim port, giving up\n");
--			return 0;
--		}
--	}
--	out(LIRC_LP_CONTROL, LP_PSELECP | LP_PINITP);
--	is_claimed = 1;
--	return 1;
--}
--
--/*** interrupt handler ***/
--
--static void rbuf_write(int signal)
--{
--	unsigned int nwptr;
--
--	nwptr = (wptr + 1) & (RBUF_SIZE - 1);
--	if (nwptr == rptr) {
--		/* no new signals will be accepted */
--		lost_irqs++;
--		pr_notice("buffer overrun\n");
--		return;
--	}
--	rbuf[wptr] = signal;
--	wptr = nwptr;
--}
--
--static void lirc_lirc_irq_handler(void *blah)
--{
--	ktime_t kt, delkt;
--	static ktime_t lastkt;
--	static int init;
--	long signal;
--	int data;
--	unsigned int level, newlevel;
--	unsigned int timeout;
--
--	if (!is_open)
--		return;
--
--	if (!is_claimed)
--		return;
--
--#if 0
--	/* disable interrupt */
--	  disable_irq(irq);
--	  out(LIRC_PORT_IRQ, in(LIRC_PORT_IRQ) & (~LP_PINTEN));
--#endif
--	if (check_pselecd && (in(1) & LP_PSELECD))
--		return;
--
--#ifdef LIRC_TIMER
--	if (init) {
--		kt = ktime_get();
--
--		delkt = ktime_sub(kt, lastkt);
--		if (ktime_compare(delkt, ktime_set(15, 0)) > 0)
--			/* really long time */
--			data = PULSE_MASK;
--		else
--			data = (int)(ktime_to_us(delkt) + LIRC_SFH506_DELAY);
--
--		rbuf_write(data); /* space */
--	} else {
--		if (timer == 0) {
--			/*
--			 * wake up; we'll lose this signal, but it will be
--			 * garbage if the device is turned on anyway
--			 */
--			timer = init_lirc_timer();
--			/* enable_irq(irq); */
--			return;
--		}
--		init = 1;
--	}
--
--	timeout = timer / 10;	/* timeout after 1/10 sec. */
--	signal = 1;
--	level = lirc_get_timer();
--	do {
--		newlevel = lirc_get_timer();
--		if (level == 0 && newlevel != 0)
--			signal++;
--		level = newlevel;
--
--		/* giving up */
--		if (signal > timeout
--		    || (check_pselecd && (in(1) & LP_PSELECD))) {
--			signal = 0;
--			pr_notice("timeout\n");
--			break;
--		}
--	} while (lirc_get_signal());
--
--	if (signal != 0) {
--		/* adjust value to usecs */
--		__u64 helper;
--
--		helper = ((__u64)signal) * 1000000;
--		do_div(helper, timer);
--		signal = (long)helper;
--
--		if (signal > LIRC_SFH506_DELAY)
--			data = signal - LIRC_SFH506_DELAY;
--		else
--			data = 1;
--		rbuf_write(PULSE_BIT | data); /* pulse */
--	}
--	lastkt = ktime_get();
--#else
--	/* add your code here */
--#endif
--
--	wake_up_interruptible(&lirc_wait);
--
--	/* enable interrupt */
--	/*
--	 * enable_irq(irq);
--	 * out(LIRC_PORT_IRQ, in(LIRC_PORT_IRQ)|LP_PINTEN);
--	 */
--}
--
--/*** file operations ***/
--
--static loff_t lirc_lseek(struct file *filep, loff_t offset, int orig)
--{
--	return -ESPIPE;
--}
--
--static ssize_t lirc_read(struct file *filep, char __user *buf, size_t n,
--			 loff_t *ppos)
--{
--	int result = 0;
--	int count = 0;
--	DECLARE_WAITQUEUE(wait, current);
--
--	if (n % sizeof(int))
--		return -EINVAL;
--
--	add_wait_queue(&lirc_wait, &wait);
--	set_current_state(TASK_INTERRUPTIBLE);
--	while (count < n) {
--		if (rptr != wptr) {
--			if (copy_to_user(buf + count, &rbuf[rptr],
--					 sizeof(int))) {
--				result = -EFAULT;
--				break;
--			}
--			rptr = (rptr + 1) & (RBUF_SIZE - 1);
--			count += sizeof(int);
--		} else {
--			if (filep->f_flags & O_NONBLOCK) {
--				result = -EAGAIN;
--				break;
--			}
--			if (signal_pending(current)) {
--				result = -ERESTARTSYS;
--				break;
--			}
--			schedule();
--			set_current_state(TASK_INTERRUPTIBLE);
--		}
--	}
--	remove_wait_queue(&lirc_wait, &wait);
--	set_current_state(TASK_RUNNING);
--	return count ? count : result;
--}
--
--static ssize_t lirc_write(struct file *filep, const char __user *buf, size_t n,
--			  loff_t *ppos)
--{
--	int count;
--	unsigned int i;
--	unsigned int level, newlevel;
--	unsigned long flags;
--	int counttimer;
--	int *wbuf;
--	ssize_t ret;
--
--	if (!is_claimed)
--		return -EBUSY;
--
--	count = n / sizeof(int);
--
--	if (n % sizeof(int) || count % 2 == 0)
--		return -EINVAL;
--
--	wbuf = memdup_user(buf, n);
--	if (IS_ERR(wbuf))
--		return PTR_ERR(wbuf);
--
--#ifdef LIRC_TIMER
--	if (timer == 0) {
--		/* try again if device is ready */
--		timer = init_lirc_timer();
--		if (timer == 0) {
--			ret = -EIO;
--			goto out;
--		}
--	}
--
--	/* adjust values from usecs */
--	for (i = 0; i < count; i++) {
--		__u64 helper;
--
--		helper = ((__u64)wbuf[i]) * timer;
--		do_div(helper, 1000000);
--		wbuf[i] = (int)helper;
--	}
--
--	local_irq_save(flags);
--	i = 0;
--	while (i < count) {
--		level = lirc_get_timer();
--		counttimer = 0;
--		lirc_on();
--		do {
--			newlevel = lirc_get_timer();
--			if (level == 0 && newlevel != 0)
--				counttimer++;
--			level = newlevel;
--			if (check_pselecd && (in(1) & LP_PSELECD)) {
--				lirc_off();
--				local_irq_restore(flags);
--				ret = -EIO;
--				goto out;
--			}
--		} while (counttimer < wbuf[i]);
--		i++;
--
--		lirc_off();
--		if (i == count)
--			break;
--		counttimer = 0;
--		do {
--			newlevel = lirc_get_timer();
--			if (level == 0 && newlevel != 0)
--				counttimer++;
--			level = newlevel;
--			if (check_pselecd && (in(1) & LP_PSELECD)) {
--				local_irq_restore(flags);
--				ret = -EIO;
--				goto out;
--			}
--		} while (counttimer < wbuf[i]);
--		i++;
--	}
--	local_irq_restore(flags);
--#else
--	/* place code that handles write without external timer here */
--#endif
--	ret = n;
--out:
--	kfree(wbuf);
--
--	return ret;
--}
--
--static unsigned int lirc_poll(struct file *file, poll_table *wait)
--{
--	poll_wait(file, &lirc_wait, wait);
--	if (rptr != wptr)
--		return POLLIN | POLLRDNORM;
--	return 0;
--}
--
--static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
--{
--	int result;
--	u32 __user *uptr = (u32 __user *)arg;
--	u32 features = LIRC_CAN_SET_TRANSMITTER_MASK |
--		       LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2;
--	u32 mode;
--	u32 value;
--
--	switch (cmd) {
--	case LIRC_GET_FEATURES:
--		result = put_user(features, uptr);
--		if (result)
--			return result;
--		break;
--	case LIRC_GET_SEND_MODE:
--		result = put_user(LIRC_MODE_PULSE, uptr);
--		if (result)
--			return result;
--		break;
--	case LIRC_GET_REC_MODE:
--		result = put_user(LIRC_MODE_MODE2, uptr);
--		if (result)
--			return result;
--		break;
--	case LIRC_SET_SEND_MODE:
--		result = get_user(mode, uptr);
--		if (result)
--			return result;
--		if (mode != LIRC_MODE_PULSE)
--			return -EINVAL;
--		break;
--	case LIRC_SET_REC_MODE:
--		result = get_user(mode, uptr);
--		if (result)
--			return result;
--		if (mode != LIRC_MODE_MODE2)
--			return -ENOSYS;
--		break;
--	case LIRC_SET_TRANSMITTER_MASK:
--		result = get_user(value, uptr);
--		if (result)
--			return result;
--		if ((value & LIRC_PARALLEL_TRANSMITTER_MASK) != value)
--			return LIRC_PARALLEL_MAX_TRANSMITTERS;
--		tx_mask = value;
--		break;
--	default:
--		return -ENOIOCTLCMD;
--	}
--	return 0;
--}
--
--static int lirc_open(struct inode *node, struct file *filep)
--{
--	if (is_open || !lirc_claim())
--		return -EBUSY;
--
--	parport_enable_irq(pport);
--
--	/* init read ptr */
--	rptr = 0;
--	wptr = 0;
--	lost_irqs = 0;
--
--	is_open = 1;
--	return 0;
--}
--
--static int lirc_close(struct inode *node, struct file *filep)
--{
--	if (is_claimed) {
--		is_claimed = 0;
--		parport_release(ppdevice);
--	}
--	is_open = 0;
--	return 0;
--}
--
--static const struct file_operations lirc_fops = {
--	.owner		= THIS_MODULE,
--	.llseek		= lirc_lseek,
--	.read		= lirc_read,
--	.write		= lirc_write,
--	.poll		= lirc_poll,
--	.unlocked_ioctl	= lirc_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= lirc_ioctl,
--#endif
--	.open		= lirc_open,
--	.release	= lirc_close
--};
--
--static int set_use_inc(void *data)
--{
--	return 0;
--}
--
--static void set_use_dec(void *data)
--{
--}
--
--static struct lirc_driver driver = {
--	.name		= LIRC_DRIVER_NAME,
--	.minor		= -1,
--	.code_length	= 1,
--	.sample_rate	= 0,
--	.data		= NULL,
--	.add_to_buf	= NULL,
--	.set_use_inc	= set_use_inc,
--	.set_use_dec	= set_use_dec,
--	.fops		= &lirc_fops,
--	.dev		= NULL,
--	.owner		= THIS_MODULE,
--};
--
--static struct platform_device *lirc_parallel_dev;
--
--static int lirc_parallel_probe(struct platform_device *dev)
--{
--	return 0;
--}
--
--static int lirc_parallel_remove(struct platform_device *dev)
--{
--	return 0;
--}
--
--static int lirc_parallel_suspend(struct platform_device *dev,
--					pm_message_t state)
--{
--	return 0;
--}
--
--static int lirc_parallel_resume(struct platform_device *dev)
--{
--	return 0;
--}
--
--static struct platform_driver lirc_parallel_driver = {
--	.probe	= lirc_parallel_probe,
--	.remove	= lirc_parallel_remove,
--	.suspend	= lirc_parallel_suspend,
--	.resume	= lirc_parallel_resume,
--	.driver	= {
--		.name	= LIRC_DRIVER_NAME,
--	},
--};
--
--static int pf(void *handle)
--{
--	parport_disable_irq(pport);
--	is_claimed = 0;
--	return 0;
--}
--
--static void kf(void *handle)
--{
--	if (!is_open)
--		return;
--	if (!lirc_claim())
--		return;
--	parport_enable_irq(pport);
--	lirc_off();
--	/* this is a bit annoying when you actually print...*/
--	/*
--	 * printk(KERN_INFO "%s: reclaimed port\n", LIRC_DRIVER_NAME);
--	*/
--}
--
--/*** module initialization and cleanup ***/
--
--static int __init lirc_parallel_init(void)
--{
--	int result;
--
--	result = platform_driver_register(&lirc_parallel_driver);
--	if (result) {
--		pr_notice("platform_driver_register returned %d\n", result);
--		return result;
--	}
--
--	lirc_parallel_dev = platform_device_alloc(LIRC_DRIVER_NAME, 0);
--	if (!lirc_parallel_dev) {
--		result = -ENOMEM;
--		goto exit_driver_unregister;
--	}
--
--	result = platform_device_add(lirc_parallel_dev);
--	if (result)
--		goto exit_device_put;
--
--	pport = parport_find_base(io);
--	if (!pport) {
--		pr_notice("no port at %x found\n", io);
--		result = -ENXIO;
--		goto exit_device_del;
--	}
--	ppdevice = parport_register_device(pport, LIRC_DRIVER_NAME,
--					   pf, kf, lirc_lirc_irq_handler, 0,
--					   NULL);
--	parport_put_port(pport);
--	if (!ppdevice) {
--		pr_notice("parport_register_device() failed\n");
--		result = -ENXIO;
--		goto exit_device_del;
--	}
--	if (parport_claim(ppdevice) != 0)
--		goto skip_init;
--	is_claimed = 1;
--	out(LIRC_LP_CONTROL, LP_PSELECP | LP_PINITP);
--
--#ifdef LIRC_TIMER
--	if (debug)
--		out(LIRC_PORT_DATA, tx_mask);
--
--	timer = init_lirc_timer();
--
--#if 0	/* continue even if device is offline */
--	if (timer == 0) {
--		is_claimed = 0;
--		parport_release(pport);
--		parport_unregister_device(ppdevice);
--		result = -EIO;
--		goto exit_device_del;
--	}
--
--#endif
--	if (debug)
--		out(LIRC_PORT_DATA, 0);
--#endif
--
--	is_claimed = 0;
--	parport_release(ppdevice);
-- skip_init:
--	driver.dev = &lirc_parallel_dev->dev;
--	driver.minor = lirc_register_driver(&driver);
--	if (driver.minor < 0) {
--		pr_notice("register_chrdev() failed\n");
--		parport_unregister_device(ppdevice);
--		result = -EIO;
--		goto exit_device_del;
--	}
--	pr_info("installed using port 0x%04x irq %d\n", io, irq);
--	return 0;
--
--exit_device_del:
--	platform_device_del(lirc_parallel_dev);
--exit_device_put:
--	platform_device_put(lirc_parallel_dev);
--exit_driver_unregister:
--	platform_driver_unregister(&lirc_parallel_driver);
--	return result;
--}
--
--static void __exit lirc_parallel_exit(void)
--{
--	parport_unregister_device(ppdevice);
--	lirc_unregister_driver(driver.minor);
--
--	platform_device_unregister(lirc_parallel_dev);
--	platform_driver_unregister(&lirc_parallel_driver);
--}
--
--module_init(lirc_parallel_init);
--module_exit(lirc_parallel_exit);
--
--MODULE_DESCRIPTION("Infrared receiver driver for parallel ports.");
--MODULE_AUTHOR("Christoph Bartelmus");
--MODULE_LICENSE("GPL");
--
--module_param(io, int, S_IRUGO);
--MODULE_PARM_DESC(io, "I/O address base (0x3bc, 0x378 or 0x278)");
--
--module_param(irq, int, S_IRUGO);
--MODULE_PARM_DESC(irq, "Interrupt (7 or 5)");
--
--module_param(tx_mask, int, S_IRUGO);
--MODULE_PARM_DESC(tx_mask, "Transmitter mask (default: 0x01)");
--
--module_param(debug, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(debug, "Enable debugging messages");
--
--module_param(check_pselecd, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(check_pselecd, "Check for printer (default: 0)");
-diff --git a/drivers/staging/media/lirc/lirc_parallel.h b/drivers/staging/media/lirc/lirc_parallel.h
-deleted file mode 100644
-index 4bed6af..0000000
---- a/drivers/staging/media/lirc/lirc_parallel.h
-+++ /dev/null
-@@ -1,26 +0,0 @@
--/* lirc_parallel.h */
--
--#ifndef _LIRC_PARALLEL_H
--#define _LIRC_PARALLEL_H
--
--#include <linux/lp.h>
--
--#define LIRC_PORT_LEN 3
--
--#define LIRC_LP_BASE    0
--#define LIRC_LP_STATUS  1
--#define LIRC_LP_CONTROL 2
--
--#define LIRC_PORT_DATA           LIRC_LP_BASE    /* base */
--#define LIRC_PORT_TIMER        LIRC_LP_STATUS    /* status port */
--#define LIRC_PORT_TIMER_BIT          LP_PBUSY    /* busy signal */
--#define LIRC_PORT_SIGNAL       LIRC_LP_STATUS    /* status port */
--#define LIRC_PORT_SIGNAL_BIT          LP_PACK    /* ack signal */
--#define LIRC_PORT_IRQ         LIRC_LP_CONTROL    /* control port */
--
--#define LIRC_SFH506_DELAY 0             /* delay t_phl in usecs */
--
--#define LIRC_PARALLEL_MAX_TRANSMITTERS 8
--#define LIRC_PARALLEL_TRANSMITTER_MASK ((1<<LIRC_PARALLEL_MAX_TRANSMITTERS) - 1)
--
--#endif
--- 
-2.9.3
+I agree with you that media_device should stick around until all the users go
+away. That is what the Media Dev Allocator API patch series does. When the
+media_device shared across two drivers, We are looking at two different lifetimes.
+
+media_device lufetimes (starts when the first driver creates it)
+
+These handlers (enable_source and disable_source) are tied to au02828
+driver (bridge driver) lifetime, not the media_device lifetime.
+
+Hence, it is important for au0828 to clear them from the media_device when
+au0828 is going away via unbind, so these become invalid and don't get run.
+This similar to when the driver (au0828) goes away, it removes its graph
+nodes. Hence, it makes sense to use graph_mutex for this part of cleanup
+just like when a media graph node is deleted and/or added.
+
+I think you might be thinking about a simpler scenario where media_device
+lifetime is same as the driver lifetime + until the last app. released
+media_device reference. When you have two drivers ion mix, we also have
+lifetimes for graph nodes each driver owns as well as some handlers bridge
+driver provides to manage the graph nodes. Here is a visual:
+
+bridge driver:
+    creates media_device (gets reference to it when it allocates)
+    registers it with its graph
+    adds enable_source and disable_source handlers
+
+second driver:
+    finds media_device and gets reference to it
+    adds its graph
+
+bridge driver and second driver share access to resources
+using enable_source and disable_source handlers
+
+bridge driver unbind:
+     clears enable_source and disable_source handlers - when
+     this driver unbinds, enable_source and disable_source
+     handler lifetime ends
+     gives up media_device reference
+
+second driver unbind:
+     gives up media_device reference and no media_device
+     gets unregistered and released if there are no other
+     holds such as an application keeping media device open.
+
+In summary we have media_device lifetime itself and the lifetime
+of individual graph nodes and ops provided by one of the drivers.
+
+This patch and the media dev allocator patch series I sent out handle
+all of the above cases as tested on 4.9-rc7 base.
+
+thanks,
+-- Shuah
+
+> 
+> Acquiring the graph mutex is hardly a workable solution to fix this.
+> 
+>> the problem of media_device not going away, however, it doesn't fix this race
+>> where callers of enable and disable source handlers checking for them and calling
+>> them while the driver might be clearing them.
+>>
+>> So here is the scenario these patches fix. Say user app starts
+>> and during start of video streaming v4l2 checks to see if enable
+>> source handler is defined. This check is done without holding the
+>> graph_mutex. If unbind happens to be in progress, au0828 could
+>> clear enable and disable source handlers. So these could race.
+>> I am not how large this window is, but could happen.
+>>
+>> If graph_mutex protects the check for enable source handler not
+>> being null, then it has to be released before calling enable source
+>> handler as shown below:
+>>
+>> if (mdev) {
+>> 	mutex_lock(&mdev->graph_mutex);
+>> 	if (mdev->disable_source) {
+>> 		mutex_unlock(&mdev->graph_mutex);
+>> 		mdev->disable_source(&vdev->entity);
+>> 	} else
+>> 		mutex_unlock(&mdev->graph_mutex);
+>> }
+>>
+>> The above will leave another window for handlers to be cleared.
+>> That is why it would make sense for the caller to hold the lock
+>> and the call enable and disable source handlers.
+>>
+>> We do need a way to protect enable and disable handler access and the
+>> call itself. I am using the same graph_mutex for both, hence I decided
+>> to have the caller hold the lock.
+>>
+>> Hope this helps.
+> 
 
