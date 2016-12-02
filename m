@@ -1,196 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from forward11h.cmail.yandex.net ([87.250.230.153]:37544 "EHLO
-        forward11h.cmail.yandex.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752207AbcLIAXo (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:22703 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1757939AbcLBI3r (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 19:23:44 -0500
-Received: from smtp1o.mail.yandex.net (smtp1o.mail.yandex.net [IPv6:2a02:6b8:0:1a2d::25])
-        by forward11h.cmail.yandex.net (Yandex) with ESMTP id BFCFC22353
-        for <linux-media@vger.kernel.org>; Fri,  9 Dec 2016 03:20:04 +0300 (MSK)
-Received: from smtp1o.mail.yandex.net (localhost.localdomain [127.0.0.1])
-        by smtp1o.mail.yandex.net (Yandex) with ESMTP id 99AA91300E77
-        for <linux-media@vger.kernel.org>; Fri,  9 Dec 2016 03:20:04 +0300 (MSK)
-From: CrazyCat <crazycat69@narod.ru>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] si2157: Si2141/2151 tuner support.
-Date: Fri, 09 Dec 2016 02:19:58 +0200
-Message-ID: <2233965.zV8xNtq62S@computer>
+        Fri, 2 Dec 2016 03:29:47 -0500
+From: Fabien DESSENNE <fabien.dessenne@st.com>
+To: Shailendra Verma <shailendra.v@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shailendra Verma <shailendra.capricorn@gmail.com>
+CC: "vidushi.koul@samsung.com" <vidushi.koul@samsung.com>
+Date: Fri, 2 Dec 2016 09:29:30 +0100
+Subject: Re: [PATCH] bdisp: Clean up file handle in open() error path.
+Message-ID: <bb9146fa-31a8-67d1-113c-a7707add0271@st.com>
+References: <1480654081-6983-1-git-send-email-shailendra.v@samsung.com>
+In-Reply-To: <1480654081-6983-1-git-send-email-shailendra.v@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for new tuner version.
-
-Signed-off-by: CrazyCat <crazycat69@narod.ru>
----
- drivers/media/tuners/si2157.c      | 71 ++++++++++++++++++++++++++++++++++----
- drivers/media/tuners/si2157_priv.h |  2 ++
- 2 files changed, 67 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
-index 57b2508..69fd21e 100644
---- a/drivers/media/tuners/si2157.c
-+++ b/drivers/media/tuners/si2157.c
-@@ -1,5 +1,5 @@
- /*
-- * Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver
-+ * Silicon Labs Si2141/2146/2147/2148/2151/2157/2158 silicon tuner driver
-  *
-  * Copyright (C) 2014 Antti Palosaari <crope@iki.fi>
-  *
-@@ -84,7 +84,7 @@ static int si2157_init(struct dvb_frontend *fe)
- 	struct si2157_cmd cmd;
- 	const struct firmware *fw;
- 	const char *fw_name;
--	unsigned int uitmp, chip_id;
-+	unsigned int uitmp, chip_id, count;
- 
- 	dev_dbg(&client->dev, "\n");
- 
-@@ -102,14 +102,46 @@ static int si2157_init(struct dvb_frontend *fe)
- 	if (uitmp == dev->if_frequency / 1000)
- 		goto warm;
- 
-+	if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		count = 0;
-+		do {
-+			if (count > 10)
-+				goto err;
-+
-+			/* reset */
-+			memcpy(cmd.args, "\xc0\x05\x00\x00", 4);
-+			cmd.wlen = 4;
-+			cmd.rlen = 1;
-+			ret = si2157_cmd_execute(client, &cmd);
-+			if (ret)
-+				goto err;
-+
-+			memcpy(cmd.args, "\xc0\x00\x0d\x0e\x00\x01\x01\x01\x01\x03", 10);
-+			cmd.wlen = 10;
-+			cmd.rlen = 1;
-+			ret = si2157_cmd_execute(client, &cmd);
-+			if (ret)
-+				goto err;
-+			count++;
-+		} while (cmd.args[0] == 0xfe);
-+		dev_info(&client->dev, "Si2141/2151 reset attempts %d\n", count);
-+	}
-+
- 	/* power up */
--	if (dev->chiptype == SI2157_CHIPTYPE_SI2146) {
-+	switch (dev->chiptype) {
-+	case SI2157_CHIPTYPE_SI2146:
- 		memcpy(cmd.args, "\xc0\x05\x01\x00\x00\x0b\x00\x00\x01", 9);
- 		cmd.wlen = 9;
--	} else {
-+		break;
-+	case SI2157_CHIPTYPE_SI2141:
-+		memcpy(cmd.args, "\xc0\x08\x01\x02\x00\x08\x01", 7);
-+		cmd.wlen = 7;
-+		break;
-+	default:
- 		memcpy(cmd.args, "\xc0\x00\x0c\x00\x00\x01\x01\x01\x01\x01\x01\x02\x00\x00\x01", 15);
- 		cmd.wlen = 15;
- 	}
-+
- 	cmd.rlen = 1;
- 	ret = si2157_cmd_execute(client, &cmd);
- 	if (ret)
-@@ -131,6 +163,8 @@ static int si2157_init(struct dvb_frontend *fe)
- 	#define SI2157_A30 ('A' << 24 | 57 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2147_A30 ('A' << 24 | 47 << 16 | '3' << 8 | '0' << 0)
- 	#define SI2146_A10 ('A' << 24 | 46 << 16 | '1' << 8 | '0' << 0)
-+	#define SI2141_A10 ('A' << 24 | 41 << 16 | '1' << 8 | '0' << 0)
-+	#define SI2151_A10 ('A' << 24 | 51 << 16 | '1' << 8 | '0' << 0)
- 
- 	switch (chip_id) {
- 	case SI2158_A20:
-@@ -142,6 +176,10 @@ static int si2157_init(struct dvb_frontend *fe)
- 	case SI2146_A10:
- 		fw_name = NULL;
- 		break;
-+	case SI2141_A10:
-+	case SI2151_A10:
-+		fw_name = SI2141_A10_FIRMWARE;
-+		break;
- 	default:
- 		dev_err(&client->dev, "unknown chip version Si21%d-%c%c%c\n",
- 				cmd.args[2], cmd.args[1],
-@@ -214,6 +252,23 @@ static int si2157_init(struct dvb_frontend *fe)
- 
- 	dev_info(&client->dev, "firmware version: %c.%c.%d\n",
- 			cmd.args[6], cmd.args[7], cmd.args[8]);
-+
-+	if (dev->chiptype == SI2157_CHIPTYPE_SI2141) {
-+		/* set clock */
-+		memcpy(cmd.args, "\xc0\x00\x0d", 3);
-+		cmd.wlen = 3;
-+		cmd.rlen = 1;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+		/* setup PIN */
-+		memcpy(cmd.args, "\x12\x80\x80\x85\x00\x81\x00", 7);
-+		cmd.wlen = 7;
-+		cmd.rlen = 7;
-+		ret = si2157_cmd_execute(client, &cmd);
-+		if (ret)
-+			goto err;
-+	}
- warm:
- 	/* init statistics in order signal app which are supported */
- 	c->strength.len = 1;
-@@ -471,7 +526,8 @@ static int si2157_probe(struct i2c_client *client,
- #endif
- 
- 	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
--			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
-+			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?
-+			"Si2141/2151" : dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
- 			"Si2146" : "Si2147/2148/2157/2158");
- 
- 	return 0;
-@@ -508,6 +564,8 @@ static int si2157_remove(struct i2c_client *client)
- static const struct i2c_device_id si2157_id_table[] = {
- 	{"si2157", SI2157_CHIPTYPE_SI2157},
- 	{"si2146", SI2157_CHIPTYPE_SI2146},
-+	{"si2141", SI2157_CHIPTYPE_SI2141},
-+	{"si2151", SI2157_CHIPTYPE_SI2141},
- 	{}
- };
- MODULE_DEVICE_TABLE(i2c, si2157_id_table);
-@@ -524,7 +582,8 @@ static int si2157_remove(struct i2c_client *client)
- 
- module_i2c_driver(si2157_driver);
- 
--MODULE_DESCRIPTION("Silicon Labs Si2146/2147/2148/2157/2158 silicon tuner driver");
-+MODULE_DESCRIPTION("Silicon Labs Si2141/2146/2147/2148/2151/2157/2158 silicon tuner driver");
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_LICENSE("GPL");
- MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
-+MODULE_FIRMWARE(SI2141_A10_FIRMWARE);
-diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
-index d6b2c7b..e6436f7 100644
---- a/drivers/media/tuners/si2157_priv.h
-+++ b/drivers/media/tuners/si2157_priv.h
-@@ -42,6 +42,7 @@ struct si2157_dev {
- 
- #define SI2157_CHIPTYPE_SI2157 0
- #define SI2157_CHIPTYPE_SI2146 1
-+#define SI2157_CHIPTYPE_SI2141 2
- 
- /* firmware command struct */
- #define SI2157_ARGLEN      30
-@@ -52,5 +53,6 @@ struct si2157_cmd {
- };
- 
- #define SI2158_A20_FIRMWARE "dvb-tuner-si2158-a20-01.fw"
-+#define SI2141_A10_FIRMWARE "dvb-tuner-si2141-a10-01.fw"
- 
- #endif
--- 
-1.9.1
+Hi Shailendra,
+Thank you for the patch, it's good for me.
 
 
+On 12/02/2016 05:48 AM, Shailendra Verma wrote:
+> The File handle is not yet added in the vdev list.So no need to call
+> v4l2_fh_del(&ctx->fh)if it fails to create control.
+>
+> Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+
+Reviewed-by: Fabien Dessenne <fabien.dessenne@st.com>
+
+> ---
+>   drivers/media/platform/sti/bdisp/bdisp-v4l2.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+> index 45f82b5..fbf302f 100644
+> --- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+> +++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
+> @@ -632,8 +632,8 @@ static int bdisp_open(struct file *file)
+>   
+>   error_ctrls:
+>   	bdisp_ctrls_delete(ctx);
+> -error_fh:
+>   	v4l2_fh_del(&ctx->fh);
+> +error_fh:
+>   	v4l2_fh_exit(&ctx->fh);
+>   	bdisp_hw_free_nodes(ctx);
+>   mem_ctx:
