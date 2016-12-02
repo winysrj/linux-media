@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:53001 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753799AbcLLIhe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 03:37:34 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.10] CEC bug fixes
-Message-ID: <f510e2d1-115f-4260-c55f-76fdaf12b396@xs4all.nl>
-Date: Mon, 12 Dec 2016 09:37:29 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:37576 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751963AbcLBEpf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 23:45:35 -0500
+From: Shailendra Verma <shailendra.v@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shailendra Verma <shailendra.v@samsung.com>,
+        Shailendra Verma <shailendra.capricorn@gmail.com>
+Cc: vidushi.koul@samsung.com
+Subject: [PATCH] exynos4-is: Clean up file handle in open() error path.
+Date: Fri, 02 Dec 2016 10:13:05 +0530
+Message-id: <1480653785-6713-1-git-send-email-shailendra.v@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request combines this patch series:
+The File handle is not yet added in the vfd list.So no need to call 
+v4l2_fh_del(&ctx->fh) if it fails to create control.
 
-https://www.spinics.net/lists/linux-media/msg109011.html
+Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-m2m.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-and this patch:
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index 6028e4f..d8724fe 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -663,8 +663,8 @@ static int fimc_m2m_open(struct file *file)
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ error_c:
+ 	fimc_ctrls_delete(ctx);
+-error_fh:
+ 	v4l2_fh_del(&ctx->fh);
++error_fh:
+ 	v4l2_fh_exit(&ctx->fh);
+ 	kfree(ctx);
+ unlock:
+-- 
+1.7.9.5
 
-https://www.spinics.net/lists/linux-media/msg108808.html
-
-All bug fixes that should go into 4.10.
-
-Regards,
-
-	Hans
-
-This patch series fixes a number of bug in the CEC framework.
-
-The following changes since commit 365fe4e0ce218dc5ad10df17b150a366b6015499:
-
-   [media] mn88472: fix chip id check on probe (2016-12-01 12:47:22 -0200)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hverkuil/media_tree.git cecfix
-
-for you to fetch changes up to ce88a2a92fc9428455b011a1c48622605b529b8d:
-
-   cec: fix race between configuring and unconfiguring (2016-12-10 
-10:30:09 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (7):
-       cec: fix report_current_latency
-       cec: when canceling a message, don't overwrite old status info
-       cec: CEC_MSG_GIVE_FEATURES should abort for CEC version < 2
-       cec: update log_addr[] before finishing configuration
-       cec: replace cec_report_features by cec_fill_msg_report_features
-       cec: move cec_report_phys_addr into cec_config_thread_func
-       cec: fix race between configuring and unconfiguring
-
-  drivers/media/cec/cec-adap.c   | 103 
-++++++++++++++++++++++++++++++++++++------------------------------------
-  include/uapi/linux/cec-funcs.h |  10 ++++---
-  2 files changed, 59 insertions(+), 54 deletions(-)
