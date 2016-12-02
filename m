@@ -1,67 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49591 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751418AbcLGBvI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 20:51:08 -0500
-Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
- with ESMTP id <0OHS00BT6L4UIF70@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Dec 2016 10:50:54 +0900 (KST)
-Date: Wed, 07 Dec 2016 10:50:54 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/8] [media] mceusb: LIRC_SET_SEND_CARRIER returns 0 on
- success
-Message-id: <20161207015054.sxzzaea5y22nmmau@gangnam.samsung>
-References: <CGME20161207000515epcas4p400e7ac17bc7441d9d799d4aa523a5ef9@epcas4p4.samsung.com>
- <1480698974-9093-1-git-send-email-sean@mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <1480698974-9093-1-git-send-email-sean@mess.org>
+Received: from gofer.mess.org ([80.229.237.210]:47771 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751972AbcLBRRK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Dec 2016 12:17:10 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 6/8] [media] rc: allow software timeout to be set
+Date: Fri,  2 Dec 2016 17:16:12 +0000
+Message-Id: <1480698974-9093-6-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Andi Shyti <andi.shyti@samsung.com>
+Both the iguanair and the technotrend usb ir do not do any timeout
+handling in hardware, so timeout is entirely done in
+ir_raw_event_store_with_filter(). Any sensible timeout value will
+do, so allow it to be set using LIRC_SET_REC_TIMEOUT.
 
-On Fri, Dec 02, 2016 at 05:16:07PM +0000, Sean Young wrote:
-> LIRC_SET_SEND_CARRIER ioctl should not return the carrier used, it
-> should return 0.
-> 
-> Signed-off-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/mceusb.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-> index 9bf6917..96b0ade 100644
-> --- a/drivers/media/rc/mceusb.c
-> +++ b/drivers/media/rc/mceusb.c
-> @@ -890,7 +890,7 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
->  			cmdbuf[3] = MCE_IRDATA_TRAILER;
->  			dev_dbg(ir->dev, "disabling carrier modulation");
->  			mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
-> -			return carrier;
-> +			return 0;
->  		}
->  
->  		for (prescaler = 0; prescaler < 4; ++prescaler) {
-> @@ -904,7 +904,7 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
->  
->  				/* Transmit new carrier to mce device */
->  				mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
-> -				return carrier;
-> +				return 0;
->  			}
->  		}
->  
-> -- 
-> 2.9.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/iguanair.c | 4 +++-
+ drivers/media/rc/ttusbir.c  | 5 ++++-
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 5f63454..139a09c 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -504,7 +504,9 @@ static int iguanair_probe(struct usb_interface *intf,
+ 	rc->tx_ir = iguanair_tx;
+ 	rc->driver_name = DRIVER_NAME;
+ 	rc->map_name = RC_MAP_RC6_MCE;
+-	rc->timeout = MS_TO_NS(100);
++	rc->min_timeout = 1;
++	rc->timeout = IR_DEFAULT_TIMEOUT;
++	rc->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
+ 	rc->rx_resolution = RX_RESOLUTION;
+ 
+ 	iguanair_set_tx_carrier(rc, 38000);
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index bc214e2..8393014 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -322,7 +322,10 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 	rc->priv = tt;
+ 	rc->driver_name = DRIVER_NAME;
+ 	rc->map_name = RC_MAP_TT_1500;
+-	rc->timeout = MS_TO_NS(100);
++	rc->min_timeout = 1;
++	rc->timeout = IR_DEFAULT_TIMEOUT;
++	rc->max_timeout = 10 * IR_DEFAULT_TIMEOUT;
++
+ 	/*
+ 	 * The precision is NS_PER_BIT, but since every 8th bit can be
+ 	 * overwritten with garbage the accuracy is at best 2 * NS_PER_BIT.
+-- 
+2.9.3
+
