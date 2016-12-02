@@ -1,51 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:49291 "EHLO mout.gmx.net"
+Received: from gofer.mess.org ([80.229.237.210]:42827 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751455AbcLEWOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 17:14:05 -0500
-Date: Mon, 5 Dec 2016 23:13:53 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
-In-Reply-To: <1591074.dEgMGVxATZ@avalon>
-Message-ID: <Pine.LNX.4.64.1612052312480.7221@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
- <2361420.98YnhAaLcS@avalon> <Pine.LNX.4.64.1612051617340.7221@axis700.grange>
- <1591074.dEgMGVxATZ@avalon>
+        id S1751654AbcLBRRK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Dec 2016 12:17:10 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH 7/8] [media] rc5x: 6th command bit is S2 bit
+Date: Fri,  2 Dec 2016 17:16:13 +0000
+Message-Id: <1480698974-9093-7-git-send-email-sean@mess.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just one question:
+The 2nd stop bit in rc5 is reused as an inverted 6th command bit in
+20 bits rc5x. Currently the rc5x decoder sets the 6th command bit as
+an inverted duplicate of the lowest system bit; as a result we do
+not have all the command bits.
 
-On Tue, 6 Dec 2016, Laurent Pinchart wrote:
+Note that there are no rc5x keymaps present.
 
-> > >> +	/*
-> > >> +	 * Register a metadata node. TODO: shall this only be enabled for some
-> > >> +	 * cameras?
-> > >> +	 */
-> > >> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
-> > >> +		uvc_meta_register(stream);
-> > >> +
-> > > 
-> > > I think so, only for the cameras that can produce metadata.
-> > 
-> > Every UVC camera produces metadata, but most cameras only have standard
-> > fields there. Whether we should stream standard header fields from the
-> > metadata node will be discussed later. If we do decide to stream standard
-> > header fields, then every USB camera gets metadata nodes. If we decide not
-> > to include standard fields, how do we know whether the camera has any
-> > private fields in headers without streaming from it? Do you want a quirk
-> > for such cameras?
-> 
-> Unless they can be detected in a standard way that's probably the best 
-> solution. Please remember that the UVC specification doesn't allow vendors to 
-> extend headers in a vendor-specific way.
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ir-rc5-decoder.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Does it not? Where is that specified? I didn't find that anywhere.
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index a0fd4e6..a95477c 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -132,7 +132,7 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 			command  = (data->bits & 0x00FC0) >> 6;
+ 			system   = (data->bits & 0x1F000) >> 12;
+ 			toggle   = (data->bits & 0x20000) ? 1 : 0;
+-			command += (data->bits & 0x01000) ? 0 : 0x40;
++			command += (data->bits & 0x40000) ? 0 : 0x40;
+ 			scancode = system << 16 | command << 8 | xdata;
+ 			protocol = RC_TYPE_RC5X;
+ 
+-- 
+2.9.3
 
-Thanks
-Guennadi
