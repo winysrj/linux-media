@@ -1,94 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49321
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754256AbcLSJrF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 04:47:05 -0500
-Date: Mon, 19 Dec 2016 07:46:55 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Helen Koike <helen.koike@collabora.co.uk>
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
- references as needed
-Message-ID: <20161219074655.3238113b@vento.lan>
-In-Reply-To: <20161216150723.GL16630@valkosipuli.retiisi.org.uk>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <20161216150723.GL16630@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wj0-f194.google.com ([209.85.210.194]:34110 "EHLO
+        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750900AbcLCHCM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2016 02:02:12 -0500
+From: Shilpa Puttegowda <shilpapri@gmail.com>
+To: linux-kernel@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-media@vger.kernel.org, Shilpa P <shilpapri@gmail.com>
+Subject: [PATCH] staging: Replaced BUG_ON with warnings
+Date: Sat,  3 Dec 2016 12:32:01 +0530
+Message-Id: <1480748521-8738-1-git-send-email-shilpapri@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Dec 2016 17:07:23 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+From: Shilpa P <shilpapri@gmail.com>
 
-> Hi Hans,
+Don't crash the Kernel for driver errors
 
-> > chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
-> > on release(). Thus ensuring that the cdev can never be removed while in an
-> > ioctl.  
-> 
-> It does, but it does not affect memory which is allocated separately of that.
-> 
-> See this:
-> 
-> <URL:https://www.mail-archive.com/linux-media@vger.kernel.org/msg106390.html>
+Signed-off-by: Shilpa P <shilpapri@gmail.com>
+---
+ drivers/staging/media/bcm2048/radio-bcm2048.c | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-That sounds promising. If this bug issues other drivers than OMAP3,
-then indeed the core has a bug.
+diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
+index 4d9bd02..05f5918 100644
+--- a/drivers/staging/media/bcm2048/radio-bcm2048.c
++++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
+@@ -1538,7 +1538,11 @@ static int bcm2048_parse_rt_match_c(struct bcm2048_device *bdev, int i,
+ 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
+ 		return 0;
+ 
+-	BUG_ON((index+2) >= BCM2048_MAX_RDS_RT);
++	if ((index + 2) >= BCM2048_MAX_RDS_RT) {
++		dev_err(&bdev->client->dev,
++			"Incorrect index = %d\n", index);
++		return 0;
++	}
+ 
+ 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
+ 		BCM2048_RDS_BLOCK_C) {
+@@ -1561,7 +1565,11 @@ static void bcm2048_parse_rt_match_d(struct bcm2048_device *bdev, int i,
+ 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
+ 		return;
+ 
+-	BUG_ON((index+4) >= BCM2048_MAX_RDS_RT);
++	if ((index + 4) >= BCM2048_MAX_RDS_RT) {
++		dev_err(&bdev->client->dev,
++			"Incorrect index = %d\n", index);
++		return;
++	}
+ 
+ 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
+ 	    BCM2048_RDS_BLOCK_D)
+-- 
+1.9.1
 
-I'll see if I can reproduce it here with some USB drivers later this week.
-
-> > If the omap3 is used as a testbed, then that's fine by me, but even then I
-> > probably wouldn't want the omap3 code that makes this possible in the kernel.
-> > It's just additional code for no purpose.  
-> 
-> The same problems exist on other devices, whether platform, pci or USB, as
-> the problems are in the core frameworks rather than (only) in the drivers.
-> 
-> On platform devices, this happens also when removing the module.
-> 
-> I've used omap3isp as an example since it demonstrates well the problems and
-> a lot of people have the hardware as well. Also, Mauro has requested all
-> drivers to be converted to the new API. I'm fine doing that for the actually
-> hot-pluggable hardware.
-
-While IMHO it is overkill trying to support hot plug on omap3, I won't
-mind if you do that, provided that your patch series can be applied in
-a way that it won't cause regressions for real hot-pluggable hardware.
-
-I still think that keeping cdev embedded in a structure that it is
-created dynamically when registering the device node, instead of
-embedding it at struct media_device. Yet, if you prove that this does
-more harm than good, I'm ok on re-embeeding it. However, on such case,
-you need to put the patches re-embeeding it at the end of the patch
-series (and not at the beginning), as otherwise you'll be causing
-regressions.
-
-> One additional reason is that as the omap3isp driver has been used as an
-> example to write a number of other drivers, people do see what's the right
-> way to do these things, instead of copying code from a driver doing it
-> wrong.
-
-Interesting argument. Yet, IMHO, the best would be to do the proper
-review on the first platform driver that would support hot-plug,
-and use this as an example. It is a shame that project Aurora was
-discontinued, as media drivers for such kind of hardware would be an
-interesting example.
-
-On that matter, just like we use vivid as a testbench and as an
-example for other drivers, it would be great if we could merge
-the vimc driver. What's the status of Helen's patchset?
-
-Thanks,
-Mauro
