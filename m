@@ -1,62 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:34181 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933423AbcLIMfX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 07:35:23 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, magnus.damm@gmail.com,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v1.5 1/6] v4l: rcar-fcp: Don't get/put module reference
-Date: Fri,  9 Dec 2016 13:35:07 +0100
-Message-Id: <1481286912-16555-2-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:38271 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750890AbcLCFLD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Dec 2016 00:11:03 -0500
+Message-ID: <3cf7d7bdb457587a0a960568f48eda21@smtp-cloud6.xs4all.net>
+Date: Sat, 03 Dec 2016 06:11:00 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Direct callers of the FCP API hold a reference to the FCP module due to
-module linkage, there's no need to take another one manually. Take a
-reference to the device instead to ensure that it won't disappear behind
-the caller's back.
+Results of the daily build of media_tree:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/rcar-fcp.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+date:			Sat Dec  3 05:00:19 CET 2016
+media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	063d1f5d5e60783002d781e8a23911acbda65e99
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
-index 7146fc5..e9f609e 100644
---- a/drivers/media/platform/rcar-fcp.c
-+++ b/drivers/media/platform/rcar-fcp.c
-@@ -53,14 +53,7 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
- 		if (fcp->dev->of_node != np)
- 			continue;
- 
--		/*
--		 * Make sure the module won't be unloaded behind our back. This
--		 * is a poor man's safety net, the module should really not be
--		 * unloaded while FCP users can be active.
--		 */
--		if (!try_module_get(fcp->dev->driver->owner))
--			fcp = NULL;
--
-+		get_device(fcp->dev);
- 		goto done;
- 	}
- 
-@@ -81,7 +74,7 @@ EXPORT_SYMBOL_GPL(rcar_fcp_get);
- void rcar_fcp_put(struct rcar_fcp_device *fcp)
- {
- 	if (fcp)
--		module_put(fcp->dev->driver->owner);
-+		put_device(fcp->dev);
- }
- EXPORT_SYMBOL_GPL(rcar_fcp_put);
- 
--- 
-2.7.4
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc5-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
