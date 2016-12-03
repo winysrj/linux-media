@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:55022 "EHLO mail.kernel.org"
+Received: from m50-132.163.com ([123.125.50.132]:53963 "EHLO m50-132.163.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941266AbcLMSEJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 13:04:09 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCHv3 RFC 4/4] media: Catch null pipes on pipeline stop
-Date: Tue, 13 Dec 2016 17:59:44 +0000
-Message-Id: <1481651984-7687-5-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+        id S1750919AbcLCMjy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Dec 2016 07:39:54 -0500
+From: Pan Bian <bianpan201602@163.com>
+To: Fabien Dessenne <fabien.dessenne@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
+Subject: [PATCH 1/1] media: platform: sti: return -ENOMEM on errors
+Date: Sat,  3 Dec 2016 20:39:33 +0800
+Message-Id: <1480768773-5926-1-git-send-email-bianpan201602@163.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media_entity_pipeline_stop() can be called through error paths with a
-NULL entity pipe object. In this instance, stopping is a no-op, so
-simply return without any action
+From: Pan Bian <bianpan2016@163.com>
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Function bdisp_debugfs_create() returns 0 even on errors. So its caller
+cannot detect the errors. It may be better to return "-ENOMEM" on the
+exception paths.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=188801
+
+Signed-off-by: Pan Bian <bianpan2016@163.com>
 ---
+ drivers/media/platform/sti/bdisp/bdisp-debug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I've marked this patch as RFC, although if deemed suitable, by all means
-integrate it as is.
-
-When testing suspend/resume operations on VSP1, I encountered a segfault on the
-WARN_ON(!pipe->streaming_count) line, where 'pipe == NULL'. The simple
-protection fix is to return early in this instance, as this patch does however:
-
-A) Does this early return path warrant a WARN() statement itself, to identify
-drivers which are incorrectly calling media_entity_pipeline_stop() with an
-invalid entity, or would this just be noise ...
-
-and therefore..
-
-B) I also partly assume this patch could simply get NAK'd with a request to go
-and dig out the root cause of calling media_entity_pipeline_stop() with an
-invalid entity. 
-
-My brief investigation so far here so far shows that it's almost a second order
-fault - where the first suspend resume cycle completes but leaves the entity in
-an invalid state having followed an error path - and then on a second
-suspend/resume - the stop fails with the affected segfault.
-
-If statement A) or B) apply here, please drop this patch from the series, and
-don't consider it a blocking issue for the other 3 patches.
-
-Kieran
-
-
- drivers/media/media-entity.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c68239e60487..93c9cbf4bf46 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -508,6 +508,8 @@ void __media_entity_pipeline_stop(struct media_entity *entity)
- 	struct media_entity_graph *graph = &entity->pipe->graph;
- 	struct media_pipeline *pipe = entity->pipe;
+diff --git a/drivers/media/platform/sti/bdisp/bdisp-debug.c b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+index 79c5635..7af6686 100644
+--- a/drivers/media/platform/sti/bdisp/bdisp-debug.c
++++ b/drivers/media/platform/sti/bdisp/bdisp-debug.c
+@@ -677,7 +677,7 @@ int bdisp_debugfs_create(struct bdisp_dev *bdisp)
  
-+	if (!pipe)
-+		return;
+ err:
+ 	bdisp_debugfs_remove(bdisp);
+-	return 0;
++	return -ENOMEM;
+ }
  
- 	WARN_ON(!pipe->streaming_count);
- 	media_entity_graph_walk_start(graph, entity);
+ void bdisp_debugfs_remove(struct bdisp_dev *bdisp)
 -- 
-2.7.4
+1.9.1
+
 
