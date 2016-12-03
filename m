@@ -1,50 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:62312 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753383AbcLYSuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 13:50:32 -0500
-Subject: [PATCH 17/19] [media] uvc_video: Fix a typo in a comment line
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org, trivial@kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <29689504-fa08-b8c2-436b-22668123a5bb@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 19:50:23 +0100
+Received: from mail-wm0-f48.google.com ([74.125.82.48]:36430 "EHLO
+        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751207AbcLCUqb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2016 15:46:31 -0500
+Received: by mail-wm0-f48.google.com with SMTP id g23so46957715wme.1
+        for <linux-media@vger.kernel.org>; Sat, 03 Dec 2016 12:46:31 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20161202090558.29931492@vento.lan>
+References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
+ <20161202090558.29931492@vento.lan>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Sat, 3 Dec 2016 17:46:29 -0300
+Message-ID: <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Marcel Hasler <mahasler@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 18:42:58 +0100
+On 2 December 2016 at 08:05, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Em Sun, 27 Nov 2016 12:11:48 +0100
+> Marcel Hasler <mahasler@gmail.com> escreveu:
+>
+>> Allow setting a custom record gain for the internal AC97 codec (if avail=
+able). This can be
+>> a value between 0 and 15, 8 is the default and should be suitable for mo=
+st users. The Windows
+>> driver also sets this to 8 without any possibility for changing it.
+>
+> The problem of removing the mixer is that you need this kind of
+> crap to setup the volumes on a non-standard way.
+>
 
-The script "checkpatch.pl" pointed out that a word may be misspelled.
+Right, that's a good point.
 
-Add a missing character there.
+> NACK.
+>
+> Instead, keep the alsa mixer. The way other drivers do (for example,
+> em28xx) is that they configure the mixer when an input is selected,
+> increasing the volume of the active audio channel to 100% and muting
+> the other audio channels. Yet, as the alsa mixer is exported, users
+> can change the mixer settings in runtime using some alsa (or pa)
+> mixer application.
+>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/uvc/uvc_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Yeah, the AC97 mixer we are currently leveraging
+exposes many controls that have no meaning in this device,
+so removing that still looks like an improvement.
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 617f2090aa55..61320ef82553 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1794,7 +1794,7 @@ int uvc_video_init(struct uvc_streaming *stream)
- 	usb_set_interface(stream->dev->udev, stream->intfnum, 0);
- 
- 	/* Set the streaming probe control with default streaming parameters
--	 * retrieved from the device. Webcams that don't suport GET_DEF
-+	 * retrieved from the device. Webcams that don't support GET_DEF
- 	 * requests on the probe control will just keep their current streaming
- 	 * parameters.
- 	 */
--- 
-2.11.0
+I guess the proper way is creating our own mixer
+(not using snd_ac97_mixer)  exposing only the record
+gain knob.
 
+Marcel, what do you think?
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
