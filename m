@@ -1,67 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f51.google.com ([74.125.83.51]:33411 "EHLO
-        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752724AbcLGFIn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 00:08:43 -0500
-Received: by mail-pg0-f51.google.com with SMTP id 3so157602999pgd.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 21:08:43 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v5 2/5] [media] davinci: vpif_capture: remove hard-coded I2C adapter id
-Date: Tue,  6 Dec 2016 21:08:23 -0800
-Message-Id: <20161207050826.23174-3-khilman@baylibre.com>
-In-Reply-To: <20161207050826.23174-1-khilman@baylibre.com>
-References: <20161207050826.23174-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from m50-138.163.com ([123.125.50.138]:52898 "EHLO m50-138.163.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751888AbcLDFkO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 4 Dec 2016 00:40:14 -0500
+From: Pan Bian <bianpan201603@163.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Pan Bian <bianpan2016@163.com>
+Subject: [PATCH 1/1] media: pci: meye: set error code on failures
+Date: Sun,  4 Dec 2016 13:40:06 +0800
+Message-Id: <1480830006-4839-1-git-send-email-bianpan201603@163.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove hard-coded I2C adapter in favor of getting the
-ID from platform_data.
+From: Pan Bian <bianpan2016@163.com>
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+The value of return variable ret is 0 on some error paths, for example,
+when pci_resource_start() returns a NULL pointer. 0 means no error in
+this context, which is contrary to the fact. This patch fixes the bug.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=189011
+
+Signed-off-by: Pan Bian <bianpan2016@163.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c | 5 ++++-
- include/media/davinci/vpif_types.h            | 1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/media/pci/meye/meye.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 20c4344ed118..c24049acd40a 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1486,7 +1486,10 @@ static __init int vpif_probe(struct platform_device *pdev)
+diff --git a/drivers/media/pci/meye/meye.c b/drivers/media/pci/meye/meye.c
+index ba887e8..115e141 100644
+--- a/drivers/media/pci/meye/meye.c
++++ b/drivers/media/pci/meye/meye.c
+@@ -1669,6 +1669,7 @@ static int meye_probe(struct pci_dev *pcidev, const struct pci_device_id *ent)
+ 		goto outenabledev;
  	}
  
- 	if (!vpif_obj.config->asd_sizes) {
--		i2c_adap = i2c_get_adapter(1);
-+		int i2c_id = vpif_obj.config->i2c_adapter_id;
-+
-+		i2c_adap = i2c_get_adapter(i2c_id);
-+		WARN_ON(!i2c_adap);
- 		for (i = 0; i < subdev_count; i++) {
- 			subdevdata = &vpif_obj.config->subdev_info[i];
- 			vpif_obj.sd[i] =
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3cb1704a0650..4282a7db99d4 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -82,6 +82,7 @@ struct vpif_capture_config {
- 	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
-+	int i2c_adapter_id;
- 	const char *card_name;
- 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
- 	int *asd_sizes;		/* 0-terminated array of asd group sizes */
++	ret = -EIO;
+ 	mchip_adr = pci_resource_start(meye.mchip_dev,0);
+ 	if (!mchip_adr) {
+ 		v4l2_err(v4l2_dev, "meye: mchip has no device base address\n");
 -- 
-2.9.3
+1.9.1
+
 
