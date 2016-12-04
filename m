@@ -1,79 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:41564 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751577AbcLHT5X (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 14:57:23 -0500
-Date: Thu, 8 Dec 2016 17:57:17 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v3] [media] tvp5150: don't touch register
- TVP5150_CONF_SHARED_PIN if not needed
-Message-ID: <20161208175717.7c6932e2@vento.lan>
-In-Reply-To: <20161208175102.50c936f1@vento.lan>
-References: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
-        <20161208175102.50c936f1@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:58770 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750697AbcLDFKp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 4 Dec 2016 00:10:45 -0500
+Message-ID: <bff69d48982478ee7fba602516291379@smtp-cloud6.xs4all.net>
+Date: Sun, 04 Dec 2016 06:10:41 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 8 Dec 2016 17:51:02 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Em Thu,  8 Dec 2016 17:46:53 -0200
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> 
-> > commit 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-> > support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-> > depending on the type of bus set via the .set_fmt() subdev callback.
-> > 
-> > This is known to cause trobules on devices that don't use a V4L2
-> > subdev devnode, and a fix for it was made by commit 47de9bf8931e
-> > ("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-> > such fix doesn't consider the case of progressive video inputs,
-> > causing chroma decoding issues on such videos, as it overrides not
-> > only the type of video output, but also other unrelated bits.
-> > 
-> > So, instead of trying to guess, let's detect if the device configuration
-> > is set via Device Tree. If not, just ignore the new logic, restoring
-> > the original behavior.
-> > 
-> > Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
-> > Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> > Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: stable@vger.kernel.org
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> > 
-> > changes since version 2: 
-> >   - fixed settings for register 0x0d
-> >   - tested on WinTV USB2 with S-Video input
-> > 
-> > I'll do an extra test with HVR-950 on both S-Video and composite soon enough  
-> 
-> Tested with HVR-950 (USB ID 2040:6513, Hauppauge model 65201, rev A1C0):
-> 	- both S-Video and composite entries are working.
+Results of the daily build of media_tree:
 
-Devin,
+date:			Sun Dec  4 05:00:16 CET 2016
+media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	063d1f5d5e60783002d781e8a23911acbda65e99
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-Btw, if you're willing to test it against the latest Kernel, I recommend
-you to also apply the three em28xx patches I just sent upstream, as they
-fix a regression with the conversion to dev_foo() print on em28xx driver,
-reported by Antti, with happens when removing the em28xx driver from memory.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc5-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+smatch: ERRORS
+sparse: WARNINGS
 
-Such regression happened only at the 4.9-rc development cycle, so it 
-shouldn't affect any earlier versions of em28xx.
+Detailed results are available here:
 
-I'm placing all 4 patches under this branch:
-	https://git.linuxtv.org/mchehab/experimental.git/log/?h=em28xx-fixes
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Regards,
-Mauro
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
