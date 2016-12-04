@@ -1,76 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53316 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750841AbcLEKtN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 05:49:13 -0500
-Subject: Re: [PATCH v3 07/10] [media] st-delta: rpmsg ipc support
-To: Hugues Fruchet <hugues.fruchet@st.com>, linux-media@vger.kernel.org
-References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
- <1479830007-29767-8-git-send-email-hugues.fruchet@st.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <70e1c120-4b7b-bde9-0f82-38e89452c2ea@xs4all.nl>
-Date: Mon, 5 Dec 2016 11:47:41 +0100
+Received: from mail-io0-f195.google.com ([209.85.223.195]:35814 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750922AbcLDNCj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Dec 2016 08:02:39 -0500
+Received: by mail-io0-f195.google.com with SMTP id h133so9052310ioe.2
+        for <linux-media@vger.kernel.org>; Sun, 04 Dec 2016 05:02:39 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1479830007-29767-8-git-send-email-hugues.fruchet@st.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
+References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
+ <20161202090558.29931492@vento.lan> <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sun, 4 Dec 2016 14:01:57 +0100
+Message-ID: <CAOJOY2Nhi6aev=jwVeyuQMxKUAk-MfT0YLKsFfrUsAcZtdrysQ@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/22/2016 04:53 PM, Hugues Fruchet wrote:
-> IPC (Inter Process Communication) support for communication with
-> DELTA coprocessor firmware using rpmsg kernel framework.
-> Based on 4 services open/set_stream/decode/close and their associated
-> rpmsg messages.
-> The messages structures are duplicated on both host and firmware
-> side and are packed (use only of 32 bits size fields in messages
-> structures to ensure packing).
-> Each service is synchronous; service returns only when firmware
-> acknowledges the associated command message.
-> Due to significant parameters size exchanged from host to copro,
-> parameters are not inserted in rpmsg messages. Instead, parameters are
-> stored in physical memory shared between host and coprocessor.
-> Memory is non-cacheable, so no special operation is required
-> to ensure memory coherency on host and on coprocessor side.
-> Multi-instance support and re-entrance are ensured using host_hdl and
-> copro_hdl in message header exchanged between both host and coprocessor.
-> This avoids to manage tables on both sides to get back the running context
-> of each instance.
-> 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/platform/Kconfig                |   1 +
->  drivers/media/platform/sti/delta/Makefile     |   2 +-
->  drivers/media/platform/sti/delta/delta-ipc.c  | 590 ++++++++++++++++++++++++++
->  drivers/media/platform/sti/delta/delta-ipc.h  |  76 ++++
->  drivers/media/platform/sti/delta/delta-v4l2.c |  11 +
->  drivers/media/platform/sti/delta/delta.h      |  21 +
->  6 files changed, 700 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
->  create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index f494f01..5519442 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -303,6 +303,7 @@ config VIDEO_STI_DELTA
->  	depends on VIDEO_DEV && VIDEO_V4L2
->  	depends on ARCH_STI || COMPILE_TEST
->  	depends on HAS_DMA
-> +	depends on RPMSG
+Hello
 
-This should be 'select', not 'depends on'.
+2016-12-03 21:46 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:
+> On 2 December 2016 at 08:05, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+>> Em Sun, 27 Nov 2016 12:11:48 +0100
+>> Marcel Hasler <mahasler@gmail.com> escreveu:
+>>
+>>> Allow setting a custom record gain for the internal AC97 codec (if avai=
+lable). This can be
+>>> a value between 0 and 15, 8 is the default and should be suitable for m=
+ost users. The Windows
+>>> driver also sets this to 8 without any possibility for changing it.
+>>
+>> The problem of removing the mixer is that you need this kind of
+>> crap to setup the volumes on a non-standard way.
+>>
+>
+> Right, that's a good point.
+>
+>> NACK.
+>>
+>> Instead, keep the alsa mixer. The way other drivers do (for example,
+>> em28xx) is that they configure the mixer when an input is selected,
+>> increasing the volume of the active audio channel to 100% and muting
+>> the other audio channels. Yet, as the alsa mixer is exported, users
+>> can change the mixer settings in runtime using some alsa (or pa)
+>> mixer application.
+>>
+>
+> Yeah, the AC97 mixer we are currently leveraging
+> exposes many controls that have no meaning in this device,
+> so removing that still looks like an improvement.
+>
+> I guess the proper way is creating our own mixer
+> (not using snd_ac97_mixer)  exposing only the record
+> gain knob.
+>
+> Marcel, what do you think?
+> --
+> Ezequiel Garc=C3=ADa, VanguardiaSur
+> www.vanguardiasur.com.ar
 
->  	select VIDEOBUF2_DMA_CONTIG
->  	select V4L2_MEM2MEM_DEV
->  	help
+As I have written before, the recording gain isn't actually meant to
+be changed by the user. In the official Windows driver this value is
+hard-coded to 8 and cannot be changed in any way. And there really is
+no good reason why anyone should need to mess with it in the first
+place. The default value will give the best results in pretty much all
+cases and produces approximately the same volume as the internal 8-bit
+ADC whose gain cannot be changed at all, not even by a driver.
 
-Can you make a v3.1 of this patch correcting this?
+I had considered writing a mixer but chose not to. If the gain setting
+is openly exposed to mixer applications, how do you tell the users
+that the value set by the driver already is the optimal and
+recommended value and that they shouldn't mess with the controls
+unless they really have to? By having a module parameter, this setting
+is practically hidden from the normal user but still is available to
+power-users if they think they really need it. In the end it's really
+just a compromise between hiding it completely and exposing it openly.
+Also, this way the driver guarantees reproducible results, since
+there's no need to remember the positions of any volume sliders.
 
-Regards,
+Either way, if you still think this solution is "crap", feel free to
+modify the patches in any way you see fit. I've wasted too much time
+on this already, and since I'm not being paid for it, I don't intend
+to put any more effort into this.
 
-	Hans
-
+Best regards
+Marcel
