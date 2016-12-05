@@ -1,169 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33914 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755398AbcLQAgd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 19:36:33 -0500
-Date: Sat, 17 Dec 2016 02:35:57 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: Re: [RFC RESEND 04/11] v4l: Unify cache management hint buffer flags
-Message-ID: <20161217003557.GN16630@valkosipuli.retiisi.org.uk>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
- <1441972234-8643-5-git-send-email-sakari.ailus@linux.intel.com>
- <1519569.UjI4aaJYKi@avalon>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:32934 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751451AbcLEVUN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 16:20:13 -0500
+Received: by mail-io0-f193.google.com with SMTP id j92so2652580ioi.0
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 13:19:15 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1519569.UjI4aaJYKi@avalon>
+In-Reply-To: <CAOJOY2M6QANNysnZ_C9G+fFg=a=wYQXGDr49LCYGE7KrbwkE4A@mail.gmail.com>
+References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
+ <20161202090558.29931492@vento.lan> <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
+ <CAOJOY2Nhi6aev=jwVeyuQMxKUAk-MfT0YLKsFfrUsAcZtdrysQ@mail.gmail.com>
+ <CAAEAJfAoZCzh5c=C+8Um-KaZkRs_ip1kX04xZRm2bWrGLmMwjA@mail.gmail.com>
+ <20161205101221.53613e57@vento.lan> <CAAEAJfD6sauJ_NyYtBmFAr5c_NGr8OuZwqnG1Ukk9-P7YNSypQ@mail.gmail.com>
+ <CAOJOY2M6QANNysnZ_C9G+fFg=a=wYQXGDr49LCYGE7KrbwkE4A@mail.gmail.com>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Mon, 5 Dec 2016 22:18:34 +0100
+Message-ID: <CAOJOY2MubrfvyWDs+4SjttdQhFKrnRwn9ERh-F5PBU2sEbErUg@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+2016-12-05 22:06 GMT+01:00 Marcel Hasler <mahasler@gmail.com>:
+> Hello
+>
+> 2016-12-05 16:38 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar=
+>:
+>> On 5 December 2016 at 09:12, Mauro Carvalho Chehab
+>> <mchehab@s-opensource.com> wrote:
+>>> Em Sun, 4 Dec 2016 15:25:25 -0300
+>>> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> escreveu:
+>>>
+>>>> On 4 December 2016 at 10:01, Marcel Hasler <mahasler@gmail.com> wrote:
+>>>> > Hello
+>>>> >
+>>>> > 2016-12-03 21:46 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.c=
+om.ar>:
+>>>> >> On 2 December 2016 at 08:05, Mauro Carvalho Chehab
+>>>> >> <mchehab@s-opensource.com> wrote:
+>>>> >>> Em Sun, 27 Nov 2016 12:11:48 +0100
+>>>> >>> Marcel Hasler <mahasler@gmail.com> escreveu:
+>>>> >>>
+>>>> >>>> Allow setting a custom record gain for the internal AC97 codec (i=
+f available). This can be
+>>>> >>>> a value between 0 and 15, 8 is the default and should be suitable=
+ for most users. The Windows
+>>>> >>>> driver also sets this to 8 without any possibility for changing i=
+t.
+>>>> >>>
+>>>> >>> The problem of removing the mixer is that you need this kind of
+>>>> >>> crap to setup the volumes on a non-standard way.
+>>>> >>>
+>>>> >>
+>>>> >> Right, that's a good point.
+>>>> >>
+>>>> >>> NACK.
+>>>> >>>
+>>>> >>> Instead, keep the alsa mixer. The way other drivers do (for exampl=
+e,
+>>>> >>> em28xx) is that they configure the mixer when an input is selected=
+,
+>>>> >>> increasing the volume of the active audio channel to 100% and muti=
+ng
+>>>> >>> the other audio channels. Yet, as the alsa mixer is exported, user=
+s
+>>>> >>> can change the mixer settings in runtime using some alsa (or pa)
+>>>> >>> mixer application.
+>>>> >>>
+>>>> >>
+>>>> >> Yeah, the AC97 mixer we are currently leveraging
+>>>> >> exposes many controls that have no meaning in this device,
+>>>> >> so removing that still looks like an improvement.
+>>>> >>
+>>>> >> I guess the proper way is creating our own mixer
+>>>> >> (not using snd_ac97_mixer)  exposing only the record
+>>>> >> gain knob.
+>>>> >>
+>>>> >> Marcel, what do you think?
+>>>> >> --
+>>>> >> Ezequiel Garc=C3=ADa, VanguardiaSur
+>>>> >> www.vanguardiasur.com.ar
+>>>> >
+>>>> > As I have written before, the recording gain isn't actually meant to
+>>>> > be changed by the user. In the official Windows driver this value is
+>>>> > hard-coded to 8 and cannot be changed in any way. And there really i=
+s
+>>>> > no good reason why anyone should need to mess with it in the first
+>>>> > place. The default value will give the best results in pretty much a=
+ll
+>>>> > cases and produces approximately the same volume as the internal 8-b=
+it
+>>>> > ADC whose gain cannot be changed at all, not even by a driver.
+>>>> >
+>>>> > I had considered writing a mixer but chose not to. If the gain setti=
+ng
+>>>> > is openly exposed to mixer applications, how do you tell the users
+>>>> > that the value set by the driver already is the optimal and
+>>>> > recommended value and that they shouldn't mess with the controls
+>>>> > unless they really have to? By having a module parameter, this setti=
+ng
+>>>> > is practically hidden from the normal user but still is available to
+>>>> > power-users if they think they really need it. In the end it's reall=
+y
+>>>> > just a compromise between hiding it completely and exposing it openl=
+y.
+>>>> > Also, this way the driver guarantees reproducible results, since
+>>>> > there's no need to remember the positions of any volume sliders.
+>>>> >
+>>>>
+>>>> Hm, right. I've never changed the record gain, and it's true that it
+>>>> doens't really improve the volume. So, I would be OK with having
+>>>> a module parameter.
+>>>>
+>>>> On the other side, we are exposing it currently, through the "Capture"
+>>>> mixer control:
+>>>>
+>>>> Simple mixer control 'Capture',0
+>>>>   Capabilities: cvolume cswitch cswitch-joined
+>>>>   Capture channels: Front Left - Front Right
+>>>>   Limits: Capture 0 - 15
+>>>>   Front Left: Capture 10 [67%] [15.00dB] [on]
+>>>>   Front Right: Capture 8 [53%] [12.00dB] [on]
+>>>>
+>>>> So, it would be user-friendly to keep the user interface and continue
+>>>> to expose the same knob - even if the default is the optimal, etc.
+>>>>
+>>>> To be completely honest, I don't think any user is really relying
+>>>> on any REC_GAIN / Capture setting, and I'm completely OK
+>>>> with having a mixer control or a module parameter. It doesn't matter.
+>>>
+>>> If you're positive that *all* stk1160 use the ac97 mixer the
+>>> same way, and that there's no sense on having a mixer for it,
+>>> then it would be ok to remove it.
+>>>
+>>
+>> Let's remove it then!
+>>
+>>> In such case, then why you need a modprobe parameter to allow
+>>> setting the record level? If this mixer entry is not used,
+>>> just set it to zero and be happy with that.
+>>>
+>>
+>> Let's remove the module param too, then.
+>
+> I'm okay with that.
+>
+>>
+>> Thanks,
+>> --
+>> Ezequiel Garc=C3=ADa, VanguardiaSur
+>> www.vanguardiasur.com.ar
+>
+> I'm willing to prepare one final patchset, provided we can agree on
+> and resolve all issues beforehand.
+>
+> So far the changes would be to remove the module param and to poll
+> STK1160_AC97CTL_0 instead of using a fixed delay. It's probably better
+> to also poll it before writing, although that never caused problems.
+>
+> I'll post some code for review before actually submitting patches.
+> Mauro, is there anything else that you think should be changed? If so,
+> please tell me now. Thanks.
+>
+> Best regards
+> Marcel
 
-Thank you for the review.
+One more thing...
 
-On Thu, Dec 15, 2016 at 10:15:39PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Friday 11 Sep 2015 14:50:27 Sakari Ailus wrote:
-> > The V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN
-> > buffer flags are currently not used by the kernel. Replace the definitions
-> > by a single V4L2_BUF_FLAG_NO_CACHE_SYNC flag to be used by further
-> > patches.
-> > 
-> > Different cache architectures should not be visible to the user space
-> > which can make no meaningful use of the differences anyway. In case a
-> > device can make use of non-coherent memory accesses, the necessary cache
-> > operations depend on the CPU architecture and the buffer type, not the
-> > requests of the user. The cache operation itself may be skipped on the
-> > user's request which was the purpose of the two flags.
-> > 
-> > On ARM the invalidate and clean are separate operations whereas on
-> > x86(-64) the two are a single operation (flush). Whether the hardware uses
-> > the buffer for reading (V4L2_BUF_TYPE_*_OUTPUT*) or writing
-> > (V4L2_BUF_TYPE_*CAPTURE*) already defines the required cache operation
-> > (clean and invalidate, respectively). No user input is required.
-> 
-> We need to perform the following operations.
-> 
-> 	| QBUF		| DQBUF
-> -----------------------------------------------
-> CAPTURE	| Invalidate	| Invalidate (*)
-> OUTPUT	| Clean		| -
-> 
-> (*) for systems using speculative pre-fetching only.
-> 
-> The following optimizations are possible:
-> 
-> 1. CAPTURE, the CPU has not written to the buffer before QBUF
-> 
-> Cache invalidation can be skipped at QBUF time, but becomes required at DQBUF 
-> time on all systems, regardless of whether they use speculative prefetching.
-> 
-> 2. CAPTURE, the CPU will not read from the buffer after DQBUF
-> 
-> Cache invalidation can be skipped at DQBUF time.
-> 
-> 3. CAPTURE, combination of (1) and (2)
-> 
-> Cache invalidation can be skipped at both QBUF and DQBUF time.
-> 
-> 4. OUTPUT, the CPU has not written to the buffer before QBUF
-> 
-> Cache clean can be skipped at QBUF time.
+The driver currently uses a lot of "magic numbers", both for the AC97
+register addresses as well as the STK1160 register contents. That
+makes it a bit difficult to read unless you happen to have the
+datasheet open. Would it maybe be better to add defines for those,
+especially if we're going to poll individual bits? I usually prefer
+that approach myself. Would you put the defines for the AC97 chip
+registers into stk1160-reg.h or keep them in stk1160-ac97.c since
+they're only used there?
 
-Ack.
-
-> 
-> 
-> A single flag can cover all cases, provided we keep track of the flag being 
-> set at QBUF time to force cache invalidation at DQBUF time for case (1) if the 
-> flag isn't set at DQBUF time.
-> 
-> One issue is that cache invalidation at DQBUF time for CAPTURE buffers isn't 
-> fully under the control of videobuf. We can instruct the DMA mapping API to 
-> skip cache handling, but we can't ask it to force cache invalidation in the 
-> sync_for_cpu operation for non speculative prefetching systems. On ARM32 the 
-> implementation currently always invalidates the cache in 
-> __dma_page_dev_to_cpu() for CAPTURE buffers so we're currently safe, but 
-> there's a FIXME comment that might lead to someone fixing the implementation 
-> in the future. I believe we'll have to fix this in the DMA mapping level, 
-> userspace shouldn't be affected.
-> 
-> Feel free to capture (part of) this explanation in the commit message to 
-> clarify your last paragraph.
-> 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/io.xml | 25 +++++++++++--------------
-> >  include/trace/events/v4l2.h            |  3 +--
-> >  include/uapi/linux/videodev2.h         |  7 +++++--
-> >  3 files changed, 17 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > b/Documentation/DocBook/media/v4l/io.xml index 7bbc2a4..4facd63 100644
-> > --- a/Documentation/DocBook/media/v4l/io.xml
-> > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > @@ -1112,21 +1112,18 @@ application. Drivers set or clear this flag when the
-> > linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called.</entry> </row>
-> >  	  <row>
-> > -	    
-> <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
-> > +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_SYNC</constant></entry>
-> >  	    <entry>0x00000800</entry>
-> > -	    <entry>Caches do not have to be invalidated for this buffer.
-> > -Typically applications shall use this flag if the data captured in the
-> > buffer -is not going to be touched by the CPU, instead the buffer will,
-> > probably, be -passed on to a DMA-capable hardware unit for further
-> > processing or output. -</entry>
-> > -	  </row>
-> > -	  <row>
-> > -	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
-> > -	    <entry>0x00001000</entry>
-> > -	    <entry>Caches do not have to be cleaned for this buffer.
-> > -Typically applications shall use this flag for output buffers if the data
-> > -in this buffer has not been created by the CPU but by some DMA-capable
-> > unit, -in which case caches have not been used.</entry>
-> > +	    <entry>Do not perform CPU cache synchronisation operations
-> > +	    when the buffer is queued or dequeued. The user is
-> > +	    responsible for the correct use of this flag. It should be
-> > +	    only used when the buffer is not accessed using the CPU,
-> > +	    e.g. the buffer is written to by a hardware block and then
-> > +	    read by another one, in which case the flag should be set
-> > +	    in both <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link>
-> > +	    and <link linkend="vidioc-qbuf">VIDIOC_QBUF</link> IOCTLs.
-> 
-> I'd like to word this differently. As explained above, there can be cases 
-> where the flag would only be set in either QBUF or DQBUF. I would prefer 
-> documenting the flag as a hint for the kernel that userspace has not written 
-> to the buffer before QBUF (when the flag is set for VIDIOC_QBUF) or will not 
-> read from the buffer after DQBUF (when the flag is set for VIDIOC_DQBUF) and 
-> that the kernel is free to perform the appropriate cache optimizations 
-> (without any guarantee).
-
-AFAIR that was my intention but I don't seem to have written that in a way
-that could be deciphered later on. Sounds good to me. :-)
-
-> 
-> > +	    The flag has no effect on some devices / architectures.
-> > +	    </entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
-> 
-> [snip]
-> 
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Best regards
+Marcel
