@@ -1,69 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44192 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750981AbcL0Jxc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 04:53:32 -0500
-Date: Tue, 27 Dec 2016 11:52:29 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 1/8] [media] v4l2-async: Use kmalloc_array() in
- v4l2_async_notifier_unregister()
-Message-ID: <20161227095229.GL16630@valkosipuli.retiisi.org.uk>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
- <442a32b4-6952-3b2a-44a3-46254c5976f2@users.sourceforge.net>
+Received: from quartz.orcorp.ca ([184.70.90.242]:44407 "EHLO quartz.orcorp.ca"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751570AbcLETq2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Dec 2016 14:46:28 -0500
+Date: Mon, 5 Dec 2016 12:46:14 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Logan Gunthorpe <logang@deltatee.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Stephen Bates <sbates@raithlin.com>,
+        Haggai Eran <haggaie@mellanox.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
+        "christian.koenig@amd.com" <christian.koenig@amd.com>,
+        "Suravee.Suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>,
+        "John.Bridgman@amd.com" <john.bridgman@amd.com>,
+        "Alexander.Deucher@amd.com" <alexander.deucher@amd.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "serguei.sagalovitch@amd.com" <serguei.sagalovitch@amd.com>,
+        "Paul.Blinzer@amd.com" <paul.blinzer@amd.com>,
+        "Felix.Kuehling@amd.com" <felix.kuehling@amd.com>,
+        "ben.sander@amd.com" <ben.sander@amd.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161205194614.GA21132@obsidianresearch.com>
+References: <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com>
+ <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
+ <20161205171830.GB27784@obsidianresearch.com>
+ <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
+ <20161205180231.GA28133@obsidianresearch.com>
+ <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
+ <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
+ <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
+ <20161205191438.GA20464@obsidianresearch.com>
+ <10356964-c454-47fb-7fb3-8bf2a418b11b@deltatee.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <442a32b4-6952-3b2a-44a3-46254c5976f2@users.sourceforge.net>
+In-Reply-To: <10356964-c454-47fb-7fb3-8bf2a418b11b@deltatee.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks!
-
-On Mon, Dec 26, 2016 at 09:43:23PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 26 Dec 2016 18:14:33 +0100
+On Mon, Dec 05, 2016 at 12:27:20PM -0700, Logan Gunthorpe wrote:
 > 
-> A multiplication for the size determination of a memory allocation
-> indicated that an array data structure should be processed.
-> Thus use the corresponding function "kmalloc_array".
 > 
-> This issue was detected by using the Coccinelle software.
+> On 05/12/16 12:14 PM, Jason Gunthorpe wrote:
+> >But CMB sounds much more like the GPU case where there is a
+> >specialized allocator handing out the BAR to consumers, so I'm not
+> >sure a general purpose chardev makes a lot of sense?
 > 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+> I don't think it will ever need to be as complicated as the GPU case. There
+> will probably only ever be a relatively small amount of memory behind the
+> CMB and really the only users are those doing P2P work. Thus the specialized
+> allocator could be pretty simple and I expect it would be fine to just
+> return -ENOMEM if there is not enough memory.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+NVMe might have to deal with pci-e hot-unplug, which is a similar
+problem-class to the GPU case..
 
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 5bada202b2d3..277183f2d514 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -202,7 +202,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  	if (!notifier->v4l2_dev)
->  		return;
->  
-> -	dev = kmalloc(n_subdev * sizeof(*dev), GFP_KERNEL);
-> +	dev = kmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
->  	if (!dev) {
->  		dev_err(notifier->v4l2_dev->dev,
->  			"Failed to allocate device cache!\n");
+In any event the allocator still needs to track which regions are in
+use and be able to hook 'free' from userspace. That does suggest it
+should be integrated into the nvme driver and not a bolt on driver..
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Jason
