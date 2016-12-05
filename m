@@ -1,57 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:34110 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750900AbcLCHCM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2016 02:02:12 -0500
-From: Shilpa Puttegowda <shilpapri@gmail.com>
-To: linux-kernel@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, Shilpa P <shilpapri@gmail.com>
-Subject: [PATCH] staging: Replaced BUG_ON with warnings
-Date: Sat,  3 Dec 2016 12:32:01 +0530
-Message-Id: <1480748521-8738-1-git-send-email-shilpapri@gmail.com>
+Received: from smtprelay.synopsys.com ([198.182.47.9]:36106 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751743AbcLERhC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 12:37:02 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: mchehab@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org
+Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
+        geert+renesas@glider.be, akpm@linux-foundation.org,
+        linux@roeck-us.net, hverkuil@xs4all.nl,
+        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
+        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
+        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
+        mark.rutland@arm.com, Ramiro.Oliveira@synopsys.com,
+        CARLOS.PALMINHA@synopsys.com
+Subject: [PATCH v5 1/2] Add OV5647 device tree documentation
+Date: Mon,  5 Dec 2016 17:36:33 +0000
+Message-Id: <bb5a2ae3078a977eb52aec0ffa3a0a0de558e6ad.1480958609.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1480958609.git.roliveir@synopsys.com>
+References: <cover.1480958609.git.roliveir@synopsys.com>
+In-Reply-To: <cover.1480958609.git.roliveir@synopsys.com>
+References: <cover.1480958609.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shilpa P <shilpapri@gmail.com>
+Add device tree documentation.
 
-Don't crash the Kernel for driver errors
-
-Signed-off-by: Shilpa P <shilpapri@gmail.com>
+Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
 ---
- drivers/staging/media/bcm2048/radio-bcm2048.c | 12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 
-diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
-index 4d9bd02..05f5918 100644
---- a/drivers/staging/media/bcm2048/radio-bcm2048.c
-+++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
-@@ -1538,7 +1538,11 @@ static int bcm2048_parse_rt_match_c(struct bcm2048_device *bdev, int i,
- 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
- 		return 0;
- 
--	BUG_ON((index+2) >= BCM2048_MAX_RDS_RT);
-+	if ((index + 2) >= BCM2048_MAX_RDS_RT) {
-+		dev_err(&bdev->client->dev,
-+			"Incorrect index = %d\n", index);
-+		return 0;
-+	}
- 
- 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
- 		BCM2048_RDS_BLOCK_C) {
-@@ -1561,7 +1565,11 @@ static void bcm2048_parse_rt_match_d(struct bcm2048_device *bdev, int i,
- 	if (crc == BCM2048_RDS_CRC_UNRECOVARABLE)
- 		return;
- 
--	BUG_ON((index+4) >= BCM2048_MAX_RDS_RT);
-+	if ((index + 4) >= BCM2048_MAX_RDS_RT) {
-+		dev_err(&bdev->client->dev,
-+			"Incorrect index = %d\n", index);
-+		return;
-+	}
- 
- 	if ((bdev->rds_info.radio_text[i] & BCM2048_RDS_BLOCK_MASK) ==
- 	    BCM2048_RDS_BLOCK_D)
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+new file mode 100644
+index 0000000..4c91b3b
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+@@ -0,0 +1,19 @@
++Omnivision OV5647 raw image sensor
++---------------------------------
++
++OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
++and CCI (I2C compatible) control bus.
++
++Required properties:
++
++- compatible	: "ovti,ov5647";
++- reg		: I2C slave address of the sensor;
++
++The common video interfaces bindings (see video-interfaces.txt) should be
++used to specify link to the image data receiver. The OV5647 device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Following properties are valid for the endpoint node:
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++  video-interfaces.txt.  The sensor supports only two data lanes.
 -- 
-1.9.1
+2.10.2
+
 
