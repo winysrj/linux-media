@@ -1,42 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34218 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757753AbcLOOFg (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:53316 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750841AbcLEKtN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 09:05:36 -0500
-From: Corentin Labbe <clabbe.montjoie@gmail.com>
-To: mchehab@kernel.org, gregkh@linuxfoundation.org, kgene@kernel.org,
-        krzk@kernel.org, javier@osg.samsung.com,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Corentin Labbe <clabbe.montjoie@gmail.com>
-Subject: [PATCH 1/2] media: s5p-cec: Remove unneeded linux/miscdevice.h include
-Date: Thu, 15 Dec 2016 15:03:23 +0100
-Message-Id: <20161215140324.28986-1-clabbe.montjoie@gmail.com>
+        Mon, 5 Dec 2016 05:49:13 -0500
+Subject: Re: [PATCH v3 07/10] [media] st-delta: rpmsg ipc support
+To: Hugues Fruchet <hugues.fruchet@st.com>, linux-media@vger.kernel.org
+References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
+ <1479830007-29767-8-git-send-email-hugues.fruchet@st.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <70e1c120-4b7b-bde9-0f82-38e89452c2ea@xs4all.nl>
+Date: Mon, 5 Dec 2016 11:47:41 +0100
+MIME-Version: 1.0
+In-Reply-To: <1479830007-29767-8-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5p-cec: does not use any miscdevice so this patch remove this
-unnecessary inclusion.
+On 11/22/2016 04:53 PM, Hugues Fruchet wrote:
+> IPC (Inter Process Communication) support for communication with
+> DELTA coprocessor firmware using rpmsg kernel framework.
+> Based on 4 services open/set_stream/decode/close and their associated
+> rpmsg messages.
+> The messages structures are duplicated on both host and firmware
+> side and are packed (use only of 32 bits size fields in messages
+> structures to ensure packing).
+> Each service is synchronous; service returns only when firmware
+> acknowledges the associated command message.
+> Due to significant parameters size exchanged from host to copro,
+> parameters are not inserted in rpmsg messages. Instead, parameters are
+> stored in physical memory shared between host and coprocessor.
+> Memory is non-cacheable, so no special operation is required
+> to ensure memory coherency on host and on coprocessor side.
+> Multi-instance support and re-entrance are ensured using host_hdl and
+> copro_hdl in message header exchanged between both host and coprocessor.
+> This avoids to manage tables on both sides to get back the running context
+> of each instance.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/platform/Kconfig                |   1 +
+>  drivers/media/platform/sti/delta/Makefile     |   2 +-
+>  drivers/media/platform/sti/delta/delta-ipc.c  | 590 ++++++++++++++++++++++++++
+>  drivers/media/platform/sti/delta/delta-ipc.h  |  76 ++++
+>  drivers/media/platform/sti/delta/delta-v4l2.c |  11 +
+>  drivers/media/platform/sti/delta/delta.h      |  21 +
+>  6 files changed, 700 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/platform/sti/delta/delta-ipc.c
+>  create mode 100644 drivers/media/platform/sti/delta/delta-ipc.h
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index f494f01..5519442 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -303,6 +303,7 @@ config VIDEO_STI_DELTA
+>  	depends on VIDEO_DEV && VIDEO_V4L2
+>  	depends on ARCH_STI || COMPILE_TEST
+>  	depends on HAS_DMA
+> +	depends on RPMSG
 
-Signed-off-by: Corentin Labbe <clabbe.montjoie@gmail.com>
----
- drivers/staging/media/s5p-cec/exynos_hdmi_cec.h | 1 -
- 1 file changed, 1 deletion(-)
+This should be 'select', not 'depends on'.
 
-diff --git a/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h b/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h
-index 3e4fc7b..7d94535 100644
---- a/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h
-+++ b/drivers/staging/media/s5p-cec/exynos_hdmi_cec.h
-@@ -14,7 +14,6 @@
- #define _EXYNOS_HDMI_CEC_H_ __FILE__
- 
- #include <linux/regmap.h>
--#include <linux/miscdevice.h>
- #include "s5p_cec.h"
- 
- void s5p_cec_set_divider(struct s5p_cec_dev *cec);
--- 
-2.10.2
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select V4L2_MEM2MEM_DEV
+>  	help
+
+Can you make a v3.1 of this patch correcting this?
+
+Regards,
+
+	Hans
 
