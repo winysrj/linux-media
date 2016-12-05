@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57740 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753185AbcLIOxy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 09:53:54 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Subject: [PATCH v2 2/9] media: entity: Be vocal about failing sanity checks
-Date: Fri,  9 Dec 2016 16:53:35 +0200
-Message-Id: <1481295222-14743-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33753 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752185AbcLEXUv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 18:20:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@kernel.org, tiwai@suse.com, perex@perex.cz,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
+        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
+        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
+        sakari.ailus@iki.fi, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v6 3/3] sound/usb: Use Media Controller API to share media resources
+Date: Tue, 06 Dec 2016 01:21:11 +0200
+Message-ID: <2368883.8y0L28vD2m@avalon>
+In-Reply-To: <69ad05a8-8572-43e7-ef76-7510edd904c6@osg.samsung.com>
+References: <cover.1480539942.git.shuahkh@osg.samsung.com> <ebeaa42019b102f76d87a2fc4aa7793e1f87072c.1480539942.git.shuahkh@osg.samsung.com> <69ad05a8-8572-43e7-ef76-7510edd904c6@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 3801bc7d1b8d ("[media] media: Media Controller fix to not let
-stream_count go negative") added a sanity check for negative stream_count,
-but a failure of the check remained silent. Make sure the failure is
-noticed.
+Hi Shuah,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/media-entity.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+On Monday 05 Dec 2016 15:44:30 Shuah Khan wrote:
+> On 11/30/2016 03:01 PM, Shuah Khan wrote:
+> > Change ALSA driver to use Media Controller API to share media resources
+> > with DVB, and V4L2 drivers on a AU0828 media device.
+> > 
+> > Media Controller specific initialization is done after sound card is
+> > registered. ALSA creates Media interface and entity function graph
+> > nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
+> > 
+> > snd_usb_hw_params() will call Media Controller enable source handler
+> > interface to request the media resource. If resource request is granted,
+> > it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
+> > returned.
+> > 
+> > Media specific cleanup is done in usb_audio_disconnect().
+> > 
+> > Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> 
+> Hi Takashi,
+> 
+> If you are good with this patch, could you please Ack it, so Mauro
+> can pull it into media tree with the other two patches in this series,
+> when he is ready to do so.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index e3b7ecd..3809257 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -473,8 +473,8 @@ __must_check int __media_entity_pipeline_start(struct media_entity *entity,
- 	media_entity_graph_walk_start(graph, entity_err);
- 
- 	while ((entity_err = media_entity_graph_walk_next(graph))) {
--		/* don't let the stream_count go negative */
--		if (entity_err->stream_count > 0) {
-+		/* Sanity check for negative stream_count */
-+		if (!WARN_ON_ONCE(entity_err->stream_count <= 0)) {
- 			entity_err->stream_count--;
- 			if (entity_err->stream_count == 0)
- 				entity_err->pipe = NULL;
-@@ -519,8 +519,8 @@ void __media_entity_pipeline_stop(struct media_entity *entity)
- 	media_entity_graph_walk_start(graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(graph))) {
--		/* don't let the stream_count go negative */
--		if (entity->stream_count > 0) {
-+		/* Sanity check for negative stream_count */
-+		if (!WARN_ON_ONCE(entity->stream_count <= 0)) {
- 			entity->stream_count--;
- 			if (entity->stream_count == 0)
- 				entity->pipe = NULL;
+I *really* want to address the concerns raised by Sakari before pulling more 
+code that makes fixing the race conditions more difficult. Please, let's all 
+work on fixing the core code to build a stable base on which we can build 
+additional features. V4L2 and MC need teamwork, it's time to give the 
+subsystem the love it deserves.
+
 -- 
-2.1.4
+Regards,
+
+Laurent Pinchart
 
