@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53758 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758987AbcLPGMr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 01:12:47 -0500
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v5 4/6] [media] rc-ir-raw: do not generate any receiving thread
- for raw transmitters
-Date: Fri, 16 Dec 2016 15:12:16 +0900
-Message-id: <20161216061218.5906-5-andi.shyti@samsung.com>
-In-reply-to: <20161216061218.5906-1-andi.shyti@samsung.com>
-References: <20161216061218.5906-1-andi.shyti@samsung.com>
+Received: from mga04.intel.com ([192.55.52.120]:18746 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751547AbcLENfD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Dec 2016 08:35:03 -0500
+From: "Raikhel, Evgeni" <evgeni.raikhel@intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] UVC Module  - Support Intel RealSense SR300 Depth
+ Camera formats
+Date: Mon, 5 Dec 2016 13:34:58 +0000
+Message-ID: <AA09C8071EEEFC44A7852ADCECA86673A1EABA@hasmsx108.ger.corp.intel.com>
+References: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
+ <19511557.1CIWCiALqy@avalon>
+In-Reply-To: <19511557.1CIWCiALqy@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Raw IR transmitters do not need any thread listening for
-occurring events. Check the driver type before running the
-thread.
+Hi Laurent,
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-Reviewed-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-ir-raw.c | 17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+Thanks for the feedback - I resubmitted the patches inline, as requested.
 
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 1c42a9f..9938e42 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -270,12 +270,19 @@ int ir_raw_event_register(struct rc_dev *dev)
- 	INIT_KFIFO(dev->raw->kfifo);
- 
- 	spin_lock_init(&dev->raw->lock);
--	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
--				       "rc%u", dev->minor);
- 
--	if (IS_ERR(dev->raw->thread)) {
--		rc = PTR_ERR(dev->raw->thread);
--		goto out;
-+	/*
-+	 * raw transmitters do not need any event registration
-+	 * because the event is coming from userspace
-+	 */
-+	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
-+		dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
-+					       "rc%u", dev->minor);
-+
-+		if (IS_ERR(dev->raw->thread)) {
-+			rc = PTR_ERR(dev->raw->thread);
-+			goto out;
-+		}
- 	}
- 
- 	mutex_lock(&ir_raw_handler_lock);
--- 
-2.10.2
+Regards,
+Evgeni Raikhel
+
+-----Original Message-----
+From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
+Sent: Monday, December 05, 2016 13:02
+To: Raikhel, Evgeni <evgeni.raikhel@intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] UVC Module - Support Intel RealSense SR300 Depth Camera formats
+
+Hi Evgeni,
+
+Thank you for the patch.
+
+On Monday 05 Dec 2016 10:06:55 Raikhel, Evgeni wrote:
+> Specify GUID and FourCC codes mapping for Depth-related pixel formats 
+> advertised by Intel RealSense(tm) SR300 depth camera. Provide 
+> documentation for the new INZI pixel format introduced.
+
+Could you please resend the patches inline instead of as attachments ? See Documentation/SubmittingPatches for more information.
+
+--
+Regards,
+
+Laurent Pinchart
+
+---------------------------------------------------------------------
+Intel Israel (74) Limited
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
 
