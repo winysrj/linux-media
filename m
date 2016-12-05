@@ -1,235 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35074 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753002AbcLFJfg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 04:35:36 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH 3/4] v4l: vsp1: Use local display lists and remove global pipe->dl
-Date: Tue,  6 Dec 2016 09:35:12 +0000
-Message-Id: <1481016913-30608-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1481016913-30608-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1481016913-30608-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:50911 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751501AbcLERLw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Dec 2016 12:11:52 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v4 08/10] [media] st-delta: EOS (End Of Stream) support
+Date: Mon, 5 Dec 2016 18:11:31 +0100
+Message-ID: <1480957893-25636-9-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
+References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The usage of pipe->dl is susceptible to races, and it is redundant to
-keep this pointer in a larger scoped context.
+EOS (End Of Stream) support allows user to get
+all the potential decoded frames remaining in decoder
+pipeline after having reached the end of video bitstream.
+To do so, user calls VIDIOC_DECODER_CMD(V4L2_DEC_CMD_STOP)
+which will drain the decoder and get the drained frames
+that are then returned to user.
+User is informed of EOS completion in two ways:
+ - dequeue of an empty frame flagged to V4L2_BUF_FLAG_LAST
+ - reception of a V4L2_EVENT_EOS event.
+If, unfortunately, no buffer is available on CAPTURE queue
+to return the empty frame, EOS is delayed till user queue
+one CAPTURE buffer.
 
-Now that the calling order of vsp1_video_setup_pipeline() has been
-adapted, it is possible to remove the pipe->dl and pass the variable as
-required.
-
-Currently the pipe->dl is set during the atomic begin hook, but it is
-not utilised until the flush. Moving this should do no harm.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c   | 20 +++++++-------
- drivers/media/platform/vsp1/vsp1_pipe.h  |  2 --
- drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++------------------
- 3 files changed, 30 insertions(+), 37 deletions(-)
+ drivers/media/platform/sti/delta/delta-v4l2.c | 144 +++++++++++++++++++++++++-
+ drivers/media/platform/sti/delta/delta.h      |  23 ++++
+ 2 files changed, 166 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index cd209dccff1b..bf735e85b597 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -220,9 +220,6 @@ void vsp1_du_atomic_begin(struct device *dev)
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 7228565..9e2d2955 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -106,7 +106,8 @@ static void delta_frame_done(struct delta_ctx *ctx, struct delta_frame *frame,
+ 	vbuf->sequence = ctx->frame_num++;
+ 	v4l2_m2m_buf_done(vbuf, err ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
  
- 	vsp1->drm->num_inputs = pipe->num_inputs;
--
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+-	ctx->output_frames++;
++	if (frame->info.size) /* ignore EOS */
++		ctx->output_frames++;
  }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
  
-@@ -426,10 +423,14 @@ void vsp1_du_atomic_flush(struct device *dev)
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
- 	struct vsp1_entity *entity;
-+	struct vsp1_dl_list *dl;
- 	unsigned long flags;
- 	unsigned int i;
- 	int ret;
+ static void requeue_free_frames(struct delta_ctx *ctx)
+@@ -757,6 +758,133 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	return 0;
+ }
  
-+	/* Prepare the display list. */
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
++static void delta_complete_eos(struct delta_ctx *ctx,
++			       struct delta_frame *frame)
++{
++	struct delta_dev *delta = ctx->dev;
++	const struct v4l2_event ev = {.type = V4L2_EVENT_EOS};
 +
- 	/* Count the number of enabled inputs and sort them by Z-order. */
- 	pipe->num_inputs = 0;
++	/* Send EOS to user:
++	 * - by returning an empty frame flagged to V4L2_BUF_FLAG_LAST
++	 * - and then send EOS event
++	 */
++
++	/* empty frame */
++	frame->info.size = 0;
++
++	/* set the last buffer flag */
++	frame->flags |= V4L2_BUF_FLAG_LAST;
++
++	/* release frame to user */
++	delta_frame_done(ctx, frame, 0);
++
++	/* send EOS event */
++	v4l2_event_queue_fh(&ctx->fh, &ev);
++
++	dev_dbg(delta->dev, "%s EOS completed\n", ctx->name);
++}
++
++static int delta_try_decoder_cmd(struct file *file, void *fh,
++				 struct v4l2_decoder_cmd *cmd)
++{
++	if (cmd->cmd != V4L2_DEC_CMD_STOP)
++		return -EINVAL;
++
++	if (cmd->flags & V4L2_DEC_CMD_STOP_TO_BLACK)
++		return -EINVAL;
++
++	if (!(cmd->flags & V4L2_DEC_CMD_STOP_IMMEDIATELY) &&
++	    (cmd->stop.pts != 0))
++		return -EINVAL;
++
++	return 0;
++}
++
++static int delta_decoder_stop_cmd(struct delta_ctx *ctx, void *fh)
++{
++	const struct delta_dec *dec = ctx->dec;
++	struct delta_dev *delta = ctx->dev;
++	struct delta_frame *frame = NULL;
++	int ret = 0;
++
++	dev_dbg(delta->dev, "%s EOS received\n", ctx->name);
++
++	if (ctx->state != DELTA_STATE_READY)
++		return 0;
++
++	/* drain the decoder */
++	call_dec_op(dec, drain, ctx);
++
++	/* release to user drained frames */
++	while (1) {
++		frame = NULL;
++		ret = call_dec_op(dec, get_frame, ctx, &frame);
++		if (ret == -ENODATA) {
++			/* no more decoded frames */
++			break;
++		}
++		if (frame) {
++			dev_dbg(delta->dev, "%s drain frame[%d]\n",
++				ctx->name, frame->index);
++
++			/* pop timestamp and mark frame with it */
++			delta_pop_dts(ctx, &frame->dts);
++
++			/* release decoded frame to user */
++			delta_frame_done(ctx, frame, 0);
++		}
++	}
++
++	/* try to complete EOS */
++	ret = delta_get_free_frame(ctx, &frame);
++	if (ret)
++		goto delay_eos;
++
++	/* new frame available, EOS can now be completed */
++	delta_complete_eos(ctx, frame);
++
++	ctx->state = DELTA_STATE_EOS;
++
++	return 0;
++
++delay_eos:
++	/* EOS completion from driver is delayed because
++	 * we don't have a free empty frame available.
++	 * EOS completion is so delayed till next frame_queue() call
++	 * to be sure to have a free empty frame available.
++	 */
++	ctx->state = DELTA_STATE_WF_EOS;
++	dev_dbg(delta->dev, "%s EOS delayed\n", ctx->name);
++
++	return 0;
++}
++
++static int delta_decoder_cmd(struct file *file, void *fh,
++			     struct v4l2_decoder_cmd *cmd)
++{
++	struct delta_ctx *ctx = to_ctx(fh);
++	int ret = 0;
++
++	ret = delta_try_decoder_cmd(file, fh, cmd);
++	if (ret)
++		return ret;
++
++	return delta_decoder_stop_cmd(ctx, fh);
++}
++
++static int delta_subscribe_event(struct v4l2_fh *fh,
++				 const struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_EOS:
++		return v4l2_event_subscribe(fh, sub, 2, NULL);
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* v4l2 ioctl ops */
+ static const struct v4l2_ioctl_ops delta_ioctl_ops = {
+ 	.vidioc_querycap = delta_querycap,
+@@ -777,6 +905,10 @@ static int delta_g_selection(struct file *file, void *fh,
+ 	.vidioc_streamon = v4l2_m2m_ioctl_streamon,
+ 	.vidioc_streamoff = v4l2_m2m_ioctl_streamoff,
+ 	.vidioc_g_selection = delta_g_selection,
++	.vidioc_try_decoder_cmd = delta_try_decoder_cmd,
++	.vidioc_decoder_cmd = delta_decoder_cmd,
++	.vidioc_subscribe_event = delta_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
  
-@@ -484,26 +485,25 @@ void vsp1_du_atomic_flush(struct device *dev)
- 			struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+ /*
+@@ -1365,6 +1497,16 @@ static void delta_vb2_frame_queue(struct vb2_buffer *vb)
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct delta_frame *frame = to_frame(vbuf);
  
- 			if (!pipe->inputs[rpf->entity.index]) {
--				vsp1_dl_list_write(pipe->dl, entity->route->reg,
-+				vsp1_dl_list_write(dl, entity->route->reg,
- 						   VI6_DPR_NODE_UNUSED);
- 				continue;
- 			}
- 		}
- 
--		vsp1_entity_route_setup(entity, pipe->dl);
-+		vsp1_entity_route_setup(entity, dl);
- 
- 		if (entity->ops->configure) {
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_INIT);
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_RUNTIME);
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_PARTITION);
- 		}
- 	}
- 
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
-+	vsp1_dl_list_commit(dl);
- 
- 	/* Start or stop the pipeline if needed. */
- 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 0743b9fcb655..98980c85081f 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -108,8 +108,6 @@ struct vsp1_pipeline {
- 
- 	struct list_head entities;
- 
--	struct vsp1_dl_list *dl;
--
- 	unsigned int div_size;
- 	unsigned int partitions;
- 	struct v4l2_rect partition;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 7ff9f4c19ff0..9619ed4dda7c 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -350,18 +350,14 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- }
- 
--static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-+static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe,
-+				     struct vsp1_dl_list *dl)
- {
- 	struct vsp1_entity *entity;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
- 	vsp1_video_pipeline_setup_partitions(pipe);
- 
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
--
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
-@@ -381,10 +377,10 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	}
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe->dl);
-+		vsp1_entity_route_setup(entity, dl);
- 
- 		if (entity->ops->configure)
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_INIT);
- 	}
- 
-@@ -412,12 +408,16 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	struct vsp1_entity *entity;
-+	struct vsp1_dl_list *dl;
- 
--	if (!pipe->configured)
--		vsp1_video_setup_pipeline(pipe);
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
-+	if (!dl) {
-+		dev_err(vsp1->dev, "Failed to obtain a dl list\n");
++	if (ctx->state == DELTA_STATE_WF_EOS) {
++		/* new frame available, EOS can now be completed */
++		delta_complete_eos(ctx, frame);
++
++		ctx->state = DELTA_STATE_EOS;
++
++		/* return, no need to recycle this buffer to decoder */
 +		return;
 +	}
++
+ 	/* recycle this frame */
+ 	delta_recycle(ctx, frame);
+ }
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index d4a401b..60c07324 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -27,11 +27,19 @@
+  *@DELTA_STATE_READY:
+  *	Decoding instance is ready to decode compressed access unit.
+  *
++ *@DELTA_STATE_WF_EOS:
++ *	Decoding instance is waiting for EOS (End Of Stream) completion.
++ *
++ *@DELTA_STATE_EOS:
++ *	EOS (End Of Stream) is completed (signaled to user). Decoding instance
++ *	should then be closed.
+  */
+ enum delta_state {
+ 	DELTA_STATE_WF_FORMAT,
+ 	DELTA_STATE_WF_STREAMINFO,
+ 	DELTA_STATE_READY,
++	DELTA_STATE_WF_EOS,
++	DELTA_STATE_EOS
+ };
  
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	if (!pipe->configured)
-+		vsp1_video_setup_pipeline(pipe, dl);
- 
- 	/*
- 	 * Start with the runtime parameters as the configure operation can
-@@ -426,45 +426,43 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+ /*
+@@ -237,6 +245,7 @@ struct delta_ipc_param {
+  * @get_frame:		get the next decoded frame available, see below
+  * @recycle:		recycle the given frame, see below
+  * @flush:		(optional) flush decoder, see below
++ * @drain:		(optional) drain decoder, see below
+  */
+ struct delta_dec {
+ 	const char *name;
+@@ -371,6 +380,18 @@ struct delta_dec {
+ 	 * decoding logic.
  	 */
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
- 		if (entity->ops->configure)
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_RUNTIME);
- 	}
+ 	int (*flush)(struct delta_ctx *ctx);
++
++	/*
++	 * drain() - drain decoder
++	 * @ctx:	(in) instance
++	 *
++	 * Optional.
++	 * Mark decoder pending frames (decoded but not yet output) as ready
++	 * so that they can be output to client at EOS (End Of Stream).
++	 * get_frame() is to be called in a loop right after drain() to
++	 * get all those pending frames.
++	 */
++	int (*drain)(struct delta_ctx *ctx);
+ };
  
- 	/* Run the first partition */
- 	pipe->current_partition = 0;
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl);
-+	vsp1_video_pipeline_run_partition(pipe, dl);
- 
- 	/* Process consecutive partitions as necessary */
- 	for (pipe->current_partition = 1;
- 	     pipe->current_partition < pipe->partitions;
- 	     pipe->current_partition++) {
--		struct vsp1_dl_list *dl;
-+		struct vsp1_dl_list *child;
- 
- 		/*
- 		 * Partition configuration operations will utilise
- 		 * the pipe->current_partition variable to determine
- 		 * the work they should complete.
- 		 */
--		dl = vsp1_dl_list_get(pipe->output->dlm);
-+		child = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
- 		 * An incomplete chain will still function, but output only
- 		 * the partitions that had a dl available. The frame end
- 		 * interrupt will be marked on the last dl in the chain.
- 		 */
--		if (!dl) {
-+		if (!child) {
- 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl);
--		vsp1_dl_list_add_chain(pipe->dl, dl);
-+		vsp1_video_pipeline_run_partition(pipe, child);
-+		vsp1_dl_list_add_chain(dl, child);
- 	}
- 
- 	/* Complete, and commit the head display list. */
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
--
-+	vsp1_dl_list_commit(dl);
- 	vsp1_pipeline_run(pipe);
+ struct delta_dev;
+@@ -497,6 +518,8 @@ static inline char *frame_type_str(u32 flags)
+ 		return "P";
+ 	if (flags & V4L2_BUF_FLAG_BFRAME)
+ 		return "B";
++	if (flags & V4L2_BUF_FLAG_LAST)
++		return "EOS";
+ 	return "?";
  }
  
-@@ -835,9 +833,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
- 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
--
--		vsp1_dl_list_put(pipe->dl);
--		pipe->dl = NULL;
- 	}
- 	mutex_unlock(&pipe->lock);
- 
 -- 
-2.7.4
+1.9.1
 
