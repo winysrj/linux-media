@@ -1,142 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f51.google.com ([74.125.83.51]:33389 "EHLO
-        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752652AbcLGFIg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 00:08:36 -0500
-Received: by mail-pg0-f51.google.com with SMTP id 3so157601916pgd.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 21:08:36 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v5 1/5] [media] davinci: VPIF: fix module loading, init errors
-Date: Tue,  6 Dec 2016 21:08:22 -0800
-Message-Id: <20161207050826.23174-2-khilman@baylibre.com>
-In-Reply-To: <20161207050826.23174-1-khilman@baylibre.com>
-References: <20161207050826.23174-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:35663 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750951AbcLEN2S (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 08:28:18 -0500
+Received: by mail-pf0-f195.google.com with SMTP id i88so7719217pfk.2
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 05:28:17 -0800 (PST)
+From: evgeni.raikhel@gmail.com
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com,
+        Aviv Greenberg <aviv.d.greenberg@intel.com>,
+        Evgeni Raikhel <evgeni.raikhel@intel.com>
+Subject: [PATCH 1/2] uvcvideo: Add support for Intel SR300 depth camera
+Date: Mon,  5 Dec 2016 15:24:58 +0200
+Message-Id: <1480944299-3349-2-git-send-email-evgeni.raikhel@intel.com>
+In-Reply-To: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com>
+References: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix problems with automatic module loading by adding MODULE_ALIAS.  Also
-fix various load-time errors cause by incorrect or not present
-platform_data.
+From: Aviv Greenberg <aviv.d.greenberg@intel.com>
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+Add support for Intel SR300 depth camera in uvc driver.
+This includes adding three uvc GUIDs for the required pixel formats,
+adding a new V4L pixel format definition to user api headers,
+and updating the uvc driver GUID-to-4cc tables with the new formats.
+
+Signed-off-by: Aviv Greenberg <aviv.d.greenberg@intel.com>
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
 ---
- drivers/media/platform/davinci/vpif.c         |  5 ++++-
- drivers/media/platform/davinci/vpif_capture.c | 15 ++++++++++++++-
- drivers/media/platform/davinci/vpif_display.c |  6 ++++++
- 3 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 15 +++++++++++++++
+ drivers/media/usb/uvc/uvcvideo.h   |  9 +++++++++
+ include/uapi/linux/videodev2.h     |  1 +
+ 3 files changed, 25 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index 0380cf2e5775..f50148dcba64 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -32,6 +32,9 @@
- MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
- MODULE_LICENSE("GPL");
- 
-+#define VPIF_DRIVER_NAME	"vpif"
-+MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
-+
- #define VPIF_CH0_MAX_MODES	22
- #define VPIF_CH1_MAX_MODES	2
- #define VPIF_CH2_MAX_MODES	15
-@@ -466,7 +469,7 @@ static const struct dev_pm_ops vpif_pm = {
- 
- static struct platform_driver vpif_driver = {
- 	.driver = {
--		.name	= "vpif",
-+		.name	= VPIF_DRIVER_NAME,
- 		.pm	= vpif_pm_ops,
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 11744f92097b..5b96a89f29ae 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -168,6 +168,21 @@ static struct uvc_format_desc uvc_fmts[] = {
+ 		.guid		= UVC_GUID_FORMAT_RW10,
+ 		.fcc		= V4L2_PIX_FMT_SRGGB10P,
  	},
- 	.remove = vpif_remove,
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5104cc0ee40e..20c4344ed118 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -45,6 +45,7 @@ module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Debug level 0-1");
++	{
++		.name		= "Depth data 16-bit (Z16)",
++		.guid		= UVC_GUID_FORMAT_INVZ,
++		.fcc		= V4L2_PIX_FMT_Z16,
++	},
++	{
++		.name		= "IR:Depth 26-bit (INZI)",
++		.guid		= UVC_GUID_FORMAT_INZI,
++		.fcc		= V4L2_PIX_FMT_INZI,
++	},
++	{
++		.name		= "Greyscale 10-bit (Y10 )",
++		.guid		= UVC_GUID_FORMAT_INVI,
++		.fcc		= V4L2_PIX_FMT_Y10,
++	},
+ };
  
- #define VPIF_DRIVER_NAME	"vpif_capture"
-+MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
+ /* ------------------------------------------------------------------------
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 7e4d3eea371b..460b99ca99b7 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -131,6 +131,15 @@
+ #define UVC_GUID_FORMAT_RW10 \
+ 	{ 'R',  'W',  '1',  '0', 0x00, 0x00, 0x10, 0x00, \
+ 	 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}
++#define UVC_GUID_FORMAT_INVZ \
++	{ 'I',  'N',  'V',  'Z', 0x90, 0x2d, 0x58, 0x4a, \
++	 0x92, 0x0b, 0x77, 0x3f, 0x1f, 0x2c, 0x55, 0x6b}
++#define UVC_GUID_FORMAT_INZI \
++	{ 'I',  'N',  'Z',  'I', 0x66, 0x1a, 0x42, 0xa2, \
++	 0x90, 0x65, 0xd0, 0x18, 0x14, 0xa8, 0xef, 0x8a}
++#define UVC_GUID_FORMAT_INVI \
++	{ 'I',  'N',  'V',  'I', 0xdb, 0x57, 0x49, 0x5e, \
++	 0x8e, 0x3f, 0xf4, 0x79, 0x53, 0x2b, 0x94, 0x6f}
  
- /* global variables */
- static struct vpif_device vpif_obj = { {NULL} };
-@@ -647,6 +648,10 @@ static int vpif_input_to_subdev(
+ /* ------------------------------------------------------------------------
+  * Driver specific constants.
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index d3f613e2c54a..4ab995bbec5b 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -659,6 +659,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
++#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Infrared 10-bit linked with Depth 16-bit */
  
- 	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
- 
-+	if (!chan_cfg)
-+		return -1;
-+	if (input_index >= chan_cfg->input_count)
-+		return -1;
- 	subdev_name = chan_cfg->inputs[input_index].subdev_name;
- 	if (subdev_name == NULL)
- 		return -1;
-@@ -654,7 +659,7 @@ static int vpif_input_to_subdev(
- 	/* loop through the sub device list to get the sub device info */
- 	for (i = 0; i < vpif_cfg->subdev_count; i++) {
- 		subdev_info = &vpif_cfg->subdev_info[i];
--		if (!strcmp(subdev_info->name, subdev_name))
-+		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
- 			return i;
- 	}
- 	return -1;
-@@ -685,6 +690,9 @@ static int vpif_set_input(
- 	if (sd_index >= 0) {
- 		sd = vpif_obj.sd[sd_index];
- 		subdev_info = &vpif_cfg->subdev_info[sd_index];
-+	} else {
-+		/* no subdevice, no input to setup */
-+		return 0;
- 	}
- 
- 	/* first setup input path from sub device to vpif */
-@@ -1435,6 +1443,11 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int res_idx = 0;
- 	int i, err;
- 
-+	if (!pdev->dev.platform_data) {
-+		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
-+		return -EINVAL;
-+	}
-+
- 	vpif_dev = &pdev->dev;
- 
- 	err = initialize_vpif();
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 75b27233ec2f..7f632b757d32 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -42,6 +42,7 @@ module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Debug level 0-1");
- 
- #define VPIF_DRIVER_NAME	"vpif_display"
-+MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
- 
- /* Is set to 1 in case of SDTV formats, 2 in case of HDTV formats. */
- static int ycmux_mode;
-@@ -1249,6 +1250,11 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	int res_idx = 0;
- 	int i, err;
- 
-+	if (!pdev->dev.platform_data) {
-+		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
-+		return -EINVAL;
-+	}
-+
- 	vpif_dev = &pdev->dev;
- 	err = initialize_vpif();
- 
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 -- 
-2.9.3
+2.7.4
 
