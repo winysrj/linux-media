@@ -1,162 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:57821 "EHLO gofer.mess.org"
+Received: from mout.gmx.net ([212.227.17.21]:49291 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932562AbcLLVN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:59 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v5 16/18] [media] rc: rc-core: Add support for encode_wakeup drivers
-Date: Mon, 12 Dec 2016 21:13:52 +0000
-Message-Id: <f447195eeb4141eecbbb97453231f7f15152100d.1481575826.git.sean@mess.org>
-In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+        id S1751455AbcLEWOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Dec 2016 17:14:05 -0500
+Date: Mon, 5 Dec 2016 23:13:53 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
+In-Reply-To: <1591074.dEgMGVxATZ@avalon>
+Message-ID: <Pine.LNX.4.64.1612052312480.7221@axis700.grange>
+References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
+ <2361420.98YnhAaLcS@avalon> <Pine.LNX.4.64.1612051617340.7221@axis700.grange>
+ <1591074.dEgMGVxATZ@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+Just one question:
 
-Add support in rc-core for drivers which implement the wakeup scancode
-filter by encoding the scancode using the raw IR encoders. This is by
-way of rc_dev::encode_wakeup which should be set to true and
-rc_dev::allowed_wakeup_protocols should be set to the raw IR encoders.
+On Tue, 6 Dec 2016, Laurent Pinchart wrote:
 
-We also do not permit the mask to be set as we cannot generate IR
-which would match that.
+> > >> +	/*
+> > >> +	 * Register a metadata node. TODO: shall this only be enabled for some
+> > >> +	 * cameras?
+> > >> +	 */
+> > >> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
+> > >> +		uvc_meta_register(stream);
+> > >> +
+> > > 
+> > > I think so, only for the cameras that can produce metadata.
+> > 
+> > Every UVC camera produces metadata, but most cameras only have standard
+> > fields there. Whether we should stream standard header fields from the
+> > metadata node will be discussed later. If we do decide to stream standard
+> > header fields, then every USB camera gets metadata nodes. If we decide not
+> > to include standard fields, how do we know whether the camera has any
+> > private fields in headers without streaming from it? Do you want a quirk
+> > for such cameras?
+> 
+> Unless they can be detected in a standard way that's probably the best 
+> solution. Please remember that the UVC specification doesn't allow vendors to 
+> extend headers in a vendor-specific way.
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c | 26 +++++++++++++++++++++-----
- include/media/rc-core.h    |  3 +++
- include/media/rc-map.h     |  9 +++++++++
- 3 files changed, 33 insertions(+), 5 deletions(-)
+Does it not? Where is that specified? I didn't find that anywhere.
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 33969ab..10eed3c 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -727,11 +727,11 @@ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
- /**
-  * rc_validate_filter() - checks that the scancode and mask are valid and
-  *			  provides sensible defaults
-- * @protocol:	the protocol for the filter
-+ * @dev:	the struct rc_dev descriptor of the device
-  * @filter:	the scancode and mask
-  * @return:	0 or -EINVAL if the filter is not valid
-  */
--static int rc_validate_filter(enum rc_type protocol,
-+static int rc_validate_filter(struct rc_dev *dev,
- 			      struct rc_scancode_filter *filter)
- {
- 	static u32 masks[] = {
-@@ -754,6 +754,7 @@ static int rc_validate_filter(enum rc_type protocol,
- 		[RC_TYPE_SHARP] = 0x1fff,
- 	};
- 	u32 s = filter->data;
-+	enum rc_type protocol = dev->wakeup_protocol;
- 
- 	switch (protocol) {
- 	case RC_TYPE_NECX:
-@@ -779,6 +780,13 @@ static int rc_validate_filter(enum rc_type protocol,
- 	filter->data &= masks[protocol];
- 	filter->mask &= masks[protocol];
- 
-+	/*
-+	 * If we have to raw encode the IR for wakeup, we cannot have a mask
-+	 */
-+	if (dev->encode_wakeup &&
-+	    filter->mask != 0 && filter->mask != masks[protocol])
-+		return -EINVAL;
-+
- 	return 0;
- }
- 
-@@ -1044,7 +1052,6 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
- }
- 
- static void ir_raw_load_modules(u64 *protocols)
--
- {
- 	u64 available;
- 	int i, ret;
-@@ -1292,8 +1299,7 @@ static ssize_t store_filter(struct device *device,
- 		 * and the filter is valid for that protocol
- 		 */
- 		if (dev->wakeup_protocol != RC_TYPE_UNKNOWN)
--			ret = rc_validate_filter(dev->wakeup_protocol,
--						 &new_filter);
-+			ret = rc_validate_filter(dev, &new_filter);
- 		else
- 			ret = -EINVAL;
- 
-@@ -1461,6 +1467,16 @@ static ssize_t store_wakeup_protocols(struct device *device,
- 			rc = -EINVAL;
- 			goto out;
- 		}
-+
-+		if (dev->encode_wakeup) {
-+			u64 mask = 1 << protocol;
-+
-+			ir_raw_load_modules(&mask);
-+			if (!mask) {
-+				rc = -EINVAL;
-+				goto out;
-+			}
-+		}
- 	}
- 
- 	if (dev->wakeup_protocol != protocol) {
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index bdf3ff0..9760944 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -83,6 +83,8 @@ enum rc_filter_type {
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-  * @idle: used to keep track of RX state
-+ * @encode_wakeup: wakeup filtering uses IR encode API, therefore the allowed
-+ *	wakeup protocols is the set of all raw encoders
-  * @allowed_protocols: bitmask with the supported RC_BIT_* protocols
-  * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols
-  * @allowed_wakeup_protocols: bitmask with the supported RC_BIT_* wakeup protocols
-@@ -145,6 +147,7 @@ struct rc_dev {
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
- 	bool				idle;
-+	bool				encode_wakeup;
- 	u64				allowed_protocols;
- 	u64				enabled_protocols;
- 	u64				allowed_wakeup_protocols;
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index b2af45d..a1289a4 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -106,6 +106,15 @@ enum rc_type {
- 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
- 			 RC_BIT_XMP)
- 
-+#define RC_BIT_ALL_IR_ENCODER \
-+			(RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-+			 RC_BIT_JVC | \
-+			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
-+			 RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 | \
-+			 RC_BIT_SANYO | \
-+			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
-+			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | \
-+			 RC_BIT_SHARP)
- 
- #define RC_SCANCODE_UNKNOWN(x)			(x)
- #define RC_SCANCODE_OTHER(x)			(x)
--- 
-2.9.3
-
+Thanks
+Guennadi
