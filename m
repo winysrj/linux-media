@@ -1,101 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44247 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751583AbcLSWXy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 17:23:54 -0500
-Date: Mon, 19 Dec 2016 23:23:51 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20161219201015.GB4974@amd>
-References: <20160521054336.GA27123@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <201612141438.16603@pali>
- <20161214150819.GW4920@atomide.com>
- <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:35076 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751711AbcLEMVB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 07:21:01 -0500
+Received: by mail-wm0-f51.google.com with SMTP id a197so94308694wmd.0
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 04:21:00 -0800 (PST)
+Subject: Re: [PATCH v4 8/9] media: venus: hfi: add Venus HFI files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1480583001-32236-9-git-send-email-stanimir.varbanov@linaro.org>
+ <c5a89070-1c24-6cdd-5116-83a15f480285@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <9a2cf9a6-ad80-0c50-3897-6e48fbb9073c@linaro.org>
+Date: Mon, 5 Dec 2016 14:20:57 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kfjH4zxOES6UT95V"
-Content-Disposition: inline
-In-Reply-To: <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
+In-Reply-To: <c5a89070-1c24-6cdd-5116-83a15f480285@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---kfjH4zxOES6UT95V
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 12/05/2016 02:05 PM, Hans Verkuil wrote:
+> On 12/01/2016 10:03 AM, Stanimir Varbanov wrote:
+>> Here is the implementation of Venus video accelerator low-level
+>> functionality. It contanins code which setup the registers and
+>> startup uthe processor, allocate and manipulates with the shared
+>> memory used for sending commands and receiving messages.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/hfi_venus.c    | 1508 ++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/hfi_venus.h    |   23 +
+>>  drivers/media/platform/qcom/venus/hfi_venus_io.h |   98 ++
+>>  3 files changed, 1629 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+>>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+>>  create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/hfi_venus.c b/drivers/media/platform/qcom/venus/hfi_venus.c
+>> new file mode 100644
+>> index 000000000000..f004a9a80d85
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/venus/hfi_venus.c
+>> @@ -0,0 +1,1508 @@
+>> +static int venus_tzbsp_set_video_state(enum tzbsp_video_state state)
+>> +{
+>> +	return qcom_scm_video_set_state(state, 0);
+> 
+> This functions doesn't seem to exist. Is there a prerequisite patch series that
+> introduces this function?
 
-Hi!
+yes, the patchset [1] is under review.
 
-> Hi Pali and Tony,
-> On Wed, Dec 14, 2016 at 07:08:19AM -0800, Tony Lindgren wrote:
-> > * Pali Roh=E1r <pali.rohar@gmail.com> [161214 05:38]:
-> > > On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
-> > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > > > This adds support for AD5820 autofocus coil, found for example =
-in
-> > > > > > Nokia N900 smartphone.
-> > > > >=20
-> > > > > Thanks, Pavel!
-> > > > >=20
-> > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
-> > > > > something better in the future, we'll switch to that then.
-> > > > >=20
-> > > > > I've applied this to ad5820 branch in my tree.
-> > > >=20
-> > > > Thanks. If I understands things correctly, both DTS patch and this
-> > > > patch are waiting in your tree, so we should be good to go for 4.9
-> > > > (unless some unexpected problems surface)?
-> > > >=20
-> > > > Best regards,
-> > > > 									Pavel
-> > >=20
-> > > Was DTS patch merged into 4.9? At least I do not see updated that dts=
-=20
-> > > file omap3-n900.dts in linus tree...
-> >=20
-> > If it's not in current mainline or next, it's off my radar so sounds
-> > like I've somehow missed it and needs resending..
->=20
-> Where's this patch? I remember seeing the driver patch and the DT
-> documentation but no actual DT source patch for the N900.
+-- 
+regards,
+Stan
 
-The patch was not yet submitted. Autofocus coil is not too useful
-withou camera support, and we don't yet have support for v4l subdevs
-for omap3. I have it in the camera tree, but there are still pieces to
-be done before this is useful.
-
-Best regards,
-									Pavel
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---kfjH4zxOES6UT95V
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhYXfYACgkQMOfwapXb+vLADQCfein6AqiDmRvoFpBDk1TlLiZp
-d6cAn2EiP64csq+pU1S0esCmqpMokMkk
-=O+TD
------END PGP SIGNATURE-----
-
---kfjH4zxOES6UT95V--
+[1] https://lkml.org/lkml/2016/11/7/533
