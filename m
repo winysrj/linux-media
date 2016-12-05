@@ -1,76 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60458 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932090AbcLHOsF (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:43034 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751501AbcLERLz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 09:48:05 -0500
-Date: Thu, 8 Dec 2016 16:47:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Felipe Sanches <juca@members.fsf.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v4.11] Remove FSF postal address
-Message-ID: <20161208144728.GH16630@valkosipuli.retiisi.org.uk>
-References: <20161208080825.GB16630@valkosipuli.retiisi.org.uk>
- <CAK6XL6DaXaf=dxU20BpyVqW_UxaFOfTGtVO6MppvPuZxa9puMA@mail.gmail.com>
- <20161208110920.GG16630@valkosipuli.retiisi.org.uk>
- <20161208105947.3f4fa3aa@vento.lan>
+        Mon, 5 Dec 2016 12:11:55 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v4 10/10] [media] st-delta: debug: trace stream/frame information & summary
+Date: Mon, 5 Dec 2016 18:11:33 +0100
+Message-ID: <1480957893-25636-11-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
+References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161208105947.3f4fa3aa@vento.lan>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Adds some trace points showing input compressed stream or
+output decoded frame information.
+Adds an unconditional trace point when streaming starts showing
+the compressed stream and the decoded frame information.
+Adds an unconditional trace point at instance closure summarizing
+into a single line the decoding process (stream information, decoded
+and output frames number, potential errors observed).
 
-On Thu, Dec 08, 2016 at 10:59:47AM -0200, Mauro Carvalho Chehab wrote:
-> Hi Sakari,
-> 
-> Em Thu, 8 Dec 2016 13:09:20 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Felipe,
-> > 
-> > On Thu, Dec 08, 2016 at 08:51:20AM -0200, Felipe Sanches wrote:
-> > > but why?  
-> > 
-> > Please see my reply here:
-> > 
-> > <URL:http://www.spinics.net/lists/linux-media/msg107204.html>
-> 
-> Please don't. If people wanted that, they would be sending a big
-> massive change by the time FSF check was added to checkpatch.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/Makefile      |  2 +-
+ drivers/media/platform/sti/delta/delta-debug.c | 72 ++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-debug.h | 18 +++++++
+ drivers/media/platform/sti/delta/delta-v4l2.c  | 29 +++++++++--
+ 4 files changed, 116 insertions(+), 5 deletions(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-debug.h
 
-Typically it's best to do such changes per-subsystem if there's an intent to
-change more than a single driver at a time. Seldom others than those
-working on a subsystem would do that.
-
-> 
-> This is the kind of patch that can rise conflicts with other
-> patches, and don't really benefit the code.
-
-Patches to the media tree are submitted against the media tree master
-branch. There are few changes to the media tree that come outside of it,
-especially comment sections in files, suggesting a conflict might not be
-very likely.
-
-For the record, I rebased this patch from two weeks ago without conflicts.
-The patch also cleanly applies to linux-next.
-
-> 
-> Ok, if you're doing massive changes on some driver, be my
-> guest and remove the FSF address from it. Otherwise, just live
-> it as-is.
-
-This is a cleanup. The patch removes 628 instances of the postal address of
-which 578 are outdated: that's hardly useful information to keep in the
-codebase. Cleaning up useless and outdated code does improve long-term
-maintainability of the code, and, as in this case, is additionally supported
-by the coding style practices.
-
+diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
+index 663be70..f95580e 100644
+--- a/drivers/media/platform/sti/delta/Makefile
++++ b/drivers/media/platform/sti/delta/Makefile
+@@ -1,5 +1,5 @@
+ obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
+-st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
++st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o delta-debug.o
+ 
+ # MJPEG support
+ st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
+diff --git a/drivers/media/platform/sti/delta/delta-debug.c b/drivers/media/platform/sti/delta/delta-debug.c
+new file mode 100644
+index 0000000..f1bc64e
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-debug.c
+@@ -0,0 +1,72 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
++ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include "delta.h"
++#include "delta-debug.h"
++
++char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
++			   unsigned int len)
++{
++	if (!s)
++		return NULL;
++
++	snprintf(str, len,
++		 "%4.4s %dx%d %s %s dpb=%d %s %s %s%dx%d@(%d,%d) %s%d/%d",
++		 (char *)&s->streamformat, s->width, s->height,
++		 s->profile, s->level, s->dpb,
++		 (s->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
++		 s->other,
++		 s->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
++		 s->crop.width, s->crop.height,
++		 s->crop.left, s->crop.top,
++		 s->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
++		 s->pixelaspect.numerator,
++		 s->pixelaspect.denominator);
++
++	return str;
++}
++
++char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
++			  unsigned int len)
++{
++	if (!f)
++		return NULL;
++
++	snprintf(str, len,
++		 "%4.4s %dx%d aligned %dx%d %s %s%dx%d@(%d,%d) %s%d/%d",
++		 (char *)&f->pixelformat, f->width, f->height,
++		 f->aligned_width, f->aligned_height,
++		 (f->field == V4L2_FIELD_NONE) ? "progressive" : "interlaced",
++		 f->flags & DELTA_STREAMINFO_FLAG_CROP ? "crop=" : "",
++		 f->crop.width, f->crop.height,
++		 f->crop.left, f->crop.top,
++		 f->flags & DELTA_STREAMINFO_FLAG_PIXELASPECT ? "par=" : "",
++		 f->pixelaspect.numerator,
++		 f->pixelaspect.denominator);
++
++	return str;
++}
++
++void delta_trace_summary(struct delta_ctx *ctx)
++{
++	struct delta_dev *delta = ctx->dev;
++	struct delta_streaminfo *s = &ctx->streaminfo;
++	unsigned char str[100] = "";
++
++	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
++		return;
++
++	dev_info(delta->dev, "%s %s, %d frames decoded, %d frames output, %d frames dropped, %d stream errors, %d decode errors",
++		 ctx->name,
++		 delta_streaminfo_str(s, str, sizeof(str)),
++		 ctx->decoded_frames,
++		 ctx->output_frames,
++		 ctx->dropped_frames,
++		 ctx->stream_errors,
++		 ctx->decode_errors);
++}
+diff --git a/drivers/media/platform/sti/delta/delta-debug.h b/drivers/media/platform/sti/delta/delta-debug.h
+new file mode 100644
+index 0000000..955c158
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-debug.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Authors: Hugues Fruchet <hugues.fruchet@st.com>
++ *          Fabrice Lecoultre <fabrice.lecoultre@st.com>
++ *          for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#ifndef DELTA_DEBUG_H
++#define DELTA_DEBUG_H
++
++char *delta_streaminfo_str(struct delta_streaminfo *s, char *str,
++			   unsigned int len);
++char *delta_frameinfo_str(struct delta_frameinfo *f, char *str,
++			  unsigned int len);
++void delta_trace_summary(struct delta_ctx *ctx);
++
++#endif /* DELTA_DEBUG_H */
+diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
+index 4179975..8ad6a45 100644
+--- a/drivers/media/platform/sti/delta/delta-v4l2.c
++++ b/drivers/media/platform/sti/delta/delta-v4l2.c
+@@ -17,6 +17,7 @@
+ #include <media/videobuf2-dma-contig.h>
+ 
+ #include "delta.h"
++#include "delta-debug.h"
+ #include "delta-ipc.h"
+ 
+ #define DELTA_NAME	"st-delta"
+@@ -439,11 +440,13 @@ static int delta_g_fmt_stream(struct file *file, void *fh,
+ 	struct delta_dev *delta = ctx->dev;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
++	unsigned char str[100] = "";
+ 
+ 	if (!(ctx->flags & DELTA_FLAG_STREAMINFO))
+ 		dev_dbg(delta->dev,
+-			"%s V4L2 GET_FMT (OUTPUT): no stream information available, using default\n",
+-			ctx->name);
++			"%s V4L2 GET_FMT (OUTPUT): no stream information available, default to %s\n",
++			ctx->name,
++			delta_streaminfo_str(streaminfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = streaminfo->streamformat;
+ 	pix->width = streaminfo->width;
+@@ -466,11 +469,13 @@ static int delta_g_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
++	unsigned char str[100] = "";
+ 
+ 	if (!(ctx->flags & DELTA_FLAG_FRAMEINFO))
+ 		dev_dbg(delta->dev,
+-			"%s V4L2 GET_FMT (CAPTURE): no frame information available, using default\n",
+-			ctx->name);
++			"%s V4L2 GET_FMT (CAPTURE): no frame information available, default to %s\n",
++			ctx->name,
++			delta_frameinfo_str(frameinfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = frameinfo->pixelformat;
+ 	pix->width = frameinfo->aligned_width;
+@@ -653,6 +658,7 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 	const struct delta_dec *dec = ctx->dec;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	struct delta_frameinfo frameinfo;
++	unsigned char str[100] = "";
+ 	struct vb2_queue *vq;
+ 	int ret;
+ 
+@@ -704,6 +710,10 @@ static int delta_s_fmt_frame(struct file *file, void *fh, struct v4l2_format *f)
+ 
+ 	ctx->flags |= DELTA_FLAG_FRAMEINFO;
+ 	ctx->frameinfo = frameinfo;
++	dev_dbg(delta->dev,
++		"%s V4L2 SET_FMT (CAPTURE): frameinfo updated to %s\n",
++		ctx->name,
++		delta_frameinfo_str(&frameinfo, str, sizeof(str)));
+ 
+ 	pix->pixelformat = frameinfo.pixelformat;
+ 	pix->width = frameinfo.aligned_width;
+@@ -1310,6 +1320,8 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 	struct vb2_v4l2_buffer *vbuf = NULL;
+ 	struct delta_streaminfo *streaminfo = &ctx->streaminfo;
+ 	struct delta_frameinfo *frameinfo = &ctx->frameinfo;
++	unsigned char str1[100] = "";
++	unsigned char str2[100] = "";
+ 
+ 	if ((ctx->state != DELTA_STATE_WF_FORMAT) &&
+ 	    (ctx->state != DELTA_STATE_WF_STREAMINFO))
+@@ -1370,6 +1382,10 @@ static int delta_vb2_au_start_streaming(struct vb2_queue *q,
+ 
+ 	ctx->state = DELTA_STATE_READY;
+ 
++	dev_info(delta->dev, "%s %s => %s\n", ctx->name,
++		 delta_streaminfo_str(streaminfo, str1, sizeof(str1)),
++		 delta_frameinfo_str(frameinfo, str2, sizeof(str2)));
++
+ 	delta_au_done(ctx, au, ret);
+ 	return 0;
+ 
+@@ -1693,6 +1709,11 @@ static int delta_release(struct file *file)
+ 	/* close decoder */
+ 	call_dec_op(dec, close, ctx);
+ 
++	/* trace a summary of instance
++	 * before closing (debug purpose)
++	 */
++	delta_trace_summary(ctx);
++
+ 	v4l2_m2m_ctx_release(ctx->fh.m2m_ctx);
+ 
+ 	v4l2_fh_del(&ctx->fh);
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
