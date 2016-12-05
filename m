@@ -1,139 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:60047 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751168AbcLEPfj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 10:35:39 -0500
-Date: Mon, 5 Dec 2016 16:35:39 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
-In-Reply-To: <2361420.98YnhAaLcS@avalon>
-Message-ID: <Pine.LNX.4.64.1612051617340.7221@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
- <Pine.LNX.4.64.1606241327550.23461@axis700.grange>
- <Pine.LNX.4.64.1612021141110.11357@axis700.grange> <2361420.98YnhAaLcS@avalon>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60970 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751327AbcLEOqb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 09:46:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
+        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
+        javier@osg.samsung.com, s.nawrocki@samsung.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org
+Subject: Re: [PATCH 08/10] media: camss: Add files which handle the video device nodes
+Date: Mon, 05 Dec 2016 16:45:26 +0200
+Message-ID: <16480551.5NNPjmTzBo@avalon>
+In-Reply-To: <9b1cffbc-62a9-c699-5813-189d5f160343@xs4all.nl>
+References: <1480085841-28276-1-git-send-email-todor.tomov@linaro.org> <1480085841-28276-7-git-send-email-todor.tomov@linaro.org> <9b1cffbc-62a9-c699-5813-189d5f160343@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-Thanks for the review! I'll work to address your comments. A couple of 
-clarifications:
-
-On Mon, 5 Dec 2016, Laurent Pinchart wrote:
-
-> Hi Guennadi,
-> 
-> Thank you for the patch.
-> 
-> On Friday 02 Dec 2016 11:53:23 Guennadi Liakhovetski wrote:
-> > Some UVC video cameras contain metadata in their payload headers. This
-> > patch extracts that data, skipping the standard part of the header, on
-> > both bulk and isochronous endpoints and makes it available to the user
-> > space on a separate video node, using the V4L2_CAP_META_CAPTURE
-> > capability and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. Even
-> > though different cameras will have different metadata formats, we use
-> > the same V4L2_META_FMT_UVC pixel format for all of them. Users have to
-> > parse data, based on the specific camera model information.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+On Monday 05 Dec 2016 14:44:55 Hans Verkuil wrote:
+> On 11/25/2016 03:57 PM, Todor Tomov wrote:
+> > These files handle the video device nodes of the camss driver.
+> >
+> > Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
 > > ---
-> > 
-> > v2:
-> > - updated to the current media/master
-> > - removed superfluous META capability from capture nodes
-> > - now the complete UVC payload header is copied to buffers, including
-> >   standard fields
-> > 
-> > Still open for discussion: is this really OK to always create an
-> > additional metadata node for each UVC camera or UVC video interface.
+> >
+> >  drivers/media/platform/qcom/camss-8x16/video.c | 597 ++++++++++++++++++++
+> >  drivers/media/platform/qcom/camss-8x16/video.h |  67 +++
+> >  2 files changed, 664 insertions(+)
+> >  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
+> >  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
 
 [snip]
 
-> > +	/*
-> > +	 * Register a metadata node. TODO: shall this only be enabled for some
-> > +	 * cameras?
-> > +	 */
-> > +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
-> > +		uvc_meta_register(stream);
-> > +
-> 
-> I think so, only for the cameras that can produce metadata.
-
-Every UVC camera produces metadata, but most cameras only have standard 
-fields there. Whether we should stream standard header fields from the 
-metadata node will be discussed later. If we do decide to stream standard 
-header fields, then every USB camera gets metadata nodes. If we decide not 
-to include standard fields, how do we know whether the camera has any 
-private fields in headers without streaming from it? Do you want a quirk 
-for such cameras?
-
-[snip]
-
-> > +static struct vb2_ops uvc_meta_queue_ops = {
-> > +	.queue_setup = meta_queue_setup,
-> > +	.buf_prepare = meta_buffer_prepare,
-> > +	.buf_queue = meta_buffer_queue,
-> > +	.wait_prepare = vb2_ops_wait_prepare,
-> > +	.wait_finish = vb2_ops_wait_finish,
-> > +	.start_streaming = meta_start_streaming,
-> > +	.stop_streaming = meta_stop_streaming,
-> > +};
-> 
-> How about reusing the uvc_queue.c implementation, with a few new checks for 
-> metadata buffers where needed, instead of duplicating code ? At first sight 
-> the changes don't seem to be too intrusive (but I might have overlooked 
-> something).
-
-I thought about that in the beginning and even started implementing it 
-that way, but at some point it became too inconvenient, so, I switched 
-over to a separate implementation. I'll think about it more and either 
-explain, why I didn't want to do that, or unite them.
-
-[snip]
-
+> > +int msm_video_register(struct camss_video *video, struct v4l2_device
+> > *v4l2_dev,
+> > +                    const char *name)
 > > +{
-> > +	size_t nbytes;
+> > +     struct media_pad *pad = &video->pad;
+> > +     struct video_device *vdev;
+> > +     struct vb2_queue *q;
+> > +     int ret;
 > > +
-> > +	if (!meta_buf || !length)
-> > +		return;
+> > +     vdev = video_device_alloc();
+> > +     if (vdev == NULL) {
+> > +             dev_err(v4l2_dev->dev, "Failed to allocate video device\n");
+> > +             return -ENOMEM;
+> > +     }
 > > +
-> > +	nbytes = min_t(unsigned int, length, meta_buf->length);
+> > +     video->vdev = vdev;
 > > +
-> > +	meta_buf->buf.sequence = buf->buf.sequence;
-> > +	meta_buf->buf.field = buf->buf.field;
-> > +	meta_buf->buf.vb2_buf.timestamp = buf->buf.vb2_buf.timestamp;
-> > +
-> > +	memcpy(meta_buf->mem, mem, nbytes);
+> > +     q = &video->vb2_q;
+> > +     q->drv_priv = video;
+> > +     q->mem_ops = &vb2_dma_contig_memops;
+> > +     q->ops = &msm_video_vb2_q_ops;
+> > +     q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > +     q->io_modes = VB2_MMAP;
 > 
-> Do you need the whole header ? Shouldn't you strip the part already handled by 
-> the driver ?
+> Add modes VB2_DMABUF and VB2_READ. These are for free, so why not?
+> Especially DMABUF is of course very desirable to have.
 
-My original version did that, but we also need the timestamp from the 
-header. The driver does parse it, but the implementation there has 
-multiple times been reported as buggy and noone has been able to fix it so 
-far :) So, I ended up pulling the complete header to the user-space. 
-Unless time-stamp processing is fixed in the kernel, I don't think we can 
-frop this.
+I certainly agree with VB2_DMABUF, but I wouldn't expose VB2_READ. read() for 
+this kind of device is inefficient and we should encourage userspace 
+application to move away from it (and certainly make it very clear that new 
+applications should not use read() with this device).
 
-> > +	meta_buf->bytesused = nbytes;
-> > +	meta_buf->state = UVC_BUF_STATE_READY;
+> > +     q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> > +     q->buf_struct_size = sizeof(struct camss_buffer);
+> > +     q->dev = video->camss->dev;
+> > +     ret = vb2_queue_init(q);
+> > +     if (ret < 0) {
+> > +             dev_err(v4l2_dev->dev, "Failed to init vb2 queue\n");
+> > +             return ret;
+> > +     }
 > > +
-> > +	uvc_queue_next_buffer(&stream->meta.queue, meta_buf);
+> > +     pad->flags = MEDIA_PAD_FL_SINK;
+> > +     ret = media_entity_pads_init(&vdev->entity, 1, pad);
+> > +     if (ret < 0) {
+> > +             dev_err(v4l2_dev->dev, "Failed to init video entity\n");
+> > +             goto error_media_init;
+> > +     }
+> > +
+> > +     vdev->fops = &msm_vid_fops;
+> > +     vdev->ioctl_ops = &msm_vid_ioctl_ops;
+> > +     vdev->release = video_device_release;
+> > +     vdev->v4l2_dev = v4l2_dev;
+> > +     vdev->vfl_dir = VFL_DIR_RX;
+> > +     vdev->queue = &video->vb2_q;
 > 
-> This essentially means that you'll need one buffer per isochronous packet. 
-> Given the number of isochronous packets that make a complete image the cost 
-> seem prohibitive to me. You should instead gather metadata from all headers 
-> into a single buffer.
+> As mentioned in querycap: set vdev->device_caps here.
+> 
+> > +     strlcpy(vdev->name, name, sizeof(vdev->name));
+> > +
+> > +     ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+> > +     if (ret < 0) {
+> > +             dev_err(v4l2_dev->dev, "Failed to register video device\n");
+> > +             goto error_video_register;
+> > +     }
+> > +
+> > +     video_set_drvdata(vdev, video);
+> > +
+> > +     return 0;
+> > +
+> > +error_video_register:
+> > +     media_entity_cleanup(&vdev->entity);
+> > +error_media_init:
+> > +     vb2_queue_release(&video->vb2_q);
+> > +
+> > +     return ret;
+> > +}
 
-Hm, I only worked with cameras, using bulk transfers, so, didn't consider 
-ISOC implications. Will have to think about this.
+-- 
+Regards,
 
-[snip]
+Laurent Pinchart
 
-Thanks
-Guennadi
