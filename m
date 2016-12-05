@@ -1,291 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f170.google.com ([209.85.210.170]:35254 "EHLO
-        mail-wj0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752011AbcLORWl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 12:22:41 -0500
-Received: by mail-wj0-f170.google.com with SMTP id v7so72246044wjy.2
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2016 09:22:40 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33546 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751530AbcLEWF6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 17:05:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 0/9] Qualcomm video decoder/encoder driver
-Date: Thu, 15 Dec 2016 19:22:15 +0200
-Message-Id: <1481822544-29900-1-git-send-email-stanimir.varbanov@linaro.org>
+Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
+Date: Tue, 06 Dec 2016 00:06:18 +0200
+Message-ID: <1591074.dEgMGVxATZ@avalon>
+In-Reply-To: <Pine.LNX.4.64.1612051617340.7221@axis700.grange>
+References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange> <2361420.98YnhAaLcS@avalon> <Pine.LNX.4.64.1612051617340.7221@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Guennadi,
 
-Here is fifth version of the patchset.
+On Monday 05 Dec 2016 16:35:39 Guennadi Liakhovetski wrote:
+> On Mon, 5 Dec 2016, Laurent Pinchart wrote:
+> > On Friday 02 Dec 2016 11:53:23 Guennadi Liakhovetski wrote:
+> >> Some UVC video cameras contain metadata in their payload headers. This
+> >> patch extracts that data, skipping the standard part of the header, on
+> >> both bulk and isochronous endpoints and makes it available to the user
+> >> space on a separate video node, using the V4L2_CAP_META_CAPTURE
+> >> capability and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. Even
+> >> though different cameras will have different metadata formats, we use
+> >> the same V4L2_META_FMT_UVC pixel format for all of them. Users have to
+> >> parse data, based on the specific camera model information.
+> >> 
+> >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> >> ---
+> >> 
+> >> v2:
+> >> - updated to the current media/master
+> >> - removed superfluous META capability from capture nodes
+> >> - now the complete UVC payload header is copied to buffers, including
+> >>   standard fields
+> >> 
+> >> Still open for discussion: is this really OK to always create an
+> >> additional metadata node for each UVC camera or UVC video interface.
+> 
+> [snip]
+> 
+> >> +	/*
+> >> +	 * Register a metadata node. TODO: shall this only be enabled for some
+> >> +	 * cameras?
+> >> +	 */
+> >> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
+> >> +		uvc_meta_register(stream);
+> >> +
+> > 
+> > I think so, only for the cameras that can produce metadata.
+> 
+> Every UVC camera produces metadata, but most cameras only have standard
+> fields there. Whether we should stream standard header fields from the
+> metadata node will be discussed later. If we do decide to stream standard
+> header fields, then every USB camera gets metadata nodes. If we decide not
+> to include standard fields, how do we know whether the camera has any
+> private fields in headers without streaming from it? Do you want a quirk
+> for such cameras?
 
-The changes since v4 are:
-  * removed pointless vdec_s_selection.
-  * renamed v4l2_m2m_buf_remove_exact to v4l2_m2m_buf_remove_by_buf
-  and added kernel doc style for missing function arguments.
-  * fixed pm_runtime_get_sync error path in vdec|venc_start_streaming
-  functions.
-  * dropped msm8996 clocks until sort them out.
-  * dropped COMPILE_TEST of the driver until dependacy drivers are
-  merged.
+Unless they can be detected in a standard way that's probably the best 
+solution. Please remember that the UVC specification doesn't allow vendors to 
+extend headers in a vendor-specific way. This is an abuse of the 
+specification, so a quirk is probably the best option.
 
-The output of v4l2-compliance test is:
+> [snip]
+> 
+> > > +static struct vb2_ops uvc_meta_queue_ops = {
+> > > +	.queue_setup = meta_queue_setup,
+> > > +	.buf_prepare = meta_buffer_prepare,
+> > > +	.buf_queue = meta_buffer_queue,
+> > > +	.wait_prepare = vb2_ops_wait_prepare,
+> > > +	.wait_finish = vb2_ops_wait_finish,
+> > > +	.start_streaming = meta_start_streaming,
+> > > +	.stop_streaming = meta_stop_streaming,
+> > > +};
+> > 
+> > How about reusing the uvc_queue.c implementation, with a few new checks
+> > for metadata buffers where needed, instead of duplicating code ? At first
+> > sight the changes don't seem to be too intrusive (but I might have
+> > overlooked something).
+> 
+> I thought about that in the beginning and even started implementing it
+> that way, but at some point it became too inconvenient, so, I switched
+> over to a separate implementation. I'll think about it more and either
+> explain, why I didn't want to do that, or unite them.
+> 
+> [snip]
+> 
+> > > +{
+> > > +	size_t nbytes;
+> > > +
+> > > +	if (!meta_buf || !length)
+> > > +		return;
+> > > +
+> > > +	nbytes = min_t(unsigned int, length, meta_buf->length);
+> > > +
+> > > +	meta_buf->buf.sequence = buf->buf.sequence;
+> > > +	meta_buf->buf.field = buf->buf.field;
+> > > +	meta_buf->buf.vb2_buf.timestamp = buf->buf.vb2_buf.timestamp;
+> > > +
+> > > +	memcpy(meta_buf->mem, mem, nbytes);
+> > 
+> > Do you need the whole header ? Shouldn't you strip the part already
+> > handled by the driver ?
+> 
+> My original version did that, but we also need the timestamp from the
+> header. The driver does parse it, but the implementation there has
+> multiple times been reported as buggy and noone has been able to fix it so
+> far :)
 
-root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video0
-v4l2-compliance SHA   : 188e604d57bec065078ff772c802b93ddb6def4b
+-ENOTIME I'm afraid, but feel free to give it a go :-) On the other hand 
+supplying the PTS and SCR values to userspace would be useful to implement a 
+high-accuracy clock translation algorithm that could make use of floating 
+point operations.
 
-Driver Info:
-        Driver name   : qcom-venus
-        Card type     : Qualcomm Venus video decoder
-        Bus info      : platform:qcom-venus
-        Driver version: 4.9.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
+> So, I ended up pulling the complete header to the user-space. Unless time-
+> stamp processing is fixed in the kernel, I don't think we can frop this.
 
-Compliance test for device /dev/video0 (not using libv4l2):
+SCR and PTS should be provided to userspace in a standard way.
 
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 7 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK
-                test Composing: OK
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video1
-v4l2-compliance SHA   : 188e604d57bec065078ff772c802b93ddb6def4b
-
-Driver Info:
-        Driver name   : qcom-venus
-        Card type     : Qualcomm Venus video encoder
-        Bus info      : platform:qcom-venus
-        Driver version: 4.9.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-                test VIDIOC_QUERYCTRL: OK
-                test VIDIOC_G/S_CTRL: OK
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 28 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK
-                test Composing: OK (Not Supported)
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-regards,
-Stan
-
-Stanimir Varbanov (9):
-  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
-    management
-  doc: DT: venus: binding document for Qualcomm video driver
-  MAINTAINERS: Add Qualcomm Venus video accelerator driver
-  media: venus: adding core part and helper functions
-  media: venus: vdec: add video decoder files
-  media: venus: venc: add video encoder files
-  media: venus: hfi: add Host Firmware Interface (HFI)
-  media: venus: hfi: add Venus HFI files
-  media: venus: enable building of Venus video driver
-
- .../devicetree/bindings/media/qcom,venus.txt       |   68 +
- MAINTAINERS                                        |    8 +
- drivers/media/platform/Kconfig                     |   13 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/qcom/venus/Makefile         |   14 +
- drivers/media/platform/qcom/venus/core.c           |  468 ++++++
- drivers/media/platform/qcom/venus/core.h           |  296 ++++
- drivers/media/platform/qcom/venus/helpers.c        |  621 ++++++++
- drivers/media/platform/qcom/venus/helpers.h        |   41 +
- drivers/media/platform/qcom/venus/hfi.c            |  499 +++++++
- drivers/media/platform/qcom/venus/hfi.h            |  174 +++
- drivers/media/platform/qcom/venus/hfi_cmds.c       | 1256 ++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
- drivers/media/platform/qcom/venus/hfi_helper.h     | 1045 ++++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.c       | 1054 ++++++++++++++
- drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
- drivers/media/platform/qcom/venus/hfi_venus.c      | 1508 ++++++++++++++++++++
- drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
- drivers/media/platform/qcom/venus/hfi_venus_io.h   |   98 ++
- drivers/media/platform/qcom/venus/vdec.c           |  952 ++++++++++++
- drivers/media/platform/qcom/venus/vdec.h           |   32 +
- drivers/media/platform/qcom/venus/vdec_ctrls.c     |  149 ++
- drivers/media/platform/qcom/venus/venc.c           | 1100 ++++++++++++++
- drivers/media/platform/qcom/venus/venc.h           |   32 +
- drivers/media/platform/qcom/venus/venc_ctrls.c     |  258 ++++
- drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
- include/media/v4l2-mem2mem.h                       |   92 ++
- 27 files changed, 10427 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
- create mode 100644 drivers/media/platform/qcom/venus/Makefile
- create mode 100644 drivers/media/platform/qcom/venus/core.c
- create mode 100644 drivers/media/platform/qcom/venus/core.h
- create mode 100644 drivers/media/platform/qcom/venus/helpers.c
- create mode 100644 drivers/media/platform/qcom/venus/helpers.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
- create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec.c
- create mode 100644 drivers/media/platform/qcom/venus/vdec.h
- create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.c
- create mode 100644 drivers/media/platform/qcom/venus/venc.h
- create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+> >> +	meta_buf->bytesused = nbytes;
+> >> +	meta_buf->state = UVC_BUF_STATE_READY;
+> >> +
+> >> +	uvc_queue_next_buffer(&stream->meta.queue, meta_buf);
+> > 
+> > This essentially means that you'll need one buffer per isochronous packet.
+> > Given the number of isochronous packets that make a complete image the
+> > cost seem prohibitive to me. You should instead gather metadata from all
+> > headers into a single buffer.
+> 
+> Hm, I only worked with cameras, using bulk transfers, so, didn't consider
+> ISOC implications. Will have to think about this.
 
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
