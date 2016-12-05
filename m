@@ -1,80 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:40121 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755810AbcLOMuY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 07:50:24 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v6 12/18] [media] rc: ir-jvc-decoder: Add encode capability
-Date: Thu, 15 Dec 2016 12:50:05 +0000
-Message-Id: <978c660d3271cc30eb4276c889814acd4630769b.1481805635.git.sean@mess.org>
-In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
-References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
-In-Reply-To: <cover.1481805635.git.sean@mess.org>
-References: <cover.1481805635.git.sean@mess.org>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:51907 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751176AbcLELey (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Dec 2016 06:34:54 -0500
+Subject: Re: [PATCH v4 5/9] media: venus: vdec: add video decoder files
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1480583001-32236-6-git-send-email-stanimir.varbanov@linaro.org>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4457b2fe-3e47-5085-0c08-7fe69b2b46b5@xs4all.nl>
+Date: Mon, 5 Dec 2016 12:32:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <1480583001-32236-6-git-send-email-stanimir.varbanov@linaro.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the capability to encode JVC scancodes as raw events.
+I have two comments (and the same two comments apply to the video encoder patch
+as well):
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-jvc-decoder.c | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+On 12/01/2016 10:03 AM, Stanimir Varbanov wrote:
+> This consists of video decoder implementation plus decoder
+> controls.
+> 
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/vdec.c       | 976 +++++++++++++++++++++++++
+>  drivers/media/platform/qcom/venus/vdec.h       |  32 +
+>  drivers/media/platform/qcom/venus/vdec_ctrls.c | 149 ++++
+>  3 files changed, 1157 insertions(+)
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+> 
+> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+> new file mode 100644
+> index 000000000000..9f585a1e0ff1
+> --- /dev/null
+> +++ b/drivers/media/platform/qcom/venus/vdec.c
+> @@ -0,0 +1,976 @@
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index 182402f..674bf15 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -170,9 +170,48 @@ static int ir_jvc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
- }
- 
-+static const struct ir_raw_timings_pd ir_jvc_timings = {
-+	.header_pulse  = JVC_HEADER_PULSE,
-+	.header_space  = JVC_HEADER_SPACE,
-+	.bit_pulse     = JVC_BIT_PULSE,
-+	.bit_space[0]  = JVC_BIT_0_SPACE,
-+	.bit_space[1]  = JVC_BIT_1_SPACE,
-+	.trailer_pulse = JVC_TRAILER_PULSE,
-+	.trailer_space = JVC_TRAILER_SPACE,
-+	.msb_first     = 1,
-+};
-+
-+/**
-+ * ir_jvc_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol to encode
-+ * @scancode:	scancode to encode
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ */
-+static int ir_jvc_encode(enum rc_type protocol, u32 scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	struct ir_raw_event *e = events;
-+	int ret;
-+	u32 raw = (bitrev8((scancode >> 8) & 0xff) << 8) |
-+		  (bitrev8((scancode >> 0) & 0xff) << 0);
-+
-+	ret = ir_raw_gen_pd(&e, max, &ir_jvc_timings, JVC_NBITS, raw);
-+	if (ret < 0)
-+		return ret;
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler jvc_handler = {
- 	.protocols	= RC_BIT_JVC,
- 	.decode		= ir_jvc_decode,
-+	.encode		= ir_jvc_encode,
- };
- 
- static int __init ir_jvc_decode_init(void)
--- 
-2.9.3
+<snip>
 
+> +static int
+> +vdec_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
+> +{
+> +	struct venus_inst *inst = to_inst(file);
+> +
+> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+> +	    s->target != V4L2_SEL_TGT_COMPOSE)
+> +		return -EINVAL;
+> +
+> +	switch (s->target) {
+> +	case V4L2_SEL_TGT_COMPOSE:
+> +		s->r.width = inst->out_width;
+> +		s->r.height = inst->out_height;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	s->r.top = 0;
+> +	s->r.left = 0;
+> +
+> +	return 0;
+> +}
+
+This doesn't actually set anything, so what's the point of this function?
+
+I've fixed the corresponding test in v4l2-compliance so you can now drop this
+op and v4l2-compliance won't complain anymore.
+
+> +static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+> +{
+> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+> +	struct venus_core *core = inst->core;
+> +	struct device *dev = core->dev;
+> +	u32 ptype;
+> +	int ret;
+> +
+> +	mutex_lock(&inst->lock);
+> +
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		inst->streamon_out = 1;
+> +	else
+> +		inst->streamon_cap = 1;
+> +
+> +	if (!(inst->streamon_out & inst->streamon_cap)) {
+> +		mutex_unlock(&inst->lock);
+> +		return 0;
+> +	}
+> +
+> +	inst->reconfig = false;
+> +	inst->sequence = 0;
+> +	inst->codec_cfg = false;
+> +
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret < 0)
+> +		return ret;
+
+This should be a goto so that 'helper_buffers_done(inst, VB2_BUF_STATE_QUEUED);'
+is called on error.
+
+It's wrong anyway since you don't unlock the mutex in this return path either.
+
+> +
+> +	ret = vdec_init_session(inst);
+> +	if (ret)
+> +		goto put_sync;
+> +
+> +	ret = vdec_set_properties(inst);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	if (core->res->hfi_version == HFI_VERSION_3XX) {
+> +		struct hfi_buffer_size_actual buf_sz;
+> +
+> +		ptype = HFI_PROPERTY_PARAM_BUFFER_SIZE_ACTUAL;
+> +		buf_sz.type = HFI_BUFFER_OUTPUT;
+> +		buf_sz.size = inst->output_buf_size;
+> +
+> +		ret = hfi_session_set_property(inst, ptype, &buf_sz);
+> +		if (ret)
+> +			goto deinit_sess;
+> +	}
+> +
+> +	ret = vdec_verify_conf(inst);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	ret = helper_set_num_bufs(inst, inst->num_input_bufs,
+> +				  inst->num_output_bufs);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	ret = helper_vb2_start_streaming(inst);
+> +	if (ret)
+> +		goto deinit_sess;
+> +
+> +	mutex_unlock(&inst->lock);
+> +
+> +	return 0;
+> +
+> +deinit_sess:
+> +	hfi_session_deinit(inst);
+> +put_sync:
+> +	pm_runtime_put_sync(dev);
+> +	helper_buffers_done(inst, VB2_BUF_STATE_QUEUED);
+> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+> +		inst->streamon_out = 0;
+> +	else
+> +		inst->streamon_cap = 0;
+> +	mutex_unlock(&inst->lock);
+> +	return ret;
+> +}
+
+Regards,
+
+	Hans
