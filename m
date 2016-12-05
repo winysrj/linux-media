@@ -1,230 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:51076 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751937AbcLYSfO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 13:35:14 -0500
-Subject: [PATCH 05/19] [media] uvc_driver: Enclose 24 expressions for the
- sizeof operator by parentheses
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <1d99b8a4-9bba-8914-1bbc-311a0b71bd55@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 19:35:03 +0100
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37355 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751865AbcLEWgJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 17:36:09 -0500
+Received: by mail-wm0-f51.google.com with SMTP id t79so107838058wmt.0
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 14:35:38 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOJOY2MubrfvyWDs+4SjttdQhFKrnRwn9ERh-F5PBU2sEbErUg@mail.gmail.com>
+References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
+ <20161202090558.29931492@vento.lan> <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
+ <CAOJOY2Nhi6aev=jwVeyuQMxKUAk-MfT0YLKsFfrUsAcZtdrysQ@mail.gmail.com>
+ <CAAEAJfAoZCzh5c=C+8Um-KaZkRs_ip1kX04xZRm2bWrGLmMwjA@mail.gmail.com>
+ <20161205101221.53613e57@vento.lan> <CAAEAJfD6sauJ_NyYtBmFAr5c_NGr8OuZwqnG1Ukk9-P7YNSypQ@mail.gmail.com>
+ <CAOJOY2M6QANNysnZ_C9G+fFg=a=wYQXGDr49LCYGE7KrbwkE4A@mail.gmail.com> <CAOJOY2MubrfvyWDs+4SjttdQhFKrnRwn9ERh-F5PBU2sEbErUg@mail.gmail.com>
+From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Date: Mon, 5 Dec 2016 19:35:37 -0300
+Message-ID: <CAAEAJfBj8V7N=AqzvfqcrnCrG3ZXPJMAuJN_NJEkjHDECd89-Q@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
+To: Marcel Hasler <mahasler@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 10:05:05 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+On 5 December 2016 at 18:18, Marcel Hasler <mahasler@gmail.com> wrote:
+> 2016-12-05 22:06 GMT+01:00 Marcel Hasler <mahasler@gmail.com>:
+>> Hello
+>>
+>> 2016-12-05 16:38 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.a=
+r>:
+>>> On 5 December 2016 at 09:12, Mauro Carvalho Chehab
+>>> <mchehab@s-opensource.com> wrote:
+>>>> Em Sun, 4 Dec 2016 15:25:25 -0300
+>>>> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> escreveu:
+>>>>
+>>>>> On 4 December 2016 at 10:01, Marcel Hasler <mahasler@gmail.com> wrote=
+:
+>>>>> > Hello
+>>>>> >
+>>>>> > 2016-12-03 21:46 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.=
+com.ar>:
+>>>>> >> On 2 December 2016 at 08:05, Mauro Carvalho Chehab
+>>>>> >> <mchehab@s-opensource.com> wrote:
+>>>>> >>> Em Sun, 27 Nov 2016 12:11:48 +0100
+>>>>> >>> Marcel Hasler <mahasler@gmail.com> escreveu:
+>>>>> >>>
+>>>>> >>>> Allow setting a custom record gain for the internal AC97 codec (=
+if available). This can be
+>>>>> >>>> a value between 0 and 15, 8 is the default and should be suitabl=
+e for most users. The Windows
+>>>>> >>>> driver also sets this to 8 without any possibility for changing =
+it.
+>>>>> >>>
+>>>>> >>> The problem of removing the mixer is that you need this kind of
+>>>>> >>> crap to setup the volumes on a non-standard way.
+>>>>> >>>
+>>>>> >>
+>>>>> >> Right, that's a good point.
+>>>>> >>
+>>>>> >>> NACK.
+>>>>> >>>
+>>>>> >>> Instead, keep the alsa mixer. The way other drivers do (for examp=
+le,
+>>>>> >>> em28xx) is that they configure the mixer when an input is selecte=
+d,
+>>>>> >>> increasing the volume of the active audio channel to 100% and mut=
+ing
+>>>>> >>> the other audio channels. Yet, as the alsa mixer is exported, use=
+rs
+>>>>> >>> can change the mixer settings in runtime using some alsa (or pa)
+>>>>> >>> mixer application.
+>>>>> >>>
+>>>>> >>
+>>>>> >> Yeah, the AC97 mixer we are currently leveraging
+>>>>> >> exposes many controls that have no meaning in this device,
+>>>>> >> so removing that still looks like an improvement.
+>>>>> >>
+>>>>> >> I guess the proper way is creating our own mixer
+>>>>> >> (not using snd_ac97_mixer)  exposing only the record
+>>>>> >> gain knob.
+>>>>> >>
+>>>>> >> Marcel, what do you think?
+>>>>> >> --
+>>>>> >> Ezequiel Garc=C3=ADa, VanguardiaSur
+>>>>> >> www.vanguardiasur.com.ar
+>>>>> >
+>>>>> > As I have written before, the recording gain isn't actually meant t=
+o
+>>>>> > be changed by the user. In the official Windows driver this value i=
+s
+>>>>> > hard-coded to 8 and cannot be changed in any way. And there really =
+is
+>>>>> > no good reason why anyone should need to mess with it in the first
+>>>>> > place. The default value will give the best results in pretty much =
+all
+>>>>> > cases and produces approximately the same volume as the internal 8-=
+bit
+>>>>> > ADC whose gain cannot be changed at all, not even by a driver.
+>>>>> >
+>>>>> > I had considered writing a mixer but chose not to. If the gain sett=
+ing
+>>>>> > is openly exposed to mixer applications, how do you tell the users
+>>>>> > that the value set by the driver already is the optimal and
+>>>>> > recommended value and that they shouldn't mess with the controls
+>>>>> > unless they really have to? By having a module parameter, this sett=
+ing
+>>>>> > is practically hidden from the normal user but still is available t=
+o
+>>>>> > power-users if they think they really need it. In the end it's real=
+ly
+>>>>> > just a compromise between hiding it completely and exposing it open=
+ly.
+>>>>> > Also, this way the driver guarantees reproducible results, since
+>>>>> > there's no need to remember the positions of any volume sliders.
+>>>>> >
+>>>>>
+>>>>> Hm, right. I've never changed the record gain, and it's true that it
+>>>>> doens't really improve the volume. So, I would be OK with having
+>>>>> a module parameter.
+>>>>>
+>>>>> On the other side, we are exposing it currently, through the "Capture=
+"
+>>>>> mixer control:
+>>>>>
+>>>>> Simple mixer control 'Capture',0
+>>>>>   Capabilities: cvolume cswitch cswitch-joined
+>>>>>   Capture channels: Front Left - Front Right
+>>>>>   Limits: Capture 0 - 15
+>>>>>   Front Left: Capture 10 [67%] [15.00dB] [on]
+>>>>>   Front Right: Capture 8 [53%] [12.00dB] [on]
+>>>>>
+>>>>> So, it would be user-friendly to keep the user interface and continue
+>>>>> to expose the same knob - even if the default is the optimal, etc.
+>>>>>
+>>>>> To be completely honest, I don't think any user is really relying
+>>>>> on any REC_GAIN / Capture setting, and I'm completely OK
+>>>>> with having a mixer control or a module parameter. It doesn't matter.
+>>>>
+>>>> If you're positive that *all* stk1160 use the ac97 mixer the
+>>>> same way, and that there's no sense on having a mixer for it,
+>>>> then it would be ok to remove it.
+>>>>
+>>>
+>>> Let's remove it then!
+>>>
+>>>> In such case, then why you need a modprobe parameter to allow
+>>>> setting the record level? If this mixer entry is not used,
+>>>> just set it to zero and be happy with that.
+>>>>
+>>>
+>>> Let's remove the module param too, then.
+>>
+>> I'm okay with that.
+>>
+>>>
+>>> Thanks,
+>>> --
+>>> Ezequiel Garc=C3=ADa, VanguardiaSur
+>>> www.vanguardiasur.com.ar
+>>
+>> I'm willing to prepare one final patchset, provided we can agree on
+>> and resolve all issues beforehand.
+>>
+>> So far the changes would be to remove the module param and to poll
+>> STK1160_AC97CTL_0 instead of using a fixed delay. It's probably better
+>> to also poll it before writing, although that never caused problems.
+>>
+>> I'll post some code for review before actually submitting patches.
+>> Mauro, is there anything else that you think should be changed? If so,
+>> please tell me now. Thanks.
+>>
+>> Best regards
+>> Marcel
+>
+> One more thing...
+>
+> The driver currently uses a lot of "magic numbers", both for the AC97
+> register addresses as well as the STK1160 register contents. That
+> makes it a bit difficult to read unless you happen to have the
+> datasheet open. Would it maybe be better to add defines for those,
+> especially if we're going to poll individual bits?
 
-The script "checkpatch.pl" pointed information out like the following.
+Yes, but we don't want to put that on the same series.
+Let's this out first, and then we can work on more changes.
 
-WARNING: sizeof … should be sizeof(…)
+> I usually prefer
+> that approach myself. Would you put the defines for the AC97 chip
+> registers into stk1160-reg.h or keep them in stk1160-ac97.c since
+> they're only used there?
+>
 
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/uvc/uvc_driver.c | 48 +++++++++++++++++++-------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 32d39404c1cb..c05ba4bdec2d 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -402,7 +402,7 @@ static int uvc_parse_format(struct uvc_device *dev,
- 
- 		if (fmtdesc) {
- 			strlcpy(format->name, fmtdesc->name,
--				sizeof format->name);
-+				sizeof(format->name));
- 			format->fcc = fmtdesc->fcc;
- 		} else {
- 			uvc_printk(KERN_INFO, "Unknown video format %pUl\n",
-@@ -445,7 +445,7 @@ static int uvc_parse_format(struct uvc_device *dev,
- 			return -EINVAL;
- 		}
- 
--		strlcpy(format->name, "MJPEG", sizeof format->name);
-+		strlcpy(format->name, "MJPEG", sizeof(format->name));
- 		format->fcc = V4L2_PIX_FMT_MJPEG;
- 		format->flags = UVC_FMT_FLAG_COMPRESSED;
- 		format->bpp = 0;
-@@ -463,13 +463,13 @@ static int uvc_parse_format(struct uvc_device *dev,
- 
- 		switch (buffer[8] & 0x7f) {
- 		case 0:
--			strlcpy(format->name, "SD-DV", sizeof format->name);
-+			strlcpy(format->name, "SD-DV", sizeof(format->name));
- 			break;
- 		case 1:
--			strlcpy(format->name, "SDL-DV", sizeof format->name);
-+			strlcpy(format->name, "SDL-DV", sizeof(format->name));
- 			break;
- 		case 2:
--			strlcpy(format->name, "HD-DV", sizeof format->name);
-+			strlcpy(format->name, "HD-DV", sizeof(format->name));
- 			break;
- 		default:
- 			uvc_trace(UVC_TRACE_DESCR,
-@@ -480,7 +480,7 @@ static int uvc_parse_format(struct uvc_device *dev,
- 		}
- 
- 		strlcat(format->name, buffer[8] & (1 << 7) ? " 60Hz" : " 50Hz",
--			sizeof format->name);
-+			sizeof(format->name));
- 
- 		format->fcc = V4L2_PIX_FMT_DV;
- 		format->flags = UVC_FMT_FLAG_COMPRESSED | UVC_FMT_FLAG_STREAM;
-@@ -489,7 +489,7 @@ static int uvc_parse_format(struct uvc_device *dev,
- 
- 		/* Create a dummy frame descriptor. */
- 		frame = &format->frame[0];
--		memset(&format->frame[0], 0, sizeof format->frame[0]);
-+		memset(&format->frame[0], 0, sizeof(format->frame[0]));
- 		frame->bFrameIntervalType = 1;
- 		frame->dwDefaultFrameInterval = 1;
- 		frame->dwFrameInterval = *intervals;
-@@ -660,7 +660,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
- 		return -EINVAL;
- 	}
- 
--	streaming = kzalloc(sizeof *streaming, GFP_KERNEL);
-+	streaming = kzalloc(sizeof(*streaming), GFP_KERNEL);
- 	if (!streaming) {
- 		usb_driver_release_interface(&uvc_driver.driver, intf);
- 		return -EINVAL;
-@@ -812,8 +812,8 @@ static int uvc_parse_streaming(struct uvc_device *dev,
- 		goto error;
- 	}
- 
--	size = nformats * sizeof *format + nframes * sizeof *frame
--	     + nintervals * sizeof *interval;
-+	size = nformats * sizeof(*format) + nframes * sizeof(*frame)
-+	       + nintervals * sizeof(*interval);
- 	format = kzalloc(size, GFP_KERNEL);
- 	if (!format) {
- 		ret = -ENOMEM;
-@@ -989,7 +989,7 @@ static int uvc_parse_vendor_control(struct uvc_device *dev,
- 
- 		if (buffer[24+p+2*n] != 0)
- 			usb_string(udev, buffer[24+p+2*n], unit->name,
--				   sizeof unit->name);
-+				   sizeof(unit->name));
- 		else
- 			sprintf(unit->name, "Extension %u", buffer[3]);
- 
-@@ -1089,7 +1089,7 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 
- 		if (UVC_ENTITY_TYPE(term) == UVC_ITT_CAMERA) {
- 			term->camera.bControlSize = n;
--			term->camera.bmControls = (__u8 *)term + sizeof *term;
-+			term->camera.bmControls = (__u8 *)term + sizeof(*term);
- 			term->camera.wObjectiveFocalLengthMin =
- 				get_unaligned_le16(&buffer[8]);
- 			term->camera.wObjectiveFocalLengthMax =
-@@ -1100,17 +1100,17 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 		} else if (UVC_ENTITY_TYPE(term) ==
- 			   UVC_ITT_MEDIA_TRANSPORT_INPUT) {
- 			term->media.bControlSize = n;
--			term->media.bmControls = (__u8 *)term + sizeof *term;
-+			term->media.bmControls = (__u8 *)term + sizeof(*term);
- 			term->media.bTransportModeSize = p;
- 			term->media.bmTransportModes = (__u8 *)term
--						     + sizeof *term + n;
-+						       + sizeof(*term) + n;
- 			memcpy(term->media.bmControls, &buffer[9], n);
- 			memcpy(term->media.bmTransportModes, &buffer[10+n], p);
- 		}
- 
- 		if (buffer[7] != 0)
- 			usb_string(udev, buffer[7], term->name,
--				   sizeof term->name);
-+				   sizeof(term->name));
- 		else if (UVC_ENTITY_TYPE(term) == UVC_ITT_CAMERA)
- 			sprintf(term->name, "Camera %u", buffer[3]);
- 		else if (UVC_ENTITY_TYPE(term) == UVC_ITT_MEDIA_TRANSPORT_INPUT)
-@@ -1152,7 +1152,7 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 
- 		if (buffer[8] != 0)
- 			usb_string(udev, buffer[8], term->name,
--				   sizeof term->name);
-+				   sizeof(term->name));
- 		else
- 			sprintf(term->name, "Output %u", buffer[3]);
- 
-@@ -1177,7 +1177,7 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 
- 		if (buffer[5+p] != 0)
- 			usb_string(udev, buffer[5+p], unit->name,
--				   sizeof unit->name);
-+				   sizeof(unit->name));
- 		else
- 			sprintf(unit->name, "Selector %u", buffer[3]);
- 
-@@ -1203,14 +1203,14 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 		unit->processing.wMaxMultiplier =
- 			get_unaligned_le16(&buffer[5]);
- 		unit->processing.bControlSize = buffer[7];
--		unit->processing.bmControls = (__u8 *)unit + sizeof *unit;
-+		unit->processing.bmControls = (__u8 *)unit + sizeof(*unit);
- 		memcpy(unit->processing.bmControls, &buffer[8], n);
- 		if (dev->uvc_version >= 0x0110)
- 			unit->processing.bmVideoStandards = buffer[9+n];
- 
- 		if (buffer[8+n] != 0)
- 			usb_string(udev, buffer[8+n], unit->name,
--				   sizeof unit->name);
-+				   sizeof(unit->name));
- 		else
- 			sprintf(unit->name, "Processing %u", buffer[3]);
- 
-@@ -1236,12 +1236,12 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
- 		unit->extension.bNumControls = buffer[20];
- 		memcpy(unit->baSourceID, &buffer[22], p);
- 		unit->extension.bControlSize = buffer[22+p];
--		unit->extension.bmControls = (__u8 *)unit + sizeof *unit;
-+		unit->extension.bmControls = (__u8 *)unit + sizeof(*unit);
- 		memcpy(unit->extension.bmControls, &buffer[23+p], n);
- 
- 		if (buffer[23+p+n] != 0)
- 			usb_string(udev, buffer[23+p+n], unit->name,
--				   sizeof unit->name);
-+				   sizeof(unit->name));
- 		else
- 			sprintf(unit->name, "Extension %u", buffer[3]);
- 
-@@ -1932,7 +1932,7 @@ static int uvc_register_video(struct uvc_device *dev,
- 	vdev->prio = &stream->chain->prio;
- 	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		vdev->vfl_dir = VFL_DIR_TX;
--	strlcpy(vdev->name, dev->name, sizeof vdev->name);
-+	strlcpy(vdev->name, dev->name, sizeof(vdev->name));
- 
- 	/* Set the driver data before calling video_register_device, otherwise
- 	 * uvc_v4l2_open might race us.
-@@ -2049,9 +2049,9 @@ static int uvc_probe(struct usb_interface *intf,
- 		    ? id->driver_info : uvc_quirks_param;
- 
- 	if (udev->product)
--		strlcpy(dev->name, udev->product, sizeof dev->name);
-+		strlcpy(dev->name, udev->product, sizeof(dev->name));
- 	else
--		snprintf(dev->name, sizeof dev->name,
-+		snprintf(dev->name, sizeof(dev->name),
- 			"UVC Camera (%04x:%04x)",
- 			le16_to_cpu(udev->descriptor.idVendor),
- 			le16_to_cpu(udev->descriptor.idProduct));
--- 
-2.11.0
-
+I'm fine either way. For consistency with how it's written currently,
+I'd go with stk1160-reg.h
+--=20
+Ezequiel Garc=C3=ADa, VanguardiaSur
+www.vanguardiasur.com.ar
