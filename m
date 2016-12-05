@@ -1,52 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49252
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751932AbcLSJ2y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 04:28:54 -0500
-Date: Mon, 19 Dec 2016 07:28:29 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Media summit in Feb? - Was: Re: [RFC v3 00/21] Make use of kref in
- media device, grab references as needed
-Message-ID: <20161219072829.7f23c45b@vento.lan>
-In-Reply-To: <b34d42aa-2007-f1fb-70ee-2533998ec54e@xs4all.nl>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
-        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
-        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
-        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
-        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
-        <20161215152501.11ce2b2a@vento.lan>
-        <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
-        <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
-        <20161216085741.38bb2e18@vento.lan>
-        <c654bffd-792c-f860-33b4-3c399984dbd4@xs4all.nl>
-        <20161216100056.5f3fcb55@vento.lan>
-        <b34d42aa-2007-f1fb-70ee-2533998ec54e@xs4all.nl>
+Received: from quartz.orcorp.ca ([184.70.90.242]:50192 "EHLO quartz.orcorp.ca"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751668AbcLESCs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Dec 2016 13:02:48 -0500
+Date: Mon, 5 Dec 2016 11:02:31 -0700
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Stephen Bates <sbates@raithlin.com>,
+        Haggai Eran <haggaie@mellanox.com>,
+        Logan Gunthorpe <logang@deltatee.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
+        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
+        "christian.koenig@amd.com" <christian.koenig@amd.com>,
+        "Suravee.Suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>,
+        "John.Bridgman@amd.com" <john.bridgman@amd.com>,
+        "Alexander.Deucher@amd.com" <alexander.deucher@amd.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        Max Gurtovoy <maxg@mellanox.com>,
+        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
+        "serguei.sagalovitch@amd.com" <serguei.sagalovitch@amd.com>,
+        "Paul.Blinzer@amd.com" <paul.blinzer@amd.com>,
+        "Felix.Kuehling@amd.com" <felix.kuehling@amd.com>,
+        "ben.sander@amd.com" <ben.sander@amd.com>
+Subject: Re: Enabling peer to peer device transactions for PCIe devices
+Message-ID: <20161205180231.GA28133@obsidianresearch.com>
+References: <20161128165751.GB28381@obsidianresearch.com>
+ <1480357179.19407.13.camel@mellanox.com>
+ <20161128190244.GA21975@obsidianresearch.com>
+ <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
+ <20161130162353.GA24639@obsidianresearch.com>
+ <5f5b7989-84f5-737e-47c8-831f752d6280@deltatee.com>
+ <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com>
+ <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
+ <20161205171830.GB27784@obsidianresearch.com>
+ <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Dec 2016 15:45:10 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Mon, Dec 05, 2016 at 09:40:38AM -0800, Dan Williams wrote:
 
-> We really need a whiteboard for this :-(
+> > If it is kernel only with physical addresess we don't need a uAPI for
+> > it, so I'm not sure #1 is at all related to iopmem.
+> >
+> > Most people who want #1 probably can just mmap
+> > /sys/../pci/../resourceX to get a user handle to it, or pass around
+> > __iomem pointers in the kernel. This has been asked for before with
+> > RDMA.
+> >
+> > I'm still not really clear what iopmem is for, or why DAX should ever
+> > be involved in this..
+> 
+> Right, by default remap_pfn_range() does not establish DMA capable
+> mappings. You can think of iopmem as remap_pfn_range() converted to
+> use devm_memremap_pages(). Given the extra constraints of
+> devm_memremap_pages() it seems reasonable to have those DMA capable
+> mappings be optionally established via a separate driver.
 
-Well, we could schedule a media summit together with ELC NA.
+Except the iopmem driver claims the PCI ID, and presents a block
+interface which is really *NOT* what people who have asked for this in
+the past have wanted. IIRC it was embedded stuff eg RDMA video
+directly out of a capture card or a similar kind of thinking.
 
-ELC will be in Feb, 21-23 in Portland.
+It is a good point about devm_memremap_pages limitations, but maybe
+that just says to create a /sys/.../resource_dmableX ?
 
-Comments?
-Mauro
+Or is there some reason why people want a filesystem on top of BAR
+memory? That does not seem to have been covered yet..
+
+Jason
