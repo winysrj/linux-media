@@ -1,116 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:59241
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44101
         "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754430AbcLUKln (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 05:41:43 -0500
-Date: Wed, 21 Dec 2016 08:41:36 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        linux-media@vger.kernel.org,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH v2 0/6] Fix tvp5150 regression with em28xx
-Message-ID: <20161221084136.0438edc3@vento.lan>
-In-Reply-To: <2038446.MEtJKT2hJE@avalon>
-References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
-        <20161212075124.4e1ba840@vento.lan>
-        <618f2d04-e17e-54a1-5540-b897155d7318@osg.samsung.com>
-        <2038446.MEtJKT2hJE@avalon>
+        with ESMTP id S1751201AbcLENQA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 08:16:00 -0500
+Subject: Re: [PATCH v2] v4l: async: make v4l2 coexist with devicetree nodes in
+ a dt overlay
+To: Javi Merino <javi.merino@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <1480932596-4108-1-git-send-email-javi.merino@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Message-ID: <0b71cde6-143c-0fa3-30c3-22caf94e14ec@osg.samsung.com>
+Date: Mon, 5 Dec 2016 10:13:38 -0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1480932596-4108-1-git-send-email-javi.merino@kernel.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 12 Dec 2016 18:37:01 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Hello Javi,
 
-> Hello,
+On 12/05/2016 07:09 AM, Javi Merino wrote:
+> In asds configured with V4L2_ASYNC_MATCH_OF, the v4l2 subdev can be
+> part of a devicetree overlay, for example:
 > 
-> On Monday 12 Dec 2016 13:22:50 Javier Martinez Canillas wrote:
-> > On 12/12/2016 06:51 AM, Mauro Carvalho Chehab wrote:  
-> > > Em Fri,  9 Dec 2016 13:47:13 +0200 Laurent Pinchart escreveu:  
-> > >> Hello,
-> > >> 
-> > >> This patch series fixes a regression reported by Devin Heitmueller that
-> > >> affects a large number of em28xx. The problem was introduced by
-> > >> 
-> > >> commit 13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d
-> > >> Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-> > >> Date:   Tue Jan 26 06:59:39 2016 -0200
-> > >> 
-> > >>     [media] em28xx: fix implementation of s_stream
-> > >> 
-> > >> that started calling s_stream(1) in the em28xx driver when enabling the
-> > >> stream, resulting in the tvp5150 s_stream() operation writing several
-> > >> registers with values fit for other platforms (namely OMAP3, possibly
-> > >> others) but not for em28xx.
-> > >> 
-> > >> The series starts with two unrelated drive-by cleanups and an unrelated
-> > >> bug fix. It then continues with a patch to remove an unneeded and armful
-> > >> call to tvp5150_reset() when getting the format from the subdevice (4/6),
-> > >> an update of an invalid comment and the addition of macros for register
-> > >> bits in order to make the code more readable (5/6) and actually allow
-> > >> following the incorrect code flow, and finally a rework of the
-> > >> s_stream() operation to fix the problem.
-> > >> 
-> > >> Compared to v1,
-> > >> 
-> > >> - Patch 4/5 now calls tvp5150_reset() at probe time
-> > >> - Patch 5/6 is fixed with an extra ~ removed
-> > >> 
-> > >> I haven't been able to test this with an em28xx device as I don't own any
-> > >> that contains a tvp5150, but Mauro reported that the series fixes the
-> > >> issue with his device.
-> > >> 
-> > >> I also haven't been able to test anything on an OMAP3 platform, as the
-> > >> tvp5150 driver go broken on DT-based systems by  
-> > > 
-> > > I applied today patches 1 to 3, as I don't see any risk of regressions
-> > > there. Stable was c/c on patch 3.
-> > > 
-> > > I want to do more tests on patches 4-6, with both progressive video and
-> > > RF. It would also be nice if someone could test it on OMAP3, to be sure
-> > > that no regressions happened there.  
-> > 
-> > I've tested patches 4-6 on a IGEPv2 and video capture is still working for
-> > both composite input AIP1A (after changing the hardcoded selected input)
-> > and AIP1B.
-> > 
-> > The patches also look good to me, so please feel free to add my Reviewed-by
-> > and Tested-by tags on these.
-> > 
-> > I wasn't able to test S-Video since my S-Video source broke (an old DVD
-> > player) but this never worked for me anyways with this board.  
+> &media_bridge {
+> 	...
+> 	my_port: port@0 {
+> 		#address-cells = <1>;
+> 		#size-cells = <0>;
+> 		reg = <0>;
+> 		ep: endpoint@0 {
+> 			remote-endpoint = <&camera0>;
+> 		};
+> 	};
+> };
 > 
-> I've tested the patches too, in composite mode only as my hardware has a 
-> single input. The image quality isn't very good, but I believe that's due to 
-> my source. It shouldn't be related to this patch series at least.
+> / {
+> 	fragment@0 {
+> 		target = <&i2c0>;
+> 		__overlay__ {
+> 			my_cam {
+> 				compatible = "foo,bar";
+> 				port {
+> 					camera0: endpoint {
+> 						remote-endpoint = <&my_port>;
+> 						...
+> 					};
+> 				};
+> 			};
+> 		};
+> 	};
+> };
+> 
+> Each time the overlay is applied, its of_node pointer will be
+> different.  We are not interested in matching the pointer, what we
+> want to match is that the path is the one we are expecting.  Change to
+> use of_node_cmp() so that we continue matching after the overlay has
+> been removed and reapplied.
+> 
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Javi Merino <javi.merino@kernel.org>
+> ---
 
-Yesterday, I was able to make my device that generates 480p to work again,
-and bought a RF modulator.
+I already reviewed v1 but you didn't carry the tag. So again:
 
-I used HVR-350 and Hauppauge MediaMVP as image sources producing NTSC output,
-and Kernel 4.9 + media patches for 4.10 + tvp5150 v2 patch series.
+Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-With that, I completed the tests on HVR-950. My tests covered:
-- S-Video, Composite, TV
-- 480i and 480p
-- Closed Captions (with HVR-350 - it seems that MediaMVP doesn't
-  produce NTSC CC).
-
-PS.: I did some tests with PAL output too, with HVR-350.
-
-> I tried both BT.656 and parallel bus modes. The latter didn't work properly, 
-> but it wasn't supported when I worked on TVP5151 + OMAP3 support in the first 
-> place anyway, so it's not a regression, just something to eventually fix (if I 
-> have too much free time).
-
-With that, it seems that BT.656 is working fine. So, I'm merging the
-patches and will send them on the next pull request.
-
-Thanks,
-Mauro
+Best regards,
+-- 
+Javier Martinez Canillas
+Open Source Group
+Samsung Research America
