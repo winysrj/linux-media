@@ -1,70 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51680 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753760AbcLOGwc (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:43013 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752009AbcLERLt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 01:52:32 -0500
-Date: Thu, 15 Dec 2016 08:50:22 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        Pavel Machek <pavel@ucw.cz>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
-References: <20160521054336.GA27123@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <201612141438.16603@pali>
- <20161214150819.GW4920@atomide.com>
+        Mon, 5 Dec 2016 12:11:49 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v4 06/10] [media] st-delta: add memory allocator helper functions
+Date: Mon, 5 Dec 2016 18:11:29 +0100
+Message-ID: <1480957893-25636-7-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
+References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20161214150819.GW4920@atomide.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pali and Tony,
+Helper functions used by decoder back-ends to allocate
+physically contiguous memory required by hardware video
+decoder.
 
-On Wed, Dec 14, 2016 at 07:08:19AM -0800, Tony Lindgren wrote:
-> * Pali Rohár <pali.rohar@gmail.com> [161214 05:38]:
-> > On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
-> > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > > This adds support for AD5820 autofocus coil, found for example in
-> > > > > Nokia N900 smartphone.
-> > > > 
-> > > > Thanks, Pavel!
-> > > > 
-> > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
-> > > > something better in the future, we'll switch to that then.
-> > > > 
-> > > > I've applied this to ad5820 branch in my tree.
-> > > 
-> > > Thanks. If I understands things correctly, both DTS patch and this
-> > > patch are waiting in your tree, so we should be good to go for 4.9
-> > > (unless some unexpected problems surface)?
-> > > 
-> > > Best regards,
-> > > 									Pavel
-> > 
-> > Was DTS patch merged into 4.9? At least I do not see updated that dts 
-> > file omap3-n900.dts in linus tree...
-> 
-> If it's not in current mainline or next, it's off my radar so sounds
-> like I've somehow missed it and needs resending..
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/platform/sti/delta/Makefile    |  2 +-
+ drivers/media/platform/sti/delta/delta-mem.c | 51 ++++++++++++++++++++++++++++
+ drivers/media/platform/sti/delta/delta-mem.h | 14 ++++++++
+ drivers/media/platform/sti/delta/delta.h     |  8 +++++
+ 4 files changed, 74 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.c
+ create mode 100644 drivers/media/platform/sti/delta/delta-mem.h
 
-Where's this patch? I remember seeing the driver patch and the DT
-documentation but no actual DT source patch for the N900.
-
+diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
+index 07ba7ad..cbfb1b5 100644
+--- a/drivers/media/platform/sti/delta/Makefile
++++ b/drivers/media/platform/sti/delta/Makefile
+@@ -1,2 +1,2 @@
+ obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
+-st-delta-y := delta-v4l2.o
++st-delta-y := delta-v4l2.o delta-mem.o
+diff --git a/drivers/media/platform/sti/delta/delta-mem.c b/drivers/media/platform/sti/delta/delta-mem.c
+new file mode 100644
+index 0000000..d7b53d3
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-mem.c
+@@ -0,0 +1,51 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#include "delta.h"
++#include "delta-mem.h"
++
++int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
++	     struct delta_buf *buf)
++{
++	struct delta_dev *delta = ctx->dev;
++	dma_addr_t dma_addr;
++	void *addr;
++	unsigned long attrs = DMA_ATTR_WRITE_COMBINE;
++
++	addr = dma_alloc_attrs(delta->dev, size, &dma_addr,
++			       GFP_KERNEL | __GFP_NOWARN, attrs);
++	if (!addr) {
++		dev_err(delta->dev,
++			"%s hw_alloc:dma_alloc_coherent failed for %s (size=%d)\n",
++			ctx->name, name, size);
++		ctx->sys_errors++;
++		return -ENOMEM;
++	}
++
++	buf->size = size;
++	buf->paddr = dma_addr;
++	buf->vaddr = addr;
++	buf->name = name;
++	buf->attrs = attrs;
++
++	dev_dbg(delta->dev,
++		"%s allocate %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
++		ctx->name, size, buf->vaddr, &buf->paddr, buf->name);
++
++	return 0;
++}
++
++void hw_free(struct delta_ctx *ctx, struct delta_buf *buf)
++{
++	struct delta_dev *delta = ctx->dev;
++
++	dev_dbg(delta->dev,
++		"%s     free %d bytes of HW memory @(virt=0x%p, phy=0x%pad): %s\n",
++		ctx->name, buf->size, buf->vaddr, &buf->paddr, buf->name);
++
++	dma_free_attrs(delta->dev, buf->size,
++		       buf->vaddr, buf->paddr, buf->attrs);
++}
+diff --git a/drivers/media/platform/sti/delta/delta-mem.h b/drivers/media/platform/sti/delta/delta-mem.h
+new file mode 100644
+index 0000000..f8ca109
+--- /dev/null
++++ b/drivers/media/platform/sti/delta/delta-mem.h
+@@ -0,0 +1,14 @@
++/*
++ * Copyright (C) STMicroelectronics SA 2015
++ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
++ * License terms:  GNU General Public License (GPL), version 2
++ */
++
++#ifndef DELTA_MEM_H
++#define DELTA_MEM_H
++
++int hw_alloc(struct delta_ctx *ctx, u32 size, const char *name,
++	     struct delta_buf *buf);
++void hw_free(struct delta_ctx *ctx, struct delta_buf *buf);
++
++#endif /* DELTA_MEM_H */
+diff --git a/drivers/media/platform/sti/delta/delta.h b/drivers/media/platform/sti/delta/delta.h
+index 74a4240..9e26525 100644
+--- a/drivers/media/platform/sti/delta/delta.h
++++ b/drivers/media/platform/sti/delta/delta.h
+@@ -191,6 +191,14 @@ struct delta_dts {
+ 	u64 val;
+ };
+ 
++struct delta_buf {
++	u32 size;
++	void *vaddr;
++	dma_addr_t paddr;
++	const char *name;
++	unsigned long attrs;
++};
++
+ struct delta_ctx;
+ 
+ /*
 -- 
-Kind regards,
+1.9.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
