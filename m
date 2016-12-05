@@ -1,138 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:48947 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932515AbcLLVN6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:58 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v5 11/18] [media] rc: ir-nec-decoder: Add encode capability
-Date: Mon, 12 Dec 2016 21:13:47 +0000
-Message-Id: <7069c3e49049557c380f5fe5c8145c749916b42f.1481575826.git.sean@mess.org>
-In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:37037 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751437AbcLEMdt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 07:33:49 -0500
+Received: by mail-wm0-f51.google.com with SMTP id t79so90435594wmt.0
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 04:33:48 -0800 (PST)
+Subject: Re: [PATCH v4 5/9] media: venus: vdec: add video decoder files
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1480583001-32236-6-git-send-email-stanimir.varbanov@linaro.org>
+ <4457b2fe-3e47-5085-0c08-7fe69b2b46b5@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <4a016b0a-f10f-99c2-4e48-6110b3fb4f48@linaro.org>
+Date: Mon, 5 Dec 2016 14:25:18 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4457b2fe-3e47-5085-0c08-7fe69b2b46b5@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+Hi Hans,
 
-Add the capability to encode NEC scancodes as raw events. The
-scancode_to_raw is pretty much taken from the img-ir NEC filter()
-callback, and modulation uses the pulse distance helper added in a
-previous commit.
+Thanks for the comments!
 
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Seppälä <a.seppala@gmail.com>
-Cc: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/ir-nec-decoder.c | 81 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+On 12/05/2016 01:32 PM, Hans Verkuil wrote:
+> I have two comments (and the same two comments apply to the video encoder patch
+> as well):
+> 
+> On 12/01/2016 10:03 AM, Stanimir Varbanov wrote:
+>> This consists of video decoder implementation plus decoder
+>> controls.
+>>
+>> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>> ---
+>>  drivers/media/platform/qcom/venus/vdec.c       | 976 +++++++++++++++++++++++++
+>>  drivers/media/platform/qcom/venus/vdec.h       |  32 +
+>>  drivers/media/platform/qcom/venus/vdec_ctrls.c | 149 ++++
+>>  3 files changed, 1157 insertions(+)
+>>  create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+>>  create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+>>  create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+>>
+>> diff --git a/drivers/media/platform/qcom/venus/vdec.c b/drivers/media/platform/qcom/venus/vdec.c
+>> new file mode 100644
+>> index 000000000000..9f585a1e0ff1
+>> --- /dev/null
+>> +++ b/drivers/media/platform/qcom/venus/vdec.c
+>> @@ -0,0 +1,976 @@
+> 
+> <snip>
+> 
+>> +static int
+>> +vdec_s_selection(struct file *file, void *fh, struct v4l2_selection *s)
+>> +{
+>> +	struct venus_inst *inst = to_inst(file);
+>> +
+>> +	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+>> +	    s->target != V4L2_SEL_TGT_COMPOSE)
+>> +		return -EINVAL;
+>> +
+>> +	switch (s->target) {
+>> +	case V4L2_SEL_TGT_COMPOSE:
+>> +		s->r.width = inst->out_width;
+>> +		s->r.height = inst->out_height;
+>> +		break;
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	s->r.top = 0;
+>> +	s->r.left = 0;
+>> +
+>> +	return 0;
+>> +}
+> 
+> This doesn't actually set anything, so what's the point of this function?
+> 
+> I've fixed the corresponding test in v4l2-compliance so you can now drop this
+> op and v4l2-compliance won't complain anymore.
 
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 2a9d155..22aab8a 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -201,9 +201,90 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
- }
- 
-+/**
-+ * ir_nec_scancode_to_raw() - encode an NEC scancode ready for modulation.
-+ * @protocol:	specific protocol to use
-+ * @scancode:	a single NEC scancode.
-+ * @raw:	raw data to be modulated.
-+ */
-+static u32 ir_nec_scancode_to_raw(enum rc_type protocol, u32 scancode)
-+{
-+	unsigned int addr, addr_inv, data, data_inv;
-+
-+	data = scancode & 0xff;
-+
-+	if (protocol == RC_TYPE_NEC32) {
-+		/* 32-bit NEC (used by Apple and TiVo remotes) */
-+		/* scan encoding: aaAAddDD */
-+		addr_inv   = (scancode >> 24) & 0xff;
-+		addr       = (scancode >> 16) & 0xff;
-+		data_inv   = (scancode >>  8) & 0xff;
-+	} else if (protocol == RC_TYPE_NECX) {
-+		/* Extended NEC */
-+		/* scan encoding AAaaDD */
-+		addr       = (scancode >> 16) & 0xff;
-+		addr_inv   = (scancode >>  8) & 0xff;
-+		data_inv   = data ^ 0xff;
-+	} else {
-+		/* Normal NEC */
-+		/* scan encoding: AADD */
-+		addr       = (scancode >>  8) & 0xff;
-+		addr_inv   = addr ^ 0xff;
-+		data_inv   = data ^ 0xff;
-+	}
-+
-+	/* raw encoding: ddDDaaAA */
-+	return data_inv << 24 |
-+	       data     << 16 |
-+	       addr_inv <<  8 |
-+	       addr;
-+}
-+
-+static struct ir_raw_timings_pd ir_nec_timings = {
-+	.header_pulse	= NEC_HEADER_PULSE,
-+	.header_space	= NEC_HEADER_SPACE,
-+	.bit_pulse	= NEC_BIT_PULSE,
-+	.bit_space[0]	= NEC_BIT_0_SPACE,
-+	.bit_space[1]	= NEC_BIT_1_SPACE,
-+	.trailer_pulse	= NEC_TRAILER_PULSE,
-+	.trailer_space	= NEC_TRAILER_SPACE,
-+	.msb_first	= 0,
-+};
-+
-+/**
-+ * ir_nec_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol to encode
-+ * @scancode:	scancode to encode
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ */
-+static int ir_nec_encode(enum rc_type protocol, u32 scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	struct ir_raw_event *e = events;
-+	int ret;
-+	u32 raw;
-+
-+	/* Convert a NEC scancode to raw NEC data */
-+	raw = ir_nec_scancode_to_raw(protocol, scancode);
-+
-+	/* Modulate the raw data using a pulse distance modulation */
-+	ret = ir_raw_gen_pd(&e, max, &ir_nec_timings, NEC_NBITS, raw);
-+	if (ret < 0)
-+		return ret;
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler nec_handler = {
- 	.protocols	= RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32,
- 	.decode		= ir_nec_decode,
-+	.encode		= ir_nec_encode,
- };
- 
- static int __init ir_nec_decode_init(void)
+OK I will give a try.
+
+> 
+>> +static int vdec_start_streaming(struct vb2_queue *q, unsigned int count)
+>> +{
+>> +	struct venus_inst *inst = vb2_get_drv_priv(q);
+>> +	struct venus_core *core = inst->core;
+>> +	struct device *dev = core->dev;
+>> +	u32 ptype;
+>> +	int ret;
+>> +
+>> +	mutex_lock(&inst->lock);
+>> +
+>> +	if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
+>> +		inst->streamon_out = 1;
+>> +	else
+>> +		inst->streamon_cap = 1;
+>> +
+>> +	if (!(inst->streamon_out & inst->streamon_cap)) {
+>> +		mutex_unlock(&inst->lock);
+>> +		return 0;
+>> +	}
+>> +
+>> +	inst->reconfig = false;
+>> +	inst->sequence = 0;
+>> +	inst->codec_cfg = false;
+>> +
+>> +	ret = pm_runtime_get_sync(dev);
+>> +	if (ret < 0)
+>> +		return ret;
+> 
+> This should be a goto so that 'helper_buffers_done(inst, VB2_BUF_STATE_QUEUED);'
+> is called on error.
+> 
+> It's wrong anyway since you don't unlock the mutex in this return path either.
+
+yes, this return is wrong, will correct it in next version.
+
 -- 
-2.9.3
-
+regards,
+Stan
