@@ -1,236 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:43763 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750745AbcLUIZr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 03:25:47 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v2 5/7] doc_rst: media: New SDR formats PC16, PC18 & PC20
-Date: Wed, 21 Dec 2016 08:10:36 +0000
-Message-Id: <1482307838-47415-6-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from gofer.mess.org ([80.229.237.210]:51737 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751888AbcLFKT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Dec 2016 05:19:26 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        James Hogan <james@albanarts.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v4 06/13] [media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
+Date: Tue,  6 Dec 2016 10:19:14 +0000
+Message-Id: <f1e78dc514c37a3dd934ac07499c97cbe9d832c5.1481019109.git.sean@mess.org>
+In-Reply-To: <cover.1481019109.git.sean@mess.org>
+References: <cover.1481019109.git.sean@mess.org>
+In-Reply-To: <cover.1481019109.git.sean@mess.org>
+References: <cover.1481019109.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds documentation for the three new SDR formats
+From: Antti Seppälä <a.seppala@gmail.com>
 
-V4L2_SDR_FMT_PCU16BE
-V4L2_SDR_FMT_PCU18BE
-V4L2_SDR_FMT_PCU20BE
+Adding a simple Manchester encoder to rc-core.
+Manchester coding is used by at least RC-5 and RC-6 protocols and their
+variants.
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: David Härdeman <david@hardeman.nu>
 ---
- .../media/uapi/v4l/pixfmt-sdr-pcu16be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu18be.rst          | 55 ++++++++++++++++++++++
- .../media/uapi/v4l/pixfmt-sdr-pcu20be.rst          | 55 ++++++++++++++++++++++
- Documentation/media/uapi/v4l/sdr-formats.rst       |  3 ++
- 4 files changed, 168 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
+ drivers/media/rc/rc-core-priv.h | 33 ++++++++++++++++
+ drivers/media/rc/rc-ir-raw.c    | 85 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 118 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-new file mode 100644
-index 0000000..2de1b1a
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu16be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 98cc0cf..b175bf3 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -157,6 +157,39 @@ static inline bool is_timing_event(struct ir_raw_event ev)
+ #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ 
++/* functions for IR encoders */
 +
-+.. _V4L2-SDR-FMT-PCU16BE:
++static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
++					      unsigned int pulse,
++					      u32 duration)
++{
++	init_ir_raw_event(ev);
++	ev->duration = duration;
++	ev->pulse = pulse;
++}
 +
-+******************************
-+V4L2_SDR_FMT_PCU16BE ('PC16')
-+******************************
++/**
++ * struct ir_raw_timings_manchester - Manchester coding timings
++ * @leader:		duration of leader pulse (if any) 0 if continuing
++ *			existing signal (see @pulse_space_start)
++ * @pulse_space_start:	1 for starting with pulse (0 for starting with space)
++ * @clock:		duration of each pulse/space in ns
++ * @invert:		if set clock logic is inverted
++ *			(0 = space + pulse, 1 = pulse + space)
++ * @trailer_space:	duration of trailer space in ns
++ */
++struct ir_raw_timings_manchester {
++	unsigned int leader;
++	unsigned int pulse_space_start:1;
++	unsigned int clock;
++	unsigned int invert:1;
++	unsigned int trailer_space;
++};
 +
-+Planar complex unsigned 16-bit big endian IQ sample
++int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
++			  const struct ir_raw_timings_manchester *timings,
++			  unsigned int n, unsigned int data);
 +
-+Description
-+===========
+ /*
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 1b229ef..072b4bd 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -250,6 +250,91 @@ static void ir_raw_disable_protocols(struct rc_dev *dev, u64 protocols)
+ }
+ 
+ /**
++ * ir_raw_gen_manchester() - Encode data with Manchester (bi-phase) modulation.
++ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
++ *		each raw event filled.
++ * @max:	Maximum number of raw events to fill.
++ * @timings:	Manchester modulation timings.
++ * @n:		Number of bits of data.
++ * @data:	Data bits to encode.
++ *
++ * Encodes the @n least significant bits of @data using Manchester (bi-phase)
++ * modulation with the timing characteristics described by @timings, writing up
++ * to @max raw IR events using the *@ev pointer.
++ *
++ * Returns:	0 on success.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		full encoded data. In this case all @max events will have been
++ *		written.
++ */
++int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
++			  const struct ir_raw_timings_manchester *timings,
++			  unsigned int n, unsigned int data)
++{
++	bool need_pulse;
++	unsigned int i;
++	int ret = -ENOBUFS;
 +
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 16 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 16 bits, bit 15:2 (14 bit) is data and bit 1:0 (2 bit) can be any
-+value.
++	i = 1 << (n - 1);
 +
-+**Byte Order.**
-+Each cell is one byte.
++	if (timings->leader) {
++		if (!max--)
++			return ret;
++		if (timings->pulse_space_start) {
++			init_ir_raw_event_duration((*ev)++, 1, timings->leader);
 +
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
++			if (!max--)
++				return ret;
++			init_ir_raw_event_duration((*ev), 0, timings->leader);
++		} else {
++			init_ir_raw_event_duration((*ev), 1, timings->leader);
++		}
++		i >>= 1;
++	} else {
++		/* continue existing signal */
++		--(*ev);
++	}
++	/* from here on *ev will point to the last event rather than the next */
 +
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[13:6]`
-+      -  I'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[13:6]`
-+      -  I'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[13:6]`
-+      -  Q'\ :sub:`0[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[13:6]`
-+      -  Q'\ :sub:`1[5:0]; B1[1:0]=pad`
-+      -  pad
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-new file mode 100644
-index 0000000..da8b26b
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu18be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
++	while (n && i > 0) {
++		need_pulse = !(data & i);
++		if (timings->invert)
++			need_pulse = !need_pulse;
++		if (need_pulse == !!(*ev)->pulse) {
++			(*ev)->duration += timings->clock;
++		} else {
++			if (!max--)
++				goto nobufs;
++			init_ir_raw_event_duration(++(*ev), need_pulse,
++						   timings->clock);
++		}
 +
-+.. _V4L2-SDR-FMT-PCU18BE:
++		if (!max--)
++			goto nobufs;
++		init_ir_raw_event_duration(++(*ev), !need_pulse,
++					   timings->clock);
++		i >>= 1;
++	}
 +
-+******************************
-+V4L2_SDR_FMT_PCU18BE ('PC18')
-+******************************
++	if (timings->trailer_space) {
++		if (!(*ev)->pulse)
++			(*ev)->duration += timings->trailer_space;
++		else if (!max--)
++			goto nobufs;
++		else
++			init_ir_raw_event_duration(++(*ev), 0,
++						   timings->trailer_space);
++	}
 +
-+Planar complex unsigned 18-bit big endian IQ sample
++	ret = 0;
++nobufs:
++	/* point to the next event rather than last event before returning */
++	++(*ev);
++	return ret;
++}
++EXPORT_SYMBOL(ir_raw_gen_manchester);
 +
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 18 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 18 bits, bit 17:2 (16 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[17:10]`
-+      -  I'\ :sub:`0[9:2]`
-+      -  I'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[17:10]`
-+      -  I'\ :sub:`1[9:2]`
-+      -  I'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[17:10]`
-+      -  Q'\ :sub:`0[9:2]`
-+      -  Q'\ :sub:`0[1:0]; B2[5:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[17:10]`
-+      -  Q'\ :sub:`1[9:2]`
-+      -  Q'\ :sub:`1[1:0]; B2[5:0]=pad`
-+      -  pad
-diff --git a/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-new file mode 100644
-index 0000000..b073be5
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-sdr-pcu20be.rst
-@@ -0,0 +1,55 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+.. _V4L2-SDR-FMT-PCU20BE:
-+
-+******************************
-+V4L2_SDR_FMT_PCU20BE ('PC20')
-+******************************
-+
-+Planar complex unsigned 20-bit big endian IQ sample
-+
-+Description
-+===========
-+
-+This format contains a sequence of complex number samples. Each complex
-+number consist of two parts called In-phase and Quadrature (IQ). Both I
-+and Q are represented as a 20 bit unsigned big endian number stored in
-+32 bit space. The remaining unused bits within the 32 bit space will be
-+padded with 0. I value starts first and Q value starts at an offset
-+equalling half of the buffer size (i.e.) offset = buffersize/2. Out of
-+the 20 bits, bit 19:2 (18 bit) is data and bit 1:0 (2 bit) can be any
-+value.
-+
-+**Byte Order.**
-+Each cell is one byte.
-+
-+.. flat-table::
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * -  Offset:
-+      -  Byte B0
-+      -  Byte B1
-+      -  Byte B2
-+      -  Byte B3
-+    * -  start + 0:
-+      -  I'\ :sub:`0[19:12]`
-+      -  I'\ :sub:`0[11:4]`
-+      -  I'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  start + 4:
-+      -  I'\ :sub:`1[19:12]`
-+      -  I'\ :sub:`1[11:4]`
-+      -  I'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * -  ...
-+    * - start + offset:
-+      -  Q'\ :sub:`0[19:12]`
-+      -  Q'\ :sub:`0[11:4]`
-+      -  Q'\ :sub:`0[3:0]; B2[3:0]=pad`
-+      -  pad
-+    * - start + offset + 4:
-+      -  Q'\ :sub:`1[19:12]`
-+      -  Q'\ :sub:`1[11:4]`
-+      -  Q'\ :sub:`1[3:0]; B2[3:0]=pad`
-+      -  pad
-+
-diff --git a/Documentation/media/uapi/v4l/sdr-formats.rst b/Documentation/media/uapi/v4l/sdr-formats.rst
-index f863c08..2037f5b 100644
---- a/Documentation/media/uapi/v4l/sdr-formats.rst
-+++ b/Documentation/media/uapi/v4l/sdr-formats.rst
-@@ -17,3 +17,6 @@ These formats are used for :ref:`SDR <sdr>` interface only.
-     pixfmt-sdr-cs08
-     pixfmt-sdr-cs14le
-     pixfmt-sdr-ru12le
-+    pixfmt-sdr-pcu16be
-+    pixfmt-sdr-pcu18be
-+    pixfmt-sdr-pcu20be
++/**
+  * ir_raw_encode_scancode() - Encode a scancode as raw events
+  *
+  * @protocol:		protocol
 -- 
-1.9.1
+2.9.3
 
