@@ -1,96 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:33557 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753467AbcL2W2e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 17:28:34 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 20/20] ARM: imx_v6_v7_defconfig: Enable staging video4linux drivers
-Date: Thu, 29 Dec 2016 14:27:35 -0800
-Message-Id: <1483050455-10683-21-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:36242 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751936AbcLFAWP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 19:22:15 -0500
+Date: Mon, 5 Dec 2016 18:22:13 -0600
+From: Rob Herring <robh@kernel.org>
+To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 2/9] doc: DT: venus: binding document for Qualcomm
+ video driver
+Message-ID: <20161206002213.fymmpqxdg66jh2ft@rob-hp-laptop>
+References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
+ <1480583001-32236-3-git-send-email-stanimir.varbanov@linaro.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1480583001-32236-3-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable imx v4l2 staging drivers. For video capture on
-the SabreAuto, the ADV7180 video decoder also requires the
-i2c-mux-gpio and the max7310 port expander. The Sabrelite
-requires PWM clocks for the OV5640.
+On Thu, Dec 01, 2016 at 11:03:14AM +0200, Stanimir Varbanov wrote:
+> Add binding document for Venus video encoder/decoder driver
+> 
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: devicetree@vger.kernel.org
+> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+> ---
+> Rob, I have removed vmem clocks, interrupts and reg properties
+> for vmem thing. Probably I will come with a separate platform
+> driver fro that and pass the video memory DT node as phandle.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/configs/imx_v6_v7_defconfig | 10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Looks good, a couple of minor things below.
 
-diff --git a/arch/arm/configs/imx_v6_v7_defconfig b/arch/arm/configs/imx_v6_v7_defconfig
-index cbe7faf..5da4d8e 100644
---- a/arch/arm/configs/imx_v6_v7_defconfig
-+++ b/arch/arm/configs/imx_v6_v7_defconfig
-@@ -51,6 +51,7 @@ CONFIG_PREEMPT_VOLUNTARY=y
- CONFIG_AEABI=y
- CONFIG_HIGHMEM=y
- CONFIG_CMA=y
-+CONFIG_FORCE_MAX_ZONEORDER=14
- CONFIG_CMDLINE="noinitrd console=ttymxc0,115200"
- CONFIG_KEXEC=y
- CONFIG_CPU_FREQ=y
-@@ -181,6 +182,7 @@ CONFIG_SERIAL_FSL_LPUART=y
- CONFIG_SERIAL_FSL_LPUART_CONSOLE=y
- # CONFIG_I2C_COMPAT is not set
- CONFIG_I2C_CHARDEV=y
-+CONFIG_I2C_MUX=y
- CONFIG_I2C_MUX_GPIO=y
- # CONFIG_I2C_HELPER_AUTO is not set
- CONFIG_I2C_ALGOPCF=m
-@@ -194,11 +196,11 @@ CONFIG_GPIO_SYSFS=y
- CONFIG_GPIO_MC9S08DZ60=y
- CONFIG_GPIO_PCA953X=y
- CONFIG_GPIO_STMPE=y
--CONFIG_POWER_SUPPLY=y
- CONFIG_POWER_RESET=y
- CONFIG_POWER_RESET_IMX=y
- CONFIG_POWER_RESET_SYSCON=y
- CONFIG_POWER_RESET_SYSCON_POWEROFF=y
-+CONFIG_POWER_SUPPLY=y
- CONFIG_SENSORS_GPIO_FAN=y
- CONFIG_SENSORS_IIO_HWMON=y
- CONFIG_THERMAL=y
-@@ -221,6 +223,8 @@ CONFIG_REGULATOR_PFUZE100=y
- CONFIG_MEDIA_SUPPORT=y
- CONFIG_MEDIA_CAMERA_SUPPORT=y
- CONFIG_MEDIA_RC_SUPPORT=y
-+CONFIG_MEDIA_CONTROLLER=y
-+CONFIG_VIDEO_V4L2_SUBDEV_API=y
- CONFIG_RC_DEVICES=y
- CONFIG_IR_GPIO_CIR=y
- CONFIG_MEDIA_USB_SUPPORT=y
-@@ -229,6 +233,8 @@ CONFIG_V4L_PLATFORM_DRIVERS=y
- CONFIG_SOC_CAMERA=y
- CONFIG_V4L_MEM2MEM_DRIVERS=y
- CONFIG_VIDEO_CODA=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=m
- CONFIG_SOC_CAMERA_OV2640=y
- CONFIG_IMX_IPUV3_CORE=y
- CONFIG_DRM=y
-@@ -338,6 +344,8 @@ CONFIG_FSL_EDMA=y
- CONFIG_IMX_SDMA=y
- CONFIG_MXS_DMA=y
- CONFIG_STAGING=y
-+CONFIG_STAGING_MEDIA=y
-+CONFIG_COMMON_CLK_PWM=y
- CONFIG_IIO=y
- CONFIG_VF610_ADC=y
- CONFIG_MPL3115=y
--- 
-2.7.4
+> 
+>  .../devicetree/bindings/media/qcom,venus.txt       | 82 ++++++++++++++++++++++
+>  1 file changed, 82 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
+> new file mode 100644
+> index 000000000000..a64b4ea1ebba
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
+> @@ -0,0 +1,82 @@
+> +* Qualcomm Venus video encode/decode accelerator
+> +
+> +- compatible:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Value should contain one of:
+> +		- "qcom,msm8916-venus"
+> +		- "qcom,msm8996-venus"
+> +- reg:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: Register ranges as listed in the reg-names property.
+> +- reg-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain following entries:
+> +		- "base"	Venus register base
 
+-names is kind of pointless with only one.
+
+> +- interrupts:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: Should contain interrupts as listed in the interrupt-names
+> +		    property.
+> +- interrupt-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain following entries:
+> +		- "venus"	Venus interrupt line
+
+ditto
+
+> +- clocks:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A List of phandle and clock specifier pairs as listed
+> +		    in clock-names property.
+> +- clock-names:
+> +	Usage: required
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "core"	Core video accelerator clock
+> +		- "iface"	Video accelerator AHB clock
+> +		- "bus"		Video accelerator AXI clock
+> +- clock-names:
+> +	Usage: required for msm8996
+
+It's not clear if this is in addition to the above list. I'd guess not 
+and you should make it clear the above applies to the 8916 only.
+
+> +	Value type: <stringlist>
+> +	Definition: Should contain the following entries:
+> +		- "subcore0"		Subcore0 video accelerator clock
+> +		- "subcore1"		Subcore1 video accelerator clock
+> +		- "mmssnoc_axi"		Multimedia subsystem NOC AXI clock
+> +		- "mmss_mmagic_iface"	Multimedia subsystem MMAGIC AHB clock
+> +		- "mmss_mmagic_mbus"	Multimedia subsystem MMAGIC MAXI clock
+> +		- "mmagic_video_bus"	MMAGIC video AXI clock
+> +		- "video_mbus"		Video MAXI clock
+> +- power-domains:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A phandle and power domain specifier pairs to the
+> +		    power domain which is responsible for collapsing
+> +		    and restoring power to the peripheral.
+> +- rproc:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A phandle to remote processor responsible for
+> +		    firmware loading and processor booting.
+> +
+> +- iommus:
+> +	Usage: required
+> +	Value type: <prop-encoded-array>
+> +	Definition: A list of phandle and IOMMU specifier pairs.
+> +
+> +* An Example
+> +	video-codec@1d00000 {
+> +		compatible = "qcom,msm8916-venus";
+> +		reg = <0x01d00000 0xff000>;
+> +		reg-names = "base";
+> +		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
+> +		interrupt-names = "venus";
+> +		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
+> +			 <&gcc GCC_VENUS0_AHB_CLK>,
+> +			 <&gcc GCC_VENUS0_AXI_CLK>;
+> +		clock-names = "core", "iface", "bus";
+> +		power-domains = <&gcc VENUS_GDSC>;
+> +		rproc = <&venus_rproc>;
+> +		iommus = <&apps_iommu 5>;
+> +	};
+> -- 
+> 2.7.4
+> 
