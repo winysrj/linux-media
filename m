@@ -1,80 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:48887 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751256AbcLLPBC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 10:01:02 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
-        geert+renesas@glider.be, akpm@linux-foundation.org,
-        linux@roeck-us.net, hverkuil@xs4all.nl,
-        laurent.pinchart+renesas@ideasonboard.com, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, tiffany.lin@mediatek.com,
-        minghsiu.tsai@mediatek.com, jean-christophe.trotin@st.com,
-        andrew-ct.chen@mediatek.com, simon.horman@netronome.com,
-        songjun.wu@microchip.com, bparrot@ti.com,
-        CARLOS.PALMINHA@synopsys.com, Ramiro.Oliveira@synopsys.com
-Subject: [PATCH v2 0/2] Add support for the DW IP Prototyping Kits for MIPI CSI-2 Host
-Date: Mon, 12 Dec 2016 15:00:34 +0000
-Message-Id: <cover.1481548484.git.roliveir@synopsys.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:35009 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751598AbcLFNSA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 08:18:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@kernel.org, tiwai@suse.com, perex@perex.cz,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
+        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
+        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
+        sakari.ailus@iki.fi, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH v6 3/3] sound/usb: Use Media Controller API to share media resources
+Date: Tue, 06 Dec 2016 15:17:23 +0200
+Message-ID: <1539078.id5hGWOO3T@avalon>
+In-Reply-To: <d0a8e556-915c-4f14-d45e-a36a11fb5c6d@osg.samsung.com>
+References: <cover.1480539942.git.shuahkh@osg.samsung.com> <2368883.8y0L28vD2m@avalon> <d0a8e556-915c-4f14-d45e-a36a11fb5c6d@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset adds support for the DW CSI-2 Host IPK. These kits are intended
-to help in the bringup of IP titles developed by Synopsys.
+Hi Shuah,
 
-This is the second version of this patchset.
+On Monday 05 Dec 2016 17:38:23 Shuah Khan wrote:
+> On 12/05/2016 04:21 PM, Laurent Pinchart wrote:
+> > On Monday 05 Dec 2016 15:44:30 Shuah Khan wrote:
+> >> On 11/30/2016 03:01 PM, Shuah Khan wrote:
+> >>> Change ALSA driver to use Media Controller API to share media resources
+> >>> with DVB, and V4L2 drivers on a AU0828 media device.
+> >>> 
+> >>> Media Controller specific initialization is done after sound card is
+> >>> registered. ALSA creates Media interface and entity function graph
+> >>> nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
+> >>> 
+> >>> snd_usb_hw_params() will call Media Controller enable source handler
+> >>> interface to request the media resource. If resource request is granted,
+> >>> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY
+> >>> is returned.
+> >>> 
+> >>> Media specific cleanup is done in usb_audio_disconnect().
+> >>> 
+> >>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> >> 
+> >> Hi Takashi,
+> >> 
+> >> If you are good with this patch, could you please Ack it, so Mauro
+> >> can pull it into media tree with the other two patches in this series,
+> >> when he is ready to do so.
+> > 
+> > I *really* want to address the concerns raised by Sakari before pulling
+> > more code that makes fixing the race conditions more difficult. Please,
+> > let's all work on fixing the core code to build a stable base on which we
+> > can build additional features. V4L2 and MC need teamwork, it's time to
+> > give the subsystem the love it deserves.
+> 
+> Hi Laurent,
+> 
+> The issue Sakari brought up is specific to using devm for video_device in
+> omap3 and vsp1. I tried reproducing the problem on two different drivers
+> and couldn't on Linux 4.9-rc7.
+> 
+> After sharing that with Sakari, I suggested to Sakari to pull up his patch
+> that removes the devm usage and see if he still needs all the patches in his
+> patch series. He didn't back to me on that. I also requested him to rebase
+> on top of media dev allocator because the allocator routines he has don't
+> address the shared media device need.
+> 
+> He also didn't respond to my response regarding the reasons for choosing
+> graph_mutex to protect enable_source and disable_source handlers.
+> 
+> So I am not sure how to move forward at the moment without a concrete plan
+> for Sakari's RFC series. Sakari's patch series is still RFC and doesn't
+> address shared media_device and requires all drivers to change.
 
-v2: 
- - Add more detailed descriptions in the DT documentation
- - Add binding examples to DT documentation
- - Remove unnecessary debug structures
- - Remove unused fields in structures
- - Change variable types
- - Remove unused functions
- - Declare functions as static
- - Remove some prints
- - Add missing newlines.
-
-
-Ramiro Oliveira (2):
-  Add Documentation for Media Device, Video Device, and Synopsys DW MIPI
-    CSI-2 Host
-  Support for basic DW CSI-2 Host IPK funcionality
-
- .../devicetree/bindings/media/snps,dw-mipi-csi.txt |  27 +
- .../devicetree/bindings/media/snps,plat-ipk.txt    |   9 +
- .../bindings/media/snps,video-device.txt           |  12 +
- MAINTAINERS                                        |   7 +
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/dwc/Kconfig                 |  36 +
- drivers/media/platform/dwc/Makefile                |   3 +
- drivers/media/platform/dwc/dw_mipi_csi.c           | 647 ++++++++++++++++
- drivers/media/platform/dwc/dw_mipi_csi.h           | 180 +++++
- drivers/media/platform/dwc/plat_ipk.c              | 818 +++++++++++++++++++++
- drivers/media/platform/dwc/plat_ipk.h              | 101 +++
- drivers/media/platform/dwc/plat_ipk_video.h        |  97 +++
- drivers/media/platform/dwc/video_device.c          | 707 ++++++++++++++++++
- drivers/media/platform/dwc/video_device.h          |  85 +++
- 15 files changed, 2732 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
- create mode 100644 Documentation/devicetree/bindings/media/snps,plat-ipk.txt
- create mode 100644 Documentation/devicetree/bindings/media/snps,video-device.txt
- create mode 100644 drivers/media/platform/dwc/Kconfig
- create mode 100644 drivers/media/platform/dwc/Makefile
- create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.c
- create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.h
- create mode 100644 drivers/media/platform/dwc/plat_ipk.c
- create mode 100644 drivers/media/platform/dwc/plat_ipk.h
- create mode 100644 drivers/media/platform/dwc/plat_ipk_video.h
- create mode 100644 drivers/media/platform/dwc/video_device.c
- create mode 100644 drivers/media/platform/dwc/video_device.h
+Today is a public holiday in Finland, I don't expect Sakari to be available. 
+Let's check this with him tomorrow.
 
 -- 
-2.10.2
+Regards,
 
+Laurent Pinchart
 
