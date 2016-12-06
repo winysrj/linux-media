@@ -1,80 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:59247 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932514AbcLLVN6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:58 -0500
-From: Sean Young <sean@mess.org>
+Received: from aer-iport-1.cisco.com ([173.38.203.51]:3963 "EHLO
+        aer-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751388AbcLFKer (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 05:34:47 -0500
+From: matrandg@cisco.com
 To: linux-media@vger.kernel.org
-Subject: [PATCH v5 12/18] [media] rc: ir-jvc-decoder: Add encode capability
-Date: Mon, 12 Dec 2016 21:13:48 +0000
-Message-Id: <c19960088f214c4ffe63dc24cb21f74c2bb8c190.1481575826.git.sean@mess.org>
-In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+Cc: Mats Randgaard <matrandg@cisco.com>
+Subject: [PATCH 2/3] tc358743: Disable HDCP with "manual HDCP authentication" bit
+Date: Tue,  6 Dec 2016 11:24:28 +0100
+Message-Id: <1481019869-20093-2-git-send-email-matrandg@cisco.com>
+In-Reply-To: <1481019869-20093-1-git-send-email-matrandg@cisco.com>
+References: <1481019869-20093-1-git-send-email-matrandg@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the capability to encode JVC scancodes as raw events.
+From: Mats Randgaard <matrandg@cisco.com>
 
-Signed-off-by: Sean Young <sean@mess.org>
+Originally Toshiba told us that the only way to disable HDCP was to
+set the receiver in repeater mode, that would make the authentication
+fail because of missing software support. It has worked fine with all
+the sources we and our customers has used, until it was reported
+problems with Apple MacBook (Retina, 12-inch, Early 2015)
+(https://support.apple.com/kb/SP712?locale=en_US&viewlocale=en_US)
+with Apple A1612 USB type-C multiport adapter
+(http://www.apple.com/shop/product/MJ1K2AM/A/usb-c-digital-av-multiport-adapter)
+
+Finally Toshiba came up with a hidden bit that is named "Manual HDCP
+authentication". In this patch the original "repeater mode" concept is
+removed, and the new bit is set instead.
+
+With his patch HDCP is disabled when connected to the Apple MacBook
+and all other sources we have tested so far. The Apple MacBook is
+constantly trying to authenticate, but fails and continues to transmit
+unencrypted video.
+
+Signed-off-by: Mats Randgaard <matrandg@cisco.com>
 ---
- drivers/media/rc/ir-jvc-decoder.c | 39 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ drivers/media/i2c/tc358743.c      | 32 ++++++++++++--------------------
+ drivers/media/i2c/tc358743_regs.h |  1 +
+ 2 files changed, 13 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index 182402f..584cd43 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -170,9 +170,48 @@ static int ir_jvc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
+diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
+index a35aaf8..257969a 100644
+--- a/drivers/media/i2c/tc358743.c
++++ b/drivers/media/i2c/tc358743.c
+@@ -368,29 +368,21 @@ static void tc358743_set_hdmi_hdcp(struct v4l2_subdev *sd, bool enable)
+ 	v4l2_dbg(2, debug, sd, "%s: %s\n", __func__, enable ?
+ 				"enable" : "disable");
+ 
+-	i2c_wr8_and_or(sd, HDCP_REG1,
+-			~(MASK_AUTH_UNAUTH_SEL | MASK_AUTH_UNAUTH),
+-			MASK_AUTH_UNAUTH_SEL_16_FRAMES | MASK_AUTH_UNAUTH_AUTO);
++	if (enable) {
++		i2c_wr8_and_or(sd, HDCP_REG3, ~KEY_RD_CMD, KEY_RD_CMD);
+ 
+-	i2c_wr8_and_or(sd, HDCP_REG2, ~MASK_AUTO_P3_RESET,
+-			SET_AUTO_P3_RESET_FRAMES(0x0f));
++		i2c_wr8_and_or(sd, HDCP_MODE, ~MASK_MANUAL_AUTHENTICATION, 0);
+ 
+-	/* HDCP is disabled by configuring the receiver as HDCP repeater. The
+-	 * repeater mode require software support to work, so HDCP
+-	 * authentication will fail.
+-	 */
+-	i2c_wr8_and_or(sd, HDCP_REG3, ~KEY_RD_CMD, enable ? KEY_RD_CMD : 0);
+-	i2c_wr8_and_or(sd, HDCP_MODE, ~(MASK_AUTO_CLR | MASK_MODE_RST_TN),
+-			enable ?  (MASK_AUTO_CLR | MASK_MODE_RST_TN) : 0);
++		i2c_wr8_and_or(sd, HDCP_REG1, 0xff,
++				MASK_AUTH_UNAUTH_SEL_16_FRAMES |
++				MASK_AUTH_UNAUTH_AUTO);
+ 
+-	/* Apple MacBook Pro gen.8 has a bug that makes it freeze every fifth
+-	 * second when HDCP is disabled, but the MAX_EXCED bit is handled
+-	 * correctly and HDCP is disabled on the HDMI output.
+-	 */
+-	i2c_wr8_and_or(sd, BSTATUS1, ~MASK_MAX_EXCED,
+-			enable ? 0 : MASK_MAX_EXCED);
+-	i2c_wr8_and_or(sd, BCAPS, ~(MASK_REPEATER | MASK_READY),
+-			enable ? 0 : MASK_REPEATER | MASK_READY);
++		i2c_wr8_and_or(sd, HDCP_REG2, ~MASK_AUTO_P3_RESET,
++				SET_AUTO_P3_RESET_FRAMES(0x0f));
++	} else {
++		i2c_wr8_and_or(sd, HDCP_MODE, ~MASK_MANUAL_AUTHENTICATION,
++				MASK_MANUAL_AUTHENTICATION);
++	}
  }
  
-+static struct ir_raw_timings_pd ir_jvc_timings = {
-+	.header_pulse  = JVC_HEADER_PULSE,
-+	.header_space  = JVC_HEADER_SPACE,
-+	.bit_pulse     = JVC_BIT_PULSE,
-+	.bit_space[0]  = JVC_BIT_0_SPACE,
-+	.bit_space[1]  = JVC_BIT_1_SPACE,
-+	.trailer_pulse = JVC_TRAILER_PULSE,
-+	.trailer_space = JVC_TRAILER_SPACE,
-+	.msb_first     = 1,
-+};
-+
-+/**
-+ * ir_jvc_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol to encode
-+ * @scancode:	scancode to encode
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ */
-+static int ir_jvc_encode(enum rc_type protocol, u32 scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	struct ir_raw_event *e = events;
-+	int ret;
-+	u32 raw = (bitrev8((scancode >> 8) & 0xff) << 8) |
-+		  (bitrev8((scancode >> 0) & 0xff) << 0);
-+
-+	ret = ir_raw_gen_pd(&e, max, &ir_jvc_timings, JVC_NBITS, raw);
-+	if (ret < 0)
-+		return ret;
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler jvc_handler = {
- 	.protocols	= RC_BIT_JVC,
- 	.decode		= ir_jvc_decode,
-+	.encode		= ir_jvc_encode,
- };
+ static void tc358743_disable_edid(struct v4l2_subdev *sd)
+diff --git a/drivers/media/i2c/tc358743_regs.h b/drivers/media/i2c/tc358743_regs.h
+index 81f1db5..657ef50 100644
+--- a/drivers/media/i2c/tc358743_regs.h
++++ b/drivers/media/i2c/tc358743_regs.h
+@@ -420,6 +420,7 @@
+ #define MASK_MODE_RST_TN                      0x20
+ #define MASK_LINE_REKEY                       0x10
+ #define MASK_AUTO_CLR                         0x04
++#define MASK_MANUAL_AUTHENTICATION            0x02 /* Not in REF_01 */
  
- static int __init ir_jvc_decode_init(void)
+ #define HDCP_REG1                             0x8563 /* Not in REF_01 */
+ #define MASK_AUTH_UNAUTH_SEL                  0x70
 -- 
-2.9.3
+2.7.4
 
