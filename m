@@ -1,219 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37575
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1758442AbcLOO47 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 09:56:59 -0500
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
- as needed
+Received: from mail-pg0-f53.google.com ([74.125.83.53]:32776 "EHLO
+        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751797AbcLFQ5A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 11:57:00 -0500
+Received: by mail-pg0-f53.google.com with SMTP id 3so151209187pgd.0
+        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 08:57:00 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <20161109154608.1e578f9e@vento.lan>
- <20161213102447.60990b1c@vento.lan>
- <2384102b-33d4-7c97-e9bd-69e875dc651e@osg.samsung.com>
- <1604260.508DyjIRC9@avalon>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-        shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <bdfa08af-9c27-3f29-25af-312ee2805712@osg.samsung.com>
-Date: Thu, 15 Dec 2016 07:56:55 -0700
+        linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
+        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
+Subject: Re: [PATCH v4 1/4] [media] davinci: vpif_capture: don't lock over s_stream
+References: <20161129235712.29846-1-khilman@baylibre.com>
+        <20161129235712.29846-2-khilman@baylibre.com>
+        <4747860.QGGHSuFRpz@avalon>
+Date: Tue, 06 Dec 2016 08:49:38 -0800
+In-Reply-To: <4747860.QGGHSuFRpz@avalon> (Laurent Pinchart's message of "Wed,
+        30 Nov 2016 10:32:33 +0200")
+Message-ID: <m237i1gfz1.fsf@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <1604260.508DyjIRC9@avalon>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2016 03:39 AM, Laurent Pinchart wrote:
-> Hello,
-> 
-> On Tuesday 13 Dec 2016 15:23:53 Shuah Khan wrote:
->> On 12/13/2016 05:24 AM, Mauro Carvalho Chehab wrote:
->>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
->>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
->>>>> Hi Sakari,
->>>>>
->>>>> I answered you point to point below, but I suspect that you missed how
->>>>> the current approach works. So, I decided to write a quick summary here.
->>>>>
->>>>> The character devices /dev/media? are created via cdev, with relies on a
->>>>> kobject per device, with has an embedded struct kref inside.
->>>>>
->>>>> Also, each kobj at /dev/media0, /dev/media1, ... is associated with a
->>>>>
->>>>> struct device, when the code does:
->>>>> 	devnode->cdev.kobj.parent = &devnode->dev.kobj;
->>>>>
->>>>> before calling cdev_add().
->>>>>
->>>>> The current lifetime management is actually based on cdev's kobject's
->>>>> refcount, provided by its embedded kref.
->>>>>
->>>>> The kref warrants that any data associated with /dev/media0 won't be
->>>>> freed if there are any pending system call. In other words, when
->>>>> cdev_del() is called, it will remove /dev/media0 from the filesystem,
->>>>> and
->>>>> will call kobject_put().
->>>>>
->>>>> If the refcount is zero, it will call devnode->dev.release(). If the
->>>>> kobject refcount is not zero, the data won't be freed.
->>>>>
->>>>> So, in the best case scenario, there's no opened file descriptors
->>>>> by the time media device node is unregistered. So, it will free
->>>>> everything.
->>>>>
->>>>> In the worse case scenario, e. g. when the driver is removed or
->>>>> unbind while /dev/media0 has some opened file descriptor(s),
->>>>> the cdev logic will do the proper lifetime management.
->>>>>
->>>>> On such case, /dev/media0 disappears from the file system, so another
->>>>> open
->>>>> is not possible anymore. The data structures will remain allocated until
->>>>> all associated file descriptors are not closed.
->>>>>
->>>>> When all file descriptors are closed, the data will be freed.
->>>>>
->>>>> On that time, it will call an optional dev.release() callback,
->>>>> responsible to free any other data struct that the driver allocated.
->>>>
->>>> The patchset does not change this. It's not a question of the
->>>> media_devnode struct either. That's not an issue.
->>>>
->>>> The issue is rather what else can be accessed through the media device
->>>> and other interfaces. As IOCTLs are not serialised with device removal
->>>> (which now releases much of the data structures)
->>>
->>> Huh? ioctls are serialized with struct device removal. The Driver core
->>> warrants that.
-> 
-> Code references please.
->  
->>>> there's a high chance of accessing
->>>> released memory (or mutexes that have been already destroyed). An example
->>>> of that is here, stopping a running pipeline after unbinding the device.
->>>> What happens there is that the media device is released whilst it's in
->>>> use through the video device.
->>>>
->>>> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
->>>
->>> It is not clear from the logs what the driver tried to do, but
->>> that sounds like a driver's bug, with was not prepared to properly
->>> handle unbinds.
->>>
->>> The problem here is that isp_video_release() is called by V4L2
->>> release logic, and not by the MC one:
->>>
->>> static const struct v4l2_file_operations isp_video_fops = {
->>> 	.owner		= THIS_MODULE,
->>> 	.open		= isp_video_open,
->>> 	.release	= isp_video_release,
->>> 	.poll		= vb2_fop_poll,
->>> 	.unlocked_ioctl	= video_ioctl2,
->>> 	.mmap		= vb2_fop_mmap,
->>> };
->>>
->>> It seems that the driver's logic allows it to be called before or
->>> after destroying the MC.
->>
->> Right isp_video_release() will definitely be called after driver is
->> gone which means media device is gone and the device itself.
-> 
-> Certainly not after the driver is gone (as in the module being unloaded from 
-> memory), but it can be called after the device is unbound from the driver, 
-> yes.
-> 
->> Both au0828 and em28xx have these release handlers. Neither one uses
->> devm resource for their device structs.
-> 
-> And no driver exposing objects to userspace-accessible code paths should. I've 
-> been pointing at how devm_kzalloc() is abused for more than a year now, it's 
-> nice to see that people slowly start listening.
-> 
->> Also, both em28xx and au0828 keep disconnected state and have logic
->> to detect the state of the driver and device. em28xx holds reference
->> to v4l2->ref
-> 
-> That's very, very wrong. The v4l2_device::ref field must *not* be touched by 
-> drivers. Acquiring and releasing references to v4l2_device instances must be 
-> done with v4l2_device_get() and v4l2_device_put(), and the structure has a 
-> release handler that drivers can use. Why do people write such horrible code 
-> that pokes at private fields ?
-> 
->> and releases the reference in em28xx_v4l2_close() which is
->> its v4l2_file_operations .release handler. It also makes sure to not
->> touch device hardware if device is disconnected.
->>
->> Also, media graph access is done only when it has a valid media_device.
->> au0828 allocates media_device struct and it gets free'd when it does
->> its unregister sequence. Subsequent calls will check if it is null.
-> 
-> This is very wrong too. Don't try to handle data structures being pulled from 
-> under the driver's feet at random times. At best you will end up with races. 
-> Data structures must instead be properly refcounted.
-> 
->> It also does checks to see if media_device is registered or not in
->> some cases.
->>
->> isp_video_release() isn't safe to be called after isp device is gone,
->> leave alone media_device. Since isp is a devm resource, it is long
->> gone when device_release() release managed resources.
->>
->> I agree with Mauro that this is a driver problem.
-> 
-> No. There *is* a driver problem caused by devm_kzalloc() usage, and that 
-> problem *must* be fixed, but the media device life time management is also 
-> completely broken in core code.
-> 
->> Mauro and I did lot of work to get the USB drivers (em28xx and au0828) to
->> handle disconnect and unbind cases even before the media controller support
->> was added to them.
->>
->> I think what needs to happen is:
->>
->> 1. Remove devm use from omap3
-> 
-> Absolutely.
-> 
->> 2. Make sure media graph isn't accessed after media_device is unregistered
-> 
-> No way. We need to access the graph from the release handlers of the 
-> userspace-exposed structures (videodev and possibly media_device). The 
-> media_device structure must *not* disappear at unregistration time.
-> 
->> 3. Take reference to v4l2 device to be able to make sanity checks from
->>    isp_video_release() to determine if media_device is still around and
->>    then do stop stream etc. It has to keep state.
->>
->> I agree with Mauro that this is a driver problem. Mauro and I did lot
->> of work to get the USB drivers (em28xx and au0828) to handle disconnect
->> and unbind cases even before the media controller support was added to
->> them.
->>
->> Please don't pursue this RFC series that makes mc-core changes until
->> ompa3 driver problems are addressed. There is no need to change the
->> core unless it is necessary.
-> 
-> It is necessary as has been explained countless times, and will become more 
-> and more necessary as media_device instances get shared between multiple 
-> drivers, which is currently attempted *without* reference counting.
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
 
-You are probably forgetting the Media Device Allocator API work I did
-to make media_device sharable across media and audio drivers. Sakari's
-patches don't address the sharable need. I have been asking Sakari to
-use Media Device Allocator API in his patch series for allocating media
-device.
+> Hi Kevin,
+>
+> Thank you for the patch.
+>
+> On Tuesday 29 Nov 2016 15:57:09 Kevin Hilman wrote:
+>> Video capture subdevs may be over I2C and may sleep during xfer, so we
+>> cannot do IRQ-disabled locking when calling the subdev.
+>> 
+>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_capture.c | 3 +++
+>>  1 file changed, 3 insertions(+)
+>> 
+>> diff --git a/drivers/media/platform/davinci/vpif_capture.c
+>> b/drivers/media/platform/davinci/vpif_capture.c index
+>> 5104cc0ee40e..9f8f41c0f251 100644
+>> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> @@ -193,7 +193,10 @@ static int vpif_start_streaming(struct vb2_queue *vq,
+>> unsigned int count) }
+>>  	}
+>> 
+>> +	spin_unlock_irqrestore(&common->irqlock, flags);
+>>  	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
+>> +	spin_lock_irqsave(&common->irqlock, flags);
+>
+> I always get anxious when I see a spinlock being released randomly with an 
+> operation in the middle of a protected section. Looking at the code it looks 
+> like the spinlock is abused here. irqlock should only protect the dma_queue 
+> and should thus only be taken around the following code:
+>
+> spin_lock_irqsave(&common->irqlock, flags);
+> /* Get the next frame from the buffer queue */
+> common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
+>                             struct vpif_cap_buffer, list);
+> /* Remove buffer from the buffer queue */
+> list_del(&common->cur_frm->list);
+> spin_unlock_irqrestore(&common->irqlock, flags);
 
-I discussed the conflicts between the work I am doing and Sakari's series
-to find a common ground. But it doesn't look like we are going to get there.
+Yes, that looks correct.  Will update.
 
-thanks,
--- Shuah
+> The code that is currently protected by the lock in the start and stop 
+> streaming functions should be protected by a mutex instead.
 
-> 
->> I would be happy to help, unfortunately I don't have a omap3 device
->> to fix and test problems. I am unable to find any omap3 devices. The
->> one I have isn't good.
-> 
+I tried taking the mutex here, but lockdep pointed out a deadlock.  I
+may not be fully understanding the V4L2 internals here, but it seems
+that the ioctl is already taking a mutex, so taking it again in
+start/stop streaming is a deadlock.  Unless you think the locking should
+be nested here, it seems to me that the mutex isn't needed.
+
+Kevin
 
