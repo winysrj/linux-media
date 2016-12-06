@@ -1,159 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:32818 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933396AbcLIMf2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 07:35:28 -0500
-From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
-To: linux-renesas-soc@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, magnus.damm@gmail.com,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [PATCH v1.5 4/6] drm: rcar-du: Map memory through the VSP device
-Date: Fri,  9 Dec 2016 13:35:10 +0100
-Message-Id: <1481286912-16555-5-git-send-email-ulrich.hecht+renesas@gmail.com>
-In-Reply-To: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
-References: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33150 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752937AbcLFQIQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 11:08:16 -0500
+Received: by mail-pf0-f195.google.com with SMTP id 144so18946900pfv.0
+        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 08:08:16 -0800 (PST)
+From: evgeni.raikhel@gmail.com
+To: linux-media@vger.kernel.org
+Cc: sergey.dorodnicov@intel.com, eliezer.tamir@intel.com,
+        evgeni.raikhel@intel.com, laurent.pinchart@ideasonboard.com,
+        Aviv Greenberg <avivgr@gmail.com>
+Subject: [PATCH 1/2 v2] media: Adding 'INZI' Depth data format to V4L2_API.
+Date: Tue,  6 Dec 2016 18:04:34 +0200
+Message-Id: <1481040275-18392-2-git-send-email-evgeni.raikhel@intel.com>
+In-Reply-To: <1481040275-18392-1-git-send-email-evgeni.raikhel@intel.com>
+References: <1481040275-18392-1-git-send-email-evgeni.raikhel@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+From: Aviv Greenberg <avivgr@gmail.com>
 
-For planes handled by a VSP instance, map the framebuffer memory through
-the VSP to ensure proper IOMMU handling.
+This is a proprietary multi-plane format that provides
+Infrared and Depth data.
+The format is utilized by Intel SR300 depth camera.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+The patch comprises of the format definition
+to be introduced into V4L2_API via  include/uapi/linux/videodev2.h,
+and the pixel format description to be added to
+Documentation/media/uapi/v4l folder, under 'depth-formats' section
+
+Signed-off-by: Aviv Greenberg <avivgr@gmail.com>
+Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
 ---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 74 ++++++++++++++++++++++++++++++++---
- drivers/gpu/drm/rcar-du/rcar_du_vsp.h |  2 +
- 2 files changed, 70 insertions(+), 6 deletions(-)
+ Documentation/media/uapi/v4l/depth-formats.rst |  1 +
+ Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 83 ++++++++++++++++++++++++++
+ include/uapi/linux/videodev2.h                 |  1 +
+ 3 files changed, 85 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index 83ebd16..851c2e7 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -19,7 +19,9 @@
- #include <drm/drm_gem_cma_helper.h>
- #include <drm/drm_plane_helper.h>
+diff --git a/Documentation/media/uapi/v4l/depth-formats.rst b/Documentation/media/uapi/v4l/depth-formats.rst
+index 82f183870aae..c755be0e4d2a 100644
+--- a/Documentation/media/uapi/v4l/depth-formats.rst
++++ b/Documentation/media/uapi/v4l/depth-formats.rst
+@@ -13,3 +13,4 @@ Depth data provides distance to points, mapped onto the image plane
+     :maxdepth: 1
  
-+#include <linux/dma-mapping.h>
- #include <linux/of_platform.h>
-+#include <linux/scatterlist.h>
- #include <linux/videodev2.h>
+     pixfmt-z16
++    pixfmt-inzi
+diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
+new file mode 100644
+index 000000000000..5adc2b679be4
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
+@@ -0,0 +1,83 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _V4L2-PIX-FMT-INZI:
++
++**************************
++V4L2_PIX_FMT_INZI ('INZI')
++**************************
++
++Infrared 10-bit linked with Depth 16-bit images
++
++
++Description
++===========
++
++Proprietary multi-planar format used by Intel SR300 Depth cameras, comprise of
++Infrared image followed by Depth data. The pixel definition is 32-bpp,
++with the Depth and Infrared Data split into separate continuous planes of
++identical dimensions.
++
++
++
++The first plane - Infrared data - is stored according to
++:ref:`V4L2_PIX_FMT_Y10 <V4L2-PIX-FMT-Y10>` greyscale format.
++Each pixel is 16-bit cell, with actual data stored in the 10 LSBs
++with values in range 0 to 1023.
++The six remaining MSBs are padded with zeros.
++
++
++The second plane provides 16-bit per-pixel Depth data arranged in
++:ref:`V4L2-PIX-FMT-Z16 <V4L2-PIX-FMT-Z16>` format.
++
++
++**Frame Structure.**
++Each cell is a 16-bit word with more significant data stored at higher
++memory address (byte order is little-endian).
++
++.. raw:: latex
++
++    \newline\newline\begin{adjustbox}{width=\columnwidth}
++
++.. tabularcolumns:: |p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
++
++.. flat-table::
++    :header-rows:  0
++    :stub-columns: 1
++    :widths:    1 1 1 1 1 1
++
++    * - Ir\ :sub:`0,0`
++      - Ir\ :sub:`0,1`
++      - Ir\ :sub:`0,2`
++      - ...
++      - ...
++      - ...
++    * - :cspan:`5` ...
++    * - :cspan:`5` Infrared Data
++    * - :cspan:`5` ...
++    * - ...
++      - ...
++      - ...
++      - Ir\ :sub:`n-1,n-3`
++      - Ir\ :sub:`n-1,n-2`
++      - Ir\ :sub:`n-1,n-1`
++    * - Depth\ :sub:`0,0`
++      - Depth\ :sub:`0,1`
++      - Depth\ :sub:`0,2`
++      - ...
++      - ...
++      - ...
++    * - :cspan:`5` ...
++    * - :cspan:`5` Depth Data
++    * - :cspan:`5` ...
++    * - ...
++      - ...
++      - ...
++      - Depth\ :sub:`n-1,n-3`
++      - Depth\ :sub:`n-1,n-2`
++      - Depth\ :sub:`n-1,n-1`
++
++.. raw:: latex
++
++    \end{adjustbox}\newline\newline
++
++
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 46e8a2e369f9..04263c59b93f 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -662,6 +662,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
+ #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
++#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Infrared 10-bit linked with Depth 16-bit */
  
- #include <media/vsp1.h>
-@@ -166,12 +168,9 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 	cfg.dst.width = state->state.crtc_w;
- 	cfg.dst.height = state->state.crtc_h;
- 
--	for (i = 0; i < state->format->planes; ++i) {
--		struct drm_gem_cma_object *gem;
--
--		gem = drm_fb_cma_get_gem_obj(fb, i);
--		cfg.mem[i] = gem->paddr + fb->offsets[i];
--	}
-+	for (i = 0; i < state->format->planes; ++i)
-+		cfg.mem[i] = sg_dma_address(state->sg_tables[i].sgl)
-+			   + fb->offsets[i];
- 
- 	for (i = 0; i < ARRAY_SIZE(formats_kms); ++i) {
- 		if (formats_kms[i] == state->format->fourcc) {
-@@ -183,6 +182,67 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 	vsp1_du_atomic_update(plane->vsp->vsp, plane->index, &cfg);
- }
- 
-+static int rcar_du_vsp_plane_prepare_fb(struct drm_plane *plane,
-+					struct drm_plane_state *state)
-+{
-+	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
-+	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
-+	struct rcar_du_device *rcdu = vsp->dev;
-+	unsigned int i;
-+	int ret;
-+
-+	if (!state->fb)
-+		return 0;
-+
-+	for (i = 0; i < rstate->format->planes; ++i) {
-+		struct drm_gem_cma_object *gem =
-+			drm_fb_cma_get_gem_obj(state->fb, i);
-+		struct sg_table *sgt = &rstate->sg_tables[i];
-+
-+		ret = dma_get_sgtable(rcdu->dev, sgt, gem->vaddr, gem->paddr,
-+				      gem->base.size);
-+		if (ret)
-+			goto fail;
-+
-+		ret = vsp1_du_map_sg(vsp->vsp, sgt);
-+		if (!ret) {
-+			sg_free_table(sgt);
-+			ret = -ENOMEM;
-+			goto fail;
-+		}
-+	}
-+
-+	return 0;
-+
-+fail:
-+	for (i--; i >= 0; i--) {
-+		struct sg_table *sgt = &rstate->sg_tables[i];
-+
-+		vsp1_du_unmap_sg(vsp->vsp, sgt);
-+		sg_free_table(sgt);
-+	}
-+
-+	return ret;
-+}
-+
-+static void rcar_du_vsp_plane_cleanup_fb(struct drm_plane *plane,
-+					 struct drm_plane_state *state)
-+{
-+	struct rcar_du_vsp_plane_state *rstate = to_rcar_vsp_plane_state(state);
-+	struct rcar_du_vsp *vsp = to_rcar_vsp_plane(plane)->vsp;
-+	unsigned int i;
-+
-+	if (!state->fb)
-+		return;
-+
-+	for (i = 0; i < rstate->format->planes; ++i) {
-+		struct sg_table *sgt = &rstate->sg_tables[i];
-+
-+		vsp1_du_unmap_sg(vsp->vsp, sgt);
-+		sg_free_table(sgt);
-+	}
-+}
-+
- static int rcar_du_vsp_plane_atomic_check(struct drm_plane *plane,
- 					  struct drm_plane_state *state)
- {
-@@ -223,6 +283,8 @@ static void rcar_du_vsp_plane_atomic_update(struct drm_plane *plane,
- }
- 
- static const struct drm_plane_helper_funcs rcar_du_vsp_plane_helper_funcs = {
-+	.prepare_fb = rcar_du_vsp_plane_prepare_fb,
-+	.cleanup_fb = rcar_du_vsp_plane_cleanup_fb,
- 	.atomic_check = rcar_du_vsp_plane_atomic_check,
- 	.atomic_update = rcar_du_vsp_plane_atomic_update,
- };
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-index 510dcc9..bbb4161 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.h
-@@ -43,6 +43,7 @@ static inline struct rcar_du_vsp_plane *to_rcar_vsp_plane(struct drm_plane *p)
-  * struct rcar_du_vsp_plane_state - Driver-specific plane state
-  * @state: base DRM plane state
-  * @format: information about the pixel format used by the plane
-+ * @sg_tables: scatter-gather tables for the frame buffer memory
-  * @alpha: value of the plane alpha property
-  * @zpos: value of the plane zpos property
-  */
-@@ -50,6 +51,7 @@ struct rcar_du_vsp_plane_state {
- 	struct drm_plane_state state;
- 
- 	const struct rcar_du_format_info *format;
-+	struct sg_table sg_tables[3];
- 
- 	unsigned int alpha;
- 	unsigned int zpos;
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
 -- 
 2.7.4
 
