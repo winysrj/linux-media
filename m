@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:9158 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751223AbcLERLo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 12:11:44 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v4 02/10] ARM: dts: STiH410: add DELTA dt node
-Date: Mon, 5 Dec 2016 18:11:25 +0100
-Message-ID: <1480957893-25636-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.samsung.com ([203.254.224.33]:49591 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751418AbcLGBvI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 20:51:08 -0500
+Received: from epcpsbgm2new.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7.0.5.31.0 64bit (built May  5 2014))
+ with ESMTP id <0OHS00BT6L4UIF70@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Dec 2016 10:50:54 +0900 (KST)
+Date: Wed, 07 Dec 2016 10:50:54 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] [media] mceusb: LIRC_SET_SEND_CARRIER returns 0 on
+ success
+Message-id: <20161207015054.sxzzaea5y22nmmau@gangnam.samsung>
+References: <CGME20161207000515epcas4p400e7ac17bc7441d9d799d4aa523a5ef9@epcas4p4.samsung.com>
+ <1480698974-9093-1-git-send-email-sean@mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <1480698974-9093-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds DT node for STMicroelectronics
-DELTA V4L2 video decoder
+Reviewed-by: Andi Shyti <andi.shyti@samsung.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- arch/arm/boot/dts/stih410.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
-diff --git a/arch/arm/boot/dts/stih410.dtsi b/arch/arm/boot/dts/stih410.dtsi
-index a3ef734..fb03cb67 100644
---- a/arch/arm/boot/dts/stih410.dtsi
-+++ b/arch/arm/boot/dts/stih410.dtsi
-@@ -259,5 +259,15 @@
- 			clocks = <&clk_sysin>;
- 			interrupts = <GIC_SPI 205 IRQ_TYPE_EDGE_RISING>;
- 		};
-+		delta0 {
-+			compatible = "st,st-delta";
-+			clock-names = "delta",
-+				      "delta-st231",
-+				      "delta-flash-promip";
-+			clocks = <&clk_s_c0_flexgen CLK_VID_DMU>,
-+				 <&clk_s_c0_flexgen CLK_ST231_DMU>,
-+				 <&clk_s_c0_flexgen CLK_FLASH_PROMIP>;
-+		};
-+
- 	};
- };
--- 
-1.9.1
-
+On Fri, Dec 02, 2016 at 05:16:07PM +0000, Sean Young wrote:
+> LIRC_SET_SEND_CARRIER ioctl should not return the carrier used, it
+> should return 0.
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/mceusb.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+> index 9bf6917..96b0ade 100644
+> --- a/drivers/media/rc/mceusb.c
+> +++ b/drivers/media/rc/mceusb.c
+> @@ -890,7 +890,7 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+>  			cmdbuf[3] = MCE_IRDATA_TRAILER;
+>  			dev_dbg(ir->dev, "disabling carrier modulation");
+>  			mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
+> -			return carrier;
+> +			return 0;
+>  		}
+>  
+>  		for (prescaler = 0; prescaler < 4; ++prescaler) {
+> @@ -904,7 +904,7 @@ static int mceusb_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+>  
+>  				/* Transmit new carrier to mce device */
+>  				mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
+> -				return carrier;
+> +				return 0;
+>  			}
+>  		}
+>  
+> -- 
+> 2.9.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
