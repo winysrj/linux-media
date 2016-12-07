@@ -1,28 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:56121 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752748AbcLGKpE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Dec 2016 05:45:04 -0500
-Date: Wed, 7 Dec 2016 10:45:01 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 00/13] Use sysfs filter for winbond & nuvoton wakeup
-Message-ID: <20161207104501.GA21260@gofer.mess.org>
-References: <cover.1481019109.git.sean@mess.org>
+Received: from mail-pf0-f175.google.com ([209.85.192.175]:36602 "EHLO
+        mail-pf0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932192AbcLGSad (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 13:30:33 -0500
+Received: by mail-pf0-f175.google.com with SMTP id 189so78662838pfz.3
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 10:30:33 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v6 5/5] [media] davinci: VPIF: add basic support for DT init
+Date: Wed,  7 Dec 2016 10:30:25 -0800
+Message-Id: <20161207183025.20684-6-khilman@baylibre.com>
+In-Reply-To: <20161207183025.20684-1-khilman@baylibre.com>
+References: <20161207183025.20684-1-khilman@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 06, 2016 at 10:19:08AM +0000, Sean Young wrote:
-> This patch series resurrects an earlier series with a new approach.
+Add basic support for initialization via DT
 
-I've discovered some bugs in this series. Protocol modules are not
-autoloaded and rc-loopback and is missing the wakeup_protocols sysfs file.
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/media/platform/davinci/vpif.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Please treat this series as RFC while I fix the issues and do more testing.
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index f50148dcba64..1b02a6363f77 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -467,8 +467,17 @@ static const struct dev_pm_ops vpif_pm = {
+ #define vpif_pm_ops NULL
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id vpif_of_match[] = {
++	{ .compatible = "ti,da850-vpif", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, vpif_of_match);
++#endif
++
+ static struct platform_driver vpif_driver = {
+ 	.driver = {
++		.of_match_table = of_match_ptr(vpif_of_match),
+ 		.name	= VPIF_DRIVER_NAME,
+ 		.pm	= vpif_pm_ops,
+ 	},
+-- 
+2.9.3
 
-
-Sean
