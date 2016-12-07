@@ -1,79 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:46685 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753244AbcLIQ7U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 11:59:20 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Philipp Zabel <philipp.zabel@gmail.com>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v2 1/7] ARM: dts: imx6qdl: Add VDOA compatible and clocks properties
-Date: Fri,  9 Dec 2016 17:58:57 +0100
-Message-Id: <20161209165903.1293-2-m.tretter@pengutronix.de>
-In-Reply-To: <20161209165903.1293-1-m.tretter@pengutronix.de>
-References: <20161209165903.1293-1-m.tretter@pengutronix.de>
+Received: from mail-pf0-f177.google.com ([209.85.192.177]:33966 "EHLO
+        mail-pf0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752724AbcLGFIw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 00:08:52 -0500
+Received: by mail-pf0-f177.google.com with SMTP id c4so74889223pfb.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 21:08:52 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v5 5/5] [media] davinci: VPIF: add basic support for DT init
+Date: Tue,  6 Dec 2016 21:08:26 -0800
+Message-Id: <20161207050826.23174-6-khilman@baylibre.com>
+In-Reply-To: <20161207050826.23174-1-khilman@baylibre.com>
+References: <20161207050826.23174-1-khilman@baylibre.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <philipp.zabel@gmail.com>
+Add basic support for initialization via DT
 
-This adds a compatible property and the correct clock for the
-i.MX6Q Video Data Order Adapter.
-
-Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- .../devicetree/bindings/media/fsl-vdoa.txt          | 21 +++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi                      |  2 ++
- 2 files changed, 23 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
+ drivers/media/platform/davinci/vpif.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/fsl-vdoa.txt b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
-new file mode 100644
-index 0000000..5e45f9b
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
-@@ -0,0 +1,21 @@
-+Freescale Video Data Order Adapter
-+==================================
-+
-+The Video Data Order Adapter (VDOA) is present on the i.MX6q. Its sole purpose
-+it to to reorder video data from the macroblock tiled order produced by the
-+CODA 960 VPU to the conventional raster-scan order for scanout.
-+
-+Required properties:
-+- compatible: must be "fsl,imx6q-vdoa"
-+- reg: the register base and size for the device registers
-+- interrupts: the VDOA interrupt
-+- clocks: the vdoa clock
-+
-+Example:
-+
-+vdoa@021e4000 {
-+        compatible = "fsl,imx6q-vdoa";
-+        reg = <0x021e4000 0x4000>;
-+        interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
-+        clocks = <&clks IMX6QDL_CLK_VDOA>;
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index f50148dcba64..1b02a6363f77 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -467,8 +467,17 @@ static const struct dev_pm_ops vpif_pm = {
+ #define vpif_pm_ops NULL
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id vpif_of_match[] = {
++	{ .compatible = "ti,da850-vpif", },
++	{ /* sentinel */ },
 +};
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index b13b0b2..69e3668 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -1153,8 +1153,10 @@
- 			};
- 
- 			vdoa@021e4000 {
-+				compatible = "fsl,imx6q-vdoa";
- 				reg = <0x021e4000 0x4000>;
- 				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
-+				clocks = <&clks IMX6QDL_CLK_VDOA>;
- 			};
- 
- 			uart2: serial@021e8000 {
++MODULE_DEVICE_TABLE(of, vpif_of_match);
++#endif
++
+ static struct platform_driver vpif_driver = {
+ 	.driver = {
++		.of_match_table = of_match_ptr(vpif_of_match),
+ 		.name	= VPIF_DRIVER_NAME,
+ 		.pm	= vpif_pm_ops,
+ 	},
 -- 
-2.10.2
+2.9.3
 
