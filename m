@@ -1,57 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.osadl.org ([62.245.132.105]:48036 "EHLO www.osadl.org"
+Received: from gofer.mess.org ([80.229.237.210]:56121 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752017AbcLMFm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 00:42:29 -0500
-From: Nicholas Mc Guire <hofrat@osadl.org>
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: HeungJun Kim <riverful.kim@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Nicholas Mc Guire <hofrat@osadl.org>
-Subject: [PATCH RFC] [media] m5mols: add missing dependency on VIDEO_IR_I2C
-Date: Tue, 13 Dec 2016 06:44:08 +0100
-Message-Id: <1481607848-24053-1-git-send-email-hofrat@osadl.org>
+        id S1752748AbcLGKpE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Dec 2016 05:45:04 -0500
+Date: Wed, 7 Dec 2016 10:45:01 +0000
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 00/13] Use sysfs filter for winbond & nuvoton wakeup
+Message-ID: <20161207104501.GA21260@gofer.mess.org>
+References: <cover.1481019109.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1481019109.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Depends on: tag in Kconfig for CONFIG_VIDEO_M5MOLS does not list
-VIDEO_IR_I2C so Kconfig displays the dependencies needed so the M-5MOLS
-driver can not be found. 
+On Tue, Dec 06, 2016 at 10:19:08AM +0000, Sean Young wrote:
+> This patch series resurrects an earlier series with a new approach.
 
-Fixes: commit cb7a01ac324b ("[media] move i2c files into drivers/media/i2c")
-Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
----
+I've discovered some bugs in this series. Protocol modules are not
+autoloaded and rc-loopback and is missing the wakeup_protocols sysfs file.
 
-searching for VIDEO_M5MOLS in menuconfig currently shows the following 
-dependencies
- Depends on: MEDIA_SUPPORT [=m] && I2C [=y] && VIDEO_V4L2 [=m] && \
-             VIDEO_V4L2_SUBDEV_API [=y] && MEDIA_CAMERA_SUPPORT [=y]  
-but as the default settings include MEDIA_SUBDRV_AUTOSELECT=y the
-"I2C module for IR" submenu (CONFIG_VIDEO_IR_I2C) is not displayed
-adding the VIDEO_IR_I2C to the dependency list makes this clear
+Please treat this series as RFC while I fix the issues and do more testing.
 
-Q: should a patch like this carry a Fixes: tag ? 
 
-Patch was tested against: x86_64_defconfig
-
-Patch is against 4.9.0 (localversion-next is next-20161212)
-
- drivers/media/i2c/m5mols/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/m5mols/Kconfig b/drivers/media/i2c/m5mols/Kconfig
-index dc8c250..6847a1b 100644
---- a/drivers/media/i2c/m5mols/Kconfig
-+++ b/drivers/media/i2c/m5mols/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_M5MOLS
- 	tristate "Fujitsu M-5MOLS 8MP sensor support"
--	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	depends on I2C && VIDEO_IR_I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	depends on MEDIA_CAMERA_SUPPORT
- 	---help---
- 	  This driver supports Fujitsu M-5MOLS camera sensor with ISP
--- 
-2.1.4
-
+Sean
