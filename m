@@ -1,86 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49787 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753610AbcLILrC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:47:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH v2 6/6] v4l: tvp5150: Don't override output pinmuxing at stream on/off time
-Date: Fri,  9 Dec 2016 13:47:19 +0200
-Message-Id: <1481284039-7960-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pg0-f52.google.com ([74.125.83.52]:34845 "EHLO
+        mail-pg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752724AbcLGFIu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 00:08:50 -0500
+Received: by mail-pg0-f52.google.com with SMTP id p66so157577842pga.2
+        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 21:08:50 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v5 4/5] [media] dt-bindings: add TI VPIF documentation
+Date: Tue,  6 Dec 2016 21:08:25 -0800
+Message-Id: <20161207050826.23174-5-khilman@baylibre.com>
+In-Reply-To: <20161207050826.23174-1-khilman@baylibre.com>
+References: <20161207050826.23174-1-khilman@baylibre.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The s_stream() handler incorrectly writes the whole MISC_CTL register to
-enable or disable the outputs, overriding the output pinmuxing
-configuration. Fix it to only touch the output enable bits.
-
-The CONF_SHARED_PIN register is also written by the same function,
-resulting in muxing the INTREQ signal instead of the VBLK/GPCL signal on
-the INTREQ/GPCL/VBLK pin. As the driver doesn't support interrupts this
-is obviously incorrect, and breaks operation on other devices. Fix it by
-removing the write.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/media/i2c/tvp5150.c | 33 +++++++++++++++++++--------------
- 1 file changed, 19 insertions(+), 14 deletions(-)
+ .../devicetree/bindings/media/ti,da850-vpif.txt    | 67 ++++++++++++++++++++++
+ 1 file changed, 67 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/ti,da850-vpif.txt
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 8852fa8c957b..48646a7f3fb0 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -1058,22 +1058,27 @@ static const struct media_entity_operations tvp5150_sd_media_ops = {
- static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
- {
- 	struct tvp5150 *decoder = to_tvp5150(sd);
--	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
--	int val = TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
--
--	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
--	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
--		val = TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_SYNC_OE
--		    | TVP5150_MISC_CTL_CLOCK_OE;
-+	int val;
- 
--	/* Initializes TVP5150 to its default values */
--	/* # set PCLK (27MHz) */
--	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
-+	/* Enable or disable the video output signals. */
-+	val = tvp5150_read(sd, TVP5150_MISC_CTL);
-+	if (val < 0)
-+		return val;
+diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+new file mode 100644
+index 000000000000..fa06dfdb6898
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
+@@ -0,0 +1,67 @@
++Texas Instruments VPIF
++----------------------
 +
-+	val &= ~(TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_SYNC_OE |
-+		 TVP5150_MISC_CTL_CLOCK_OE);
++The TI Video Port InterFace (VPIF) is the primary component for video
++capture and display on the DA850/AM18x family of TI DaVinci/Sitara
++SoCs.
 +
-+	if (enable) {
-+		/*
-+		 * Enable the YCbCr and clock outputs. In discrete sync mode
-+		 * (non-BT.656) additionally enable the the sync outputs.
-+		 */
-+		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
-+		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-+			val |= TVP5150_MISC_CTL_SYNC_OE;
-+	}
- 
--	if (enable)
--		tvp5150_write(sd, TVP5150_MISC_CTL, val);
--	else
--		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
-+	tvp5150_write(sd, TVP5150_MISC_CTL, val);
- 
- 	return 0;
- }
++TI Document reference: SPRUH82C, Chapter 35
++http://www.ti.com/lit/pdf/spruh82
++
++Required properties:
++- compatible: must be "ti,da850-vpif"
++- reg: physical base address and length of the registers set for the device;
++- interrupts: should contain IRQ line for the VPIF
++
++Video Capture:
++
++VPIF has a 16-bit parallel bus input, supporting 2 8-bit channels or a
++single 16-bit channel.  It should contain at least one port child node
++with child 'endpoint' node. Please refer to the bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example using 2 8-bit input channels, one of which is connected to an
++I2C-connected TVP5147 decoder:
++
++	vpif: vpif@217000 {
++		compatible = "ti,da850-vpif";
++		reg = <0x217000 0x1000>;
++		interrupts = <92>;
++
++		port {
++			vpif_ch0: endpoint@0 {
++				  reg = <0>;
++				  bus-width = <8>;
++				  remote-endpoint = <&composite>;
++			};
++
++			vpif_ch1: endpoint@1 {
++				  reg = <1>;
++				  bus-width = <8>;
++				  data-shift = <8>;
++			};
++		};
++	};
++
++[ ... ]
++
++&i2c0 {
++
++	tvp5147@5d {
++		compatible = "ti,tvp5147";
++		reg = <0x5d>;
++		status = "okay";
++
++		port {
++			composite: endpoint {
++				hsync-active = <1>;
++				vsync-active = <1>;
++				pclk-sample = <0>;
++
++				/* VPIF channel 0 (lower 8-bits) */
++				remote-endpoint = <&vpif_ch0>;
++				bus-width = <8>;
++			};
++		};
++	};
++};
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.3
 
