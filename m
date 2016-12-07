@@ -1,82 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34959 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750951AbcLEN2W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 08:28:22 -0500
-Received: by mail-pg0-f65.google.com with SMTP id p66so16478118pga.2
-        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 05:28:22 -0800 (PST)
-From: evgeni.raikhel@gmail.com
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>
-Subject: [PATCH 2/2] uvcvideo: Document Intel SR300 Depth camera INZI format
-Date: Mon,  5 Dec 2016 15:24:59 +0200
-Message-Id: <1480944299-3349-3-git-send-email-evgeni.raikhel@intel.com>
-In-Reply-To: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com>
-References: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:58308
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753251AbcLGUEM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 15:04:12 -0500
+Subject: Re: [PATCH v6 3/3] sound/usb: Use Media Controller API to share media
+ resources
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <cover.1480539942.git.shuahkh@osg.samsung.com>
+ <ebeaa42019b102f76d87a2fc4aa7793e1f87072c.1480539942.git.shuahkh@osg.samsung.com>
+ <69ad05a8-8572-43e7-ef76-7510edd904c6@osg.samsung.com>
+ <2368883.8y0L28vD2m@avalon>
+ <d0a8e556-915c-4f14-d45e-a36a11fb5c6d@osg.samsung.com>
+ <20161207105207.GW16630@valkosipuli.retiisi.org.uk>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, tiwai@suse.com, perex@perex.cz,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
+        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
+        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        alsa-devel@alsa-project.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <f83b60c1-9e1a-df5c-b1ec-de2ddd219307@osg.samsung.com>
+Date: Wed, 7 Dec 2016 13:03:59 -0700
+MIME-Version: 1.0
+In-Reply-To: <20161207105207.GW16630@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+Hi Sakari,
 
-Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
-format utilized by Intel SR300 Depth camera.
+On 12/07/2016 03:52 AM, Sakari Ailus wrote:
+> Hi Shuah,
+> 
+> On Mon, Dec 05, 2016 at 05:38:23PM -0700, Shuah Khan wrote:
+>> On 12/05/2016 04:21 PM, Laurent Pinchart wrote:
+>>> Hi Shuah,
+>>>
+>>> On Monday 05 Dec 2016 15:44:30 Shuah Khan wrote:
+>>>> On 11/30/2016 03:01 PM, Shuah Khan wrote:
+>>>>> Change ALSA driver to use Media Controller API to share media resources
+>>>>> with DVB, and V4L2 drivers on a AU0828 media device.
+>>>>>
+>>>>> Media Controller specific initialization is done after sound card is
+>>>>> registered. ALSA creates Media interface and entity function graph
+>>>>> nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
+>>>>>
+>>>>> snd_usb_hw_params() will call Media Controller enable source handler
+>>>>> interface to request the media resource. If resource request is granted,
+>>>>> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
+>>>>> returned.
+>>>>>
+>>>>> Media specific cleanup is done in usb_audio_disconnect().
+>>>>>
+>>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>>>>
+>>>> Hi Takashi,
+>>>>
+>>>> If you are good with this patch, could you please Ack it, so Mauro
+>>>> can pull it into media tree with the other two patches in this series,
+>>>> when he is ready to do so.
+>>>
+>>> I *really* want to address the concerns raised by Sakari before pulling more 
+>>> code that makes fixing the race conditions more difficult. Please, let's all 
+>>> work on fixing the core code to build a stable base on which we can build 
+>>> additional features. V4L2 and MC need teamwork, it's time to give the 
+>>> subsystem the love it deserves.
+>>>
+>>
+>> Hi Laurent,
+>>
+>> The issue Sakari brought up is specific to using devm for video_device in
+>> omap3 and vsp1. I tried reproducing the problem on two different drivers
+>> and couldn't on Linux 4.9-rc7.
+>>
+>> After sharing that with Sakari, I suggested to Sakari to pull up his patch
+>> that removes the devm usage and see if he still needs all the patches in his
+>> patch series. He didn't back to me on that. I also requested him to rebase on
+> 
+> Just to see what remains, I made a small hack to test this with omap3isp by
+> just replacing the devm_() functions by their plain counterparts. The memory
+> is thus never released, for there is no really a proper moment to release it
+> --- something which the patchset resolves. The result is here:
+> 
+> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg.txt>
 
-This is a complimentary patch for:
-[PATCH] UVC: Add support for Intel SR300 depth camera
+Did you test this on 4.9-rc7 without any of your other patches? If you
+haven't could you please run this test with just the removing devm usage
+from omap3isp?
 
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
----
- Documentation/media/uapi/v4l/pixfmt-inzi.rst | 40 ++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+It would be good to get a baseline on the current with just the not using
+devm first and then see what needs fixing.
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-new file mode 100644
-index 000000000000..cdfdeae4a664
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-@@ -0,0 +1,40 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-INZI:
-+
-+**************************
-+V4L2_PIX_FMT_INZI ('INZI')
-+**************************
-+
-+Infrared 10-bit linked with Depth 16-bit images
-+
-+
-+Description
-+===========
-+
-+Custom multi-planar format used by Intel SR300 Depth cameras, comprise of Infrared image followed by Depth data.
-+The pixel definition is 32-bpp, with the Depth and Infrared Data split into separate continuous planes of identical dimensions.
-+
-+The first plane - Infrared data - is stored in V4L2_PIX_FMT_Y10 (see :ref:`pixfmt-y10`) greyscale format. Each pixel is 16-bit cell, with actual data present in the 10 LSBs with values in range 0 to 1023. The six remaining MSBs are padded with zeros.
-+
-+The second plane provides 16-bit per-pixel Depth data in V4L2_PIX_FMT_Z16 (:ref:`pixfmt-z16`) format.
-+
-+
-+**Frame Structure.**
-+Each cell is a 16-bit word with the significant data byte is stored at lower memory address (little-endian).
-+
-++-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+
-+| Ir\ :sub:`0`    | Ir\ :sub:`1`    | Ir\ :sub:`2`    |       ...       |        ...      |       ...       |
-++-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+
-+|      ...       ...       ...                                                                              |
-+|                                 Infrared Data                                                             |
-+|                                                 ...   ...   ...                                           |
-++-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+
-+| Ir\ :sub:`n-3`  | Ir\ :sub:`n-2`  | Ir\ :sub:`n-1`  | Depth\ :sub:`0` | Depth\ :sub:`1` | Depth\ :sub:`2` |
-++-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+
-+|      ...       ...       ...                                                                              |
-+|                                 Depth Data                                                                |
-+|                                                 ...   ...   ...                                           |
-++-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+
-+|       ...       |       ...       |       ...       |Depth\ :sub:`n-3`|Depth\ :sub:`n-2`|Depth\ :sub:`n-1`|
-++-----------------+-----------------+-----------------+-----------------+-----------------+-----------------+
--- 
-2.7.4
+Also, could you please send me the complete dmesg.
+
+thanks,
+-- Shuah
+
+> 
+> What happens there is that as part of the device unbinding, the graph
+> objects are unregistered (by media_device_unregister()) while streaming is
+> ongoing. Their parent media device pointers are set to NULL.
+> 
+> Then, when the user process exists, the streaming media pipeline is stopped.
+> This requires parsing of the media graph, a job which will obviously fail
+> miserably and immediately: the media device is obtained from the entity
+> where graph traversal is expected to begin.
+> 
+> Two mutexes are also acquired but they've been already destroyed at that
+> point (and the memory of which would also be released now without the hack
+> to test this "without devm"). There's just a single warning on this though.
+> 
+>> top of media dev allocator because the allocator routines he has don't address
+>> the shared media device need.
+> 
+> I do strongly prefer fixing the existing object lifetime issues in the
+> framework before extending it and thus making the problem domain more
+> complex than it is already.
+> 
+> What I mentioned as an example of this are the other callbacks to the media
+> device: presumably they do suffer from the exactly same problems as the
+> enable_source() and disable_source() ones.
+> 
+> As drivers do refer to other entities and controls they do expose also to
+> the user space, we can't really even remove entities safely at the moment.
+> We should have a solution to this as well, my patchset at the moment does
+> not address this.
+> 
+> What we do need a sound basis for the framework rather than hastily written
+> improvements to support a particular device. Also, testing device removal
+> with a particular device in a particular use case does not guarantee that no
+> further object lifetime issues related to device removal exist, even with
+> that same driver, let alone other devices.
+> 
+> Instead, we must consider how the frameworks and drivers manage the memory
+> allocated for the various objects, what are relations of those objects and
+> how they're exposed to the user space either directly or indirectly. As long
+> as objects (such as the media graph objects) with different lifetimes are
+> referred to from other objects without taking a reference or alternatively
+> serialising code paths that may access those objects and those that remove
+> them, we do have a problem.
+> 
+> The media graph with all the subsystem specific device nodes that are
+> exported to the user space is a rather complex data structure. I don't think
+> that acquiring the media graph lock in order to fix all the serialisation
+> problems is the right approach here.
+> 
+>>
+>> He also didn't respond to my response regarding the reasons for choosing
+>> graph_mutex to protect enable_source and disable_source handlers.
+> 
+> I did. The point is that this is a partial fix and that does not properly
+> address the problem of device removal. It probably does decrease of the
+> probability of hitting the bug but it does not fix it.
+> 
+>>
+>> So I am not sure how to move forward at the moment without a concrete plan
+>> for Sakari's RFC series. Sakari's patch series is still RFC and doesn't address
+>> shared media_device and requires all drivers to change.
+> 
+> I'm all for extending the functionality of the Media controller framework,
+> but existing known problems touching the same parts of the framework should
+> be fixed first.
+> 
+> Reviewing patches, pointing out problems and proposing improvements would
+> certainly help to achieve that goal.
+> 
 
