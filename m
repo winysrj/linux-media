@@ -1,78 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34202 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45444 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933784AbcLQAu5 (ORCPT
+        by vger.kernel.org with ESMTP id S932892AbcLGWd1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 19:50:57 -0500
-Date: Sat, 17 Dec 2016 02:50:52 +0200
+        Wed, 7 Dec 2016 17:33:27 -0500
+Date: Thu, 8 Dec 2016 00:33:19 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: Re: [RFC RESEND 11/11] vb2: dma-contig: Add WARN_ON_ONCE() to check
- for potential bugs
-Message-ID: <20161217005052.GQ16630@valkosipuli.retiisi.org.uk>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
- <1441972234-8643-12-git-send-email-sakari.ailus@linux.intel.com>
- <1547868.pze7WEjWy0@avalon>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, davem@davemloft.net,
+        gregkh@linuxfoundation.org, geert+renesas@glider.be,
+        akpm@linux-foundation.org, linux@roeck-us.net, hverkuil@xs4all.nl,
+        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
+        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
+        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
+        mark.rutland@arm.com, CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH v5 1/2] Add OV5647 device tree documentation
+Message-ID: <20161207223319.GZ16630@valkosipuli.retiisi.org.uk>
+References: <cover.1480958609.git.roliveir@synopsys.com>
+ <bb5a2ae3078a977eb52aec0ffa3a0a0de558e6ad.1480958609.git.roliveir@synopsys.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1547868.pze7WEjWy0@avalon>
+In-Reply-To: <bb5a2ae3078a977eb52aec0ffa3a0a0de558e6ad.1480958609.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 15, 2016 at 11:57:54PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thank you for the patch.
-> 
-> On Friday 11 Sep 2015 14:50:34 Sakari Ailus wrote:
-> > The scatterlist should always be present when the cache would need to be
-> > flushed. Each buffer type has its own means to provide that. Add
-> > WARN_ON_ONCE() to check the scatterist exists.
-> 
-> Do you think such a check is really needed ? Have you run into this before ?
+Hi Ramiro,
 
-I think I may have, but the reason was that the code is non-trivial and
-letting the user know what went wrong and where is nice. I guess this one
-could be dropped, too.
+Thank you for the patch.
 
+On Mon, Dec 05, 2016 at 05:36:33PM +0000, Ramiro Oliveira wrote:
+> Add device tree documentation.
 > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > ---
-> >  drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++++++
-> >  1 file changed, 6 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 65ee122..58c35c5
-> > 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> > @@ -145,6 +145,9 @@ static void vb2_dc_prepare(void *buf_priv)
-> >  	    !dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs))
-> >  		return;
-> > 
-> > +	if (WARN_ON_ONCE(!sgt))
-> > +		return;
-> > +
-> >  	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> >  }
-> > 
-> > @@ -161,6 +164,9 @@ static void vb2_dc_finish(void *buf_priv)
-> >  	    !dma_get_attr(DMA_ATTR_NON_CONSISTENT, buf->attrs))
-> >  		return;
-> > 
-> > +	if (WARN_ON_ONCE(!sgt))
-> > +		return;
-> > +
-> >  	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
-> >  }
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+>  1 file changed, 19 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
 > 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> new file mode 100644
+> index 0000000..4c91b3b
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> @@ -0,0 +1,19 @@
+> +Omnivision OV5647 raw image sensor
+> +---------------------------------
+> +
+> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+> +and CCI (I2C compatible) control bus.
+> +
+> +Required properties:
+> +
+> +- compatible	: "ovti,ov5647";
+> +- reg		: I2C slave address of the sensor;
+> +
+> +The common video interfaces bindings (see video-interfaces.txt) should be
+> +used to specify link to the image data receiver. The OV5647 device
+> +node should contain one 'port' child node with an 'endpoint' subnode.
+> +
+> +Following properties are valid for the endpoint node:
+> +
+> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+> +  video-interfaces.txt.  The sensor supports only two data lanes.
+
+Doesn't this sensor require a external clock, a reset GPIO and / or a
+regulator or a few? Do you need data-lanes, unless you can change the order
+or the number?
+
+An example DT snippet wouldn't hurt.
 
 -- 
+Kind regards,
+
 Sakari Ailus
 e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
