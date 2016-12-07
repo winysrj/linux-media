@@ -1,58 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49124 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932357AbcLTOB1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Dec 2016 09:01:27 -0500
-Date: Tue, 20 Dec 2016 16:01:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
-        ivo.g.dimitrov.75@gmail.com, sre@kernel.org,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161220140119.GE16630@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161214130310.GA15405@pali>
- <20161214201202.GB28424@amd>
- <20161218220105.GS16630@valkosipuli.retiisi.org.uk>
- <20161220123756.GA23035@amd>
+Received: from mail-pg0-f44.google.com ([74.125.83.44]:35685 "EHLO
+        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932192AbcLGSaa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 13:30:30 -0500
+Received: by mail-pg0-f44.google.com with SMTP id p66so164614557pga.2
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 10:30:30 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
+        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v6 2/5] [media] davinci: vpif_capture: remove hard-coded I2C adapter id
+Date: Wed,  7 Dec 2016 10:30:22 -0800
+Message-Id: <20161207183025.20684-3-khilman@baylibre.com>
+In-Reply-To: <20161207183025.20684-1-khilman@baylibre.com>
+References: <20161207183025.20684-1-khilman@baylibre.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161220123756.GA23035@amd>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Remove hard-coded I2C adapter in favor of getting the
+ID from platform_data.
 
-On Tue, Dec 20, 2016 at 01:37:56PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > I think WARN() is good. It's a driver bug and it deserves to be notified.
-> ...
-> > I guess it's been like this since 2008 or so. I guess the comment could be
-> > simply removed, it's not a real problem.
-> ...
-> > AFAIR the module is called Stingray.
-> 
-> Ok, so it seems we are pretty good? Can you take the patch now? Device
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 5 ++++-
+ include/media/davinci/vpif_types.h            | 1 +
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-Did you see this:
-
-<URL:http://www.spinics.net/lists/linux-media/msg109426.html>
-
-> tree documentation is in
-> 
-> Subject: [PATCH v6] media: et8ek8: add device tree binding documentation
-> 
-> and we have
-> 
-> Acked-by: Rob Herring <robh@kernel.org>
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 20c4344ed118..c24049acd40a 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1486,7 +1486,10 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (!vpif_obj.config->asd_sizes) {
+-		i2c_adap = i2c_get_adapter(1);
++		int i2c_id = vpif_obj.config->i2c_adapter_id;
++
++		i2c_adap = i2c_get_adapter(i2c_id);
++		WARN_ON(!i2c_adap);
+ 		for (i = 0; i < subdev_count; i++) {
+ 			subdevdata = &vpif_obj.config->subdev_info[i];
+ 			vpif_obj.sd[i] =
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index 3cb1704a0650..4282a7db99d4 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -82,6 +82,7 @@ struct vpif_capture_config {
+ 	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
+ 	struct vpif_subdev_info *subdev_info;
+ 	int subdev_count;
++	int i2c_adapter_id;
+ 	const char *card_name;
+ 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+ 	int *asd_sizes;		/* 0-terminated array of asd group sizes */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.9.3
+
