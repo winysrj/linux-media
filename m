@@ -1,348 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34112 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752335AbcLGOJr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Dec 2016 09:09:47 -0500
-Date: Wed, 7 Dec 2016 16:09:15 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org,
-        devicetree <devicetree@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>
-Subject: Re: [PATCH v3 3/4] [media] davinci: vpif_capture: get subdevs from DT
-Message-ID: <20161207140914.GX16630@valkosipuli.retiisi.org.uk>
-References: <20161122155244.802-1-khilman@baylibre.com>
- <m2zikgh5f0.fsf@baylibre.com>
- <20161201075730.GP16630@valkosipuli.retiisi.org.uk>
- <2453889.B9pO7dWgEo@avalon>
- <d7aaa1d5-f11a-e361-b2fe-f0cf86d92008@xs4all.nl>
- <m2mvg9ez2h.fsf@baylibre.com>
- <CAOi56cXteQF7SmQMATGTWHgXPh+850XmGy_A7eWgmWn-82PBqQ@mail.gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56513
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752343AbcLGOWJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 09:22:09 -0500
+Date: Wed, 7 Dec 2016 12:22:01 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: em28xx broken 4.9.0-rc6+
+Message-ID: <20161207122201.28ba44e8@vento.lan>
+In-Reply-To: <20161206134138.1b000552@vento.lan>
+References: <790c8863-757c-cd2e-3878-2900df93a694@iki.fi>
+        <20161206134138.1b000552@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOi56cXteQF7SmQMATGTWHgXPh+850XmGy_A7eWgmWn-82PBqQ@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kevin,
+Em Tue, 6 Dec 2016 13:41:38 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-On Tue, Dec 06, 2016 at 11:50:58AM -0800, Kevin Hilman wrote:
-> On Tue, Dec 6, 2016 at 9:40 AM, Kevin Hilman <khilman@baylibre.com> wrote:
-> > Hans Verkuil <hverkuil@xs4all.nl> writes:
-> >
-> >> On 12/01/2016 10:16 AM, Laurent Pinchart wrote:
-> >>> Hello,
-> >>>
-> >>> On Thursday 01 Dec 2016 09:57:31 Sakari Ailus wrote:
-> >>>> On Wed, Nov 30, 2016 at 04:14:11PM -0800, Kevin Hilman wrote:
-> >>>>> Sakari Ailus <sakari.ailus@iki.fi> writes:
-> >>>>>> On Wed, Nov 23, 2016 at 03:25:32PM -0800, Kevin Hilman wrote:
-> >>>>>>> Sakari Ailus <sakari.ailus@iki.fi> writes:
-> >>>>>>>> On Tue, Nov 22, 2016 at 07:52:43AM -0800, Kevin Hilman wrote:
-> >>>>>>>>> Allow getting of subdevs from DT ports and endpoints.
-> >>>>>>>>>
-> >>>>>>>>> The _get_pdata() function was larely inspired by (i.e. stolen from)
-> >>>>>>>>> am437x-vpfe.c
-> >>>>>>>>>
-> >>>>>>>>> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
-> >>>>>>>>> ---
-> >>>>>>>>>
-> >>>>>>>>>  drivers/media/platform/davinci/vpif_capture.c | 130 +++++++++++++++-
-> >>>>>>>>>  include/media/davinci/vpif_types.h
-> >>>>>>>>>        |   9 +-
-> >>>>>>>>>  2 files changed, 133 insertions(+), 6 deletions(-)
-> >>>>>>>>>
-> >>>>>>>>> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> >>>>>>>>> b/drivers/media/platform/davinci/vpif_capture.c index
-> >>>>>>>>> 94ee6cf03f02..47a4699157e7 100644
-> >>>>>>>>> --- a/drivers/media/platform/davinci/vpif_capture.c
-> >>>>>>>>> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> >>>>>>>>> @@ -26,6 +26,8 @@
-> >>>>>>>>>  #include <linux/slab.h>
-> >>>>>>>>>
-> >>>>>>>>>  #include <media/v4l2-ioctl.h>
-> >>>>>>>>> +#include <media/v4l2-of.h>
-> >>>>>>>>> +#include <media/i2c/tvp514x.h>
-> >>>>>>>>
-> >>>>>>>> Do you need this header?
-> >>>>>>>
-> >>>>>>> Yes, based on discussion with Hans, since there is no DT binding for
-> >>>>>>> selecting the input pins of the TVP514x, I have to select it in the
-> >>>>>>> driver, so I need the defines from this header.  More on this below...
-> >>>
-> >>> That's really ugly :-( The problem should be fixed properly instead of adding
-> >>> one more offender.
-> >>
-> >> Do you have time for that, Laurent? I don't. Until that time we just need to
-> >> make do with this workaround.
-> >>
-> >>>
-> >>>>>>>>>  #include "vpif.h"
-> >>>>>>>>>  #include "vpif_capture.h"
-> >>>>>>>>> @@ -650,6 +652,10 @@ static int vpif_input_to_subdev(
-> >>>>>>>>>
-> >>>>>>>>>        vpif_dbg(2, debug, "vpif_input_to_subdev\n");
-> >>>>>>>>>
-> >>>>>>>>> +      if (!chan_cfg)
-> >>>>>>>>> +              return -1;
-> >>>>>>>>> +      if (input_index >= chan_cfg->input_count)
-> >>>>>>>>> +              return -1;
-> >>>>>>>>>        subdev_name = chan_cfg->inputs[input_index].subdev_name;
-> >>>>>>>>>        if (subdev_name == NULL)
-> >>>>>>>>>                return -1;
-> >>>>>>>>> @@ -657,7 +663,7 @@ static int vpif_input_to_subdev(
-> >>>>>>>>>        /* loop through the sub device list to get the sub device info
-> >>>>>>>>>        */
-> >>>>>>>>>        for (i = 0; i < vpif_cfg->subdev_count; i++) {
-> >>>>>>>>>                subdev_info = &vpif_cfg->subdev_info[i];
-> >>>>>>>>> -              if (!strcmp(subdev_info->name, subdev_name))
-> >>>>>>>>> +              if (subdev_info && !strcmp(subdev_info->name,
-> >>>>>>>>> subdev_name))
-> >>>>>>>>>                        return i;
-> >>>>>>>>>        }
-> >>>>>>>>>        return -1;
-> >>>>>>>>> @@ -1327,6 +1333,21 @@ static int vpif_async_bound(struct
-> >>>>>>>>> v4l2_async_notifier *notifier,> >> >>
-> >>>>>>>>>  {
-> >>>>>>>>>        int i;
-> >>>>>>>>>
-> >>>>>>>>> +      for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
-> >>>>>>>>> +              struct v4l2_async_subdev *_asd = vpif_obj.config
-> >>>>>>>>> ->asd[i];
-> >>>>>>>>> +              const struct device_node *node = _asd->match.of.node;
-> >>>>>>>>> +
-> >>>>>>>>> +              if (node == subdev->of_node) {
-> >>>>>>>>> +                      vpif_obj.sd[i] = subdev;
-> >>>>>>>>> +                      vpif_obj.config->chan_config
-> >>>>>>>>> ->inputs[i].subdev_name =
-> >>>>>>>>> +                              (char *)subdev->of_node->full_name;
-> >>>
-> >>> Can subdev_name be made const instead of blindly casting the full_name pointer
-> >>> ? If not this is probably unsafe, and if yes it should be done :-)
-> >>>
-> >>>>>>>>> +                      vpif_dbg(2, debug,
-> >>>>>>>>> +                               "%s: setting input %d subdev_name =
-> >>>>>>>>> %s\n",
-> >>>>>>>>> +                               __func__, i, subdev->of_node
-> >>>>>>>>> ->full_name);
-> >>>>>>>>> +                      return 0;
-> >>>>>>>>> +              }
-> >>>>>>>>> +      }
-> >>>>>>>>> +
-> >>>>>>>>>        for (i = 0; i < vpif_obj.config->subdev_count; i++)
-> >>>>>>>>>                if (!strcmp(vpif_obj.config->subdev_info[i].name,
-> >>>>>>>>>                            subdev->name)) {
-> >>>>>>>>> @@ -1422,6 +1443,110 @@ static int vpif_async_complete(struct
-> >>>>>>>>> v4l2_async_notifier *notifier)
-> >>>>>>>>>        return vpif_probe_complete();
-> >>>>>>>>>  }
-> >>>>>>>>>
-> >>>>>>>>> +static struct vpif_capture_config *
-> >>>>>>>>> +vpif_capture_get_pdata(struct platform_device *pdev)
-> >>>>>>>>> +{
-> >>>>>>>>> +      struct device_node *endpoint = NULL;
-> >>>>>>>>> +      struct v4l2_of_endpoint bus_cfg;
-> >>>>>>>>> +      struct vpif_capture_config *pdata;
-> >>>>>>>>> +      struct vpif_subdev_info *sdinfo;
-> >>>>>>>>> +      struct vpif_capture_chan_config *chan;
-> >>>>>>>>> +      unsigned int i;
-> >>>>>>>>> +
-> >>>>>>>>> +      dev_dbg(&pdev->dev, "vpif_get_pdata\n");
-> >>>>>>>>> +
-> >>>>>>>>> +      if (!IS_ENABLED(CONFIG_OF) || !pdev->dev.of_node)
-> >>>>>>>>> +              return pdev->dev.platform_data;
-> >>>>>>>>> +
-> >>>>>>>>> +      pdata = devm_kzalloc(&pdev->dev, sizeof(*pdata), GFP_KERNEL);
-> >>>>>>>>> +      if (!pdata)
-> >>>>>>>>> +              return NULL;
-> >>>>>>>>> +      pdata->subdev_info =
-> >>>>>>>>> +              devm_kzalloc(&pdev->dev, sizeof(*pdata->subdev_info) *
-> >>>>>>>>> +                           VPIF_CAPTURE_MAX_CHANNELS, GFP_KERNEL);
-> >>>>>>>>> +
-> >>>>>>>>> +      if (!pdata->subdev_info)
-> >>>>>>>>> +              return NULL;
-> >>>>>>>>> +      dev_dbg(&pdev->dev, "%s\n", __func__);
-> >>>>>>>>> +
-> >>>>>>>>> +      for (i = 0; ; i++) {
-> >>>>>>>>> +              struct device_node *rem;
-> >>>>>>>>> +              unsigned int flags;
-> >>>>>>>>> +              int err;
-> >>>>>>>>> +
-> >>>>>>>>> +              endpoint = of_graph_get_next_endpoint(pdev
-> >>>>>>>>> ->dev.of_node,
-> >>>>>>>>> +                                                    endpoint);
-> >>>>>>>>> +              if (!endpoint)
-> >>>>>>>>> +                      break;
-> >>>>>>>>> +
-> >>>>>>>>> +              sdinfo = &pdata->subdev_info[i];
-> >>>>>>>>
-> >>>>>>>> subdev_info[] has got VPIF_CAPTURE_MAX_CHANNELS entries only.
-> >>>>>>>
-> >>>>>>> Right, I need to make the loop only go for a max of
-> >>>>>>> VPIF_CAPTURE_MAX_CHANNELS iterations.
-> >>>>>>>
-> >>>>>>>>> +              chan = &pdata->chan_config[i];
-> >>>>>>>>> +              chan->inputs = devm_kzalloc(&pdev->dev,
-> >>>>>>>>> +                                          sizeof(*chan->inputs) *
-> >>>>>>>>> +                                          VPIF_DISPLAY_MAX_CHANNELS,
-> >>>>>>>>> +                                          GFP_KERNEL);
-> >>>>>>>>> +
-> >>>>>>>>> +              chan->input_count++;
-> >>>>>>>>> +              chan->inputs[i].input.type = V4L2_INPUT_TYPE_CAMERA;
-> >>>>>>>>
-> >>>>>>>> I wonder what's the purpose of using index i on this array as well.
-> >>>>>>>
-> >>>>>>> The number of endpoints in DT is the number of input channels
-> >>>>>>> configured (up to a max of VPIF_CAPTURE_MAX_CHANNELS.)
-> >>>>>>>
-> >>>>>>>> If you use that to access a corresponding entry in a different array,
-> >>>>>>>> I'd just create a struct that contains the port configuration and the
-> >>>>>>>> async sub-device. The omap3isp driver does that, for instance; see
-> >>>>>>>> isp_of_parse_nodes() in drivers/media/platform/omap3isp/isp.c if
-> >>>>>>>> you're interested. Up to you.
-> >>>>>>>
-> >>>>>>> OK, I'll have a look at that driver. The goal here with this series is
-> >>>>>>> just to get this working with DT, but also not break the existing
-> >>>>>>> legacy platform_device support, so I'm trying not to mess with the
-> >>>>>>> driver-interal data structures too much.
-> >>>>>>
-> >>>>>> Ack.
-> >>>>>>
-> >>>>>>>>> +              chan->inputs[i].input.std = V4L2_STD_ALL;
-> >>>>>>>>> +              chan->inputs[i].input.capabilities = V4L2_IN_CAP_STD;
-> >>>>>>>>> +
-> >>>>>>>>> +              /* FIXME: need a new property? ch0:composite ch1:
-> >>>>>>>>> s-video */
-> >>>>>>>>> +              if (i == 0)
-> >>>>>>>>
-> >>>>>>>> Can you assume that the first endopoint has got a particular kind of
-> >>>>>>>> input? What if it's not connected?
-> >>>>>>>
-> >>>>>>> On all the boards I know of (there aren't many using this SoC), it's a
-> >>>>>>> safe assumption.
-> >>>>>>>
-> >>>>>>>> If this is a different physical port (not in the meaning another) in
-> >>>>>>>> the device, I'd use the reg property for this. Please see
-> >>>>>>>> Documentation/devicetree/bindings/media/video-interfaces.txt .
-> >>>>>>>
-> >>>>>>> My understanding (which is admittedly somewhat fuzzy) of the TVP514x is
-> >>>>>>> that it's not physically a different port.  Instead, it's just telling
-> >>>>>>> the TVP514x which pin(s) will be active inputs (and what kind of signal
-> >>>>>>> will be present.)
-> >>>>>>>
-> >>>>>>> I'm open to a better way to describe this input select from DT, but
-> >>>>>>> based on what I heard from Hans, there isn't currently a good way to do
-> >>>>>>> that except for in the driver:
-> >>>>>>> (c.f. https://marc.info/?l=linux-arm-kernel&m=147887871615788)
-> >>>>>>>
-> >>>>>>> Based on further discussion in that thread, it sounds like there may be
-> >>>>>>> a way forward coming soon, and I'll be glad to switch to that when it
-> >>>>>>> arrives.
-> >>>
-> >>> I'm afraid I have to disappoint Hans here, I don't have code for that yet.
-> >>>
-> >>>>>> I'm not sure that properly supporting connectors will provide any help
-> >>>>>> here.
-> >>>>>>
-> >>>>>> Looking at the s_routing() API, it's the calling driver that has to be
-> >>>>>> aware of sub-device specific function parameters. As such it's not a
-> >>>>>> very good idea to require that a driver is aware of the value range of
-> >>>>>> another driver's parameter. I wonder if a simple enumeration interface
-> >>>>>> would help here --- if I understand correctly, the purpose is just to
-> >>>>>> provide a way to choose the input using VIDIOC_S_INPUT.
-> >>>>>>
-> >>>>>> I guess that's somehow ok as long as you have no other combinations of
-> >>>>>> these devices but this is hardly future-proof. (And certainly not a
-> >>>>>> problem created by this patch.)
-> >>>>>
-> >>>>> Yeah, this is far from future proof.
-> >>>>>
-> >>>>>> It'd be still nice to fix that as presumably we don't have the option of
-> >>>>>> reworking how we expect the device tree to look like.
-> >>>>>
-> >>>>> Agreed.
-> >>>>>
-> >>>>> I'm just hoping someone can shed som light on "how we expect the device
-> >>>>> tree to look".  ;)
-> >>>>
-> >>>> :-)
-> >>>>
-> >>>> For the tvp514x, do you need more than a single endpoint on the receiver
-> >>>> side? Does the input that's selected affect the bus parameters?
-> >>>>
-> >>>> If it doesn't, you could create a custom endpoint property for the possible
-> >>>> input values. The s_routing() really should be fixed though, but that could
-> >>>> be postponed I guess. There are quite a few drivers using it.
-> >>>
-> >>> There's two ways to look at s_routing() in my opinion, as the calling driver
-> >>> should really not hardcode any knowledge specific to a particular subdev. We
-> >>> can either have the calling driver discover the possible routing options at
-> >>> runtime through the subdev API, or modify the s_routing() API.
-> >>>
-> >>
-> >> Some historical perspective: s_routing was added well before the device tree
-> >> was ever used for ARM. And at that time the vast majority of drivers were PCI
-> >> or USB drivers, very few platform drivers existed (and those typically used
-> >> sensors, not video receivers).
-> >>
-> >> Before s_routing existed the situation was even worse.
-> >>
-> >> Basically what s_routing does is a poor-man's device tree entry, telling the
-> >> subdev how to route video or audio from connector to the output of the chip.
-> >> Typically the card tables in PCI or USB drivers contain the correct arguments
-> >> for s_routing. Of course, today we'd do that with the DT, but that was not an
-> >> option years ago.
-> >
-> > So I'm still confused on the path forward here.
-> >
-> > I do not have the time (or the V4L2 knowledge/experience) to rework the
-> > V4L2 internals to make this work, but I'm happy to test if someone else
-> > is working on it.
-> >
-> > In the meantime, what do we do with this series?  I have a couple minor
-> > things to fixup based on review comments, but other than that, the
-> > s_routing decision is blocking this from getting an update for use on DT
-> > platforms.
-> >
-> > The alternative is to go the OMAP route for legacy drivers like this and
-> > just use pdata quirks for passing the legacy pdata (which has the input
-> > and output routes hard-coded in platform_data).
+> Em Tue, 6 Dec 2016 01:06:17 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
 > 
-> Also, FYI, I have the same issue with the output/display side of this
-> controller.  It's using an I2C-connected adv7343, where the input and
-> output routes are configured by the driver using s_routing, and the
-> current code passes the routes in using platform_data.
+> > Hello Mauro
+> > I just noticed current em28xx driver seem to be broken. When I plug 
+> > device first time it loads correctly, but when I re-plug it, it does not 
+> > work anymore but yells a lot of noise to message log. Tested with PCTV 
+> > 290e and 292e both same. Other USB DVB devices are working so it is very 
+> > likely em28xx driver bug.
+> > 
+> > Easy to reproduce:
+> > plug device
+> > unplug device
+> > plug device
+> 
+> 
+> Are you referring to those:
+> 
+> [ 1010.310320] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
+> [ 1010.310323] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
+> [ 1010.310325] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
+> [ 1010.310383]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
+> [ 1010.310449]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
+> [ 1010.310464] CPU: 3 PID: 119 Comm: kworker/3:2 Not tainted 4.9.0-rc8+ #14
+> [ 1010.310466] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> [ 1010.310487] Workqueue: usb_hub_wq hub_event [usbcore]
+> [ 1010.310490]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
+> [ 1010.310496]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
+> [ 1010.310501]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
+> [ 1010.310505] Call Trace:
+> [ 1010.310517]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
+> [ 1010.310522]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
+> [ 1010.310526]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
+> [ 1010.310529]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
+> [ 1010.310534]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
+> [ 1010.310539]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
+> [ 1010.310543]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
+> [ 1010.310547]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
+> [ 1010.310553]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
+> [ 1010.310557]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
+> [ 1010.310562]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
+> [ 1010.310567]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
+> [ 1010.310583]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
+> [ 1010.310598]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
+> [ 1010.310604]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
+> [ 1010.310618]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
+> [ 1010.310624]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
+> [ 1010.310629]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
+> [ 1010.310633]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
+> [ 1010.310638]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
+> [ 1010.310642]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
+> [ 1010.310646]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
+> [ 1010.310650]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
+> [ 1010.310654]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
+> [ 1010.310658]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
+> [ 1010.310663]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.310667]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.310671]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.310675]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
+> [ 1010.310698] ---[ end trace 49b46eb633ff1197 ]---
+> [ 1010.311298] usb 1-3.3: can't device_add, error -17
+> [ 1010.390703] usb 1-3.3: new high-speed USB device number 9 using xhci_hcd
+> [ 1010.496337] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
+> [ 1010.496343] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
+> [ 1010.496345] usb 1-3.3: Product: WinTV HVR-980
+> [ 1010.496347] usb 1-3.3: SerialNumber: 4028449018
+> [ 1010.497259] ------------[ cut here ]------------
+> [ 1010.497264] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
+> [ 1010.497266] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
+> [ 1010.497267] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
+> [ 1010.497307]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
+> [ 1010.497352]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
+> [ 1010.497362] CPU: 3 PID: 119 Comm: kworker/3:2 Tainted: G        W       4.9.0-rc8+ #14
+> [ 1010.497363] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> [ 1010.497377] Workqueue: usb_hub_wq hub_event [usbcore]
+> [ 1010.497379]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
+> [ 1010.497382]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
+> [ 1010.497385]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
+> [ 1010.497387] Call Trace:
+> [ 1010.497395]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
+> [ 1010.497398]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
+> [ 1010.497400]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
+> [ 1010.497402]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
+> [ 1010.497405]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
+> [ 1010.497408]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
+> [ 1010.497410]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
+> [ 1010.497412]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
+> [ 1010.497416]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
+> [ 1010.497419]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
+> [ 1010.497421]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
+> [ 1010.497424]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
+> [ 1010.497433]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
+> [ 1010.497441]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
+> [ 1010.497445]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
+> [ 1010.497454]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
+> [ 1010.497457]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
+> [ 1010.497460]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
+> [ 1010.497462]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
+> [ 1010.497465]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
+> [ 1010.497468]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
+> [ 1010.497470]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
+> [ 1010.497473]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
+> [ 1010.497475]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
+> [ 1010.497477]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
+> [ 1010.497480]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.497482]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.497485]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.497487]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
+> [ 1010.497489] ---[ end trace 49b46eb633ff1198 ]---
+> [ 1010.497829] usb 1-3.3: can't device_add, error -17
+> [ 1010.578707] usb 1-3.3: new high-speed USB device number 10 using xhci_hcd
+> [ 1010.604448] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
+> [ 1010.604452] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
+> [ 1010.604454] usb 1-3.3: Product: WinTV HVR-980
+> [ 1010.604456] usb 1-3.3: SerialNumber: 4028449018
+> [ 1010.605369] ------------[ cut here ]------------
+> [ 1010.605374] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
+> [ 1010.605375] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
+> [ 1010.605376] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
+> [ 1010.605415]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
+> [ 1010.605459]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
+> [ 1010.605469] CPU: 3 PID: 119 Comm: kworker/3:2 Tainted: G        W       4.9.0-rc8+ #14
+> [ 1010.605471] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> [ 1010.605484] Workqueue: usb_hub_wq hub_event [usbcore]
+> [ 1010.605486]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
+> [ 1010.605490]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
+> [ 1010.605492]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
+> [ 1010.605495] Call Trace:
+> [ 1010.605502]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
+> [ 1010.605505]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
+> [ 1010.605508]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
+> [ 1010.605510]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
+> [ 1010.605513]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
+> [ 1010.605516]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
+> [ 1010.605518]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
+> [ 1010.605520]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
+> [ 1010.605524]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
+> [ 1010.605527]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
+> [ 1010.605529]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
+> [ 1010.605532]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
+> [ 1010.605542]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
+> [ 1010.605550]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
+> [ 1010.605554]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
+> [ 1010.605563]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
+> [ 1010.605566]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
+> [ 1010.605569]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
+> [ 1010.605572]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
+> [ 1010.605574]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
+> [ 1010.605577]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
+> [ 1010.605579]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
+> [ 1010.605581]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
+> [ 1010.605584]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
+> [ 1010.605586]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
+> [ 1010.605589]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.605591]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.605594]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.605596]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
+> [ 1010.605598] ---[ end trace 49b46eb633ff1199 ]---
+> [ 1010.605948] usb 1-3.3: can't device_add, error -17
+> [ 1010.686729] usb 1-3.3: new high-speed USB device number 11 using xhci_hcd
+> [ 1010.712761] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
+> [ 1010.712768] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
+> [ 1010.712772] usb 1-3.3: Product: WinTV HVR-980
+> [ 1010.712775] usb 1-3.3: SerialNumber: 4028449018
+> [ 1010.714339] ------------[ cut here ]------------
+> [ 1010.714347] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
+> [ 1010.714349] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
+> [ 1010.714351] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
+> [ 1010.714409]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
+> [ 1010.714475]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
+> [ 1010.714490] CPU: 3 PID: 119 Comm: kworker/3:2 Tainted: G        W       4.9.0-rc8+ #14
+> [ 1010.714493] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+> [ 1010.714513] Workqueue: usb_hub_wq hub_event [usbcore]
+> [ 1010.714517]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
+> [ 1010.714522]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
+> [ 1010.714527]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
+> [ 1010.714532] Call Trace:
+> [ 1010.714543]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
+> [ 1010.714547]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
+> [ 1010.714551]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
+> [ 1010.714555]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
+> [ 1010.714560]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
+> [ 1010.714565]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
+> [ 1010.714568]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
+> [ 1010.714573]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
+> [ 1010.714579]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
+> [ 1010.714583]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
+> [ 1010.714587]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
+> [ 1010.714592]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
+> [ 1010.714608]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
+> [ 1010.714623]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
+> [ 1010.714628]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
+> [ 1010.714643]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
+> [ 1010.714648]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
+> [ 1010.714653]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
+> [ 1010.714657]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
+> [ 1010.714661]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
+> [ 1010.714666]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
+> [ 1010.714670]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
+> [ 1010.714674]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
+> [ 1010.714678]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
+> [ 1010.714682]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
+> [ 1010.714686]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.714691]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.714695]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+> [ 1010.714699]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
+> [ 1010.714719] ---[ end trace 49b46eb633ff119a ]---
+> [ 1010.715706] usb 1-3.3: can't device_add, error -17
+> [ 1010.716223] usb 1-3-port3: unable to enumerate USB device
+> 
+> 
+> 
+> If so, it seems that the device was not properly unregistered. That's
+> weird, since everything sounded ok at device unregister:
+> 
+> [  999.740335] usb 1-3.3: em2882!3#0: USB disconnect, device number 7
+> [  999.742857] usb 1-3.3: em2882!3#0: Disconnecting
+> [  999.742874] usb 1-3.3: em2882!3#0: Closing video extension
+> [  999.743058] usb 1-3.3: em2882!3#0: V4L2 device vbi0 deregistered
+> [  999.744327] usb 1-3.3: em2882!3#0: V4L2 device video0 deregistered
+> [  999.747938] tvp5150 6-005c: tvp5150.c: removing tvp5150 adapter on address 0xb8
+> [  999.750085] xc2028 6-0061: xc2028_dvb_release called
+> [  999.750852] usb 1-3.3: em2882!3#0: Closing audio extension
+> [  999.754253] usb 1-3.3: em2882!3#0: Closing DVB extension
+> [  999.760360] xc2028 6-0061: xc2028_dvb_release called
+> [  999.760362] xc2028 6-0061: free_firmware called
+> [  999.760958] xc2028 6-0061: destroying instance
+> 
+> I'll try to bisect this.
 
-A quick and dirty way to get forward would be to add a davinci specific
-property to tell the valid arguments for the s_routing() in DT. That's quite
-ugly, but would avoid adding a dependency to the tvp514x driver.
+According with git bisect, the culprit is this patch:
 
-A better solution would be to provide the davinci driver with an enumeration
-of which routes the tvp514x supports, a bit like the enum_mbus_code() pad op
-does.
+ce8591ff023ef8e04750c2cc2882523619a80b58 is the first bad commit
+commit ce8591ff023ef8e04750c2cc2882523619a80b58
+Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Date:   Thu Oct 20 08:42:03 2016 -0200
 
-It'd be an additional sub-device operation next to s_routing(). The valid
-values could be found that way. Only the tvp514x would need to support that
-from the beginning so we'd know which values are valid here. If there's a
-need to limit what should be actually allowed on that board it'd be found in
-the tvp514x DT node, not davinci's.
+    [media] em28xx: convert it from pr_foo() to dev_foo()
+    
+    Instead of using pr_foo(), use dev_foo(), with provides a
+    better output. As this device is a multi-interface one,
+    we'll set the device name to show the chipset and the driver
+    used.
+    
+    While here, get rid of printk continuation messages.
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-There are many, many drivers using s_routing() so there would be a lot more
-work in changing how s_routing() works. An enumeration of what's possible is
-also a cleaner way to achieve what's needed IMO.
+:040000 040000 834f13194c879d17f2b2ca79afbd1ed0999fbfeb 85ea8360d7adbf597ca1d6c5a8205b1a64666879 M	drivers
 
-Laurent, Hans; let me know if you agree / disagree.
+I'll do more tests and see what's wrong there.
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Mauro
