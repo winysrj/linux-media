@@ -1,62 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:63977 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752047AbcLZUqN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 15:46:13 -0500
-Subject: [PATCH 2/8] [media] v4l2-async: Delete an error message for a failed
- memory allocation in v4l2_async_notifier_unregister()
-To: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <a00be613-169b-4992-dc29-c4b9e82d5501@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:45:50 +0100
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45344 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932173AbcLGW1t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Dec 2016 17:27:49 -0500
+Date: Thu, 8 Dec 2016 00:27:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        mchehab@kernel.org, tiwai@suse.com, perex@perex.cz,
+        hans.verkuil@cisco.com, javier@osg.samsung.com,
+        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
+        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
+        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
+        linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Subject: Re: [PATCH v6 3/3] sound/usb: Use Media Controller API to share
+ media resources
+Message-ID: <20161207222738.GY16630@valkosipuli.retiisi.org.uk>
+References: <cover.1480539942.git.shuahkh@osg.samsung.com>
+ <ebeaa42019b102f76d87a2fc4aa7793e1f87072c.1480539942.git.shuahkh@osg.samsung.com>
+ <69ad05a8-8572-43e7-ef76-7510edd904c6@osg.samsung.com>
+ <2368883.8y0L28vD2m@avalon>
+ <d0a8e556-915c-4f14-d45e-a36a11fb5c6d@osg.samsung.com>
+ <20161207105207.GW16630@valkosipuli.retiisi.org.uk>
+ <f83b60c1-9e1a-df5c-b1ec-de2ddd219307@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <f83b60c1-9e1a-df5c-b1ec-de2ddd219307@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 19:19:49 +0100
+Hi Shuah,
 
-The script "checkpatch.pl" pointed information out like the following.
+On Wed, Dec 07, 2016 at 01:03:59PM -0700, Shuah Khan wrote:
+> Hi Sakari,
+> 
+> On 12/07/2016 03:52 AM, Sakari Ailus wrote:
+> > Hi Shuah,
+> > 
+> > On Mon, Dec 05, 2016 at 05:38:23PM -0700, Shuah Khan wrote:
+> >> On 12/05/2016 04:21 PM, Laurent Pinchart wrote:
+> >>> Hi Shuah,
+> >>>
+> >>> On Monday 05 Dec 2016 15:44:30 Shuah Khan wrote:
+> >>>> On 11/30/2016 03:01 PM, Shuah Khan wrote:
+> >>>>> Change ALSA driver to use Media Controller API to share media resources
+> >>>>> with DVB, and V4L2 drivers on a AU0828 media device.
+> >>>>>
+> >>>>> Media Controller specific initialization is done after sound card is
+> >>>>> registered. ALSA creates Media interface and entity function graph
+> >>>>> nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
+> >>>>>
+> >>>>> snd_usb_hw_params() will call Media Controller enable source handler
+> >>>>> interface to request the media resource. If resource request is granted,
+> >>>>> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY is
+> >>>>> returned.
+> >>>>>
+> >>>>> Media specific cleanup is done in usb_audio_disconnect().
+> >>>>>
+> >>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> >>>>
+> >>>> Hi Takashi,
+> >>>>
+> >>>> If you are good with this patch, could you please Ack it, so Mauro
+> >>>> can pull it into media tree with the other two patches in this series,
+> >>>> when he is ready to do so.
+> >>>
+> >>> I *really* want to address the concerns raised by Sakari before pulling more 
+> >>> code that makes fixing the race conditions more difficult. Please, let's all 
+> >>> work on fixing the core code to build a stable base on which we can build 
+> >>> additional features. V4L2 and MC need teamwork, it's time to give the 
+> >>> subsystem the love it deserves.
+> >>>
+> >>
+> >> Hi Laurent,
+> >>
+> >> The issue Sakari brought up is specific to using devm for video_device in
+> >> omap3 and vsp1. I tried reproducing the problem on two different drivers
+> >> and couldn't on Linux 4.9-rc7.
+> >>
+> >> After sharing that with Sakari, I suggested to Sakari to pull up his patch
+> >> that removes the devm usage and see if he still needs all the patches in his
+> >> patch series. He didn't back to me on that. I also requested him to rebase on
+> > 
+> > Just to see what remains, I made a small hack to test this with omap3isp by
+> > just replacing the devm_() functions by their plain counterparts. The memory
+> > is thus never released, for there is no really a proper moment to release it
+> > --- something which the patchset resolves. The result is here:
+> > 
+> > <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg.txt>
+> 
+> Did you test this on 4.9-rc7 without any of your other patches? If you
+> haven't could you please run this test with just the removing devm usage
+> from omap3isp?
+> 
+> It would be good to get a baseline on the current with just the not using
+> devm first and then see what needs fixing.
+> 
+> Also, could you please send me the complete dmesg.
 
-WARNING: Possible unnecessary 'out of memory' message
+Updated from v4.9-rc6 to rc7 and with increased CONFIG_LOG_BUF_SHIFT. The
+diff and dmesg are here:
 
-Thus fix the affected source code place.
+<URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-diff2.txt>
+<URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/v4l2-core/v4l2-async.c | 5 -----
- 1 file changed, 5 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 277183f2d514..812d0b2a2f73 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -203,11 +203,6 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 		return;
- 
- 	dev = kmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
--	if (!dev) {
--		dev_err(notifier->v4l2_dev->dev,
--			"Failed to allocate device cache!\n");
--	}
--
- 	mutex_lock(&list_lock);
- 
- 	list_del(&notifier->list);
 -- 
-2.11.0
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
