@@ -1,81 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:53882 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932627AbcL0N7a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 08:59:30 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
-        geert+renesas@glider.be, akpm@linux-foundation.org,
-        linux@roeck-us.net, hverkuil@xs4all.nl,
-        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
-        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
-        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
-        mark.rutland@arm.com, Ramiro.Oliveira@synopsys.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: [PATCH v7 1/2] Add OV5647 device tree documentation
-Date: Tue, 27 Dec 2016 13:59:02 +0000
-Message-Id: <2df6779f915edc7eb48ef215235d480f62f165b0.1482846784.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1482846784.git.roliveir@synopsys.com>
-References: <cover.1482846784.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1482846784.git.roliveir@synopsys.com>
-References: <cover.1482846784.git.roliveir@synopsys.com>
+Received: from mout.gmx.net ([212.227.17.20]:63736 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753198AbcLHNeo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Dec 2016 08:34:44 -0500
+Date: Thu, 8 Dec 2016 14:34:46 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
+In-Reply-To: <6827808.RfcVLAN17o@avalon>
+Message-ID: <Pine.LNX.4.64.1612081432320.4140@axis700.grange>
+References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
+ <1934036.5jNzJsjeMl@avalon> <Pine.LNX.4.64.1612061127550.17179@axis700.grange>
+ <6827808.RfcVLAN17o@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create device tree bindings documentation.
+Hi Laurent,
 
-Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
----
- .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+One more question:
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-new file mode 100644
-index 000000000000..57fd40036c26
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-@@ -0,0 +1,35 @@
-+Omnivision OV5647 raw image sensor
-+---------------------------------
-+
-+OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
-+
-+Required properties:
-+
-+- compatible		: "ovti,ov5647".
-+- reg			: I2C slave address of the sensor.
-+- clocks		: Reference to the xclk clock.
-+- clock-names		: Should be "xclk".
-+- clock-frequency	: Frequency of the xclk clock.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The OV5647 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Example:
-+
-+	i2c@2000 {
-+		...
-+		ov: camera@36 {
-+			compatible = "ovti,ov5647";
-+			reg = <0x36>;
-+			clocks = <&camera_clk>;
-+			clock-names = "xclk";
-+			clock-frequency = <30000000>;
-+			port {
-+				camera_1: endpoint {
-+					remote-endpoint = <&csi1_ep1>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.11.0
+On Tue, 6 Dec 2016, Laurent Pinchart wrote:
 
+> Hi Guennadi,
+> 
+> On Tuesday 06 Dec 2016 11:39:22 Guennadi Liakhovetski wrote:
+> > On Tue, 6 Dec 2016, Laurent Pinchart wrote:
+> > > On Monday 05 Dec 2016 23:13:53 Guennadi Liakhovetski wrote:
+> > >> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
+> > >>>>>> +	/*
+> > >>>>>> +	 * Register a metadata node. TODO: shall this only be enabled
+> > >>>>>> for some
+> > >>>>>> +	 * cameras?
+> > >>>>>> +	 */
+> > >>>>>> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
+> > >>>>>> +		uvc_meta_register(stream);
+> > >>>>>> +
+> > >>>>> 
+> > >>>>> I think so, only for the cameras that can produce metadata.
+> > >>>> 
+> > >>>> Every UVC camera produces metadata, but most cameras only have standard
+> > >>>> fields there. Whether we should stream standard header fields from the
+> > >>>> metadata node will be discussed later. If we do decide to stream
+> > >>>> standard header fields, then every USB camera gets metadata nodes. If
+> > >>>> we decide not to include standard fields, how do we know whether the
+> > >>>> camera has any private fields in headers without streaming from it? Do
+> > >>>> you want a quirk for such cameras?
+> > >>> 
+> > >>> Unless they can be detected in a standard way that's probably the best
+> > >>> solution.
 
+How about a module parameter with a list of VID:PID pairs? The problem 
+with the quirk is, that as vendors produce multiple cameras with different 
+PIDs they will have to push patches for each such camera.
+
+Thanks
+Guennadi
