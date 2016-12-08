@@ -1,214 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57660
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1757357AbcLAOy3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 09:54:29 -0500
-Date: Thu, 1 Dec 2016 12:54:20 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: David Howells <dhowells@redhat.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-        gnomes@lxorguk.ukuu.org.uk, minyard@acm.org,
-        linux-security-module@vger.kernel.org, keyrings@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 29/39] Annotate hardware config module parameters in
- drivers/staging/media/
-Message-ID: <20161201125420.5b397933@vento.lan>
-In-Reply-To: <148059561006.31612.6396069416948435055.stgit@warthog.procyon.org.uk>
-References: <148059537897.31612.9461043954611464597.stgit@warthog.procyon.org.uk>
-        <148059561006.31612.6396069416948435055.stgit@warthog.procyon.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:34003 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752818AbcLHP6b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Dec 2016 10:58:31 -0500
+Message-ID: <1481212694.2673.11.camel@pengutronix.de>
+Subject: Re: [PATCH 8/9] [media] coda: use VDOA for un-tiling custom
+ macroblock format
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Michael Tretter <m.tretter@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+Date: Thu, 08 Dec 2016 16:58:14 +0100
+In-Reply-To: <20161208152416.16031-8-m.tretter@pengutronix.de>
+References: <20161208152416.16031-1-m.tretter@pengutronix.de>
+         <20161208152416.16031-8-m.tretter@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 01 Dec 2016 12:33:30 +0000
-David Howells <dhowells@redhat.com> escreveu:
-
-> When the kernel is running in secure boot mode, we lock down the kernel to
-> prevent userspace from modifying the running kernel image.  Whilst this
-> includes prohibiting access to things like /dev/mem, it must also prevent
-> access by means of configuring driver modules in such a way as to cause a
-> device to access or modify the kernel image.
+Am Donnerstag, den 08.12.2016, 16:24 +0100 schrieb Michael Tretter:
+> If the CODA driver is configured to produce NV12 output and the VDOA is
+> available, the VDOA can be used to transform the custom macroblock tiled
+> format to a raster-ordered format for scanout.
 > 
-> To this end, annotate module_param* statements that refer to hardware
-> configuration and indicate for future reference what type of parameter they
-> specify.  The parameter parser in the core sees this information and can
-> skip such parameters with an error message if the kernel is locked down.
-> The module initialisation then runs as normal, but just sees whatever the
-> default values for those parameters is.
+> In this case, set the output format of the CODA to the custom macroblock
+> tiled format, disable the rotator, and use the VDOA to write to the v4l2
+> buffer. The VDOA is synchronized with the CODA to always un-tile the
+> frame that the CODA finished in the previous run.
 > 
-> Note that we do still need to do the module initialisation because some
-> drivers have viable defaults set in case parameters aren't specified and
-> some drivers support automatic configuration (e.g. PNP or PCI) in addition
-> to manually coded parameters.
-> 
-> This patch annotates drivers in drivers/staging/media/.
-> 
-> Suggested-by: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-> Signed-off-by: David Howells <dhowells@redhat.com>
-> cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> cc: linux-media@vger.kernel.org
-> cc: devel@driverdev.osuosl.org
-
-Tried to apply here, but got some errors:
-
-
-drivers/staging/media/lirc/lirc_parallel.c:728:19: error: Expected ) in function declarator
-drivers/staging/media/lirc/lirc_parallel.c:728:19: error: got ,
-drivers/staging/media/lirc/lirc_parallel.c:731:20: error: Expected ) in function declarator
-drivers/staging/media/lirc/lirc_parallel.c:731:20: error: got ,
-drivers/staging/media/lirc/lirc_sir.c:989:19: error: Expected ) in function declarator
-drivers/staging/media/lirc/lirc_sir.c:989:19: error: got ,
-drivers/staging/media/lirc/lirc_sir.c:992:20: error: Expected ) in function declarator
-drivers/staging/media/lirc/lirc_sir.c:992:20: error: got ,
-drivers/staging/media/lirc/lirc_sir.c:989:21: error: expected ')' before 'int'
- module_param_hw(io, int, ioport, S_IRUGO);
-                     ^~~
-drivers/staging/media/lirc/lirc_sir.c:992:22: error: expected ')' before 'int'
- module_param_hw(irq, int, irq, S_IRUGO);
-                      ^~~
-scripts/Makefile.build:293: recipe for target 'drivers/staging/media/lirc/lirc_sir.o' failed
-make[2]: *** [drivers/staging/media/lirc/lirc_sir.o] Error 1
-make[2]: *** Waiting for unfinished jobs....
-drivers/staging/media/lirc/lirc_parallel.c:728:21: error: expected ')' before 'int'
- module_param_hw(io, int, ioport, S_IRUGO);
-                     ^~~
-drivers/staging/media/lirc/lirc_parallel.c:731:22: error: expected ')' before 'int'
- module_param_hw(irq, int, irq, S_IRUGO);
-                      ^~~
-scripts/Makefile.build:293: recipe for target 'drivers/staging/media/lirc/lirc_parallel.o' failed
-make[2]: *** [drivers/staging/media/lirc/lirc_parallel.o] Error 1
-scripts/Makefile.build:544: recipe for target 'drivers/staging/media/lirc' failed
-make[1]: *** [drivers/staging/media/lirc] Error 2
-Makefile:1485: recipe for target '_module_drivers/staging/media' failed
-make: *** [_module_drivers/staging/media] Error 2
-
-
-
+> Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
 > ---
+>  drivers/media/platform/coda/coda-bit.c    | 77 +++++++++++++++++++++----------
+>  drivers/media/platform/coda/coda-common.c | 55 ++++++++++++++++++++--
+>  drivers/media/platform/coda/coda.h        |  2 +
+>  3 files changed, 104 insertions(+), 30 deletions(-)
 > 
->  drivers/staging/media/lirc/lirc_parallel.c |    4 ++--
->  drivers/staging/media/lirc/lirc_serial.c   |   10 +++++-----
+> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+> index 309eb4e..3e2f830 100644
+> --- a/drivers/media/platform/coda/coda-bit.c
+> +++ b/drivers/media/platform/coda/coda-bit.c
+> @@ -30,6 +30,7 @@
+>  #include <media/videobuf2-vmalloc.h>
+>  
+>  #include "coda.h"
+> +#include "imx-vdoa.h"
+>  #define CREATE_TRACE_POINTS
+>  #include "trace.h"
+>  
+> @@ -1517,6 +1518,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+>  	u32 val;
+>  	int ret;
+>  
+> +	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+> +		 "Video Data Order Adapter: %s\n",
+> +		 ctx->use_vdoa ? "Enabled" : "Disabled");
+> +
+>  	/* Start decoding */
+>  	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+>  	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> @@ -1535,7 +1540,8 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+>  	if (dst_fourcc == V4L2_PIX_FMT_NV12)
+>  		ctx->frame_mem_ctrl |= CODA_FRAME_CHROMA_INTERLEAVE;
+>  	if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP)
+> -		ctx->frame_mem_ctrl |= (0x3 << 9) | CODA9_FRAME_TILED2LINEAR;
+> +		ctx->frame_mem_ctrl |= (0x3 << 9) |
+> +			((ctx->use_vdoa) ? 0 : CODA9_FRAME_TILED2LINEAR);
+>  	coda_write(dev, ctx->frame_mem_ctrl, CODA_REG_BIT_FRAME_MEM_CTRL);
+>  
+>  	ctx->display_idx = -1;
+> @@ -1724,6 +1730,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+>  	struct coda_q_data *q_data_dst;
+>  	struct coda_buffer_meta *meta;
+>  	unsigned long flags;
+> +	u32 rot_mode = 0;
+>  	u32 reg_addr, reg_stride;
+>  
+>  	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> @@ -1759,27 +1766,40 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+>  	if (dev->devtype->product == CODA_960)
+>  		coda_set_gdi_regs(ctx);
+>  
+> -	if (dev->devtype->product == CODA_960) {
+> -		/*
+> -		 * The CODA960 seems to have an internal list of buffers with
+> -		 * 64 entries that includes the registered frame buffers as
+> -		 * well as the rotator buffer output.
+> -		 * ROT_INDEX needs to be < 0x40, but > ctx->num_internal_frames.
+> -		 */
+> -		coda_write(dev, CODA_MAX_FRAMEBUFFERS + dst_buf->vb2_buf.index,
+> -				CODA9_CMD_DEC_PIC_ROT_INDEX);
+> -
+> -		reg_addr = CODA9_CMD_DEC_PIC_ROT_ADDR_Y;
+> -		reg_stride = CODA9_CMD_DEC_PIC_ROT_STRIDE;
+> +	if (ctx->use_vdoa &&
+> +	    ctx->display_idx >= 0 &&
+> +	    ctx->display_idx < ctx->num_internal_frames) {
+> +		vdoa_device_run(ctx->vdoa,
+> +				vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0),
+> +				ctx->internal_frames[ctx->display_idx].paddr);
+>  	} else {
+> -		reg_addr = CODA_CMD_DEC_PIC_ROT_ADDR_Y;
+> -		reg_stride = CODA_CMD_DEC_PIC_ROT_STRIDE;
+> +		if (dev->devtype->product == CODA_960) {
+> +			/*
+> +			 * The CODA960 seems to have an internal list of
+> +			 * buffers with 64 entries that includes the
+> +			 * registered frame buffers as well as the rotator
+> +			 * buffer output.
+> +			 *
+> +			 * ROT_INDEX needs to be < 0x40, but >
+> +			 * ctx->num_internal_frames.
+> +			 */
+> +			coda_write(dev,
+> +				   CODA_MAX_FRAMEBUFFERS + dst_buf->vb2_buf.index,
+> +				   CODA9_CMD_DEC_PIC_ROT_INDEX);
+> +
+> +			reg_addr = CODA9_CMD_DEC_PIC_ROT_ADDR_Y;
+> +			reg_stride = CODA9_CMD_DEC_PIC_ROT_STRIDE;
+> +		} else {
+> +			reg_addr = CODA_CMD_DEC_PIC_ROT_ADDR_Y;
+> +			reg_stride = CODA_CMD_DEC_PIC_ROT_STRIDE;
+> +		}
+> +		coda_write_base(ctx, q_data_dst, dst_buf, reg_addr);
+> +		coda_write(dev, q_data_dst->bytesperline, reg_stride);
+> +
+> +		rot_mode = CODA_ROT_MIR_ENABLE | ctx->params.rot_mode;
+>  	}
+> -	coda_write_base(ctx, q_data_dst, dst_buf, reg_addr);
+> -	coda_write(dev, q_data_dst->bytesperline, reg_stride);
+>  
+> -	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode,
+> -			CODA_CMD_DEC_PIC_ROT_MODE);
+> +	coda_write(dev, rot_mode, CODA_CMD_DEC_PIC_ROT_MODE);
+>  
+>  	switch (dev->devtype->product) {
+>  	case CODA_DX6:
+> @@ -1851,6 +1871,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>  	u32 src_fourcc;
+>  	int success;
+>  	u32 err_mb;
+> +	int err_vdoa = 0;
+>  	u32 val;
+>  
+>  	/* Update kfifo out pointer from coda bitstream read pointer */
+> @@ -1934,13 +1955,17 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>  		}
+>  	}
+>  
+> +	/* Wait until the VDOA finished writing the previous display frame */
+> +	if (ctx->use_vdoa &&
+> +	    ctx->display_idx >= 0 &&
+> +	    ctx->display_idx < ctx->num_internal_frames) {
+> +		err_vdoa = vdoa_wait_for_completion(ctx->vdoa);
+> +	}
+> +
+>  	ctx->frm_dis_flg = coda_read(dev,
+>  				     CODA_REG_BIT_FRM_DIS_FLG(ctx->reg_idx));
+>  
+> -	/*
+> -	 * The previous display frame was copied out by the rotator,
+> -	 * now it can be overwritten again
+> -	 */
+> +	/* The previous display frame was copied out and can be overwritten */
+>  	if (ctx->display_idx >= 0 &&
+>  	    ctx->display_idx < ctx->num_internal_frames) {
+>  		ctx->frm_dis_flg &= ~(1 << ctx->display_idx);
+> @@ -2057,8 +2082,10 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>  		}
+>  		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
+>  
+> -		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[ctx->display_idx] ?
+> -				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+> +		if (ctx->frame_errors[ctx->display_idx] || err_vdoa)
+> +			coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
+> +		else
+> +			coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_DONE);
+>  
+>  		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+>  			"job finished: decoding frame (%d) (%s)\n",
+> diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+> index 3a21000..8b23ea4 100644
+> --- a/drivers/media/platform/coda/coda-common.c
+> +++ b/drivers/media/platform/coda/coda-common.c
+> @@ -450,6 +450,30 @@ static int coda_try_pixelformat(struct coda_ctx *ctx, struct v4l2_format *f)
+>  	return 0;
+>  }
+>  
+> +static int coda_try_vdoa(struct coda_ctx *ctx, struct v4l2_format *f)
 
-Btw, this got moved to another place, and had some patch getting rid
-of those really ugly S_IRUGO & friend macros.
+This should probably be called coda_try_fmt_vdoa and add an additional
+bool *use_vdoa return value ...
 
-I rebased it to apply over the top of the media tree, but I suspect
-it requires some other patch to be applied adding the new macro.
+> +{
+> +	int err;
+> +
+> +	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +		return -EINVAL;
+> +
+> +	if (!ctx->vdoa) {
+> +		ctx->use_vdoa = false;
+> +		return 0;
+> +	}
+> +
+> +	err = vdoa_context_configure(ctx->vdoa, f->fmt.pix.width,
+> +				     f->fmt.pix.height, f->fmt.pix.pixelformat);
+> +	if (err) {
+> +		ctx->use_vdoa = false;
+> +		return 0;
+> +	}
+> +
+> +	ctx->use_vdoa = true;
 
-I'm enclosing the rebased patch as reference.
+... to avoid changing context state when called from TRY_FMT.
 
-Regards,
-Mauro
+> +
+> +	return 0;
+> +}
+> +
+>  static unsigned int coda_estimate_sizeimage(struct coda_ctx *ctx, u32 sizeimage,
+>  					    u32 width, u32 height)
+>  {
+> @@ -564,6 +588,10 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+>  		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
+>  		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
+>  				       f->fmt.pix.height * 3 / 2;
+> +
+> +		ret = coda_try_vdoa(ctx, f);
+> +		if (ret < 0)
+> +			return ret;
+>  	}
+>  
+>  	return 0;
+> @@ -632,13 +660,20 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
+>  		q_data->rect.height = f->fmt.pix.height;
+>  	}
+>  
+> +	/*
+> +	 * It would be nice to set use_vdoa in coda_s_fmt instead of
+> +	 * coda_try_vdoa() to have a single location where this is changed.
+> +	 * Unfortunately, if the capture format is V4L2_PIX_FMT_NV12, we
+> +	 * cannot be sure if the VDOA should be used, without storing the
+> +	 * result of coda_try_vdoa() or calling vdoa_context_configure()
+> +	 * again. Therefore, set use_vdoa in coda_try_vdoa.
+> +	 */
+> +
 
-[PATCH] [media] Annotate hardware config module parameters in drivers/staging/media/
+See above. ctx->use_vdoa should only be set in SET_FMT.
 
-From: David Howells <dhowells@redhat.com>
+>  	switch (f->fmt.pix.pixelformat) {
+>  	case V4L2_PIX_FMT_NV12:
+> -		if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> -			ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
+> -			if (!disable_tiling)
+> -				break;
+> -		}
+> +		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
+> +		if (!disable_tiling)
+> +			break;
+>  		/* else fall through */
+>  	case V4L2_PIX_FMT_YUV420:
+>  	case V4L2_PIX_FMT_YVU420:
+> @@ -1764,6 +1799,13 @@ static int coda_open(struct file *file)
+>  	default:
+>  		ctx->reg_idx = idx;
+>  	}
+> +	if (ctx->dev->vdoa) {
 
-When the kernel is running in secure boot mode, we lock down the kernel to
-prevent userspace from modifying the running kernel image.  Whilst this
-includes prohibiting access to things like /dev/mem, it must also prevent
-access by means of configuring driver modules in such a way as to cause a
-device to access or modify the kernel image.
+	if (ctx->dev->vdoa && !disable_vdoa) {
 
-To this end, annotate module_param* statements that refer to hardware
-configuration and indicate for future reference what type of parameter they
-specify.  The parameter parser in the core sees this information and can
-skip such parameters with an error message if the kernel is locked down.
-The module initialisation then runs as normal, but just sees whatever the
-default values for those parameters is.
+> +		ctx->vdoa = vdoa_context_create(dev->vdoa);
+> +		if (!ctx->vdoa)
+> +			v4l2_warn(&dev->v4l2_dev,
+> +				  "Failed to create vdoa context: not using vdoa");
+> +	}
+> +	ctx->use_vdoa = false;
+>  
+>  	/* Power up and upload firmware if necessary */
+>  	ret = pm_runtime_get_sync(&dev->plat_dev->dev);
+> @@ -1839,6 +1881,9 @@ static int coda_release(struct file *file)
+>  	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Releasing instance %p\n",
+>  		 ctx);
+>  
+> +	if (ctx->vdoa)
+> +		vdoa_context_destroy(ctx->vdoa);
+> +
+>  	if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit)
+>  		coda_bit_stream_end_flag(ctx);
+>  
+> diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+> index ae202dc..7ed79eb 100644
+> --- a/drivers/media/platform/coda/coda.h
+> +++ b/drivers/media/platform/coda/coda.h
+> @@ -237,6 +237,8 @@ struct coda_ctx {
+>  	int				display_idx;
+>  	struct dentry			*debugfs_entry;
+>  	bool				use_bit;
+> +	bool				use_vdoa;
+> +	struct vdoa_ctx			*vdoa;
+>  };
+>  
+>  extern int coda_debug;
 
-Note that we do still need to do the module initialisation because some
-drivers have viable defaults set in case parameters aren't specified and
-some drivers support automatic configuration (e.g. PNP or PCI) in addition
-to manually coded parameters.
+regards
+Philipp
 
-This patch annotates drivers in drivers/staging/media/.
-
-[mchehab@s-opensource.com: fixed merge conflicts at serial_ir.c]
-Suggested-by: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-cc: devel@driverdev.osuosl.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
-index 436bd58b5f05..b7e44461de4a 100644
---- a/drivers/media/rc/serial_ir.c
-+++ b/drivers/media/rc/serial_ir.c
-@@ -811,11 +811,11 @@ MODULE_LICENSE("GPL");
- module_param(type, int, 0444);
- MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo, 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug");
- 
--module_param(io, int, 0444);
-+module_param_hw(io, int, ioport, 0444);
- MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
- 
- /* some architectures (e.g. intel xscale) have memory mapped registers */
--module_param(iommap, bool, 0444);
-+module_param_hw(iommap, bool, other, 0444);
- MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory mapped io)");
- 
- /*
-@@ -823,13 +823,13 @@ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O (0 = no memory map
-  * on 32bit word boundaries.
-  * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
-  */
--module_param(ioshift, int, 0444);
-+module_param_hw(ioshift, int, other, 0444);
- MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
- 
--module_param(irq, int, 0444);
-+module_param_hw(irq, int, irq, 0444);
- MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
- 
--module_param(share_irq, bool, 0444);
-+module_param_hw (share_irq, bool, other, 0444);
- MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
- 
- module_param(sense, int, 0444);
-diff --git a/drivers/staging/media/lirc/lirc_parallel.c b/drivers/staging/media/lirc/lirc_parallel.c
-index bfb76a45bfbf..65530e0a6d99 100644
---- a/drivers/staging/media/lirc/lirc_parallel.c
-+++ b/drivers/staging/media/lirc/lirc_parallel.c
-@@ -725,10 +725,10 @@ MODULE_DESCRIPTION("Infrared receiver driver for parallel ports.");
- MODULE_AUTHOR("Christoph Bartelmus");
- MODULE_LICENSE("GPL");
- 
--module_param(io, int, S_IRUGO);
-+module_param_hw(io, int, ioport, S_IRUGO);
- MODULE_PARM_DESC(io, "I/O address base (0x3bc, 0x378 or 0x278)");
- 
--module_param(irq, int, S_IRUGO);
-+module_param_hw(irq, int, irq, S_IRUGO);
- MODULE_PARM_DESC(irq, "Interrupt (7 or 5)");
- 
- module_param(tx_mask, int, S_IRUGO);
-diff --git a/drivers/staging/media/lirc/lirc_sir.c b/drivers/staging/media/lirc/lirc_sir.c
-index 4f326e97ad75..e27842e01fba 100644
---- a/drivers/staging/media/lirc/lirc_sir.c
-+++ b/drivers/staging/media/lirc/lirc_sir.c
-@@ -986,10 +986,10 @@ MODULE_AUTHOR("Milan Pikula");
- #endif
- MODULE_LICENSE("GPL");
- 
--module_param(io, int, S_IRUGO);
-+module_param_hw(io, int, ioport, S_IRUGO);
- MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
- 
--module_param(irq, int, S_IRUGO);
-+module_param_hw(irq, int, irq, S_IRUGO);
- MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
- 
- module_param(threshold, int, S_IRUGO);
-
-
-
-
-
-Thanks,
-Mauro
