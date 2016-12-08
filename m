@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:34253 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751673AbcLXWcs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Dec 2016 17:32:48 -0500
-Received: by mail-pg0-f66.google.com with SMTP id b1so4789410pgc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2016 14:32:48 -0800 (PST)
-From: Shyam Saini <mayhs11saini@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, Shyam Saini <mayhs11saini@gmail.com>
-Subject: [PATCH 4/4] media: pci: saa7164: Replace BUG() with BUG_ON()
-Date: Sun, 25 Dec 2016 04:01:42 +0530
-Message-Id: <1482618702-13755-4-git-send-email-mayhs11saini@gmail.com>
-In-Reply-To: <1482618702-13755-1-git-send-email-mayhs11saini@gmail.com>
-References: <1482618702-13755-1-git-send-email-mayhs11saini@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46481 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932638AbcLHWW1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 17:22:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 2/6] v4l: tvp5150: Don't inline the tvp5150_selmux() function
+Date: Fri,  9 Dec 2016 00:22:42 +0200
+Message-Id: <1481235766-24469-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1481235766-24469-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1481235766-24469-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace BUG() with BUG_ON() using coccinelle
+The function is large and called in several places, don't inline it.
 
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/pci/saa7164/saa7164-vbi.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/i2c/tvp5150.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
-index e5dcb81..73e42c9 100644
---- a/drivers/media/pci/saa7164/saa7164-vbi.c
-+++ b/drivers/media/pci/saa7164/saa7164-vbi.c
-@@ -722,8 +722,7 @@ int saa7164_vbi_register(struct saa7164_port *port)
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 08384951c9e5..febe6833a504 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -258,7 +258,7 @@ static int tvp5150_log_status(struct v4l2_subdev *sd)
+ 			Basic functions
+  ****************************************************************************/
  
- 	dprintk(DBGLVL_VBI, "%s()\n", __func__);
- 
--	if (port->type != SAA7164_MPEG_VBI)
--		BUG();
-+	BUG_ON(port->type != SAA7164_MPEG_VBI);
- 
- 	/* Sanity check that the PCI configuration space is active */
- 	if (port->hwcfg.BARLocation == 0) {
-@@ -775,8 +774,7 @@ void saa7164_vbi_unregister(struct saa7164_port *port)
- 
- 	dprintk(DBGLVL_VBI, "%s(port=%d)\n", __func__, port->nr);
- 
--	if (port->type != SAA7164_MPEG_VBI)
--		BUG();
-+	BUG_ON(port->type != SAA7164_MPEG_VBI);
- 
- 	if (port->v4l_device) {
- 		if (port->v4l_device->minor != -1)
+-static inline void tvp5150_selmux(struct v4l2_subdev *sd)
++static void tvp5150_selmux(struct v4l2_subdev *sd)
+ {
+ 	int opmode = 0;
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
 
