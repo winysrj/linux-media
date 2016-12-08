@@ -1,63 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36757
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752259AbcLHTvM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 14:51:12 -0500
-Date: Thu, 8 Dec 2016 17:51:02 -0200
+Received: from bombadil.infradead.org ([198.137.202.9]:36403 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752726AbcLHTnY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 14:43:24 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Antti Palosaari <crope@iki.fi>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH v3] [media] tvp5150: don't touch register
- TVP5150_CONF_SHARED_PIN if not needed
-Message-ID: <20161208175102.50c936f1@vento.lan>
-In-Reply-To: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
-References: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 1/3] [media] em28xx: don't change the device's name
+Date: Thu,  8 Dec 2016 17:43:15 -0200
+Message-Id: <369dda9476269abb91d4c9f6fb6219ca828d4f5b.1481226194.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu,  8 Dec 2016 17:46:53 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 
-> commit 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-> support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-> depending on the type of bus set via the .set_fmt() subdev callback.
-> 
-> This is known to cause trobules on devices that don't use a V4L2
-> subdev devnode, and a fix for it was made by commit 47de9bf8931e
-> ("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-> such fix doesn't consider the case of progressive video inputs,
-> causing chroma decoding issues on such videos, as it overrides not
-> only the type of video output, but also other unrelated bits.
-> 
-> So, instead of trying to guess, let's detect if the device configuration
-> is set via Device Tree. If not, just ignore the new logic, restoring
-> the original behavior.
-> 
-> Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
-> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> 
-> changes since version 2: 
->   - fixed settings for register 0x0d
->   - tested on WinTV USB2 with S-Video input
-> 
-> I'll do an extra test with HVR-950 on both S-Video and composite soon enough
+Changing the device name, causes it to be unable to remove the
+sysfs file, causing troubles if a device is removed and then
+re-inserted.
 
-Tested with HVR-950 (USB ID 2040:6513, Hauppauge model 65201, rev A1C0):
-	- both S-Video and composite entries are working.
+[ 1010.310320] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
+[ 1010.310323] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
+[ 1010.310325] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
+[ 1010.310383]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
+[ 1010.310449]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
+[ 1010.310464] CPU: 3 PID: 119 Comm: kworker/3:2 Not tainted 4.9.0-rc8+ #14
+[ 1010.310466] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
+[ 1010.310487] Workqueue: usb_hub_wq hub_event [usbcore]
+[ 1010.310490]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
+[ 1010.310496]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
+[ 1010.310501]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
+[ 1010.310505] Call Trace:
+[ 1010.310517]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
+[ 1010.310522]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
+[ 1010.310526]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
+[ 1010.310529]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
+[ 1010.310534]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
+[ 1010.310539]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
+[ 1010.310543]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
+[ 1010.310547]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
+[ 1010.310553]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
+[ 1010.310557]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
+[ 1010.310562]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
+[ 1010.310567]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
+[ 1010.310583]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
+[ 1010.310598]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
+[ 1010.310604]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
+[ 1010.310618]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
+[ 1010.310624]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
+[ 1010.310629]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
+[ 1010.310633]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
+[ 1010.310638]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
+[ 1010.310642]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
+[ 1010.310646]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
+[ 1010.310650]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
+[ 1010.310654]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
+[ 1010.310658]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
+[ 1010.310663]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+[ 1010.310667]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+[ 1010.310671]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
+[ 1010.310675]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
 
-Thanks,
-Mauro
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index b516c691b9eb..50e4c6e51ee7 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3236,8 +3236,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			   int minor)
+ {
+ 	int retval;
+-	static const char *default_chip_name = "em28xx";
+-	const char *chip_name = default_chip_name;
++	const char *chip_name = NULL;
+ 
+ 	dev->udev = udev;
+ 	mutex_init(&dev->ctrl_urb_lock);
+@@ -3324,14 +3323,9 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			break;
+ 		}
+ 	}
+-
+-	dev_set_name(&dev->udev->dev, "%d-%s: %s#%d",
+-		     dev->udev->bus->busnum, dev->udev->devpath,
+-		     chip_name, dev->devno);
+-
+-	if (chip_name == default_chip_name)
+-			dev_info(&dev->udev->dev,
+-				 "unknown em28xx chip ID (%d)\n", dev->chip_id);
++	if (!chip_name)
++		dev_info(&dev->udev->dev,
++			 "unknown em28xx chip ID (%d)\n", dev->chip_id);
+ 	else
+ 		dev_info(&dev->udev->dev, "chip ID is %s\n", chip_name);
+ 
+-- 
+2.9.3
+
