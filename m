@@ -1,66 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40653 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932967AbcLUXaJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 18:30:09 -0500
-Date: Thu, 22 Dec 2016 01:29:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161221232930.GI16630@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161221134235.GH16630@valkosipuli.retiisi.org.uk>
- <20161221224216.GA4681@amd>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45453 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751064AbcLHOT0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 09:19:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH 4/5] media: entity: Split graph walk iteration into two functions
+Date: Thu, 08 Dec 2016 16:02:05 +0200
+Message-ID: <3239339.ITEAqaAlQp@avalon>
+In-Reply-To: <1480082146-25991-5-git-send-email-sakari.ailus@linux.intel.com>
+References: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com> <1480082146-25991-5-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161221224216.GA4681@amd>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 21, 2016 at 11:42:16PM +0100, Pavel Machek wrote:
-> Hi!
-> 
-> > Thanks for the update.
-> > 
-> > On Wed, Dec 14, 2016 at 01:24:51PM +0100, Pavel Machek wrote:
-> > ...
-> > > +static int et8ek8_set_ctrl(struct v4l2_ctrl *ctrl)
-> > > +{
-> > > +	struct et8ek8_sensor *sensor =
-> > > +		container_of(ctrl->handler, struct et8ek8_sensor, ctrl_handler);
-> > > +
-> > > +	switch (ctrl->id) {
-> > > +	case V4L2_CID_GAIN:
-> > > +		return et8ek8_set_gain(sensor, ctrl->val);
-> > > +
-> > > +	case V4L2_CID_EXPOSURE:
-> > > +	{
-> > > +		int rows;
-> > > +		struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> > > +		rows = ctrl->val;
-> > > +		return et8ek8_i2c_write_reg(client, ET8EK8_REG_16BIT, 0x1243,
-> > > +					    swab16(rows));
-> > 
-> > Why swab16()? Doesn't the et8ek8_i2c_write_reg() already do the right thing?
-> > 
-> > 16-bit writes aren't used elsewhere... and the register address and value
-> > seem to have different endianness there, it looks like a bug to me in that
-> > function.
-> 
-> I'm pretty sure I did not invent that swab16(). I checked, and
-> exposure seems to work properly. I tried swapping the bytes, but then
-> exposure did not seem to work. So this one seems to be correct.
+Hi Sakari,
 
-I can fix that too, but I have no device to test. In terms of how the
-hardware is controlled there should be no difference anyway.
+Thank you for the patch.
+
+On Friday 25 Nov 2016 15:55:45 Sakari Ailus wrote:
+> With media_entity_graph_walk_next() getting more and more complicated (and
+> especially so with has_routing() support added), split the function into
+> two.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 56 +++++++++++++++++++++--------------------
+>  1 file changed, 30 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 2bddebb..e242ead 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -338,6 +338,34 @@ void media_graph_walk_start(struct media_graph *graph,
+>  }
+>  EXPORT_SYMBOL_GPL(media_graph_walk_start);
+> 
+> +static void graph_walk_iter(struct media_graph *graph)
+
+I'd name the function media_graph_walk_iter(). With that changed,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +{
+> +	struct media_entity *entity = stack_top(graph);
+> +	struct media_link *link;
+> +	struct media_entity *next;
+> +
+> +	link = list_entry(link_top(graph), typeof(*link), list);
+> +
+> +	/* The link is not enabled so we do not follow. */
+> +	if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
+> +		link_top(graph) = link_top(graph)->next;
+> +		return;
+> +	}
+> +
+> +	/* Get the entity in the other end of the link . */
+> +	next = media_entity_other(entity, link);
+> +
+> +	/* Has the entity already been visited? */
+> +	if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
+> +		link_top(graph) = link_top(graph)->next;
+> +		return;
+> +	}
+> +
+> +	/* Push the new entity to stack and start over. */
+> +	link_top(graph) = link_top(graph)->next;
+> +	stack_push(graph, next);
+> +}
+> +
+>  struct media_entity *media_graph_walk_next(struct media_graph *graph)
+>  {
+>  	if (stack_top(graph) == NULL)
+> @@ -348,32 +376,8 @@ struct media_entity *media_graph_walk_next(struct
+> media_graph *graph) * top of the stack until no more entities on the level
+> can be
+>  	 * found.
+>  	 */
+> -	while (link_top(graph) != &stack_top(graph)->links) {
+> -		struct media_entity *entity = stack_top(graph);
+> -		struct media_link *link;
+> -		struct media_entity *next;
+> -
+> -		link = list_entry(link_top(graph), typeof(*link), list);
+> -
+> -		/* The link is not enabled so we do not follow. */
+> -		if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
+> -			link_top(graph) = link_top(graph)->next;
+> -			continue;
+> -		}
+> -
+> -		/* Get the entity in the other end of the link . */
+> -		next = media_entity_other(entity, link);
+> -
+> -		/* Has the entity already been visited? */
+> -		if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
+> -			link_top(graph) = link_top(graph)->next;
+> -			continue;
+> -		}
+> -
+> -		/* Push the new entity to stack and start over. */
+> -		link_top(graph) = link_top(graph)->next;
+> -		stack_push(graph, next);
+> -	}
+> +	while (link_top(graph) != &stack_top(graph)->links)
+> +		graph_walk_iter(graph);
+> 
+>  	return stack_pop(graph);
+>  }
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
