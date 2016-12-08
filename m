@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:59218 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752059AbcLMMjr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 07:39:47 -0500
-Subject: Re: [PATCH RFC] [media] s5k6aa: set usleep_range greater 0
-To: Nicholas Mc Guire <hofrat@osadl.org>
-References: <CGME20161213015743epcas3p19867fa74e5ffe2974364d317d9b494f6@epcas3p1.samsung.com>
- <1481594282-12801-1-git-send-email-hofrat@osadl.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46626 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932648AbcLHXRj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 18:17:39 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <ae02dfc1-39b9-f7f7-5168-d00e4ad75db7@samsung.com>
-Date: Tue, 13 Dec 2016 13:38:52 +0100
-MIME-version: 1.0
-In-reply-to: <1481594282-12801-1-git-send-email-hofrat@osadl.org>
-Content-type: text/plain; charset=windows-1252
-Content-transfer-encoding: 7bit
+        Devin Heitmueller <dheitmueller@kernellabs.com>,
+        stable@vger.kernel.org
+Subject: Re: [PATCH v3] [media] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
+Date: Fri, 09 Dec 2016 01:18:04 +0200
+Message-ID: <2666862.R2ElIJTlOr@avalon>
+In-Reply-To: <20161208211607.6871d504@vento.lan>
+References: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com> <1726705.V5pZ2YOHyk@avalon> <20161208211607.6871d504@vento.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/13/2016 02:58 AM, Nicholas Mc Guire wrote:
-> As this is not in atomic context and it does not seem like a critical 
-> timing setting a range of 1ms allows the timer subsystem to optimize 
-> the hrtimer here.
+Hi Mauro,
+
+On Thursday 08 Dec 2016 21:16:07 Mauro Carvalho Chehab wrote:
+> Em Fri, 09 Dec 2016 00:33:22 +0200 Laurent Pinchart escreveu:
+> > Hi Mauro,
+> > 
+> > I've just sent a series of patches ("[PATCH 0/6] Fix tvp5150 regression
+> > with em28xx") that should fix this problem properly. I unfortunately
+> > haven't been able to test it with an em28xx device as I don't own any.
 > 
-> Fixes: commit bfa8dd3a0524 ("[media] v4l: Add v4l2 subdev driver for S5K6AAFX sensor")
-> Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
-> ---
+> I'll try to test it tomorrow, with interlaced video. I guess I can
+> test also VBI, but I need to double-check. I'm currently missing some
+> way to test progressive video, though.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-I'm not sure the "Fixes" tag is needed here.
-
-> Patch is against 4.9.0 (localversion-next is next-20161212)
-
-Ideally patches for the media subsystem should be normally based on
-master branch of the media tree (git://linuxtv.org/media_tree.git).
+Thank you. I dug up an em28xx device I got years ago (had nearly forgotten 
+about it) but it doesn't have a tvp5150, so I confirm I can't test this 
+myself.
 
 -- 
-Thanks,
-Sylwester
+Regards,
+
+Laurent Pinchart
+
