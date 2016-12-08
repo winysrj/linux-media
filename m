@@ -1,80 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f53.google.com ([74.125.83.53]:32776 "EHLO
-        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751797AbcLFQ5A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 11:57:00 -0500
-Received: by mail-pg0-f53.google.com with SMTP id 3so151209187pgd.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 08:57:00 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-arm-kernel@lists.infradead.org, Sekhar Nori <nsekhar@ti.com>,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 1/4] [media] davinci: vpif_capture: don't lock over s_stream
-References: <20161129235712.29846-1-khilman@baylibre.com>
-        <20161129235712.29846-2-khilman@baylibre.com>
-        <4747860.QGGHSuFRpz@avalon>
-Date: Tue, 06 Dec 2016 08:49:38 -0800
-In-Reply-To: <4747860.QGGHSuFRpz@avalon> (Laurent Pinchart's message of "Wed,
-        30 Nov 2016 10:32:33 +0200")
-Message-ID: <m237i1gfz1.fsf@baylibre.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:41564 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751577AbcLHT5X (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 14:57:23 -0500
+Date: Thu, 8 Dec 2016 17:57:17 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v3] [media] tvp5150: don't touch register
+ TVP5150_CONF_SHARED_PIN if not needed
+Message-ID: <20161208175717.7c6932e2@vento.lan>
+In-Reply-To: <20161208175102.50c936f1@vento.lan>
+References: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
+        <20161208175102.50c936f1@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
+Em Thu, 8 Dec 2016 17:51:02 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-> Hi Kevin,
->
-> Thank you for the patch.
->
-> On Tuesday 29 Nov 2016 15:57:09 Kevin Hilman wrote:
->> Video capture subdevs may be over I2C and may sleep during xfer, so we
->> cannot do IRQ-disabled locking when calling the subdev.
->> 
->> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->>  drivers/media/platform/davinci/vpif_capture.c | 3 +++
->>  1 file changed, 3 insertions(+)
->> 
->> diff --git a/drivers/media/platform/davinci/vpif_capture.c
->> b/drivers/media/platform/davinci/vpif_capture.c index
->> 5104cc0ee40e..9f8f41c0f251 100644
->> --- a/drivers/media/platform/davinci/vpif_capture.c
->> +++ b/drivers/media/platform/davinci/vpif_capture.c
->> @@ -193,7 +193,10 @@ static int vpif_start_streaming(struct vb2_queue *vq,
->> unsigned int count) }
->>  	}
->> 
->> +	spin_unlock_irqrestore(&common->irqlock, flags);
->>  	ret = v4l2_subdev_call(ch->sd, video, s_stream, 1);
->> +	spin_lock_irqsave(&common->irqlock, flags);
->
-> I always get anxious when I see a spinlock being released randomly with an 
-> operation in the middle of a protected section. Looking at the code it looks 
-> like the spinlock is abused here. irqlock should only protect the dma_queue 
-> and should thus only be taken around the following code:
->
-> spin_lock_irqsave(&common->irqlock, flags);
-> /* Get the next frame from the buffer queue */
-> common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
->                             struct vpif_cap_buffer, list);
-> /* Remove buffer from the buffer queue */
-> list_del(&common->cur_frm->list);
-> spin_unlock_irqrestore(&common->irqlock, flags);
+> Em Thu,  8 Dec 2016 17:46:53 -0200
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+> 
+> > commit 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
+> > support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
+> > depending on the type of bus set via the .set_fmt() subdev callback.
+> > 
+> > This is known to cause trobules on devices that don't use a V4L2
+> > subdev devnode, and a fix for it was made by commit 47de9bf8931e
+> > ("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
+> > such fix doesn't consider the case of progressive video inputs,
+> > causing chroma decoding issues on such videos, as it overrides not
+> > only the type of video output, but also other unrelated bits.
+> > 
+> > So, instead of trying to guess, let's detect if the device configuration
+> > is set via Device Tree. If not, just ignore the new logic, restoring
+> > the original behavior.
+> > 
+> > Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
+> > Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+> > Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> > 
+> > changes since version 2: 
+> >   - fixed settings for register 0x0d
+> >   - tested on WinTV USB2 with S-Video input
+> > 
+> > I'll do an extra test with HVR-950 on both S-Video and composite soon enough  
+> 
+> Tested with HVR-950 (USB ID 2040:6513, Hauppauge model 65201, rev A1C0):
+> 	- both S-Video and composite entries are working.
 
-Yes, that looks correct.  Will update.
+Devin,
 
-> The code that is currently protected by the lock in the start and stop 
-> streaming functions should be protected by a mutex instead.
+Btw, if you're willing to test it against the latest Kernel, I recommend
+you to also apply the three em28xx patches I just sent upstream, as they
+fix a regression with the conversion to dev_foo() print on em28xx driver,
+reported by Antti, with happens when removing the em28xx driver from memory.
 
-I tried taking the mutex here, but lockdep pointed out a deadlock.  I
-may not be fully understanding the V4L2 internals here, but it seems
-that the ioctl is already taking a mutex, so taking it again in
-start/stop streaming is a deadlock.  Unless you think the locking should
-be nested here, it seems to me that the mutex isn't needed.
+Such regression happened only at the 4.9-rc development cycle, so it 
+shouldn't affect any earlier versions of em28xx.
 
-Kevin
+I'm placing all 4 patches under this branch:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=em28xx-fixes
 
+Regards,
+Mauro
