@@ -1,78 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay1.mentorg.com ([192.94.38.131]:58643 "EHLO
-        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754096AbcL3U1E (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:4708 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751130AbcLHKay (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Dec 2016 15:27:04 -0500
-From: Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-To: Marek Vasut <marex@denx.de>,
-        Robert Schwebel <r.schwebel@pengutronix.de>,
-        Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
- <20161019213026.GU9460@valkosipuli.retiisi.org.uk>
- <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
- <20161229205113.j6wn7kmhkfrtuayu@pengutronix.de>
- <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <c38d80aa-5464-1e9d-e11a-f54716fdb565@mentor.com>
-Date: Fri, 30 Dec 2016 12:26:55 -0800
+        Thu, 8 Dec 2016 05:30:54 -0500
+From: Jean Christophe TROTIN <jean-christophe.trotin@st.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick FERTRE <yannick.fertre@st.com>,
+        Hugues FRUCHET <hugues.fruchet@st.com>
+Date: Thu, 8 Dec 2016 11:30:02 +0100
+Subject: Re: [PATCH v3 3/3] ARM: multi_v7_defconfig: enable
+ STMicroelectronics HVA debugfs
+Message-ID: <a099984f-55b1-62bf-48a2-7b265e0a8f2e@st.com>
+References: <1480329054-30403-1-git-send-email-jean-christophe.trotin@st.com>
+ <1480329054-30403-4-git-send-email-jean-christophe.trotin@st.com>
+ <4cd00e98-5198-2c0e-4779-336f1cd32f8c@xs4all.nl>
+In-Reply-To: <4cd00e98-5198-2c0e-4779-336f1cd32f8c@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <7350daac-14ee-74cc-4b01-470a375613a3@denx.de>
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
+
+You're right: the HVA DEBUGFS config option shouldn't be enabled by default.
+So, "[PATCH v3 3/3] ARM: multi_v7_defconfig: enable STMicroelectronics HVA 
+debugfs" must be ignored. It will be taken into account in our configuration 
+fragment.
+Do you have any other remark about the patches [PATCH v3 1/3] and [PATCH v3 2/3]?
+If you need a new version (v4) without the "[PATCH v3 3/3]", please let me know?
+
+Regards,
+
+Jean-Christophe.
 
 
-On 12/30/2016 11:06 AM, Marek Vasut wrote:
-> On 12/29/2016 09:51 PM, Robert Schwebel wrote:
->> Hi Jean-Michel,
-> Hi,
+On 12/05/2016 01:32 PM, Hans Verkuil wrote:
+> Please provide a commit message, it shouldn't be empty.
 >
->> On Thu, Dec 29, 2016 at 04:08:33PM +0100, Jean-Michel Hautbois wrote:
->>> What is the status of this work?
->> Philipp's patches have been reworked with the review feedback from the
->> last round and a new version will be posted when he is back from
->> holidays.
-> IMO Philipp's patches are better integrated and well structured, so I'd
-> rather like to see his work in at some point.
-
-Granted I am biased, but I will state my case. "Better integrated" - my 
-patches
-are also well integrated with the media core infrastructure. Philipp's 
-patches
-in fact require modification to media core, whereas mine require none.
-Some changes are needed of course (more subdev type definitions for
-one).
-
-As for "well structured", I don't really understand what is meant by that,
-but my driver is also well structured.
-
-Philipp's driver only supports unconverted image capture from the SMFC. 
-In addition
-to that, mine allows for all the hardware links supported by the IPU, 
-including routing
-frames from the CSI directly to the Image converter for scaling up to 
-4096x4096,
-colorspace conversion, rotation, and motion compensated de-interlace. 
-Yes all these
-conversion can be carried out post-capture via a mem2mem device, but 
-conversion
-directly from CSI capture has advantages, including minimized CPU 
-utilization and
-lower AXI bus traffic. In any case, Freescale added these hardware 
-paths, and my
-driver supports them.
-
-I leave it up to the maintainers.
-
-Steve
-
-
+> But are you sure you want to enable it in the defconfig? I think in general
+> DEBUGFS config options aren't enabled by default.
+>
+> Regards,
+>
+> 	Hans
+>
+> On 11/28/2016 11:30 AM, Jean-Christophe Trotin wrote:
+>> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+>> ---
+>>  arch/arm/configs/multi_v7_defconfig | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
+>> index eb14ab6..7a15107 100644
+>> --- a/arch/arm/configs/multi_v7_defconfig
+>> +++ b/arch/arm/configs/multi_v7_defconfig
+>> @@ -563,6 +563,7 @@ CONFIG_VIDEO_SAMSUNG_S5P_JPEG=m
+>>  CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
+>>  CONFIG_VIDEO_STI_BDISP=m
+>>  CONFIG_VIDEO_STI_HVA=m
+>> +CONFIG_VIDEO_STI_HVA_DEBUGFS=y
+>>  CONFIG_DYNAMIC_DEBUG=y
+>>  CONFIG_VIDEO_RENESAS_JPU=m
+>>  CONFIG_VIDEO_RENESAS_VSP1=m
+>>
+>
