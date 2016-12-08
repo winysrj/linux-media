@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58725 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:46469 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752986AbcLLJhi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 04:37:38 -0500
+        with ESMTP id S932349AbcLHWW0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 17:22:26 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Santosh Kumar Singh <kumar.san1093@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        PJunghak Sung <jh1009.sung@samsung.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] vim2m: Clean up file handle in open() error path.
-Date: Mon, 12 Dec 2016 11:38:08 +0200
-Message-ID: <4539600.dorPRmcVo7@avalon>
-In-Reply-To: <1481131419-2921-1-git-send-email-kumar.san1093@gmail.com>
-References: <1481131419-2921-1-git-send-email-kumar.san1093@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 1/6] v4l: tvp5150: Compile tvp5150_link_setup out if !CONFIG_MEDIA_CONTROLLER
+Date: Fri,  9 Dec 2016 00:22:41 +0200
+Message-Id: <1481235766-24469-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1481235766-24469-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1481235766-24469-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Santosh,
+The function is only referenced as a handler in the tvp5150_sd_media_ops
+structure, which is only used when CONFIG_MEDIA_CONTROLLER is set. Don't
+define the function and the structure when the configuration option is
+unset to avoid an unused function warning.
 
-Thank you for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/tvp5150.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-On Wednesday 07 Dec 2016 22:53:39 Santosh Kumar Singh wrote:
-> Fix to avoid possible memory leak and exit file handle
-> in error paths.
-> 
-> Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
-> ---
->  drivers/media/platform/vim2m.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
-> index a98f679..9fd24b8 100644
-> --- a/drivers/media/platform/vim2m.c
-> +++ b/drivers/media/platform/vim2m.c
-> @@ -907,6 +907,7 @@ static int vim2m_open(struct file *file)
->  	if (hdl->error) {
->  		rc = hdl->error;
->  		v4l2_ctrl_handler_free(hdl);
-> +		kfree(ctx);
->  		goto open_unlock;
->  	}
->  	ctx->fh.ctrl_handler = hdl;
-> @@ -929,6 +930,7 @@ static int vim2m_open(struct file *file)
-> 
->  		v4l2_ctrl_handler_free(hdl);
->  		kfree(ctx);
-> +		v4l2_fh_exit(&ctx->fh);
-
-Don't you notice something wrong in those last two lines ?
-
->  		goto open_unlock;
->  	}
-
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 6737685d5be5..08384951c9e5 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1013,11 +1013,11 @@ static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
+ 			Media entity ops
+  ****************************************************************************/
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
+ static int tvp5150_link_setup(struct media_entity *entity,
+ 			      const struct media_pad *local,
+ 			      const struct media_pad *remote, u32 flags)
+ {
+-#ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+ 	int i;
+@@ -1034,7 +1034,6 @@ static int tvp5150_link_setup(struct media_entity *entity,
+ 	decoder->input = i;
+ 
+ 	tvp5150_selmux(sd);
+-#endif
+ 
+ 	return 0;
+ }
+@@ -1042,6 +1041,7 @@ static int tvp5150_link_setup(struct media_entity *entity,
+ static const struct media_entity_operations tvp5150_sd_media_ops = {
+ 	.link_setup = tvp5150_link_setup,
+ };
++#endif
+ 
+ /****************************************************************************
+ 			I2C Command
 -- 
 Regards,
 
