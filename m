@@ -1,317 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:58301 "EHLO
-        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760807AbcLRLL6 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:55401 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751827AbcLHPZc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 06:11:58 -0500
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v6 6/6] [media] rc: add support for IR LEDs driven through SPI
-Date: Sun, 18 Dec 2016 20:11:38 +0900
-Message-id: <20161218111138.12831-7-andi.shyti@samsung.com>
-In-reply-to: <20161218111138.12831-1-andi.shyti@samsung.com>
-References: <20161218111138.12831-1-andi.shyti@samsung.com>
+        Thu, 8 Dec 2016 10:25:32 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: p.zabel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH 8/9] [media] coda: use VDOA for un-tiling custom macroblock format
+Date: Thu,  8 Dec 2016 16:24:15 +0100
+Message-Id: <20161208152416.16031-8-m.tretter@pengutronix.de>
+In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
+References: <20161208152416.16031-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ir-spi is a simple device driver which supports the
-connection between an IR LED and the MOSI line of an SPI device.
+If the CODA driver is configured to produce NV12 output and the VDOA is
+available, the VDOA can be used to transform the custom macroblock tiled
+format to a raster-ordered format for scanout.
 
-The driver, indeed, uses the SPI framework to stream the raw data
-provided by userspace through an rc character device. The chardev
-is handled by the LIRC framework and its functionality basically
-provides:
+In this case, set the output format of the CODA to the custom macroblock
+tiled format, disable the rotator, and use the VDOA to write to the v4l2
+buffer. The VDOA is synchronized with the CODA to always un-tile the
+frame that the CODA finished in the previous run.
 
- - write: the driver gets a pulse/space signal and translates it
-   to a binary signal that will be streamed to the IR led through
-   the SPI framework.
- - set frequency: sets the frequency whith which the data should
-   be sent. This is handle with ioctl with the
-   LIRC_SET_SEND_CARRIER flag (as per lirc documentation)
- - set duty cycle: this is also handled with ioctl with the
-   LIRC_SET_SEND_DUTY_CYCLE flag. The driver handles duty cycles
-   of 50%, 60%, 70%, 75%, 80% and 90%, calculated on 16bit data.
-
-The character device is created under /dev/lircX name, where X is
-and ID assigned by the LIRC framework.
-
-Example of usage:
-
-        fd = open("/dev/lirc0", O_RDWR);
-        if (fd < 0)
-                return -1;
-
-        val = 608000;
-        ret = ioctl(fd, LIRC_SET_SEND_CARRIER, &val);
-        if (ret < 0)
-                return -1;
-
-	val = 60;
-        ret = ioctl(fd, LIRC_SET_SEND_DUTY_CYCLE, &val);
-        if (ret < 0)
-                return -1;
-
-        n = write(fd, buffer, BUF_LEN);
-        if (n < 0 || n != BUF_LEN)
-                ret = -1;
-
-        close(fd);
-
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-Reviewed-by: Sean Young <sean@mess.org>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
 ---
- drivers/media/rc/Kconfig  |   9 +++
- drivers/media/rc/Makefile |   1 +
- drivers/media/rc/ir-spi.c | 199 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 209 insertions(+)
- create mode 100644 drivers/media/rc/ir-spi.c
+ drivers/media/platform/coda/coda-bit.c    | 77 +++++++++++++++++++++----------
+ drivers/media/platform/coda/coda-common.c | 55 ++++++++++++++++++++--
+ drivers/media/platform/coda/coda.h        |  2 +
+ 3 files changed, 104 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 629e8ca15ab3..3351e25d6176 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -261,6 +261,15 @@ config IR_REDRAT3
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called redrat3.
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 309eb4e..3e2f830 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -30,6 +30,7 @@
+ #include <media/videobuf2-vmalloc.h>
  
-+config IR_SPI
-+	tristate "SPI connected IR LED"
-+	depends on SPI && LIRC
-+	---help---
-+	  Say Y if you want to use an IR LED connected through SPI bus.
+ #include "coda.h"
++#include "imx-vdoa.h"
+ #define CREATE_TRACE_POINTS
+ #include "trace.h"
+ 
+@@ -1517,6 +1518,10 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+ 	u32 val;
+ 	int ret;
+ 
++	v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
++		 "Video Data Order Adapter: %s\n",
++		 ctx->use_vdoa ? "Enabled" : "Disabled");
 +
-+	  To compile this driver as a module, choose M here: the module will be
-+	  called ir-spi.
+ 	/* Start decoding */
+ 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+ 	q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+@@ -1535,7 +1540,8 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+ 	if (dst_fourcc == V4L2_PIX_FMT_NV12)
+ 		ctx->frame_mem_ctrl |= CODA_FRAME_CHROMA_INTERLEAVE;
+ 	if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP)
+-		ctx->frame_mem_ctrl |= (0x3 << 9) | CODA9_FRAME_TILED2LINEAR;
++		ctx->frame_mem_ctrl |= (0x3 << 9) |
++			((ctx->use_vdoa) ? 0 : CODA9_FRAME_TILED2LINEAR);
+ 	coda_write(dev, ctx->frame_mem_ctrl, CODA_REG_BIT_FRAME_MEM_CTRL);
+ 
+ 	ctx->display_idx = -1;
+@@ -1724,6 +1730,7 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 	struct coda_q_data *q_data_dst;
+ 	struct coda_buffer_meta *meta;
+ 	unsigned long flags;
++	u32 rot_mode = 0;
+ 	u32 reg_addr, reg_stride;
+ 
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+@@ -1759,27 +1766,40 @@ static int coda_prepare_decode(struct coda_ctx *ctx)
+ 	if (dev->devtype->product == CODA_960)
+ 		coda_set_gdi_regs(ctx);
+ 
+-	if (dev->devtype->product == CODA_960) {
+-		/*
+-		 * The CODA960 seems to have an internal list of buffers with
+-		 * 64 entries that includes the registered frame buffers as
+-		 * well as the rotator buffer output.
+-		 * ROT_INDEX needs to be < 0x40, but > ctx->num_internal_frames.
+-		 */
+-		coda_write(dev, CODA_MAX_FRAMEBUFFERS + dst_buf->vb2_buf.index,
+-				CODA9_CMD_DEC_PIC_ROT_INDEX);
+-
+-		reg_addr = CODA9_CMD_DEC_PIC_ROT_ADDR_Y;
+-		reg_stride = CODA9_CMD_DEC_PIC_ROT_STRIDE;
++	if (ctx->use_vdoa &&
++	    ctx->display_idx >= 0 &&
++	    ctx->display_idx < ctx->num_internal_frames) {
++		vdoa_device_run(ctx->vdoa,
++				vb2_dma_contig_plane_dma_addr(&dst_buf->vb2_buf, 0),
++				ctx->internal_frames[ctx->display_idx].paddr);
+ 	} else {
+-		reg_addr = CODA_CMD_DEC_PIC_ROT_ADDR_Y;
+-		reg_stride = CODA_CMD_DEC_PIC_ROT_STRIDE;
++		if (dev->devtype->product == CODA_960) {
++			/*
++			 * The CODA960 seems to have an internal list of
++			 * buffers with 64 entries that includes the
++			 * registered frame buffers as well as the rotator
++			 * buffer output.
++			 *
++			 * ROT_INDEX needs to be < 0x40, but >
++			 * ctx->num_internal_frames.
++			 */
++			coda_write(dev,
++				   CODA_MAX_FRAMEBUFFERS + dst_buf->vb2_buf.index,
++				   CODA9_CMD_DEC_PIC_ROT_INDEX);
 +
- config IR_STREAMZAP
- 	tristate "Streamzap PC Remote IR Receiver"
- 	depends on USB_ARCH_HAS_HCD
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 3a984ee301e2..938c98b82b22 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -27,6 +27,7 @@ obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
- obj-$(CONFIG_IR_ENE) += ene_ir.o
- obj-$(CONFIG_IR_REDRAT3) += redrat3.o
- obj-$(CONFIG_IR_RX51) += ir-rx51.o
-+obj-$(CONFIG_IR_SPI) += ir-spi.o
- obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
- obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
- obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
-diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
-new file mode 100644
-index 000000000000..d45c60352093
---- /dev/null
-+++ b/drivers/media/rc/ir-spi.c
-@@ -0,0 +1,199 @@
-+/*
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ * Author: Andi Shyti <andi.shyti@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * SPI driven IR LED device driver
-+ */
++			reg_addr = CODA9_CMD_DEC_PIC_ROT_ADDR_Y;
++			reg_stride = CODA9_CMD_DEC_PIC_ROT_STRIDE;
++		} else {
++			reg_addr = CODA_CMD_DEC_PIC_ROT_ADDR_Y;
++			reg_stride = CODA_CMD_DEC_PIC_ROT_STRIDE;
++		}
++		coda_write_base(ctx, q_data_dst, dst_buf, reg_addr);
++		coda_write(dev, q_data_dst->bytesperline, reg_stride);
 +
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/of_gpio.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/spi/spi.h>
-+#include <media/rc-core.h>
-+
-+#define IR_SPI_DRIVER_NAME		"ir-spi"
-+
-+/* pulse value for different duty cycles */
-+#define IR_SPI_PULSE_DC_50		0xff00
-+#define IR_SPI_PULSE_DC_60		0xfc00
-+#define IR_SPI_PULSE_DC_70		0xf800
-+#define IR_SPI_PULSE_DC_75		0xf000
-+#define IR_SPI_PULSE_DC_80		0xc000
-+#define IR_SPI_PULSE_DC_90		0x8000
-+
-+#define IR_SPI_DEFAULT_FREQUENCY	38000
-+#define IR_SPI_BIT_PER_WORD		    8
-+#define IR_SPI_MAX_BUFSIZE		 4096
-+
-+struct ir_spi_data {
-+	u32 freq;
-+	u8 duty_cycle;
-+	bool negated;
-+
-+	u16 tx_buf[IR_SPI_MAX_BUFSIZE];
-+	u16 pulse;
-+	u16 space;
-+
-+	struct rc_dev *rc;
-+	struct spi_device *spi;
-+	struct regulator *regulator;
-+};
-+
-+static int ir_spi_tx(struct rc_dev *dev,
-+			unsigned int *buffer, unsigned int count)
-+{
-+	int i;
-+	int ret;
-+	unsigned int len = 0;
-+	struct ir_spi_data *idata = dev->priv;
-+	struct spi_transfer xfer;
-+
-+	/* convert the pulse/space signal to raw binary signal */
-+	for (i = 0; i < count; i++) {
-+		int j;
-+		u16 val = ((i+1) % 2) ? idata->pulse : idata->space;
-+
-+		if (len + buffer[i] >= IR_SPI_MAX_BUFSIZE)
-+			return -EINVAL;
-+
-+		/*
-+		 * the first value in buffer is a pulse, so that 0, 2, 4, ...
-+		 * contain a pulse duration. On the contrary, 1, 3, 5, ...
-+		 * contain a space duration.
-+		 */
-+		val = (i % 2) ? idata->space : idata->pulse;
-+		for (j = 0; j < buffer[i]; j++)
-+			idata->tx_buf[len++] = val;
++		rot_mode = CODA_ROT_MIR_ENABLE | ctx->params.rot_mode;
+ 	}
+-	coda_write_base(ctx, q_data_dst, dst_buf, reg_addr);
+-	coda_write(dev, q_data_dst->bytesperline, reg_stride);
+ 
+-	coda_write(dev, CODA_ROT_MIR_ENABLE | ctx->params.rot_mode,
+-			CODA_CMD_DEC_PIC_ROT_MODE);
++	coda_write(dev, rot_mode, CODA_CMD_DEC_PIC_ROT_MODE);
+ 
+ 	switch (dev->devtype->product) {
+ 	case CODA_DX6:
+@@ -1851,6 +1871,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 	u32 src_fourcc;
+ 	int success;
+ 	u32 err_mb;
++	int err_vdoa = 0;
+ 	u32 val;
+ 
+ 	/* Update kfifo out pointer from coda bitstream read pointer */
+@@ -1934,13 +1955,17 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		}
+ 	}
+ 
++	/* Wait until the VDOA finished writing the previous display frame */
++	if (ctx->use_vdoa &&
++	    ctx->display_idx >= 0 &&
++	    ctx->display_idx < ctx->num_internal_frames) {
++		err_vdoa = vdoa_wait_for_completion(ctx->vdoa);
 +	}
 +
-+	memset(&xfer, 0, sizeof(xfer));
-+
-+	xfer.speed_hz = idata->freq;
-+	xfer.len = len * sizeof(*idata->tx_buf);
-+	xfer.tx_buf = idata->tx_buf;
-+
-+	ret = regulator_enable(idata->regulator);
-+	if (ret)
-+		return ret;
-+
-+	ret = spi_sync_transfer(idata->spi, &xfer, 1);
-+	if (ret)
-+		dev_err(&idata->spi->dev, "unable to deliver the signal\n");
-+
-+	regulator_disable(idata->regulator);
-+
-+	return ret ? ret : count;
-+}
-+
-+static int ir_spi_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 	ctx->frm_dis_flg = coda_read(dev,
+ 				     CODA_REG_BIT_FRM_DIS_FLG(ctx->reg_idx));
+ 
+-	/*
+-	 * The previous display frame was copied out by the rotator,
+-	 * now it can be overwritten again
+-	 */
++	/* The previous display frame was copied out and can be overwritten */
+ 	if (ctx->display_idx >= 0 &&
+ 	    ctx->display_idx < ctx->num_internal_frames) {
+ 		ctx->frm_dis_flg &= ~(1 << ctx->display_idx);
+@@ -2057,8 +2082,10 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+ 		}
+ 		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
+ 
+-		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[ctx->display_idx] ?
+-				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
++		if (ctx->frame_errors[ctx->display_idx] || err_vdoa)
++			coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_ERROR);
++		else
++			coda_m2m_buf_done(ctx, dst_buf, VB2_BUF_STATE_DONE);
+ 
+ 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
+ 			"job finished: decoding frame (%d) (%s)\n",
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 3a21000..8b23ea4 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -450,6 +450,30 @@ static int coda_try_pixelformat(struct coda_ctx *ctx, struct v4l2_format *f)
+ 	return 0;
+ }
+ 
++static int coda_try_vdoa(struct coda_ctx *ctx, struct v4l2_format *f)
 +{
-+	struct ir_spi_data *idata = dev->priv;
++	int err;
 +
-+	if (!carrier)
++	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 +		return -EINVAL;
 +
-+	idata->freq = carrier;
-+
-+	return 0;
-+}
-+
-+static int ir_spi_set_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
-+{
-+	struct ir_spi_data *idata = dev->priv;
-+
-+	if (duty_cycle >= 90)
-+		idata->pulse = IR_SPI_PULSE_DC_90;
-+	else if (duty_cycle >= 80)
-+		idata->pulse = IR_SPI_PULSE_DC_80;
-+	else if (duty_cycle >= 75)
-+		idata->pulse = IR_SPI_PULSE_DC_75;
-+	else if (duty_cycle >= 70)
-+		idata->pulse = IR_SPI_PULSE_DC_70;
-+	else if (duty_cycle >= 60)
-+		idata->pulse = IR_SPI_PULSE_DC_60;
-+	else
-+		idata->pulse = IR_SPI_PULSE_DC_50;
-+
-+	if (idata->negated) {
-+		idata->pulse = ~idata->pulse;
-+		idata->space = 0xffff;
-+	} else {
-+		idata->space = 0;
++	if (!ctx->vdoa) {
++		ctx->use_vdoa = false;
++		return 0;
 +	}
 +
++	err = vdoa_context_configure(ctx->vdoa, f->fmt.pix.width,
++				     f->fmt.pix.height, f->fmt.pix.pixelformat);
++	if (err) {
++		ctx->use_vdoa = false;
++		return 0;
++	}
++
++	ctx->use_vdoa = true;
++
 +	return 0;
 +}
 +
-+static int ir_spi_probe(struct spi_device *spi)
-+{
-+	int ret;
-+	u8 dc;
-+	struct ir_spi_data *idata;
+ static unsigned int coda_estimate_sizeimage(struct coda_ctx *ctx, u32 sizeimage,
+ 					    u32 width, u32 height)
+ {
+@@ -564,6 +588,10 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
+ 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
+ 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
+ 				       f->fmt.pix.height * 3 / 2;
 +
-+	idata = devm_kzalloc(&spi->dev, sizeof(*idata), GFP_KERNEL);
-+	if (!idata)
-+		return -ENOMEM;
-+
-+	idata->regulator = devm_regulator_get(&spi->dev, "irda_regulator");
-+	if (IS_ERR(idata->regulator))
-+		return PTR_ERR(idata->regulator);
-+
-+	idata->rc = devm_rc_allocate_device(&spi->dev, RC_DRIVER_IR_RAW_TX);
-+	if (!idata->rc)
-+		return -ENOMEM;
-+
-+	idata->rc->tx_ir           = ir_spi_tx;
-+	idata->rc->s_tx_carrier    = ir_spi_set_tx_carrier;
-+	idata->rc->s_tx_duty_cycle = ir_spi_set_duty_cycle;
-+	idata->rc->driver_name     = IR_SPI_DRIVER_NAME;
-+	idata->rc->priv            = idata;
-+	idata->spi                 = spi;
-+
-+	idata->negated = of_property_read_bool(spi->dev.of_node,
-+							"led-active-low");
-+	ret = of_property_read_u8(spi->dev.of_node, "duty-cycle", &dc);
-+	if (ret)
-+		dc = 50;
-+
-+	/* ir_spi_set_duty_cycle cannot fail,
-+	 * it returns int to be compatible with the
-+	 * rc->s_tx_duty_cycle function
++		ret = coda_try_vdoa(ctx, f);
++		if (ret < 0)
++			return ret;
+ 	}
+ 
+ 	return 0;
+@@ -632,13 +660,20 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
+ 		q_data->rect.height = f->fmt.pix.height;
+ 	}
+ 
++	/*
++	 * It would be nice to set use_vdoa in coda_s_fmt instead of
++	 * coda_try_vdoa() to have a single location where this is changed.
++	 * Unfortunately, if the capture format is V4L2_PIX_FMT_NV12, we
++	 * cannot be sure if the VDOA should be used, without storing the
++	 * result of coda_try_vdoa() or calling vdoa_context_configure()
++	 * again. Therefore, set use_vdoa in coda_try_vdoa.
 +	 */
-+	ir_spi_set_duty_cycle(idata->rc, dc);
 +
-+	idata->freq = IR_SPI_DEFAULT_FREQUENCY;
+ 	switch (f->fmt.pix.pixelformat) {
+ 	case V4L2_PIX_FMT_NV12:
+-		if (f->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+-			ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
+-			if (!disable_tiling)
+-				break;
+-		}
++		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
++		if (!disable_tiling)
++			break;
+ 		/* else fall through */
+ 	case V4L2_PIX_FMT_YUV420:
+ 	case V4L2_PIX_FMT_YVU420:
+@@ -1764,6 +1799,13 @@ static int coda_open(struct file *file)
+ 	default:
+ 		ctx->reg_idx = idx;
+ 	}
++	if (ctx->dev->vdoa) {
++		ctx->vdoa = vdoa_context_create(dev->vdoa);
++		if (!ctx->vdoa)
++			v4l2_warn(&dev->v4l2_dev,
++				  "Failed to create vdoa context: not using vdoa");
++	}
++	ctx->use_vdoa = false;
+ 
+ 	/* Power up and upload firmware if necessary */
+ 	ret = pm_runtime_get_sync(&dev->plat_dev->dev);
+@@ -1839,6 +1881,9 @@ static int coda_release(struct file *file)
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Releasing instance %p\n",
+ 		 ctx);
+ 
++	if (ctx->vdoa)
++		vdoa_context_destroy(ctx->vdoa);
 +
-+	return devm_rc_register_device(&spi->dev, idata->rc);
-+}
-+
-+static int ir_spi_remove(struct spi_device *spi)
-+{
-+	return 0;
-+}
-+
-+static const struct of_device_id ir_spi_of_match[] = {
-+	{ .compatible = "ir-spi-led" },
-+	{},
-+};
-+
-+static struct spi_driver ir_spi_driver = {
-+	.probe = ir_spi_probe,
-+	.remove = ir_spi_remove,
-+	.driver = {
-+		.name = IR_SPI_DRIVER_NAME,
-+		.of_match_table = ir_spi_of_match,
-+	},
-+};
-+
-+module_spi_driver(ir_spi_driver);
-+
-+MODULE_AUTHOR("Andi Shyti <andi.shyti@samsung.com>");
-+MODULE_DESCRIPTION("SPI IR LED");
-+MODULE_LICENSE("GPL v2");
+ 	if (ctx->inst_type == CODA_INST_DECODER && ctx->use_bit)
+ 		coda_bit_stream_end_flag(ctx);
+ 
+diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
+index ae202dc..7ed79eb 100644
+--- a/drivers/media/platform/coda/coda.h
++++ b/drivers/media/platform/coda/coda.h
+@@ -237,6 +237,8 @@ struct coda_ctx {
+ 	int				display_idx;
+ 	struct dentry			*debugfs_entry;
+ 	bool				use_bit;
++	bool				use_vdoa;
++	struct vdoa_ctx			*vdoa;
+ };
+ 
+ extern int coda_debug;
 -- 
-2.11.0
+2.10.2
 
