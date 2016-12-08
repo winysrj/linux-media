@@ -1,81 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:44196 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932502AbcLMOdF (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:54181 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932707AbcLHPlz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 09:33:05 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
-        geert+renesas@glider.be, akpm@linux-foundation.org,
-        linux@roeck-us.net, hverkuil@xs4all.nl,
-        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
-        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
-        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
-        mark.rutland@arm.com, Ramiro.Oliveira@synopsys.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: [PATCH v6 1/2] Add OV5647 device tree documentation
-Date: Tue, 13 Dec 2016 14:32:36 +0000
-Message-Id: <c47834c1c9c2a8e23f41a12c8717601f4a901506.1481639091.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1481639091.git.roliveir@synopsys.com>
-References: <cover.1481639091.git.roliveir@synopsys.com>
-In-Reply-To: <cover.1481639091.git.roliveir@synopsys.com>
-References: <cover.1481639091.git.roliveir@synopsys.com>
+        Thu, 8 Dec 2016 10:41:55 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: p.zabel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH 3/9] ARM: dts: imx6qdl: Add VDOA phandle to CODA node
+Date: Thu,  8 Dec 2016 16:24:10 +0100
+Message-Id: <20161208152416.16031-3-m.tretter@pengutronix.de>
+In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
+References: <20161208152416.16031-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create device tree bindings documentation.
+The CODA driver should use the VDOA to transform the tiled format to
+raster-ordered format, if the platform has a VDOA. Link the CODA and
+VDOA nodes to tell the CODA driver that it can use the VDOA.
 
-Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
 ---
- .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+ Documentation/devicetree/bindings/media/coda.txt | 2 ++
+ arch/arm/boot/dts/imx6qdl.dtsi                   | 3 ++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-new file mode 100644
-index 0000000..46e5e30
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-@@ -0,0 +1,35 @@
-+Omnivision OV5647 raw image sensor
-+---------------------------------
-+
-+OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
-+and CCI (I2C compatible) control bus.
-+
-+Required properties:
-+
-+- compatible	: "ovti,ov5647";
-+- reg		: I2C slave address of the sensor;
-+- clocks	: Reference to the xclk clock.
-+- clock-names	: Should be "xclk".
-+- clock-frequency: Frequency of the xclk clock
-+
-+The common video interfaces bindings (see video-interfaces.txt) should be
-+used to specify link to the image data receiver. The OV5647 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Example:
-+
-+	i2c@0x02000 {
-+		...
-+		ov: camera@0x36 {
-+			compatible = "ovti,ov5647";
-+			reg = <0x36>;
-+			clocks = <&camera_clk>;
-+			clock-names = "xclk";
-+			clock-frequency = <30000000>;
-+			port {
-+				camera_1: endpoint {
-+					remote-endpoint = <&csi1_ep1>;
-+				};
-+			};
-+		};
-+	};
+diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
+index 2865d04..7900788 100644
+--- a/Documentation/devicetree/bindings/media/coda.txt
++++ b/Documentation/devicetree/bindings/media/coda.txt
+@@ -17,6 +17,7 @@ Required properties:
+   determined by the clock-names property.
+ - clock-names : Should be "ahb", "per"
+ - iram : phandle pointing to the SRAM device node
++- vdoa : phandle pointing to the VDOA device node
+ 
+ Example:
+ 
+@@ -27,4 +28,5 @@ vpu: vpu@63ff4000 {
+ 	clocks = <&clks 63>, <&clks 63>;
+ 	clock-names = "ahb", "per";
+ 	iram = <&ocram>;
++	vdoa = <&vdoa>;
+ };
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index 69e3668..7bf3429 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -427,6 +427,7 @@
+ 				power-domains = <&gpc 1>;
+ 				resets = <&src 1>;
+ 				iram = <&ocram>;
++				vdoa = <&vdoa>;
+ 			};
+ 
+ 			aipstz@0207c000 { /* AIPSTZ1 */
+@@ -1152,7 +1153,7 @@
+ 				};
+ 			};
+ 
+-			vdoa@021e4000 {
++			vdoa: vdoa@021e4000 {
+ 				compatible = "fsl,imx6q-vdoa";
+ 				reg = <0x021e4000 0x4000>;
+ 				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
 -- 
 2.10.2
-
 
