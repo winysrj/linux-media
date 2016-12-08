@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:33922 "EHLO
-        mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933423AbcLTKRu (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:41891 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932327AbcLHPl5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Dec 2016 05:17:50 -0500
-Received: by mail-lf0-f51.google.com with SMTP id y21so72731139lfa.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Dec 2016 02:17:49 -0800 (PST)
-MIME-Version: 1.0
-From: Marc Schmitt <marc.schmitt@gmail.com>
-Date: Tue, 20 Dec 2016 11:17:47 +0100
-Message-ID: <CADN8phogbuNfe-r8qe-xBVwdKeuXVZkrp7J+g3W6pkJFeaJQQA@mail.gmail.com>
-Subject: DTV Scan Table for Sasag (Switzerland)
+        Thu, 8 Dec 2016 10:41:57 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001a1146c3541a05cd054414590d
+Cc: p.zabel@pengutronix.de, Philipp Zabel <philipp.zabel@gmail.com>,
+        Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH 1/9] ARM: dts: imx6qdl: Add VDOA compatible and clocks properties
+Date: Thu,  8 Dec 2016 16:24:08 +0100
+Message-Id: <20161208152416.16031-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001a1146c3541a05cd054414590d
-Content-Type: text/plain; charset=UTF-8
+From: Philipp Zabel <philipp.zabel@gmail.com>
 
-Hi all,
+This adds a compatible property and the correct clock for the
+i.MX6Q Video Data Order Adapter.
 
-Please find attached the DTV Scan Table for a cable provider in
-Schaffhausen, Switzerland (www.sasag.ch). I'd appreciate if you could
-add it to the repository.
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+---
+ arch/arm/boot/dts/imx6qdl.dtsi | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Thanks,
-     Marc
+diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+index b13b0b2..69e3668 100644
+--- a/arch/arm/boot/dts/imx6qdl.dtsi
++++ b/arch/arm/boot/dts/imx6qdl.dtsi
+@@ -1153,8 +1153,10 @@
+ 			};
+ 
+ 			vdoa@021e4000 {
++				compatible = "fsl,imx6q-vdoa";
+ 				reg = <0x021e4000 0x4000>;
+ 				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
++				clocks = <&clks IMX6QDL_CLK_VDOA>;
+ 			};
+ 
+ 			uart2: serial@021e8000 {
+-- 
+2.10.2
 
---001a1146c3541a05cd054414590d
-Content-Type: application/octet-stream; name=ch-Schaffhausen-sasag
-Content-Disposition: attachment; filename=ch-Schaffhausen-sasag
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_iwxcwj1l0
-
-IyBzYXNhZyBLYWJlbGtvbW11bmlrYXRpb24gQUcKIyBTY2hhZmZoYXVzZW4sIFN3aXR6ZXJsYW5k
-CiMgZnJlcSBzciBmZWMgbW9kCltDSEFOTkVMXQoJREVMSVZFUllfU1lTVEVNID0gRFZCQy9BTk5F
-WF9BCglGUkVRVUVOQ1kgPSA0NjYwMDAwMDAKCVNZTUJPTF9SQVRFID0gNjkwMDAwMAoJSU5ORVJf
-RkVDID0gTk9ORQoJTU9EVUxBVElPTiA9IFFBTS82NAoJSU5WRVJTSU9OID0gQVVUTwoK
---001a1146c3541a05cd054414590d--
