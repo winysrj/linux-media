@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:36030 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965076AbcLVQkd (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:35141 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753088AbcLHPxu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Dec 2016 11:40:33 -0500
-Date: Thu, 22 Dec 2016 10:40:29 -0600
-From: Rob Herring <robh@kernel.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH v6 5/6] Documentation: bindings: add documentation for
- ir-spi device driver
-Message-ID: <20161222164029.7qr3dxr5lnnyrrqh@rob-hp-laptop>
-References: <20161218111138.12831-1-andi.shyti@samsung.com>
- <20161218111138.12831-6-andi.shyti@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161218111138.12831-6-andi.shyti@samsung.com>
+        Thu, 8 Dec 2016 10:53:50 -0500
+Message-ID: <1481212429.2673.7.camel@pengutronix.de>
+Subject: Re: [PATCH 7/9] [media] coda: fix frame index to returned error
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Michael Tretter <m.tretter@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+Date: Thu, 08 Dec 2016 16:53:49 +0100
+In-Reply-To: <20161208152416.16031-7-m.tretter@pengutronix.de>
+References: <20161208152416.16031-1-m.tretter@pengutronix.de>
+         <20161208152416.16031-7-m.tretter@pengutronix.de>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 18, 2016 at 08:11:37PM +0900, Andi Shyti wrote:
-> Document the ir-spi driver's binding which is a IR led driven
-> through the SPI line.
+Am Donnerstag, den 08.12.2016, 16:24 +0100 schrieb Michael Tretter:
+> display_idx refers to the frame that will be returned in the next round.
+> The currently processed frame is ctx->display_idx and errors should be
+> reported for this frame.
 > 
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> Reviewed-by: Sean Young <sean@mess.org>
+> Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
 > ---
->  .../devicetree/bindings/leds/irled/spi-ir-led.txt  | 29 ++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+>  drivers/media/platform/coda/coda-bit.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+> index b662504..309eb4e 100644
+> --- a/drivers/media/platform/coda/coda-bit.c
+> +++ b/drivers/media/platform/coda/coda-bit.c
+> @@ -2057,7 +2057,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
+>  		}
+>  		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
+>  
+> -		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
+> +		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[ctx->display_idx] ?
+>  				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+>  
+>  		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
 
-Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+regards
+Philipp
+
