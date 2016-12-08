@@ -1,104 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60818 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751427AbcLENt1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 08:49:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: evgeni.raikhel@gmail.com
-Cc: linux-media@vger.kernel.org,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>
-Subject: Re: [PATCH 2/2] uvcvideo: Document Intel SR300 Depth camera INZI format
-Date: Mon, 05 Dec 2016 15:49:47 +0200
-Message-ID: <1757661.3qrq6qFaV4@avalon>
-In-Reply-To: <1480944299-3349-3-git-send-email-evgeni.raikhel@intel.com>
-References: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com> <1480944299-3349-3-git-send-email-evgeni.raikhel@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60458 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932090AbcLHOsF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Dec 2016 09:48:05 -0500
+Date: Thu, 8 Dec 2016 16:47:28 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Felipe Sanches <juca@members.fsf.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.11] Remove FSF postal address
+Message-ID: <20161208144728.GH16630@valkosipuli.retiisi.org.uk>
+References: <20161208080825.GB16630@valkosipuli.retiisi.org.uk>
+ <CAK6XL6DaXaf=dxU20BpyVqW_UxaFOfTGtVO6MppvPuZxa9puMA@mail.gmail.com>
+ <20161208110920.GG16630@valkosipuli.retiisi.org.uk>
+ <20161208105947.3f4fa3aa@vento.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161208105947.3f4fa3aa@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Evgeni,
+Hi Mauro,
 
-On Monday 05 Dec 2016 15:24:59 evgeni.raikhel@gmail.com wrote:
-> From: Evgeni Raikhel <evgeni.raikhel@intel.com>
+On Thu, Dec 08, 2016 at 10:59:47AM -0200, Mauro Carvalho Chehab wrote:
+> Hi Sakari,
 > 
-> Provide the frame structure and data layout of V4L2-PIX-FMT-INZI
-> format utilized by Intel SR300 Depth camera.
+> Em Thu, 8 Dec 2016 13:09:20 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 > 
-> This is a complimentary patch for:
-> [PATCH] UVC: Add support for Intel SR300 depth camera
+> > Hi Felipe,
+> > 
+> > On Thu, Dec 08, 2016 at 08:51:20AM -0200, Felipe Sanches wrote:
+> > > but why?  
+> > 
+> > Please see my reply here:
+> > 
+> > <URL:http://www.spinics.net/lists/linux-media/msg107204.html>
 > 
-> Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
-> ---
->  Documentation/media/uapi/v4l/pixfmt-inzi.rst | 40 +++++++++++++++++++++++++
->  1 file changed, 40 insertions(+)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
-> 
-> diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-> b/Documentation/media/uapi/v4l/pixfmt-inzi.rst new file mode 100644
-> index 000000000000..cdfdeae4a664
-> --- /dev/null
-> +++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-> @@ -0,0 +1,40 @@
-> +.. -*- coding: utf-8; mode: rst -*-
-> +
-> +.. _V4L2-PIX-FMT-INZI:
-> +
-> +**************************
-> +V4L2_PIX_FMT_INZI ('INZI')
-> +**************************
-> +
-> +Infrared 10-bit linked with Depth 16-bit images
-> +
-> +
-> +Description
-> +===========
-> +
-> +Custom multi-planar format used by Intel SR300 Depth cameras, comprise of
-> Infrared image followed by Depth data. +The pixel definition is 32-bpp,
-> with the Depth and Infrared Data split into separate continuous planes of
-> identical dimensions. +
-> +The first plane - Infrared data - is stored in V4L2_PIX_FMT_Y10 (see
-> :ref:`pixfmt-y10`) greyscale format. Each pixel is 16-bit cell, with actual
-> data present in the 10 LSBs with values in range 0 to 1023. The six
-> remaining MSBs are padded with zeros. +
-> +The second plane provides 16-bit per-pixel Depth data in V4L2_PIX_FMT_Z16
-> (:ref:`pixfmt-z16`) format. +
+> Please don't. If people wanted that, they would be sending a big
+> massive change by the time FSF check was added to checkpatch.
 
-In addition to my previous comments, wouldn't it make more sense to create a 
-multiplanar format for this instead of bundling the two separate images into a 
-single plane ?
+Typically it's best to do such changes per-subsystem if there's an intent to
+change more than a single driver at a time. Seldom others than those
+working on a subsystem would do that.
 
-> +**Frame Structure.**
-> +Each cell is a 16-bit word with the significant data byte is stored at
-> lower memory address (little-endian). +
-> ++-----------------+-----------------+-----------------+-----------------+--
-> ---------------+-----------------+ +| Ir\ :sub:`0`    | Ir\ :sub:`1`    |
-> Ir\ :sub:`2`    |       ...       |        ...      |       ...       |
-> ++-----------------+-----------------+-----------------+-----------------+-
-> ----------------+-----------------+ +|      ...       ...       ...         
->                                                                     | +|   
->                              Infrared Data                                 
->                            | +|                                            
->     ...   ...   ...                                           |
-> ++-----------------+-----------------+-----------------+-----------------+-
-> ----------------+-----------------+ +| Ir\ :sub:`n-3`  | Ir\ :sub:`n-2`  |
-> Ir\ :sub:`n-1`  | Depth\ :sub:`0` | Depth\ :sub:`1` | Depth\ :sub:`2` |
-> ++-----------------+-----------------+-----------------+-----------------+-
-> ----------------+-----------------+ +|      ...       ...       ...         
->                                                                     | +|   
->                              Depth Data                                    
->                            | +|                                            
->     ...   ...   ...                                           |
-> ++-----------------+-----------------+-----------------+-----------------+-
-> ----------------+-----------------+ +|       ...       |       ...       |  
->     ...       |Depth\ :sub:`n-3`|Depth\ :sub:`n-2`|Depth\ :sub:`n-1`|
-> ++-----------------+-----------------+-----------------+-----------------+-
-> ----------------+-----------------+
+> 
+> This is the kind of patch that can rise conflicts with other
+> patches, and don't really benefit the code.
+
+Patches to the media tree are submitted against the media tree master
+branch. There are few changes to the media tree that come outside of it,
+especially comment sections in files, suggesting a conflict might not be
+very likely.
+
+For the record, I rebased this patch from two weeks ago without conflicts.
+The patch also cleanly applies to linux-next.
+
+> 
+> Ok, if you're doing massive changes on some driver, be my
+> guest and remove the FSF address from it. Otherwise, just live
+> it as-is.
+
+This is a cleanup. The patch removes 628 instances of the postal address of
+which 578 are outdated: that's hardly useful information to keep in the
+codebase. Cleaning up useless and outdated code does improve long-term
+maintainability of the code, and, as in this case, is additionally supported
+by the coding style practices.
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
