@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:58354 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750731AbcLAFBW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 00:01:22 -0500
-From: Shailendra Verma <shailendra.v@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Fabien Dessenne <fabien.dessenne@st.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Shailendra Verma <shailendra.v@samsung.com>,
-        Shailendra Verma <shailendra.capricorn@gmail.com>
-Cc: vidushi.koul@samsung.com
-Subject: [PATCH] Platform: Sti: Bdisp: Clean up file handle in open() error
- path.
-Date: Thu, 01 Dec 2016 10:17:51 +0530
-Message-id: <1480567671-13239-1-git-send-email-shailendra.v@samsung.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:34285
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751064AbcLHNAm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 08:00:42 -0500
+Date: Thu, 8 Dec 2016 10:59:47 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Felipe Sanches <juca@members.fsf.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v4.11] Remove FSF postal address
+Message-ID: <20161208105947.3f4fa3aa@vento.lan>
+In-Reply-To: <20161208110920.GG16630@valkosipuli.retiisi.org.uk>
+References: <20161208080825.GB16630@valkosipuli.retiisi.org.uk>
+        <CAK6XL6DaXaf=dxU20BpyVqW_UxaFOfTGtVO6MppvPuZxa9puMA@mail.gmail.com>
+        <20161208110920.GG16630@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The File handle is not yet added in the vdev list.So no need to call 
-v4l2_fh_del(&ctx->fh)if it fails to create control.
+Hi Sakari,
 
-Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
----
- drivers/media/platform/sti/bdisp/bdisp-v4l2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Em Thu, 8 Dec 2016 13:09:20 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-index 45f82b5..fbf302f 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-v4l2.c
-@@ -632,8 +632,8 @@ static int bdisp_open(struct file *file)
- 
- error_ctrls:
- 	bdisp_ctrls_delete(ctx);
--error_fh:
- 	v4l2_fh_del(&ctx->fh);
-+error_fh:
- 	v4l2_fh_exit(&ctx->fh);
- 	bdisp_hw_free_nodes(ctx);
- mem_ctx:
--- 
-1.7.9.5
+> Hi Felipe,
+> 
+> On Thu, Dec 08, 2016 at 08:51:20AM -0200, Felipe Sanches wrote:
+> > but why?  
+> 
+> Please see my reply here:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg107204.html>
 
+Please don't. If people wanted that, they would be sending a big
+massive change by the time FSF check was added to checkpatch.
+
+This is the kind of patch that can rise conflicts with other
+patches, and don't really benefit the code.
+
+Ok, if you're doing massive changes on some driver, be my
+guest and remove the FSF address from it. Otherwise, just live
+it as-is.
+
+Regards,
+Mauro
