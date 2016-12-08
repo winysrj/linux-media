@@ -1,266 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:38447 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758480AbcLOPux (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 10:50:53 -0500
-Date: Thu, 15 Dec 2016 15:50:49 +0000
-From: Sean Young <sean@mess.org>
-To: Andi Shyti <andi.shyti@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH v4 2/6] [media] rc-main: split setup and unregister
- functions
-Message-ID: <20161215155049.GA23320@gofer.mess.org>
-References: <20161214140030.28537-1-andi.shyti@samsung.com>
- <20161214140030.28537-3-andi.shyti@samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45599 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751593AbcLHPWd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 10:22:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
+Date: Thu, 08 Dec 2016 17:22:57 +0200
+Message-ID: <3810287.F7IvM3IBCA@avalon>
+In-Reply-To: <20161208121608.1a95d3b6@vento.lan>
+References: <b47a9d956d740d63334bf0f07e6cfddd7f60e98b.1481204310.git.mchehab@s-opensource.com> <3555863.PStTa0BX6X@avalon> <20161208121608.1a95d3b6@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161214140030.28537-3-andi.shyti@samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andi,
-
-This patch breaks all rc devices, none of them have input devices any
-more (see below).
-
-On Wed, Dec 14, 2016 at 11:00:26PM +0900, Andi Shyti wrote:
-> Move the input device allocation, map and protocol handling to
-> different functions.
+On Thursday 08 Dec 2016 12:16:08 Mauro Carvalho Chehab wrote:
+> Em Thu, 08 Dec 2016 15:41:59 +0200 Laurent Pinchart escreveu:
+> > On Thursday 08 Dec 2016 11:38:34 Mauro Carvalho Chehab wrote:
+> > > changeset 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
+> > > support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
+> > > depending on the type of bus set via the .set_fmt() subdev callback.
+> > > 
+> > > This is known to cause trobules on devices that don't use a V4L2
+> > > subdev devnode, and a fix for it was made by changeset 47de9bf8931e
+> > > ("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
+> > > such fix doesn't consider the case of progressive video inputs,
+> > > causing chroma decoding issues on such videos, as it overrides not
+> > > only the type of video output, but also other unrelated bits.
+> > > 
+> > > So, instead of trying to guess, let's detect if the device is set
+> > > via Device Tree. If not, just ignore the bogus logic.
+> > 
+> > If you add a big [HACK] tag to the subject line, sure. I thought this
+> > would have been an occasion to fix the problem correctly :-(
 > 
-> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-> Reviewed-by: Sean Young <sean@mess.org>
-> ---
->  drivers/media/rc/rc-main.c | 143 +++++++++++++++++++++++++--------------------
->  1 file changed, 81 insertions(+), 62 deletions(-)
+> No, this is not a hack.
 > 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index a6bbceb..59fac96 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -1436,16 +1436,12 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev,
->  }
->  EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
->  
-> -int rc_register_device(struct rc_dev *dev)
-> +static int rc_setup_rx_device(struct rc_dev *dev)
->  {
-> -	static bool raw_init = false; /* raw decoders loaded? */
-> -	struct rc_map *rc_map;
-> -	const char *path;
-> -	int attr = 0;
-> -	int minor;
->  	int rc;
-> +	struct rc_map *rc_map;
->  
-> -	if (!dev || !dev->map_name)
-> +	if (!dev->map_name)
->  		return -EINVAL;
->  
->  	rc_map = rc_map_get(dev->map_name);
-> @@ -1454,6 +1450,19 @@ int rc_register_device(struct rc_dev *dev)
->  	if (!rc_map || !rc_map->scan || rc_map->size == 0)
->  		return -EINVAL;
->  
-> +	rc = ir_setkeytable(dev, rc_map);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (dev->change_protocol) {
-> +		u64 rc_type = (1ll << rc_map->rc_type);
-> +
-> +		rc = dev->change_protocol(dev, &rc_type);
-> +		if (rc < 0)
-> +			goto out_table;
-> +		dev->enabled_protocols = rc_type;
-> +	}
-> +
->  	set_bit(EV_KEY, dev->input_dev->evbit);
->  	set_bit(EV_REP, dev->input_dev->evbit);
->  	set_bit(EV_MSC, dev->input_dev->evbit);
-> @@ -1463,6 +1472,61 @@ int rc_register_device(struct rc_dev *dev)
->  	if (dev->close)
->  		dev->input_dev->close = ir_close;
->  
+> It is a patch that restores the driver behavior that used to be
+> before adding DT support to the driver. Whatever DT-based drivers
+> need, it *should not* change the behavior for devices that don't
+> use DT.
+
+1. This has nothing to do with DT, but with the addition of the s_stream() 
+operation.
+
+2. When I added s_stream() support the em28xx driver did not call s_stream(1). 
+That has been changed by
+
+commit 13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Tue Jan 26 06:59:39 2016 -0200
+
+    [media] em28xx: fix implementation of s_stream
+    
+    On em28xx driver, s_stream subdev ops was not implemented
+    properly. It was used only to disable stream, never enabling it.
+    That was the root cause of the regression when we added support
+    for s_stream on tvp5150 driver.
+    
+    With that, we can get rid of the changes on tvp5150 side,
+    e. g. changeset 47de9bf8931e ('[media] tvp5150: Fix breakage for serial 
+usage').
+    
+    Tested video output on em2820+tvp5150 on WinTV USB2 and
+    video and/or vbi output on em288x+tvp5150 on HVR 950.
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+
+3. There's clearly a bug in the current implementation, and it needs to be 
+fixed. That fact does not turn every attempt to address the bug into proper 
+fixes by magic. Hacks remain hacks.
+
+4. I'm working on a proper fix.
+
+> I agree with you that the patch is incomplete, as it doesn't
+> add any OF var that would allow DT to specify the values
+> to be used for TVP5150_CONF_SHARED_PIN and TVP5150_MISC_CTL,
+> and assumes that tvp5150, tvp5151 and tvp5150am1 will all use
+> the same values for TVP5150_MISC_CTL.
+> 
+> In order to fix that, someone with a DT-based driver with tvp5150,
+> tvp5150am1 and/or tvp5151 would need to spend some time and test
+> the hardware with both interlaced and progressive video inputs.
+> 
+> That's not me, as I don't have any hardware that meets such requirement.
+> 
+> If someone ships me such hardware, I could work on it on my spare time.
+> Otherwise, then perhaps you could work on such patch - or we could ping
+> Javier on Monday and see if has time/interest to work on it (afaikt, he's
+> OOT the rest of this week).
+> 
+> Anyway, with this patch applied, the one working on such fix won't need
+> to be concerned to cause new regressions on the non-DT drivers that use
+> this chip, with is, IMHO, a very good thing.
+> 
+> Also, this patch is simple enough to be backported to -stable.
+> 
+> What's missing here is a notice explaining what's left to be done,
+> like the one on the diff below.
+> 
+> Regards,
+> Mauro
+> 
+> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+> index eb43ac7002d6..c9fd36998ac7 100644
+> --- a/drivers/media/i2c/tvp5150.c
+> +++ b/drivers/media/i2c/tvp5150.c
+> @@ -1057,6 +1057,17 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd,
+> int enable) if (!decoder->has_dt)
+>  		return 0;
+> 
 > +	/*
-> +	 * Default delay of 250ms is too short for some protocols, especially
-> +	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-> +	 * to avoid wrong repetition of the keycodes. Note that this must be
-> +	 * set after the call to input_register_device().
+> +	 * FIXME: the logic below is hardcoded to work with some OMAP3
+> +	 * hardware with tvp5151. As such, it hardcodes values for
+> +	 * both TVP5150_CONF_SHARED_PIN and TVP5150_MISC_CTL, and ignores
+> +	 * what was set before at the driver. Ideally, we should have
+> +	 * DT nodes describing the setup, instead of hardcoding those
+> +	 * values, and doing a read before writing values to
+> +	 * TVP5150_MISC_CTL, but any patch adding support for it should
+> +	 * keep DT backward-compatible.
 > +	 */
-> +	dev->input_dev->rep[REP_DELAY] = 500;
 > +
-> +	/*
-> +	 * As a repeat event on protocols like RC-5 and NEC take as long as
-> +	 * 110/114ms, using 33ms as a repeat period is not the right thing
-> +	 * to do.
-> +	 */
-> +	dev->input_dev->rep[REP_PERIOD] = 125;
-> +
-> +	/* rc_open will be called here */
-> +	rc = input_register_device(dev->input_dev);
-> +	if (rc)
-> +		goto out_table;
-> +
-> +	dev->input_dev->dev.parent = &dev->dev;
-> +	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
-> +	dev->input_dev->phys = dev->input_phys;
-> +	dev->input_dev->name = dev->input_name;
+>  	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+>  	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+>  		val = 0x0d;
 
-I was testing your changes, and with this patch none of my rc devices
-have input devices associated with them. The problem is that you've changed
-the order: input_register_device() should happen AFTER the preceding
-4 lines.
+-- 
+Regards,
 
-> +
-> +	return 0;
-> +
-> +out_table:
-> +	ir_free_table(&dev->rc_map);
-> +
-> +	return rc;
-> +}
-> +
-> +static void rc_free_rx_device(struct rc_dev *dev)
-> +{
-> +	if (!dev)
-> +		return;
-> +
-> +	ir_free_table(&dev->rc_map);
-> +
-> +	input_unregister_device(dev->input_dev);
-> +	dev->input_dev = NULL;
-> +}
-> +
-> +int rc_register_device(struct rc_dev *dev)
-> +{
-> +	static bool raw_init = false; /* raw decoders loaded? */
-> +	const char *path;
-> +	int attr = 0;
-> +	int minor;
-> +	int rc;
-> +
-> +	if (!dev)
-> +		return -EINVAL;
-> +
->  	minor = ida_simple_get(&rc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
->  	if (minor < 0)
->  		return minor;
-> @@ -1486,39 +1550,15 @@ int rc_register_device(struct rc_dev *dev)
->  	if (rc)
->  		goto out_unlock;
->  
-> -	rc = ir_setkeytable(dev, rc_map);
-> -	if (rc)
-> -		goto out_dev;
+Laurent Pinchart
 
-See the original order here.
-
-> -
-> -	dev->input_dev->dev.parent = &dev->dev;
-> -	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
-> -	dev->input_dev->phys = dev->input_phys;
-> -	dev->input_dev->name = dev->input_name;
-> -
-> -	rc = input_register_device(dev->input_dev);
-> -	if (rc)
-> -		goto out_table;
-> -
-> -	/*
-> -	 * Default delay of 250ms is too short for some protocols, especially
-> -	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-> -	 * to avoid wrong repetition of the keycodes. Note that this must be
-> -	 * set after the call to input_register_device().
-> -	 */
-> -	dev->input_dev->rep[REP_DELAY] = 500;
-> -
-> -	/*
-> -	 * As a repeat event on protocols like RC-5 and NEC take as long as
-> -	 * 110/114ms, using 33ms as a repeat period is not the right thing
-> -	 * to do.
-> -	 */
-> -	dev->input_dev->rep[REP_PERIOD] = 125;
-> -
->  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
->  	dev_info(&dev->dev, "%s as %s\n",
->  		dev->input_name ?: "Unspecified device", path ?: "N/A");
->  	kfree(path);
->  
-> +	rc = rc_setup_rx_device(dev);
-> +	if (rc)
-> +		goto out_dev;
-> +
->  	if (dev->driver_type == RC_DRIVER_IR_RAW) {
->  		if (!raw_init) {
->  			request_module_nowait("ir-lirc-codec");
-> @@ -1526,36 +1566,20 @@ int rc_register_device(struct rc_dev *dev)
->  		}
->  		rc = ir_raw_event_register(dev);
->  		if (rc < 0)
-> -			goto out_input;
-> -	}
-> -
-> -	if (dev->change_protocol) {
-> -		u64 rc_type = (1ll << rc_map->rc_type);
-> -		rc = dev->change_protocol(dev, &rc_type);
-> -		if (rc < 0)
-> -			goto out_raw;
-> -		dev->enabled_protocols = rc_type;
-> +			goto out_rx;
->  	}
->  
->  	/* Allow the RC sysfs nodes to be accessible */
->  	atomic_set(&dev->initialized, 1);
->  
-> -	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
-> +	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
->  		   dev->minor,
-> -		   dev->driver_name ? dev->driver_name : "unknown",
-> -		   rc_map->name ? rc_map->name : "unknown",
-> -		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
-> +		   dev->driver_name ? dev->driver_name : "unknown");
->  
->  	return 0;
->  
-> -out_raw:
-> -	if (dev->driver_type == RC_DRIVER_IR_RAW)
-> -		ir_raw_event_unregister(dev);
-> -out_input:
-> -	input_unregister_device(dev->input_dev);
-> -	dev->input_dev = NULL;
-> -out_table:
-> -	ir_free_table(&dev->rc_map);
-> +out_rx:
-> +	rc_free_rx_device(dev);
->  out_dev:
->  	device_del(&dev->dev);
->  out_unlock:
-> @@ -1601,12 +1625,7 @@ void rc_unregister_device(struct rc_dev *dev)
->  	if (dev->driver_type == RC_DRIVER_IR_RAW)
->  		ir_raw_event_unregister(dev);
->  
-> -	/* Freeing the table should also call the stop callback */
-> -	ir_free_table(&dev->rc_map);
-> -	IR_dprintk(1, "Freed keycode table\n");
-> -
-> -	input_unregister_device(dev->input_dev);
-> -	dev->input_dev = NULL;
-> +	rc_free_rx_device(dev);
->  
->  	device_del(&dev->dev);
->  
-> -- 
-> 2.10.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
