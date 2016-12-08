@@ -1,62 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38843 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753938AbcL3NaE (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:36941 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751665AbcLHPZc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Dec 2016 08:30:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 2/4] uvcvideo: (cosmetic) remove a superfluous assignment
-Date: Fri, 30 Dec 2016 15:30:37 +0200
-Message-ID: <3876000.H63uYd8Bae@avalon>
-In-Reply-To: <1481541412-1186-3-git-send-email-guennadi.liakhovetski@intel.com>
-References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com> <1481541412-1186-3-git-send-email-guennadi.liakhovetski@intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 8 Dec 2016 10:25:32 -0500
+From: Michael Tretter <m.tretter@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: p.zabel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
+Subject: [PATCH 6/9] [media] coda: add debug output about tiling
+Date: Thu,  8 Dec 2016 16:24:13 +0100
+Message-Id: <20161208152416.16031-6-m.tretter@pengutronix.de>
+In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
+References: <20161208152416.16031-1-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Philipp Zabel <p.zabel@pengutronix.de>
 
-Thank you for the patch.
+In order to make the VDOA work correctly, the CODA must produce frames
+in tiled format. Print this information in the debug output.
 
-On Monday 12 Dec 2016 12:16:50 Guennadi Liakhovetski wrote:
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> Remove a superfluous assignment to a local variable at the end of a
-> function.
-> 
-> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Also print the color format in fourcc instead of the numeric value.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+---
+ drivers/media/platform/coda/coda-common.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-and applied to my tree for v4.11.
-
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index b5589d5..51b5ae5 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1262,8 +1262,7 @@ static void uvc_video_decode_bulk(struct urb *urb,
-> struct uvc_streaming *stream, uvc_video_decode_end(stream, buf,
-> stream->bulk.header,
->  				stream->bulk.payload_size);
->  			if (buf->state == UVC_BUF_STATE_READY)
-> -				buf = uvc_queue_next_buffer(&stream->queue,
-> -							    buf);
-> +				uvc_queue_next_buffer(&stream->queue, buf);
->  		}
-> 
->  		stream->bulk.header_size = 0;
-
+diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
+index 1adb6f3..3a21000 100644
+--- a/drivers/media/platform/coda/coda-common.c
++++ b/drivers/media/platform/coda/coda-common.c
+@@ -649,8 +649,10 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
+ 	}
+ 
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+-		f->type, q_data->width, q_data->height, q_data->fourcc);
++		"Setting format for type %d, wxh: %dx%d, fmt: %4.4s %c\n",
++		f->type, q_data->width, q_data->height,
++		(char *)&q_data->fourcc,
++		(ctx->tiled_map_type == GDI_LINEAR_FRAME_MAP) ? 'L' : 'T');
+ 
+ 	return 0;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.2
 
