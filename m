@@ -1,119 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:49649 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757464AbcLOMuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 07:50:08 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v6 02/18] [media] rc: Add scancode validation
-Date: Thu, 15 Dec 2016 12:50:03 +0000
-Message-Id: <1d5f0b896c44e6b412f24ce482ba028e73f9669b.1481805635.git.sean@mess.org>
-In-Reply-To: <cover.1481805635.git.sean@mess.org>
-References: <cover.1481805635.git.sean@mess.org>
-In-Reply-To: <cover.1481805635.git.sean@mess.org>
-References: <cover.1481805635.git.sean@mess.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33709 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752726AbcLHWFI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 17:05:08 -0500
+Received: by mail-wm0-f68.google.com with SMTP id u144so6392418wmu.0
+        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2016 14:05:07 -0800 (PST)
+Subject: Re: [PATCH v4l-utils v7 4/7] mediactl: Add media_device creation
+ helpers
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>
+References: <1476282922-11544-1-git-send-email-j.anaszewski@samsung.com>
+ <1476282922-11544-5-git-send-email-j.anaszewski@samsung.com>
+ <20161124121731.GF16630@valkosipuli.retiisi.org.uk>
+Cc: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hverkuil@xs4all.nl, mchehab@kernel.org, m.szyprowski@samsung.com,
+        s.nawrocki@samsung.com
+From: Jacek Anaszewski <jacek.anaszewski@gmail.com>
+Message-ID: <9fb6265e-db41-21db-4cd6-7f14092b0920@gmail.com>
+Date: Thu, 8 Dec 2016 23:04:20 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161124121731.GF16630@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to valdiate that scancodes are valid for their protocol; an
-incorrect necx scancode could actually be a nec scancode, for example.
+Hi Sakari,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-main.c | 71 ++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 68 insertions(+), 3 deletions(-)
+On 11/24/2016 01:17 PM, Sakari Ailus wrote:
+> Hi Jacek,
+>
+> Thanks for the patchset.
+>
+> On Wed, Oct 12, 2016 at 04:35:19PM +0200, Jacek Anaszewski wrote:
+>> Add helper functions that allow for easy instantiation of media_device
+>> object basing on whether the media device contains v4l2 subdev with
+>> given file descriptor.
+>
+> Doesn't this work with video nodes as well? That's what you seem to be using
+> it for later on. And I think that's actually more useful.
+>
+> The existing implementation uses udev to look up devices. Could you use
+> libudev device enumeration API to find the media devices, and fall back to
+> sysfs if udev doesn't work? There seems to be a reasonable-looking example
+> here:
+>
+> <URL:http://stackoverflow.com/questions/25361042/how-to-list-usb-mass-storage-devices-programatically-using-libudev-in-linux>
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index b52b5da..62141d6 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -724,6 +724,64 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
- }
- EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
- 
-+/**
-+ * rc_validate_filter() - checks that the scancode and mask are valid and
-+ *			  provides sensible defaults
-+ * @protocol:	the protocol for the filter
-+ * @filter:	the scancode and mask
-+ * @return:	0 or -EINVAL if the filter is not valid
-+ */
-+static int rc_validate_filter(enum rc_type protocol,
-+			      struct rc_scancode_filter *filter)
-+{
-+	static u32 masks[] = {
-+		[RC_TYPE_RC5] = 0x1f7f,
-+		[RC_TYPE_RC5X] = 0x1f7f3f,
-+		[RC_TYPE_RC5_SZ] = 0x2fff,
-+		[RC_TYPE_SONY12] = 0x1f007f,
-+		[RC_TYPE_SONY15] = 0xff007f,
-+		[RC_TYPE_SONY20] = 0x1fff7f,
-+		[RC_TYPE_JVC] = 0xffff,
-+		[RC_TYPE_NEC] = 0xffff,
-+		[RC_TYPE_NECX] = 0xffffff,
-+		[RC_TYPE_NEC32] = 0xffffffff,
-+		[RC_TYPE_SANYO] = 0x1fffff,
-+		[RC_TYPE_RC6_0] = 0xffff,
-+		[RC_TYPE_RC6_6A_20] = 0xfffff,
-+		[RC_TYPE_RC6_6A_24] = 0xffffff,
-+		[RC_TYPE_RC6_6A_32] = 0xffffffff,
-+		[RC_TYPE_RC6_MCE] = 0xffff7fff,
-+		[RC_TYPE_SHARP] = 0x1fff,
-+	};
-+	u32 s = filter->data;
-+
-+	switch (protocol) {
-+	case RC_TYPE_NECX:
-+		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
-+			return -EINVAL;
-+		break;
-+	case RC_TYPE_NEC32:
-+		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
-+			return -EINVAL;
-+		break;
-+	case RC_TYPE_RC6_MCE:
-+		if ((s & 0xffff0000) != 0x800f0000)
-+			return -EINVAL;
-+		break;
-+	case RC_TYPE_RC6_6A_32:
-+		if ((s & 0xffff0000) == 0x800f0000)
-+			return -EINVAL;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	filter->data &= masks[protocol];
-+	filter->mask &= masks[protocol];
-+
-+	return 0;
-+}
-+
- int rc_open(struct rc_dev *rdev)
- {
- 	int rval = 0;
-@@ -1229,11 +1287,18 @@ static ssize_t store_filter(struct device *device,
- 		new_filter.data = val;
- 
- 	if (fattr->type == RC_FILTER_WAKEUP) {
--		/* refuse to set a filter unless a protocol is enabled */
--		if (dev->wakeup_protocol == RC_TYPE_UNKNOWN) {
-+		/*
-+		 * Refuse to set a filter unless a protocol is enabled
-+		 * and the filter is valid for that protocol
-+		 */
-+		if (dev->wakeup_protocol != RC_TYPE_UNKNOWN)
-+			ret = rc_validate_filter(dev->wakeup_protocol,
-+						 &new_filter);
-+		else
- 			ret = -EINVAL;
-+
-+		if (ret != 0)
- 			goto unlock;
--		}
- 	}
- 
- 	if (fattr->type == RC_FILTER_NORMAL && !dev->enabled_protocols &&
--- 
-2.9.3
+Actually I am calling media_get_devname_udev() at first and falling back
+to sysfs similarly as it is accomplished in media_enum_entities().
+Is there any specific reason for which I should use libudev device
+enumeration API in media_device_new_by_subdev_fd()?
 
+Best regards,
+Jacek Anaszewski
+
+>>
+>> Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+>> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>  utils/media-ctl/libmediactl.c | 131 +++++++++++++++++++++++++++++++++++++++++-
+>>  utils/media-ctl/mediactl.h    |  27 +++++++++
+>>  2 files changed, 156 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+>> index 155b65f..d347a40 100644
+>> --- a/utils/media-ctl/libmediactl.c
+>> +++ b/utils/media-ctl/libmediactl.c
+>> @@ -27,6 +27,7 @@
+>>  #include <sys/sysmacros.h>
+>>
+>>  #include <ctype.h>
+>> +#include <dirent.h>
+>>  #include <errno.h>
+>>  #include <fcntl.h>
+>>  #include <stdbool.h>
+>> @@ -440,8 +441,9 @@ static int media_get_devname_udev(struct udev *udev,
+>>  		return -EINVAL;
+>>
+>>  	devnum = makedev(entity->info.v4l.major, entity->info.v4l.minor);
+>> -	media_dbg(entity->media, "looking up device: %u:%u\n",
+>> -		  major(devnum), minor(devnum));
+>> +	if (entity->media)
+>> +		media_dbg(entity->media, "looking up device: %u:%u\n",
+>> +			  major(devnum), minor(devnum));
+>>  	device = udev_device_new_from_devnum(udev, 'c', devnum);
+>>  	if (device) {
+>>  		p = udev_device_get_devnode(device);
+>> @@ -523,6 +525,7 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+>>  	return 0;
+>>  }
+>>
+>> +
+>
+> Unrelated change.
+>
+>>  static int media_enum_entities(struct media_device *media)
+>>  {
+>>  	struct media_entity *entity;
+>> @@ -707,6 +710,92 @@ struct media_device *media_device_new(const char *devnode)
+>>  	return media;
+>>  }
+>>
+>> +struct media_device *media_device_new_by_subdev_fd(int fd, struct media_entity **fd_entity)
+>> +{
+>> +	char video_devname[32], device_dir_path[256], media_dev_path[256], media_major_minor[10];
+>> +	struct media_device *media = NULL;
+>> +	struct dirent *entry;
+>> +	struct media_entity tmp_entity;
+>> +	DIR *device_dir;
+>> +	struct udev *udev;
+>> +	char *p;
+>> +	int ret, i;
+>> +
+>> +	if (fd_entity == NULL)
+>> +		return NULL;
+>> +
+>> +	ret = media_get_devname_by_fd(fd, video_devname);
+>> +	if (ret < 0)
+>> +		return NULL;
+>> +
+>> +	p = strrchr(video_devname, '/');
+>> +	if (p == NULL)
+>> +		return NULL;
+>> +
+>> +	ret = media_udev_open(&udev);
+>> +	if (ret < 0)
+>> +		return NULL;
+>> +
+>> +	sprintf(device_dir_path, "/sys/class/video4linux/%s/device/", p + 1);
+>> +
+>> +	device_dir = opendir(device_dir_path);
+>> +	if (device_dir == NULL)
+>> +		return NULL;
+>> +
+>> +	while ((entry = readdir(device_dir))) {
+>> +		if (strncmp(entry->d_name, "media", 4))
+>
+> Why 4? And isn't entry->d_name nul-terminated, so you could use strcmp()?
+>
+>> +			continue;
+>> +
+>> +		sprintf(media_dev_path, "%s%s/dev", device_dir_path, entry->d_name);
+>> +
+>> +		fd = open(media_dev_path, O_RDONLY);
+>> +		if (fd < 0)
+>> +			continue;
+>> +
+>> +		ret = read(fd, media_major_minor, sizeof(media_major_minor));
+>> +		if (ret < 0)
+>> +			continue;
+>> +
+>> +		sscanf(media_major_minor, "%d:%d", &tmp_entity.info.dev.major, &tmp_entity.info.dev.minor);
+>
+> This would be better split on two lines.
+>
+>> +
+>> +		/* Try to get the device name via udev */
+>> +		if (media_get_devname_udev(udev, &tmp_entity)) {
+>> +			/* Fall back to get the device name via sysfs */
+>> +			if (media_get_devname_sysfs(&tmp_entity))
+>> +				continue;
+>> +		}
+>> +
+>> +		media = media_device_new(tmp_entity.devname);
+>> +		if (media == NULL)
+>> +			continue;
+>> +
+>> +		ret = media_device_enumerate(media);
+>> +		if (ret < 0) {
+>> +			media_dbg(media, "Failed to enumerate %s (%d)\n",
+>> +				  tmp_entity.devname, ret);
+>> +			media_device_unref(media);
+>> +			media = NULL;
+>> +			continue;
+>> +		}
+>> +
+>> +		/* Get the entity associated with given fd */
+>> +		for (i = 0; i < media->entities_count; i++) {
+>> +			struct media_entity *entity = &media->entities[i];
+>> +
+>> +			if (!strcmp(entity->devname, video_devname)) {
+>> +				*fd_entity = &media->entities[i];
+>> +				break;
+>> +			}
+>> +		}
+>
+> What if you exit the loop without finding the entity you were looking for?
+>
+>> +
+>> +		break;
+>> +	}
+>> +
+>> +	media_udev_close(udev);
+>> +
+>> +	return media;
+>> +}
+>> +
+>>  struct media_device *media_device_new_emulated(struct media_device_info *info)
+>>  {
+>>  	struct media_device *media;
+>> @@ -748,6 +837,44 @@ void media_device_unref(struct media_device *media)
+>>  	free(media);
+>>  }
+>>
+>> +int media_get_devname_by_fd(int fd, char *node_name)
+>> +{
+>> +	struct udev *udev;
+>> +	struct media_entity tmp_entity;
+>> +	struct stat stat;
+>> +	int ret, ret_udev;
+>> +
+>> +	if (node_name == NULL)
+>> +		return -EINVAL;
+>> +
+>> +	ret = fstat(fd, &stat);
+>> +	if (ret < 0)
+>> +		return -errno;
+>> +
+>> +	tmp_entity.info.v4l.major = MAJOR(stat.st_rdev);
+>> +	tmp_entity.info.v4l.minor = MINOR(stat.st_rdev);
+>> +
+>> +	ret_udev = media_udev_open(&udev);
+>> +	if (ret_udev < 0)
+>> +		printf("Can't get udev context\n");
+>> +
+>> +	/* Try to get the device name via udev */
+>> +	ret = media_get_devname_udev(udev, &tmp_entity);
+>> +	if (!ret)
+>> +		goto out;
+>> +
+>> +	ret = media_get_devname_sysfs(&tmp_entity);
+>> +	if (ret < 0)
+>> +		goto err_get_devname;
+>> +
+>> +out:
+>> +	strncpy(node_name, tmp_entity.devname, sizeof(tmp_entity.devname));
+>
+> This seems risky. How does the caller know the maximum size? I'd simply
+> allocate the string, and document the caller is responsible for releasing
+> it.
+>
+>> +err_get_devname:
+>> +	if (!ret_udev)
+>> +		media_udev_close(udev);
+>> +	return ret;
+>> +}
+>> +
+>>  int media_device_add_entity(struct media_device *media,
+>>  			    const struct media_entity_desc *desc,
+>>  			    const char *devnode)
+>> diff --git a/utils/media-ctl/mediactl.h b/utils/media-ctl/mediactl.h
+>> index b1f33cd..580a25a 100644
+>> --- a/utils/media-ctl/mediactl.h
+>> +++ b/utils/media-ctl/mediactl.h
+>> @@ -76,6 +76,21 @@ struct media_device *media_device_new(const char *devnode);
+>>  struct media_device *media_device_new_emulated(struct media_device_info *info);
+>>
+>>  /**
+>> + * @brief Create a new media device contatning entity associated with v4l2 subdev fd.
+>> + * @param fd - file descriptor of a v4l2 subdev.
+>> + * @param fd_entity - media entity associated with the v4l2 subdev.
+>> + *
+>> + * Create a representation of the media device referenced by the v4l2-subdev.
+>> + * The media device instance is initialized with enumerated entities and links.
+>> + *
+>> + * Media devices are reference-counted, see media_device_ref() and
+>> + * media_device_unref() for more information.
+>> + *
+>> + * @return A pointer to the new media device or NULL if error occurred.
+>> + */
+>> +struct media_device *media_device_new_by_subdev_fd(int fd, struct media_entity **fd_entity);
+>
+> I'd drop the "subdev_" part as both V4L2 device nodes and sub-devices work.
+>
+> If you wish to keep this V4L2 specific, I suggest ...by_v4l2_fd().
+>
+>> +
+>> +/**
+>>   * @brief Take a reference to the device.
+>>   * @param media - device instance.
+>>   *
+>> @@ -231,6 +246,18 @@ const struct media_link *media_entity_get_link(struct media_entity *entity,
+>>  const char *media_entity_get_devname(struct media_entity *entity);
+>>
+>>  /**
+>> + * @brief Get the device node name by its file descriptor
+>> + * @param fd - file descriptor of a device.
+>> + * @param node_name - output device node name string.
+>> + *
+>> + * This function returns the full path and name to the device node corresponding
+>> + * to the given file descriptor.
+>> + *
+>> + * @return 0 on success, or a negative error code on failure.
+>> + */
+>> +int media_get_devname_by_fd(int fd, char *node_name);
+>> +
+>> +/**
+>>   * @brief Get the type of an entity.
+>>   * @param entity - the entity.
+>>   *
+>
