@@ -1,65 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:55216 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941096AbcLMSDS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 13:03:18 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCHv3 0/4] v4l: vsp1: Fix suspend/resume and race on M2M pipelines
-Date: Tue, 13 Dec 2016 17:59:40 +0000
-Message-Id: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from bombadil.infradead.org ([198.137.202.9]:40753 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752319AbcLHNij (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 08:38:39 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
+Date: Thu,  8 Dec 2016 11:38:34 -0200
+Message-Id: <b47a9d956d740d63334bf0f07e6cfddd7f60e98b.1481204310.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This small patchset helps rework the VSP1 driver to repair an issue on
-suspend/resume operations whereby the pipeline does not get reconfigured after
-it has been re-initialised following a resume operation.
+changeset 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
+support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
+depending on the type of bus set via the .set_fmt() subdev callback.
 
-Along side this, there was an intrinsic race in the vsp1_video_start_streaming()
-function whereby multiple streams operating through a BRU, could find themselves
-commencing an operation before the pipeline has been configured, or worse -
-commencing, just as the pipeline is being configured resulting in a null pointer
-dereference on pipe->dl.
+This is known to cause trobules on devices that don't use a V4L2
+subdev devnode, and a fix for it was made by changeset 47de9bf8931e
+("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
+such fix doesn't consider the case of progressive video inputs,
+causing chroma decoding issues on such videos, as it overrides not
+only the type of video output, but also other unrelated bits.
 
-This series superceeds a previous effort to fix the BRU race.
+So, instead of trying to guess, let's detect if the device is set
+via Device Tree. If not, just ignore the bogus logic.
 
-Patch [1/4] is a code move only, with no functional change.
-Patch [2/4] refactors the vsp1_video_start_streaming() function and fixes both
-            suspend/resume, and the BRU race in a single change
-Patch [3/4] removes the context scoped 'pipe->dl' which has been susceptible to
-            races and isn't required to be in the context.
-Patch [4/4] is an RFC patch really, that fixes a segfault on error paths  and I
-            certainly expect feedback and brief discussion. Please drop Patch 4
-            in the event of any further discussion, and don't consider it as
-            blocking for the first three patches of this series.
+Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/i2c/tvp5150.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-v3:
- - Move configured=false from vsp1_device_init to vsp1_reset_wpf()
- - Clean up flag dereferencing with a local struct *
-
-v2:
- - Refactor video pipeline configuration implementation to solve both suspend
-   resume and the VSP BRU race in a single change
-
-v1:
- - Original pipeline configuration rework
-
-Kieran Bingham (4):
-  v4l: vsp1: Move vsp1_video_setup_pipeline()
-  v4l: vsp1: Refactor video pipeline configuration
-  v4l: vsp1: Use local display lists and remove global pipe->dl
-  media: Catch null pipes on pipeline stop
-
- drivers/media/media-entity.c             |   2 +
- drivers/media/platform/vsp1/vsp1_drm.c   |  20 ++---
- drivers/media/platform/vsp1/vsp1_drv.c   |   4 +
- drivers/media/platform/vsp1/vsp1_pipe.c  |   1 +
- drivers/media/platform/vsp1/vsp1_pipe.h  |   4 +-
- drivers/media/platform/vsp1/vsp1_video.c | 127 +++++++++++++++----------------
- 6 files changed, 79 insertions(+), 79 deletions(-)
-
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 6737685d5be5..eb43ac7002d6 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -57,6 +57,7 @@ struct tvp5150 {
+ 	u16 rom_ver;
+ 
+ 	enum v4l2_mbus_type mbus_type;
++	bool has_dt;
+ };
+ 
+ static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
+@@ -795,7 +796,7 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
+ 
+ 	tvp5150_set_std(sd, decoder->norm);
+ 
+-	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
++	if (decoder->mbus_type == V4L2_MBUS_PARALLEL || !decoder->has_dt)
+ 		tvp5150_write(sd, TVP5150_DATA_RATE_SEL, 0x40);
+ 
+ 	return 0;
+@@ -1053,6 +1054,9 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+ 	int val = 0x09;
+ 
++	if (!decoder->has_dt)
++		return 0;
++
+ 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+ 	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+ 		val = 0x0d;
+@@ -1374,6 +1378,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ 	}
+ 
+ 	decoder->mbus_type = bus_cfg.bus_type;
++	decoder->has_dt = true;
+ 
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	connectors = of_get_child_by_name(np, "connectors");
 -- 
-2.7.4
+2.9.3
 
