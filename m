@@ -1,96 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway24.websitewelcome.com ([192.185.51.172]:46497 "EHLO
-        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750881AbcLDNsQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Dec 2016 08:48:16 -0500
-Received: from cm6.websitewelcome.com (cm6.websitewelcome.com [108.167.139.19])
-        by gateway24.websitewelcome.com (Postfix) with ESMTP id 7C61AF5C35FC0
-        for <linux-media@vger.kernel.org>; Sun,  4 Dec 2016 07:23:03 -0600 (CST)
-Message-ID: <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
-In-Reply-To: <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com>
-References: <20161123215510.GA16311@obsidianresearch.com>
-    <91d28749-bc64-622f-56a1-26c00e6b462a@deltatee.com>
-    <20161124164249.GD20818@obsidianresearch.com>
-    <3f2d2db3-fb75-2422-2a18-a8497fd5d70e@amd.com>
-    <20161125193252.GC16504@obsidianresearch.com>
-    <d9e064a0-9c47-3e41-3154-cece8c70a119@mellanox.com>
-    <20161128165751.GB28381@obsidianresearch.com>
-    <1480357179.19407.13.camel@mellanox.com>
-    <20161128190244.GA21975@obsidianresearch.com>
-    <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
-    <20161130162353.GA24639@obsidianresearch.com>
-    <5f5b7989-84f5-737e-47c8-831f752d6280@deltatee.com>
-    <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com>
-Date: Sun, 4 Dec 2016 07:23:00 -0600
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-From: "Stephen Bates" <sbates@raithlin.com>
-To: "Haggai Eran" <haggaie@mellanox.com>
-Cc: "Logan Gunthorpe" <logang@deltatee.com>,
-        "Jason Gunthorpe" <jgunthorpe@obsidianresearch.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
-        "christian.koenig@amd.com" <christian.koenig@amd.com>,
-        "Suravee.Suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>,
-        "John.Bridgman@amd.com" <john.bridgman@amd.com>,
-        "Alexander.Deucher@amd.com" <alexander.deucher@amd.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dan.j.williams@intel.com" <dan.j.williams@intel.com>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Max Gurtovoy" <maxg@mellanox.com>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "serguei.sagalovitch@amd.com" <serguei.sagalovitch@amd.com>,
-        "Paul.Blinzer@amd.com" <paul.blinzer@amd.com>,
-        "Felix.Kuehling@amd.com" <felix.kuehling@amd.com>,
-        "ben.sander@amd.com" <ben.sander@amd.com>
+Received: from mga09.intel.com ([134.134.136.24]:41499 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753207AbcLHVZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 8 Dec 2016 16:25:53 -0500
+Date: Fri, 9 Dec 2016 05:25:30 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: kbuild-all@01.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH 3/3] [media] em28xx: don't store usb_device at struct
+ em28xx
+Message-ID: <201612090518.C2CqHBA3%fengguang.wu@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1b002d1d5d4a55ebd0c5c4d9577ba0d1f98d4e3c.1481226194.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All
+Hi Mauro,
 
-This has been a great thread (thanks to Alex for kicking it off) and I
-wanted to jump in and maybe try and put some summary around the
-discussion. I also wanted to propose we include this as a topic for LFS/MM
-because I think we need more discussion on the best way to add this
-functionality to the kernel.
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on next-20161208]
+[cannot apply to v4.9-rc8]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-As far as I can tell the people looking for P2P support in the kernel fall
-into two main camps:
+url:    https://github.com/0day-ci/linux/commits/Mauro-Carvalho-Chehab/em28xx-don-t-change-the-device-s-name/20161209-035446
+base:   git://linuxtv.org/media_tree.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-1. Those who simply want to expose static BARs on PCIe devices that can be
-used as the source/destination for DMAs from another PCIe device. This
-group has no need for memory invalidation and are happy to use
-physical/bus addresses and not virtual addresses.
 
-2. Those who want to support devices that suffer from occasional memory
-pressure and need to invalidate memory regions from time to time. This
-camp also would like to use virtual addresses rather than physical ones to
-allow for things like migration.
+sparse warnings: (new ones prefixed by >>)
 
-I am wondering if people agree with this assessment?
+   include/linux/compiler.h:253:8: sparse: attribute 'no_sanitize_address': unknown attribute
+   drivers/media/usb/em28xx/em28xx-input.c:577:26: sparse: no member 'udev' in struct em28xx
+   drivers/media/usb/em28xx/em28xx-input.c:589:32: sparse: no member 'udev' in struct em28xx
+>> drivers/media/usb/em28xx/em28xx-input.c:589:32: sparse: cast from unknown type
+   drivers/media/usb/em28xx/em28xx-input.c:590:33: sparse: no member 'udev' in struct em28xx
+   drivers/media/usb/em28xx/em28xx-input.c:590:33: sparse: cast from unknown type
+   drivers/media/usb/em28xx/em28xx-input.c:802:26: sparse: no member 'udev' in struct em28xx
+   drivers/media/usb/em28xx/em28xx-input.c:809:31: sparse: no member 'udev' in struct em28xx
+   drivers/media/usb/em28xx/em28xx-input.c:809:31: sparse: cast from unknown type
+   drivers/media/usb/em28xx/em28xx-input.c:810:32: sparse: no member 'udev' in struct em28xx
+   drivers/media/usb/em28xx/em28xx-input.c:810:32: sparse: cast from unknown type
+   drivers/media/usb/em28xx/em28xx-input.c: In function 'em28xx_register_snapshot_button':
+   drivers/media/usb/em28xx/em28xx-input.c:577:19: error: 'struct em28xx' has no member named 'udev'; did you mean 'adev'?
+     usb_make_path(dev->udev, dev->snapshot_button_path,
+                      ^~
+   In file included from include/linux/byteorder/little_endian.h:4:0,
+                    from arch/x86/include/uapi/asm/byteorder.h:4,
+                    from include/asm-generic/bitops/le.h:5,
+                    from arch/x86/include/asm/bitops.h:504,
+                    from include/linux/bitops.h:36,
+                    from include/linux/kernel.h:10,
+                    from include/linux/list.h:8,
+                    from include/linux/timer.h:4,
+                    from include/linux/workqueue.h:8,
+                    from drivers/media/usb/em28xx/em28xx.h:32,
+                    from drivers/media/usb/em28xx/em28xx-input.c:24:
+   drivers/media/usb/em28xx/em28xx-input.c:589:40: error: 'struct em28xx' has no member named 'udev'; did you mean 'adev'?
+     input_dev->id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+                                           ^
+   include/uapi/linux/byteorder/little_endian.h:35:51: note: in definition of macro '__le16_to_cpu'
+    #define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
+                                                      ^
+   drivers/media/usb/em28xx/em28xx-input.c:589:25: note: in expansion of macro 'le16_to_cpu'
+     input_dev->id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+                            ^~~~~~~~~~~
+   drivers/media/usb/em28xx/em28xx-input.c:590:41: error: 'struct em28xx' has no member named 'udev'; did you mean 'adev'?
+     input_dev->id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+                                            ^
+   include/uapi/linux/byteorder/little_endian.h:35:51: note: in definition of macro '__le16_to_cpu'
+    #define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
+                                                      ^
+   drivers/media/usb/em28xx/em28xx-input.c:590:26: note: in expansion of macro 'le16_to_cpu'
+     input_dev->id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+                             ^~~~~~~~~~~
+   drivers/media/usb/em28xx/em28xx-input.c: In function 'em28xx_ir_init':
+   drivers/media/usb/em28xx/em28xx-input.c:802:19: error: 'struct em28xx' has no member named 'udev'; did you mean 'adev'?
+     usb_make_path(dev->udev, ir->phys, sizeof(ir->phys));
+                      ^~
+   In file included from include/linux/byteorder/little_endian.h:4:0,
+                    from arch/x86/include/uapi/asm/byteorder.h:4,
+                    from include/asm-generic/bitops/le.h:5,
+                    from arch/x86/include/asm/bitops.h:504,
+                    from include/linux/bitops.h:36,
+                    from include/linux/kernel.h:10,
+                    from include/linux/list.h:8,
+                    from include/linux/timer.h:4,
+                    from include/linux/workqueue.h:8,
+                    from drivers/media/usb/em28xx/em28xx.h:32,
+                    from drivers/media/usb/em28xx/em28xx-input.c:24:
+   drivers/media/usb/em28xx/em28xx-input.c:809:39: error: 'struct em28xx' has no member named 'udev'; did you mean 'adev'?
+     rc->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+                                          ^
+   include/uapi/linux/byteorder/little_endian.h:35:51: note: in definition of macro '__le16_to_cpu'
+    #define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
+                                                      ^
+   drivers/media/usb/em28xx/em28xx-input.c:809:24: note: in expansion of macro 'le16_to_cpu'
+     rc->input_id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+                           ^~~~~~~~~~~
+   drivers/media/usb/em28xx/em28xx-input.c:810:40: error: 'struct em28xx' has no member named 'udev'; did you mean 'adev'?
+     rc->input_id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+                                           ^
+   include/uapi/linux/byteorder/little_endian.h:35:51: note: in definition of macro '__le16_to_cpu'
+    #define __le16_to_cpu(x) ((__force __u16)(__le16)(x))
+                                                      ^
+   drivers/media/usb/em28xx/em28xx-input.c:810:25: note: in expansion of macro 'le16_to_cpu'
+     rc->input_id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+                            ^~~~~~~~~~~
 
-I think something like the iopmem patches Logan and I submitted recently
-come close to addressing use case 1. There are some issues around
-routability but based on feedback to date that does not seem to be a
-show-stopper for an initial inclusion.
+vim +589 drivers/media/usb/em28xx/em28xx-input.c
 
-For use-case 2 it looks like there are several options and some of them
-(like HMM) have been around for quite some time without gaining
-acceptance. I think there needs to be more discussion on this usecase and
-it could be some time before we get something upstreamable.
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  571  
+42d0e2158 drivers/media/usb/em28xx/em28xx-input.c   Mauro Carvalho Chehab 2016-12-08  572  	dev_info(&dev->intf->dev, "Registering snapshot button...\n");
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  573  	input_dev = input_allocate_device();
+da4a73394 drivers/media/usb/em28xx/em28xx-input.c   Joe Perches           2013-10-23  574  	if (!input_dev)
+f52226099 drivers/media/usb/em28xx/em28xx-input.c   Frank Schaefer        2013-12-01  575  		return -ENOMEM;
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  576  
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26 @577  	usb_make_path(dev->udev, dev->snapshot_button_path,
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  578  		      sizeof(dev->snapshot_button_path));
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  579  	strlcat(dev->snapshot_button_path, "/sbutton",
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  580  		sizeof(dev->snapshot_button_path));
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  581  
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  582  	input_dev->name = "em28xx snapshot button";
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  583  	input_dev->phys = dev->snapshot_button_path;
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  584  	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  585  	set_bit(EM28XX_SNAPSHOT_KEY, input_dev->keybit);
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  586  	input_dev->keycodesize = 0;
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  587  	input_dev->keycodemax = 0;
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  588  	input_dev->id.bustype = BUS_USB;
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26 @589  	input_dev->id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  590  	input_dev->id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+769af2146 drivers/media/video/em28xx/em28xx-input.c Ezequiel García       2012-03-26  591  	input_dev->id.version = 1;
+42d0e2158 drivers/media/usb/em28xx/em28xx-input.c   Mauro Carvalho Chehab 2016-12-08  592  	input_dev->dev.parent = &dev->intf->dev;
 
-I for one, would really like to see use case 1 get addressed soon because
-we have consumers for it coming soon in the form of CMBs for NVMe devices.
+:::::: The code at line 589 was first introduced by commit
+:::::: 769af2146a93c27c8834dbca54c02cd67468036d [media] em28xx: Change scope of em28xx-input local functions to static
 
-Long term I think Jason summed it up really well. CPU vendors will put
-high-speed, open, switchable, coherent buses on their processors and all
-these problems will vanish. But I ain't holding my breathe for that to
-happen ;-).
+:::::: TO: Ezequiel García <elezegarcia@gmail.com>
+:::::: CC: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Cheers
-
-Stephen
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
