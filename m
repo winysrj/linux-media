@@ -1,175 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:35887 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932328AbcLLVN6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:58 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        James Hogan <james@albanarts.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v5 10/18] [media] rc: ir-rc6-decoder: Add encode capability
-Date: Mon, 12 Dec 2016 21:13:46 +0000
-Message-Id: <48d8ccc5fa535dee7ca9e046d627fe85518c4653.1481575826.git.sean@mess.org>
-In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45432 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751367AbcLHOKL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 09:10:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH 5/5] media: entity: Add debug information to graph walk
+Date: Thu, 08 Dec 2016 16:10:36 +0200
+Message-ID: <2055355.5HTxnN0jae@avalon>
+In-Reply-To: <1480082146-25991-6-git-send-email-sakari.ailus@linux.intel.com>
+References: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com> <1480082146-25991-6-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Antti Seppälä <a.seppala@gmail.com>
+Hi Sakari,
 
-Add the capability to encode RC-6 and RC-6A scancodes as raw events.
+Thank you for the patch.
 
-The Manchester modulation helper is used several times with various
-timings so that RC-6 header preamble, the header, header trailing bit
-and the data itself can be modulated correctly.
+On Friday 25 Nov 2016 15:55:46 Sakari Ailus wrote:
+> Use dev_dbg() to tell about the progress of the graph traversal algorithm.
+> This is intended to make debugging of the algorithm easier.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/media-entity.c | 19 ++++++++++++++++++-
+>  1 file changed, 18 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index e242ead..186906b 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -335,6 +335,8 @@ void media_graph_walk_start(struct media_graph *graph,
+>  	graph->top = 0;
+>  	graph->stack[graph->top].entity = NULL;
+>  	stack_push(graph, entity);
+> +	dev_dbg(entity->graph_obj.mdev->dev,
+> +		"begin graph walk at \"%s\"\n", entity->name);
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: James Hogan <james@albanarts.com>
-Cc: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/ir-rc6-decoder.c | 117 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 117 insertions(+)
+I'd use single quotes around entity names as that's more common in English 
+(and in the kernel) and would avoid having to escape the quotes. Apart from 
+that,
 
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 5cc54c9..29f9f9a 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -286,11 +286,128 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
- }
- 
-+static struct ir_raw_timings_manchester ir_rc6_timings[4] = {
-+	{
-+		.leader			= RC6_PREFIX_PULSE,
-+		.pulse_space_start	= 0,
-+		.clock			= RC6_UNIT,
-+		.invert			= 1,
-+		.trailer_space		= RC6_PREFIX_SPACE,
-+	},
-+	{
-+		.clock			= RC6_UNIT,
-+		.invert			= 1,
-+	},
-+	{
-+		.clock			= RC6_UNIT * 2,
-+		.invert			= 1,
-+	},
-+	{
-+		.clock			= RC6_UNIT,
-+		.invert			= 1,
-+		.trailer_space		= RC6_SUFFIX_SPACE,
-+	},
-+};
-+
-+/**
-+ * ir_rc6_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol to encode
-+ * @scancode:	scancode to encode
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_rc6_encode(enum rc_type protocol, u32 scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	int ret;
-+	struct ir_raw_event *e = events;
-+
-+	if (protocol == RC_TYPE_RC6_0) {
-+		/* Modulate the preamble */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc6_timings[0], 0, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate the header (Start Bit & Mode-0) */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[1],
-+					    RC6_HEADER_NBITS, (1 << 3));
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate Trailer Bit */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[2], 1, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate rest of the data */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[3], RC6_0_NBITS,
-+					    scancode);
-+		if (ret < 0)
-+			return ret;
-+
-+	} else {
-+		int bits;
-+
-+		switch (protocol) {
-+		case RC_TYPE_RC6_MCE:
-+		case RC_TYPE_RC6_6A_32:
-+			bits = 32;
-+			break;
-+		case RC_TYPE_RC6_6A_24:
-+			bits = 24;
-+			break;
-+		case RC_TYPE_RC6_6A_20:
-+			bits = 20;
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+
-+		/* Modulate the preamble */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc6_timings[0], 0, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate the header (Start Bit & Header-version 6 */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[1],
-+					    RC6_HEADER_NBITS, (1 << 3 | 6));
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate Trailer Bit */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[2], 1, 0);
-+		if (ret < 0)
-+			return ret;
-+
-+		/* Modulate rest of the data */
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc6_timings[3],
-+					    bits,
-+					    scancode);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler rc6_handler = {
- 	.protocols	= RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 |
- 			  RC_BIT_RC6_6A_24 | RC_BIT_RC6_6A_32 |
- 			  RC_BIT_RC6_MCE,
- 	.decode		= ir_rc6_decode,
-+	.encode		= ir_rc6_encode,
- };
- 
- static int __init ir_rc6_decode_init(void)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  }
+>  EXPORT_SYMBOL_GPL(media_graph_walk_start);
+> 
+> @@ -349,6 +351,10 @@ static void graph_walk_iter(struct media_graph *graph)
+>  	/* The link is not enabled so we do not follow. */
+>  	if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
+>  		link_top(graph) = link_top(graph)->next;
+> +		dev_dbg(entity->graph_obj.mdev->dev,
+> +			"walk: skipping disabled link \"%s\":%u -> \"%s\":
+%u\n",
+> +			link->source->entity->name, link->source->index,
+> +			link->sink->entity->name, link->sink->index);
+>  		return;
+>  	}
+> 
+> @@ -358,16 +364,23 @@ static void graph_walk_iter(struct media_graph *graph)
+> /* Has the entity already been visited? */
+>  	if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
+>  		link_top(graph) = link_top(graph)->next;
+> +		dev_dbg(entity->graph_obj.mdev->dev,
+> +			"walk: skipping entity \"%s\" (already seen)\n",
+> +			next->name);
+>  		return;
+>  	}
+> 
+>  	/* Push the new entity to stack and start over. */
+>  	link_top(graph) = link_top(graph)->next;
+>  	stack_push(graph, next);
+> +	dev_dbg(entity->graph_obj.mdev->dev, "walk: pushing \"%s\" on 
+stack\n",
+> +		next->name);
+>  }
+> 
+>  struct media_entity *media_graph_walk_next(struct media_graph *graph)
+>  {
+> +	struct media_entity *entity;
+> +
+>  	if (stack_top(graph) == NULL)
+>  		return NULL;
+> 
+> @@ -379,7 +392,11 @@ struct media_entity *media_graph_walk_next(struct
+> media_graph *graph) while (link_top(graph) != &stack_top(graph)->links)
+>  		graph_walk_iter(graph);
+> 
+> -	return stack_pop(graph);
+> +	entity = stack_pop(graph);
+> +	dev_dbg(entity->graph_obj.mdev->dev,
+> +		"walk: returning entity \"%s\"\n", entity->name);
+> +
+> +	return entity;
+>  }
+>  EXPORT_SYMBOL_GPL(media_graph_walk_next);
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
