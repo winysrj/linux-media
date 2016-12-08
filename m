@@ -1,78 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:34817 "EHLO
-        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752795AbcLGUDP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 15:03:15 -0500
-Received: by mail-io0-f175.google.com with SMTP id a124so731309370ioe.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 12:03:15 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45412 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751827AbcLHOJm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 09:09:42 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH 3/5] media: Rename graph and pipeline structs and functions
+Date: Thu, 08 Dec 2016 16:09:14 +0200
+Message-ID: <1775652.IsROeFlImz@avalon>
+In-Reply-To: <1480082146-25991-4-git-send-email-sakari.ailus@linux.intel.com>
+References: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com> <1480082146-25991-4-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20161207183025.20684-1-khilman@baylibre.com>
-References: <20161207183025.20684-1-khilman@baylibre.com>
-From: Javier Martinez Canillas <javier@dowhile0.org>
-Date: Wed, 7 Dec 2016 17:03:13 -0300
-Message-ID: <CABxcv=nrDACjfjStNPky5_y5zXBpzLZyO3g9WuOz95C6b_bgOg@mail.gmail.com>
-Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
-To: Kevin Hilman <khilman@baylibre.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?Q?Bartosz_Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        "linux-arm-kernel@lists.infradead.org"
-        <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Kevin,
+Hi Sakari,
 
-On Wed, Dec 7, 2016 at 3:30 PM, Kevin Hilman <khilman@baylibre.com> wrote:
-> Prepare the groundwork for adding DT support for davinci VPIF drivers.
-> This series does some fixups/cleanups and then adds the DT binding and
-> DT compatible string matching for DT probing.
->
-> The controversial part from previous versions around async subdev
-> parsing, and specifically hard-coding the input/output routing of
-> subdevs, has been left out of this series.  That part can be done as a
-> follow-on step after agreement has been reached on the path forward.
+Thank you for the patch.
 
-I had a similar need for another board (OMAP3 IGEPv2), that has a
-TVP5151 video decoder (that also supports 2 composite or 1 s-video
-signal) attached to the OMAP3 ISP.
+On Friday 25 Nov 2016 15:55:44 Sakari Ailus wrote:
+> The media_entity_pipeline_start() and media_entity_pipeline_stop()
+> functions are renamed as media_pipeline_start() and media_pipeline_stop(),
+> respectively. The reason is two-fold: the pipeline struct is, rightly,
+> already called media_pipeline (rather than media_entity_pipeline) and what
+> this really is about is a pipeline. A pipeline consists of entities ---
+> and, well, other objects embedded in these entities.
+> 
+> As the pipeline object will be in the future moved from entities to pads
+> in order to support multiple pipelines through a single entity, do the
+> renaming now.
+> 
+> Similarly, functions operating on struct media_entity_graph as well as the
+> struct itself are renamed by dropping the "entity_" part from the prefix
+> of the function family and the data structure. The graph traversal which
+> is what the functions are about is not specifically about entities only
+> and will operate on pads for the same reason as the media pipeline.
+> 
+> The patch has been generated using the following command:
+> 
+> git grep -l media_entity |xargs perl -i -pe '
+> 	s/media_entity_pipeline/media_pipeline/g;
+> 	s/media_entity_graph/media_graph/g'
+> 
+> And a few manual edits related to line start alignment and line wrapping.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I posted some RFC patches [0] to define the input signals in the DT,
-and AFAICT Laurent and Hans were not against the approach but just had
-some comments on the DT binding.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Basically they wanted the ports to be directly in the tvp5150 node
-instead of under a connectors sub-node [1] and to just be called just
-a (input / output) port instead of a connector [2].
+> ---
+>  Documentation/media/kapi/mc-core.rst               | 18 ++---
+>  drivers/media/media-device.c                       |  8 +--
+>  drivers/media/media-entity.c                       | 77 ++++++++++---------
+>  drivers/media/platform/exynos4-is/fimc-capture.c   |  8 +--
+>  drivers/media/platform/exynos4-is/fimc-isp-video.c |  8 +--
+>  drivers/media/platform/exynos4-is/fimc-lite.c      |  8 +--
+>  drivers/media/platform/exynos4-is/media-dev.c      | 16 ++---
+>  drivers/media/platform/exynos4-is/media-dev.h      |  2 +-
+>  drivers/media/platform/omap3isp/ispvideo.c         | 16 ++---
+>  drivers/media/platform/s3c-camif/camif-capture.c   |  6 +-
+>  drivers/media/platform/vsp1/vsp1_drm.c             |  4 +-
+>  drivers/media/platform/vsp1/vsp1_video.c           | 16 ++---
+>  drivers/media/platform/xilinx/xilinx-dma.c         | 16 ++---
+>  drivers/media/usb/au0828/au0828-core.c             |  4 +-
+>  drivers/media/v4l2-core/v4l2-mc.c                  | 18 ++---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c    | 25 ++++---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.h    |  2 +-
+>  drivers/staging/media/omap4iss/iss_video.c         | 32 ++++-----
+>  include/media/media-device.h                       |  2 +-
+>  include/media/media-entity.h                       | 65 +++++++++---------
+>  20 files changed, 174 insertions(+), 177 deletions(-)
 
-Unfortunately I was busy with other tasks so I couldn't res-pin the
-patches, but I think you could have something similar in the DT
-binding for your case and it shouldn't be hard to parse the ports /
-endpoints in the driver to get that information from DT and setup the
-input and output pins.
+-- 
+Regards,
 
-> With this version, platforms can still use the VPIF capture/display
-> drivers, but must provide platform_data for the subdevs and subdev
-> routing.
->
+Laurent Pinchart
 
-I guess DT backward compatibility isn't a big issue on this platform,
-since support for the platform is quite recently and after all someone
-who wants to use the vpif with current DT will need platform data and
-pdata-quirks anyways. So I agree with you that the input / output
-signals lookup from DT could be done as a follow-up.
-
-[0]: https://lkml.org/lkml/2016/4/12/983
-[1]: https://lkml.org/lkml/2016/4/27/678
-[2]: https://lkml.org/lkml/2016/11/11/346
-
-Best regards,
-Javier
