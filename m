@@ -1,104 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:32823 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755269AbcLQIyn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Dec 2016 03:54:43 -0500
-Received: by mail-lf0-f68.google.com with SMTP id y21so3180050lfa.0
-        for <linux-media@vger.kernel.org>; Sat, 17 Dec 2016 00:54:41 -0800 (PST)
-Date: Sat, 17 Dec 2016 09:53:57 +0100
-From: Henrik Austad <henrik@austad.us>
-To: Richard Cochran <richardcochran@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Henrik Austad <haustad@cisco.com>,
-        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-        netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
-Subject: Re: [TSN RFC v2 5/9] Add TSN header for the driver
-Message-ID: <20161217085357.GA6392@sisyphus.home.austad.us>
-References: <1481911153-549-1-git-send-email-henrik@austad.us>
- <1481911153-549-6-git-send-email-henrik@austad.us>
- <20161216220938.GB25258@netboy>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="fdj2RfSjLxBAspz7"
-Content-Disposition: inline
-In-Reply-To: <20161216220938.GB25258@netboy>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49787 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753610AbcLILrC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:47:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH v2 6/6] v4l: tvp5150: Don't override output pinmuxing at stream on/off time
+Date: Fri,  9 Dec 2016 13:47:19 +0200
+Message-Id: <1481284039-7960-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The s_stream() handler incorrectly writes the whole MISC_CTL register to
+enable or disable the outputs, overriding the output pinmuxing
+configuration. Fix it to only touch the output enable bits.
 
---fdj2RfSjLxBAspz7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The CONF_SHARED_PIN register is also written by the same function,
+resulting in muxing the INTREQ signal instead of the VBLK/GPCL signal on
+the INTREQ/GPCL/VBLK pin. As the driver doesn't support interrupts this
+is obviously incorrect, and breaks operation on other devices. Fix it by
+removing the write.
 
-On Fri, Dec 16, 2016 at 11:09:38PM +0100, Richard Cochran wrote:
-> On Fri, Dec 16, 2016 at 06:59:09PM +0100, henrik@austad.us wrote:
-> > +/*
-> > + * List of current subtype fields in the common header of AVTPDU
-> > + *
-> > + * Note: AVTPDU is a remnant of the standards from when it was AVB.
-> > + *
-> > + * The list has been updated with the recent values from IEEE 1722, dr=
-aft 16.
-> > + */
-> > +enum avtp_subtype {
-> > +	TSN_61883_IIDC =3D 0,	/* IEC 61883/IIDC Format */
-> > +	TSN_MMA_STREAM,		/* MMA Streams */
-> > +	TSN_AAF,		/* AVTP Audio Format */
-> > +	TSN_CVF,		/* Compressed Video Format */
-> > +	TSN_CRF,		/* Clock Reference Format */
-> > +	TSN_TSCF,		/* Time-Synchronous Control Format */
-> > +	TSN_SVF,		/* SDI Video Format */
-> > +	TSN_RVF,		/* Raw Video Format */
-> > +	/* 0x08 - 0x6D reserved */
-> > +	TSN_AEF_CONTINOUS =3D 0x6e, /* AES Encrypted Format Continous */
-> > +	TSN_VSF_STREAM,		/* Vendor Specific Format Stream */
-> > +	/* 0x70 - 0x7e reserved */
-> > +	TSN_EF_STREAM =3D 0x7f,	/* Experimental Format Stream */
-> > +	/* 0x80 - 0x81 reserved */
-> > +	TSN_NTSCF =3D 0x82,	/* Non Time-Synchronous Control Format */
-> > +	/* 0x83 - 0xed reserved */
-> > +	TSN_ESCF =3D 0xec,	/* ECC Signed Control Format */
-> > +	TSN_EECF,		/* ECC Encrypted Control Format */
-> > +	TSN_AEF_DISCRETE,	/* AES Encrypted Format Discrete */
-> > +	/* 0xef - 0xf9 reserved */
-> > +	TSN_ADP =3D 0xfa,		/* AVDECC Discovery Protocol */
-> > +	TSN_AECP,		/* AVDECC Enumeration and Control Protocol */
-> > +	TSN_ACMP,		/* AVDECC Connection Management Protocol */
-> > +	/* 0xfd reserved */
-> > +	TSN_MAAP =3D 0xfe,	/* MAAP Protocol */
-> > +	TSN_EF_CONTROL,		/* Experimental Format Control */
-> > +};
->=20
-> The kernel shouldn't be in the business of assembling media packets.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/tvp5150.c | 33 +++++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 14 deletions(-)
 
-No, but assembling the packets and shipping frames to a destination is not=
-=20
-neccessarily the same thing.
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 8852fa8c957b..48646a7f3fb0 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1058,22 +1058,27 @@ static const struct media_entity_operations tvp5150_sd_media_ops = {
+ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+-	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+-	int val = TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
+-
+-	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+-	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+-		val = TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_SYNC_OE
+-		    | TVP5150_MISC_CTL_CLOCK_OE;
++	int val;
+ 
+-	/* Initializes TVP5150 to its default values */
+-	/* # set PCLK (27MHz) */
+-	tvp5150_write(sd, TVP5150_CONF_SHARED_PIN, 0x00);
++	/* Enable or disable the video output signals. */
++	val = tvp5150_read(sd, TVP5150_MISC_CTL);
++	if (val < 0)
++		return val;
++
++	val &= ~(TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_SYNC_OE |
++		 TVP5150_MISC_CTL_CLOCK_OE);
++
++	if (enable) {
++		/*
++		 * Enable the YCbCr and clock outputs. In discrete sync mode
++		 * (non-BT.656) additionally enable the the sync outputs.
++		 */
++		val |= TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
++		if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
++			val |= TVP5150_MISC_CTL_SYNC_OE;
++	}
+ 
+-	if (enable)
+-		tvp5150_write(sd, TVP5150_MISC_CTL, val);
+-	else
+-		tvp5150_write(sd, TVP5150_MISC_CTL, 0x00);
++	tvp5150_write(sd, TVP5150_MISC_CTL, val);
+ 
+ 	return 0;
+ }
+-- 
+Regards,
 
-A nice workflow would be to signal to the shim that "I'm sending a=20
-compressed video format" and then the shim/tsn_core will ship out the=20
-frames over the network - and then you need to set TSN_CVF as subtype in=20
-each header.
+Laurent Pinchart
 
-That does not that mean you should do H.264 encode/decode *in* the kernel
-
-Perhaps this is better placed in include/uapi/tsn.h so that userspace and=
-=20
-kernel share the same header?
-
---=20
-Henrik Austad
-
---fdj2RfSjLxBAspz7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhU/SUACgkQ6k5VT6v45lmHDACeMkLnsLQL0nZAL0QFl/X5CLat
-xAkAoLS8Tw2LMtBenyJEHT3eIpBLCRDX
-=3+w7
------END PGP SIGNATURE-----
-
---fdj2RfSjLxBAspz7--
