@@ -1,208 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:41121 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935257AbcLOMuQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 07:50:16 -0500
-From: Sean Young <sean@mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49773 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753632AbcLILq5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:46:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        James Hogan <james@albanarts.com>,
-        Jarod Wilson <jarod@redhat.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH v6 18/18] [media] rc: nuvoton-cir: Add support wakeup via sysfs filter callback
-Date: Thu, 15 Dec 2016 12:50:11 +0000
-Message-Id: <2efb5386b1a3587bf298fd2e5bfb05d1fbf9f94e.1481805635.git.sean@mess.org>
-In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
-References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
-In-Reply-To: <cover.1481805635.git.sean@mess.org>
-References: <cover.1481805635.git.sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH v2 0/6] Fix tvp5150 regression with em28xx
+Date: Fri,  9 Dec 2016 13:47:13 +0200
+Message-Id: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Antti Seppälä <a.seppala@gmail.com>
+Hello,
 
-Nuvoton-cir utilizes the encoding capabilities of rc-core to convert
-scancodes from user space to pulse/space format understood by the
-underlying hardware.
+This patch series fixes a regression reported by Devin Heitmueller that
+affects a large number of em28xx. The problem was introduced by
 
-Converted samples are then written to the wakeup fifo along with other
-necessary configuration to enable wake up functionality.
+commit 13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d
+Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Date:   Tue Jan 26 06:59:39 2016 -0200
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c | 120 ++++++++++++++++++++++++++++++++---------
- 1 file changed, 96 insertions(+), 24 deletions(-)
+    [media] em28xx: fix implementation of s_stream
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index 9e04f41..2e2d981 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -176,6 +176,41 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
- 	}
- }
- 
-+static void nvt_write_wakeup_codes(struct rc_dev *dev,
-+				   const u8 *wbuf, int count)
-+{
-+	u8 tolerance, config;
-+	struct nvt_dev *nvt = dev->priv;
-+	int i;
-+
-+	/* hardcode the tolerance to 10% */
-+	tolerance = DIV_ROUND_UP(count, 10);
-+
-+	spin_lock(&nvt->lock);
-+
-+	nvt_clear_cir_wake_fifo(nvt);
-+	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
-+	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
-+
-+	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
-+
-+	/* enable writes to wake fifo */
-+	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
-+			       CIR_WAKE_IRCON);
-+
-+	if (count)
-+		pr_info("Wake samples (%d) =", count);
-+	else
-+		pr_info("Wake sample fifo cleared");
-+
-+	for (i = 0; i < count; i++)
-+		nvt_cir_wake_reg_write(nvt, wbuf[i], CIR_WAKE_WR_FIFO_DATA);
-+
-+	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
-+
-+	spin_unlock(&nvt->lock);
-+}
-+
- static ssize_t wakeup_data_show(struct device *dev,
- 				struct device_attribute *attr,
- 				char *buf)
-@@ -214,9 +249,7 @@ static ssize_t wakeup_data_store(struct device *dev,
- 				 const char *buf, size_t len)
- {
- 	struct rc_dev *rc_dev = to_rc_dev(dev);
--	struct nvt_dev *nvt = rc_dev->priv;
--	unsigned long flags;
--	u8 tolerance, config, wake_buf[WAKEUP_MAX_SIZE];
-+	u8 wake_buf[WAKEUP_MAX_SIZE];
- 	char **argv;
- 	int i, count;
- 	unsigned int val;
-@@ -245,27 +278,7 @@ static ssize_t wakeup_data_store(struct device *dev,
- 			wake_buf[i] |= BUF_PULSE_BIT;
- 	}
- 
--	/* hardcode the tolerance to 10% */
--	tolerance = DIV_ROUND_UP(count, 10);
--
--	spin_lock_irqsave(&nvt->lock, flags);
--
--	nvt_clear_cir_wake_fifo(nvt);
--	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
--	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
--
--	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
--
--	/* enable writes to wake fifo */
--	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
--			       CIR_WAKE_IRCON);
--
--	for (i = 0; i < count; i++)
--		nvt_cir_wake_reg_write(nvt, wake_buf[i], CIR_WAKE_WR_FIFO_DATA);
--
--	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
--
--	spin_unlock_irqrestore(&nvt->lock, flags);
-+	nvt_write_wakeup_codes(rc_dev, wake_buf, count);
- 
- 	ret = len;
- out:
-@@ -662,6 +675,62 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
- 	return 0;
- }
- 
-+static int nvt_ir_raw_set_wakeup_filter(struct rc_dev *dev,
-+					struct rc_scancode_filter *sc_filter)
-+{
-+	u8 buf_val;
-+	int i, ret, count;
-+	unsigned int val;
-+	struct ir_raw_event *raw;
-+	u8 wake_buf[WAKEUP_MAX_SIZE];
-+	bool complete;
-+
-+	/* Require mask to be set */
-+	if (!sc_filter->mask)
-+		return 0;
-+
-+	raw = kmalloc_array(WAKEUP_MAX_SIZE, sizeof(*raw), GFP_KERNEL);
-+	if (!raw)
-+		return -ENOMEM;
-+
-+	ret = ir_raw_encode_scancode(dev->wakeup_protocol, sc_filter->data,
-+				     raw, WAKEUP_MAX_SIZE);
-+	complete = (ret != -ENOBUFS);
-+	if (!complete)
-+		ret = WAKEUP_MAX_SIZE;
-+	else if (ret < 0)
-+		goto out_raw;
-+
-+	/* Inspect the ir samples */
-+	for (i = 0, count = 0; i < ret && count < WAKEUP_MAX_SIZE; ++i) {
-+		/* NS to US */
-+		val = DIV_ROUND_UP(raw[i].duration, 1000L) / SAMPLE_PERIOD;
-+
-+		/* Split too large values into several smaller ones */
-+		while (val > 0 && count < WAKEUP_MAX_SIZE) {
-+			/* Skip last value for better comparison tolerance */
-+			if (complete && i == ret - 1 && val < BUF_LEN_MASK)
-+				break;
-+
-+			/* Clamp values to BUF_LEN_MASK at most */
-+			buf_val = (val > BUF_LEN_MASK) ? BUF_LEN_MASK : val;
-+
-+			wake_buf[count] = buf_val;
-+			val -= buf_val;
-+			if ((raw[i]).pulse)
-+				wake_buf[count] |= BUF_PULSE_BIT;
-+			count++;
-+		}
-+	}
-+
-+	nvt_write_wakeup_codes(dev, wake_buf, count);
-+	ret = 0;
-+out_raw:
-+	kfree(raw);
-+
-+	return ret;
-+}
-+
- /*
-  * nvt_tx_ir
-  *
-@@ -1063,10 +1132,13 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- 	rdev->priv = nvt;
- 	rdev->driver_type = RC_DRIVER_IR_RAW;
- 	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
-+	rdev->allowed_wakeup_protocols = RC_BIT_ALL_IR_ENCODER;
-+	rdev->encode_wakeup = true;
- 	rdev->open = nvt_open;
- 	rdev->close = nvt_close;
- 	rdev->tx_ir = nvt_tx_ir;
- 	rdev->s_tx_carrier = nvt_set_tx_carrier;
-+	rdev->s_wakeup_filter = nvt_ir_raw_set_wakeup_filter;
- 	rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
- 	rdev->input_phys = "nuvoton/cir0";
- 	rdev->input_id.bustype = BUS_HOST;
+that started calling s_stream(1) in the em28xx driver when enabling the
+stream, resulting in the tvp5150 s_stream() operation writing several
+registers with values fit for other platforms (namely OMAP3, possibly others)
+but not for em28xx.
+
+The series starts with two unrelated drive-by cleanups and an unrelated bug
+fix. It then continues with a patch to remove an unneeded and armful call to
+tvp5150_reset() when getting the format from the subdevice (4/6), an update of
+an invalid comment and the addition of macros for register bits in order to
+make the code more readable (5/6) and actually allow following the incorrect
+code flow, and finally a rework of the s_stream() operation to fix the
+problem.
+
+Compared to v1,
+
+- Patch 4/5 now calls tvp5150_reset() at probe time
+- Patch 5/6 is fixed with an extra ~ removed
+
+I haven't been able to test this with an em28xx device as I don't own any that
+contains a tvp5150, but Mauro reported that the series fixes the issue with
+his device.
+
+I also haven't been able to test anything on an OMAP3 platform, as the tvp5150
+driver go broken on DT-based systems by
+
+commit f7b4b54e63643b740c598e044874c4bffa0f04f2
+Author: Javier Martinez Canillas <javier@osg.samsung.com>
+Date:   Fri Feb 5 17:09:58 2016 -0200
+
+    [media] tvp5150: add HW input connectors support
+
+Fixing it will be the topic of another patch series.
+
+Laurent Pinchart (6):
+  v4l: tvp5150: Compile tvp5150_link_setup out if
+    !CONFIG_MEDIA_CONTROLLER
+  v4l: tvp5150: Don't inline the tvp5150_selmux() function
+  v4l: tvp5150: Add missing break in set control handler
+  v4l: tvp5150: Reset device at probe time, not in get/set format
+    handlers
+  v4l: tvp5150: Fix comment regarding output pin muxing
+  v4l: tvp5150: Don't override output pinmuxing at stream on/off time
+
+ drivers/media/i2c/tvp5150.c     | 63 +++++++++++++++++++++++++----------------
+ drivers/media/i2c/tvp5150_reg.h |  9 ++++++
+ 2 files changed, 48 insertions(+), 24 deletions(-)
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
