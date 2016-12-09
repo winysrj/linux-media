@@ -1,114 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48447 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752990AbcLOOFE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 09:05:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
+Received: from mail-pf0-f182.google.com ([209.85.192.182]:33023 "EHLO
+        mail-pf0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753885AbcLIAZt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 19:25:49 -0500
+Received: by mail-pf0-f182.google.com with SMTP id d2so474206pfd.0
+        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2016 16:25:42 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Javier Martinez Canillas <javier@dowhile0.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Greg KH <greg@kroah.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
-Date: Thu, 15 Dec 2016 16:04:51 +0200
-Message-ID: <2965200.xcWXyJedNO@avalon>
-In-Reply-To: <20161215105716.30186ff5@vento.lan>
-References: <20161214151406.20380-1-mchehab@s-opensource.com> <e4f884d2-9746-a728-3f75-1aa211721f5e@osg.samsung.com> <20161215105716.30186ff5@vento.lan>
+        Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        "linux-arm-kernel\@lists.infradead.org"
+        <linux-arm-kernel@lists.infradead.org>
+Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
+References: <20161207183025.20684-1-khilman@baylibre.com>
+        <CABxcv=nrDACjfjStNPky5_y5zXBpzLZyO3g9WuOz95C6b_bgOg@mail.gmail.com>
+Date: Thu, 08 Dec 2016 16:25:40 -0800
+In-Reply-To: <CABxcv=nrDACjfjStNPky5_y5zXBpzLZyO3g9WuOz95C6b_bgOg@mail.gmail.com>
+        (Javier Martinez Canillas's message of "Wed, 7 Dec 2016 17:03:13
+        -0300")
+Message-ID: <m2oa0maqyj.fsf@baylibre.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Javier,
 
-On Thursday 15 Dec 2016 10:57:16 Mauro Carvalho Chehab wrote:
-> Em Thu, 15 Dec 2016 09:42:35 -0300 Javier Martinez Canillas escreveu:
-> > On 12/15/2016 09:37 AM, Mauro Carvalho Chehab wrote:
-> > 
-> > [snip]
-> > 
-> >> What happens is that omap3isp driver calls media_device_unregister()
-> >> too early. Right now, it is called at omap3isp_video_device_release(),
-> >> with happens when a driver unbind is ordered by userspace, and not after
-> >> the last usage of all /dev/video?? devices.
-> >> 
-> >> There are two possible fixes:
-> >> 
-> >> 1) at omap3isp_video_device_release(), streamoff all streams and mark
-> >> that the media device will be gone.
-> 
-> I actually meant to say: isp_unregister_entities() here.
-> 
-> >> 2) instead of using video_device_release_empty for the
-> >> video->video.release, create a omap3isp_video_device_release() that
-> >> will call media_device_unregister() when destroying the last /dev/video??
-> >> devnode.
-> > 
-> > There's also option (3), to have a proper refcounting to make sure that
-> > the media device node is not freed until all references to it are gone.
-> 
-> Yes, that's another alternative.
+Javier Martinez Canillas <javier@dowhile0.org> writes:
 
-And I think that's the only one that will bring us sanity in the long term.
+> On Wed, Dec 7, 2016 at 3:30 PM, Kevin Hilman <khilman@baylibre.com> wrote:
+>> Prepare the groundwork for adding DT support for davinci VPIF drivers.
+>> This series does some fixups/cleanups and then adds the DT binding and
+>> DT compatible string matching for DT probing.
+>>
+>> The controversial part from previous versions around async subdev
+>> parsing, and specifically hard-coding the input/output routing of
+>> subdevs, has been left out of this series.  That part can be done as a
+>> follow-on step after agreement has been reached on the path forward.
+>
+> I had a similar need for another board (OMAP3 IGEPv2), that has a
+> TVP5151 video decoder (that also supports 2 composite or 1 s-video
+> signal) attached to the OMAP3 ISP.
+>
+> I posted some RFC patches [0] to define the input signals in the DT,
+> and AFAICT Laurent and Hans were not against the approach but just had
+> some comments on the DT binding.
+>
+> Basically they wanted the ports to be directly in the tvp5150 node
+> instead of under a connectors sub-node [1] and to just be called just
+> a (input / output) port instead of a connector [2].
+>
+> Unfortunately I was busy with other tasks so I couldn't res-pin the
+> patches, but I think you could have something similar in the DT
+> binding for your case and it shouldn't be hard to parse the ports /
+> endpoints in the driver to get that information from DT and setup the
+> input and output pins.
 
-> > I understand that's what Sakari's RFC patches do. I'll try to make some
-> > time tomorrow to test and review his patches.
-> 
-> The biggest problem with Sakari's patches is that it starts by
-> reverting 3 patches, and this will cause regressions on existing
-> devices.
-> 
-> Development should be incremental.
+Thanks for pointing that out.  I did see this in Hans' reply to one of
+my earlier versions.  Indeed I think this could be useful in solving my
+problem.
 
-Yes, it should, but there's also a reason git has a revert command. When 
-patches are broken they should be reverted. Broken means that they do more 
-harm than good. This is usually understood as introducing a bug worse than the 
-gain the patch is supposed to bring. Broken can also mean that the patch makes 
-incremental development of a proper solution very difficult while still 
-failing to fix the initial problem completely. I believe the three patches in 
-question fall into that category. And let's not take this personally, I don't 
-care who have authored them, and there's certainly no shame getting a patch 
-reverted. It should be considered as a review that comes after merge, it might 
-not be the most pleasant one, but we I'm sure we all appreciate how reviews 
-help use avoiding the same mistakes in the future and improving ourselves.
+>> With is version, platforms can still use the VPIF capture/display
+>> drivers, but must provide platform_data for the subdevs and subdev
+>> routing.
+>>
+>
+> I guess DT backward compatibility isn't a big issue on this platform,
+> since support for the platform is quite recently and after all someone
+> who wants to use the vpif with current DT will need platform data and
+> pdata-quirks anyways.
 
-> I didn't review carefully his series (as it started the wrong way),
+That's correct.
 
-Please review it, as we need to get an agreement on the direction we want to 
-take. Then we can discuss whether the reverts are really such a problem. I 
-don't think inflicting ourselves the pain that would come with pure 
-incremental development would bring us anything good, especially if we 
-consider that we'll merge the reverts with the patch series that fixes the 
-problem, so we're talking about bisection of unbind code paths that remained 
-broken for years before the attempted fix, and are still broken with it as 
-current code is racy anyway.
+> So I agree with you that the input / output signals lookup from DT
+> could be done as a follow-up.
 
-> but I guess there's another problem on it: as OMAP3 remove entities
-> at isp_unregister_entities(), while adding a kref to media_device
-> will prevent an oops, the streamoff logic won't work anymore, as
-> the entities that were supposed to be at the graph will have been
-> removed by then.
+Thanks. I'll happily add the input/output signals once they're agreed
+upon.  In the mean time, at least we can have a usable video capture on
+this platform, and it's at least a step in the right direction for DT
+support.
 
-We need to fix drivers, that's for sure, and we're working on the OMAP3 ISP 
-driver first as a proof of concept.
+Thanks for the review,
 
-> Ok, we can roll the snow ball and add kref's to entities and links,
-> but IMHO, we're trying to kill a fly with a death star: instead,
-> the better is to just fix the driver in a way that it would be
-> streaming off everything at isp_unregister_entities(), before
-> dropping the entities and the media controller.
-
-That won't be enough. Even if you're not entirely convinced by the reasons 
-explained in this mail thread, remember that we will need sooner or later to 
-implement support for media graph update at runtime. Refcounting will be 
-needed, let's design it in the cleanest possible way.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Kevin
