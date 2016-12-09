@@ -1,81 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49787 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753846AbcLILrA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:47:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH v2 4/6] v4l: tvp5150: Reset device at probe time, not in get/set format handlers
-Date: Fri,  9 Dec 2016 13:47:17 +0200
-Message-Id: <1481284039-7960-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:33906 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932822AbcLICNf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 21:13:35 -0500
+Received: by mail-wm0-f66.google.com with SMTP id g23so889960wme.1
+        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2016 18:13:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1757661.3qrq6qFaV4@avalon>
+References: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com>
+ <1480944299-3349-3-git-send-email-evgeni.raikhel@intel.com> <1757661.3qrq6qFaV4@avalon>
+From: Daniel Johnson <teknotus@gmail.com>
+Date: Thu, 8 Dec 2016 18:13:12 -0800
+Message-ID: <CA+nDE0g12muYyze_hvJkLvNA7f+Jv8ux9b4w=peVdfNWEekong@mail.gmail.com>
+Subject: Re: [PATCH 2/2] uvcvideo: Document Intel SR300 Depth camera INZI format
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: evgeni.raikhel@gmail.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Evgeni Raikhel <evgeni.raikhel@intel.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tvp5150 doesn't support format setting through the subdev pad API
-and thus implements the set format handler as a get format operation.
-The single handler, tvp5150_fill_fmt(), resets the device by calling
-tvp5150_reset(). This causes malfunction as the device can be reset at
-will, possibly from userspace when the subdev userspace API is enabled.
+> In addition to my previous comments, wouldn't it make more sense to create a
+> multiplanar format for this instead of bundling the two separate images into a
+> single plane ?
 
-The reset call was added in commit ec2c4f3f93cb ("[media] media:
-tvp5150: Add mbus_fmt callbacks"), probably as an attempt to set the
-device to a known state before detecting the current TV standard.
-However, the get format handler doesn't access the hardware to get the
-TV standard since commit 963ddc63e20d ("[media] media: tvp5150: Add
-cropping support"). There is thus no need to reset the device when
-getting the format.
+Unfortunately that would break userspace at this point as multiple
+libraries are already depending on a patch that implements the INZI
+format in this way. I first released a work in progress patch in March
+of 2015. It was integrated into a Robot Operating System module
+shortly after that, and Intel has included it in librealsense since
+January, and also in the firmware for their new Joule module. Since
+people using this have mostly had to patch their own kernel to use it
+that might not be a deal breaker. I had initially held back on
+upstreaming it because I was trying to work out some details of the
+image formats. Two depth formats seemed the same, and I was trying to
+figure out what was different enough about them to justify having two
+formats. I've never had access to any intel documentation beyond what
+is public on their website, and many details are missing.
 
-However, removing the tvp5150_reset() from the get/set format handlers
-results in the function not being called at all if the bridge driver
-doesn't use the .reset() operation. The operation is nowadays abused and
-shouldn't be used, so shouldn't expect bridge drivers to call it. To
-make sure the device is properly initialize, move the reset call from
-the format handlers to the probe function.
+For reference I got an early RealSense camera when only windows was
+supported, and figured out some rudimentary support for Linux over a
+year before intel released their own support. A manager hiring for
+Intel's open source library told me over the phone that they were in
+fact using my blog posts to help them develop it so it wasn't
+surprising that the patch they distributed with the library included
+my comments. It was surprising that they didn't mention me as the
+author of the patch.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/tvp5150.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+I could rebase my original patch on the current development kernel and
+submit it if that helps. I can reformat the useful bits from my blog
+posts as documentation on how 3d cameras work. I wrote a C hotplug
+utility to let the kernel know about non standard camera controls. I
+also have a partially finished kernel driver for the SR300, and F200
+cameras for things like retrieving the calibration to turn depth
+images into point clouds, putting the camera into firmware update
+mode, etc that intel's library does with libusb. I think there should
+be a standard v4l2 api for 3d cameras because as it is now userspace
+programs have to be written differently for each vendor. Really all
+they need are some calibration matrices, and distortion coefficients.
+Precise time synchronization between /dev/videoX nodes would also be
+really helpful. These two things would be helpful for other cameras as
+well for things like stitching 360 degree video.
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 3a0fe8cc64e9..a30bfcb4eec6 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -861,8 +861,6 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 
- 	f = &format->format;
- 
--	tvp5150_reset(sd, 0);
--
- 	f->width = decoder->rect.width;
- 	f->height = decoder->rect.height / 2;
- 
-@@ -1524,7 +1522,6 @@ static int tvp5150_probe(struct i2c_client *c,
- 		res = core->hdl.error;
- 		goto err;
- 	}
--	v4l2_ctrl_handler_setup(&core->hdl);
- 
- 	/* Default is no cropping */
- 	core->rect.top = 0;
-@@ -1535,6 +1532,8 @@ static int tvp5150_probe(struct i2c_client *c,
- 	core->rect.left = 0;
- 	core->rect.width = TVP5150_H_MAX;
- 
-+	tvp5150_reset(sd, 0);	/* Calls v4l2_ctrl_handler_setup() */
-+
- 	res = v4l2_async_register_subdev(sd);
- 	if (res < 0)
- 		goto err;
--- 
-Regards,
-
-Laurent Pinchart
-
+Here are links to my blog series.
+http://solsticlipse.com/2015/01/09/intel-real-sense-camera-on-linux.html
+http://solsticlipse.com/2015/02/10/intel-real-sense-on-linux-part-2-3d-camera-controls.html
+http://solsticlipse.com/2015/03/31/intel-real-sense-3d-on-linux-macos.html
+http://solsticlipse.com/2016/09/26/long-road-to-ubiquitous-3d-cameras.html
