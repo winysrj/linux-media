@@ -1,183 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48213 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757756AbcLONE2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 08:04:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references as needed
-Date: Thu, 15 Dec 2016 14:56:05 +0200
-Message-ID: <7529355.zfqFdROYdM@avalon>
-In-Reply-To: <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-References: <20161109154608.1e578f9e@vento.lan> <20161213102447.60990b1c@vento.lan> <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wj0-f193.google.com ([209.85.210.193]:32805 "EHLO
+        mail-wj0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933396AbcLIMfV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 07:35:21 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, magnus.damm@gmail.com,
+        Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+Subject: [PATCH v1.5 0/6] R-Car DU: Fix IOMMU operation when connected to VSP
+Date: Fri,  9 Dec 2016 13:35:06 +0100
+Message-Id: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi!
 
-On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:
-> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:
-> > Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
-> >> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
-> >>> Hi Sakari,
-> >>>
-> >>> I answered you point to point below, but I suspect that you missed how
-> >>> the current approach works. So, I decided to write a quick summary
-> >>> here.
-> >>>
-> >>> The character devices /dev/media? are created via cdev, with relies on
-> >>> a kobject per device, with has an embedded struct kref inside.
-> >>>
-> >>> Also, each kobj at /dev/media0, /dev/media1, ... is associated with a
-> >>> struct device, when the code does:
-> >>>   devnode->cdev.kobj.parent = &devnode->dev.kobj;
-> >>>
-> >>> before calling cdev_add().
-> >>>
-> >>> The current lifetime management is actually based on cdev's kobject's
-> >>> refcount, provided by its embedded kref.
-> >>>
-> >>> The kref warrants that any data associated with /dev/media0 won't be 
-> >>> freed if there are any pending system call. In other words, when 
-> >>> cdev_del() is called, it will remove /dev/media0 from the filesystem,
-> >>> and will call kobject_put(). 
-> >>>
-> >>> If the refcount is zero, it will call devnode->dev.release(). If the 
-> >>> kobject refcount is not zero, the data won't be freed.
-> >>>
-> >>> So, in the best case scenario, there's no opened file descriptors
-> >>> by the time media device node is unregistered. So, it will free
-> >>> everything.
-> >>>
-> >>> In the worse case scenario, e. g. when the driver is removed or 
-> >>> unbind while /dev/media0 has some opened file descriptor(s),
-> >>> the cdev logic will do the proper lifetime management.
-> >>>
-> >>> On such case, /dev/media0 disappears from the file system, so another
-> >>> open is not possible anymore. The data structures will remain
-> >>> allocated until all associated file descriptors are not closed.
-> >>>
-> >>> When all file descriptors are closed, the data will be freed.
-> >>>
-> >>> On that time, it will call an optional dev.release() callback,
-> >>> responsible to free any other data struct that the driver allocated.  
-> >>
-> >> The patchset does not change this. It's not a question of the
-> >> media_devnode struct either. That's not an issue.
-> >>
-> >> The issue is rather what else can be accessed through the media device
-> >> and other interfaces. As IOCTLs are not serialised with device removal
-> >> (which now releases much of the data structures) 
-> >
-> > Huh? ioctls are serialized with struct device removal. The Driver core
-> > warrants that.
-> 
-> How?
-> 
-> As far as I can tell, there's nothing in the way of an IOCTL being in
-> progress on a character device which is registered by the driver for a
-> hardware device which is being removed.
-> 
-> vfs_ioctl() directly calls the unlocked_ioctl() file operation which is, in
-> case of MC, media_ioctl() in media-devnode.c. No mutexes (or other locks)
-> are taken during that path, which I believe is by design.
-> 
-> >> there's a high chance of accessing
-> >> released memory (or mutexes that have been already destroyed). An
-> >> example of that is here, stopping a running pipeline after unbinding
-> >> the device. What happens there is that the media device is released
-> >> whilst it's in use through the video device.
-> >>
-> >> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
-> >
-> > It is not clear from the logs what the driver tried to do, but
-> > that sounds like a driver's bug, with was not prepared to properly
-> > handle unbinds.
-> >
-> > The problem here is that isp_video_release() is called by V4L2
-> > release logic, and not by the MC one:
-> >
-> > static const struct v4l2_file_operations isp_video_fops = {
-> >       .owner          = THIS_MODULE,
-> >       .open           = isp_video_open,
-> >       .release        = isp_video_release,
-> >       .poll           = vb2_fop_poll,
-> >       .unlocked_ioctl = video_ioctl2,
-> >       .mmap           = vb2_fop_mmap,
-> > };
-> >
-> > It seems that the driver's logic allows it to be called before or
-> > after destroying the MC.
-> >
-> > Assuming that, if the OMAP3 driver is not used it works,
-> > it means that, if the isp_video_release() is called
-> > first, no errors will happen, but if MC is destroyed before
-> > V4L2 call to its .release() callback, as there's no logic at the
-> > driver that would detect it, isp_video_release() will be calling
-> > isp_video_streamoff(), with depends on the MC to work.
-> >
-> > On a first glance, I can see two ways of fixing it:
-> >
-> > 1) to increment devnode's device kobject refcount at OMAP3 .probe(), 
-> > decrementing it only at isp_video_release(). That will ensure that
-> > MC will only be removed after V4L2 removal.
+This is a slightly updated version of Laurent's series that adds the fix
+suggested by Magnus Damm and connects the FCP devices on M3-W to their
+IPMMU. It also drops the patches that have already been picked up in the
+media tree.
 
-As soon as you have to dig deep in a structure to find a reference counter and 
-increment it, bypassing all the API layers, you can be entirely sure that the 
-solution is wrong.
+With this series and an assortment of patches from the renesas-drivers tree (
+    iommu/ipmmu-vmsa: Remove platform data handling
+    iommu/ipmmu-vmsa: Rework interrupt code and use bitmap for context
+    iommu/ipmmu-vmsa: Break out utlb parsing code
+    iommu/ipmmu-vmsa: Break out domain allocation code
+    iommu/ipmmu-vmsa: Add new IOMMU_DOMAIN_DMA ops
+    iommu/ipmmu-vmsa: ARM and ARM64 archdata access
+    iommu/ipmmu-vmsa: Drop LPAE Kconfig dependency
+    iommu/ipmmu-vmsa: Introduce features, break out alias
+    iommu/ipmmu-vmsa: Add optional root device feature
+    iommu/ipmmu-vmsa: Enable multi context support
+    iommu/ipmmu-vmsa: Reuse iommu groups
+    iommu/ipmmu-vmsa: Make use of IOMMU_OF_DECLARE()
+    iommu/ipmmu-vmsa: Teach xlate() to skip disabled iommus
+    iommu/ipmmu-vmsa: IPMMU device is 64-bit bus master
+    iommu/ipmmu-vmsa: Write IMCTR twice
+    iommu/ipmmu-vmsa: Make IMBUSCTR setup optional
+    iommu/ipmmu-vmsa: Allow two bit SL0
+    iommu/ipmmu-vmsa: Hook up r8a7795 DT matching code
+    iommu/ipmmu-vmsa: Add r8a7796 DT binding
+    iommu/ipmmu-vmsa: Increase maximum micro-TLBS to 48
+    iommu/ipmmu-vmsa: Hook up r8a7796 DT matching code
+    arm64: dts: r8a7795: Add IPMMU device nodes
+    arm64: dts: r8a7795: Hook up SYS-DMAC to IPMMU
+    arm64: dts: r8a7795: Point FCP devices to IPMMU
+    arm64: dts: r8a7795: Connect Ethernet AVB to IPMMU
+    arm64: dts: r8a7796: Add IPMMU device nodes
+    clk: renesas: r8a7796: Add FCP clocks
+    clk: renesas: r8a7796: Add VSP clocks
+    clk: renesas: r8a7796: Add DU and LVDS clocks
+    drm: rcar-du: Add R8A7796 device support
+    arm64: dts: renesas: r8a7795: Remove FCP SoC-specific compatible strings
+    arm64: dts: renesas: r8a7796: Add FCPF and FCPV instances
+    arm64: dts: renesas: r8a7796: Add VSP instances
+    arm64: dts: renesas: r8a7796: Add DU device to DT
+    arm64: dts: renesas: r8a7796-salvator-x: Enable DU
+), I can enable IPMMU on both the H3 and M3-W Salvator-X boards with no ill
+effects on the results of the vsp-tests suite.
 
-> > 2) to call isp_video_streamoff() before removing the MC stuff, e. g.
-> > inside the MC .release() callback. 
-> 
-> This is a fair suggestion, indeed. Let me see what could be done there.
-> Albeit this is just *one* of the existing issues. It will not address all
-> problems fixed by the patchset.
+CU
+Uli
 
-We need to stop the hardware at .remove() time. That should not be linked to a 
-videodev, v4l2_device or media_device .release() callback. When the .remove() 
-callback returns the driver is not allowed to touch the hardware anymore. In 
-particular, power domains might clocks or power supplies, leading to invalid 
-access faults if we try to access hardware registers.
 
-USB devices get help from the USB core that cancels all USB operations in 
-progress when they're disconnected. Platform devices don't have it as easy, 
-and need to implement everything themselves. We thus need to stop the 
-hardware, but I'm not sure it makes sense to fake a VIDIOC_STREAMOFF ioctl at 
-.remove() time. That could introduce other races between .remove() and the 
-userspace API. A better solution is to make sure the objects that are needed 
-at .release() time of the device node are all reference-counted and only 
-released when the last reference goes away.
+Laurent Pinchart (4):
+  v4l: rcar-fcp: Don't get/put module reference
+  v4l: rcar-fcp: Add an API to retrieve the FCP device
+  v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
+  drm: rcar-du: Map memory through the VSP device
 
-There's plenty of way to try and work around the problem in drivers, some more 
-racy than others, but if we require changes to all platform drivers to fix 
-this we need to ensure that we get it right, not as half-baked hacks spread 
-around the whole subsystem.
+Ulrich Hecht (2):
+  v4l: vsp1: Provide display list and VB2 queue with FCP device
+  arm64: dts: r8a7796: Connect FCP devices to IPMMU
 
-> > That could be done by overwriting the dev.release() callback at
-> > omap3 driver, as I discussed on my past e-mails, and flagging the
-> > driver that it should not accept streamon anymore, as the hardware
-> > is being disconnecting.
-> 
-> A mutex will be needed to serialise the this with starting streaming.
-> 
-> > Btw, that explains a lot why Shuah can't reproduce the stuff you're
-> > complaining on her USB hardware.
-> >
-> > The USB subsystem has a a .disconnect() callback that notifies
-> > the drivers that a device was unbound (likely physically removed).
-> > The way USB media drivers handle it is by returning -ENODEV to any
-> > V4L2 call that would try to touch at the hardware after unbound.
+ arch/arm64/boot/dts/renesas/r8a7796.dtsi |  3 ++
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c    | 74 +++++++++++++++++++++++++++++---
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.h    |  2 +
+ drivers/media/platform/rcar-fcp.c        | 17 ++++----
+ drivers/media/platform/vsp1/vsp1_dl.c    | 12 ++++--
+ drivers/media/platform/vsp1/vsp1_drm.c   | 24 +++++++++++
+ drivers/media/platform/vsp1/vsp1_video.c |  6 ++-
+ include/media/rcar-fcp.h                 |  5 +++
+ include/media/vsp1.h                     |  3 ++
+ 9 files changed, 127 insertions(+), 19 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
