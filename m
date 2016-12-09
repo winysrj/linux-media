@@ -1,76 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58756 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57782 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752411AbcLLIDz (ORCPT
+        by vger.kernel.org with ESMTP id S1753631AbcLIOx4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 03:03:55 -0500
-Date: Mon, 12 Dec 2016 10:03:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Omap3-isp isp_remove() access subdev.entity after
- media_device_cleanup()
-Message-ID: <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
-References: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
+        Fri, 9 Dec 2016 09:53:56 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
+Subject: [PATCH v2 7/9] omap3isp: Use a local media device pointer instead
+Date: Fri,  9 Dec 2016 16:53:40 +0200
+Message-Id: <1481295222-14743-8-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+The function has a local variable that points to the media device; use
+that instead of finding the media device under the entity.
 
-On Fri, Dec 09, 2016 at 09:52:44AM -0700, Shuah Khan wrote:
-> Hi Sakari,
-> 
-> I am looking at omap3 isp_remove() closely and I think there are a few
-> issues there that could cause problems during unbind.
-> 
-> isp_remove() tries to do media_entity_cleanup() after it unregisters
-> media_device
-> 
-> isp_remove() calls isp_unregister_entities() followed by
-> isp_cleanup_modules() - cleanup routines call media_entity_cleanup()
-> 
-> media_entity_cleanup() accesses csi2a->subdev.entity which should be gone
-> by now after media_device_unregister(). This is just one example. I think
-> all of these cleanup routines isp_cleanup_modules() call access subdev.entity.
-> 
-> static void isp_cleanup_modules(struct isp_device *isp)
-> {
->         omap3isp_h3a_aewb_cleanup(isp);
->         omap3isp_h3a_af_cleanup(isp);
->         omap3isp_hist_cleanup(isp);
->         omap3isp_resizer_cleanup(isp);
->         omap3isp_preview_cleanup(isp);
->         omap3isp_ccdc_cleanup(isp);
->         omap3isp_ccp2_cleanup(isp);
->         omap3isp_csi2_cleanup(isp);
-> }
-> 
-> This is all done after media_device_cleanup() which does
-> ida_destroy(&mdev->entity_internal_idx); and mutex_destroy(&mdev->graph_mutex);
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/platform/omap3isp/ispvideo.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Calling media_entity_cleanup() is not a source of the current problems in
-any way. The function is defined in media-entity.h and it does nothing:
-
-static inline void media_entity_cleanup(struct media_entity *entity) {};
-
-We could later discuss when media_entity_cleanup() should be called though.
-The existing drivers do call it in their remove() handler.
-
-> I think there are some paths during unbind - isp_remove() that are unsafe.
-> I am trying to build https://github.com/gumstix/linux/tree/master now and
-> if I can get it to boot - I can send you some logs.
-
-Please do.
-
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 5b0d16e..25a8210 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -232,7 +232,7 @@ static int isp_video_get_graph_data(struct isp_video *video,
+ 	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+-	ret = media_graph_walk_init(&graph, entity->graph_obj.mdev);
++	ret = media_graph_walk_init(&graph, mdev);
+ 	if (ret) {
+ 		mutex_unlock(&mdev->graph_mutex);
+ 		return ret;
 -- 
-Kind regards,
+2.1.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
