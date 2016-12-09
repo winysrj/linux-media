@@ -1,56 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51345 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759775AbcLPM3g (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59076 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933088AbcLIQPl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 07:29:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, sakari.ailus@linux.intel.com,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media: omap3isp change to devm for resources
-Date: Fri, 16 Dec 2016 14:19:44 +0200
-Message-ID: <2253735.S1P71dP0gH@avalon>
-In-Reply-To: <56d66910-1776-26a5-53fc-20e44fea490b@xs4all.nl>
-References: <cover.1481829721.git.shuahkh@osg.samsung.com> <98a3d1794bc001f312a7db31ad03465ba697bb36.1481829722.git.shuahkh@osg.samsung.com> <56d66910-1776-26a5-53fc-20e44fea490b@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 9 Dec 2016 11:15:41 -0500
+Received: from lanttu.localdomain (unknown [192.168.15.166])
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 1C8B260097
+        for <linux-media@vger.kernel.org>; Fri,  9 Dec 2016 18:15:36 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/1] smiapp: Fix error handling in power on sequence
+Date: Fri,  9 Dec 2016 18:15:37 +0200
+Message-Id: <1481300137-25602-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The error handling code in smiapp_power_on() returned in case of a failed
+I2C write instead of cleaning up the mess. Fix this.
 
-On Friday 16 Dec 2016 12:39:49 Hans Verkuil wrote:
-> On 15/12/16 20:40, Shuah Khan wrote:
-> > Using devm resources that have external dependencies such as a dev
-> > for a file handler could result in devm resources getting released
-> > durin unbind while an application has the file open holding pointer
-> > to the devm resource. This results in use-after-free errors when the
-> > application exits.
-> 
-> That's solving the wrong problem.
-> 
-> The real problem is that when registering a video_device it should do
-> this:
-> 
-> devnode->cdev.kobj.parent = &devnode->dev.kobj;
-> 
-> (taken from cec-core.c)
-> 
-> This will prevent isp->dev from being released as long as there is a
-> filehandle still open.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ drivers/media/i2c/smiapp/smiapp-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-But it won't be enough, devm_* resources are released at unbind time, not at 
-device release time. Right after the unbind (.remove() for platform devices) 
-handler returns, devm_kzalloc allocated memory goes away.
-
-> After that change I believe that this will work correctly, but this
-> has to be tested first!
-
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index f4e92bd..e290601 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -1310,7 +1310,7 @@ static int smiapp_power_on(struct device *dev)
+ 	rval = smiapp_write(sensor, SMIAPP_REG_U8_DPHY_CTRL,
+ 			    SMIAPP_DPHY_CTRL_UI);
+ 	if (rval < 0)
+-		return rval;
++		goto out_cci_addr_fail;
+ 
+ 	rval = smiapp_call_quirk(sensor, post_poweron);
+ 	if (rval) {
 -- 
-Regards,
-
-Laurent Pinchart
+2.1.4
 
