@@ -1,80 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51011
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752483AbcLLQlR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 11:41:17 -0500
-Subject: Re: Omap3-isp isp_remove() access subdev.entity after
- media_device_cleanup()
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
- <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <e937dd20-a6f3-48d8-860b-48907ac39fac@osg.samsung.com>
-Date: Mon, 12 Dec 2016 09:41:05 -0700
-MIME-Version: 1.0
-In-Reply-To: <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:34181 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933423AbcLIMfX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 07:35:23 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, magnus.damm@gmail.com,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v1.5 1/6] v4l: rcar-fcp: Don't get/put module reference
+Date: Fri,  9 Dec 2016 13:35:07 +0100
+Message-Id: <1481286912-16555-2-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2016 01:03 AM, Sakari Ailus wrote:
-> Hi Shuah,
-> 
-> On Fri, Dec 09, 2016 at 09:52:44AM -0700, Shuah Khan wrote:
->> Hi Sakari,
->>
->> I am looking at omap3 isp_remove() closely and I think there are a few
->> issues there that could cause problems during unbind.
->>
->> isp_remove() tries to do media_entity_cleanup() after it unregisters
->> media_device
->>
->> isp_remove() calls isp_unregister_entities() followed by
->> isp_cleanup_modules() - cleanup routines call media_entity_cleanup()
->>
->> media_entity_cleanup() accesses csi2a->subdev.entity which should be gone
->> by now after media_device_unregister(). This is just one example. I think
->> all of these cleanup routines isp_cleanup_modules() call access subdev.entity.
->>
->> static void isp_cleanup_modules(struct isp_device *isp)
->> {
->>         omap3isp_h3a_aewb_cleanup(isp);
->>         omap3isp_h3a_af_cleanup(isp);
->>         omap3isp_hist_cleanup(isp);
->>         omap3isp_resizer_cleanup(isp);
->>         omap3isp_preview_cleanup(isp);
->>         omap3isp_ccdc_cleanup(isp);
->>         omap3isp_ccp2_cleanup(isp);
->>         omap3isp_csi2_cleanup(isp);
->> }
->>
->> This is all done after media_device_cleanup() which does
->> ida_destroy(&mdev->entity_internal_idx); and mutex_destroy(&mdev->graph_mutex);
-> 
-> Calling media_entity_cleanup() is not a source of the current problems in
-> any way. The function is defined in media-entity.h and it does nothing:
-> 
-> static inline void media_entity_cleanup(struct media_entity *entity) {};
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-Perhaps. Please see what I said about accesses csi2a->subdev.entity which is
-gone by now to call media_entity_cleanup(). Even though media_entity_cleanup()
-doesn't do anything, just this access could result in problems during unbind.
+Direct callers of the FCP API hold a reference to the FCP module due to
+module linkage, there's no need to take another one manually. Take a
+reference to the device instead to ensure that it won't disappear behind
+the caller's back.
 
-> 
-> We could later discuss when media_entity_cleanup() should be called though.
-> The existing drivers do call it in their remove() handler.
-> 
->> I think there are some paths during unbind - isp_remove() that are unsafe.
->> I am trying to build https://github.com/gumstix/linux/tree/master now and
->> if I can get it to boot - I can send you some logs.
-> 
-> Please do.
-> 
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/rcar-fcp.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-fcp.c b/drivers/media/platform/rcar-fcp.c
+index 7146fc5..e9f609e 100644
+--- a/drivers/media/platform/rcar-fcp.c
++++ b/drivers/media/platform/rcar-fcp.c
+@@ -53,14 +53,7 @@ struct rcar_fcp_device *rcar_fcp_get(const struct device_node *np)
+ 		if (fcp->dev->of_node != np)
+ 			continue;
+ 
+-		/*
+-		 * Make sure the module won't be unloaded behind our back. This
+-		 * is a poor man's safety net, the module should really not be
+-		 * unloaded while FCP users can be active.
+-		 */
+-		if (!try_module_get(fcp->dev->driver->owner))
+-			fcp = NULL;
+-
++		get_device(fcp->dev);
+ 		goto done;
+ 	}
+ 
+@@ -81,7 +74,7 @@ EXPORT_SYMBOL_GPL(rcar_fcp_get);
+ void rcar_fcp_put(struct rcar_fcp_device *fcp)
+ {
+ 	if (fcp)
+-		module_put(fcp->dev->driver->owner);
++		put_device(fcp->dev);
+ }
+ EXPORT_SYMBOL_GPL(rcar_fcp_put);
+ 
+-- 
+2.7.4
 
