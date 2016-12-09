@@ -1,244 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34166 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755881AbcLSRiq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 12:38:46 -0500
-Date: Mon, 19 Dec 2016 11:38:43 -0600
-From: Rob Herring <robh@kernel.org>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: mark.rutland@arm.com, mchehab@kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, davem@davemloft.net,
-        gregkh@linuxfoundation.org, geert+renesas@glider.be,
-        akpm@linux-foundation.org, linux@roeck-us.net, hverkuil@xs4all.nl,
-        laurent.pinchart+renesas@ideasonboard.com, arnd@arndb.de,
-        sudipm.mukherjee@gmail.com, tiffany.lin@mediatek.com,
-        minghsiu.tsai@mediatek.com, jean-christophe.trotin@st.com,
-        andrew-ct.chen@mediatek.com, simon.horman@netronome.com,
-        songjun.wu@microchip.com, bparrot@ti.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: Re: [PATCH v2 1/2] Add Documentation for Media Device, Video Device,
- and Synopsys DW MIPI CSI-2 Host
-Message-ID: <20161219173843.tpljazh365zp7i4z@rob-hp-laptop>
-References: <cover.1481548484.git.roliveir@synopsys.com>
- <48a46d2d60fff723e322fdbfb29d533c2d0f5637.1481554324.git.roliveir@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <48a46d2d60fff723e322fdbfb29d533c2d0f5637.1481554324.git.roliveir@synopsys.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49790 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753857AbcLILrB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:47:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH v2 5/6] v4l: tvp5150: Fix comment regarding output pin muxing
+Date: Fri,  9 Dec 2016 13:47:18 +0200
+Message-Id: <1481284039-7960-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2016 at 03:00:35PM +0000, Ramiro Oliveira wrote:
-> Create device tree bindings documentation for Media and Video Device, as well
-> as the DW MIPI CSI-2 Host.
-> 
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> ---
->  .../devicetree/bindings/media/snps,dw-mipi-csi.txt |  37 ++++++++
->  .../devicetree/bindings/media/snps,plat-ipk.txt    | 105 +++++++++++++++++++++
->  2 files changed, 142 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
->  create mode 100644 Documentation/devicetree/bindings/media/snps,plat-ipk.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
-> new file mode 100644
-> index 0000000..1caa652
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
-> @@ -0,0 +1,37 @@
-> +Synopsys DesignWare CSI-2 Host controller
-> +
-> +Description
-> +-----------
-> +
-> +This HW block is used to receive image coming from an MIPI CSI-2 compatible
-> +camera.
-> +
-> +Required properties:
-> +- compatible: shall be "snps,dw-mipi-csi"
+The FID/GLCO/VLK/HVLK and INTREQ/GPCL/VBLK pins are muxed differently
+depending on whether the input is an S-Video or composite signal. The
+comment that explains the logic doesn't reflect the code. It appears
+that the comment is incorrect, as disabling the output data bus in
+composite mode makes no sense. Update the comment to match the code.
 
-You don't have to add them, but this will need SoC specific compatible 
-strings. Please add a note to that effect.
+While at it define macros for the MISC_CTL register bits, the code is
+too confusing with numerical values.
 
-> +- reg		: physical base address and size of the device memory mapped
-> +  registers;
-> +- interrupts	: CSI-2 Host interrupt
-> +- data-lanes    : Number of lanes to be used
-> +- output-type   : Core output to be used (IPI-> 0 or IDI->1 or BOTH->2) These
-> +  values choose which of the Core outputs will be used, it can be Image Data
-> +  Interface or Image Pixel Interface.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/tvp5150.c     | 24 +++++++++++++++++-------
+ drivers/media/i2c/tvp5150_reg.h |  9 +++++++++
+ 2 files changed, 26 insertions(+), 7 deletions(-)
 
-This is output to a parallel camera interface (e.g. an SoC camera 
-subsystem)? 
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index a30bfcb4eec6..8852fa8c957b 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -291,8 +291,12 @@ static void tvp5150_selmux(struct v4l2_subdev *sd)
+ 	tvp5150_write(sd, TVP5150_OP_MODE_CTL, opmode);
+ 	tvp5150_write(sd, TVP5150_VD_IN_SRC_SEL_1, input);
+ 
+-	/* Svideo should enable YCrCb output and disable GPCL output
+-	 * For Composite and TV, it should be the reverse
++	/*
++	 * Setup the FID/GLCO/VLK/HVLK and INTREQ/GPCL/VBLK output signals. For
++	 * S-Video we output the vertical lock (VLK) signal on FID/GLCO/VLK/HVLK
++	 * and set INTREQ/GPCL/VBLK to logic 0. For composite we output the
++	 * field indicator (FID) signal on FID/GLCO/VLK/HVLK and set
++	 * INTREQ/GPCL/VBLK to logic 1.
+ 	 */
+ 	val = tvp5150_read(sd, TVP5150_MISC_CTL);
+ 	if (val < 0) {
+@@ -301,9 +305,9 @@ static void tvp5150_selmux(struct v4l2_subdev *sd)
+ 	}
+ 
+ 	if (decoder->input == TVP5150_SVIDEO)
+-		val = (val & ~0x40) | 0x10;
++		val = (val & ~TVP5150_MISC_CTL_GPCL) | TVP5150_MISC_CTL_HVLK;
+ 	else
+-		val = (val & ~0x10) | 0x40;
++		val = (val & ~TVP5150_MISC_CTL_HVLK) | TVP5150_MISC_CTL_GPCL;
+ 	tvp5150_write(sd, TVP5150_MISC_CTL, val);
+ };
+ 
+@@ -455,7 +459,12 @@ static const struct i2c_reg_value tvp5150_init_enable[] = {
+ 	},{	/* Automatic offset and AGC enabled */
+ 		TVP5150_ANAL_CHL_CTL, 0x15
+ 	},{	/* Activate YCrCb output 0x9 or 0xd ? */
+-		TVP5150_MISC_CTL, 0x6f
++		TVP5150_MISC_CTL, TVP5150_MISC_CTL_GPCL |
++				  TVP5150_MISC_CTL_INTREQ_OE |
++				  TVP5150_MISC_CTL_YCBCR_OE |
++				  TVP5150_MISC_CTL_SYNC_OE |
++				  TVP5150_MISC_CTL_VBLANK |
++				  TVP5150_MISC_CTL_CLOCK_OE,
+ 	},{	/* Activates video std autodetection for all standards */
+ 		TVP5150_AUTOSW_MSK, 0x0
+ 	},{	/* Default format: 0x47. For 4:2:2: 0x40 */
+@@ -1050,11 +1059,12 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+ 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
+-	int val = 0x09;
++	int val = TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_CLOCK_OE;
+ 
+ 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
+ 	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
+-		val = 0x0d;
++		val = TVP5150_MISC_CTL_YCBCR_OE | TVP5150_MISC_CTL_SYNC_OE
++		    | TVP5150_MISC_CTL_CLOCK_OE;
+ 
+ 	/* Initializes TVP5150 to its default values */
+ 	/* # set PCLK (27MHz) */
+diff --git a/drivers/media/i2c/tvp5150_reg.h b/drivers/media/i2c/tvp5150_reg.h
+index 25a994944918..30a48c28d05a 100644
+--- a/drivers/media/i2c/tvp5150_reg.h
++++ b/drivers/media/i2c/tvp5150_reg.h
+@@ -9,6 +9,15 @@
+ #define TVP5150_ANAL_CHL_CTL         0x01 /* Analog channel controls */
+ #define TVP5150_OP_MODE_CTL          0x02 /* Operation mode controls */
+ #define TVP5150_MISC_CTL             0x03 /* Miscellaneous controls */
++#define TVP5150_MISC_CTL_VBLK_GPCL	BIT(7)
++#define TVP5150_MISC_CTL_GPCL		BIT(6)
++#define TVP5150_MISC_CTL_INTREQ_OE	BIT(5)
++#define TVP5150_MISC_CTL_HVLK		BIT(4)
++#define TVP5150_MISC_CTL_YCBCR_OE	BIT(3)
++#define TVP5150_MISC_CTL_SYNC_OE	BIT(2)
++#define TVP5150_MISC_CTL_VBLANK		BIT(1)
++#define TVP5150_MISC_CTL_CLOCK_OE	BIT(0)
++
+ #define TVP5150_AUTOSW_MSK           0x04 /* Autoswitch mask: TVP5150A / TVP5150AM */
+ 
+ /* Reserved 05h */
+-- 
+Regards,
 
-> +- phys, phy-names: List of one PHY specifier and identifier string (as defined
-> +  in Documentation/devicetree/bindings/phy/phy-bindings.txt). This PHY is a MIPI
-> +  DPHY working in RX mode.
+Laurent Pinchart
 
-phy-names is pointless when there is only 1.
-
-> +
-> +Optional properties(if in IPI mode):
-> +- ipi-mode 	: Mode to be used when in IPI(Camera -> 0 or Automatic -> 1)
-> +  This property defines if the controller will use the video timings available
-> +  in the video stream or if it will use pre-defined ones.
-
-"pre-defined" doesn't sound like the same thing as "automatic"?
-
-> +- ipi-color-mode: Bus depth to be used in IPI (48 bits -> 0 or 16 bits -> 1)
-> +  This property defines the width of the IPI bus.
-> +- ipi-auto-flush: Data auto-flush (1 -> Yes or 0 -> No). This property defines
-> +  if the data is automatically flushed in each vsync or if this process is done
-> +  manually
-> +- virtual-channel: Virtual channel where data is present when in IPI mode. This
-> +  property chooses the virtual channel which IPI will use to retrieve the video
-> +  stream.
-
-All these properties seem like they should be common properties or are 
-these interfaces something Synopsys specific? Or perhaps the interface 
-is Synopsys specific, but determined by the CSI2 mode?
-
-I think you need to define graph ports for the IPI and IDI interfaces 
-and the connections. Then perhaps these properties become endpoint 
-properties.
-
-> +
-> +The per-board settings:
-> + - port sub-node describing a single endpoint connected to the dw-mipi-csi
-
-Wouldn't the port connect to the camera?
-
-> +   as described in video-interfaces.txt[1].
-> diff --git a/Documentation/devicetree/bindings/media/snps,plat-ipk.txt b/Documentation/devicetree/bindings/media/snps,plat-ipk.txt
-> new file mode 100644
-> index 0000000..50e9279
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,plat-ipk.txt
-> @@ -0,0 +1,105 @@
-> +Synopsys DesignWare CSI-2 Host IPK Media Device
-> +
-> +The Synopsys DesignWare CSI-2 Host IPK subsystem comprises of multiple
-> +sub-devices represented by separate device tree nodes. Currently this includes:
-> +plat-ipk, video-device, and dw-mipi-csi.
-> +
-> +The sub-subdevices are defined as child nodes of the common 'camera' node which
-> +also includes common properties of the whole subsystem not really specific to
-> +any single sub-device.
-
-But you don't have any properties defined for the camera node.
-
-> +
-> +Common 'camera' node
-> +--------------------
-> +
-> +Required properties:
-> +
-> +- compatible: must be "snps,plat-ipk", "simple-bus"
-> +
-> +The 'camera' node must include at least one 'video-device' and one 'dw-mipi-csi'
-> +child node.
-> +
-> +'video-device' device nodes
-> +-------------------
-
-Is this a separate block? DMA with no registers is strange. I'm having a 
-hard time understanding a complete block diagram.
-
-> +
-> +Required properties:
-> +
-> +- compatible: "snps,video-device"
-
-Kind of generic. The IP block is called just "video device"?
-
-> +- dmas, dma-names: List of one DMA specifier and identifier string (as defined
-> +  in Documentation/devicetree/bindings/dma/dma.txt) per port. Each port
-> +  requires a DMA channel with the identifier string set to "port" followed by
-> +  the port index.
-
-port is not what you used in the example.
-
-> +
-> +Image sensor nodes
-> +------------------
-> +
-> +The sensor device nodes should be added to their control bus controller (e.g.
-> +I2C0) nodes and linked to a port node in the dw-mipi-csi,using the common video
-> +interfaces bindings, defined in video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c@0x02000 {
-> +			compatible = "snps,designware-i2c";
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +			reg = <0x02000 0x100>;
-> +			clock-frequency = <400000>;
-> +			clocks = <&i2cclk>;
-> +			interrupts =<0>;
-> +			ov: camera@0x36 {
-
-Drop the '0x' on unit addresses.
-
-> +				compatible = "ovti,ov5647";
-> +				reg = <0x36>;
-> +				port {
-> +					camera_1: endpoint {
-> +						remote-endpoint = <&csi1_ep1>;
-> +						clock-lanes = <0>;
-> +						data-lanes = <1 2 >;
-> +					};
-> +				};
-> +			};
-> +		};
-> +
-> +
-> +	camera {
-> +		compatible = "snps,plat-ipk", "simple-bus";
-> +		#address-cells = <1>;
-> +		#size-cells = <1>;
-> +		ranges;
-> +			video_device: video-device@0x10000 {
-> +				compatible = "snps,video-device";
-> +				dmas = <&axi_vdma_0 0>;
-> +				dma-names = "vdma0";
-> +			};
-> +
-> +
-> +			csi2_1: csi2@0x03000 {
-> +				compatible = "snps,dw-mipi-csi";
-> +				#address-cells = <1>;
-> +				#size-cells = <0>;
-> +				reg = < 0x03000 0x7FF>;
-> +				interrupts = <2>;
-> +				data-lanes = <2>;
-> +				output-type = <2>;
-> +
-> +				phys = <&mipi_phy_ctrl1 0>;
-> +				phy-names = "csi2-dphy";
-> +
-> +				/*IPI Related Configurations*/
-> +				ipi-mode = <0>;
-> +				ipi-color-mode = <0>;
-> +				ipi-auto-flush = <1>;
-> +				virtual-channel = <0>;
-> +
-> +				/* Camera MIPI CSI-2 (CSI1) */
-> +				port@1 {
-> +					reg = <1>;
-> +					csi1_ep1: endpoint {
-> +						remote-endpoint = <&camera_1>;
-> +						data-lanes = <1 2>;
-> +						};
-> +				};
-> +			};
-> +		};
-> +	};
-> +
-> +The dw-mipi-csi device binding is defined in snps,dw-mipi-csi.txt.
-> -- 
-> 2.10.2
-> 
-> 
