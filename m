@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34092 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932290AbcLMKyL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 05:54:11 -0500
-Date: Tue, 13 Dec 2016 12:54:07 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ian Arkver <ian.arkver.dev@gmail.com>
-Cc: Nicholas Mc Guire <hofrat@osadl.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41532
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753017AbcLIQwq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 11:52:46 -0500
+To: Sakari Ailus <sakari.ailus@iki.fi>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC] [media] s5k6aa: set usleep_range greater 0
-Message-ID: <20161213105406.GY16630@valkosipuli.retiisi.org.uk>
-References: <1481594282-12801-1-git-send-email-hofrat@osadl.org>
- <20161213094346.GW16630@valkosipuli.retiisi.org.uk>
- <ce9f2ee0-c0d3-2eb4-a733-b108d12b43fb@gmail.com>
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Subject: Omap3-isp isp_remove() access subdev.entity after
+ media_device_cleanup()
+Message-ID: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
+Date: Fri, 9 Dec 2016 09:52:44 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <ce9f2ee0-c0d3-2eb4-a733-b108d12b43fb@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 13, 2016 at 10:10:51AM +0000, Ian Arkver wrote:
-> On 13/12/16 09:43, Sakari Ailus wrote:
-> >Hi Nicholas,
-> >
-> >On Tue, Dec 13, 2016 at 02:58:02AM +0100, Nicholas Mc Guire wrote:
-> >>As this is not in atomic context and it does not seem like a critical
-> >>timing setting a range of 1ms allows the timer subsystem to optimize
-> >>the hrtimer here.
-> >I'd suggest not to. These delays are often directly visible to the user in
-> >use cases where attention is indeed paid to milliseconds.
-> >
-> >The same applies to register accesses. An delay of 0 to 100 µs isn't much as
-> >such, but when you multiply that with the number of accesses it begins to
-> >add up.
-> >
-> Data sheet for this device [1] says STBYN deassertion to RSTN deassertion
-> should be >50us, though this is actually referenced to MCLK startup. See
-> Figure 36, Power-Up Sequence, page 42.
-> 
-> I think the usleep range here could be greatly reduced and opened up to
-> allow hr timer tweaks if desired.
-> 
-> [1] http://www.bdtic.com/DataSheet/SAMSUNG/S5K6AAFX13.pdf
+Hi Sakari,
 
-Good point. Datasheets do not always tell everything though; it'd be good to
-get a comment from the original driver authors on why they've used the value
-which can now be found in the driver.
+I am looking at omap3 isp_remove() closely and I think there are a few
+issues there that could cause problems during unbind.
+
+isp_remove() tries to do media_entity_cleanup() after it unregisters
+media_device
+
+isp_remove() calls isp_unregister_entities() followed by
+isp_cleanup_modules() - cleanup routines call media_entity_cleanup()
+
+media_entity_cleanup() accesses csi2a->subdev.entity which should be gone
+by now after media_device_unregister(). This is just one example. I think
+all of these cleanup routines isp_cleanup_modules() call access subdev.entity.
+
+static void isp_cleanup_modules(struct isp_device *isp)
+{
+        omap3isp_h3a_aewb_cleanup(isp);
+        omap3isp_h3a_af_cleanup(isp);
+        omap3isp_hist_cleanup(isp);
+        omap3isp_resizer_cleanup(isp);
+        omap3isp_preview_cleanup(isp);
+        omap3isp_ccdc_cleanup(isp);
+        omap3isp_ccp2_cleanup(isp);
+        omap3isp_csi2_cleanup(isp);
+}
+
+This is all done after media_device_cleanup() which does
+ida_destroy(&mdev->entity_internal_idx); and mutex_destroy(&mdev->graph_mutex);
+
+I think there are some paths during unbind - isp_remove() that are unsafe.
+I am trying to build https://github.com/gumstix/linux/tree/master now and
+if I can get it to boot - I can send you some logs.
+
+thanks,
+-- Shuah
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Shuah Khan
+Sr. Linux Kernel Developer
+Open Source Innovation Group
+Samsung Research America (Silicon Valley)
+shuahkh@osg.samsung.com
