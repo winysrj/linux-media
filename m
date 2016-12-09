@@ -1,86 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43642 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752562AbcL2MBp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 07:01:45 -0500
-Date: Thu, 29 Dec 2016 14:01:37 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Augusto Mecking Caringi <augustocaringi@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] smiapp: Fix build warnings when !CONFIG_PM_SLEEP
-Message-ID: <20161229120137.GB3958@valkosipuli.retiisi.org.uk>
-References: <1483011924-10787-1-git-send-email-augustocaringi@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1483011924-10787-1-git-send-email-augustocaringi@gmail.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36127 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933423AbcLIMf0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 07:35:26 -0500
+From: Ulrich Hecht <ulrich.hecht+renesas@gmail.com>
+To: linux-renesas-soc@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, magnus.damm@gmail.com,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Subject: [PATCH v1.5 3/6] v4l: vsp1: Add API to map and unmap DRM buffers through the VSP
+Date: Fri,  9 Dec 2016 13:35:09 +0100
+Message-Id: <1481286912-16555-4-git-send-email-ulrich.hecht+renesas@gmail.com>
+In-Reply-To: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
+References: <1481286912-16555-1-git-send-email-ulrich.hecht+renesas@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Augusto,
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-On Thu, Dec 29, 2016 at 11:45:07AM +0000, Augusto Mecking Caringi wrote:
-> Fix the following build warnings when CONFIG_PM is set but
-> CONFIG_PM_SLEEP is not:
-> 
-> drivers/media/i2c/smiapp/smiapp-core.c:2746:12: warning:
-> ‘smiapp_suspend’ defined but not used [-Wunused-function]
-> static int smiapp_suspend(struct device *dev)
->             ^
-> drivers/media/i2c/smiapp/smiapp-core.c:2771:12: warning: ‘smiapp_resume’
-> defined but not used [-Wunused-function]
-> static int smiapp_resume(struct device *dev)
->             ^
-> 
-> Signed-off-by: Augusto Mecking Caringi <augustocaringi@gmail.com>
+The display buffers must be mapped for DMA through the device that
+performs memory access. Expose an API to map and unmap memory through
+the VSP device to be used by the DU.
 
-Thanks for the patch.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c | 24 ++++++++++++++++++++++++
+ include/media/vsp1.h                   |  3 +++
+ 2 files changed, 27 insertions(+)
 
-I believe this is already fixed by the following patch:
-
-commit 4bfb934b0067b7f6a24470682c5f7254fd4d8282
-Author: Sakari Ailus <sakari.ailus@linux.intel.com>
-Date:   Sat Nov 19 19:50:10 2016 -0200
-
-    [media] smiapp: Make suspend and resume functions __maybe_unused
-    
-    The smiapp_suspend() and smiapp_resume() functions will end up being unused
-    if CONFIG_PM is enabled but CONFIG_PM_SLEEP is disabled, causing a
-    compiler warning from both of the function definitions. Fix this by
-    marking the functions with __maybe_unused.
-    
-    Suggested-by: Arnd Bergmann <arnd@arndb.de>
-    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-index 620f8ce..f4e92bd 100644
---- a/drivers/media/i2c/smiapp/smiapp-core.c
-+++ b/drivers/media/i2c/smiapp/smiapp-core.c
-@@ -2741,7 +2741,7 @@ static const struct v4l2_subdev_internal_ops smiapp_internal_ops = {
-  * I2C Driver
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index cd209dc..bb35603 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -12,9 +12,11 @@
   */
  
--static int smiapp_suspend(struct device *dev)
-+static int __maybe_unused smiapp_suspend(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-@@ -2766,7 +2766,7 @@ static int smiapp_suspend(struct device *dev)
- 	return 0;
- }
+ #include <linux/device.h>
++#include <linux/dma-mapping.h>
+ #include <linux/slab.h>
  
--static int smiapp_resume(struct device *dev)
-+static int __maybe_unused smiapp_resume(struct device *dev)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-
+ #include <media/media-entity.h>
++#include <media/rcar-fcp.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/vsp1.h>
+ 
+@@ -519,6 +521,28 @@ void vsp1_du_atomic_flush(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
+ 
++int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt)
++{
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++	struct device *map_dev;
++
++	map_dev = vsp1->fcp ? rcar_fcp_get_device(vsp1->fcp) : dev;
++
++	return dma_map_sg(map_dev, sgt->sgl, sgt->nents, DMA_TO_DEVICE);
++}
++EXPORT_SYMBOL_GPL(vsp1_du_map_sg);
++
++void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt)
++{
++	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
++	struct device *map_dev;
++
++	map_dev = vsp1->fcp ? rcar_fcp_get_device(vsp1->fcp) : dev;
++
++	dma_unmap_sg(map_dev, sgt->sgl, sgt->nents, DMA_TO_DEVICE);
++}
++EXPORT_SYMBOL_GPL(vsp1_du_unmap_sg);
++
+ /* -----------------------------------------------------------------------------
+  * Initialization
+  */
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index 458b400..8d3d07a 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -13,6 +13,7 @@
+ #ifndef __MEDIA_VSP1_H__
+ #define __MEDIA_VSP1_H__
+ 
++#include <linux/scatterlist.h>
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+@@ -37,5 +38,7 @@ void vsp1_du_atomic_begin(struct device *dev);
+ int vsp1_du_atomic_update(struct device *dev, unsigned int rpf,
+ 			  const struct vsp1_du_atomic_config *cfg);
+ void vsp1_du_atomic_flush(struct device *dev);
++int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt);
++void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt);
+ 
+ #endif /* __MEDIA_VSP1_H__ */
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
