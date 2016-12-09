@@ -1,63 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36430 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbcLCUqb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2016 15:46:31 -0500
-Received: by mail-wm0-f48.google.com with SMTP id g23so46957715wme.1
-        for <linux-media@vger.kernel.org>; Sat, 03 Dec 2016 12:46:31 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50217 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933390AbcLIPTV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 10:19:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH v2 5/9] media: Use single quotes to quote entity names
+Date: Fri, 09 Dec 2016 17:19:46 +0200
+Message-ID: <2728859.u4HyMZ8Mmz@avalon>
+In-Reply-To: <1481295222-14743-6-git-send-email-sakari.ailus@linux.intel.com>
+References: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com> <1481295222-14743-6-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20161202090558.29931492@vento.lan>
-References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
- <20161202090558.29931492@vento.lan>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Sat, 3 Dec 2016 17:46:29 -0300
-Message-ID: <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
-Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Marcel Hasler <mahasler@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2 December 2016 at 08:05, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Sun, 27 Nov 2016 12:11:48 +0100
-> Marcel Hasler <mahasler@gmail.com> escreveu:
->
->> Allow setting a custom record gain for the internal AC97 codec (if avail=
-able). This can be
->> a value between 0 and 15, 8 is the default and should be suitable for mo=
-st users. The Windows
->> driver also sets this to 8 without any possibility for changing it.
->
-> The problem of removing the mixer is that you need this kind of
-> crap to setup the volumes on a non-standard way.
->
+Hi Sakari,
 
-Right, that's a good point.
+Thank you for the patch.
 
-> NACK.
->
-> Instead, keep the alsa mixer. The way other drivers do (for example,
-> em28xx) is that they configure the mixer when an input is selected,
-> increasing the volume of the active audio channel to 100% and muting
-> the other audio channels. Yet, as the alsa mixer is exported, users
-> can change the mixer settings in runtime using some alsa (or pa)
-> mixer application.
->
+On Friday 09 Dec 2016 16:53:38 Sakari Ailus wrote:
+> Instead of double quotes, use single quotes to quote entity names. Using
+> single quotes is consistent with the English language and is also in line
+> with the practices across the kernel.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Yeah, the AC97 mixer we are currently leveraging
-exposes many controls that have no meaning in this device,
-so removing that still looks like an improvement.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I guess the proper way is creating our own mixer
-(not using snd_ac97_mixer)  exposing only the record
-gain knob.
+> ---
+>  drivers/media/media-entity.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 1de28ce..5064ba0 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -444,7 +444,7 @@ __must_check int __media_pipeline_start(struct
+> media_entity *entity, ret = entity->ops->link_validate(link);
+>  			if (ret < 0 && ret != -ENOIOCTLCMD) {
+>  				dev_dbg(entity->graph_obj.mdev->dev,
+> -					"link validation failed for \"%s\":%u 
+-> \"%s\":%u, error %d\n",
+> +					"link validation failed for '%s':%u -> 
+'%s':%u, error %d\n",
+>  					link->source->entity->name,
+>  					link->source->index,
+>  					entity->name, link->sink->index, ret);
+> @@ -458,7 +458,7 @@ __must_check int __media_pipeline_start(struct
+> media_entity *entity, if (!bitmap_full(active, entity->num_pads)) {
+>  			ret = -ENOLINK;
+>  			dev_dbg(entity->graph_obj.mdev->dev,
+> -				"\"%s\":%u must be connected by an enabled 
+link\n",
+> +				"'%s':%u must be connected by an enabled 
+link\n",
+>  				entity->name,
+>  				(unsigned)find_first_zero_bit(
+>  					active, entity->num_pads));
 
-Marcel, what do you think?
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
+-- 
+Regards,
+
+Laurent Pinchart
+
