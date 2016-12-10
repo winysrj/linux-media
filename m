@@ -1,51 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:64781 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751494AbcLLLQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 06:16:59 -0500
-Received: from axis700.grange ([89.0.199.8]) by mail.gmx.com (mrgmx101
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0M4ScS-1cZ33D2F2q-00yiZ4 for
- <linux-media@vger.kernel.org>; Mon, 12 Dec 2016 12:16:55 +0100
-Received: from 200r.grange (200r.grange [192.168.1.16])
-        by axis700.grange (Postfix) with ESMTP id 7D0EF8B113
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2016 12:17:05 +0100 (CET)
-From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:57923 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751783AbcLJJoR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Dec 2016 04:44:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v3 2/4] uvcvideo: (cosmetic) remove a superfluous assignment
-Date: Mon, 12 Dec 2016 12:16:50 +0100
-Message-Id: <1481541412-1186-3-git-send-email-guennadi.liakhovetski@intel.com>
-In-Reply-To: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com>
-References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com>
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH for v4.10 5/6] cec: move cec_report_phys_addr into cec_config_thread_func
+Date: Sat, 10 Dec 2016 10:44:12 +0100
+Message-Id: <20161210094413.8832-6-hverkuil@xs4all.nl>
+In-Reply-To: <20161210094413.8832-1-hverkuil@xs4all.nl>
+References: <20161210094413.8832-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+From: Hans Verkuil <hansverk@cisco.com>
 
-Remove a superfluous assignment to a local variable at the end of a
-function.
+It's only a small function and this makes it easier to switch to
+transmitting the message with adap->lock held in the next patch.
 
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
 ---
- drivers/media/usb/uvc/uvc_video.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/cec/cec-adap.c | 25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index b5589d5..51b5ae5 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1262,8 +1262,7 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
- 			uvc_video_decode_end(stream, buf, stream->bulk.header,
- 				stream->bulk.payload_size);
- 			if (buf->state == UVC_BUF_STATE_READY)
--				buf = uvc_queue_next_buffer(&stream->queue,
--							    buf);
-+				uvc_queue_next_buffer(&stream->queue, buf);
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 2b66851..f3d4956 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -30,7 +30,6 @@
+ 
+ #include "cec-priv.h"
+ 
+-static int cec_report_phys_addr(struct cec_adapter *adap, unsigned int la_idx);
+ static void cec_fill_msg_report_features(struct cec_adapter *adap,
+ 					 struct cec_msg *msg,
+ 					 unsigned int la_idx);
+@@ -1275,7 +1274,13 @@ static int cec_config_thread_func(void *arg)
+ 			cec_transmit_msg(adap, &msg, false);
  		}
  
- 		stream->bulk.header_size = 0;
+-		cec_report_phys_addr(adap, i);
++		/* Report Physical Address */
++		cec_msg_report_physical_addr(&msg, adap->phys_addr,
++					     las->primary_device_type[i]);
++		dprintk(2, "config: la %d pa %x.%x.%x.%x\n",
++			las->log_addr[i],
++			cec_phys_addr_exp(adap->phys_addr));
++		cec_transmit_msg(adap, &msg, false);
+ 	}
+ 	mutex_lock(&adap->lock);
+ 	adap->kthread_config = NULL;
+@@ -1561,22 +1566,6 @@ static void cec_fill_msg_report_features(struct cec_adapter *adap,
+ 	}
+ }
+ 
+-/* Transmit the Report Physical Address message */
+-static int cec_report_phys_addr(struct cec_adapter *adap, unsigned int la_idx)
+-{
+-	const struct cec_log_addrs *las = &adap->log_addrs;
+-	struct cec_msg msg = { };
+-
+-	/* Report Physical Address */
+-	msg.msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
+-	cec_msg_report_physical_addr(&msg, adap->phys_addr,
+-				     las->primary_device_type[la_idx]);
+-	dprintk(2, "config: la %d pa %x.%x.%x.%x\n",
+-		las->log_addr[la_idx],
+-			cec_phys_addr_exp(adap->phys_addr));
+-	return cec_transmit_msg(adap, &msg, false);
+-}
+-
+ /* Transmit the Feature Abort message */
+ static int cec_feature_abort_reason(struct cec_adapter *adap,
+ 				    struct cec_msg *msg, u8 reason)
 -- 
-1.9.3
+2.10.2
 
