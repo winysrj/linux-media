@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57744
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751148AbcLAPSF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 10:18:05 -0500
-Date: Thu, 1 Dec 2016 13:17:58 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: David Howells <dhowells@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-        gnomes@lxorguk.ukuu.org.uk, minyard@acm.org,
-        linux-security-module@vger.kernel.org, keyrings@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 29/39] Annotate hardware config module parameters in
- drivers/staging/media/
-Message-ID: <20161201131758.348be20a@vento.lan>
-In-Reply-To: <18435.1480604396@warthog.procyon.org.uk>
-References: <20161201125420.5b397933@vento.lan>
-        <148059537897.31612.9461043954611464597.stgit@warthog.procyon.org.uk>
-        <148059561006.31612.6396069416948435055.stgit@warthog.procyon.org.uk>
-        <18435.1480604396@warthog.procyon.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:51205 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751359AbcLJJoQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Dec 2016 04:44:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v4.10 1/6] cec: when canceling a message, don't overwrite old status info
+Date: Sat, 10 Dec 2016 10:44:08 +0100
+Message-Id: <20161210094413.8832-2-hverkuil@xs4all.nl>
+In-Reply-To: <20161210094413.8832-1-hverkuil@xs4all.nl>
+References: <20161210094413.8832-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 01 Dec 2016 14:59:56 +0000
-David Howells <dhowells@redhat.com> escreveu:
+From: Hans Verkuil <hansverk@cisco.com>
 
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> 
-> > drivers/staging/media/lirc/lirc_parallel.c:728:19: error: Expected ) in function declarator  
-> 
-> Did you apply patch 1 first?  That defines module_param_hw*.
+When a pending message was canceled (e.g. due to a timeout), then the
+old tx_status info was overwritten instead of ORed. The same happened
+with the tx_error_cnt field. So just modify them instead of overwriting
+them.
 
-No. Applying it at the media upstream tree can be risky if it ends
-by being merged with some changes.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-On what tree do you intend patch 1 to be merged?
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index f15f6ff..3191c0c 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -288,10 +288,10 @@ static void cec_data_cancel(struct cec_data *data)
+ 
+ 	/* Mark it as an error */
+ 	data->msg.tx_ts = ktime_get_ns();
+-	data->msg.tx_status = CEC_TX_STATUS_ERROR |
+-			      CEC_TX_STATUS_MAX_RETRIES;
++	data->msg.tx_status |= CEC_TX_STATUS_ERROR |
++			       CEC_TX_STATUS_MAX_RETRIES;
++	data->msg.tx_error_cnt++;
+ 	data->attempts = 0;
+-	data->msg.tx_error_cnt = 1;
+ 	/* Queue transmitted message for monitoring purposes */
+ 	cec_queue_msg_monitor(data->adap, &data->msg, 1);
+ 
+-- 
+2.10.2
 
-> 
-> David
-
-
-
-Thanks,
-Mauro
