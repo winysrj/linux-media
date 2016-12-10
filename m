@@ -1,88 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:32829 "EHLO gofer.mess.org"
+Received: from mout.web.de ([212.227.15.4]:55813 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752083AbcLBRUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Dec 2016 12:20:23 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v4l-utils 4/6] ir-ctl: improve scancode validation
-Date: Fri,  2 Dec 2016 17:20:19 +0000
-Message-Id: <1480699221-9267-4-git-send-email-sean@mess.org>
+        id S1752087AbcLJUxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Dec 2016 15:53:21 -0500
+Subject: [PATCH 4/4] [media] bt8xx: Less function calls in dst_ca_ioctl()
+ after error detection
+To: linux-media@vger.kernel.org,
+        Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <eee59395-e2aa-fdce-68f0-1a3e630f08d0@users.sourceforge.net>
+Date: Sat, 10 Dec 2016 21:53:09 +0100
+MIME-Version: 1.0
+In-Reply-To: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure rc6 mce is that just that and that nec32 is not necx or nec.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 10 Dec 2016 21:30:10 +0100
 
-Signed-off-by: Sean Young <sean@mess.org>
+The kfree() function was called in up to three cases
+by the dst_ca_ioctl() function during error handling
+even if the passed variable contained a null pointer.
+
+This issue was detected by using the Coccinelle software.
+
+* Split a condition check for memory allocation failures so that
+  each pointer from these function calls will be checked immediately.
+
+  See also background information:
+  Topic "CWE-754: Improper check for unusual or exceptional conditions"
+  Link: https://cwe.mitre.org/data/definitions/754.html
+
+  Fixes: b57e5578f913a304e97cb66aa0044a894ca47f2f ("Fixes some sync issues between V4L/DVB development and GIT")
+
+* Replace the specification of data structures by pointer dereferences
+  to make the corresponding size determination a bit safer.
+
+* Adjust jump targets according to the Linux coding style convention.
+
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 ---
- utils/ir-ctl/ir-ctl.c    |  4 ++--
- utils/ir-ctl/ir-encode.c | 18 ++++++++++++++++++
- utils/ir-ctl/ir-encode.h |  1 +
- 3 files changed, 21 insertions(+), 2 deletions(-)
+ drivers/media/pci/bt8xx/dst_ca.c | 51 +++++++++++++++++++++++++---------------
+ 1 file changed, 32 insertions(+), 19 deletions(-)
 
-diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
-index 768daad..53ff8ca 100644
---- a/utils/ir-ctl/ir-ctl.c
-+++ b/utils/ir-ctl/ir-ctl.c
-@@ -242,7 +242,7 @@ static struct file *read_file(const char *fname)
- 				return NULL;
- 			}
+diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+index 04d06c564602..50cdb53c9e8a 100644
+--- a/drivers/media/pci/bt8xx/dst_ca.c
++++ b/drivers/media/pci/bt8xx/dst_ca.c
+@@ -559,16 +559,27 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 	int result = 0;
  
--			if (scancode & ~protocol_scancode_mask(proto)) {
-+			if (!protocol_scancode_valid(proto, scancode)) {
- 				fprintf(stderr, _("error: %s:%d: invalid scancode '%s' for protocol '%s'\n"), fname, lineno, scancodestr, protocol_name(proto));
- 				return NULL;
- 			}
-@@ -354,7 +354,7 @@ static struct file *read_scancode(const char *name)
- 		return NULL;
- 	}
- 
--	if (scancode & ~protocol_scancode_mask(proto)) {
-+	if (!protocol_scancode_valid(proto, scancode)) {
- 		fprintf(stderr, _("error: invalid scancode '%s' for protocol '%s'\n"), p + 1, protocol_name(proto));
- 		return NULL;
- 	}
-diff --git a/utils/ir-ctl/ir-encode.c b/utils/ir-ctl/ir-encode.c
-index 704ce95..d3ee035 100644
---- a/utils/ir-ctl/ir-encode.c
-+++ b/utils/ir-ctl/ir-encode.c
-@@ -417,6 +417,24 @@ unsigned protocol_scancode_mask(enum rc_proto proto)
- 	return encoders[proto].scancode_mask;
- }
- 
-+bool protocol_scancode_valid(enum rc_proto p, unsigned s)
-+{
-+	if (s & ~encoders[p].scancode_mask)
-+		return false;
-+
-+	if (p == RC_PROTO_NECX) {
-+		return (((s >> 16) ^ ~(s >> 8)) & 0xff) != 0;
-+	} else if (p == RC_PROTO_NEC32) {
-+		return (((s >> 24) ^ ~(s >> 16)) & 0xff) != 0;
-+	} else if (p == RC_PROTO_RC6_MCE) {
-+		return (s & 0xffff0000) == 0x800f0000;
-+	} else if (p == RC_PROTO_RC6_6A_32) {
-+		return (s & 0xffff0000) != 0x800f0000;
+ 	mutex_lock(&dst_ca_mutex);
+-	dvbdev = file->private_data;
+-	state = (struct dst_state *)dvbdev->priv;
+-	p_ca_message = kmalloc(sizeof (struct ca_msg), GFP_KERNEL);
+-	p_ca_slot_info = kmalloc(sizeof (struct ca_slot_info), GFP_KERNEL);
+-	p_ca_caps = kmalloc(sizeof (struct ca_caps), GFP_KERNEL);
+-	if (!p_ca_message || !p_ca_slot_info || !p_ca_caps) {
++	p_ca_message = kmalloc(sizeof(*p_ca_message), GFP_KERNEL);
++	if (!p_ca_message) {
+ 		result = -ENOMEM;
+-		goto free_mem_and_exit;
++		goto unlock;
 +	}
 +
-+	return true;
-+}
++	p_ca_slot_info = kmalloc(sizeof(*p_ca_slot_info), GFP_KERNEL);
++	if (!p_ca_slot_info) {
++		result = -ENOMEM;
++		goto free_message;
+ 	}
+ 
++	p_ca_caps = kmalloc(sizeof(*p_ca_caps), GFP_KERNEL);
++	if (!p_ca_caps) {
++		result = -ENOMEM;
++		goto free_slot_info;
++	}
 +
- unsigned protocol_encode(enum rc_proto proto, unsigned scancode, unsigned *buf)
- {
- 	return encoders[proto].encode(proto, scancode, buf);
-diff --git a/utils/ir-ctl/ir-encode.h b/utils/ir-ctl/ir-encode.h
-index b2542ec..4a51f1c 100644
---- a/utils/ir-ctl/ir-encode.h
-+++ b/utils/ir-ctl/ir-encode.h
-@@ -28,6 +28,7 @@ enum rc_proto {
- bool protocol_match(const char *name, enum rc_proto *proto);
- unsigned protocol_carrier(enum rc_proto proto);
- unsigned protocol_max_size(enum rc_proto proto);
-+bool protocol_scancode_valid(enum rc_proto proto, unsigned scancode);
- unsigned protocol_scancode_mask(enum rc_proto proto);
- unsigned protocol_encode(enum rc_proto proto, unsigned scancode, unsigned *buf);
- const char *protocol_name(enum rc_proto proto);
++	dvbdev = file->private_data;
++	state = (struct dst_state *)dvbdev->priv;
++
+ 	/*	We have now only the standard ioctl's, the driver is upposed to handle internals.	*/
+ 	switch (cmd) {
+ 	case CA_SEND_MSG:
+@@ -576,7 +587,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_send_message(state, p_ca_message, arg)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SEND_MSG Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		break;
+ 	case CA_GET_MSG:
+@@ -584,7 +595,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_get_message(state, p_ca_message, arg)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_MSG Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_MSG Success !");
+ 		break;
+@@ -598,7 +609,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_get_slot_info(state, p_ca_slot_info, arg)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_SLOT_INFO Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_SLOT_INFO Success !");
+ 		break;
+@@ -607,7 +618,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_get_slot_caps(state, p_ca_caps, arg)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_CAP Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_CAP Success !");
+ 		break;
+@@ -616,7 +627,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_get_slot_descr(state, p_ca_message, arg)) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_GET_DESCR_INFO Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_GET_DESCR_INFO Success !");
+ 		break;
+@@ -625,7 +636,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_set_slot_descr()) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SET_DESCR Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_SET_DESCR Success !");
+ 		break;
+@@ -634,17 +645,19 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 		if ((ca_set_pid()) < 0) {
+ 			dprintk(verbose, DST_CA_ERROR, 1, " -->CA_SET_PID Failed !");
+ 			result = -1;
+-			goto free_mem_and_exit;
++			goto free_caps;
+ 		}
+ 		dprintk(verbose, DST_CA_INFO, 1, " -->CA_SET_PID Success !");
+ 	default:
+ 		result = -EOPNOTSUPP;
+ 	}
+- free_mem_and_exit:
+-	kfree (p_ca_message);
+-	kfree (p_ca_slot_info);
+-	kfree (p_ca_caps);
+-
++free_caps:
++	kfree(p_ca_caps);
++free_slot_info:
++	kfree(p_ca_slot_info);
++free_message:
++	kfree(p_ca_message);
++unlock:
+ 	mutex_unlock(&dst_ca_mutex);
+ 	return result;
+ }
 -- 
-2.9.3
+2.11.0
 
