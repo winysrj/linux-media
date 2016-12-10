@@ -1,79 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45676 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754507AbcL0Lr4 (ORCPT
+Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55588 "EHLO
+        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751639AbcLJJoR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 06:47:56 -0500
-Date: Tue, 27 Dec 2016 13:47:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 2/8] [media] v4l2-async: Delete an error message for a
- failed memory allocation in v4l2_async_notifier_unregister()
-Message-ID: <20161227114718.GM16630@valkosipuli.retiisi.org.uk>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
- <a00be613-169b-4992-dc29-c4b9e82d5501@users.sourceforge.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <a00be613-169b-4992-dc29-c4b9e82d5501@users.sourceforge.net>
+        Sat, 10 Dec 2016 04:44:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH for v4.10 6/6] cec: fix race between configuring and unconfiguring
+Date: Sat, 10 Dec 2016 10:44:13 +0100
+Message-Id: <20161210094413.8832-7-hverkuil@xs4all.nl>
+In-Reply-To: <20161210094413.8832-1-hverkuil@xs4all.nl>
+References: <20161210094413.8832-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 26, 2016 at 09:45:50PM +0100, SF Markus Elfring wrote:
-> From: Markus Elfring <elfring@users.sourceforge.net>
-> Date: Mon, 26 Dec 2016 19:19:49 +0100
-> 
-> The script "checkpatch.pl" pointed information out like the following.
-> 
-> WARNING: Possible unnecessary 'out of memory' message
-> 
-> Thus fix the affected source code place.
-> 
-> Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 5 -----
->  1 file changed, 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 277183f2d514..812d0b2a2f73 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -203,11 +203,6 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  		return;
->  
->  	dev = kmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
-> -	if (!dev) {
-> -		dev_err(notifier->v4l2_dev->dev,
-> -			"Failed to allocate device cache!\n");
-> -	}
-> -
+From: Hans Verkuil <hansverk@cisco.com>
 
-I'd leave the empty line where it is.
+This race was discovered by running cec-compliance -A with the cec module debug
+parameter set to 2: suddenly the test would fail.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+It turns out that this happens when the test configures the adapter in
+non-blocking mode, then it waits for the CEC_EVENT_STATE_CHANGE event and once
+the event is received it unconfigures the adapter.
 
->  	mutex_lock(&list_lock);
->  
->  	list_del(&notifier->list);
-> -- 
-> 2.11.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What happened was that the unconfigure was executed while the configure was
+still transmitting the Report Features and Report Physical Address messages.
+This messed up the internal state of the cec_adapter.
 
+The fix is to transmit those messages with the adap->lock mutex held (this will
+just queue them up in the internal transmit queue, and not actually transmit
+anything yet). Only unlock the mutex once everything is done. The main thread
+will dequeue the messages from the internal transmit queue and transmit them
+one by one, unless an unconfigure was done, and in that case any messages are
+just dropped.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index f3d4956..ebb5e391 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -1256,8 +1256,17 @@ static int cec_config_thread_func(void *arg)
+ 	adap->is_configured = true;
+ 	adap->is_configuring = false;
+ 	cec_post_state_event(adap);
+-	mutex_unlock(&adap->lock);
+ 
++	/*
++	 * Now post the Report Features and Report Physical Address broadcast
++	 * messages. Note that these are non-blocking transmits, meaning that
++	 * they are just queued up and once adap->lock is unlocked the main
++	 * thread will kick in and start transmitting these.
++	 *
++	 * If after this function is done (but before one or more of these
++	 * messages are actually transmitted) the CEC adapter is unconfigured,
++	 * then any remaining messages will be dropped by the main thread.
++	 */
+ 	for (i = 0; i < las->num_log_addrs; i++) {
+ 		struct cec_msg msg = {};
+ 
+@@ -1271,7 +1280,7 @@ static int cec_config_thread_func(void *arg)
+ 		if (las->log_addr[i] != CEC_LOG_ADDR_UNREGISTERED &&
+ 		    adap->log_addrs.cec_version >= CEC_OP_CEC_VERSION_2_0) {
+ 			cec_fill_msg_report_features(adap, &msg, i);
+-			cec_transmit_msg(adap, &msg, false);
++			cec_transmit_msg_fh(adap, &msg, NULL, false);
+ 		}
+ 
+ 		/* Report Physical Address */
+@@ -1280,12 +1289,11 @@ static int cec_config_thread_func(void *arg)
+ 		dprintk(2, "config: la %d pa %x.%x.%x.%x\n",
+ 			las->log_addr[i],
+ 			cec_phys_addr_exp(adap->phys_addr));
+-		cec_transmit_msg(adap, &msg, false);
++		cec_transmit_msg_fh(adap, &msg, NULL, false);
+ 	}
+-	mutex_lock(&adap->lock);
+ 	adap->kthread_config = NULL;
+-	mutex_unlock(&adap->lock);
+ 	complete(&adap->config_completion);
++	mutex_unlock(&adap->lock);
+ 	return 0;
+ 
+ unconfigure:
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+2.10.2
+
