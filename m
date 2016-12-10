@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35337 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752087AbcLFP4I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 10:56:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
-Date: Tue, 06 Dec 2016 17:56:28 +0200
-Message-ID: <6827808.RfcVLAN17o@avalon>
-In-Reply-To: <Pine.LNX.4.64.1612061127550.17179@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange> <1934036.5jNzJsjeMl@avalon> <Pine.LNX.4.64.1612061127550.17179@axis700.grange>
+Received: from mout.web.de ([212.227.15.14]:52287 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752068AbcLJUvc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Dec 2016 15:51:32 -0500
+Subject: [PATCH 3/4] [media] bt8xx: Delete unnecessary variable
+ initialisations in ca_send_message()
+To: linux-media@vger.kernel.org,
+        Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <f0c92913-f55f-5415-64c3-237d940b645e@users.sourceforge.net>
+Date: Sat, 10 Dec 2016 21:51:23 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sat, 10 Dec 2016 20:56:04 +0100
 
-On Tuesday 06 Dec 2016 11:39:22 Guennadi Liakhovetski wrote:
-> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > On Monday 05 Dec 2016 23:13:53 Guennadi Liakhovetski wrote:
-> >> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> >>>>>> +	/*
-> >>>>>> +	 * Register a metadata node. TODO: shall this only be enabled
-> >>>>>> for some
-> >>>>>> +	 * cameras?
-> >>>>>> +	 */
-> >>>>>> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
-> >>>>>> +		uvc_meta_register(stream);
-> >>>>>> +
-> >>>>> 
-> >>>>> I think so, only for the cameras that can produce metadata.
-> >>>> 
-> >>>> Every UVC camera produces metadata, but most cameras only have standard
-> >>>> fields there. Whether we should stream standard header fields from the
-> >>>> metadata node will be discussed later. If we do decide to stream
-> >>>> standard header fields, then every USB camera gets metadata nodes. If
-> >>>> we decide not to include standard fields, how do we know whether the
-> >>>> camera has any private fields in headers without streaming from it? Do
-> >>>> you want a quirk for such cameras?
-> >>> 
-> >>> Unless they can be detected in a standard way that's probably the best
-> >>> solution. Please remember that the UVC specification doesn't allow
-> >>> vendors to extend headers in a vendor-specific way.
-> >> 
-> >> Does it not? Where is that specified? I didn't find that anywhere.
-> > 
-> > It's the other way around, it document a standard way to extend the
-> > payload header. Any option you pick risks being incompatible with future
-> > revisions of the specification. For instance the payload header's
-> > bmHeaderInfo field can be extended through the use of the EOF bit, but a
-> > future version of the specification could also extend it, in a way that
-> > would make a vendor-specific extension be mistaken for the standard
-> > extension.
-> > 
-> > Now, you could add data after the standard payload without touching the
-> > bmHeaderInfo field, but I'm still worried it could be broken by future
-> > versions of the specification.
-> 
-> Exactly - using "free" space in payload headers is not a part of the spec,
-> but is also not prohibited by it. As for future versions - cameras specify
-> which version of the spec they implement, and existing versions cannot
-> change. If a camera decides to upgrade and in future UVC versions there
-> won't be enough space left for the private data, only then the camera
-> manufacturer will have a problem, that they will have to solve. The
-> user-space software will have to know, that UVC 5.1 metadata has a
-> different format, than UVC 1.5, that's true.
+Two local variables will be set to an appropriate value a bit later.
+Thus omit the explicit initialisation at the beginning.
 
-I agree that the specification doesn't explicitly forbid it, but it's a very 
-grey area. An extension mechanism should be standardized by the USB-IF UVC 
-working group. I'd propose it myself if they hadn't decided to kick me out 
-years ago :-)
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/media/pci/bt8xx/dst_ca.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+index 54e656ddd588..04d06c564602 100644
+--- a/drivers/media/pci/bt8xx/dst_ca.c
++++ b/drivers/media/pci/bt8xx/dst_ca.c
+@@ -475,9 +475,8 @@ static int dst_check_ca_pmt(struct dst_state *state, struct ca_msg *p_ca_message
+ 
+ static int ca_send_message(struct dst_state *state, struct ca_msg *p_ca_message, void __user *arg)
+ {
+-	int i = 0;
+-
+-	u32 command = 0;
++	int i;
++	u32 command;
+ 	struct ca_msg *hw_buffer;
+ 	int result = 0;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
 
