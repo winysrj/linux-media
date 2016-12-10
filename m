@@ -1,58 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40718 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751301AbcLAK3w (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2016 05:29:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shailendra Verma <shailendra.v@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org,
-        Shailendra Verma <shailendra.capricorn@gmail.com>,
-        vidushi.koul@samsung.com
-Subject: Re: [PATCH] Platform: vsp1: Clean up file handle in open() error path.
-Date: Thu, 01 Dec 2016 12:30:07 +0200
-Message-ID: <2714292.XDaUmZ9RCx@avalon>
-In-Reply-To: <1480567818-13363-1-git-send-email-shailendra.v@samsung.com>
-References: <1480567818-13363-1-git-send-email-shailendra.v@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:35197 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751593AbcLJJoR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 10 Dec 2016 04:44:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH for v4.10 4/6] cec: replace cec_report_features by cec_fill_msg_report_features
+Date: Sat, 10 Dec 2016 10:44:11 +0100
+Message-Id: <20161210094413.8832-5-hverkuil@xs4all.nl>
+In-Reply-To: <20161210094413.8832-1-hverkuil@xs4all.nl>
+References: <20161210094413.8832-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shailendra,
+From: Hans Verkuil <hansverk@cisco.com>
 
-Thank you for the patch.
+The fill function just fills in the cec_msg struct, it doesn't transmit
+the message. This is now done explicitly.
 
-On Thursday 01 Dec 2016 10:20:18 Shailendra Verma wrote:
-> v4l2_fh_init is already done.So call the v4l2_fh_exit in error condition
-> before returing from the function.
-> 
-> Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+This makes it possible to switch to transmitting this message with adap->lock
+held.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 48 ++++++++++++++++++++++++--------------------
+ 1 file changed, 26 insertions(+), 22 deletions(-)
 
-and applied to my tree for v4.11.
-
-> ---
->  drivers/media/platform/vsp1/vsp1_video.c |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
-> b/drivers/media/platform/vsp1/vsp1_video.c index d351b9c..cc58163 100644
-> --- a/drivers/media/platform/vsp1/vsp1_video.c
-> +++ b/drivers/media/platform/vsp1/vsp1_video.c
-> @@ -1044,6 +1044,7 @@ static int vsp1_video_open(struct file *file)
->  	ret = vsp1_device_get(video->vsp1);
->  	if (ret < 0) {
->  		v4l2_fh_del(vfh);
-> +		v4l2_fh_exit(vfh);
->  		kfree(vfh);
->  	}
-
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index f3fef48..2b66851 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -30,8 +30,10 @@
+ 
+ #include "cec-priv.h"
+ 
+-static int cec_report_features(struct cec_adapter *adap, unsigned int la_idx);
+ static int cec_report_phys_addr(struct cec_adapter *adap, unsigned int la_idx);
++static void cec_fill_msg_report_features(struct cec_adapter *adap,
++					 struct cec_msg *msg,
++					 unsigned int la_idx);
+ 
+ /*
+  * 400 ms is the time it takes for one 16 byte message to be
+@@ -1258,16 +1260,21 @@ static int cec_config_thread_func(void *arg)
+ 	mutex_unlock(&adap->lock);
+ 
+ 	for (i = 0; i < las->num_log_addrs; i++) {
++		struct cec_msg msg = {};
++
+ 		if (las->log_addr[i] == CEC_LOG_ADDR_INVALID ||
+ 		    (las->flags & CEC_LOG_ADDRS_FL_CDC_ONLY))
+ 			continue;
+ 
+-		/*
+-		 * Report Features must come first according
+-		 * to CEC 2.0
+-		 */
+-		if (las->log_addr[i] != CEC_LOG_ADDR_UNREGISTERED)
+-			cec_report_features(adap, i);
++		msg.msg[0] = (las->log_addr[i] << 4) | 0x0f;
++
++		/* Report Features must come first according to CEC 2.0 */
++		if (las->log_addr[i] != CEC_LOG_ADDR_UNREGISTERED &&
++		    adap->log_addrs.cec_version >= CEC_OP_CEC_VERSION_2_0) {
++			cec_fill_msg_report_features(adap, &msg, i);
++			cec_transmit_msg(adap, &msg, false);
++		}
++
+ 		cec_report_phys_addr(adap, i);
+ 	}
+ 	mutex_lock(&adap->lock);
+@@ -1526,36 +1533,32 @@ EXPORT_SYMBOL_GPL(cec_s_log_addrs);
+ 
+ /* High-level core CEC message handling */
+ 
+-/* Transmit the Report Features message */
+-static int cec_report_features(struct cec_adapter *adap, unsigned int la_idx)
++/* Fill in the Report Features message */
++static void cec_fill_msg_report_features(struct cec_adapter *adap,
++					 struct cec_msg *msg,
++					 unsigned int la_idx)
+ {
+-	struct cec_msg msg = { };
+ 	const struct cec_log_addrs *las = &adap->log_addrs;
+ 	const u8 *features = las->features[la_idx];
+ 	bool op_is_dev_features = false;
+ 	unsigned int idx;
+ 
+-	/* This is 2.0 and up only */
+-	if (adap->log_addrs.cec_version < CEC_OP_CEC_VERSION_2_0)
+-		return 0;
+-
+ 	/* Report Features */
+-	msg.msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
+-	msg.len = 4;
+-	msg.msg[1] = CEC_MSG_REPORT_FEATURES;
+-	msg.msg[2] = adap->log_addrs.cec_version;
+-	msg.msg[3] = las->all_device_types[la_idx];
++	msg->msg[0] = (las->log_addr[la_idx] << 4) | 0x0f;
++	msg->len = 4;
++	msg->msg[1] = CEC_MSG_REPORT_FEATURES;
++	msg->msg[2] = adap->log_addrs.cec_version;
++	msg->msg[3] = las->all_device_types[la_idx];
+ 
+ 	/* Write RC Profiles first, then Device Features */
+ 	for (idx = 0; idx < ARRAY_SIZE(las->features[0]); idx++) {
+-		msg.msg[msg.len++] = features[idx];
++		msg->msg[msg->len++] = features[idx];
+ 		if ((features[idx] & CEC_OP_FEAT_EXT) == 0) {
+ 			if (op_is_dev_features)
+ 				break;
+ 			op_is_dev_features = true;
+ 		}
+ 	}
+-	return cec_transmit_msg(adap, &msg, false);
+ }
+ 
+ /* Transmit the Report Physical Address message */
+@@ -1779,7 +1782,8 @@ static int cec_receive_notify(struct cec_adapter *adap, struct cec_msg *msg,
+ 	case CEC_MSG_GIVE_FEATURES:
+ 		if (adap->log_addrs.cec_version < CEC_OP_CEC_VERSION_2_0)
+ 			return cec_feature_abort(adap, msg);
+-		return cec_report_features(adap, la_idx);
++		cec_fill_msg_report_features(adap, &tx_cec_msg, la_idx);
++		return cec_transmit_msg(adap, &tx_cec_msg, false);
+ 
+ 	default:
+ 		/*
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.2
 
