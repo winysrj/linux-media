@@ -1,202 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:56181 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750998AbcLEL0h (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51439 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751639AbcLJKFG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 06:26:37 -0500
-Subject: Re: [PATCH v4 1/9] media: v4l2-mem2mem: extend m2m APIs for more
- accurate buffer management
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
- <1480583001-32236-2-git-send-email-stanimir.varbanov@linaro.org>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <464b3cd6-f5b4-ed26-717d-929d6957c015@xs4all.nl>
-Date: Mon, 5 Dec 2016 12:25:19 +0100
+        Sat, 10 Dec 2016 05:05:06 -0500
+Subject: Re: [PATCH 2/4] v4l: vsp1: Refactor video pipeline configuration
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        laurent.pinchart@ideasonboard.com
+References: <1481016913-30608-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <1481016913-30608-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <f53ddf72-7422-9ff3-2298-d0eca4bfc3a7@ideasonboard.com>
+Date: Sat, 10 Dec 2016 10:04:52 +0000
 MIME-Version: 1.0
-In-Reply-To: <1480583001-32236-2-git-send-email-stanimir.varbanov@linaro.org>
+In-Reply-To: <1481016913-30608-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/01/2016 10:03 AM, Stanimir Varbanov wrote:
-> this add functions for:
->   - remove buffers from src/dst queue by index
->   - remove exact buffer from src/dst queue
+Reviewing my own patch here, as I've just seen something...
+
+On 06/12/16 09:35, Kieran Bingham wrote:
+> With multiple inputs through the BRU it is feasible for the streams to
+> race each other at stream-on. In the case of the video pipelines, this
+> can present two serious issues.
 > 
-> also extends m2m API to iterate over a list of src/dst buffers
-> in safely and non-safely manner.
+>  1) A null-dereference if the pipe->dl is committed at the same time as
+>     the vsp1_video_setup_pipeline() is processing
 > 
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+>  2) A hardware hang, where a display list is committed without having
+>     called vsp1_video_setup_pipeline() first
+> 
+> Along side these race conditions, the work done by
+> vsp1_video_setup_pipeline() is undone by the re-initialisation during a
+> suspend resume cycle, and an active pipeline does not attempt to
+> reconfigure the correct routing and init parameters for the entities.
+> 
+> To repair all of these issues, we can move the call to a conditional
+> inside vsp1_video_pipeline_run() and ensure that this can only be called
+> on the last stream which calls into vsp1_video_start_streaming()
+> 
+> As a convenient side effect of this, by specifying that the
+> configuration has been lost during suspend/resume actions - the
+> vsp1_video_pipeline_run() call can re-initialise pipelines when
+> necessary thus repairing resume actions for active m2m pipelines.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 37 +++++++++++++++
->  include/media/v4l2-mem2mem.h           | 83 ++++++++++++++++++++++++++++++++++
->  2 files changed, 120 insertions(+)
+>  drivers/media/platform/vsp1/vsp1_drv.c   |  3 +++
+>  drivers/media/platform/vsp1/vsp1_pipe.c  |  1 +
+>  drivers/media/platform/vsp1/vsp1_pipe.h  |  2 ++
+>  drivers/media/platform/vsp1/vsp1_video.c | 20 +++++++++-----------
+>  4 files changed, 15 insertions(+), 11 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 6bc27e7b2a33..d689e7bb964f 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
->  }
->  EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
+> index 57c713a4e1df..dd26549a6912 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -447,6 +447,9 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
+>  		ret = vsp1_reset_wpf(vsp1, i);
+>  		if (ret < 0)
+>  			return ret;
+> +
+> +		if (vsp1->wpf[i] && vsp1->wpf[i]->pipe)
+> +			vsp1->wpf[i]->pipe->configured = false;
+
+It would make a lot more sense for this to be re-set inside the
+vsp1_reset_wpf() function itself, so that it is always reset in
+conjunction with resetting the hardware ...
+
+Not to mention, if the reset timesout, the reset has already been
+started so the configured flag should certainly be reset.
+
+I'll move this for a quick v2.
+
+>  	}
 >  
-> +void v4l2_m2m_buf_remove_exact(struct v4l2_m2m_queue_ctx *q_ctx,
-> +			       struct vb2_v4l2_buffer *vbuf)
-
-I'd call this v4l2_m2m_buf_remove_by_buf to be consistent with _by_idx.
-
-Other than that, this looks OK.
-
-Regards,
-
-	Hans
-
-> +{
-> +	struct v4l2_m2m_buffer *b;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-> +	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
-> +	list_del(&b->list);
-> +	q_ctx->num_rdy--;
-> +	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_exact);
-> +
-> +struct vb2_v4l2_buffer *
-> +v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
-> +
-> +{
-> +	struct v4l2_m2m_buffer *b, *tmp;
-> +	struct vb2_v4l2_buffer *ret = NULL;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-> +	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
-> +		if (b->vb.vb2_buf.index == idx) {
-> +			list_del(&b->list);
-> +			q_ctx->num_rdy--;
-> +			ret = &b->vb;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
-> +
->  /*
->   * Scheduling handlers
->   */
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-> index 3ccd01bd245e..c8632c52d5e2 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -437,6 +437,41 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
+>  	vsp1_write(vsp1, VI6_CLK_DCSWT, (8 << VI6_CLK_DCSWT_CSTPW_SHIFT) |
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
+> index 756ca4ea7668..7ddf862ee403 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+> @@ -208,6 +208,7 @@ void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
+>  
+>  	INIT_LIST_HEAD(&pipe->entities);
+>  	pipe->state = VSP1_PIPELINE_STOPPED;
+> +	pipe->configured = false;
 >  }
 >  
->  /**
-> + * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
-> + * buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + */
-> +#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
-> +	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
+>  /* Must be called with the pipe irqlock held. */
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
+> index ac4ad2655551..0743b9fcb655 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -61,6 +61,7 @@ enum vsp1_pipeline_state {
+>   * @pipe: the media pipeline
+>   * @irqlock: protects the pipeline state
+>   * @state: current state
+> + * @configured: determines routing configuration active on cell.
+>   * @wq: wait queue to wait for state change completion
+>   * @frame_end: frame end interrupt handler
+>   * @lock: protects the pipeline use count and stream count
+> @@ -86,6 +87,7 @@ struct vsp1_pipeline {
+>  
+>  	spinlock_t irqlock;
+>  	enum vsp1_pipeline_state state;
+> +	bool configured;
+>  	wait_queue_head_t wq;
+>  
+>  	void (*frame_end)(struct vsp1_pipeline *pipe);
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index 44b687c0b8df..7ff9f4c19ff0 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -388,6 +388,8 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+>  					       VSP1_ENTITY_PARAMS_INIT);
+>  	}
+>  
+> +	pipe->configured = true;
 > +
-> +/**
-> + * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + */
-> +#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
-> +	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
-> +
-> +/**
-> + * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
-> + * buffers safely
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + */
-> +#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
-> +	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-> +
-> +/**
-> + * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
-> + * buffers safely
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + */
-> +#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
-> +	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
-> +
-> +/**
->   * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
->   *
->   * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> @@ -488,6 +523,54 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
->  	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
+>  	return 0;
 >  }
 >  
-> +/**
-> + * v4l2_m2m_buf_remove_exact() - take off exact buffer from the list of ready
-> + * buffers
-> + *
-> + * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-> + */
-> +void v4l2_m2m_buf_remove_exact(struct v4l2_m2m_queue_ctx *q_ctx,
-> +			       struct vb2_v4l2_buffer *vbuf);
-> +
-> +/**
-> + * v4l2_m2m_src_buf_remove_exact() - take off exact source buffer from the list
-> + * of ready buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + */
-> +static inline void v4l2_m2m_src_buf_remove_exact(struct v4l2_m2m_ctx *m2m_ctx,
-> +						 struct vb2_v4l2_buffer *vbuf)
-> +{
-> +	v4l2_m2m_buf_remove_exact(&m2m_ctx->out_q_ctx, vbuf);
-> +}
-> +
-> +/**
-> + * v4l2_m2m_src_buf_remove_exact() - take off exact destination buffer from the
-> + * list of ready buffers
-> + *
-> + * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-> + */
-> +static inline void v4l2_m2m_dst_buf_remove_exact(struct v4l2_m2m_ctx *m2m_ctx,
-> +						 struct vb2_v4l2_buffer *vbuf)
-> +{
-> +	v4l2_m2m_buf_remove_exact(&m2m_ctx->cap_q_ctx, vbuf);
-> +}
-> +
-> +struct vb2_v4l2_buffer *
-> +v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
-> +
-> +static inline struct vb2_v4l2_buffer *
-> +v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-> +{
-> +	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
-> +}
-> +
-> +static inline struct vb2_v4l2_buffer *
-> +v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-> +{
-> +	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
-> +}
-> +
->  /* v4l2 ioctl helpers */
+> @@ -411,6 +413,9 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
+>  	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+>  	struct vsp1_entity *entity;
 >  
->  int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
+> +	if (!pipe->configured)
+> +		vsp1_video_setup_pipeline(pipe);
+> +
+>  	if (!pipe->dl)
+>  		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+>  
+> @@ -793,25 +798,18 @@ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	struct vsp1_video *video = vb2_get_drv_priv(vq);
+>  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+>  	unsigned long flags;
+> -	int ret;
+>  
+>  	mutex_lock(&pipe->lock);
+>  	if (pipe->stream_count == pipe->num_inputs) {
+> -		ret = vsp1_video_setup_pipeline(pipe);
+> -		if (ret < 0) {
+> -			mutex_unlock(&pipe->lock);
+> -			return ret;
+> -		}
+> +		spin_lock_irqsave(&pipe->irqlock, flags);
+> +		if (vsp1_pipeline_ready(pipe))
+> +			vsp1_video_pipeline_run(pipe);
+> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
+>  	}
+>  
+>  	pipe->stream_count++;
+>  	mutex_unlock(&pipe->lock);
+>  
+> -	spin_lock_irqsave(&pipe->irqlock, flags);
+> -	if (vsp1_pipeline_ready(pipe))
+> -		vsp1_video_pipeline_run(pipe);
+> -	spin_unlock_irqrestore(&pipe->irqlock, flags);
+> -
+>  	return 0;
+>  }
+>  
 > 
-
