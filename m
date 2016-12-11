@@ -1,99 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:55887 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751702AbcLLWLc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 17:11:32 -0500
-Subject: Re: Clarification for acceptance statistics?
-To: Daniele Nicolodi <daniele@grinta.net>
-References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
- <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
- <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
- <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
- <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
- <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
- <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
- <3d09590c-9a10-f756-1b71-536ea37d8524@users.sourceforge.net>
- <a694926d-eedd-5d51-54d0-7ba88775c42e@grinta.net>
-Cc: linux-media@vger.kernel.org,
-        Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <dc59427b-5631-b7e7-e9e9-80e786a8c2d6@users.sourceforge.net>
-Date: Mon, 12 Dec 2016 23:11:16 +0100
-MIME-Version: 1.0
-In-Reply-To: <a694926d-eedd-5d51-54d0-7ba88775c42e@grinta.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:50407 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750896AbcLKFLX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Dec 2016 00:11:23 -0500
+Message-ID: <8f26d76779458448b710a16279316115@smtp-cloud3.xs4all.net>
+Date: Sun, 11 Dec 2016 06:11:15 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The question was: have you ever had a patch changing code in the form
-> 
-> {
-> 	a = kmalloc(...);
-> 	b = kmalloc(...);
-> 
-> 	if (!a || !b)
-> 		goto out;
-> 
-> 	...
-> 
-> out:
-> 	kfree(a);
-> 	kfree(b);
-> }
-> 
-> to something else, accepted?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-It seems that this case did not happen for me so far if you are looking
-for this exact source code search pattern.
+Results of the daily build of media_tree:
 
-Variants of the current pattern were occasionally discussed a bit.
+date:			Sun Dec 11 05:00:17 CET 2016
+media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	188e604d57bec065078ff772c802b93ddb6def4b
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-rc5-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-rc5-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-> I went checking and I haven't found such a patch.
+Detailed results are available here:
 
-A few similar update suggestions are still in development waiting queues.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
 
-> Did you understand my question?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Partly. - My interpretation of similar changes was eventually too broad
-in my previous answer.
+The Media Infrastructure API from this daily build is here:
 
-
->> It is really needed to clarify the corresponding software development
->> history any further?
-> 
-> It is relevant because you are submitting a patch and your changelog
-> implies that it makes the code follow some code structure rule that
-> needs to be applied to the kernel.
-
-I am proposing a change which was described also around various other
-functions in some software already.
-
-
-> As the above is a recurring pattern in kernel code, it is legitimate
-> to ask if such a rule exist, and has been enforced before, or you are
-> making it up.
-
-I got the impression that special software development habits can also
-evolve over time.
-
-
-> As a proposer of a new pattern, what is the evidence you can bring to
-> the discussion that supports that your solution is better?
-
-I am trying to increase the software development attention on error
-detection and corresponding exception handling at various places.
-
-
-> What is the metric you are using to define "better"?
-
-Do response times for system failures matter here?
-
-Regards,
-Markus
+http://www.xs4all.nl/~hverkuil/spec/index.html
