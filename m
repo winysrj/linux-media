@@ -1,169 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:34168 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756442AbcLPSAC (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:36662 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752184AbcLKMIT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 13:00:02 -0500
-Received: by mail-lf0-f65.google.com with SMTP id 30so424441lfy.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 10:00:01 -0800 (PST)
-From: henrik@austad.us
-To: linux-kernel@vger.kernel.org
-Cc: Richard Cochran <richardcochran@gmail.com>, henrik@austad.us,
-        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-        netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-        Henrik Austad <haustad@cisco.com>
-Subject: [TSN RFC v2 3/9] TSN: Add the standard formerly known as AVB to the kernel
-Date: Fri, 16 Dec 2016 18:59:07 +0100
-Message-Id: <1481911153-549-4-git-send-email-henrik@austad.us>
-In-Reply-To: <1481911153-549-1-git-send-email-henrik@austad.us>
-References: <1481911153-549-1-git-send-email-henrik@austad.us>
+        Sun, 11 Dec 2016 07:08:19 -0500
+Received: by mail-io0-f196.google.com with SMTP id b194so15993178ioa.3
+        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2016 04:08:18 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20161206105626.7de242a3@vento.lan>
+References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
+ <20161202090558.29931492@vento.lan> <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
+ <CAOJOY2Nhi6aev=jwVeyuQMxKUAk-MfT0YLKsFfrUsAcZtdrysQ@mail.gmail.com>
+ <CAAEAJfAoZCzh5c=C+8Um-KaZkRs_ip1kX04xZRm2bWrGLmMwjA@mail.gmail.com>
+ <20161205101221.53613e57@vento.lan> <CAAEAJfD6sauJ_NyYtBmFAr5c_NGr8OuZwqnG1Ukk9-P7YNSypQ@mail.gmail.com>
+ <CAOJOY2M6QANNysnZ_C9G+fFg=a=wYQXGDr49LCYGE7KrbwkE4A@mail.gmail.com> <20161206105626.7de242a3@vento.lan>
+From: Marcel Hasler <mahasler@gmail.com>
+Date: Sun, 11 Dec 2016 13:07:37 +0100
+Message-ID: <CAOJOY2M9t144=LYXVK0T2QOMx3Q5T1g8kT+mKQ03oGNGRD6_jQ@mail.gmail.com>
+Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Henrik Austad <henrik@austad.us>
+Hello
 
-TSN provides a mechanism to create reliable, jitter-free, low latency
-guaranteed bandwidth links over a local network. It does this by
-reserving a path through the network. Support for TSN must be found in
-both the NIC as well as in the network itself.
+2016-12-06 13:56 GMT+01:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>=
+:
+> Em Mon, 5 Dec 2016 22:06:59 +0100
+> Marcel Hasler <mahasler@gmail.com> escreveu:
+>
+>> Hello
+>>
+>> 2016-12-05 16:38 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.a=
+r>:
+>> > On 5 December 2016 at 09:12, Mauro Carvalho Chehab
+>> > <mchehab@s-opensource.com> wrote:
+>> >> Em Sun, 4 Dec 2016 15:25:25 -0300
+>> >> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> escreveu:
+>> >>
+>> >>> On 4 December 2016 at 10:01, Marcel Hasler <mahasler@gmail.com> wrot=
+e:
+>> >>> > Hello
+>> >>> >
+>> >>> > 2016-12-03 21:46 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur=
+.com.ar>:
+>> >>> >> On 2 December 2016 at 08:05, Mauro Carvalho Chehab
+>> >>> >> <mchehab@s-opensource.com> wrote:
+>> >>> >>> Em Sun, 27 Nov 2016 12:11:48 +0100
+>> >>> >>> Marcel Hasler <mahasler@gmail.com> escreveu:
+>> >>> >>>
+>> >>> >>>> Allow setting a custom record gain for the internal AC97 codec =
+(if available). This can be
+>> >>> >>>> a value between 0 and 15, 8 is the default and should be suitab=
+le for most users. The Windows
+>> >>> >>>> driver also sets this to 8 without any possibility for changing=
+ it.
+>> >>> >>>
+>> >>> >>> The problem of removing the mixer is that you need this kind of
+>> >>> >>> crap to setup the volumes on a non-standard way.
+>> >>> >>>
+>> >>> >>
+>> >>> >> Right, that's a good point.
+>> >>> >>
+>> >>> >>> NACK.
+>> >>> >>>
+>> >>> >>> Instead, keep the alsa mixer. The way other drivers do (for exam=
+ple,
+>> >>> >>> em28xx) is that they configure the mixer when an input is select=
+ed,
+>> >>> >>> increasing the volume of the active audio channel to 100% and mu=
+ting
+>> >>> >>> the other audio channels. Yet, as the alsa mixer is exported, us=
+ers
+>> >>> >>> can change the mixer settings in runtime using some alsa (or pa)
+>> >>> >>> mixer application.
+>> >>> >>>
+>> >>> >>
+>> >>> >> Yeah, the AC97 mixer we are currently leveraging
+>> >>> >> exposes many controls that have no meaning in this device,
+>> >>> >> so removing that still looks like an improvement.
+>> >>> >>
+>> >>> >> I guess the proper way is creating our own mixer
+>> >>> >> (not using snd_ac97_mixer)  exposing only the record
+>> >>> >> gain knob.
+>> >>> >>
+>> >>> >> Marcel, what do you think?
+>> >>> >> --
+>> >>> >> Ezequiel Garc=C3=ADa, VanguardiaSur
+>> >>> >> www.vanguardiasur.com.ar
+>> >>> >
+>> >>> > As I have written before, the recording gain isn't actually meant =
+to
+>> >>> > be changed by the user. In the official Windows driver this value =
+is
+>> >>> > hard-coded to 8 and cannot be changed in any way. And there really=
+ is
+>> >>> > no good reason why anyone should need to mess with it in the first
+>> >>> > place. The default value will give the best results in pretty much=
+ all
+>> >>> > cases and produces approximately the same volume as the internal 8=
+-bit
+>> >>> > ADC whose gain cannot be changed at all, not even by a driver.
+>> >>> >
+>> >>> > I had considered writing a mixer but chose not to. If the gain set=
+ting
+>> >>> > is openly exposed to mixer applications, how do you tell the users
+>> >>> > that the value set by the driver already is the optimal and
+>> >>> > recommended value and that they shouldn't mess with the controls
+>> >>> > unless they really have to? By having a module parameter, this set=
+ting
+>> >>> > is practically hidden from the normal user but still is available =
+to
+>> >>> > power-users if they think they really need it. In the end it's rea=
+lly
+>> >>> > just a compromise between hiding it completely and exposing it ope=
+nly.
+>> >>> > Also, this way the driver guarantees reproducible results, since
+>> >>> > there's no need to remember the positions of any volume sliders.
+>> >>> >
+>> >>>
+>> >>> Hm, right. I've never changed the record gain, and it's true that it
+>> >>> doens't really improve the volume. So, I would be OK with having
+>> >>> a module parameter.
+>> >>>
+>> >>> On the other side, we are exposing it currently, through the "Captur=
+e"
+>> >>> mixer control:
+>> >>>
+>> >>> Simple mixer control 'Capture',0
+>> >>>   Capabilities: cvolume cswitch cswitch-joined
+>> >>>   Capture channels: Front Left - Front Right
+>> >>>   Limits: Capture 0 - 15
+>> >>>   Front Left: Capture 10 [67%] [15.00dB] [on]
+>> >>>   Front Right: Capture 8 [53%] [12.00dB] [on]
+>> >>>
+>> >>> So, it would be user-friendly to keep the user interface and continu=
+e
+>> >>> to expose the same knob - even if the default is the optimal, etc.
+>> >>>
+>> >>> To be completely honest, I don't think any user is really relying
+>> >>> on any REC_GAIN / Capture setting, and I'm completely OK
+>> >>> with having a mixer control or a module parameter. It doesn't matter=
+.
+>> >>
+>> >> If you're positive that *all* stk1160 use the ac97 mixer the
+>> >> same way, and that there's no sense on having a mixer for it,
+>> >> then it would be ok to remove it.
+>> >>
+>> >
+>> > Let's remove it then!
+>> >
+>> >> In such case, then why you need a modprobe parameter to allow
+>> >> setting the record level? If this mixer entry is not used,
+>> >> just set it to zero and be happy with that.
+>> >>
+>> >
+>> > Let's remove the module param too, then.
+>>
+>> I'm okay with that.
+>>
+>> >
+>> > Thanks,
+>> > --
+>> > Ezequiel Garc=C3=ADa, VanguardiaSur
+>> > www.vanguardiasur.com.ar
+>>
+>> I'm willing to prepare one final patchset, provided we can agree on
+>> and resolve all issues beforehand.
+>>
+>> So far the changes would be to remove the module param and to poll
+>> STK1160_AC97CTL_0 instead of using a fixed delay. It's probably better
+>> to also poll it before writing, although that never caused problems.
+>
+> Sounds ok. My experience with AC97 on em28xx is that, as new devices
+> were added, the delay needed for AC97 varied on some of those new
+> devices. That's why checking if AC97 is ready before writing was
+> added to its code.
+>
+>>
+>> I'll post some code for review before actually submitting patches.
+>> Mauro, is there anything else that you think should be changed? If so,
+>> please tell me now. Thanks.
+>>
+>> Best regards
+>> Marcel
+>
+>
+>
+> Thanks,
+> Mauro
 
-This adds required hooks into netdev_ops so that the core TSN driver can
-use this when configuring a new NIC or setting up a new link. It also
-provides hook for removing a link and reducing the idle_slope parameter on
-the NIC.
+I've implemented the polling function. I'm using it in a slightly
+different manner than em28xx, in order to be consistent with the
+device's logic as documented in the datasheet. Namely I let the driver
+wait after the write instead of before, to make sure
+stk1160_write_ac97() only returns once the write has actually
+completed. Please tell me if this is okay for you, before I commit and
+create the new patchset. Here's the diff:
 
-(We need to set the PCP values when we first configure the link. This
- value should not change as long as we have valid streams running, and in
- most cases, the PCP for the domain will not change.)
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Signed-off-by: Henrik Austad <haustad@cisco.com>
----
- include/linux/netdevice.h | 44 ++++++++++++++++++++++++++++++++++++++++++++
- net/Kconfig               |  1 +
- net/tsn/Kconfig           | 32 ++++++++++++++++++++++++++++++++
- 3 files changed, 77 insertions(+)
- create mode 100644 net/tsn/Kconfig
-
-diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
-index e16a2a9..0d758aa 100644
---- a/include/linux/netdevice.h
-+++ b/include/linux/netdevice.h
-@@ -112,6 +112,15 @@ enum netdev_tx {
- };
- typedef enum netdev_tx netdev_tx_t;
- 
-+#if IS_ENABLED(CONFIG_TSN)
-+enum sr_class {
-+	SR_CLASS_A = 1,
-+	SR_CLASS_B = 2,
-+	SR_CLASS_LAST,
-+	SR_CLASS_ERR,
-+};
-+#endif
-+
- /*
-  * Current order: NETDEV_TX_MASK > NET_XMIT_MASK >= 0 is significant;
-  * hard_start_xmit() return < NET_XMIT_MASK means skb was consumed.
-@@ -944,6 +953,31 @@ struct netdev_xdp {
+diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c
+b/drivers/media/usb/stk1160/stk1160-ac97.c
+diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c
+b/drivers/media/usb/stk1160/stk1160-ac97.c
+index 95648ac..708792b 100644
+--- a/drivers/media/usb/stk1160/stk1160-ac97.c
++++ b/drivers/media/usb/stk1160/stk1160-ac97.c
+@@ -23,11 +23,30 @@
   *
-  * void (*ndo_poll_controller)(struct net_device *dev);
-  *
-+ *	TSN functions (if CONFIG_TSN)
-+ *
-+ * int (*ndo_tsn_capable)(struct net_device *dev);
-+ *	If a particular device is capable of sustaining TSN traffic
-+ *	provided current configuration
-+ *
-+ * int (*ndo_tsn_link_configure)(struct net_device *dev,
-+ *				 enum sr_class class,
-+ *				 u16 framesize,
-+ *				 u16 vid,
-+ *				 u8 add_link,
-+ *				 u8 pcp_hi,
-+ *				 u8 pcp_lo)
-+);
-+ *     Configure a NIC to handle TSN-streams
-+ *     - Update the bandwidth for the particular stream-class.
-+ *     - The framesize is the size of the _entire_ frame (not just the payload)
-+ *       since the full size is required to allocate bandwidth through
-+ *       the credit based shaper in the NIC
-+ *     - the vlan_id is the configured vlan for TSN in this session.
-+ *     - add_link: if the link should be added or subtracted from the current
-+ *       budget.
-+ *    - u8 pcp_hi: 802.1Q priority value for high-class traffic (class A)
-+ *    - u8 pcp_lo: 802.1Q priority value for low-class traffic (class B)
-+ *
-  *	SR-IOV management functions.
-  * int (*ndo_set_vf_mac)(struct net_device *dev, int vf, u8* mac);
-  * int (*ndo_set_vf_vlan)(struct net_device *dev, int vf, u16 vlan,
-@@ -1185,6 +1219,16 @@ struct net_device_ops {
- #ifdef CONFIG_NET_RX_BUSY_POLL
- 	int			(*ndo_busy_poll)(struct napi_struct *dev);
- #endif
-+
-+#if IS_ENABLED(CONFIG_TSN)
-+	int			(*ndo_tsn_capable)(struct net_device *dev);
-+	int			(*ndo_tsn_link_configure)(struct net_device *dev,
-+							  enum sr_class class,
-+							  u16 framesize,
-+							  u16 vid, u8 add_link,
-+							  u8 pcp_hi, u8 pcp_lo);
-+#endif	/* CONFIG_TSN */
-+
- 	int			(*ndo_set_vf_mac)(struct net_device *dev,
- 						  int queue, u8 *mac);
- 	int			(*ndo_set_vf_vlan)(struct net_device *dev,
-diff --git a/net/Kconfig b/net/Kconfig
-index 7b6cd34..19b8f9a 100644
---- a/net/Kconfig
-+++ b/net/Kconfig
-@@ -215,6 +215,7 @@ source "net/802/Kconfig"
- source "net/bridge/Kconfig"
- source "net/dsa/Kconfig"
- source "net/8021q/Kconfig"
-+source "net/tsn/Kconfig"
- source "net/decnet/Kconfig"
- source "net/llc/Kconfig"
- source "net/ipx/Kconfig"
-diff --git a/net/tsn/Kconfig b/net/tsn/Kconfig
-new file mode 100644
-index 0000000..1fc3c1d
---- /dev/null
-+++ b/net/tsn/Kconfig
-@@ -0,0 +1,32 @@
-+#
-+# Configuration for 802.1 Time Sensitive Networking (TSN)
-+#
-+
-+config TSN
-+	tristate "802.1 TSN Support"
-+	depends on VLAN_8021Q && PTP_1588_CLOCK && CONFIGFS_FS
-+	---help---
-+	  Select this if you want to enable TSN on capable interfaces.
-+
-+	  TSN allows you to set up deterministic links on your LAN (only
-+	  L2 is currently supported). Once loaded, the driver will probe
-+	  all available interfaces if they are capable of supporting TSN
-+	  links.
-+
-+	  Once loaded, a directory in configfs called tsn/ will expose
-+	  the capable NICs and allow userspace to create
-+	  links. Userspace must provide us with a StreamID as well as
-+	  reserving bandwidth through the network and once this is done,
-+	  a new link can be created by issuing a mkdir() in configfs and
-+	  updating the attributes for the new link.
-+
-+	  TSN itself does not produce nor consume data, it is dependent
-+	  upon 'shims' doing this, which can be virtually anything. ALSA
-+	  is a good candidate.
-+
-+	  For more information, refer to the TSN-documentation in the
-+	  kernel documentation repository.
-+
-+	  The resulting module will be called 'tsn'
-+
-+	  If unsure, say N.
--- 
-2.7.4
+  */
 
+-#include <linux/module.h>
++#include <linux/delay.h>
+
+ #include "stk1160.h"
+ #include "stk1160-reg.h"
+
++static int stk1160_ac97_wait_transfer_complete(struct stk1160 *dev)
++{
++       unsigned long timeout =3D jiffies +
+msecs_to_jiffies(STK1160_AC97_TIMEOUT);
++       u8 value;
++
++       /* Wait for AC97 transfer to complete */
++       while (time_is_after_jiffies(timeout)) {
++               stk1160_read_reg(dev, STK1160_AC97CTL_0, &value);
++
++               if (!(value & (STK1160_AC97CTL_0_CR | STK1160_AC97CTL_0_CW)=
+))
++                       return 0;
++
++               msleep(1);
++       }
++
++       stk1160_err("AC97 transfer took too long, this should never happen!=
+");
++       return -EBUSY;
++}
++
+ static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
+ {
+        /* Set codec register address */
+@@ -37,11 +56,11 @@ static void stk1160_write_ac97(struct stk1160
+*dev, u16 reg, u16 value)
+        stk1160_write_reg(dev, STK1160_AC97_CMD, value & 0xff);
+        stk1160_write_reg(dev, STK1160_AC97_CMD + 1, (value & 0xff00) >> 8)=
+;
+
+-       /*
+-        * Set command write bit to initiate write operation.
+-        * The bit will be cleared when transfer is done.
+-        */
++       /* Set command write bit to initiate write operation */
+        stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
++
++       /* Wait for command write bit to be cleared */
++       stk1160_ac97_wait_transfer_complete(dev);
+ }
+
+ #ifdef DEBUG
+@@ -53,12 +72,14 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 r=
+eg)
+        /* Set codec register address */
+        stk1160_write_reg(dev, STK1160_AC97_ADDR, reg);
+
+-       /*
+-        * Set command read bit to initiate read operation.
+-        * The bit will be cleared when transfer is done.
+-        */
++       /* Set command read bit to initiate read operation */
+        stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
+
++       /* Wait for command read bit to be cleared */
++       if (stk1160_ac97_wait_transfer_complete(dev) < 0) {
++               return 0;
++       }
++
+        /* Retrieve register value */
+        stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
+        stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
+diff --git a/drivers/media/usb/stk1160/stk1160-reg.h
+b/drivers/media/usb/stk1160/stk1160-reg.h
+index 296a9e7..7b08a3c 100644
+--- a/drivers/media/usb/stk1160/stk1160-reg.h
++++ b/drivers/media/usb/stk1160/stk1160-reg.h
+@@ -122,6 +122,8 @@
+ /* AC97 Audio Control */
+ #define STK1160_AC97CTL_0              0x500
+ #define STK1160_AC97CTL_1              0x504
++#define  STK1160_AC97CTL_0_CR          BIT(1)
++#define  STK1160_AC97CTL_0_CW          BIT(2)
+
+ /* Use [0:6] bits of register 0x504 to set codec command address */
+ #define STK1160_AC97_ADDR              0x504
+diff --git a/drivers/media/usb/stk1160/stk1160.h
+b/drivers/media/usb/stk1160/stk1160.h
+index e85e12e..acd1c81 100644
+--- a/drivers/media/usb/stk1160/stk1160.h
++++ b/drivers/media/usb/stk1160/stk1160.h
+@@ -50,6 +50,8 @@
+ #define STK1160_MAX_INPUT 4
+ #define STK1160_SVIDEO_INPUT 4
+
++#define STK1160_AC97_TIMEOUT 50
++
+ #define STK1160_I2C_TIMEOUT 100
+
+Best regards
+Marcel
