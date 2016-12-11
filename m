@@ -1,50 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:65058 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753678AbcLYSnW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 13:43:22 -0500
-Subject: [PATCH 11/19] [media] uvc_driver: Delete an unnecessary variable
- initialisation in uvc_parse_streaming()
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <268fc54b-9e81-dead-2ee4-3cd8f2caef4b@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 19:43:13 +0100
-MIME-Version: 1.0
-In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:36390 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750756AbcLKIfo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Dec 2016 03:35:44 -0500
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] drivers: media: i2c: mt9t001: constify v4l2_subdev_* structures
+Date: Sun, 11 Dec 2016 14:05:26 +0530
+Message-Id: <1481445326-19864-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 16:02:46 +0100
+v4l2_subdev_{core/pad/video}_ops structures are stored in the 
+fields of the v4l2_subdev_ops structure which are of
+type const. Also, v4l2_subdev_ops structure is passed to a function 
+having its argument of type const. As these structures are never 
+modified, so declare them as const.
+Done using Coccinelle: (One of the scripts used)
 
-The local variable "streaming" will be set to an appropriate pointer
-a bit later. Thus omit the explicit initialisation at the beginning.
+@r1 disable optional_qualifier @
+identifier i;
+position p;
+@@
+static struct v4l2_subdev_ops i@p = {...};
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+@ok1@
+identifier r1.i;
+position p;
+expression e1,e2;
+@@
+v4l2_i2c_subdev_init(e1,e2,&i@p)
+
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
+
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct v4l2_subdev_ops i;
+
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+   6119	    736	     16	   6871	   1ad7	drivers/media/i2c/mt9t001.o
+
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+   6631	    232	     16	   6879	   1adf	drivers/media/i2c/mt9t001.o
+
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/mt9t001.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 5736f8b26f92..5bb18a5f7d9f 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -631,7 +631,7 @@ static int uvc_parse_format(struct uvc_device *dev,
- static int uvc_parse_streaming(struct uvc_device *dev,
- 	struct usb_interface *intf)
- {
--	struct uvc_streaming *streaming = NULL;
-+	struct uvc_streaming *streaming;
- 	struct uvc_format *format;
- 	struct uvc_frame *frame;
- 	struct usb_host_interface *alts = &intf->altsetting[0];
+diff --git a/drivers/media/i2c/mt9t001.c b/drivers/media/i2c/mt9t001.c
+index 842017f..9d981d9 100644
+--- a/drivers/media/i2c/mt9t001.c
++++ b/drivers/media/i2c/mt9t001.c
+@@ -822,15 +822,15 @@ static int mt9t001_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+ 	return mt9t001_set_power(subdev, 0);
+ }
+ 
+-static struct v4l2_subdev_core_ops mt9t001_subdev_core_ops = {
++static const struct v4l2_subdev_core_ops mt9t001_subdev_core_ops = {
+ 	.s_power = mt9t001_set_power,
+ };
+ 
+-static struct v4l2_subdev_video_ops mt9t001_subdev_video_ops = {
++static const struct v4l2_subdev_video_ops mt9t001_subdev_video_ops = {
+ 	.s_stream = mt9t001_s_stream,
+ };
+ 
+-static struct v4l2_subdev_pad_ops mt9t001_subdev_pad_ops = {
++static const struct v4l2_subdev_pad_ops mt9t001_subdev_pad_ops = {
+ 	.enum_mbus_code = mt9t001_enum_mbus_code,
+ 	.enum_frame_size = mt9t001_enum_frame_size,
+ 	.get_fmt = mt9t001_get_format,
+@@ -839,7 +839,7 @@ static int mt9t001_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+ 	.set_selection = mt9t001_set_selection,
+ };
+ 
+-static struct v4l2_subdev_ops mt9t001_subdev_ops = {
++static const struct v4l2_subdev_ops mt9t001_subdev_ops = {
+ 	.core = &mt9t001_subdev_core_ops,
+ 	.video = &mt9t001_subdev_video_ops,
+ 	.pad = &mt9t001_subdev_pad_ops,
 -- 
-2.11.0
+1.9.1
 
