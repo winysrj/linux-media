@@ -1,79 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:44101
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751201AbcLENQA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 08:16:00 -0500
-Subject: Re: [PATCH v2] v4l: async: make v4l2 coexist with devicetree nodes in
- a dt overlay
-To: Javi Merino <javi.merino@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <1480932596-4108-1-git-send-email-javi.merino@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        devicetree@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Message-ID: <0b71cde6-143c-0fa3-30c3-22caf94e14ec@osg.samsung.com>
-Date: Mon, 5 Dec 2016 10:13:38 -0300
-MIME-Version: 1.0
-In-Reply-To: <1480932596-4108-1-git-send-email-javi.merino@kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:48887 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751256AbcLLPBC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 10:01:02 -0500
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
+        geert+renesas@glider.be, akpm@linux-foundation.org,
+        linux@roeck-us.net, hverkuil@xs4all.nl,
+        laurent.pinchart+renesas@ideasonboard.com, arnd@arndb.de,
+        sudipm.mukherjee@gmail.com, tiffany.lin@mediatek.com,
+        minghsiu.tsai@mediatek.com, jean-christophe.trotin@st.com,
+        andrew-ct.chen@mediatek.com, simon.horman@netronome.com,
+        songjun.wu@microchip.com, bparrot@ti.com,
+        CARLOS.PALMINHA@synopsys.com, Ramiro.Oliveira@synopsys.com
+Subject: [PATCH v2 0/2] Add support for the DW IP Prototyping Kits for MIPI CSI-2 Host
+Date: Mon, 12 Dec 2016 15:00:34 +0000
+Message-Id: <cover.1481548484.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Javi,
+This patchset adds support for the DW CSI-2 Host IPK. These kits are intended
+to help in the bringup of IP titles developed by Synopsys.
 
-On 12/05/2016 07:09 AM, Javi Merino wrote:
-> In asds configured with V4L2_ASYNC_MATCH_OF, the v4l2 subdev can be
-> part of a devicetree overlay, for example:
-> 
-> &media_bridge {
-> 	...
-> 	my_port: port@0 {
-> 		#address-cells = <1>;
-> 		#size-cells = <0>;
-> 		reg = <0>;
-> 		ep: endpoint@0 {
-> 			remote-endpoint = <&camera0>;
-> 		};
-> 	};
-> };
-> 
-> / {
-> 	fragment@0 {
-> 		target = <&i2c0>;
-> 		__overlay__ {
-> 			my_cam {
-> 				compatible = "foo,bar";
-> 				port {
-> 					camera0: endpoint {
-> 						remote-endpoint = <&my_port>;
-> 						...
-> 					};
-> 				};
-> 			};
-> 		};
-> 	};
-> };
-> 
-> Each time the overlay is applied, its of_node pointer will be
-> different.  We are not interested in matching the pointer, what we
-> want to match is that the path is the one we are expecting.  Change to
-> use of_node_cmp() so that we continue matching after the overlay has
-> been removed and reapplied.
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Signed-off-by: Javi Merino <javi.merino@kernel.org>
-> ---
+This is the second version of this patchset.
 
-I already reviewed v1 but you didn't carry the tag. So again:
+v2: 
+ - Add more detailed descriptions in the DT documentation
+ - Add binding examples to DT documentation
+ - Remove unnecessary debug structures
+ - Remove unused fields in structures
+ - Change variable types
+ - Remove unused functions
+ - Declare functions as static
+ - Remove some prints
+ - Add missing newlines.
 
-Reviewed-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-Best regards,
+Ramiro Oliveira (2):
+  Add Documentation for Media Device, Video Device, and Synopsys DW MIPI
+    CSI-2 Host
+  Support for basic DW CSI-2 Host IPK funcionality
+
+ .../devicetree/bindings/media/snps,dw-mipi-csi.txt |  27 +
+ .../devicetree/bindings/media/snps,plat-ipk.txt    |   9 +
+ .../bindings/media/snps,video-device.txt           |  12 +
+ MAINTAINERS                                        |   7 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/dwc/Kconfig                 |  36 +
+ drivers/media/platform/dwc/Makefile                |   3 +
+ drivers/media/platform/dwc/dw_mipi_csi.c           | 647 ++++++++++++++++
+ drivers/media/platform/dwc/dw_mipi_csi.h           | 180 +++++
+ drivers/media/platform/dwc/plat_ipk.c              | 818 +++++++++++++++++++++
+ drivers/media/platform/dwc/plat_ipk.h              | 101 +++
+ drivers/media/platform/dwc/plat_ipk_video.h        |  97 +++
+ drivers/media/platform/dwc/video_device.c          | 707 ++++++++++++++++++
+ drivers/media/platform/dwc/video_device.h          |  85 +++
+ 15 files changed, 2732 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/snps,dw-mipi-csi.txt
+ create mode 100644 Documentation/devicetree/bindings/media/snps,plat-ipk.txt
+ create mode 100644 Documentation/devicetree/bindings/media/snps,video-device.txt
+ create mode 100644 drivers/media/platform/dwc/Kconfig
+ create mode 100644 drivers/media/platform/dwc/Makefile
+ create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.c
+ create mode 100644 drivers/media/platform/dwc/dw_mipi_csi.h
+ create mode 100644 drivers/media/platform/dwc/plat_ipk.c
+ create mode 100644 drivers/media/platform/dwc/plat_ipk.h
+ create mode 100644 drivers/media/platform/dwc/plat_ipk_video.h
+ create mode 100644 drivers/media/platform/dwc/video_device.c
+ create mode 100644 drivers/media/platform/dwc/video_device.h
+
 -- 
-Javier Martinez Canillas
-Open Source Group
-Samsung Research America
+2.10.2
+
+
