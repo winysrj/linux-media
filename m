@@ -1,197 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:48911 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932328AbcLLVNs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:48 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: James Hogan <james.hogan@imgtec.com>,
-        Sifan Naeem <sifan.naeem@imgtec.com>
-Subject: [PATCH v5 02/18] [media] img-ir: use new wakeup_protocols sysfs mechanism
-Date: Mon, 12 Dec 2016 21:13:43 +0000
-Message-Id: <074994409ca834b6fcd950e7da60456247f12ce5.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58561 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751995AbcLLInd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 03:43:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhumika Goyal <bhumirks@gmail.com>
+Cc: julia.lawall@lip6.fr, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] drivers: media: i2c: constify v4l2_subdev_* structures
+Date: Mon, 12 Dec 2016 10:44:02 +0200
+Message-ID: <5415962.NnTQRlbICJ@avalon>
+In-Reply-To: <1481528732-15565-1-git-send-email-bhumirks@gmail.com>
+References: <1481528732-15565-1-git-send-email-bhumirks@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than guessing what variant a scancode is from its length,
-use the new wakeup_protocol.
+Hi Bhumika,
 
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Sifan Naeem <sifan.naeem@imgtec.com>
----
- drivers/media/rc/img-ir/img-ir-hw.c    |  2 +-
- drivers/media/rc/img-ir/img-ir-hw.h    |  2 +-
- drivers/media/rc/img-ir/img-ir-jvc.c   |  2 +-
- drivers/media/rc/img-ir/img-ir-nec.c   |  6 +++---
- drivers/media/rc/img-ir/img-ir-rc5.c   |  2 +-
- drivers/media/rc/img-ir/img-ir-rc6.c   |  2 +-
- drivers/media/rc/img-ir/img-ir-sanyo.c |  2 +-
- drivers/media/rc/img-ir/img-ir-sharp.c |  2 +-
- drivers/media/rc/img-ir/img-ir-sony.c  | 11 +++--------
- 9 files changed, 13 insertions(+), 18 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
-index 1a0811d..841d9d7 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.c
-+++ b/drivers/media/rc/img-ir/img-ir-hw.c
-@@ -488,7 +488,7 @@ static int img_ir_set_filter(struct rc_dev *dev, enum rc_filter_type type,
- 	/* convert scancode filter to raw filter */
- 	filter.minlen = 0;
- 	filter.maxlen = ~0;
--	ret = hw->decoder->filter(sc_filter, &filter, hw->enabled_protocols);
-+	ret = hw->decoder->filter(sc_filter, &filter, dev->wakeup_protocol);
- 	if (ret)
- 		goto unlock;
- 	dev_dbg(priv->dev, "IR raw %sfilter=%016llx & %016llx\n",
-diff --git a/drivers/media/rc/img-ir/img-ir-hw.h b/drivers/media/rc/img-ir/img-ir-hw.h
-index 91a2977..e1959ddc 100644
---- a/drivers/media/rc/img-ir/img-ir-hw.h
-+++ b/drivers/media/rc/img-ir/img-ir-hw.h
-@@ -179,7 +179,7 @@ struct img_ir_decoder {
- 	int (*scancode)(int len, u64 raw, u64 enabled_protocols,
- 			struct img_ir_scancode_req *request);
- 	int (*filter)(const struct rc_scancode_filter *in,
--		      struct img_ir_filter *out, u64 protocols);
-+		      struct img_ir_filter *out, enum rc_type protocol);
- };
- 
- extern struct img_ir_decoder img_ir_nec;
-diff --git a/drivers/media/rc/img-ir/img-ir-jvc.c b/drivers/media/rc/img-ir/img-ir-jvc.c
-index d3e2fc0..10b302c 100644
---- a/drivers/media/rc/img-ir/img-ir-jvc.c
-+++ b/drivers/media/rc/img-ir/img-ir-jvc.c
-@@ -30,7 +30,7 @@ static int img_ir_jvc_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert JVC scancode to JVC data filter */
- static int img_ir_jvc_filter(const struct rc_scancode_filter *in,
--			     struct img_ir_filter *out, u64 protocols)
-+			     struct img_ir_filter *out, enum rc_type protocol)
- {
- 	unsigned int cust, data;
- 	unsigned int cust_m, data_m;
-diff --git a/drivers/media/rc/img-ir/img-ir-nec.c b/drivers/media/rc/img-ir/img-ir-nec.c
-index 0931493..fff00d4 100644
---- a/drivers/media/rc/img-ir/img-ir-nec.c
-+++ b/drivers/media/rc/img-ir/img-ir-nec.c
-@@ -54,7 +54,7 @@ static int img_ir_nec_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert NEC scancode to NEC data filter */
- static int img_ir_nec_filter(const struct rc_scancode_filter *in,
--			     struct img_ir_filter *out, u64 protocols)
-+			     struct img_ir_filter *out, enum rc_type protocol)
- {
- 	unsigned int addr, addr_inv, data, data_inv;
- 	unsigned int addr_m, addr_inv_m, data_m, data_inv_m;
-@@ -62,7 +62,7 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
- 	data       = in->data & 0xff;
- 	data_m     = in->mask & 0xff;
- 
--	if ((in->data | in->mask) & 0xff000000) {
-+	if (protocol == RC_TYPE_NEC32) {
- 		/* 32-bit NEC (used by Apple and TiVo remotes) */
- 		/* scan encoding: as transmitted, MSBit = first received bit */
- 		addr       = bitrev8(in->data >> 24);
-@@ -73,7 +73,7 @@ static int img_ir_nec_filter(const struct rc_scancode_filter *in,
- 		data_m     = bitrev8(in->mask >>  8);
- 		data_inv   = bitrev8(in->data >>  0);
- 		data_inv_m = bitrev8(in->mask >>  0);
--	} else if ((in->data | in->mask) & 0x00ff0000) {
-+	} else if (protocol == RC_TYPE_NECX) {
- 		/* Extended NEC */
- 		/* scan encoding AAaaDD */
- 		addr       = (in->data >> 16) & 0xff;
-diff --git a/drivers/media/rc/img-ir/img-ir-rc5.c b/drivers/media/rc/img-ir/img-ir-rc5.c
-index a8a28a3..24a6bcf 100644
---- a/drivers/media/rc/img-ir/img-ir-rc5.c
-+++ b/drivers/media/rc/img-ir/img-ir-rc5.c
-@@ -41,7 +41,7 @@ static int img_ir_rc5_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert RC5 scancode to RC5 data filter */
- static int img_ir_rc5_filter(const struct rc_scancode_filter *in,
--				 struct img_ir_filter *out, u64 protocols)
-+			     struct img_ir_filter *out, enum rc_type protocol)
- {
- 	/* Not supported by the hw. */
- 	return -EINVAL;
-diff --git a/drivers/media/rc/img-ir/img-ir-rc6.c b/drivers/media/rc/img-ir/img-ir-rc6.c
-index de1e275..451e2ef8 100644
---- a/drivers/media/rc/img-ir/img-ir-rc6.c
-+++ b/drivers/media/rc/img-ir/img-ir-rc6.c
-@@ -62,7 +62,7 @@ static int img_ir_rc6_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert RC6 scancode to RC6 data filter */
- static int img_ir_rc6_filter(const struct rc_scancode_filter *in,
--				 struct img_ir_filter *out, u64 protocols)
-+			     struct img_ir_filter *out, enum rc_type protocol)
- {
- 	/* Not supported by the hw. */
- 	return -EINVAL;
-diff --git a/drivers/media/rc/img-ir/img-ir-sanyo.c b/drivers/media/rc/img-ir/img-ir-sanyo.c
-index f394994..8f542bd 100644
---- a/drivers/media/rc/img-ir/img-ir-sanyo.c
-+++ b/drivers/media/rc/img-ir/img-ir-sanyo.c
-@@ -51,7 +51,7 @@ static int img_ir_sanyo_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert Sanyo scancode to Sanyo data filter */
- static int img_ir_sanyo_filter(const struct rc_scancode_filter *in,
--			       struct img_ir_filter *out, u64 protocols)
-+			       struct img_ir_filter *out, enum rc_type protocol)
- {
- 	unsigned int addr, addr_inv, data, data_inv;
- 	unsigned int addr_m, data_m;
-diff --git a/drivers/media/rc/img-ir/img-ir-sharp.c b/drivers/media/rc/img-ir/img-ir-sharp.c
-index fe5acc4..c8b4e9b 100644
---- a/drivers/media/rc/img-ir/img-ir-sharp.c
-+++ b/drivers/media/rc/img-ir/img-ir-sharp.c
-@@ -39,7 +39,7 @@ static int img_ir_sharp_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert Sharp scancode to Sharp data filter */
- static int img_ir_sharp_filter(const struct rc_scancode_filter *in,
--			       struct img_ir_filter *out, u64 protocols)
-+			       struct img_ir_filter *out, enum rc_type protocol)
- {
- 	unsigned int addr, cmd, exp = 0, chk = 0;
- 	unsigned int addr_m, cmd_m, exp_m = 0, chk_m = 0;
-diff --git a/drivers/media/rc/img-ir/img-ir-sony.c b/drivers/media/rc/img-ir/img-ir-sony.c
-index 7f7375f..ecae41c 100644
---- a/drivers/media/rc/img-ir/img-ir-sony.c
-+++ b/drivers/media/rc/img-ir/img-ir-sony.c
-@@ -55,7 +55,7 @@ static int img_ir_sony_scancode(int len, u64 raw, u64 enabled_protocols,
- 
- /* Convert NEC scancode to NEC data filter */
- static int img_ir_sony_filter(const struct rc_scancode_filter *in,
--			      struct img_ir_filter *out, u64 protocols)
-+			      struct img_ir_filter *out, enum rc_type protocol)
- {
- 	unsigned int dev, subdev, func;
- 	unsigned int dev_m, subdev_m, func_m;
-@@ -68,19 +68,14 @@ static int img_ir_sony_filter(const struct rc_scancode_filter *in,
- 	func     = (in->data >> 0)  & 0x7f;
- 	func_m   = (in->mask >> 0)  & 0x7f;
- 
--	if (subdev & subdev_m) {
-+	if (protocol == RC_TYPE_SONY20) {
- 		/* can't encode subdev and higher device bits */
- 		if (dev & dev_m & 0xe0)
- 			return -EINVAL;
--		/* subdevice (extended) bits only in 20 bit encoding */
--		if (!(protocols & RC_BIT_SONY20))
--			return -EINVAL;
- 		len = 20;
- 		dev_m &= 0x1f;
--	} else if (dev & dev_m & 0xe0) {
-+	} else if (protocol == RC_TYPE_SONY15) {
- 		/* upper device bits only in 15 bit encoding */
--		if (!(protocols & RC_BIT_SONY15))
--			return -EINVAL;
- 		len = 15;
- 		subdev_m = 0;
- 	} else {
+On Monday 12 Dec 2016 13:15:32 Bhumika Goyal wrote:
+> v4l2_subdev_{core/pad/video}_ops structures are stored in the
+> fields of the v4l2_subdev_ops structure which are of type const.
+> Also, v4l2_subdev_ops structure is passed to a function
+> having its argument of type const. As these structures are never
+> modified, so declare them as const.
+> Done using Coccinelle: (One of the scripts used)
+> 
+> @r1 disable optional_qualifier @
+> identifier i;
+> position p;
+> @@
+> static struct v4l2_subdev_video_ops i@p = {...};
+> 
+> @ok1@
+> identifier r1.i;
+> position p;
+> struct v4l2_subdev_ops obj;
+> @@
+> obj.video=&i@p;
+> 
+> @bad@
+> position p!={r1.p,ok1.p};
+> identifier r1.i;
+> @@
+> i@p
+> 
+> @depends on !bad disable optional_qualifier@
+> identifier r1.i;
+> @@
+> +const
+> struct v4l2_subdev_video_ops i;
+> 
+> File sizes before:
+>   text	   data	    bss	    dec	    hex	filename
+>    7810	    736	     16	   8562	   2172	drivers/media/i2c/mt9p031.o
+>    9652	    736	     24	  10412	   28ac	drivers/media/i2c/mt9v032.o
+>    4613	    552	     20	   5185	   1441	
+drivers/media/i2c/noon010pc30.o
+>    2615	    552	      8	   3175	    c67	drivers/media/i2c/s5k6a3.o
+> 
+> File sizes after:
+>   text	   data	    bss	    dec	    hex	filename
+>    8322	    232	     16	   8570	   217a	drivers/media/i2c/mt9p031.o
+>   10164	    232	     24	  10420	   28b4	drivers/media/i2c/mt9v032.o
+>    4933	    232	     20	   5185	   1441	
+drivers/media/i2c/noon010pc30.o
+>    2935	    232	      8	   3175	    c67	drivers/media/i2c/s5k6a3.o
+> 
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/mt9p031.c     | 8 ++++----
+>  drivers/media/i2c/mt9v032.c     | 8 ++++----
+>  drivers/media/i2c/noon010pc30.c | 4 ++--
+>  drivers/media/i2c/s5k6a3.c      | 6 +++---
+>  4 files changed, 13 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> index 237737f..91d822f 100644
+> --- a/drivers/media/i2c/mt9p031.c
+> +++ b/drivers/media/i2c/mt9p031.c
+> @@ -972,15 +972,15 @@ static int mt9p031_close(struct v4l2_subdev *subdev,
+> struct v4l2_subdev_fh *fh) return mt9p031_set_power(subdev, 0);
+>  }
+> 
+> -static struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
+> +static const struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
+>  	.s_power        = mt9p031_set_power,
+>  };
+> 
+> -static struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
+> +static const struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
+>  	.s_stream       = mt9p031_s_stream,
+>  };
+> 
+> -static struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
+> +static const struct v4l2_subdev_pad_ops mt9p031_subdev_pad_ops = {
+>  	.enum_mbus_code = mt9p031_enum_mbus_code,
+>  	.enum_frame_size = mt9p031_enum_frame_size,
+>  	.get_fmt = mt9p031_get_format,
+> @@ -989,7 +989,7 @@ static int mt9p031_close(struct v4l2_subdev *subdev,
+> struct v4l2_subdev_fh *fh) .set_selection = mt9p031_set_selection,
+>  };
+> 
+> -static struct v4l2_subdev_ops mt9p031_subdev_ops = {
+> +static const struct v4l2_subdev_ops mt9p031_subdev_ops = {
+>  	.core   = &mt9p031_subdev_core_ops,
+>  	.video  = &mt9p031_subdev_video_ops,
+>  	.pad    = &mt9p031_subdev_pad_ops,
+> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> index 58eb62f..88b7890 100644
+> --- a/drivers/media/i2c/mt9v032.c
+> +++ b/drivers/media/i2c/mt9v032.c
+> @@ -936,15 +936,15 @@ static int mt9v032_close(struct v4l2_subdev *subdev,
+> struct v4l2_subdev_fh *fh) return mt9v032_set_power(subdev, 0);
+>  }
+> 
+> -static struct v4l2_subdev_core_ops mt9v032_subdev_core_ops = {
+> +static const struct v4l2_subdev_core_ops mt9v032_subdev_core_ops = {
+>  	.s_power	= mt9v032_set_power,
+>  };
+> 
+> -static struct v4l2_subdev_video_ops mt9v032_subdev_video_ops = {
+> +static const struct v4l2_subdev_video_ops mt9v032_subdev_video_ops = {
+>  	.s_stream	= mt9v032_s_stream,
+>  };
+> 
+> -static struct v4l2_subdev_pad_ops mt9v032_subdev_pad_ops = {
+> +static const struct v4l2_subdev_pad_ops mt9v032_subdev_pad_ops = {
+>  	.enum_mbus_code = mt9v032_enum_mbus_code,
+>  	.enum_frame_size = mt9v032_enum_frame_size,
+>  	.get_fmt = mt9v032_get_format,
+> @@ -953,7 +953,7 @@ static int mt9v032_close(struct v4l2_subdev *subdev,
+> struct v4l2_subdev_fh *fh) .set_selection = mt9v032_set_selection,
+>  };
+> 
+> -static struct v4l2_subdev_ops mt9v032_subdev_ops = {
+> +static const struct v4l2_subdev_ops mt9v032_subdev_ops = {
+>  	.core	= &mt9v032_subdev_core_ops,
+>  	.video	= &mt9v032_subdev_video_ops,
+>  	.pad	= &mt9v032_subdev_pad_ops,
+> diff --git a/drivers/media/i2c/noon010pc30.c
+> b/drivers/media/i2c/noon010pc30.c index 30cb90b..88c498a 100644
+> --- a/drivers/media/i2c/noon010pc30.c
+> +++ b/drivers/media/i2c/noon010pc30.c
+> @@ -664,13 +664,13 @@ static int noon010_open(struct v4l2_subdev *sd, struct
+> v4l2_subdev_fh *fh) .log_status	= noon010_log_status,
+>  };
+> 
+> -static struct v4l2_subdev_pad_ops noon010_pad_ops = {
+> +static const struct v4l2_subdev_pad_ops noon010_pad_ops = {
+>  	.enum_mbus_code	= noon010_enum_mbus_code,
+>  	.get_fmt	= noon010_get_fmt,
+>  	.set_fmt	= noon010_set_fmt,
+>  };
+> 
+> -static struct v4l2_subdev_video_ops noon010_video_ops = {
+> +static const struct v4l2_subdev_video_ops noon010_video_ops = {
+>  	.s_stream	= noon010_s_stream,
+>  };
+> 
+> diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
+> index 7699640..67dcca7 100644
+> --- a/drivers/media/i2c/s5k6a3.c
+> +++ b/drivers/media/i2c/s5k6a3.c
+> @@ -165,7 +165,7 @@ static int s5k6a3_get_fmt(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+> 
+> -static struct v4l2_subdev_pad_ops s5k6a3_pad_ops = {
+> +static const struct v4l2_subdev_pad_ops s5k6a3_pad_ops = {
+>  	.enum_mbus_code	= s5k6a3_enum_mbus_code,
+>  	.get_fmt	= s5k6a3_get_fmt,
+>  	.set_fmt	= s5k6a3_set_fmt,
+> @@ -266,11 +266,11 @@ static int s5k6a3_s_power(struct v4l2_subdev *sd, int
+> on) return ret;
+>  }
+> 
+> -static struct v4l2_subdev_core_ops s5k6a3_core_ops = {
+> +static const struct v4l2_subdev_core_ops s5k6a3_core_ops = {
+>  	.s_power = s5k6a3_s_power,
+>  };
+> 
+> -static struct v4l2_subdev_ops s5k6a3_subdev_ops = {
+> +static const struct v4l2_subdev_ops s5k6a3_subdev_ops = {
+>  	.core = &s5k6a3_core_ops,
+>  	.pad = &s5k6a3_pad_ops,
+>  };
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
