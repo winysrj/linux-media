@@ -1,90 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57776 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753952AbcLIOx4 (ORCPT
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:37298 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752472AbcLLPzi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 09:53:56 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+        Mon, 12 Dec 2016 10:55:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, niklas.soderlund@ragnatech.se
-Subject: [PATCH v2 6/9] media: entity: Add debug information to graph walk
-Date: Fri,  9 Dec 2016 16:53:39 +0200
-Message-Id: <1481295222-14743-7-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com>
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 14/15] sama5d3 dts: enable atmel-isi
+Date: Mon, 12 Dec 2016 16:55:19 +0100
+Message-Id: <20161212155520.41375-15-hverkuil@xs4all.nl>
+In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use dev_dbg() to tell about the progress of the graph traversal algorithm.
-This is intended to make debugging of the algorithm easier.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This illustrates the changes needed to the dts in order to hook up the
+ov7670. I don't plan on merging this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/media-entity.c | 19 ++++++++++++++++++-
- 1 file changed, 18 insertions(+), 1 deletion(-)
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts | 61 ++++++++++++++++++++++++++---
+ arch/arm/boot/dts/sama5d3.dtsi              |  4 +-
+ 2 files changed, 58 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 5064ba0..caa13e6 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -325,6 +325,8 @@ void media_graph_walk_start(struct media_graph *graph,
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
- 	stack_push(graph, entity);
-+	dev_dbg(entity->graph_obj.mdev->dev,
-+		"begin graph walk at '%s'\n", entity->name);
- }
- EXPORT_SYMBOL_GPL(media_graph_walk_start);
+diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+index c51fc65..2af24f7 100644
+--- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
++++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+@@ -65,18 +65,53 @@
+ 				status = "okay";
+ 			};
  
-@@ -339,6 +341,10 @@ static void media_graph_walk_iter(struct media_graph *graph)
- 	/* The link is not enabled so we do not follow. */
- 	if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
- 		link_top(graph) = link_top(graph)->next;
-+		dev_dbg(entity->graph_obj.mdev->dev,
-+			"walk: skipping disabled link '%s':%u -> '%s':%u\n",
-+			link->source->entity->name, link->source->index,
-+			link->sink->entity->name, link->sink->index);
- 		return;
- 	}
- 
-@@ -348,16 +354,23 @@ static void media_graph_walk_iter(struct media_graph *graph)
- 	/* Has the entity already been visited? */
- 	if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
- 		link_top(graph) = link_top(graph)->next;
-+		dev_dbg(entity->graph_obj.mdev->dev,
-+			"walk: skipping entity '%s' (already seen)\n",
-+			next->name);
- 		return;
- 	}
- 
- 	/* Push the new entity to stack and start over. */
- 	link_top(graph) = link_top(graph)->next;
- 	stack_push(graph, next);
-+	dev_dbg(entity->graph_obj.mdev->dev, "walk: pushing '%s' on stack\n",
-+		next->name);
- }
- 
- struct media_entity *media_graph_walk_next(struct media_graph *graph)
- {
-+	struct media_entity *entity;
++			isi0: isi@f0034000 {
++				status = "okay";
++				port {
++					#address-cells = <1>;
++					#size-cells = <0>;
++					isi_0: endpoint {
++						reg = <0>;
++						remote-endpoint = <&ov7670_0>;
++						bus-width = <8>;
++						vsync-active = <1>;
++						hsync-active = <1>;
++					};
++				};
++			};
 +
- 	if (stack_top(graph) == NULL)
- 		return NULL;
+ 			i2c0: i2c@f0014000 {
+ 				pinctrl-0 = <&pinctrl_i2c0_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
  
-@@ -369,7 +382,11 @@ struct media_entity *media_graph_walk_next(struct media_graph *graph)
- 	while (link_top(graph) != &stack_top(graph)->links)
- 		media_graph_walk_iter(graph);
+ 			i2c1: i2c@f0018000 {
+ 				status = "okay";
  
--	return stack_pop(graph);
-+	entity = stack_pop(graph);
-+	dev_dbg(entity->graph_obj.mdev->dev,
-+		"walk: returning entity '%s'\n", entity->name);
++				ov7670: camera@0x21 {
++					compatible = "ovti,ov7670";
++					reg = <0x21>;
++					pinctrl-names = "default";
++					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++					clocks = <&pck0>;
++					clock-names = "xclk";
++					assigned-clocks = <&pck0>;
++					assigned-clock-rates = <25000000>;
 +
-+	return entity;
- }
- EXPORT_SYMBOL_GPL(media_graph_walk_next);
++					port {
++						ov7670_0: endpoint {
++							remote-endpoint = <&isi_0>;
++							bus-width = <8>;
++						};
++					};
++				};
++
+ 				pmic: act8865@5b {
+ 					compatible = "active-semi,act8865";
+ 					reg = <0x5b>;
+-					status = "disabled";
++					status = "okay";
  
+ 					regulators {
+ 						vcc_1v8_reg: DCDC_REG1 {
+@@ -130,7 +165,7 @@
+ 			pwm0: pwm@f002c000 {
+ 				pinctrl-names = "default";
+ 				pinctrl-0 = <&pinctrl_pwm0_pwmh0_0 &pinctrl_pwm0_pwmh1_0>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -143,7 +178,7 @@
+ 			};
+ 
+ 			uart0: serial@f0024000 {
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			mmc1: mmc@f8000000 {
+@@ -181,7 +216,7 @@
+ 			i2c2: i2c@f801c000 {
+ 				dmas = <0>, <0>;	/* Do not use DMA for i2c2 */
+ 				pinctrl-0 = <&pinctrl_i2c2_pu>;
+-				status = "okay";
++				status = "disabled";
+ 			};
+ 
+ 			macb1: ethernet@f802c000 {
+@@ -200,6 +235,22 @@
+ 			};
+ 
+ 			pinctrl@fffff200 {
++				camera_sensor {
++					pinctrl_pck0_as_isi_mck: pck0_as_isi_mck-0 {
++						atmel,pins =
++							<AT91_PIOD 30 AT91_PERIPH_B AT91_PINCTRL_NONE>;	/* ISI_MCK */
++					};
++
++					pinctrl_sensor_power: sensor_power-0 {
++						atmel,pins =
++							<AT91_PIOE 13 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++
++					pinctrl_sensor_reset: sensor_reset-0 {
++						atmel,pins =
++							<AT91_PIOE 11 AT91_PERIPH_GPIO AT91_PINCTRL_NONE>;
++					};
++				};
+ 				board {
+ 					pinctrl_i2c0_pu: i2c0_pu {
+ 						atmel,pins =
+diff --git a/arch/arm/boot/dts/sama5d3.dtsi b/arch/arm/boot/dts/sama5d3.dtsi
+index 4c84d33..a4afa84 100644
+--- a/arch/arm/boot/dts/sama5d3.dtsi
++++ b/arch/arm/boot/dts/sama5d3.dtsi
+@@ -176,7 +176,7 @@
+ 				#address-cells = <1>;
+ 				#size-cells = <0>;
+ 				clocks = <&twi1_clk>;
+-				status = "disabled";
++				status = "ok";
+ 			};
+ 
+ 			usart0: serial@f001c000 {
+@@ -235,7 +235,7 @@
+ 				pinctrl-0 = <&pinctrl_isi_data_0_7>;
+ 				clocks = <&isi_clk>;
+ 				clock-names = "isi_clk";
+-				status = "disabled";
++				status = "ok";
+ 				port {
+ 					#address-cells = <1>;
+ 					#size-cells = <0>;
 -- 
-2.1.4
+2.10.2
 
