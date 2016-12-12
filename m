@@ -1,57 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:52430 "EHLO muru.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932464AbcLNPJm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 10:09:42 -0500
-Date: Wed, 14 Dec 2016 07:08:19 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, khilman@kernel.org,
-        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com
-Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
-Message-ID: <20161214150819.GW4920@atomide.com>
-References: <20160521054336.GA27123@amd>
- <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
- <20160808214132.GB2946@xo-6d-61-c0.localdomain>
- <201612141438.16603@pali>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <201612141438.16603@pali>
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41657 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752456AbcLLPzZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 10:55:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 02/15] ov7670: call v4l2_async_register_subdev
+Date: Mon, 12 Dec 2016 16:55:07 +0100
+Message-Id: <20161212155520.41375-3-hverkuil@xs4all.nl>
+In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Pali Rohár <pali.rohar@gmail.com> [161214 05:38]:
-> On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
-> > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
-> > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
-> > > > This adds support for AD5820 autofocus coil, found for example in
-> > > > Nokia N900 smartphone.
-> > > 
-> > > Thanks, Pavel!
-> > > 
-> > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
-> > > something better in the future, we'll switch to that then.
-> > > 
-> > > I've applied this to ad5820 branch in my tree.
-> > 
-> > Thanks. If I understands things correctly, both DTS patch and this
-> > patch are waiting in your tree, so we should be good to go for 4.9
-> > (unless some unexpected problems surface)?
-> > 
-> > Best regards,
-> > 									Pavel
-> 
-> Was DTS patch merged into 4.9? At least I do not see updated that dts 
-> file omap3-n900.dts in linus tree...
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If it's not in current mainline or next, it's off my radar so sounds
-like I've somehow missed it and needs resending..
+Add v4l2-async support for this driver.
 
-Tony
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ov7670.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index b0315bb..3f0522f 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1641,18 +1641,15 @@ static int ov7670_probe(struct i2c_client *client,
+ 	if (info->hdl.error) {
+ 		int err = info->hdl.error;
+ 
+-		v4l2_ctrl_handler_free(&info->hdl);
+-		return err;
++		goto fail;
+ 	}
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	info->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
+-	if (ret < 0) {
+-		v4l2_ctrl_handler_free(&info->hdl);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto fail;
+ #endif
+ 	/*
+ 	 * We have checked empirically that hw allows to read back the gain
+@@ -1664,7 +1661,19 @@ static int ov7670_probe(struct i2c_client *client,
+ 	v4l2_ctrl_cluster(2, &info->saturation);
+ 	v4l2_ctrl_handler_setup(&info->hdl);
+ 
++	ret = v4l2_async_register_subdev(&info->sd);
++	if (ret < 0) {
++#if defined(CONFIG_MEDIA_CONTROLLER)
++		media_entity_cleanup(&info->sd.entity);
++#endif
++		goto fail;
++	}
++
+ 	return 0;
++
++fail:
++	v4l2_ctrl_handler_free(&info->hdl);
++	return ret;
+ }
+ 
+ 
+-- 
+2.10.2
+
