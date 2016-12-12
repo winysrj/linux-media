@@ -1,84 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:36453 "EHLO gofer.mess.org"
+Received: from mout.web.de ([212.227.15.4]:63499 "EHLO mout.web.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932543AbcLLVN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 16:13:59 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v5 13/18] [media] rc: ir-sanyo-decoder: Add encode capability
-Date: Mon, 12 Dec 2016 21:13:49 +0000
-Message-Id: <6a17124c0e52c9eb3cfcae69949ce98a3c3d7bbb.1481575826.git.sean@mess.org>
-In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
-In-Reply-To: <cover.1481575826.git.sean@mess.org>
-References: <cover.1481575826.git.sean@mess.org>
+        id S1751028AbcLLSDh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 13:03:37 -0500
+Subject: Re: Clarification for acceptance statistics?
+To: Daniele Nicolodi <daniele@grinta.net>
+References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+ <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
+ <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
+ <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
+ <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
+ <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
+ <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
+Cc: linux-media@vger.kernel.org,
+        Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <3d09590c-9a10-f756-1b71-536ea37d8524@users.sourceforge.net>
+Date: Mon, 12 Dec 2016 19:03:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the capability to encode Sanyo scancodes as raw events.
+> Have you proposed a similar patch that was accepted?
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-sanyo-decoder.c | 43 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+Yes. - It happened a few times.
 
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index b07d9ca..190dd91 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -176,9 +176,52 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
- }
- 
-+static struct ir_raw_timings_pd ir_sanyo_timings = {
-+	.header_pulse  = SANYO_HEADER_PULSE,
-+	.header_space  = SANYO_HEADER_SPACE,
-+	.bit_pulse     = SANYO_BIT_PULSE,
-+	.bit_space[0]  = SANYO_BIT_0_SPACE,
-+	.bit_space[1]  = SANYO_BIT_1_SPACE,
-+	.trailer_pulse = SANYO_TRAILER_PULSE,
-+	.trailer_space = SANYO_TRAILER_SPACE,
-+	.msb_first     = 1,
-+};
-+
-+/**
-+ * ir_sanyo_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol to encode
-+ * @scancode:	scancode to encode
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ */
-+static int ir_sanyo_encode(enum rc_type protocol, u32 scancode,
-+			   struct ir_raw_event *events, unsigned int max)
-+{
-+	struct ir_raw_event *e = events;
-+	int ret;
-+	u64 raw;
-+
-+	raw = ((u64)(bitrev16(scancode >> 8) & 0xfff8) << (8 + 8 + 13 - 3)) |
-+	      ((u64)(bitrev16(~scancode >> 8) & 0xfff8) << (8 + 8 +  0 - 3)) |
-+	      ((bitrev8(scancode) & 0xff) << 8) |
-+	      (bitrev8(~scancode) & 0xff);
-+
-+	ret = ir_raw_gen_pd(&e, max, &ir_sanyo_timings, SANYO_NBITS, raw);
-+	if (ret < 0)
-+		return ret;
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler sanyo_handler = {
- 	.protocols	= RC_BIT_SANYO,
- 	.decode		= ir_sanyo_decode,
-+	.encode		= ir_sanyo_encode,
- };
- 
- static int __init ir_sanyo_decode_init(void)
--- 
-2.9.3
 
+> I don't find record of it, but I may be wrong.
+
+It is really needed to clarify the corresponding software development
+history any further?
+
+Regards,
+Markus
