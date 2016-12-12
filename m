@@ -1,114 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46525 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59903 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752786AbcLHWc6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 17:32:58 -0500
+        with ESMTP id S1752389AbcLLQgc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 11:36:32 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org,
+        Prabhakar Lad <prabhakar.csengg@gmail.com>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        stable@vger.kernel.org
-Subject: Re: [PATCH v3] [media] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
-Date: Fri, 09 Dec 2016 00:33:22 +0200
-Message-ID: <1726705.V5pZ2YOHyk@avalon>
-In-Reply-To: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
-References: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH v2 0/6] Fix tvp5150 regression with em28xx
+Date: Mon, 12 Dec 2016 18:37:01 +0200
+Message-ID: <2038446.MEtJKT2hJE@avalon>
+In-Reply-To: <618f2d04-e17e-54a1-5540-b897155d7318@osg.samsung.com>
+References: <1481284039-7960-1-git-send-email-laurent.pinchart@ideasonboard.com> <20161212075124.4e1ba840@vento.lan> <618f2d04-e17e-54a1-5540-b897155d7318@osg.samsung.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello,
 
-I've just sent a series of patches ("[PATCH 0/6] Fix tvp5150 regression with 
-em28xx") that should fix this problem properly. I unfortunately haven't been 
-able to test it with an em28xx device as I don't own any.
+On Monday 12 Dec 2016 13:22:50 Javier Martinez Canillas wrote:
+> On 12/12/2016 06:51 AM, Mauro Carvalho Chehab wrote:
+> > Em Fri,  9 Dec 2016 13:47:13 +0200 Laurent Pinchart escreveu:
+> >> Hello,
+> >> 
+> >> This patch series fixes a regression reported by Devin Heitmueller that
+> >> affects a large number of em28xx. The problem was introduced by
+> >> 
+> >> commit 13d52fe40f1f7bbad49128e8ee6a2fe5e13dd18d
+> >> Author: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+> >> Date:   Tue Jan 26 06:59:39 2016 -0200
+> >> 
+> >>     [media] em28xx: fix implementation of s_stream
+> >> 
+> >> that started calling s_stream(1) in the em28xx driver when enabling the
+> >> stream, resulting in the tvp5150 s_stream() operation writing several
+> >> registers with values fit for other platforms (namely OMAP3, possibly
+> >> others) but not for em28xx.
+> >> 
+> >> The series starts with two unrelated drive-by cleanups and an unrelated
+> >> bug fix. It then continues with a patch to remove an unneeded and armful
+> >> call to tvp5150_reset() when getting the format from the subdevice (4/6),
+> >> an update of an invalid comment and the addition of macros for register
+> >> bits in order to make the code more readable (5/6) and actually allow
+> >> following the incorrect code flow, and finally a rework of the
+> >> s_stream() operation to fix the problem.
+> >> 
+> >> Compared to v1,
+> >> 
+> >> - Patch 4/5 now calls tvp5150_reset() at probe time
+> >> - Patch 5/6 is fixed with an extra ~ removed
+> >> 
+> >> I haven't been able to test this with an em28xx device as I don't own any
+> >> that contains a tvp5150, but Mauro reported that the series fixes the
+> >> issue with his device.
+> >> 
+> >> I also haven't been able to test anything on an OMAP3 platform, as the
+> >> tvp5150 driver go broken on DT-based systems by
+> > 
+> > I applied today patches 1 to 3, as I don't see any risk of regressions
+> > there. Stable was c/c on patch 3.
+> > 
+> > I want to do more tests on patches 4-6, with both progressive video and
+> > RF. It would also be nice if someone could test it on OMAP3, to be sure
+> > that no regressions happened there.
+> 
+> I've tested patches 4-6 on a IGEPv2 and video capture is still working for
+> both composite input AIP1A (after changing the hardcoded selected input)
+> and AIP1B.
+> 
+> The patches also look good to me, so please feel free to add my Reviewed-by
+> and Tested-by tags on these.
+> 
+> I wasn't able to test S-Video since my S-Video source broke (an old DVD
+> player) but this never worked for me anyways with this board.
 
-On Thursday 08 Dec 2016 17:46:53 Mauro Carvalho Chehab wrote:
-> commit 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-> support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-> depending on the type of bus set via the .set_fmt() subdev callback.
-> 
-> This is known to cause trobules on devices that don't use a V4L2
-> subdev devnode, and a fix for it was made by commit 47de9bf8931e
-> ("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-> such fix doesn't consider the case of progressive video inputs,
-> causing chroma decoding issues on such videos, as it overrides not
-> only the type of video output, but also other unrelated bits.
-> 
-> So, instead of trying to guess, let's detect if the device configuration
-> is set via Device Tree. If not, just ignore the new logic, restoring
-> the original behavior.
-> 
-> Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-> support") Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> 
-> changes since version 2:
->   - fixed settings for register 0x0d
->   - tested on WinTV USB2 with S-Video input
-> 
-> I'll do an extra test with HVR-950 on both S-Video and composite soon enough
-> 
-> changes since version 1: added a notice about what's broken at the
-> tvp5150_stream() logic, and improved patch's description.
-> 
-> changes since RFC: don't touch at enum v4l2_mbus_type.
-> 
->  drivers/media/i2c/tvp5150.c | 16 ++++++++++++++++
->  1 file changed, 16 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 6737685d5be5..8b9d2fad17df 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -57,6 +57,7 @@ struct tvp5150 {
->  	u16 rom_ver;
-> 
->  	enum v4l2_mbus_type mbus_type;
-> +	bool has_dt;
->  };
-> 
->  static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
-> @@ -1053,6 +1054,20 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd,
-> int enable) /* Output format: 8-bit ITU-R BT.656 with embedded syncs */
->  	int val = 0x09;
-> 
-> +	if (!decoder->has_dt)
-> +		return 0;
-> +
-> +	/*
-> +	 * FIXME: the logic below is hardcoded to work with some OMAP3
-> +	 * hardware with tvp5151. As such, it hardcodes values for
-> +	 * both TVP5150_CONF_SHARED_PIN and TVP5150_MISC_CTL, and ignores
-> +	 * what was set before at the driver. Ideally, we should have
-> +	 * DT nodes describing the setup, instead of hardcoding those
-> +	 * values, and doing a read before writing values to
-> +	 * TVP5150_MISC_CTL, but any patch adding support for it should
-> +	 * keep DT backward-compatible.
-> +	 */
-> +
->  	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
->  	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
->  		val = 0x0d;
-> @@ -1471,6 +1486,7 @@ static int tvp5150_probe(struct i2c_client *c,
->  			dev_err(sd->dev, "DT parsing error: %d\n", res);
->  			return res;
->  		}
-> +		decoder->has_dt = true;
->  	} else {
->  		/* Default to BT.656 embedded sync */
->  		core->mbus_type = V4L2_MBUS_BT656;
+I've tested the patches too, in composite mode only as my hardware has a 
+single input. The image quality isn't very good, but I believe that's due to 
+my source. It shouldn't be related to this patch series at least.
+
+I tried both BT.656 and parallel bus modes. The latter didn't work properly, 
+but it wasn't supported when I worked on TVP5151 + OMAP3 support in the first 
+place anyway, so it's not a regression, just something to eventually fix (if I 
+have too much free time).
 
 -- 
 Regards,
