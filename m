@@ -1,94 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f180.google.com ([209.85.220.180]:34258 "EHLO
-        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754805AbcLOAIK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 19:08:10 -0500
-Received: by mail-qk0-f180.google.com with SMTP id q130so39747267qke.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2016 16:07:55 -0800 (PST)
-From: Laura Abbott <labbott@redhat.com>
-To: Sumit Semwal <sumit.semwal@linaro.org>,
-        Riley Andrews <riandrews@android.com>, arve@android.com
-Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linaro-mm-sig@lists.linaro.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-arm-kernel@lists.infradead.org,
-        Bryan Huntsman <bryanh@codeaurora.org>, pratikp@codeaurora.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        Brian Starkey <brian.starkey@arm.com>
-Subject: [RFC PATCH 2/4] staging: android: ion: Duplicate sg_table
-Date: Wed, 14 Dec 2016 16:07:41 -0800
-Message-Id: <1481760463-3515-3-git-send-email-labbott@redhat.com>
-In-Reply-To: <1481760463-3515-1-git-send-email-labbott@redhat.com>
-References: <1481760463-3515-1-git-send-email-labbott@redhat.com>
+Received: from gofer.mess.org ([80.229.237.210]:51255 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932216AbcLLVNr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:47 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v5 00/18] Use sysfs filter for winbond & nuvoton wakeup
+Date: Mon, 12 Dec 2016 21:13:41 +0000
+Message-Id: <cover.1481575826.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This series introduces IR encoders and also makes winbond-cir and
+nuvoton-cir use the sysfs filter wakeup interface for programmable 
+IR wakeup.
 
-Ion currently returns a single sg_table on each dma_map call. This is
-incorrect for later usage.
+Changes since v4:
+ - ImgTec now also uses wakeup_protocols; all rc drivers which do wakeup
+   now use the same sysfs interface
+ - Implemented all IR encoders except for xmp for which I cannot find
+   useful documentation
+ - ir_raw_encode_scancode() now takes u32 scancode, rather than a
+   rc_scancode_filter, since it cannot encode a mask.
+ - All encoders have been tested extensively by round-tripping over
+   rc-loopback and generating random scancodes. No problems found
+   other than known nec32 issue[1].
+ - winbond-cir has seen more testing 
 
-Not-signed-off-by: Laura Abbott <labbott@redhat.com>
----
- drivers/staging/android/ion/ion.c | 32 +++++++++++++++++++++++++++++++-
- 1 file changed, 31 insertions(+), 1 deletion(-)
+[1] https://www.mail-archive.com/linux-media@vger.kernel.org/msg104623.html
 
-diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
-index 8dd0932..76b874a0 100644
---- a/drivers/staging/android/ion/ion.c
-+++ b/drivers/staging/android/ion/ion.c
-@@ -795,19 +795,49 @@ void ion_client_destroy(struct ion_client *client)
- }
- EXPORT_SYMBOL(ion_client_destroy);
- 
-+static struct sg_table *dup_sg_table(struct sg_table *table)
-+{
-+	struct sg_table *new_table;
-+	int ret, i;
-+	struct scatterlisg *sg, *new_sg;
-+
-+	new_table = kzalloc(sizeof(*new_table), GFP_KERNEL);
-+	if (!new_table)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = sg_alloc_table(new_table, table->nents, GFP_KERNEL);
-+	if (ret) {
-+		kfree(table);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	new_sg = new_table->sgl;
-+	for_each_sg(table->sgl, sg, table->nents, i) {
-+		memcpy(new_sg, sg, sizeof(*sg));
-+		sg->dma_address = 0;
-+		new_sg = sg_next(new_sg);
-+	}
-+
-+	return new_table;
-+}
-+
-+
- static struct sg_table *ion_map_dma_buf(struct dma_buf_attachment *attachment,
- 					enum dma_data_direction direction)
- {
- 	struct dma_buf *dmabuf = attachment->dmabuf;
- 	struct ion_buffer *buffer = dmabuf->priv;
-+	struct sg_table *table;
- 
--	return buffer->sg_table;
-+	return dup_sg_table(buffer->sg_table);
- }
- 
- static void ion_unmap_dma_buf(struct dma_buf_attachment *attachment,
- 			      struct sg_table *table,
- 			      enum dma_data_direction direction)
- {
-+	sg_free_table(table);
-+	kfree(table);
- }
- 
- struct ion_vma_list {
+Antti Seppälä (3):
+  [media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
+  [media] rc: ir-rc6-decoder: Add encode capability
+  [media] rc: nuvoton-cir: Add support wakeup via sysfs filter callback
+
+James Hogan (6):
+  [media] rc: rc-ir-raw: Add scancode encoder callback
+  [media] rc: rc-ir-raw: Add pulse-distance modulation helper
+  [media] rc: ir-rc5-decoder: Add encode capability
+  [media] rc: ir-nec-decoder: Add encode capability
+  [media] rc: rc-core: Add support for encode_wakeup drivers
+  [media] rc: rc-loopback: Add loopback of filter scancodes
+
+Sean Young (9):
+  [media] rc: change wakeup_protocols to list all protocol variants
+  [media] img-ir: use new wakeup_protocols sysfs mechanism
+  [media] rc: Add scancode validation
+  [media] winbond-cir: use sysfs wakeup filter
+  [media] rc: raw IR drivers cannot handle cec, unknown or other
+  [media] rc: ir-jvc-decoder: Add encode capability
+  [media] rc: ir-sanyo-decoder: Add encode capability
+  [media] rc: ir-sharp-decoder: Add encode capability
+  [media] rc: ir-sony-decoder: Add encode capability
+
+ Documentation/ABI/testing/sysfs-class-rc       |  14 +-
+ Documentation/media/uapi/rc/rc-sysfs-nodes.rst |  13 +-
+ drivers/hid/hid-picolcd_cir.c                  |   2 +-
+ drivers/media/common/siano/smsir.c             |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c      |  14 +-
+ drivers/media/rc/ene_ir.c                      |   2 +-
+ drivers/media/rc/fintek-cir.c                  |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                |   2 +-
+ drivers/media/rc/igorplugusb.c                 |   4 +-
+ drivers/media/rc/iguanair.c                    |   2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c            |   5 +-
+ drivers/media/rc/img-ir/img-ir-hw.h            |   2 +-
+ drivers/media/rc/img-ir/img-ir-jvc.c           |   2 +-
+ drivers/media/rc/img-ir/img-ir-nec.c           |   6 +-
+ drivers/media/rc/img-ir/img-ir-rc5.c           |   2 +-
+ drivers/media/rc/img-ir/img-ir-rc6.c           |   2 +-
+ drivers/media/rc/img-ir/img-ir-sanyo.c         |   2 +-
+ drivers/media/rc/img-ir/img-ir-sharp.c         |   2 +-
+ drivers/media/rc/img-ir/img-ir-sony.c          |  11 +-
+ drivers/media/rc/ir-hix5hd2.c                  |   2 +-
+ drivers/media/rc/ir-jvc-decoder.c              |  39 +++
+ drivers/media/rc/ir-nec-decoder.c              |  81 ++++++
+ drivers/media/rc/ir-rc5-decoder.c              |  97 ++++++++
+ drivers/media/rc/ir-rc6-decoder.c              | 117 +++++++++
+ drivers/media/rc/ir-sanyo-decoder.c            |  43 ++++
+ drivers/media/rc/ir-sharp-decoder.c            |  50 ++++
+ drivers/media/rc/ir-sony-decoder.c             |  48 ++++
+ drivers/media/rc/ite-cir.c                     |   2 +-
+ drivers/media/rc/mceusb.c                      |   2 +-
+ drivers/media/rc/meson-ir.c                    |   2 +-
+ drivers/media/rc/nuvoton-cir.c                 | 122 +++++++--
+ drivers/media/rc/rc-core-priv.h                | 107 ++++++++
+ drivers/media/rc/rc-ir-raw.c                   | 245 +++++++++++++++++-
+ drivers/media/rc/rc-loopback.c                 |  41 ++-
+ drivers/media/rc/rc-main.c                     | 330 +++++++++++++++++++++----
+ drivers/media/rc/redrat3.c                     |   2 +-
+ drivers/media/rc/serial_ir.c                   |   2 +-
+ drivers/media/rc/st_rc.c                       |   2 +-
+ drivers/media/rc/streamzap.c                   |   2 +-
+ drivers/media/rc/sunxi-cir.c                   |   2 +-
+ drivers/media/rc/ttusbir.c                     |   2 +-
+ drivers/media/rc/winbond-cir.c                 | 259 +++++++++----------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c        |   2 +-
+ drivers/media/usb/dvb-usb/technisat-usb2.c     |   2 +-
+ include/media/rc-core.h                        |  13 +-
+ include/media/rc-map.h                         |  19 ++
+ 46 files changed, 1456 insertions(+), 270 deletions(-)
+
 -- 
-2.7.4
+2.9.3
 
