@@ -1,42 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40375 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751772AbcLHPZc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 10:25:32 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: p.zabel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH 7/9] [media] coda: fix frame index to returned error
-Date: Thu,  8 Dec 2016 16:24:14 +0100
-Message-Id: <20161208152416.16031-7-m.tretter@pengutronix.de>
-In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
-References: <20161208152416.16031-1-m.tretter@pengutronix.de>
+Received: from mail-sg2apc01on0054.outbound.protection.outlook.com ([104.47.125.54]:48466
+        "EHLO APC01-SG2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751171AbcLLFu0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 00:50:26 -0500
+From: Greg Whiteley <greg.whiteley@atomos.com>
+To: <linux-media@vger.kernel.org>
+CC: Greg Whiteley <greg.whiteley@atomos.com>
+Subject: [PATCH v4l-utils] ir-ctl: `strndupa' undefined with --disable-nls
+Date: Mon, 12 Dec 2016 15:16:48 +1100
+Message-ID: <1481516208-31254-1-git-send-email-greg.whiteley@atomos.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-display_idx refers to the frame that will be returned in the next round.
-The currently processed frame is ctx->display_idx and errors should be
-reported for this frame.
-
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+Signed-off-by: Greg Whiteley <greg.whiteley@atomos.com>
 ---
- drivers/media/platform/coda/coda-bit.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ utils/ir-ctl/ir-ctl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index b662504..309eb4e 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -2057,7 +2057,7 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		}
- 		vb2_set_plane_payload(&dst_buf->vb2_buf, 0, payload);
+diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
+index f19bd05..707aa1f 100644
+--- a/utils/ir-ctl/ir-ctl.c
++++ b/utils/ir-ctl/ir-ctl.c
+@@ -37,6 +37,7 @@
+ # include <langinfo.h>
+ # include <iconv.h>
+ #else
++# include <string.h>
+ # define _(string) string
+ #endif
  
--		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[display_idx] ?
-+		coda_m2m_buf_done(ctx, dst_buf, ctx->frame_errors[ctx->display_idx] ?
- 				  VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
- 
- 		v4l2_dbg(1, coda_debug, &dev->v4l2_dev,
 -- 
-2.10.2
+1.9.1
 
