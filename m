@@ -1,67 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f44.google.com ([74.125.83.44]:35685 "EHLO
-        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932192AbcLGSaa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 13:30:30 -0500
-Received: by mail-pg0-f44.google.com with SMTP id p66so164614557pga.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 10:30:30 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v6 2/5] [media] davinci: vpif_capture: remove hard-coded I2C adapter id
-Date: Wed,  7 Dec 2016 10:30:22 -0800
-Message-Id: <20161207183025.20684-3-khilman@baylibre.com>
-In-Reply-To: <20161207183025.20684-1-khilman@baylibre.com>
-References: <20161207183025.20684-1-khilman@baylibre.com>
+Received: from zed.grinta.net ([109.74.203.128]:59602 "EHLO zed.grinta.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753064AbcLLVC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:02:29 -0500
+Subject: Re: Clarification for acceptance statistics?
+To: SF Markus Elfring <elfring@users.sourceforge.net>
+References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+ <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
+ <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
+ <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
+ <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
+ <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
+ <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
+ <3d09590c-9a10-f756-1b71-536ea37d8524@users.sourceforge.net>
+Cc: linux-media@vger.kernel.org,
+        Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+From: Daniele Nicolodi <daniele@grinta.net>
+Message-ID: <a694926d-eedd-5d51-54d0-7ba88775c42e@grinta.net>
+Date: Mon, 12 Dec 2016 14:02:24 -0700
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <3d09590c-9a10-f756-1b71-536ea37d8524@users.sourceforge.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove hard-coded I2C adapter in favor of getting the
-ID from platform_data.
+On 12/12/16 11:03 AM, SF Markus Elfring wrote:
+>> Have you proposed a similar patch that was accepted?
+> 
+> Yes. - It happened a few times.
 
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 5 ++++-
- include/media/davinci/vpif_types.h            | 1 +
- 2 files changed, 5 insertions(+), 1 deletion(-)
+The question was: have you ever had a patch changing code in the form
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 20c4344ed118..c24049acd40a 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1486,7 +1486,10 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	}
- 
- 	if (!vpif_obj.config->asd_sizes) {
--		i2c_adap = i2c_get_adapter(1);
-+		int i2c_id = vpif_obj.config->i2c_adapter_id;
-+
-+		i2c_adap = i2c_get_adapter(i2c_id);
-+		WARN_ON(!i2c_adap);
- 		for (i = 0; i < subdev_count; i++) {
- 			subdevdata = &vpif_obj.config->subdev_info[i];
- 			vpif_obj.sd[i] =
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3cb1704a0650..4282a7db99d4 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -82,6 +82,7 @@ struct vpif_capture_config {
- 	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
-+	int i2c_adapter_id;
- 	const char *card_name;
- 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
- 	int *asd_sizes;		/* 0-terminated array of asd group sizes */
--- 
-2.9.3
+{
+	a = kmalloc(...);
+	b = kmalloc(...);
+
+	if (!a || !b)
+		goto out;
+
+	...
+
+out:
+	kfree(a);
+	kfree(b);
+}
+
+to something else, accepted?
+
+I went checking and I haven't found such a patch.
+
+Did you understand my question?
+
+> It is really needed to clarify the corresponding software development
+> history any further?
+
+It is relevant because you are submitting a patch and your changelog
+implies that it makes the code follow some code structure rule that
+needs to be applied to the kernel. As the above is a recurring pattern
+in kernel code, it is legitimate to ask if such a rule exist, and has
+been enforced before, or you are making it up.
+
+My conclusion is that you are making it up.
+
+As a proposer of a new pattern, what is the evidence you can bring to
+the discussion that supports that your solution is better? What is the
+metric you are using to define "better"?
+
+Cheers,
+Daniele
 
