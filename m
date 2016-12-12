@@ -1,144 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:51945 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([80.229.237.210]:50353 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752111AbcLFKTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:19:30 -0500
+        id S932540AbcLLVN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:59 -0500
 From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v4 11/13] [media] rc: rc-core: Add support for encode_wakeup drivers
-Date: Tue,  6 Dec 2016 10:19:19 +0000
-Message-Id: <3deb5b75dd45e084b43bca8bef10c4482b899b3c.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [PATCH v5 15/18] [media] rc: ir-sony-decoder: Add encode capability
+Date: Mon, 12 Dec 2016 21:13:51 +0000
+Message-Id: <8ae17c940067115e8074b97f3da7400811547ac6.1481575826.git.sean@mess.org>
+In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+Add the capability to encode Sony scancodes as raw events. Sony uses
+space distance rather than pulse distance.
 
-Add support in rc-core for drivers which implement the wakeup scancode
-filter by encoding the scancode using the raw IR encoders. This is by
-way of rc_dev::encode_wakeup which should be set to true to make the
-allowed wakeup protocols the same as the set of raw IR encoders.
-
-As well as updating the sysfs interface to know which wakeup protocols
-are allowed for encode_wakeup drivers, also ensure that the IR
-decoders/encoders are loaded when an encode_wakeup driver is registered.
-
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
 Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/rc/rc-core-priv.h |  1 +
- drivers/media/rc/rc-ir-raw.c    | 12 ++++++++++++
- drivers/media/rc/rc-main.c      |  4 +++-
- include/media/rc-core.h         |  3 +++
- 4 files changed, 19 insertions(+), 1 deletion(-)
+ drivers/media/rc/ir-sony-decoder.c | 48 ++++++++++++++++++++++++++++
+ drivers/media/rc/rc-core-priv.h    | 20 ++++++++++++
+ drivers/media/rc/rc-ir-raw.c       | 64 ++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 132 insertions(+)
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 0680e10..8527cff 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -246,6 +246,7 @@ int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
-  * Routines from rc-raw.c to be used internally and by decoders
-  */
- u64 ir_raw_get_allowed_protocols(void);
-+u64 ir_raw_get_encode_protocols(void);
- int ir_raw_event_register(struct rc_dev *dev);
- void ir_raw_event_unregister(struct rc_dev *dev);
- int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 5d299f6..f44b9e2 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -27,6 +27,7 @@ static LIST_HEAD(ir_raw_client_list);
- static DEFINE_MUTEX(ir_raw_handler_lock);
- static LIST_HEAD(ir_raw_handler_list);
- static atomic64_t available_protocols = ATOMIC64_INIT(0);
-+static atomic64_t encode_protocols = ATOMIC64_INIT(0);
- 
- static int ir_raw_event_thread(void *data)
- {
-@@ -236,6 +237,13 @@ ir_raw_get_allowed_protocols(void)
- 	return atomic64_read(&available_protocols);
+diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
+index baa972c..a1962ae 100644
+--- a/drivers/media/rc/ir-sony-decoder.c
++++ b/drivers/media/rc/ir-sony-decoder.c
+@@ -169,9 +169,57 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	return 0;
  }
  
-+/* used internally by the sysfs interface */
-+u64
-+ir_raw_get_encode_protocols(void)
++static struct ir_raw_timings_sd ir_sony_timings = {
++	.header_pulse  = SONY_HEADER_PULSE,
++	.bit_space     = SONY_BIT_SPACE,
++	.bit_pulse[0]  = SONY_BIT_0_PULSE,
++	.bit_pulse[1]  = SONY_BIT_1_PULSE,
++	.trailer_space = SONY_TRAILER_SPACE + SONY_BIT_SPACE,
++	.msb_first     = 0,
++};
++
++/**
++ * ir_sony_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocol:	protocol to encode
++ * @scancode:	scancode to encode
++ * @events:	array of raw ir events to write into
++ * @max:	maximum size of @events
++ *
++ * Returns:	The number of events written.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		encoding. In this case all @max events will have been written.
++ */
++static int ir_sony_encode(enum rc_type protocol, u32 scancode,
++			  struct ir_raw_event *events, unsigned int max)
 +{
-+	return atomic64_read(&encode_protocols);
++	struct ir_raw_event *e = events;
++	u32 raw, len;
++	int ret;
++
++	if (protocol == RC_TYPE_SONY12) {
++		raw = (scancode & 0x7f) | ((scancode & 0x1f0000) >> 9);
++		len = 12;
++	} else if (protocol == RC_TYPE_SONY15) {
++		raw = (scancode & 0x7f) | ((scancode & 0xff0000) >> 9);
++		len = 15;
++	} else {
++		raw = (scancode & 0x7f) | ((scancode & 0x1f0000) >> 9) |
++		       ((scancode & 0xff00) << 4);
++		len = 20;
++	}
++
++	ret = ir_raw_gen_sd(&e, max, &ir_sony_timings, len, raw);
++	if (ret < 0)
++		return ret;
++
++	return e - events;
 +}
 +
- static int change_protocol(struct rc_dev *dev, u64 *rc_type)
- {
- 	/* the caller will update dev->enabled_protocols */
-@@ -504,6 +512,8 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
- 		list_for_each_entry(raw, &ir_raw_client_list, list)
- 			ir_raw_handler->raw_register(raw->dev);
- 	atomic64_or(ir_raw_handler->protocols, &available_protocols);
-+	if (ir_raw_handler->encode)
-+		atomic64_or(ir_raw_handler->protocols, &encode_protocols);
- 	mutex_unlock(&ir_raw_handler_lock);
+ static struct ir_raw_handler sony_handler = {
+ 	.protocols	= RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20,
+ 	.decode		= ir_sony_decode,
++	.encode		= ir_sony_encode,
+ };
  
- 	return 0;
-@@ -523,6 +533,8 @@ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
- 			ir_raw_handler->raw_unregister(raw->dev);
- 	}
- 	atomic64_andnot(protocols, &available_protocols);
-+	if (ir_raw_handler->encode)
-+		atomic64_andnot(protocols, &encode_protocols);
- 	mutex_unlock(&ir_raw_handler_lock);
- }
- EXPORT_SYMBOL(ir_raw_handler_unregister);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 4d8a984..0385616 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1750,11 +1750,13 @@ int rc_register_device(struct rc_dev *dev)
- 		dev->input_name ?: "Unspecified device", path ?: "N/A");
- 	kfree(path);
+ static int __init ir_sony_decode_init(void)
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 630f33c..bbe2984 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -241,6 +241,26 @@ int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
+ 		  const struct ir_raw_timings_pd *timings,
+ 		  unsigned int n, u64 data);
  
--	if (dev->driver_type == RC_DRIVER_IR_RAW) {
-+	if (dev->driver_type == RC_DRIVER_IR_RAW || dev->encode_wakeup) {
-+		/* Load raw decoders, if they aren't already */
- 		if (!raw_init) {
- 			request_module_nowait("ir-lirc-codec");
- 			raw_init = true;
- 		}
++/**
++ * struct ir_raw_timings_sd - space-distance modulation timings
++ * @header_pulse:	duration of header pulse in ns (0 for none)
++ * @bit_space:		duration of bit space in ns
++ * @bit_pulse:		duration of bit pulse (for logic 0 and 1) in ns
++ * @trailer_space:	duration of trailer space in ns
++ * @msb_first:		1 if most significant bit is sent first
++ */
++struct ir_raw_timings_sd {
++	unsigned int header_pulse;
++	unsigned int bit_space;
++	unsigned int bit_pulse[2];
++	unsigned int trailer_space;
++	unsigned int msb_first:1;
++};
 +
- 		rc = ir_raw_event_register(dev);
- 		if (rc < 0)
- 			goto out_input;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 0a72e17..acfdaf5 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -83,6 +83,8 @@ enum rc_filter_type {
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-  * @idle: used to keep track of RX state
-+ * @encode_wakeup: wakeup filtering uses IR encode API, therefore the allowed
-+ *	wakeup protocols is the set of all raw encoders
-  * @allowed_protocols: bitmask with the supported RC_BIT_* protocols
-  * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols
-  * @allowed_wakeup_protocols: bitmask with the supported RC_BIT_* wakeup protocols
-@@ -147,6 +149,7 @@ struct rc_dev {
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
- 	bool				idle;
-+	bool				encode_wakeup;
- 	u64				allowed_protocols;
- 	u64				enabled_protocols;
- 	u64				allowed_wakeup_protocols;
++int ir_raw_gen_sd(struct ir_raw_event **ev, unsigned int max,
++		  const struct ir_raw_timings_sd *timings,
++		  unsigned int n, u64 data);
++
+ /*
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 244d93e..6692835 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -394,6 +394,70 @@ int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
+ EXPORT_SYMBOL(ir_raw_gen_pd);
+ 
+ /**
++ * ir_raw_gen_sd() - Encode data to raw events with space-distance modulation.
++ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
++ *		each raw event filled.
++ * @max:	Maximum number of raw events to fill.
++ * @timings:	Pulse distance modulation timings.
++ * @n:		Number of bits of data.
++ * @data:	Data bits to encode.
++ *
++ * Encodes the @n least significant bits of @data using space-distance
++ * modulation with the timing characteristics described by @timings, writing up
++ * to @max raw IR events using the *@ev pointer.
++ *
++ * Returns:	0 on success.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		full encoded data. In this case all @max events will have been
++ *		written.
++ */
++int ir_raw_gen_sd(struct ir_raw_event **ev, unsigned int max,
++		  const struct ir_raw_timings_sd *timings,
++		  unsigned int n, u64 data)
++{
++	int i;
++	int ret = -ENOBUFS;
++	unsigned int pulse;
++
++	if (!max--)
++		return ret;
++
++	init_ir_raw_event_duration((*ev)++, 1, timings->header_pulse);
++
++	if (timings->msb_first) {
++		for (i = n - 1; i >= 0; --i) {
++			if (!max--)
++				return ret;
++			init_ir_raw_event_duration((*ev)++, 0,
++						   timings->bit_space);
++			if (!max--)
++				return ret;
++			pulse = timings->bit_pulse[(data >> i) & 1];
++			init_ir_raw_event_duration((*ev)++, 1, pulse);
++		}
++	} else {
++		for (i = 0; i < n; ++i, data >>= 1) {
++			if (!max--)
++				return ret;
++			init_ir_raw_event_duration((*ev)++, 0,
++						   timings->bit_space);
++			if (!max--)
++				return ret;
++			pulse = timings->bit_pulse[data & 1];
++			init_ir_raw_event_duration((*ev)++, 1, pulse);
++		}
++	}
++
++	if (!max--)
++		return ret;
++
++	init_ir_raw_event_duration((*ev)++, 0, timings->trailer_space);
++
++	return 0;
++}
++EXPORT_SYMBOL(ir_raw_gen_sd);
++
++/**
+  * ir_raw_encode_scancode() - Encode a scancode as raw events
+  *
+  * @protocol:		protocol
 -- 
 2.9.3
 
