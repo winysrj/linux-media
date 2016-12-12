@@ -1,69 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:36085 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751743AbcLERhA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 12:37:00 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
-        geert+renesas@glider.be, akpm@linux-foundation.org,
-        linux@roeck-us.net, hverkuil@xs4all.nl,
-        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
-        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
-        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
-        mark.rutland@arm.com, Ramiro.Oliveira@synopsys.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: [PATCH v5 0/2] Add support for Omnivision OV5647
-Date: Mon,  5 Dec 2016 17:36:32 +0000
-Message-Id: <cover.1480958609.git.roliveir@synopsys.com>
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:48651 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752894AbcLLPze (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 10:55:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 15/15] at91-sama5d3_xplained.dts: select ov2640
+Date: Mon, 12 Dec 2016 16:55:20 +0100
+Message-Id: <20161212155520.41375-16-hverkuil@xs4all.nl>
+In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch adds support for the Omnivision OV5647 sensor.
+This patch replaces the ov7670 with the ov2640. This patch is not
+meant to be merged but is for demonstration purposes only.
 
-At the moment it only supports 640x480 in Raw 8.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ arch/arm/boot/dts/at91-sama5d3_xplained.dts | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-This is the fifth version of the OV5647 camera driver patchset.
-
-v5:
- - Refactor code 
- - Change comments
- - Add missing error handling in some functions
-
-v4: 
- - Add correct license
- - Revert debugging info to generic infrastructure
- - Turn defines into enums
- - Correct code style issues
- - Remove unused defines
- - Make sure all errors where being handled
- - Rename some functions to make code more readable
- - Add some debugging info
-
-v3: 
- - No changes. Re-submitted due to lack of responses
-
-v2: 
- - Corrections in DT documentation
-
-Ramiro Oliveira (2):
-  Add OV5647 device tree documentation
-  Add support for OV5647 sensor
-
- .../devicetree/bindings/media/i2c/ov5647.txt       |  19 +
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  12 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/ov5647.c                         | 866 +++++++++++++++++++++
- 5 files changed, 905 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
- create mode 100644 drivers/media/i2c/ov5647.c
-
+diff --git a/arch/arm/boot/dts/at91-sama5d3_xplained.dts b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+index 2af24f7..d5f7e82 100644
+--- a/arch/arm/boot/dts/at91-sama5d3_xplained.dts
++++ b/arch/arm/boot/dts/at91-sama5d3_xplained.dts
+@@ -72,7 +72,7 @@
+ 					#size-cells = <0>;
+ 					isi_0: endpoint {
+ 						reg = <0>;
+-						remote-endpoint = <&ov7670_0>;
++						remote-endpoint = <&ov2640_0>;
+ 						bus-width = <8>;
+ 						vsync-active = <1>;
+ 						hsync-active = <1>;
+@@ -88,20 +88,20 @@
+ 			i2c1: i2c@f0018000 {
+ 				status = "okay";
+ 
+-				ov7670: camera@0x21 {
+-					compatible = "ovti,ov7670";
+-					reg = <0x21>;
++				ov2640: camera@0x30 {
++					compatible = "ovti,ov2640";
++					reg = <0x30>;
+ 					pinctrl-names = "default";
+ 					pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
+ 					resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
+ 					pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
+ 					clocks = <&pck0>;
+-					clock-names = "xclk";
++					clock-names = "xvclk";
+ 					assigned-clocks = <&pck0>;
+ 					assigned-clock-rates = <25000000>;
+ 
+ 					port {
+-						ov7670_0: endpoint {
++						ov2640_0: endpoint {
+ 							remote-endpoint = <&isi_0>;
+ 							bus-width = <8>;
+ 						};
 -- 
 2.10.2
-
 
