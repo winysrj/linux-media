@@ -1,104 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38218 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751905AbcLHTq6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 14:46:58 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        stable@vger.kernel.org
-Subject: [PATCH v3] [media] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
-Date: Thu,  8 Dec 2016 17:46:53 -0200
-Message-Id: <1358e218a098d1633d758ed63934d84da7619bd9.1481226269.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([80.229.237.210]:33833 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932328AbcLLVNz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:55 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: James Hogan <james@albanarts.com>,
+        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v5 06/18] [media] rc: rc-ir-raw: Add scancode encoder callback
+Date: Mon, 12 Dec 2016 21:13:42 +0000
+Message-Id: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-depending on the type of bus set via the .set_fmt() subdev callback.
+From: James Hogan <james@albanarts.com>
 
-This is known to cause trobules on devices that don't use a V4L2
-subdev devnode, and a fix for it was made by commit 47de9bf8931e
-("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-such fix doesn't consider the case of progressive video inputs,
-causing chroma decoding issues on such videos, as it overrides not
-only the type of video output, but also other unrelated bits.
+Add a callback to raw ir handlers for encoding and modulating a scancode
+to a set of raw events. This could be used for transmit, or for
+converting a wakeup scancode to a form that is more suitable for raw
+hardware wake up filters.
 
-So, instead of trying to guess, let's detect if the device configuration
-is set via Device Tree. If not, just ignore the new logic, restoring
-the original behavior.
-
-Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: David Härdeman <david@hardeman.nu>
 ---
+ drivers/media/rc/rc-core-priv.h |  2 ++
+ drivers/media/rc/rc-ir-raw.c    | 36 ++++++++++++++++++++++++++++++++++++
+ include/media/rc-core.h         |  2 ++
+ 3 files changed, 40 insertions(+)
 
-changes since version 2: 
-  - fixed settings for register 0x0d
-  - tested on WinTV USB2 with S-Video input
-
-I'll do an extra test with HVR-950 on both S-Video and composite soon enough
-
-changes since version 1: added a notice about what's broken at the
-tvp5150_stream() logic, and improved patch's description.
-
-changes since RFC: don't touch at enum v4l2_mbus_type.
-
- drivers/media/i2c/tvp5150.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 6737685d5be5..8b9d2fad17df 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -57,6 +57,7 @@ struct tvp5150 {
- 	u16 rom_ver;
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 585d5e5..d8be011 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -28,6 +28,8 @@ struct ir_raw_handler {
  
- 	enum v4l2_mbus_type mbus_type;
-+	bool has_dt;
- };
+ 	u64 protocols; /* which are handled by this handler */
+ 	int (*decode)(struct rc_dev *dev, struct ir_raw_event event);
++	int (*encode)(enum rc_type protocol, u32 scancode,
++		      struct ir_raw_event *events, unsigned int max);
  
- static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
-@@ -1053,6 +1054,20 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
- 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
- 	int val = 0x09;
+ 	/* These two should only be used by the lirc decoder */
+ 	int (*raw_register)(struct rc_dev *dev);
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 171bdba..c23c877 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -249,6 +249,42 @@ static void ir_raw_disable_protocols(struct rc_dev *dev, u64 protocols)
+ 	mutex_unlock(&dev->lock);
+ }
  
-+	if (!decoder->has_dt)
-+		return 0;
++/**
++ * ir_raw_encode_scancode() - Encode a scancode as raw events
++ *
++ * @protocol:		protocol
++ * @scancode:		scancode filter describing a single scancode
++ * @events:		array of raw events to write into
++ * @max:		max number of raw events
++ *
++ * Attempts to encode the scancode as raw events.
++ *
++ * Returns:	The number of events written.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		encoding. In this case all @max events will have been written.
++ *		-EINVAL if the scancode is ambiguous or invalid, or if no
++ *		compatible encoder was found.
++ */
++int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
++			   struct ir_raw_event *events, unsigned int max)
++{
++	struct ir_raw_handler *handler;
++	int ret = -EINVAL;
 +
-+	/*
-+	 * FIXME: the logic below is hardcoded to work with some OMAP3
-+	 * hardware with tvp5151. As such, it hardcodes values for
-+	 * both TVP5150_CONF_SHARED_PIN and TVP5150_MISC_CTL, and ignores
-+	 * what was set before at the driver. Ideally, we should have
-+	 * DT nodes describing the setup, instead of hardcoding those
-+	 * values, and doing a read before writing values to
-+	 * TVP5150_MISC_CTL, but any patch adding support for it should
-+	 * keep DT backward-compatible.
-+	 */
++	mutex_lock(&ir_raw_handler_lock);
++	list_for_each_entry(handler, &ir_raw_handler_list, list) {
++		if (handler->protocols & (1 << protocol) && handler->encode) {
++			ret = handler->encode(protocol, scancode, events, max);
++			if (ret >= 0 || ret == -ENOBUFS)
++				break;
++		}
++	}
++	mutex_unlock(&ir_raw_handler_lock);
 +
- 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
- 	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
- 		val = 0x0d;
-@@ -1471,6 +1486,7 @@ static int tvp5150_probe(struct i2c_client *c,
- 			dev_err(sd->dev, "DT parsing error: %d\n", res);
- 			return res;
- 		}
-+		decoder->has_dt = true;
- 	} else {
- 		/* Default to BT.656 embedded sync */
- 		core->mbus_type = V4L2_MBUS_BT656;
++	return ret;
++}
++EXPORT_SYMBOL(ir_raw_encode_scancode);
++
+ /*
+  * Used to (un)register raw event clients
+  */
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 19a0ad2..bdf3ff0 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -304,6 +304,8 @@ int ir_raw_event_store_edge(struct rc_dev *dev, enum raw_event_type type);
+ int ir_raw_event_store_with_filter(struct rc_dev *dev,
+ 				struct ir_raw_event *ev);
+ void ir_raw_event_set_idle(struct rc_dev *dev, bool idle);
++int ir_raw_encode_scancode(enum rc_type protocol, u32 scancode,
++			   struct ir_raw_event *events, unsigned int max);
+ 
+ static inline void ir_raw_event_reset(struct rc_dev *dev)
+ {
 -- 
 2.9.3
-
 
