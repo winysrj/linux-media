@@ -1,123 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:39860 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750900AbcL0E1Z (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:34171 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750763AbcLLIKL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 23:27:25 -0500
-Message-ID: <22c103623ee620627bc10857b743e6a0@smtp-cloud2.xs4all.net>
-Date: Tue, 27 Dec 2016 05:27:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 12 Dec 2016 03:10:11 -0500
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, g.liakhovetski@gmx.de, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] media: platform: soc_camera_platform : constify v4l2_subdev_* structures
+Date: Mon, 12 Dec 2016 13:39:53 +0530
+Message-Id: <1481530193-18158-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+v4l2_subdev_{core/video}_ops structures are stored in the
+fields of the v4l2_subdev_ops structure which are of type const.
+Also, v4l2_subdev_ops structure is passed to a function
+having its argument of type const. As these structures are never
+modified, so declare them as const.
+Done using Coccinelle:(One of the scripts)
 
-Results of the daily build of media_tree:
+@r1 disable optional_qualifier @
+identifier i;
+position p;
+@@
+static struct v4l2_subdev_core_ops i@p = {...};
 
-date:			Tue Dec 27 05:00:12 CET 2016
-media-tree git hash:	bd361f5de2b338218c276d17a510701a16075deb
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	c9aacef24d152007c7344b691da0cc90788395a7
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+@ok1@
+identifier r1.i;
+position p;
+struct v4l2_subdev_ops obj;
+@@
+obj.core=&i@p;
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
 
-Detailed results are available here:
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct v4l2_subdev_core_ops i;
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+File size before:
+    text   data	    bss	    dec	    hex	filename
+    858	    576	      0	   1434	    59a soc_camera/soc_camera_platform.o
 
-Full logs are available here:
+File size after:
+  text	   data	    bss	    dec	    hex	filename
+   1234	    192	      0	   1426	    592 soc_camera/soc_camera_platform.o
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/platform/soc_camera/soc_camera_platform.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
+diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
+index 534d6c3..cb4986b 100644
+--- a/drivers/media/platform/soc_camera/soc_camera_platform.c
++++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
+@@ -59,7 +59,7 @@ static int soc_camera_platform_s_power(struct v4l2_subdev *sd, int on)
+ 	return soc_camera_set_power(p->icd->control, &p->icd->sdesc->subdev_desc, NULL, on);
+ }
+ 
+-static struct v4l2_subdev_core_ops platform_subdev_core_ops = {
++static const struct v4l2_subdev_core_ops platform_subdev_core_ops = {
+ 	.s_power = soc_camera_platform_s_power,
+ };
+ 
+@@ -110,7 +110,7 @@ static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static struct v4l2_subdev_video_ops platform_subdev_video_ops = {
++static const struct v4l2_subdev_video_ops platform_subdev_video_ops = {
+ 	.s_stream	= soc_camera_platform_s_stream,
+ 	.g_mbus_config	= soc_camera_platform_g_mbus_config,
+ };
+@@ -122,7 +122,7 @@ static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
+ 	.set_fmt	= soc_camera_platform_fill_fmt,
+ };
+ 
+-static struct v4l2_subdev_ops platform_subdev_ops = {
++static const struct v4l2_subdev_ops platform_subdev_ops = {
+ 	.core	= &platform_subdev_core_ops,
+ 	.video	= &platform_subdev_video_ops,
+ 	.pad	= &platform_subdev_pad_ops,
+-- 
+1.9.1
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
