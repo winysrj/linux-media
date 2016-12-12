@@ -1,42 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:63499 "EHLO mout.web.de"
+Received: from gofer.mess.org ([80.229.237.210]:35887 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751028AbcLLSDh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 13:03:37 -0500
-Subject: Re: Clarification for acceptance statistics?
-To: Daniele Nicolodi <daniele@grinta.net>
-References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
- <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
- <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
- <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
- <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
- <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
- <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
-Cc: linux-media@vger.kernel.org,
-        Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <3d09590c-9a10-f756-1b71-536ea37d8524@users.sourceforge.net>
-Date: Mon, 12 Dec 2016 19:03:21 +0100
+        id S932466AbcLLVN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:59 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: James Hogan <james@albanarts.com>,
+        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v5 17/18] [media] rc: rc-loopback: Add loopback of filter scancodes
+Date: Mon, 12 Dec 2016 21:13:53 +0000
+Message-Id: <a4652235607db6eed7e045dcb3374ea9a7cd6214.1481575826.git.sean@mess.org>
+In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
 MIME-Version: 1.0
-In-Reply-To: <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Have you proposed a similar patch that was accepted?
+From: James Hogan <james@albanarts.com>
 
-Yes. - It happened a few times.
+Add the s_wakeup_filter callback to the rc-loopback driver, which instead
+of setting the filter just feeds the scancode back through the input
+device so that it can be verified.
 
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-loopback.c | 39 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-> I don't find record of it, but I may be wrong.
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 4bc3f01..bd31fb1 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -26,6 +26,7 @@
+ #include <linux/device.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
+ #include <media/rc-core.h>
+ 
+ #define DRIVER_NAME	"rc-loopback"
+@@ -176,6 +177,41 @@ static int loop_set_carrier_report(struct rc_dev *dev, int enable)
+ 	return 0;
+ }
+ 
++static int loop_set_wakeup_filter(struct rc_dev *dev,
++				  struct rc_scancode_filter *sc)
++{
++	static const unsigned int max = 512;
++	struct ir_raw_event *raw;
++	int ret;
++	int i;
++
++	/* fine to disable filter */
++	if (!sc->mask)
++		return 0;
++
++	/* encode the specified filter and loop it back */
++	raw = kmalloc_array(max, sizeof(*raw), GFP_KERNEL);
++	if (!raw)
++		return -ENOMEM;
++
++	ret = ir_raw_encode_scancode(dev->wakeup_protocol, sc->data, raw, max);
++	/* still loop back the partial raw IR even if it's incomplete */
++	if (ret == -ENOBUFS)
++		ret = max;
++	if (ret >= 0) {
++		/* do the loopback */
++		for (i = 0; i < ret; ++i)
++			ir_raw_event_store(dev, &raw[i]);
++		ir_raw_event_handle(dev);
++
++		ret = 0;
++	}
++
++	kfree(raw);
++
++	return ret;
++}
++
+ static int __init loop_init(void)
+ {
+ 	struct rc_dev *rc;
+@@ -196,6 +232,8 @@ static int __init loop_init(void)
+ 	rc->priv		= &loopdev;
+ 	rc->driver_type		= RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols	= RC_BIT_ALL_IR_DECODER;
++	rc->allowed_wakeup_protocols = RC_BIT_ALL_IR_ENCODER;
++	rc->encode_wakeup	= true;
+ 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
+ 	rc->min_timeout		= 1;
+ 	rc->max_timeout		= UINT_MAX;
+@@ -209,6 +247,7 @@ static int __init loop_init(void)
+ 	rc->s_idle		= loop_set_idle;
+ 	rc->s_learning_mode	= loop_set_learning_mode;
+ 	rc->s_carrier_report	= loop_set_carrier_report;
++	rc->s_wakeup_filter	= loop_set_wakeup_filter;
+ 
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
+-- 
+2.9.3
 
-It is really needed to clarify the corresponding software development
-history any further?
-
-Regards,
-Markus
