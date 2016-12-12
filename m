@@ -1,122 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60970 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751327AbcLEOqb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 09:46:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Todor Tomov <todor.tomov@linaro.org>, mchehab@kernel.org,
-        laurent.pinchart+renesas@ideasonboard.com, hans.verkuil@cisco.com,
-        javier@osg.samsung.com, s.nawrocki@samsung.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        bjorn.andersson@linaro.org, srinivas.kandagatla@linaro.org
-Subject: Re: [PATCH 08/10] media: camss: Add files which handle the video device nodes
-Date: Mon, 05 Dec 2016 16:45:26 +0200
-Message-ID: <16480551.5NNPjmTzBo@avalon>
-In-Reply-To: <9b1cffbc-62a9-c699-5813-189d5f160343@xs4all.nl>
-References: <1480085841-28276-1-git-send-email-todor.tomov@linaro.org> <1480085841-28276-7-git-send-email-todor.tomov@linaro.org> <9b1cffbc-62a9-c699-5813-189d5f160343@xs4all.nl>
+Received: from mail-ua0-f169.google.com ([209.85.217.169]:34170 "EHLO
+        mail-ua0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752638AbcLLEeD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 11 Dec 2016 23:34:03 -0500
+Received: by mail-ua0-f169.google.com with SMTP id 51so71357023uai.1
+        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2016 20:34:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1480475340-21893-3-git-send-email-rick.chang@mediatek.com>
+References: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com> <1480475340-21893-3-git-send-email-rick.chang@mediatek.com>
+From: Ricky Liang <jcliang@chromium.org>
+Date: Mon, 12 Dec 2016 12:34:01 +0800
+Message-ID: <CAAJzSMfNyMiia==mXKo6aBw1VxMBxGE20LB870Zm1u9mCoioyQ@mail.gmail.com>
+Subject: Re: [PATCH v8 2/4] vcodec: mediatek: Add Mediatek JPEG Decoder Driver
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, srv_heupstream@mediatek.com,
+        "moderated list:ARM/Mediatek SoC..."
+        <linux-mediatek@lists.infradead.org>,
+        "moderated list:ARM/Mediatek SoC..."
+        <linux-arm-kernel@lists.infradead.org>,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Rick,
 
-On Monday 05 Dec 2016 14:44:55 Hans Verkuil wrote:
-> On 11/25/2016 03:57 PM, Todor Tomov wrote:
-> > These files handle the video device nodes of the camss driver.
-> >
-> > Signed-off-by: Todor Tomov <todor.tomov@linaro.org>
-> > ---
-> >
-> >  drivers/media/platform/qcom/camss-8x16/video.c | 597 ++++++++++++++++++++
-> >  drivers/media/platform/qcom/camss-8x16/video.h |  67 +++
-> >  2 files changed, 664 insertions(+)
-> >  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.c
-> >  create mode 100644 drivers/media/platform/qcom/camss-8x16/video.h
+On Wed, Nov 30, 2016 at 11:08 AM, Rick Chang <rick.chang@mediatek.com> wrote:
+> Add v4l2 driver for Mediatek JPEG Decoder
+>
+> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
 
-[snip]
+<snip...>
 
-> > +int msm_video_register(struct camss_video *video, struct v4l2_device
-> > *v4l2_dev,
-> > +                    const char *name)
-> > +{
-> > +     struct media_pad *pad = &video->pad;
-> > +     struct video_device *vdev;
-> > +     struct vb2_queue *q;
-> > +     int ret;
-> > +
-> > +     vdev = video_device_alloc();
-> > +     if (vdev == NULL) {
-> > +             dev_err(v4l2_dev->dev, "Failed to allocate video device\n");
-> > +             return -ENOMEM;
-> > +     }
-> > +
-> > +     video->vdev = vdev;
-> > +
-> > +     q = &video->vb2_q;
-> > +     q->drv_priv = video;
-> > +     q->mem_ops = &vb2_dma_contig_memops;
-> > +     q->ops = &msm_video_vb2_q_ops;
-> > +     q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > +     q->io_modes = VB2_MMAP;
-> 
-> Add modes VB2_DMABUF and VB2_READ. These are for free, so why not?
-> Especially DMABUF is of course very desirable to have.
+> +static bool mtk_jpeg_check_resolution_change(struct mtk_jpeg_ctx *ctx,
+> +                                            struct mtk_jpeg_dec_param *param)
+> +{
+> +       struct mtk_jpeg_dev *jpeg = ctx->jpeg;
+> +       struct mtk_jpeg_q_data *q_data;
+> +
+> +       q_data = &ctx->out_q;
+> +       if (q_data->w != param->pic_w || q_data->h != param->pic_h) {
+> +               v4l2_dbg(1, debug, &jpeg->v4l2_dev, "Picture size change\n");
+> +               return true;
+> +       }
+> +
+> +       q_data = &ctx->cap_q;
+> +       if (q_data->fmt != mtk_jpeg_find_format(ctx, param->dst_fourcc,
+> +                                               MTK_JPEG_FMT_TYPE_CAPTURE)) {
+> +               v4l2_dbg(1, debug, &jpeg->v4l2_dev, "format change\n");
+> +               return true;
+> +       }
+> +       return false;
 
-I certainly agree with VB2_DMABUF, but I wouldn't expose VB2_READ. read() for 
-this kind of device is inefficient and we should encourage userspace 
-application to move away from it (and certainly make it very clear that new 
-applications should not use read() with this device).
+<snip...>
 
-> > +     q->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> > +     q->buf_struct_size = sizeof(struct camss_buffer);
-> > +     q->dev = video->camss->dev;
-> > +     ret = vb2_queue_init(q);
-> > +     if (ret < 0) {
-> > +             dev_err(v4l2_dev->dev, "Failed to init vb2 queue\n");
-> > +             return ret;
-> > +     }
-> > +
-> > +     pad->flags = MEDIA_PAD_FL_SINK;
-> > +     ret = media_entity_pads_init(&vdev->entity, 1, pad);
-> > +     if (ret < 0) {
-> > +             dev_err(v4l2_dev->dev, "Failed to init video entity\n");
-> > +             goto error_media_init;
-> > +     }
-> > +
-> > +     vdev->fops = &msm_vid_fops;
-> > +     vdev->ioctl_ops = &msm_vid_ioctl_ops;
-> > +     vdev->release = video_device_release;
-> > +     vdev->v4l2_dev = v4l2_dev;
-> > +     vdev->vfl_dir = VFL_DIR_RX;
-> > +     vdev->queue = &video->vb2_q;
-> 
-> As mentioned in querycap: set vdev->device_caps here.
-> 
-> > +     strlcpy(vdev->name, name, sizeof(vdev->name));
-> > +
-> > +     ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
-> > +     if (ret < 0) {
-> > +             dev_err(v4l2_dev->dev, "Failed to register video device\n");
-> > +             goto error_video_register;
-> > +     }
-> > +
-> > +     video_set_drvdata(vdev, video);
-> > +
-> > +     return 0;
-> > +
-> > +error_video_register:
-> > +     media_entity_cleanup(&vdev->entity);
-> > +error_media_init:
-> > +     vb2_queue_release(&video->vb2_q);
-> > +
-> > +     return ret;
-> > +}
+> +static void mtk_jpeg_device_run(void *priv)
+> +{
+> +       struct mtk_jpeg_ctx *ctx = priv;
+> +       struct mtk_jpeg_dev *jpeg = ctx->jpeg;
+> +       struct vb2_buffer *src_buf, *dst_buf;
+> +       enum vb2_buffer_state buf_state = VB2_BUF_STATE_ERROR;
+> +       unsigned long flags;
+> +       struct mtk_jpeg_src_buf *jpeg_src_buf;
+> +       struct mtk_jpeg_bs bs;
+> +       struct mtk_jpeg_fb fb;
+> +       int i;
+> +
+> +       src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+> +       dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+> +       jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(src_buf);
+> +
+> +       if (jpeg_src_buf->flags & MTK_JPEG_BUF_FLAGS_LAST_FRAME) {
+> +               for (i = 0; i < dst_buf->num_planes; i++)
+> +                       vb2_set_plane_payload(dst_buf, i, 0);
+> +               buf_state = VB2_BUF_STATE_DONE;
+> +               goto dec_end;
+> +       }
+> +
+> +       if (mtk_jpeg_check_resolution_change(ctx, &jpeg_src_buf->dec_param)) {
+> +               mtk_jpeg_queue_src_chg_event(ctx);
+> +               ctx->state = MTK_JPEG_SOURCE_CHANGE;
+> +               v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+> +               return;
+> +       }
 
--- 
-Regards,
+This only detects source change if multiple OUPUT buffers are queued.
+It does not catch the source change in the following scenario:
 
-Laurent Pinchart
+- OUPUT buffers for jpeg1 enqueued
+- OUTPUT queue STREAMON
+- userspace creates CAPTURE buffers
+- CAPTURE buffers enqueued
+- CAPTURE queue STREAMON
+- decode
+- OUTPUT queue STREAMOFF
+- userspace recreates OUTPUT buffers for jpeg2
+- OUTPUT buffers for jpeg2 enqueued
+- OUTPUT queue STREAMON
 
+In the above sequence if jpeg2's decoded size is larger than jpeg1 the
+function fails to detect that the existing CAPTURE buffers are not big
+enough to hold the decoded data.
+
+A possible fix is to pass *dst_buf to
+mtk_jpeg_check_resolution_change(), and check in the function that all
+the dst_buf planes are large enough to hold the decoded data.
+
+> +
+> +       mtk_jpeg_set_dec_src(ctx, src_buf, &bs);
+> +       if (mtk_jpeg_set_dec_dst(ctx, &jpeg_src_buf->dec_param, dst_buf, &fb))
+> +               goto dec_end;
+> +
+> +       spin_lock_irqsave(&jpeg->hw_lock, flags);
+> +       mtk_jpeg_dec_reset(jpeg->dec_reg_base);
+> +       mtk_jpeg_dec_set_config(jpeg->dec_reg_base,
+> +                               &jpeg_src_buf->dec_param, &bs, &fb);
+> +
+> +       mtk_jpeg_dec_start(jpeg->dec_reg_base);
+> +       spin_unlock_irqrestore(&jpeg->hw_lock, flags);
+> +       return;
+> +
+> +dec_end:
+> +       v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+> +       v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+> +       v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), buf_state);
+> +       v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), buf_state);
+> +       v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+> +}
+
+<snip...>
