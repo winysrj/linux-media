@@ -1,113 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:34401 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751779AbcLFKTY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:19:24 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v4 02/13] [media] rc: Add scancode validation
-Date: Tue,  6 Dec 2016 10:19:10 +0000
-Message-Id: <a248d574956bbbdfb5073952a7befe885f512920.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44476 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751025AbcLLPNG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 10:13:06 -0500
+Date: Mon, 12 Dec 2016 17:12:56 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, davem@davemloft.net,
+        gregkh@linuxfoundation.org, geert+renesas@glider.be,
+        akpm@linux-foundation.org, linux@roeck-us.net, hverkuil@xs4all.nl,
+        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
+        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
+        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
+        mark.rutland@arm.com, CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH v5 1/2] Add OV5647 device tree documentation
+Message-ID: <20161212151256.GV16630@valkosipuli.retiisi.org.uk>
+References: <20161212114900.GS16630@valkosipuli.retiisi.org.uk>
+ <0f72309f-ec5e-4252-f6d7-7a7f7a9dc4c5@synopsys.com>
+ <20161212121947.GU16630@valkosipuli.retiisi.org.uk>
+ <db9fcc03-9db0-856a-8fbd-e641862f9bc8@synopsys.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <db9fcc03-9db0-856a-8fbd-e641862f9bc8@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We need to valdiate that scancodes are valid for their protocol; an
-incorrect necx scancode could actually be a nec scancode, for example.
+Hi Ramiro,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-main.c | 66 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 65 insertions(+), 1 deletion(-)
+On Mon, Dec 12, 2016 at 01:07:53PM +0000, Ramiro Oliveira wrote:
+> Hi Sakari
+> 
+> On 12/12/2016 12:19 PM, Sakari Ailus wrote:
+> > Hi Ramiro,
+> > 
+> > On Mon, Dec 12, 2016 at 12:15:04PM +0000, Ramiro Oliveira wrote:
+> >> Hi Sakari
+> >>
+> >> On 12/12/2016 11:49 AM, Sakari Ailus wrote:
+> >>> Hi Ramiro,
+> >>>
+> >>> On Mon, Dec 12, 2016 at 11:39:31AM +0000, Ramiro Oliveira wrote:
+> >>>> Hi Sakari,
+> >>>>
+> >>>> Thank you for the feedback.
+> >>>>
+> >>>> On 12/7/2016 10:33 PM, Sakari Ailus wrote:
+> >>>>> Hi Ramiro,
+> >>>>>
+> >>>>> Thank you for the patch.
+> >>>>>
+> >>>>> On Mon, Dec 05, 2016 at 05:36:33PM +0000, Ramiro Oliveira wrote:
+> >>>>>> Add device tree documentation.
+> >>>>>>
+> >>>>>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> >>>>>> ---
+> >>>>>>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+> >>>>>>  1 file changed, 19 insertions(+)
+> >>>>>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> >>>>>>
+> >>>>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> >>>>>> new file mode 100644
+> >>>>>> index 0000000..4c91b3b
+> >>>>>> --- /dev/null
+> >>>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> >>>>>> @@ -0,0 +1,19 @@
+> >>>>>> +Omnivision OV5647 raw image sensor
+> >>>>>> +---------------------------------
+> >>>>>> +
+> >>>>>> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+> >>>>>> +and CCI (I2C compatible) control bus.
+> >>>>>> +
+> >>>>>> +Required properties:
+> >>>>>> +
+> >>>>>> +- compatible	: "ovti,ov5647";
+> >>>>>> +- reg		: I2C slave address of the sensor;
+> >>>>>> +
+> >>>>>> +The common video interfaces bindings (see video-interfaces.txt) should be
+> >>>>>> +used to specify link to the image data receiver. The OV5647 device
+> >>>>>> +node should contain one 'port' child node with an 'endpoint' subnode.
+> >>>>>> +
+> >>>>>> +Following properties are valid for the endpoint node:
+> >>>>>> +
+> >>>>>> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+> >>>>>> +  video-interfaces.txt.  The sensor supports only two data lanes.
+> >>>>>
+> >>>>> Doesn't this sensor require a external clock, a reset GPIO and / or a
+> >>>>> regulator or a few? Do you need data-lanes, unless you can change the order
+> >>>>> or the number?
+> >>>>
+> >>>> In the setup I'm using, I'm not aware of any reset GPIO or regulator. I do use a
+> >>>> external clock but it's fixed and not controlled by SW. Should I add a property
+> >>>> for this?
+> >>>
+> >>> The sensor datasheet defines a power-up and power-down sequence for the
+> >>> device. If you don't implement these sequences in the driver on a DT based
+> >>> system, nothing suggests that they're implemented correctly. Could it be
+> >>> that the boot loader simply enables the regulators or another device
+> >>> requires them to be enabled?
+> >>>
+> >>> I presume at least the reset GPIO should be controlled explicitly in order
+> >>> to ensure correct function. Although hardware can be surprising: I have one
+> >>> production system that has no reset GPIO for the sensor albeit the sensor
+> >>> datasheet says that's part of the power up sequence.
+> >>>
+> >>
+> >> Sorry for the misunderstanding. I wanted to say that, there is no SW controlled
+> >> reset. In the board we're using to connect the sensor to our D-PHY we have a
+> >> GPIO controller that when it receives power, it removes the sensor from reset,
+> >> so I have no control over that.
+> > 
+> > Do you mean to say that there's a GPIO controller but there's not (yet?) a
+> > driver for that or that the reset line is actually hard-wired to something
+> > else?
+> > 
+> 
+> The reset line is hardwired to a GPIO controller that when powered-on removes
+> the sensor from reset. However I have no control over the GPIO controller.
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 60229e9..4d8a984 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -724,6 +724,66 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
- }
- EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
- 
-+/**
-+ * rc_validate_filter() - checks that the scancode and mask are valid and
-+ *			  provides sensible defaults
-+ * @protocol:	the protocol for the filter
-+ * @filter:	the scancode and mask
-+ * @return:	0 or -EINVAL if the filter is not valid
-+ */
-+int rc_validate_filter(enum rc_type protocol,
-+			struct rc_scancode_filter *filter)
-+{
-+	static u32 masks[] = {
-+		[RC_TYPE_RC5] = 0x1f7f,
-+		[RC_TYPE_RC5X] = 0x1f7f3f,
-+		[RC_TYPE_RC5_SZ] = 0x2fff,
-+		[RC_TYPE_SONY12] = 0x1f007f,
-+		[RC_TYPE_SONY15] = 0xff007f,
-+		[RC_TYPE_SONY20] = 0x1fff7f,
-+		[RC_TYPE_JVC] = 0xffff,
-+		[RC_TYPE_NEC] = 0xffff,
-+		[RC_TYPE_NECX] = 0xffffff,
-+		[RC_TYPE_NEC32] = 0xffffffff,
-+		[RC_TYPE_SANYO] = 0x1fffff,
-+		[RC_TYPE_RC6_0] = 0xffff,
-+		[RC_TYPE_RC6_6A_20] = 0xfffff,
-+		[RC_TYPE_RC6_6A_24] = 0xffffff,
-+		[RC_TYPE_RC6_6A_32] = 0xffffffff,
-+		[RC_TYPE_RC6_MCE] = 0xffffffff,
-+		[RC_TYPE_SHARP] = 0x1fff,
-+	};
-+	u32 s = filter->data;
-+
-+	switch (protocol) {
-+	case RC_TYPE_NECX:
-+		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
-+			return -EINVAL;
-+		break;
-+	case RC_TYPE_NEC32:
-+		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
-+			return -EINVAL;
-+		break;
-+	case RC_TYPE_RC6_MCE:
-+		if ((s & 0xffff0000) != 0x800f0000)
-+			return -EINVAL;
-+		break;
-+	case RC_TYPE_RC6_6A_32:
-+		if ((s & 0xffff0000) == 0x800f0000)
-+			return -EINVAL;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	if (filter->mask == 0)
-+		filter->mask = masks[protocol];
-+	filter->data &= masks[protocol];
-+	filter->mask &= masks[protocol];
-+
-+	return 0;
-+}
-+
- int rc_open(struct rc_dev *rdev)
- {
- 	int rval = 0;
-@@ -1232,8 +1292,12 @@ static ssize_t store_filter(struct device *device,
- 		/* refuse to set a filter unless a protocol is enabled */
- 		if (dev->wakeup_protocol == RC_TYPE_UNKNOWN && val) {
- 			ret = -EINVAL;
--			goto unlock;
-+		} else if (dev->wakeup_protocol != RC_TYPE_UNKNOWN) {
-+			ret = rc_validate_filter(dev->wakeup_protocol,
-+								&new_filter);
- 		}
-+		if (ret != 0)
-+			goto unlock;
- 	}
- 
- 	if (fattr->type == RC_FILTER_NORMAL && !dev->enabled_protocols
+A GPIO controller is a piece of hardware that lets software to, typically,
+both configure the direction and change and read the state of its input /
+output pins. You seem to have something else on the board, such as chip
+giving a power good signal.
+
+If there really is no software control to to these resources, I suggest not
+to implement the power up / down sequences as you can't test them anyway. We
+can always add the DT properties (as optional) to the DT documentation.
+
+You still should have the clock frequency in DT and check that in the
+driver, even if you don't get a clock. Presumably your current register
+lists assume a particular frequency but AFAIR that wasn't clearly visible
+anywhere.
+
 -- 
-2.9.3
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
