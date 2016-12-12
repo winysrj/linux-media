@@ -1,183 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:44178 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751327AbcLEKIH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 05:08:07 -0500
-From: "Raikhel, Evgeni" <evgeni.raikhel@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "laurent.pinchart@ideasonboard.com"
-        <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] UVC Module  - Support Intel RealSense SR300 Depth Camera
- formats
-Date: Mon, 5 Dec 2016 10:06:55 +0000
-Message-ID: <AA09C8071EEEFC44A7852ADCECA86673A1E6E7@hasmsx108.ger.corp.intel.com>
-Content-Language: en-US
-Content-Type: multipart/mixed;
-        boundary="_003_AA09C8071EEEFC44A7852ADCECA86673A1E6E7hasmsx108gercorpi_"
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:46565 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750933AbcLLMPP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 07:15:15 -0500
+Subject: Re: [PATCH v5 1/2] Add OV5647 device tree documentation
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+References: <20161212114900.GS16630@valkosipuli.retiisi.org.uk>
+CC: <mchehab@kernel.org>, <linux-kernel@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <robh+dt@kernel.org>,
+        <devicetree@vger.kernel.org>, <davem@davemloft.net>,
+        <gregkh@linuxfoundation.org>, <geert+renesas@glider.be>,
+        <akpm@linux-foundation.org>, <linux@roeck-us.net>,
+        <hverkuil@xs4all.nl>, <dheitmueller@kernellabs.com>,
+        <slongerbeam@gmail.com>, <lars@metafoo.de>,
+        <robert.jarzmik@free.fr>, <pavel@ucw.cz>, <pali.rohar@gmail.com>,
+        <sakari.ailus@linux.intel.com>, <mark.rutland@arm.com>,
+        <CARLOS.PALMINHA@synopsys.com>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Message-ID: <0f72309f-ec5e-4252-f6d7-7a7f7a9dc4c5@synopsys.com>
+Date: Mon, 12 Dec 2016 12:15:04 +0000
 MIME-Version: 1.0
+In-Reply-To: <20161212114900.GS16630@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---_003_AA09C8071EEEFC44A7852ADCECA86673A1E6E7hasmsx108gercorpi_
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
+Hi Sakari
 
-Specify GUID and FourCC codes mapping for Depth-related pixel formats adver=
-tised by Intel RealSense(tm) SR300 depth camera.
-Provide documentation for the new INZI pixel format introduced.
+On 12/12/2016 11:49 AM, Sakari Ailus wrote:
+> Hi Ramiro,
+> 
+> On Mon, Dec 12, 2016 at 11:39:31AM +0000, Ramiro Oliveira wrote:
+>> Hi Sakari,
+>>
+>> Thank you for the feedback.
+>>
+>> On 12/7/2016 10:33 PM, Sakari Ailus wrote:
+>>> Hi Ramiro,
+>>>
+>>> Thank you for the patch.
+>>>
+>>> On Mon, Dec 05, 2016 at 05:36:33PM +0000, Ramiro Oliveira wrote:
+>>>> Add device tree documentation.
+>>>>
+>>>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+>>>> ---
+>>>>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
+>>>>  1 file changed, 19 insertions(+)
+>>>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>>>>
+>>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>>>> new file mode 100644
+>>>> index 0000000..4c91b3b
+>>>> --- /dev/null
+>>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>>>> @@ -0,0 +1,19 @@
+>>>> +Omnivision OV5647 raw image sensor
+>>>> +---------------------------------
+>>>> +
+>>>> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
+>>>> +and CCI (I2C compatible) control bus.
+>>>> +
+>>>> +Required properties:
+>>>> +
+>>>> +- compatible	: "ovti,ov5647";
+>>>> +- reg		: I2C slave address of the sensor;
+>>>> +
+>>>> +The common video interfaces bindings (see video-interfaces.txt) should be
+>>>> +used to specify link to the image data receiver. The OV5647 device
+>>>> +node should contain one 'port' child node with an 'endpoint' subnode.
+>>>> +
+>>>> +Following properties are valid for the endpoint node:
+>>>> +
+>>>> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
+>>>> +  video-interfaces.txt.  The sensor supports only two data lanes.
+>>>
+>>> Doesn't this sensor require a external clock, a reset GPIO and / or a
+>>> regulator or a few? Do you need data-lanes, unless you can change the order
+>>> or the number?
+>>
+>> In the setup I'm using, I'm not aware of any reset GPIO or regulator. I do use a
+>> external clock but it's fixed and not controlled by SW. Should I add a property
+>> for this?
+> 
+> The sensor datasheet defines a power-up and power-down sequence for the
+> device. If you don't implement these sequences in the driver on a DT based
+> system, nothing suggests that they're implemented correctly. Could it be
+> that the boot loader simply enables the regulators or another device
+> requires them to be enabled?
+> 
+> I presume at least the reset GPIO should be controlled explicitly in order
+> to ensure correct function. Although hardware can be surprising: I have one
+> production system that has no reset GPIO for the sensor albeit the sensor
+> datasheet says that's part of the power up sequence.
+> 
 
----------------------------------------------------------------------
-Intel Israel (74) Limited
+Sorry for the misunderstanding. I wanted to say that, there is no SW controlled
+reset. In the board we're using to connect the sensor to our D-PHY we have a
+GPIO controller that when it receives power, it removes the sensor from reset,
+so I have no control over that.
 
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
+Regarding the clock, should I create a new property?
 
---_003_AA09C8071EEEFC44A7852ADCECA86673A1E6E7hasmsx108gercorpi_
-Content-Type: text/x-patch;
-	name="0001-UVC-Add-support-for-Intel-SR300-depth-camera.patch"
-Content-Description: 0001-UVC-Add-support-for-Intel-SR300-depth-camera.patch
-Content-Disposition: attachment;
-	filename="0001-UVC-Add-support-for-Intel-SR300-depth-camera.patch";
-	size=3227; creation-date="Wed, 23 Nov 2016 08:47:28 GMT";
-	modification-date="Wed, 23 Nov 2016 08:47:28 GMT"
-Content-ID: <6C51834CED74C946BFE460FFA3DC069B@intel.com>
-Content-Transfer-Encoding: base64
+And also, regarding the data-lanes, AFAIK it isn't possible to change the order
+of the data and clock lanes so should I remove that property?
 
-RnJvbSBlOTY5M2RkMDA4YmRhYWFmYTJlMmI1Nzc2MmNiNzVmODQ2NDlkZTJlIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBdml2IEdyZWVuYmVyZyA8YXZpdi5kLmdyZWVuYmVyZ0BpbnRl
-bC5jb20+CkRhdGU6IFR1ZSwgMTUgTm92IDIwMTYgMTI6MTA6MDkgKzAyMDAKU3ViamVjdDogW1BB
-VENIIDEvMl0gVVZDOiBBZGQgc3VwcG9ydCBmb3IgSW50ZWwgU1IzMDAgZGVwdGggY2FtZXJhCgpB
-ZGQgc3VwcG9ydCBmb3IgSW50ZWwgU1IzMDAgZGVwdGggY2FtZXJhIGluIHV2YyBkcml2ZXIuClRo
-aXMgaW5jbHVkZXMgYWRkaW5nIHRocmVlIHV2YyBHVUlEcyBmb3IgdGhlIHJlcXVpcmVkIHBpeGVs
-IGZvcm1hdHMsCmFkZGluZyBhIG5ldyBWNEwgcGl4ZWwgZm9ybWF0IGRlZmluaXRpb24gdG8gdXNl
-ciBhcGkgaGVhZGVycywKYW5kIHVwZGF0aW5nIHRoZSB1dmMgZHJpdmVyIEdVSUQtdG8tNGNjIHRh
-YmxlcyB3aXRoIHRoZSBuZXcgZm9ybWF0cy4KClNpZ25lZC1vZmYtYnk6IEF2aXYgR3JlZW5iZXJn
-IDxhdml2LmQuZ3JlZW5iZXJnQGludGVsLmNvbT4KU2lnbmVkLW9mZi1ieTogRXZnZW5pIFJhaWto
-ZWwgPGV2Z2VuaS5yYWlraGVsQGludGVsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL3VzYi91dmMv
-dXZjX2RyaXZlci5jIHwgMTUgKysrKysrKysrKysrKysrCiBkcml2ZXJzL21lZGlhL3VzYi91dmMv
-dXZjdmlkZW8uaCAgIHwgIDkgKysrKysrKysrCiBpbmNsdWRlL3VhcGkvbGludXgvdmlkZW9kZXYy
-LmggICAgIHwgIDEgKwogMyBmaWxlcyBjaGFuZ2VkLCAyNSBpbnNlcnRpb25zKCspCgpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9tZWRpYS91c2IvdXZjL3V2Y19kcml2ZXIuYyBiL2RyaXZlcnMvbWVkaWEv
-dXNiL3V2Yy91dmNfZHJpdmVyLmMKaW5kZXggMTE3NDRmOTIwOTdiLi41Yjk2YTg5ZjI5YWUgMTAw
-NjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdXNiL3V2Yy91dmNfZHJpdmVyLmMKKysrIGIvZHJpdmVy
-cy9tZWRpYS91c2IvdXZjL3V2Y19kcml2ZXIuYwpAQCAtMTY4LDYgKzE2OCwyMSBAQCBzdGF0aWMg
-c3RydWN0IHV2Y19mb3JtYXRfZGVzYyB1dmNfZm10c1tdID0gewogCQkuZ3VpZAkJPSBVVkNfR1VJ
-RF9GT1JNQVRfUlcxMCwKIAkJLmZjYwkJPSBWNEwyX1BJWF9GTVRfU1JHR0IxMFAsCiAJfSwKKwl7
-CisJCS5uYW1lCQk9ICJEZXB0aCBkYXRhIDE2LWJpdCAoWjE2KSIsCisJCS5ndWlkCQk9IFVWQ19H
-VUlEX0ZPUk1BVF9JTlZaLAorCQkuZmNjCQk9IFY0TDJfUElYX0ZNVF9aMTYsCisJfSwKKwl7CisJ
-CS5uYW1lCQk9ICJJUjpEZXB0aCAyNi1iaXQgKElOWkkpIiwKKwkJLmd1aWQJCT0gVVZDX0dVSURf
-Rk9STUFUX0lOWkksCisJCS5mY2MJCT0gVjRMMl9QSVhfRk1UX0lOWkksCisJfSwKKwl7CisJCS5u
-YW1lCQk9ICJHcmV5c2NhbGUgMTAtYml0IChZMTAgKSIsCisJCS5ndWlkCQk9IFVWQ19HVUlEX0ZP
-Uk1BVF9JTlZJLAorCQkuZmNjCQk9IFY0TDJfUElYX0ZNVF9ZMTAsCisJfSwKIH07CiAKIC8qIC0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS91c2IvdXZjL3V2Y3ZpZGVv
-LmggYi9kcml2ZXJzL21lZGlhL3VzYi91dmMvdXZjdmlkZW8uaAppbmRleCA3ZTRkM2VlYTM3MWIu
-LjQ2MGI5OWNhOTliNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS91c2IvdXZjL3V2Y3ZpZGVv
-LmgKKysrIGIvZHJpdmVycy9tZWRpYS91c2IvdXZjL3V2Y3ZpZGVvLmgKQEAgLTEzMSw2ICsxMzEs
-MTUgQEAKICNkZWZpbmUgVVZDX0dVSURfRk9STUFUX1JXMTAgXAogCXsgJ1InLCAgJ1cnLCAgJzEn
-LCAgJzAnLCAweDAwLCAweDAwLCAweDEwLCAweDAwLCBcCiAJIDB4ODAsIDB4MDAsIDB4MDAsIDB4
-YWEsIDB4MDAsIDB4MzgsIDB4OWIsIDB4NzF9CisjZGVmaW5lIFVWQ19HVUlEX0ZPUk1BVF9JTlZa
-IFwKKwl7ICdJJywgICdOJywgICdWJywgICdaJywgMHg5MCwgMHgyZCwgMHg1OCwgMHg0YSwgXAor
-CSAweDkyLCAweDBiLCAweDc3LCAweDNmLCAweDFmLCAweDJjLCAweDU1LCAweDZifQorI2RlZmlu
-ZSBVVkNfR1VJRF9GT1JNQVRfSU5aSSBcCisJeyAnSScsICAnTicsICAnWicsICAnSScsIDB4NjYs
-IDB4MWEsIDB4NDIsIDB4YTIsIFwKKwkgMHg5MCwgMHg2NSwgMHhkMCwgMHgxOCwgMHgxNCwgMHhh
-OCwgMHhlZiwgMHg4YX0KKyNkZWZpbmUgVVZDX0dVSURfRk9STUFUX0lOVkkgXAorCXsgJ0knLCAg
-J04nLCAgJ1YnLCAgJ0knLCAweGRiLCAweDU3LCAweDQ5LCAweDVlLCBcCisJIDB4OGUsIDB4M2Ys
-IDB4ZjQsIDB4NzksIDB4NTMsIDB4MmIsIDB4OTQsIDB4NmZ9CiAKIC8qIC0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LQogICogRHJpdmVyIHNwZWNpZmljIGNvbnN0YW50cy4KZGlmZiAtLWdpdCBhL2luY2x1ZGUvdWFw
-aS9saW51eC92aWRlb2RldjIuaCBiL2luY2x1ZGUvdWFwaS9saW51eC92aWRlb2RldjIuaAppbmRl
-eCBkM2Y2MTNlMmM1NGEuLjRhYjk5NWJiZWM1YiAxMDA2NDQKLS0tIGEvaW5jbHVkZS91YXBpL2xp
-bnV4L3ZpZGVvZGV2Mi5oCisrKyBiL2luY2x1ZGUvdWFwaS9saW51eC92aWRlb2RldjIuaApAQCAt
-NjU5LDYgKzY1OSw3IEBAIHN0cnVjdCB2NGwyX3BpeF9mb3JtYXQgewogI2RlZmluZSBWNEwyX1BJ
-WF9GTVRfWTEySSAgICAgdjRsMl9mb3VyY2MoJ1knLCAnMScsICcyJywgJ0knKSAvKiBHcmV5c2Nh
-bGUgMTItYml0IEwvUiBpbnRlcmxlYXZlZCAqLwogI2RlZmluZSBWNEwyX1BJWF9GTVRfWjE2ICAg
-ICAgdjRsMl9mb3VyY2MoJ1onLCAnMScsICc2JywgJyAnKSAvKiBEZXB0aCBkYXRhIDE2LWJpdCAq
-LwogI2RlZmluZSBWNEwyX1BJWF9GTVRfTVQyMUMgICAgdjRsMl9mb3VyY2MoJ00nLCAnVCcsICcy
-JywgJzEnKSAvKiBNZWRpYXRlayBjb21wcmVzc2VkIGJsb2NrIG1vZGUgICovCisjZGVmaW5lIFY0
-TDJfUElYX0ZNVF9JTlpJICAgICB2NGwyX2ZvdXJjYygnSScsICdOJywgJ1onLCAnSScpIC8qIElu
-dGVsIEluZnJhcmVkIDEwLWJpdCBsaW5rZWQgd2l0aCBEZXB0aCAxNi1iaXQgKi8KIAogLyogU0RS
-IGZvcm1hdHMgLSB1c2VkIG9ubHkgZm9yIFNvZnR3YXJlIERlZmluZWQgUmFkaW8gZGV2aWNlcyAq
-LwogI2RlZmluZSBWNEwyX1NEUl9GTVRfQ1U4ICAgICAgICAgIHY0bDJfZm91cmNjKCdDJywgJ1Un
-LCAnMCcsICc4JykgLyogSVEgdTggKi8KLS0gCjIuNy40Cgo=
-
---_003_AA09C8071EEEFC44A7852ADCECA86673A1E6E7hasmsx108gercorpi_
-Content-Type: text/x-patch;
-	name="0002-Document-Intel-SR300-Depth-camera-INZI-format.patch"
-Content-Description: 0002-Document-Intel-SR300-Depth-camera-INZI-format.patch
-Content-Disposition: attachment;
-	filename="0002-Document-Intel-SR300-Depth-camera-INZI-format.patch";
-	size=3556; creation-date="Wed, 23 Nov 2016 08:47:28 GMT";
-	modification-date="Wed, 23 Nov 2016 08:47:28 GMT"
-Content-ID: <1A43D2D6BD63E446A9BF17FB3EFAC1F4@intel.com>
-Content-Transfer-Encoding: base64
-
-RnJvbSA1ODFmNGMzZTYwZDhlNzg5NWJjMzRmOWUwZTkwNDc2ZWVkMzFmYThkIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBFdmdlbmkgUmFpa2hlbCA8ZXZnZW5pLnJhaWtoZWxAaW50ZWwu
-Y29tPgpEYXRlOiBXZWQsIDE2IE5vdiAyMDE2IDExOjUzOjQ5ICswMjAwClN1YmplY3Q6IFtQQVRD
-SCAyLzJdIERvY3VtZW50IEludGVsIFNSMzAwIERlcHRoIGNhbWVyYSBJTlpJIGZvcm1hdAoKUHJv
-dmlkZSB0aGUgZnJhbWUgc3RydWN0dXJlIGFuZCBkYXRhIGxheW91dCBvZiBWNEwyLVBJWC1GTVQt
-SU5aSQpmb3JtYXQgdXRpbGl6ZWQgYnkgSW50ZWwgU1IzMDAgRGVwdGggY2FtZXJhLgoKVGhpcyBp
-cyBhIGNvbXBsaW1lbnRhcnkgcGF0Y2ggZm9yOgpbUEFUQ0hdIFVWQzogQWRkIHN1cHBvcnQgZm9y
-IEludGVsIFNSMzAwIGRlcHRoIGNhbWVyYQoKU2lnbmVkLW9mZi1ieTogRXZnZW5pIFJhaWtoZWwg
-PGV2Z2VuaS5yYWlraGVsQGludGVsLmNvbT4KLS0tCiBEb2N1bWVudGF0aW9uL21lZGlhL3VhcGkv
-djRsL3BpeGZtdC1pbnppLnJzdCB8IDQwICsrKysrKysrKysrKysrKysrKysrKysrKysrKysKIDEg
-ZmlsZSBjaGFuZ2VkLCA0MCBpbnNlcnRpb25zKCspCiBjcmVhdGUgbW9kZSAxMDA2NDQgRG9jdW1l
-bnRhdGlvbi9tZWRpYS91YXBpL3Y0bC9waXhmbXQtaW56aS5yc3QKCmRpZmYgLS1naXQgYS9Eb2N1
-bWVudGF0aW9uL21lZGlhL3VhcGkvdjRsL3BpeGZtdC1pbnppLnJzdCBiL0RvY3VtZW50YXRpb24v
-bWVkaWEvdWFwaS92NGwvcGl4Zm10LWluemkucnN0Cm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4
-IDAwMDAwMDAwMDAwMC4uY2RmZGVhZTRhNjY0Ci0tLSAvZGV2L251bGwKKysrIGIvRG9jdW1lbnRh
-dGlvbi9tZWRpYS91YXBpL3Y0bC9waXhmbXQtaW56aS5yc3QKQEAgLTAsMCArMSw0MCBAQAorLi4g
-LSotIGNvZGluZzogdXRmLTg7IG1vZGU6IHJzdCAtKi0KKworLi4gX1Y0TDItUElYLUZNVC1JTlpJ
-OgorCisqKioqKioqKioqKioqKioqKioqKioqKioqKgorVjRMMl9QSVhfRk1UX0lOWkkgKCdJTlpJ
-JykKKyoqKioqKioqKioqKioqKioqKioqKioqKioqCisKK0luZnJhcmVkIDEwLWJpdCBsaW5rZWQg
-d2l0aCBEZXB0aCAxNi1iaXQgaW1hZ2VzCisKKworRGVzY3JpcHRpb24KKz09PT09PT09PT09CisK
-K0N1c3RvbSBtdWx0aS1wbGFuYXIgZm9ybWF0IHVzZWQgYnkgSW50ZWwgU1IzMDAgRGVwdGggY2Ft
-ZXJhcywgY29tcHJpc2Ugb2YgSW5mcmFyZWQgaW1hZ2UgZm9sbG93ZWQgYnkgRGVwdGggZGF0YS4K
-K1RoZSBwaXhlbCBkZWZpbml0aW9uIGlzIDMyLWJwcCwgd2l0aCB0aGUgRGVwdGggYW5kIEluZnJh
-cmVkIERhdGEgc3BsaXQgaW50byBzZXBhcmF0ZSBjb250aW51b3VzIHBsYW5lcyBvZiBpZGVudGlj
-YWwgZGltZW5zaW9ucy4KKworVGhlIGZpcnN0IHBsYW5lIC0gSW5mcmFyZWQgZGF0YSAtIGlzIHN0
-b3JlZCBpbiBWNEwyX1BJWF9GTVRfWTEwIChzZWUgOnJlZjpgcGl4Zm10LXkxMGApIGdyZXlzY2Fs
-ZSBmb3JtYXQuIEVhY2ggcGl4ZWwgaXMgMTYtYml0IGNlbGwsIHdpdGggYWN0dWFsIGRhdGEgcHJl
-c2VudCBpbiB0aGUgMTAgTFNCcyB3aXRoIHZhbHVlcyBpbiByYW5nZSAwIHRvIDEwMjMuIFRoZSBz
-aXggcmVtYWluaW5nIE1TQnMgYXJlIHBhZGRlZCB3aXRoIHplcm9zLgorCitUaGUgc2Vjb25kIHBs
-YW5lIHByb3ZpZGVzIDE2LWJpdCBwZXItcGl4ZWwgRGVwdGggZGF0YSBpbiBWNEwyX1BJWF9GTVRf
-WjE2ICg6cmVmOmBwaXhmbXQtejE2YCkgZm9ybWF0LgorCisKKyoqRnJhbWUgU3RydWN0dXJlLioq
-CitFYWNoIGNlbGwgaXMgYSAxNi1iaXQgd29yZCB3aXRoIHRoZSBzaWduaWZpY2FudCBkYXRhIGJ5
-dGUgaXMgc3RvcmVkIGF0IGxvd2VyIG1lbW9yeSBhZGRyZXNzIChsaXR0bGUtZW5kaWFuKS4KKwor
-Ky0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0t
-LS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKworfCBJ
-clwgOnN1YjpgMGAgICAgfCBJclwgOnN1YjpgMWAgICAgfCBJclwgOnN1YjpgMmAgICAgfCAgICAg
-ICAuLi4gICAgICAgfCAgICAgICAgLi4uICAgICAgfCAgICAgICAuLi4gICAgICAgfAorKy0tLS0t
-LS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0t
-LS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKworfCAgICAgIC4u
-LiAgICAgICAuLi4gICAgICAgLi4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfAorfCAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIEluZnJhcmVkIERhdGEgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfAorfCAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAuLi4gICAuLi4gICAuLi4gICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfAorKy0tLS0tLS0tLS0tLS0tLS0t
-Ky0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0t
-LS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKworfCBJclwgOnN1Yjpgbi0zYCAgfCBJ
-clwgOnN1Yjpgbi0yYCAgfCBJclwgOnN1Yjpgbi0xYCAgfCBEZXB0aFwgOnN1YjpgMGAgfCBEZXB0
-aFwgOnN1YjpgMWAgfCBEZXB0aFwgOnN1YjpgMmAgfAorKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0t
-LS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0t
-LS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKworfCAgICAgIC4uLiAgICAgICAuLi4gICAgICAg
-Li4uICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgfAorfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIERlcHRoIERhdGEgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgfAorfCAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAuLi4gICAuLi4gICAuLi4gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgfAorKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0t
-Ky0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0t
-LS0tLS0tLS0tLS0tLS0tKworfCAgICAgICAuLi4gICAgICAgfCAgICAgICAuLi4gICAgICAgfCAg
-ICAgICAuLi4gICAgICAgfERlcHRoXCA6c3ViOmBuLTNgfERlcHRoXCA6c3ViOmBuLTJgfERlcHRo
-XCA6c3ViOmBuLTFgfAorKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0t
-LS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0tLS0tLS0tLS0tKy0tLS0tLS0t
-LS0tLS0tLS0tKwotLSAKMi43LjQKCg==
-
---_003_AA09C8071EEEFC44A7852ADCECA86673A1E6E7hasmsx108gercorpi_--
-
+>>
+>>>
+>>> An example DT snippet wouldn't hurt.
+>>
+>> Sure, I can add a example snippet.
+>>
+>>>
+>>
+> 
