@@ -1,68 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50217 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933390AbcLIPTV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 10:19:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se
-Subject: Re: [PATCH v2 5/9] media: Use single quotes to quote entity names
-Date: Fri, 09 Dec 2016 17:19:46 +0200
-Message-ID: <2728859.u4HyMZ8Mmz@avalon>
-In-Reply-To: <1481295222-14743-6-git-send-email-sakari.ailus@linux.intel.com>
-References: <1481295222-14743-1-git-send-email-sakari.ailus@linux.intel.com> <1481295222-14743-6-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54251 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752447AbcLLPzZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 10:55:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 06/15] ov7670: document device tree bindings
+Date: Mon, 12 Dec 2016 16:55:11 +0100
+Message-Id: <20161212155520.41375-7-hverkuil@xs4all.nl>
+In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+Add binding documentation and add that file to the MAINTAINERS entry.
 
-On Friday 09 Dec 2016 16:53:38 Sakari Ailus wrote:
-> Instead of double quotes, use single quotes to quote entity names. Using
-> single quotes is consistent with the English language and is also in line
-> with the practices across the kernel.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/i2c/ov7670.txt       | 44 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 45 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7670.txt
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/media-entity.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 1de28ce..5064ba0 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -444,7 +444,7 @@ __must_check int __media_pipeline_start(struct
-> media_entity *entity, ret = entity->ops->link_validate(link);
->  			if (ret < 0 && ret != -ENOIOCTLCMD) {
->  				dev_dbg(entity->graph_obj.mdev->dev,
-> -					"link validation failed for \"%s\":%u 
--> \"%s\":%u, error %d\n",
-> +					"link validation failed for '%s':%u -> 
-'%s':%u, error %d\n",
->  					link->source->entity->name,
->  					link->source->index,
->  					entity->name, link->sink->index, ret);
-> @@ -458,7 +458,7 @@ __must_check int __media_pipeline_start(struct
-> media_entity *entity, if (!bitmap_full(active, entity->num_pads)) {
->  			ret = -ENOLINK;
->  			dev_dbg(entity->graph_obj.mdev->dev,
-> -				"\"%s\":%u must be connected by an enabled 
-link\n",
-> +				"'%s':%u must be connected by an enabled 
-link\n",
->  				entity->name,
->  				(unsigned)find_first_zero_bit(
->  					active, entity->num_pads));
-
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+new file mode 100644
+index 0000000..a014694
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+@@ -0,0 +1,44 @@
++* Omnivision OV7670 CMOS sensor
++
++The Omnivision OV7670 sensor supports multiple resolutions output, such as
++CIF, SVGA, UXGA. It also can support the YUV422/420, RGB565/555 or raw RGB
++output formats.
++
++Required Properties:
++- compatible: should be "ovti,ov7670"
++- clocks: reference to the xclk input clock.
++- clock-names: should be "xclk".
++
++Optional Properties:
++- resetb-gpios: reference to the GPIO connected to the resetb pin, if any.
++- pwdn-gpios: reference to the GPIO connected to the pwdn pin, if any.
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++
++	i2c1: i2c@f0018000 {
++		status = "okay";
++
++		ov7670: camera@0x21 {
++			compatible = "ovti,ov7670";
++			reg = <0x21>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_pck0_as_isi_mck &pinctrl_sensor_power &pinctrl_sensor_reset>;
++			resetb-gpios = <&pioE 11 GPIO_ACTIVE_LOW>;
++			pwdn-gpios = <&pioE 13 GPIO_ACTIVE_HIGH>;
++			clocks = <&pck0>;
++			clock-names = "xclk";
++			assigned-clocks = <&pck0>;
++			assigned-clock-rates = <25000000>;
++
++			port {
++				ov7670_0: endpoint {
++					remote-endpoint = <&isi_0>;
++					bus-width = <8>;
++				};
++			};
++		};
++	};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 52cc077..bbc654d 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8929,6 +8929,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/ov7670.c
++F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ 
+ ONENAND FLASH DRIVER
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.2
 
