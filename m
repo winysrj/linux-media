@@ -1,242 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:43763 "EHLO
-        relmlie4.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750762AbcLUIZs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 03:25:48 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v2 6/7] dt-bindings: media: Add Renesas R-Car DRIF binding
-Date: Wed, 21 Dec 2016 08:10:37 +0000
-Message-Id: <1482307838-47415-7-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+Received: from gofer.mess.org ([80.229.237.210]:49621 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932532AbcLLVN6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:58 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v5 14/18] [media] rc: ir-sharp-decoder: Add encode capability
+Date: Mon, 12 Dec 2016 21:13:50 +0000
+Message-Id: <fcf27e766db3af7dab1b0068cae4508d528b2d79.1481575826.git.sean@mess.org>
+In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Renesas R-Car Digital Radio Interface
-(DRIF) controller.
+Add the capability to encode Sharp scancodes as raw events.
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- .../devicetree/bindings/media/renesas,drif.txt     | 202 +++++++++++++++++++++
- 1 file changed, 202 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,drif.txt
+ drivers/media/rc/ir-sharp-decoder.c | 50 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,drif.txt b/Documentation/devicetree/bindings/media/renesas,drif.txt
-new file mode 100644
-index 0000000..1f3feaf
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,drif.txt
-@@ -0,0 +1,202 @@
-+Renesas R-Car Gen3 Digital Radio Interface controller (DRIF)
-+------------------------------------------------------------
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+index 317677f..d37af7c 100644
+--- a/drivers/media/rc/ir-sharp-decoder.c
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -173,9 +173,59 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	return -EINVAL;
+ }
+ 
++static struct ir_raw_timings_pd ir_sharp_timings = {
++	.header_pulse  = 0,
++	.header_space  = 0,
++	.bit_pulse     = SHARP_BIT_PULSE,
++	.bit_space[0]  = SHARP_BIT_0_PERIOD,
++	.bit_space[1]  = SHARP_BIT_1_PERIOD,
++	.trailer_pulse = SHARP_BIT_PULSE,
++	.trailer_space = SHARP_ECHO_SPACE,
++	.msb_first     = 1,
++};
 +
-+R-Car Gen3 DRIF is a SPI like receive only slave device. A general
-+representation of DRIF interfacing with a master device is shown below.
++/**
++ * ir_sharp_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocol:	protocol to encode
++ * @scancode:	scancode to encode
++ * @events:	array of raw ir events to write into
++ * @max:	maximum size of @events
++ *
++ * Returns:	The number of events written.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		encoding. In this case all @max events will have been written.
++ */
++static int ir_sharp_encode(enum rc_type protocol, u32 scancode,
++			   struct ir_raw_event *events, unsigned int max)
++{
++	struct ir_raw_event *e = events;
++	int ret;
++	u32 raw;
 +
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
++	raw = (((bitrev8(scancode >> 8) >> 3) << 8) & 0x1f00) |
++		bitrev8(scancode);
++	ret = ir_raw_gen_pd(&e, max, &ir_sharp_timings, SHARP_NBITS,
++			    (raw << 2) | 2);
++	if (ret < 0)
++		return ret;
 +
-+As per datasheet, each DRIF channel (drifn) is made up of two internal
-+channels (drifn0 & drifn1). These two internal channels share the common
-+CLK & SYNC. Each internal channel has its own dedicated resources like
-+irq, dma channels, address space & clock. This internal split is not
-+visible to the external master device.
++	max -= ret;
 +
-+The device tree model represents each internal channel as a separate node.
-+The internal channels sharing the CLK & SYNC are tied together by their
-+phandles using a new property called "renesas,bonding". For the rest of
-+the documentation, unless explicitly stated, the word channel implies an
-+internal channel.
++	raw = (((bitrev8(scancode >> 8) >> 3) << 8) & 0x1f00) |
++		bitrev8(~scancode);
++	ret = ir_raw_gen_pd(&e, max, &ir_sharp_timings, SHARP_NBITS,
++			    (raw << 2) | 1);
++	if (ret < 0)
++		return ret;
 +
-+When both internal channels are enabled they need to be managed together
-+as one (i.e.) they cannot operate alone as independent devices. Out of the
-+two, one of them needs to act as a primary device that accepts common
-+properties of both the internal channels. This channel is identified by a
-+new property called "renesas,primary-bond".
-+
-+To summarize,
-+   - When both the internal channels that are bonded together are enabled,
-+     the zeroth channel is selected as primary-bond. This channels accepts
-+     properties common to all the members of the bond.
-+   - When only one of the bonded channels need to be enabled, the property
-+     "renesas,bonding" or "renesas,primary-bond" will have no effect. That
-+     enabled channel can act alone as any other independent device.
-+
-+Required properties of an internal channel:
-+-------------------------------------------
-+- compatible: "renesas,r8a7795-drif" if DRIF controller is a part of R8A7795 SoC.
-+	      "renesas,rcar-gen3-drif" for a generic R-Car Gen3 compatible device.
-+	      When compatible with the generic version, nodes must list the
-+	      SoC-specific version corresponding to the platform first
-+	      followed by the generic version.
-+- reg: offset and length of that channel.
-+- interrupts: associated with that channel.
-+- clocks: phandle and clock specifier of that channel.
-+- clock-names: clock input name string: "fck".
-+- dmas: phandles to the DMA channels.
-+- dma-names: names of the DMA channel: "rx".
-+- renesas,bonding: phandle to the other channel.
-+
-+Optional properties of an internal channel:
-+-------------------------------------------
-+- power-domains: phandle to the respective power domain.
-+
-+Required properties of an internal channel when:
-+	- It is the only enabled channel of the bond (or)
-+	- If it acts as primary among enabled bonds
-+--------------------------------------------------------
-+- pinctrl-0: pin control group to be used for this channel.
-+- pinctrl-names: must be "default".
-+- renesas,primary-bond: empty property indicating the channel acts as primary
-+			among the bonded channels.
-+- port: child port node of a channel that defines the local and remote
-+	endpoints. The remote endpoint is assumed to be a third party tuner
-+	device endpoint.
-+
-+Optional properties of an internal channel when:
-+	- It is the only enabled channel of the bond (or)
-+	- If it acts as primary among enabled bonds
-+--------------------------------------------------------
-+- renesas,syncmd       : sync mode
-+			 0 (Frame start sync pulse mode. 1-bit width pulse
-+			    indicates start of a frame)
-+			 1 (L/R sync or I2S mode) (default)
-+- renesas,lsb-first    : empty property indicates lsb bit is received first.
-+			 When not defined msb bit is received first (default)
-+- renesas,syncac-active: Indicates sync signal polarity, 0/1 for low/high
-+			 respectively. The default is 1 (active high)
-+- renesas,dtdl         : delay between sync signal and start of reception.
-+			 The possible values are represented in 0.5 clock
-+			 cycle units and the range is 0 to 4. The default
-+			 value is 2 (i.e.) 1 clock cycle delay.
-+- renesas,syncdl       : delay between end of reception and sync signal edge.
-+			 The possible values are represented in 0.5 clock
-+			 cycle units and the range is 0 to 4 & 6. The default
-+			 value is 0 (i.e.) no delay.
-+
-+Example
-+--------
-+
-+SoC common dtsi file
-+
-+		drif00: rif@e6f40000 {
-+			compatible = "renesas,r8a7795-drif",
-+				     "renesas,rcar-gen3-drif";
-+			reg = <0 0xe6f40000 0 0x64>;
-+			interrupts = <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&cpg CPG_MOD 515>;
-+			clock-names = "fck";
-+			dmas = <&dmac1 0x20>, <&dmac2 0x20>;
-+			dma-names = "rx", "rx";
-+			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+			renesas,bonding = <&drif01>;
-+			status = "disabled";
-+		};
-+
-+		drif01: rif@e6f50000 {
-+			compatible = "renesas,r8a7795-drif",
-+				     "renesas,rcar-gen3-drif";
-+			reg = <0 0xe6f50000 0 0x64>;
-+			interrupts = <GIC_SPI 13 IRQ_TYPE_LEVEL_HIGH>;
-+			clocks = <&cpg CPG_MOD 514>;
-+			clock-names = "fck";
-+			dmas = <&dmac1 0x22>, <&dmac2 0x22>;
-+			dma-names = "rx", "rx";
-+			power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-+			renesas,bonding = <&drif00>;
-+			status = "disabled";
-+		};
-+
-+
-+Board specific dts file
-+
-+(1) Both internal channels enabled, primary-bond = 0
-+-----------------------------------------------------
-+
-+When interfacing with a third party tuner device with two data pins as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |-----SD0------->|D0                   |
-+|                     |-----SD1------->|D1                   |
-++---------------------+                +---------------------+
-+
-+pfc {
-+	...
-+
-+	drif0_pins: drif0 {
-+		groups = "drif0_ctrl_a", "drif0_data0_a",
-+				 "drif0_data1_a";
-+		function = "drif0";
-+	};
-+	...
++	return e - events;
 +}
 +
-+&drif00 {
-+	pinctrl-0 = <&drif0_pins>;
-+	pinctrl-names = "default";
-+	renesas,syncac-active = <1>;
-+	renesas,primary-bond;
-+	status = "okay";
-+	port {
-+		drif0_ep: endpoint {
-+		     remote-endpoint = <&tuner_ep>;
-+		};
-+	};
-+};
-+
-+&drif01 {
-+	status = "okay";
-+};
-+
-+(2) Internal channel 1 alone is enabled:
-+----------------------------------------
-+
-+When interfacing with a third party tuner device with one data pin as shown
-+below.
-+
-++---------------------+                +---------------------+
-+|                     |-----SCK------->|CLK                  |
-+|       Master        |-----SS-------->|SYNC  DRIFn (slave)  |
-+|                     |                |D0 (unused)          |
-+|                     |-----SD-------->|D1                   |
-++---------------------+                +---------------------+
-+
-+pfc {
-+	...
-+
-+	drif0_pins: drif0 {
-+		groups = "drif0_ctrl_a", "drif0_data1_a";
-+		function = "drif0";
-+	};
-+	...
-+}
-+
-+&drif01 {
-+	pinctrl-0 = <&drif0_pins>;
-+	pinctrl-names = "default";
-+	renesas,syncac-active = <0>;
-+	status = "okay";
-+	port {
-+		drif0_ep: endpoint {
-+		     remote-endpoint = <&tuner_ep>;
-+		};
-+	};
-+};
+ static struct ir_raw_handler sharp_handler = {
+ 	.protocols	= RC_BIT_SHARP,
+ 	.decode		= ir_sharp_decode,
++	.encode		= ir_sharp_encode,
+ };
+ 
+ static int __init ir_sharp_decode_init(void)
 -- 
-1.9.1
+2.9.3
 
