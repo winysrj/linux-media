@@ -1,58 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39760 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1758962AbcLUNnO (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:43798 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751983AbcLLTML (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 08:43:14 -0500
-Date: Wed, 21 Dec 2016 15:42:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161221134235.GH16630@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
+        Mon, 12 Dec 2016 14:12:11 -0500
+Date: Mon, 12 Dec 2016 22:11:55 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Daniele Nicolodi <daniele@grinta.net>
+Cc: SF Markus Elfring <elfring@users.sourceforge.net>,
+        linux-media@vger.kernel.org,
+        Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Subject: Re: [media] bt8xx: One function call less in bttv_input_init() after
+ error detection
+Message-ID: <20161212191128.GC8176@mwanda>
+References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
+ <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
+ <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
+ <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
+ <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
+ <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
+ <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161214122451.GB27011@amd>
+In-Reply-To: <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+You will never win an ELIZA bot challenge against Markus.  :P  I admire
+your optimism though.
 
-Thanks for the update.
+regards,
+dan carpenter
 
-On Wed, Dec 14, 2016 at 01:24:51PM +0100, Pavel Machek wrote:
-...
-> +static int et8ek8_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct et8ek8_sensor *sensor =
-> +		container_of(ctrl->handler, struct et8ek8_sensor, ctrl_handler);
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_GAIN:
-> +		return et8ek8_set_gain(sensor, ctrl->val);
-> +
-> +	case V4L2_CID_EXPOSURE:
-> +	{
-> +		int rows;
-> +		struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> +		rows = ctrl->val;
-> +		return et8ek8_i2c_write_reg(client, ET8EK8_REG_16BIT, 0x1243,
-> +					    swab16(rows));
-
-Why swab16()? Doesn't the et8ek8_i2c_write_reg() already do the right thing?
-
-16-bit writes aren't used elsewhere... and the register address and value
-seem to have different endianness there, it looks like a bug to me in that
-function.
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
