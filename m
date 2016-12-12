@@ -1,65 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:63138 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755835AbcLZU4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 15:56:00 -0500
-Subject: [PATCH 3/8] [media] videobuf-dma-sg: Use kmalloc_array() in
- videobuf_dma_init_user_locked()
-To: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <f02ed3c0-60f5-300c-c767-b3d96816b5ad@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:47:17 +0100
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58756 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752411AbcLLIDz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 03:03:55 -0500
+Date: Mon, 12 Dec 2016 10:03:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Omap3-isp isp_remove() access subdev.entity after
+ media_device_cleanup()
+Message-ID: <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
+References: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 19:46:56 +0100
+Hi Shuah,
 
-* A multiplication for the size determination of a memory allocation
-  indicated that an array data structure should be processed.
-  Thus use the corresponding function "kmalloc_array".
+On Fri, Dec 09, 2016 at 09:52:44AM -0700, Shuah Khan wrote:
+> Hi Sakari,
+> 
+> I am looking at omap3 isp_remove() closely and I think there are a few
+> issues there that could cause problems during unbind.
+> 
+> isp_remove() tries to do media_entity_cleanup() after it unregisters
+> media_device
+> 
+> isp_remove() calls isp_unregister_entities() followed by
+> isp_cleanup_modules() - cleanup routines call media_entity_cleanup()
+> 
+> media_entity_cleanup() accesses csi2a->subdev.entity which should be gone
+> by now after media_device_unregister(). This is just one example. I think
+> all of these cleanup routines isp_cleanup_modules() call access subdev.entity.
+> 
+> static void isp_cleanup_modules(struct isp_device *isp)
+> {
+>         omap3isp_h3a_aewb_cleanup(isp);
+>         omap3isp_h3a_af_cleanup(isp);
+>         omap3isp_hist_cleanup(isp);
+>         omap3isp_resizer_cleanup(isp);
+>         omap3isp_preview_cleanup(isp);
+>         omap3isp_ccdc_cleanup(isp);
+>         omap3isp_ccp2_cleanup(isp);
+>         omap3isp_csi2_cleanup(isp);
+> }
+> 
+> This is all done after media_device_cleanup() which does
+> ida_destroy(&mdev->entity_internal_idx); and mutex_destroy(&mdev->graph_mutex);
 
-  This issue was detected by using the Coccinelle software.
+Calling media_entity_cleanup() is not a source of the current problems in
+any way. The function is defined in media-entity.h and it does nothing:
 
-* Replace the specification of a data type by a pointer dereference
-  to make the corresponding size determination a bit safer according to
-  the Linux coding style convention.
+static inline void media_entity_cleanup(struct media_entity *entity) {};
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+We could later discuss when media_entity_cleanup() should be called though.
+The existing drivers do call it in their remove() handler.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index ba63ca57ed7e..ab3c1f6a2ca1 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -175,7 +175,9 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	dma->offset = data & ~PAGE_MASK;
- 	dma->size = size;
- 	dma->nr_pages = last-first+1;
--	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page *), GFP_KERNEL);
-+	dma->pages = kmalloc_array(dma->nr_pages,
-+				   sizeof(*dma->pages),
-+				   GFP_KERNEL);
- 	if (NULL == dma->pages)
- 		return -ENOMEM;
- 
+> I think there are some paths during unbind - isp_remove() that are unsafe.
+> I am trying to build https://github.com/gumstix/linux/tree/master now and
+> if I can get it to boot - I can send you some logs.
+
+Please do.
+
 -- 
-2.11.0
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
