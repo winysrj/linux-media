@@ -1,181 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:45979 "EHLO gofer.mess.org"
+Received: from gofer.mess.org ([80.229.237.210]:55899 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751723AbcLFKT1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:19:27 -0500
+        id S932371AbcLLVNt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:49 -0500
 From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v4 08/13] [media] rc: ir-rc5-decoder: Add encode capability
-Date: Tue,  6 Dec 2016 10:19:16 +0000
-Message-Id: <fa6f2a6113768d2d0db3e5ee97aff5e849170b2c.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v5 04/18] [media] winbond-cir: use sysfs wakeup filter
+Date: Mon, 12 Dec 2016 21:13:45 +0000
+Message-Id: <7d3050236078a62b9f4e5fff636579847dda1730.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+Now that we can select the exact variant of the protocol for wakeup
+filter, the winbond-cir can use the wakeup filter rather than module
+parameters.
 
-Add the capability to encode RC-5, RC-5X and RC-5-SZ scancodes as raw
-events. The protocol is chosen based on the specified protocol mask,
-and whether all the required bits are set in the scancode mask, and
-none of the unused bits are set in the scancode data. For example a
-scancode filter with bit 16 set in both data and mask is unambiguously
-RC-5X.
-
-The Manchester modulation helper is used, and for RC-5X it is used twice
-with two sets of timings, the first with a short trailer space for the
-space in the middle, and the second with no leader so that it can
-continue the space.
-
-The encoding in RC-5-SZ first inserts a pulse and then simply utilizes
-the generic Manchester encoder available in rc-core.
-
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
 Signed-off-by: Sean Young <sean@mess.org>
 Cc: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/rc/ir-rc5-decoder.c | 116 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 116 insertions(+)
+ drivers/media/rc/winbond-cir.c | 257 +++++++++++++++++++++--------------------
+ 1 file changed, 131 insertions(+), 126 deletions(-)
 
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index a0fd4e6..c405459 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -181,9 +181,125 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 78491ed..08971df 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -194,7 +194,6 @@ enum wbcir_txstate {
+ #define WBCIR_NAME	"Winbond CIR"
+ #define WBCIR_ID_FAMILY          0xF1 /* Family ID for the WPCD376I	*/
+ #define	WBCIR_ID_CHIP            0x04 /* Chip ID for the WPCD376I	*/
+-#define INVALID_SCANCODE   0x7FFFFFFF /* Invalid with all protos	*/
+ #define WAKEUP_IOMEM_LEN         0x10 /* Wake-Up I/O Reg Len		*/
+ #define EHFUNC_IOMEM_LEN         0x10 /* Enhanced Func I/O Reg Len	*/
+ #define SP_IOMEM_LEN             0x08 /* Serial Port 3 (IR) Reg Len	*/
+@@ -225,10 +224,6 @@ struct wbcir_data {
+ 	u32 txcarrier;
+ };
+ 
+-static enum wbcir_protocol protocol = IR_PROTOCOL_RC6;
+-module_param(protocol, uint, 0444);
+-MODULE_PARM_DESC(protocol, "IR protocol to use for the power-on command (0 = RC5, 1 = NEC, 2 = RC6A, default)");
+-
+ static bool invert; /* default = 0 */
+ module_param(invert, bool, 0444);
+ MODULE_PARM_DESC(invert, "Invert the signal from the IR receiver");
+@@ -237,15 +232,6 @@ static bool txandrx; /* default = 0 */
+ module_param(txandrx, bool, 0444);
+ MODULE_PARM_DESC(txandrx, "Allow simultaneous TX and RX");
+ 
+-static unsigned int wake_sc = 0x800F040C;
+-module_param(wake_sc, uint, 0644);
+-MODULE_PARM_DESC(wake_sc, "Scancode of the power-on IR command");
+-
+-static unsigned int wake_rc6mode = 6;
+-module_param(wake_rc6mode, uint, 0644);
+-MODULE_PARM_DESC(wake_rc6mode, "RC6 mode for the power-on command (0 = 0, 6 = 6A, default)");
+-
+-
+ 
+ /*****************************************************************************
+  *
+@@ -696,138 +682,153 @@ wbcir_shutdown(struct pnp_dev *device)
+ {
+ 	struct device *dev = &device->dev;
+ 	struct wbcir_data *data = pnp_get_drvdata(device);
++	struct rc_dev *rc = data->dev;
+ 	bool do_wake = true;
+ 	u8 match[11];
+ 	u8 mask[11];
+ 	u8 rc6_csl = 0;
++	u8 proto;
++	u32 wake_sc = rc->scancode_wakeup_filter.data;
++	u32 mask_sc = rc->scancode_wakeup_filter.mask;
+ 	int i;
+ 
+ 	memset(match, 0, sizeof(match));
+ 	memset(mask, 0, sizeof(mask));
+ 
+-	if (wake_sc == INVALID_SCANCODE || !device_may_wakeup(dev)) {
++	if (!mask_sc || !device_may_wakeup(dev)) {
+ 		do_wake = false;
+ 		goto finish;
+ 	}
+ 
+-	switch (protocol) {
+-	case IR_PROTOCOL_RC5:
+-		if (wake_sc > 0xFFF) {
+-			do_wake = false;
+-			dev_err(dev, "RC5 - Invalid wake scancode\n");
+-			break;
+-		}
+-
++	switch (rc->wakeup_protocol) {
++	case RC_TYPE_RC5:
+ 		/* Mask = 13 bits, ex toggle */
+-		mask[0] = 0xFF;
+-		mask[1] = 0x17;
++		mask[0]  = (mask_sc & 0x003f);
++		mask[0] |= (mask_sc & 0x0300) >> 2;
++		mask[1]  = (mask_sc & 0x1c00) >> 10;
++		if (mask_sc & 0x0040)		      /* 2nd start bit  */
++			match[1] |= 0x10;
+ 
+-		match[0]  = (wake_sc & 0x003F);      /* 6 command bits */
+-		match[0] |= (wake_sc & 0x0180) >> 1; /* 2 address bits */
+-		match[1]  = (wake_sc & 0x0E00) >> 9; /* 3 address bits */
+-		if (!(wake_sc & 0x0040))             /* 2nd start bit  */
++		match[0]  = (wake_sc & 0x003F);       /* 6 command bits */
++		match[0] |= (wake_sc & 0x0300) >> 2;  /* 2 address bits */
++		match[1]  = (wake_sc & 0x1c00) >> 10; /* 3 address bits */
++		if (!(wake_sc & 0x0040))	      /* 2nd start bit  */
+ 			match[1] |= 0x10;
+ 
++		proto = IR_PROTOCOL_RC5;
+ 		break;
+ 
+-	case IR_PROTOCOL_NEC:
+-		if (wake_sc > 0xFFFFFF) {
+-			do_wake = false;
+-			dev_err(dev, "NEC - Invalid wake scancode\n");
+-			break;
+-		}
+-
+-		mask[0] = mask[1] = mask[2] = mask[3] = 0xFF;
++	case RC_TYPE_NEC:
++		mask[1] = bitrev8(mask_sc);
++		mask[0] = mask[1];
++		mask[3] = bitrev8(mask_sc >> 8);
++		mask[2] = mask[3];
+ 
+-		match[1] = bitrev8((wake_sc & 0xFF));
++		match[1] = bitrev8(wake_sc);
+ 		match[0] = ~match[1];
++		match[3] = bitrev8(wake_sc >> 8);
++		match[2] = ~match[3];
+ 
+-		match[3] = bitrev8((wake_sc & 0xFF00) >> 8);
+-		if (wake_sc > 0xFFFF)
+-			match[2] = bitrev8((wake_sc & 0xFF0000) >> 16);
+-		else
+-			match[2] = ~match[3];
++		proto = IR_PROTOCOL_NEC;
++		break;
+ 
++	case RC_TYPE_NECX:
++		mask[1] = bitrev8(mask_sc);
++		mask[0] = mask[1];
++		mask[2] = bitrev8(mask_sc >> 8);
++		mask[3] = bitrev8(mask_sc >> 16);
++
++		match[1] = bitrev8(wake_sc);
++		match[0] = ~match[1];
++		match[2] = bitrev8(wake_sc >> 8);
++		match[3] = bitrev8(wake_sc >> 16);
++
++		proto = IR_PROTOCOL_NEC;
+ 		break;
+ 
+-	case IR_PROTOCOL_RC6:
++	case RC_TYPE_NEC32:
++		mask[0] = bitrev8(mask_sc);
++		mask[1] = bitrev8(mask_sc >> 8);
++		mask[2] = bitrev8(mask_sc >> 16);
++		mask[3] = bitrev8(mask_sc >> 24);
+ 
+-		if (wake_rc6mode == 0) {
+-			if (wake_sc > 0xFFFF) {
+-				do_wake = false;
+-				dev_err(dev, "RC6 - Invalid wake scancode\n");
+-				break;
+-			}
++		match[0] = bitrev8(wake_sc);
++		match[1] = bitrev8(wake_sc >> 8);
++		match[2] = bitrev8(wake_sc >> 16);
++		match[3] = bitrev8(wake_sc >> 24);
++
++		proto = IR_PROTOCOL_NEC;
++		break;
++
++	case RC_TYPE_RC6_0:
++		/* Command */
++		match[0] = wbcir_to_rc6cells(wake_sc >> 0);
++		mask[0]  = wbcir_to_rc6cells(mask_sc >> 0);
++		match[1] = wbcir_to_rc6cells(wake_sc >> 4);
++		mask[1]  = wbcir_to_rc6cells(mask_sc >> 4);
++
++		/* Address */
++		match[2] = wbcir_to_rc6cells(wake_sc >>  8);
++		mask[2]  = wbcir_to_rc6cells(mask_sc >>  8);
++		match[3] = wbcir_to_rc6cells(wake_sc >> 12);
++		mask[3]  = wbcir_to_rc6cells(mask_sc >> 12);
++
++		/* Header */
++		match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
++		mask[4]  = 0xF0;
++		match[5] = 0x09; /* start bit = 1, mode2 = 0 */
++		mask[5]  = 0x0F;
++
++		rc6_csl = 44;
++		proto = IR_PROTOCOL_RC6;
++		break;
+ 
+-			/* Command */
+-			match[0] = wbcir_to_rc6cells(wake_sc >>  0);
+-			mask[0]  = 0xFF;
+-			match[1] = wbcir_to_rc6cells(wake_sc >>  4);
+-			mask[1]  = 0xFF;
+-
+-			/* Address */
+-			match[2] = wbcir_to_rc6cells(wake_sc >>  8);
+-			mask[2]  = 0xFF;
+-			match[3] = wbcir_to_rc6cells(wake_sc >> 12);
+-			mask[3]  = 0xFF;
+-
+-			/* Header */
+-			match[4] = 0x50; /* mode1 = mode0 = 0, ignore toggle */
+-			mask[4]  = 0xF0;
+-			match[5] = 0x09; /* start bit = 1, mode2 = 0 */
+-			mask[5]  = 0x0F;
+-
+-			rc6_csl = 44;
+-
+-		} else if (wake_rc6mode == 6) {
+-			i = 0;
+-
+-			/* Command */
+-			match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
+-			mask[i++] = 0xFF;
+-			match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
+-			mask[i++] = 0xFF;
+-
+-			/* Address + Toggle */
+-			match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
+-			mask[i++] = 0xFF;
+-			match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
+-			mask[i++] = 0x3F;
+-
+-			/* Customer bits 7 - 0 */
+-			match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
+-			mask[i++] = 0xFF;
++	case RC_TYPE_RC6_6A_24:
++	case RC_TYPE_RC6_6A_32:
++	case RC_TYPE_RC6_MCE:
++		i = 0;
++
++		/* Command */
++		match[i]  = wbcir_to_rc6cells(wake_sc >>  0);
++		mask[i++] = wbcir_to_rc6cells(mask_sc >>  0);
++		match[i]  = wbcir_to_rc6cells(wake_sc >>  4);
++		mask[i++] = wbcir_to_rc6cells(mask_sc >>  4);
++
++		/* Address + Toggle */
++		match[i]  = wbcir_to_rc6cells(wake_sc >>  8);
++		mask[i++] = wbcir_to_rc6cells(mask_sc >>  8);
++		match[i]  = wbcir_to_rc6cells(wake_sc >> 12);
++		mask[i++] = wbcir_to_rc6cells(mask_sc >> 12);
++
++		/* Customer bits 7 - 0 */
++		match[i]  = wbcir_to_rc6cells(wake_sc >> 16);
++		mask[i++] = wbcir_to_rc6cells(mask_sc >> 16);
++
++		if (rc->wakeup_protocol == RC_TYPE_RC6_6A_20) {
++			rc6_csl = 52;
++		} else {
+ 			match[i]  = wbcir_to_rc6cells(wake_sc >> 20);
+-			mask[i++] = 0xFF;
++			mask[i++] = wbcir_to_rc6cells(mask_sc >> 20);
+ 
+-			if (wake_sc & 0x80000000) {
++			if (rc->wakeup_protocol == RC_TYPE_RC6_6A_24) {
++				rc6_csl = 60;
++			} else {
+ 				/* Customer range bit and bits 15 - 8 */
+ 				match[i]  = wbcir_to_rc6cells(wake_sc >> 24);
+-				mask[i++] = 0xFF;
++				mask[i++] = wbcir_to_rc6cells(mask_sc >> 24);
+ 				match[i]  = wbcir_to_rc6cells(wake_sc >> 28);
+-				mask[i++] = 0xFF;
++				mask[i++] = wbcir_to_rc6cells(mask_sc >> 28);
+ 				rc6_csl = 76;
+-			} else if (wake_sc <= 0x007FFFFF) {
+-				rc6_csl = 60;
+-			} else {
+-				do_wake = false;
+-				dev_err(dev, "RC6 - Invalid wake scancode\n");
+-				break;
+ 			}
+-
+-			/* Header */
+-			match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
+-			mask[i++] = 0xFF;
+-			match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
+-			mask[i++] = 0x0F;
+-
+-		} else {
+-			do_wake = false;
+-			dev_err(dev, "RC6 - Invalid wake mode\n");
+ 		}
+ 
++		/* Header */
++		match[i]  = 0x93; /* mode1 = mode0 = 1, submode = 0 */
++		mask[i++] = 0xFF;
++		match[i]  = 0x0A; /* start bit = 1, mode2 = 1 */
++		mask[i++] = 0x0F;
++		proto = IR_PROTOCOL_RC6;
+ 		break;
+-
+ 	default:
+ 		do_wake = false;
+ 		break;
+@@ -855,7 +856,8 @@ wbcir_shutdown(struct pnp_dev *device)
+ 		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_EV_EN, 0x01, 0x07);
+ 
+ 		/* Set CEIR_EN */
+-		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, 0x01, 0x01);
++		wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL,
++			       (proto << 4) | 0x01, 0x31);
+ 
+ 	} else {
+ 		/* Clear BUFF_EN, Clear END_EN, Clear MATCH_EN */
+@@ -875,6 +877,15 @@ wbcir_shutdown(struct pnp_dev *device)
+ 	disable_irq(data->irq);
  }
  
-+static struct ir_raw_timings_manchester ir_rc5_timings = {
-+	.leader			= RC5_UNIT,
-+	.pulse_space_start	= 0,
-+	.clock			= RC5_UNIT,
-+	.trailer_space		= RC5_UNIT * 10,
-+};
-+
-+static struct ir_raw_timings_manchester ir_rc5x_timings[2] = {
-+	{
-+		.leader			= RC5_UNIT,
-+		.pulse_space_start	= 0,
-+		.clock			= RC5_UNIT,
-+		.trailer_space		= RC5X_SPACE,
-+	},
-+	{
-+		.clock			= RC5_UNIT,
-+		.trailer_space		= RC5_UNIT * 10,
-+	},
-+};
-+
-+static struct ir_raw_timings_manchester ir_rc5_sz_timings = {
-+	.leader				= RC5_UNIT,
-+	.pulse_space_start		= 0,
-+	.clock				= RC5_UNIT,
-+	.trailer_space			= RC5_UNIT * 10,
-+};
-+
-+static int ir_rc5_validate_filter(const struct rc_scancode_filter *scancode,
-+				  unsigned int important_bits)
++/*
++ * Wakeup handling is done on shutdown.
++ */
++static int
++wbcir_set_wakeup_filter(struct rc_dev *rc, struct rc_scancode_filter *filter)
 +{
-+	/* all important bits of scancode should be set in mask */
-+	if (~scancode->mask & important_bits)
-+		return -EINVAL;
-+	/* extra bits in mask should be zero in data */
-+	if (scancode->mask & scancode->data & ~important_bits)
-+		return -EINVAL;
 +	return 0;
 +}
 +
-+/**
-+ * ir_rc5_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol variant to encode
-+ * @scancode:	scancode filter describing scancode (helps distinguish between
-+ *		protocol subtypes when scancode is ambiguous)
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_rc5_encode(enum rc_type protocol,
-+			 const struct rc_scancode_filter *scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	int ret;
-+	struct ir_raw_event *e = events;
-+	unsigned int data, xdata, command, commandx, system;
-+
-+	/* Detect protocol and convert scancode to raw data */
-+	if (protocol == RC_TYPE_RC5 &&
-+	    !ir_rc5_validate_filter(scancode, 0x1f7f)) {
-+		/* decode scancode */
-+		command  = (scancode->data & 0x003f) >> 0;
-+		commandx = (scancode->data & 0x0040) >> 6;
-+		system   = (scancode->data & 0x1f00) >> 8;
-+		/* encode data */
-+		data = !commandx << 12 | system << 6 | command;
-+
-+		/* Modulate the data */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_timings, RC5_NBITS,
-+					    data);
-+		if (ret < 0)
-+			return ret;
-+	} else if (protocol == RC_TYPE_RC5X &&
-+		   !ir_rc5_validate_filter(scancode, 0x1f7f3f)) {
-+		/* decode scancode */
-+		xdata    = (scancode->data & 0x00003f) >> 0;
-+		command  = (scancode->data & 0x003f00) >> 8;
-+		commandx = (scancode->data & 0x004000) >> 14;
-+		system   = (scancode->data & 0x1f0000) >> 16;
-+		/* commandx and system overlap, bits must match when encoded */
-+		if (commandx == (system & 0x1))
-+			return -EINVAL;
-+		/* encode data */
-+		data = 1 << 18 | system << 12 | command << 6 | xdata;
-+
-+		/* Modulate the data */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5x_timings[0],
-+					CHECK_RC5X_NBITS,
-+					data >> (RC5X_NBITS-CHECK_RC5X_NBITS));
-+		if (ret < 0)
-+			return ret;
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					&ir_rc5x_timings[1],
-+					RC5X_NBITS - CHECK_RC5X_NBITS,
-+					data);
-+		if (ret < 0)
-+			return ret;
-+	} else if (protocol == RC_TYPE_RC5_SZ &&
-+		   !ir_rc5_validate_filter(scancode, 0x2fff)) {
-+		/* RC5-SZ scancode is raw enough for Manchester as it is */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings,
-+					RC5_SZ_NBITS, scancode->data & 0x2fff);
-+		if (ret < 0)
-+			return ret;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler rc5_handler = {
- 	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
-+	.encode		= ir_rc5_encode,
- };
+ static int
+ wbcir_suspend(struct pnp_dev *device, pm_message_t state)
+ {
+@@ -887,16 +898,11 @@ wbcir_suspend(struct pnp_dev *device, pm_message_t state)
+ static void
+ wbcir_init_hw(struct wbcir_data *data)
+ {
+-	u8 tmp;
+-
+ 	/* Disable interrupts */
+ 	wbcir_set_irqmask(data, WBCIR_IRQ_NONE);
  
- static int __init ir_rc5_decode_init(void)
+-	/* Set PROT_SEL, RX_INV, Clear CEIR_EN (needed for the led) */
+-	tmp = protocol << 4;
+-	if (invert)
+-		tmp |= 0x08;
+-	outb(tmp, data->wbase + WBCIR_REG_WCEIR_CTL);
++	/* Set RX_INV, Clear CEIR_EN (needed for the led) */
++	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_CTL, invert ? 8 : 0, 0x09);
+ 
+ 	/* Clear status bits NEC_REP, BUFF, MSG_END, MATCH */
+ 	wbcir_set_bits(data->wbase + WBCIR_REG_WCEIR_STS, 0x17, 0x17);
+@@ -1084,6 +1090,14 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	data->dev->timeout = MS_TO_NS(100);
+ 	data->dev->rx_resolution = US_TO_NS(2);
+ 	data->dev->allowed_protocols = RC_BIT_ALL;
++	data->dev->allowed_wakeup_protocols = RC_BIT_NEC | RC_BIT_NECX |
++			RC_BIT_NEC32 | RC_BIT_RC5 | RC_BIT_RC6_0 |
++			RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 |
++			RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE;
++	data->dev->wakeup_protocol = RC_TYPE_RC6_MCE;
++	data->dev->scancode_wakeup_filter.data = 0x800F040C;
++	data->dev->scancode_wakeup_filter.mask = ~0;
++	data->dev->s_wakeup_filter = wbcir_set_wakeup_filter;
+ 
+ 	err = rc_register_device(data->dev);
+ 	if (err)
+@@ -1199,15 +1213,6 @@ wbcir_init(void)
+ {
+ 	int ret;
+ 
+-	switch (protocol) {
+-	case IR_PROTOCOL_RC5:
+-	case IR_PROTOCOL_NEC:
+-	case IR_PROTOCOL_RC6:
+-		break;
+-	default:
+-		pr_err("Invalid power-on protocol\n");
+-	}
+-
+ 	ret = pnp_register_driver(&wbcir_driver);
+ 	if (ret)
+ 		pr_err("Unable to register driver\n");
 -- 
 2.9.3
 
