@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:34933 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751673AbcLXWb4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Dec 2016 17:31:56 -0500
-Received: by mail-pg0-f66.google.com with SMTP id i5so4794036pgh.2
-        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2016 14:31:56 -0800 (PST)
-From: Shyam Saini <mayhs11saini@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, Shyam Saini <mayhs11saini@gmail.com>
-Subject: [PATCH 1/4] media: pci: saa7164: Replace BUG() with BUG_ON()
-Date: Sun, 25 Dec 2016 04:01:39 +0530
-Message-Id: <1482618702-13755-1-git-send-email-mayhs11saini@gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:51831 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751180AbcLLTda (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 14:33:30 -0500
+Date: Tue, 13 Dec 2016 03:32:46 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v3 4/4] uvcvideo: add a metadata device node
+Message-ID: <201612130344.2N6ehuhX%fengguang.wu@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1481541412-1186-5-git-send-email-guennadi.liakhovetski@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace BUG() with BUG_ON() using coccinelle
+Hi Guennadi,
 
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v4.9 next-20161209]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+
+url:    https://github.com/0day-ci/linux/commits/Guennadi-Liakhovetski/uvcvideo-metadata-device-node/20161213-004101
+base:   git://linuxtv.org/media_tree.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
+
+
+sparse warnings: (new ones prefixed by >>)
+
+
+vim +/case +81 drivers/media/usb/uvc/uvc_queue.c
+
+    65		}
+    66	}
+    67	
+    68	/* -----------------------------------------------------------------------------
+    69	 * videobuf2 queue operations
+    70	 */
+    71	
+    72	int uvc_queue_setup(struct vb2_queue *vq,
+    73			    unsigned int *nbuffers, unsigned int *nplanes,
+    74			    unsigned int sizes[], struct device *alloc_devs[])
+    75	{
+    76		struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+    77		struct uvc_streaming *stream;
+    78		unsigned int size;
+    79	
+    80		switch (vq->type) {
+  > 81		case V4L2_BUF_TYPE_META_CAPTURE:
+    82			size = UVC_PAYLOAD_HEADER_MAX_SIZE;
+    83	
+    84			if (*nplanes && *nplanes != 1)
+    85				return -EINVAL;
+    86	
+    87			break;
+    88		default:
+    89			stream = uvc_queue_to_stream(queue);
+
 ---
- drivers/media/pci/saa7164/saa7164-buffer.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/pci/saa7164/saa7164-buffer.c b/drivers/media/pci/saa7164/saa7164-buffer.c
-index 62c3450..7d28d46 100644
---- a/drivers/media/pci/saa7164/saa7164-buffer.c
-+++ b/drivers/media/pci/saa7164/saa7164-buffer.c
-@@ -266,15 +266,13 @@ int saa7164_buffer_cfg_port(struct saa7164_port *port)
- 	list_for_each_safe(c, n, &port->dmaqueue.list) {
- 		buf = list_entry(c, struct saa7164_buffer, list);
- 
--		if (buf->flags != SAA7164_BUFFER_FREE)
--			BUG();
-+		BUG_ON(buf->flags != SAA7164_BUFFER_FREE);
- 
- 		/* Place the buffer in the h/w queue */
- 		saa7164_buffer_activate(buf, i);
- 
- 		/* Don't exceed the device maximum # bufs */
--		if (i++ > port->hwcfg.buffercount)
--			BUG();
-+		BUG_ON(i++ > port->hwcfg.buffercount);
- 
- 	}
- 	mutex_unlock(&port->dmaqueue_lock);
--- 
-2.7.4
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
