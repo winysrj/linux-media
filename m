@@ -1,134 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:35913 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S938148AbcLOPqG (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:51011
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752483AbcLLQlR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 10:46:06 -0500
-Date: Thu, 15 Dec 2016 13:45:52 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+        Mon, 12 Dec 2016 11:41:17 -0500
+Subject: Re: Omap3-isp isp_remove() access subdev.entity after
+ media_device_cleanup()
+To: Sakari Ailus <sakari.ailus@iki.fi>
+References: <180f9a48-5bb5-d23c-fcdd-b1d0edf35e85@osg.samsung.com>
+ <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
- references as needed
-Message-ID: <20161215134552.1b47f008@vento.lan>
-In-Reply-To: <8eaf38da-0dc1-493f-c41d-56b23509bb2d@xs4all.nl>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <20161215123207.3198d1d2@vento.lan>
-        <8eaf38da-0dc1-493f-c41d-56b23509bb2d@xs4all.nl>
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <e937dd20-a6f3-48d8-860b-48907ac39fac@osg.samsung.com>
+Date: Mon, 12 Dec 2016 09:41:05 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20161212080315.GQ16630@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 15 Dec 2016 15:45:22 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> On 15/12/16 15:32, Mauro Carvalho Chehab wrote:
-> > Em Thu, 15 Dec 2016 15:03:36 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >  
-> >> On 15/12/16 13:56, Laurent Pinchart wrote:  
-> >>> Hi Sakari,
-> >>>
-> >>> On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:  
-> >>>> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:  
-> >>>>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:  
-> >>>>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:  
-> >>>>>>> Hi Sakari,
-> >>>>>>>  
-> >
-> >  
-> >>> There's plenty of way to try and work around the problem in drivers, some more
-> >>> racy than others, but if we require changes to all platform drivers to fix
-> >>> this we need to ensure that we get it right, not as half-baked hacks spread
-> >>> around the whole subsystem.  
-> >>
-> >> Why on earth do we want this for the omap3 driver? It is not a hot-pluggable
-> >> device and I see no reason whatsoever to start modifying platform drivers just
-> >> because you can do an unbind. I know there are real hot-pluggable devices, and
-> >> getting this right for those is of course important.  
-> >
-> > That's indeed a very good point. If unbind is not needed by any usecase,
-> > the better fix for OMAP3 would be to just prevent it to happen in the first
-> > place.
-> >  
-> >>>>> The USB subsystem has a a .disconnect() callback that notifies
-> >>>>> the drivers that a device was unbound (likely physically removed).
-> >>>>> The way USB media drivers handle it is by returning -ENODEV to any
-> >>>>> V4L2 call that would try to touch at the hardware after unbound.  
-> >>>  
-> >>
-> >> In my view the main problem is that the media core is bound to a struct
-> >> device set by the driver that creates the MC. But since the MC gives an
-> >> overview of lots of other (sub)devices the refcount of the media device
-> >> should be increased for any (sub)device that adds itself to the MC and
-> >> decreased for any (sub)device that is removed. Only when the very last
-> >> user goes away can the MC memory be released.
-> >>
-> >> The memory/refcounting associated with device nodes is unrelated to this:
-> >> once a devnode is unregistered it will be removed in /dev, and once the
-> >> last open fh closes any memory associated with the devnode can be released.
-> >> That will also decrease the refcount to its parent device.
-> >>
-> >> This also means that it is a bad idea to embed devnodes in a larger struct.
-> >> They should be allocated and freed when the devnode is unregistered and
-> >> the last open filehandle is closed.
-> >>
-> >> Then the parent's device refcount is decreased, and that may now call its
-> >> release callback if the refcount reaches 0.
-> >>
-> >> For the media controller's device: any other device driver that needs access
-> >> to it needs to increase that device's refcount, and only when those devices
-> >> are released will they decrease the MC device's refcount.
-> >>
-> >> And when that refcount goes to 0 can we finally free everything.
-> >>
-> >> With regards to the opposition to reverting those initial patches, I'm
-> >> siding with Greg KH. Just revert the bloody patches. It worked most of the
-> >> time before those patches, so reverting really won't cause bisect problems.  
-> >
-> > You're contradicting yourself here ;)
-> >
-> > The patches that this patch series is reverting are the ones that
-> > de-embeeds devnode struct and fixes its lifecycle.
-> >
-> > Reverting those patches will cause regressions on hot-pluggable drivers,
-> > preventing them to be unplugged. So, if we're willing to revert, then we
-> > should also revert MC support on them.  
+On 12/12/2016 01:03 AM, Sakari Ailus wrote:
+> Hi Shuah,
 > 
-> Two options:
+> On Fri, Dec 09, 2016 at 09:52:44AM -0700, Shuah Khan wrote:
+>> Hi Sakari,
+>>
+>> I am looking at omap3 isp_remove() closely and I think there are a few
+>> issues there that could cause problems during unbind.
+>>
+>> isp_remove() tries to do media_entity_cleanup() after it unregisters
+>> media_device
+>>
+>> isp_remove() calls isp_unregister_entities() followed by
+>> isp_cleanup_modules() - cleanup routines call media_entity_cleanup()
+>>
+>> media_entity_cleanup() accesses csi2a->subdev.entity which should be gone
+>> by now after media_device_unregister(). This is just one example. I think
+>> all of these cleanup routines isp_cleanup_modules() call access subdev.entity.
+>>
+>> static void isp_cleanup_modules(struct isp_device *isp)
+>> {
+>>         omap3isp_h3a_aewb_cleanup(isp);
+>>         omap3isp_h3a_af_cleanup(isp);
+>>         omap3isp_hist_cleanup(isp);
+>>         omap3isp_resizer_cleanup(isp);
+>>         omap3isp_preview_cleanup(isp);
+>>         omap3isp_ccdc_cleanup(isp);
+>>         omap3isp_ccp2_cleanup(isp);
+>>         omap3isp_csi2_cleanup(isp);
+>> }
+>>
+>> This is all done after media_device_cleanup() which does
+>> ida_destroy(&mdev->entity_internal_idx); and mutex_destroy(&mdev->graph_mutex);
 > 
-> 1) Revert, then build up a proper solution.
+> Calling media_entity_cleanup() is not a source of the current problems in
+> any way. The function is defined in media-entity.h and it does nothing:
+> 
+> static inline void media_entity_cleanup(struct media_entity *entity) {};
 
-Reverting is a regression, as we'll strip off the MC support from the
-existing devices. We would also need to revert a lot more than just those
-3 patches.
+Perhaps. Please see what I said about accesses csi2a->subdev.entity which is
+gone by now to call media_entity_cleanup(). Even though media_entity_cleanup()
+doesn't do anything, just this access could result in problems during unbind.
 
-> 2) Do a big-bang patch switching directly over to the new solution, but that's
-> very hard to review.
-> 2a) Post the patch series in small chunks on the mailinglist (starting with the
-> reverts), but once we're all happy merge that patch series into a single big-bang
-> patch and apply that.
+> 
+> We could later discuss when media_entity_cleanup() should be called though.
+> The existing drivers do call it in their remove() handler.
+> 
+>> I think there are some paths during unbind - isp_remove() that are unsafe.
+>> I am trying to build https://github.com/gumstix/linux/tree/master now and
+>> if I can get it to boot - I can send you some logs.
+> 
+> Please do.
+> 
 
-We could do that, but so far, what has been submitted are incomplete,
-as they only touch on a single driver (with doesn't require hot-plugging),
-breaking all the other ones.
-
-> As far as I am concerned the whole hotplugging code is broken and has been for
-> a very long time. We (or at least I :-) ) understand the underlying concepts
-> a lot better, so we can do a better job. But the transition may well be
-> painful.
-
-It is not broken currently on the devices that require hotplugging.
-
-Thanks,
-Mauro
