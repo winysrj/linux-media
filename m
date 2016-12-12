@@ -1,55 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f174.google.com ([209.85.210.174]:36519 "EHLO
-        mail-wj0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751202AbcLORar (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 12:30:47 -0500
-Received: by mail-wj0-f174.google.com with SMTP id tk12so72731162wjb.3
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2016 09:30:47 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 3/9] MAINTAINERS: Add Qualcomm Venus video accelerator driver
-Date: Thu, 15 Dec 2016 19:22:18 +0200
-Message-Id: <1481822544-29900-4-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1481822544-29900-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1481822544-29900-1-git-send-email-stanimir.varbanov@linaro.org>
+Received: from gofer.mess.org ([80.229.237.210]:47583 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932462AbcLLVN5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:57 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        James Hogan <james@albanarts.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v5 07/18] [media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
+Date: Mon, 12 Dec 2016 21:13:43 +0000
+Message-Id: <b3f8ca8fe3c86982e2613a1494e1de9f4cdee02f.1481575826.git.sean@mess.org>
+In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an entry for Venus video encoder/decoder accelerator driver.
+From: Antti Seppälä <a.seppala@gmail.com>
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Adding a simple Manchester encoder to rc-core.
+Manchester coding is used by at least RC-5 and RC-6 protocols and their
+variants.
+
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: David Härdeman <david@hardeman.nu>
 ---
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/rc/rc-core-priv.h | 33 ++++++++++++++++
+ drivers/media/rc/rc-ir-raw.c    | 85 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 118 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 52cc0775a799..9528488f538e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -10013,6 +10013,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.g
- S:	Supported
- F:	arch/hexagon/
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index d8be011..74513c6 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -156,6 +156,39 @@ static inline bool is_timing_event(struct ir_raw_event ev)
+ #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
  
-+QUALCOMM VENUS VIDEO ACCELERATOR DRIVER
-+M:	Stanimir Varbanov <stanimir.varbanov@linaro.org>
-+L:	linux-media@vger.kernel.org
-+L:	linux-arm-msm@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/platform/qcom/venus/
++/* functions for IR encoders */
 +
- QUALCOMM WCN36XX WIRELESS DRIVER
- M:	Eugene Krasnikov <k.eugene.e@gmail.com>
- L:	wcn36xx@lists.infradead.org
++static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
++					      unsigned int pulse,
++					      u32 duration)
++{
++	init_ir_raw_event(ev);
++	ev->duration = duration;
++	ev->pulse = pulse;
++}
++
++/**
++ * struct ir_raw_timings_manchester - Manchester coding timings
++ * @leader:		duration of leader pulse (if any) 0 if continuing
++ *			existing signal (see @pulse_space_start)
++ * @pulse_space_start:	1 for starting with pulse (0 for starting with space)
++ * @clock:		duration of each pulse/space in ns
++ * @invert:		if set clock logic is inverted
++ *			(0 = space + pulse, 1 = pulse + space)
++ * @trailer_space:	duration of trailer space in ns
++ */
++struct ir_raw_timings_manchester {
++	unsigned int leader;
++	unsigned int pulse_space_start:1;
++	unsigned int clock;
++	unsigned int invert:1;
++	unsigned int trailer_space;
++};
++
++int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
++			  const struct ir_raw_timings_manchester *timings,
++			  unsigned int n, unsigned int data);
++
+ /*
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index c23c877..4b2d82a 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -250,6 +250,91 @@ static void ir_raw_disable_protocols(struct rc_dev *dev, u64 protocols)
+ }
+ 
+ /**
++ * ir_raw_gen_manchester() - Encode data with Manchester (bi-phase) modulation.
++ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
++ *		each raw event filled.
++ * @max:	Maximum number of raw events to fill.
++ * @timings:	Manchester modulation timings.
++ * @n:		Number of bits of data.
++ * @data:	Data bits to encode.
++ *
++ * Encodes the @n least significant bits of @data using Manchester (bi-phase)
++ * modulation with the timing characteristics described by @timings, writing up
++ * to @max raw IR events using the *@ev pointer.
++ *
++ * Returns:	0 on success.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		full encoded data. In this case all @max events will have been
++ *		written.
++ */
++int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
++			  const struct ir_raw_timings_manchester *timings,
++			  unsigned int n, unsigned int data)
++{
++	bool need_pulse;
++	unsigned int i;
++	int ret = -ENOBUFS;
++
++	i = 1 << (n - 1);
++
++	if (timings->leader) {
++		if (!max--)
++			return ret;
++		if (timings->pulse_space_start) {
++			init_ir_raw_event_duration((*ev)++, 1, timings->leader);
++
++			if (!max--)
++				return ret;
++			init_ir_raw_event_duration((*ev), 0, timings->leader);
++		} else {
++			init_ir_raw_event_duration((*ev), 1, timings->leader);
++		}
++		i >>= 1;
++	} else {
++		/* continue existing signal */
++		--(*ev);
++	}
++	/* from here on *ev will point to the last event rather than the next */
++
++	while (n && i > 0) {
++		need_pulse = !(data & i);
++		if (timings->invert)
++			need_pulse = !need_pulse;
++		if (need_pulse == !!(*ev)->pulse) {
++			(*ev)->duration += timings->clock;
++		} else {
++			if (!max--)
++				goto nobufs;
++			init_ir_raw_event_duration(++(*ev), need_pulse,
++						   timings->clock);
++		}
++
++		if (!max--)
++			goto nobufs;
++		init_ir_raw_event_duration(++(*ev), !need_pulse,
++					   timings->clock);
++		i >>= 1;
++	}
++
++	if (timings->trailer_space) {
++		if (!(*ev)->pulse)
++			(*ev)->duration += timings->trailer_space;
++		else if (!max--)
++			goto nobufs;
++		else
++			init_ir_raw_event_duration(++(*ev), 0,
++						   timings->trailer_space);
++	}
++
++	ret = 0;
++nobufs:
++	/* point to the next event rather than last event before returning */
++	++(*ev);
++	return ret;
++}
++EXPORT_SYMBOL(ir_raw_gen_manchester);
++
++/**
+  * ir_raw_encode_scancode() - Encode a scancode as raw events
+  *
+  * @protocol:		protocol
 -- 
-2.7.4
+2.9.3
 
