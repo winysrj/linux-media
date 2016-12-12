@@ -1,131 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f179.google.com ([209.85.210.179]:33783 "EHLO
-        mail-wj0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755403AbcLNM67 (ORCPT
+Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:55510 "EHLO
+        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752389AbcLLPz1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 07:58:59 -0500
-Received: by mail-wj0-f179.google.com with SMTP id xy5so32280678wjc.0
-        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2016 04:57:21 -0800 (PST)
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org,
-        linaro-kernel@lists.linaro.org, kernel@stlinux.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH 1/2] sti: hdmi: add HDMI notifier support
-Date: Wed, 14 Dec 2016 13:57:08 +0100
-Message-Id: <1481720229-7587-2-git-send-email-benjamin.gaignard@linaro.org>
-In-Reply-To: <1481720229-7587-1-git-send-email-benjamin.gaignard@linaro.org>
-References: <1481720229-7587-1-git-send-email-benjamin.gaignard@linaro.org>
+        Mon, 12 Dec 2016 10:55:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 08/15] atmel-isi: move out of soc_camera to atmel
+Date: Mon, 12 Dec 2016 16:55:13 +0100
+Message-Id: <20161212155520.41375-9-hverkuil@xs4all.nl>
+In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement the HDMI notifier support to allow CEC drivers to
-be informed when there is a new EDID and when a connect or
-disconnect happens.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Move this out of the soc_camera directory into the atmel directory
+where it belongs.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/gpu/drm/sti/Kconfig    |  1 +
- drivers/gpu/drm/sti/sti_hdmi.c | 15 +++++++++++++++
- drivers/gpu/drm/sti/sti_hdmi.h |  2 ++
- 3 files changed, 18 insertions(+)
+ drivers/media/platform/Makefile                          |  1 +
+ drivers/media/platform/atmel/Kconfig                     | 11 ++++++++++-
+ drivers/media/platform/atmel/Makefile                    |  1 +
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.c |  0
+ drivers/media/platform/{soc_camera => atmel}/atmel-isi.h |  0
+ drivers/media/platform/soc_camera/Kconfig                | 10 ----------
+ drivers/media/platform/soc_camera/Makefile               |  1 -
+ 7 files changed, 12 insertions(+), 12 deletions(-)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.c (100%)
+ rename drivers/media/platform/{soc_camera => atmel}/atmel-isi.h (100%)
 
-diff --git a/drivers/gpu/drm/sti/Kconfig b/drivers/gpu/drm/sti/Kconfig
-index acd7286..59ceffc 100644
---- a/drivers/gpu/drm/sti/Kconfig
-+++ b/drivers/gpu/drm/sti/Kconfig
-@@ -8,5 +8,6 @@ config DRM_STI
- 	select DRM_PANEL
- 	select FW_LOADER
- 	select SND_SOC_HDMI_CODEC if SND_SOC
-+	select HDMI_NOTIFIERS
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 5b3cb27..15f4f69 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -61,6 +61,7 @@ obj-$(CONFIG_VIDEO_XILINX)		+= xilinx/
+ obj-$(CONFIG_VIDEO_RCAR_VIN)		+= rcar-vin/
+ 
+ obj-$(CONFIG_VIDEO_ATMEL_ISC)		+= atmel/
++obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel/
+ 
+ ccflags-y += -I$(srctree)/drivers/media/i2c
+ 
+diff --git a/drivers/media/platform/atmel/Kconfig b/drivers/media/platform/atmel/Kconfig
+index 867dca2..7493704 100644
+--- a/drivers/media/platform/atmel/Kconfig
++++ b/drivers/media/platform/atmel/Kconfig
+@@ -6,4 +6,13 @@ config VIDEO_ATMEL_ISC
+ 	select REGMAP_MMIO
  	help
- 	  Choose this option to enable DRM on STM stiH4xx chipset
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
-index 376b076..6667371 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.c
-+++ b/drivers/gpu/drm/sti/sti_hdmi.c
-@@ -786,6 +786,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
- 	clk_disable_unprepare(hdmi->clk_pix);
- 
- 	hdmi->enabled = false;
+ 	   This module makes the ATMEL Image Sensor Controller available
+-	   as a v4l2 device.
+\ No newline at end of file
++	   as a v4l2 device.
 +
-+	hdmi_event_disconnect(hdmi->notifier);
- }
++config VIDEO_ATMEL_ISI
++	tristate "ATMEL Image Sensor Interface (ISI) support"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
++	depends on ARCH_AT91 || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	---help---
++	  This module makes the ATMEL Image Sensor Interface available
++	  as a v4l2 device.
+diff --git a/drivers/media/platform/atmel/Makefile b/drivers/media/platform/atmel/Makefile
+index 9d7c999..27000d0 100644
+--- a/drivers/media/platform/atmel/Makefile
++++ b/drivers/media/platform/atmel/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_VIDEO_ATMEL_ISC) += atmel-isc.o
++obj-$(CONFIG_VIDEO_ATMEL_ISI) += atmel-isi.o
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.c
+rename to drivers/media/platform/atmel/atmel-isi.c
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.h b/drivers/media/platform/atmel/atmel-isi.h
+similarity index 100%
+rename from drivers/media/platform/soc_camera/atmel-isi.h
+rename to drivers/media/platform/atmel/atmel-isi.h
+diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
+index 370aa61..0c581aa 100644
+--- a/drivers/media/platform/soc_camera/Kconfig
++++ b/drivers/media/platform/soc_camera/Kconfig
+@@ -26,13 +26,3 @@ config VIDEO_SH_MOBILE_CEU
+ 	select SOC_CAMERA_SCALE_CROP
+ 	---help---
+ 	  This is a v4l2 driver for the SuperH Mobile CEU Interface
+-
+-config VIDEO_ATMEL_ISI
+-	tristate "ATMEL Image Sensor Interface (ISI) support"
+-	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF && HAS_DMA
+-	depends on ARCH_AT91 || COMPILE_TEST
+-	select VIDEOBUF2_DMA_CONTIG
+-	---help---
+-	  This module makes the ATMEL Image Sensor Interface available
+-	  as a v4l2 device.
+-
+diff --git a/drivers/media/platform/soc_camera/Makefile b/drivers/media/platform/soc_camera/Makefile
+index 7633a0f..07a451e 100644
+--- a/drivers/media/platform/soc_camera/Makefile
++++ b/drivers/media/platform/soc_camera/Makefile
+@@ -6,5 +6,4 @@ obj-$(CONFIG_SOC_CAMERA_SCALE_CROP)	+= soc_scale_crop.o
+ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
  
- static void sti_hdmi_pre_enable(struct drm_bridge *bridge)
-@@ -892,6 +894,10 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
- 	if (!edid)
- 		goto fail;
- 
-+	hdmi_event_connect(hdmi->notifier);
-+	hdmi_event_new_edid(hdmi->notifier, edid,
-+			    EDID_LENGTH * (edid->extensions + 1));
-+
- 	count = drm_add_edid_modes(connector, edid);
- 	drm_mode_connector_update_edid_property(connector, edid);
- 	drm_edid_to_eld(connector, edid);
-@@ -949,10 +955,12 @@ struct drm_connector_helper_funcs sti_hdmi_connector_helper_funcs = {
- 
- 	if (hdmi->hpd) {
- 		DRM_DEBUG_DRIVER("hdmi cable connected\n");
-+		hdmi_event_connect(hdmi->notifier);
- 		return connector_status_connected;
- 	}
- 
- 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
-+	hdmi_event_disconnect(hdmi->notifier);
- 	return connector_status_disconnected;
- }
- 
-@@ -1464,6 +1472,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
- 		goto release_adapter;
- 	}
- 
-+	hdmi->notifier = hdmi_notifier_get(&pdev->dev);
-+	if (!hdmi->notifier)
-+		goto release_adapter;
-+
- 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
- 	/* Take hdmi out of reset */
- 	if (!IS_ERR(hdmi->reset))
-@@ -1483,11 +1495,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
- {
- 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
- 
-+	hdmi_event_disconnect(hdmi->notifier);
-+
- 	i2c_put_adapter(hdmi->ddc_adapt);
- 	if (hdmi->audio_pdev)
- 		platform_device_unregister(hdmi->audio_pdev);
- 	component_del(&pdev->dev, &sti_hdmi_ops);
- 
-+	hdmi_notifier_put(hdmi->notifier);
- 	return 0;
- }
- 
-diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
-index 119bc35..70aac98 100644
---- a/drivers/gpu/drm/sti/sti_hdmi.h
-+++ b/drivers/gpu/drm/sti/sti_hdmi.h
-@@ -8,6 +8,7 @@
- #define _STI_HDMI_H_
- 
- #include <linux/hdmi.h>
-+#include <linux/hdmi-notifier.h>
- #include <linux/platform_device.h>
- 
- #include <drm/drmP.h>
-@@ -102,6 +103,7 @@ struct sti_hdmi {
- 	struct platform_device *audio_pdev;
- 	struct hdmi_audio_params audio;
- 	struct drm_connector *drm_connector;
-+	struct hdmi_notifier *notifier;
- };
- 
- u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
+ # soc-camera host drivers have to be linked after camera drivers
+-obj-$(CONFIG_VIDEO_ATMEL_ISI)		+= atmel-isi.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
 -- 
-1.9.1
+2.10.2
 
