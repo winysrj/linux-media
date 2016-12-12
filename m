@@ -1,119 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:46565 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750933AbcLLMPP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 07:15:15 -0500
-Subject: Re: [PATCH v5 1/2] Add OV5647 device tree documentation
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-References: <20161212114900.GS16630@valkosipuli.retiisi.org.uk>
-CC: <mchehab@kernel.org>, <linux-kernel@vger.kernel.org>,
-        <linux-media@vger.kernel.org>, <robh+dt@kernel.org>,
-        <devicetree@vger.kernel.org>, <davem@davemloft.net>,
-        <gregkh@linuxfoundation.org>, <geert+renesas@glider.be>,
-        <akpm@linux-foundation.org>, <linux@roeck-us.net>,
-        <hverkuil@xs4all.nl>, <dheitmueller@kernellabs.com>,
-        <slongerbeam@gmail.com>, <lars@metafoo.de>,
-        <robert.jarzmik@free.fr>, <pavel@ucw.cz>, <pali.rohar@gmail.com>,
-        <sakari.ailus@linux.intel.com>, <mark.rutland@arm.com>,
-        <CARLOS.PALMINHA@synopsys.com>
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Message-ID: <0f72309f-ec5e-4252-f6d7-7a7f7a9dc4c5@synopsys.com>
-Date: Mon, 12 Dec 2016 12:15:04 +0000
+Received: from gofer.mess.org ([80.229.237.210]:57821 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932562AbcLLVN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 16:13:59 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: James Hogan <james@albanarts.com>,
+        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v5 16/18] [media] rc: rc-core: Add support for encode_wakeup drivers
+Date: Mon, 12 Dec 2016 21:13:52 +0000
+Message-Id: <f447195eeb4141eecbbb97453231f7f15152100d.1481575826.git.sean@mess.org>
+In-Reply-To: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+References: <1669f6c54c34e5a78ce114c633c98b331e58e8c7.1481575826.git.sean@mess.org>
+In-Reply-To: <cover.1481575826.git.sean@mess.org>
+References: <cover.1481575826.git.sean@mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20161212114900.GS16630@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari
+From: James Hogan <james@albanarts.com>
 
-On 12/12/2016 11:49 AM, Sakari Ailus wrote:
-> Hi Ramiro,
-> 
-> On Mon, Dec 12, 2016 at 11:39:31AM +0000, Ramiro Oliveira wrote:
->> Hi Sakari,
->>
->> Thank you for the feedback.
->>
->> On 12/7/2016 10:33 PM, Sakari Ailus wrote:
->>> Hi Ramiro,
->>>
->>> Thank you for the patch.
->>>
->>> On Mon, Dec 05, 2016 at 05:36:33PM +0000, Ramiro Oliveira wrote:
->>>> Add device tree documentation.
->>>>
->>>> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
->>>> ---
->>>>  .../devicetree/bindings/media/i2c/ov5647.txt          | 19 +++++++++++++++++++
->>>>  1 file changed, 19 insertions(+)
->>>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
->>>>
->>>> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
->>>> new file mode 100644
->>>> index 0000000..4c91b3b
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
->>>> @@ -0,0 +1,19 @@
->>>> +Omnivision OV5647 raw image sensor
->>>> +---------------------------------
->>>> +
->>>> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfaces
->>>> +and CCI (I2C compatible) control bus.
->>>> +
->>>> +Required properties:
->>>> +
->>>> +- compatible	: "ovti,ov5647";
->>>> +- reg		: I2C slave address of the sensor;
->>>> +
->>>> +The common video interfaces bindings (see video-interfaces.txt) should be
->>>> +used to specify link to the image data receiver. The OV5647 device
->>>> +node should contain one 'port' child node with an 'endpoint' subnode.
->>>> +
->>>> +Following properties are valid for the endpoint node:
->>>> +
->>>> +- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
->>>> +  video-interfaces.txt.  The sensor supports only two data lanes.
->>>
->>> Doesn't this sensor require a external clock, a reset GPIO and / or a
->>> regulator or a few? Do you need data-lanes, unless you can change the order
->>> or the number?
->>
->> In the setup I'm using, I'm not aware of any reset GPIO or regulator. I do use a
->> external clock but it's fixed and not controlled by SW. Should I add a property
->> for this?
-> 
-> The sensor datasheet defines a power-up and power-down sequence for the
-> device. If you don't implement these sequences in the driver on a DT based
-> system, nothing suggests that they're implemented correctly. Could it be
-> that the boot loader simply enables the regulators or another device
-> requires them to be enabled?
-> 
-> I presume at least the reset GPIO should be controlled explicitly in order
-> to ensure correct function. Although hardware can be surprising: I have one
-> production system that has no reset GPIO for the sensor albeit the sensor
-> datasheet says that's part of the power up sequence.
-> 
+Add support in rc-core for drivers which implement the wakeup scancode
+filter by encoding the scancode using the raw IR encoders. This is by
+way of rc_dev::encode_wakeup which should be set to true and
+rc_dev::allowed_wakeup_protocols should be set to the raw IR encoders.
 
-Sorry for the misunderstanding. I wanted to say that, there is no SW controlled
-reset. In the board we're using to connect the sensor to our D-PHY we have a
-GPIO controller that when it receives power, it removes the sensor from reset,
-so I have no control over that.
+We also do not permit the mask to be set as we cannot generate IR
+which would match that.
 
-Regarding the clock, should I create a new property?
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c | 26 +++++++++++++++++++++-----
+ include/media/rc-core.h    |  3 +++
+ include/media/rc-map.h     |  9 +++++++++
+ 3 files changed, 33 insertions(+), 5 deletions(-)
 
-And also, regarding the data-lanes, AFAIK it isn't possible to change the order
-of the data and clock lanes so should I remove that property?
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 33969ab..10eed3c 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -727,11 +727,11 @@ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+ /**
+  * rc_validate_filter() - checks that the scancode and mask are valid and
+  *			  provides sensible defaults
+- * @protocol:	the protocol for the filter
++ * @dev:	the struct rc_dev descriptor of the device
+  * @filter:	the scancode and mask
+  * @return:	0 or -EINVAL if the filter is not valid
+  */
+-static int rc_validate_filter(enum rc_type protocol,
++static int rc_validate_filter(struct rc_dev *dev,
+ 			      struct rc_scancode_filter *filter)
+ {
+ 	static u32 masks[] = {
+@@ -754,6 +754,7 @@ static int rc_validate_filter(enum rc_type protocol,
+ 		[RC_TYPE_SHARP] = 0x1fff,
+ 	};
+ 	u32 s = filter->data;
++	enum rc_type protocol = dev->wakeup_protocol;
+ 
+ 	switch (protocol) {
+ 	case RC_TYPE_NECX:
+@@ -779,6 +780,13 @@ static int rc_validate_filter(enum rc_type protocol,
+ 	filter->data &= masks[protocol];
+ 	filter->mask &= masks[protocol];
+ 
++	/*
++	 * If we have to raw encode the IR for wakeup, we cannot have a mask
++	 */
++	if (dev->encode_wakeup &&
++	    filter->mask != 0 && filter->mask != masks[protocol])
++		return -EINVAL;
++
+ 	return 0;
+ }
+ 
+@@ -1044,7 +1052,6 @@ static int parse_protocol_change(u64 *protocols, const char *buf)
+ }
+ 
+ static void ir_raw_load_modules(u64 *protocols)
+-
+ {
+ 	u64 available;
+ 	int i, ret;
+@@ -1292,8 +1299,7 @@ static ssize_t store_filter(struct device *device,
+ 		 * and the filter is valid for that protocol
+ 		 */
+ 		if (dev->wakeup_protocol != RC_TYPE_UNKNOWN)
+-			ret = rc_validate_filter(dev->wakeup_protocol,
+-						 &new_filter);
++			ret = rc_validate_filter(dev, &new_filter);
+ 		else
+ 			ret = -EINVAL;
+ 
+@@ -1461,6 +1467,16 @@ static ssize_t store_wakeup_protocols(struct device *device,
+ 			rc = -EINVAL;
+ 			goto out;
+ 		}
++
++		if (dev->encode_wakeup) {
++			u64 mask = 1 << protocol;
++
++			ir_raw_load_modules(&mask);
++			if (!mask) {
++				rc = -EINVAL;
++				goto out;
++			}
++		}
+ 	}
+ 
+ 	if (dev->wakeup_protocol != protocol) {
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index bdf3ff0..9760944 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -83,6 +83,8 @@ enum rc_filter_type {
+  * @input_dev: the input child device used to communicate events to userspace
+  * @driver_type: specifies if protocol decoding is done in hardware or software
+  * @idle: used to keep track of RX state
++ * @encode_wakeup: wakeup filtering uses IR encode API, therefore the allowed
++ *	wakeup protocols is the set of all raw encoders
+  * @allowed_protocols: bitmask with the supported RC_BIT_* protocols
+  * @enabled_protocols: bitmask with the enabled RC_BIT_* protocols
+  * @allowed_wakeup_protocols: bitmask with the supported RC_BIT_* wakeup protocols
+@@ -145,6 +147,7 @@ struct rc_dev {
+ 	struct input_dev		*input_dev;
+ 	enum rc_driver_type		driver_type;
+ 	bool				idle;
++	bool				encode_wakeup;
+ 	u64				allowed_protocols;
+ 	u64				enabled_protocols;
+ 	u64				allowed_wakeup_protocols;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index b2af45d..a1289a4 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -106,6 +106,15 @@ enum rc_type {
+ 			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | RC_BIT_SHARP | \
+ 			 RC_BIT_XMP)
+ 
++#define RC_BIT_ALL_IR_ENCODER \
++			(RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
++			 RC_BIT_JVC | \
++			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
++			 RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 | \
++			 RC_BIT_SANYO | \
++			 RC_BIT_RC6_0 | RC_BIT_RC6_6A_20 | RC_BIT_RC6_6A_24 | \
++			 RC_BIT_RC6_6A_32 | RC_BIT_RC6_MCE | \
++			 RC_BIT_SHARP)
+ 
+ #define RC_SCANCODE_UNKNOWN(x)			(x)
+ #define RC_SCANCODE_OTHER(x)			(x)
+-- 
+2.9.3
 
->>
->>>
->>> An example DT snippet wouldn't hurt.
->>
->> Sure, I can add a example snippet.
->>
->>>
->>
-> 
