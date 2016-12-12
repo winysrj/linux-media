@@ -1,362 +1,594 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:56636
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S932109AbcLGO4F (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 09:56:05 -0500
-Date: Wed, 7 Dec 2016 12:55:58 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: em28xx broken 4.9.0-rc6+
-Message-ID: <20161207125552.2e03dfc0@vento.lan>
-In-Reply-To: <20161207122201.28ba44e8@vento.lan>
-References: <790c8863-757c-cd2e-3878-2900df93a694@iki.fi>
-        <20161206134138.1b000552@vento.lan>
-        <20161207122201.28ba44e8@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mout.gmx.net ([212.227.15.15]:49327 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752259AbcLLLRE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 12 Dec 2016 06:17:04 -0500
+Received: from axis700.grange ([89.0.199.8]) by mail.gmx.com (mrgmx003
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0M0gcI-1cU4xs0jba-00usqE for
+ <linux-media@vger.kernel.org>; Mon, 12 Dec 2016 12:17:02 +0100
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id B9D548B122
+        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2016 12:17:05 +0100 (CET)
+From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v3 4/4] uvcvideo: add a metadata device node
+Date: Mon, 12 Dec 2016 12:16:52 +0100
+Message-Id: <1481541412-1186-5-git-send-email-guennadi.liakhovetski@intel.com>
+In-Reply-To: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com>
+References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 7 Dec 2016 12:22:01 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-> Em Tue, 6 Dec 2016 13:41:38 -0200
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
-> 
-> > Em Tue, 6 Dec 2016 01:06:17 +0200
-> > Antti Palosaari <crope@iki.fi> escreveu:
-> >   
-> > > Hello Mauro
-> > > I just noticed current em28xx driver seem to be broken. When I plug 
-> > > device first time it loads correctly, but when I re-plug it, it does not 
-> > > work anymore but yells a lot of noise to message log. Tested with PCTV 
-> > > 290e and 292e both same. Other USB DVB devices are working so it is very 
-> > > likely em28xx driver bug.
-> > > 
-> > > Easy to reproduce:
-> > > plug device
-> > > unplug device
-> > > plug device  
-> > 
-> > 
-> > Are you referring to those:
-> > 
-> > [ 1010.310320] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
-> > [ 1010.310323] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
-> > [ 1010.310325] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
-> > [ 1010.310383]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
-> > [ 1010.310449]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
-> > [ 1010.310464] CPU: 3 PID: 119 Comm: kworker/3:2 Not tainted 4.9.0-rc8+ #14
-> > [ 1010.310466] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-> > [ 1010.310487] Workqueue: usb_hub_wq hub_event [usbcore]
-> > [ 1010.310490]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
-> > [ 1010.310496]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
-> > [ 1010.310501]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
-> > [ 1010.310505] Call Trace:
-> > [ 1010.310517]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
-> > [ 1010.310522]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
-> > [ 1010.310526]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
-> > [ 1010.310529]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
-> > [ 1010.310534]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
-> > [ 1010.310539]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
-> > [ 1010.310543]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
-> > [ 1010.310547]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
-> > [ 1010.310553]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
-> > [ 1010.310557]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
-> > [ 1010.310562]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
-> > [ 1010.310567]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
-> > [ 1010.310583]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
-> > [ 1010.310598]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
-> > [ 1010.310604]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
-> > [ 1010.310618]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
-> > [ 1010.310624]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
-> > [ 1010.310629]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
-> > [ 1010.310633]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
-> > [ 1010.310638]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
-> > [ 1010.310642]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
-> > [ 1010.310646]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
-> > [ 1010.310650]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
-> > [ 1010.310654]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
-> > [ 1010.310658]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
-> > [ 1010.310663]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.310667]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.310671]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.310675]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
-> > [ 1010.310698] ---[ end trace 49b46eb633ff1197 ]---
-> > [ 1010.311298] usb 1-3.3: can't device_add, error -17
-> > [ 1010.390703] usb 1-3.3: new high-speed USB device number 9 using xhci_hcd
-> > [ 1010.496337] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
-> > [ 1010.496343] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-> > [ 1010.496345] usb 1-3.3: Product: WinTV HVR-980
-> > [ 1010.496347] usb 1-3.3: SerialNumber: 4028449018
-> > [ 1010.497259] ------------[ cut here ]------------
-> > [ 1010.497264] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
-> > [ 1010.497266] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
-> > [ 1010.497267] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
-> > [ 1010.497307]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
-> > [ 1010.497352]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
-> > [ 1010.497362] CPU: 3 PID: 119 Comm: kworker/3:2 Tainted: G        W       4.9.0-rc8+ #14
-> > [ 1010.497363] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-> > [ 1010.497377] Workqueue: usb_hub_wq hub_event [usbcore]
-> > [ 1010.497379]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
-> > [ 1010.497382]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
-> > [ 1010.497385]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
-> > [ 1010.497387] Call Trace:
-> > [ 1010.497395]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
-> > [ 1010.497398]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
-> > [ 1010.497400]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
-> > [ 1010.497402]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
-> > [ 1010.497405]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
-> > [ 1010.497408]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
-> > [ 1010.497410]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
-> > [ 1010.497412]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
-> > [ 1010.497416]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
-> > [ 1010.497419]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
-> > [ 1010.497421]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
-> > [ 1010.497424]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
-> > [ 1010.497433]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
-> > [ 1010.497441]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
-> > [ 1010.497445]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
-> > [ 1010.497454]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
-> > [ 1010.497457]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
-> > [ 1010.497460]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
-> > [ 1010.497462]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
-> > [ 1010.497465]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
-> > [ 1010.497468]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
-> > [ 1010.497470]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
-> > [ 1010.497473]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
-> > [ 1010.497475]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
-> > [ 1010.497477]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
-> > [ 1010.497480]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.497482]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.497485]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.497487]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
-> > [ 1010.497489] ---[ end trace 49b46eb633ff1198 ]---
-> > [ 1010.497829] usb 1-3.3: can't device_add, error -17
-> > [ 1010.578707] usb 1-3.3: new high-speed USB device number 10 using xhci_hcd
-> > [ 1010.604448] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
-> > [ 1010.604452] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-> > [ 1010.604454] usb 1-3.3: Product: WinTV HVR-980
-> > [ 1010.604456] usb 1-3.3: SerialNumber: 4028449018
-> > [ 1010.605369] ------------[ cut here ]------------
-> > [ 1010.605374] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
-> > [ 1010.605375] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
-> > [ 1010.605376] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
-> > [ 1010.605415]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
-> > [ 1010.605459]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
-> > [ 1010.605469] CPU: 3 PID: 119 Comm: kworker/3:2 Tainted: G        W       4.9.0-rc8+ #14
-> > [ 1010.605471] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-> > [ 1010.605484] Workqueue: usb_hub_wq hub_event [usbcore]
-> > [ 1010.605486]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
-> > [ 1010.605490]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
-> > [ 1010.605492]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
-> > [ 1010.605495] Call Trace:
-> > [ 1010.605502]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
-> > [ 1010.605505]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
-> > [ 1010.605508]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
-> > [ 1010.605510]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
-> > [ 1010.605513]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
-> > [ 1010.605516]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
-> > [ 1010.605518]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
-> > [ 1010.605520]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
-> > [ 1010.605524]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
-> > [ 1010.605527]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
-> > [ 1010.605529]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
-> > [ 1010.605532]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
-> > [ 1010.605542]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
-> > [ 1010.605550]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
-> > [ 1010.605554]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
-> > [ 1010.605563]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
-> > [ 1010.605566]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
-> > [ 1010.605569]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
-> > [ 1010.605572]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
-> > [ 1010.605574]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
-> > [ 1010.605577]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
-> > [ 1010.605579]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
-> > [ 1010.605581]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
-> > [ 1010.605584]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
-> > [ 1010.605586]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
-> > [ 1010.605589]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.605591]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.605594]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.605596]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
-> > [ 1010.605598] ---[ end trace 49b46eb633ff1199 ]---
-> > [ 1010.605948] usb 1-3.3: can't device_add, error -17
-> > [ 1010.686729] usb 1-3.3: new high-speed USB device number 11 using xhci_hcd
-> > [ 1010.712761] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
-> > [ 1010.712768] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-> > [ 1010.712772] usb 1-3.3: Product: WinTV HVR-980
-> > [ 1010.712775] usb 1-3.3: SerialNumber: 4028449018
-> > [ 1010.714339] ------------[ cut here ]------------
-> > [ 1010.714347] WARNING: CPU: 3 PID: 119 at fs/sysfs/dir.c:31 sysfs_warn_dup+0x7b/0x90
-> > [ 1010.714349] sysfs: cannot create duplicate filename '/bus/usb/devices/1-3.3'
-> > [ 1010.714351] Modules linked in: lgdt330x em28xx_dvb dvb_core em28xx_alsa tuner_xc2028 tuner tvp5150 em28xx_v4l videobuf2_vmalloc videobuf2_memops videobuf2_v4l2 videobuf2_core em28xx tveeprom v4l2_common videodev media xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack ipt_REJECT nf_reject_ipv4 xt_tcpudp tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables iptable_filter ip_tables x_tables cmac bnep cpufreq_powersave cpufreq_conservative cpufreq_userspace binfmt_misc parport_pc ppdev lp parport snd_hda_codec_hdmi iTCO_wdt snd_hda_codec_realtek iTCO_vendor_support snd_hda_codec_generic arc4 intel_rapl x86_pkg_temp_thermal iwlmvm intel_powerclamp coretemp kvm_intel mac80211 kvm i915
-> > [ 1010.714409]  irqbypass crct10dif_pclmul crc32_pclmul ghash_clmulni_intel iwlwifi pl2303 aesni_intel btusb aes_x86_64 usbserial lrw btrtl gf128mul glue_helper btbcm ablk_helper cryptd btintel bluetooth drm_kms_helper cfg80211 drm psmouse pcspkr i2c_i801 e1000e serio_raw snd_hda_intel snd_soc_rt5640 snd_hda_codec snd_soc_rl6231 snd_soc_ssm4567 mei_me i2c_smbus rfkill snd_hda_core ptp mei snd_soc_core ehci_pci sg lpc_ich shpchp mfd_core ehci_hcd pps_core snd_hwdep i2c_algo_bit snd_compress snd_pcm sdhci_acpi snd_timer battery snd sdhci elan_i2c snd_soc_sst_acpi mmc_core fjes dw_dmac i2c_hid soundcore snd_soc_sst_match i2c_designware_platform video i2c_designware_core acpi_pad acpi_als kfifo_buf tpm_tis button industrialio tpm_tis_core tpm ext4 crc16 jbd2 fscrypto mbcache dm_mod joydev evdev hid_logitech_hidpp
-> > [ 1010.714475]  sd_mod hid_logitech_dj usbhid hid ahci libahci crc32c_intel libata xhci_pci xhci_hcd scsi_mod usbcore fan thermal
-> > [ 1010.714490] CPU: 3 PID: 119 Comm: kworker/3:2 Tainted: G        W       4.9.0-rc8+ #14
-> > [ 1010.714493] Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0350.2015.0812.1722 08/12/2015
-> > [ 1010.714513] Workqueue: usb_hub_wq hub_event [usbcore]
-> > [ 1010.714517]  0000000000000000 ffffffff848f56c5 ffff8803b1f7f858 0000000000000000
-> > [ 1010.714522]  ffffffff8414f8f8 ffff88030000001f ffffed00763eff07 ffff8803b1f7f8f0
-> > [ 1010.714527]  ffff8803b3ea1e60 0000000000000001 ffffffffffffffef ffff8803b45c6840
-> > [ 1010.714532] Call Trace:
-> > [ 1010.714543]  [<ffffffff848f56c5>] ? dump_stack+0x5c/0x77
-> > [ 1010.714547]  [<ffffffff8414f8f8>] ? __warn+0x168/0x1a0
-> > [ 1010.714551]  [<ffffffff8414f9e4>] ? warn_slowpath_fmt+0xb4/0xf0
-> > [ 1010.714555]  [<ffffffff8414f930>] ? __warn+0x1a0/0x1a0
-> > [ 1010.714560]  [<ffffffff845436c6>] ? kasan_kmalloc+0xa6/0xd0
-> > [ 1010.714565]  [<ffffffff846ec2fa>] ? kernfs_path_from_node+0x4a/0x60
-> > [ 1010.714568]  [<ffffffff846f66eb>] ? sysfs_warn_dup+0x7b/0x90
-> > [ 1010.714573]  [<ffffffff846f6f26>] ? sysfs_do_create_link_sd.isra.2+0xb6/0xd0
-> > [ 1010.714579]  [<ffffffff84cd5a08>] ? bus_add_device+0x318/0x6b0
-> > [ 1010.714583]  [<ffffffff846f8693>] ? sysfs_create_groups+0x83/0x110
-> > [ 1010.714587]  [<ffffffff84ccff87>] ? device_add+0x777/0x1350
-> > [ 1010.714592]  [<ffffffff84ccf810>] ? device_private_init+0x180/0x180
-> > [ 1010.714608]  [<ffffffffc00c0f77>] ? usb_new_device+0x707/0x1030 [usbcore]
-> > [ 1010.714623]  [<ffffffffc00c58c5>] ? hub_event+0x1d65/0x3280 [usbcore]
-> > [ 1010.714628]  [<ffffffff841eb4ab>] ? account_entity_dequeue+0x30b/0x4a0
-> > [ 1010.714643]  [<ffffffffc00c3b60>] ? hub_port_debounce+0x280/0x280 [usbcore]
-> > [ 1010.714648]  [<ffffffff8407ccd0>] ? compat_start_thread+0x80/0x80
-> > [ 1010.714653]  [<ffffffff851f5cb4>] ? __schedule+0x704/0x1770
-> > [ 1010.714657]  [<ffffffff851f55b0>] ? io_schedule_timeout+0x390/0x390
-> > [ 1010.714661]  [<ffffffff84541783>] ? cache_reap+0x173/0x200
-> > [ 1010.714666]  [<ffffffff84197bed>] ? process_one_work+0x4ed/0xe60
-> > [ 1010.714670]  [<ffffffff84198642>] ? worker_thread+0xe2/0xfd0
-> > [ 1010.714674]  [<ffffffff8421f76c>] ? __wake_up_common+0xbc/0x160
-> > [ 1010.714678]  [<ffffffff84198560>] ? process_one_work+0xe60/0xe60
-> > [ 1010.714682]  [<ffffffff841a837c>] ? kthread+0x1cc/0x220
-> > [ 1010.714686]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.714691]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.714695]  [<ffffffff841a81b0>] ? kthread_park+0x80/0x80
-> > [ 1010.714699]  [<ffffffff852016f5>] ? ret_from_fork+0x25/0x30
-> > [ 1010.714719] ---[ end trace 49b46eb633ff119a ]---
-> > [ 1010.715706] usb 1-3.3: can't device_add, error -17
-> > [ 1010.716223] usb 1-3-port3: unable to enumerate USB device
-> > 
-> > 
-> > 
-> > If so, it seems that the device was not properly unregistered. That's
-> > weird, since everything sounded ok at device unregister:
-> > 
-> > [  999.740335] usb 1-3.3: em2882!3#0: USB disconnect, device number 7
-> > [  999.742857] usb 1-3.3: em2882!3#0: Disconnecting
-> > [  999.742874] usb 1-3.3: em2882!3#0: Closing video extension
-> > [  999.743058] usb 1-3.3: em2882!3#0: V4L2 device vbi0 deregistered
-> > [  999.744327] usb 1-3.3: em2882!3#0: V4L2 device video0 deregistered
-> > [  999.747938] tvp5150 6-005c: tvp5150.c: removing tvp5150 adapter on address 0xb8
-> > [  999.750085] xc2028 6-0061: xc2028_dvb_release called
-> > [  999.750852] usb 1-3.3: em2882!3#0: Closing audio extension
-> > [  999.754253] usb 1-3.3: em2882!3#0: Closing DVB extension
-> > [  999.760360] xc2028 6-0061: xc2028_dvb_release called
-> > [  999.760362] xc2028 6-0061: free_firmware called
-> > [  999.760958] xc2028 6-0061: destroying instance
-> > 
-> > I'll try to bisect this.  
-> 
-> According with git bisect, the culprit is this patch:
-> 
-> ce8591ff023ef8e04750c2cc2882523619a80b58 is the first bad commit
-> commit ce8591ff023ef8e04750c2cc2882523619a80b58
-> Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Date:   Thu Oct 20 08:42:03 2016 -0200
-> 
->     [media] em28xx: convert it from pr_foo() to dev_foo()
->     
->     Instead of using pr_foo(), use dev_foo(), with provides a
->     better output. As this device is a multi-interface one,
->     we'll set the device name to show the chipset and the driver
->     used.
->     
->     While here, get rid of printk continuation messages.
->     
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> 
-> :040000 040000 834f13194c879d17f2b2ca79afbd1ed0999fbfeb 85ea8360d7adbf597ca1d6c5a8205b1a64666879 M	drivers
-> 
-> I'll do more tests and see what's wrong there.
+Some UVC video cameras contain metadata in their payload headers. This
+patch extracts that data, skipping the standard part of the header, on
+both bulk and isochronous endpoints and makes it available to the user
+space on a separate video node, using the V4L2_CAP_META_CAPTURE
+capability and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. Even
+though different cameras will have different metadata formats, we use
+the same V4L2_META_FMT_UVC pixel format for all of them. Users have to
+parse data, based on the specific camera model information.
 
-I found the issue: driver's core doesn't like changing the device name,
-as it breaks the unbind logic. The enclosed patch fixes it.
+Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+---
 
-There's a drawback, though: it will now print log messages using the USB
-address, instead of using "em28xx:":
+v3: all comments to v2 have been addressed - thanks! Most important 
+ones:
 
-[  132.398622] usb 1-3.3: new high-speed USB device number 9 using xhci_hcd
-[  132.504308] usb 1-3.3: New USB device found, idVendor=2040, idProduct=6513
-[  132.504314] usb 1-3.3: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-[  132.504316] usb 1-3.3: Product: WinTV HVR-980
-[  132.504318] usb 1-3.3: SerialNumber: 4028449018
-[  132.507651] usb 1-3.3: New device  WinTV HVR-980 @ 480 Mbps (2040:6513, interface 0, class 0)
-[  132.507654] usb 1-3.3: Audio interface 0 found (Vendor Class)
-[  132.507657] usb 1-3.3: Video interface 0 found: isoc
-[  132.507658] usb 1-3.3: DVB interface 0 found: isoc
-[  132.507777] usb 1-3.3: chip ID is em2882/3
-[  132.708925] usb 1-3.3: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x994b2bdd
-[  132.708928] usb 1-3.3: EEPROM info:
-[  132.708931] usb 1-3.3: 	AC97 audio (5 sample rates)
-[  132.708932] usb 1-3.3: 	500mA max power
-[  132.708935] usb 1-3.3: 	Table at offset 0x24, strings=0x1e82, 0x186a, 0x0000
-[  132.708937] usb 1-3.3: Identified as Hauppauge WinTV HVR 950 (card=16)
-[  132.710934] usb 1-3.3: analog set to isoc mode.
-[  132.710936] usb 1-3.3: dvb set to isoc mode.
-[  132.711582] usb 1-3.3: Registering V4L2 extension
-[  132.858224] usb 1-3.3: Config register raw data: 0xd0
-[  132.859738] usb 1-3.3: AC97 vendor ID = 0xffffffff
-[  132.859918] usb 1-3.3: AC97 features = 0x6a90
-[  132.859920] usb 1-3.3: Empia 202 AC97 audio processor detected
-[  134.636310] usb 1-3.3: V4L2 video device registered as video0
-[  134.636319] usb 1-3.3: V4L2 VBI device registered as vbi0
-[  134.637132] usb 1-3.3: V4L2 extension successfully initialized
-[  134.637138] usb 1-3.3: Binding audio extension
-[  134.637142] usb 1-3.3: em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-[  134.637147] usb 1-3.3: em28xx-audio.c: Copyright (C) 2007-2016 Mauro Carvalho Chehab
-[  134.638521] usb 1-3.3: Endpoint 0x83 high-speed on intf 0 alt 7 interval = 8, size 196
-[  134.638529] usb 1-3.3: Number of URBs: 1, with 64 packets and 192 size
-[  134.643544] usb 1-3.3: Audio extension successfully initialized
-[  134.643552] usb 1-3.3: Binding DVB extension
-[  134.719239] usb 1-3.3: xc3028 attached
-[  134.719256] usb 1-3.3: DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-[  134.724465] usb 1-3.3: DVB extension successfully initialized
+* metadata nodes are now only created for cameras, for which a 
+  UVC_QUIRK_METADATA_NODE flag is specified
+* no metadata nodes are created for video interfaces with isochronous 
+  endpoints. For those to be meaningfully supported a UVC standard 
+  extension is required.
+* the uvc_queue.c vb2_queue implementation is extended and used 
+  instead of a separate implementation
 
-Not sure how to address it.
+ drivers/media/usb/uvc/Makefile       |   2 +-
+ drivers/media/usb/uvc/uvc_driver.c   |   4 +
+ drivers/media/usb/uvc/uvc_isight.c   |   2 +-
+ drivers/media/usb/uvc/uvc_metadata.c | 159 +++++++++++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_queue.c    |  68 ++++++++++-----
+ drivers/media/usb/uvc/uvc_video.c    |  41 ++++++++-
+ drivers/media/usb/uvc/uvcvideo.h     |  19 ++++-
+ drivers/media/v4l2-core/v4l2-ioctl.c |   1 +
+ include/uapi/linux/uvcvideo.h        |   7 ++
+ include/uapi/linux/videodev2.h       |   3 +
+ 10 files changed, 278 insertions(+), 28 deletions(-)
+ create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
 
-Regards,
-Mauro
-
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index b516c691b9eb..50e4c6e51ee7 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3236,8 +3236,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			   int minor)
- {
- 	int retval;
--	static const char *default_chip_name = "em28xx";
--	const char *chip_name = default_chip_name;
-+	const char *chip_name = NULL;
+diff --git a/drivers/media/usb/uvc/Makefile b/drivers/media/usb/uvc/Makefile
+index c26d12f..06c7cd3 100644
+--- a/drivers/media/usb/uvc/Makefile
++++ b/drivers/media/usb/uvc/Makefile
+@@ -1,5 +1,5 @@
+ uvcvideo-objs  := uvc_driver.o uvc_queue.o uvc_v4l2.o uvc_video.o uvc_ctrl.o \
+-		  uvc_status.o uvc_isight.o uvc_debugfs.o
++		  uvc_status.o uvc_isight.o uvc_debugfs.o uvc_metadata.o
+ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+ uvcvideo-objs  += uvc_entity.o
+ endif
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 04bf350..b2e9eef 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1865,6 +1865,7 @@ static void uvc_unregister_video(struct uvc_device *dev)
+ 			continue;
  
- 	dev->udev = udev;
- 	mutex_init(&dev->ctrl_urb_lock);
-@@ -3324,14 +3323,9 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			break;
- 		}
+ 		video_unregister_device(&stream->vdev);
++		video_unregister_device(&stream->meta.vdev);
+ 
+ 		uvc_debugfs_cleanup_stream(stream);
  	}
--
--	dev_set_name(&dev->udev->dev, "%d-%s: %s#%d",
--		     dev->udev->bus->busnum, dev->udev->devpath,
--		     chip_name, dev->devno);
--
--	if (chip_name == default_chip_name)
--			dev_info(&dev->udev->dev,
--				 "unknown em28xx chip ID (%d)\n", dev->chip_id);
-+	if (!chip_name)
-+		dev_info(&dev->udev->dev,
-+			 "unknown em28xx chip ID (%d)\n", dev->chip_id);
- 	else
- 		dev_info(&dev->udev->dev, "chip ID is %s\n", chip_name);
+@@ -1926,6 +1927,9 @@ static int uvc_register_video(struct uvc_device *dev,
+ 		return ret;
+ 	}
  
++	/* Register a metadata node. */
++	uvc_meta_register(stream);
++
+ 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		stream->chain->caps |= V4L2_CAP_VIDEO_CAPTURE;
+ 	else
+diff --git a/drivers/media/usb/uvc/uvc_isight.c b/drivers/media/usb/uvc/uvc_isight.c
+index 8510e725..fb940cf 100644
+--- a/drivers/media/usb/uvc/uvc_isight.c
++++ b/drivers/media/usb/uvc/uvc_isight.c
+@@ -100,7 +100,7 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
+ }
+ 
+ void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf)
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	int ret, i;
+ 
+diff --git a/drivers/media/usb/uvc/uvc_metadata.c b/drivers/media/usb/uvc/uvc_metadata.c
+new file mode 100644
+index 0000000..711ffde
+--- /dev/null
++++ b/drivers/media/usb/uvc/uvc_metadata.c
+@@ -0,0 +1,159 @@
++/*
++ *      uvc_metadata.c  --  USB Video Class driver - Metadata handling
++ *
++ *      Copyright (C) 2016
++ *          Guennadi Liakhovetski (guennadi.liakhovetski@intel.com)
++ *
++ *      This program is free software; you can redistribute it and/or modify
++ *      it under the terms of the GNU General Public License as published by
++ *      the Free Software Foundation; either version 2 of the License, or
++ *      (at your option) any later version.
++ */
++
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/usb.h>
++#include <linux/videodev2.h>
++
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf2-v4l2.h>
++#include <media/videobuf2-vmalloc.h>
++
++#include "uvcvideo.h"
++
++/* -----------------------------------------------------------------------------
++ * videobuf2 Queue Operations
++ */
++
++static struct vb2_ops uvc_meta_queue_ops = {
++	.queue_setup = uvc_queue_setup,
++	.buf_prepare = uvc_buffer_prepare,
++	.buf_queue = uvc_buffer_queue,
++	.wait_prepare = vb2_ops_wait_prepare,
++	.wait_finish = vb2_ops_wait_finish,
++	.stop_streaming = uvc_stop_streaming,
++};
++
++/* -----------------------------------------------------------------------------
++ * V4L2 ioctls
++ */
++
++static int meta_v4l2_querycap(struct file *file, void *fh,
++			      struct v4l2_capability *cap)
++{
++	struct v4l2_fh *vfh = file->private_data;
++	struct uvc_streaming *stream = video_get_drvdata(vfh->vdev);
++
++	strlcpy(cap->driver, "uvcvideo", sizeof(cap->driver));
++	strlcpy(cap->card, vfh->vdev->name, sizeof(cap->card));
++	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
++
++	return 0;
++}
++
++static int meta_v4l2_get_format(struct file *file, void *fh,
++				struct v4l2_format *format)
++{
++	struct v4l2_fh *vfh = file->private_data;
++	struct v4l2_meta_format *fmt = &format->fmt.meta;
++
++	if (format->type != vfh->vdev->queue->type)
++		return -EINVAL;
++
++	memset(fmt, 0, sizeof(*fmt));
++
++	fmt->dataformat = V4L2_META_FMT_UVC;
++	fmt->buffersize = UVC_PAYLOAD_HEADER_MAX_SIZE;
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops uvc_meta_ioctl_ops = {
++	.vidioc_querycap		= meta_v4l2_querycap,
++	.vidioc_g_fmt_meta_cap		= meta_v4l2_get_format,
++	.vidioc_s_fmt_meta_cap		= meta_v4l2_get_format,
++	.vidioc_try_fmt_meta_cap	= meta_v4l2_get_format,
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++};
++
++/* -----------------------------------------------------------------------------
++ * V4L2 File Operations
++ */
++
++static struct v4l2_file_operations uvc_meta_fops = {
++	.owner = THIS_MODULE,
++	.unlocked_ioctl = video_ioctl2,
++	.open = v4l2_fh_open,
++	.release = vb2_fop_release,
++	.poll = vb2_fop_poll,
++	.mmap = vb2_fop_mmap,
++};
++
++int uvc_meta_register(struct uvc_streaming *stream)
++{
++	struct uvc_device *dev = stream->dev;
++	struct uvc_meta_device *meta = &stream->meta;
++	struct video_device *vdev = &meta->vdev;
++	struct uvc_video_queue *quvc = &meta->queue;
++	struct vb2_queue *queue = &quvc->queue;
++	int ret;
++
++	mutex_init(&quvc->mutex);
++	spin_lock_init(&quvc->irqlock);
++	INIT_LIST_HEAD(&quvc->irqqueue);
++
++	/*
++	 * We register metadata device nodes only if the METADATA_NODE quirk is
++	 * set and only on interfaces with bulk endpoints. To meaningfully
++	 * support interfaces with isochronous endpoints, we need to collect
++	 * headers from all payloads, comprising a single frame. For that we
++	 * need to know the maximum number of such payloads per frame to be able
++	 * to calculate the buffer size. Currently this information is
++	 * unavailable. A proposal should be made to the UVC committee to add
++	 * this information to camera descriptors.
++	 */
++	if (stream->intf->num_altsetting > 1 ||
++	    !(dev->quirks & UVC_QUIRK_METADATA_NODE) ||
++	    dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT)
++		return 0;
++
++	vdev->v4l2_dev = &dev->vdev;
++	vdev->fops = &uvc_meta_fops;
++	vdev->ioctl_ops = &uvc_meta_ioctl_ops;
++	vdev->release = video_device_release_empty;
++	vdev->prio = &stream->chain->prio;
++	vdev->vfl_dir = VFL_DIR_RX;
++	vdev->queue = queue;
++	vdev->device_caps = V4L2_CAP_META_CAPTURE | V4L2_CAP_STREAMING;
++	strlcpy(vdev->name, dev->name, sizeof(vdev->name));
++
++	video_set_drvdata(vdev, stream);
++
++	/* Initialize the video buffer queue. */
++	queue->type = V4L2_BUF_TYPE_META_CAPTURE;
++	queue->io_modes = VB2_MMAP | VB2_USERPTR;
++	queue->drv_priv = quvc;
++	queue->buf_struct_size = sizeof(struct uvc_buffer);
++	queue->ops = &uvc_meta_queue_ops;
++	queue->mem_ops = &vb2_vmalloc_memops;
++	queue->timestamp_flags = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC
++		| V4L2_BUF_FLAG_TSTAMP_SRC_SOE;
++	queue->lock = &quvc->mutex;
++	ret = vb2_queue_init(queue);
++	if (ret < 0)
++		return ret;
++
++	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0)
++		uvc_printk(KERN_ERR, "Failed to register metadata device (%d).\n", ret);
++
++	return ret;
++}
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index b9ef31c..2f205db 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -69,13 +69,26 @@ static void uvc_queue_return_buffers(struct uvc_video_queue *queue,
+  * videobuf2 queue operations
+  */
+ 
+-static int uvc_queue_setup(struct vb2_queue *vq,
+-			   unsigned int *nbuffers, unsigned int *nplanes,
+-			   unsigned int sizes[], struct device *alloc_devs[])
++int uvc_queue_setup(struct vb2_queue *vq,
++		    unsigned int *nbuffers, unsigned int *nplanes,
++		    unsigned int sizes[], struct device *alloc_devs[])
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+-	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+-	unsigned size = stream->ctrl.dwMaxVideoFrameSize;
++	struct uvc_streaming *stream;
++	unsigned int size;
++
++	switch (vq->type) {
++	case V4L2_BUF_TYPE_META_CAPTURE:
++		size = UVC_PAYLOAD_HEADER_MAX_SIZE;
++
++		if (*nplanes && *nplanes != 1)
++			return -EINVAL;
++
++		break;
++	default:
++		stream = uvc_queue_to_stream(queue);
++		size = stream->ctrl.dwMaxVideoFrameSize;
++	}
+ 
+ 	/* Make sure the image size is large enough. */
+ 	if (*nplanes)
+@@ -85,34 +98,47 @@ static int uvc_queue_setup(struct vb2_queue *vq,
+ 	return 0;
+ }
+ 
+-static int uvc_buffer_prepare(struct vb2_buffer *vb)
++int uvc_buffer_prepare(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct uvc_buffer *buf = uvc_vbuf_to_buffer(vbuf);
+ 
+-	if (vb->type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+-	    vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0)) {
+-		uvc_trace(UVC_TRACE_CAPTURE, "[E] Bytes used out of bounds.\n");
+-		return -EINVAL;
+-	}
+-
+ 	if (unlikely(queue->flags & UVC_QUEUE_DISCONNECTED))
+ 		return -ENODEV;
+ 
++	switch (vb->type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		if (vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0)) {
++			uvc_trace(UVC_TRACE_CAPTURE,
++				  "[E] Bytes used out of bounds.\n");
++			return -EINVAL;
++		}
++
++		buf->bytesused = vb2_get_plane_payload(vb, 0);
++
++		break;
++	case V4L2_BUF_TYPE_META_CAPTURE:
++		if (vb->num_planes != 1 ||
++		    vb2_plane_size(vb, 0) < UVC_PAYLOAD_HEADER_MAX_SIZE) {
++			uvc_trace(UVC_TRACE_CAPTURE,
++				  "[E] Invalid buffer configuration.\n");
++			return -EINVAL;
++		}
++		/* Fall through */
++	default:
++		buf->bytesused = 0;
++	}
++
+ 	buf->state = UVC_BUF_STATE_QUEUED;
+ 	buf->error = 0;
+ 	buf->mem = vb2_plane_vaddr(vb, 0);
+ 	buf->length = vb2_plane_size(vb, 0);
+-	if (vb->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		buf->bytesused = 0;
+-	else
+-		buf->bytesused = vb2_get_plane_payload(vb, 0);
+ 
+ 	return 0;
+ }
+ 
+-static void uvc_buffer_queue(struct vb2_buffer *vb)
++void uvc_buffer_queue(struct vb2_buffer *vb)
+ {
+ 	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+@@ -164,13 +190,15 @@ static int uvc_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	return ret;
+ }
+ 
+-static void uvc_stop_streaming(struct vb2_queue *vq)
++void uvc_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+-	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+ 	unsigned long flags;
+ 
+-	uvc_video_enable(stream, 0);
++	if (vq->type != V4L2_BUF_TYPE_META_CAPTURE) {
++		struct uvc_streaming *stream = uvc_queue_to_stream(queue);
++		uvc_video_enable(stream, 0);
++	}
+ 
+ 	spin_lock_irqsave(&queue->irqlock, flags);
+ 	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 51b5ae5..ed5aac5 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1158,8 +1158,30 @@ static void uvc_video_validate_buffer(const struct uvc_streaming *stream,
+ /*
+  * Completion handler for video URBs.
+  */
++static struct uvc_buffer *uvc_video_decode_meta(struct uvc_streaming *stream,
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf,
++			u8 *mem, unsigned int length)
++{
++	size_t nbytes;
++
++	if (!meta_buf || !length)
++		return NULL;
++
++	nbytes = min(length, meta_buf->length);
++
++	meta_buf->buf.sequence = buf->buf.sequence;
++	meta_buf->buf.field = buf->buf.field;
++	meta_buf->buf.vb2_buf.timestamp = buf->buf.vb2_buf.timestamp;
++
++	memcpy(meta_buf->mem, mem, nbytes);
++	meta_buf->bytesused = nbytes;
++	meta_buf->state = UVC_BUF_STATE_READY;
++
++	return uvc_queue_next_buffer(&stream->meta.queue, meta_buf);
++}
++
+ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	u8 *mem;
+ 	int ret, i;
+@@ -1205,7 +1227,7 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ }
+ 
+ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	u8 *mem;
+ 	int len, ret;
+@@ -1239,6 +1261,8 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 			memcpy(stream->bulk.header, mem, ret);
+ 			stream->bulk.header_size = ret;
+ 
++			uvc_video_decode_meta(stream, buf, meta_buf, mem, ret);
++
+ 			mem += ret;
+ 			len -= ret;
+ 		}
+@@ -1272,7 +1296,7 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ }
+ 
+ static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++	struct uvc_buffer *buf, struct uvc_buffer *meta_buf)
+ {
+ 	u8 *mem = urb->transfer_buffer;
+ 	int len = stream->urb_size, ret;
+@@ -1318,7 +1342,9 @@ static void uvc_video_complete(struct urb *urb)
+ {
+ 	struct uvc_streaming *stream = urb->context;
+ 	struct uvc_video_queue *queue = &stream->queue;
++	struct uvc_video_queue *qmeta = &stream->meta.queue;
+ 	struct uvc_buffer *buf = NULL;
++	struct uvc_buffer *buf_meta = NULL;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -1337,6 +1363,7 @@ static void uvc_video_complete(struct urb *urb)
+ 	case -ECONNRESET:	/* usb_unlink_urb() called. */
+ 	case -ESHUTDOWN:	/* The endpoint is being disabled. */
+ 		uvc_queue_cancel(queue, urb->status == -ESHUTDOWN);
++		uvc_queue_cancel(qmeta, urb->status == -ESHUTDOWN);
+ 		return;
+ 	}
+ 
+@@ -1346,7 +1373,13 @@ static void uvc_video_complete(struct urb *urb)
+ 				       queue);
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+-	stream->decode(urb, stream, buf);
++	spin_lock_irqsave(&qmeta->irqlock, flags);
++	if (!list_empty(&qmeta->irqqueue))
++		buf_meta = list_first_entry(&qmeta->irqqueue, struct uvc_buffer,
++					    queue);
++	spin_unlock_irqrestore(&qmeta->irqlock, flags);
++
++	stream->decode(urb, stream, buf, buf_meta);
+ 
+ 	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+ 		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index a1e6a19..c9f8090 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -176,6 +176,7 @@
+ #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+ #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+ #define UVC_QUIRK_FORCE_Y8		0x00000800
++#define UVC_QUIRK_METADATA_NODE		0x00001000
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+@@ -464,6 +465,11 @@ struct uvc_stats_stream {
+ 	unsigned int max_sof;		/* Maximum STC.SOF value */
+ };
+ 
++struct uvc_meta_device {
++	struct video_device vdev;
++	struct uvc_video_queue queue;
++};
++
+ struct uvc_streaming {
+ 	struct list_head list;
+ 	struct uvc_device *dev;
+@@ -495,7 +501,9 @@ struct uvc_streaming {
+ 	unsigned int frozen : 1;
+ 	struct uvc_video_queue queue;
+ 	void (*decode) (struct urb *urb, struct uvc_streaming *video,
+-			struct uvc_buffer *buf);
++			struct uvc_buffer *buf, struct uvc_buffer *meta_buf);
++
++	struct uvc_meta_device meta;
+ 
+ 	/* Context data used by the bulk completion handler. */
+ 	struct {
+@@ -675,6 +683,12 @@ extern unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
+ 		unsigned long pgoff);
+ #endif
+ extern int uvc_queue_allocated(struct uvc_video_queue *queue);
++extern int uvc_queue_setup(struct vb2_queue *vq,
++			   unsigned int *nbuffers, unsigned int *nplanes,
++			   unsigned int sizes[], struct device *alloc_devs[]);
++extern int uvc_buffer_prepare(struct vb2_buffer *vb);
++extern void uvc_buffer_queue(struct vb2_buffer *vb);
++extern void uvc_stop_streaming(struct vb2_queue *vq);
+ static inline int uvc_queue_streaming(struct uvc_video_queue *queue)
+ {
+ 	return vb2_is_streaming(&queue->queue);
+@@ -704,6 +718,7 @@ extern int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 			    struct vb2_v4l2_buffer *vbuf,
+ 			    struct uvc_buffer *buf);
++int uvc_meta_register(struct uvc_streaming *stream);
+ 
+ /* Status */
+ extern int uvc_status_init(struct uvc_device *dev);
+@@ -758,7 +773,7 @@ extern struct usb_host_endpoint *uvc_find_endpoint(
+ 
+ /* Quirks support */
+ void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf);
++		struct uvc_buffer *buf, struct uvc_buffer *meta_buf);
+ 
+ /* debugfs and statistics */
+ int uvc_debugfs_init(void);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 44a29af..1618be4 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1232,6 +1232,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 	case V4L2_TCH_FMT_DELTA_TD08:	descr = "8-bit signed deltas"; break;
+ 	case V4L2_TCH_FMT_TU16:		descr = "16-bit unsigned touch data"; break;
+ 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
++	case V4L2_META_FMT_UVC:		descr = "UVC payload header metadata"; break;
+ 
+ 	default:
+ 		/* Compressed formats */
+diff --git a/include/uapi/linux/uvcvideo.h b/include/uapi/linux/uvcvideo.h
+index 3b08186..9e8e7db 100644
+--- a/include/uapi/linux/uvcvideo.h
++++ b/include/uapi/linux/uvcvideo.h
+@@ -67,4 +67,11 @@ struct uvc_xu_control_query {
+ #define UVCIOC_CTRL_MAP		_IOWR('u', 0x20, struct uvc_xu_control_mapping)
+ #define UVCIOC_CTRL_QUERY	_IOWR('u', 0x21, struct uvc_xu_control_query)
+ 
++/*
++ * Metadata node
++ */
++
++/* Header size is stored in 1 byte, i.e. <= 255 */
++#define UVC_PAYLOAD_HEADER_MAX_SIZE 255
++
+ #endif
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1b894db..6b74191 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -678,6 +678,9 @@ struct v4l2_pix_format {
+ #define V4L2_TCH_FMT_TU16	v4l2_fourcc('T', 'U', '1', '6') /* 16-bit unsigned touch data */
+ #define V4L2_TCH_FMT_TU08	v4l2_fourcc('T', 'U', '0', '8') /* 8-bit unsigned touch data */
+ 
++/* Meta-data formats */
++#define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
++
+ /* priv field value to indicates that subsequent fields are valid. */
+ #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 
+-- 
+1.9.3
 
-Thanks,
-Mauro
