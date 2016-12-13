@@ -1,100 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:63818 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750849AbcLENXj (ORCPT
+Received: from a-painless.mh.aa.net.uk ([81.187.30.51]:60368 "EHLO
+        a-painless.mh.aa.net.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932745AbcLMQGZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 08:23:39 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean Christophe TROTIN <jean-christophe.trotin@st.com>
-Date: Mon, 5 Dec 2016 14:21:38 +0100
-Subject: Re: [PATCH v3 00/10] Add support for DELTA video decoder of
- STMicroelectronics STiH4xx SoC series
-Message-ID: <d07a5223-0857-8d7c-ae24-ababe867fe9d@st.com>
-References: <1479830007-29767-1-git-send-email-hugues.fruchet@st.com>
- <07c0d644-b168-a72f-f4bc-d08c103173a1@xs4all.nl>
-In-Reply-To: <07c0d644-b168-a72f-f4bc-d08c103173a1@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+        Tue, 13 Dec 2016 11:06:25 -0500
+Subject: Re: Sony imx219 driver?
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+References: <09ab897e-79a9-ae44-4caa-93d8d1fa1c51@synopsys.com>
+Cc: linux-media@vger.kernel.org
+From: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>
+Message-ID: <dcf92a8f-1e3c-4c9f-3694-95cff9998456@destevenson.freeserve.co.uk>
+Date: Tue, 13 Dec 2016 16:06:11 +0000
 MIME-Version: 1.0
+In-Reply-To: <09ab897e-79a9-ae44-4caa-93d8d1fa1c51@synopsys.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Hans, I will test with new compliance.
-BR,
-Hugues.
+Hi Ramiro
 
-On 12/05/2016 11:18 AM, Hans Verkuil wrote:
-> Hi Hugues,
+On 13/12/16 13:47, Ramiro Oliveira wrote:
+> Hi Dave
 >
-> On 11/22/2016 04:53 PM, Hugues Fruchet wrote:
->> This patchset introduces a basic support for DELTA multi-format video
->> decoder of STMicroelectronics STiH4xx SoC series.
+> On 07/21/2016 08:19 PM, Dave Stevenson wrote:
+>> Just a quick query to avoid duplicating effort. Has anyone worked on a
+>> Sony IMX219 (or other Sony sensor) subdevice driver as yet?
 >>
->> DELTA hardware IP is controlled by a remote firmware loaded in a ST231
->> coprocessor. Communication with firmware is done within an IPC layer
->> using rpmsg kernel framework and a shared memory for messages handling.
->> This driver is compatible with firmware version 21.1-3.
->> While a single firmware is loaded in ST231 coprocessor, it is composed
->> of several firmwares, one per video format family.
+>> With the new Raspberry Pi camera being IMX219, and as Broadcom have
+>> released an soc_camera based driver for the sensor already
+>> (https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c)
+>> I was going to investigate converting that to a subdevice. I just wanted
+>> to check this wasn't already in someone else's work queue.
 >>
->> This DELTA V4L2 driver is designed around files:
->>   - delta-v4l2.c   : handles V4L2 APIs using M2M framework and calls decoder ops
->>   - delta-<codec>* : implements <codec> decoder calling its associated
->>                      video firmware (for ex. MJPEG) using IPC layer
->>   - delta-ipc.c    : IPC layer which handles communication with firmware using rpmsg
+>> A further Google shows that there's also an soc_camera IMX219 driver in
+>> ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi
+>> Liakhovetski who I know posts on here.
+>> https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c.
+>> The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP.
+>> Perhaps a hybrid of the feature set? Throw in
+>> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h
+>> as well, and we have register sets for numerous readout modes, plus
+>> there are the ones in the Pi firmware which can be extracted if necessary.
 >>
->> This first basic support implements only MJPEG hardware acceleration but
->> the driver structure is in place to support all the features of the
->> DELTA video decoder hardware IP.
->>
->> This driver depends on:
->>   - ST remoteproc/rpmsg: patchset posted at https://lkml.org/lkml/2016/9/6/77
->>   - ST DELTA firmware: its license is under review. When available,
->>     pull request will be done on linux-firmware.
->>
->> ===========
->> = history =
->> ===========
->> version 3
->>   - update after v2 review:
->>     - fixed m2m_buf_done missing on start_streaming error case
->>     - fixed q->dev missing in queue_init()
->>     - removed unsupported s_selection
->>     - refactored string namings in delta-debug.c
->>     - fixed space before comment
->>     - all commits have commit messages
->>     - reword memory allocator helper commit
->>
->> version 2
->>   - update after v1 review:
->>     - simplified tracing
->>     - G_/S_SELECTION reworked to fit COMPOSE(CAPTURE)
->>     - fixed m2m_buf_done missing on start_streaming error case
->>     - fixed q->dev missing in queue_init()
->>   - switch to kernel-4.9 rpmsg API
->>   - DELTA support added in multi_v7_defconfig
->>   - minor typo fixes & code cleanup
->>
->> version 1:
->>   - Initial submission
->>
->> ===================
->> = v4l2-compliance =
->> ===================
->> Below is the v4l2-compliance report for the version 3 of the DELTA video
->> decoder driver. v4l2-compliance has been build from SHA1:
->> 600492351ddf40cc524aab73802153674d7d287b (libdvb5: Fix multiple definition of dvb_dev_remote_init linking error)
+>> On a related note, if putting together a system with IMX219 or similar
+>> producing Bayer raw 10, the data on the CSI2 bus is one of the
+>> V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that
+>> from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
+>> The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data
+>> isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but
+>> that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10
+>> to describe the data on the bus correctly as 10bpp Bayer, and the odd
+>> packing is ignored. Or do we need new enums?
 >
-> Can you update v4l-utils and run this test again? The S_SELECTION compliance
-> test has been fixed to allow for ENOTTY as the error code.
+> Do you still plan on submitting this driver? If so, do you plan on submitting it
+> soon?
 >
-> If the output looks good, then I'll merge this driver (will be for 4.11).
->
-> Regards,
->
-> 	Hans
+> If you're not planning on submitting it any time soon, do you mind if submit it
+> myself? I'm planning on having something ready for kernel submission by January.
+
+I've got bogged down in other things and not got anywhere as yet, so go 
+for it.
+When I've got the CSI2 receiver subdevice working (hopefully soon) then 
+I'll happily test your driver with it. For the time being I've been 
+working against the TC358743 driver.
+
+   Dave
+
+> Thanks,
+> Ramiro Oliveira
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
