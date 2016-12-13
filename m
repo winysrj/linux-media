@@ -1,115 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:35869 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751998AbcLBRRL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Dec 2016 12:17:11 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH 8/8] [media] rc5x: document that this is the 20 bit variant
-Date: Fri,  2 Dec 2016 17:16:14 +0000
-Message-Id: <1480698974-9093-8-git-send-email-sean@mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:55905
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932493AbcLMPjd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 10:39:33 -0500
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org
+Subject: [RFT PATCH] [media] partial revert of "[media] tvp5150: add HW input connectors support"
+Date: Tue, 13 Dec 2016 12:39:19 -0300
+Message-Id: <1481643559-19666-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are many variants of extended rc5. This implements the 20 bit
-version.
+Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
+added input signals support for the tvp5150, but the approach was found
+to be incorrect so the corresponding DT binding commit 82c2ffeb217a
+("[media] tvp5150: document input connectors DT bindings") was reverted.
 
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
+This left the driver with an undocumented (and wrong) DT parsing logic,
+so lets get rid of this code as well until the input connectors support
+is implemented properly.
+
+It's a partial revert due other patches added on top of mentioned commit
+not allowing the commit to be reverted cleanly anymore. But all the code
+related to the DT parsing logic and input entities creation are removed.
+
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
 ---
- drivers/media/rc/ir-rc5-decoder.c | 6 +++---
- drivers/media/rc/rc-main.c        | 2 +-
- include/media/rc-map.h            | 8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index a95477c..484185e 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -124,7 +124,7 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		if (data->is_rc5x && data->count == RC5X_NBITS) {
- 			/* RC5X */
- 			u8 xdata, command, system;
--			if (!(dev->enabled_protocols & RC_BIT_RC5X)) {
-+			if (!(dev->enabled_protocols & RC_BIT_RC5X_20)) {
- 				data->state = STATE_INACTIVE;
- 				return 0;
- 			}
-@@ -134,7 +134,7 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			toggle   = (data->bits & 0x20000) ? 1 : 0;
- 			command += (data->bits & 0x40000) ? 0 : 0x40;
- 			scancode = system << 16 | command << 8 | xdata;
--			protocol = RC_TYPE_RC5X;
-+			protocol = RC_TYPE_RC5X_20;
- 
- 		} else if (!data->is_rc5x && data->count == RC5_NBITS) {
- 			/* RC5 */
-@@ -182,7 +182,7 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
+Hello Laurent,
+
+I've tested this patch on top of media/master on my IGEPv2 + tvp5150
+with the following:
+
+$ media-ctl -r -l '"tvp5150 1-005c":1->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+$ media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x240 field:alternate]'
+$ media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x240 field:interlaced-tb]'
+$ yavta -f UYVY -s 720x480 -n 1 --field interlaced-tb --capture=1 -F /dev/video2
+$ raw2rgbpnm -f UYVY -s 720x480 frame-000000.bin frame.pnm
+
+I've also tested the other composite input with the following change:
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 5fe5faefe212..973be68ff78c 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -1371,7 +1371,7 @@ static int tvp5150_probe(struct i2c_client *c,
+                return res;
+
+        core->norm = V4L2_STD_ALL;      /* Default is autodetect */
+-       core->input = TVP5150_COMPOSITE1;
++       core->input = TVP5150_COMPOSITE0;
+        core->enable = true;
+
+        v4l2_ctrl_handler_init(&core->hdl, 5);
+
+But as mentioned, it also worked for me without the revert so please let
+me know if the driver works with your omap3 board.
+
+Best regards,
+Javier
+
+ drivers/media/i2c/tvp5150.c | 142 --------------------------------------------
+ 1 file changed, 142 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index 48646a7f3fb0..5fe5faefe212 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -42,8 +42,6 @@ struct tvp5150 {
+ 	struct v4l2_subdev sd;
+ #ifdef CONFIG_MEDIA_CONTROLLER
+ 	struct media_pad pads[DEMOD_NUM_PADS];
+-	struct media_entity input_ent[TVP5150_INPUT_NUM];
+-	struct media_pad input_pad[TVP5150_INPUT_NUM];
+ #endif
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct v4l2_rect rect;
+@@ -1018,40 +1016,6 @@ static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
  }
  
- static struct ir_raw_handler rc5_handler = {
--	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
-+	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X_20 | RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
+ /****************************************************************************
+-			Media entity ops
+- ****************************************************************************/
+-
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-static int tvp5150_link_setup(struct media_entity *entity,
+-			      const struct media_pad *local,
+-			      const struct media_pad *remote, u32 flags)
+-{
+-	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+-	struct tvp5150 *decoder = to_tvp5150(sd);
+-	int i;
+-
+-	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
+-		if (remote->entity == &decoder->input_ent[i])
+-			break;
+-	}
+-
+-	/* Do nothing for entities that are not input connectors */
+-	if (i == TVP5150_INPUT_NUM)
+-		return 0;
+-
+-	decoder->input = i;
+-
+-	tvp5150_selmux(sd);
+-
+-	return 0;
+-}
+-
+-static const struct media_entity_operations tvp5150_sd_media_ops = {
+-	.link_setup = tvp5150_link_setup,
+-};
+-#endif
+-
+-/****************************************************************************
+ 			I2C Command
+  ****************************************************************************/
+ 
+@@ -1188,42 +1152,6 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	return 0;
+ }
+ 
+-static int tvp5150_registered(struct v4l2_subdev *sd)
+-{
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct tvp5150 *decoder = to_tvp5150(sd);
+-	int ret = 0;
+-	int i;
+-
+-	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
+-		struct media_entity *input = &decoder->input_ent[i];
+-		struct media_pad *pad = &decoder->input_pad[i];
+-
+-		if (!input->name)
+-			continue;
+-
+-		decoder->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
+-
+-		ret = media_entity_pads_init(input, 1, pad);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = media_device_register_entity(sd->v4l2_dev->mdev, input);
+-		if (ret < 0)
+-			return ret;
+-
+-		ret = media_create_pad_link(input, 0, &sd->entity,
+-					    DEMOD_PAD_IF_INPUT, 0);
+-		if (ret < 0) {
+-			media_device_unregister_entity(input);
+-			return ret;
+-		}
+-	}
+-#endif
+-
+-	return 0;
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
+@@ -1274,11 +1202,6 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
+ 	.pad = &tvp5150_pad_ops,
  };
  
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index dedaf38..75bdc49 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -796,7 +796,7 @@ static const struct {
- 	{ RC_BIT_OTHER,		"other",	NULL			},
- 	{ RC_BIT_UNKNOWN,	"unknown",	NULL			},
- 	{ RC_BIT_RC5 |
--	  RC_BIT_RC5X,		"rc-5",		"ir-rc5-decoder"	},
-+	  RC_BIT_RC5X_20,	"rc-5",		"ir-rc5-decoder"	},
- 	{ RC_BIT_NEC |
- 	  RC_BIT_NECX |
- 	  RC_BIT_NEC32,		"nec",		"ir-nec-decoder"	},
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index e1cc14c..39c00ef 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -17,7 +17,7 @@
-  * @RC_TYPE_UNKNOWN: Protocol not known
-  * @RC_TYPE_OTHER: Protocol known but proprietary
-  * @RC_TYPE_RC5: Philips RC5 protocol
-- * @RC_TYPE_RC5X: Philips RC5x protocol
-+ * @RC_TYPE_RC5X_20: Philips RC5x 20 bit protocol
-  * @RC_TYPE_RC5_SZ: StreamZap variant of RC5
-  * @RC_TYPE_JVC: JVC protocol
-  * @RC_TYPE_SONY12: Sony 12 bit protocol
-@@ -41,7 +41,7 @@ enum rc_type {
- 	RC_TYPE_UNKNOWN		= 0,
- 	RC_TYPE_OTHER		= 1,
- 	RC_TYPE_RC5		= 2,
--	RC_TYPE_RC5X		= 3,
-+	RC_TYPE_RC5X_20		= 3,
- 	RC_TYPE_RC5_SZ		= 4,
- 	RC_TYPE_JVC		= 5,
- 	RC_TYPE_SONY12		= 6,
-@@ -66,7 +66,7 @@ enum rc_type {
- #define RC_BIT_UNKNOWN		(1ULL << RC_TYPE_UNKNOWN)
- #define RC_BIT_OTHER		(1ULL << RC_TYPE_OTHER)
- #define RC_BIT_RC5		(1ULL << RC_TYPE_RC5)
--#define RC_BIT_RC5X		(1ULL << RC_TYPE_RC5X)
-+#define RC_BIT_RC5X_20		(1ULL << RC_TYPE_RC5X_20)
- #define RC_BIT_RC5_SZ		(1ULL << RC_TYPE_RC5_SZ)
- #define RC_BIT_JVC		(1ULL << RC_TYPE_JVC)
- #define RC_BIT_SONY12		(1ULL << RC_TYPE_SONY12)
-@@ -87,7 +87,7 @@ enum rc_type {
- #define RC_BIT_CEC		(1ULL << RC_TYPE_CEC)
+-static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
+-	.registered = tvp5150_registered,
+-};
+-
+-
+ /****************************************************************************
+ 			I2C Client & Driver
+  ****************************************************************************/
+@@ -1360,12 +1283,6 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ {
+ 	struct v4l2_of_endpoint bus_cfg;
+ 	struct device_node *ep;
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	struct device_node *connectors, *child;
+-	struct media_entity *input;
+-	const char *name;
+-	u32 input_type;
+-#endif
+ 	unsigned int flags;
+ 	int ret = 0;
  
- #define RC_BIT_ALL	(RC_BIT_UNKNOWN | RC_BIT_OTHER | \
--			 RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ | \
-+			 RC_BIT_RC5 | RC_BIT_RC5X_20 | RC_BIT_RC5_SZ | \
- 			 RC_BIT_JVC | \
- 			 RC_BIT_SONY12 | RC_BIT_SONY15 | RC_BIT_SONY20 | \
- 			 RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 | \
+@@ -1389,63 +1306,6 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
+ 
+ 	decoder->mbus_type = bus_cfg.bus_type;
+ 
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	connectors = of_get_child_by_name(np, "connectors");
+-
+-	if (!connectors)
+-		goto err;
+-
+-	for_each_available_child_of_node(connectors, child) {
+-		ret = of_property_read_u32(child, "input", &input_type);
+-		if (ret) {
+-			dev_err(decoder->sd.dev,
+-				 "missing type property in node %s\n",
+-				 child->name);
+-			goto err_connector;
+-		}
+-
+-		if (input_type >= TVP5150_INPUT_NUM) {
+-			ret = -EINVAL;
+-			goto err_connector;
+-		}
+-
+-		input = &decoder->input_ent[input_type];
+-
+-		/* Each input connector can only be defined once */
+-		if (input->name) {
+-			dev_err(decoder->sd.dev,
+-				 "input %s with same type already exists\n",
+-				 input->name);
+-			ret = -EINVAL;
+-			goto err_connector;
+-		}
+-
+-		switch (input_type) {
+-		case TVP5150_COMPOSITE0:
+-		case TVP5150_COMPOSITE1:
+-			input->function = MEDIA_ENT_F_CONN_COMPOSITE;
+-			break;
+-		case TVP5150_SVIDEO:
+-			input->function = MEDIA_ENT_F_CONN_SVIDEO;
+-			break;
+-		}
+-
+-		input->flags = MEDIA_ENT_FL_CONNECTOR;
+-
+-		ret = of_property_read_string(child, "label", &name);
+-		if (ret < 0) {
+-			dev_err(decoder->sd.dev,
+-				 "missing label property in node %s\n",
+-				 child->name);
+-			goto err_connector;
+-		}
+-
+-		input->name = name;
+-	}
+-
+-err_connector:
+-	of_node_put(connectors);
+-#endif
+ err:
+ 	of_node_put(ep);
+ 	return ret;
+@@ -1491,7 +1351,6 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	}
+ 
+ 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
+-	sd->internal_ops = &tvp5150_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+@@ -1505,7 +1364,6 @@ static int tvp5150_probe(struct i2c_client *c,
+ 	if (res < 0)
+ 		return res;
+ 
+-	sd->entity.ops = &tvp5150_sd_media_ops;
+ #endif
+ 
+ 	res = tvp5150_detect_version(core);
 -- 
-2.9.3
+2.7.4
 
