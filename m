@@ -1,89 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48478 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753752AbcLRWIn (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:36582 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753095AbcLMSw5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 17:08:43 -0500
-Date: Mon, 19 Dec 2016 00:08:09 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 13 Dec 2016 13:52:57 -0500
+Date: Tue, 13 Dec 2016 12:52:54 -0600
+From: Rob Herring <robh@kernel.org>
+To: Michael Tretter <m.tretter@pengutronix.de>
 Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 02/15] ov7670: call v4l2_async_register_subdev
-Message-ID: <20161218220809.GV16630@valkosipuli.retiisi.org.uk>
-References: <20161212155520.41375-1-hverkuil@xs4all.nl>
- <20161212155520.41375-3-hverkuil@xs4all.nl>
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        devicetree@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Philipp Zabel <philipp.zabel@gmail.com>
+Subject: Re: [PATCH v2 1/7] ARM: dts: imx6qdl: Add VDOA compatible and clocks
+ properties
+Message-ID: <20161213185254.ztedtt3bpod2hbci@rob-hp-laptop>
+References: <20161209165903.1293-1-m.tretter@pengutronix.de>
+ <20161209165903.1293-2-m.tretter@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161212155520.41375-3-hverkuil@xs4all.nl>
+In-Reply-To: <20161209165903.1293-2-m.tretter@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2016 at 04:55:07PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Fri, Dec 09, 2016 at 05:58:57PM +0100, Michael Tretter wrote:
+> From: Philipp Zabel <philipp.zabel@gmail.com>
 > 
-> Add v4l2-async support for this driver.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> This adds a compatible property and the correct clock for the
+> i.MX6Q Video Data Order Adapter.
+
+This comment matches the dts change, but not the binding change.
+ 
+> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+> Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
 > ---
->  drivers/media/i2c/ov7670.c | 21 +++++++++++++++------
->  1 file changed, 15 insertions(+), 6 deletions(-)
+>  .../devicetree/bindings/media/fsl-vdoa.txt          | 21 +++++++++++++++++++++
+>  arch/arm/boot/dts/imx6qdl.dtsi                      |  2 ++
+>  2 files changed, 23 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
 > 
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index b0315bb..3f0522f 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -1641,18 +1641,15 @@ static int ov7670_probe(struct i2c_client *client,
->  	if (info->hdl.error) {
->  		int err = info->hdl.error;
->  
-> -		v4l2_ctrl_handler_free(&info->hdl);
-> -		return err;
-> +		goto fail;
->  	}
->  
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	info->pad.flags = MEDIA_PAD_FL_SOURCE;
->  	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
->  	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
-> -	if (ret < 0) {
-> -		v4l2_ctrl_handler_free(&info->hdl);
-> -		return ret;
-> -	}
-> +	if (ret < 0)
-> +		goto fail;
->  #endif
->  	/*
->  	 * We have checked empirically that hw allows to read back the gain
-> @@ -1664,7 +1661,19 @@ static int ov7670_probe(struct i2c_client *client,
->  	v4l2_ctrl_cluster(2, &info->saturation);
->  	v4l2_ctrl_handler_setup(&info->hdl);
->  
-> +	ret = v4l2_async_register_subdev(&info->sd);
-> +	if (ret < 0) {
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		media_entity_cleanup(&info->sd.entity);
-
-I think it'd be cleaner if you added another label for this. Up to you.
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-> +#endif
-> +		goto fail;
-> +	}
+> diff --git a/Documentation/devicetree/bindings/media/fsl-vdoa.txt b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
+> new file mode 100644
+> index 0000000..5e45f9b
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/fsl-vdoa.txt
+> @@ -0,0 +1,21 @@
+> +Freescale Video Data Order Adapter
+> +==================================
 > +
->  	return 0;
-> +
-> +fail:
-> +	v4l2_ctrl_handler_free(&info->hdl);
-> +	return ret;
->  }
->  
->  
+> +The Video Data Order Adapter (VDOA) is present on the i.MX6q. Its sole purpose
+> +it to to reorder video data from the macroblock tiled order produced by the
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+s/it to/is/
+
+> +CODA 960 VPU to the conventional raster-scan order for scanout.
+> +
+> +Required properties:
+> +- compatible: must be "fsl,imx6q-vdoa"
+> +- reg: the register base and size for the device registers
+> +- interrupts: the VDOA interrupt
+> +- clocks: the vdoa clock
+> +
+> +Example:
+> +
+> +vdoa@021e4000 {
+
+Drop the leading 0.
+
+> +        compatible = "fsl,imx6q-vdoa";
+> +        reg = <0x021e4000 0x4000>;
+> +        interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
+> +        clocks = <&clks IMX6QDL_CLK_VDOA>;
+> +};
+> diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
+> index b13b0b2..69e3668 100644
+> --- a/arch/arm/boot/dts/imx6qdl.dtsi
+> +++ b/arch/arm/boot/dts/imx6qdl.dtsi
+> @@ -1153,8 +1153,10 @@
+>  			};
+>  
+>  			vdoa@021e4000 {
+> +				compatible = "fsl,imx6q-vdoa";
+>  				reg = <0x021e4000 0x4000>;
+>  				interrupts = <0 18 IRQ_TYPE_LEVEL_HIGH>;
+> +				clocks = <&clks IMX6QDL_CLK_VDOA>;
+>  			};
+>  
+>  			uart2: serial@021e8000 {
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
