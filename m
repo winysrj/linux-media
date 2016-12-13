@@ -1,87 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw01.mediatek.com ([210.61.82.183]:35107 "EHLO
-        mailgw01.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754926AbcLNIMB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 03:12:01 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Bin Liu <bin.liu@mediatek.com>
-Subject: [PATCH v9 1/4] dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-Date: Wed, 14 Dec 2016 16:04:47 +0800
-Message-ID: <1481702690-10476-2-git-send-email-rick.chang@mediatek.com>
-In-Reply-To: <1481702690-10476-1-git-send-email-rick.chang@mediatek.com>
-References: <1481702690-10476-1-git-send-email-rick.chang@mediatek.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53252 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750988AbcLMLPt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 06:15:49 -0500
+Subject: Re: em28xx - Hauppauge WinTV Dualhd atsc/qam
+To: Kevin Cheng <kcheng@gmail.com>, linux-media@vger.kernel.org
+References: <CAKNt1=e_eb5G4Ka1ao5Bpfas+BCefRh9vWVjQ2tKiyh97ouQUw@mail.gmail.com>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <98c2999b-e134-55a6-06b9-371ace9546ae@iki.fi>
+Date: Tue, 13 Dec 2016 13:15:47 +0200
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAKNt1=e_eb5G4Ka1ao5Bpfas+BCefRh9vWVjQ2tKiyh97ouQUw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a DT binding documentation for Mediatek JPEG Decoder of
-MT2701 SoC.
+On 12/13/2016 06:05 AM, Kevin Cheng wrote:
+> Hi all,
+>
+> I'm working on support in the em8xx module for the Hauppauge WinTV
+> dualhd atsc/qam usb stick. I'vey got the first tuner+fe working so
+> far, but would appreciate any suggestions/feedback on the items below.
+>
+> the device has:
+> 2x LGDT3306A frontend
+> 2x si2157 tuner
+>
+> (1) since the tuner sits behind the front end, I initially had the
+> front end configured to use the i2c gate control but this wasn't
+> enough because the tuner would send commands on a timer without
+> knowing that the gate had to be opened.
+>
+> I added an i2c_driver to the lgdt3306a module using an i2c_mux and it
+> solved the problem but the lgdt3306a module now has two ways to
+> initialize -- through _attach and through (i2c) _probe.  Is this the
+> correct approach?
 
-Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../bindings/media/mediatek-jpeg-decoder.txt       | 37 ++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+It is correct approach.
 
-diff --git a/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt b/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
-new file mode 100644
-index 0000000..3813947
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
-@@ -0,0 +1,37 @@
-+* Mediatek JPEG Decoder
-+
-+Mediatek JPEG Decoder is the JPEG decode hardware present in Mediatek SoCs
-+
-+Required properties:
-+- compatible : must be one of the following string:
-+	"mediatek,mt8173-jpgdec"
-+	"mediatek,mt2701-jpgdec"
-+- reg : physical base address of the jpeg decoder registers and length of
-+  memory mapped region.
-+- interrupts : interrupt number to the interrupt controller.
-+- clocks: device clocks, see
-+  Documentation/devicetree/bindings/clock/clock-bindings.txt for details.
-+- clock-names: must contain "jpgdec-smi" and "jpgdec".
-+- power-domains: a phandle to the power domain, see
-+  Documentation/devicetree/bindings/power/power_domain.txt for details.
-+- mediatek,larb: must contain the local arbiters in the current Socs, see
-+  Documentation/devicetree/bindings/memory-controllers/mediatek,smi-larb.txt
-+  for details.
-+- iommus: should point to the respective IOMMU block with master port as
-+  argument, see Documentation/devicetree/bindings/iommu/mediatek,iommu.txt
-+  for details.
-+
-+Example:
-+	jpegdec: jpegdec@15004000 {
-+		compatible = "mediatek,mt2701-jpgdec";
-+		reg = <0 0x15004000 0 0x1000>;
-+		interrupts = <GIC_SPI 143 IRQ_TYPE_LEVEL_LOW>;
-+		clocks =  <&imgsys CLK_IMG_JPGDEC_SMI>,
-+			  <&imgsys CLK_IMG_JPGDEC>;
-+		clock-names = "jpgdec-smi",
-+			      "jpgdec";
-+		power-domains = <&scpsys MT2701_POWER_DOMAIN_ISP>;
-+		mediatek,larb = <&larb2>;
-+		iommus = <&iommu MT2701_M4U_PORT_JPGDEC_WDMA>,
-+			 <&iommu MT2701_M4U_PORT_JPGDEC_BSDMA>;
-+	};
+> (2) The second front end + tuner registers ok but doesn't work quite
+> right.  Tuning works but it doesn't seem like the stream is passing
+> through... I noticed that em28xx_capture_start in em28xx-core.c is
+> hardcoded to only use the first transport stream but when i tested
+> changing it to only enable TS2, that didn't work either.  I'm guessing
+> there is something else in the code that's assuming only the first
+> transport stream is used.  Anyone have an idea of what I'm missing?
+>
+>
+> Thanks,
+> -Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 -- 
-1.9.1
-
+http://palosaari.fi/
