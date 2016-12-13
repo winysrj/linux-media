@@ -1,62 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38280
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1756743AbcLORZI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 12:25:08 -0500
-Date: Thu, 15 Dec 2016 15:25:01 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
- references as needed
-Message-ID: <20161215152501.11ce2b2a@vento.lan>
-In-Reply-To: <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
-        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
-        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
-        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
-        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.kernel.org ([198.145.29.136]:54984 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S941124AbcLMSDX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 13:03:23 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCHv3 1/4] v4l: vsp1: Move vsp1_video_setup_pipeline()
+Date: Tue, 13 Dec 2016 17:59:41 +0000
+Message-Id: <1481651984-7687-2-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 15 Dec 2016 10:09:53 -0700
-Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+Move the static vsp1_video_setup_pipeline() function in preparation for
+the callee updates so that the vsp1_video_pipeline_run() call can
+configure pipelines following suspend resume actions.
 
-> On 12/15/2016 09:28 AM, Hans Verkuil wrote:
-> > On 15/12/16 17:06, Shuah Khan wrote:  
+This commit is just a code move for clarity performing no functional
+change.
 
-> > 
-> > I think this will work for interface entities, but for subdev entities this
-> > certainly won't work. Unbinding subdevs should be blocked (just set
-> > suppress_bind_attrs to true in all subdev drivers). Most top-level drivers
-> > have pointers to subdev data, so unbinding them will just fail horribly.
-> >   
-> 
-> Yes that is an option. I did something similar for au0828 and snd_usb_audio
-> case, so the module that registers the media_device can't unbound until the
-> other driver. If au0828 registers media_device, it becomes the owner and if
-> it gets unbound ioctls will start to see problems.
-> 
-> What this means though is that drivers can't be unbound easily. But that is
-> a small price to pay compared to the problems we will see if a driver is
-> unbound when its entities are still in use. Also, unsetting bind_attrs has
-> to be done as well, otherwise we can never unbind any driver.
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_video.c | 82 ++++++++++++++++----------------
+ 1 file changed, 41 insertions(+), 41 deletions(-)
 
-I don't think suppress_bind_attrs will work on USB drivers, as the
-device can be physically removed. 
+diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+index d351b9c768d2..44b687c0b8df 100644
+--- a/drivers/media/platform/vsp1/vsp1_video.c
++++ b/drivers/media/platform/vsp1/vsp1_video.c
+@@ -350,6 +350,47 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
+ 	pipe->buffers_ready |= 1 << video->pipe_index;
+ }
+ 
++static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
++{
++	struct vsp1_entity *entity;
++
++	/* Determine this pipelines sizes for image partitioning support. */
++	vsp1_video_pipeline_setup_partitions(pipe);
++
++	/* Prepare the display list. */
++	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
++	if (!pipe->dl)
++		return -ENOMEM;
++
++	if (pipe->uds) {
++		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
++
++		/* If a BRU is present in the pipeline before the UDS, the alpha
++		 * component doesn't need to be scaled as the BRU output alpha
++		 * value is fixed to 255. Otherwise we need to scale the alpha
++		 * component only when available at the input RPF.
++		 */
++		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
++			uds->scale_alpha = false;
++		} else {
++			struct vsp1_rwpf *rpf =
++				to_rwpf(&pipe->uds_input->subdev);
++
++			uds->scale_alpha = rpf->fmtinfo->alpha;
++		}
++	}
++
++	list_for_each_entry(entity, &pipe->entities, list_pipe) {
++		vsp1_entity_route_setup(entity, pipe->dl);
++
++		if (entity->ops->configure)
++			entity->ops->configure(entity, pipe, pipe->dl,
++					       VSP1_ENTITY_PARAMS_INIT);
++	}
++
++	return 0;
++}
++
+ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
+ 					      struct vsp1_dl_list *dl)
+ {
+@@ -747,47 +788,6 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&pipe->irqlock, flags);
+ }
+ 
+-static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
+-{
+-	struct vsp1_entity *entity;
+-
+-	/* Determine this pipelines sizes for image partitioning support. */
+-	vsp1_video_pipeline_setup_partitions(pipe);
+-
+-	/* Prepare the display list. */
+-	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+-	if (!pipe->dl)
+-		return -ENOMEM;
+-
+-	if (pipe->uds) {
+-		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
+-
+-		/* If a BRU is present in the pipeline before the UDS, the alpha
+-		 * component doesn't need to be scaled as the BRU output alpha
+-		 * value is fixed to 255. Otherwise we need to scale the alpha
+-		 * component only when available at the input RPF.
+-		 */
+-		if (pipe->uds_input->type == VSP1_ENTITY_BRU) {
+-			uds->scale_alpha = false;
+-		} else {
+-			struct vsp1_rwpf *rpf =
+-				to_rwpf(&pipe->uds_input->subdev);
+-
+-			uds->scale_alpha = rpf->fmtinfo->alpha;
+-		}
+-	}
+-
+-	list_for_each_entry(entity, &pipe->entities, list_pipe) {
+-		vsp1_entity_route_setup(entity, pipe->dl);
+-
+-		if (entity->ops->configure)
+-			entity->ops->configure(entity, pipe, pipe->dl,
+-					       VSP1_ENTITY_PARAMS_INIT);
+-	}
+-
+-	return 0;
+-}
+-
+ static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct vsp1_video *video = vb2_get_drv_priv(vq);
+-- 
+2.7.4
 
-Thanks,
-Mauro
