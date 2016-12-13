@@ -1,438 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:33566 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751172AbcL2W17 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 17:27:59 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 02/20] ARM: dts: imx6qdl: Add mipi_ipu1/2 multiplexers, mipi_csi, and their connections
-Date: Thu, 29 Dec 2016 14:27:17 -0800
-Message-Id: <1483050455-10683-3-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from gofer.mess.org ([80.229.237.210]:56395 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752901AbcLMHyT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 02:54:19 -0500
+Date: Tue, 13 Dec 2016 07:54:16 +0000
+From: Sean Young <sean@mess.org>
+To: James Hogan <james.hogan@imgtec.com>
+Cc: linux-media@vger.kernel.org, Sifan Naeem <sifan.naeem@imgtec.com>
+Subject: Re: [PATCH v5 02/18] [media] img-ir: use new wakeup_protocols sysfs
+ mechanism
+Message-ID: <20161213075416.GA27738@gofer.mess.org>
+References: <cover.1481575826.git.sean@mess.org>
+ <074994409ca834b6fcd950e7da60456247f12ce5.1481575826.git.sean@mess.org>
+ <20161212223115.GB30099@jhogan-linux.le.imgtec.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161212223115.GB30099@jhogan-linux.le.imgtec.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Zabel <p.zabel@pengutronix.de>
+Hi James,
 
-This patch adds the device tree graph connecting the input multiplexers
-to the IPU CSIs and the MIPI-CSI2 gasket on i.MX6. The MIPI_IPU
-multiplexers are added as children of the iomuxc-gpr syscon device node.
-On i.MX6Q/D two two-input multiplexers in front of IPU1 CSI0 and IPU2
-CSI1 allow to select between CSI0/1 parallel input pads and the MIPI
-CSI-2 virtual channels 0/3.
-On i.MX6DL/S two five-input multiplexers in front of IPU1 CSI0 and IPU1
-CSI1 allow to select between CSI0/1 parallel input pads and any of the
-four MIPI CSI-2 virtual channels.
+On Mon, Dec 12, 2016 at 10:31:15PM +0000, James Hogan wrote:
+> On Mon, Dec 12, 2016 at 09:13:43PM +0000, Sean Young wrote:
+> > Rather than guessing what variant a scancode is from its length,
+> > use the new wakeup_protocol.
+> > 
+> > Signed-off-by: Sean Young <sean@mess.org>
+> > Cc: James Hogan <james.hogan@imgtec.com>
+> > Cc: Sifan Naeem <sifan.naeem@imgtec.com>
+> > ---
+> >  drivers/media/rc/img-ir/img-ir-hw.c    |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-hw.h    |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-jvc.c   |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-nec.c   |  6 +++---
+> >  drivers/media/rc/img-ir/img-ir-rc5.c   |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-rc6.c   |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-sanyo.c |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-sharp.c |  2 +-
+> >  drivers/media/rc/img-ir/img-ir-sony.c  | 11 +++--------
+> >  9 files changed, 13 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+> > index 1a0811d..841d9d7 100644
+> > --- a/drivers/media/rc/img-ir/img-ir-hw.c
+> > +++ b/drivers/media/rc/img-ir/img-ir-hw.c
+> > @@ -488,7 +488,7 @@ static int img_ir_set_filter(struct rc_dev *dev, enum rc_filter_type type,
+> >  	/* convert scancode filter to raw filter */
+> >  	filter.minlen = 0;
+> >  	filter.maxlen = ~0;
+> > -	ret = hw->decoder->filter(sc_filter, &filter, hw->enabled_protocols);
+> > +	ret = hw->decoder->filter(sc_filter, &filter, dev->wakeup_protocol);
+> 
+> According to patch 1, wakeup_protocol can always be set to
+> RC_TYPE_UNKNOWN using the protocol "none", but this function is used for
+> the normal filter too. AFAICT that would make it impossible to set a
+> normal filter without first setting the (new) wakeup protocol too.
+> Technically when type == RC_FILTER_NORMAL, the protocol should be based
+> on enabled_protocols, which should be set to a single protocol group.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Yes, this change is wrong. For normal filters it should clearly use
+dev->enabled_protocols.
 
-- Removed some dangling/unused endpoints (ipu2_csi0_from_csi2ipu)
-- Renamed the mipi virtual channel endpoint labels, from "mipi_csiX_..."
-  to "mipi_vcX...".
-- Added input endpoints to the video muxes for the connections from parallel
-  sensors.
-- Added input endpoints to the mipi_csi for the connections from mipi csi-2
-  sensors.
-- The video multiplexer node has compatible string "imx-video-mux" instead
-  of "video-multiplexer".
-- The video multiplexer node indicates GPR register via reg propert only,
-  (register offset and bitmask), instead of specifying with "bit-mask" and
-  "bit-shift" properties.
+> I'll also note that enforcing that a wakeup protocol is set before
+> setting the wakeup filter (in patch 1 which I'm not Cc'd on) is an
+> incompatible API change. The old API basically meant that a mask of 0
+> disabled the wakeup filter, and there was no wakeup_protocol to set.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6dl.dtsi  | 183 +++++++++++++++++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6q.dtsi   | 119 +++++++++++++++++++++++++++
- arch/arm/boot/dts/imx6qdl.dtsi |  10 ++-
- 3 files changed, 311 insertions(+), 1 deletion(-)
+The "new" API always ensures that the mask is 0 if no protocol is set,
+no wakeup filter can be set while wakeup_protocol is RC_TYPE_UNKNOWN. 
+This could be documented more clearly, I'll add something for that.
 
-diff --git a/arch/arm/boot/dts/imx6dl.dtsi b/arch/arm/boot/dts/imx6dl.dtsi
-index 1ade195..0a1718c 100644
---- a/arch/arm/boot/dts/imx6dl.dtsi
-+++ b/arch/arm/boot/dts/imx6dl.dtsi
-@@ -181,6 +181,189 @@
- 		      "di0", "di1";
- };
- 
-+&gpr {
-+	ipu1_csi0_mux: ipu1_csi0_mux@34 {
-+		compatible = "imx-video-mux";
-+		reg = <0x34 0x07>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi0_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi0_mux_from_mipi_vc1: endpoint {
-+				remote-endpoint = <&mipi_vc1_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi0_mux_from_mipi_vc2: endpoint {
-+				remote-endpoint = <&mipi_vc2_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu1_csi0_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			ipu1_csi0_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu1_csi1_mux: ipu1_csi1_mux@34 {
-+		compatible = "imx-video-mux";
-+		reg = <0x34 0x38>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi1_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi1_mux_from_mipi_vc1: endpoint {
-+				remote-endpoint = <&mipi_vc1_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi1_mux_from_mipi_vc2: endpoint {
-+				remote-endpoint = <&mipi_vc2_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			ipu1_csi1_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu1_csi1_mux>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			ipu1_csi1_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@5 {
-+			reg = <5>;
-+
-+			ipu1_csi1_mux_to_ipu1_csi1: endpoint {
-+				remote-endpoint = <&ipu1_csi1_from_ipu1_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi1 {
-+	ipu1_csi1_from_ipu1_csi1_mux: endpoint {
-+		remote-endpoint = <&ipu1_csi1_mux_to_ipu1_csi1>;
-+	};
-+};
-+
-+&mipi_csi {
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_csi_from_mipi_sensor: endpoint {
-+		};
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc0_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
-+		};
-+
-+		mipi_vc0_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc1_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc1>;
-+		};
-+
-+		mipi_vc1_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc2_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc2>;
-+		};
-+
-+		mipi_vc2_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		mipi_vc3_to_ipu1_csi0_mux: endpoint@0 {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc3>;
-+		};
-+
-+		mipi_vc3_to_ipu1_csi1_mux: endpoint@1 {
-+			remote-endpoint = <&ipu1_csi1_mux_from_mipi_vc3>;
-+		};
-+	};
-+};
-+
- &vpu {
- 	compatible = "fsl,imx6dl-vpu", "cnm,coda960";
- };
-diff --git a/arch/arm/boot/dts/imx6q.dtsi b/arch/arm/boot/dts/imx6q.dtsi
-index e9a5d0b..56a314f 100644
---- a/arch/arm/boot/dts/imx6q.dtsi
-+++ b/arch/arm/boot/dts/imx6q.dtsi
-@@ -143,10 +143,18 @@
- 
- 			ipu2_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu2_csi0_from_mipi_vc2: endpoint {
-+					remote-endpoint = <&mipi_vc2_to_ipu2_csi0>;
-+				};
- 			};
- 
- 			ipu2_csi1: port@1 {
- 				reg = <1>;
-+
-+				ipu2_csi1_from_ipu2_csi1_mux: endpoint {
-+					remote-endpoint = <&ipu2_csi1_mux_to_ipu2_csi1>;
-+				};
- 			};
- 
- 			ipu2_di0: port@2 {
-@@ -266,6 +274,76 @@
- 	};
- };
- 
-+&gpr {
-+	ipu1_csi0_mux: ipu1_csi0_mux@4 {
-+		compatible = "imx-video-mux";
-+		reg = <0x04 0x80000>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu1_csi0_mux_from_mipi_vc0: endpoint {
-+				remote-endpoint = <&mipi_vc0_to_ipu1_csi0_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu1_csi0_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu1_csi0_mux_to_ipu1_csi0: endpoint {
-+				remote-endpoint = <&ipu1_csi0_from_ipu1_csi0_mux>;
-+			};
-+		};
-+	};
-+
-+	ipu2_csi1_mux: ipu2_csi1_mux@4 {
-+		compatible = "imx-video-mux";
-+		reg = <0x04 0x100000>;
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+		status = "okay";
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			ipu2_csi1_mux_from_mipi_vc3: endpoint {
-+				remote-endpoint = <&mipi_vc3_to_ipu2_csi1_mux>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			ipu2_csi1_mux_from_parallel_sensor: endpoint {
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			ipu2_csi1_mux_to_ipu2_csi1: endpoint {
-+				remote-endpoint = <&ipu2_csi1_from_ipu2_csi1_mux>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi1 {
-+	ipu1_csi1_from_mipi_vc1: endpoint {
-+		remote-endpoint = <&mipi_vc1_to_ipu1_csi1>;
-+	};
-+};
-+
- &ldb {
- 	clocks = <&clks IMX6QDL_CLK_LDB_DI0_SEL>, <&clks IMX6QDL_CLK_LDB_DI1_SEL>,
- 		 <&clks IMX6QDL_CLK_IPU1_DI0_SEL>, <&clks IMX6QDL_CLK_IPU1_DI1_SEL>,
-@@ -312,6 +390,47 @@
- 	};
- };
- 
-+&mipi_csi {
-+	port@0 {
-+		reg = <0>;
-+
-+		mipi_csi_from_mipi_sensor: endpoint {
-+		};
-+	};
-+
-+	port@1 {
-+		reg = <1>;
-+
-+		mipi_vc0_to_ipu1_csi0_mux: endpoint {
-+			remote-endpoint = <&ipu1_csi0_mux_from_mipi_vc0>;
-+		};
-+	};
-+
-+	port@2 {
-+		reg = <2>;
-+
-+		mipi_vc1_to_ipu1_csi1: endpoint {
-+			remote-endpoint = <&ipu1_csi1_from_mipi_vc1>;
-+		};
-+	};
-+
-+	port@3 {
-+		reg = <3>;
-+
-+		mipi_vc2_to_ipu2_csi0: endpoint {
-+			remote-endpoint = <&ipu2_csi0_from_mipi_vc2>;
-+		};
-+	};
-+
-+	port@4 {
-+		reg = <4>;
-+
-+		mipi_vc3_to_ipu2_csi1_mux: endpoint {
-+			remote-endpoint = <&ipu2_csi1_mux_from_mipi_vc3>;
-+		};
-+	};
-+};
-+
- &mipi_dsi {
- 	ports {
- 		port@2 {
-diff --git a/arch/arm/boot/dts/imx6qdl.dtsi b/arch/arm/boot/dts/imx6qdl.dtsi
-index 7b546e3..89218a4 100644
---- a/arch/arm/boot/dts/imx6qdl.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl.dtsi
-@@ -799,8 +799,10 @@
- 			};
- 
- 			gpr: iomuxc-gpr@020e0000 {
--				compatible = "fsl,imx6q-iomuxc-gpr", "syscon";
-+				compatible = "fsl,imx6q-iomuxc-gpr", "syscon", "simple-mfd";
- 				reg = <0x020e0000 0x38>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 			};
- 
- 			iomuxc: iomuxc@020e0000 {
-@@ -1127,6 +1129,8 @@
- 			mipi_csi: mipi@021dc000 {
- 				compatible = "fsl,imx-mipi-csi2";
- 				reg = <0x021dc000 0x4000>;
-+				#address-cells = <1>;
-+				#size-cells = <0>;
- 				interrupts = <0 100 0x04>, <0 101 0x04>;
- 				clocks = <&clks IMX6QDL_CLK_HSI_TX>,
- 					 <&clks IMX6QDL_CLK_VIDEO_27M>,
-@@ -1232,6 +1236,10 @@
- 
- 			ipu1_csi0: port@0 {
- 				reg = <0>;
-+
-+				ipu1_csi0_from_ipu1_csi0_mux: endpoint {
-+					remote-endpoint = <&ipu1_csi0_mux_to_ipu1_csi0>;
-+				};
- 			};
- 
- 			ipu1_csi1: port@1 {
--- 
-2.7.4
+Howver you point out that the "new" API would require setting a wakeup
+protocol first, which was not required before. That is true, but at the
+same time, guessing the protocol variant from the scancode is not
+reliable either (as is done for Sony and NEC).
 
+> If wakeup filters can be changed to still be writable when wakeup
+> protocol is not set, then I suppose this driver could do something like:
+> 
+> 	if (type == RC_TYPE_NORMAL) {
+> 		use hw->enabled_protocols;
+> 	} else if (type == RC_TYPE_WAKEUP) {
+> 		if (dev->wakeup_protocol == RC_TYPE_UNKNOWN)
+> 			use hw->enabled_protocols;
+> 		else
+> 			use 1 << dev->wakeup_protocol;
+> 	}
+
+The problem with this solution is that wakeup_filter can not be set until
+a wakeup_protocol is set, so we would still need to set a wakeup_protocol,
+so it won't help.
+
+Another solution would be to set the wakeup_protocol automagically whenever
+the normal protocol is set, much like enabled_wakeup_protocols is done now.
+We would have to pick a variant though.
+
+So that leaves the question open of whether we want to guess the protocol
+variant from the scancode for img-ir or if we can live with having to
+select this using wakeup_protocols. Having to do this does solve the issue
+of the driver guessing the wrong protocol if the higher bits happen to be
+0 in the scancode.
+
+Also note that this is an issue for nec and sony only, the other protocols
+img-ir supports only have one variant.
+
+> Clearly allowing a wakeup filter with no protocol is not ideal though.
+
+Agreed.
+
+Thanks,
+Sean
