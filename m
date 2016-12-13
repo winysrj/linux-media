@@ -1,67 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:43849 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753058AbcLIQ7Q (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34092 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932290AbcLMKyL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 11:59:16 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>, devicetree@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        Tue, 13 Dec 2016 05:54:11 -0500
+Date: Tue, 13 Dec 2016 12:54:07 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ian Arkver <ian.arkver.dev@gmail.com>
+Cc: Nicholas Mc Guire <hofrat@osadl.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH v2 0/7] Add support for Video Data Order Adapter
-Date: Fri,  9 Dec 2016 17:58:56 +0100
-Message-Id: <20161209165903.1293-1-m.tretter@pengutronix.de>
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC] [media] s5k6aa: set usleep_range greater 0
+Message-ID: <20161213105406.GY16630@valkosipuli.retiisi.org.uk>
+References: <1481594282-12801-1-git-send-email-hofrat@osadl.org>
+ <20161213094346.GW16630@valkosipuli.retiisi.org.uk>
+ <ce9f2ee0-c0d3-2eb4-a733-b108d12b43fb@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <ce9f2ee0-c0d3-2eb4-a733-b108d12b43fb@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, Dec 13, 2016 at 10:10:51AM +0000, Ian Arkver wrote:
+> On 13/12/16 09:43, Sakari Ailus wrote:
+> >Hi Nicholas,
+> >
+> >On Tue, Dec 13, 2016 at 02:58:02AM +0100, Nicholas Mc Guire wrote:
+> >>As this is not in atomic context and it does not seem like a critical
+> >>timing setting a range of 1ms allows the timer subsystem to optimize
+> >>the hrtimer here.
+> >I'd suggest not to. These delays are often directly visible to the user in
+> >use cases where attention is indeed paid to milliseconds.
+> >
+> >The same applies to register accesses. An delay of 0 to 100 µs isn't much as
+> >such, but when you multiply that with the number of accesses it begins to
+> >add up.
+> >
+> Data sheet for this device [1] says STBYN deassertion to RSTN deassertion
+> should be >50us, though this is actually referenced to MCLK startup. See
+> Figure 36, Power-Up Sequence, page 42.
+> 
+> I think the usleep range here could be greatly reduced and opened up to
+> allow hr timer tweaks if desired.
+> 
+> [1] http://www.bdtic.com/DataSheet/SAMSUNG/S5K6AAFX13.pdf
 
-This is v2 of a patch series that adds support for the Video Data Order
-Adapter (VDOA) that can be found on Freescale i.MX6. It converts the
-macroblock tiled format produced by the CODA 960 video decoder to a
-raster-ordered format for scanout.
-
-Changes since v1:
-
-- Dropped patch 8/9 of v1
-- Patch 1/7: Add devicetree binding documentation for fsl-vdoa
-- Patch 6/7: I merged patch 5/9 and patch 8/9 of v1 into a single patch
-- Patch 6/7: Use dt compatible instead of a phandle to find VDOA device
-- Patch 6/7: Always check VDOA availability even if disabled via module
-  parameter and do not print a message if VDOA cannot be found
-- Patch 6/7: Do not change the CODA context in coda_try_fmt()
-- Patch 6/7: Allocate an additional internal frame if the VDOA is in use
-
-Michael
-
-
-Michael Tretter (3):
-  [media] coda: fix frame index to returned error
-  [media] coda: use VDOA for un-tiling custom macroblock format
-  [media] coda: support YUYV output if VDOA is used
-
-Philipp Zabel (4):
-  ARM: dts: imx6qdl: Add VDOA compatible and clocks properties
-  [media] coda: add i.MX6 VDOA driver
-  [media] coda: correctly set capture compose rectangle
-  [media] coda: add debug output about tiling
-
- .../devicetree/bindings/media/fsl-vdoa.txt         |  21 ++
- arch/arm/boot/dts/imx6qdl.dtsi                     |   2 +
- drivers/media/platform/Kconfig                     |   3 +
- drivers/media/platform/coda/Makefile               |   1 +
- drivers/media/platform/coda/coda-bit.c             |  93 ++++--
- drivers/media/platform/coda/coda-common.c          | 175 ++++++++++-
- drivers/media/platform/coda/coda.h                 |   3 +
- drivers/media/platform/coda/imx-vdoa.c             | 335 +++++++++++++++++++++
- drivers/media/platform/coda/imx-vdoa.h             |  58 ++++
- 9 files changed, 649 insertions(+), 42 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/fsl-vdoa.txt
- create mode 100644 drivers/media/platform/coda/imx-vdoa.c
- create mode 100644 drivers/media/platform/coda/imx-vdoa.h
+Good point. Datasheets do not always tell everything though; it'd be good to
+get a comment from the original driver authors on why they've used the value
+which can now be found in the driver.
 
 -- 
-2.10.2
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
