@@ -1,123 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:43839
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751524AbcLEMMc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 07:12:32 -0500
-Date: Mon, 5 Dec 2016 10:12:21 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Cc: Marcel Hasler <mahasler@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record
- gain.
-Message-ID: <20161205101221.53613e57@vento.lan>
-In-Reply-To: <CAAEAJfAoZCzh5c=C+8Um-KaZkRs_ip1kX04xZRm2bWrGLmMwjA@mail.gmail.com>
-References: <20161127110732.GA5338@arch-desktop>
-        <20161127111148.GA30483@arch-desktop>
-        <20161202090558.29931492@vento.lan>
-        <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
-        <CAOJOY2Nhi6aev=jwVeyuQMxKUAk-MfT0YLKsFfrUsAcZtdrysQ@mail.gmail.com>
-        <CAAEAJfAoZCzh5c=C+8Um-KaZkRs_ip1kX04xZRm2bWrGLmMwjA@mail.gmail.com>
+Received: from mailapp01.imgtec.com ([195.59.15.196]:15865 "EHLO
+        imgpgp01.kl.imgtec.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932706AbcLMLbN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 06:31:13 -0500
+Date: Tue, 13 Dec 2016 11:31:10 +0000
+From: James Hogan <james.hogan@imgtec.com>
+To: Sean Young <sean@mess.org>
+CC: <linux-media@vger.kernel.org>, Sifan Naeem <sifan.naeem@imgtec.com>
+Subject: Re: [PATCH v5 02/18] [media] img-ir: use new wakeup_protocols sysfs
+ mechanism
+Message-ID: <20161213113110.GF30099@jhogan-linux.le.imgtec.org>
+References: <cover.1481575826.git.sean@mess.org>
+ <074994409ca834b6fcd950e7da60456247f12ce5.1481575826.git.sean@mess.org>
+ <20161212223115.GB30099@jhogan-linux.le.imgtec.org>
+ <20161213075416.GA27738@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="i3lJ51RuaGWuFYNw"
+Content-Disposition: inline
+In-Reply-To: <20161213075416.GA27738@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 4 Dec 2016 15:25:25 -0300
-Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> escreveu:
+--i3lJ51RuaGWuFYNw
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-> On 4 December 2016 at 10:01, Marcel Hasler <mahasler@gmail.com> wrote:
-> > Hello
-> >
-> > 2016-12-03 21:46 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>:  
-> >> On 2 December 2016 at 08:05, Mauro Carvalho Chehab
-> >> <mchehab@s-opensource.com> wrote:  
-> >>> Em Sun, 27 Nov 2016 12:11:48 +0100
-> >>> Marcel Hasler <mahasler@gmail.com> escreveu:
-> >>>  
-> >>>> Allow setting a custom record gain for the internal AC97 codec (if available). This can be
-> >>>> a value between 0 and 15, 8 is the default and should be suitable for most users. The Windows
-> >>>> driver also sets this to 8 without any possibility for changing it.  
-> >>>
-> >>> The problem of removing the mixer is that you need this kind of
-> >>> crap to setup the volumes on a non-standard way.
-> >>>  
-> >>
-> >> Right, that's a good point.
-> >>  
-> >>> NACK.
-> >>>
-> >>> Instead, keep the alsa mixer. The way other drivers do (for example,
-> >>> em28xx) is that they configure the mixer when an input is selected,
-> >>> increasing the volume of the active audio channel to 100% and muting
-> >>> the other audio channels. Yet, as the alsa mixer is exported, users
-> >>> can change the mixer settings in runtime using some alsa (or pa)
-> >>> mixer application.
-> >>>  
-> >>
-> >> Yeah, the AC97 mixer we are currently leveraging
-> >> exposes many controls that have no meaning in this device,
-> >> so removing that still looks like an improvement.
-> >>
-> >> I guess the proper way is creating our own mixer
-> >> (not using snd_ac97_mixer)  exposing only the record
-> >> gain knob.
-> >>
-> >> Marcel, what do you think?
-> >> --
-> >> Ezequiel García, VanguardiaSur
-> >> www.vanguardiasur.com.ar  
-> >
-> > As I have written before, the recording gain isn't actually meant to
-> > be changed by the user. In the official Windows driver this value is
-> > hard-coded to 8 and cannot be changed in any way. And there really is
-> > no good reason why anyone should need to mess with it in the first
-> > place. The default value will give the best results in pretty much all
-> > cases and produces approximately the same volume as the internal 8-bit
-> > ADC whose gain cannot be changed at all, not even by a driver.
-> >
-> > I had considered writing a mixer but chose not to. If the gain setting
-> > is openly exposed to mixer applications, how do you tell the users
-> > that the value set by the driver already is the optimal and
-> > recommended value and that they shouldn't mess with the controls
-> > unless they really have to? By having a module parameter, this setting
-> > is practically hidden from the normal user but still is available to
-> > power-users if they think they really need it. In the end it's really
-> > just a compromise between hiding it completely and exposing it openly.
-> > Also, this way the driver guarantees reproducible results, since
-> > there's no need to remember the positions of any volume sliders.
-> >  
-> 
-> Hm, right. I've never changed the record gain, and it's true that it
-> doens't really improve the volume. So, I would be OK with having
-> a module parameter.
-> 
-> On the other side, we are exposing it currently, through the "Capture"
-> mixer control:
-> 
-> Simple mixer control 'Capture',0
->   Capabilities: cvolume cswitch cswitch-joined
->   Capture channels: Front Left - Front Right
->   Limits: Capture 0 - 15
->   Front Left: Capture 10 [67%] [15.00dB] [on]
->   Front Right: Capture 8 [53%] [12.00dB] [on]
-> 
-> So, it would be user-friendly to keep the user interface and continue
-> to expose the same knob - even if the default is the optimal, etc.
-> 
-> To be completely honest, I don't think any user is really relying
-> on any REC_GAIN / Capture setting, and I'm completely OK
-> with having a mixer control or a module parameter. It doesn't matter.
+Hi Sean,
 
-If you're positive that *all* stk1160 use the ac97 mixer the
-same way, and that there's no sense on having a mixer for it,
-then it would be ok to remove it.
+On Tue, Dec 13, 2016 at 07:54:16AM +0000, Sean Young wrote:
+> So that leaves the question open of whether we want to guess the protocol
+> variant from the scancode for img-ir or if we can live with having to
+> select this using wakeup_protocols. Having to do this does solve the issue
+> of the driver guessing the wrong protocol if the higher bits happen to be
+> 0 in the scancode.
 
-In such case, then why you need a modprobe parameter to allow
-setting the record level? If this mixer entry is not used,
-just set it to zero and be happy with that.
+I've received confirmation that pistachio doesn't yet support suspend in
+mainline, in which case there can never be any real users of the old
+semantics on current/old mainline kernel versions. So I'm fine with it
+changing.
 
-Regards,
-Mauro
+Cheers
+James
+
+--i3lJ51RuaGWuFYNw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIcBAEBCAAGBQJYT9v+AAoJEGwLaZPeOHZ6ZcEQAJltwJPm1A48pDZGyOljGLUc
+Q4FjwWgjC4C/oogE/xLdZADGrDO5QUXGGJp+B54HsJkKHei6q5KK4oHyziJsewHj
+RQZOSbhZ4wyG/5lKMuJjhbUea1nbzCAWMzwf2jiTbHdA6JAYHUF9nc5ej9kkeHc4
+EXfMid+g0nKUGLluX6a3a3dFr3aM5PxHoYhSkAzLHxAUY6qmDK3w6jggyIzV0Mb3
+i1plvsUqWOxxUPIpuhHCznF7PEtbRYUhxhjV3KC6OsDxYsWS0C/31x2bnLsjyRit
+OxXcc8C1gI4XMczUtthrDivMUYnn/pt6RzAqd1Pc9WpLeuZDhxf4T0MyoY+HjmH9
+C7aJH6/IHivfqOyxLtkswIbbSF/RRYiko268L48sphwYKr14Ph0T704vCBJiAsEx
+YWaiEjqwk+wkFzm8FSBSqGEo1g71B5mruvb852iwwmmrNg2Qhx+0wEUwf+SNEm3B
+WurPMOrIgeFKzjZAkklx0FXRslzeprijH1KMS1cZ/QCauloaF7hKoMeshJsiTAfN
+6pT8BiLuKIJtqlfVgV53D+saIX2Y77JpTwCPF9P71LJ9yFvJbIacPKFWT+lNFuZd
+IKKcewG13pVPdvPbJkwjLW+qK1r1eKjdlD7Qvr2Ky5709zS4CnVHXPlg7zR3S9/a
++eoQUxM6TdAXUXLZuNlW
+=hpdO
+-----END PGP SIGNATURE-----
+
+--i3lJ51RuaGWuFYNw--
