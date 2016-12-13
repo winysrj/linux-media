@@ -1,51 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:11679 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751223AbcLERLq (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59417 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752845AbcLMPIW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 12:11:46 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v4 04/10] [media] MAINTAINERS: add st-delta driver
-Date: Mon, 5 Dec 2016 18:11:27 +0100
-Message-ID: <1480957893-25636-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Tue, 13 Dec 2016 10:08:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 0/4] video/exynos/cec: add HDMI state notifier & use in s5p-cec
+Date: Tue, 13 Dec 2016 16:08:09 +0100
+Message-Id: <20161213150813.37966-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add entry for the STMicroelectronics DELTA driver.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- MAINTAINERS | 8 ++++++++
- 1 file changed, 8 insertions(+)
+This patch series adds the HDMI notifier code, based on Russell's code:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7db3f7a..a96dd22 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2394,6 +2394,14 @@ W:	https://linuxtv.org
- S:	Supported
- F:	drivers/media/platform/sti/bdisp
- 
-+DELTA ST MEDIA DRIVER
-+M:	Hugues Fruchet <hugues.fruchet@st.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	https://linuxtv.org
-+S:	Supported
-+F:	drivers/media/platform/sti/delta
-+
- BEFS FILE SYSTEM
- M:	Luis de Bethencourt <luisbg@osg.samsung.com>
- M:	Salah Triki <salah.triki@gmail.com>
+https://patchwork.kernel.org/patch/9277043/
+
+It adds support for it to the exynos_hdmi drm driver, adds support for
+it to the CEC framework and finally adds support to the s5p-cec driver,
+which now can be moved out of staging.
+
+Tested with my Odroid U3 exynos4 devboard.
+
+Comments are welcome. I'd like to get this in for the 4.11 kernel as
+this is a missing piece needed to integrate CEC drivers.
+
+Benjamin, can you look at doing the same notifier integration for your
+st-cec driver as is done for s5p-cec? It would be good to be able to
+move st-cec out of staging at the same time.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (4):
+  video: add HDMI state notifier support
+  exynos_hdmi: add HDMI notifier support
+  cec: integrate HDMI notifier support
+  s5p-cec: add hdmi-notifier support, move out of staging
+
+ .../devicetree/bindings/media/s5p-cec.txt          |   2 +
+ arch/arm/boot/dts/exynos4.dtsi                     |   1 +
+ drivers/gpu/drm/exynos/Kconfig                     |   1 +
+ drivers/gpu/drm/exynos/exynos_hdmi.c               |  24 +++-
+ drivers/media/cec/cec-core.c                       |  50 ++++++++
+ drivers/media/platform/Kconfig                     |  18 +++
+ drivers/media/platform/Makefile                    |   1 +
+ .../media => media/platform}/s5p-cec/Makefile      |   0
+ .../platform}/s5p-cec/exynos_hdmi_cec.h            |   0
+ .../platform}/s5p-cec/exynos_hdmi_cecctrl.c        |   0
+ .../media => media/platform}/s5p-cec/regs-cec.h    |   0
+ .../media => media/platform}/s5p-cec/s5p_cec.c     |  35 +++++-
+ .../media => media/platform}/s5p-cec/s5p_cec.h     |   3 +
+ drivers/staging/media/Kconfig                      |   2 -
+ drivers/staging/media/Makefile                     |   1 -
+ drivers/staging/media/s5p-cec/Kconfig              |   9 --
+ drivers/staging/media/s5p-cec/TODO                 |   7 --
+ drivers/video/Kconfig                              |   3 +
+ drivers/video/Makefile                             |   1 +
+ drivers/video/hdmi-notifier.c                      | 134 +++++++++++++++++++++
+ include/linux/hdmi-notifier.h                      | 109 +++++++++++++++++
+ include/media/cec.h                                |  15 +++
+ 22 files changed, 389 insertions(+), 27 deletions(-)
+ rename drivers/{staging/media => media/platform}/s5p-cec/Makefile (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/exynos_hdmi_cecctrl.c (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/regs-cec.h (100%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.c (89%)
+ rename drivers/{staging/media => media/platform}/s5p-cec/s5p_cec.h (97%)
+ delete mode 100644 drivers/staging/media/s5p-cec/Kconfig
+ delete mode 100644 drivers/staging/media/s5p-cec/TODO
+ create mode 100644 drivers/video/hdmi-notifier.c
+ create mode 100644 include/linux/hdmi-notifier.h
+
 -- 
-1.9.1
+2.10.2
 
