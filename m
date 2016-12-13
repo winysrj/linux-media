@@ -1,117 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:61436 "EHLO
-        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754403AbcLUIUf (ORCPT
+Received: from smtprelay.synopsys.com ([198.182.60.111]:43540 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750703AbcLMNrs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 03:20:35 -0500
-From: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-To: robh+dt@kernel.org, mark.rutland@arm.com, mchehab@kernel.org,
-        hverkuil@xs4all.nl, sakari.ailus@linux.intel.com, crope@iki.fi
-Cc: chris.paterson2@renesas.com, laurent.pinchart@ideasonboard.com,
-        geert+renesas@glider.be, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
-Subject: [PATCH v2 2/7] dt-bindings: media: Add MAX2175 binding description
-Date: Wed, 21 Dec 2016 08:10:33 +0000
-Message-Id: <1482307838-47415-3-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-In-Reply-To: <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
-References: <1478706284-59134-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
- <1482307838-47415-1-git-send-email-ramesh.shanmugasundaram@bp.renesas.com>
+        Tue, 13 Dec 2016 08:47:48 -0500
+To: <57911245.1010500@destevenson.freeserve.co.uk>
+From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Subject: Re: Sony imx219 driver?
+CC: <linux-media@vger.kernel.org>
+Message-ID: <09ab897e-79a9-ae44-4caa-93d8d1fa1c51@synopsys.com>
+Date: Tue, 13 Dec 2016 13:47:40 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for MAX2175 Rf to bits tuner
-device.
+Hi Dave
 
-Signed-off-by: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>
----
- .../devicetree/bindings/media/i2c/max2175.txt      | 61 ++++++++++++++++++++++
- .../devicetree/bindings/property-units.txt         |  1 +
- 2 files changed, 62 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/max2175.txt
+On 07/21/2016 08:19 PM, Dave Stevenson wrote:
+> Just a quick query to avoid duplicating effort. Has anyone worked on a
+> Sony IMX219 (or other Sony sensor) subdevice driver as yet?
+> 
+> With the new Raspberry Pi camera being IMX219, and as Broadcom have
+> released an soc_camera based driver for the sensor already
+> (https://android.googlesource.com/kernel/bcm/+/android-bcm-tetra-3.10-lollipop-wear-release/drivers/media/video/imx219.c) 
+> I was going to investigate converting that to a subdevice. I just wanted
+> to check this wasn't already in someone else's work queue.
+> 
+> A further Google shows that there's also an soc_camera IMX219 driver in
+> ChromiumOS, copyright Andrew Chew @ Nvidia, but author Guennadi
+> Liakhovetski who I know posts on here.
+> https://chromium.googlesource.com/chromiumos/third_party/kernel/+/factory-ryu-6486.14.B-chromeos-3.14/drivers/media/i2c/soc_camera/imx219.c. 
+> The Broadcom one supports 8MPix and 1080P, the Chromium one only 8MP. 
+> Perhaps a hybrid of the feature set? Throw in
+> https://github.com/ZenfoneArea/android_kernel_asus_zenfone5/blob/master/linux/modules/camera/drivers/media/i2c/imx219/imx219.h 
+> as well, and we have register sets for numerous readout modes, plus 
+> there are the ones in the Pi firmware which can be extracted if necessary.
+> 
+> On a related note, if putting together a system with IMX219 or similar 
+> producing Bayer raw 10, the data on the CSI2 bus is one of the 
+> V4L2_PIX_FMT_SRGGB10P formats. What's the correct way to reflect that 
+> from the sensor subdevice in an MEDIA_BUS_FMT_ enum?
+> The closest is MEDIA_BUS_FMT_SBGGR10_2X8_PADHI_BE (or LE), but the data 
+> isn't padded (the Pi CSI2 receiver can do the unpacking and padding, but 
+> that just takes up more memory).|||| Or is it MEDIA_BUS_FMT_SBGGR10_1X10 
+> to describe the data on the bus correctly as 10bpp Bayer, and the odd 
+> packing is ignored. Or do we need new enums?
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/max2175.txt b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-new file mode 100644
-index 0000000..f591ab4
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/max2175.txt
-@@ -0,0 +1,61 @@
-+Maxim Integrated MAX2175 RF to Bits tuner
-+-----------------------------------------
-+
-+The MAX2175 IC is an advanced analog/digital hybrid-radio receiver with
-+RF to Bits® front-end designed for software-defined radio solutions.
-+
-+Required properties:
-+--------------------
-+- compatible: "maxim,max2175" for MAX2175 RF-to-bits tuner.
-+- clocks: phandle to the fixed xtal clock.
-+- clock-names: name of the fixed xtal clock.
-+- port: child port node of a tuner that defines the local and remote
-+  endpoints. The remote endpoint is assumed to be an SDR device
-+  that is capable of receiving the digital samples from the tuner.
-+
-+Optional properties:
-+--------------------
-+- maxim,slave	      : phandle to the master tuner if it is a slave. This
-+			is used to define two tuners in diversity mode
-+			(1 master, 1 slave). By default each tuner is an
-+			individual master.
-+- maxim,refout-load-pF: load capacitance value (in pF) on reference
-+			output drive level. The possible load values are
-+			 0 (default - refout disabled)
-+			10
-+			20
-+			30
-+			40
-+			60
-+			70
-+- maxim,am-hiz	      : empty property indicates AM Hi-Z filter path is
-+			selected for AM antenna input. By default this
-+			filter path is not used.
-+
-+Example:
-+--------
-+
-+Board specific DTS file
-+
-+/* Fixed XTAL clock node */
-+maxim_xtal: clock {
-+	compatible = "fixed-clock";
-+	#clock-cells = <0>;
-+	clock-frequency = <36864000>;
-+};
-+
-+/* A tuner device instance under i2c bus */
-+max2175_0: tuner@60 {
-+	compatible = "maxim,max2175";
-+	reg = <0x60>;
-+	clocks = <&maxim_xtal>;
-+	clock-names = "xtal";
-+	maxim,refout-load-pF = <10>;
-+
-+	port {
-+		max2175_0_ep: endpoint {
-+			remote-endpoint = <&slave_rx_device>;
-+		};
-+	};
-+
-+};
-diff --git a/Documentation/devicetree/bindings/property-units.txt b/Documentation/devicetree/bindings/property-units.txt
-index 12278d7..f1f1c22 100644
---- a/Documentation/devicetree/bindings/property-units.txt
-+++ b/Documentation/devicetree/bindings/property-units.txt
-@@ -28,6 +28,7 @@ Electricity
- -ohms		: Ohms
- -micro-ohms	: micro Ohms
- -microvolt	: micro volts
-+-pF		: pico farads
- 
- Temperature
- ----------------------------------------
--- 
-1.9.1
+Do you still plan on submitting this driver? If so, do you plan on submitting it
+soon?
 
+If you're not planning on submitting it any time soon, do you mind if submit it
+myself? I'm planning on having something ready for kernel submission by January.
+
+Thanks,
+Ramiro Oliveira
