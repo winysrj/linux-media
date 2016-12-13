@@ -1,97 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:43241 "EHLO
-        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932932AbcLIJLF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Dec 2016 04:11:05 -0500
-Date: Fri, 9 Dec 2016 10:11:13 +0100
-From: Greg KH <greg@kroah.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: uvcvideo logging kernel warnings on device disconnect
-Message-ID: <20161209091113.GB27160@kroah.com>
-References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk>
- <4641182.Fvs5tG4yD4@avalon>
- <20161209072552.GA1513@kroah.com>
- <3934137.UccFJV1Tl7@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3934137.UccFJV1Tl7@avalon>
+Received: from www.osadl.org ([62.245.132.105]:48036 "EHLO www.osadl.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752017AbcLMFm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 00:42:29 -0500
+From: Nicholas Mc Guire <hofrat@osadl.org>
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: HeungJun Kim <riverful.kim@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Nicholas Mc Guire <hofrat@osadl.org>
+Subject: [PATCH RFC] [media] m5mols: add missing dependency on VIDEO_IR_I2C
+Date: Tue, 13 Dec 2016 06:44:08 +0100
+Message-Id: <1481607848-24053-1-git-send-email-hofrat@osadl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 09, 2016 at 10:59:24AM +0200, Laurent Pinchart wrote:
-> Hi Greg,
-> 
-> On Friday 09 Dec 2016 08:25:52 Greg KH wrote:
-> > On Fri, Dec 09, 2016 at 01:09:21AM +0200, Laurent Pinchart wrote:
-> > > On Thursday 08 Dec 2016 12:31:55 Dave Stevenson wrote:
-> > >> Hi All.
-> > >> 
-> > >> I'm working with a USB webcam which has been seen to spontaneously
-> > >> disconnect when in use. That's a separate issue, but when it does it
-> > >> throws a load of warnings into the kernel log if there is a file handle
-> > >> on the device open at the time, even if not streaming.
-> > >> 
-> > >> I've reproduced this with a generic Logitech C270 webcam on:
-> > >> - Ubuntu 16.04 (kernel 4.4.0-51) vanilla, and with the latest media tree
-> > >> from linuxtv.org
-> > >> - Ubuntu 14.04 (kernel 4.4.0-42) vanilla
-> > >> - an old 3.10.x tree on an embedded device.
-> > >> 
-> > >> To reproduce:
-> > >> - connect USB webcam.
-> > >> - run a simple app that opens /dev/videoX, sleeps for a while, and then
-> > >> closes the handle.
-> > >> - disconnect the webcam whilst the app is running.
-> > >> - read kernel logs - observe warnings. We get the disconnect logged as
-> > >> it occurs, but the warnings all occur when the file descriptor is
-> > >> closed. (A copy of the logs from my Ubuntu 14.04 machine are below).
-> > >> 
-> > >> I can fully appreciate that the open file descriptor is holding
-> > >> references to a now invalid device, but is there a way to avoid them? Or
-> > >> do we really not care and have to put up with the log noise when doing
-> > >> such silly things?
-> > > 
-> > > This is a known problem, caused by the driver core trying to remove the
-> > > same sysfs attributes group twice.
-> > 
-> > Ick, not good.
-> > 
-> > > The group is first removed when the USB device is disconnected. The input
-> > > device and media device created by the uvcvideo driver are children of the
-> > > USB interface device, which is deleted from the system when the camera is
-> > > unplugged. Due to the parent-child relationship, all sysfs attribute
-> > > groups of the children are removed.
-> > 
-> > Wait, why is the USB device being removed from sysfs at this point,
-> > didn't the input and media subsystems grab a reference to it so that it
-> > does not disappear just yet?
-> 
-> References are taken in uvc_prove():
-> 
->         dev->udev = usb_get_dev(udev);
->         dev->intf = usb_get_intf(intf);
+The Depends on: tag in Kconfig for CONFIG_VIDEO_M5MOLS does not list
+VIDEO_IR_I2C so Kconfig displays the dependencies needed so the M-5MOLS
+driver can not be found. 
 
-s/uvc_prove/uvc_probe/ ?  :)
+Fixes: commit cb7a01ac324b ("[media] move i2c files into drivers/media/i2c")
+Signed-off-by: Nicholas Mc Guire <hofrat@osadl.org>
+---
 
-> 
-> and released in uvc_delete(), called when the last video device node is 
-> closed. This prevents the device from being released (freed), but device_del() 
-> is synchronous to device unplug as far as I understand.
+searching for VIDEO_M5MOLS in menuconfig currently shows the following 
+dependencies
+ Depends on: MEDIA_SUPPORT [=m] && I2C [=y] && VIDEO_V4L2 [=m] && \
+             VIDEO_V4L2_SUBDEV_API [=y] && MEDIA_CAMERA_SUPPORT [=y]  
+but as the default settings include MEDIA_SUBDRV_AUTOSELECT=y the
+"I2C module for IR" submenu (CONFIG_VIDEO_IR_I2C) is not displayed
+adding the VIDEO_IR_I2C to the dependency list makes this clear
 
-Ok, good, that means the UVC driver is doing the right thing here.
+Q: should a patch like this carry a Fixes: tag ? 
 
-But the sysfs files should only be attempted to be removed by the driver
-core once, when the device is removed from sysfs, not twice, which is
-really odd.
+Patch was tested against: x86_64_defconfig
 
-Is there a copy of the "simple app that grabs the device node" anywhere
-so that I can test it out here with my USB camera device to try to track
-down where the problem is?
+Patch is against 4.9.0 (localversion-next is next-20161212)
 
-thanks,
+ drivers/media/i2c/m5mols/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-greg k-h
+diff --git a/drivers/media/i2c/m5mols/Kconfig b/drivers/media/i2c/m5mols/Kconfig
+index dc8c250..6847a1b 100644
+--- a/drivers/media/i2c/m5mols/Kconfig
++++ b/drivers/media/i2c/m5mols/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_M5MOLS
+ 	tristate "Fujitsu M-5MOLS 8MP sensor support"
+-	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on I2C && VIDEO_IR_I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	---help---
+ 	  This driver supports Fujitsu M-5MOLS camera sensor with ISP
+-- 
+2.1.4
+
