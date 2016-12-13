@@ -1,80 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Date: Wed, 23 Nov 2016 12:32:28 -0700
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-To: Serguei Sagalovitch <serguei.sagalovitch@amd.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        "Deucher, Alexander" <Alexander.Deucher@amd.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "Kuehling, Felix" <Felix.Kuehling@amd.com>,
-        "Bridgman, John" <John.Bridgman@amd.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        "Koenig, Christian" <Christian.Koenig@amd.com>,
-        "Sander, Ben" <ben.sander@amd.com>,
-        "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>,
-        "Blinzer, Paul" <Paul.Blinzer@amd.com>,
-        "Linux-media@vger.kernel.org" <Linux-media@vger.kernel.org>,
-        Haggai Eran <haggaie@mellanox.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161123193228.GC12146@obsidianresearch.com>
-References: <MWHPR12MB169484839282E2D56124FA02F7B50@MWHPR12MB1694.namprd12.prod.outlook.com>
- <CAPcyv4i_5r2RVuV4F6V3ETbpKsf8jnMyQviZ7Legz3N4-v+9Og@mail.gmail.com>
- <75a1f44f-c495-7d1e-7e1c-17e89555edba@amd.com>
- <45c6e878-bece-7987-aee7-0e940044158c@deltatee.com>
- <20161123190515.GA12146@obsidianresearch.com>
- <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7bc38037-b6ab-943f-59db-6280e16901ab@amd.com>
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:59227 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753269AbcLMPIW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 10:08:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Russell King <linux@armlinux.org.uk>, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Javier Martinez Canillas <javier@osg.samsung.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 3/4] cec: integrate HDMI notifier support
+Date: Tue, 13 Dec 2016 16:08:12 +0100
+Message-Id: <20161213150813.37966-4-hverkuil@xs4all.nl>
+In-Reply-To: <20161213150813.37966-1-hverkuil@xs4all.nl>
+References: <20161213150813.37966-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 23, 2016 at 02:14:40PM -0500, Serguei Sagalovitch wrote:
-> 
-> On 2016-11-23 02:05 PM, Jason Gunthorpe wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> >As Bart says, it would be best to be combined with something like
-> >Mellanox's ODP MRs, which allows a page to be evicted and then trigger
-> >a CPU interrupt if a DMA is attempted so it can be brought back.
+Support the HDMI notifier framework, simplifying drivers that
+depend on this.
 
-> Please note that in the general case (including  MR one) we could have
-> "page fault" from the different PCIe device. So all  PCIe device must
-> be synchronized.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-core.c | 50 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/cec.h          | 15 +++++++++++++
+ 2 files changed, 65 insertions(+)
 
-Standard RDMA MRs require pinned pages, the DMA address cannot change
-while the MR exists (there is no hardware support for this at all), so
-page faulting from any other device is out of the question while they
-exist. This is the same requirement as typical simple driver DMA which
-requires pages pinned until the simple device completes DMA.
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index aca3ab8..c620a4c 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -195,6 +195,52 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
+ 	put_device(&devnode->dev);
+ }
+ 
++#ifdef CONFIG_HDMI_NOTIFIERS
++static u16 parse_hdmi_addr(const struct edid *edid)
++{
++	if (!edid || edid->extensions == 0)
++		return CEC_PHYS_ADDR_INVALID;
++
++	return cec_get_edid_phys_addr((u8 *)edid,
++				EDID_LENGTH * (edid->extensions + 1), NULL);
++}
++
++static int cec_hdmi_notify(struct notifier_block *nb, unsigned long event,
++			   void *data)
++{
++	struct cec_adapter *adap = container_of(nb, struct cec_adapter, nb);
++	struct hdmi_notifier *n = data;
++	unsigned int phys;
++
++	dprintk(1, "event %lu\n", event);
++
++	switch (event) {
++	case HDMI_DISCONNECTED:
++		cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
++		break;
++
++	case HDMI_NEW_EDID:
++		phys = parse_hdmi_addr(n->edid);
++		cec_s_phys_addr(adap, phys, false);
++		break;
++	}
++
++	return NOTIFY_OK;
++}
++
++void cec_register_hdmi_notifier(struct cec_adapter *adap,
++				struct hdmi_notifier *notifier)
++{
++	if (WARN_ON(!adap->devnode.registered))
++		return;
++
++	adap->nb.notifier_call = cec_hdmi_notify;
++	adap->notifier = notifier;
++	hdmi_notifier_register(adap->notifier, &adap->nb);
++}
++EXPORT_SYMBOL_GPL(cec_register_hdmi_notifier);
++#endif
++
+ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 					 void *priv, const char *name, u32 caps,
+ 					 u8 available_las)
+@@ -344,6 +390,10 @@ void cec_unregister_adapter(struct cec_adapter *adap)
+ 	adap->rc = NULL;
+ #endif
+ 	debugfs_remove_recursive(adap->cec_dir);
++#ifdef CONFIG_HDMI_NOTIFIERS
++	if (adap->notifier)
++		hdmi_notifier_unregister(adap->notifier, &adap->nb);
++#endif
+ 	cec_devnode_unregister(&adap->devnode);
+ }
+ EXPORT_SYMBOL_GPL(cec_unregister_adapter);
+diff --git a/include/media/cec.h b/include/media/cec.h
+index 96a0aa7..3b4860d 100644
+--- a/include/media/cec.h
++++ b/include/media/cec.h
+@@ -28,6 +28,11 @@
+ #include <linux/kthread.h>
+ #include <linux/timer.h>
+ #include <linux/cec-funcs.h>
++#ifdef CONFIG_HDMI_NOTIFIERS
++#include <linux/notifier.h>
++#include <linux/hdmi-notifier.h>
++#include <drm/drm_edid.h>
++#endif
+ #include <media/rc-core.h>
+ #include <media/cec-edid.h>
+ 
+@@ -173,6 +178,11 @@ struct cec_adapter {
+ 	bool passthrough;
+ 	struct cec_log_addrs log_addrs;
+ 
++#ifdef CONFIG_HDMI_NOTIFIERS
++	struct hdmi_notifier	*notifier;
++	struct notifier_block	nb;
++#endif
++
+ 	struct dentry *cec_dir;
+ 	struct dentry *status_file;
+ 
+@@ -213,6 +223,11 @@ void cec_transmit_done(struct cec_adapter *adap, u8 status, u8 arb_lost_cnt,
+ 		       u8 nack_cnt, u8 low_drive_cnt, u8 error_cnt);
+ void cec_received_msg(struct cec_adapter *adap, struct cec_msg *msg);
+ 
++#ifdef CONFIG_HDMI_NOTIFIERS
++void cec_register_hdmi_notifier(struct cec_adapter *adap,
++				struct hdmi_notifier *notifier);
++#endif
++
+ #else
+ 
+ static inline int cec_register_adapter(struct cec_adapter *adap,
+-- 
+2.10.2
 
-ODP RDMA MRs do not require that, they just page fault like the CPU or
-really anything and the kernel has to make sense of concurrant page
-faults from multiple sources.
-
-The upshot is that GPU scenarios that rely on highly dynamic
-virtual->physical translation cannot sanely be combined with standard
-long-life RDMA MRs.
-
-Certainly, any solution for GPUs must follow the typical page pinning
-semantics, changing the DMA address of a page must be blocked while
-any DMA is in progress.
-
-> >Does HMM solve the peer-peer problem? Does it do it generically or
-> >only for drivers that are mirroring translation tables?
-
-> In current form HMM doesn't solve peer-peer problem. Currently it allow
-> "mirroring" of  "malloc" memory on GPU which is not always what needed.
-> Additionally  there is need to have opportunity to share VRAM allocations
-> between  different processes.
-
-Humm, so it can be removed from Alexander's list then :\
-
-As Dan suggested, maybe we need to do both. Some kind of fix for
-get_user_pages() for smaller mappings (eg ZONE_DEVICE) and a mandatory
-API conversion to get_user_dma_sg() for other cases?
-
-Jason
