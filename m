@@ -1,82 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:53592 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752753AbcLHPSn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 10:18:43 -0500
-Date: Thu, 8 Dec 2016 16:18:41 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from mailout1.samsung.com ([203.254.224.24]:36500 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932319AbcLMOxx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 09:53:53 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=windows-1252
+Subject: Re: [PATCH RFC] [media] s5k6aa: set usleep_range greater 0
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 3/3] uvcvideo: add a metadata device node
-In-Reply-To: <15282460.lOulU7IMKd@avalon>
-Message-ID: <Pine.LNX.4.64.1612081613150.4140@axis700.grange>
-References: <Pine.LNX.4.64.1606241312130.23461@axis700.grange>
- <6827808.RfcVLAN17o@avalon> <Pine.LNX.4.64.1612081432320.4140@axis700.grange>
- <15282460.lOulU7IMKd@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+References: <CGME20161213015743epcas3p19867fa74e5ffe2974364d317d9b494f6@epcas3p1.samsung.com>
+ <1481594282-12801-1-git-send-email-hofrat@osadl.org>
+ <ae02dfc1-39b9-f7f7-5168-d00e4ad75db7@samsung.com> <5277658.1FioEDcST1@avalon>
+Cc: Nicholas Mc Guire <hofrat@osadl.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <fe6f6e06-be7a-9a66-7723-7b37a0ae1675@samsung.com>
+Date: Tue, 13 Dec 2016 15:53:47 +0100
+In-reply-to: <5277658.1FioEDcST1@avalon>
+Content-transfer-encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 8 Dec 2016, Laurent Pinchart wrote:
+Hi Laurent,
 
-> Hi Guennadi,
-> 
-> On Thursday 08 Dec 2016 14:34:46 Guennadi Liakhovetski wrote:
-> > On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > > On Tuesday 06 Dec 2016 11:39:22 Guennadi Liakhovetski wrote:
-> > >> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > >>> On Monday 05 Dec 2016 23:13:53 Guennadi Liakhovetski wrote:
-> > >>>> On Tue, 6 Dec 2016, Laurent Pinchart wrote:
-> > >>>>>>>> +	/*
-> > >>>>>>>> +	 * Register a metadata node. TODO: shall this only be enabled
-> > >>>>>>>> for some
-> > >>>>>>>> +	 * cameras?
-> > >>>>>>>> +	 */
-> > >>>>>>>> +	if (!(dev->quirks & UVC_QUIRK_BUILTIN_ISIGHT))
-> > >>>>>>>> +		uvc_meta_register(stream);
-> > >>>>>>>> +
-> > >>>>>>> 
-> > >>>>>>> I think so, only for the cameras that can produce metadata.
-> > >>>>>> 
-> > >>>>>> Every UVC camera produces metadata, but most cameras only have
-> > >>>>>> standard fields there. Whether we should stream standard header
-> > >>>>>> fields from the metadata node will be discussed later. If we do
-> > >>>>>> decide to stream standard header fields, then every USB camera gets
-> > >>>>>> metadata nodes. If we decide not to include standard fields, how do
-> > >>>>>> we know whether the camera has any private fields in headers
-> > >>>>>> without streaming from it? Do you want a quirk for such cameras?
-> > >>>>> 
-> > >>>>> Unless they can be detected in a standard way that's probably the
-> > >>>>> best solution.
-> > 
-> > How about a module parameter with a list of VID:PID pairs?
-> 
-> I'd like something that works out of the box for end-users, at least in most 
-> cases. There's already a way to set quirks through a module parameter, and I 
-> think I'd accept a patch extending that it make it VID:PID dependent.
+On 12/13/2016 03:10 PM, Laurent Pinchart wrote:
+> As pointed out by Ian Arkver, the datasheet states the delay should be >50µs. 
+> Would it make sense to reduce the sleep duration to (3000, 4000) for instance 
+> (or possibly even lower), instead of increasing it ?
 
-Ok, that helps already, sure.
+Theoretically it would make sense, I believe the delay call should really
+be part of the set_power callback.  I think it is safe to decrease the
+delay value now, the boards using that driver have been dropped with commit
 
-> That's 
-> an acceptable solution for testing, but should not be considered as the way to 
-> go for production.
-> 
-> > The problem with the quirk is, that as vendors produce multiple cameras with
-> > different PIDs they will have to push patches for each such camera.
-> 
-> How many such devices do you expect ?
+commit ca9143501c30a2ce5886757961408488fac2bb4c
+ARM: EXYNOS: Remove unused board files
 
-No idea, significantly more than 2, let's say :) But well, you already can 
-count a few RealSense USB / UVC cameras on the market.
+As far as I am concerned you can do whatever you want with that delay
+call, remove it or decrease value, whatever helps to stop triggering
+warnings from the static analysis tools.
 
-Concerning metadata for isochronous endpoints. I actually don't know what 
-to do with it. I don't have any such cameras with non-standard metadata. 
-For the standard metadata it would probably be enough to get either the 
-first or the last or the middle payload. Collecting all of them seems 
-redundant to me. Maybe I could for now only enable metadata nodes for bulk 
-endpoints. Would that be acceptable?
-
-Thanks
-Guennadi
+--
+Thanks,
+Sylwester
