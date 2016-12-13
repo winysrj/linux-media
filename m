@@ -1,123 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35282 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750820AbcLQFK7 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44993 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753250AbcLMTH7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Dec 2016 00:10:59 -0500
-Message-ID: <767f33846db59dbb72c2f5889189360d@smtp-cloud2.xs4all.net>
-Date: Sat, 17 Dec 2016 06:10:55 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Tue, 13 Dec 2016 14:07:59 -0500
+Date: Tue, 13 Dec 2016 20:05:54 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
+Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, davem@davemloft.net,
+        gregkh@linuxfoundation.org, geert+renesas@glider.be,
+        akpm@linux-foundation.org, linux@roeck-us.net, hverkuil@xs4all.nl,
+        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
+        lars@metafoo.de, robert.jarzmik@free.fr, pali.rohar@gmail.com,
+        sakari.ailus@linux.intel.com, mark.rutland@arm.com,
+        CARLOS.PALMINHA@synopsys.com
+Subject: Re: [PATCH v6 1/2] Add OV5647 device tree documentation
+Message-ID: <20161213190554.GD8676@amd>
+References: <cover.1481639091.git.roliveir@synopsys.com>
+ <c47834c1c9c2a8e23f41a12c8717601f4a901506.1481639091.git.roliveir@synopsys.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="IMjqdzrDRly81ofr"
+Content-Disposition: inline
+In-Reply-To: <c47834c1c9c2a8e23f41a12c8717601f4a901506.1481639091.git.roliveir@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
 
-Results of the daily build of media_tree:
+--IMjqdzrDRly81ofr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-date:			Sat Dec 17 05:00:19 CET 2016
-media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	1252d0de6a4ae3a7c8c55765e82c988be52cc729
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+On Tue 2016-12-13 14:32:36, Ramiro Oliveira wrote:
+> Create device tree bindings documentation.
+>=20
+> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++=
+++++++
+>  1 file changed, 35 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Doc=
+umentation/devicetree/bindings/media/i2c/ov5647.txt
+> new file mode 100644
+> index 0000000..46e5e30
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
+> @@ -0,0 +1,35 @@
+> +Omnivision OV5647 raw image sensor
+> +---------------------------------
+> +
+> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfa=
+ces
+> +and CCI (I2C compatible) control bus.
+> +
+> +Required properties:
+> +
+> +- compatible	: "ovti,ov5647";
+> +- reg		: I2C slave address of the sensor;
+> +- clocks	: Reference to the xclk clock.
+> +- clock-names	: Should be "xclk".
+> +- clock-frequency: Frequency of the xclk clock
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+Nit pick: you end the lines here with ';', '.' and nothing. Pick one
+:-).
 
-Detailed results are available here:
+Otherwise it looks good.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Acked-by: Pavel Machek <pavel@ucw.cz>
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Full logs are available here:
+--IMjqdzrDRly81ofr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-The Media Infrastructure API from this daily build is here:
+iEYEARECAAYFAlhQRpIACgkQMOfwapXb+vLh0QCghGL62LMN0HleUeagxAK5WrXe
+IWgAoIdaoxc8y8dvhZpVHBZ7QD8oHz88
+=dOWd
+-----END PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+--IMjqdzrDRly81ofr--
