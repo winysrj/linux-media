@@ -1,153 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48538 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753998AbcLRWPZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 17:15:25 -0500
-Date: Mon, 19 Dec 2016 00:15:21 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 04/15] ov7670: get xclk
-Message-ID: <20161218221520.GX16630@valkosipuli.retiisi.org.uk>
-References: <20161212155520.41375-1-hverkuil@xs4all.nl>
- <20161212155520.41375-5-hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.15.15]:59992 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752925AbcLMUVu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 15:21:50 -0500
+Date: Tue, 13 Dec 2016 21:21:41 +0100
+From: Martin Wache <M.Wache@gmx.net>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] [media] dib7000p: avoid division by zero
+Message-ID: <20161213202133.GA18056@Merkur>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161212155520.41375-5-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+dib7000p_read_word() may return zero on i2c errors, resulting in
+dib7000p_get_internal_freq() returning zero.
+So don't divide by the result of dib7000p_get_internal_freq()
+without checking it for zero in dib7000p_set_dds().
 
-On Mon, Dec 12, 2016 at 04:55:09PM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Get the clock for this sensor.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/i2c/ov7670.c | 35 ++++++++++++++++++++++++++++-------
->  1 file changed, 28 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-> index 35b09d2..d2c0e23 100644
-> --- a/drivers/media/i2c/ov7670.c
-> +++ b/drivers/media/i2c/ov7670.c
-> @@ -10,6 +10,7 @@
->   * This file may be distributed under the terms of the GNU General
->   * Public License, version 2.
->   */
-> +#include <linux/clk.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/slab.h>
-> @@ -230,6 +231,7 @@ struct ov7670_info {
->  		struct v4l2_ctrl *hue;
->  	};
->  	struct ov7670_format_struct *fmt;  /* Current format */
-> +	struct clk *clk;
->  	int min_width;			/* Filter out smaller sizes */
->  	int min_height;			/* Filter out smaller sizes */
->  	int clock_speed;		/* External clock speed (MHz) */
-> @@ -1590,13 +1592,28 @@ static int ov7670_probe(struct i2c_client *client,
->  			info->pclk_hb_disable = true;
->  	}
->  
-> +	info->clk = clk_get(&client->dev, "xclk");
-> +	if (IS_ERR(info->clk))
-> +		return -EPROBE_DEFER;
+On one of my machines the device
+ID 2304:0229 Pinnacle Systems, Inc. PCTV Dual DVB-T 2001e
+about once a day/every two days gets into a state, where
+most (all?) I2C reads return with an error. Tuning during this
+state will result in a divide by zero without this patch.
+This patch doesn't fix the root cause for the device getting
+into a bad state, but it allows me to unload/reload the drivers,
+bringing it back into a usable state.
 
-How about devm_clk_get() instead? I think there's nothing wrong in using
-devm.*() here as it's not memory.
+Signed-off-by: Martin Wache <M.Wache@gmx.net>
+---
+ drivers/media/dvb-frontends/dib7000p.c | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-> +	clk_prepare_enable(info->clk);
-> +
-> +	ret = ov7670_probe_dt(client, info);
-> +	if (ret)
-> +		goto clk_put;
-> +
-> +	info->clock_speed = clk_get_rate(info->clk) / 1000000;
-> +	if (info->clock_speed < 12 || info->clock_speed > 48) {
-
-What's the clock expected to be? I don't know the sensor but all sensors
-I've seen do derive their internal clocks from the one provided to the
-sensor, meaning that any frequency would be directly related to this one. As
-the sensor driver makes no effort in programming the PLL according to the
-input clock, I bet the register lists used assume a certain frequency
-instead. Shouldn't you check instead you're getting exactly that frequency?
-
-> +		ret = -EINVAL;
-> +		goto clk_put;
-> +	}
-> +
->  	/* Make sure it's an ov7670 */
->  	ret = ov7670_detect(sd);
->  	if (ret) {
->  		v4l_dbg(1, debug, client,
->  			"chip found @ 0x%x (%s) is not an ov7670 chip.\n",
->  			client->addr << 1, client->adapter->name);
-> -		return ret;
-> +		goto clk_put;
->  	}
->  	v4l_info(client, "chip found @ 0x%02x (%s)\n",
->  			client->addr << 1, client->adapter->name);
-> @@ -1637,9 +1654,8 @@ static int ov7670_probe(struct i2c_client *client,
->  			V4L2_EXPOSURE_AUTO);
->  	sd->ctrl_handler = &info->hdl;
->  	if (info->hdl.error) {
-> -		int err = info->hdl.error;
-> -
-> -		goto fail;
-> +		ret = info->hdl.error;
-> +		goto hdl_free;
->  	}
->  
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> @@ -1647,7 +1663,7 @@ static int ov7670_probe(struct i2c_client *client,
->  	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
->  	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
->  	if (ret < 0)
-> -		goto fail;
-> +		goto hdl_free;
->  #endif
->  	/*
->  	 * We have checked empirically that hw allows to read back the gain
-> @@ -1664,13 +1680,16 @@ static int ov7670_probe(struct i2c_client *client,
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  		media_entity_cleanup(&info->sd.entity);
->  #endif
-> -		goto fail;
-> +		goto hdl_free;
->  	}
->  
->  	return 0;
->  
-> -fail:
-> +hdl_free:
->  	v4l2_ctrl_handler_free(&info->hdl);
-> +clk_put:
-> +	clk_disable_unprepare(info->clk);
-> +	clk_put(info->clk);
->  	return ret;
->  }
->  
-> @@ -1685,6 +1704,8 @@ static int ov7670_remove(struct i2c_client *client)
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	media_entity_cleanup(&sd->entity);
->  #endif
-> +	clk_disable_unprepare(info->clk);
-> +	clk_put(info->clk);
->  	return 0;
->  }
->  
-
+diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+index a27c000..3815ea5 100644
+--- a/drivers/media/dvb-frontends/dib7000p.c
++++ b/drivers/media/dvb-frontends/dib7000p.c
+@@ -805,13 +805,19 @@ static int dib7000p_set_agc_config(struct dib7000p_state *state, u8 band)
+ 	return 0;
+ }
+ 
+-static void dib7000p_set_dds(struct dib7000p_state *state, s32 offset_khz)
++static int dib7000p_set_dds(struct dib7000p_state *state, s32 offset_khz)
+ {
+ 	u32 internal = dib7000p_get_internal_freq(state);
+-	s32 unit_khz_dds_val = 67108864 / (internal);	/* 2**26 / Fsampling is the unit 1KHz offset */
++	s32 unit_khz_dds_val;
+ 	u32 abs_offset_khz = ABS(offset_khz);
+ 	u32 dds = state->cfg.bw->ifreq & 0x1ffffff;
+ 	u8 invert = !!(state->cfg.bw->ifreq & (1 << 25));
++	if (internal == 0) {
++		pr_warn("DIB7000P: dib7000p_get_internal_freq returned 0\n");
++		return -1;
++	}
++	/* 2**26 / Fsampling is the unit 1KHz offset */
++	unit_khz_dds_val = 67108864 / (internal);
+ 
+ 	dprintk("setting a frequency offset of %dkHz internal freq = %d invert = %d\n", offset_khz, internal, invert);
+ 
+@@ -828,6 +834,7 @@ static void dib7000p_set_dds(struct dib7000p_state *state, s32 offset_khz)
+ 		dib7000p_write_word(state, 21, (u16) (((dds >> 16) & 0x1ff) | (0 << 10) | (invert << 9)));
+ 		dib7000p_write_word(state, 22, (u16) (dds & 0xffff));
+ 	}
++	return 0;
+ }
+ 
+ static int dib7000p_agc_startup(struct dvb_frontend *demod)
+@@ -867,7 +874,9 @@ static int dib7000p_agc_startup(struct dvb_frontend *demod)
+ 			frequency_offset = (s32)frequency_tuner / 1000 - ch->frequency / 1000;
+ 		}
+ 
+-		dib7000p_set_dds(state, frequency_offset);
++		if (dib7000p_set_dds(state, frequency_offset) < 0)
++			return -1;
++
+ 		ret = 7;
+ 		(*agc_state)++;
+ 		break;
 -- 
-Kind regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
