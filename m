@@ -1,161 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:34272 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750766AbcLZNBk (ORCPT
+Received: from 6.mo3.mail-out.ovh.net ([188.165.43.173]:58585 "EHLO
+        6.mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933070AbcLNWfE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 08:01:40 -0500
-Received: by mail-wj0-f194.google.com with SMTP id qs7so10727873wjc.1
-        for <linux-media@vger.kernel.org>; Mon, 26 Dec 2016 05:01:39 -0800 (PST)
-Subject: Re: [PATCH] media: rc: refactor raw handler kthread
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-References: <f1b01f8c-934a-3bfe-ca1f-880b9c1ad233@gmail.com>
-Cc: linux-media@vger.kernel.org, Sean Young <sean@mess.org>
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Message-ID: <727717c2-8529-691f-282a-cb57c997c922@gmail.com>
-Date: Mon, 26 Dec 2016 14:01:31 +0100
+        Wed, 14 Dec 2016 17:35:04 -0500
+Received: from player797.ha.ovh.net (b9.ovh.net [213.186.33.59])
+        by mo3.mail-out.ovh.net (Postfix) with ESMTP id 42E1B6944C
+        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2016 17:37:29 +0100 (CET)
+Subject: Re: [PATCH] v4l: vsp1: Add VIDIOC_EXPBUF support
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+References: <1481539062-23179-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+From: "jacopo@jmondi.org" <jacopo@jmondi.org>
+Message-ID: <6b290217-aa29-cf12-df1d-9efe9901f057@jmondi.org>
+Date: Wed, 14 Dec 2016 17:37:26 +0100
 MIME-Version: 1.0
-In-Reply-To: <f1b01f8c-934a-3bfe-ca1f-880b9c1ad233@gmail.com>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1481539062-23179-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.08.2016 um 07:44 schrieb Heiner Kallweit:
-> I think we can get rid of the spinlock protecting the kthread from being
-> interrupted by a wakeup in certain parts.
-> Even with the current implementation of the kthread the only lost wakeup
-> scenario could happen if the wakeup occurs between the kfifo_len check
-> and setting the state to TASK_INTERRUPTIBLE.
-> 
-> In the changed version we could lose a wakeup if it occurs between
-> processing the fifo content and setting the state to TASK_INTERRUPTIBLE.
-> This scenario is covered by an additional check for available events in
-> the fifo and setting the state to TASK_RUNNING in this case.
-> 
-> In addition the changed version flushes the kfifo before ending
-> when the kthread is stopped.
-> 
-> With this patch we gain:
-> - Get rid of the spinlock
-> - Simplify code
-> - Don't grep / release the mutex for each individual event but just once
->   for the complete fifo content. This reduces overhead if a driver e.g.
->   triggers processing after writing the content of a hw fifo to the kfifo.
-> 
-> Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Hi Laurent,
+   Yes, thanks you, I'm now able to use that ioctl and export dmabuf 
+file descriptors
 
-Sean added a review comment and his "Tested-by" a month ago.
-Anything else missing before it can be applied?
+On 12/12/2016 11:37, Laurent Pinchart wrote:
+> Use the vb2 ioctl handler directly.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+Tested-by: Jacopo Mondi <jacopo@jmondi.org>
 
 > ---
->  drivers/media/rc/rc-core-priv.h |  2 --
->  drivers/media/rc/rc-ir-raw.c    | 46 +++++++++++++++--------------------------
->  2 files changed, 17 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-> index 585d5e5..577128a 100644
-> --- a/drivers/media/rc/rc-core-priv.h
-> +++ b/drivers/media/rc/rc-core-priv.h
-> @@ -20,7 +20,6 @@
->  #define	MAX_IR_EVENT_SIZE	512
->  
->  #include <linux/slab.h>
-> -#include <linux/spinlock.h>
->  #include <media/rc-core.h>
->  
->  struct ir_raw_handler {
-> @@ -37,7 +36,6 @@ struct ir_raw_handler {
->  struct ir_raw_event_ctrl {
->  	struct list_head		list;		/* to keep track of raw clients */
->  	struct task_struct		*thread;
-> -	spinlock_t			lock;
->  	/* fifo for the pulse/space durations */
->  	DECLARE_KFIFO(kfifo, struct ir_raw_event, MAX_IR_EVENT_SIZE);
->  	ktime_t				last_event;	/* when last event occurred */
-> diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-> index 205ecc6..71a3e17 100644
-> --- a/drivers/media/rc/rc-ir-raw.c
-> +++ b/drivers/media/rc/rc-ir-raw.c
-> @@ -17,7 +17,6 @@
->  #include <linux/mutex.h>
->  #include <linux/kmod.h>
->  #include <linux/sched.h>
-> -#include <linux/freezer.h>
->  #include "rc-core-priv.h"
->  
->  /* Used to keep track of IR raw clients, protected by ir_raw_handler_lock */
-> @@ -35,32 +34,26 @@ static int ir_raw_event_thread(void *data)
->  	struct ir_raw_handler *handler;
->  	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
->  
-> -	while (!kthread_should_stop()) {
-> -
-> -		spin_lock_irq(&raw->lock);
-> -
-> -		if (!kfifo_len(&raw->kfifo)) {
-> -			set_current_state(TASK_INTERRUPTIBLE);
-> -
-> -			if (kthread_should_stop())
-> -				set_current_state(TASK_RUNNING);
-> -
-> -			spin_unlock_irq(&raw->lock);
-> -			schedule();
-> -			continue;
-> +	while (1) {
-> +		mutex_lock(&ir_raw_handler_lock);
-> +		while (kfifo_out(&raw->kfifo, &ev, 1)) {
-> +			list_for_each_entry(handler, &ir_raw_handler_list, list)
-> +				if (raw->dev->enabled_protocols &
-> +				    handler->protocols || !handler->protocols)
-> +					handler->decode(raw->dev, ev);
-> +			raw->prev_ev = ev;
->  		}
-> +		mutex_unlock(&ir_raw_handler_lock);
->  
-> -		if(!kfifo_out(&raw->kfifo, &ev, 1))
-> -			dev_err(&raw->dev->dev, "IR event FIFO is empty!\n");
-> -		spin_unlock_irq(&raw->lock);
-> +		set_current_state(TASK_INTERRUPTIBLE);
->  
-> -		mutex_lock(&ir_raw_handler_lock);
-> -		list_for_each_entry(handler, &ir_raw_handler_list, list)
-> -			if (raw->dev->enabled_protocols & handler->protocols ||
-> -			    !handler->protocols)
-> -				handler->decode(raw->dev, ev);
-> -		raw->prev_ev = ev;
-> -		mutex_unlock(&ir_raw_handler_lock);
-> +		if (kthread_should_stop()) {
-> +			__set_current_state(TASK_RUNNING);
-> +			break;
-> +		} else if (!kfifo_is_empty(&raw->kfifo))
-> +			set_current_state(TASK_RUNNING);
-> +
-> +		schedule();
->  	}
->  
->  	return 0;
-> @@ -219,14 +212,10 @@ EXPORT_SYMBOL_GPL(ir_raw_event_set_idle);
->   */
->  void ir_raw_event_handle(struct rc_dev *dev)
->  {
-> -	unsigned long flags;
-> -
->  	if (!dev->raw)
->  		return;
->  
-> -	spin_lock_irqsave(&dev->raw->lock, flags);
->  	wake_up_process(dev->raw->thread);
-> -	spin_unlock_irqrestore(&dev->raw->lock, flags);
->  }
->  EXPORT_SYMBOL_GPL(ir_raw_event_handle);
->  
-> @@ -274,7 +263,6 @@ int ir_raw_event_register(struct rc_dev *dev)
->  	dev->change_protocol = change_protocol;
->  	INIT_KFIFO(dev->raw->kfifo);
->  
-> -	spin_lock_init(&dev->raw->lock);
->  	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
->  				       "rc%u", dev->minor);
->  
-> 
+>  drivers/media/platform/vsp1/vsp1_video.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> Jacopo,
+>
+> Does this fix your issue ?
+>
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
+> index fd3acf1a98a6..0113a55b19c9 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -1021,6 +1021,7 @@ static const struct v4l2_ioctl_ops vsp1_video_ioctl_ops = {
+>  	.vidioc_querybuf		= vb2_ioctl_querybuf,
+>  	.vidioc_qbuf			= vb2_ioctl_qbuf,
+>  	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+>  	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+>  	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
+>  	.vidioc_streamon		= vsp1_video_streamon,
+>
 
