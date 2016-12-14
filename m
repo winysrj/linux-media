@@ -1,113 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:42997 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750851AbcLHPZc (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:40856 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755007AbcLNKze (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 10:25:32 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: p.zabel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH 5/9] [media] coda: get VDOA device using dt phandle
-Date: Thu,  8 Dec 2016 16:24:12 +0100
-Message-Id: <20161208152416.16031-5-m.tretter@pengutronix.de>
-In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
-References: <20161208152416.16031-1-m.tretter@pengutronix.de>
+        Wed, 14 Dec 2016 05:55:34 -0500
+Subject: Re: [PATCH 6/6] media/cobalt: use pci_irq_allocate_vectors
+To: Christoph Hellwig <hch@lst.de>
+References: <1473600688-24043-1-git-send-email-hch@lst.de>
+ <1473600688-24043-7-git-send-email-hch@lst.de>
+ <1c24ae65-067f-52fc-edfa-af2d0e222a19@xs4all.nl>
+ <20161214102913.GA30236@lst.de>
+ <c5453c65-1256-338f-0ff1-6499d11987af@xs4all.nl>
+ <20161214104731.GA30382@lst.de>
+Cc: hans.verkuil@cisco.com, brking@us.ibm.com,
+        haver@linux.vnet.ibm.com, ching2048@areca.com.tw, axboe@fb.com,
+        alex.williamson@redhat.com, kvm@vger.kernel.org,
+        linux-scsi@vger.kernel.org, linux-block@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-pci@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8b7143ae-1034-c247-0a94-184a050d137a@xs4all.nl>
+Date: Wed, 14 Dec 2016 11:52:33 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161214104731.GA30382@lst.de>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 43 +++++++++++++++++++++++++++++++
- drivers/media/platform/coda/coda.h        |  1 +
- 2 files changed, 44 insertions(+)
+On 14/12/16 11:47, Christoph Hellwig wrote:
+> On Wed, Dec 14, 2016 at 11:37:17AM +0100, Hans Verkuil wrote:
+>> Completely forgot this. Is it OK to queue it for 4.11? Or is it blocking
+>> other follow-up work you want to do for 4.10?
+>
+> My plan was to see if Bjorn would take the patch to do the trivial removal
+> of pci_enable_msix_exact and pci_enable_msix_range even as a late 4.10 patch
+> given it's so harmless, but either way there is follow work pending ASAP
+> so getting it in for 4.10 would be very helpful.
+>
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index e0184194..1adb6f3 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -41,6 +41,7 @@
- #include <media/videobuf2-vmalloc.h>
- 
- #include "coda.h"
-+#include "imx-vdoa.h"
- 
- #define CODA_NAME		"coda"
- 
-@@ -66,6 +67,10 @@ static int disable_tiling;
- module_param(disable_tiling, int, 0644);
- MODULE_PARM_DESC(disable_tiling, "Disable tiled frame buffers");
- 
-+static int disable_vdoa;
-+module_param(disable_vdoa, int, 0644);
-+MODULE_PARM_DESC(disable_vdoa, "Disable Video Data Order Adapter tiled to raster-scan conversion");
-+
- void coda_write(struct coda_dev *dev, u32 data, u32 reg)
- {
- 	v4l2_dbg(2, coda_debug, &dev->v4l2_dev,
-@@ -325,6 +330,34 @@ const char *coda_product_name(int product)
- 	}
- }
- 
-+static struct vdoa_data *coda_get_vdoa_data(struct device_node *np,
-+					    const char *name)
-+{
-+	struct device_node *vdoa_node;
-+	struct platform_device *vdoa_pdev;
-+	struct vdoa_data *vdoa_data;
-+
-+	vdoa_node = of_parse_phandle(np, name, 0);
-+	if (!vdoa_node)
-+		return NULL;
-+
-+	vdoa_pdev = of_find_device_by_node(vdoa_node);
-+	if (!vdoa_pdev) {
-+		vdoa_data = NULL;
-+		goto out;
-+	}
-+
-+	vdoa_data = platform_get_drvdata(vdoa_pdev);
-+	if (!vdoa_data)
-+		vdoa_data = ERR_PTR(-EPROBE_DEFER);
-+
-+out:
-+	if (vdoa_node)
-+		of_node_put(vdoa_node);
-+
-+	return vdoa_data;
-+}
-+
- /*
-  * V4L2 ioctl() operations.
-  */
-@@ -2256,6 +2289,16 @@ static int coda_probe(struct platform_device *pdev)
- 	}
- 	dev->iram_pool = pool;
- 
-+	/* Get VDOA from device tree if available */
-+	if (!disable_tiling && !disable_vdoa) {
-+		dev->vdoa = coda_get_vdoa_data(np, "vdoa");
-+		if (PTR_ERR(dev->vdoa) == -EPROBE_DEFER)
-+			return -EPROBE_DEFER;
-+		if (!dev->vdoa)
-+			dev_info(&pdev->dev,
-+				 "vdoa not available; not using tiled intermediate format");
-+	}
-+
- 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/media/platform/coda/coda.h b/drivers/media/platform/coda/coda.h
-index 53f9666..ae202dc 100644
---- a/drivers/media/platform/coda/coda.h
-+++ b/drivers/media/platform/coda/coda.h
-@@ -75,6 +75,7 @@ struct coda_dev {
- 	struct platform_device	*plat_dev;
- 	const struct coda_devtype *devtype;
- 	int			firmware;
-+	struct vdoa_data	*vdoa;
- 
- 	void __iomem		*regs_base;
- 	struct clk		*clk_per;
--- 
-2.10.2
+OK, then I'll make a pull request for 4.10 tomorrow.
 
+Regards,
+
+	Hans
