@@ -1,27 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lgm.gov.my ([1.9.138.109]:56528 "EHLO smssmtp.lgm.gov.my"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754868AbcLNJJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 04:09:04 -0500
-From: "Devaraj Veerasamy, Dr" <devaraj@lgm.gov.my>
-To: "\"NO-REPLY@WEBMAIL.NET\"" <NO-REPLY@WEBMAIL.NET>
-Subject: =?iso-8859-1?Q?Admin_Institutionen_=A9_3M_1995-2016._Alla_r=E4ttigheter_r?=
- =?iso-8859-1?Q?eserverade.?=
-Date: Wed, 14 Dec 2016 08:23:32 +0000
-Message-ID: <1481703744400.84287@lgm.gov.my>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout4.samsung.com ([203.254.224.34]:44279 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753463AbcLNOAs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 09:00:48 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v4 0/6] Add support for IR transmitters
+Date: Wed, 14 Dec 2016 23:00:24 +0900
+Message-id: <20161214140030.28537-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+
+The main goal is to add support in the rc framework for IR
+transmitters, which currently is only supported by lirc but that
+is not the preferred way.
+
+The last patch adds support for an IR transmitter driven by
+the MOSI line of an SPI controller, it's the case of the Samsung
+TM2(e) board which support is currently ongoing.
+
+The last patch adds support for an IR transmitter driven by
+the MOSI line of an SPI controller, it's the case of the Samsung
+TM2(e) board which support is currently ongoing.
+
+Thanks,
+Andi
+
+Changelog from version 1:
+-------------------------
+The RFC is now PATCH. The main difference is that this version
+doesn't try to add the any bit streaming protocol and doesn't
+modify any LIRC interface specification.
+
+patch 1: updates all the drivers using rc_allocate_device
+patch 2: fixed errors and warning reported from the kbuild test
+         robot
+patch 5: this patch has been dropped and replaced with a new one
+         which avoids waiting for transmitters.
+patch 6: added new properties to the dts specification
+patch 7: the driver uses the pulse/space input and converts it to
+         a bit stream.
 
 
-Microsoft Office:
-Som en del av våra ansträngningar att förbättra din upplevelse över våra konsumenttjänster, uppdaterar vi för Microsoft-tjänster och Microsofts sekretesspolicy. Vi
+Changelog from version 2:
+-------------------------
+The original patch number 5 has been abandoned because it was not
+bringing much benenfit.
 
-vill passa på att meddela dig om dessa uppdateringar. genom att KLICKA HÄR<http://mrsyan3653.wixsite.com/webverification>, om du för uppdateringar och verifiering avbryts underlåtenhet att göra detta e-postkontot.
-Vi ber om ursäkt för eventuella besvär detta kan orsaka dig.
-Admin Institutionen
-© 3M 1995-2016. Alla rättigheter reserverade.
+patch 1: rebased on the new kernel.
+patch 3: removed the sysfs attribute protocol for transmitters
+patch 5: the binding has been moved to the leds section instead
+         of the media. Fixed all the comments from Rob
+patch 6: fixed all the comments from Sean added also Sean's
+         review.
+
+Changelog from version 3:
+-------------------------
+Added the patches Sean's review.
+
+patch 1: commit ddbf7d5a has introduced the devm_* managed version
+	 of rc_allocate_device and rc_register_device, this patch
+	 has been rebased on top of it and adds the driver type
+	 as a parameter of the devm_rc_allocate_device.
+patch 3: fixes a warning from the kbuild test robot
+patch 5: after a discussion with Rob, despite mine, Jacek's and
+	 Mauro's objections [*] the binding has been placed under
+	 leds/irled/spi-ir-led.txt
+patch 6: uses the new devm_* allocation and registration rc
+	 functions
+
+[*] https://www.spinics.net/lists/linux-leds/msg07062.html
+    https://www.spinics.net/lists/linux-leds/msg07164.html
+    https://www.spinics.net/lists/linux-leds/msg07167.html
+
+Andi Shyti (6):
+  [media] rc-main: assign driver type during allocation
+  [media] rc-main: split setup and unregister functions
+  [media] rc-core: add support for IR raw transmitters
+  [media] rc-ir-raw: do not generate any receiving thread for raw
+    transmitters
+  Documentation: bindings: add documentation for ir-spi device driver
+  [media] rc: add support for IR LEDs driven through SPI
+
+ .../devicetree/bindings/leds/irled/spi-ir-led.txt  |  29 +++
+ drivers/hid/hid-picolcd_cir.c                      |   3 +-
+ drivers/media/cec/cec-core.c                       |   3 +-
+ drivers/media/common/siano/smsir.c                 |   3 +-
+ drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
+ drivers/media/pci/bt8xx/bttv-input.c               |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c          |  11 +-
+ drivers/media/pci/cx88/cx88-input.c                |   3 +-
+ drivers/media/pci/dm1105/dm1105.c                  |   3 +-
+ drivers/media/pci/mantis/mantis_input.c            |   2 +-
+ drivers/media/pci/saa7134/saa7134-input.c          |   2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c             |   3 +-
+ drivers/media/pci/ttpci/budget-ci.c                |   2 +-
+ drivers/media/rc/Kconfig                           |   9 +
+ drivers/media/rc/Makefile                          |   1 +
+ drivers/media/rc/ati_remote.c                      |   3 +-
+ drivers/media/rc/ene_ir.c                          |   3 +-
+ drivers/media/rc/fintek-cir.c                      |   3 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   3 +-
+ drivers/media/rc/igorplugusb.c                     |   3 +-
+ drivers/media/rc/iguanair.c                        |   3 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c               |   3 +-
+ drivers/media/rc/imon.c                            |   3 +-
+ drivers/media/rc/ir-hix5hd2.c                      |   3 +-
+ drivers/media/rc/ir-spi.c                          | 199 +++++++++++++++++++++
+ drivers/media/rc/ite-cir.c                         |   3 +-
+ drivers/media/rc/mceusb.c                          |   3 +-
+ drivers/media/rc/meson-ir.c                        |   3 +-
+ drivers/media/rc/nuvoton-cir.c                     |   3 +-
+ drivers/media/rc/rc-ir-raw.c                       |  17 +-
+ drivers/media/rc/rc-loopback.c                     |   3 +-
+ drivers/media/rc/rc-main.c                         | 186 +++++++++++--------
+ drivers/media/rc/redrat3.c                         |   3 +-
+ drivers/media/rc/serial_ir.c                       |   3 +-
+ drivers/media/rc/st_rc.c                           |   3 +-
+ drivers/media/rc/streamzap.c                       |   3 +-
+ drivers/media/rc/sunxi-cir.c                       |   3 +-
+ drivers/media/rc/ttusbir.c                         |   3 +-
+ drivers/media/rc/winbond-cir.c                     |   3 +-
+ drivers/media/usb/au0828/au0828-input.c            |   3 +-
+ drivers/media/usb/cx231xx/cx231xx-input.c          |   2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   3 +-
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   3 +-
+ drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
+ drivers/media/usb/tm6000/tm6000-input.c            |   3 +-
+ include/media/rc-core.h                            |  15 +-
+ 47 files changed, 408 insertions(+), 168 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+ create mode 100644 drivers/media/rc/ir-spi.c
+
+-- 
+2.10.2
+
