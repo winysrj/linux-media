@@ -1,80 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay4.synopsys.com ([198.182.47.9]:48705 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932502AbcLMOdB (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:36408 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755099AbcLNLLt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 09:33:01 -0500
-From: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-To: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org
-Cc: davem@davemloft.net, gregkh@linuxfoundation.org,
-        geert+renesas@glider.be, akpm@linux-foundation.org,
-        linux@roeck-us.net, hverkuil@xs4all.nl,
-        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
-        lars@metafoo.de, robert.jarzmik@free.fr, pavel@ucw.cz,
-        pali.rohar@gmail.com, sakari.ailus@linux.intel.com,
-        mark.rutland@arm.com, Ramiro.Oliveira@synopsys.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: [PATCH v6 0/2] Add support for Omnivision OV5647
-Date: Tue, 13 Dec 2016 14:32:35 +0000
-Message-Id: <cover.1481639091.git.roliveir@synopsys.com>
+        Wed, 14 Dec 2016 06:11:49 -0500
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, sylvester.nawrocki@gmail.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] media: platform: s3c-camif: constify v4l2_subdev_ops structures
+Date: Wed, 14 Dec 2016 16:41:10 +0530
+Message-Id: <1481713870-7513-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Check for v4l2_subdev_ops structures that are only passed as an
+argument to the function v4l2_subdev_init. This argument is of type
+const, so v4l2_subdev_ops structures having this property can also  be
+declared const.
+Done using Coccinelle:
 
-This patch adds support for the Omnivision OV5647 sensor.
+@r1 disable optional_qualifier @
+identifier i;
+position p;
+@@
+static struct v4l2_subdev_ops i@p = {...};
 
-At the moment it only supports 640x480 in Raw 8.
+@ok1@
+identifier r1.i;
+position p;
+@@
+v4l2_subdev_init(...,&i@p)
 
-This is the sixth version of the OV5647 camera driver patchset.
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
 
-v6:
- - Add example to DT documentation
- - Remove data-lanes and clock-lane property from DT
- - Add external clock property to DT
- - Order includes
- - Remove unused variables and functions
- - Add external clock handling
- - Add power on counter
- - Change from g/s_parm to g/s_frame_interval
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct v4l2_subdev_ops i;
 
-v5:
- - Refactor code 
- - Change comments
- - Add missing error handling in some functions
+File size before:
+   text	   data	    bss	    dec	    hex	filename
+  17171	   1912	     20	  19103	   4a9f
+platform/s3c-camif/camif-capture.o
 
-v4: 
- - Add correct license
- - Revert debugging info to generic infrastructure
- - Turn defines into enums
- - Correct code style issues
- - Remove unused defines
- - Make sure all errors where being handled
- - Rename some functions to make code more readable
- - Add some debugging info
+File size after:
+   text	   data	    bss	    dec	    hex	filename
+  17235	   1848	     20	  19103	   4a9f
+platform/s3c-camif/camif-capture.o
 
-v3: 
- - No changes. Re-submitted due to lack of responses
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/platform/s3c-camif/camif-capture.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-v2: 
- - Corrections in DT documentation
-
-Ramiro Oliveira (2):
-  Add OV5647 device tree documentation
-  Add support for OV5647 sensor.
-
- .../devicetree/bindings/media/i2c/ov5647.txt       |  35 +
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  12 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/ov5647.c                         | 718 +++++++++++++++++++++
- 5 files changed, 773 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
- create mode 100644 drivers/media/i2c/ov5647.c
-
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 0413a86..6125e72 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -1488,7 +1488,7 @@ static int s3c_camif_subdev_set_selection(struct v4l2_subdev *sd,
+ 	.set_fmt = s3c_camif_subdev_set_fmt,
+ };
+ 
+-static struct v4l2_subdev_ops s3c_camif_subdev_ops = {
++static const struct v4l2_subdev_ops s3c_camif_subdev_ops = {
+ 	.pad = &s3c_camif_subdev_pad_ops,
+ };
+ 
 -- 
-2.10.2
-
+1.9.1
 
