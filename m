@@ -1,106 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f43.google.com ([74.125.83.43]:34515 "EHLO
-        mail-pg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754466AbcLPXj2 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44961 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756427AbcLNVPr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 18:39:28 -0500
-Received: by mail-pg0-f43.google.com with SMTP id a1so14147460pgf.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 15:39:28 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v6 1/5] [media] davinci: VPIF: fix module loading, init errors
-References: <20161207183025.20684-1-khilman@baylibre.com>
-        <20161207183025.20684-2-khilman@baylibre.com>
-        <19dc6321-1433-e089-f753-e5f736e26073@xs4all.nl>
-Date: Fri, 16 Dec 2016 15:39:26 -0800
-In-Reply-To: <19dc6321-1433-e089-f753-e5f736e26073@xs4all.nl> (Hans Verkuil's
-        message of "Fri, 16 Dec 2016 10:44:20 +0100")
-Message-ID: <m2r357e95d.fsf@baylibre.com>
+        Wed, 14 Dec 2016 16:15:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCHv3 RFC 4/4] media: Catch null pipes on pipeline stop
+Date: Wed, 14 Dec 2016 23:16:08 +0200
+Message-ID: <3564808.k2K413ZPh2@avalon>
+In-Reply-To: <21a24c35-e585-653d-ec78-2b737dee2227@ideasonboard.com>
+References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com> <1481651984-7687-5-git-send-email-kieran.bingham+renesas@ideasonboard.com> <21a24c35-e585-653d-ec78-2b737dee2227@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+Hi Kieran,
 
-> On 07/12/16 19:30, Kevin Hilman wrote:
->> Fix problems with automatic module loading by adding MODULE_ALIAS.  Also
->> fix various load-time errors cause by incorrect or not present
->> platform_data.
->>
->> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->>  drivers/media/platform/davinci/vpif.c         |  5 ++++-
->>  drivers/media/platform/davinci/vpif_capture.c | 15 ++++++++++++++-
->>  drivers/media/platform/davinci/vpif_display.c |  6 ++++++
->>  3 files changed, 24 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
->> index 0380cf2e5775..f50148dcba64 100644
->> --- a/drivers/media/platform/davinci/vpif.c
->> +++ b/drivers/media/platform/davinci/vpif.c
->> @@ -32,6 +32,9 @@
->>  MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
->>  MODULE_LICENSE("GPL");
->>
->> +#define VPIF_DRIVER_NAME	"vpif"
->> +MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
->> +
->>  #define VPIF_CH0_MAX_MODES	22
->>  #define VPIF_CH1_MAX_MODES	2
->>  #define VPIF_CH2_MAX_MODES	15
->> @@ -466,7 +469,7 @@ static const struct dev_pm_ops vpif_pm = {
->>
->>  static struct platform_driver vpif_driver = {
->>  	.driver = {
->> -		.name	= "vpif",
->> +		.name	= VPIF_DRIVER_NAME,
->>  		.pm	= vpif_pm_ops,
->>  	},
->>  	.remove = vpif_remove,
->> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
->> index 5104cc0ee40e..20c4344ed118 100644
->> --- a/drivers/media/platform/davinci/vpif_capture.c
->> +++ b/drivers/media/platform/davinci/vpif_capture.c
->> @@ -45,6 +45,7 @@ module_param(debug, int, 0644);
->>  MODULE_PARM_DESC(debug, "Debug level 0-1");
->>
->>  #define VPIF_DRIVER_NAME	"vpif_capture"
->> +MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
->>
->>  /* global variables */
->>  static struct vpif_device vpif_obj = { {NULL} };
->> @@ -647,6 +648,10 @@ static int vpif_input_to_subdev(
->>
->>  	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
->>
->> +	if (!chan_cfg)
->> +		return -1;
->> +	if (input_index >= chan_cfg->input_count)
->> +		return -1;
->>  	subdev_name = chan_cfg->inputs[input_index].subdev_name;
->>  	if (subdev_name == NULL)
->>  		return -1;
->> @@ -654,7 +659,7 @@ static int vpif_input_to_subdev(
->>  	/* loop through the sub device list to get the sub device info */
->>  	for (i = 0; i < vpif_cfg->subdev_count; i++) {
->>  		subdev_info = &vpif_cfg->subdev_info[i];
->> -		if (!strcmp(subdev_info->name, subdev_name))
->> +		if (subdev_info && !strcmp(subdev_info->name, subdev_name))
->
-> Why this change? subdev_info can never be NULL.
+On Wednesday 14 Dec 2016 19:56:51 Kieran Bingham wrote:
+> Hello Me.
+> 
+> Ok, so a bit of investigation into *why* we have an unbalanced
+> media_pipeline stop call.
+> 
+> After a suspend/resume cycle, the function vsp1_pm_runtime_resume() is
+> called by the PM framework.
+> 
+> The hardware is unable to reset successfully and the reset call returns
+> -ETIMEDOUT which gets passed back to the PM framework as a failure and
+> thus the device is not 'resumed'
+> 
+> This process is commenced, as the DU driver tries to enable the VSP, we
+> get the following call stack:
+> 
+> rcar_du_crtc_resume()
+>   rcar_du_vsp_enable()
+>     vsp1_du_setup_lif() // returns void
+>       vsp1_device_get() // returns -ETIMEDOUT,
 
-A debugging leftover I guess.  Will remove and resend.
+I suspect the call stack to not be entirely accurate as the 
+rcar_du_crtc_resume() is never called :-)
 
-Thanks for the review,
+> As the vsp1_du_setup_lif() returns void, the fact that the hardware
+> failed to start is ignored.
+> 
+> Later we get a call to  rcar_du_vsp_disable(), which again calls into
+> vsp1_du_setup_lif(), this time to disable the pipeline. And it is here,
+> that the call to media_pipeline_stop() is an unbalanced call, as the
+> corresponding media_pipeline_start() would only have been called if the
+> vsp1_device_get() had succeeded, thus we find ourselves with a kernel
+> panic on a null dereference.
+> 
+> Sorry for the terse notes, they are possibly/probably really for me if I
+> get tasked to look back at this.
+> --
+> Regards
+> 
+> Kieran
+> 
+> On 13/12/16 17:59, Kieran Bingham wrote:
+> > media_entity_pipeline_stop() can be called through error paths with a
+> > NULL entity pipe object. In this instance, stopping is a no-op, so
+> > simply return without any action
+> > 
+> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> > ---
+> > 
+> > I've marked this patch as RFC, although if deemed suitable, by all means
+> > integrate it as is.
+> > 
+> > When testing suspend/resume operations on VSP1, I encountered a segfault
+> > on the WARN_ON(!pipe->streaming_count) line, where 'pipe == NULL'. The
+> > simple protection fix is to return early in this instance, as this patch
+> > does however:
+> > 
+> > A) Does this early return path warrant a WARN() statement itself, to
+> > identify drivers which are incorrectly calling
+> > media_entity_pipeline_stop() with an invalid entity, or would this just
+> > be noise ...
+> > 
+> > and therefore..
+> > 
+> > B) I also partly assume this patch could simply get NAK'd with a request
+> > to go and dig out the root cause of calling media_entity_pipeline_stop()
+> > with an invalid entity.
+> > 
+> > My brief investigation so far here so far shows that it's almost a second
+> > order fault - where the first suspend resume cycle completes but leaves
+> > the entity in an invalid state having followed an error path - and then
+> > on a second suspend/resume - the stop fails with the affected segfault.
+> > 
+> > If statement A) or B) apply here, please drop this patch from the series,
+> > and don't consider it a blocking issue for the other 3 patches.
+> > 
+> > Kieran
+> > 
+> >  drivers/media/media-entity.c | 2 ++
+> >  1 file changed, 2 insertions(+)
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index c68239e60487..93c9cbf4bf46 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -508,6 +508,8 @@ void __media_entity_pipeline_stop(struct media_entity
+> > *entity)> 
+> >  	struct media_entity_graph *graph = &entity->pipe->graph;
+> >  	struct media_pipeline *pipe = entity->pipe;
+> > 
+> > +	if (!pipe)
+> > +		return;
+> > 
+> >  	WARN_ON(!pipe->streaming_count);
+> >  	media_entity_graph_walk_start(graph, entity);
 
-Kevin
+-- 
+Regards,
+
+Laurent Pinchart
+
