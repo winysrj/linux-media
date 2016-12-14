@@ -1,133 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:54620 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932875AbcLVXLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Dec 2016 18:11:17 -0500
-Date: Fri, 23 Dec 2016 00:11:10 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53582 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933059AbcLNUMM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 15:12:12 -0500
+Date: Wed, 14 Dec 2016 21:12:02 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
 Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [RFC/PATCH] media: Add video bus switch
-Message-ID: <20161222231109.p2vc35pafk7s4arv@earth>
+        sre@kernel.org, linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161214201202.GB28424@amd>
 References: <20161023200355.GA5391@amd>
  <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
  <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161222143244.ykza4wdxmop2t7bg@earth>
- <20161222205317.GA31151@amd>
+ <20161214130310.GA15405@pali>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="a2hvqgaug272bmc4"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="s/l3CgOIzMHHjg/5"
 Content-Disposition: inline
-In-Reply-To: <20161222205317.GA31151@amd>
+In-Reply-To: <20161214130310.GA15405@pali>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---a2hvqgaug272bmc4
+--s/l3CgOIzMHHjg/5
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
+Hi!
 
-On Thu, Dec 22, 2016 at 09:53:17PM +0100, Pavel Machek wrote:
-> > 1. Settings must be applied before the streaming starts instead of
-> > at probe time, since the settings may change (based one the selected
-> > camera). That should be fairly easy to implement by just moving the
-> > code to the s_stream callback as far as I can see.
+> On Wednesday 14 December 2016 13:24:51 Pavel Machek wrote:
+> > =20
+> > Add driver for et8ek8 sensor, found in Nokia N900 main camera. Can be
+> > used for taking photos in 2.5MP resolution with fcam-dev.
+> >=20
+> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> >=20
+> > ---
+> > From v4 I did cleanups to coding style and removed various oddities.
+> >=20
+> > Exposure value is now in native units, which simplifies the code.
+> >=20
+> > The patch to add device tree bindings was already acked by device tree
+> > people.
+
+> > +	default:
+> > +		WARN_ONCE(1, ET8EK8_NAME ": %s: invalid message length.\n",
+> > +			  __func__);
 >=20
-> Ok, I see, where "the code" is basically in vbs_link_setup, right?
-
-I'm not talking about the video bus switch, but about omap3isp.
-omap3isp must update the buscfg registers when it starts streaming
-instead of at probe time. I just checked and it actually seems to do
-so already. So the problem is only updating the buscfg inside of
-ccp2_s_stream() before writing the device registers. See next
-paragraph for more details.
-
-> > 2. omap3isp should try to get the bus settings from using a callback
-> > in the connected driver instead of loading it from DT. Then the
-> > video-bus-switch can load the bus-settings from its downstream links
-> > in DT and propagate the correct ones to omap3isp based on the
-> > selected port. The DT loading part should actually remain in omap3isp
-> > as fallback, in case it does not find a callback in the connected drive=
-r.
-> > That way everything is backward compatible and the DT variant is
-> > nice for 1-on-1 scenarios.
+> dev_warn_once()
+=2E..
+> > +	if (WARN_ONCE(cnt > ET8EK8_MAX_MSG,
+> > +		      ET8EK8_NAME ": %s: too many messages.\n", __func__)) {
 >=20
-> So basically... (struct isp_bus_cfg *) isd->bus would change in
-> isp_pipeline_enable()...?=20
-
-isp_of_parse_node_csi1(), which is called by isp_of_parse_node()
-inits buscfg using DT information. This does not work for N900,
-which needs two different buscfg settings based on the selected
-camera. I suggest to add a callback to the subdevice instead.
-
-So something like pseudocode is needed in ccp2_s_stream():
-
-/* get current buscfg */
-if (subdevice->get_buscfg)
-    buscfg =3D subdevice->get_buscfg();
-else
-    buscfg =3D isp_of_parse_node_csi1();
-
-/* configure device registers */
-ccp2_if_configure(buscfg);
-
-This new callback must be implemented in the video-bus-switch,
-so that it returns the buscfg based upon the selected camera.
-
-> > Apart from that Sakari told me at ELCE, that the port numbers
-> > should be reversed to match the order of other drivers. That's
-> > obviously very easy to do :)
+> Maybe replace it with dev_warn_once() too? That condition in WARN_ONCE
+> does not look nice...
+=2E..
+> > +			if (WARN(next->type !=3D ET8EK8_REG_8BIT &&
+> > +				 next->type !=3D ET8EK8_REG_16BIT,
+> > +				 "Invalid type =3D %d", next->type)) {
+> dev_warn()
+>
+> > +	WARN_ON(sensor->power_count < 0);
 >=20
-> Ok, I guess that can come later :-).
->=20
-> > Regarding the binding document. I actually did write one:
-> > https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/commit/=
-?h=3Dn900-camera&id=3D81e74af53fe6d180616b05792f78badc615e871f
->=20
-> Thanks, got it.
->=20
-> > So all in all it shouldn't be that hard to implement the remaining
-> > bits.
->=20
-> :-).
->=20
-> > (*) Actually it does not for CCP2, but there are some old patches
-> > from Sakari adding it for CCP2. It is implemented for parallel port
-> > and CSI in this way.
->=20
-> I think I got the patches in my tree. Camera currently works for me.
+> Rather some dev_warn()? Do we need stack trace here?
 
-If you have working camera you have the CCP2 DT patches in your tree.
-They are not yet mainline, though. As far as I can see.
+I don't see what is wrong with WARN(). These are not expected to
+trigger, if they do we'll fix it. If you feel strongly about this,
+feel free to suggest a patch.
 
--- Sebastian
+> > +static int et8ek8_i2c_reglist_find_write(struct i2c_client *client,
+> > +					 struct et8ek8_meta_reglist *meta,
+> > +					 u16 type)
+> > +{
+> > +	struct et8ek8_reglist *reglist;
+> > +
+> > +	reglist =3D et8ek8_reglist_find_type(meta, type);
+> > +	if (!reglist)
+> > +		return -EINVAL;
+> > +
+> > +	return et8ek8_i2c_write_regs(client, reglist->regs);
+> > +}
+> > +
+> > +static struct et8ek8_reglist **et8ek8_reglist_first(
+> > +		struct et8ek8_meta_reglist *meta)
+> > +{
+> > +	return &meta->reglist[0].ptr;
+> > +}
+>=20
+> Above code looks like re-implementation of linked-list. Does not kernel
+> already provide some?
 
---a2hvqgaug272bmc4
+Its actually array of pointers as far as I can tell. I don't think any
+helpers would be useful here.
+
+> > +	new =3D et8ek8_gain_table[gain];
+> > +
+> > +	/* FIXME: optimise I2C writes! */
+>=20
+> Is this FIMXE still valid?
+
+Probably. Lets optimize it after merge.
+
+> > +	if (sensor->power_count) {
+> > +		WARN_ON(1);
+>=20
+> Such warning is probably not useful...
+
+It should not happen, AFAICT. That's why I'd like to know if it does.
+
+> > +#include "et8ek8_reg.h"
+> > +
+> > +/*
+> > + * Stingray sensor mode settings for Scooby
+> > + */
+>=20
+> Are settings for this sensor Stingray enough?
+
+Seems to work well enough for me. If more modes are needed, we can add
+them later.
+
+> It was me who copied these sensors settings to kernel driver. And I
+> chose only Stingray as this is what was needed for my N900 for
+> testing... Btw, you could add somewhere my and Ivo's Signed-off and
+> copyright state as we both modified et8ek8.c code...
+
+Normally, people add copyrights when they modify the code. If you want
+to do it now, please send me a patch. (With those warn_ons too, if you
+care, but I think the code is fine as is).
+
+I got code from Dmitry, so it has his signed-off.
+
+Thanks,
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--s/l3CgOIzMHHjg/5
 Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlhcXYoACgkQ2O7X88g7
-+pp4fQ/9F5xRtApJ6iIqn90kw+kA2UngH+k5T8tiYhPepPxPgOMA/A/ZvcCGru7n
-vzoJEb8r0TzFWseEbMPSD9NSNiUn/KnFeEO8Xbb7UhKWdx1pkFZ85cmzC9wz2RF4
-jmLXIiCaeKUwzS08ZlY58+eRqreMcxrc792SwiZ7B3MTOdG3uSV7lkD1Jl+M0pH9
-eCOmR779jFWSHQhBSj6vpkAiLcrjh70uvZT1PSEykecP7JRw8bBQQQnVubvEuI+3
-i9f7o+NMelCw6d3fT7Bcz67XozMr85Kjlupk5YySpvMwG/5AIef8+X8mU0KnFfsM
-kzSwufSaJwo3CDwZua3T0KxGxsvc0j5yvMU9dO5Q2MoBIJaYnWEH+98YP6gWXwmO
-CMYg+s/aGY8PsFBZGYJccZGYn2BPEps7rSRvv110nLWtq2uKqPda+EDY/LU0E2Rv
-Ja8RgrI6QjeNNxUh+tU43mO94X6SXJ0hA/v/qM0Et8zAslpO85DNTeT1a3Df0cIg
-hNVyFnfnpdO1pePIvv9IorXcV0palv97NIAACpw+CaX5eQmv7K9PmJxpQlTOYGB8
-w9ykWV16Zl2Qr2K/zPKSoozIOImEv1nsg/Ji/rZCa4GKaYj6POfG/A/JYHHfODs/
-d7tzHjilTxIJx1F9gzzhj9MNrWqmNLr9LxKWSjR9CzzZwIJ0k/g=
-=6BXG
+iEYEARECAAYFAlhRp5IACgkQMOfwapXb+vKScgCeLIe7izOb5cwV5Sd6dX0QZUQR
+18wAn2bsyebsv2rRMQf/4ltXEeUIvSQP
+=TjEu
 -----END PGP SIGNATURE-----
 
---a2hvqgaug272bmc4--
+--s/l3CgOIzMHHjg/5--
