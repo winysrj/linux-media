@@ -1,181 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:51737 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751888AbcLFKT0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 05:19:26 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        James Hogan <james@albanarts.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v4 06/13] [media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
-Date: Tue,  6 Dec 2016 10:19:14 +0000
-Message-Id: <f1e78dc514c37a3dd934ac07499c97cbe9d832c5.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
-In-Reply-To: <cover.1481019109.git.sean@mess.org>
-References: <cover.1481019109.git.sean@mess.org>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35967 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932961AbcLNPxD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 10:53:03 -0500
+Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
+To: =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd> <20161214130310.GA15405@pali>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, sre@kernel.org,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <fd2e91a2-35e3-3ba8-d3c6-8963b504dd65@gmail.com>
+Date: Wed, 14 Dec 2016 17:52:59 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20161214130310.GA15405@pali>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Antti Seppälä <a.seppala@gmail.com>
+Hi
 
-Adding a simple Manchester encoder to rc-core.
-Manchester coding is used by at least RC-5 and RC-6 protocols and their
-variants.
+On 14.12.2016 15:03, Pali Rohár wrote:
+> Hi! See inlined some my notes.
+>
 
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-core-priv.h | 33 ++++++++++++++++
- drivers/media/rc/rc-ir-raw.c    | 85 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 118 insertions(+)
+>> +
+>> +#ifdef USE_CRC
+>> +	rval = et8ek8_i2c_read_reg(client, ET8EK8_REG_8BIT, 0x1263, &val);
+>> +	if (rval)
+>> +		goto out;
+>> +#if USE_CRC /* TODO get crc setting from DT */
+>> +	val |= BIT(4);
+>> +#else
+>> +	val &= ~BIT(4);
+>> +#endif
+>> +	rval = et8ek8_i2c_write_reg(client, ET8EK8_REG_8BIT, 0x1263, val);
+>> +	if (rval)
+>> +		goto out;
+>> +#endif
+>
+> USE_CRC is defined to 1. Do we need that #ifdef check at all?
+>
+> What with above TODO?
+>
+>> +
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 98cc0cf..b175bf3 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -157,6 +157,39 @@ static inline bool is_timing_event(struct ir_raw_event ev)
- #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- 
-+/* functions for IR encoders */
-+
-+static inline void init_ir_raw_event_duration(struct ir_raw_event *ev,
-+					      unsigned int pulse,
-+					      u32 duration)
-+{
-+	init_ir_raw_event(ev);
-+	ev->duration = duration;
-+	ev->pulse = pulse;
-+}
-+
-+/**
-+ * struct ir_raw_timings_manchester - Manchester coding timings
-+ * @leader:		duration of leader pulse (if any) 0 if continuing
-+ *			existing signal (see @pulse_space_start)
-+ * @pulse_space_start:	1 for starting with pulse (0 for starting with space)
-+ * @clock:		duration of each pulse/space in ns
-+ * @invert:		if set clock logic is inverted
-+ *			(0 = space + pulse, 1 = pulse + space)
-+ * @trailer_space:	duration of trailer space in ns
-+ */
-+struct ir_raw_timings_manchester {
-+	unsigned int leader;
-+	unsigned int pulse_space_start:1;
-+	unsigned int clock;
-+	unsigned int invert:1;
-+	unsigned int trailer_space;
-+};
-+
-+int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
-+			  const struct ir_raw_timings_manchester *timings,
-+			  unsigned int n, unsigned int data);
-+
- /*
-  * Routines from rc-raw.c to be used internally and by decoders
-  */
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 1b229ef..072b4bd 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -250,6 +250,91 @@ static void ir_raw_disable_protocols(struct rc_dev *dev, u64 protocols)
- }
- 
- /**
-+ * ir_raw_gen_manchester() - Encode data with Manchester (bi-phase) modulation.
-+ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
-+ *		each raw event filled.
-+ * @max:	Maximum number of raw events to fill.
-+ * @timings:	Manchester modulation timings.
-+ * @n:		Number of bits of data.
-+ * @data:	Data bits to encode.
-+ *
-+ * Encodes the @n least significant bits of @data using Manchester (bi-phase)
-+ * modulation with the timing characteristics described by @timings, writing up
-+ * to @max raw IR events using the *@ev pointer.
-+ *
-+ * Returns:	0 on success.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		full encoded data. In this case all @max events will have been
-+ *		written.
-+ */
-+int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
-+			  const struct ir_raw_timings_manchester *timings,
-+			  unsigned int n, unsigned int data)
-+{
-+	bool need_pulse;
-+	unsigned int i;
-+	int ret = -ENOBUFS;
-+
-+	i = 1 << (n - 1);
-+
-+	if (timings->leader) {
-+		if (!max--)
-+			return ret;
-+		if (timings->pulse_space_start) {
-+			init_ir_raw_event_duration((*ev)++, 1, timings->leader);
-+
-+			if (!max--)
-+				return ret;
-+			init_ir_raw_event_duration((*ev), 0, timings->leader);
-+		} else {
-+			init_ir_raw_event_duration((*ev), 1, timings->leader);
-+		}
-+		i >>= 1;
-+	} else {
-+		/* continue existing signal */
-+		--(*ev);
-+	}
-+	/* from here on *ev will point to the last event rather than the next */
-+
-+	while (n && i > 0) {
-+		need_pulse = !(data & i);
-+		if (timings->invert)
-+			need_pulse = !need_pulse;
-+		if (need_pulse == !!(*ev)->pulse) {
-+			(*ev)->duration += timings->clock;
-+		} else {
-+			if (!max--)
-+				goto nobufs;
-+			init_ir_raw_event_duration(++(*ev), need_pulse,
-+						   timings->clock);
-+		}
-+
-+		if (!max--)
-+			goto nobufs;
-+		init_ir_raw_event_duration(++(*ev), !need_pulse,
-+					   timings->clock);
-+		i >>= 1;
-+	}
-+
-+	if (timings->trailer_space) {
-+		if (!(*ev)->pulse)
-+			(*ev)->duration += timings->trailer_space;
-+		else if (!max--)
-+			goto nobufs;
-+		else
-+			init_ir_raw_event_duration(++(*ev), 0,
-+						   timings->trailer_space);
-+	}
-+
-+	ret = 0;
-+nobufs:
-+	/* point to the next event rather than last event before returning */
-+	++(*ev);
-+	return ret;
-+}
-+EXPORT_SYMBOL(ir_raw_gen_manchester);
-+
-+/**
-  * ir_raw_encode_scancode() - Encode a scancode as raw events
-  *
-  * @protocol:		protocol
--- 
-2.9.3
+It becomes a bit more complicated :) - on n900, front camera doesn't use 
+CRC, while back camera does. Right now there is no way, even if we use 
+video bus switch driver, to tell ISP to have 2 ports with different 
+settings, not only for CRC, but for strobe, etc. Look at that commit 
+https://github.com/freemangordon/linux-n900/commit/e5582fa56bbc0161d6c567157df42433829ee4de. 
+What I think here is that ISP should take settings from the remote 
+endpoints rather from it's local port. So far it does not.
 
+So, until there is a way for ISP to have more than one CCP channel with 
+different settings, I can't think of anything we can do here but to 
+place TODO.
+
+Ivo
