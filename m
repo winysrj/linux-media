@@ -1,158 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:38623 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S936175AbcLOMuO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 07:50:14 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: James Hogan <james@albanarts.com>,
-        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
-        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
-Subject: [PATCH v6 09/18] [media] rc: ir-rc5-decoder: Add encode capability
-Date: Thu, 15 Dec 2016 12:50:02 +0000
-Message-Id: <804885764d4f3835bd880d9d8d81ab8eb64eb72a.1481805635.git.sean@mess.org>
-In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
-References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
-In-Reply-To: <cover.1481805635.git.sean@mess.org>
-References: <cover.1481805635.git.sean@mess.org>
+Received: from mail-vk0-f46.google.com ([209.85.213.46]:33201 "EHLO
+        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751192AbcLNH3D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 02:29:03 -0500
+Received: by mail-vk0-f46.google.com with SMTP id 137so16011932vkl.0
+        for <linux-media@vger.kernel.org>; Tue, 13 Dec 2016 23:29:02 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1481533621.13825.2.camel@mtksdaap41>
+References: <1480475340-21893-1-git-send-email-rick.chang@mediatek.com>
+ <1480475340-21893-3-git-send-email-rick.chang@mediatek.com>
+ <CAAJzSMfNyMiia==mXKo6aBw1VxMBxGE20LB870Zm1u9mCoioyQ@mail.gmail.com> <1481533621.13825.2.camel@mtksdaap41>
+From: Ricky Liang <jcliang@chromium.org>
+Date: Wed, 14 Dec 2016 15:29:00 +0800
+Message-ID: <CAAJzSMca41ExE+k924D6M-1=t8v+aduTC2FwfqdpF4R32kBuGQ@mail.gmail.com>
+Subject: Re: [PATCH v8 2/4] vcodec: mediatek: Add Mediatek JPEG Decoder Driver
+To: Rick Chang <rick.chang@mediatek.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, srv_heupstream@mediatek.com,
+        "moderated list:ARM/Mediatek SoC..."
+        <linux-mediatek@lists.infradead.org>,
+        "moderated list:ARM/Mediatek SoC..."
+        <linux-arm-kernel@lists.infradead.org>,
+        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: James Hogan <james@albanarts.com>
+Hi Rick,
 
-Add the capability to encode RC-5, RC-5X and RC-5-SZ scancodes as raw
-events.
+Can you upload patchset v9 to address the issue? Thanks!
 
-The Manchester modulation helper is used, and for RC-5X it is used twice
-with two sets of timings, the first with a short trailer space for the
-space in the middle, and the second with no leader so that it can
-continue the space.
-
-The encoding in RC-5-SZ first inserts a pulse and then simply utilizes
-the generic Manchester encoder available in rc-core.
-
-Signed-off-by: James Hogan <james@albanarts.com>
-Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/ir-rc5-decoder.c | 97 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 97 insertions(+)
-
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index a95477c..e2e9567 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -181,9 +181,106 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	return -EINVAL;
- }
- 
-+static const struct ir_raw_timings_manchester ir_rc5_timings = {
-+	.leader			= RC5_UNIT,
-+	.pulse_space_start	= 0,
-+	.clock			= RC5_UNIT,
-+	.trailer_space		= RC5_UNIT * 10,
-+};
-+
-+static const struct ir_raw_timings_manchester ir_rc5x_timings[2] = {
-+	{
-+		.leader			= RC5_UNIT,
-+		.pulse_space_start	= 0,
-+		.clock			= RC5_UNIT,
-+		.trailer_space		= RC5X_SPACE,
-+	},
-+	{
-+		.clock			= RC5_UNIT,
-+		.trailer_space		= RC5_UNIT * 10,
-+	},
-+};
-+
-+static const struct ir_raw_timings_manchester ir_rc5_sz_timings = {
-+	.leader				= RC5_UNIT,
-+	.pulse_space_start		= 0,
-+	.clock				= RC5_UNIT,
-+	.trailer_space			= RC5_UNIT * 10,
-+};
-+
-+/**
-+ * ir_rc5_encode() - Encode a scancode as a stream of raw events
-+ *
-+ * @protocol:	protocol variant to encode
-+ * @scancode:	scancode to encode
-+ * @events:	array of raw ir events to write into
-+ * @max:	maximum size of @events
-+ *
-+ * Returns:	The number of events written.
-+ *		-ENOBUFS if there isn't enough space in the array to fit the
-+ *		encoding. In this case all @max events will have been written.
-+ *		-EINVAL if the scancode is ambiguous or invalid.
-+ */
-+static int ir_rc5_encode(enum rc_type protocol, u32 scancode,
-+			 struct ir_raw_event *events, unsigned int max)
-+{
-+	int ret;
-+	struct ir_raw_event *e = events;
-+	unsigned int data, xdata, command, commandx, system, pre_space_data;
-+
-+	/* Detect protocol and convert scancode to raw data */
-+	if (protocol == RC_TYPE_RC5) {
-+		/* decode scancode */
-+		command  = (scancode & 0x003f) >> 0;
-+		commandx = (scancode & 0x0040) >> 6;
-+		system   = (scancode & 0x1f00) >> 8;
-+		/* encode data */
-+		data = !commandx << 12 | system << 6 | command;
-+
-+		/* Modulate the data */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_timings,
-+					    RC5_NBITS, data);
-+		if (ret < 0)
-+			return ret;
-+	} else if (protocol == RC_TYPE_RC5X) {
-+		/* decode scancode */
-+		xdata    = (scancode & 0x00003f) >> 0;
-+		command  = (scancode & 0x003f00) >> 8;
-+		commandx = !(scancode & 0x004000);
-+		system   = (scancode & 0x1f0000) >> 16;
-+
-+		/* encode data */
-+		data = commandx << 18 | system << 12 | command << 6 | xdata;
-+
-+		/* Modulate the data */
-+		pre_space_data = data >> (RC5X_NBITS - CHECK_RC5X_NBITS);
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5x_timings[0],
-+					    CHECK_RC5X_NBITS, pre_space_data);
-+		if (ret < 0)
-+			return ret;
-+		ret = ir_raw_gen_manchester(&e, max - (e - events),
-+					    &ir_rc5x_timings[1],
-+					    RC5X_NBITS - CHECK_RC5X_NBITS,
-+					    data);
-+		if (ret < 0)
-+			return ret;
-+	} else if (protocol == RC_TYPE_RC5_SZ) {
-+		/* RC5-SZ scancode is raw enough for Manchester as it is */
-+		ret = ir_raw_gen_manchester(&e, max, &ir_rc5_sz_timings,
-+					    RC5_SZ_NBITS, scancode & 0x2fff);
-+		if (ret < 0)
-+			return ret;
-+	} else {
-+		return -EINVAL;
-+	}
-+
-+	return e - events;
-+}
-+
- static struct ir_raw_handler rc5_handler = {
- 	.protocols	= RC_BIT_RC5 | RC_BIT_RC5X | RC_BIT_RC5_SZ,
- 	.decode		= ir_rc5_decode,
-+	.encode		= ir_rc5_encode,
- };
- 
- static int __init ir_rc5_decode_init(void)
--- 
-2.9.3
-
+On Mon, Dec 12, 2016 at 5:07 PM, Rick Chang <rick.chang@mediatek.com> wrote:
+> Hi Ricky,
+>
+> Thanks for your feedback. We will fix the problem in another patch.
+>
+> On Mon, 2016-12-12 at 12:34 +0800, Ricky Liang wrote:
+>> Hi Rick,
+>>
+>> On Wed, Nov 30, 2016 at 11:08 AM, Rick Chang <rick.chang@mediatek.com> wrote:
+>> > Add v4l2 driver for Mediatek JPEG Decoder
+>> >
+>> > Signed-off-by: Rick Chang <rick.chang@mediatek.com>
+>> > Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
+>>
+>> <snip...>
+>>
+>> > +static bool mtk_jpeg_check_resolution_change(struct mtk_jpeg_ctx *ctx,
+>> > +                                            struct mtk_jpeg_dec_param *param)
+>> > +{
+>> > +       struct mtk_jpeg_dev *jpeg = ctx->jpeg;
+>> > +       struct mtk_jpeg_q_data *q_data;
+>> > +
+>> > +       q_data = &ctx->out_q;
+>> > +       if (q_data->w != param->pic_w || q_data->h != param->pic_h) {
+>> > +               v4l2_dbg(1, debug, &jpeg->v4l2_dev, "Picture size change\n");
+>> > +               return true;
+>> > +       }
+>> > +
+>> > +       q_data = &ctx->cap_q;
+>> > +       if (q_data->fmt != mtk_jpeg_find_format(ctx, param->dst_fourcc,
+>> > +                                               MTK_JPEG_FMT_TYPE_CAPTURE)) {
+>> > +               v4l2_dbg(1, debug, &jpeg->v4l2_dev, "format change\n");
+>> > +               return true;
+>> > +       }
+>> > +       return false;
+>>
+>> <snip...>
+>>
+>> > +static void mtk_jpeg_device_run(void *priv)
+>> > +{
+>> > +       struct mtk_jpeg_ctx *ctx = priv;
+>> > +       struct mtk_jpeg_dev *jpeg = ctx->jpeg;
+>> > +       struct vb2_buffer *src_buf, *dst_buf;
+>> > +       enum vb2_buffer_state buf_state = VB2_BUF_STATE_ERROR;
+>> > +       unsigned long flags;
+>> > +       struct mtk_jpeg_src_buf *jpeg_src_buf;
+>> > +       struct mtk_jpeg_bs bs;
+>> > +       struct mtk_jpeg_fb fb;
+>> > +       int i;
+>> > +
+>> > +       src_buf = v4l2_m2m_next_src_buf(ctx->fh.m2m_ctx);
+>> > +       dst_buf = v4l2_m2m_next_dst_buf(ctx->fh.m2m_ctx);
+>> > +       jpeg_src_buf = mtk_jpeg_vb2_to_srcbuf(src_buf);
+>> > +
+>> > +       if (jpeg_src_buf->flags & MTK_JPEG_BUF_FLAGS_LAST_FRAME) {
+>> > +               for (i = 0; i < dst_buf->num_planes; i++)
+>> > +                       vb2_set_plane_payload(dst_buf, i, 0);
+>> > +               buf_state = VB2_BUF_STATE_DONE;
+>> > +               goto dec_end;
+>> > +       }
+>> > +
+>> > +       if (mtk_jpeg_check_resolution_change(ctx, &jpeg_src_buf->dec_param)) {
+>> > +               mtk_jpeg_queue_src_chg_event(ctx);
+>> > +               ctx->state = MTK_JPEG_SOURCE_CHANGE;
+>> > +               v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+>> > +               return;
+>> > +       }
+>>
+>> This only detects source change if multiple OUPUT buffers are queued.
+>> It does not catch the source change in the following scenario:
+>>
+>> - OUPUT buffers for jpeg1 enqueued
+>> - OUTPUT queue STREAMON
+>> - userspace creates CAPTURE buffers
+>> - CAPTURE buffers enqueued
+>> - CAPTURE queue STREAMON
+>> - decode
+>> - OUTPUT queue STREAMOFF
+>> - userspace recreates OUTPUT buffers for jpeg2
+>> - OUTPUT buffers for jpeg2 enqueued
+>> - OUTPUT queue STREAMON
+>>
+>> In the above sequence if jpeg2's decoded size is larger than jpeg1 the
+>> function fails to detect that the existing CAPTURE buffers are not big
+>> enough to hold the decoded data.
+>>
+>> A possible fix is to pass *dst_buf to
+>> mtk_jpeg_check_resolution_change(), and check in the function that all
+>> the dst_buf planes are large enough to hold the decoded data.
+>>
+>> > +
+>> > +       mtk_jpeg_set_dec_src(ctx, src_buf, &bs);
+>> > +       if (mtk_jpeg_set_dec_dst(ctx, &jpeg_src_buf->dec_param, dst_buf, &fb))
+>> > +               goto dec_end;
+>> > +
+>> > +       spin_lock_irqsave(&jpeg->hw_lock, flags);
+>> > +       mtk_jpeg_dec_reset(jpeg->dec_reg_base);
+>> > +       mtk_jpeg_dec_set_config(jpeg->dec_reg_base,
+>> > +                               &jpeg_src_buf->dec_param, &bs, &fb);
+>> > +
+>> > +       mtk_jpeg_dec_start(jpeg->dec_reg_base);
+>> > +       spin_unlock_irqrestore(&jpeg->hw_lock, flags);
+>> > +       return;
+>> > +
+>> > +dec_end:
+>> > +       v4l2_m2m_src_buf_remove(ctx->fh.m2m_ctx);
+>> > +       v4l2_m2m_dst_buf_remove(ctx->fh.m2m_ctx);
+>> > +       v4l2_m2m_buf_done(to_vb2_v4l2_buffer(src_buf), buf_state);
+>> > +       v4l2_m2m_buf_done(to_vb2_v4l2_buffer(dst_buf), buf_state);
+>> > +       v4l2_m2m_job_finish(jpeg->m2m_dev, ctx->fh.m2m_ctx);
+>> > +}
+>>
+>> <snip...>
+>
+>
