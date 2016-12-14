@@ -1,149 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:36242 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751936AbcLFAWP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 19:22:15 -0500
-Date: Mon, 5 Dec 2016 18:22:13 -0600
-From: Rob Herring <robh@kernel.org>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH v4 2/9] doc: DT: venus: binding document for Qualcomm
- video driver
-Message-ID: <20161206002213.fymmpqxdg66jh2ft@rob-hp-laptop>
-References: <1480583001-32236-1-git-send-email-stanimir.varbanov@linaro.org>
- <1480583001-32236-3-git-send-email-stanimir.varbanov@linaro.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1480583001-32236-3-git-send-email-stanimir.varbanov@linaro.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:43408 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755529AbcLNNSq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 08:18:46 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: linux-media@vger.kernel.org
+Cc: Gregor Jasny <gjasny@googlemail.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [v4l-utils PATCH 3/3] dvb-sat: add support for several BrasilSat LNBf models
+Date: Wed, 14 Dec 2016 11:18:35 -0200
+Message-Id: <20161214131835.11259-4-mchehab@s-opensource.com>
+In-Reply-To: <20161214131835.11259-3-mchehab@s-opensource.com>
+References: <20161214131835.11259-1-mchehab@s-opensource.com>
+ <20161214131835.11259-2-mchehab@s-opensource.com>
+ <20161214131835.11259-3-mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 01, 2016 at 11:03:14AM +0200, Stanimir Varbanov wrote:
-> Add binding document for Venus video encoder/decoder driver
-> 
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: devicetree@vger.kernel.org
-> Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-> ---
-> Rob, I have removed vmem clocks, interrupts and reg properties
-> for vmem thing. Probably I will come with a separate platform
-> driver fro that and pass the video memory DT node as phandle.
+There are some LNBf manufactured by BrasilSat that are
+widely used in Brazil. Add support for them, based on what's
+described on this document:
+	http://www.brasilsat.com.br/arquivo/DataSheet1.pdf
 
-Looks good, a couple of minor things below.
+I tested myself the custom GVT model.
 
-> 
->  .../devicetree/bindings/media/qcom,venus.txt       | 82 ++++++++++++++++++++++
->  1 file changed, 82 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/qcom,venus.txt b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> new file mode 100644
-> index 000000000000..a64b4ea1ebba
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/qcom,venus.txt
-> @@ -0,0 +1,82 @@
-> +* Qualcomm Venus video encode/decode accelerator
-> +
-> +- compatible:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Value should contain one of:
-> +		- "qcom,msm8916-venus"
-> +		- "qcom,msm8996-venus"
-> +- reg:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: Register ranges as listed in the reg-names property.
-> +- reg-names:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain following entries:
-> +		- "base"	Venus register base
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ lib/libdvbv5/dvb-sat.c | 49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
--names is kind of pointless with only one.
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index bde0cfa3accb..7eb02284e3c4 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -143,6 +143,55 @@ static const struct dvb_sat_lnb_priv lnb[] = {
+ 		.freqrange = {
+ 			{ 11710, 12751, 10678, 0 }
+ 		}
++	}, {
++		.desc = {
++			.name = N_("BrasilSat Stacked"),
++			.alias = "STACKED-BRASILSAT",
++		},
++		.freqrange = {
++			{ 10700, 11700, 9710, 0, POLARIZATION_H },
++			{ 10700, 11700, 9750, 0, POLARIZATION_H },
++		},
++	}, {
++		.desc = {
++			.name = N_("BrasilSat Oi"),
++			.alias = "OI-BRASILSAT",
++		},
++		.freqrange = {
++			{ 10950, 11200, 10000, 11700 },
++			{ 11800, 12200, 10445, 0 },
++		}
++	}, {
++		.desc = {
++			.name = N_("BrasilSat Amazonas 1/2 - 3 Oscilators"),
++			.alias = "AMAZONAS",
++		},
++		.freqrange = {
++			{ 11037, 11450, 9670, 0, POLARIZATION_V },
++			{ 11770, 12070, 9922, 0, POLARIZATION_H },
++			{ 10950, 11280, 10000, 0, POLARIZATION_H },
++		},
++	}, {
++		.desc = {
++			.name = N_("BrasilSat Amazonas 1/2 - 2 Oscilators"),
++			.alias = "AMAZONAS",
++		},
++		.freqrange = {
++			{ 11037, 11360, 9670, 0, POLARIZATION_V },
++			{ 11780, 12150, 10000, 0, POLARIZATION_H },
++			{ 10950, 11280, 10000, 0, POLARIZATION_H },
++		},
++	}, {
++		.desc = {
++			.name = N_("BrasilSat custom GVT"),
++			.alias = "GVT-BRASILSAT",
++		},
++		.freqrange = {
++			{ 11010.5, 11067.5, 12860, 0, POLARIZATION_V },
++			{ 11704.0, 11941.0, 13435, 0, POLARIZATION_V },
++			{ 10962.5, 11199.5, 13112, 0, POLARIZATION_H },
++			{ 11704.0, 12188.0, 13138, 0, POLARIZATION_H },
++		},
+ 	},
+ };
+ 
+-- 
+2.9.3
 
-> +- interrupts:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: Should contain interrupts as listed in the interrupt-names
-> +		    property.
-> +- interrupt-names:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain following entries:
-> +		- "venus"	Venus interrupt line
-
-ditto
-
-> +- clocks:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A List of phandle and clock specifier pairs as listed
-> +		    in clock-names property.
-> +- clock-names:
-> +	Usage: required
-> +	Value type: <stringlist>
-> +	Definition: Should contain the following entries:
-> +		- "core"	Core video accelerator clock
-> +		- "iface"	Video accelerator AHB clock
-> +		- "bus"		Video accelerator AXI clock
-> +- clock-names:
-> +	Usage: required for msm8996
-
-It's not clear if this is in addition to the above list. I'd guess not 
-and you should make it clear the above applies to the 8916 only.
-
-> +	Value type: <stringlist>
-> +	Definition: Should contain the following entries:
-> +		- "subcore0"		Subcore0 video accelerator clock
-> +		- "subcore1"		Subcore1 video accelerator clock
-> +		- "mmssnoc_axi"		Multimedia subsystem NOC AXI clock
-> +		- "mmss_mmagic_iface"	Multimedia subsystem MMAGIC AHB clock
-> +		- "mmss_mmagic_mbus"	Multimedia subsystem MMAGIC MAXI clock
-> +		- "mmagic_video_bus"	MMAGIC video AXI clock
-> +		- "video_mbus"		Video MAXI clock
-> +- power-domains:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A phandle and power domain specifier pairs to the
-> +		    power domain which is responsible for collapsing
-> +		    and restoring power to the peripheral.
-> +- rproc:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A phandle to remote processor responsible for
-> +		    firmware loading and processor booting.
-> +
-> +- iommus:
-> +	Usage: required
-> +	Value type: <prop-encoded-array>
-> +	Definition: A list of phandle and IOMMU specifier pairs.
-> +
-> +* An Example
-> +	video-codec@1d00000 {
-> +		compatible = "qcom,msm8916-venus";
-> +		reg = <0x01d00000 0xff000>;
-> +		reg-names = "base";
-> +		interrupts = <GIC_SPI 44 IRQ_TYPE_LEVEL_HIGH>;
-> +		interrupt-names = "venus";
-> +		clocks = <&gcc GCC_VENUS0_VCODEC0_CLK>,
-> +			 <&gcc GCC_VENUS0_AHB_CLK>,
-> +			 <&gcc GCC_VENUS0_AXI_CLK>;
-> +		clock-names = "core", "iface", "bus";
-> +		power-domains = <&gcc VENUS_GDSC>;
-> +		rproc = <&venus_rproc>;
-> +		iommus = <&apps_iommu 5>;
-> +	};
-> -- 
-> 2.7.4
-> 
