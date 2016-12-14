@@ -1,130 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49961 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755113AbcLOXrF (ORCPT
+Received: from mailgw02.mediatek.com ([210.61.82.184]:61992 "EHLO
+        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1752752AbcLNILz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 18:47:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        pawel@osciak.com, m.szyprowski@samsung.com,
-        kyungmin.park@samsung.com, sumit.semwal@linaro.org,
-        robdclark@gmail.com, daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: Re: [RFC RESEND 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
-Date: Fri, 16 Dec 2016 01:47:20 +0200
-Message-ID: <1504308.JR7t8vfKWF@avalon>
-In-Reply-To: <55F7CDEE.8050802@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <55F30085.504@xs4all.nl> <55F7CDEE.8050802@linux.intel.com>
+        Wed, 14 Dec 2016 03:11:55 -0500
+From: Rick Chang <rick.chang@mediatek.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Rob Herring <robh+dt@kernel.org>
+CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <srv_heupstream@mediatek.com>,
+        <linux-mediatek@lists.infradead.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <devicetree@vger.kernel.org>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Bin Liu <bin.liu@mediatek.com>
+Subject: [PATCH v9 0/4] Add Mediatek JPEG Decoder
+Date: Wed, 14 Dec 2016 16:04:46 +0800
+Message-ID: <1481702690-10476-1-git-send-email-rick.chang@mediatek.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This series of patches provide a v4l2 driver to control Mediatek JPEG decoder
+for decoding JPEG image and Motion JPEG bitstream.
 
-Thank you for the patch.
+changes since v8:
+- Fix state error in first bit stream when capture buffer has been stream on.
+  This will trigger device run inadvertently.
 
-On Tuesday 15 Sep 2015 10:51:10 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> > On 09/11/2015 01:50 PM, Sakari Ailus wrote:
-> >> The cache synchronisation may be a time consuming operation and thus not
-> >> best performed in an interrupt which is a typical context for
-> >> vb2_buffer_done() calls. This may consume up to tens of ms on some
-> >> machines, depending on the buffer size.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++----------
-> >>  1 file changed, 10 insertions(+), 10 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> >> b/drivers/media/v4l2-core/videobuf2-core.c index 64fce4d..c5c0707a
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> >> @@ -1177,7 +1177,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
-> >> vb2_buffer_state state)
-> >>  {
-> >>  	struct vb2_queue *q = vb->vb2_queue;
-> >>  	unsigned long flags;
-> >> -	unsigned int plane;
-> >> 
-> >>  	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
-> >>  		return;
-> >> @@ -1197,10 +1196,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
-> >> vb2_buffer_state state)
-> >>  	dprintk(4, "done processing on buffer %d, state: %d\n",
-> >>  			vb->v4l2_buf.index, state);
-> >> 
-> >> -	/* sync buffers */
-> >> -	for (plane = 0; plane < vb->num_planes; ++plane)
-> >> -		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-> >> -
-> > 
-> > Ah, OK, so it is removed here,
-> 
-> I can merge the two patches for the next version if you prefer that.
+changes since v7:
+- Update MAINTAINERS
 
-I think that would be a good idea. They're both pretty small, and they're 
-related. Merging them will make review easier.
+changes since v6:
+- fix kbuild test fail
+- Add patch for MAINTAINERS
 
-> >>  	/* Add the buffer to the done buffers list */
-> >>  	spin_lock_irqsave(&q->done_lock, flags);
-> >>  	vb->state = state;
-> >> 
-> >> @@ -2086,7 +2081,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
-> >>  static void __vb2_dqbuf(struct vb2_buffer *vb)
-> >>  {
-> >>  	struct vb2_queue *q = vb->vb2_queue;
-> >> -	unsigned int i;
-> >> +	unsigned int plane;
-> >> 
-> >>  	/* nothing to do if the buffer is already dequeued */
-> >>  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
-> >> @@ -2094,13 +2089,18 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
-> >> 
-> >>  	vb->state = VB2_BUF_STATE_DEQUEUED;
-> >> 
-> >> +	/* sync buffers */
-> >> +	for (plane = 0; plane < vb->num_planes; plane++)
-> >> +		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
-> >> +
-> > 
-> > to here.
-> > 
-> > I'm not sure if this is correct... So __vb2_dqbuf is called from
-> > __vb2_queue_cancel(), but now the buf_finish() callback is called
-> > *before* the memop finish() callback, where this was the other way around
-> > in __vb2_queue_cancel(). I don't think that is right since buf_finish()
-> > expects that the buffer is synced for the cpu.
->
-> I don't mind reordering them.
+changes since v5:
+- remove redundant name from struct mtk_jpeg_fmt
+- Set state of all buffers to VB2_BUF_STATE_QUEUED if fail in start streaming
+- Remove VB2_USERPTR
+- Add check for buffer index
 
-The .buf_finish() driver callback could touch the contents of the buffer using 
-the CPU, so I agree with Hans that we need to reorder the calls.
+changes since v4:
+- Change file name of binding documentation
+- Revise DT binding documentation
+- Revise compatible string
 
-> The vb->state will be different as __vb2_dqbuf() has already been called,
-> there's at least one buffer state check in a driver. However, __vb2_dqbuf()
-> unconditionally sets the buffer state to DEQUEUED, overriding e.g. ERROR
-> which a driver would be interested in.
-> 
-> I think the cache sync needs to be moved out of __vb2_dqbuf() to the
-> same level where it's called so proper ordering can be maintained while
-> still flushing cache before buf_finish() is called.
+changes since v3:
+- Revise DT binding documentation
+- Revise compatible string
 
-I think that would be the easiest option. It's a bit of a shame to duplicate 
-the call, but I don't see any other easy way. A comment that states that cache 
-sync needs to occur before .buf_finish() would probably be useful.
+changes since v2:
+- Revise DT binding documentation 
 
-> > Was this tested with CONFIG_VIDEO_ADV_DEBUG set and with 'v4l2-compliance
-> > -s'? Not that that would help if things are done in the wrong order...
-> 
-> I'll do that the next time.
+changes since v1:
+- Rebase for v4.9-rc1.
+- Update Compliance test version and result
+- Remove redundant path in Makefile
+- Fix potential build error without CONFIG_PM_RUNTIME and CONFIG_PM_SLEEP
+- Fix warnings from patch check and smatch check
+
+* Dependency
+The patch "arm: dts: mt2701: Add node for JPEG decoder" depends on: 
+  CCF "Add clock support for Mediatek MT2701"[1]
+  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
+
+[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
+[2] https://patchwork.kernel.org/patch/9164013/
+
+* Compliance test
+v4l2-compliance SHA   : 4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
+
+Driver Info:
+        Driver name   : mtk-jpeg decode
+        Card type     : mtk-jpeg decoder
+        Bus info      : platform:15004000.jpegdec
+        Driver version: 4.9.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video3 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+Rick Chang (4):
+  dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
+  vcodec: mediatek: Add Mediatek JPEG Decoder Driver
+  arm: dts: mt2701: Add node for Mediatek JPEG Decoder
+  vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver
+
+ .../bindings/media/mediatek-jpeg-decoder.txt       |   37 +
+ MAINTAINERS                                        |    7 +
+ arch/arm/boot/dts/mt2701.dtsi                      |   14 +
+ drivers/media/platform/Kconfig                     |   15 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/mtk-jpeg/Makefile           |    2 +
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1306 ++++++++++++++++++++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h    |  139 +++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c      |  417 +++++++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h      |   91 ++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c   |  160 +++
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h   |   25 +
+ drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h     |   58 +
+ 13 files changed, 2273 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
+ create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
+ create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
