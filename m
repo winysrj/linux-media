@@ -1,79 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:49954 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753306AbcLILhP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 06:37:15 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [v3] [media] dvb: avoid warning in dvb_net
-Date: Fri,  9 Dec 2016 12:36:29 +0100
-Message-Id: <20161209113648.3529485-1-arnd@arndb.de>
+Received: from mail-wj0-f195.google.com ([209.85.210.195]:34812 "EHLO
+        mail-wj0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933077AbcLNWIA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 17:08:00 -0500
+Date: Wed, 14 Dec 2016 23:07:49 +0100
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5] media: Driver for Toshiba et8ek8 5MP sensor
+Message-ID: <20161214220749.GA27553@pali>
+References: <20161023200355.GA5391@amd>
+ <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
+ <20161214122451.GB27011@amd>
+ <20161214130310.GA15405@pali>
+ <20161214201202.GB28424@amd>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161214201202.GB28424@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With gcc-5 or higher on x86, we can get a bogus warning in the
-dvb-net code:
+On Wednesday 14 December 2016 21:12:02 Pavel Machek wrote:
+> Hi!
+> 
+> > On Wednesday 14 December 2016 13:24:51 Pavel Machek wrote:
+> > >  
+> > > Add driver for et8ek8 sensor, found in Nokia N900 main camera. Can be
+> > > used for taking photos in 2.5MP resolution with fcam-dev.
+> > > 
+> > > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+> > > Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> > > 
+> > > ---
+> > > From v4 I did cleanups to coding style and removed various oddities.
+> > > 
+> > > Exposure value is now in native units, which simplifies the code.
+> > > 
+> > > The patch to add device tree bindings was already acked by device tree
+> > > people.
+> 
+> > > +	default:
+> > > +		WARN_ONCE(1, ET8EK8_NAME ": %s: invalid message length.\n",
+> > > +			  __func__);
+> > 
+> > dev_warn_once()
+> ...
+> > > +	if (WARN_ONCE(cnt > ET8EK8_MAX_MSG,
+> > > +		      ET8EK8_NAME ": %s: too many messages.\n", __func__)) {
+> > 
+> > Maybe replace it with dev_warn_once() too? That condition in WARN_ONCE
+> > does not look nice...
+> ...
+> > > +			if (WARN(next->type != ET8EK8_REG_8BIT &&
+> > > +				 next->type != ET8EK8_REG_16BIT,
+> > > +				 "Invalid type = %d", next->type)) {
+> > dev_warn()
+> >
+> > > +	WARN_ON(sensor->power_count < 0);
+> > 
+> > Rather some dev_warn()? Do we need stack trace here?
+> 
+> I don't see what is wrong with WARN(). These are not expected to
+> trigger, if they do we'll fix it. If you feel strongly about this,
+> feel free to suggest a patch.
 
-drivers/media/dvb-core/dvb_net.c: In function 'dvb_net_ule':
-arch/x86/include/asm/string_32.h:78:22: error: '*((void *)&dest_addr+4)' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+One thing is consistency with other parts of code... On all other places
+is used dev_warn and on above 4 places WARN. dev_warn automatically adds
+device name for easy debugging...
 
-The problem here is that gcc doesn't track all of the conditions
-to prove it can't end up copying uninitialized data.
-This changes the logic around so we zero out the destination
-address earlier when we determine that it is not set here.
-This allows the compiler to figure it out.
+Another thing is that above WARNs do not write why it is warning. It
+just write that some condition is not truth...
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-When I got the same warning earlier, Mauro created commit 8b0041db80dd
-("[media] dvb-net: split the logic at dvb_net_ule() into other
-functions") to clean up the code, and that addressed all the warnings
-I saw earlier, but I now got a different randconfig build that
-needs either this patch or Mauro's variant "dvb_net: simplify
-the logic that fills the ethernet address" that does the same
-change slightly differently.
----
- drivers/media/dvb-core/dvb_net.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+> > > +static int et8ek8_i2c_reglist_find_write(struct i2c_client *client,
+> > > +					 struct et8ek8_meta_reglist *meta,
+> > > +					 u16 type)
+> > > +{
+> > > +	struct et8ek8_reglist *reglist;
+> > > +
+> > > +	reglist = et8ek8_reglist_find_type(meta, type);
+> > > +	if (!reglist)
+> > > +		return -EINVAL;
+> > > +
+> > > +	return et8ek8_i2c_write_regs(client, reglist->regs);
+> > > +}
+> > > +
+> > > +static struct et8ek8_reglist **et8ek8_reglist_first(
+> > > +		struct et8ek8_meta_reglist *meta)
+> > > +{
+> > > +	return &meta->reglist[0].ptr;
+> > > +}
+> > 
+> > Above code looks like re-implementation of linked-list. Does not kernel
+> > already provide some?
+> 
+> Its actually array of pointers as far as I can tell. I don't think any
+> helpers would be useful here.
 
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index dfc03a95df71..f06e0488aa2c 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -719,6 +719,9 @@ static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h,
- 		skb_copy_from_linear_data(h->priv->ule_skb, dest_addr,
- 					  ETH_ALEN);
- 		skb_pull(h->priv->ule_skb, ETH_ALEN);
-+	} else {
-+		/* dest_addr buffer is only valid if h->priv->ule_dbit == 0 */
-+		eth_zero_addr(dest_addr);
- 	}
- 
- 	/* Handle ULE Extension Headers. */
-@@ -750,16 +753,8 @@ static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h,
- 	if (!h->priv->ule_bridged) {
- 		skb_push(h->priv->ule_skb, ETH_HLEN);
- 		h->ethh = (struct ethhdr *)h->priv->ule_skb->data;
--		if (!h->priv->ule_dbit) {
--			/*
--			 * dest_addr buffer is only valid if
--			 * h->priv->ule_dbit == 0
--			 */
--			memcpy(h->ethh->h_dest, dest_addr, ETH_ALEN);
--			eth_zero_addr(h->ethh->h_source);
--		} else /* zeroize source and dest */
--			memset(h->ethh, 0, ETH_ALEN * 2);
--
-+		memcpy(h->ethh->h_dest, dest_addr, ETH_ALEN);
-+		eth_zero_addr(h->ethh->h_source);
- 		h->ethh->h_proto = htons(h->priv->ule_sndu_type);
- 	}
- 	/* else:  skb is in correct state; nothing to do. */
+Ok.
+
+> > > +	new = et8ek8_gain_table[gain];
+> > > +
+> > > +	/* FIXME: optimise I2C writes! */
+> > 
+> > Is this FIMXE still valid?
+> 
+> Probably. Lets optimize it after merge.
+> 
+> > > +	if (sensor->power_count) {
+> > > +		WARN_ON(1);
+> > 
+> > Such warning is probably not useful...
+> 
+> It should not happen, AFAICT. That's why I'd like to know if it does.
+
+I mean: warning should have better description, what happened. Such
+warning for somebody who does not see this code is not useful...
+
+> > > +#include "et8ek8_reg.h"
+> > > +
+> > > +/*
+> > > + * Stingray sensor mode settings for Scooby
+> > > + */
+> > 
+> > Are settings for this sensor Stingray enough?
+> 
+> Seems to work well enough for me. If more modes are needed, we can add
+> them later.
+
+Ok.
+
+> > It was me who copied these sensors settings to kernel driver. And I
+> > chose only Stingray as this is what was needed for my N900 for
+> > testing... Btw, you could add somewhere my and Ivo's Signed-off and
+> > copyright state as we both modified et8ek8.c code...
+> 
+> Normally, people add copyrights when they modify the code. If you want
+> to do it now, please send me a patch. (With those warn_ons too, if you
+> care, but I think the code is fine as is).
+
+I think sending patch in unified diff format for such change is
+overkill. Just place to header it.
+
 -- 
-2.9.0
-
+Pali Rohár
+pali.rohar@gmail.com
