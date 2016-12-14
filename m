@@ -1,47 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:36168 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1762613AbcLSRL7 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:44279 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753821AbcLNOA4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 12:11:59 -0500
-From: Santosh Kumar Singh <kumar.san1093@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Wolfram Sang <wsa-dev@sang-engineering.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>
-Subject: [PATCH] tm6000: Clean up file handle in open() error path.
-Date: Mon, 19 Dec 2016 22:40:58 +0530
-Message-Id: <1482167458-4734-1-git-send-email-kumar.san1093@gmail.com>
+        Wed, 14 Dec 2016 09:00:56 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v4 3/6] [media] rc-core: add support for IR raw transmitters
+Date: Wed, 14 Dec 2016 23:00:27 +0900
+Message-id: <20161214140030.28537-4-andi.shyti@samsung.com>
+In-reply-to: <20161214140030.28537-1-andi.shyti@samsung.com>
+References: <20161214140030.28537-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix to avoid possible memory leak and exit file handle
-in error paths.
+IR raw transmitter driver type is specified in the enum
+rc_driver_type as RC_DRIVER_IR_RAW_TX which includes all those
+devices that transmit raw stream of bit to a receiver.
 
-Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
+The data are provided by userspace applications, therefore they
+don't need any input device allocation, but still they need to be
+registered as raw devices.
+
+Suggested-by: Sean Young <sean@mess.org>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Reviewed-by: Sean Young <sean@mess.org>
 ---
- drivers/media/usb/tm6000/tm6000-video.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/media/rc/rc-main.c | 42 +++++++++++++++++++++++++-----------------
+ include/media/rc-core.h    |  9 ++++++---
+ 2 files changed, 31 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index dee7e7d..b39247a 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1377,8 +1377,11 @@ static int __tm6000_open(struct file *file)
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 59fac96..1ddecca 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1365,20 +1365,24 @@ struct rc_dev *rc_allocate_device(enum rc_driver_type type)
+ 	if (!dev)
+ 		return NULL;
  
- 	/* initialize hardware on analog mode */
- 	rc = tm6000_init_analog_mode(dev);
--	if (rc < 0)
-+	if (rc < 0) {
-+		v4l2_fh_exit(&fh->fh);
-+		kfree(fh);
- 		return rc;
+-	dev->input_dev = input_allocate_device();
+-	if (!dev->input_dev) {
+-		kfree(dev);
+-		return NULL;
+-	}
++	if (type != RC_DRIVER_IR_RAW_TX) {
++		dev->input_dev = input_allocate_device();
++		if (!dev->input_dev) {
++			kfree(dev);
++			return NULL;
++		}
++
++		dev->input_dev->getkeycode = ir_getkeycode;
++		dev->input_dev->setkeycode = ir_setkeycode;
++		input_set_drvdata(dev->input_dev, dev);
+ 
+-	dev->input_dev->getkeycode = ir_getkeycode;
+-	dev->input_dev->setkeycode = ir_setkeycode;
+-	input_set_drvdata(dev->input_dev, dev);
++		setup_timer(&dev->timer_keyup, ir_timer_keyup,
++						(unsigned long)dev);
+ 
+-	spin_lock_init(&dev->rc_map.lock);
+-	spin_lock_init(&dev->keylock);
++		spin_lock_init(&dev->rc_map.lock);
++		spin_lock_init(&dev->keylock);
++	}
+ 	mutex_init(&dev->lock);
+-	setup_timer(&dev->timer_keyup, ir_timer_keyup, (unsigned long)dev);
+ 
+ 	dev->dev.type = &rc_dev_type;
+ 	dev->dev.class = &rc_class;
+@@ -1507,7 +1511,7 @@ static int rc_setup_rx_device(struct rc_dev *dev)
+ 
+ static void rc_free_rx_device(struct rc_dev *dev)
+ {
+-	if (!dev)
++	if (!dev || dev->driver_type == RC_DRIVER_IR_RAW_TX)
+ 		return;
+ 
+ 	ir_free_table(&dev->rc_map);
+@@ -1537,7 +1541,8 @@ int rc_register_device(struct rc_dev *dev)
+ 	atomic_set(&dev->initialized, 0);
+ 
+ 	dev->dev.groups = dev->sysfs_groups;
+-	dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX)
++		dev->sysfs_groups[attr++] = &rc_dev_protocol_attr_grp;
+ 	if (dev->s_filter)
+ 		dev->sysfs_groups[attr++] = &rc_dev_filter_attr_grp;
+ 	if (dev->s_wakeup_filter)
+@@ -1555,11 +1560,14 @@ int rc_register_device(struct rc_dev *dev)
+ 		dev->input_name ?: "Unspecified device", path ?: "N/A");
+ 	kfree(path);
+ 
+-	rc = rc_setup_rx_device(dev);
+-	if (rc)
+-		goto out_dev;
++	if (dev->driver_type != RC_DRIVER_IR_RAW_TX) {
++		rc = rc_setup_rx_device(dev);
++		if (rc)
++			goto out_dev;
 +	}
  
- 	dev->mode = TM6000_MODE_ANALOG;
+-	if (dev->driver_type == RC_DRIVER_IR_RAW) {
++	if (dev->driver_type == RC_DRIVER_IR_RAW ||
++				dev->driver_type == RC_DRIVER_IR_RAW_TX) {
+ 		if (!raw_init) {
+ 			request_module_nowait("ir-lirc-codec");
+ 			raw_init = true;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index ba92c86..e6cb336 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -32,13 +32,16 @@ do {								\
+ /**
+  * enum rc_driver_type - type of the RC output
+  *
+- * @RC_DRIVER_SCANCODE:	Driver or hardware generates a scancode
+- * @RC_DRIVER_IR_RAW:	Driver or hardware generates pulse/space sequences.
+- *			It needs a Infra-Red pulse/space decoder
++ * @RC_DRIVER_SCANCODE:	 Driver or hardware generates a scancode
++ * @RC_DRIVER_IR_RAW:	 Driver or hardware generates pulse/space sequences.
++ *			 It needs a Infra-Red pulse/space decoder
++ * @RC_DRIVER_IR_RAW_TX: Device transmitter only,
++ *			 driver requires pulse/space data sequence.
+  */
+ enum rc_driver_type {
+ 	RC_DRIVER_SCANCODE = 0,
+ 	RC_DRIVER_IR_RAW,
++	RC_DRIVER_IR_RAW_TX,
+ };
  
+ /**
 -- 
-1.9.1
+2.10.2
 
