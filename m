@@ -1,86 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35009 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbcLFNSA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 08:18:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@kernel.org, tiwai@suse.com, perex@perex.cz,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
-        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
-        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
-        sakari.ailus@iki.fi, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH v6 3/3] sound/usb: Use Media Controller API to share media resources
-Date: Tue, 06 Dec 2016 15:17:23 +0200
-Message-ID: <1539078.id5hGWOO3T@avalon>
-In-Reply-To: <d0a8e556-915c-4f14-d45e-a36a11fb5c6d@osg.samsung.com>
-References: <cover.1480539942.git.shuahkh@osg.samsung.com> <2368883.8y0L28vD2m@avalon> <d0a8e556-915c-4f14-d45e-a36a11fb5c6d@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout4.samsung.com ([203.254.224.34]:44279 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756044AbcLNOBC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 09:01:02 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v4 5/6] Documentation: bindings: add documentation for ir-spi
+ device driver
+Date: Wed, 14 Dec 2016 23:00:29 +0900
+Message-id: <20161214140030.28537-6-andi.shyti@samsung.com>
+In-reply-to: <20161214140030.28537-1-andi.shyti@samsung.com>
+References: <20161214140030.28537-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Document the ir-spi driver's binding which is a IR led driven
+through the SPI line.
 
-On Monday 05 Dec 2016 17:38:23 Shuah Khan wrote:
-> On 12/05/2016 04:21 PM, Laurent Pinchart wrote:
-> > On Monday 05 Dec 2016 15:44:30 Shuah Khan wrote:
-> >> On 11/30/2016 03:01 PM, Shuah Khan wrote:
-> >>> Change ALSA driver to use Media Controller API to share media resources
-> >>> with DVB, and V4L2 drivers on a AU0828 media device.
-> >>> 
-> >>> Media Controller specific initialization is done after sound card is
-> >>> registered. ALSA creates Media interface and entity function graph
-> >>> nodes for Control, Mixer, PCM Playback, and PCM Capture devices.
-> >>> 
-> >>> snd_usb_hw_params() will call Media Controller enable source handler
-> >>> interface to request the media resource. If resource request is granted,
-> >>> it will release it from snd_usb_hw_free(). If resource is busy, -EBUSY
-> >>> is returned.
-> >>> 
-> >>> Media specific cleanup is done in usb_audio_disconnect().
-> >>> 
-> >>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> >> 
-> >> Hi Takashi,
-> >> 
-> >> If you are good with this patch, could you please Ack it, so Mauro
-> >> can pull it into media tree with the other two patches in this series,
-> >> when he is ready to do so.
-> > 
-> > I *really* want to address the concerns raised by Sakari before pulling
-> > more code that makes fixing the race conditions more difficult. Please,
-> > let's all work on fixing the core code to build a stable base on which we
-> > can build additional features. V4L2 and MC need teamwork, it's time to
-> > give the subsystem the love it deserves.
-> 
-> Hi Laurent,
-> 
-> The issue Sakari brought up is specific to using devm for video_device in
-> omap3 and vsp1. I tried reproducing the problem on two different drivers
-> and couldn't on Linux 4.9-rc7.
-> 
-> After sharing that with Sakari, I suggested to Sakari to pull up his patch
-> that removes the devm usage and see if he still needs all the patches in his
-> patch series. He didn't back to me on that. I also requested him to rebase
-> on top of media dev allocator because the allocator routines he has don't
-> address the shared media device need.
-> 
-> He also didn't respond to my response regarding the reasons for choosing
-> graph_mutex to protect enable_source and disable_source handlers.
-> 
-> So I am not sure how to move forward at the moment without a concrete plan
-> for Sakari's RFC series. Sakari's patch series is still RFC and doesn't
-> address shared media_device and requires all drivers to change.
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Reviewed-by: Sean Young <sean@mess.org>
+---
+ .../devicetree/bindings/leds/irled/spi-ir-led.txt  | 29 ++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
 
-Today is a public holiday in Finland, I don't expect Sakari to be available. 
-Let's check this with him tomorrow.
-
+diff --git a/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt b/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+new file mode 100644
+index 0000000..896b699
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+@@ -0,0 +1,29 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
++
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
++
++Required properties:
++	- compatible: should be "ir-spi-led".
++
++Optional properties:
++	- duty-cycle: 8 bit balue that represents the percentage of one period
++	  in which the signal is active.  It can be 50, 60, 70, 75, 80 or 90.
++	- led-active-low: boolean value that specifies whether the output is
++	  negated with a NOT gate.
++	- power-supply: specifies the power source. It can either be a regulator
++	  or a gpio which enables a regulator, i.e. a regulator-fixed as
++	  described in
++	  Documentation/devicetree/bindings/regulator/fixed-regulator.txt
++
++Example:
++
++	irled@0 {
++		compatible = "ir-spi-led";
++		reg = <0x0>;
++		spi-max-frequency = <5000000>;
++		power-supply = <&vdd_led>;
++		led-active-low;
++		duty-cycle = /bits/ 8 <60>;
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.2
 
