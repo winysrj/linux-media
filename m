@@ -1,104 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f44.google.com ([74.125.83.44]:35688 "EHLO
-        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932502AbcLGSab (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 13:30:31 -0500
-Received: by mail-pg0-f44.google.com with SMTP id p66so164614698pga.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 10:30:31 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: Sekhar Nori <nsekhar@ti.com>, Axel Haslam <ahaslam@baylibre.com>,
-        =?UTF-8?q?Bartosz=20Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v6 3/5] [media] davinci: vpif_capture: fix start/stop streaming locking
-Date: Wed,  7 Dec 2016 10:30:23 -0800
-Message-Id: <20161207183025.20684-4-khilman@baylibre.com>
-In-Reply-To: <20161207183025.20684-1-khilman@baylibre.com>
-References: <20161207183025.20684-1-khilman@baylibre.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-wj0-f169.google.com ([209.85.210.169]:34732 "EHLO
+        mail-wj0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755280AbcLNM66 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 07:58:58 -0500
+Received: by mail-wj0-f169.google.com with SMTP id tg4so33169511wjb.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2016 04:57:18 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        linaro-kernel@lists.linaro.org, kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 0/2] video/sti/cec: add HDMI notifier support
+Date: Wed, 14 Dec 2016 13:57:07 +0100
+Message-Id: <1481720229-7587-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video capture subdevs may be over I2C and may sleep during xfer, so we
-cannot do IRQ-disabled locking when calling the subdev.
+Following (copying !) what Hans have done in this serie of patches
+http://www.spinics.net/lists/linux-media/msg109141.html
+I have implemented hdmi notifier in hdmi controled and stih-cec drivers.
 
-The IRQ-disabled locking is meant to protect the DMA queue list
-throughout the rest of the driver, so update the locking in
-[start|stop]_streaming to protect just this list, and update the irqlock
-comment to reflect what it actually protects.
+Those patches should be applied on top of Hans patches for exynos.
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Kevin Hilman <khilman@baylibre.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 6 +++---
- drivers/media/platform/davinci/vpif_capture.h | 2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+I have tested hdmi notifier by pluging/unpluging HDMI cable and check
+the value of the physical address with "cec-ctl --tuner".
+"cec-compliance -A" is also functional.
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index c24049acd40a..f72a719efb3d 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -179,8 +179,6 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	unsigned long addr, flags;
- 	int ret;
- 
--	spin_lock_irqsave(&common->irqlock, flags);
--
- 	/* Initialize field_id */
- 	ch->field_id = 0;
- 
-@@ -211,6 +209,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	vpif_config_addr(ch, ret);
- 
- 	/* Get the next frame from the buffer queue */
-+	spin_lock_irqsave(&common->irqlock, flags);
- 	common->cur_frm = common->next_frm = list_entry(common->dma_queue.next,
- 				    struct vpif_cap_buffer, list);
- 	/* Remove buffer from the buffer queue */
-@@ -244,6 +243,7 @@ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	return 0;
- 
- err:
-+	spin_lock_irqsave(&common->irqlock, flags);
- 	list_for_each_entry_safe(buf, tmp, &common->dma_queue, list) {
- 		list_del(&buf->list);
- 		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
-@@ -287,7 +287,6 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 		vpif_dbg(1, debug, "stream off failed in subdev\n");
- 
- 	/* release all active buffers */
--	spin_lock_irqsave(&common->irqlock, flags);
- 	if (common->cur_frm == common->next_frm) {
- 		vb2_buffer_done(&common->cur_frm->vb.vb2_buf,
- 				VB2_BUF_STATE_ERROR);
-@@ -300,6 +299,7 @@ static void vpif_stop_streaming(struct vb2_queue *vq)
- 					VB2_BUF_STATE_ERROR);
- 	}
- 
-+	spin_lock_irqsave(&common->irqlock, flags);
- 	while (!list_empty(&common->dma_queue)) {
- 		common->next_frm = list_entry(common->dma_queue.next,
- 						struct vpif_cap_buffer, list);
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 9e35b6771d22..1d2c052deedf 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -67,7 +67,7 @@ struct common_obj {
- 	struct vb2_queue buffer_queue;
- 	/* Queue of filled frames */
- 	struct list_head dma_queue;
--	/* Used in video-buf */
-+	/* Protects the dma_queue field */
- 	spinlock_t irqlock;
- 	/* lock used to access this structure */
- 	struct mutex lock;
+Hans, I haven't move stih-cec out of staging because I don't have the
+exact branch to test it, can you do the move for stih-cec after applying
+those patches ?
+
+Regards,
+Benjamin
+
+Benjamin Gaignard (2):
+  sti: hdmi: add HDMI notifier support
+  stih-cec: add hdmi-notifier support
+
+ .../devicetree/bindings/media/stih-cec.txt         |  2 ++
+ arch/arm/boot/dts/stih407-family.dtsi              | 12 ---------
+ arch/arm/boot/dts/stih410.dtsi                     | 15 ++++++++++-
+ drivers/gpu/drm/sti/Kconfig                        |  1 +
+ drivers/gpu/drm/sti/sti_hdmi.c                     | 15 +++++++++++
+ drivers/gpu/drm/sti/sti_hdmi.h                     |  2 ++
+ drivers/staging/media/st-cec/Kconfig               |  1 +
+ drivers/staging/media/st-cec/stih-cec.c            | 29 +++++++++++++++++++++-
+ 8 files changed, 63 insertions(+), 14 deletions(-)
+
 -- 
-2.9.3
+1.9.1
 
