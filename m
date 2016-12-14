@@ -1,70 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33906 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932822AbcLICNf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 21:13:35 -0500
-Received: by mail-wm0-f66.google.com with SMTP id g23so889960wme.1
-        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2016 18:13:34 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44849 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752445AbcLNT44 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 14:56:56 -0500
+Subject: Re: [PATCHv3 RFC 4/4] media: Catch null pipes on pipeline stop
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        laurent.pinchart@ideasonboard.com
+References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+ <1481651984-7687-5-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <21a24c35-e585-653d-ec78-2b737dee2227@ideasonboard.com>
+Date: Wed, 14 Dec 2016 19:56:51 +0000
 MIME-Version: 1.0
-In-Reply-To: <1757661.3qrq6qFaV4@avalon>
-References: <1480944299-3349-1-git-send-email-evgeni.raikhel@intel.com>
- <1480944299-3349-3-git-send-email-evgeni.raikhel@intel.com> <1757661.3qrq6qFaV4@avalon>
-From: Daniel Johnson <teknotus@gmail.com>
-Date: Thu, 8 Dec 2016 18:13:12 -0800
-Message-ID: <CA+nDE0g12muYyze_hvJkLvNA7f+Jv8ux9b4w=peVdfNWEekong@mail.gmail.com>
-Subject: Re: [PATCH 2/2] uvcvideo: Document Intel SR300 Depth camera INZI format
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: evgeni.raikhel@gmail.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1481651984-7687-5-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> In addition to my previous comments, wouldn't it make more sense to create a
-> multiplanar format for this instead of bundling the two separate images into a
-> single plane ?
+Hello Me.
 
-Unfortunately that would break userspace at this point as multiple
-libraries are already depending on a patch that implements the INZI
-format in this way. I first released a work in progress patch in March
-of 2015. It was integrated into a Robot Operating System module
-shortly after that, and Intel has included it in librealsense since
-January, and also in the firmware for their new Joule module. Since
-people using this have mostly had to patch their own kernel to use it
-that might not be a deal breaker. I had initially held back on
-upstreaming it because I was trying to work out some details of the
-image formats. Two depth formats seemed the same, and I was trying to
-figure out what was different enough about them to justify having two
-formats. I've never had access to any intel documentation beyond what
-is public on their website, and many details are missing.
+Ok, so a bit of investigation into *why* we have an unbalanced
+media_pipeline stop call.
 
-For reference I got an early RealSense camera when only windows was
-supported, and figured out some rudimentary support for Linux over a
-year before intel released their own support. A manager hiring for
-Intel's open source library told me over the phone that they were in
-fact using my blog posts to help them develop it so it wasn't
-surprising that the patch they distributed with the library included
-my comments. It was surprising that they didn't mention me as the
-author of the patch.
+After a suspend/resume cycle, the function vsp1_pm_runtime_resume() is
+called by the PM framework.
 
-I could rebase my original patch on the current development kernel and
-submit it if that helps. I can reformat the useful bits from my blog
-posts as documentation on how 3d cameras work. I wrote a C hotplug
-utility to let the kernel know about non standard camera controls. I
-also have a partially finished kernel driver for the SR300, and F200
-cameras for things like retrieving the calibration to turn depth
-images into point clouds, putting the camera into firmware update
-mode, etc that intel's library does with libusb. I think there should
-be a standard v4l2 api for 3d cameras because as it is now userspace
-programs have to be written differently for each vendor. Really all
-they need are some calibration matrices, and distortion coefficients.
-Precise time synchronization between /dev/videoX nodes would also be
-really helpful. These two things would be helpful for other cameras as
-well for things like stitching 360 degree video.
+The hardware is unable to reset successfully and the reset call returns
+-ETIMEDOUT which gets passed back to the PM framework as a failure and
+thus the device is not 'resumed'
 
-Here are links to my blog series.
-http://solsticlipse.com/2015/01/09/intel-real-sense-camera-on-linux.html
-http://solsticlipse.com/2015/02/10/intel-real-sense-on-linux-part-2-3d-camera-controls.html
-http://solsticlipse.com/2015/03/31/intel-real-sense-3d-on-linux-macos.html
-http://solsticlipse.com/2016/09/26/long-road-to-ubiquitous-3d-cameras.html
+This process is commenced, as the DU driver tries to enable the VSP, we
+get the following call stack:
+
+rcar_du_crtc_resume()
+  rcar_du_vsp_enable()
+    vsp1_du_setup_lif() // returns void
+      vsp1_device_get() // returns -ETIMEDOUT,
+
+As the vsp1_du_setup_lif() returns void, the fact that the hardware
+failed to start is ignored.
+
+Later we get a call to  rcar_du_vsp_disable(), which again calls into
+vsp1_du_setup_lif(), this time to disable the pipeline. And it is here,
+that the call to media_pipeline_stop() is an unbalanced call, as the
+corresponding media_pipeline_start() would only have been called if the
+vsp1_device_get() had succeeded, thus we find ourselves with a kernel
+panic on a null dereference.
+
+Sorry for the terse notes, they are possibly/probably really for me if I
+get tasked to look back at this.
+--
+Regards
+
+Kieran
+
+
+On 13/12/16 17:59, Kieran Bingham wrote:
+> media_entity_pipeline_stop() can be called through error paths with a
+> NULL entity pipe object. In this instance, stopping is a no-op, so
+> simply return without any action
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+> 
+> I've marked this patch as RFC, although if deemed suitable, by all means
+> integrate it as is.
+> 
+> When testing suspend/resume operations on VSP1, I encountered a segfault on the
+> WARN_ON(!pipe->streaming_count) line, where 'pipe == NULL'. The simple
+> protection fix is to return early in this instance, as this patch does however:
+> 
+> A) Does this early return path warrant a WARN() statement itself, to identify
+> drivers which are incorrectly calling media_entity_pipeline_stop() with an
+> invalid entity, or would this just be noise ...
+> 
+> and therefore..
+> 
+> B) I also partly assume this patch could simply get NAK'd with a request to go
+> and dig out the root cause of calling media_entity_pipeline_stop() with an
+> invalid entity. 
+> 
+> My brief investigation so far here so far shows that it's almost a second order
+> fault - where the first suspend resume cycle completes but leaves the entity in
+> an invalid state having followed an error path - and then on a second
+> suspend/resume - the stop fails with the affected segfault.
+> 
+> If statement A) or B) apply here, please drop this patch from the series, and
+> don't consider it a blocking issue for the other 3 patches.
+> 
+> Kieran
+> 
+> 
+>  drivers/media/media-entity.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index c68239e60487..93c9cbf4bf46 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -508,6 +508,8 @@ void __media_entity_pipeline_stop(struct media_entity *entity)
+>  	struct media_entity_graph *graph = &entity->pipe->graph;
+>  	struct media_pipeline *pipe = entity->pipe;
+>  
+> +	if (!pipe)
+> +		return;
+>  
+>  	WARN_ON(!pipe->streaming_count);
+>  	media_entity_graph_walk_start(graph, entity);
+> 
