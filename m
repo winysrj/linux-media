@@ -1,102 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45269 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752263AbcLHNle (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 08:41:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
-Date: Thu, 08 Dec 2016 15:41:59 +0200
-Message-ID: <3555863.PStTa0BX6X@avalon>
-In-Reply-To: <b47a9d956d740d63334bf0f07e6cfddd7f60e98b.1481204310.git.mchehab@s-opensource.com>
-References: <b47a9d956d740d63334bf0f07e6cfddd7f60e98b.1481204310.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33067 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753198AbcLNEK5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 13 Dec 2016 23:10:57 -0500
+Received: by mail-pg0-f66.google.com with SMTP id 3so948995pgd.0
+        for <linux-media@vger.kernel.org>; Tue, 13 Dec 2016 20:10:57 -0800 (PST)
+From: Bhumika Goyal <bhumirks@gmail.com>
+To: julia.lawall@lip6.fr, kyungmin.park@samsung.com,
+        s.nawrocki@samsung.com, mchehab@kernel.org, kgene@kernel.org,
+        krzk@kernel.org, javier@osg.samsung.com,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Bhumika Goyal <bhumirks@gmail.com>
+Subject: [PATCH] media: platform: exynos4-is: constify v4l2_subdev_ops strcutures
+Date: Wed, 14 Dec 2016 09:25:47 +0530
+Message-Id: <1481687747-28785-1-git-send-email-bhumirks@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Check for v4l2_subdev_ops structures that are only passed as an
+argument to the function v4l2_subdev_init. This argument is of type
+const, so v4l2_subdev_ops structures having this property can also  be
+declared const.
+Done using Coccinelle:
 
-On Thursday 08 Dec 2016 11:38:34 Mauro Carvalho Chehab wrote:
-> changeset 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-> support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-> depending on the type of bus set via the .set_fmt() subdev callback.
-> 
-> This is known to cause trobules on devices that don't use a V4L2
-> subdev devnode, and a fix for it was made by changeset 47de9bf8931e
-> ("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-> such fix doesn't consider the case of progressive video inputs,
-> causing chroma decoding issues on such videos, as it overrides not
-> only the type of video output, but also other unrelated bits.
-> 
-> So, instead of trying to guess, let's detect if the device is set
-> via Device Tree. If not, just ignore the bogus logic.
+@r1 disable optional_qualifier @
+identifier i;
+position p;
+@@
+static struct v4l2_subdev_ops i@p = {...};
 
-If you add a big [HACK] tag to the subject line, sure. I thought this would 
-have been an occasion to fix the problem correctly :-(
+@ok1@
+identifier r1.i;
+position p;
+@@
+v4l2_subdev_init(...,&i@p)
 
-> Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-> support") Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/i2c/tvp5150.c | 7 ++++++-
->  1 file changed, 6 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-> index 6737685d5be5..eb43ac7002d6 100644
-> --- a/drivers/media/i2c/tvp5150.c
-> +++ b/drivers/media/i2c/tvp5150.c
-> @@ -57,6 +57,7 @@ struct tvp5150 {
->  	u16 rom_ver;
-> 
->  	enum v4l2_mbus_type mbus_type;
-> +	bool has_dt;
->  };
-> 
->  static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
-> @@ -795,7 +796,7 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32
-> val)
-> 
->  	tvp5150_set_std(sd, decoder->norm);
-> 
-> -	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-> +	if (decoder->mbus_type == V4L2_MBUS_PARALLEL || !decoder->has_dt)
->  		tvp5150_write(sd, TVP5150_DATA_RATE_SEL, 0x40);
-> 
->  	return 0;
-> @@ -1053,6 +1054,9 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd,
-> int enable)
-> 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
->  	int val = 0x09;
-> 
-> +	if (!decoder->has_dt)
-> +		return 0;
-> +
->  	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
->  	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
->  		val = 0x0d;
-> @@ -1374,6 +1378,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder,
-> struct device_node *np)
->  	}
-> 
->  	decoder->mbus_type = bus_cfg.bus_type;
-> +	decoder->has_dt = true;
-> 
->  #ifdef CONFIG_MEDIA_CONTROLLER
->  	connectors = of_get_child_by_name(np, "connectors");
+@bad@
+position p!={r1.p,ok1.p};
+identifier r1.i;
+@@
+i@p
 
+@depends on !bad disable optional_qualifier@
+identifier r1.i;
+@@
++const
+struct v4l2_subdev_ops i;
+
+Before and after size details:
+
+   text	   data	    bss	    dec	    hex	filename
+   6743	    152	     20	   6915	   1b03	platform/exynos4-is/fimc-isp.o
+   6807	     88	     20	   6915	   1b03	platform/exynos4-is/fimc-isp.o
+
+  15653	    392	     36	  16081	   3ed1	platform/exynos4-is/fimc-lite.o
+  15717	    308	     36	  16061	   3ebd	platform/exynos4-is/fimc-lite.o
+
+Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+---
+ drivers/media/platform/exynos4-is/fimc-isp.c  | 2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
+index 8efe916..fd793d3 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp.c
+@@ -433,7 +433,7 @@ static void fimc_isp_subdev_unregistered(struct v4l2_subdev *sd)
+ 	.s_power = fimc_isp_subdev_s_power,
+ };
+ 
+-static struct v4l2_subdev_ops fimc_is_subdev_ops = {
++static const struct v4l2_subdev_ops fimc_is_subdev_ops = {
+ 	.core = &fimc_is_core_ops,
+ 	.video = &fimc_is_subdev_video_ops,
+ 	.pad = &fimc_is_subdev_pad_ops,
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index b91abf1..18b6aaa 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1361,7 +1361,7 @@ static void fimc_lite_subdev_unregistered(struct v4l2_subdev *sd)
+ 	.log_status = fimc_lite_log_status,
+ };
+ 
+-static struct v4l2_subdev_ops fimc_lite_subdev_ops = {
++static const struct v4l2_subdev_ops fimc_lite_subdev_ops = {
+ 	.core = &fimc_lite_core_ops,
+ 	.video = &fimc_lite_subdev_video_ops,
+ 	.pad = &fimc_lite_subdev_pad_ops,
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
