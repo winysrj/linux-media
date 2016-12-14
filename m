@@ -1,337 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37854
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751088AbcLOQHQ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44505 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753753AbcLNQaz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 11:07:16 -0500
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
- as needed
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <20161109154608.1e578f9e@vento.lan>
- <20161213102447.60990b1c@vento.lan>
- <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
- <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
- <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
- <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
-Date: Thu, 15 Dec 2016 09:06:41 -0700
+        Wed, 14 Dec 2016 11:30:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCHv3 2/4] v4l: vsp1: Refactor video pipeline configuration
+Date: Wed, 14 Dec 2016 18:30:17 +0200
+Message-ID: <4767731.yfAkbfDzfC@avalon>
+In-Reply-To: <1481651984-7687-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com> <1481651984-7687-3-git-send-email-kieran.bingham+renesas@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2016 08:26 AM, Hans Verkuil wrote:
-> On 15/12/16 15:45, Shuah Khan wrote:
->> On 12/15/2016 07:03 AM, Hans Verkuil wrote:
->>> On 15/12/16 13:56, Laurent Pinchart wrote:
->>>> Hi Sakari,
->>>>
->>>> On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:
->>>>> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:
->>>>>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
->>>>>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
->>>>>>>> Hi Sakari,
->>>>>>>>
->>>>>>>> I answered you point to point below, but I suspect that you missed how
->>>>>>>> the current approach works. So, I decided to write a quick summary
->>>>>>>> here.
->>>>>>>>
->>>>>>>> The character devices /dev/media? are created via cdev, with relies on
->>>>>>>> a kobject per device, with has an embedded struct kref inside.
->>>>>>>>
->>>>>>>> Also, each kobj at /dev/media0, /dev/media1, ... is associated with a
->>>>>>>> struct device, when the code does:
->>>>>>>>   devnode->cdev.kobj.parent = &devnode->dev.kobj;
->>>>>>>>
->>>>>>>> before calling cdev_add().
->>>>>>>>
->>>>>>>> The current lifetime management is actually based on cdev's kobject's
->>>>>>>> refcount, provided by its embedded kref.
->>>>>>>>
->>>>>>>> The kref warrants that any data associated with /dev/media0 won't be
->>>>>>>> freed if there are any pending system call. In other words, when
->>>>>>>> cdev_del() is called, it will remove /dev/media0 from the filesystem,
->>>>>>>> and will call kobject_put().
->>>>>>>>
->>>>>>>> If the refcount is zero, it will call devnode->dev.release(). If the
->>>>>>>> kobject refcount is not zero, the data won't be freed.
->>>>>>>>
->>>>>>>> So, in the best case scenario, there's no opened file descriptors
->>>>>>>> by the time media device node is unregistered. So, it will free
->>>>>>>> everything.
->>>>>>>>
->>>>>>>> In the worse case scenario, e. g. when the driver is removed or
->>>>>>>> unbind while /dev/media0 has some opened file descriptor(s),
->>>>>>>> the cdev logic will do the proper lifetime management.
->>>>>>>>
->>>>>>>> On such case, /dev/media0 disappears from the file system, so another
->>>>>>>> open is not possible anymore. The data structures will remain
->>>>>>>> allocated until all associated file descriptors are not closed.
->>>>>>>>
->>>>>>>> When all file descriptors are closed, the data will be freed.
->>>>>>>>
->>>>>>>> On that time, it will call an optional dev.release() callback,
->>>>>>>> responsible to free any other data struct that the driver allocated.
->>>>>>>
->>>>>>> The patchset does not change this. It's not a question of the
->>>>>>> media_devnode struct either. That's not an issue.
->>>>>>>
->>>>>>> The issue is rather what else can be accessed through the media device
->>>>>>> and other interfaces. As IOCTLs are not serialised with device removal
->>>>>>> (which now releases much of the data structures)
->>>>>>
->>>>>> Huh? ioctls are serialized with struct device removal. The Driver core
->>>>>> warrants that.
->>>>>
->>>>> How?
->>>>>
->>>>> As far as I can tell, there's nothing in the way of an IOCTL being in
->>>>> progress on a character device which is registered by the driver for a
->>>>> hardware device which is being removed.
->>>>>
->>>>> vfs_ioctl() directly calls the unlocked_ioctl() file operation which is, in
->>>>> case of MC, media_ioctl() in media-devnode.c. No mutexes (or other locks)
->>>>> are taken during that path, which I believe is by design.
->>>
->>> chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
->>> on release(). Thus ensuring that the cdev can never be removed while in an
->>> ioctl.
->>>
->>>>>
->>>>>>> there's a high chance of accessing
->>>>>>> released memory (or mutexes that have been already destroyed). An
->>>>>>> example of that is here, stopping a running pipeline after unbinding
->>>>>>> the device. What happens there is that the media device is released
->>>>>>> whilst it's in use through the video device.
->>>>>>>
->>>>>>> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
->>>>>>
->>>>>> It is not clear from the logs what the driver tried to do, but
->>>>>> that sounds like a driver's bug, with was not prepared to properly
->>>>>> handle unbinds.
->>>>>>
->>>>>> The problem here is that isp_video_release() is called by V4L2
->>>>>> release logic, and not by the MC one:
->>>>>>
->>>>>> static const struct v4l2_file_operations isp_video_fops = {
->>>>>>       .owner          = THIS_MODULE,
->>>>>>       .open           = isp_video_open,
->>>>>>       .release        = isp_video_release,
->>>>>>       .poll           = vb2_fop_poll,
->>>>>>       .unlocked_ioctl = video_ioctl2,
->>>>>>       .mmap           = vb2_fop_mmap,
->>>>>> };
->>>>>>
->>>>>> It seems that the driver's logic allows it to be called before or
->>>>>> after destroying the MC.
->>>>>>
->>>>>> Assuming that, if the OMAP3 driver is not used it works,
->>>>>> it means that, if the isp_video_release() is called
->>>>>> first, no errors will happen, but if MC is destroyed before
->>>>>> V4L2 call to its .release() callback, as there's no logic at the
->>>>>> driver that would detect it, isp_video_release() will be calling
->>>>>> isp_video_streamoff(), with depends on the MC to work.
->>>>>>
->>>>>> On a first glance, I can see two ways of fixing it:
->>>>>>
->>>>>> 1) to increment devnode's device kobject refcount at OMAP3 .probe(),
->>>>>> decrementing it only at isp_video_release(). That will ensure that
->>>>>> MC will only be removed after V4L2 removal.
->>>>
->>>> As soon as you have to dig deep in a structure to find a reference counter and
->>>> increment it, bypassing all the API layers, you can be entirely sure that the
->>>> solution is wrong.
->>>
->>> Indeed.
->>>
->>>>
->>>>>> 2) to call isp_video_streamoff() before removing the MC stuff, e. g.
->>>>>> inside the MC .release() callback.
->>>>>
->>>>> This is a fair suggestion, indeed. Let me see what could be done there.
->>>>> Albeit this is just *one* of the existing issues. It will not address all
->>>>> problems fixed by the patchset.
->>>>
->>>> We need to stop the hardware at .remove() time. That should not be linked to a
->>>> videodev, v4l2_device or media_device .release() callback. When the .remove()
->>>> callback returns the driver is not allowed to touch the hardware anymore. In
->>>> particular, power domains might clocks or power supplies, leading to invalid
->>>> access faults if we try to access hardware registers.
->>>
->>> Correct.
->>>
->>>>
->>>> USB devices get help from the USB core that cancels all USB operations in
->>>> progress when they're disconnected. Platform devices don't have it as easy,
->>>> and need to implement everything themselves. We thus need to stop the
->>>> hardware, but I'm not sure it makes sense to fake a VIDIOC_STREAMOFF ioctl at
->>>> .remove() time.
->>>
->>> Please don't. This shouldn't be done automatically.
->>>
->>>> That could introduce other races between .remove() and the
->>>> userspace API. A better solution is to make sure the objects that are needed
->>>> at .release() time of the device node are all reference-counted and only
->>>> released when the last reference goes away.
->>>>
->>>> There's plenty of way to try and work around the problem in drivers, some more
->>>> racy than others, but if we require changes to all platform drivers to fix
->>>> this we need to ensure that we get it right, not as half-baked hacks spread
->>>> around the whole subsystem.
->>>
->>> Why on earth do we want this for the omap3 driver? It is not a hot-pluggable
->>> device and I see no reason whatsoever to start modifying platform drivers just
->>> because you can do an unbind. I know there are real hot-pluggable devices, and
->>> getting this right for those is of course important.
->>
->> This was my first reaction when I saw this RFC series. None of the platform
->> drivers are designed to be unbound. Making core changes based on such as
->> driver would make the core very complex.
->>
->> We can't even reproduce the problem on other drivers.
->>
->>>
->>> If the omap3 is used as a testbed, then that's fine by me, but even then I
->>> probably wouldn't want the omap3 code that makes this possible in the kernel.
->>> It's just additional code for no purpose.
->>
->> I agree with Hans. Why are we using the most complex case as a reference driver
->> and basing that driver to make core changes which will force changes to all the
->> driver that use mc-core?
->>
->>>
->>>>>> That could be done by overwriting the dev.release() callback at
->>>>>> omap3 driver, as I discussed on my past e-mails, and flagging the
->>>>>> driver that it should not accept streamon anymore, as the hardware
->>>>>> is being disconnecting.
->>>>>
->>>>> A mutex will be needed to serialise the this with starting streaming.
->>>>>
->>>>>> Btw, that explains a lot why Shuah can't reproduce the stuff you're
->>>>>> complaining on her USB hardware.
->>>>>>
->>>>>> The USB subsystem has a a .disconnect() callback that notifies
->>>>>> the drivers that a device was unbound (likely physically removed).
->>>>>> The way USB media drivers handle it is by returning -ENODEV to any
->>>>>> V4L2 call that would try to touch at the hardware after unbound.
->>>>
->>>
->>> In my view the main problem is that the media core is bound to a struct
->>> device set by the driver that creates the MC. But since the MC gives an
->>> overview of lots of other (sub)devices the refcount of the media device
->>> should be increased for any (sub)device that adds itself to the MC and
->>> decreased for any (sub)device that is removed. Only when the very last
->>> user goes away can the MC memory be released.
->>
->> Correct. Media Device Allocator API work I did allows creating media device
->> on parent USB device to allow media sound driver share the media device. It
->> does ref-counting on media device and media device is unregistered only when
->> the last driver unregisters it.
->>
->> There is another aspect to explore regarding media device and the graph.
->>
->> Should all the entities stick around until all references to media
->> device are gone? If an application has /dev/media open, does that
->> mean all entities should not be free'd until this app. exits? What
->> should happen if an app. is streaming? Should the graph stay intact
->> until the app. exits?
-> 
-> Yes, everything must stay around until the last user has disappeared.
-> 
-> In general unplugs can happen at any time. So applications can be in the middle
-> of an ioctl, and removing memory during that time is just impossible.
-> 
-> On unplug you:
-> 
-> 1) stop any HW DMA (highly device dependent)
-> 2) wake up any filehandles that wait for an event
-> 3) unregister any device nodes
-> 
-> Then just sit back and wait for refcounts to go down as filehandles are closed
-> by the application.
-> 
-> Note: the v4l2/media/cec/IR/whatever core is typically responsible for rejecting
-> any ioctls/mmap/etc. once the device node has been unregistered. The only valid
-> file operation is release().
-> 
->>
->>    If yes, this would pose problems when we have multiple drivers bound
->>    to the media device. When audio driver goes away for example, it should
->>    be allowed to delete its entities.
-> 
-> Only if you can safely remove it from the topology data structures while
-> being 100% certain that nobody can ever access it. I'm not sure if that is
-> the case. Actually, looking at e.g. adv7604.c it does media_entity_cleanup(&sd->entity);
-> in remove() which is an empty function, so there doesn't appear any attempt
-> to safely clean up an entity (i.e. make sure no running media ioctl can
-> access it or call ops).
+Hi Kieran,
 
-Right. media_entity_cleanup() nothing at the moment. Also if it gets called
-after media_device_unregister_entity(), it could pose problems. I wonder if
-we have drivers that are calling media_entity_cleanup() after unregistering
-the entity?
+Thank you for the patch.
 
+On Tuesday 13 Dec 2016 17:59:42 Kieran Bingham wrote:
+> With multiple inputs through the BRU it is feasible for the streams to
+> race each other at stream-on.
+
+Could you please explain the race condition in the commit message ? The issue 
+is that multiple VIDIOC_STREAMON calls racing each other could have process 
+N-1 skipping over the pipeline setup section and then start the pipeline, if 
+videobuf2 has already enqueued buffers to the driver for process N but not 
+called the .start_streaming() operation yet.
+
+> In the case of the video pipelines, this
+> can present two serious issues.
 > 
-> This probably will need to be serialized with the graph_mutex lock.
+>  1) A null-dereference if the pipe->dl is committed at the same time as
+>     the vsp1_video_setup_pipeline() is processing
 > 
->>
->> The approach current mc-core takes is that the media_device and media_devnode
->> stick around, but entities can be added and removed during media_device
->> lifetime.
+>  2) A hardware hang, where a display list is committed without having
+>     called vsp1_video_setup_pipeline() first
 > 
-> Seems reasonable. But the removal needs to be done carefully, and that doesn't
-> seem to be the case now (unless adv7604.c is just buggy).
-
-Correct. It is possible media_device is embedded in this driver. When driver
-that embeds is unbound, media_device goes away. I needed to make the media
-device refcounted and sharable for audio work and that is what the Media Device
-Allocator API does.
-
-Maybe we have more cases than this audio case that requires media_device refcounted.
-If we have to keep entities that are in use until all the references go away, we
-have to ref-count them as well.
-
+> Along side these race conditions, the work done by
+> vsp1_video_setup_pipeline() is undone by the re-initialisation during a
+> suspend resume cycle, and an active pipeline does not attempt to
+> reconfigure the correct routing and init parameters for the entities.
 > 
->>
->> If an app. is still running when media_device is unregistered, media_device
->> isn't released until the last reference goes away and ioctls can check if
->> media_device is registered or not.
->>
->> We have to decide on the larger lifetime question surrounding media_device
->> and graph as well.
+> To repair all of these issues, we can move the call to a conditional
+> inside vsp1_video_pipeline_run() and ensure that this can only be called
+> on the last stream which calls into vsp1_video_start_streaming()
 > 
-> I don't think there is any choice but to keep it all alive until the last
-> reference goes away.
-
-If you mean "all alive" entities as well, we have to ref-count them. Because
-drivers can unregister entities during run-time now. I am looking at the
-use-case where, a driver that has dvb and video and what should happen when
-dvb is unbound for example. Should dvb entities go away or should they stay
-until all the drivers are unbound?
-
-v4l2-core registers and unregisters entities and so does dvb-core. So when a
-driver unregisters video and dvb, these entities get deleted. So we have a
-distributed mode of registering and unregistering entities. We also have
-ioctls (video, dvb, and media) accessing these entities. So where do we make
-changes to ensure entities stick around until all users exit?
-
-Ref-counting entities won't work if they are embedded - like in the case of
-struct video_device which embeds the media entity. When struct video goes
-away then entity will disappear. So we do have a complex lifetime model here
-that we need to figure out how to fix.
-
+> As a convenient side effect of this, by specifying that the
+> configuration has been lost during suspend/resume actions - the
+> vsp1_video_pipeline_run() call can re-initialise pipelines when
+> necessary thus repairing resume actions for active m2m pipelines.
 > 
-> Regards,
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
->     Hans
+> ---
+> v3:
+>  - Move 'flag reset' to be inside the vsp1_reset_wpf() function call
+>  - Tidy up the wpf->pipe reference for the configured flag
+> 
+>  drivers/media/platform/vsp1/vsp1_drv.c   |  4 ++++
+>  drivers/media/platform/vsp1/vsp1_pipe.c  |  1 +
+>  drivers/media/platform/vsp1/vsp1_pipe.h  |  2 ++
+>  drivers/media/platform/vsp1/vsp1_video.c | 20 +++++++++-----------
+>  4 files changed, 16 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c
+> b/drivers/media/platform/vsp1/vsp1_drv.c index 57c713a4e1df..1dc3726c4e83
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_drv.c
+> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
+> @@ -413,6 +413,7 @@ static int vsp1_create_entities(struct vsp1_device
+> *vsp1)
+> 
+>  int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned int index)
+>  {
+> +	struct vsp1_rwpf *wpf = vsp1->wpf[index];
+>  	unsigned int timeout;
+>  	u32 status;
+> 
+> @@ -429,6 +430,9 @@ int vsp1_reset_wpf(struct vsp1_device *vsp1, unsigned
+> int index) usleep_range(1000, 2000);
+>  	}
+> 
+> +	if (wpf->pipe)
+> +		wpf->pipe->configured = false;
+> +
+>  	if (!timeout) {
+>  		dev_err(vsp1->dev, "failed to reset wpf.%u\n", index);
+>  		return -ETIMEDOUT;
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c
+> b/drivers/media/platform/vsp1/vsp1_pipe.c index 756ca4ea7668..7ddf862ee403
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.c
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.c
+> @@ -208,6 +208,7 @@ void vsp1_pipeline_init(struct vsp1_pipeline *pipe)
+> 
+>  	INIT_LIST_HEAD(&pipe->entities);
+>  	pipe->state = VSP1_PIPELINE_STOPPED;
+> +	pipe->configured = false;
+>  }
+> 
+>  /* Must be called with the pipe irqlock held. */
+> diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h
+> b/drivers/media/platform/vsp1/vsp1_pipe.h index ac4ad2655551..0743b9fcb655
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_pipe.h
+> +++ b/drivers/media/platform/vsp1/vsp1_pipe.h
+> @@ -61,6 +61,7 @@ enum vsp1_pipeline_state {
+>   * @pipe: the media pipeline
+>   * @irqlock: protects the pipeline state
+>   * @state: current state
+> + * @configured: determines routing configuration active on cell.
 
-thanks,
--- Shuah
+I'm not sure to understand that. How about "true if the pipeline has been set 
+up" ? Or maybe "true if the pipeline has been set up for video streaming" as 
+it only applies to pipelines handled through the V4L2 API ?
+
+>   * @wq: wait queue to wait for state change completion
+>   * @frame_end: frame end interrupt handler
+>   * @lock: protects the pipeline use count and stream count
+> @@ -86,6 +87,7 @@ struct vsp1_pipeline {
+> 
+>  	spinlock_t irqlock;
+>  	enum vsp1_pipeline_state state;
+> +	bool configured;
+>  	wait_queue_head_t wq;
+> 
+>  	void (*frame_end)(struct vsp1_pipeline *pipe);
+> diff --git a/drivers/media/platform/vsp1/vsp1_video.c
+> b/drivers/media/platform/vsp1/vsp1_video.c index 44b687c0b8df..7ff9f4c19ff0
+> 100644
+> --- a/drivers/media/platform/vsp1/vsp1_video.c
+> +++ b/drivers/media/platform/vsp1/vsp1_video.c
+> @@ -388,6 +388,8 @@ static int vsp1_video_setup_pipeline(struct
+> vsp1_pipeline *pipe) VSP1_ENTITY_PARAMS_INIT);
+>  	}
+> 
+> +	pipe->configured = true;
+> +
+>  	return 0;
+>  }
+> 
+> @@ -411,6 +413,9 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline
+> *pipe) struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
+>  	struct vsp1_entity *entity;
+> 
+> +	if (!pipe->configured)
+> +		vsp1_video_setup_pipeline(pipe);
+> +
+
+I don't like this much. The vsp1_video_pipeline_run() is called with a 
+spinlock held. We should avoid operations as time consuming as 
+vsp1_video_setup_pipeline() here.
+
+>  	if (!pipe->dl)
+>  		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
+> 
+> @@ -793,25 +798,18 @@ static int vsp1_video_start_streaming(struct vb2_queue
+> *vq, unsigned int count) struct vsp1_video *video = vb2_get_drv_priv(vq);
+>  	struct vsp1_pipeline *pipe = video->rwpf->pipe;
+>  	unsigned long flags;
+> -	int ret;
+> 
+>  	mutex_lock(&pipe->lock);
+>  	if (pipe->stream_count == pipe->num_inputs) {
+> -		ret = vsp1_video_setup_pipeline(pipe);
+> -		if (ret < 0) {
+> -			mutex_unlock(&pipe->lock);
+> -			return ret;
+> -		}
+> +		spin_lock_irqsave(&pipe->irqlock, flags);
+> +		if (vsp1_pipeline_ready(pipe))
+> +			vsp1_video_pipeline_run(pipe);
+> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
+>  	}
+> 
+>  	pipe->stream_count++;
+>  	mutex_unlock(&pipe->lock);
+> 
+> -	spin_lock_irqsave(&pipe->irqlock, flags);
+> -	if (vsp1_pipeline_ready(pipe))
+> -		vsp1_video_pipeline_run(pipe);
+> -	spin_unlock_irqrestore(&pipe->irqlock, flags);
+> -
+
+How about the following ?
+
+	bool start_pipeline = false;
+
+ 	mutex_lock(&pipe->lock);
+ 	if (pipe->stream_count == pipe->num_inputs) {
+		ret = vsp1_video_setup_pipeline(pipe);
+		if (ret < 0) {
+			mutex_unlock(&pipe->lock);
+			return ret;
+		}
+
+		start_pipeline = true;
+ 	}
+
+ 	pipe->stream_count++;
+ 	mutex_unlock(&pipe->lock);
+
+	/*
+	 * Don't attempt to start the pipeline if we haven't configured it
+	 * explicitly, as otherwise multiple streamon calls could race each
+	 * other and one of them try to start the pipeline unconfigured.
+	 */
+	if (!start_pipeline)
+		return 0;
+
+	spin_lock_irqsave(&pipe->irqlock, flags);
+	if (vsp1_pipeline_ready(pipe))
+		vsp1_video_pipeline_run(pipe);
+	spin_unlock_irqrestore(&pipe->irqlock, flags);
+
+
+This won't fix the suspend/resume issue, but I think splitting that to a 
+separate patch would be a good idea anyway.
+
+I'm also wondering whether we could have a streamon/suspend race. If the 
+pipeline is setup and the DL allocated but not committed at suspend time I 
+think we'll leak the DL at resume time.
+
+>  	return 0;
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
+
