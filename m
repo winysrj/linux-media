@@ -1,77 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:49960 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754097AbcLYSob (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 13:44:31 -0500
-Subject: [PATCH 12/19] [media] uvc_driver: Move six assignments in
- uvc_parse_streaming()
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <e48b8f26-cf02-7dec-40b4-898831ae5596@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 19:44:24 +0100
-MIME-Version: 1.0
-In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-wj0-f179.google.com ([209.85.210.179]:33783 "EHLO
+        mail-wj0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755403AbcLNM67 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 07:58:59 -0500
+Received: by mail-wj0-f179.google.com with SMTP id xy5so32280678wjc.0
+        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2016 04:57:21 -0800 (PST)
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux@armlinux.org.uk, linux-fbdev@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org,
+        linaro-kernel@lists.linaro.org, kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH 1/2] sti: hdmi: add HDMI notifier support
+Date: Wed, 14 Dec 2016 13:57:08 +0100
+Message-Id: <1481720229-7587-2-git-send-email-benjamin.gaignard@linaro.org>
+In-Reply-To: <1481720229-7587-1-git-send-email-benjamin.gaignard@linaro.org>
+References: <1481720229-7587-1-git-send-email-benjamin.gaignard@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 16:25:57 +0100
+Implement the HDMI notifier support to allow CEC drivers to
+be informed when there is a new EDID and when a connect or
+disconnect happens.
 
-Move the assignments for six local variables so that these statements
-will only be executed if memory allocations succeeded by this function.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ drivers/gpu/drm/sti/Kconfig    |  1 +
+ drivers/gpu/drm/sti/sti_hdmi.c | 15 +++++++++++++++
+ drivers/gpu/drm/sti/sti_hdmi.h |  2 ++
+ 3 files changed, 18 insertions(+)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 5bb18a5f7d9f..d67fd5dfb335 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -634,11 +634,10 @@ static int uvc_parse_streaming(struct uvc_device *dev,
- 	struct uvc_streaming *streaming;
- 	struct uvc_format *format;
- 	struct uvc_frame *frame;
--	struct usb_host_interface *alts = &intf->altsetting[0];
--	unsigned char *_buffer, *buffer = alts->extra;
--	int _buflen, buflen = alts->extralen;
--	unsigned int nformats = 0, nframes = 0, nintervals = 0;
--	unsigned int size, i, n, p;
-+	struct usb_host_interface *alts;
-+	unsigned char *_buffer, *buffer;
-+	int _buflen, buflen;
-+	unsigned int nformats, nframes, nintervals, size, i, n, p;
- 	__u32 *interval;
- 	__u16 psize;
- 	int ret = -EINVAL;
-@@ -670,6 +669,9 @@ static int uvc_parse_streaming(struct uvc_device *dev,
- 	streaming->dev = dev;
- 	streaming->intf = usb_get_intf(intf);
- 	streaming->intfnum = intf->cur_altsetting->desc.bInterfaceNumber;
-+	alts = &intf->altsetting[0];
-+	buffer = alts->extra;
-+	buflen = alts->extralen;
+diff --git a/drivers/gpu/drm/sti/Kconfig b/drivers/gpu/drm/sti/Kconfig
+index acd7286..59ceffc 100644
+--- a/drivers/gpu/drm/sti/Kconfig
++++ b/drivers/gpu/drm/sti/Kconfig
+@@ -8,5 +8,6 @@ config DRM_STI
+ 	select DRM_PANEL
+ 	select FW_LOADER
+ 	select SND_SOC_HDMI_CODEC if SND_SOC
++	select HDMI_NOTIFIERS
+ 	help
+ 	  Choose this option to enable DRM on STM stiH4xx chipset
+diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
+index 376b076..6667371 100644
+--- a/drivers/gpu/drm/sti/sti_hdmi.c
++++ b/drivers/gpu/drm/sti/sti_hdmi.c
+@@ -786,6 +786,8 @@ static void sti_hdmi_disable(struct drm_bridge *bridge)
+ 	clk_disable_unprepare(hdmi->clk_pix);
  
- 	/* The Pico iMage webcam has its class-specific interface descriptors
- 	 * after the endpoint descriptors.
-@@ -759,6 +761,9 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 	hdmi->enabled = false;
++
++	hdmi_event_disconnect(hdmi->notifier);
+ }
  
- 	_buffer = buffer;
- 	_buflen = buflen;
-+	nformats = 0;
-+	nframes = 0;
-+	nintervals = 0;
+ static void sti_hdmi_pre_enable(struct drm_bridge *bridge)
+@@ -892,6 +894,10 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
+ 	if (!edid)
+ 		goto fail;
  
- 	/* Count the format and frame descriptors. */
- 	while (_buflen > 2 && _buffer[1] == USB_DT_CS_INTERFACE) {
++	hdmi_event_connect(hdmi->notifier);
++	hdmi_event_new_edid(hdmi->notifier, edid,
++			    EDID_LENGTH * (edid->extensions + 1));
++
+ 	count = drm_add_edid_modes(connector, edid);
+ 	drm_mode_connector_update_edid_property(connector, edid);
+ 	drm_edid_to_eld(connector, edid);
+@@ -949,10 +955,12 @@ struct drm_connector_helper_funcs sti_hdmi_connector_helper_funcs = {
+ 
+ 	if (hdmi->hpd) {
+ 		DRM_DEBUG_DRIVER("hdmi cable connected\n");
++		hdmi_event_connect(hdmi->notifier);
+ 		return connector_status_connected;
+ 	}
+ 
+ 	DRM_DEBUG_DRIVER("hdmi cable disconnected\n");
++	hdmi_event_disconnect(hdmi->notifier);
+ 	return connector_status_disconnected;
+ }
+ 
+@@ -1464,6 +1472,10 @@ static int sti_hdmi_probe(struct platform_device *pdev)
+ 		goto release_adapter;
+ 	}
+ 
++	hdmi->notifier = hdmi_notifier_get(&pdev->dev);
++	if (!hdmi->notifier)
++		goto release_adapter;
++
+ 	hdmi->reset = devm_reset_control_get(dev, "hdmi");
+ 	/* Take hdmi out of reset */
+ 	if (!IS_ERR(hdmi->reset))
+@@ -1483,11 +1495,14 @@ static int sti_hdmi_remove(struct platform_device *pdev)
+ {
+ 	struct sti_hdmi *hdmi = dev_get_drvdata(&pdev->dev);
+ 
++	hdmi_event_disconnect(hdmi->notifier);
++
+ 	i2c_put_adapter(hdmi->ddc_adapt);
+ 	if (hdmi->audio_pdev)
+ 		platform_device_unregister(hdmi->audio_pdev);
+ 	component_del(&pdev->dev, &sti_hdmi_ops);
+ 
++	hdmi_notifier_put(hdmi->notifier);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/gpu/drm/sti/sti_hdmi.h b/drivers/gpu/drm/sti/sti_hdmi.h
+index 119bc35..70aac98 100644
+--- a/drivers/gpu/drm/sti/sti_hdmi.h
++++ b/drivers/gpu/drm/sti/sti_hdmi.h
+@@ -8,6 +8,7 @@
+ #define _STI_HDMI_H_
+ 
+ #include <linux/hdmi.h>
++#include <linux/hdmi-notifier.h>
+ #include <linux/platform_device.h>
+ 
+ #include <drm/drmP.h>
+@@ -102,6 +103,7 @@ struct sti_hdmi {
+ 	struct platform_device *audio_pdev;
+ 	struct hdmi_audio_params audio;
+ 	struct drm_connector *drm_connector;
++	struct hdmi_notifier *notifier;
+ };
+ 
+ u32 hdmi_read(struct sti_hdmi *hdmi, int offset);
 -- 
-2.11.0
+1.9.1
 
