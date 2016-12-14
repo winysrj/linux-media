@@ -1,299 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37533
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1755731AbcLOOp4 (ORCPT
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56605 "EHLO
+        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750734AbcLNFMS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 09:45:56 -0500
-Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
- as needed
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-References: <20161109154608.1e578f9e@vento.lan>
- <20161213102447.60990b1c@vento.lan>
- <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
- <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
-Date: Thu, 15 Dec 2016 07:45:29 -0700
-MIME-Version: 1.0
-In-Reply-To: <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+        Wed, 14 Dec 2016 00:12:18 -0500
+Message-ID: <116d3251da40f45027b4abf184855850@smtp-cloud6.xs4all.net>
+Date: Wed, 14 Dec 2016 06:12:14 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/2016 07:03 AM, Hans Verkuil wrote:
-> On 15/12/16 13:56, Laurent Pinchart wrote:
->> Hi Sakari,
->>
->> On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:
->>> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:
->>>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
->>>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
->>>>>> Hi Sakari,
->>>>>>
->>>>>> I answered you point to point below, but I suspect that you missed how
->>>>>> the current approach works. So, I decided to write a quick summary
->>>>>> here.
->>>>>>
->>>>>> The character devices /dev/media? are created via cdev, with relies on
->>>>>> a kobject per device, with has an embedded struct kref inside.
->>>>>>
->>>>>> Also, each kobj at /dev/media0, /dev/media1, ... is associated with a
->>>>>> struct device, when the code does:
->>>>>>   devnode->cdev.kobj.parent = &devnode->dev.kobj;
->>>>>>
->>>>>> before calling cdev_add().
->>>>>>
->>>>>> The current lifetime management is actually based on cdev's kobject's
->>>>>> refcount, provided by its embedded kref.
->>>>>>
->>>>>> The kref warrants that any data associated with /dev/media0 won't be
->>>>>> freed if there are any pending system call. In other words, when
->>>>>> cdev_del() is called, it will remove /dev/media0 from the filesystem,
->>>>>> and will call kobject_put().
->>>>>>
->>>>>> If the refcount is zero, it will call devnode->dev.release(). If the
->>>>>> kobject refcount is not zero, the data won't be freed.
->>>>>>
->>>>>> So, in the best case scenario, there's no opened file descriptors
->>>>>> by the time media device node is unregistered. So, it will free
->>>>>> everything.
->>>>>>
->>>>>> In the worse case scenario, e. g. when the driver is removed or
->>>>>> unbind while /dev/media0 has some opened file descriptor(s),
->>>>>> the cdev logic will do the proper lifetime management.
->>>>>>
->>>>>> On such case, /dev/media0 disappears from the file system, so another
->>>>>> open is not possible anymore. The data structures will remain
->>>>>> allocated until all associated file descriptors are not closed.
->>>>>>
->>>>>> When all file descriptors are closed, the data will be freed.
->>>>>>
->>>>>> On that time, it will call an optional dev.release() callback,
->>>>>> responsible to free any other data struct that the driver allocated.
->>>>>
->>>>> The patchset does not change this. It's not a question of the
->>>>> media_devnode struct either. That's not an issue.
->>>>>
->>>>> The issue is rather what else can be accessed through the media device
->>>>> and other interfaces. As IOCTLs are not serialised with device removal
->>>>> (which now releases much of the data structures)
->>>>
->>>> Huh? ioctls are serialized with struct device removal. The Driver core
->>>> warrants that.
->>>
->>> How?
->>>
->>> As far as I can tell, there's nothing in the way of an IOCTL being in
->>> progress on a character device which is registered by the driver for a
->>> hardware device which is being removed.
->>>
->>> vfs_ioctl() directly calls the unlocked_ioctl() file operation which is, in
->>> case of MC, media_ioctl() in media-devnode.c. No mutexes (or other locks)
->>> are taken during that path, which I believe is by design.
-> 
-> chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
-> on release(). Thus ensuring that the cdev can never be removed while in an
-> ioctl.
-> 
->>>
->>>>> there's a high chance of accessing
->>>>> released memory (or mutexes that have been already destroyed). An
->>>>> example of that is here, stopping a running pipeline after unbinding
->>>>> the device. What happens there is that the media device is released
->>>>> whilst it's in use through the video device.
->>>>>
->>>>> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
->>>>
->>>> It is not clear from the logs what the driver tried to do, but
->>>> that sounds like a driver's bug, with was not prepared to properly
->>>> handle unbinds.
->>>>
->>>> The problem here is that isp_video_release() is called by V4L2
->>>> release logic, and not by the MC one:
->>>>
->>>> static const struct v4l2_file_operations isp_video_fops = {
->>>>       .owner          = THIS_MODULE,
->>>>       .open           = isp_video_open,
->>>>       .release        = isp_video_release,
->>>>       .poll           = vb2_fop_poll,
->>>>       .unlocked_ioctl = video_ioctl2,
->>>>       .mmap           = vb2_fop_mmap,
->>>> };
->>>>
->>>> It seems that the driver's logic allows it to be called before or
->>>> after destroying the MC.
->>>>
->>>> Assuming that, if the OMAP3 driver is not used it works,
->>>> it means that, if the isp_video_release() is called
->>>> first, no errors will happen, but if MC is destroyed before
->>>> V4L2 call to its .release() callback, as there's no logic at the
->>>> driver that would detect it, isp_video_release() will be calling
->>>> isp_video_streamoff(), with depends on the MC to work.
->>>>
->>>> On a first glance, I can see two ways of fixing it:
->>>>
->>>> 1) to increment devnode's device kobject refcount at OMAP3 .probe(),
->>>> decrementing it only at isp_video_release(). That will ensure that
->>>> MC will only be removed after V4L2 removal.
->>
->> As soon as you have to dig deep in a structure to find a reference counter and
->> increment it, bypassing all the API layers, you can be entirely sure that the
->> solution is wrong.
-> 
-> Indeed.
-> 
->>
->>>> 2) to call isp_video_streamoff() before removing the MC stuff, e. g.
->>>> inside the MC .release() callback.
->>>
->>> This is a fair suggestion, indeed. Let me see what could be done there.
->>> Albeit this is just *one* of the existing issues. It will not address all
->>> problems fixed by the patchset.
->>
->> We need to stop the hardware at .remove() time. That should not be linked to a
->> videodev, v4l2_device or media_device .release() callback. When the .remove()
->> callback returns the driver is not allowed to touch the hardware anymore. In
->> particular, power domains might clocks or power supplies, leading to invalid
->> access faults if we try to access hardware registers.
-> 
-> Correct.
-> 
->>
->> USB devices get help from the USB core that cancels all USB operations in
->> progress when they're disconnected. Platform devices don't have it as easy,
->> and need to implement everything themselves. We thus need to stop the
->> hardware, but I'm not sure it makes sense to fake a VIDIOC_STREAMOFF ioctl at
->> .remove() time.
-> 
-> Please don't. This shouldn't be done automatically.
-> 
->> That could introduce other races between .remove() and the
->> userspace API. A better solution is to make sure the objects that are needed
->> at .release() time of the device node are all reference-counted and only
->> released when the last reference goes away.
->>
->> There's plenty of way to try and work around the problem in drivers, some more
->> racy than others, but if we require changes to all platform drivers to fix
->> this we need to ensure that we get it right, not as half-baked hacks spread
->> around the whole subsystem.
-> 
-> Why on earth do we want this for the omap3 driver? It is not a hot-pluggable
-> device and I see no reason whatsoever to start modifying platform drivers just
-> because you can do an unbind. I know there are real hot-pluggable devices, and
-> getting this right for those is of course important.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This was my first reaction when I saw this RFC series. None of the platform
-drivers are designed to be unbound. Making core changes based on such as
-driver would make the core very complex.
+Results of the daily build of media_tree:
 
-We can't even reproduce the problem on other drivers.
+date:			Wed Dec 14 05:00:35 CET 2016
+media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	188e604d57bec065078ff772c802b93ddb6def4b
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-> 
-> If the omap3 is used as a testbed, then that's fine by me, but even then I
-> probably wouldn't want the omap3 code that makes this possible in the kernel.
-> It's just additional code for no purpose.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
-I agree with Hans. Why are we using the most complex case as a reference driver
-and basing that driver to make core changes which will force changes to all the
-driver that use mc-core?
+Detailed results are available here:
 
-> 
->>>> That could be done by overwriting the dev.release() callback at
->>>> omap3 driver, as I discussed on my past e-mails, and flagging the
->>>> driver that it should not accept streamon anymore, as the hardware
->>>> is being disconnecting.
->>>
->>> A mutex will be needed to serialise the this with starting streaming.
->>>
->>>> Btw, that explains a lot why Shuah can't reproduce the stuff you're
->>>> complaining on her USB hardware.
->>>>
->>>> The USB subsystem has a a .disconnect() callback that notifies
->>>> the drivers that a device was unbound (likely physically removed).
->>>> The way USB media drivers handle it is by returning -ENODEV to any
->>>> V4L2 call that would try to touch at the hardware after unbound.
->>
-> 
-> In my view the main problem is that the media core is bound to a struct
-> device set by the driver that creates the MC. But since the MC gives an
-> overview of lots of other (sub)devices the refcount of the media device
-> should be increased for any (sub)device that adds itself to the MC and
-> decreased for any (sub)device that is removed. Only when the very last
-> user goes away can the MC memory be released.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Correct. Media Device Allocator API work I did allows creating media device
-on parent USB device to allow media sound driver share the media device. It
-does ref-counting on media device and media device is unregistered only when
-the last driver unregisters it.
+Full logs are available here:
 
-There is another aspect to explore regarding media device and the graph.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-Should all the entities stick around until all references to media
-device are gone? If an application has /dev/media open, does that
-mean all entities should not be free'd until this app. exits? What
-should happen if an app. is streaming? Should the graph stay intact
-until the app. exits?
+The Media Infrastructure API from this daily build is here:
 
-   If yes, this would pose problems when we have multiple drivers bound
-   to the media device. When audio driver goes away for example, it should
-   be allowed to delete its entities.
-
-The approach current mc-core takes is that the media_device and media_devnode
-stick around, but entities can be added and removed during media_device
-lifetime.
-
-If an app. is still running when media_device is unregistered, media_device
-isn't released until the last reference goes away and ioctls can check if
-media_device is registered or not.
-
-We have to decide on the larger lifetime question surrounding media_device
-and graph as well.
-
-> 
-> The memory/refcounting associated with device nodes is unrelated to this:
-> once a devnode is unregistered it will be removed in /dev, and once the
-> last open fh closes any memory associated with the devnode can be released.
-> That will also decrease the refcount to its parent device.
-> 
-> This also means that it is a bad idea to embed devnodes in a larger struct.
-> They should be allocated and freed when the devnode is unregistered and
-> the last open filehandle is closed.
-> 
-> Then the parent's device refcount is decreased, and that may now call its
-> release callback if the refcount reaches 0.
-> 
-> For the media controller's device: any other device driver that needs access
-> to it needs to increase that device's refcount, and only when those devices
-> are released will they decrease the MC device's refcount.
-> 
-> And when that refcount goes to 0 can we finally free everything.
-> 
-> With regards to the opposition to reverting those initial patches, I'm
-> siding with Greg KH. Just revert the bloody patches. It worked most of the
-> time before those patches, so reverting really won't cause bisect problems.
-> 
-> Just revert and build up things as they should.
-> 
-> Note that v4l2-dev.c doesn't do things correctly (it doesn't set the cdev
-> parent pointer for example) and many drivers (including omap3isp) embed
-> video_device, which is wrong and can lead to complications.
-> 
-> I'm to blame for the embedding since I thought that was a good idea at one
-> time. I now realized that it isn't. Sorry about that...
-> 
-> And because the cdev of the video_device doesn't know about the parent
-> device it is (I think) possible that the parent device is released before
-> the cdev is released. Which can result in major problems.
-> 
-> Regards,
-> 
->     Hans
-
-thanks,
--- Shuah
+http://www.xs4all.nl/~hverkuil/spec/index.html
