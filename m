@@ -1,123 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:56605 "EHLO
-        lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750734AbcLNFMS (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:36849 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755396AbcLOWMD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 00:12:18 -0500
-Message-ID: <116d3251da40f45027b4abf184855850@smtp-cloud6.xs4all.net>
-Date: Wed, 14 Dec 2016 06:12:14 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Thu, 15 Dec 2016 17:12:03 -0500
+Received: by mail-wm0-f65.google.com with SMTP id m203so902193wma.3
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2016 14:11:52 -0800 (PST)
+Date: Thu, 15 Dec 2016 23:11:46 +0100
+From: Marcel Hasler <mahasler@gmail.com>
+To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v4 0/3] stk1160: Let the driver setup the device's internal
+ AC97 codec
+Message-ID: <20161215221146.GA9398@arch-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patchset is a result of my attempt to fix a bug (https://bugzilla.kernel.org/show_bug.cgi?id=180071) that eventually turned out to be caused by a missing quirk in snd-usb-audio. My idea was to remove the AC97 interface and setup the codec using the same values and in the same order as the Windows driver does, hoping there might be some "magic" sequence that would make the sound work the way it should. Although this didn't help to fix the problem, I found these changes to be useful nevertheless.
 
-Results of the daily build of media_tree:
+IMHO, having all of the AC97 codec's channels exposed to userspace is confusing since most of them have no meaning for this device anyway. Changing these values in alsamixer has either no effect at all or may even reduce the sound quality since it can actually increase the line-in DC offset (slightly).
 
-date:			Wed Dec 14 05:00:35 CET 2016
-media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	188e604d57bec065078ff772c802b93ddb6def4b
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+In addition, having to re-select the correct capture channel everytime the device has been plugged in is annoying. At least on my systems the mixer setup is only saved if the device is plugged in during shutdown/reboot. I also get error messages in my kernel log when I unplug the device because some process (probably the AC97 driver) ist trying to read from the device after it has been removed. Either way the device should work out-of-the-box without the need for the user to manually setup channels.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
+The first patch in the set therefore removes the 'stk1160-mixer' and lets the driver setup the AC97 codec using the same values as the Windows driver. Although some of the values seem to be defaults I let the driver set them either way, just to be sure.
 
-Detailed results are available here:
+The second patch adds a check to determine whether the device is strapped to use the internal 8-bit ADC or an external chip, or whether audio is disabled altogether. There's currently no check in place to determine whether the device uses AC-link or I2S, but then again I haven't heard of any of these devices actually using an I2S chip. If the device uses the internal ADC the AC97 setup can be skipped. I implemented the check inside stk1160-ac97. It could just as well be in stk1160-core but this way just seemed cleaner. If at some point the need arises to check other power-on strap values, it might make sense to refactor this then.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+The third patch addresses an issue when reading from the AC97 chip too soon, resulting in corrupt data.
 
-Full logs are available here:
+Changes from version 3:
+* Removed module param
+* Implemented polling read/write bits
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Marcel Hasler (3):
+  stk1160: Remove stk1160-mixer and setup internal AC97 codec automatically.
+  stk1160: Check whether to use AC97 codec.
+  stk1160: Wait for completion of transfers to and from AC97 codec.
 
-The Media Infrastructure API from this daily build is here:
+ drivers/media/usb/stk1160/Kconfig        |  10 +-
+ drivers/media/usb/stk1160/Makefile       |   4 +-
+ drivers/media/usb/stk1160/stk1160-ac97.c | 183 +++++++++++++++++--------------
+ drivers/media/usb/stk1160/stk1160-core.c |   8 +-
+ drivers/media/usb/stk1160/stk1160-reg.h  |  10 ++
+ drivers/media/usb/stk1160/stk1160.h      |  11 +-
+ 6 files changed, 116 insertions(+), 110 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+2.10.2
+
