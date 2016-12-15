@@ -1,79 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:33815 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758496AbcLPTIo (ORCPT
+Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:59426 "EHLO
+        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752715AbcLONCP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 14:08:44 -0500
-Received: by mail-lf0-f68.google.com with SMTP id 30so572928lfy.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 11:08:42 -0800 (PST)
-Date: Fri, 16 Dec 2016 20:07:59 +0100
-From: Henrik Austad <henrik@austad.us>
-To: David Miller <davem@davemloft.net>
-Cc: gvrose8192@gmail.com, linux-kernel@vger.kernel.org,
-        richardcochran@gmail.com, haustad@cisco.com,
-        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
-        netdev@vger.kernel.org
-Subject: Re: [TSN RFC v2 0/9] TSN driver for the kernel
-Message-ID: <20161216190759.GA1163@sisyphus.home.austad.us>
-References: <1481911153-549-1-git-send-email-henrik@austad.us>
- <1481911964.3572.1.camel@gmail.com>
- <20161216.132057.1771215556712298530.davem@davemloft.net>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="PEIAKu/WMn1b1Hv9"
-Content-Disposition: inline
-In-Reply-To: <20161216.132057.1771215556712298530.davem@davemloft.net>
+        Thu, 15 Dec 2016 08:02:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        linux-input <linux-input@vger.kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] serio.h: add SERIO_RAINSHADOW_CEC ID
+Date: Thu, 15 Dec 2016 14:02:06 +0100
+Message-Id: <20161215130207.12913-2-hverkuil@xs4all.nl>
+In-Reply-To: <20161215130207.12913-1-hverkuil@xs4all.nl>
+References: <20161215130207.12913-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---PEIAKu/WMn1b1Hv9
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add a new serio ID for the RainShadow Tech USB HDMI CEC adapter.
 
-On Fri, Dec 16, 2016 at 01:20:57PM -0500, David Miller wrote:
-> From: Greg <gvrose8192@gmail.com>
-> Date: Fri, 16 Dec 2016 10:12:44 -0800
->=20
-> > On Fri, 2016-12-16 at 18:59 +0100, henrik@austad.us wrote:
-> >> From: Henrik Austad <haustad@cisco.com>
-> >>=20
-> >>=20
-> >> The driver is directed via ConfigFS as we need userspace to handle
-> >> stream-reservation (MSRP), discovery and enumeration (IEEE 1722.1) and
-> >> whatever other management is needed. This also includes running an
-> >> appropriate PTP daemon (TSN favors gPTP).
-> >=20
-> > I suggest using a generic netlink interface to communicate with the
-> > driver to set up and/or configure your drivers.
-> >=20
-> > I think configfs is frowned upon for network drivers.  YMMV.
->=20
-> Agreed.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/serio.h | 1 +
+ 1 file changed, 1 insertion(+)
 
-Ok - thanks!
+diff --git a/include/uapi/linux/serio.h b/include/uapi/linux/serio.h
+index f2447a8..f42e919 100644
+--- a/include/uapi/linux/serio.h
++++ b/include/uapi/linux/serio.h
+@@ -79,5 +79,6 @@
+ #define SERIO_WACOM_IV	0x3e
+ #define SERIO_EGALAX	0x3f
+ #define SERIO_PULSE8_CEC	0x40
++#define SERIO_RAINSHADOW_CEC	0x41
+ 
+ #endif /* _UAPI_SERIO_H */
+-- 
+2.10.2
 
-I will have look at netlink and see if I can wrap my head around it and if=
-=20
-I can apply it to how to bring the media-devices up once the TSN-link has=
-=20
-been configured.
-
-Thanks! :)
-
---=20
-Henrik Austad
-
---PEIAKu/WMn1b1Hv9
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhUO48ACgkQ6k5VT6v45lkcewCfUyRuYP2gv4bt84NbJ+wkMlv4
-iRoAn2wZQpq0Fs5q4WxR2aybsxDtGJOc
-=dYRD
------END PGP SIGNATURE-----
-
---PEIAKu/WMn1b1Hv9--
