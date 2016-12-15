@@ -1,84 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:50961 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934619AbcLUOES (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48645 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936409AbcLOPGb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 09:04:18 -0500
-Subject: Re: 3A / auto-exposure Region of Interest setting
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <Pine.LNX.4.64.1611281449520.6665@axis700.grange>
- <3544629.8KCDMPoHBf@avalon> <Pine.LNX.4.64.1612211142410.5430@axis700.grange>
- <Pine.LNX.4.64.1612211453150.5430@axis700.grange>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <14f51756-782a-cc8f-fe57-455e85b22a2c@xs4all.nl>
-Date: Wed, 21 Dec 2016 15:04:14 +0100
+        Thu, 15 Dec 2016 10:06:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Date: Thu, 15 Dec 2016 17:07:03 +0200
+Message-ID: <1493768.35UTxJ6OiJ@avalon>
+In-Reply-To: <20161215123112.GA26269@kroah.com>
+References: <20161214151406.20380-1-mchehab@s-opensource.com> <3043978.ViByGAdkJL@avalon> <20161215123112.GA26269@kroah.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1612211453150.5430@axis700.grange>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/12/16 14:56, Guennadi Liakhovetski wrote:
-> ...one more issue to clarify - how to report compound controls with
-> control events, which also until now only support 32- and 64-bit integers.
+Hi Greg,
 
-For compound controls you can only get an event, not what the new values
-are. So you would have to call VIDIOC_G_EXT_CTRLS to obtain the new value.
+On Thursday 15 Dec 2016 04:31:12 Greg KH wrote:
+> On Thu, Dec 15, 2016 at 02:13:42PM +0200, Laurent Pinchart wrote:
+> > Hi Mauro,
+> > 
+> > (CC'ing Greg)
+> > 
+> > On Wednesday 14 Dec 2016 13:14:06 Mauro Carvalho Chehab wrote:
+> > > Avoid calling streamoff without having the media structs allocated.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > 
+> > The driver has a maintainer listed in MAINTAINERS, and you know that
+> > Sakari is also actively involved here. You could have CC'ed us.
+> > 
+> > > ---
+> > > 
+> > > Javier,
+> > > 
+> > > Could you please test this patch?
+> > > 
+> > > Thanks!
+> > > Mauro
+> > > 
+> > >  drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++++--
+> > >  1 file changed, 8 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> > > b/drivers/media/platform/omap3isp/ispvideo.c index
+> > > 7354469670b7..f60995ed0a1f 100644
+> > > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > > @@ -1488,11 +1488,17 @@ int omap3isp_video_register(struct isp_video
+> > > *video, struct v4l2_device *vdev) "%s: could not register video device
+> > > (%d)\n",> > 
+> > >  			__func__, ret);
+> > > 
+> > > +	/* Prevent destroying MC before unregistering */
+> > > +	kobject_get(vdev->v4l2_dev->mdev->devnode->dev.parent);
+> > 
+> > This doesn't even compile. Please make sure to at least compile-test
+> > patches you send for review, otherwise you end up wasting time for all
+> > reviewers and testers. I assume you meant
+> > 
+> > 	kobject_get(&vdev->mdev->devnode->dev.parent->kobj);
+> > 
+> > and similarly below.
+> > 
+> > That's a long list of pointer dereferences, going deep down the device
+> > core. Greg, are drivers allowed to do this by the driver model ?
+> 
+> WTF?
+> 
+> Eeek, no no no no!
+> 
+> First off, no driver should EVER have to call a "raw" kobject call,
+> that's a huge sign that you are doing something really really wrong.
+> 
+> Secondly, you NEVER grab a reference to a structure like this, you use
+> the "correct" driver/bus api calls.
+> 
+> Thirdly, ugh, how to say this nicely...  The whole idea that something
+> like this could actually be a real solution to a problem is insane.
+> 
+> Look at what you are really doing here, trying to grab an extra
+> reference on something that in reality, should never go away anyhow.
+> Your parent structure should already always have the reference count
+> incremented and will not disappear underneath you at all.  And if this
+> isn't your "parent", you have no right at all to go grab random
+> references across the device tree for no reason other than you feel you
+> don't want it to go away.  If you don't want something to go away, you
+> properly get the reference (hint, you already should have if you have
+> this type of pointer chain to the object.)
+> 
+> If this type of solution is somehow the "correct" one, the v4l driver
+> model interaction is severely broken and needs to be fixed.
+> 
+> What bug is this that caused this type of hack to even be proposed?  Is
+> it a bug or a regression?  If a regression, can someone show me the
+> commit that would cause such a monstrosity to be proposed?
+> 
+> Laurent, sorry, I know I said I was going to debug a USB V4L reference
+> counting problem last week, I had to travel and haven't had the chance
+> to do so.  I'll try to get to it today.  Hopefully that issue has
+> nothing to do with this problem.  Because if so, ugh...
 
+No worries, it's not urgent. The problem has nothing to do with this. I've 
+used the uvcvideo driver to trigger it, but it's probably independent of V4L2 
+(although sometimes I'm beginning to wonder :-)).
+
+> Mauro, again, please never propose something like this again.
+
+-- 
 Regards,
 
-	Hans
-
->
-> Thanks
-> Guennadi
->
-> On Wed, 21 Dec 2016, Guennadi Liakhovetski wrote:
->
->> Hi Laurent,
->>
->> On Tue, 29 Nov 2016, Laurent Pinchart wrote:
->>
->>> Hi Guennadi,
->>>
->>> (CC'ing Sakari)
->>>
->>> On Monday 28 Nov 2016 15:18:03 Guennadi Liakhovetski wrote:
->>>> Hi,
->>>>
->>>> Has anyone already considered supporting 3A (e.g. auto-exposure) Region of
->>>> Interest selection? In UVC this is the "Digital Region of Interest (ROI)
->>>> Control." Android defines ANDROID_CONTROL_AE_REGIONS,
->>>> ANDROID_CONTROL_AWB_REGIONS, ANDROID_CONTROL_AF_REGIONS. The UVC control
->>>> defines just a single rectangle for all (supported) 3A functions. That
->>>> could be implemented, defining a new selection target. However, Android
->>>> allows arbitrary numbers of ROI rectangles with associated weights. Any
->>>> ideas?
->>>
->>> Selections could be used, possibly with an update to the API to allow indexing
->>> selections for a given target. We'd be missing weights though. Another option
->>> would be to use compound controls.
->>
->> I talked to Hans online and he is in favour of a compound control for ROI
->> as well, which is also fine with me. Working on an implementation I
->> realised, that struct v4l2_query_ext_ctrl has min, max, step and default
->> values as 64-bit fields, which isn't enough for ROI. Shall they all be
->> replaced with unions of original values and pointers? As long as pointers
->> don't exceed 64 bits, we'll stay binary compatible. Or do we use those
->> fields similar to the STRING type to specify min, max, default number of
->> ROIs and a size of one ROI in step? I guess we should go with the latter.
->>
->> Thanks
->> Guennadi
->>
->>> --
->>> Regards,
->>>
->>> Laurent Pinchart
->>>
->>
+Laurent Pinchart
 
