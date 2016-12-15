@@ -1,476 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:47335 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756207AbcLTRud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Dec 2016 12:50:33 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-        Leonid Froenchenko <lfroen@galileo.co.il>
-Subject: [PATCH 4/5] [media] staging: lirc_bt829: remove
-Date: Tue, 20 Dec 2016 17:50:27 +0000
-Message-Id: <d2f57e70a56215effbc422751842b9e73eaba803.1482255894.git.sean@mess.org>
-In-Reply-To: <cover.1482255894.git.sean@mess.org>
-References: <cover.1482255894.git.sean@mess.org>
-In-Reply-To: <cover.1482255894.git.sean@mess.org>
-References: <cover.1482255894.git.sean@mess.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48264 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755985AbcLONYJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 08:24:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg KH <greg@kroah.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Date: Thu, 15 Dec 2016 15:24:44 +0200
+Message-ID: <5206822.pU16mdzeII@avalon>
+In-Reply-To: <20161215103734.716a0619@vento.lan>
+References: <20161214151406.20380-1-mchehab@s-opensource.com> <3043978.ViByGAdkJL@avalon> <20161215103734.716a0619@vento.lan>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is for an old mach64 VT board, which also has a framebuffer
-driver (atyfb) and userspace mach64 X driver.
+Hi Mauro,
 
-It was merged in 2010 and noone has attempted to port it to rc-core,
-which would be necessary to get it out of staging.
+On Thursday 15 Dec 2016 10:37:34 Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Dec 2016 14:13:42 +0200 Laurent Pinchart escreveu:
+> > On Wednesday 14 Dec 2016 13:14:06 Mauro Carvalho Chehab wrote:
+> >> Avoid calling streamoff without having the media structs allocated.
+> >> 
+> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > 
+> > The driver has a maintainer listed in MAINTAINERS, and you know that
+> > Sakari is also actively involved here. You could have CC'ed us.
+> 
+> Yes, sure.
+> 
+> >> ---
+> >> 
+> >> Javier,
+> >> 
+> >> Could you please test this patch?
+> >> 
+> >> Thanks!
+> >> Mauro
+> >> 
+> >>  drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++++--
+> >>  1 file changed, 8 insertions(+), 2 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> >> b/drivers/media/platform/omap3isp/ispvideo.c index
+> >> 7354469670b7..f60995ed0a1f 100644
+> >> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> >> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> >> @@ -1488,11 +1488,17 @@ int omap3isp_video_register(struct isp_video
+> >> *video, struct v4l2_device *vdev) "%s: could not register video device
+> >> (%d)\n",> > 
+> >>  			__func__, ret);
+> >> 
+> >> +	/* Prevent destroying MC before unregistering */
+> >> +	kobject_get(vdev->v4l2_dev->mdev->devnode->dev.parent);
+> > 
+> > This doesn't even compile. Please make sure to at least compile-test
+> > patches you send for review, otherwise you end up wasting time for all
+> > reviewers and testers. I assume you meant
+> > 
+> > 	kobject_get(&vdev->mdev->devnode->dev.parent->kobj);
+> > 
+> > and similarly below.
+> 
+> Yes.
+> 
+> Btw, Javier tested it yesterday with the above fix, but it didn't solve the
+> issue, because the problem is elsewhere.
+> 
+> What happens is that omap3isp driver calls media_device_unregister()
+> too early. Right now, it is called at omap3isp_video_device_release(),
 
-I have not been able to track down the hardware either.
+No, it's called from isp_unregister_entities() <- isp_remove() <- platform 
+driver .remove.
 
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: Leonid Froenchenko <lfroen@galileo.co.il>
----
- drivers/staging/media/lirc/Kconfig      |   6 -
- drivers/staging/media/lirc/Makefile     |   1 -
- drivers/staging/media/lirc/lirc_bt829.c | 401 --------------------------------
- 3 files changed, 408 deletions(-)
- delete mode 100644 drivers/staging/media/lirc/lirc_bt829.c
+> with happens when a driver unbind is ordered by userspace, and not after
+> the last usage of all /dev/video?? devices.
 
-diff --git a/drivers/staging/media/lirc/Kconfig b/drivers/staging/media/lirc/Kconfig
-index 7923d3f..574ab50 100644
---- a/drivers/staging/media/lirc/Kconfig
-+++ b/drivers/staging/media/lirc/Kconfig
-@@ -12,12 +12,6 @@ menuconfig LIRC_STAGING
- 
- if LIRC_STAGING
- 
--config LIRC_BT829
--        tristate "BT829 based hardware"
--	depends on LIRC && PCI
--	help
--	  Driver for the IR interface on BT829-based hardware
--
- config LIRC_IMON
- 	tristate "Legacy SoundGraph iMON Receiver and Display"
- 	depends on LIRC && USB
-diff --git a/drivers/staging/media/lirc/Makefile b/drivers/staging/media/lirc/Makefile
-index ed3091e..3f31116 100644
---- a/drivers/staging/media/lirc/Makefile
-+++ b/drivers/staging/media/lirc/Makefile
-@@ -3,7 +3,6 @@
- 
- # Each configuration option enables a list of files.
- 
--obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
- obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
- obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
- obj-$(CONFIG_LIRC_SIR)		+= lirc_sir.o
-diff --git a/drivers/staging/media/lirc/lirc_bt829.c b/drivers/staging/media/lirc/lirc_bt829.c
-deleted file mode 100644
-index 04d881b..0000000
---- a/drivers/staging/media/lirc/lirc_bt829.c
-+++ /dev/null
-@@ -1,401 +0,0 @@
--/*
-- * Remote control driver for the TV-card based on bt829
-- *
-- *  by Leonid Froenchenko <lfroen@galileo.co.il>
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
--*/
--
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/threads.h>
--#include <linux/sched.h>
--#include <linux/ioport.h>
--#include <linux/pci.h>
--#include <linux/delay.h>
--
--#include <media/lirc_dev.h>
--
--static int poll_main(void);
--static int atir_init_start(void);
--
--static void write_index(unsigned char index, unsigned int value);
--static unsigned int read_index(unsigned char index);
--
--static void do_i2c_start(void);
--static void do_i2c_stop(void);
--
--static void seems_wr_byte(unsigned char al);
--static unsigned char seems_rd_byte(void);
--
--static unsigned int read_index(unsigned char al);
--static void write_index(unsigned char ah, unsigned int edx);
--
--static void cycle_delay(int cycle);
--
--static void do_set_bits(unsigned char bl);
--static unsigned char do_get_bits(void);
--
--#define DATA_PCI_OFF 0x7FFC00
--#define WAIT_CYCLE   20
--
--#define DRIVER_NAME "lirc_bt829"
--
--static bool debug;
--
--static int atir_minor;
--static phys_addr_t pci_addr_phys;
--static unsigned char __iomem *pci_addr_lin;
--
--static struct lirc_driver atir_driver;
--
--static struct pci_dev *do_pci_probe(void)
--{
--	struct pci_dev *my_dev;
--
--	my_dev = pci_get_device(PCI_VENDOR_ID_ATI,
--				PCI_DEVICE_ID_ATI_264VT, NULL);
--	if (my_dev) {
--		pr_err("Using device: %s\n", pci_name(my_dev));
--		pci_addr_phys = 0;
--		if (my_dev->resource[0].flags & IORESOURCE_MEM) {
--			pci_addr_phys = my_dev->resource[0].start;
--			pr_info("memory at %pa\n", &pci_addr_phys);
--		}
--		if (pci_addr_phys == 0) {
--			pr_err("no memory resource ?\n");
--			pci_dev_put(my_dev);
--			return NULL;
--		}
--	} else {
--		pr_err("pci_probe failed\n");
--		return NULL;
--	}
--	return my_dev;
--}
--
--static int atir_add_to_buf(void *data, struct lirc_buffer *buf)
--{
--	unsigned char key;
--	int status;
--
--	status = poll_main();
--	key = (status >> 8) & 0xFF;
--	if (status & 0xFF) {
--		dev_dbg(atir_driver.dev, "reading key %02X\n", key);
--		lirc_buffer_write(buf, &key);
--		return 0;
--	}
--	return -ENODATA;
--}
--
--static int atir_set_use_inc(void *data)
--{
--	dev_dbg(atir_driver.dev, "driver is opened\n");
--	return 0;
--}
--
--static void atir_set_use_dec(void *data)
--{
--	dev_dbg(atir_driver.dev, "driver is closed\n");
--}
--
--int init_module(void)
--{
--	struct pci_dev *pdev;
--	int rc;
--
--	pdev = do_pci_probe();
--	if (!pdev)
--		return -ENODEV;
--
--	rc = pci_enable_device(pdev);
--	if (rc)
--		goto err_put_dev;
--
--	if (!atir_init_start()) {
--		rc = -ENODEV;
--		goto err_disable;
--	}
--
--	strcpy(atir_driver.name, "ATIR");
--	atir_driver.minor       = -1;
--	atir_driver.code_length = 8;
--	atir_driver.sample_rate = 10;
--	atir_driver.data        = NULL;
--	atir_driver.add_to_buf  = atir_add_to_buf;
--	atir_driver.set_use_inc = atir_set_use_inc;
--	atir_driver.set_use_dec = atir_set_use_dec;
--	atir_driver.dev         = &pdev->dev;
--	atir_driver.owner       = THIS_MODULE;
--
--	atir_minor = lirc_register_driver(&atir_driver);
--	if (atir_minor < 0) {
--		pr_err("failed to register driver!\n");
--		rc = atir_minor;
--		goto err_unmap;
--	}
--	dev_dbg(atir_driver.dev, "driver is registered on minor %d\n",
--				atir_minor);
--
--	return 0;
--
--err_unmap:
--	iounmap(pci_addr_lin);
--err_disable:
--	pci_disable_device(pdev);
--err_put_dev:
--	pci_dev_put(pdev);
--	return rc;
--}
--
--void cleanup_module(void)
--{
--	struct pci_dev *pdev = to_pci_dev(atir_driver.dev);
--
--	lirc_unregister_driver(atir_minor);
--	iounmap(pci_addr_lin);
--	pci_disable_device(pdev);
--	pci_dev_put(pdev);
--}
--
--static int atir_init_start(void)
--{
--	pci_addr_lin = ioremap(pci_addr_phys + DATA_PCI_OFF, 0x400);
--	if (!pci_addr_lin) {
--		pr_info("pci mem must be mapped\n");
--		return 0;
--	}
--	return 1;
--}
--
--static void cycle_delay(int cycle)
--{
--	udelay(WAIT_CYCLE * cycle);
--}
--
--static int poll_main(void)
--{
--	unsigned char status_high, status_low;
--
--	do_i2c_start();
--
--	seems_wr_byte(0xAA);
--	seems_wr_byte(0x01);
--
--	do_i2c_start();
--
--	seems_wr_byte(0xAB);
--
--	status_low = seems_rd_byte();
--	status_high = seems_rd_byte();
--
--	do_i2c_stop();
--
--	return (status_high << 8) | status_low;
--}
--
--static void do_i2c_start(void)
--{
--	do_set_bits(3);
--	cycle_delay(4);
--
--	do_set_bits(1);
--	cycle_delay(7);
--
--	do_set_bits(0);
--	cycle_delay(2);
--}
--
--static void do_i2c_stop(void)
--{
--	unsigned char bits;
--
--	bits =  do_get_bits() & 0xFD;
--	do_set_bits(bits);
--	cycle_delay(1);
--
--	bits |= 1;
--	do_set_bits(bits);
--	cycle_delay(2);
--
--	bits |= 2;
--	do_set_bits(bits);
--	bits = 3;
--	do_set_bits(bits);
--	cycle_delay(2);
--}
--
--static void seems_wr_byte(unsigned char value)
--{
--	int i;
--	unsigned char reg;
--
--	reg = do_get_bits();
--	for (i = 0; i < 8; i++) {
--		if (value & 0x80)
--			reg |= 0x02;
--		else
--			reg &= 0xFD;
--
--		do_set_bits(reg);
--		cycle_delay(1);
--
--		reg |= 1;
--		do_set_bits(reg);
--		cycle_delay(1);
--
--		reg &= 0xFE;
--		do_set_bits(reg);
--		cycle_delay(1);
--		value <<= 1;
--	}
--	cycle_delay(2);
--
--	reg |= 2;
--	do_set_bits(reg);
--
--	reg |= 1;
--	do_set_bits(reg);
--
--	cycle_delay(1);
--	do_get_bits();
--
--	reg &= 0xFE;
--	do_set_bits(reg);
--	cycle_delay(3);
--}
--
--static unsigned char seems_rd_byte(void)
--{
--	int i;
--	int rd_byte;
--	unsigned char bits_2, bits_1;
--
--	bits_1 = do_get_bits() | 2;
--	do_set_bits(bits_1);
--
--	rd_byte = 0;
--	for (i = 0; i < 8; i++) {
--		bits_1 &= 0xFE;
--		do_set_bits(bits_1);
--		cycle_delay(2);
--
--		bits_1 |= 1;
--		do_set_bits(bits_1);
--		cycle_delay(1);
--
--		bits_2 = do_get_bits();
--		if (bits_2 & 2)
--			rd_byte |= 1;
--
--		rd_byte <<= 1;
--	}
--
--	bits_1 = 0;
--	if (bits_2 == 0)
--		bits_1 |= 2;
--
--	do_set_bits(bits_1);
--	cycle_delay(2);
--
--	bits_1 |= 1;
--	do_set_bits(bits_1);
--	cycle_delay(3);
--
--	bits_1 &= 0xFE;
--	do_set_bits(bits_1);
--	cycle_delay(2);
--
--	rd_byte >>= 1;
--	rd_byte &= 0xFF;
--	return rd_byte;
--}
--
--static void do_set_bits(unsigned char new_bits)
--{
--	int reg_val;
--
--	reg_val = read_index(0x34);
--	if (new_bits & 2) {
--		reg_val &= 0xFFFFFFDF;
--		reg_val |= 1;
--	} else {
--		reg_val &= 0xFFFFFFFE;
--		reg_val |= 0x20;
--	}
--	reg_val |= 0x10;
--	write_index(0x34, reg_val);
--
--	reg_val = read_index(0x31);
--	if (new_bits & 1)
--		reg_val |= 0x1000000;
--	else
--		reg_val &= 0xFEFFFFFF;
--
--	reg_val |= 0x8000000;
--	write_index(0x31, reg_val);
--}
--
--static unsigned char do_get_bits(void)
--{
--	unsigned char bits;
--	int reg_val;
--
--	reg_val = read_index(0x34);
--	reg_val |= 0x10;
--	reg_val &= 0xFFFFFFDF;
--	write_index(0x34, reg_val);
--
--	reg_val = read_index(0x34);
--	bits = 0;
--	if (reg_val & 8)
--		bits |= 2;
--	else
--		bits &= 0xFD;
--
--	reg_val = read_index(0x31);
--	if (reg_val & 0x1000000)
--		bits |= 1;
--	else
--		bits &= 0xFE;
--
--	return bits;
--}
--
--static unsigned int read_index(unsigned char index)
--{
--	unsigned char __iomem *addr;
--	/*  addr = pci_addr_lin + DATA_PCI_OFF + ((index & 0xFF) << 2); */
--	addr = pci_addr_lin + ((index & 0xFF) << 2);
--	return readl(addr);
--}
--
--static void write_index(unsigned char index, unsigned int reg_val)
--{
--	unsigned char __iomem *addr;
--
--	addr = pci_addr_lin + ((index & 0xFF) << 2);
--	writel(reg_val, addr);
--}
--
--MODULE_AUTHOR("Froenchenko Leonid");
--MODULE_DESCRIPTION("IR remote driver for bt829 based TV cards");
--MODULE_LICENSE("GPL");
--
--module_param(debug, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(debug, "Debug enabled or not");
+That's the right place to *unregister* the media device, but of course not the 
+right place to *free* it. Unregistering the media device means marking it as 
+closed for business, ensuring at least that any new userspace request will be 
+rejected. It doesn't mean that memory should be freed at that point, the 
+object must still remain accessible in the kernel for as long as it has users.
+
+> There are two possible fixes:
+> 
+> 1) at omap3isp_video_device_release(),
+
+There's no such function. I assume you mean isp_remove().
+
+> streamoff all streams and mark that the media device will be gone.
+
+The hardware should certainly be stopped at .remove() time, but trying to fake 
+a userspace API call there through the driver's back is another case of 
+bypassing API layers, it's more a hack than a clean fix.
+
+> 2) instead of using video_device_release_empty for the video->video.release,
+> create a omap3isp_video_device_release() that will call
+> media_device_unregister() when destroying the last /dev/video?? devnode.
+
+As explained above, the media device should be unregistered at .remove() time. 
+It should be freed at .remove() time.
+
+The media device can be accessed through multiple means. Aside from the 
+userspace API exposed through a devnode, we also store the media device 
+pointer in v4l2_device, as well as in videodev and v4l2_subdev through the 
+embedded media_entity. videodev and v4l2_subdev expose a userspace API that 
+require a .release() handler for the corresponding device nodes (note that I'm 
+talking about the file operations release handler, not the release handler for 
+the structures themselves), and that .release() handler is implemented in a 
+way that does or can dereference the media_device object.
+
+For instance, the v4l2_subdev release handler subdev_close() contains the 
+following code
+
+        if (sd->internal_ops && sd->internal_ops->close)
+                sd->internal_ops->close(sd, subdev_fh);
+#if defined(CONFIG_MEDIA_CONTROLLER)
+        if (sd->v4l2_dev->mdev)
+                media_entity_put(&sd->entity);
+#endif
+
+that both accesses media objects directly, and allow the driver to do through 
+its subdev .close() operation handler. The videodev .release() handler 
+v4l2_release() has the same issue with
+
+        if (vdev->fops->release)
+                ret = vdev->fops->release(filp);
+
+and then calls video_put() that ends up invoking v4l2_device_release() which 
+does touch the media_device and then the struct videodev .release() operation, 
+again implemented by drivers (although that one should just be one or multiple 
+kfree in most cases).
+
+There are lots of way in which the media_device structure can be accessed, 
+sometimes probably for bad reasons, but most of the time for legitimate 
+reasons. Instead of chasing them down all (which we will never be able to do 
+as we're talking about driver code), we should make sure that media_device 
+gets properly refcounted and only freed when safe.
+
+We could in theory implement refcounting in the drivers, by implementing 
+.release() handler for all the structure that hold a reference to media_device 
+(v4l2_device, videodev and v4l2_subdev as explained above). The drivers would 
+then need to count how many of those structures are still in use (as a driver 
+can create multiple video nodes and/or subdev nodes for instance) and only 
+free the media_device when that counter reaches 0.
+
+That would however be really really wrong, as it would require complex code 
+very prone to race conditions (anyone who has worked with USB devices should 
+know that) in all drivers, including platform drivers whose unbind gets rarely 
+tested. We should instead simplify it for drivers and implement that reference 
+counting in the core.
+
+> I have a half-baked patch for (2). I'll try to finish it and do some
+> tests.
+> 
+> Unfortunately, I don't have any OMAP3 device that has a camera
+> module, except for a N9 device with a damaged display.
+> 
+> Sakari,
+> 
+> Is there a way for me to use the N9 device to test it without a
+> display? AFAIKT, the device is operational, and I *guess* it is
+> on developer's mode, but not really sure.
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
