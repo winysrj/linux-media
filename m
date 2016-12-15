@@ -1,73 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:33312 "EHLO
-        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751176AbcLEStB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 13:49:01 -0500
-Received: by mail-oi0-f51.google.com with SMTP id w63so351737144oiw.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 10:49:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
-References: <20161128165751.GB28381@obsidianresearch.com> <1480357179.19407.13.camel@mellanox.com>
- <20161128190244.GA21975@obsidianresearch.com> <c0ddccf3-52ce-d883-a57a-70d8a1febf85@mellanox.com>
- <20161130162353.GA24639@obsidianresearch.com> <5f5b7989-84f5-737e-47c8-831f752d6280@deltatee.com>
- <c1ead8a0-6850-fc84-2793-b986f5c1f726@mellanox.com> <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
- <20161205171830.GB27784@obsidianresearch.com> <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
- <20161205180231.GA28133@obsidianresearch.com> <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
- <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 5 Dec 2016 10:48:58 -0800
-Message-ID: <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Haggai Eran <haggaie@mellanox.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
-        "christian.koenig@amd.com" <christian.koenig@amd.com>,
-        "Suravee.Suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>,
-        "John.Bridgman@amd.com" <john.bridgman@amd.com>,
-        "Alexander.Deucher@amd.com" <alexander.deucher@amd.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "serguei.sagalovitch@amd.com" <serguei.sagalovitch@amd.com>,
-        "Paul.Blinzer@amd.com" <paul.blinzer@amd.com>,
-        "Felix.Kuehling@amd.com" <felix.kuehling@amd.com>,
-        "ben.sander@amd.com" <ben.sander@amd.com>
-Content-Type: text/plain; charset=UTF-8
+Received: from gofer.mess.org ([80.229.237.210]:49649 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757464AbcLOMuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:50:08 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v6 02/18] [media] rc: Add scancode validation
+Date: Thu, 15 Dec 2016 12:50:03 +0000
+Message-Id: <1d5f0b896c44e6b412f24ce482ba028e73f9669b.1481805635.git.sean@mess.org>
+In-Reply-To: <cover.1481805635.git.sean@mess.org>
+References: <cover.1481805635.git.sean@mess.org>
+In-Reply-To: <cover.1481805635.git.sean@mess.org>
+References: <cover.1481805635.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 5, 2016 at 10:39 AM, Logan Gunthorpe <logang@deltatee.com> wrote:
-> On 05/12/16 11:08 AM, Dan Williams wrote:
->>
->> I've already recommended that iopmem not be a block device and instead
->> be a device-dax instance. I also don't think it should claim the PCI
->> ID, rather the driver that wants to map one of its bars this way can
->> register the memory region with the device-dax core.
->>
->> I'm not sure there are enough device drivers that want to do this to
->> have it be a generic /sys/.../resource_dmableX capability. It still
->> seems to be an exotic one-off type of configuration.
->
->
-> Yes, this is essentially my thinking. Except I think the userspace interface
-> should really depend on the device itself. Device dax is a good  choice for
-> many and I agree the block device approach wouldn't be ideal.
->
-> Specifically for NVME CMB: I think it would make a lot of sense to just hand
-> out these mappings with an mmap call on /dev/nvmeX. I expect CMB buffers
-> would be volatile and thus you wouldn't need to keep track of where in the
-> BAR the region came from. Thus, the mmap call would just be an allocator
-> from BAR memory. If device-dax were used, userspace would need to lookup
-> which device-dax instance corresponds to which nvme drive.
->
+We need to valdiate that scancodes are valid for their protocol; an
+incorrect necx scancode could actually be a nec scancode, for example.
 
-I'm not opposed to mapping /dev/nvmeX.  However, the lookup is trivial
-to accomplish in sysfs through /sys/dev/char to find the sysfs path of
-the device-dax instance under the nvme device, or if you already have
-the nvme sysfs path the dax instance(s) will appear under the "dax"
-sub-directory.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/rc-main.c | 71 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 68 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index b52b5da..62141d6 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -724,6 +724,64 @@ void rc_keydown_notimeout(struct rc_dev *dev, enum rc_type protocol,
+ }
+ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+ 
++/**
++ * rc_validate_filter() - checks that the scancode and mask are valid and
++ *			  provides sensible defaults
++ * @protocol:	the protocol for the filter
++ * @filter:	the scancode and mask
++ * @return:	0 or -EINVAL if the filter is not valid
++ */
++static int rc_validate_filter(enum rc_type protocol,
++			      struct rc_scancode_filter *filter)
++{
++	static u32 masks[] = {
++		[RC_TYPE_RC5] = 0x1f7f,
++		[RC_TYPE_RC5X] = 0x1f7f3f,
++		[RC_TYPE_RC5_SZ] = 0x2fff,
++		[RC_TYPE_SONY12] = 0x1f007f,
++		[RC_TYPE_SONY15] = 0xff007f,
++		[RC_TYPE_SONY20] = 0x1fff7f,
++		[RC_TYPE_JVC] = 0xffff,
++		[RC_TYPE_NEC] = 0xffff,
++		[RC_TYPE_NECX] = 0xffffff,
++		[RC_TYPE_NEC32] = 0xffffffff,
++		[RC_TYPE_SANYO] = 0x1fffff,
++		[RC_TYPE_RC6_0] = 0xffff,
++		[RC_TYPE_RC6_6A_20] = 0xfffff,
++		[RC_TYPE_RC6_6A_24] = 0xffffff,
++		[RC_TYPE_RC6_6A_32] = 0xffffffff,
++		[RC_TYPE_RC6_MCE] = 0xffff7fff,
++		[RC_TYPE_SHARP] = 0x1fff,
++	};
++	u32 s = filter->data;
++
++	switch (protocol) {
++	case RC_TYPE_NECX:
++		if ((((s >> 16) ^ ~(s >> 8)) & 0xff) == 0)
++			return -EINVAL;
++		break;
++	case RC_TYPE_NEC32:
++		if ((((s >> 24) ^ ~(s >> 16)) & 0xff) == 0)
++			return -EINVAL;
++		break;
++	case RC_TYPE_RC6_MCE:
++		if ((s & 0xffff0000) != 0x800f0000)
++			return -EINVAL;
++		break;
++	case RC_TYPE_RC6_6A_32:
++		if ((s & 0xffff0000) == 0x800f0000)
++			return -EINVAL;
++		break;
++	default:
++		break;
++	}
++
++	filter->data &= masks[protocol];
++	filter->mask &= masks[protocol];
++
++	return 0;
++}
++
+ int rc_open(struct rc_dev *rdev)
+ {
+ 	int rval = 0;
+@@ -1229,11 +1287,18 @@ static ssize_t store_filter(struct device *device,
+ 		new_filter.data = val;
+ 
+ 	if (fattr->type == RC_FILTER_WAKEUP) {
+-		/* refuse to set a filter unless a protocol is enabled */
+-		if (dev->wakeup_protocol == RC_TYPE_UNKNOWN) {
++		/*
++		 * Refuse to set a filter unless a protocol is enabled
++		 * and the filter is valid for that protocol
++		 */
++		if (dev->wakeup_protocol != RC_TYPE_UNKNOWN)
++			ret = rc_validate_filter(dev->wakeup_protocol,
++						 &new_filter);
++		else
+ 			ret = -EINVAL;
++
++		if (ret != 0)
+ 			goto unlock;
+-		}
+ 	}
+ 
+ 	if (fattr->type == RC_FILTER_NORMAL && !dev->enabled_protocols &&
+-- 
+2.9.3
+
