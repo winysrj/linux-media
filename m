@@ -1,124 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:51800 "EHLO
-        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751962AbcLJFLM (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39013
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753187AbcLOTtP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Dec 2016 00:11:12 -0500
-Message-ID: <0ccbf501bca3d5ca5f560e04ea85abf2@smtp-cloud2.xs4all.net>
-Date: Sat, 10 Dec 2016 06:11:08 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 15 Dec 2016 14:49:15 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 1/2] media: omap3isp fix media_entity_cleanup() after media device unregister
+Date: Thu, 15 Dec 2016 12:40:07 -0700
+Message-Id: <adae92a88cf8f25e022fdf46b8be7cb23e07465b.1481829722.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1481829721.git.shuahkh@osg.samsung.com>
+References: <cover.1481829721.git.shuahkh@osg.samsung.com>
+In-Reply-To: <cover.1481829721.git.shuahkh@osg.samsung.com>
+References: <cover.1481829721.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+During unbind isp_remove() media_entity_cleanup() after it unregisters the
+media_device. Cleanup routine calls media_entity_cleanup() accessing subdev
+entities that have been removed. This will cause problems during unbind.
 
-Results of the daily build of media_tree:
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/platform/omap3isp/ispccdc.c    | 1 -
+ drivers/media/platform/omap3isp/ispccp2.c    | 1 -
+ drivers/media/platform/omap3isp/ispcsi2.c    | 1 -
+ drivers/media/platform/omap3isp/isppreview.c | 1 -
+ drivers/media/platform/omap3isp/ispresizer.c | 1 -
+ drivers/media/platform/omap3isp/ispstat.c    | 1 -
+ drivers/media/platform/omap3isp/ispvideo.c   | 1 -
+ 7 files changed, 7 deletions(-)
 
-date:			Sat Dec 10 05:00:18 CET 2016
-media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	188e604d57bec065078ff772c802b93ddb6def4b
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 882310e..6d27e48 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2726,7 +2726,6 @@ void omap3isp_ccdc_cleanup(struct isp_device *isp)
+ 	struct isp_ccdc_device *ccdc = &isp->isp_ccdc;
+ 
+ 	omap3isp_video_cleanup(&ccdc->video_out);
+-	media_entity_cleanup(&ccdc->subdev.entity);
+ 
+ 	/* Free LSC requests. As the CCDC is stopped there's no active request,
+ 	 * so only the pending request and the free queue need to be handled.
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index ca09523..4c1e7f0 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -1162,5 +1162,4 @@ void omap3isp_ccp2_cleanup(struct isp_device *isp)
+ 	struct isp_ccp2_device *ccp2 = &isp->isp_ccp2;
+ 
+ 	omap3isp_video_cleanup(&ccp2->video_in);
+-	media_entity_cleanup(&ccp2->subdev.entity);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index f75a1be..840756e 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -1318,5 +1318,4 @@ void omap3isp_csi2_cleanup(struct isp_device *isp)
+ 	struct isp_csi2_device *csi2a = &isp->isp_csi2a;
+ 
+ 	omap3isp_video_cleanup(&csi2a->video_out);
+-	media_entity_cleanup(&csi2a->subdev.entity);
+ }
+diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
+index ac30a0f..a179dac 100644
+--- a/drivers/media/platform/omap3isp/isppreview.c
++++ b/drivers/media/platform/omap3isp/isppreview.c
+@@ -2348,5 +2348,4 @@ void omap3isp_preview_cleanup(struct isp_device *isp)
+ 	v4l2_ctrl_handler_free(&prev->ctrls);
+ 	omap3isp_video_cleanup(&prev->video_in);
+ 	omap3isp_video_cleanup(&prev->video_out);
+-	media_entity_cleanup(&prev->subdev.entity);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index 0b6a875..d22a54a 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1791,5 +1791,4 @@ void omap3isp_resizer_cleanup(struct isp_device *isp)
+ 
+ 	omap3isp_video_cleanup(&res->video_in);
+ 	omap3isp_video_cleanup(&res->video_out);
+-	media_entity_cleanup(&res->subdev.entity);
+ }
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 1b9217d..47b8e43 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -1055,7 +1055,6 @@ int omap3isp_stat_init(struct ispstat *stat, const char *name,
+ 
+ void omap3isp_stat_cleanup(struct ispstat *stat)
+ {
+-	media_entity_cleanup(&stat->subdev.entity);
+ 	mutex_destroy(&stat->ioctl_lock);
+ 	isp_stat_bufs_free(stat);
+ 	kfree(stat->buf);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index 7354469..6914035 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1470,7 +1470,6 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 
+ void omap3isp_video_cleanup(struct isp_video *video)
+ {
+-	media_entity_cleanup(&video->video.entity);
+ 	mutex_destroy(&video->queue_lock);
+ 	mutex_destroy(&video->stream_lock);
+ 	mutex_destroy(&video->mutex);
+-- 
+2.7.4
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
