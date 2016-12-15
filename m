@@ -1,110 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:56430 "EHLO
-        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751266AbcLOMg5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47948 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755591AbcLOLmt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 07:36:57 -0500
-Date: Thu, 15 Dec 2016 04:31:12 -0800
-From: Greg KH <greg@kroah.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
-Message-ID: <20161215123112.GA26269@kroah.com>
-References: <20161214151406.20380-1-mchehab@s-opensource.com>
- <3043978.ViByGAdkJL@avalon>
+        Thu, 15 Dec 2016 06:42:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, shuahkh@osg.samsung.com
+Subject: Re: [RFC v3 21/21] omap3isp: Don't rely on devm for memory resource management
+Date: Thu, 15 Dec 2016 13:42:44 +0200
+Message-ID: <3081773.GUJA4mrXhH@avalon>
+In-Reply-To: <20161215113956.GF16630@valkosipuli.retiisi.org.uk>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com> <1551037.Hfmqsgr3In@avalon> <20161215113956.GF16630@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3043978.ViByGAdkJL@avalon>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 15, 2016 at 02:13:42PM +0200, Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> (CC'ing Greg)
-> 
-> On Wednesday 14 Dec 2016 13:14:06 Mauro Carvalho Chehab wrote:
-> > Avoid calling streamoff without having the media structs allocated.
+Hi Sakari,
+
+On Thursday 15 Dec 2016 13:39:56 Sakari Ailus wrote:
+> On Thu, Dec 15, 2016 at 01:23:50PM +0200, Laurent Pinchart wrote:
+> > On Saturday 27 Aug 2016 02:43:29 Sakari Ailus wrote:
+> >> devm functions are fine for managing resources that are directly related
+> >> to the device at hand and that have no other dependencies. However, a
+> >> process holding a file handle to a device created by a driver for a
+> >> device may result in the file handle left behind after the device is long
+> >> gone. This will result in accessing released (and potentially
+> >> reallocated) memory.
+> >> 
+> >> Instead, rely on the media device which will stick around until all
+> >> users are gone.
 > > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > Could you move this patch to the beginning of the series to show that
+> > converting the driver away from devm_* isn't enough to fix the problem
+> > that the series tries to address ?
 > 
-> The driver has a maintainer listed in MAINTAINERS, and you know that Sakari is 
-> also actively involved here. You could have CC'ed us.
-> 
-> > ---
-> > 
-> > Javier,
-> > 
-> > Could you please test this patch?
-> > 
-> > Thanks!
-> > Mauro
-> > 
-> >  drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++++--
-> >  1 file changed, 8 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> > b/drivers/media/platform/omap3isp/ispvideo.c index
-> > 7354469670b7..f60995ed0a1f 100644
-> > --- a/drivers/media/platform/omap3isp/ispvideo.c
-> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> > @@ -1488,11 +1488,17 @@ int omap3isp_video_register(struct isp_video *video,
-> > struct v4l2_device *vdev) "%s: could not register video device (%d)\n",
-> >  			__func__, ret);
-> > 
-> > +	/* Prevent destroying MC before unregistering */
-> > +	kobject_get(vdev->v4l2_dev->mdev->devnode->dev.parent);
-> 
-> This doesn't even compile. Please make sure to at least compile-test patches 
-> you send for review, otherwise you end up wasting time for all reviewers and 
-> testers. I assume you meant
-> 
-> 	kobject_get(&vdev->mdev->devnode->dev.parent->kobj);
-> 
-> and similarly below.
-> 
-> That's a long list of pointer dereferences, going deep down the device core. 
-> Greg, are drivers allowed to do this by the driver model ?
+> Unfortunately not. The patch depends on the previous patch; the
+> isp_release() function is called once the last user of the device nodes (MC,
+> V4L2 and V4L2 sub-dev) is gone.
 
-WTF?
+You can split that part out. The devm_* removal is independent and could be 
+moved to the beginning of the series.
 
-Eeek, no no no no!
+> I'll also see what could be done based on Mauro's suggestion to move
+> streamoff to device removal. That could fix a number of problems (but not
+> all of them).
 
-First off, no driver should EVER have to call a "raw" kobject call,
-that's a huge sign that you are doing something really really wrong.
+I'll reply to that separately but it's not the best idea.
 
-Secondly, you NEVER grab a reference to a structure like this, you use
-the "correct" driver/bus api calls.
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >> 
+> >>  drivers/media/platform/omap3isp/isp.c         | 38 +++++++++++++-------
+> >>  drivers/media/platform/omap3isp/ispccp2.c     |  3 ++-
+> >>  drivers/media/platform/omap3isp/isph3a_aewb.c | 20 +++++++++-----
+> >>  drivers/media/platform/omap3isp/isph3a_af.c   | 20 +++++++++-----
+> >>  drivers/media/platform/omap3isp/isphist.c     |  5 ++--
+> >>  drivers/media/platform/omap3isp/ispstat.c     |  2 ++
+> >>  6 files changed, 63 insertions(+), 25 deletions(-)
 
-Thirdly, ugh, how to say this nicely...  The whole idea that something
-like this could actually be a real solution to a problem is insane.
+-- 
+Regards,
 
-Look at what you are really doing here, trying to grab an extra
-reference on something that in reality, should never go away anyhow.
-Your parent structure should already always have the reference count
-incremented and will not disappear underneath you at all.  And if this
-isn't your "parent", you have no right at all to go grab random
-references across the device tree for no reason other than you feel you
-don't want it to go away.  If you don't want something to go away, you
-properly get the reference (hint, you already should have if you have
-this type of pointer chain to the object.)
+Laurent Pinchart
 
-If this type of solution is somehow the "correct" one, the v4l driver
-model interaction is severely broken and needs to be fixed.
-
-What bug is this that caused this type of hack to even be proposed?  Is
-it a bug or a regression?  If a regression, can someone show me the
-commit that would cause such a monstrosity to be proposed?
-
-Laurent, sorry, I know I said I was going to debug a USB V4L reference
-counting problem last week, I had to travel and haven't had the chance
-to do so.  I'll try to get to it today.  Hopefully that issue has
-nothing to do with this problem.  Because if so, ugh...
-
-Mauro, again, please never propose something like this again.
-
-greg k-h
