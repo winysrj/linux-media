@@ -1,117 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:34697 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753278AbcL2W2L (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38806
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755860AbcLOTSB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 17:28:11 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: shawnguo@kernel.org, kernel@pengutronix.de, fabio.estevam@nxp.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        linus.walleij@linaro.org, gnurou@gmail.com, mchehab@kernel.org,
-        gregkh@linuxfoundation.org, p.zabel@pengutronix.de
-Cc: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 09/20] ARM: dts: imx6-sabreauto: add the ADV7180 video decoder
-Date: Thu, 29 Dec 2016 14:27:24 -0800
-Message-Id: <1483050455-10683-10-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1483050455-10683-1-git-send-email-steve_longerbeam@mentor.com>
+        Thu, 15 Dec 2016 14:18:01 -0500
+Subject: Re: [RFC v3 21/21] omap3isp: Don't rely on devm for memory resource
+ management
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+ <3081773.GUJA4mrXhH@avalon> <58528255.2070708@linux.intel.com>
+ <34468031.gaR5u7AJSf@avalon>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+        hverkuil@xs4all.nl, mchehab@osg.samsung.com,
+        Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <96a9c7f4-2a9b-2d21-0dd2-baa769fdf605@osg.samsung.com>
+Date: Thu, 15 Dec 2016 12:17:58 -0700
+MIME-Version: 1.0
+In-Reply-To: <34468031.gaR5u7AJSf@avalon>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enables the ADV7180 decoder sensor. The ADV7180 connects to the
-parallel-bus mux input on ipu1_csi0_mux.
+Hi Skarai,
 
-On the sabreauto, two analog video inputs are routed to the ADV7180,
-composite on Ain1, and composite on Ain3. Those inputs are defined
-via inputs and input-names under the ADV7180 node. The ADV7180 power
-pin is via max7310_b port expander.
+On 12/15/2016 04:57 AM, Laurent Pinchart wrote:
+> On Thursday 15 Dec 2016 13:45:25 Sakari Ailus wrote:
+>> Hi Laurent,
+>>
+>> On 12/15/16 13:42, Laurent Pinchart wrote:
+>>> You can split that part out. The devm_* removal is independent and could
+>>> be moved to the beginning of the series.
+>>
+>> Where do you release the memory in that case? In driver's remove(), i.e.
+>> this patch would simply move that code to isp_remove()?
+> 
+> Yes, the kfree() calls would be in isp_remove(). The patch will then be 
+> faithful to its $SUBJECT, and moving to a release() handler should be done in 
+> a separate patch.
+> 
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
----
- arch/arm/boot/dts/imx6qdl-sabreauto.dtsi | 56 ++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+I have a patch that does that for you. I was playing with devm removal from
+omap3. You are welcome to just use it. This also includes regulator puts in
+proper places. I also included a patch that removes extra media_entity_cleanup()
 
-diff --git a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-index 83ac2ff..30ee378 100644
---- a/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-sabreauto.dtsi
-@@ -147,10 +147,42 @@
- 				gpio-controller;
- 				#gpio-cells = <2>;
- 			};
-+
-+			camera: adv7180@21 {
-+				compatible = "adi,adv7180";
-+				reg = <0x21>;
-+				powerdown-gpios = <&max7310_b 2 GPIO_ACTIVE_LOW>;
-+				interrupt-parent = <&gpio1>;
-+				interrupts = <27 0x8>;
-+				inputs = <0x00 0x02>;
-+				input-names = "ADV7180 Composite on Ain1",
-+						"ADV7180 Composite on Ain3";
-+
-+				port {
-+					adv7180_to_ipu1_csi0_mux: endpoint {
-+						remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+						bus-width = <8>;
-+					};
-+				};
-+			};
- 		};
- 	};
- };
- 
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <8>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&adv7180_to_ipu1_csi0_mux>;
-+	bus-width = <8>;
-+};
-+
-+&ipu1_csi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_ipu1_csi0>;
-+};
-+
- &clks {
- 	assigned-clocks = <&clks IMX6QDL_PLL4_BYPASS_SRC>,
- 			  <&clks IMX6QDL_PLL4_BYPASS>,
-@@ -451,6 +483,30 @@
- 			>;
- 		};
- 
-+		pinctrl_ipu1_csi0: ipu1grp-csi0 {
-+			fsl,pins = <
-+				MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04   0x80000000
-+				MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05   0x80000000
-+				MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06   0x80000000
-+				MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07   0x80000000
-+				MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08   0x80000000
-+				MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09   0x80000000
-+				MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10  0x80000000
-+				MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11  0x80000000
-+				MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12  0x80000000
-+				MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13  0x80000000
-+				MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14  0x80000000
-+				MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15  0x80000000
-+				MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16  0x80000000
-+				MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17  0x80000000
-+				MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18  0x80000000
-+				MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19  0x80000000
-+				MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK 0x80000000
-+				MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC    0x80000000
-+				MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC   0x80000000
-+			>;
-+		};
-+
- 		pinctrl_pwm3: pwm1grp {
- 			fsl,pins = <
- 				MX6QDL_PAD_SD4_DAT1__PWM3_OUT		0x1b0b1
--- 
-2.7.4
+I will send those in a bit
+
+thanks,
+-- Shuah
+
+
 
