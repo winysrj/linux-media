@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f50.google.com ([209.85.213.50]:35109 "EHLO
-        mail-vk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751004AbcLRGxV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 01:53:21 -0500
-Received: by mail-vk0-f50.google.com with SMTP id w194so107463599vkw.2
-        for <linux-media@vger.kernel.org>; Sat, 17 Dec 2016 22:53:21 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1481702690-10476-3-git-send-email-rick.chang@mediatek.com>
-References: <1481702690-10476-1-git-send-email-rick.chang@mediatek.com> <1481702690-10476-3-git-send-email-rick.chang@mediatek.com>
-From: Ricky Liang <jcliang@chromium.org>
-Date: Sun, 18 Dec 2016 14:53:20 +0800
-Message-ID: <CAAJzSMfb=_Td+_f-q0mOTX5dGFC1Roxxm7+-yjavKFo3DO8YUw@mail.gmail.com>
-Subject: Re: [PATCH v9 2/4] vcodec: mediatek: Add Mediatek JPEG Decoder Driver
-To: Rick Chang <rick.chang@mediatek.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Bin Liu <bin.liu@mediatek.com>,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        srv_heupstream@mediatek.com,
-        open list <linux-kernel@vger.kernel.org>,
-        "moderated list:ARM/Mediatek SoC..."
-        <linux-mediatek@lists.infradead.org>,
-        "moderated list:ARM/Mediatek SoC..."
-        <linux-arm-kernel@lists.infradead.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from gofer.mess.org ([80.229.237.210]:57927 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936175AbcLOMuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:50:19 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v6 13/18] [media] rc: ir-sanyo-decoder: Add encode capability
+Date: Thu, 15 Dec 2016 12:50:06 +0000
+Message-Id: <20a1355946e47a85ac3de26eed329b9f71b11748.1481805635.git.sean@mess.org>
+In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+In-Reply-To: <cover.1481805635.git.sean@mess.org>
+References: <cover.1481805635.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 14, 2016 at 4:04 PM, Rick Chang <rick.chang@mediatek.com> wrote:
-> Add v4l2 driver for Mediatek JPEG Decoder
->
-> Signed-off-by: Rick Chang <rick.chang@mediatek.com>
-> Signed-off-by: Minghsiu Tsai <minghsiu.tsai@mediatek.com>
-> ---
->  drivers/media/platform/Kconfig                   |   15 +
->  drivers/media/platform/Makefile                  |    2 +
->  drivers/media/platform/mtk-jpeg/Makefile         |    2 +
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c  | 1306 ++++++++++++++++++++++
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h  |  139 +++
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c    |  417 +++++++
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h    |   91 ++
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c |  160 +++
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h |   25 +
->  drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h   |   58 +
->  10 files changed, 2215 insertions(+)
+Add the capability to encode Sanyo scancodes as raw events.
 
-Reviewed-by: Ricky Liang <jcliang@chromium.org>
-Tested-by: Ricky Liang <jcliang@chromium.org>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-sanyo-decoder.c | 43 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
+
+diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
+index b07d9ca..520bb77 100644
+--- a/drivers/media/rc/ir-sanyo-decoder.c
++++ b/drivers/media/rc/ir-sanyo-decoder.c
+@@ -176,9 +176,52 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	return -EINVAL;
+ }
+ 
++static const struct ir_raw_timings_pd ir_sanyo_timings = {
++	.header_pulse  = SANYO_HEADER_PULSE,
++	.header_space  = SANYO_HEADER_SPACE,
++	.bit_pulse     = SANYO_BIT_PULSE,
++	.bit_space[0]  = SANYO_BIT_0_SPACE,
++	.bit_space[1]  = SANYO_BIT_1_SPACE,
++	.trailer_pulse = SANYO_TRAILER_PULSE,
++	.trailer_space = SANYO_TRAILER_SPACE,
++	.msb_first     = 1,
++};
++
++/**
++ * ir_sanyo_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocol:	protocol to encode
++ * @scancode:	scancode to encode
++ * @events:	array of raw ir events to write into
++ * @max:	maximum size of @events
++ *
++ * Returns:	The number of events written.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		encoding. In this case all @max events will have been written.
++ */
++static int ir_sanyo_encode(enum rc_type protocol, u32 scancode,
++			   struct ir_raw_event *events, unsigned int max)
++{
++	struct ir_raw_event *e = events;
++	int ret;
++	u64 raw;
++
++	raw = ((u64)(bitrev16(scancode >> 8) & 0xfff8) << (8 + 8 + 13 - 3)) |
++	      ((u64)(bitrev16(~scancode >> 8) & 0xfff8) << (8 + 8 +  0 - 3)) |
++	      ((bitrev8(scancode) & 0xff) << 8) |
++	      (bitrev8(~scancode) & 0xff);
++
++	ret = ir_raw_gen_pd(&e, max, &ir_sanyo_timings, SANYO_NBITS, raw);
++	if (ret < 0)
++		return ret;
++
++	return e - events;
++}
++
+ static struct ir_raw_handler sanyo_handler = {
+ 	.protocols	= RC_BIT_SANYO,
+ 	.decode		= ir_sanyo_decode,
++	.encode		= ir_sanyo_encode,
+ };
+ 
+ static int __init ir_sanyo_decode_init(void)
+-- 
+2.9.3
+
