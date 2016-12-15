@@ -1,200 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:34907 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932612AbcLRCzS (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49460 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757883AbcLOUhW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Dec 2016 21:55:18 -0500
-Received: by mail-qk0-f194.google.com with SMTP id n204so1280297qke.2
-        for <linux-media@vger.kernel.org>; Sat, 17 Dec 2016 18:55:18 -0800 (PST)
-Received: from whisper (cpe-74-71-229-113.nyc.res.rr.com. [74.71.229.113])
-        by smtp.gmail.com with ESMTPSA id d83sm7405560qke.25.2016.12.17.18.55.17
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Sat, 17 Dec 2016 18:55:17 -0800 (PST)
-Date: Sat, 17 Dec 2016 21:55:15 -0500
-From: Kevin Cheng <kcheng@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 1/2] [media] lgdt3306a: support i2c mux for use by em28xx
-Message-ID: <20161218025513.nuay4ix2s66xfnul@whisper>
+        Thu, 15 Dec 2016 15:37:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com,
+        Samu Onkalo <samu.onkalo@intel.com>
+Subject: Re: [RFC RESEND 05/11] v4l2-core: Don't sync cache for a buffer if so requested
+Date: Thu, 15 Dec 2016 22:37:20 +0200
+Message-ID: <8149441.9mS3xkgL8S@avalon>
+In-Reply-To: <1441972234-8643-6-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-6-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds an i2c mux to the lgdt3306a demodulator.  This was done to support
-the Hauppauge WinTV-dualHD 01595 USB TV tuner (em28xx), which utilizes two
-si2157 tuners behind gate control.
+Hi Sakari,
 
-Signed-off-by: Kevin Cheng <kcheng@gmail.com>
----
- drivers/media/dvb-frontends/Kconfig     |   2 +-
- drivers/media/dvb-frontends/lgdt3306a.c | 108 ++++++++++++++++++++++++++++++++
- drivers/media/dvb-frontends/lgdt3306a.h |   4 ++
- 3 files changed, 113 insertions(+), 1 deletion(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
-index c841fa1..16f9afa 100644
---- a/drivers/media/dvb-frontends/Kconfig
-+++ b/drivers/media/dvb-frontends/Kconfig
-@@ -619,7 +619,7 @@ config DVB_LGDT3305
- 
- config DVB_LGDT3306A
- 	tristate "LG Electronics LGDT3306A based"
--	depends on DVB_CORE && I2C
-+	depends on DVB_CORE && I2C && I2C_MUX
- 	default m if !MEDIA_SUBDRV_AUTOSELECT
- 	help
- 	  An ATSC 8VSB and QAM-B 64/256 demodulator module. Say Y when you want
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 19dca46..b191e01 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -22,6 +22,7 @@
- #include <linux/dvb/frontend.h>
- #include "dvb_math.h"
- #include "lgdt3306a.h"
-+#include <linux/i2c-mux.h>
- 
- 
- static int debug;
-@@ -65,6 +66,8 @@ struct lgdt3306a_state {
- 	enum fe_modulation current_modulation;
- 	u32 current_frequency;
- 	u32 snr;
-+
-+	struct i2c_mux_core *muxc;
- };
- 
- /*
-@@ -2131,6 +2134,111 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
- 	.search               = lgdt3306a_search,
- };
- 
-+static int lgdt3306a_select(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct i2c_client *client = i2c_mux_priv(muxc);
-+	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-+
-+	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 1);
-+}
-+
-+static int lgdt3306a_deselect(struct i2c_mux_core *muxc, u32 chan)
-+{
-+	struct i2c_client *client = i2c_mux_priv(muxc);
-+	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-+
-+	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 0);
-+}
-+
-+static int lgdt3306a_probe(struct i2c_client *client,
-+		const struct i2c_device_id *id)
-+{
-+	struct lgdt3306a_config *config = client->dev.platform_data;
-+	struct lgdt3306a_state *state;
-+	struct dvb_frontend *fe;
-+	int ret;
-+
-+	config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
-+	if (config == NULL) {
-+		ret = -ENOMEM;
-+		goto fail;
-+	}
-+
-+	memcpy(config, client->dev.platform_data,
-+			sizeof(struct lgdt3306a_config));
-+
-+	config->i2c_addr = client->addr;
-+	fe = lgdt3306a_attach(config, client->adapter);
-+	if (fe == NULL) {
-+		ret = -ENODEV;
-+		goto err_fe;
-+	}
-+
-+	i2c_set_clientdata(client, fe->demodulator_priv);
-+	state = fe->demodulator_priv;
-+
-+	/* create mux i2c adapter for tuner */
-+	state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
-+				  1, 0, I2C_MUX_LOCKED,
-+				  lgdt3306a_select, lgdt3306a_deselect);
-+	if (!state->muxc) {
-+		ret = -ENOMEM;
-+		goto err_kfree;
-+	}
-+	state->muxc->priv = client;
-+	ret = i2c_mux_add_adapter(state->muxc, 0, 0, 0);
-+	if (ret)
-+		goto err_kfree;
-+
-+	/* create dvb_frontend */
-+	fe->ops.i2c_gate_ctrl = NULL;
-+	*config->i2c_adapter = state->muxc->adapter[0];
-+	*config->fe = fe;
-+
-+	return 0;
-+
-+err_kfree:
-+	kfree(state);
-+err_fe:
-+	kfree(config);
-+fail:
-+	dev_dbg(&client->dev, "failed=%d\n", ret);
-+	return ret;
-+}
-+
-+static int lgdt3306a_remove(struct i2c_client *client)
-+{
-+	struct lgdt3306a_state *state = i2c_get_clientdata(client);
-+
-+	i2c_mux_del_adapters(state->muxc);
-+
-+	state->frontend.ops.release = NULL;
-+	state->frontend.demodulator_priv = NULL;
-+
-+	kfree(state->cfg);
-+	kfree(state);
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id lgdt3306a_id_table[] = {
-+	{"lgdt3306a", 0},
-+	{}
-+};
-+MODULE_DEVICE_TABLE(i2c, lgdt3306a_id_table);
-+
-+static struct i2c_driver lgdt3306a_driver = {
-+	.driver = {
-+		.name                = "lgdt3306a",
-+		.suppress_bind_attrs = true,
-+	},
-+	.probe		= lgdt3306a_probe,
-+	.remove		= lgdt3306a_remove,
-+	.id_table	= lgdt3306a_id_table,
-+};
-+
-+module_i2c_driver(lgdt3306a_driver);
-+
- MODULE_DESCRIPTION("LG Electronics LGDT3306A ATSC/QAM-B Demodulator Driver");
- MODULE_AUTHOR("Fred Richter <frichter@hauppauge.com>");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
-index 9dbb2dc..6ce337e 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.h
-+++ b/drivers/media/dvb-frontends/lgdt3306a.h
-@@ -56,6 +56,10 @@ struct lgdt3306a_config {
- 
- 	/* demod clock freq in MHz; 24 or 25 supported */
- 	int  xtalMHz;
-+
-+	/* returned by driver if using i2c bus multiplexing */
-+	struct dvb_frontend **fe;
-+	struct i2c_adapter **i2c_adapter;
- };
- 
- #if IS_REACHABLE(CONFIG_DVB_LGDT3306A)
+On Friday 11 Sep 2015 14:50:28 Sakari Ailus wrote:
+> From: Samu Onkalo <samu.onkalo@intel.com>
+> 
+> The user may request to the driver (vb2) to skip the cache maintenance
+> operations in case the buffer does not need cache synchronisation, e.g. in
+> cases where the buffer is passed between hardware blocks without it being
+> touched by the CPU.
+> 
+> Also document that the prepare and finish vb2_mem_ops might not get called
+> every time the buffer ownership changes between the kernel and the user
+> space.
+> 
+> Signed-off-by: Samu Onkalo <samu.onkalo@intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 52 ++++++++++++++++++++++-------
+>  include/media/videobuf2-core.h           | 12 +++++---
+>  2 files changed, 49 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index c5c0707a..b664024 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -187,6 +187,28 @@ static void __vb2_queue_cancel(struct vb2_queue *q);
+>  static void __enqueue_in_driver(struct vb2_buffer *vb);
+> 
+>  /**
+> + * __mem_prepare_planes() - call finish mem op for all planes of the buffer
+> + */
+> +static void __mem_prepare_planes(struct vb2_buffer *vb)
+> +{
+> +	unsigned int plane;
+> +
+> +	for (plane = 0; plane < vb->num_planes; ++plane)
+> +		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+> +}
+> +
+> +/**
+> + * __mem_finish_planes() - call finish mem op for all planes of the buffer
+> + */
+> +static void __mem_finish_planes(struct vb2_buffer *vb)
+> +{
+> +	unsigned int plane;
+> +
+> +	for (plane = 0; plane < vb->num_planes; ++plane)
+> +		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> +}
+> +
+> +/**
+>   * __vb2_buf_mem_alloc() - allocate video memory for the given buffer
+>   */
+>  static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+> @@ -1391,6 +1413,10 @@ static void __fill_vb2_buffer(struct vb2_buffer *vb,
+> const struct v4l2_buffer *b static int __prepare_mmap(struct vb2_buffer
+> *vb, const struct v4l2_buffer *b) {
+>  	__fill_vb2_buffer(vb, b, vb->v4l2_planes);
+> +
+> +	if (!(b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC))
+> +		__mem_prepare_planes(vb);
+> +
+>  	return call_vb_qop(vb, buf_prepare, vb);
+>  }
+> 
+> @@ -1476,6 +1502,11 @@ static int __prepare_userptr(struct vb2_buffer *vb,
+>  			dprintk(1, "buffer initialization failed\n");
+>  			goto err;
+>  		}
+> +
+> +		/* This is new buffer memory --- always synchronise cache. */
+> +		__mem_prepare_planes(vb);
+> +	} else if (!(b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC)) {
+> +		__mem_prepare_planes(vb);
+>  	}
+> 
+>  	ret = call_vb_qop(vb, buf_prepare, vb);
+> @@ -1601,6 +1632,11 @@ static int __prepare_dmabuf(struct vb2_buffer *vb,
+> const struct v4l2_buffer *b) dprintk(1, "buffer initialization failed\n");
+>  			goto err;
+>  		}
+> +
+> +		/* This is new buffer memory --- always synchronise cache. */
+> +		__mem_prepare_planes(vb);
+> +	} else if (!(b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC)) {
+> +		__mem_prepare_planes(vb);
+>  	}
+> 
+>  	ret = call_vb_qop(vb, buf_prepare, vb);
+> @@ -1624,7 +1660,6 @@ err:
+>  static void __enqueue_in_driver(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> -	unsigned int plane;
+> 
+>  	vb->state = VB2_BUF_STATE_ACTIVE;
+>  	atomic_inc(&q->owned_by_drv_count);
+> @@ -1691,10 +1726,6 @@ static int __buf_prepare(struct vb2_buffer *vb, const
+> struct v4l2_buffer *b) return ret;
+>  	}
+> 
+> -	/* sync buffers */
+> -	for (plane = 0; plane < vb->num_planes; ++plane)
+> -		call_void_memop(vb, prepare, vb->planes[plane].mem_priv);
+> -
+>  	vb->state = VB2_BUF_STATE_PREPARED;
+> 
+>  	return 0;
+> @@ -2078,7 +2109,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+>  /**
+>   * __vb2_dqbuf() - bring back the buffer to the DEQUEUED state
+>   */
+> -static void __vb2_dqbuf(struct vb2_buffer *vb)
+> +static void __vb2_dqbuf(struct vb2_buffer *vb, bool no_cache_sync)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned int plane;
+> @@ -2089,9 +2120,8 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+> 
+>  	vb->state = VB2_BUF_STATE_DEQUEUED;
+> 
+> -	/* sync buffers */
+> -	for (plane = 0; plane < vb->num_planes; plane++)
+> -		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> +	if (!no_cache_sync)
+> +		__mem_finish_planes(vb);
+> 
+>  	/* unmap DMABUF buffer */
+>  	if (q->memory == V4L2_MEMORY_DMABUF)
+> @@ -2143,7 +2173,7 @@ static int vb2_internal_dqbuf(struct vb2_queue *q,
+> struct v4l2_buffer *b, bool n vb->v4l2_buf.flags & V4L2_BUF_FLAG_LAST)
+>  		q->last_buffer_dequeued = true;
+>  	/* go back to dequeued state */
+> -	__vb2_dqbuf(vb);
+> +	__vb2_dqbuf(vb, b->flags & V4L2_BUF_FLAG_NO_CACHE_SYNC);
+> 
+>  	dprintk(1, "dqbuf of buffer %d, with state %d\n",
+>  			vb->v4l2_buf.index, vb->state);
+> @@ -2246,7 +2276,7 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>  			vb->state = VB2_BUF_STATE_PREPARED;
+>  			call_void_vb_qop(vb, buf_finish, vb);
+>  		}
+> -		__vb2_dqbuf(vb);
+> +		__vb2_dqbuf(vb, false);
+>  	}
+>  }
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 4f7f7ae..a825bd5 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -59,10 +59,14 @@ struct vb2_threadio_data;
+>   *		dmabuf.
+>   * @unmap_dmabuf: releases access control to the dmabuf - allocator is
+> notified
+> *		  that this driver is done using the dmabuf for now.
+> - * @prepare:	called every time the buffer is passed from userspace to the
+> - *		driver, useful for cache synchronisation, optional.
+> - * @finish:	called every time the buffer is passed back from the driver
+> - *		to the userspace, also optional.
+> + * @prepare:	Called on the plane when the buffer ownership is passed from
+> + *		the user space to the kernel and the plane must be cache
+> + *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
+
+s/syncronised/synchronised/
+
+> + *		be used to skip this call. Optional.
+
+I would say "The call might be skipped by the videobuf core when the 
+V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag is set". Your wording could mean that 
+the memops implementation is free to skip cache synchronization internally if 
+the flag is set.
+
+If the core skips the prepare and finish operations based on the 
+V4L2_BUF_FLAG_NO_CACHE_SYNC flag then those operations must not perform 
+anything else than cache synchronization. That's fine with the current 
+implementation, but it should be documented as such, and I'd rename the 
+operations to sync_for_cpu and sync_for dev (or something similar).
+
+> + * @finish:	Called on the plane when the buffer ownership is passed from
+> + *		the kernel to the user space and the plane must be cache
+> + *		syncronised. The V4L2_BUF_FLAG_NO_CACHE_SYNC buffer flag may
+> + *		be used to skip this call. Optional.
+
+Same comment here.
+
+>   * @vaddr:	return a kernel virtual address to a given memory buffer
+>   *		associated with the passed private structure or NULL if no
+>   *		such mapping exists.
+
 -- 
-2.9.3
+Regards,
+
+Laurent Pinchart
 
