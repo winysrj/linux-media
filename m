@@ -1,200 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:37113 "EHLO
-        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752327AbcLORWu (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38280
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1756743AbcLORZI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 12:22:50 -0500
-Received: by mail-wm0-f54.google.com with SMTP id t79so56566652wmt.0
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2016 09:22:50 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Gross <andy.gross@linaro.org>,
-        Bjorn Andersson <bjorn.andersson@linaro.org>,
-        Stephen Boyd <sboyd@codeaurora.org>,
-        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH v5 1/9] media: v4l2-mem2mem: extend m2m APIs for more accurate buffer management
-Date: Thu, 15 Dec 2016 19:22:16 +0200
-Message-Id: <1481822544-29900-2-git-send-email-stanimir.varbanov@linaro.org>
-In-Reply-To: <1481822544-29900-1-git-send-email-stanimir.varbanov@linaro.org>
-References: <1481822544-29900-1-git-send-email-stanimir.varbanov@linaro.org>
+        Thu, 15 Dec 2016 12:25:08 -0500
+Date: Thu, 15 Dec 2016 15:25:01 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
+ references as needed
+Message-ID: <20161215152501.11ce2b2a@vento.lan>
+In-Reply-To: <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+References: <20161109154608.1e578f9e@vento.lan>
+        <20161213102447.60990b1c@vento.lan>
+        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+        <7529355.zfqFdROYdM@avalon>
+        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-this add functions for:
-  - remove buffers from src/dst queue by index
-  - remove exact buffer from src/dst queue
+Em Thu, 15 Dec 2016 10:09:53 -0700
+Shuah Khan <shuahkh@osg.samsung.com> escreveu:
 
-also extends m2m API to iterate over a list of src/dst buffers
-in safely and non-safely manner.
+> On 12/15/2016 09:28 AM, Hans Verkuil wrote:
+> > On 15/12/16 17:06, Shuah Khan wrote:  
 
-Signed-off-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 37 ++++++++++++++
- include/media/v4l2-mem2mem.h           | 92 ++++++++++++++++++++++++++++++++++
- 2 files changed, 129 insertions(+)
+> > 
+> > I think this will work for interface entities, but for subdev entities this
+> > certainly won't work. Unbinding subdevs should be blocked (just set
+> > suppress_bind_attrs to true in all subdev drivers). Most top-level drivers
+> > have pointers to subdev data, so unbinding them will just fail horribly.
+> >   
+> 
+> Yes that is an option. I did something similar for au0828 and snd_usb_audio
+> case, so the module that registers the media_device can't unbound until the
+> other driver. If au0828 registers media_device, it becomes the owner and if
+> it gets unbound ioctls will start to see problems.
+> 
+> What this means though is that drivers can't be unbound easily. But that is
+> a small price to pay compared to the problems we will see if a driver is
+> unbound when its entities are still in use. Also, unsetting bind_attrs has
+> to be done as well, otherwise we can never unbind any driver.
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 6bc27e7b2a33..f62e68aa04c4 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -126,6 +126,43 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove);
- 
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf)
-+{
-+	struct v4l2_m2m_buffer *b;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	b = container_of(vbuf, struct v4l2_m2m_buffer, vb);
-+	list_del(&b->list);
-+	q_ctx->num_rdy--;
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_buf);
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx)
-+
-+{
-+	struct v4l2_m2m_buffer *b, *tmp;
-+	struct vb2_v4l2_buffer *ret = NULL;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	list_for_each_entry_safe(b, tmp, &q_ctx->rdy_queue, list) {
-+		if (b->vb.vb2_buf.index == idx) {
-+			list_del(&b->list);
-+			q_ctx->num_rdy--;
-+			ret = &b->vb;
-+			break;
-+		}
-+	}
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_m2m_buf_remove_by_idx);
-+
- /*
-  * Scheduling handlers
-  */
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index 3ccd01bd245e..e157d5c9b224 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -437,6 +437,47 @@ static inline void *v4l2_m2m_next_dst_buf(struct v4l2_m2m_ctx *m2m_ctx)
- }
- 
- /**
-+ * v4l2_m2m_for_each_dst_buf() - iterate over a list of destination ready
-+ * buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_dst_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf() - iterate over a list of source ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ */
-+#define v4l2_m2m_for_each_src_buf(m2m_ctx, b)	\
-+	list_for_each_entry(b, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_dst_buf_safe() - iterate over a list of destination ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_dst_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->cap_q_ctx.rdy_queue, list)
-+
-+/**
-+ * v4l2_m2m_for_each_src_buf_safe() - iterate over a list of source ready
-+ * buffers safely
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @b: current buffer of type struct v4l2_m2m_buffer
-+ * @n: used as temporary storage
-+ */
-+#define v4l2_m2m_for_each_src_buf_safe(m2m_ctx, b, n)	\
-+	list_for_each_entry_safe(b, n, &m2m_ctx->out_q_ctx.rdy_queue, list)
-+
-+/**
-  * v4l2_m2m_get_src_vq() - return vb2_queue for source buffers
-  *
-  * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-@@ -488,6 +529,57 @@ static inline void *v4l2_m2m_dst_buf_remove(struct v4l2_m2m_ctx *m2m_ctx)
- 	return v4l2_m2m_buf_remove(&m2m_ctx->cap_q_ctx);
- }
- 
-+/**
-+ * v4l2_m2m_buf_remove_by_buf() - take off exact buffer from the list of ready
-+ * buffers
-+ *
-+ * @q_ctx: pointer to struct @v4l2_m2m_queue_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+void v4l2_m2m_buf_remove_by_buf(struct v4l2_m2m_queue_ctx *q_ctx,
-+				struct vb2_v4l2_buffer *vbuf);
-+
-+/**
-+ * v4l2_m2m_src_buf_remove_by_buf() - take off exact source buffer from the list
-+ * of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_src_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->out_q_ctx, vbuf);
-+}
-+
-+/**
-+ * v4l2_m2m_dst_buf_remove_by_buf() - take off exact destination buffer from the
-+ * list of ready buffers
-+ *
-+ * @m2m_ctx: m2m context assigned to the instance given by struct &v4l2_m2m_ctx
-+ * @vbuf: the buffer to be removed
-+ */
-+static inline void v4l2_m2m_dst_buf_remove_by_buf(struct v4l2_m2m_ctx *m2m_ctx,
-+						  struct vb2_v4l2_buffer *vbuf)
-+{
-+	v4l2_m2m_buf_remove_by_buf(&m2m_ctx->cap_q_ctx, vbuf);
-+}
-+
-+struct vb2_v4l2_buffer *
-+v4l2_m2m_buf_remove_by_idx(struct v4l2_m2m_queue_ctx *q_ctx, unsigned int idx);
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_src_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->out_q_ctx, idx);
-+}
-+
-+static inline struct vb2_v4l2_buffer *
-+v4l2_m2m_dst_buf_remove_by_idx(struct v4l2_m2m_ctx *m2m_ctx, unsigned int idx)
-+{
-+	return v4l2_m2m_buf_remove_by_idx(&m2m_ctx->cap_q_ctx, idx);
-+}
-+
- /* v4l2 ioctl helpers */
- 
- int v4l2_m2m_ioctl_reqbufs(struct file *file, void *priv,
--- 
-2.7.4
+I don't think suppress_bind_attrs will work on USB drivers, as the
+device can be physically removed. 
 
+Thanks,
+Mauro
