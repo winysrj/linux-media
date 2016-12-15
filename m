@@ -1,148 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:35063 "EHLO
-        mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752184AbcLGR2v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2016 12:28:51 -0500
-Received: by mail-pf0-f173.google.com with SMTP id i88so78017372pfk.2
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2016 09:28:50 -0800 (PST)
-From: Kevin Hilman <khilman@baylibre.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38387
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S932876AbcLORvi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 12:51:38 -0500
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
+ as needed
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20161109154608.1e578f9e@vento.lan>
+ <20161213102447.60990b1c@vento.lan>
+ <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+ <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+ <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+ <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+ <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+ <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+ <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+ <20161215152501.11ce2b2a@vento.lan>
 Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-        Axel Haslam <ahaslam@baylibre.com>,
-        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
-        Alexandre Bailon <abailon@baylibre.com>,
-        David Lechner <david@lechnology.com>,
-        Patrick Titiano <ptitiano@baylibre.com>,
-        linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v5 4/5] [media] dt-bindings: add TI VPIF documentation
-References: <20161207050826.23174-1-khilman@baylibre.com>
-        <20161207050826.23174-5-khilman@baylibre.com>
-        <7493249.S63p6GTauu@avalon>
-Date: Wed, 07 Dec 2016 09:28:49 -0800
-In-Reply-To: <7493249.S63p6GTauu@avalon> (Laurent Pinchart's message of "Wed,
-        07 Dec 2016 17:17:45 +0200")
-Message-ID: <m260mvejhq.fsf@baylibre.com>
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
+Date: Thu, 15 Dec 2016 10:51:35 -0700
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20161215152501.11ce2b2a@vento.lan>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
+On 12/15/2016 10:25 AM, Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Dec 2016 10:09:53 -0700
+> Shuah Khan <shuahkh@osg.samsung.com> escreveu:
+> 
+>> On 12/15/2016 09:28 AM, Hans Verkuil wrote:
+>>> On 15/12/16 17:06, Shuah Khan wrote:  
+> 
+>>>
+>>> I think this will work for interface entities, but for subdev entities this
+>>> certainly won't work. Unbinding subdevs should be blocked (just set
+>>> suppress_bind_attrs to true in all subdev drivers). Most top-level drivers
+>>> have pointers to subdev data, so unbinding them will just fail horribly.
+>>>   
+>>
+>> Yes that is an option. I did something similar for au0828 and snd_usb_audio
+>> case, so the module that registers the media_device can't unbound until the
+>> other driver. If au0828 registers media_device, it becomes the owner and if
+>> it gets unbound ioctls will start to see problems.
 
-> Hi Kevin,
->
-> Thank you for the patch.
->
-> On Tuesday 06 Dec 2016 21:08:25 Kevin Hilman wrote:
->> Acked-by: Rob Herring <robh@kernel.org>
->> Signed-off-by: Kevin Hilman <khilman@baylibre.com>
->> ---
->> .../devicetree/bindings/media/ti,da850-vpif.txt    | 67 +++++++++++++++++++
->> 1 file changed, 67 insertions(+)
->> create mode 100644
->> Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> 
->> diff --git a/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt new file mode
->> 100644
->> index 000000000000..fa06dfdb6898
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/ti,da850-vpif.txt
->> @@ -0,0 +1,67 @@
->> +Texas Instruments VPIF
->> +----------------------
->> +
->> +The TI Video Port InterFace (VPIF) is the primary component for video
->> +capture and display on the DA850/AM18x family of TI DaVinci/Sitara
->> +SoCs.
->> +
->> +TI Document reference: SPRUH82C, Chapter 35
->> +http://www.ti.com/lit/pdf/spruh82
->> +
->> +Required properties:
->> +- compatible: must be "ti,da850-vpif"
->> +- reg: physical base address and length of the registers set for the
->> device;
->> +- interrupts: should contain IRQ line for the VPIF
->> +
->> +Video Capture:
->> +
->> +VPIF has a 16-bit parallel bus input, supporting 2 8-bit channels or a
->> +single 16-bit channel.  It should contain at least one port child node
->> +with child 'endpoint' node. Please refer to the bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->
-> You might want to clarify how endpoints are use in the two cases. Apart from 
-> that,
+Sorry I meant to say rmmod'ed not unbound. Unbound will work just fine. If the
+modules that owns the media_devnode goes away, there will be problems with
+cdev trying to load module when application closes the device file and exits.
+In this case, Media Device Allocator API takes module reference, so its use
+count goes up.
 
-OK, I'll add another example for the 16-bit case.  Something like...
+>>
+>> What this means though is that drivers can't be unbound easily. But that is
+>> a small price to pay compared to the problems we will see if a driver is
+>> unbound when its entities are still in use. Also, unsetting bind_attrs has
+>> to be done as well, otherwise we can never unbind any driver.
+> 
+> I don't think suppress_bind_attrs will work on USB drivers, as the
+> device can be physically removed. 
+> 
 
->> +Example using 2 8-bit input channels, one of which is connected to an
->> +I2C-connected TVP5147 decoder:
->> +
->> +	vpif: vpif@217000 {
->> +		compatible = "ti,da850-vpif";
->> +		reg = <0x217000 0x1000>;
->> +		interrupts = <92>;
->> +
->> +		port {
->> +			vpif_ch0: endpoint@0 {
->> +				  reg = <0>;
->> +				  bus-width = <8>;
->> +				  remote-endpoint = <&composite>;
->> +			};
->> +
->> +			vpif_ch1: endpoint@1 {
->> +				  reg = <1>;
->> +				  bus-width = <8>;
->> +				  data-shift = <8>;
->> +			};
->> +		};
->> +	};
->> +
->> +[ ... ]
->> +
->> +&i2c0 {
->> +
->> +	tvp5147@5d {
->> +		compatible = "ti,tvp5147";
->> +		reg = <0x5d>;
->> +		status = "okay";
->> +
->> +		port {
->> +			composite: endpoint {
->> +				hsync-active = <1>;
->> +				vsync-active = <1>;
->> +				pclk-sample = <0>;
->> +
->> +				/* VPIF channel 0 (lower 8-bits) */
->> +				remote-endpoint = <&vpif_ch0>;
->> +				bus-width = <8>;
->> +			};
->> +		};
->> +	};
->> +};
+Yeah setting suppress_bind_attrs would cause problems. On one hand keeping
+all entities until all references are gone sound like a good option, however
+this would cause problems coordinating removal especially in the case of
+embedded entities. Can this be done in a simpler way? The way I see it, we
+have /dev/video, /dev/dvb, /dev/snd/* etc. that depend on /dev/media for
+graph nodes. Any one of these devices could be open when any of the drivers
+is unbound (physical removal is a simpler case).
 
-...this, at the end of the binding doc:
+Would it make sense to enforce that dependency. Can we tie /dev/media usecount
+to /dev/video etc. usecount? In other words:
 
-Alternatively, an example when the bus is configured as a single
-16-bit input (e.g. for raw-capture mode):
+/dev/video is opened, then open /dev/media.
+prevent entities being removed if /dev/media is open.
 
-	vpif: vpif@217000 {
-		compatible = "ti,da850-vpif";
-		reg = <0x217000 0x1000>;
-		interrupts = <92>;
+Would that help. The above could be done in a generic way possibly. Would it
+help if /dev/media is kept open when streaming is active? That is just one
+use-case, there might be others.
 
-		port {
-			vpif_ch0: endpoint {
-				  bus-width = <16>;
-			};
-		};
-	};
+thanks,
+-- Shuah
 
 
-Thanks for the review,
+thanks,
+-- Shuah
 
-Kevin
