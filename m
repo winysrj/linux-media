@@ -1,317 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53758 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758800AbcLPGMx (ORCPT
+Received: from mail-wj0-f170.google.com ([209.85.210.170]:35254 "EHLO
+        mail-wj0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752011AbcLORWl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 01:12:53 -0500
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi.shyti@samsung.com>,
-        Andi Shyti <andi@etezian.org>
-Subject: [PATCH v5 6/6] [media] rc: add support for IR LEDs driven through SPI
-Date: Fri, 16 Dec 2016 15:12:18 +0900
-Message-id: <20161216061218.5906-7-andi.shyti@samsung.com>
-In-reply-to: <20161216061218.5906-1-andi.shyti@samsung.com>
-References: <20161216061218.5906-1-andi.shyti@samsung.com>
+        Thu, 15 Dec 2016 12:22:41 -0500
+Received: by mail-wj0-f170.google.com with SMTP id v7so72246044wjy.2
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2016 09:22:40 -0800 (PST)
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andy Gross <andy.gross@linaro.org>,
+        Bjorn Andersson <bjorn.andersson@linaro.org>,
+        Stephen Boyd <sboyd@codeaurora.org>,
+        Srinivas Kandagatla <srinivas.kandagatla@linaro.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-msm@vger.kernel.org,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH v5 0/9] Qualcomm video decoder/encoder driver
+Date: Thu, 15 Dec 2016 19:22:15 +0200
+Message-Id: <1481822544-29900-1-git-send-email-stanimir.varbanov@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ir-spi is a simple device driver which supports the
-connection between an IR LED and the MOSI line of an SPI device.
+Hi all,
 
-The driver, indeed, uses the SPI framework to stream the raw data
-provided by userspace through an rc character device. The chardev
-is handled by the LIRC framework and its functionality basically
-provides:
+Here is fifth version of the patchset.
 
- - write: the driver gets a pulse/space signal and translates it
-   to a binary signal that will be streamed to the IR led through
-   the SPI framework.
- - set frequency: sets the frequency whith which the data should
-   be sent. This is handle with ioctl with the
-   LIRC_SET_SEND_CARRIER flag (as per lirc documentation)
- - set duty cycle: this is also handled with ioctl with the
-   LIRC_SET_SEND_DUTY_CYCLE flag. The driver handles duty cycles
-   of 50%, 60%, 70%, 75%, 80% and 90%, calculated on 16bit data.
+The changes since v4 are:
+  * removed pointless vdec_s_selection.
+  * renamed v4l2_m2m_buf_remove_exact to v4l2_m2m_buf_remove_by_buf
+  and added kernel doc style for missing function arguments.
+  * fixed pm_runtime_get_sync error path in vdec|venc_start_streaming
+  functions.
+  * dropped msm8996 clocks until sort them out.
+  * dropped COMPILE_TEST of the driver until dependacy drivers are
+  merged.
 
-The character device is created under /dev/lircX name, where X is
-and ID assigned by the LIRC framework.
+The output of v4l2-compliance test is:
 
-Example of usage:
+root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video0
+v4l2-compliance SHA   : 188e604d57bec065078ff772c802b93ddb6def4b
 
-        fd = open("/dev/lirc0", O_RDWR);
-        if (fd < 0)
-                return -1;
+Driver Info:
+        Driver name   : qcom-venus
+        Card type     : Qualcomm Venus video decoder
+        Bus info      : platform:qcom-venus
+        Driver version: 4.9.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
 
-        val = 608000;
-        ret = ioctl(fd, LIRC_SET_SEND_CARRIER, &val);
-        if (ret < 0)
-                return -1;
+Compliance test for device /dev/video0 (not using libv4l2):
 
-	val = 60;
-        ret = ioctl(fd, LIRC_SET_SEND_DUTY_CYCLE, &val);
-        if (ret < 0)
-                return -1;
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
 
-        n = write(fd, buffer, BUF_LEN);
-        if (n < 0 || n != BUF_LEN)
-                ret = -1;
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
 
-        close(fd);
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-Reviewed-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/Kconfig  |   9 +++
- drivers/media/rc/Makefile |   1 +
- drivers/media/rc/ir-spi.c | 199 ++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 209 insertions(+)
- create mode 100644 drivers/media/rc/ir-spi.c
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 629e8ca..3351e25 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -261,6 +261,15 @@ config IR_REDRAT3
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called redrat3.
- 
-+config IR_SPI
-+	tristate "SPI connected IR LED"
-+	depends on SPI && LIRC
-+	---help---
-+	  Say Y if you want to use an IR LED connected through SPI bus.
-+
-+	  To compile this driver as a module, choose M here: the module will be
-+	  called ir-spi.
-+
- config IR_STREAMZAP
- 	tristate "Streamzap PC Remote IR Receiver"
- 	depends on USB_ARCH_HAS_HCD
-diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-index 3a984ee..938c98b 100644
---- a/drivers/media/rc/Makefile
-+++ b/drivers/media/rc/Makefile
-@@ -27,6 +27,7 @@ obj-$(CONFIG_IR_NUVOTON) += nuvoton-cir.o
- obj-$(CONFIG_IR_ENE) += ene_ir.o
- obj-$(CONFIG_IR_REDRAT3) += redrat3.o
- obj-$(CONFIG_IR_RX51) += ir-rx51.o
-+obj-$(CONFIG_IR_SPI) += ir-spi.o
- obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
- obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
- obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
-diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
-new file mode 100644
-index 0000000..d45c603
---- /dev/null
-+++ b/drivers/media/rc/ir-spi.c
-@@ -0,0 +1,199 @@
-+/*
-+ * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+ * Author: Andi Shyti <andi.shyti@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * SPI driven IR LED device driver
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/of_gpio.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/spi/spi.h>
-+#include <media/rc-core.h>
-+
-+#define IR_SPI_DRIVER_NAME		"ir-spi"
-+
-+/* pulse value for different duty cycles */
-+#define IR_SPI_PULSE_DC_50		0xff00
-+#define IR_SPI_PULSE_DC_60		0xfc00
-+#define IR_SPI_PULSE_DC_70		0xf800
-+#define IR_SPI_PULSE_DC_75		0xf000
-+#define IR_SPI_PULSE_DC_80		0xc000
-+#define IR_SPI_PULSE_DC_90		0x8000
-+
-+#define IR_SPI_DEFAULT_FREQUENCY	38000
-+#define IR_SPI_BIT_PER_WORD		    8
-+#define IR_SPI_MAX_BUFSIZE		 4096
-+
-+struct ir_spi_data {
-+	u32 freq;
-+	u8 duty_cycle;
-+	bool negated;
-+
-+	u16 tx_buf[IR_SPI_MAX_BUFSIZE];
-+	u16 pulse;
-+	u16 space;
-+
-+	struct rc_dev *rc;
-+	struct spi_device *spi;
-+	struct regulator *regulator;
-+};
-+
-+static int ir_spi_tx(struct rc_dev *dev,
-+			unsigned int *buffer, unsigned int count)
-+{
-+	int i;
-+	int ret;
-+	unsigned int len = 0;
-+	struct ir_spi_data *idata = dev->priv;
-+	struct spi_transfer xfer;
-+
-+	/* convert the pulse/space signal to raw binary signal */
-+	for (i = 0; i < count; i++) {
-+		int j;
-+		u16 val = ((i+1) % 2) ? idata->pulse : idata->space;
-+
-+		if (len + buffer[i] >= IR_SPI_MAX_BUFSIZE)
-+			return -EINVAL;
-+
-+		/*
-+		 * the first value in buffer is a pulse, so that 0, 2, 4, ...
-+		 * contain a pulse duration. On the contrary, 1, 3, 5, ...
-+		 * contain a space duration.
-+		 */
-+		val = (i % 2) ? idata->space : idata->pulse;
-+		for (j = 0; j < buffer[i]; j++)
-+			idata->tx_buf[len++] = val;
-+	}
-+
-+	memset(&xfer, 0, sizeof(xfer));
-+
-+	xfer.speed_hz = idata->freq;
-+	xfer.len = len * sizeof(*idata->tx_buf);
-+	xfer.tx_buf = idata->tx_buf;
-+
-+	ret = regulator_enable(idata->regulator);
-+	if (ret)
-+		return ret;
-+
-+	ret = spi_sync_transfer(idata->spi, &xfer, 1);
-+	if (ret)
-+		dev_err(&idata->spi->dev, "unable to deliver the signal\n");
-+
-+	regulator_disable(idata->regulator);
-+
-+	return ret ? ret : count;
-+}
-+
-+static int ir_spi_set_tx_carrier(struct rc_dev *dev, u32 carrier)
-+{
-+	struct ir_spi_data *idata = dev->priv;
-+
-+	if (!carrier)
-+		return -EINVAL;
-+
-+	idata->freq = carrier;
-+
-+	return 0;
-+}
-+
-+static int ir_spi_set_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
-+{
-+	struct ir_spi_data *idata = dev->priv;
-+
-+	if (duty_cycle >= 90)
-+		idata->pulse = IR_SPI_PULSE_DC_90;
-+	else if (duty_cycle >= 80)
-+		idata->pulse = IR_SPI_PULSE_DC_80;
-+	else if (duty_cycle >= 75)
-+		idata->pulse = IR_SPI_PULSE_DC_75;
-+	else if (duty_cycle >= 70)
-+		idata->pulse = IR_SPI_PULSE_DC_70;
-+	else if (duty_cycle >= 60)
-+		idata->pulse = IR_SPI_PULSE_DC_60;
-+	else
-+		idata->pulse = IR_SPI_PULSE_DC_50;
-+
-+	if (idata->negated) {
-+		idata->pulse = ~idata->pulse;
-+		idata->space = 0xffff;
-+	} else {
-+		idata->space = 0;
-+	}
-+
-+	return 0;
-+}
-+
-+static int ir_spi_probe(struct spi_device *spi)
-+{
-+	int ret;
-+	u8 dc;
-+	struct ir_spi_data *idata;
-+
-+	idata = devm_kzalloc(&spi->dev, sizeof(*idata), GFP_KERNEL);
-+	if (!idata)
-+		return -ENOMEM;
-+
-+	idata->regulator = devm_regulator_get(&spi->dev, "irda_regulator");
-+	if (IS_ERR(idata->regulator))
-+		return PTR_ERR(idata->regulator);
-+
-+	idata->rc = devm_rc_allocate_device(&spi->dev, RC_DRIVER_IR_RAW_TX);
-+	if (!idata->rc)
-+		return -ENOMEM;
-+
-+	idata->rc->tx_ir           = ir_spi_tx;
-+	idata->rc->s_tx_carrier    = ir_spi_set_tx_carrier;
-+	idata->rc->s_tx_duty_cycle = ir_spi_set_duty_cycle;
-+	idata->rc->driver_name     = IR_SPI_DRIVER_NAME;
-+	idata->rc->priv            = idata;
-+	idata->spi                 = spi;
-+
-+	idata->negated = of_property_read_bool(spi->dev.of_node,
-+							"led-active-low");
-+	ret = of_property_read_u8(spi->dev.of_node, "duty-cycle", &dc);
-+	if (ret)
-+		dc = 50;
-+
-+	/* ir_spi_set_duty_cycle cannot fail,
-+	 * it returns int to be compatible with the
-+	 * rc->s_tx_duty_cycle function
-+	 */
-+	ir_spi_set_duty_cycle(idata->rc, dc);
-+
-+	idata->freq = IR_SPI_DEFAULT_FREQUENCY;
-+
-+	return devm_rc_register_device(&spi->dev, idata->rc);
-+}
-+
-+static int ir_spi_remove(struct spi_device *spi)
-+{
-+	return 0;
-+}
-+
-+static const struct of_device_id ir_spi_of_match[] = {
-+	{ .compatible = "ir-spi-led" },
-+	{},
-+};
-+
-+static struct spi_driver ir_spi_driver = {
-+	.probe = ir_spi_probe,
-+	.remove = ir_spi_remove,
-+	.driver = {
-+		.name = IR_SPI_DRIVER_NAME,
-+		.of_match_table = ir_spi_of_match,
-+	},
-+};
-+
-+module_spi_driver(ir_spi_driver);
-+
-+MODULE_AUTHOR("Andi Shyti <andi.shyti@samsung.com>");
-+MODULE_DESCRIPTION("SPI IR LED");
-+MODULE_LICENSE("GPL v2");
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 7 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+root@dragonboard-410c:/home/linaro# ./v4l2-compliance -d /dev/video1
+v4l2-compliance SHA   : 188e604d57bec065078ff772c802b93ddb6def4b
+
+Driver Info:
+        Driver name   : qcom-venus
+        Card type     : Qualcomm Venus video encoder
+        Bus info      : platform:qcom-venus
+        Driver version: 4.9.0
+        Capabilities  : 0x84204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04204000
+                Video Memory-to-Memory Multiplanar
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video1 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+                test VIDIOC_QUERYCTRL: OK
+                test VIDIOC_G/S_CTRL: OK
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 28 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK
+                test Composing: OK (Not Supported)
+                test Scaling: OK
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+regards,
+Stan
+
+Stanimir Varbanov (9):
+  media: v4l2-mem2mem: extend m2m APIs for more accurate buffer
+    management
+  doc: DT: venus: binding document for Qualcomm video driver
+  MAINTAINERS: Add Qualcomm Venus video accelerator driver
+  media: venus: adding core part and helper functions
+  media: venus: vdec: add video decoder files
+  media: venus: venc: add video encoder files
+  media: venus: hfi: add Host Firmware Interface (HFI)
+  media: venus: hfi: add Venus HFI files
+  media: venus: enable building of Venus video driver
+
+ .../devicetree/bindings/media/qcom,venus.txt       |   68 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/platform/Kconfig                     |   13 +
+ drivers/media/platform/Makefile                    |    2 +
+ drivers/media/platform/qcom/venus/Makefile         |   14 +
+ drivers/media/platform/qcom/venus/core.c           |  468 ++++++
+ drivers/media/platform/qcom/venus/core.h           |  296 ++++
+ drivers/media/platform/qcom/venus/helpers.c        |  621 ++++++++
+ drivers/media/platform/qcom/venus/helpers.h        |   41 +
+ drivers/media/platform/qcom/venus/hfi.c            |  499 +++++++
+ drivers/media/platform/qcom/venus/hfi.h            |  174 +++
+ drivers/media/platform/qcom/venus/hfi_cmds.c       | 1256 ++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_cmds.h       |  304 ++++
+ drivers/media/platform/qcom/venus/hfi_helper.h     | 1045 ++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.c       | 1054 ++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_msgs.h       |  283 ++++
+ drivers/media/platform/qcom/venus/hfi_venus.c      | 1508 ++++++++++++++++++++
+ drivers/media/platform/qcom/venus/hfi_venus.h      |   23 +
+ drivers/media/platform/qcom/venus/hfi_venus_io.h   |   98 ++
+ drivers/media/platform/qcom/venus/vdec.c           |  952 ++++++++++++
+ drivers/media/platform/qcom/venus/vdec.h           |   32 +
+ drivers/media/platform/qcom/venus/vdec_ctrls.c     |  149 ++
+ drivers/media/platform/qcom/venus/venc.c           | 1100 ++++++++++++++
+ drivers/media/platform/qcom/venus/venc.h           |   32 +
+ drivers/media/platform/qcom/venus/venc_ctrls.c     |  258 ++++
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   37 +
+ include/media/v4l2-mem2mem.h                       |   92 ++
+ 27 files changed, 10427 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/qcom,venus.txt
+ create mode 100644 drivers/media/platform/qcom/venus/Makefile
+ create mode 100644 drivers/media/platform/qcom/venus/core.c
+ create mode 100644 drivers/media/platform/qcom/venus/core.h
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.c
+ create mode 100644 drivers/media/platform/qcom/venus/helpers.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_cmds.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_helper.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_msgs.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.c
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus.h
+ create mode 100644 drivers/media/platform/qcom/venus/hfi_venus_io.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.c
+ create mode 100644 drivers/media/platform/qcom/venus/vdec.h
+ create mode 100644 drivers/media/platform/qcom/venus/vdec_ctrls.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.c
+ create mode 100644 drivers/media/platform/qcom/venus/venc.h
+ create mode 100644 drivers/media/platform/qcom/venus/venc_ctrls.c
+
 -- 
-2.10.2
+2.7.4
 
