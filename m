@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:63014 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755323AbcLZUyp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 15:54:45 -0500
-Subject: [PATCH 8/8] [media] videobuf-dma-sg: Add some spaces for better code
- readability in videobuf_dma_init_user_locked()
-To: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <fe5fcc82-94d7-51ff-194f-1a4ff9232372@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:53:37 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49916 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754132AbcLOXGd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 18:06:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: sakari.ailus@linux.intel.com, mchehab@kernel.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: omap3isp change to devm for resources
+Date: Fri, 16 Dec 2016 01:06:10 +0200
+Message-ID: <3421880.AmHR8TnS5I@avalon>
+In-Reply-To: <03073060-1166-7f61-8b3f-287a9f148b40@osg.samsung.com>
+References: <cover.1481829721.git.shuahkh@osg.samsung.com> <2731467.skKvVxvkgN@avalon> <03073060-1166-7f61-8b3f-287a9f148b40@osg.samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:16:51 +0100
+Hi Shuah,
 
-Use space characters at some source code places according to
-the Linux coding style convention.
+On Thursday 15 Dec 2016 15:51:41 Shuah Khan wrote:
+> On 12/15/2016 03:33 PM, Laurent Pinchart wrote:
+> > Hi Shuah,
+> > 
+> > Thank you for the patch.
+> > 
+> > Sakari has submitted a similar patch as part of his kref series. Please
+> > use it as a base point and rework it if you want to get it merged
+> > separately. I've reviewed the patch and left quite a few comments that
+> > need to be addressed.
+>
+> I really don't mind if Sakari uses this patch as is and makes the changes
+> you requested and submits devm removal as an independent patch.
+> 
+> My intent behind sending this one is to help him out since I already did
+> this patch that is on top of 4.9-rc8 without any dependencies on Sakari's
+> RFC patch.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+I've only seen your reply to Sakari's patch after replying to this one. Thank 
+you for providing your version, I'll let Sakari merge both and resubmit.
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index c8658530da57..9f560373d49d 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -171,10 +171,10 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	}
- 
- 	first = (data          & PAGE_MASK) >> PAGE_SHIFT;
--	last  = ((data+size-1) & PAGE_MASK) >> PAGE_SHIFT;
-+	last  = ((data + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
- 	dma->offset = data & ~PAGE_MASK;
- 	dma->size = size;
--	dma->nr_pages = last-first+1;
-+	dma->nr_pages = last - first + 1;
- 	dma->pages = kmalloc_array(dma->nr_pages,
- 				   sizeof(*dma->pages),
- 				   GFP_KERNEL);
+> > On Thursday 15 Dec 2016 12:40:08 Shuah Khan wrote:
+> >> Using devm resources that have external dependencies such as a dev
+> >> for a file handler could result in devm resources getting released
+> >> durin unbind while an application has the file open holding pointer
+> >> to the devm resource. This results in use-after-free errors when the
+> >> application exits.
+> >> 
+> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> >> ---
+> >> 
+> >>  drivers/media/platform/omap3isp/isp.c         | 71 +++++++++++++--------
+> >>  drivers/media/platform/omap3isp/ispccp2.c     | 10 +++-
+> >>  drivers/media/platform/omap3isp/isph3a_aewb.c | 21 +++++---
+> >>  drivers/media/platform/omap3isp/isph3a_af.c   | 21 +++++---
+> >>  drivers/media/platform/omap3isp/isphist.c     |  5 +-
+> >>  5 files changed, 92 insertions(+), 36 deletions(-)
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
 
