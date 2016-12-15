@@ -1,99 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:35506 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751207AbcLCUlx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2016 15:41:53 -0500
-Received: by mail-wm0-f42.google.com with SMTP id a197so46884908wmd.0
-        for <linux-media@vger.kernel.org>; Sat, 03 Dec 2016 12:41:38 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20161202090948.0efd0678@vento.lan>
-References: <20161127110732.GA5338@arch-desktop> <20161127111236.GA1691@arch-desktop>
- <20161202090948.0efd0678@vento.lan>
-From: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
-Date: Sat, 3 Dec 2016 17:41:37 -0300
-Message-ID: <CAAEAJfBf53+eUS2EqSkYTokKFPKQrZRu=O4yLZwG0hpSpFreiQ@mail.gmail.com>
-Subject: Re: [PATCH v3 4/4] stk1160: Give the chip some time to retrieve data
- from AC97 codec.
+Received: from lb2-smtp-cloud2.xs4all.net ([194.109.24.25]:36070 "EHLO
+        lb2-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755599AbcLOOp4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 09:45:56 -0500
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
+ as needed
 To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Marcel Hasler <mahasler@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+References: <20161109154608.1e578f9e@vento.lan>
+ <20161213102447.60990b1c@vento.lan>
+ <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+ <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+ <20161215123207.3198d1d2@vento.lan>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8eaf38da-0dc1-493f-c41d-56b23509bb2d@xs4all.nl>
+Date: Thu, 15 Dec 2016 15:45:22 +0100
+MIME-Version: 1.0
+In-Reply-To: <20161215123207.3198d1d2@vento.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2 December 2016 at 08:09, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> Em Sun, 27 Nov 2016 12:12:36 +0100
-> Marcel Hasler <mahasler@gmail.com> escreveu:
+On 15/12/16 15:32, Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Dec 2016 15:03:36 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 >
->> The STK1160 needs some time to transfer data from the AC97 registers int=
-o its own. On some
->> systems reading the chip's own registers to soon will return wrong value=
-s. The "proper" way to
->> handle this would be to poll STK1160_AC97CTL_0 after every read or write=
- command until the
->> command bit has been cleared, but this may not be worth the hassle.
->>
->> Signed-off-by: Marcel Hasler <mahasler@gmail.com>
->> ---
->>  drivers/media/usb/stk1160/stk1160-ac97.c | 9 +++++++++
->>  1 file changed, 9 insertions(+)
->>
->> diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/us=
-b/stk1160/stk1160-ac97.c
->> index 60327af..b39f51b 100644
->> --- a/drivers/media/usb/stk1160/stk1160-ac97.c
->> +++ b/drivers/media/usb/stk1160/stk1160-ac97.c
->> @@ -23,6 +23,7 @@
->>   *
->>   */
->>
->> +#include <linux/delay.h>
->>  #include <linux/module.h>
->>
->>  #include "stk1160.h"
->> @@ -64,6 +65,14 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16=
- reg)
->>        */
->>       stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
->>
->> +     /*
->> +      * Give the chip some time to transfer the data.
->> +      * The proper way would be to poll STK1160_AC97CTL_0
->> +      * until the command bit has been cleared, but this
->> +      * may not be worth the hassle.
+>> On 15/12/16 13:56, Laurent Pinchart wrote:
+>>> Hi Sakari,
+>>>
+>>> On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:
+>>>> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:
+>>>>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
+>>>>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
+>>>>>>> Hi Sakari,
+>>>>>>>
 >
-> Why not? Relying on a fixed amount time is not nice.
 >
-> Take a look at em28xx_is_ac97_ready() function, at
-> drivers/media/usb/em28xx/em28xx-core.c to see how this could be
-> implemented instead.
+>>> There's plenty of way to try and work around the problem in drivers, some more
+>>> racy than others, but if we require changes to all platform drivers to fix
+>>> this we need to ensure that we get it right, not as half-baked hacks spread
+>>> around the whole subsystem.
+>>
+>> Why on earth do we want this for the omap3 driver? It is not a hot-pluggable
+>> device and I see no reason whatsoever to start modifying platform drivers just
+>> because you can do an unbind. I know there are real hot-pluggable devices, and
+>> getting this right for those is of course important.
 >
+> That's indeed a very good point. If unbind is not needed by any usecase,
+> the better fix for OMAP3 would be to just prevent it to happen in the first
+> place.
+>
+>>>>> The USB subsystem has a a .disconnect() callback that notifies
+>>>>> the drivers that a device was unbound (likely physically removed).
+>>>>> The way USB media drivers handle it is by returning -ENODEV to any
+>>>>> V4L2 call that would try to touch at the hardware after unbound.
+>>>
+>>
+>> In my view the main problem is that the media core is bound to a struct
+>> device set by the driver that creates the MC. But since the MC gives an
+>> overview of lots of other (sub)devices the refcount of the media device
+>> should be increased for any (sub)device that adds itself to the MC and
+>> decreased for any (sub)device that is removed. Only when the very last
+>> user goes away can the MC memory be released.
+>>
+>> The memory/refcounting associated with device nodes is unrelated to this:
+>> once a devnode is unregistered it will be removed in /dev, and once the
+>> last open fh closes any memory associated with the devnode can be released.
+>> That will also decrease the refcount to its parent device.
+>>
+>> This also means that it is a bad idea to embed devnodes in a larger struct.
+>> They should be allocated and freed when the devnode is unregistered and
+>> the last open filehandle is closed.
+>>
+>> Then the parent's device refcount is decreased, and that may now call its
+>> release callback if the refcount reaches 0.
+>>
+>> For the media controller's device: any other device driver that needs access
+>> to it needs to increase that device's refcount, and only when those devices
+>> are released will they decrease the MC device's refcount.
+>>
+>> And when that refcount goes to 0 can we finally free everything.
+>>
+>> With regards to the opposition to reverting those initial patches, I'm
+>> siding with Greg KH. Just revert the bloody patches. It worked most of the
+>> time before those patches, so reverting really won't cause bisect problems.
+>
+> You're contradicting yourself here ;)
+>
+> The patches that this patch series is reverting are the ones that
+> de-embeeds devnode struct and fixes its lifecycle.
+>
+> Reverting those patches will cause regressions on hot-pluggable drivers,
+> preventing them to be unplugged. So, if we're willing to revert, then we
+> should also revert MC support on them.
 
-We were reluctant to implement this properly because the read reg
-function is only used for debugging purposes, to dump registers.
+Two options:
 
-That said, it's not too much of a hassle to do it properly, and
-we might have to if we are going to have our own mixer.
+1) Revert, then build up a proper solution.
+2) Do a big-bang patch switching directly over to the new solution, but that's
+very hard to review.
+2a) Post the patch series in small chunks on the mailinglist (starting with the
+reverts), but once we're all happy merge that patch series into a single big-bang
+patch and apply that.
+
+As far as I am concerned the whole hotplugging code is broken and has been for
+a very long time. We (or at least I :-) ) understand the underlying concepts
+a lot better, so we can do a better job. But the transition may well be
+painful.
+
+Regards,
+
+	Hans
 
 >
->> +      */
->> +     usleep_range(20, 40);
->> +
+>> Just revert and build up things as they should.
+>>
+>> Note that v4l2-dev.c doesn't do things correctly (it doesn't set the cdev
+>> parent pointer for example) and many drivers (including omap3isp) embed
+>> video_device, which is wrong and can lead to complications.
+>>
+>> I'm to blame for the embedding since I thought that was a good idea at one
+>> time. I now realized that it isn't. Sorry about that...
+>>
+>> And because the cdev of the video_device doesn't know about the parent
+>> device it is (I think) possible that the parent device is released before
+>> the cdev is released. Which can result in major problems.
 >
->>       /* Retrieve register value */
->>       stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
->>       stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
+> I agree with you here. IMHO, de-embeeding cdev's parent struct from
+> video_device seems to be the right thing to do at V4L2 side too.
 >
->
->
-> Thanks,
+> Regards,
 > Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-
-
---=20
-Ezequiel Garc=C3=ADa, VanguardiaSur
-www.vanguardiasur.com.ar
