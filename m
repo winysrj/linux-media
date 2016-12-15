@@ -1,108 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48332 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753716AbcLRV5S (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48213 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757756AbcLONE2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 16:57:18 -0500
-Date: Sun, 18 Dec 2016 23:56:41 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: ivo.g.dimitrov.75@gmail.com, sre@kernel.org, pali.rohar@gmail.com,
-        linux-media@vger.kernel.org, galak@codeaurora.org,
-        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4] media: Driver for Toshiba et8ek8 5MP sensor
-Message-ID: <20161218215641.GR16630@valkosipuli.retiisi.org.uk>
-References: <20161023200355.GA5391@amd>
- <20161023201954.GI9460@valkosipuli.retiisi.org.uk>
- <20161213210506.GA11569@amd>
+        Thu, 15 Dec 2016 08:04:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references as needed
+Date: Thu, 15 Dec 2016 14:56:05 +0200
+Message-ID: <7529355.zfqFdROYdM@avalon>
+In-Reply-To: <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+References: <20161109154608.1e578f9e@vento.lan> <20161213102447.60990b1c@vento.lan> <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161213210506.GA11569@amd>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Hi Sakari,
 
-On Tue, Dec 13, 2016 at 10:05:06PM +0100, Pavel Machek wrote:
-> Hi!
+On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:
+> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:
+> > Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
+> >> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
+> >>> Hi Sakari,
+> >>>
+> >>> I answered you point to point below, but I suspect that you missed how
+> >>> the current approach works. So, I decided to write a quick summary
+> >>> here.
+> >>>
+> >>> The character devices /dev/media? are created via cdev, with relies on
+> >>> a kobject per device, with has an embedded struct kref inside.
+> >>>
+> >>> Also, each kobj at /dev/media0, /dev/media1, ... is associated with a
+> >>> struct device, when the code does:
+> >>>   devnode->cdev.kobj.parent = &devnode->dev.kobj;
+> >>>
+> >>> before calling cdev_add().
+> >>>
+> >>> The current lifetime management is actually based on cdev's kobject's
+> >>> refcount, provided by its embedded kref.
+> >>>
+> >>> The kref warrants that any data associated with /dev/media0 won't be 
+> >>> freed if there are any pending system call. In other words, when 
+> >>> cdev_del() is called, it will remove /dev/media0 from the filesystem,
+> >>> and will call kobject_put(). 
+> >>>
+> >>> If the refcount is zero, it will call devnode->dev.release(). If the 
+> >>> kobject refcount is not zero, the data won't be freed.
+> >>>
+> >>> So, in the best case scenario, there's no opened file descriptors
+> >>> by the time media device node is unregistered. So, it will free
+> >>> everything.
+> >>>
+> >>> In the worse case scenario, e. g. when the driver is removed or 
+> >>> unbind while /dev/media0 has some opened file descriptor(s),
+> >>> the cdev logic will do the proper lifetime management.
+> >>>
+> >>> On such case, /dev/media0 disappears from the file system, so another
+> >>> open is not possible anymore. The data structures will remain
+> >>> allocated until all associated file descriptors are not closed.
+> >>>
+> >>> When all file descriptors are closed, the data will be freed.
+> >>>
+> >>> On that time, it will call an optional dev.release() callback,
+> >>> responsible to free any other data struct that the driver allocated.  
+> >>
+> >> The patchset does not change this. It's not a question of the
+> >> media_devnode struct either. That's not an issue.
+> >>
+> >> The issue is rather what else can be accessed through the media device
+> >> and other interfaces. As IOCTLs are not serialised with device removal
+> >> (which now releases much of the data structures) 
+> >
+> > Huh? ioctls are serialized with struct device removal. The Driver core
+> > warrants that.
 > 
-> I have finally found the old mail you were refering to. Let me go
-> through it.
+> How?
 > 
-> > > +/*
-> > > + * Convert exposure time `us' to rows. Modify `us' to make it to
-> > > + * correspond to the actual exposure time.
-> > > + */
-> > > +static int et8ek8_exposure_us_to_rows(struct et8ek8_sensor *sensor, u32 *us)
-> > 
-> > Should a driver do something like this to begin with?
-> > 
-> > The smiapp driver does use the native unit of exposure (lines) for the
-> > control and I think the et8ek8 driver should do so as well.
-> > 
-> > The HBLANK, VBLANK and PIXEL_RATE controls are used to provide the user with
-> > enough information to perform the conversion (if necessary).
+> As far as I can tell, there's nothing in the way of an IOCTL being in
+> progress on a character device which is registered by the driver for a
+> hardware device which is being removed.
 > 
-> Well... I believe exposure in usec is preffered format for userspace
-> to work with (because then it can change resolution and keep camera
-> settings) but I see kernel code is quite ugly. Let me see what I can do...
+> vfs_ioctl() directly calls the unlocked_ioctl() file operation which is, in
+> case of MC, media_ioctl() in media-devnode.c. No mutexes (or other locks)
+> are taken during that path, which I believe is by design.
+> 
+> >> there's a high chance of accessing
+> >> released memory (or mutexes that have been already destroyed). An
+> >> example of that is here, stopping a running pipeline after unbinding
+> >> the device. What happens there is that the media device is released
+> >> whilst it's in use through the video device.
+> >>
+> >> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
+> >
+> > It is not clear from the logs what the driver tried to do, but
+> > that sounds like a driver's bug, with was not prepared to properly
+> > handle unbinds.
+> >
+> > The problem here is that isp_video_release() is called by V4L2
+> > release logic, and not by the MC one:
+> >
+> > static const struct v4l2_file_operations isp_video_fops = {
+> >       .owner          = THIS_MODULE,
+> >       .open           = isp_video_open,
+> >       .release        = isp_video_release,
+> >       .poll           = vb2_fop_poll,
+> >       .unlocked_ioctl = video_ioctl2,
+> >       .mmap           = vb2_fop_mmap,
+> > };
+> >
+> > It seems that the driver's logic allows it to be called before or
+> > after destroying the MC.
+> >
+> > Assuming that, if the OMAP3 driver is not used it works,
+> > it means that, if the isp_video_release() is called
+> > first, no errors will happen, but if MC is destroyed before
+> > V4L2 call to its .release() callback, as there's no logic at the
+> > driver that would detect it, isp_video_release() will be calling
+> > isp_video_streamoff(), with depends on the MC to work.
+> >
+> > On a first glance, I can see two ways of fixing it:
+> >
+> > 1) to increment devnode's device kobject refcount at OMAP3 .probe(), 
+> > decrementing it only at isp_video_release(). That will ensure that
+> > MC will only be removed after V4L2 removal.
 
-That's not so important IMO --- the granularity may matter and there's no
-way you can properly communicate that to the user if you use a non-native
-unit.
+As soon as you have to dig deep in a structure to find a reference counter and 
+increment it, bypassing all the API layers, you can be entirely sure that the 
+solution is wrong.
 
-My preference is the native unit, but considering that you've got an
-existing user space application and perhaps even more importantly, it's very
-unlikely the device would be used elsewhere.
+> > 2) to call isp_video_streamoff() before removing the MC stuff, e. g.
+> > inside the MC .release() callback. 
+> 
+> This is a fair suggestion, indeed. Let me see what could be done there.
+> Albeit this is just *one* of the existing issues. It will not address all
+> problems fixed by the patchset.
 
-The smiapp driver uses lines. Up to you.
+We need to stop the hardware at .remove() time. That should not be linked to a 
+videodev, v4l2_device or media_device .release() callback. When the .remove() 
+callback returns the driver is not allowed to touch the hardware anymore. In 
+particular, power domains might clocks or power supplies, leading to invalid 
+access faults if we try to access hardware registers.
 
-> 
-> > > +	if (ret) {
-> > > +		dev_warn(dev, "can't get clock-frequency\n");
-> > > +		return ret;
-> > > +	}
-> > > +
-> > > +	mutex_init(&sensor->power_lock);
-> > 
-> > mutex_destroy() should be called on the mutex if probe fails after this and
-> > in remove().
-> 
-> Ok.
-> 
-> > > +static int __exit et8ek8_remove(struct i2c_client *client)
-> > > +{
-> > > +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-> > > +	struct et8ek8_sensor *sensor = to_et8ek8_sensor(subdev);
-> > > +
-> > > +	if (sensor->power_count) {
-> > > +		gpiod_set_value(sensor->reset, 0);
-> > > +		clk_disable_unprepare(sensor->ext_clk);
-> > 
-> > How about the regulator? Could you call et8ek8_power_off() instead?
-> 
-> Hmm. Actually if we hit this, it indicates something funny is going
-> on, no? I guess I'll add WARN_ON there...
+USB devices get help from the USB core that cancels all USB operations in 
+progress when they're disconnected. Platform devices don't have it as easy, 
+and need to implement everything themselves. We thus need to stop the 
+hardware, but I'm not sure it makes sense to fake a VIDIOC_STREAMOFF ioctl at 
+.remove() time. That could introduce other races between .remove() and the 
+userspace API. A better solution is to make sure the objects that are needed 
+at .release() time of the device node are all reference-counted and only 
+released when the last reference goes away.
 
-Yes. A WARN_ON() would be good.
+There's plenty of way to try and work around the problem in drivers, some more 
+racy than others, but if we require changes to all platform drivers to fix 
+this we need to ensure that we get it right, not as half-baked hacks spread 
+around the whole subsystem.
 
+> > That could be done by overwriting the dev.release() callback at
+> > omap3 driver, as I discussed on my past e-mails, and flagging the
+> > driver that it should not accept streamon anymore, as the hardware
+> > is being disconnecting.
 > 
-> > > +++ b/drivers/media/i2c/et8ek8/et8ek8_reg.h
-> > > @@ -0,0 +1,96 @@
-> > > +/*
-> > > + * et8ek8.h
-> > 
-> > et8ek8_reg.h
+> A mutex will be needed to serialise the this with starting streaming.
 > 
-> Ok.
-> 
-> Thanks for patience,
-
-Same to you! :-)
+> > Btw, that explains a lot why Shuah can't reproduce the stuff you're
+> > complaining on her USB hardware.
+> >
+> > The USB subsystem has a a .disconnect() callback that notifies
+> > the drivers that a device was unbound (likely physically removed).
+> > The way USB media drivers handle it is by returning -ENODEV to any
+> > V4L2 call that would try to touch at the hardware after unbound.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
