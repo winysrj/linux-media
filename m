@@ -1,111 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48284 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751701AbcLTNGS (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:39015
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753860AbcLOTtZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Dec 2016 08:06:18 -0500
-Date: Tue, 20 Dec 2016 15:05:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Rob Herring <robh@kernel.org>, ivo.g.dimitrov.75@gmail.com,
-        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        pawel.moll@arm.com, mark.rutland@arm.com,
-        ijc+devicetree@hellion.org.uk, galak@codeaurora.org,
-        mchehab@osg.samsung.com, devicetree@vger.kernel.org,
+        Thu, 15 Dec 2016 14:49:25 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: sakari.ailus@linux.intel.com, laurent.pinchart@ideasonboard.com,
+        mchehab@kernel.org
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6] media: et8ek8: add device tree binding documentation
-Message-ID: <20161220130538.GD16630@valkosipuli.retiisi.org.uk>
-References: <20161023191706.GA25754@amd>
- <20161030204134.hpmfrnqhd4mg563o@rob-hp-laptop>
- <20161107104648.GB5326@amd>
- <20161114183040.GB28778@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161114183040.GB28778@amd>
+Subject: [PATCH 0/2] omap3 devm usage removal 
+Date: Thu, 15 Dec 2016 12:40:06 -0700
+Message-Id: <cover.1481829721.git.shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+This patch series contains two patches. The first one removes
+calls to media_entity_cleanup() after  media device has been
+unregistered. The second one removes devm usage.
 
-On Mon, Nov 14, 2016 at 07:30:40PM +0100, Pavel Machek wrote:
-> Add device tree binding documentation for toshiba et8ek8 sensor.
-> 
-> Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> ---
-> 
-> v6: added missing article, fixed signal polarity.
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> new file mode 100644
-> index 0000000..b03b21d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> @@ -0,0 +1,53 @@
-> +Toshiba et8ek8 5MP sensor
-> +
-> +Toshiba et8ek8 5MP sensor is an image sensor found in Nokia N900 device
-> +
-> +More detailed documentation can be found in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt .
-> +
-> +
-> +Mandatory properties
-> +--------------------
-> +
-> +- compatible: "toshiba,et8ek8"
-> +- reg: I2C address (0x3e, or an alternative address)
-> +- vana-supply: Analogue voltage supply (VANA), 2.8 volts
-> +- clocks: External clock to the sensor
-> +- clock-frequency: Frequency of the external clock to the sensor. Camera
-> +  driver will set this frequency on the external clock. The clock frequency is
-> +  a pre-determined frequency known to be suitable to the board.
-> +- reset-gpios: XSHUTDOWN GPIO. The XSHUTDOWN signal is active low. The sensor
-> +  is in hardware standby mode when the signal is in the low state.
-> +
-> +
-> +Endpoint node mandatory properties
-> +----------------------------------
-> +
-> +- remote-endpoint: A phandle to the bus receiver's endpoint node.
-> +
-> +Endpoint node optional properties
-> +----------------------------------
-> +
-> +- clock-lanes: <0>
-> +- data-lanes: <1..n>
+Shuah Khan (2):
+  media: omap3isp fix media_entity_cleanup() after media device
+    unregister
+  media: omap3isp change to devm for resources
 
-The driver makes no use of them and CCP2 only supports a single lane. I'll
-just remove these and apply it to my tree. Let's continue discussing the
-driver patch in the other thread.
-
-> +
-> +Example
-> +-------
-> +
-> +&i2c3 {
-> +	clock-frequency = <400000>;
-> +
-> +	cam1: camera@3e {
-> +		compatible = "toshiba,et8ek8";
-> +		reg = <0x3e>;
-> +		vana-supply = <&vaux4>;
-> +		clocks = <&isp 0>;
-> +		clock-frequency = <9600000>;
-> +		reset-gpio = <&gpio4 6 GPIO_ACTIVE_HIGH>; /* 102 */
-> +		port {
-> +			csi_cam1: endpoint {
-> +				remote-endpoint = <&csi_out1>;
-> +			};
-> +		};
-> +	};
-> +};
-> 
+ drivers/media/platform/omap3isp/isp.c         | 71 +++++++++++++++++++--------
+ drivers/media/platform/omap3isp/ispccdc.c     |  1 -
+ drivers/media/platform/omap3isp/ispccp2.c     | 11 +++--
+ drivers/media/platform/omap3isp/ispcsi2.c     |  1 -
+ drivers/media/platform/omap3isp/isph3a_aewb.c | 21 +++++---
+ drivers/media/platform/omap3isp/isph3a_af.c   | 21 +++++---
+ drivers/media/platform/omap3isp/isphist.c     |  5 +-
+ drivers/media/platform/omap3isp/isppreview.c  |  1 -
+ drivers/media/platform/omap3isp/ispresizer.c  |  1 -
+ drivers/media/platform/omap3isp/ispstat.c     |  1 -
+ drivers/media/platform/omap3isp/ispvideo.c    |  1 -
+ 11 files changed, 92 insertions(+), 43 deletions(-)
 
 -- 
-Regards,
+2.7.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
