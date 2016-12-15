@@ -1,60 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37436 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752780AbcLEUGq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 15:06:46 -0500
-Date: Mon, 5 Dec 2016 12:06:32 -0800
-From: Christoph Hellwig <hch@infradead.org>
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        Stephen Bates <sbates@raithlin.com>,
-        Haggai Eran <haggaie@mellanox.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>,
-        "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>,
-        "christian.koenig@amd.com" <christian.koenig@amd.com>,
-        "Suravee.Suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>,
-        "John.Bridgman@amd.com" <john.bridgman@amd.com>,
-        "Alexander.Deucher@amd.com" <alexander.deucher@amd.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-        Max Gurtovoy <maxg@mellanox.com>,
-        "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>,
-        "serguei.sagalovitch@amd.com" <serguei.sagalovitch@amd.com>,
-        "Paul.Blinzer@amd.com" <paul.blinzer@amd.com>,
-        "Felix.Kuehling@amd.com" <felix.kuehling@amd.com>,
-        "ben.sander@amd.com" <ben.sander@amd.com>
-Subject: Re: Enabling peer to peer device transactions for PCIe devices
-Message-ID: <20161205200632.GA24497@infradead.org>
-References: <61a2fb07344aacd81111449d222de66e.squirrel@webmail.raithlin.com>
- <20161205171830.GB27784@obsidianresearch.com>
- <CAPcyv4hdMkXOxj9hUDpnftA7UTGDa498eBugdePp8EWr6S80gA@mail.gmail.com>
- <20161205180231.GA28133@obsidianresearch.com>
- <CAPcyv4iEXwvtDbZgnWzdKU6uN_sOGmXH1KtW_Nws6kUftJUigQ@mail.gmail.com>
- <a3a1c239-297d-c091-7758-54acdf00f74e@deltatee.com>
- <CAPcyv4iVHhOSxPrLMZ53Xw3CK+9cOWn9zEG8smMtqF_LAcKKpg@mail.gmail.com>
- <20161205191438.GA20464@obsidianresearch.com>
- <10356964-c454-47fb-7fb3-8bf2a418b11b@deltatee.com>
- <20161205194614.GA21132@obsidianresearch.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20161205194614.GA21132@obsidianresearch.com>
+Received: from gofer.mess.org ([80.229.237.210]:39273 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936195AbcLOMuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:50:15 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v6 14/18] [media] rc: ir-sharp-decoder: Add encode capability
+Date: Thu, 15 Dec 2016 12:50:07 +0000
+Message-Id: <add976fad4d4ff1ad612d561a6a124a1e61e3d8b.1481805635.git.sean@mess.org>
+In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+In-Reply-To: <cover.1481805635.git.sean@mess.org>
+References: <cover.1481805635.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 05, 2016 at 12:46:14PM -0700, Jason Gunthorpe wrote:
-> In any event the allocator still needs to track which regions are in
-> use and be able to hook 'free' from userspace. That does suggest it
-> should be integrated into the nvme driver and not a bolt on driver..
+Add the capability to encode Sharp scancodes as raw events.
 
-Two totally different use cases:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-sharp-decoder.c | 50 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
- - a card that exposes directly byte addressable storage as a PCI-e
-   bar.  Thin of it as a nvdimm on a PCI-e card.  That's the iopmem
-   case.
- - the NVMe CMB which exposes a byte addressable indirection buffer for
-   I/O, but does not actually provide byte addressable persistent
-   storage.  This is something that needs to be added to the NVMe driver
-   (and the block layer for the abstraction probably).
+diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
+index 317677f..b47e89e 100644
+--- a/drivers/media/rc/ir-sharp-decoder.c
++++ b/drivers/media/rc/ir-sharp-decoder.c
+@@ -173,9 +173,59 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 	return -EINVAL;
+ }
+ 
++static const struct ir_raw_timings_pd ir_sharp_timings = {
++	.header_pulse  = 0,
++	.header_space  = 0,
++	.bit_pulse     = SHARP_BIT_PULSE,
++	.bit_space[0]  = SHARP_BIT_0_PERIOD,
++	.bit_space[1]  = SHARP_BIT_1_PERIOD,
++	.trailer_pulse = SHARP_BIT_PULSE,
++	.trailer_space = SHARP_ECHO_SPACE,
++	.msb_first     = 1,
++};
++
++/**
++ * ir_sharp_encode() - Encode a scancode as a stream of raw events
++ *
++ * @protocol:	protocol to encode
++ * @scancode:	scancode to encode
++ * @events:	array of raw ir events to write into
++ * @max:	maximum size of @events
++ *
++ * Returns:	The number of events written.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		encoding. In this case all @max events will have been written.
++ */
++static int ir_sharp_encode(enum rc_type protocol, u32 scancode,
++			   struct ir_raw_event *events, unsigned int max)
++{
++	struct ir_raw_event *e = events;
++	int ret;
++	u32 raw;
++
++	raw = (((bitrev8(scancode >> 8) >> 3) << 8) & 0x1f00) |
++		bitrev8(scancode);
++	ret = ir_raw_gen_pd(&e, max, &ir_sharp_timings, SHARP_NBITS,
++			    (raw << 2) | 2);
++	if (ret < 0)
++		return ret;
++
++	max -= ret;
++
++	raw = (((bitrev8(scancode >> 8) >> 3) << 8) & 0x1f00) |
++		bitrev8(~scancode);
++	ret = ir_raw_gen_pd(&e, max, &ir_sharp_timings, SHARP_NBITS,
++			    (raw << 2) | 1);
++	if (ret < 0)
++		return ret;
++
++	return e - events;
++}
++
+ static struct ir_raw_handler sharp_handler = {
+ 	.protocols	= RC_BIT_SHARP,
+ 	.decode		= ir_sharp_decode,
++	.encode		= ir_sharp_encode,
+ };
+ 
+ static int __init ir_sharp_decode_init(void)
+-- 
+2.9.3
+
