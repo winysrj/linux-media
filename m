@@ -1,119 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:53377
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1751721AbcLGBUH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 20:20:07 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@kernel.org, perex@perex.cz, tiwai@suse.com,
-        hans.verkuil@cisco.com, javier@osg.samsung.com,
-        chehabrafael@gmail.com, g.liakhovetski@gmx.de, ONeukum@suse.com,
-        k@oikw.org, daniel@zonque.org, mahasler@gmail.com,
-        clemens@ladisch.de, geliangtang@163.com, vdronov@redhat.com,
-        laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: [PATCH v7 0/3] Media Device Allocator API
-Date: Tue,  6 Dec 2016 18:19:57 -0700
-Message-Id: <cover.1481071062.git.shuahkh@osg.samsung.com>
+Received: from mail-qt0-f170.google.com ([209.85.216.170]:35378 "EHLO
+        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756476AbcLOAIK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 14 Dec 2016 19:08:10 -0500
+Received: by mail-qt0-f170.google.com with SMTP id c47so41662086qtc.2
+        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2016 16:07:58 -0800 (PST)
+From: Laura Abbott <labbott@redhat.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>,
+        Riley Andrews <riandrews@android.com>, arve@android.com
+Cc: Laura Abbott <labbott@redhat.com>, romlem@google.com,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linaro-mm-sig@lists.linaro.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Bryan Huntsman <bryanh@codeaurora.org>, pratikp@codeaurora.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        Brian Starkey <brian.starkey@arm.com>
+Subject: [RFC PATCH 3/4] staging: android: ion: Remove page faulting support
+Date: Wed, 14 Dec 2016 16:07:42 -0800
+Message-Id: <1481760463-3515-4-git-send-email-labbott@redhat.com>
+In-Reply-To: <1481760463-3515-1-git-send-email-labbott@redhat.com>
+References: <1481760463-3515-1-git-send-email-labbott@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media Device Allocator API to allows multiple drivers share a media device.
-Using this API, drivers can allocate a media device with the shared struct
-device as the key. Once the media device is allocated by a driver, other
-drivers can get a reference to it. The media device is released when all
-the references are released.
 
-Patches 0001 and 0002 are rebased to 4.9-rc7. Patch 0003 for snd-usb-audio
-is a rebase of the patch that was tested with the original Media Device
-Allocator patch series.
+Unclear if this is wanted or needed?
 
-snd-usb-audio patch includes the fixes found during 4.7-rc1 time in the
-original snd-usb-audio patch.
+Not-signed-off-by: Laura Abbott <labbott@redhat.com>
+---
+ drivers/staging/android/ion/ion.c | 74 ---------------------------------------
+ 1 file changed, 74 deletions(-)
 
-Changes to patches in this series:
-Changes to patch 0001 since v6:
-- No changes
-Changes to patch 0002 since v6:
-- No changes
-Changes to patch 0003 since v6:
-- Addressed Takashi's review comments on patch v6
-
-Depends on:
-https://lkml.org/lkml/2016/11/29/1001
-
-Changes to patch 0001 since v5: (comments from Mauro and Sakari)
-- Removed struct device from media_device_instance. mdev.dev is used instead.
-- Added documentation.
-
-Changes to patch 0002:
-- No changes since patch v2, applies cleanly on top of the following:
-media: Protect enable_source and disable_source handler code paths
-https://lkml.org/lkml/2016/11/29/1001
+diff --git a/drivers/staging/android/ion/ion.c b/drivers/staging/android/ion/ion.c
+index 76b874a0..86dba07 100644
+--- a/drivers/staging/android/ion/ion.c
++++ b/drivers/staging/android/ion/ion.c
+@@ -41,37 +41,11 @@
+ #include "ion_priv.h"
+ #include "compat_ion.h"
  
-Changes to patch 0003:
-- Changed to hold graph_mutex to check and call enable_source and
-  disable_source handlers - to match au0828 doing the same in:
-media: Protect enable_source and disable_source handler code paths 
-https://lkml.org/lkml/2016/11/29/1001
-
-Changes to patch 0001 since v4:
-- Addressed Sakari's review comments with the exception of
-  opting to not introduce media_device_usb_allocate() macro,
-  and to not add a new routine to find media device instance
-  to avoid a one line check.
-
-Changes to patch 0001 since v3:
-- Fixed undefined reference to `__media_device_usb_init compile error when
-  CONFIG_USB is disabled.
-- Fixed kernel paging error when accessing /dev/mediaX after rmmod of the
-  module that owns the media_device. The fix bumps the reference count for
-  the owner when second driver comes along to share the media_device. If
-  au0828 owns the media_device, then snd_usb_audio will bump the refcount
-  for au0828, so it won't get deleted and vice versa.
-
-Changes to patch 0002 since v2:
-- Updated media_device_delete() to pass in module name.
-
-Changes to patch 0003 since the last version in 4.7-rc1:
-- Included fixes to bugs found during testing. 
-- Updated to use the Media Allocator API.
-
-This patch series has been tested with au0828 and snd-usb-audio drivers.
-Ran bind and unbind loop tests on each driver with mc_nextgen_test and
-media_device_test app loop tests while checking lsmod and dmesg.
-
-Please refer to tools/testing/selftests/media_tests/regression_test.txt
-for testing done on this series.
-
-Shuah Khan (3):
-  media: Media Device Allocator API
-  media: change au0828 to use Media Device Allocator API
-  sound/usb: Use Media Controller API to share media resources
-
- Documentation/media/kapi/mc-core.rst   |  37 ++++
- drivers/media/Makefile                 |   3 +-
- drivers/media/media-dev-allocator.c    | 133 ++++++++++++++
- drivers/media/usb/au0828/au0828-core.c |  12 +-
- drivers/media/usb/au0828/au0828.h      |   1 +
- include/media/media-dev-allocator.h    |  54 ++++++
- sound/usb/Kconfig                      |   4 +
- sound/usb/Makefile                     |   2 +
- sound/usb/card.c                       |  14 ++
- sound/usb/card.h                       |   3 +
- sound/usb/media.c                      | 321 +++++++++++++++++++++++++++++++++
- sound/usb/media.h                      |  73 ++++++++
- sound/usb/mixer.h                      |   3 +
- sound/usb/pcm.c                        |  29 ++-
- sound/usb/quirks-table.h               |   1 +
- sound/usb/stream.c                     |   2 +
- sound/usb/usbaudio.h                   |   6 +
- 17 files changed, 684 insertions(+), 14 deletions(-)
- create mode 100644 drivers/media/media-dev-allocator.c
- create mode 100644 include/media/media-dev-allocator.h
- create mode 100644 sound/usb/media.c
- create mode 100644 sound/usb/media.h
-
+-bool ion_buffer_fault_user_mappings(struct ion_buffer *buffer)
+-{
+-	return (buffer->flags & ION_FLAG_CACHED) &&
+-		!(buffer->flags & ION_FLAG_CACHED_NEEDS_SYNC);
+-}
+-
+ bool ion_buffer_cached(struct ion_buffer *buffer)
+ {
+ 	return !!(buffer->flags & ION_FLAG_CACHED);
+ }
+ 
+-static inline struct page *ion_buffer_page(struct page *page)
+-{
+-	return (struct page *)((unsigned long)page & ~(1UL));
+-}
+-
+-static inline bool ion_buffer_page_is_dirty(struct page *page)
+-{
+-	return !!((unsigned long)page & 1UL);
+-}
+-
+-static inline void ion_buffer_page_dirty(struct page **page)
+-{
+-	*page = (struct page *)((unsigned long)(*page) | 1UL);
+-}
+-
+-static inline void ion_buffer_page_clean(struct page **page)
+-{
+-	*page = (struct page *)((unsigned long)(*page) & ~(1UL));
+-}
+-
+ /* this function should only be called while dev->lock is held */
+ static void ion_buffer_add(struct ion_device *dev,
+ 			   struct ion_buffer *buffer)
+@@ -139,25 +113,6 @@ static struct ion_buffer *ion_buffer_create(struct ion_heap *heap,
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 
+-	if (ion_buffer_fault_user_mappings(buffer)) {
+-		int num_pages = PAGE_ALIGN(buffer->size) / PAGE_SIZE;
+-		struct scatterlist *sg;
+-		int i, j, k = 0;
+-
+-		buffer->pages = vmalloc(sizeof(struct page *) * num_pages);
+-		if (!buffer->pages) {
+-			ret = -ENOMEM;
+-			goto err1;
+-		}
+-
+-		for_each_sg(table->sgl, sg, table->nents, i) {
+-			struct page *page = sg_page(sg);
+-
+-			for (j = 0; j < sg->length / PAGE_SIZE; j++)
+-				buffer->pages[k++] = page++;
+-		}
+-	}
+-
+ 	buffer->dev = dev;
+ 	buffer->size = len;
+ 	INIT_LIST_HEAD(&buffer->vmas);
+@@ -845,25 +800,6 @@ struct ion_vma_list {
+ 	struct vm_area_struct *vma;
+ };
+ 
+-static int ion_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+-{
+-	struct ion_buffer *buffer = vma->vm_private_data;
+-	unsigned long pfn;
+-	int ret;
+-
+-	mutex_lock(&buffer->lock);
+-	ion_buffer_page_dirty(buffer->pages + vmf->pgoff);
+-	BUG_ON(!buffer->pages || !buffer->pages[vmf->pgoff]);
+-
+-	pfn = page_to_pfn(ion_buffer_page(buffer->pages[vmf->pgoff]));
+-	ret = vm_insert_pfn(vma, (unsigned long)vmf->virtual_address, pfn);
+-	mutex_unlock(&buffer->lock);
+-	if (ret)
+-		return VM_FAULT_ERROR;
+-
+-	return VM_FAULT_NOPAGE;
+-}
+-
+ static void ion_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct ion_buffer *buffer = vma->vm_private_data;
+@@ -900,7 +836,6 @@ static void ion_vm_close(struct vm_area_struct *vma)
+ static const struct vm_operations_struct ion_vma_ops = {
+ 	.open = ion_vm_open,
+ 	.close = ion_vm_close,
+-	.fault = ion_vm_fault,
+ };
+ 
+ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+@@ -914,15 +849,6 @@ static int ion_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (ion_buffer_fault_user_mappings(buffer)) {
+-		vma->vm_flags |= VM_IO | VM_PFNMAP | VM_DONTEXPAND |
+-							VM_DONTDUMP;
+-		vma->vm_private_data = buffer;
+-		vma->vm_ops = &ion_vma_ops;
+-		ion_vm_open(vma);
+-		return 0;
+-	}
+-
+ 	if (!(buffer->flags & ION_FLAG_CACHED))
+ 		vma->vm_page_prot = pgprot_writecombine(vma->vm_page_prot);
+ 
 -- 
 2.7.4
 
