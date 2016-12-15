@@ -1,67 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33376 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933938AbcLBOwa (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49961 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755113AbcLOXrF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Dec 2016 09:52:30 -0500
-Date: Fri, 2 Dec 2016 16:52:12 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, mchehab@osg.samsung.com,
-        shuahkh@osg.samsung.com, laurent.pinchart@ideasonboard.com
-Subject: Re: [RFC v4 19/21] omap3isp: Allocate the media device dynamically
-Message-ID: <20161202145212.GU16630@valkosipuli.retiisi.org.uk>
-References: <20161108135438.GO3217@valkosipuli.retiisi.org.uk>
- <1478613330-24691-1-git-send-email-sakari.ailus@linux.intel.com>
- <1478613330-24691-19-git-send-email-sakari.ailus@linux.intel.com>
- <99e22b20-12fd-1343-e682-c1fa0c79f074@xs4all.nl>
+        Thu, 15 Dec 2016 18:47:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, sumit.semwal@linaro.org,
+        robdclark@gmail.com, daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: Re: [RFC RESEND 03/11] vb2: Move cache synchronisation from buffer done to dqbuf handler
+Date: Fri, 16 Dec 2016 01:47:20 +0200
+Message-ID: <1504308.JR7t8vfKWF@avalon>
+In-Reply-To: <55F7CDEE.8050802@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <55F30085.504@xs4all.nl> <55F7CDEE.8050802@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <99e22b20-12fd-1343-e682-c1fa0c79f074@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sakari,
 
-On Tue, Nov 22, 2016 at 11:05:49AM +0100, Hans Verkuil wrote:
-...
-> >@@ -2183,7 +2185,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
-> > 	if (ret < 0)
-> > 		return ret;
-> >
-> >-	return media_device_register(&isp->media_dev);
-> >+	return media_device_register(isp->media_dev);
-> 
-> I wonder if this is correct. Usually if the register fails, then the
-> release/delete function
-> has to be called explicitly. That doesn't happen here.
+Thank you for the patch.
 
-This patch is really about making the media_dev a pointer in struct
-omap3isp_device. Currently the cleanup takes place when the device is
-unbound. That's perhaps not ideal but on the other hand optimising error
-handling is often just not worth it.
+On Tuesday 15 Sep 2015 10:51:10 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On 09/11/2015 01:50 PM, Sakari Ailus wrote:
+> >> The cache synchronisation may be a time consuming operation and thus not
+> >> best performed in an interrupt which is a typical context for
+> >> vb2_buffer_done() calls. This may consume up to tens of ms on some
+> >> machines, depending on the buffer size.
+> >> 
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >> ---
+> >> 
+> >>  drivers/media/v4l2-core/videobuf2-core.c | 20 ++++++++++----------
+> >>  1 file changed, 10 insertions(+), 10 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> >> b/drivers/media/v4l2-core/videobuf2-core.c index 64fce4d..c5c0707a
+> >> 100644
+> >> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> >> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> >> @@ -1177,7 +1177,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> >> vb2_buffer_state state)
+> >>  {
+> >>  	struct vb2_queue *q = vb->vb2_queue;
+> >>  	unsigned long flags;
+> >> -	unsigned int plane;
+> >> 
+> >>  	if (WARN_ON(vb->state != VB2_BUF_STATE_ACTIVE))
+> >>  		return;
+> >> @@ -1197,10 +1196,6 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> >> vb2_buffer_state state)
+> >>  	dprintk(4, "done processing on buffer %d, state: %d\n",
+> >>  			vb->v4l2_buf.index, state);
+> >> 
+> >> -	/* sync buffers */
+> >> -	for (plane = 0; plane < vb->num_planes; ++plane)
+> >> -		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> >> -
+> > 
+> > Ah, OK, so it is removed here,
+> 
+> I can merge the two patches for the next version if you prefer that.
 
-Improvements could be done how the async framework handles errors but that
-shouldn't be in the scope of this patchset.
+I think that would be a good idea. They're both pretty small, and they're 
+related. Merging them will make review easier.
 
+> >>  	/* Add the buffer to the done buffers list */
+> >>  	spin_lock_irqsave(&q->done_lock, flags);
+> >>  	vb->state = state;
+> >> 
+> >> @@ -2086,7 +2081,7 @@ EXPORT_SYMBOL_GPL(vb2_wait_for_all_buffers);
+> >>  static void __vb2_dqbuf(struct vb2_buffer *vb)
+> >>  {
+> >>  	struct vb2_queue *q = vb->vb2_queue;
+> >> -	unsigned int i;
+> >> +	unsigned int plane;
+> >> 
+> >>  	/* nothing to do if the buffer is already dequeued */
+> >>  	if (vb->state == VB2_BUF_STATE_DEQUEUED)
+> >> @@ -2094,13 +2089,18 @@ static void __vb2_dqbuf(struct vb2_buffer *vb)
+> >> 
+> >>  	vb->state = VB2_BUF_STATE_DEQUEUED;
+> >> 
+> >> +	/* sync buffers */
+> >> +	for (plane = 0; plane < vb->num_planes; plane++)
+> >> +		call_void_memop(vb, finish, vb->planes[plane].mem_priv);
+> >> +
+> > 
+> > to here.
+> > 
+> > I'm not sure if this is correct... So __vb2_dqbuf is called from
+> > __vb2_queue_cancel(), but now the buf_finish() callback is called
+> > *before* the memop finish() callback, where this was the other way around
+> > in __vb2_queue_cancel(). I don't think that is right since buf_finish()
+> > expects that the buffer is synced for the cpu.
+>
+> I don't mind reordering them.
+
+The .buf_finish() driver callback could touch the contents of the buffer using 
+the CPU, so I agree with Hans that we need to reorder the calls.
+
+> The vb->state will be different as __vb2_dqbuf() has already been called,
+> there's at least one buffer state check in a driver. However, __vb2_dqbuf()
+> unconditionally sets the buffer state to DEQUEUED, overriding e.g. ERROR
+> which a driver would be interested in.
 > 
-> E.g. from adv7604.c:
+> I think the cache sync needs to be moved out of __vb2_dqbuf() to the
+> same level where it's called so proper ordering can be maintained while
+> still flushing cache before buf_finish() is called.
+
+I think that would be the easiest option. It's a bit of a shame to duplicate 
+the call, but I don't see any other easy way. A comment that states that cache 
+sync needs to occur before .buf_finish() would probably be useful.
+
+> > Was this tested with CONFIG_VIDEO_ADV_DEBUG set and with 'v4l2-compliance
+> > -s'? Not that that would help if things are done in the wrong order...
 > 
-> static int adv76xx_registered(struct v4l2_subdev *sd)
-> {
->         struct adv76xx_state *state = to_state(sd);
->         int err;
-> 
->         err = cec_register_adapter(state->cec_adap);
->         if (err)
->                 cec_delete_adapter(state->cec_adap);
->         return err;
-> }
+> I'll do that the next time.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
