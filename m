@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:57879
-        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1754840AbcLUBbu (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51680 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753760AbcLOGwc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Dec 2016 20:31:50 -0500
-Date: Tue, 20 Dec 2016 23:31:42 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: Media summit in Feb? - Was: Re: [RFC v3 00/21] Make use of kref
- in media device, grab references as needed
-Message-ID: <20161220233142.4b2cfc8f@vento.lan>
-In-Reply-To: <20161219072829.7f23c45b@vento.lan>
-References: <20161109154608.1e578f9e@vento.lan>
-        <20161213102447.60990b1c@vento.lan>
-        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
-        <7529355.zfqFdROYdM@avalon>
-        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
-        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
-        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
-        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
-        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
-        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
-        <20161215152501.11ce2b2a@vento.lan>
-        <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
-        <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
-        <20161216085741.38bb2e18@vento.lan>
-        <c654bffd-792c-f860-33b4-3c399984dbd4@xs4all.nl>
-        <20161216100056.5f3fcb55@vento.lan>
-        <b34d42aa-2007-f1fb-70ee-2533998ec54e@xs4all.nl>
-        <20161219072829.7f23c45b@vento.lan>
+        Thu, 15 Dec 2016 01:52:32 -0500
+Date: Thu, 15 Dec 2016 08:50:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Pavel Machek <pavel@ucw.cz>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, khilman@kernel.org,
+        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+        linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
+References: <20160521054336.GA27123@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <201612141438.16603@pali>
+ <20161214150819.GW4920@atomide.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20161214150819.GW4920@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 19 Dec 2016 07:28:29 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Hi Pali and Tony,
 
-> Em Fri, 16 Dec 2016 15:45:10 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Wed, Dec 14, 2016 at 07:08:19AM -0800, Tony Lindgren wrote:
+> * Pali Rohár <pali.rohar@gmail.com> [161214 05:38]:
+> > On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
+> > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
+> > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> > > > > This adds support for AD5820 autofocus coil, found for example in
+> > > > > Nokia N900 smartphone.
+> > > > 
+> > > > Thanks, Pavel!
+> > > > 
+> > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
+> > > > something better in the future, we'll switch to that then.
+> > > > 
+> > > > I've applied this to ad5820 branch in my tree.
+> > > 
+> > > Thanks. If I understands things correctly, both DTS patch and this
+> > > patch are waiting in your tree, so we should be good to go for 4.9
+> > > (unless some unexpected problems surface)?
+> > > 
+> > > Best regards,
+> > > 									Pavel
+> > 
+> > Was DTS patch merged into 4.9? At least I do not see updated that dts 
+> > file omap3-n900.dts in linus tree...
 > 
-> > We really need a whiteboard for this :-(
-> 
-> Well, we could schedule a media summit together with ELC NA.
-> 
-> ELC will be in Feb, 21-23 in Portland.
+> If it's not in current mainline or next, it's off my radar so sounds
+> like I've somehow missed it and needs resending..
 
-Btw, I'm pre reserving a room for us in Feb, 20, assuming that
-people can make it.
+Where's this patch? I remember seeing the driver patch and the DT
+documentation but no actual DT source patch for the N900.
 
+-- 
+Kind regards,
 
-Thanks,
-Mauro
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
