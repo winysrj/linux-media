@@ -1,53 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:33958 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753669AbcLXWev (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Dec 2016 17:34:51 -0500
-Received: by mail-pg0-f67.google.com with SMTP id b1so4792467pgc.1
-        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2016 14:34:32 -0800 (PST)
-From: Shyam Saini <mayhs11saini@gmail.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, Shyam Saini <mayhs11saini@gmail.com>
-Subject: [PATCH 4/4] media: pci: saa7164: Replace BUG() with BUG_ON()
-Date: Sun, 25 Dec 2016 04:04:03 +0530
-Message-Id: <1482618843-13877-3-git-send-email-mayhs11saini@gmail.com>
-In-Reply-To: <1482618843-13877-1-git-send-email-mayhs11saini@gmail.com>
-References: <1482618843-13877-1-git-send-email-mayhs11saini@gmail.com>
+Received: from swift.blarg.de ([78.47.110.205]:32815 "EHLO swift.blarg.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753541AbcLOV43 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 16:56:29 -0500
+Subject: [PATCH] [media] pctv452e: move buffer to heap, no mutex
+From: Max Kellermann <max.kellermann@gmail.com>
+To: linux-media@vger.kernel.org, shuahkh@osg.samsung.com,
+        mchehab@osg.samsung.com
+Cc: linux-kernel@vger.kernel.org
+Date: Thu, 15 Dec 2016 22:51:07 +0100
+Message-ID: <148183866716.1608.1018949799768567277.stgit@woodpecker.blarg.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace BUG() with BUG_ON() using coccinelle
+Revert part of commit 73d5c5c864f4094, but move the buffer to the heap
+(DMA capable), not to the stack (may not be DMA capable).  Instead of
+sharing one buffer which needs mutex protection, do a new heap
+allocation for each call.
 
-Signed-off-by: Shyam Saini <mayhs11saini@gmail.com>
+This fixes a NULL pointer dereference which occurs when dvb_usb_init()
+calls dvb_usb_device_power_ctrl() for the first time, before the
+frontend has been attached; and it fixes a recursive deadlock because
+tt3650_ci_msg_locked() has already locked the mutex.
+
+Both regressions were caused by said commit 73d5c5c864f4094, which rendered
+the pctv452e driver completely unusable (crashes instantly when
+plugging in the device).
+
+Signed-off-by: Max Kellermann <max.kellermann@gmail.com>
 ---
- drivers/media/pci/saa7164/saa7164-vbi.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/usb/dvb-usb/pctv452e.c |  133 ++++++++++++++++++----------------
+ 1 file changed, 72 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
-index e5dcb81..73e42c9 100644
---- a/drivers/media/pci/saa7164/saa7164-vbi.c
-+++ b/drivers/media/pci/saa7164/saa7164-vbi.c
-@@ -722,8 +722,7 @@ int saa7164_vbi_register(struct saa7164_port *port)
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index 07fa08b..d54ebe7 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -97,14 +97,13 @@ struct pctv452e_state {
+ 	u8 c;	   /* transaction counter, wraps around...  */
+ 	u8 initialized; /* set to 1 if 0x15 has been sent */
+ 	u16 last_rc_key;
+-
+-	unsigned char data[80];
+ };
  
- 	dprintk(DBGLVL_VBI, "%s()\n", __func__);
+ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
+ 			 unsigned int write_len, unsigned int read_len)
+ {
+ 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
++	u8 *buf;
+ 	u8 id;
+ 	unsigned int rlen;
+ 	int ret;
+@@ -114,36 +113,39 @@ static int tt3650_ci_msg(struct dvb_usb_device *d, u8 cmd, u8 *data,
+ 		return -EIO;
+ 	}
  
--	if (port->type != SAA7164_MPEG_VBI)
--		BUG();
-+	BUG_ON(port->type != SAA7164_MPEG_VBI);
+-	mutex_lock(&state->ca_mutex);
++	buf = kmalloc(64, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
+ 	id = state->c++;
  
- 	/* Sanity check that the PCI configuration space is active */
- 	if (port->hwcfg.BARLocation == 0) {
-@@ -775,8 +774,7 @@ void saa7164_vbi_unregister(struct saa7164_port *port)
+-	state->data[0] = SYNC_BYTE_OUT;
+-	state->data[1] = id;
+-	state->data[2] = cmd;
+-	state->data[3] = write_len;
++	buf[0] = SYNC_BYTE_OUT;
++	buf[1] = id;
++	buf[2] = cmd;
++	buf[3] = write_len;
  
- 	dprintk(DBGLVL_VBI, "%s(port=%d)\n", __func__, port->nr);
+-	memcpy(state->data + 4, data, write_len);
++	memcpy(buf + 4, data, write_len);
  
--	if (port->type != SAA7164_MPEG_VBI)
--		BUG();
-+	BUG_ON(port->type != SAA7164_MPEG_VBI);
+ 	rlen = (read_len > 0) ? 64 : 0;
+-	ret = dvb_usb_generic_rw(d, state->data, 4 + write_len,
+-				  state->data, rlen, /* delay_ms */ 0);
++	ret = dvb_usb_generic_rw(d, buf, 4 + write_len,
++				  buf, rlen, /* delay_ms */ 0);
+ 	if (0 != ret)
+ 		goto failed;
  
- 	if (port->v4l_device) {
- 		if (port->v4l_device->minor != -1)
--- 
-2.7.4
+ 	ret = -EIO;
+-	if (SYNC_BYTE_IN != state->data[0] || id != state->data[1])
++	if (SYNC_BYTE_IN != buf[0] || id != buf[1])
+ 		goto failed;
+ 
+-	memcpy(data, state->data + 4, read_len);
++	memcpy(data, buf + 4, read_len);
+ 
+-	mutex_unlock(&state->ca_mutex);
++	kfree(buf);
+ 	return 0;
+ 
+ failed:
+ 	err("CI error %d; %02X %02X %02X -> %*ph.",
+-	     ret, SYNC_BYTE_OUT, id, cmd, 3, state->data);
++	     ret, SYNC_BYTE_OUT, id, cmd, 3, buf);
+ 
+-	mutex_unlock(&state->ca_mutex);
++	kfree(buf);
+ 	return ret;
+ }
+ 
+@@ -410,53 +412,57 @@ static int pctv452e_i2c_msg(struct dvb_usb_device *d, u8 addr,
+ 				u8 *rcv_buf, u8 rcv_len)
+ {
+ 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
++	u8 *buf;
+ 	u8 id;
+ 	int ret;
+ 
+-	mutex_lock(&state->ca_mutex);
++	buf = kmalloc(64, GFP_KERNEL);
++	if (!buf)
++		return -ENOMEM;
++
+ 	id = state->c++;
+ 
+ 	ret = -EINVAL;
+ 	if (snd_len > 64 - 7 || rcv_len > 64 - 7)
+ 		goto failed;
+ 
+-	state->data[0] = SYNC_BYTE_OUT;
+-	state->data[1] = id;
+-	state->data[2] = PCTV_CMD_I2C;
+-	state->data[3] = snd_len + 3;
+-	state->data[4] = addr << 1;
+-	state->data[5] = snd_len;
+-	state->data[6] = rcv_len;
++	buf[0] = SYNC_BYTE_OUT;
++	buf[1] = id;
++	buf[2] = PCTV_CMD_I2C;
++	buf[3] = snd_len + 3;
++	buf[4] = addr << 1;
++	buf[5] = snd_len;
++	buf[6] = rcv_len;
+ 
+-	memcpy(state->data + 7, snd_buf, snd_len);
++	memcpy(buf + 7, snd_buf, snd_len);
+ 
+-	ret = dvb_usb_generic_rw(d, state->data, 7 + snd_len,
+-				  state->data, /* rcv_len */ 64,
++	ret = dvb_usb_generic_rw(d, buf, 7 + snd_len,
++				  buf, /* rcv_len */ 64,
+ 				  /* delay_ms */ 0);
+ 	if (ret < 0)
+ 		goto failed;
+ 
+ 	/* TT USB protocol error. */
+ 	ret = -EIO;
+-	if (SYNC_BYTE_IN != state->data[0] || id != state->data[1])
++	if (SYNC_BYTE_IN != buf[0] || id != buf[1])
+ 		goto failed;
+ 
+ 	/* I2C device didn't respond as expected. */
+ 	ret = -EREMOTEIO;
+-	if (state->data[5] < snd_len || state->data[6] < rcv_len)
++	if (buf[5] < snd_len || buf[6] < rcv_len)
+ 		goto failed;
+ 
+-	memcpy(rcv_buf, state->data + 7, rcv_len);
+-	mutex_unlock(&state->ca_mutex);
++	memcpy(rcv_buf, buf + 7, rcv_len);
+ 
++	kfree(buf);
+ 	return rcv_len;
+ 
+ failed:
+ 	err("I2C error %d; %02X %02X  %02X %02X %02X -> %*ph",
+ 	     ret, SYNC_BYTE_OUT, id, addr << 1, snd_len, rcv_len,
+-	     7, state->data);
++	     7, buf);
+ 
+-	mutex_unlock(&state->ca_mutex);
++	kfree(buf);
+ 	return ret;
+ }
+ 
+@@ -505,7 +511,7 @@ static u32 pctv452e_i2c_func(struct i2c_adapter *adapter)
+ static int pctv452e_power_ctrl(struct dvb_usb_device *d, int i)
+ {
+ 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
+-	u8 *rx;
++	u8 *b0, *rx;
+ 	int ret;
+ 
+ 	info("%s: %d\n", __func__, i);
+@@ -516,11 +522,12 @@ static int pctv452e_power_ctrl(struct dvb_usb_device *d, int i)
+ 	if (state->initialized)
+ 		return 0;
+ 
+-	rx = kmalloc(PCTV_ANSWER_LEN, GFP_KERNEL);
+-	if (!rx)
++	b0 = kmalloc(5 + PCTV_ANSWER_LEN, GFP_KERNEL);
++	if (!b0)
+ 		return -ENOMEM;
+ 
+-	mutex_lock(&state->ca_mutex);
++	rx = b0 + 5;
++
+ 	/* hmm where shoud this should go? */
+ 	ret = usb_set_interface(d->udev, 0, ISOC_INTERFACE_ALTERNATIVE);
+ 	if (ret != 0)
+@@ -528,66 +535,70 @@ static int pctv452e_power_ctrl(struct dvb_usb_device *d, int i)
+ 			__func__, ret);
+ 
+ 	/* this is a one-time initialization, dont know where to put */
+-	state->data[0] = 0xaa;
+-	state->data[1] = state->c++;
+-	state->data[2] = PCTV_CMD_RESET;
+-	state->data[3] = 1;
+-	state->data[4] = 0;
++	b0[0] = 0xaa;
++	b0[1] = state->c++;
++	b0[2] = PCTV_CMD_RESET;
++	b0[3] = 1;
++	b0[4] = 0;
+ 	/* reset board */
+-	ret = dvb_usb_generic_rw(d, state->data, 5, rx, PCTV_ANSWER_LEN, 0);
++	ret = dvb_usb_generic_rw(d, b0, 5, rx, PCTV_ANSWER_LEN, 0);
+ 	if (ret)
+ 		goto ret;
+ 
+-	state->data[1] = state->c++;
+-	state->data[4] = 1;
++	b0[1] = state->c++;
++	b0[4] = 1;
+ 	/* reset board (again?) */
+-	ret = dvb_usb_generic_rw(d, state->data, 5, rx, PCTV_ANSWER_LEN, 0);
++	ret = dvb_usb_generic_rw(d, b0, 5, rx, PCTV_ANSWER_LEN, 0);
+ 	if (ret)
+ 		goto ret;
+ 
+ 	state->initialized = 1;
+ 
+ ret:
+-	mutex_unlock(&state->ca_mutex);
+-	kfree(rx);
++	kfree(b0);
+ 	return ret;
+ }
+ 
+ static int pctv452e_rc_query(struct dvb_usb_device *d)
+ {
+ 	struct pctv452e_state *state = (struct pctv452e_state *)d->priv;
++	u8 *b, *rx;
+ 	int ret, i;
+ 	u8 id;
+ 
+-	mutex_lock(&state->ca_mutex);
++	b = kmalloc(CMD_BUFFER_SIZE + PCTV_ANSWER_LEN, GFP_KERNEL);
++	if (!b)
++		return -ENOMEM;
++
++	rx = b + CMD_BUFFER_SIZE;
++
+ 	id = state->c++;
+ 
+ 	/* prepare command header  */
+-	state->data[0] = SYNC_BYTE_OUT;
+-	state->data[1] = id;
+-	state->data[2] = PCTV_CMD_IR;
+-	state->data[3] = 0;
++	b[0] = SYNC_BYTE_OUT;
++	b[1] = id;
++	b[2] = PCTV_CMD_IR;
++	b[3] = 0;
+ 
+ 	/* send ir request */
+-	ret = dvb_usb_generic_rw(d, state->data, 4,
+-				 state->data, PCTV_ANSWER_LEN, 0);
++	ret = dvb_usb_generic_rw(d, b, 4, rx, PCTV_ANSWER_LEN, 0);
+ 	if (ret != 0)
+ 		goto ret;
+ 
+ 	if (debug > 3) {
+-		info("%s: read: %2d: %*ph: ", __func__, ret, 3, state->data);
+-		for (i = 0; (i < state->data[3]) && ((i + 3) < PCTV_ANSWER_LEN); i++)
+-			info(" %02x", state->data[i + 3]);
++		info("%s: read: %2d: %*ph: ", __func__, ret, 3, rx);
++		for (i = 0; (i < rx[3]) && ((i+3) < PCTV_ANSWER_LEN); i++)
++			info(" %02x", rx[i+3]);
+ 
+ 		info("\n");
+ 	}
+ 
+-	if ((state->data[3] == 9) &&  (state->data[12] & 0x01)) {
++	if ((rx[3] == 9) &&  (rx[12] & 0x01)) {
+ 		/* got a "press" event */
+-		state->last_rc_key = RC_SCANCODE_RC5(state->data[7], state->data[6]);
++		state->last_rc_key = RC_SCANCODE_RC5(rx[7], rx[6]);
+ 		if (debug > 2)
+ 			info("%s: cmd=0x%02x sys=0x%02x\n",
+-				__func__, state->data[6], state->data[7]);
++				__func__, rx[6], rx[7]);
+ 
+ 		rc_keydown(d->rc_dev, RC_TYPE_RC5, state->last_rc_key, 0);
+ 	} else if (state->last_rc_key) {
+@@ -595,7 +606,7 @@ static int pctv452e_rc_query(struct dvb_usb_device *d)
+ 		state->last_rc_key = 0;
+ 	}
+ ret:
+-	mutex_unlock(&state->ca_mutex);
++	kfree(b);
+ 	return ret;
+ }
+ 
 
