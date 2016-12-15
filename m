@@ -1,58 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:44255 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752810AbcL0LRd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 06:17:33 -0500
-Date: Tue, 27 Dec 2016 11:17:30 +0000
-From: Sean Young <sean@mess.org>
-To: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: rc: refactor raw handler kthread
-Message-ID: <20161227111729.GA3374@gofer.mess.org>
-References: <f1b01f8c-934a-3bfe-ca1f-880b9c1ad233@gmail.com>
- <727717c2-8529-691f-282a-cb57c997c922@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49699 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752203AbcLOVNP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 16:13:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: Re: [RFC RESEND 09/11] vb2: dma-contig: Don't warn on failure in obtaining scatterlist
+Date: Thu, 15 Dec 2016 23:13:51 +0200
+Message-ID: <1965006.ft6WAVAs7u@avalon>
+In-Reply-To: <1441972234-8643-10-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-10-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <727717c2-8529-691f-282a-cb57c997c922@gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 26, 2016 at 02:01:31PM +0100, Heiner Kallweit wrote:
-> Am 02.08.2016 um 07:44 schrieb Heiner Kallweit:
-> > I think we can get rid of the spinlock protecting the kthread from being
-> > interrupted by a wakeup in certain parts.
-> > Even with the current implementation of the kthread the only lost wakeup
-> > scenario could happen if the wakeup occurs between the kfifo_len check
-> > and setting the state to TASK_INTERRUPTIBLE.
-> > 
-> > In the changed version we could lose a wakeup if it occurs between
-> > processing the fifo content and setting the state to TASK_INTERRUPTIBLE.
-> > This scenario is covered by an additional check for available events in
-> > the fifo and setting the state to TASK_RUNNING in this case.
-> > 
-> > In addition the changed version flushes the kfifo before ending
-> > when the kthread is stopped.
-> > 
-> > With this patch we gain:
-> > - Get rid of the spinlock
-> > - Simplify code
-> > - Don't grep / release the mutex for each individual event but just once
-> >   for the complete fifo content. This reduces overhead if a driver e.g.
-> >   triggers processing after writing the content of a hw fifo to the kfifo.
-> > 
-> > Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+Hi Sakari,
+
+Thank you for the patch.
+
+On Friday 11 Sep 2015 14:50:32 Sakari Ailus wrote:
+> vb2_dc_get_base_sgt() which obtains the scatterlist already prints
+> information on why the scatterlist could not be obtained.
 > 
-> Sean added a review comment and his "Tested-by" a month ago.
-> Anything else missing before it can be applied?
+> Also, remove the useless warning of a failed kmalloc().
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-I have it applied here:
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-https://git.linuxtv.org/syoung/media_tree.git/log/?h=for-v4.11a
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 3260392..65bc687
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -88,10 +88,8 @@ static struct sg_table *vb2_dc_get_base_sgt(struct
+> vb2_dc_buf *buf) struct sg_table *sgt;
+> 
+>  	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+> -	if (!sgt) {
+> -		dev_err(buf->dev, "failed to alloc sg table\n");
+> +	if (!sgt)
+>  		return NULL;
+> -	}
+> 
+>  	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
+>  		buf->size);
+> @@ -411,7 +409,7 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv,
+> unsigned long flags) if (!buf->dma_sgt)
+>  		buf->dma_sgt = vb2_dc_get_base_sgt(buf);
+> 
+> -	if (WARN_ON(!buf->dma_sgt))
+> +	if (!buf->dma_sgt)
+>  		return NULL;
+> 
+>  	dbuf = dma_buf_export(&exp_info);
 
-I'll ask Mauro to pull that tree soon, now that 4.10-rc1 has been
-merged. I need to do some testing.
+-- 
+Regards,
 
+Laurent Pinchart
 
-Sean
