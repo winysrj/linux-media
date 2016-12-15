@@ -1,185 +1,337 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:32934 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751451AbcLEVUN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2016 16:20:13 -0500
-Received: by mail-io0-f193.google.com with SMTP id j92so2652580ioi.0
-        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2016 13:19:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAOJOY2M6QANNysnZ_C9G+fFg=a=wYQXGDr49LCYGE7KrbwkE4A@mail.gmail.com>
-References: <20161127110732.GA5338@arch-desktop> <20161127111148.GA30483@arch-desktop>
- <20161202090558.29931492@vento.lan> <CAAEAJfCmQnQHWy+7kS4wuuBK7mubiKRpiDYCm9BHYjVR4yHGgA@mail.gmail.com>
- <CAOJOY2Nhi6aev=jwVeyuQMxKUAk-MfT0YLKsFfrUsAcZtdrysQ@mail.gmail.com>
- <CAAEAJfAoZCzh5c=C+8Um-KaZkRs_ip1kX04xZRm2bWrGLmMwjA@mail.gmail.com>
- <20161205101221.53613e57@vento.lan> <CAAEAJfD6sauJ_NyYtBmFAr5c_NGr8OuZwqnG1Ukk9-P7YNSypQ@mail.gmail.com>
- <CAOJOY2M6QANNysnZ_C9G+fFg=a=wYQXGDr49LCYGE7KrbwkE4A@mail.gmail.com>
-From: Marcel Hasler <mahasler@gmail.com>
-Date: Mon, 5 Dec 2016 22:18:34 +0100
-Message-ID: <CAOJOY2MubrfvyWDs+4SjttdQhFKrnRwn9ERh-F5PBU2sEbErUg@mail.gmail.com>
-Subject: Re: [PATCH v3 3/4] stk1160: Add module param for setting the record gain.
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37854
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751088AbcLOQHQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 11:07:16 -0500
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
+ as needed
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+References: <20161109154608.1e578f9e@vento.lan>
+ <20161213102447.60990b1c@vento.lan>
+ <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+ <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+ <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+ <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
 Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+Date: Thu, 15 Dec 2016 09:06:41 -0700
+MIME-Version: 1.0
+In-Reply-To: <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2016-12-05 22:06 GMT+01:00 Marcel Hasler <mahasler@gmail.com>:
-> Hello
->
-> 2016-12-05 16:38 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.com.ar=
->:
->> On 5 December 2016 at 09:12, Mauro Carvalho Chehab
->> <mchehab@s-opensource.com> wrote:
->>> Em Sun, 4 Dec 2016 15:25:25 -0300
->>> Ezequiel Garcia <ezequiel@vanguardiasur.com.ar> escreveu:
+On 12/15/2016 08:26 AM, Hans Verkuil wrote:
+> On 15/12/16 15:45, Shuah Khan wrote:
+>> On 12/15/2016 07:03 AM, Hans Verkuil wrote:
+>>> On 15/12/16 13:56, Laurent Pinchart wrote:
+>>>> Hi Sakari,
+>>>>
+>>>> On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:
+>>>>> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:
+>>>>>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:
+>>>>>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:
+>>>>>>>> Hi Sakari,
+>>>>>>>>
+>>>>>>>> I answered you point to point below, but I suspect that you missed how
+>>>>>>>> the current approach works. So, I decided to write a quick summary
+>>>>>>>> here.
+>>>>>>>>
+>>>>>>>> The character devices /dev/media? are created via cdev, with relies on
+>>>>>>>> a kobject per device, with has an embedded struct kref inside.
+>>>>>>>>
+>>>>>>>> Also, each kobj at /dev/media0, /dev/media1, ... is associated with a
+>>>>>>>> struct device, when the code does:
+>>>>>>>>   devnode->cdev.kobj.parent = &devnode->dev.kobj;
+>>>>>>>>
+>>>>>>>> before calling cdev_add().
+>>>>>>>>
+>>>>>>>> The current lifetime management is actually based on cdev's kobject's
+>>>>>>>> refcount, provided by its embedded kref.
+>>>>>>>>
+>>>>>>>> The kref warrants that any data associated with /dev/media0 won't be
+>>>>>>>> freed if there are any pending system call. In other words, when
+>>>>>>>> cdev_del() is called, it will remove /dev/media0 from the filesystem,
+>>>>>>>> and will call kobject_put().
+>>>>>>>>
+>>>>>>>> If the refcount is zero, it will call devnode->dev.release(). If the
+>>>>>>>> kobject refcount is not zero, the data won't be freed.
+>>>>>>>>
+>>>>>>>> So, in the best case scenario, there's no opened file descriptors
+>>>>>>>> by the time media device node is unregistered. So, it will free
+>>>>>>>> everything.
+>>>>>>>>
+>>>>>>>> In the worse case scenario, e. g. when the driver is removed or
+>>>>>>>> unbind while /dev/media0 has some opened file descriptor(s),
+>>>>>>>> the cdev logic will do the proper lifetime management.
+>>>>>>>>
+>>>>>>>> On such case, /dev/media0 disappears from the file system, so another
+>>>>>>>> open is not possible anymore. The data structures will remain
+>>>>>>>> allocated until all associated file descriptors are not closed.
+>>>>>>>>
+>>>>>>>> When all file descriptors are closed, the data will be freed.
+>>>>>>>>
+>>>>>>>> On that time, it will call an optional dev.release() callback,
+>>>>>>>> responsible to free any other data struct that the driver allocated.
+>>>>>>>
+>>>>>>> The patchset does not change this. It's not a question of the
+>>>>>>> media_devnode struct either. That's not an issue.
+>>>>>>>
+>>>>>>> The issue is rather what else can be accessed through the media device
+>>>>>>> and other interfaces. As IOCTLs are not serialised with device removal
+>>>>>>> (which now releases much of the data structures)
+>>>>>>
+>>>>>> Huh? ioctls are serialized with struct device removal. The Driver core
+>>>>>> warrants that.
+>>>>>
+>>>>> How?
+>>>>>
+>>>>> As far as I can tell, there's nothing in the way of an IOCTL being in
+>>>>> progress on a character device which is registered by the driver for a
+>>>>> hardware device which is being removed.
+>>>>>
+>>>>> vfs_ioctl() directly calls the unlocked_ioctl() file operation which is, in
+>>>>> case of MC, media_ioctl() in media-devnode.c. No mutexes (or other locks)
+>>>>> are taken during that path, which I believe is by design.
 >>>
->>>> On 4 December 2016 at 10:01, Marcel Hasler <mahasler@gmail.com> wrote:
->>>> > Hello
->>>> >
->>>> > 2016-12-03 21:46 GMT+01:00 Ezequiel Garcia <ezequiel@vanguardiasur.c=
-om.ar>:
->>>> >> On 2 December 2016 at 08:05, Mauro Carvalho Chehab
->>>> >> <mchehab@s-opensource.com> wrote:
->>>> >>> Em Sun, 27 Nov 2016 12:11:48 +0100
->>>> >>> Marcel Hasler <mahasler@gmail.com> escreveu:
->>>> >>>
->>>> >>>> Allow setting a custom record gain for the internal AC97 codec (i=
-f available). This can be
->>>> >>>> a value between 0 and 15, 8 is the default and should be suitable=
- for most users. The Windows
->>>> >>>> driver also sets this to 8 without any possibility for changing i=
-t.
->>>> >>>
->>>> >>> The problem of removing the mixer is that you need this kind of
->>>> >>> crap to setup the volumes on a non-standard way.
->>>> >>>
->>>> >>
->>>> >> Right, that's a good point.
->>>> >>
->>>> >>> NACK.
->>>> >>>
->>>> >>> Instead, keep the alsa mixer. The way other drivers do (for exampl=
-e,
->>>> >>> em28xx) is that they configure the mixer when an input is selected=
-,
->>>> >>> increasing the volume of the active audio channel to 100% and muti=
-ng
->>>> >>> the other audio channels. Yet, as the alsa mixer is exported, user=
-s
->>>> >>> can change the mixer settings in runtime using some alsa (or pa)
->>>> >>> mixer application.
->>>> >>>
->>>> >>
->>>> >> Yeah, the AC97 mixer we are currently leveraging
->>>> >> exposes many controls that have no meaning in this device,
->>>> >> so removing that still looks like an improvement.
->>>> >>
->>>> >> I guess the proper way is creating our own mixer
->>>> >> (not using snd_ac97_mixer)  exposing only the record
->>>> >> gain knob.
->>>> >>
->>>> >> Marcel, what do you think?
->>>> >> --
->>>> >> Ezequiel Garc=C3=ADa, VanguardiaSur
->>>> >> www.vanguardiasur.com.ar
->>>> >
->>>> > As I have written before, the recording gain isn't actually meant to
->>>> > be changed by the user. In the official Windows driver this value is
->>>> > hard-coded to 8 and cannot be changed in any way. And there really i=
-s
->>>> > no good reason why anyone should need to mess with it in the first
->>>> > place. The default value will give the best results in pretty much a=
-ll
->>>> > cases and produces approximately the same volume as the internal 8-b=
-it
->>>> > ADC whose gain cannot be changed at all, not even by a driver.
->>>> >
->>>> > I had considered writing a mixer but chose not to. If the gain setti=
-ng
->>>> > is openly exposed to mixer applications, how do you tell the users
->>>> > that the value set by the driver already is the optimal and
->>>> > recommended value and that they shouldn't mess with the controls
->>>> > unless they really have to? By having a module parameter, this setti=
-ng
->>>> > is practically hidden from the normal user but still is available to
->>>> > power-users if they think they really need it. In the end it's reall=
-y
->>>> > just a compromise between hiding it completely and exposing it openl=
-y.
->>>> > Also, this way the driver guarantees reproducible results, since
->>>> > there's no need to remember the positions of any volume sliders.
->>>> >
->>>>
->>>> Hm, right. I've never changed the record gain, and it's true that it
->>>> doens't really improve the volume. So, I would be OK with having
->>>> a module parameter.
->>>>
->>>> On the other side, we are exposing it currently, through the "Capture"
->>>> mixer control:
->>>>
->>>> Simple mixer control 'Capture',0
->>>>   Capabilities: cvolume cswitch cswitch-joined
->>>>   Capture channels: Front Left - Front Right
->>>>   Limits: Capture 0 - 15
->>>>   Front Left: Capture 10 [67%] [15.00dB] [on]
->>>>   Front Right: Capture 8 [53%] [12.00dB] [on]
->>>>
->>>> So, it would be user-friendly to keep the user interface and continue
->>>> to expose the same knob - even if the default is the optimal, etc.
->>>>
->>>> To be completely honest, I don't think any user is really relying
->>>> on any REC_GAIN / Capture setting, and I'm completely OK
->>>> with having a mixer control or a module parameter. It doesn't matter.
+>>> chrdev_open in fs/char_dev.c increases the refcount on open() and decreases it
+>>> on release(). Thus ensuring that the cdev can never be removed while in an
+>>> ioctl.
 >>>
->>> If you're positive that *all* stk1160 use the ac97 mixer the
->>> same way, and that there's no sense on having a mixer for it,
->>> then it would be ok to remove it.
+>>>>>
+>>>>>>> there's a high chance of accessing
+>>>>>>> released memory (or mutexes that have been already destroyed). An
+>>>>>>> example of that is here, stopping a running pipeline after unbinding
+>>>>>>> the device. What happens there is that the media device is released
+>>>>>>> whilst it's in use through the video device.
+>>>>>>>
+>>>>>>> <URL:http://www.retiisi.org.uk/v4l2/tmp/media-ref-dmesg2.txt>
+>>>>>>
+>>>>>> It is not clear from the logs what the driver tried to do, but
+>>>>>> that sounds like a driver's bug, with was not prepared to properly
+>>>>>> handle unbinds.
+>>>>>>
+>>>>>> The problem here is that isp_video_release() is called by V4L2
+>>>>>> release logic, and not by the MC one:
+>>>>>>
+>>>>>> static const struct v4l2_file_operations isp_video_fops = {
+>>>>>>       .owner          = THIS_MODULE,
+>>>>>>       .open           = isp_video_open,
+>>>>>>       .release        = isp_video_release,
+>>>>>>       .poll           = vb2_fop_poll,
+>>>>>>       .unlocked_ioctl = video_ioctl2,
+>>>>>>       .mmap           = vb2_fop_mmap,
+>>>>>> };
+>>>>>>
+>>>>>> It seems that the driver's logic allows it to be called before or
+>>>>>> after destroying the MC.
+>>>>>>
+>>>>>> Assuming that, if the OMAP3 driver is not used it works,
+>>>>>> it means that, if the isp_video_release() is called
+>>>>>> first, no errors will happen, but if MC is destroyed before
+>>>>>> V4L2 call to its .release() callback, as there's no logic at the
+>>>>>> driver that would detect it, isp_video_release() will be calling
+>>>>>> isp_video_streamoff(), with depends on the MC to work.
+>>>>>>
+>>>>>> On a first glance, I can see two ways of fixing it:
+>>>>>>
+>>>>>> 1) to increment devnode's device kobject refcount at OMAP3 .probe(),
+>>>>>> decrementing it only at isp_video_release(). That will ensure that
+>>>>>> MC will only be removed after V4L2 removal.
+>>>>
+>>>> As soon as you have to dig deep in a structure to find a reference counter and
+>>>> increment it, bypassing all the API layers, you can be entirely sure that the
+>>>> solution is wrong.
 >>>
->>
->> Let's remove it then!
->>
->>> In such case, then why you need a modprobe parameter to allow
->>> setting the record level? If this mixer entry is not used,
->>> just set it to zero and be happy with that.
+>>> Indeed.
 >>>
+>>>>
+>>>>>> 2) to call isp_video_streamoff() before removing the MC stuff, e. g.
+>>>>>> inside the MC .release() callback.
+>>>>>
+>>>>> This is a fair suggestion, indeed. Let me see what could be done there.
+>>>>> Albeit this is just *one* of the existing issues. It will not address all
+>>>>> problems fixed by the patchset.
+>>>>
+>>>> We need to stop the hardware at .remove() time. That should not be linked to a
+>>>> videodev, v4l2_device or media_device .release() callback. When the .remove()
+>>>> callback returns the driver is not allowed to touch the hardware anymore. In
+>>>> particular, power domains might clocks or power supplies, leading to invalid
+>>>> access faults if we try to access hardware registers.
+>>>
+>>> Correct.
+>>>
+>>>>
+>>>> USB devices get help from the USB core that cancels all USB operations in
+>>>> progress when they're disconnected. Platform devices don't have it as easy,
+>>>> and need to implement everything themselves. We thus need to stop the
+>>>> hardware, but I'm not sure it makes sense to fake a VIDIOC_STREAMOFF ioctl at
+>>>> .remove() time.
+>>>
+>>> Please don't. This shouldn't be done automatically.
+>>>
+>>>> That could introduce other races between .remove() and the
+>>>> userspace API. A better solution is to make sure the objects that are needed
+>>>> at .release() time of the device node are all reference-counted and only
+>>>> released when the last reference goes away.
+>>>>
+>>>> There's plenty of way to try and work around the problem in drivers, some more
+>>>> racy than others, but if we require changes to all platform drivers to fix
+>>>> this we need to ensure that we get it right, not as half-baked hacks spread
+>>>> around the whole subsystem.
+>>>
+>>> Why on earth do we want this for the omap3 driver? It is not a hot-pluggable
+>>> device and I see no reason whatsoever to start modifying platform drivers just
+>>> because you can do an unbind. I know there are real hot-pluggable devices, and
+>>> getting this right for those is of course important.
 >>
->> Let's remove the module param too, then.
->
-> I'm okay with that.
->
+>> This was my first reaction when I saw this RFC series. None of the platform
+>> drivers are designed to be unbound. Making core changes based on such as
+>> driver would make the core very complex.
 >>
->> Thanks,
->> --
->> Ezequiel Garc=C3=ADa, VanguardiaSur
->> www.vanguardiasur.com.ar
->
-> I'm willing to prepare one final patchset, provided we can agree on
-> and resolve all issues beforehand.
->
-> So far the changes would be to remove the module param and to poll
-> STK1160_AC97CTL_0 instead of using a fixed delay. It's probably better
-> to also poll it before writing, although that never caused problems.
->
-> I'll post some code for review before actually submitting patches.
-> Mauro, is there anything else that you think should be changed? If so,
-> please tell me now. Thanks.
->
-> Best regards
-> Marcel
+>> We can't even reproduce the problem on other drivers.
+>>
+>>>
+>>> If the omap3 is used as a testbed, then that's fine by me, but even then I
+>>> probably wouldn't want the omap3 code that makes this possible in the kernel.
+>>> It's just additional code for no purpose.
+>>
+>> I agree with Hans. Why are we using the most complex case as a reference driver
+>> and basing that driver to make core changes which will force changes to all the
+>> driver that use mc-core?
+>>
+>>>
+>>>>>> That could be done by overwriting the dev.release() callback at
+>>>>>> omap3 driver, as I discussed on my past e-mails, and flagging the
+>>>>>> driver that it should not accept streamon anymore, as the hardware
+>>>>>> is being disconnecting.
+>>>>>
+>>>>> A mutex will be needed to serialise the this with starting streaming.
+>>>>>
+>>>>>> Btw, that explains a lot why Shuah can't reproduce the stuff you're
+>>>>>> complaining on her USB hardware.
+>>>>>>
+>>>>>> The USB subsystem has a a .disconnect() callback that notifies
+>>>>>> the drivers that a device was unbound (likely physically removed).
+>>>>>> The way USB media drivers handle it is by returning -ENODEV to any
+>>>>>> V4L2 call that would try to touch at the hardware after unbound.
+>>>>
+>>>
+>>> In my view the main problem is that the media core is bound to a struct
+>>> device set by the driver that creates the MC. But since the MC gives an
+>>> overview of lots of other (sub)devices the refcount of the media device
+>>> should be increased for any (sub)device that adds itself to the MC and
+>>> decreased for any (sub)device that is removed. Only when the very last
+>>> user goes away can the MC memory be released.
+>>
+>> Correct. Media Device Allocator API work I did allows creating media device
+>> on parent USB device to allow media sound driver share the media device. It
+>> does ref-counting on media device and media device is unregistered only when
+>> the last driver unregisters it.
+>>
+>> There is another aspect to explore regarding media device and the graph.
+>>
+>> Should all the entities stick around until all references to media
+>> device are gone? If an application has /dev/media open, does that
+>> mean all entities should not be free'd until this app. exits? What
+>> should happen if an app. is streaming? Should the graph stay intact
+>> until the app. exits?
+> 
+> Yes, everything must stay around until the last user has disappeared.
+> 
+> In general unplugs can happen at any time. So applications can be in the middle
+> of an ioctl, and removing memory during that time is just impossible.
+> 
+> On unplug you:
+> 
+> 1) stop any HW DMA (highly device dependent)
+> 2) wake up any filehandles that wait for an event
+> 3) unregister any device nodes
+> 
+> Then just sit back and wait for refcounts to go down as filehandles are closed
+> by the application.
+> 
+> Note: the v4l2/media/cec/IR/whatever core is typically responsible for rejecting
+> any ioctls/mmap/etc. once the device node has been unregistered. The only valid
+> file operation is release().
+> 
+>>
+>>    If yes, this would pose problems when we have multiple drivers bound
+>>    to the media device. When audio driver goes away for example, it should
+>>    be allowed to delete its entities.
+> 
+> Only if you can safely remove it from the topology data structures while
+> being 100% certain that nobody can ever access it. I'm not sure if that is
+> the case. Actually, looking at e.g. adv7604.c it does media_entity_cleanup(&sd->entity);
+> in remove() which is an empty function, so there doesn't appear any attempt
+> to safely clean up an entity (i.e. make sure no running media ioctl can
+> access it or call ops).
 
-One more thing...
+Right. media_entity_cleanup() nothing at the moment. Also if it gets called
+after media_device_unregister_entity(), it could pose problems. I wonder if
+we have drivers that are calling media_entity_cleanup() after unregistering
+the entity?
 
-The driver currently uses a lot of "magic numbers", both for the AC97
-register addresses as well as the STK1160 register contents. That
-makes it a bit difficult to read unless you happen to have the
-datasheet open. Would it maybe be better to add defines for those,
-especially if we're going to poll individual bits? I usually prefer
-that approach myself. Would you put the defines for the AC97 chip
-registers into stk1160-reg.h or keep them in stk1160-ac97.c since
-they're only used there?
+> 
+> This probably will need to be serialized with the graph_mutex lock.
+> 
+>>
+>> The approach current mc-core takes is that the media_device and media_devnode
+>> stick around, but entities can be added and removed during media_device
+>> lifetime.
+> 
+> Seems reasonable. But the removal needs to be done carefully, and that doesn't
+> seem to be the case now (unless adv7604.c is just buggy).
 
-Best regards
-Marcel
+Correct. It is possible media_device is embedded in this driver. When driver
+that embeds is unbound, media_device goes away. I needed to make the media
+device refcounted and sharable for audio work and that is what the Media Device
+Allocator API does.
+
+Maybe we have more cases than this audio case that requires media_device refcounted.
+If we have to keep entities that are in use until all the references go away, we
+have to ref-count them as well.
+
+> 
+>>
+>> If an app. is still running when media_device is unregistered, media_device
+>> isn't released until the last reference goes away and ioctls can check if
+>> media_device is registered or not.
+>>
+>> We have to decide on the larger lifetime question surrounding media_device
+>> and graph as well.
+> 
+> I don't think there is any choice but to keep it all alive until the last
+> reference goes away.
+
+If you mean "all alive" entities as well, we have to ref-count them. Because
+drivers can unregister entities during run-time now. I am looking at the
+use-case where, a driver that has dvb and video and what should happen when
+dvb is unbound for example. Should dvb entities go away or should they stay
+until all the drivers are unbound?
+
+v4l2-core registers and unregisters entities and so does dvb-core. So when a
+driver unregisters video and dvb, these entities get deleted. So we have a
+distributed mode of registering and unregistering entities. We also have
+ioctls (video, dvb, and media) accessing these entities. So where do we make
+changes to ensure entities stick around until all users exit?
+
+Ref-counting entities won't work if they are embedded - like in the case of
+struct video_device which embeds the media entity. When struct video goes
+away then entity will disappear. So we do have a complex lifetime model here
+that we need to figure out how to fix.
+
+> 
+> Regards,
+> 
+>     Hans
+
+thanks,
+-- Shuah
