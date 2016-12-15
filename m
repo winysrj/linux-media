@@ -1,93 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44993 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753250AbcLMTH7 (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:37463
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751088AbcLOOcO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 14:07:59 -0500
-Date: Tue, 13 Dec 2016 20:05:54 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Ramiro Oliveira <Ramiro.Oliveira@synopsys.com>
-Cc: mchehab@kernel.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, davem@davemloft.net,
-        gregkh@linuxfoundation.org, geert+renesas@glider.be,
-        akpm@linux-foundation.org, linux@roeck-us.net, hverkuil@xs4all.nl,
-        dheitmueller@kernellabs.com, slongerbeam@gmail.com,
-        lars@metafoo.de, robert.jarzmik@free.fr, pali.rohar@gmail.com,
-        sakari.ailus@linux.intel.com, mark.rutland@arm.com,
-        CARLOS.PALMINHA@synopsys.com
-Subject: Re: [PATCH v6 1/2] Add OV5647 device tree documentation
-Message-ID: <20161213190554.GD8676@amd>
-References: <cover.1481639091.git.roliveir@synopsys.com>
- <c47834c1c9c2a8e23f41a12c8717601f4a901506.1481639091.git.roliveir@synopsys.com>
+        Thu, 15 Dec 2016 09:32:14 -0500
+Date: Thu, 15 Dec 2016 12:32:07 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
+ references as needed
+Message-ID: <20161215123207.3198d1d2@vento.lan>
+In-Reply-To: <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+References: <20161109154608.1e578f9e@vento.lan>
+        <20161213102447.60990b1c@vento.lan>
+        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+        <7529355.zfqFdROYdM@avalon>
+        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="IMjqdzrDRly81ofr"
-Content-Disposition: inline
-In-Reply-To: <c47834c1c9c2a8e23f41a12c8717601f4a901506.1481639091.git.roliveir@synopsys.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 15 Dec 2016 15:03:36 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
---IMjqdzrDRly81ofr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On 15/12/16 13:56, Laurent Pinchart wrote:
+> > Hi Sakari,
+> >
+> > On Thursday 15 Dec 2016 13:30:41 Sakari Ailus wrote:  
+> >> On Tue, Dec 13, 2016 at 10:24:47AM -0200, Mauro Carvalho Chehab wrote:  
+> >>> Em Tue, 13 Dec 2016 12:53:05 +0200 Sakari Ailus escreveu:  
+> >>>> On Tue, Nov 29, 2016 at 09:13:05AM -0200, Mauro Carvalho Chehab wrote:  
+> >>>>> Hi Sakari,
+> >>>>>
 
-On Tue 2016-12-13 14:32:36, Ramiro Oliveira wrote:
-> Create device tree bindings documentation.
->=20
-> Signed-off-by: Ramiro Oliveira <roliveir@synopsys.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov5647.txt       | 35 ++++++++++++++++=
-++++++
->  1 file changed, 35 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5647.txt
->=20
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5647.txt b/Doc=
-umentation/devicetree/bindings/media/i2c/ov5647.txt
-> new file mode 100644
-> index 0000000..46e5e30
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5647.txt
-> @@ -0,0 +1,35 @@
-> +Omnivision OV5647 raw image sensor
-> +---------------------------------
-> +
-> +OV5647 is a raw image sensor with MIPI CSI-2 and CCP2 image data interfa=
-ces
-> +and CCI (I2C compatible) control bus.
-> +
-> +Required properties:
-> +
-> +- compatible	: "ovti,ov5647";
-> +- reg		: I2C slave address of the sensor;
-> +- clocks	: Reference to the xclk clock.
-> +- clock-names	: Should be "xclk".
-> +- clock-frequency: Frequency of the xclk clock
 
-Nit pick: you end the lines here with ';', '.' and nothing. Pick one
-:-).
+> > There's plenty of way to try and work around the problem in drivers, some more
+> > racy than others, but if we require changes to all platform drivers to fix
+> > this we need to ensure that we get it right, not as half-baked hacks spread
+> > around the whole subsystem.  
+> 
+> Why on earth do we want this for the omap3 driver? It is not a hot-pluggable
+> device and I see no reason whatsoever to start modifying platform drivers just
+> because you can do an unbind. I know there are real hot-pluggable devices, and
+> getting this right for those is of course important.
 
-Otherwise it looks good.
+That's indeed a very good point. If unbind is not needed by any usecase,
+the better fix for OMAP3 would be to just prevent it to happen in the first
+place.
 
-Acked-by: Pavel Machek <pavel@ucw.cz>
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+> >>> The USB subsystem has a a .disconnect() callback that notifies
+> >>> the drivers that a device was unbound (likely physically removed).
+> >>> The way USB media drivers handle it is by returning -ENODEV to any
+> >>> V4L2 call that would try to touch at the hardware after unbound.  
+> >  
+> 
+> In my view the main problem is that the media core is bound to a struct
+> device set by the driver that creates the MC. But since the MC gives an
+> overview of lots of other (sub)devices the refcount of the media device
+> should be increased for any (sub)device that adds itself to the MC and
+> decreased for any (sub)device that is removed. Only when the very last
+> user goes away can the MC memory be released.
+> 
+> The memory/refcounting associated with device nodes is unrelated to this:
+> once a devnode is unregistered it will be removed in /dev, and once the
+> last open fh closes any memory associated with the devnode can be released.
+> That will also decrease the refcount to its parent device.
+> 
+> This also means that it is a bad idea to embed devnodes in a larger struct.
+> They should be allocated and freed when the devnode is unregistered and
+> the last open filehandle is closed.
+> 
+> Then the parent's device refcount is decreased, and that may now call its
+> release callback if the refcount reaches 0.
+> 
+> For the media controller's device: any other device driver that needs access
+> to it needs to increase that device's refcount, and only when those devices
+> are released will they decrease the MC device's refcount.
+> 
+> And when that refcount goes to 0 can we finally free everything.
+> 
+> With regards to the opposition to reverting those initial patches, I'm
+> siding with Greg KH. Just revert the bloody patches. It worked most of the
+> time before those patches, so reverting really won't cause bisect problems.
 
---IMjqdzrDRly81ofr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+You're contradicting yourself here ;)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+The patches that this patch series is reverting are the ones that
+de-embeeds devnode struct and fixes its lifecycle.
 
-iEYEARECAAYFAlhQRpIACgkQMOfwapXb+vLh0QCghGL62LMN0HleUeagxAK5WrXe
-IWgAoIdaoxc8y8dvhZpVHBZ7QD8oHz88
-=dOWd
------END PGP SIGNATURE-----
+Reverting those patches will cause regressions on hot-pluggable drivers,
+preventing them to be unplugged. So, if we're willing to revert, then we
+should also revert MC support on them.
 
---IMjqdzrDRly81ofr--
+> Just revert and build up things as they should.
+> 
+> Note that v4l2-dev.c doesn't do things correctly (it doesn't set the cdev
+> parent pointer for example) and many drivers (including omap3isp) embed
+> video_device, which is wrong and can lead to complications.
+> 
+> I'm to blame for the embedding since I thought that was a good idea at one
+> time. I now realized that it isn't. Sorry about that...
+> 
+> And because the cdev of the video_device doesn't know about the parent
+> device it is (I think) possible that the parent device is released before
+> the cdev is released. Which can result in major problems.
+
+I agree with you here. IMHO, de-embeeding cdev's struct from video_device
+seems to be the right thing to do at V4L2 side too.
+
+Regards,
+Mauro
