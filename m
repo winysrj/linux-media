@@ -1,105 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47858 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932247AbcLIJOQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2016 04:14:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Greg KH <greg@kroah.com>
-Cc: Dave Stevenson <linux-media@destevenson.freeserve.co.uk>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: uvcvideo logging kernel warnings on device disconnect
-Date: Fri, 09 Dec 2016 11:14:41 +0200
-Message-ID: <2080235.u14sVkzQLZ@avalon>
-In-Reply-To: <20161209091113.GB27160@kroah.com>
-References: <ab3241e7-c525-d855-ecb6-ba04dbdb030f@destevenson.freeserve.co.uk> <3934137.UccFJV1Tl7@avalon> <20161209091113.GB27160@kroah.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:36963
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1753090AbcLOMhp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:37:45 -0500
+Date: Thu, 15 Dec 2016 10:37:34 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg KH <greg@kroah.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Message-ID: <20161215103734.716a0619@vento.lan>
+In-Reply-To: <3043978.ViByGAdkJL@avalon>
+References: <20161214151406.20380-1-mchehab@s-opensource.com>
+        <3043978.ViByGAdkJL@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Em Thu, 15 Dec 2016 14:13:42 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-On Friday 09 Dec 2016 10:11:13 Greg KH wrote:
-> On Fri, Dec 09, 2016 at 10:59:24AM +0200, Laurent Pinchart wrote:
-> > On Friday 09 Dec 2016 08:25:52 Greg KH wrote:
-> >> On Fri, Dec 09, 2016 at 01:09:21AM +0200, Laurent Pinchart wrote:
-> >>> On Thursday 08 Dec 2016 12:31:55 Dave Stevenson wrote:
-> >>>> Hi All.
-> >>>> 
-> >>>> I'm working with a USB webcam which has been seen to spontaneously
-> >>>> disconnect when in use. That's a separate issue, but when it does it
-> >>>> throws a load of warnings into the kernel log if there is a file
-> >>>> handle on the device open at the time, even if not streaming.
-> >>>> 
-> >>>> I've reproduced this with a generic Logitech C270 webcam on:
-> >>>> - Ubuntu 16.04 (kernel 4.4.0-51) vanilla, and with the latest media
-> >>>> tree from linuxtv.org
-> >>>> - Ubuntu 14.04 (kernel 4.4.0-42) vanilla
-> >>>> - an old 3.10.x tree on an embedded device.
-> >>>> 
-> >>>> To reproduce:
-> >>>> - connect USB webcam.
-> >>>> - run a simple app that opens /dev/videoX, sleeps for a while, and
-> >>>> then closes the handle.
-> >>>> - disconnect the webcam whilst the app is running.
-> >>>> - read kernel logs - observe warnings. We get the disconnect logged
-> >>>> as it occurs, but the warnings all occur when the file descriptor is
-> >>>> closed. (A copy of the logs from my Ubuntu 14.04 machine are below).
-> >>>> 
-> >>>> I can fully appreciate that the open file descriptor is holding
-> >>>> references to a now invalid device, but is there a way to avoid them?
-> >>>> Or do we really not care and have to put up with the log noise when
-> >>>> doing such silly things?
-> >>> 
-> >>> This is a known problem, caused by the driver core trying to remove
-> >>> the same sysfs attributes group twice.
-> >> 
-> >> Ick, not good.
-> >> 
-> >>> The group is first removed when the USB device is disconnected. The
-> >>> input device and media device created by the uvcvideo driver are
-> >>> children of the USB interface device, which is deleted from the system
-> >>> when the camera is unplugged. Due to the parent-child relationship,
-> >>> all sysfs attribute groups of the children are removed.
-> >> 
-> >> Wait, why is the USB device being removed from sysfs at this point,
-> >> didn't the input and media subsystems grab a reference to it so that it
-> >> does not disappear just yet?
+> Hi Mauro,
+> 
+> (CC'ing Greg)
+> 
+> On Wednesday 14 Dec 2016 13:14:06 Mauro Carvalho Chehab wrote:
+> > Avoid calling streamoff without having the media structs allocated.
 > > 
-> > References are taken in uvc_prove():
-> >         dev->udev = usb_get_dev(udev);
-> >         dev->intf = usb_get_intf(intf);
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
 > 
-> s/uvc_prove/uvc_probe/ ?  :)
+> The driver has a maintainer listed in MAINTAINERS, and you know that Sakari is 
+> also actively involved here. You could have CC'ed us.
 
-Oops :-)
+Yes, sure.
 
-> > and released in uvc_delete(), called when the last video device node is
-> > closed. This prevents the device from being released (freed), but
-> > device_del() is synchronous to device unplug as far as I understand.
 > 
-> Ok, good, that means the UVC driver is doing the right thing here.
+> > ---
+> > 
+> > Javier,
+> > 
+> > Could you please test this patch?
+> > 
+> > Thanks!
+> > Mauro
+> > 
+> >  drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> > b/drivers/media/platform/omap3isp/ispvideo.c index
+> > 7354469670b7..f60995ed0a1f 100644
+> > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > @@ -1488,11 +1488,17 @@ int omap3isp_video_register(struct isp_video *video,
+> > struct v4l2_device *vdev) "%s: could not register video device (%d)\n",
+> >  			__func__, ret);
+> > 
+> > +	/* Prevent destroying MC before unregistering */
+> > +	kobject_get(vdev->v4l2_dev->mdev->devnode->dev.parent);  
 > 
-> But the sysfs files should only be attempted to be removed by the driver
-> core once, when the device is removed from sysfs, not twice, which is
-> really odd.
+> This doesn't even compile. Please make sure to at least compile-test patches 
+> you send for review, otherwise you end up wasting time for all reviewers and 
+> testers. I assume you meant
 > 
-> Is there a copy of the "simple app that grabs the device node" anywhere
-> so that I can test it out here with my USB camera device to try to track
-> down where the problem is?
+> 	kobject_get(&vdev->mdev->devnode->dev.parent->kobj);
+> 
+> and similarly below.
 
-Sure. The easiest way is to grab http://git.ideasonboard.org/yavta.git and run
+Yes.
 
-yavta -c /dev/video0
+Btw, Javier tested it yesterday with the above fix, but it didn't solve the
+issue, because the problem is elsewhere.
 
-(your mileage may vary if you have other video devices)
+What happens is that omap3isp driver calls media_device_unregister()
+too early. Right now, it is called at omap3isp_video_device_release(),
+with happens when a driver unbind is ordered by userspace, and not after
+the last usage of all /dev/video?? devices.
 
-While the application is running, unplug the webcam, and then terminate the 
-application with ctrl-C.
+There are two possible fixes:
 
--- 
-Regards,
+1) at omap3isp_video_device_release(), streamoff all streams and mark
+that the media device will be gone.
 
-Laurent Pinchart
+2) instead of using video_device_release_empty for the video->video.release,
+create a omap3isp_video_device_release() that will call
+media_device_unregister() when destroying the last /dev/video?? devnode.
 
+I have a half-baked patch for (2). I'll try to finish it and do some
+tests.
+
+Unfortunately, I don't have any OMAP3 device that has a camera
+module, except for a N9 device with a damaged display.
+
+Sakari,
+
+Is there a way for me to use the N9 device to test it without a
+display? AFAIKT, the device is operational, and I *guess* it is
+on developer's mode, but not really sure.
+
+Thanks,
+Mauro
