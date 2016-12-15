@@ -1,78 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:59128 "EHLO mout.web.de"
+Received: from gofer.mess.org ([80.229.237.210]:41121 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751937AbcLYScW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 13:32:22 -0500
-Subject: [PATCH 03/19] [media] uvc_driver: Adjust three function calls
- together with a variable assignment
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <5d6e7fac-d464-687b-ef87-d813d707911f@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 19:32:12 +0100
+        id S935257AbcLOMuQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:50:16 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        James Hogan <james@albanarts.com>,
+        Jarod Wilson <jarod@redhat.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH v6 18/18] [media] rc: nuvoton-cir: Add support wakeup via sysfs filter callback
+Date: Thu, 15 Dec 2016 12:50:11 +0000
+Message-Id: <2efb5386b1a3587bf298fd2e5bfb05d1fbf9f94e.1481805635.git.sean@mess.org>
+In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+In-Reply-To: <cover.1481805635.git.sean@mess.org>
+References: <cover.1481805635.git.sean@mess.org>
 MIME-Version: 1.0
-In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 08:05:58 +0100
+From: Antti Seppälä <a.seppala@gmail.com>
 
-The script "checkpatch.pl" pointed information out like the following.
+Nuvoton-cir utilizes the encoding capabilities of rc-core to convert
+scancodes from user space to pulse/space format understood by the
+underlying hardware.
 
-ERROR: do not use assignment in if condition
+Converted samples are then written to the wakeup fifo along with other
+necessary configuration to enable wake up functionality.
 
-Thus fix the affected source code places.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Antti Seppälä <a.seppala@gmail.com>
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: Jarod Wilson <jarod@redhat.com>
+Cc: Heiner Kallweit <hkallweit1@gmail.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/rc/nuvoton-cir.c | 120 ++++++++++++++++++++++++++++++++---------
+ 1 file changed, 96 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 7c42be2414ea..bddaf98ef828 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1275,7 +1275,8 @@ static int uvc_parse_control(struct uvc_device *dev)
- 		    buffer[1] != USB_DT_CS_INTERFACE)
- 			goto next_descriptor;
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 9e04f41..2e2d981 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -176,6 +176,41 @@ static void nvt_set_ioaddr(struct nvt_dev *nvt, unsigned long *ioaddr)
+ 	}
+ }
  
--		if ((ret = uvc_parse_standard_control(dev, buffer, buflen)) < 0)
-+		ret = uvc_parse_standard_control(dev, buffer, buflen);
-+		if (ret < 0)
- 			return ret;
++static void nvt_write_wakeup_codes(struct rc_dev *dev,
++				   const u8 *wbuf, int count)
++{
++	u8 tolerance, config;
++	struct nvt_dev *nvt = dev->priv;
++	int i;
++
++	/* hardcode the tolerance to 10% */
++	tolerance = DIV_ROUND_UP(count, 10);
++
++	spin_lock(&nvt->lock);
++
++	nvt_clear_cir_wake_fifo(nvt);
++	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
++	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
++
++	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
++
++	/* enable writes to wake fifo */
++	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
++			       CIR_WAKE_IRCON);
++
++	if (count)
++		pr_info("Wake samples (%d) =", count);
++	else
++		pr_info("Wake sample fifo cleared");
++
++	for (i = 0; i < count; i++)
++		nvt_cir_wake_reg_write(nvt, wbuf[i], CIR_WAKE_WR_FIFO_DATA);
++
++	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
++
++	spin_unlock(&nvt->lock);
++}
++
+ static ssize_t wakeup_data_show(struct device *dev,
+ 				struct device_attribute *attr,
+ 				char *buf)
+@@ -214,9 +249,7 @@ static ssize_t wakeup_data_store(struct device *dev,
+ 				 const char *buf, size_t len)
+ {
+ 	struct rc_dev *rc_dev = to_rc_dev(dev);
+-	struct nvt_dev *nvt = rc_dev->priv;
+-	unsigned long flags;
+-	u8 tolerance, config, wake_buf[WAKEUP_MAX_SIZE];
++	u8 wake_buf[WAKEUP_MAX_SIZE];
+ 	char **argv;
+ 	int i, count;
+ 	unsigned int val;
+@@ -245,27 +278,7 @@ static ssize_t wakeup_data_store(struct device *dev,
+ 			wake_buf[i] |= BUF_PULSE_BIT;
+ 	}
  
- next_descriptor:
-@@ -2030,7 +2031,8 @@ static int uvc_probe(struct usb_interface *intf,
- 				udev->devpath);
+-	/* hardcode the tolerance to 10% */
+-	tolerance = DIV_ROUND_UP(count, 10);
+-
+-	spin_lock_irqsave(&nvt->lock, flags);
+-
+-	nvt_clear_cir_wake_fifo(nvt);
+-	nvt_cir_wake_reg_write(nvt, count, CIR_WAKE_FIFO_CMP_DEEP);
+-	nvt_cir_wake_reg_write(nvt, tolerance, CIR_WAKE_FIFO_CMP_TOL);
+-
+-	config = nvt_cir_wake_reg_read(nvt, CIR_WAKE_IRCON);
+-
+-	/* enable writes to wake fifo */
+-	nvt_cir_wake_reg_write(nvt, config | CIR_WAKE_IRCON_MODE1,
+-			       CIR_WAKE_IRCON);
+-
+-	for (i = 0; i < count; i++)
+-		nvt_cir_wake_reg_write(nvt, wake_buf[i], CIR_WAKE_WR_FIFO_DATA);
+-
+-	nvt_cir_wake_reg_write(nvt, config, CIR_WAKE_IRCON);
+-
+-	spin_unlock_irqrestore(&nvt->lock, flags);
++	nvt_write_wakeup_codes(rc_dev, wake_buf, count);
  
- 	/* Allocate memory for the device and initialize it. */
--	if ((dev = kzalloc(sizeof *dev, GFP_KERNEL)) == NULL)
-+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
- 		return -ENOMEM;
+ 	ret = len;
+ out:
+@@ -662,6 +675,62 @@ static int nvt_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+ 	return 0;
+ }
  
- 	INIT_LIST_HEAD(&dev->entities);
-@@ -2113,11 +2115,11 @@ static int uvc_probe(struct usb_interface *intf,
- 	usb_set_intfdata(intf, dev);
- 
- 	/* Initialize the interrupt URB. */
--	if ((ret = uvc_status_init(dev)) < 0) {
-+	ret = uvc_status_init(dev);
-+	if (ret < 0)
- 		uvc_printk(KERN_INFO,
- 			   "Unable to initialize the status endpoint (%d), status interrupt will not be supported.\n",
- 			   ret);
--	}
- 
- 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
- 	usb_enable_autosuspend(udev);
++static int nvt_ir_raw_set_wakeup_filter(struct rc_dev *dev,
++					struct rc_scancode_filter *sc_filter)
++{
++	u8 buf_val;
++	int i, ret, count;
++	unsigned int val;
++	struct ir_raw_event *raw;
++	u8 wake_buf[WAKEUP_MAX_SIZE];
++	bool complete;
++
++	/* Require mask to be set */
++	if (!sc_filter->mask)
++		return 0;
++
++	raw = kmalloc_array(WAKEUP_MAX_SIZE, sizeof(*raw), GFP_KERNEL);
++	if (!raw)
++		return -ENOMEM;
++
++	ret = ir_raw_encode_scancode(dev->wakeup_protocol, sc_filter->data,
++				     raw, WAKEUP_MAX_SIZE);
++	complete = (ret != -ENOBUFS);
++	if (!complete)
++		ret = WAKEUP_MAX_SIZE;
++	else if (ret < 0)
++		goto out_raw;
++
++	/* Inspect the ir samples */
++	for (i = 0, count = 0; i < ret && count < WAKEUP_MAX_SIZE; ++i) {
++		/* NS to US */
++		val = DIV_ROUND_UP(raw[i].duration, 1000L) / SAMPLE_PERIOD;
++
++		/* Split too large values into several smaller ones */
++		while (val > 0 && count < WAKEUP_MAX_SIZE) {
++			/* Skip last value for better comparison tolerance */
++			if (complete && i == ret - 1 && val < BUF_LEN_MASK)
++				break;
++
++			/* Clamp values to BUF_LEN_MASK at most */
++			buf_val = (val > BUF_LEN_MASK) ? BUF_LEN_MASK : val;
++
++			wake_buf[count] = buf_val;
++			val -= buf_val;
++			if ((raw[i]).pulse)
++				wake_buf[count] |= BUF_PULSE_BIT;
++			count++;
++		}
++	}
++
++	nvt_write_wakeup_codes(dev, wake_buf, count);
++	ret = 0;
++out_raw:
++	kfree(raw);
++
++	return ret;
++}
++
+ /*
+  * nvt_tx_ir
+  *
+@@ -1063,10 +1132,13 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	rdev->priv = nvt;
+ 	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL_IR_DECODER;
++	rdev->allowed_wakeup_protocols = RC_BIT_ALL_IR_ENCODER;
++	rdev->encode_wakeup = true;
+ 	rdev->open = nvt_open;
+ 	rdev->close = nvt_close;
+ 	rdev->tx_ir = nvt_tx_ir;
+ 	rdev->s_tx_carrier = nvt_set_tx_carrier;
++	rdev->s_wakeup_filter = nvt_ir_raw_set_wakeup_filter;
+ 	rdev->input_name = "Nuvoton w836x7hg Infrared Remote Transceiver";
+ 	rdev->input_phys = "nuvoton/cir0";
+ 	rdev->input_id.bustype = BUS_HOST;
 -- 
-2.11.0
+2.9.3
 
