@@ -1,121 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44626 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754005AbcLNRxa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 12:53:30 -0500
-Subject: Re: [PATCHv3 RFC 4/4] media: Catch null pipes on pipeline stop
-To: Sakari Ailus <sakari.ailus@iki.fi>
-References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <1481651984-7687-5-git-send-email-kieran.bingham+renesas@ideasonboard.com>
- <20161214072843.GA16630@valkosipuli.retiisi.org.uk>
- <9594fc25-c657-7326-0987-9a7bc1bc888f@bingham.xyz>
- <20161214124324.GB16630@valkosipuli.retiisi.org.uk>
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        laurent.pinchart@ideasonboard.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <aac63f53-e011-531a-7d6a-4832b9faee07@ideasonboard.com>
-Date: Wed, 14 Dec 2016 17:53:00 +0000
+Received: from gofer.mess.org ([80.229.237.210]:35129 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755979AbcLOMuH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:50:07 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v6 00/18] IR encoders and use for IR wakeup
+Date: Thu, 15 Dec 2016 12:50:01 +0000
+Message-Id: <cover.1481805635.git.sean@mess.org>
 MIME-Version: 1.0
-In-Reply-To: <20161214124324.GB16630@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This series introduces IR encoders and also makes winbond-cir and
+nuvoton-cir use the sysfs filter wakeup interface for programmable
+IR wakeup.
 
-On 14/12/16 12:43, Sakari Ailus wrote:
-> Hi Kieran,
-> 
-> On Wed, Dec 14, 2016 at 12:27:37PM +0000, Kieran Bingham wrote:
->> Hi Sakari,
->>
->> On 14/12/16 07:28, Sakari Ailus wrote:
->>> Hi Kieran,
->>>
->>> On Tue, Dec 13, 2016 at 05:59:44PM +0000, Kieran Bingham wrote:
->>>> media_entity_pipeline_stop() can be called through error paths with a
->>>> NULL entity pipe object. In this instance, stopping is a no-op, so
->>>> simply return without any action
->>>
->>> The approach of returning silently is wrong; the streaming count is indeed a
->>> count: you have to decrement it the exactly same number of times it's been
->>> increased. Code that attempts to call __media_entity_pipeline_stop() on an
->>> entity that's not streaming is simply buggy.
->>
->> Ok, Thanks for the heads up on where to look, as I suspected we are in
->> section B) of my comments below :D
->>
->>> I've got a patch here that adds a warning to graph traversal on streaming
->>> count being zero. I sent a pull request including that some days ago:
->>>
->>> <URL:http://www.spinics.net/lists/linux-media/msg108980.html>
->>> <URL:http://www.spinics.net/lists/linux-media/msg108995.html>
->>
->> Excellent, thanks, I've merged your branch into mine, and I'll
->> investigate where the error is actually coming from.
->>
->> --
->> Ok - so I've merged your patches, (and dropped this patch) but they
->> don't fire any warning before I hit my null-pointer dereference in
->> __media_pipeline_stop(), on the WARN_ON(!pipe->streaming_count);
->>
->> So I think this is a case of calling stop on an invalid entity rather
->> than an unbalanced start/stop somehow:
-> 
-> Not necessarily. The pipe is set to NULL if the count goes to zero.
-> 
-> This check should be dropped, it's ill-placed anyway: if streaming count is
-> zero the pipe is expected to be NULL anyway in which case you get a NULL
-> pointer exception (that you saw there). With the check removed, you should
-> get the warning instead.
+To program hauppauge rc-5 remote power button for wakeup:
 
-Ahh, yes, I'd missed the part there that was setting it to NULL.
+	cd /sys/class/rc/rc0
+	echo rc-5 > wakeup_protocols
+	echo 0x1e3d > wakeup_filter
+	echo 0xffff > wakeup_filter_mask
 
-However, it will still segfault ... (though hopefully after the warning)
-as the last line of the function states:
+Note that the wakeup API can change due to discussion[2].
 
-	if (!--pipe->streaming_count)
-		media_entity_graph_walk_cleanup(graph);
+Changes since v5:
+ - fixed issue in img-ir filter code (thanks James)
+ - nec32 issue fixed and verified against liquid tivo remote
+ - renames space distance to pulse length
+ - made all timing structs const
+ - all encoders round-trip over rc-loopback
 
-So we will hit a null deref on the pipe->streaming_count there, which
-still leaves an unbalanced stop as a kernel panic.
+Changes since v4:
+ - ImgTec now also uses wakeup_protocols; all rc drivers which do wakeup
+   now use the same sysfs interface
+ - Implemented all IR encoders except for xmp for which I cannot find
+   useful documentation
+ - ir_raw_encode_scancode() now takes u32 scancode, rather than a
+   rc_scancode_filter, since it cannot encode a mask.
+ - All encoders have been tested extensively by round-tripping over
+   rc-loopback and generating random scancodes. No problems found
+   other than known nec32 issue[1].
+ - winbond-cir has seen more testing
 
-In fact, I've just tested removing that WARN_ON(!pipe->streaming_count);
- - it doesn't even get that far - and segfaults in
+[1] https://www.mail-archive.com/linux-media@vger.kernel.org/msg104623.html
+[2] https://www.mail-archive.com/linux-media@vger.kernel.org/msg106159.html
 
- 		media_entity_graph_walk_cleanup(graph);
+Antti Seppälä (3):
+  [media] rc: rc-ir-raw: Add Manchester encoder (phase encoder) helper
+  [media] rc: ir-rc6-decoder: Add encode capability
+  [media] rc: nuvoton-cir: Add support wakeup via sysfs filter callback
 
-[   80.916558] Unable to handle kernel NULL pointer dereference at
-virtual address 00000110
-....
-[   81.769492] [<ffffff800853e278>] media_graph_walk_start+0x20/0xf0
-[   81.776615] [<ffffff800853e73c>] __media_pipeline_stop+0x3c/0xd8
-[   81.783644] [<ffffff800853e80c>] media_pipeline_stop+0x34/0x48
-[   81.790505] [<ffffff8008567ff0>] vsp1_du_setup_lif+0x68/0x5a8
-[   81.797279] [<ffffff80084de9d4>] rcar_du_vsp_disable+0x2c/0x38
-[   81.804137] [<ffffff80084da710>] rcar_du_crtc_stop+0x198/0x1e8
-[   81.810984] [<ffffff80084da780>] rcar_du_crtc_disable+0x20/0x38
+James Hogan (6):
+  [media] rc: rc-ir-raw: Add scancode encoder callback
+  [media] rc: rc-ir-raw: Add pulse-distance modulation helper
+  [media] rc: ir-rc5-decoder: Add encode capability
+  [media] rc: ir-nec-decoder: Add encode capability
+  [media] rc: rc-core: Add support for encode_wakeup drivers
+  [media] rc: rc-loopback: Add loopback of filter scancodes
 
-due to the fact that 'graph' is dereferenced through the 'pipe'.
+Sean Young (9):
+  [media] rc: change wakeup_protocols to list all protocol variants
+  [media] rc: Add scancode validation
+  [media] rc: unify nec32 protocol scancode format
+  [media] winbond-cir: use sysfs wakeup filter
+  [media] rc: raw IR drivers cannot handle cec, unknown or other
+  [media] rc: ir-jvc-decoder: Add encode capability
+  [media] rc: ir-sanyo-decoder: Add encode capability
+  [media] rc: ir-sharp-decoder: Add encode capability
+  [media] rc: ir-sony-decoder: Add encode capability
 
-{
-	/* Entity->pipe is NULL, therefore 'graph' is invalid */
-	struct media_graph *graph = &entity->pipe->graph;
-	struct media_pipeline *pipe = entity->pipe;
+ Documentation/ABI/testing/sysfs-class-rc       |  14 +-
+ Documentation/media/uapi/rc/rc-sysfs-nodes.rst |  13 +-
+ drivers/hid/hid-picolcd_cir.c                  |   2 +-
+ drivers/media/common/siano/smsir.c             |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c      |  14 +-
+ drivers/media/rc/ene_ir.c                      |   2 +-
+ drivers/media/rc/fintek-cir.c                  |   2 +-
+ drivers/media/rc/gpio-ir-recv.c                |   2 +-
+ drivers/media/rc/igorplugusb.c                 |   4 +-
+ drivers/media/rc/iguanair.c                    |   2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c            |  13 +-
+ drivers/media/rc/img-ir/img-ir-nec.c           |  21 +-
+ drivers/media/rc/img-ir/img-ir-sony.c          |  26 +-
+ drivers/media/rc/ir-hix5hd2.c                  |   2 +-
+ drivers/media/rc/ir-jvc-decoder.c              |  39 +++
+ drivers/media/rc/ir-nec-decoder.c              |  86 ++++++-
+ drivers/media/rc/ir-rc5-decoder.c              |  97 +++++++
+ drivers/media/rc/ir-rc6-decoder.c              | 117 +++++++++
+ drivers/media/rc/ir-sanyo-decoder.c            |  43 ++++
+ drivers/media/rc/ir-sharp-decoder.c            |  50 ++++
+ drivers/media/rc/ir-sony-decoder.c             |  48 ++++
+ drivers/media/rc/ite-cir.c                     |   2 +-
+ drivers/media/rc/keymaps/rc-tivo.c             |  86 +++----
+ drivers/media/rc/mceusb.c                      |   2 +-
+ drivers/media/rc/meson-ir.c                    |   2 +-
+ drivers/media/rc/nuvoton-cir.c                 | 122 +++++++--
+ drivers/media/rc/rc-core-priv.h                | 107 ++++++++
+ drivers/media/rc/rc-ir-raw.c                   | 246 +++++++++++++++++-
+ drivers/media/rc/rc-loopback.c                 |  41 ++-
+ drivers/media/rc/rc-main.c                     | 336 ++++++++++++++++++++-----
+ drivers/media/rc/redrat3.c                     |   2 +-
+ drivers/media/rc/serial_ir.c                   |   2 +-
+ drivers/media/rc/st_rc.c                       |   2 +-
+ drivers/media/rc/streamzap.c                   |   2 +-
+ drivers/media/rc/sunxi-cir.c                   |   2 +-
+ drivers/media/rc/ttusbir.c                     |   2 +-
+ drivers/media/rc/winbond-cir.c                 | 259 +++++++++----------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c        |   2 +-
+ drivers/media/usb/dvb-usb/technisat-usb2.c     |   2 +-
+ include/media/rc-core.h                        |  17 +-
+ include/media/rc-map.h                         |  19 ++
+ 41 files changed, 1538 insertions(+), 316 deletions(-)
 
-	media_graph_walk_start(graph, entity);
-...
-}
+-- 
+2.9.3
 
-So I suspect we do still need a warning or check in there somewhere.
-Something to tell the developer that there is an unbalanced stop, would
-be much better than a panic/segfault...
-
-(And of course, we still need to look at the actual unbalanced stop in
-vsp1_du_setup_lif!)
-
---
-Kieran
