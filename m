@@ -1,108 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:42428 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S941611AbcLVUxV (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:38143
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1755135AbcLOQ6m (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Dec 2016 15:53:21 -0500
-Date: Thu, 22 Dec 2016 21:53:17 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [RFC/PATCH] media: Add video bus switch
-Message-ID: <20161222205317.GA31151@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161222143244.ykza4wdxmop2t7bg@earth>
+        Thu, 15 Dec 2016 11:58:42 -0500
+Date: Thu, 15 Dec 2016 14:58:34 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Greg KH <greg@kroah.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>, javier@osg.samsung.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Message-ID: <20161215145834.48a93457@vento.lan>
+In-Reply-To: <20161215123112.GA26269@kroah.com>
+References: <20161214151406.20380-1-mchehab@s-opensource.com>
+        <3043978.ViByGAdkJL@avalon>
+        <20161215123112.GA26269@kroah.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="3MwIy2ne0vdjdPXF"
-Content-Disposition: inline
-In-Reply-To: <20161222143244.ykza4wdxmop2t7bg@earth>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Thu, 15 Dec 2016 04:31:12 -0800
+Greg KH <greg@kroah.com> escreveu:
 
---3MwIy2ne0vdjdPXF
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Thu, Dec 15, 2016 at 02:13:42PM +0200, Laurent Pinchart wrote:
+> > Hi Mauro,
+> > 
+> > (CC'ing Greg)
+> > 
+> > On Wednesday 14 Dec 2016 13:14:06 Mauro Carvalho Chehab wrote:  
+> > > Avoid calling streamoff without having the media structs allocated.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
+> > 
+> > The driver has a maintainer listed in MAINTAINERS, and you know that Sakari is 
+> > also actively involved here. You could have CC'ed us.
+> >   
+> > > ---
+> > > 
+> > > Javier,
+> > > 
+> > > Could you please test this patch?
+> > > 
+> > > Thanks!
+> > > Mauro
+> > > 
+> > >  drivers/media/platform/omap3isp/ispvideo.c | 10 ++++++++--
+> > >  1 file changed, 8 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/omap3isp/ispvideo.c
+> > > b/drivers/media/platform/omap3isp/ispvideo.c index
+> > > 7354469670b7..f60995ed0a1f 100644
+> > > --- a/drivers/media/platform/omap3isp/ispvideo.c
+> > > +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> > > @@ -1488,11 +1488,17 @@ int omap3isp_video_register(struct isp_video *video,
+> > > struct v4l2_device *vdev) "%s: could not register video device (%d)\n",
+> > >  			__func__, ret);
+> > > 
+> > > +	/* Prevent destroying MC before unregistering */
+> > > +	kobject_get(vdev->v4l2_dev->mdev->devnode->dev.parent);  
+> > 
+> > This doesn't even compile. Please make sure to at least compile-test patches 
+> > you send for review, otherwise you end up wasting time for all reviewers and 
+> > testers. I assume you meant
+> > 
+> > 	kobject_get(&vdev->mdev->devnode->dev.parent->kobj);
+> > 
+> > and similarly below.
+> > 
+> > That's a long list of pointer dereferences, going deep down the device core. 
+> > Greg, are drivers allowed to do this by the driver model ?  
+> 
+> WTF?
+> 
+> Eeek, no no no no!
+> 
+> First off, no driver should EVER have to call a "raw" kobject call,
+> that's a huge sign that you are doing something really really wrong.
+> 
+> Secondly, you NEVER grab a reference to a structure like this, you use
+> the "correct" driver/bus api calls.
+> 
+> Thirdly, ugh, how to say this nicely...  The whole idea that something
+> like this could actually be a real solution to a problem is insane.
 
-Hi!
+Greg,
 
-> > I see this needs dts documentation, anything else than needs to be
-> > done?
->=20
-> Yes. This driver takes care of the switch gpio, but the cameras also
-> use different bus settings. Currently omap3isp gets the bus-settings
-> from the link connected to the CCP2 port in DT at probe time (*).
->=20
-> So there are two general problems:
->=20
-> 1. Settings must be applied before the streaming starts instead of
-> at probe time, since the settings may change (based one the selected
-> camera). That should be fairly easy to implement by just moving the
-> code to the s_stream callback as far as I can see.
+This patch is generating a lot of noise for no good reason.
 
-Ok, I see, where "the code" is basically in vbs_link_setup, right?
+It was meant to be sent just to Javier, as I currently don't have a working
+OMAP3 board with V4L2 hardware.
 
-> 2. omap3isp should try to get the bus settings from using a callback
-> in the connected driver instead of loading it from DT. Then the
-> video-bus-switch can load the bus-settings from its downstream links
-> in DT and propagate the correct ones to omap3isp based on the
-> selected port. The DT loading part should actually remain in omap3isp
-> as fallback, in case it does not find a callback in the connected driver.
-> That way everything is backward compatible and the DT variant is
-> nice for 1-on-1 scenarios.
+Unfortunately, I have this on my .git/config, and it ended by being
+sent to the public ML as well by mistake:
 
-So basically... (struct isp_bus_cfg *) isd->bus would change in
-isp_pipeline_enable()...?=20
+	[format]
+		numbered = auto
+	to = Linux Media Mailing List <linux-media@vger.kernel.org>
 
-> Apart from that Sakari told me at ELCE, that the port numbers
-> should be reversed to match the order of other drivers. That's
-> obviously very easy to do :)
+> Look at what you are really doing here, trying to grab an extra
+> reference on something that in reality, should never go away anyhow.
+> Your parent structure should already always have the reference count
+> incremented and will not disappear underneath you at all.  And if this
+> isn't your "parent", you have no right at all to go grab random
+> references across the device tree for no reason other than you feel you
+> don't want it to go away.  If you don't want something to go away, you
+> properly get the reference (hint, you already should have if you have
+> this type of pointer chain to the object.)
+>
+> If this type of solution is somehow the "correct" one, the v4l driver
+> model interaction is severely broken and needs to be fixed.
+> 
 
-Ok, I guess that can come later :-).
+The problem here is that the Nokia N9 hardware (with uses the omap3 isp
+driver) drops the /dev/media device and all associated structures too early
+if unbound.
 
-> Regarding the binding document. I actually did write one:
-> https://git.kernel.org/cgit/linux/kernel/git/sre/linux-n900.git/commit/?h=
-=3Dn900-camera&id=3D81e74af53fe6d180616b05792f78badc615e871f
+Btw, it is not clear to me why userspace would want to unbind the
+V4L2 driver on such hardware, as it is not hot-pluggable.
 
-Thanks, got it.
+> What bug is this that caused this type of hack to even be proposed?  Is
+> it a bug or a regression?  If a regression, can someone show me the
+> commit that would cause such a monstrosity to be proposed?
 
-> So all in all it shouldn't be that hard to implement the remaining
-> bits.
+It is a bug, since day zero. That's why reverting patches won't fix
+anything. The problem happens when the device is streaming on one (or more)
+of their /dev/video?? devnodes, and it is requested to unbound
+(either by removing the module or by accessing the module unbind via sysfs.
 
-:-).
+The way OMAP3 driver's code does is:
 
-> (*) Actually it does not for CCP2, but there are some old patches
-> from Sakari adding it for CCP2. It is implemented for parallel port
-> and CSI in this way.
+At .probe(), the OMAP3 isp driver creates a struct media_device that
+it is used by other OMAP3 drivers to store the hardware setup used to
+stream video inside a list. It also creates a struct media_devnode
+with embeeds struct cdev to control the media pipelines, via /dev/media0.
 
-I think I got the patches in my tree. Camera currently works for me.
+Originally, struct media_devnode were embedded at struct media_device.
+Now, media_devnode is allocated dynamically, allowing the removal of
+/dev/media0 without freeing struct media_device[1].
+
+In any case, the unbind code doesn't have any special logic to handle
+disconnections.
+
+So, when an unbind is requested, the device the device driver will free
+all the data associated with struct media_device, including the hardware
+setup.
+
+It will also destroy struct media_devnode, if not used anymore (with
+the current code, this is properly protected via struct device kref).
+
+Later on, when /dev/video?? is closed, the .release() fops callback
+will call the streamoff code, with depends on the data that were
+freed earlier.
+
+There are some solutions for this bug:
+
+1) stop streaming at unbind - something similar to what we do on USB
+   drivers with the .disconnect() calls, where we stop URBs and
+   don't accept the driver to stream on again;
+
+2) add a kref inside the OMAP3 driver that would only call the
+   code that releases struct media_device when the last /dev/video??
+   device is closed.
+
+3) add kref for all data used by the OMAP3 driver: struct media_device,
+   struct media_entity, struct media_link, ... (we could eventually
+   embed it at struct media_gobj - as I proposed in mid 2015).
+
+[1] The three patches that Sakari proposed to remove on his RFC series,
+without explaining why, are those that allocate media_devnode dynamically.
+
+> Laurent, sorry, I know I said I was going to debug a USB V4L reference
+> counting problem last week, I had to travel and haven't had the chance
+> to do so.  I'll try to get to it today.  Hopefully that issue has
+> nothing to do with this problem.  Because if so, ugh...
+> 
+> Mauro, again, please never propose something like this again.
+> 
+> greg k-h
 
 Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---3MwIy2ne0vdjdPXF
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhcPT0ACgkQMOfwapXb+vKdLACaAo+1MADdCpuo1Ve5cPqB/9h0
-FisAn10qk3OJeERbP4V7VXsilfws77rt
-=c8ff
------END PGP SIGNATURE-----
-
---3MwIy2ne0vdjdPXF--
+Mauro
