@@ -1,68 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:38810 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49686 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753696AbcL3NTw (ORCPT
+        with ESMTP id S1754765AbcLOVLb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Dec 2016 08:19:52 -0500
+        Thu, 15 Dec 2016 16:11:31 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v3 4/4] uvcvideo: add a metadata device node
-Date: Fri, 30 Dec 2016 15:20:25 +0200
-Message-ID: <1790537.KNrosOxaFV@avalon>
-In-Reply-To: <Pine.LNX.4.64.1612301401360.9905@axis700.grange>
-References: <1481541412-1186-1-git-send-email-guennadi.liakhovetski@intel.com> <3119423.ZqlLJHYUgu@avalon> <Pine.LNX.4.64.1612301401360.9905@axis700.grange>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, pawel@osciak.com,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: Re: [RFC RESEND 08/11] vb2: dma-contig: Move vb2_dc_get_base_sgt() up
+Date: Thu, 15 Dec 2016 23:12:07 +0200
+Message-ID: <7453908.U9mZPLNEAl@avalon>
+In-Reply-To: <1441972234-8643-9-git-send-email-sakari.ailus@linux.intel.com>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-9-git-send-email-sakari.ailus@linux.intel.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Sakari,
 
-On Friday 30 Dec 2016 14:04:34 Guennadi Liakhovetski wrote:
-> On Fri, 30 Dec 2016, Laurent Pinchart wrote:
-> > On Friday 30 Dec 2016 11:43:02 Guennadi Liakhovetski wrote:
-> >> Hi Laurent,
-> >> 
-> >> I'd like to discuss extending this patch a bit, preferably as an
-> >> incremental patch.
-> >> 
-> >> First let me confirm my current understanding of the way the UVC driver
-> >> creates its media device topology. Do I understand it correctly, that
-> >> the driver allocates UVC entities (not media controller entities) for all
-> >> UVC units and terminals, but then uses subdevices for all such UVC
-> >> entities, except terminals, i.e. only for UVC units? struct uvc_entity
-> >> has an embedded struct v4l2_subdev object, but it's unused for UVC
-> >> terminals. Instead terminals are associated to video devices, which are
-> >> then linked into the MC topology? Is this my understanding correct?
-> > 
-> > That's correct, but looking at the code now, I think the driver should use
-> > a struct media_entity directly instead of a struct v4l2_subdev as it
-> > doesn't need any of the infrastructure provided by subdevs.
-> > 
-> >> I have a problem with the current version of this patch, that there is
-> >> no way to associate video device nodes with respepctive metadata nodes.
-> >> Would it be acceptable to use an MC link for this association?
-> > 
-> > No, links describe data connections.
-> 
-> Well, it is data - it's metadata, extracted from USB buffers.
-> 
-> >> Is it allowed for video device MC entities to have source pads
-> >> additionally to their (usually single) sink pad(s) (in case of input
-> >> video devices)? If that would be acceptable, I could create an additional
-> >> patch to add a source pad to output terminal video nodes to link it to
-> >> metadata nodes.
-> > 
-> > That's a hack, I don't think it's a good idea.
-> 
-> Ok, would a completely specialised one-off sysfs solution be better? Maybe
-> a link under the metadata node to the main node?
+Thank you for the patch.
 
-Come on, I know you're better than that. Stop thinking short term about the 
-quickest hack that can provide the feature you need.
+On Friday 11 Sep 2015 14:50:31 Sakari Ailus wrote:
+> Just move the function up. It'll be soon needed earlier than previously.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I would move this patch to 09/11 though, just before the patch that requires 
+it.
+
+> ---
+>  drivers/media/v4l2-core/videobuf2-dma-contig.c | 44 +++++++++++------------
+>  1 file changed, 22 insertions(+), 22 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 26a0a0f..3260392
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -82,6 +82,28 @@ static unsigned long vb2_dc_get_contiguous_size(struct
+> sg_table *sgt) return size;
+>  }
+> 
+> +static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+> +{
+> +	int ret;
+> +	struct sg_table *sgt;
+> +
+> +	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+> +	if (!sgt) {
+> +		dev_err(buf->dev, "failed to alloc sg table\n");
+> +		return NULL;
+> +	}
+> +
+> +	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
+> +		buf->size);
+> +	if (ret < 0) {
+> +		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+> +		kfree(sgt);
+> +		return NULL;
+> +	}
+> +
+> +	return sgt;
+> +}
+> +
+>  /*********************************************/
+>  /*         callbacks for all buffers         */
+>  /*********************************************/
+> @@ -375,28 +397,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
+>  	.release = vb2_dc_dmabuf_ops_release,
+>  };
+> 
+> -static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
+> -{
+> -	int ret;
+> -	struct sg_table *sgt;
+> -
+> -	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
+> -	if (!sgt) {
+> -		dev_err(buf->dev, "failed to alloc sg table\n");
+> -		return NULL;
+> -	}
+> -
+> -	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
+> -		buf->size);
+> -	if (ret < 0) {
+> -		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
+> -		kfree(sgt);
+> -		return NULL;
+> -	}
+> -
+> -	return sgt;
+> -}
+> -
+>  static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long
+> flags) {
+>  	struct vb2_dc_buf *buf = buf_priv;
 
 -- 
 Regards,
