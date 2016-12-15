@@ -1,115 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:51494 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751312AbcL1LJE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Dec 2016 06:09:04 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Olli Salonen <olli.salonen@iki.fi>,
-        Benjamin Larsson <benjamin@southpole.se>,
-        =?UTF-8?q?Torbj=C3=B6rn=20Jansson?=
-        <torbjorn.jansson@mbox200.swipnet.se>
-Subject: [PATCH] Don't detach frontends at .exit() callback
-Date: Wed, 28 Dec 2016 09:08:54 -0200
-Message-Id: <0a4df5797c3165441cc425382dfced711109edb1.1482923326.git.mchehab@s-opensource.com>
+Received: from gofer.mess.org ([80.229.237.210]:49303 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S936118AbcLOMuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 15 Dec 2016 07:50:13 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: James Hogan <james@albanarts.com>,
+        Mauro Carvalho Chehab <m.chehab@samsung.com>,
+        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Subject: [PATCH v6 08/18] [media] rc: rc-ir-raw: Add pulse-distance modulation helper
+Date: Thu, 15 Dec 2016 12:50:01 +0000
+Message-Id: <010c6db1f85c4d9d12ea707ec2cec52191e1de4f.1481805635.git.sean@mess.org>
+In-Reply-To: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+References: <041be1eef913d5653b7c74ee398cf00063116d67.1481805635.git.sean@mess.org>
+In-Reply-To: <cover.1481805635.git.sean@mess.org>
+References: <cover.1481805635.git.sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The .exit() callback is called when the USB device is
-detached. On dvbsky, this callback was used to detach the
-frontends. However, i the frontend kthread is still running on
-that time, the logic will keep calling the tuner drivers, with
-could lead to either warnings about mutexes taking too long or
-GPF, because a removed module would be called.
+From: James Hogan <james@albanarts.com>
 
-Instead, move such logic to the frontend_detach() callback,
-where it belongs.
+Add IR encoding helper for pulse-distance modulation as used by the NEC
+protocol.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: James Hogan <james@albanarts.com>
+Signed-off-by: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Antti Seppälä <a.seppala@gmail.com>
+Cc: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/media/rc/rc-core-priv.h | 52 ++++++++++++++++++++++++++++++++++++
+ drivers/media/rc/rc-ir-raw.c    | 59 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 111 insertions(+)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index 0636eac37bbb..d3fa75a2aa7e 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -696,9 +696,9 @@ static int dvbsky_init(struct dvb_usb_device *d)
- 	return 0;
- }
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index 74513c6..630f33c 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -189,6 +189,58 @@ int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
+ 			  const struct ir_raw_timings_manchester *timings,
+ 			  unsigned int n, unsigned int data);
  
--static void dvbsky_exit(struct dvb_usb_device *d)
-+static int dvbsky_frontend_detach(struct dvb_usb_adapter *adap)
- {
--	struct dvbsky_state *state = d_to_priv(d);
-+	struct dvbsky_state *state = adap_to_priv(adap);
- 	struct i2c_client *client;
- 
- 	client = state->i2c_client_tuner;
-@@ -719,6 +719,7 @@ static void dvbsky_exit(struct dvb_usb_device *d)
- 		module_put(client->dev.driver->owner);
- 		i2c_unregister_device(client);
- 	}
++/**
++ * ir_raw_gen_pulse_space() - generate pulse and space raw events.
++ * @ev:			Pointer to pointer to next free raw event.
++ *			Will be incremented for each raw event written.
++ * @max:		Pointer to number of raw events available in buffer.
++ *			Will be decremented for each raw event written.
++ * @pulse_width:	Width of pulse in ns.
++ * @space_width:	Width of space in ns.
++ *
++ * Returns:	0 on success.
++ *		-ENOBUFS if there isn't enough buffer space to write both raw
++ *		events. In this case @max events will have been written.
++ */
++static inline int ir_raw_gen_pulse_space(struct ir_raw_event **ev,
++					 unsigned int *max,
++					 unsigned int pulse_width,
++					 unsigned int space_width)
++{
++	if (!*max)
++		return -ENOBUFS;
++	init_ir_raw_event_duration((*ev)++, 1, pulse_width);
++	if (!--*max)
++		return -ENOBUFS;
++	init_ir_raw_event_duration((*ev)++, 0, space_width);
++	--*max;
 +	return 0;
- }
++}
++
++/**
++ * struct ir_raw_timings_pd - pulse-distance modulation timings
++ * @header_pulse:	duration of header pulse in ns (0 for none)
++ * @header_space:	duration of header space in ns
++ * @bit_pulse:		duration of bit pulse in ns
++ * @bit_space:		duration of bit space (for logic 0 and 1) in ns
++ * @trailer_pulse:	duration of trailer pulse in ns
++ * @trailer_space:	duration of trailer space in ns
++ * @msb_first:		1 if most significant bit is sent first
++ */
++struct ir_raw_timings_pd {
++	unsigned int header_pulse;
++	unsigned int header_space;
++	unsigned int bit_pulse;
++	unsigned int bit_space[2];
++	unsigned int trailer_pulse;
++	unsigned int trailer_space;
++	unsigned int msb_first:1;
++};
++
++int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
++		  const struct ir_raw_timings_pd *timings,
++		  unsigned int n, u64 data);
++
+ /*
+  * Routines from rc-raw.c to be used internally and by decoders
+  */
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index 853e20c..5ce8b45 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -335,6 +335,65 @@ int ir_raw_gen_manchester(struct ir_raw_event **ev, unsigned int max,
+ EXPORT_SYMBOL(ir_raw_gen_manchester);
  
- /* DVB USB Driver stuff */
-@@ -734,11 +735,11 @@ static struct dvb_usb_device_properties dvbsky_s960_props = {
- 
- 	.i2c_algo         = &dvbsky_i2c_algo,
- 	.frontend_attach  = dvbsky_s960_attach,
-+	.frontend_detach  = dvbsky_frontend_detach,
- 	.init             = dvbsky_init,
- 	.get_rc_config    = dvbsky_get_rc_config,
- 	.streaming_ctrl   = dvbsky_streaming_ctrl,
- 	.identify_state	  = dvbsky_identify_state,
--	.exit             = dvbsky_exit,
- 	.read_mac_address = dvbsky_read_mac_addr,
- 
- 	.num_adapters = 1,
-@@ -761,11 +762,11 @@ static struct dvb_usb_device_properties dvbsky_s960c_props = {
- 
- 	.i2c_algo         = &dvbsky_i2c_algo,
- 	.frontend_attach  = dvbsky_s960c_attach,
-+	.frontend_detach  = dvbsky_frontend_detach,
- 	.init             = dvbsky_init,
- 	.get_rc_config    = dvbsky_get_rc_config,
- 	.streaming_ctrl   = dvbsky_streaming_ctrl,
- 	.identify_state	  = dvbsky_identify_state,
--	.exit             = dvbsky_exit,
- 	.read_mac_address = dvbsky_read_mac_addr,
- 
- 	.num_adapters = 1,
-@@ -788,11 +789,11 @@ static struct dvb_usb_device_properties dvbsky_t680c_props = {
- 
- 	.i2c_algo         = &dvbsky_i2c_algo,
- 	.frontend_attach  = dvbsky_t680c_attach,
-+	.frontend_detach  = dvbsky_frontend_detach,
- 	.init             = dvbsky_init,
- 	.get_rc_config    = dvbsky_get_rc_config,
- 	.streaming_ctrl   = dvbsky_streaming_ctrl,
- 	.identify_state	  = dvbsky_identify_state,
--	.exit             = dvbsky_exit,
- 	.read_mac_address = dvbsky_read_mac_addr,
- 
- 	.num_adapters = 1,
-@@ -815,11 +816,11 @@ static struct dvb_usb_device_properties dvbsky_t330_props = {
- 
- 	.i2c_algo         = &dvbsky_i2c_algo,
- 	.frontend_attach  = dvbsky_t330_attach,
-+	.frontend_detach  = dvbsky_frontend_detach,
- 	.init             = dvbsky_init,
- 	.get_rc_config    = dvbsky_get_rc_config,
- 	.streaming_ctrl   = dvbsky_streaming_ctrl,
- 	.identify_state	  = dvbsky_identify_state,
--	.exit             = dvbsky_exit,
- 	.read_mac_address = dvbsky_read_mac_addr,
- 
- 	.num_adapters = 1,
+ /**
++ * ir_raw_gen_pd() - Encode data to raw events with pulse-distance modulation.
++ * @ev:		Pointer to pointer to next free event. *@ev is incremented for
++ *		each raw event filled.
++ * @max:	Maximum number of raw events to fill.
++ * @timings:	Pulse distance modulation timings.
++ * @n:		Number of bits of data.
++ * @data:	Data bits to encode.
++ *
++ * Encodes the @n least significant bits of @data using pulse-distance
++ * modulation with the timing characteristics described by @timings, writing up
++ * to @max raw IR events using the *@ev pointer.
++ *
++ * Returns:	0 on success.
++ *		-ENOBUFS if there isn't enough space in the array to fit the
++ *		full encoded data. In this case all @max events will have been
++ *		written.
++ */
++int ir_raw_gen_pd(struct ir_raw_event **ev, unsigned int max,
++		  const struct ir_raw_timings_pd *timings,
++		  unsigned int n, u64 data)
++{
++	int i;
++	int ret;
++	unsigned int space;
++
++	if (timings->header_pulse) {
++		ret = ir_raw_gen_pulse_space(ev, &max, timings->header_pulse,
++					     timings->header_space);
++		if (ret)
++			return ret;
++	}
++
++	if (timings->msb_first) {
++		for (i = n - 1; i >= 0; --i) {
++			space = timings->bit_space[(data >> i) & 1];
++			ret = ir_raw_gen_pulse_space(ev, &max,
++						     timings->bit_pulse,
++						     space);
++			if (ret)
++				return ret;
++		}
++	} else {
++		for (i = 0; i < n; ++i, data >>= 1) {
++			space = timings->bit_space[data & 1];
++			ret = ir_raw_gen_pulse_space(ev, &max,
++						     timings->bit_pulse,
++						     space);
++			if (ret)
++				return ret;
++		}
++	}
++
++	ret = ir_raw_gen_pulse_space(ev, &max, timings->trailer_pulse,
++				     timings->trailer_space);
++	return ret;
++}
++EXPORT_SYMBOL(ir_raw_gen_pd);
++
++/**
+  * ir_raw_encode_scancode() - Encode a scancode as raw events
+  *
+  * @protocol:		protocol
 -- 
 2.9.3
 
