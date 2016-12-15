@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud2.xs4all.net ([194.109.24.29]:41657 "EHLO
-        lb3-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752456AbcLLPzZ (ORCPT
+Received: from lb3-smtp-cloud3.xs4all.net ([194.109.24.30]:37621 "EHLO
+        lb3-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754784AbcLONCP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 10:55:25 -0500
+        Thu, 15 Dec 2016 08:02:15 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 02/15] ov7670: call v4l2_async_register_subdev
-Date: Mon, 12 Dec 2016 16:55:07 +0100
-Message-Id: <20161212155520.41375-3-hverkuil@xs4all.nl>
-In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
-References: <20161212155520.41375-1-hverkuil@xs4all.nl>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        linux-input <linux-input@vger.kernel.org>
+Subject: [PATCH 0/2] Add support for the RainShadow Tech HDMI CEC adapter
+Date: Thu, 15 Dec 2016 14:02:05 +0100
+Message-Id: <20161215130207.12913-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add v4l2-async support for this driver.
+This patch series adds support to the RainShadow Tech HDMI CEC adapter
+(http://rainshadowtech.com/HdmiCecUsb.html).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ov7670.c | 21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+The first patch adds the needed serio ID, the second adds the driver itself.
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index b0315bb..3f0522f 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -1641,18 +1641,15 @@ static int ov7670_probe(struct i2c_client *client,
- 	if (info->hdl.error) {
- 		int err = info->hdl.error;
- 
--		v4l2_ctrl_handler_free(&info->hdl);
--		return err;
-+		goto fail;
- 	}
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	info->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	info->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
- 	ret = media_entity_pads_init(&info->sd.entity, 1, &info->pad);
--	if (ret < 0) {
--		v4l2_ctrl_handler_free(&info->hdl);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto fail;
- #endif
- 	/*
- 	 * We have checked empirically that hw allows to read back the gain
-@@ -1664,7 +1661,19 @@ static int ov7670_probe(struct i2c_client *client,
- 	v4l2_ctrl_cluster(2, &info->saturation);
- 	v4l2_ctrl_handler_setup(&info->hdl);
- 
-+	ret = v4l2_async_register_subdev(&info->sd);
-+	if (ret < 0) {
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		media_entity_cleanup(&info->sd.entity);
-+#endif
-+		goto fail;
-+	}
-+
- 	return 0;
-+
-+fail:
-+	v4l2_ctrl_handler_free(&info->hdl);
-+	return ret;
- }
- 
- 
+Dmitry, will you take the first patch, or can we take it together with the
+second patch?
+
+This is of course for 4.11.
+
+Regards,
+
+	Hans
+
+Hans Verkuil (2):
+  serio.h: add SERIO_RAINSHADOW_CEC ID
+  rainshadow-cec: new RainShadow Tech HDMI CEC driver
+
+ MAINTAINERS                                       |   7 +
+ drivers/media/usb/Kconfig                         |   1 +
+ drivers/media/usb/Makefile                        |   1 +
+ drivers/media/usb/rainshadow-cec/Kconfig          |  10 +
+ drivers/media/usb/rainshadow-cec/Makefile         |   1 +
+ drivers/media/usb/rainshadow-cec/rainshadow-cec.c | 344 ++++++++++++++++++++++
+ include/uapi/linux/serio.h                        |   1 +
+ 7 files changed, 365 insertions(+)
+ create mode 100644 drivers/media/usb/rainshadow-cec/Kconfig
+ create mode 100644 drivers/media/usb/rainshadow-cec/Makefile
+ create mode 100644 drivers/media/usb/rainshadow-cec/rainshadow-cec.c
+
 -- 
 2.10.2
 
