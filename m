@@ -1,110 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49686 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754765AbcLOVLb (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:35507 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757884AbcLOOFh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 16:11:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: Re: [RFC RESEND 08/11] vb2: dma-contig: Move vb2_dc_get_base_sgt() up
-Date: Thu, 15 Dec 2016 23:12:07 +0200
-Message-ID: <7453908.U9mZPLNEAl@avalon>
-In-Reply-To: <1441972234-8643-9-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-9-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Thu, 15 Dec 2016 09:05:37 -0500
+From: Corentin Labbe <clabbe.montjoie@gmail.com>
+To: mchehab@kernel.org, gregkh@linuxfoundation.org, kgene@kernel.org,
+        krzk@kernel.org, javier@osg.samsung.com,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-samsung-soc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Corentin Labbe <clabbe.montjoie@gmail.com>
+Subject: [PATCH 2/2] media: s5p-cec: Remove references to non-existent PLAT_S5P symbol
+Date: Thu, 15 Dec 2016 15:03:24 +0100
+Message-Id: <20161215140324.28986-2-clabbe.montjoie@gmail.com>
+In-Reply-To: <20161215140324.28986-1-clabbe.montjoie@gmail.com>
+References: <20161215140324.28986-1-clabbe.montjoie@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Commit d78c16ccde96 ("ARM: SAMSUNG: Remove remaining legacy code")
+removed the Kconfig symbol PLAT_S5P.
+This patch remove the last occurrence of this symbol.
 
-Thank you for the patch.
+Signed-off-by: Corentin Labbe <clabbe.montjoie@gmail.com>
+---
+ drivers/staging/media/s5p-cec/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Friday 11 Sep 2015 14:50:31 Sakari Ailus wrote:
-> Just move the function up. It'll be soon needed earlier than previously.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I would move this patch to 09/11 though, just before the patch that requires 
-it.
-
-> ---
->  drivers/media/v4l2-core/videobuf2-dma-contig.c | 44 +++++++++++------------
->  1 file changed, 22 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index 26a0a0f..3260392
-> 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -82,6 +82,28 @@ static unsigned long vb2_dc_get_contiguous_size(struct
-> sg_table *sgt) return size;
->  }
-> 
-> +static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-> +{
-> +	int ret;
-> +	struct sg_table *sgt;
-> +
-> +	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-> +	if (!sgt) {
-> +		dev_err(buf->dev, "failed to alloc sg table\n");
-> +		return NULL;
-> +	}
-> +
-> +	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
-> +		buf->size);
-> +	if (ret < 0) {
-> +		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
-> +		kfree(sgt);
-> +		return NULL;
-> +	}
-> +
-> +	return sgt;
-> +}
-> +
->  /*********************************************/
->  /*         callbacks for all buffers         */
->  /*********************************************/
-> @@ -375,28 +397,6 @@ static struct dma_buf_ops vb2_dc_dmabuf_ops = {
->  	.release = vb2_dc_dmabuf_ops_release,
->  };
-> 
-> -static struct sg_table *vb2_dc_get_base_sgt(struct vb2_dc_buf *buf)
-> -{
-> -	int ret;
-> -	struct sg_table *sgt;
-> -
-> -	sgt = kmalloc(sizeof(*sgt), GFP_KERNEL);
-> -	if (!sgt) {
-> -		dev_err(buf->dev, "failed to alloc sg table\n");
-> -		return NULL;
-> -	}
-> -
-> -	ret = dma_get_sgtable(buf->dev, sgt, buf->vaddr, buf->dma_addr,
-> -		buf->size);
-> -	if (ret < 0) {
-> -		dev_err(buf->dev, "failed to get scatterlist from DMA API\n");
-> -		kfree(sgt);
-> -		return NULL;
-> -	}
-> -
-> -	return sgt;
-> -}
-> -
->  static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long
-> flags) {
->  	struct vb2_dc_buf *buf = buf_priv;
-
+diff --git a/drivers/staging/media/s5p-cec/Kconfig b/drivers/staging/media/s5p-cec/Kconfig
+index 0315fd7..cba4f8a 100644
+--- a/drivers/staging/media/s5p-cec/Kconfig
++++ b/drivers/staging/media/s5p-cec/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_SAMSUNG_S5P_CEC
+        tristate "Samsung S5P CEC driver"
+-       depends on VIDEO_DEV && MEDIA_CEC && (PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST)
++       depends on VIDEO_DEV && MEDIA_CEC && (ARCH_EXYNOS || COMPILE_TEST)
+        ---help---
+          This is a driver for Samsung S5P HDMI CEC interface. It uses the
+          generic CEC framework interface.
 -- 
-Regards,
-
-Laurent Pinchart
+2.10.2
 
