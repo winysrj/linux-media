@@ -1,95 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:34171 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750763AbcLLIKL (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:36053 "EHLO
+        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755814AbcLONo3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 03:10:11 -0500
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, g.liakhovetski@gmx.de, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] media: platform: soc_camera_platform : constify v4l2_subdev_* structures
-Date: Mon, 12 Dec 2016 13:39:53 +0530
-Message-Id: <1481530193-18158-1-git-send-email-bhumirks@gmail.com>
+        Thu, 15 Dec 2016 08:44:29 -0500
+Date: Thu, 15 Dec 2016 05:44:38 -0800
+From: Greg KH <greg@kroah.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Message-ID: <20161215134438.GA28343@kroah.com>
+References: <20161214151406.20380-1-mchehab@s-opensource.com>
+ <3043978.ViByGAdkJL@avalon>
+ <20161215103734.716a0619@vento.lan>
+ <e4f884d2-9746-a728-3f75-1aa211721f5e@osg.samsung.com>
+ <20161215105716.30186ff5@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161215105716.30186ff5@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_subdev_{core/video}_ops structures are stored in the
-fields of the v4l2_subdev_ops structure which are of type const.
-Also, v4l2_subdev_ops structure is passed to a function
-having its argument of type const. As these structures are never
-modified, so declare them as const.
-Done using Coccinelle:(One of the scripts)
+On Thu, Dec 15, 2016 at 10:57:16AM -0200, Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Dec 2016 09:42:35 -0300
+> Javier Martinez Canillas <javier@osg.samsung.com> escreveu:
+> 
+> > Hello Mauro,
+> > 
+> > On 12/15/2016 09:37 AM, Mauro Carvalho Chehab wrote:
+> > 
+> > [snip]
+> > 
+> > > 
+> > > What happens is that omap3isp driver calls media_device_unregister()
+> > > too early. Right now, it is called at omap3isp_video_device_release(),
+> > > with happens when a driver unbind is ordered by userspace, and not after
+> > > the last usage of all /dev/video?? devices.
+> > > 
+> > > There are two possible fixes:
+> > > 
+> > > 1) at omap3isp_video_device_release(), streamoff all streams and mark
+> > > that the media device will be gone.
+> 
+> I actually meant to say: isp_unregister_entities() here.
+> 
+> > > 
+> > > 2) instead of using video_device_release_empty for the video->video.release,
+> > > create a omap3isp_video_device_release() that will call
+> > > media_device_unregister() when destroying the last /dev/video?? devnode.
+> > >  
+> > 
+> > There's also option (3), to have a proper refcounting to make sure that
+> > the media device node is not freed until all references to it are gone.
+> 
+> Yes, that's another alternative.
+> 
+> > I understand that's what Sakari's RFC patches do. I'll try to make some
+> > time tomorrow to test and review his patches.
+> 
+> The biggest problem with Sakari's patches is that it starts by 
+> reverting 3 patches, and this will cause regressions on existing
+> devices.
+> 
+> Development should be incremental.
 
-@r1 disable optional_qualifier @
-identifier i;
-position p;
-@@
-static struct v4l2_subdev_core_ops i@p = {...};
+How can reverting patches cause regressions?  If a patch that is applied
+breaks something else, it needs to be reverted, end of story.  If that
+patch happened to have fixed a different issue, that's fine, we are back
+to the original issue, it's not a "regression" at all, the patch was
+wrong in the first place.
 
-@ok1@
-identifier r1.i;
-position p;
-struct v4l2_subdev_ops obj;
-@@
-obj.core=&i@p;
+So please, just revert them now.  That's the correct thing to do, as we
+will be back to the previous release's behavior.
 
-@bad@
-position p!={r1.p,ok1.p};
-identifier r1.i;
-@@
-i@p
+thanks,
 
-@depends on !bad disable optional_qualifier@
-identifier r1.i;
-@@
-+const
-struct v4l2_subdev_core_ops i;
-
-File size before:
-    text   data	    bss	    dec	    hex	filename
-    858	    576	      0	   1434	    59a soc_camera/soc_camera_platform.o
-
-File size after:
-  text	   data	    bss	    dec	    hex	filename
-   1234	    192	      0	   1426	    592 soc_camera/soc_camera_platform.o
-
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/media/platform/soc_camera/soc_camera_platform.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/soc_camera_platform.c b/drivers/media/platform/soc_camera/soc_camera_platform.c
-index 534d6c3..cb4986b 100644
---- a/drivers/media/platform/soc_camera/soc_camera_platform.c
-+++ b/drivers/media/platform/soc_camera/soc_camera_platform.c
-@@ -59,7 +59,7 @@ static int soc_camera_platform_s_power(struct v4l2_subdev *sd, int on)
- 	return soc_camera_set_power(p->icd->control, &p->icd->sdesc->subdev_desc, NULL, on);
- }
- 
--static struct v4l2_subdev_core_ops platform_subdev_core_ops = {
-+static const struct v4l2_subdev_core_ops platform_subdev_core_ops = {
- 	.s_power = soc_camera_platform_s_power,
- };
- 
-@@ -110,7 +110,7 @@ static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static struct v4l2_subdev_video_ops platform_subdev_video_ops = {
-+static const struct v4l2_subdev_video_ops platform_subdev_video_ops = {
- 	.s_stream	= soc_camera_platform_s_stream,
- 	.g_mbus_config	= soc_camera_platform_g_mbus_config,
- };
-@@ -122,7 +122,7 @@ static int soc_camera_platform_g_mbus_config(struct v4l2_subdev *sd,
- 	.set_fmt	= soc_camera_platform_fill_fmt,
- };
- 
--static struct v4l2_subdev_ops platform_subdev_ops = {
-+static const struct v4l2_subdev_ops platform_subdev_ops = {
- 	.core	= &platform_subdev_core_ops,
- 	.video	= &platform_subdev_video_ops,
- 	.pad	= &platform_subdev_pad_ops,
--- 
-1.9.1
-
+greg k-h
