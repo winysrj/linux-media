@@ -1,52 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48466 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755599AbcLAEzZ (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:53758 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759041AbcLPGMv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 30 Nov 2016 23:55:25 -0500
-From: Shailendra Verma <shailendra.v@samsung.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Shailendra Verma <shailendra.v@samsung.com>,
-        Shailendra Verma <shailendra.capricorn@gmail.com>
-Cc: vidushi.koul@samsung.com
-Subject: [PATCH] V4l: omap4iss: Clean up file handle in open() and release().
-Date: Thu, 01 Dec 2016 10:22:52 +0530
-Message-id: <1480567972-13510-1-git-send-email-shailendra.v@samsung.com>
+        Fri, 16 Dec 2016 01:12:51 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v5 5/6] Documentation: bindings: add documentation for ir-spi
+ device driver
+Date: Fri, 16 Dec 2016 15:12:17 +0900
+Message-id: <20161216061218.5906-6-andi.shyti@samsung.com>
+In-reply-to: <20161216061218.5906-1-andi.shyti@samsung.com>
+References: <20161216061218.5906-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both functions initialize the file handle with v4l2_fh_init()
-and thus need to call clean up with v4l2_fh_exit() as appropriate.
+Document the ir-spi driver's binding which is a IR led driven
+through the SPI line.
 
-Signed-off-by: Shailendra Verma <shailendra.v@samsung.com>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Reviewed-by: Sean Young <sean@mess.org>
 ---
- drivers/staging/media/omap4iss/iss_video.c |    2 ++
- 1 file changed, 2 insertions(+)
+ .../devicetree/bindings/leds/irled/spi-ir-led.txt  | 29 ++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
 
-diff --git a/drivers/staging/media/omap4iss/iss_video.c b/drivers/staging/media/omap4iss/iss_video.c
-index c16927a..077c9f8 100644
---- a/drivers/staging/media/omap4iss/iss_video.c
-+++ b/drivers/staging/media/omap4iss/iss_video.c
-@@ -1141,6 +1141,7 @@ static int iss_video_open(struct file *file)
- done:
- 	if (ret < 0) {
- 		v4l2_fh_del(&handle->vfh);
-+		v4l2_fh_exit(&handle->vfh);
- 		kfree(handle);
- 	}
- 
-@@ -1162,6 +1163,7 @@ static int iss_video_release(struct file *file)
- 	vb2_queue_release(&handle->queue);
- 
- 	v4l2_fh_del(vfh);
-+	v4l2_fh_exit(vfh);
- 	kfree(handle);
- 	file->private_data = NULL;
- 
+diff --git a/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt b/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+new file mode 100644
+index 0000000..896b699
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+@@ -0,0 +1,29 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
++
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
++
++Required properties:
++	- compatible: should be "ir-spi-led".
++
++Optional properties:
++	- duty-cycle: 8 bit balue that represents the percentage of one period
++	  in which the signal is active.  It can be 50, 60, 70, 75, 80 or 90.
++	- led-active-low: boolean value that specifies whether the output is
++	  negated with a NOT gate.
++	- power-supply: specifies the power source. It can either be a regulator
++	  or a gpio which enables a regulator, i.e. a regulator-fixed as
++	  described in
++	  Documentation/devicetree/bindings/regulator/fixed-regulator.txt
++
++Example:
++
++	irled@0 {
++		compatible = "ir-spi-led";
++		reg = <0x0>;
++		spi-max-frequency = <5000000>;
++		power-supply = <&vdd_led>;
++		led-active-low;
++		duty-cycle = /bits/ 8 <60>;
++	};
 -- 
-1.7.9.5
+2.10.2
 
