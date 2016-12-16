@@ -1,211 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:36397 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757986AbcLQD5m (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42492
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1759566AbcLPMJT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 16 Dec 2016 22:57:42 -0500
-Received: by mail-qt0-f193.google.com with SMTP id n34so13046909qtb.3
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 19:57:41 -0800 (PST)
-Received: from whisper (cpe-74-71-229-113.nyc.res.rr.com. [74.71.229.113])
-        by smtp.gmail.com with ESMTPSA id p28sm5289653qtb.31.2016.12.16.19.57.40
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Fri, 16 Dec 2016 19:57:40 -0800 (PST)
-Date: Fri, 16 Dec 2016 22:57:39 -0500
-From: Kevin Cheng <kcheng@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] em28xx: support for Hauppauge WinTV-dualHD 01595
- ATSC/QAM
-Message-ID: <20161217035737.eldmgdbk7owqgygb@whisper>
+        Fri, 16 Dec 2016 07:09:19 -0500
+Date: Fri, 16 Dec 2016 10:00:56 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
+ references as needed
+Message-ID: <20161216100056.5f3fcb55@vento.lan>
+In-Reply-To: <c654bffd-792c-f860-33b4-3c399984dbd4@xs4all.nl>
+References: <20161109154608.1e578f9e@vento.lan>
+        <20161213102447.60990b1c@vento.lan>
+        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+        <7529355.zfqFdROYdM@avalon>
+        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+        <20161215152501.11ce2b2a@vento.lan>
+        <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
+        <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
+        <20161216085741.38bb2e18@vento.lan>
+        <c654bffd-792c-f860-33b4-3c399984dbd4@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge WinTV-dualHD model 01595 is a USB 2.0 dual ATSC/QAM tuner with
-the following components:
+Em 
+ escreveu:
 
-USB bridge: Empia em28274
-Demodulator: 2x LG LGDT3306a at addresses 0xb2 and 0x1c
-Tuner: 2x Silicon Labs si2157 at addresses 0xc0 and 0xc4
+> On 16/12/16 11:57, Mauro Carvalho Chehab wrote:
+> > Em Fri, 16 Dec 2016 11:11:25 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >  
+> >>> Would it make sense to enforce that dependency. Can we tie /dev/media usecount
+> >>> to /dev/video etc. usecount? In other words:
+> >>>
+> >>> /dev/video is opened, then open /dev/media.  
+> >>
+> >> When a device node is registered it should increase the refcount on the media_device
+> >> (as I proposed, that would be mdev->dev). When a device node is unregistered and the
+> >> last user disappeared, then it can decrease the media_device refcount.
+> >>
+> >> So as long as anyone is using a device node, the media_device will stick around as
+> >> well.
+> >>
+> >> No need to take refcounts on open/close.  
+> >
+> > That makes sense. You're meaning something like the enclosed (untested)
+> > patch?
+> >  
+> >> One note: as I mentioned, the video_device does not set the cdev parent correctly,
+> >> so that bug needs to be fixed first for this to work.  
+> >
+> > Actually, __video_register_device() seems to be setting the parent
+> > properly:
+> >
+> > 	if (vdev->dev_parent == NULL)
+> > 		vdev->dev_parent = vdev->v4l2_dev->dev;  
+> 
+> No, I mean this code (from cec-core.c):
+> 
+> 
+>         /* Part 2: Initialize and register the character device */
+>          cdev_init(&devnode->cdev, &cec_devnode_fops);
+>          devnode->cdev.kobj.parent = &devnode->dev.kobj;
+>          devnode->cdev.owner = owner;
+> 
+>          ret = cdev_add(&devnode->cdev, devnode->dev.devt, 1);
+>          if (ret < 0) {
+>                  pr_err("%s: cdev_add failed\n", __func__);
+>                  goto clr_bit;
+>          }
+> 
+>          ret = device_add(&devnode->dev);
+>          if (ret)
+>                  goto cdev_del;
+> 
+> which sets cdev.kobj.parent. And that would indeed be vdev->dev_parent.
 
-This patch enables only the first tuner.
+Ah! So, you're basically proposing to have a separate struct for
+V4L2 devnode as well, right?
 
-Signed-off-by: Kevin Cheng <kcheng@gmail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 19 ++++++++
- drivers/media/usb/em28xx/em28xx-dvb.c   | 78 +++++++++++++++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx.h       |  1 +
- 3 files changed, 98 insertions(+)
+Makes sense.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 23c6749..5f90d08 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -509,6 +509,7 @@ static struct em28xx_reg_seq plex_px_bcud[] = {
- 
- /*
-  * 2040:0265 Hauppauge WinTV-dualHD DVB
-+ * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM
-  * reg 0x80/0x84:
-  * GPIO_0: Yellow LED tuner 1, 0=on, 1=off
-  * GPIO_1: Green LED tuner 1, 0=on, 1=off
-@@ -2389,6 +2390,21 @@ struct em28xx_board em28xx_boards[] = {
- 		.ir_codes      = RC_MAP_HAUPPAUGE,
- 		.leds          = hauppauge_dualhd_leds,
- 	},
-+	/*
-+	 * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM).
-+	 * Empia EM28274, 2x LG LGDT3306A, 2x Silicon Labs Si2157
-+	 */
-+	[EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595] = {
-+		.name          = "Hauppauge WinTV-dualHD 01595 ATSC/QAM",
-+		.def_i2c_bus   = 1,
-+		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
-+				 EM28XX_I2C_FREQ_400_KHZ,
-+		.tuner_type    = TUNER_ABSENT,
-+		.tuner_gpio    = hauppauge_dualhd_dvb,
-+		.has_dvb       = 1,
-+		.ir_codes      = RC_MAP_HAUPPAUGE,
-+		.leds          = hauppauge_dualhd_leds,
-+	},
- };
- EXPORT_SYMBOL_GPL(em28xx_boards);
- 
-@@ -2514,6 +2530,8 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850 },
- 	{ USB_DEVICE(0x2040, 0x0265),
- 			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
-+	{ USB_DEVICE(0x2040, 0x026d),
-+			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
- 	{ USB_DEVICE(0x0438, 0xb002),
- 			.driver_info = EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600 },
- 	{ USB_DEVICE(0x2001, 0xf112),
-@@ -2945,6 +2963,7 @@ static void em28xx_card_setup(struct em28xx *dev)
- 	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
- 	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
- 	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB:
-+	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
- 	{
- 		struct tveeprom tv;
- 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 75a75da..35c186e 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -37,6 +37,7 @@
- 
- #include "lgdt330x.h"
- #include "lgdt3305.h"
-+#include "lgdt3306a.h"
- #include "zl10353.h"
- #include "s5h1409.h"
- #include "mt2060.h"
-@@ -920,6 +921,17 @@ static struct tda18271_config pinnacle_80e_dvb_config = {
- 	.role    = TDA18271_MASTER,
- };
- 
-+static struct lgdt3306a_config hauppauge_01595_lgdt3306a_config = {
-+	.qam_if_khz         = 4000,
-+	.vsb_if_khz         = 3250,
-+	.spectral_inversion = 0,
-+	.deny_i2c_rptr      = 0,
-+	.mpeg_mode          = LGDT3306A_MPEG_SERIAL,
-+	.tpclk_edge         = LGDT3306A_TPCLK_RISING_EDGE,
-+	.tpvalid_polarity   = LGDT3306A_TP_VALID_HIGH,
-+	.xtalMHz            = 25,
-+};
-+
- /* ------------------------------------------------------------------ */
- 
- static int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
-@@ -1950,6 +1962,72 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 
- 		}
- 		break;
-+	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
-+		{
-+			struct i2c_adapter *adapter;
-+			struct i2c_client *client;
-+			struct i2c_board_info info;
-+			struct lgdt3306a_config lgdt3306a_config;
-+			struct si2157_config si2157_config;
-+
-+			/* attach demod */
-+			memcpy(&lgdt3306a_config,
-+					&hauppauge_01595_lgdt3306a_config,
-+					sizeof(struct lgdt3306a_config));
-+			lgdt3306a_config.fe = &dvb->fe[0];
-+			lgdt3306a_config.i2c_adapter = &adapter;
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			strlcpy(info.type, "lgdt3306a", I2C_NAME_SIZE);
-+			info.addr = 0x59;
-+			info.platform_data = &lgdt3306a_config;
-+			request_module(info.type);
-+			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus],
-+					&info);
-+			if (client == NULL || client->dev.driver == NULL) {
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			if (!try_module_get(client->dev.driver->owner)) {
-+				i2c_unregister_device(client);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			dvb->i2c_client_demod = client;
-+
-+			/* attach tuner */
-+			memset(&si2157_config, 0, sizeof(si2157_config));
-+			si2157_config.fe = dvb->fe[0];
-+			si2157_config.if_port = 1;
-+			si2157_config.inversion = 1;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+			si2157_config.mdev = dev->media_dev;
-+#endif
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+			info.addr = 0x60;
-+			info.platform_data = &si2157_config;
-+			request_module(info.type);
-+
-+			client = i2c_new_device(adapter, &info);
-+			if (client == NULL || client->dev.driver == NULL) {
-+				module_put(dvb->i2c_client_demod->dev.driver->owner);
-+				i2c_unregister_device(dvb->i2c_client_demod);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+			if (!try_module_get(client->dev.driver->owner)) {
-+				i2c_unregister_device(client);
-+				module_put(dvb->i2c_client_demod->dev.driver->owner);
-+				i2c_unregister_device(dvb->i2c_client_demod);
-+				result = -ENODEV;
-+				goto out_free;
-+			}
-+
-+			dvb->i2c_client_tuner = client;
-+		}
-+		break;
- 	default:
- 		dev_err(&dev->intf->dev,
- 			"The frontend of your DVB/ATSC card isn't supported yet\n");
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index ca59e2d..e9f3799 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -147,6 +147,7 @@
- #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
- #define EM28178_BOARD_PLEX_PX_BCUD                98
- #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
-+#define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
--- 
-2.9.3
+> 
+> >
+> > Thanks,
+> > Mauro
+> >
+> > [PATCH] Be sure that the media_device won't be freed too early
+> >
+> > This code snippet is untested.
+> >
+> > Signed-off-by: Mauro Carvalho chehab <mchehab@s-opensource.com>
+> >
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 8756275e9fc4..5fdeab382069 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -706,7 +706,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+> >  	struct media_devnode *devnode;
+> >  	int ret;
+> >
+> > -	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
+> > +	devnode = devm_kzalloc(mdev->dev, sizeof(*devnode), GFP_KERNEL);  
+> 
+> I'm not sure about this change. I *think* this would work, but *only* if all
+> the refcounting is 100% correct, and we know it isn't at the moment. So I
+> think this should be postponed until we are confident everything is correct.
 
+Yes, such change will require first to be sure that drivers would be
+doing the right thing.
+
+> 
+> >  	if (!devnode)
+> >  		return -ENOMEM;
+> >
+> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> > index 8be561ab2615..14a3c56dbcac 100644
+> > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > @@ -196,6 +196,7 @@ static void v4l2_device_release(struct device *cd)
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> >  	if (v4l2_dev->mdev) {
+> >  		/* Remove interfaces and interface links */
+> > +		put_device(v4l2_dev->mdev->dev);
+> >  		media_devnode_remove(vdev->intf_devnode);
+> >  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+> >  			media_device_unregister_entity(&vdev->entity);  
+> 
+> I think this is the wrong order: put_device should go after media_device_unregister_entity().
+
+OK.
+
+> 
+> > @@ -810,6 +811,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+> >  			return -ENOMEM;
+> >  		}
+> >  	}
+> > +	get_device(vdev->v4l2_dev->dev);  
+> 
+> You mean v4l2_dev->mdev->dev?
+
+Yes, that's right (vdev->v4l2_dev->mdev->dev).
+
+> 
+> >
+> >  	/* FIXME: how to create the other interface links? */
+> >
+> > @@ -1015,6 +1017,11 @@ void video_unregister_device(struct video_device *vdev)
+> >  	if (!vdev || !video_is_registered(vdev))
+> >  		return;
+> >
+> > +#if defined(CONFIG_MEDIA_CONTROLLER)
+> > +	if (vdev->v4l2_dev->dev)
+> > +		put_device(vdev->v4l2_dev->dev);  
+> 
+> Ditto.
+> 
+> > +#endif
+> > +
+> >  	mutex_lock(&videodev_lock);
+> >  	/* This must be in a critical section to prevent a race with v4l2_open.
+> >  	 * Once this bit has been cleared video_get may never be called again.
+> > diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+> > index 62bbed76dbbc..53f42090c762 100644
+> > --- a/drivers/media/v4l2-core/v4l2-device.c
+> > +++ b/drivers/media/v4l2-core/v4l2-device.c
+> > @@ -188,6 +188,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+> >  		err = media_device_register_entity(v4l2_dev->mdev, entity);
+> >  		if (err < 0)
+> >  			goto error_module;
+> > +		get_device(v4l2_dev->mdev->dev);
+> >  	}
+> >  #endif
+> >
+> > @@ -205,6 +206,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+> >
+> >  error_unregister:
+> >  #if defined(CONFIG_MEDIA_CONTROLLER)
+> > +	if (v4l2_dev->mdev)
+> > +		put_device(v4l2_dev->mdev->dev);
+> >  	media_device_unregister_entity(entity);
+> >  #endif
+> >  error_module:
+> > @@ -310,6 +313,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+> >  		 * links are removed by the function below, in the right order
+> >  		 */
+> >  		media_device_unregister_entity(&sd->entity);
+> > +		put_device(v4l2_dev->mdev->dev);
+> >  	}
+> >  #endif
+> >  	video_unregister_device(sd->devnode);
+> >
+> >
+> >
+> >  
+> 
+> Regards,
+> 
+> 	Hans
+
+
+
+Thanks,
+Mauro
