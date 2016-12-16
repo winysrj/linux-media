@@ -1,58 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:36613 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751532AbcLRJGN (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42142
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1761082AbcLPK5t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Dec 2016 04:06:13 -0500
-Date: Sun, 18 Dec 2016 18:06:10 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Richard Purdie <rpurdie@rpsys.net>,
-        Jacek Anaszewski <j.anaszewski@samsung.com>,
-        Heiner Kallweit <hkallweit1@gmail.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Andi Shyti <andi@etezian.org>
-Subject: Re: [PATCH v5 2/6] [media] rc-main: split setup and unregister
- functions
-Message-id: <20161218090610.2whlhabeoxx74ldu@gangnam.samsung>
-References: <20161216061218.5906-1-andi.shyti@samsung.com>
- <20161216061218.5906-3-andi.shyti@samsung.com>
- <20161216121026.GA31618@gofer.mess.org>
- <CGME20161216141636epcas4p16388dfbda7e061e0d1c3809fcad3b8fd@epcas4p1.samsung.com>
- <20161216141629.GA32757@gofer.mess.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <20161216141629.GA32757@gofer.mess.org>
+        Fri, 16 Dec 2016 05:57:49 -0500
+Date: Fri, 16 Dec 2016 08:57:41 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
+ references as needed
+Message-ID: <20161216085741.38bb2e18@vento.lan>
+In-Reply-To: <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
+References: <20161109154608.1e578f9e@vento.lan>
+        <20161213102447.60990b1c@vento.lan>
+        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+        <7529355.zfqFdROYdM@avalon>
+        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+        <20161215152501.11ce2b2a@vento.lan>
+        <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
+        <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Em Fri, 16 Dec 2016 11:11:25 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> On Fri, Dec 16, 2016 at 12:10:26PM +0000, Sean Young wrote:
-> > Sorry to add to your woes, but there are some checkpatch warnings and
-> > errors. Please can you correct these. One is below.
+> > Would it make sense to enforce that dependency. Can we tie /dev/media usecount
+> > to /dev/video etc. usecount? In other words:
+> >
+> > /dev/video is opened, then open /dev/media.  
 > 
-> Actually, the changes are pretty minor, I can fix them up before sending
-> them to Mauro. Sorry for bothering you.
+> When a device node is registered it should increase the refcount on the media_device
+> (as I proposed, that would be mdev->dev). When a device node is unregistered and the
+> last user disappeared, then it can decrease the media_device refcount.
+> 
+> So as long as anyone is using a device node, the media_device will stick around as
+> well.
+> 
+> No need to take refcounts on open/close.
 
-yes, it's an error on the previous code:
+That makes sense. You're meaning something like the enclosed (untested)
+patch?
 
-ERROR: do not initialise statics to false
-#109: FILE: drivers/media/rc/rc-main.c:1521:
-+       static bool raw_init = false; /* raw decoders loaded? */
+> One note: as I mentioned, the video_device does not set the cdev parent correctly,
+> so that bug needs to be fixed first for this to work.
 
-total: 1 errors, 0 warnings, 196 lines checked
+Actually, __video_register_device() seems to be setting the parent
+properly:
 
-I noticed this already before, but I preferred to leave it
-in its original status.
-
-No worries, if you want I will send the fix, it's indeed quite
-an easy fix.
+	if (vdev->dev_parent == NULL)
+		vdev->dev_parent = vdev->v4l2_dev->dev;
 
 Thanks,
-Andi
+Mauro
+
+[PATCH] Be sure that the media_device won't be freed too early
+
+This code snippet is untested.
+
+Signed-off-by: Mauro Carvalho chehab <mchehab@s-opensource.com>
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 8756275e9fc4..5fdeab382069 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -706,7 +706,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+ 	struct media_devnode *devnode;
+ 	int ret;
+ 
+-	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
++	devnode = devm_kzalloc(mdev->dev, sizeof(*devnode), GFP_KERNEL);
+ 	if (!devnode)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 8be561ab2615..14a3c56dbcac 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -196,6 +196,7 @@ static void v4l2_device_release(struct device *cd)
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	if (v4l2_dev->mdev) {
+ 		/* Remove interfaces and interface links */
++		put_device(v4l2_dev->mdev->dev);
+ 		media_devnode_remove(vdev->intf_devnode);
+ 		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+ 			media_device_unregister_entity(&vdev->entity);
+@@ -810,6 +811,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+ 			return -ENOMEM;
+ 		}
+ 	}
++	get_device(vdev->v4l2_dev->dev);
+ 
+ 	/* FIXME: how to create the other interface links? */
+ 
+@@ -1015,6 +1017,11 @@ void video_unregister_device(struct video_device *vdev)
+ 	if (!vdev || !video_is_registered(vdev))
+ 		return;
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	if (vdev->v4l2_dev->dev)
++		put_device(vdev->v4l2_dev->dev);
++#endif
++
+ 	mutex_lock(&videodev_lock);
+ 	/* This must be in a critical section to prevent a race with v4l2_open.
+ 	 * Once this bit has been cleared video_get may never be called again.
+diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+index 62bbed76dbbc..53f42090c762 100644
+--- a/drivers/media/v4l2-core/v4l2-device.c
++++ b/drivers/media/v4l2-core/v4l2-device.c
+@@ -188,6 +188,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 		err = media_device_register_entity(v4l2_dev->mdev, entity);
+ 		if (err < 0)
+ 			goto error_module;
++		get_device(v4l2_dev->mdev->dev);
+ 	}
+ #endif
+ 
+@@ -205,6 +206,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 
+ error_unregister:
+ #if defined(CONFIG_MEDIA_CONTROLLER)
++	if (v4l2_dev->mdev)
++		put_device(v4l2_dev->mdev->dev);
+ 	media_device_unregister_entity(entity);
+ #endif
+ error_module:
+@@ -310,6 +313,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ 		 * links are removed by the function below, in the right order
+ 		 */
+ 		media_device_unregister_entity(&sd->entity);
++		put_device(v4l2_dev->mdev->dev);
+ 	}
+ #endif
+ 	video_unregister_device(sd->devnode);
+
+
+
+
