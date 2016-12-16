@@ -1,124 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:43040 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750982AbcLGFL0 (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:34152 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756557AbcLPSAF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Dec 2016 00:11:26 -0500
-Message-ID: <6246824a114709cd0230a6d50bcaa4a3@smtp-cloud2.xs4all.net>
-Date: Wed, 07 Dec 2016 06:10:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 16 Dec 2016 13:00:05 -0500
+Received: by mail-lf0-f67.google.com with SMTP id 30so424317lfy.1
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 10:00:04 -0800 (PST)
+From: henrik@austad.us
+To: linux-kernel@vger.kernel.org
+Cc: Richard Cochran <richardcochran@gmail.com>, henrik@austad.us,
+        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+        netdev@vger.kernel.org, Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
+        intel-wired-lan@lists.osuosl.org, Henrik Austad <haustad@cisco.com>
+Subject: [TSN RFC v2 1/9] igb: add missing fields to TXDCTL-register
+Date: Fri, 16 Dec 2016 18:59:05 +0100
+Message-Id: <1481911153-549-2-git-send-email-henrik@austad.us>
+In-Reply-To: <1481911153-549-1-git-send-email-henrik@austad.us>
+References: <1481911153-549-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Henrik Austad <henrik@austad.us>
 
-Results of the daily build of media_tree:
+The current list of E1000_TXDCTL-registers is incomplete. This adds the
+missing parts for the Transmit Descriptor Control (TXDCTL) register.
 
-date:			Wed Dec  7 05:00:17 CET 2016
-media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	80dbbf2058972628b3b366a20d12cf6bef273d76
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+The rest of these values (threshold for descriptor read/write) for
+TXDCTL seems to be defined in igb/igb.h, not sure why this is split
+though.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-smatch: ERRORS
-sparse: WARNINGS
+It seems that this was left out in the commit that added support for
+82575 Gigabit Ethernet driver 9d5c8243 (igb: PCI-Express 82575 Gigabit
+Ethernet driver).
 
-Detailed results are available here:
+Cc: linux-kernel@vger.kernel.org
+Cc: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Cc: intel-wired-lan@lists.osuosl.org
+Signed-off-by: Henrik Austad <haustad@cisco.com>
+---
+ drivers/net/ethernet/intel/igb/e1000_82575.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+diff --git a/drivers/net/ethernet/intel/igb/e1000_82575.h b/drivers/net/ethernet/intel/igb/e1000_82575.h
+index acf0605..7faa482 100644
+--- a/drivers/net/ethernet/intel/igb/e1000_82575.h
++++ b/drivers/net/ethernet/intel/igb/e1000_82575.h
+@@ -158,7 +158,11 @@ struct e1000_adv_tx_context_desc {
+ 
+ /* Additional Transmit Descriptor Control definitions */
+ #define E1000_TXDCTL_QUEUE_ENABLE  0x02000000 /* Enable specific Tx Queue */
++
++/* Transmit Software Flush, sw-triggered desc writeback */
++#define E1000_TXDCTL_SWFLSH        0x04000000
+ /* Tx Queue Arbitration Priority 0=low, 1=high */
++#define E1000_TXDCTL_PRIORITY      0x08000000
+ 
+ /* Additional Receive Descriptor Control definitions */
+ #define E1000_RXDCTL_QUEUE_ENABLE  0x02000000 /* Enable specific Rx Queue */
+-- 
+2.7.4
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
