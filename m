@@ -1,569 +1,985 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:64125 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751128AbcLCNr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 3 Dec 2016 08:47:29 -0500
-MIME-Version: 1.0
-Message-ID: <trinity-aca71404-f7de-4366-a687-9a93588bb35a-1480772846013@3capp-mailcom-bs13>
-From: ochr@gmx.com
-To: linux-media@vger.kernel.org
-Subject: Possible Bug in media build WinTV SoloHD
-Content-Type: multipart/mixed;
- boundary=abmobg-e0639c53-c6d1-4725-8e85-cf08171c08e7
-Date: Sat, 3 Dec 2016 14:47:26 +0100
+Received: from mailout2.samsung.com ([203.254.224.25]:53758 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756886AbcLPGMh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 01:12:37 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v5 1/6] [media] rc-main: assign driver type during allocation
+Date: Fri, 16 Dec 2016 15:12:13 +0900
+Message-id: <20161216061218.5906-2-andi.shyti@samsung.com>
+In-reply-to: <20161216061218.5906-1-andi.shyti@samsung.com>
+References: <20161216061218.5906-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---abmobg-e0639c53-c6d1-4725-8e85-cf08171c08e7
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+The driver type can be assigned immediately when an RC device
+requests to the framework to allocate the device.
 
-Hello,
-=C2=A0
-first I would like to thank you very much for your continuing effort on ma=
-king dvb hardware work on old linux kernels=2E I'm currently using an Odroi=
-d C2 as a tv server using Libreelec media build edition and two WinTV SoloH=
-D USB sticks following this thread: http://forum=2Eodroid=2Ecom/viewtopic=
-=2Ephp?f=3D144&t=3D22887[https://deref-gmx=2Ecom/mail/client/xYeN3ugPLE8/de=
-referrer/?redirectUrl=3Dhttp%3A%2F%2Fforum=2Eodroid=2Ecom%2Fviewtopic=2Ephp=
-%3Ff%3D144%26t%3D22887]
-=C2=A0
-With the release v3 everything was working fine=2E But v4 does not identif=
-y correctly the USB Sticks=2E I guess it's a problem with the more recent v=
-ersion of media build included that's why I contact you directly=2E
-=C2=A0
-WinTV SoloHD (2040:0264) (Identified as PCTV tripleStick (292e) (card=3D94=
-)) needs the following kernel modules:
-em28xx
-si2157
-si2168
-and firmware of course
-=C2=A0
-v3: working release uses mediabuild (2016-08-08-b6aa39228966)
+This is an 'enum rc_driver_type' data type and specifies whether
+the device is a raw receiver or scancode receiver. The type will
+be given as parameter to the rc_allocate_device device.
 
-[=C2=A0=C2=A0 11=2E173668] Latest git patches (needed if you report a bug =
-to linux-media@vger=2Ekernel=2Eorg):
-[=C2=A0=C2=A0 11=2E173668] =C2=A0=C2=A0 =C2=A0b6aa39228966e0d3f0bc3306be18=
-92f87792903a Merge tag 'v4=2E8-rc1' into patchwork
-[=C2=A0=C2=A0 11=2E173668] =C2=A0=C2=A0 =C2=A029b4817d4018df78086157ea3a55=
-c1d9424a7cfc Linux 4=2E8-rc1
-[=C2=A0=C2=A0 11=2E173668] =C2=A0=C2=A0 =C2=A0857953d72f3744f325de93320cc2=
-673795e9ca89 Merge branch 'for-linus' of
-=C2=A0
-=2E=2E=2E
-=C2=A0
-[=C2=A0=C2=A0 13=2E167012] usbcore: registered new interface driver em28xx
-[=C2=A0=C2=A0 13=2E169126] em28178 #0: Binding DVB extension
-=C2=A0
-em28xx, si2157 and si2168 are correctly loaded and shown in lsmod as used=
-=2E
-=C2=A0
-------------------------
-=C2=A0
-v4: not working release uses mediabuild (2016-11-22-d3d83ee20afd)
+Change accordingly all the drivers calling rc_allocate_device()
+so that the device type is specified during the rc device
+allocation. Whenever the device type is not specified, it will be
+set as RC_DRIVER_SCANCODE which was the default '0' value.
 
-[=C2=A0=C2=A0 11=2E133420] Latest git patches (needed if you report a bug =
-to linux-media@vger=2Ekernel=2Eorg):
-[=C2=A0=C2=A0 11=2E133420] =C2=A0=C2=A0 =C2=A0d3d83ee20afda16ad0133ba00f63=
-c11a8d842a35 [media] DaVinci-VPFE-Capture: fix error handling
-[=C2=A0=C2=A0 11=2E133420] =C2=A0=C2=A0 =C2=A0399426cadf5b0539a5b2a4d80525=
-7ce8acc6aba2 [media] cx88: make checkpatch=2Epl happy
-[=C2=A0=C2=A0 11=2E133420] =C2=A0=C2=A0 =C2=A01d38971438157dc57f0a4be89abf=
-23b472458633 [media] v4l: rcar_fdp1: add FCP dependency
-=C2=A0
-=2E=2E=2E
-=C2=A0
-[=C2=A0=C2=A0 13=2E127857] usbcore: registered new interface driver em28xx
-[=C2=A0=C2=A0 13=2E130001] em28xx: Registered (Em28xx dvb Extension) exten=
-sion
-=C2=A0
-em28xx is loaded correctly and shown in lsmod as used, but si2157 and si21=
-68 dont come up=2E If they are loaded manually, they aren't used=2E
-=C2=A0
-----
-=C2=A0
-My guess: There is something wrong with em28xx=2E Attached you'll find the=
- dmesg output=2E If you need additional information, please don't hesitate =
-to ask=2E
-=C2=A0
-Thank you very much in advance
-=C2=A0
-Yours sincerly
-Olaf
-=C2=A0
-=C2=A0
---abmobg-e0639c53-c6d1-4725-8e85-cf08171c08e7
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=dmesg
+Suggested-by: Sean Young <sean@mess.org>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Reviewed-by: Sean Young <sean@mess.org>
+---
+ drivers/hid/hid-picolcd_cir.c               |  3 +--
+ drivers/media/cec/cec-core.c                |  4 ++--
+ drivers/media/common/siano/smsir.c          |  3 +--
+ drivers/media/i2c/ir-kbd-i2c.c              |  2 +-
+ drivers/media/pci/bt8xx/bttv-input.c        |  2 +-
+ drivers/media/pci/cx23885/cx23885-input.c   | 11 +----------
+ drivers/media/pci/cx88/cx88-input.c         |  3 +--
+ drivers/media/pci/dm1105/dm1105.c           |  3 +--
+ drivers/media/pci/mantis/mantis_input.c     |  2 +-
+ drivers/media/pci/saa7134/saa7134-input.c   |  2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c      |  3 +--
+ drivers/media/pci/ttpci/budget-ci.c         |  2 +-
+ drivers/media/rc/ati_remote.c               |  3 +--
+ drivers/media/rc/ene_ir.c                   |  3 +--
+ drivers/media/rc/fintek-cir.c               |  3 +--
+ drivers/media/rc/gpio-ir-recv.c             |  3 +--
+ drivers/media/rc/igorplugusb.c              |  3 +--
+ drivers/media/rc/iguanair.c                 |  3 +--
+ drivers/media/rc/img-ir/img-ir-hw.c         |  2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c        |  3 +--
+ drivers/media/rc/imon.c                     |  3 +--
+ drivers/media/rc/ir-hix5hd2.c               |  3 +--
+ drivers/media/rc/ite-cir.c                  |  3 +--
+ drivers/media/rc/mceusb.c                   |  3 +--
+ drivers/media/rc/meson-ir.c                 |  3 +--
+ drivers/media/rc/nuvoton-cir.c              |  3 +--
+ drivers/media/rc/rc-loopback.c              |  3 +--
+ drivers/media/rc/rc-main.c                  |  9 ++++++---
+ drivers/media/rc/redrat3.c                  |  3 +--
+ drivers/media/rc/serial_ir.c                |  3 +--
+ drivers/media/rc/st_rc.c                    |  3 +--
+ drivers/media/rc/streamzap.c                |  3 +--
+ drivers/media/rc/sunxi-cir.c                |  3 +--
+ drivers/media/rc/ttusbir.c                  |  3 +--
+ drivers/media/rc/winbond-cir.c              |  3 +--
+ drivers/media/usb/au0828/au0828-input.c     |  3 +--
+ drivers/media/usb/cx231xx/cx231xx-input.c   |  2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |  3 +--
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c  |  3 +--
+ drivers/media/usb/em28xx/em28xx-input.c     |  2 +-
+ drivers/media/usb/tm6000/tm6000-input.c     |  3 +--
+ include/media/rc-core.h                     |  6 ++++--
+ 42 files changed, 51 insertions(+), 85 deletions(-)
 
-v3: works
+diff --git a/drivers/hid/hid-picolcd_cir.c b/drivers/hid/hid-picolcd_cir.c
+index 9628651..38b0ea8 100644
+--- a/drivers/hid/hid-picolcd_cir.c
++++ b/drivers/hid/hid-picolcd_cir.c
+@@ -108,12 +108,11 @@ int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report)
+ 	struct rc_dev *rdev;
+ 	int ret = 0;
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		return -ENOMEM;
+ 
+ 	rdev->priv             = data;
+-	rdev->driver_type      = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open             = picolcd_cir_open;
+ 	rdev->close            = picolcd_cir_close;
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index aca3ab8..2fee148 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -239,7 +239,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 
+ #if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Prepare the RC input device */
+-	adap->rc = rc_allocate_device();
++	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!adap->rc) {
+ 		pr_err("cec-%s: failed to allocate memory for rc_dev\n",
+ 		       name);
+@@ -259,7 +259,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	adap->rc->input_id.vendor = 0;
+ 	adap->rc->input_id.product = 0;
+ 	adap->rc->input_id.version = 1;
+-	adap->rc->driver_type = RC_DRIVER_SCANCODE;
++	adap->rc->dev.parent = parent;
+ 	adap->rc->driver_name = CEC_NAME;
+ 	adap->rc->allowed_protocols = RC_BIT_CEC;
+ 	adap->rc->priv = adap;
+diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
+index 41f2a39..ee30c7b 100644
+--- a/drivers/media/common/siano/smsir.c
++++ b/drivers/media/common/siano/smsir.c
+@@ -58,7 +58,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 	struct rc_dev *dev;
+ 
+ 	pr_debug("Allocating rc device\n");
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+@@ -86,7 +86,6 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ #endif
+ 
+ 	dev->priv = coredev;
+-	dev->driver_type = RC_DRIVER_IR_RAW;
+ 	dev->allowed_protocols = RC_BIT_ALL;
+ 	dev->map_name = sms_get_board(board_id)->rc_codes;
+ 	dev->driver_name = MODULE_NAME;
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index cede397..5ad5167 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -428,7 +428,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		 * If platform_data doesn't specify rc_dev, initialize it
+ 		 * internally
+ 		 */
+-		rc = rc_allocate_device();
++		rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 		if (!rc)
+ 			return -ENOMEM;
+ 	}
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index 4da720e..76daec7 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -424,7 +424,7 @@ int bttv_input_init(struct bttv *btv)
+ 		return -ENODEV;
+ 
+ 	ir = kzalloc(sizeof(*ir),GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ir || !rc)
+ 		goto err_out_free;
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 1f092fe..c743317 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -267,7 +267,6 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	struct cx23885_kernel_ir *kernel_ir;
+ 	struct rc_dev *rc;
+ 	char *rc_map;
+-	enum rc_driver_type driver_type;
+ 	u64 allowed_protos;
+ 
+ 	int ret;
+@@ -285,28 +284,24 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		/* Integrated CX2388[58] IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* The grey Hauppauge RC-5 remote */
+ 		rc_map = RC_MAP_HAUPPAUGE;
+ 		break;
+ 	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* The grey Terratec remote with orange buttons */
+ 		rc_map = RC_MAP_NEC_TERRATEC_CINERGY_XS;
+ 		break;
+ 	case CX23885_BOARD_TEVII_S470:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TEVII_NEC;
+ 		break;
+ 	case CX23885_BOARD_MYGICA_X8507:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TOTAL_MEDIA_IN_HAND_02;
+@@ -314,7 +309,6 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_TBS_6980:
+ 	case CX23885_BOARD_TBS_6981:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TBS_NEC;
+@@ -326,13 +320,11 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_S952:
+ 	case CX23885_BOARD_DVBSKY_T982:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		rc_map = RC_MAP_DVBSKY;
+ 		break;
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		rc_map = RC_MAP_TT_1500;
+ 		break;
+@@ -352,7 +344,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 				    pci_name(dev->pci));
+ 
+ 	/* input device */
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		ret = -ENOMEM;
+ 		goto err_out_free;
+@@ -371,7 +363,6 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 		rc->input_id.product = dev->pci->device;
+ 	}
+ 	rc->dev.parent = &dev->pci->dev;
+-	rc->driver_type = driver_type;
+ 	rc->allowed_protocols = allowed_protos;
+ 	rc->priv = kernel_ir;
+ 	rc->open = cx23885_input_ir_open;
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index dcfea35..6e9f366e 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -276,7 +276,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 				 */
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir || !dev)
+ 		goto err_out_free;
+ 
+@@ -486,7 +486,6 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 	dev->scancode_mask = hardware_mask;
+ 
+ 	if (ir->sampling) {
+-		dev->driver_type = RC_DRIVER_IR_RAW;
+ 		dev->timeout = 10 * 1000 * 1000; /* 10 ms */
+ 	} else {
+ 		dev->driver_type = RC_DRIVER_SCANCODE;
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index a589aa7..76e07c7 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -743,7 +743,7 @@ static int dm1105_ir_init(struct dm1105_dev *dm1105)
+ 	struct rc_dev *dev;
+ 	int err = -ENOMEM;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+@@ -752,7 +752,6 @@ static int dm1105_ir_init(struct dm1105_dev *dm1105)
+ 
+ 	dev->driver_name = MODULE_NAME;
+ 	dev->map_name = RC_MAP_DM1105_NEC;
+-	dev->driver_type = RC_DRIVER_SCANCODE;
+ 	dev->input_name = "DVB on-card IR receiver";
+ 	dev->input_phys = dm1105->ir.input_phys;
+ 	dev->input_id.bustype = BUS_PCI;
+diff --git a/drivers/media/pci/mantis/mantis_input.c b/drivers/media/pci/mantis/mantis_input.c
+index 7f7f1d4..50d10cb 100644
+--- a/drivers/media/pci/mantis/mantis_input.c
++++ b/drivers/media/pci/mantis/mantis_input.c
+@@ -39,7 +39,7 @@ int mantis_input_init(struct mantis_pci *mantis)
+ 	struct rc_dev *dev;
+ 	int err;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev) {
+ 		dprintk(MANTIS_ERROR, 1, "Remote device allocation failed");
+ 		err = -ENOMEM;
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 823b75e..509caa86 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -846,7 +846,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 	}
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ir || !rc) {
+ 		err = -ENOMEM;
+ 		goto err_out_free;
+diff --git a/drivers/media/pci/smipcie/smipcie-ir.c b/drivers/media/pci/smipcie/smipcie-ir.c
+index 826c7c7..d2730c3 100644
+--- a/drivers/media/pci/smipcie/smipcie-ir.c
++++ b/drivers/media/pci/smipcie/smipcie-ir.c
+@@ -183,7 +183,7 @@ int smi_ir_init(struct smi_dev *dev)
+ 	struct rc_dev *rc_dev;
+ 	struct smi_rc *ir = &dev->ir;
+ 
+-	rc_dev = rc_allocate_device();
++	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rc_dev)
+ 		return -ENOMEM;
+ 
+@@ -202,7 +202,6 @@ int smi_ir_init(struct smi_dev *dev)
+ 	rc_dev->input_id.product = dev->pci_dev->subsystem_device;
+ 	rc_dev->dev.parent = &dev->pci_dev->dev;
+ 
+-	rc_dev->driver_type = RC_DRIVER_SCANCODE;
+ 	rc_dev->map_name = dev->info->rc_map;
+ 
+ 	ir->rc_dev = rc_dev;
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 20ad93b..0c0b733 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -177,7 +177,7 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
+ 	struct rc_dev *dev;
+ 	int error;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev) {
+ 		printk(KERN_ERR "budget_ci: IR interface initialisation failed\n");
+ 		return -ENOMEM;
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 0884b7d..7d0ee3d 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -764,7 +764,6 @@ static void ati_remote_rc_init(struct ati_remote *ati_remote)
+ 	struct rc_dev *rdev = ati_remote->rdev;
+ 
+ 	rdev->priv = ati_remote;
+-	rdev->driver_type = RC_DRIVER_SCANCODE;
+ 	rdev->allowed_protocols = RC_BIT_OTHER;
+ 	rdev->driver_name = "ati_remote";
+ 
+@@ -851,7 +850,7 @@ static int ati_remote_probe(struct usb_interface *interface,
+ 	}
+ 
+ 	ati_remote = kzalloc(sizeof (struct ati_remote), GFP_KERNEL);
+-	rc_dev = rc_allocate_device();
++	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ati_remote || !rc_dev)
+ 		goto exit_free_dev_rdev;
+ 
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index bd5512e..3b7275f 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -1012,7 +1012,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 
+ 	/* allocate memory */
+ 	dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!dev || !rdev)
+ 		goto exit_free_dev_rdev;
+ 
+@@ -1058,7 +1058,6 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 	if (!dev->hw_learning_and_tx_capable)
+ 		learning_mode_force = false;
+ 
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->priv = dev;
+ 	rdev->open = ene_open;
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index ecab69e..df125c2 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -492,7 +492,7 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
+ 		return ret;
+ 
+ 	/* input device for IR remote (and tx) */
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		goto exit_free_dev_rdev;
+ 
+@@ -534,7 +534,6 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
+ 
+ 	/* Set up the rc device */
+ 	rdev->priv = fintek;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = fintek_open;
+ 	rdev->close = fintek_close;
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 5b63b1f..d5d2152 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -143,14 +143,13 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
+ 
+-	rcdev = rc_allocate_device();
++	rcdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rcdev) {
+ 		rc = -ENOMEM;
+ 		goto err_allocate_device;
+ 	}
+ 
+ 	rcdev->priv = gpio_dev;
+-	rcdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rcdev->input_name = GPIO_IR_DEVICE_NAME;
+ 	rcdev->input_phys = GPIO_IR_DEVICE_NAME "/input0";
+ 	rcdev->input_id.bustype = BUS_HOST;
+diff --git a/drivers/media/rc/igorplugusb.c b/drivers/media/rc/igorplugusb.c
+index 5cf983b..d770a62 100644
+--- a/drivers/media/rc/igorplugusb.c
++++ b/drivers/media/rc/igorplugusb.c
+@@ -190,7 +190,7 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 
+ 	usb_make_path(udev, ir->phys, sizeof(ir->phys));
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc)
+ 		goto fail;
+ 
+@@ -198,7 +198,6 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 	rc->input_phys = ir->phys;
+ 	usb_to_input_id(udev, &rc->input_id);
+ 	rc->dev.parent = &intf->dev;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	/*
+ 	 * This device can only store 36 pulses + spaces, which is not enough
+ 	 * for the NEC protocol and many others.
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 5f63454..4cd1e6b 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -431,7 +431,7 @@ static int iguanair_probe(struct usb_interface *intf,
+ 	struct usb_host_interface *idesc;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir || !rc) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -494,7 +494,6 @@ static int iguanair_probe(struct usb_interface *intf,
+ 	rc->input_phys = ir->phys;
+ 	usb_to_input_id(ir->udev, &rc->input_id);
+ 	rc->dev.parent = &intf->dev;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->priv = ir;
+ 	rc->open = iguanair_open;
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 7bb71bc..c87ae03 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -1071,7 +1071,7 @@ int img_ir_probe_hw(struct img_ir_priv *priv)
+ 	}
+ 
+ 	/* Allocate hardware decoder */
+-	hw->rdev = rdev = rc_allocate_device();
++	hw->rdev = rdev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rdev) {
+ 		dev_err(priv->dev, "cannot allocate input device\n");
+ 		error = -ENOMEM;
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
+index 33f37ed..8d2f8e2 100644
+--- a/drivers/media/rc/img-ir/img-ir-raw.c
++++ b/drivers/media/rc/img-ir/img-ir-raw.c
+@@ -110,7 +110,7 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
+ 	setup_timer(&raw->timer, img_ir_echo_timer, (unsigned long)priv);
+ 
+ 	/* Allocate raw decoder */
+-	raw->rdev = rdev = rc_allocate_device();
++	raw->rdev = rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev) {
+ 		dev_err(priv->dev, "cannot allocate raw input device\n");
+ 		return -ENOMEM;
+@@ -118,7 +118,6 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
+ 	rdev->priv = priv;
+ 	rdev->map_name = RC_MAP_EMPTY;
+ 	rdev->input_name = "IMG Infrared Decoder Raw";
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 
+ 	/* Register raw decoder */
+ 	error = rc_register_device(rdev);
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 0785a24..4234ae6 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1939,7 +1939,7 @@ static struct rc_dev *imon_init_rdev(struct imon_context *ictx)
+ 	const unsigned char fp_packet[] = { 0x40, 0x00, 0x00, 0x00,
+ 					    0x00, 0x00, 0x00, 0x88 };
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rdev) {
+ 		dev_err(ictx->dev, "remote control dev allocation failed\n");
+ 		goto out;
+@@ -1957,7 +1957,6 @@ static struct rc_dev *imon_init_rdev(struct imon_context *ictx)
+ 	rdev->dev.parent = ictx->dev;
+ 
+ 	rdev->priv = ictx;
+-	rdev->driver_type = RC_DRIVER_SCANCODE;
+ 	rdev->allowed_protocols = RC_BIT_OTHER | RC_BIT_RC6_MCE; /* iMON PAD or MCE */
+ 	rdev->change_protocol = imon_ir_change_protocol;
+ 	rdev->driver_name = MOD_NAME;
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index d26907e..dc3b959 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -229,7 +229,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 		return priv->irq;
+ 	}
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		return -ENOMEM;
+ 
+@@ -242,7 +242,6 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 	clk_prepare_enable(priv->clock);
+ 	priv->rate = clk_get_rate(priv->clock);
+ 
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->priv = priv;
+ 	rdev->open = hix5hd2_ir_open;
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 367b28b..92ed356 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1470,7 +1470,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 		return ret;
+ 
+ 	/* input device for IR remote (and tx) */
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		goto exit_free_dev_rdev;
+ 	itdev->rdev = rdev;
+@@ -1561,7 +1561,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 
+ 	/* set up ir-core props */
+ 	rdev->priv = itdev;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = ite_open;
+ 	rdev->close = ite_close;
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 9bf6917..ebcc82d 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1181,7 +1181,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	struct rc_dev *rc;
+ 	int ret;
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		dev_err(dev, "remote dev allocation failed");
+ 		goto out;
+@@ -1201,7 +1201,6 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	usb_to_input_id(ir->usbdev, &rc->input_id);
+ 	rc->dev.parent = dev;
+ 	rc->priv = ir;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->timeout = MS_TO_NS(100);
+ 	if (!ir->flags.no_tx) {
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index 7eb3f4f..8947dc6 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -131,7 +131,7 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 		return ir->irq;
+ 	}
+ 
+-	ir->rc = rc_allocate_device();
++	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir->rc) {
+ 		dev_err(dev, "failed to allocate rc device\n");
+ 		return -ENOMEM;
+@@ -144,7 +144,6 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	map_name = of_get_property(node, "linux,rc-map-name", NULL);
+ 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
+ 	ir->rc->dev.parent = dev;
+-	ir->rc->driver_type = RC_DRIVER_IR_RAW;
+ 	ir->rc->allowed_protocols = RC_BIT_ALL;
+ 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
+ 	ir->rc->timeout = MS_TO_NS(200);
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 4b78c89..d4cc880 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -998,7 +998,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 		return -ENOMEM;
+ 
+ 	/* input device for IR remote (and tx) */
+-	nvt->rdev = devm_rc_allocate_device(&pdev->dev);
++	nvt->rdev = devm_rc_allocate_device(&pdev->dev, RC_DRIVER_IR_RAW);
+ 	if (!nvt->rdev)
+ 		return -ENOMEM;
+ 	rdev = nvt->rdev;
+@@ -1061,7 +1061,6 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 
+ 	/* Set up the rc device */
+ 	rdev->priv = nvt;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = nvt_open;
+ 	rdev->close = nvt_close;
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 63dace8..36192ac 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -181,7 +181,7 @@ static int __init loop_init(void)
+ 	struct rc_dev *rc;
+ 	int ret;
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		printk(KERN_ERR DRIVER_NAME ": rc_dev allocation failed\n");
+ 		return -ENOMEM;
+@@ -194,7 +194,6 @@ static int __init loop_init(void)
+ 	rc->driver_name		= DRIVER_NAME;
+ 	rc->map_name		= RC_MAP_EMPTY;
+ 	rc->priv		= &loopdev;
+-	rc->driver_type		= RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols	= RC_BIT_ALL;
+ 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
+ 	rc->min_timeout		= 1;
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index dedaf38..a6bbceb 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1357,7 +1357,7 @@ static struct device_type rc_dev_type = {
+ 	.uevent		= rc_dev_uevent,
+ };
+ 
+-struct rc_dev *rc_allocate_device(void)
++struct rc_dev *rc_allocate_device(enum rc_driver_type type)
+ {
+ 	struct rc_dev *dev;
+ 
+@@ -1384,6 +1384,8 @@ struct rc_dev *rc_allocate_device(void)
+ 	dev->dev.class = &rc_class;
+ 	device_initialize(&dev->dev);
+ 
++	dev->driver_type = type;
++
+ 	__module_get(THIS_MODULE);
+ 	return dev;
+ }
+@@ -1410,7 +1412,8 @@ static void devm_rc_alloc_release(struct device *dev, void *res)
+ 	rc_free_device(*(struct rc_dev **)res);
+ }
+ 
+-struct rc_dev *devm_rc_allocate_device(struct device *dev)
++struct rc_dev *devm_rc_allocate_device(struct device *dev,
++					enum rc_driver_type type)
+ {
+ 	struct rc_dev **dr, *rc;
+ 
+@@ -1418,7 +1421,7 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev)
+ 	if (!dr)
+ 		return NULL;
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(type);
+ 	if (!rc) {
+ 		devres_free(dr);
+ 		return NULL;
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 2784f5d..2b6f828 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -945,7 +945,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ 	int ret;
+ 	u16 prod = le16_to_cpu(rr3->udev->descriptor.idProduct);
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc)
+ 		return NULL;
+ 
+@@ -960,7 +960,6 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ 	usb_to_input_id(rr3->udev, &rc->input_id);
+ 	rc->dev.parent = dev;
+ 	rc->priv = rr3;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->min_timeout = MS_TO_NS(RR3_RX_MIN_TIMEOUT);
+ 	rc->max_timeout = MS_TO_NS(RR3_RX_MAX_TIMEOUT);
+diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
+index 436bd58..640acc6 100644
+--- a/drivers/media/rc/serial_ir.c
++++ b/drivers/media/rc/serial_ir.c
+@@ -738,7 +738,7 @@ static int __init serial_ir_init_module(void)
+ 	if (result)
+ 		return result;
+ 
+-	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev);
++	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev, RC_DRIVER_IR_RAW);
+ 	if (!rcdev) {
+ 		result = -ENOMEM;
+ 		goto serial_cleanup;
+@@ -777,7 +777,6 @@ static int __init serial_ir_init_module(void)
+ 	rcdev->open = serial_ir_open;
+ 	rcdev->close = serial_ir_close;
+ 	rcdev->dev.parent = &serial_ir.pdev->dev;
+-	rcdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rcdev->allowed_protocols = RC_BIT_ALL;
+ 	rcdev->driver_name = KBUILD_MODNAME;
+ 	rcdev->map_name = RC_MAP_RC6_MCE;
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+index 1fa0c9d..e6f6735 100644
+--- a/drivers/media/rc/st_rc.c
++++ b/drivers/media/rc/st_rc.c
+@@ -235,7 +235,7 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	if (!rc_dev)
+ 		return -ENOMEM;
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 
+ 	if (!rdev)
+ 		return -ENOMEM;
+@@ -290,7 +290,6 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, rc_dev);
+ 	st_rc_hardware_init(rc_dev);
+ 
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	/* rx sampling rate is 10Mhz */
+ 	rdev->rx_resolution = 100;
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index 53f9b0a..f434e45 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -291,7 +291,7 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
+ 	struct device *dev = sz->dev;
+ 	int ret;
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev) {
+ 		dev_err(dev, "remote dev allocation failed\n");
+ 		goto out;
+@@ -308,7 +308,6 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
+ 	usb_to_input_id(sz->usbdev, &rdev->input_id);
+ 	rdev->dev.parent = dev;
+ 	rdev->priv = sz;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->driver_name = DRIVER_NAME;
+ 	rdev->map_name = RC_MAP_STREAMZAP;
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index eaadc08..5451f3d 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -212,7 +212,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 		goto exit_clkdisable_clk;
+ 	}
+ 
+-	ir->rc = rc_allocate_device();
++	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir->rc) {
+ 		dev_err(dev, "failed to allocate device\n");
+ 		ret = -ENOMEM;
+@@ -229,7 +229,6 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	ir->map_name = of_get_property(dn, "linux,rc-map-name", NULL);
+ 	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
+ 	ir->rc->dev.parent = dev;
+-	ir->rc->driver_type = RC_DRIVER_IR_RAW;
+ 	ir->rc->allowed_protocols = RC_BIT_ALL;
+ 	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
+ 	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index bc214e2..6ff2cef 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -205,7 +205,7 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 	int altsetting = -1;
+ 
+ 	tt = kzalloc(sizeof(*tt), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!tt || !rc) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -317,7 +317,6 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 	rc->input_phys = tt->phys;
+ 	usb_to_input_id(tt->udev, &rc->input_id);
+ 	rc->dev.parent = &intf->dev;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->priv = tt;
+ 	rc->driver_name = DRIVER_NAME;
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 78491ed..bc95d22 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -1059,13 +1059,12 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	if (err)
+ 		goto exit_free_data;
+ 
+-	data->dev = rc_allocate_device();
++	data->dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!data->dev) {
+ 		err = -ENOMEM;
+ 		goto exit_unregister_led;
+ 	}
+ 
+-	data->dev->driver_type = RC_DRIVER_IR_RAW;
+ 	data->dev->driver_name = DRVNAME;
+ 	data->dev->input_name = WBCIR_NAME;
+ 	data->dev->input_phys = "wbcir/cir0";
+diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+index 1e66e78..9ec919c 100644
+--- a/drivers/media/usb/au0828/au0828-input.c
++++ b/drivers/media/usb/au0828/au0828-input.c
+@@ -298,7 +298,7 @@ int au0828_rc_register(struct au0828_dev *dev)
+ 		return -ENODEV;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir || !rc)
+ 		goto error;
+ 
+@@ -343,7 +343,6 @@ int au0828_rc_register(struct au0828_dev *dev)
+ 	rc->input_id.product = le16_to_cpu(dev->usbdev->descriptor.idProduct);
+ 	rc->dev.parent = &dev->usbdev->dev;
+ 	rc->driver_name = "au0828-input";
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 |
+ 								RC_BIT_RC5;
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
+index 15d8d1b..6e80f3c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-input.c
++++ b/drivers/media/usb/cx231xx/cx231xx-input.c
+@@ -72,7 +72,7 @@ int cx231xx_ir_init(struct cx231xx *dev)
+ 
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	memset(&dev->init_data, 0, sizeof(dev->init_data));
+-	dev->init_data.rc_dev = rc_allocate_device();
++	dev->init_data.rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev->init_data.rc_dev)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index a8e6624..298c91a 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -147,7 +147,7 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
+ 	if (!d->rc.map_name)
+ 		return 0;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(d->rc.driver_type);
+ 	if (!dev) {
+ 		ret = -ENOMEM;
+ 		goto err;
+@@ -162,7 +162,6 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
+ 	/* TODO: likely RC-core should took const char * */
+ 	dev->driver_name = (char *) d->props->driver_name;
+ 	dev->map_name = d->rc.map_name;
+-	dev->driver_type = d->rc.driver_type;
+ 	dev->allowed_protocols = d->rc.allowed_protos;
+ 	dev->change_protocol = d->rc.change_protocol;
+ 	dev->priv = d;
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-remote.c b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
+index c259f9e..059ded5 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-remote.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
+@@ -265,7 +265,7 @@ static int rc_core_dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	int err, rc_interval;
+ 	struct rc_dev *dev;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(d->props.rc.core.driver_type);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+@@ -273,7 +273,6 @@ static int rc_core_dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	dev->map_name = d->props.rc.core.rc_codes;
+ 	dev->change_protocol = d->props.rc.core.change_protocol;
+ 	dev->allowed_protocols = d->props.rc.core.allowed_protos;
+-	dev->driver_type = d->props.rc.core.driver_type;
+ 	usb_to_input_id(d->udev, &dev->input_id);
+ 	dev->input_name = "IR-receiver inside an USB DVB receiver";
+ 	dev->input_phys = d->rc_phys;
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 782ce09..aa24bba 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -719,7 +719,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+ 	if (!ir)
+ 		return -ENOMEM;
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rc)
+ 		goto error;
+ 
+diff --git a/drivers/media/usb/tm6000/tm6000-input.c b/drivers/media/usb/tm6000/tm6000-input.c
+index 26b2ebb..377a69b 100644
+--- a/drivers/media/usb/tm6000/tm6000-input.c
++++ b/drivers/media/usb/tm6000/tm6000-input.c
+@@ -429,7 +429,7 @@ int tm6000_ir_init(struct tm6000_core *dev)
+ 		return 0;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_ATOMIC);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ir || !rc)
+ 		goto out;
+ 
+@@ -456,7 +456,6 @@ int tm6000_ir_init(struct tm6000_core *dev)
+ 		ir->polling = 50;
+ 		INIT_DELAYED_WORK(&ir->work, tm6000_ir_handle_key);
+ 	}
+-	rc->driver_type = RC_DRIVER_SCANCODE;
+ 
+ 	snprintf(ir->name, sizeof(ir->name), "tm5600/60x0 IR (%s)",
+ 						dev->name);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 55281b9..ba92c86 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -200,17 +200,19 @@ struct rc_dev {
+ /**
+  * rc_allocate_device - Allocates a RC device
+  *
++ * @rc_driver_type: specifies the type of the RC output to be allocated
+  * returns a pointer to struct rc_dev.
+  */
+-struct rc_dev *rc_allocate_device(void);
++struct rc_dev *rc_allocate_device(enum rc_driver_type);
+ 
+ /**
+  * devm_rc_allocate_device - Managed RC device allocation
+  *
+  * @dev: pointer to struct device
++ * @rc_driver_type: specifies the type of the RC output to be allocated
+  * returns a pointer to struct rc_dev.
+  */
+-struct rc_dev *devm_rc_allocate_device(struct device *dev);
++struct rc_dev *devm_rc_allocate_device(struct device *dev, enum rc_driver_type);
+ 
+ /**
+  * rc_free_device - Frees a RC device
+-- 
+2.10.2
 
-LibreELEC:~ #  dmesg | grep -i dvb
-[    9.179495] em28xx: DVB interface 0 found: isoc
-[   12.103062] em28xx: DVB interface 0 found: isoc
-[   14.106936] em28178 #0: dvb set to isoc mode.
-[   14.125409] em28178 #0: Binding DVB extension
-[   14.169218] DVB: registering new adapter (em28178 #0)
-[   14.169230] usb 1-1.4: DVB: registering adapter 0 frontend 0 (Silicon Labs Si2168)...
-[   14.169242] dvb_create_media_entity: media entity 'Silicon Labs Si2168' registered.
-[   14.170622] dvb_create_media_entity: media entity 'dvb-demux' registered.
-[   14.173765] em28178 #0: DVB extension successfully initialized
-[   14.173785] em28xx: Registered (Em28xx dvb Extension) extension
-[   14.175440] si2168 3-0064: downloading firmware from file 'dvb-demod-si2168-b40-01.fw'
-[   14.556542] usb 1-1.4: DVB: adapter 0 frontend 0 frequency 0 out of range (42000000..870000000)
-
-
-v4: doesnt work
-
- 9.124098] usb 1-1.3: DVB interface 0 found: isoc
-[   11.127717] usb 1-1.3: em28178#0: dvb set to isoc mode.
-[   11.127956] usb 1-1.4: DVB interface 0 found: isoc
-[   13.127621] usb 1-1.4: em28178#1: dvb set to isoc mode.
-[   13.130001] em28xx: Registered (Em28xx dvb Extension) extension
-
---abmobg-e0639c53-c6d1-4725-8e85-cf08171c08e7
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=v3
-Content-Transfer-Encoding: base64
-
-djMgZG9lcyB3b3JrCnNpMjE2OCBzaTIxNTcKCgpbICAgIDMuMDE5Mzk1XSBtbWNibGswOiBzZDph
-YWFhIFNMMTZHIDE0LjggR2lCIApbICAgIDMuMDIxNDI5XSAgbW1jYmxrMDogcDEgcDIKWyAgICAz
-LjA0MTc3NF0gdXNiIDEtMS4zOiBuZXcgaGlnaC1zcGVlZCBVU0IgZGV2aWNlIG51bWJlciAzIHVz
-aW5nIGR3Y19vdGcKWyAgICAzLjE0MjM2MF0gdXNiIDEtMS4zOiBOZXcgVVNCIGRldmljZSBmb3Vu
-ZCwgaWRWZW5kb3I9MjA0MCwgaWRQcm9kdWN0PTAyNjQKWyAgICAzLjE0MjM2Nl0gdXNiIDEtMS4z
-OiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0xLCBTZXJpYWxOdW1iZXI9
-MgpbICAgIDMuMTQyMzcxXSB1c2IgMS0xLjM6IFByb2R1Y3Q6IHNvbG9IRApbICAgIDMuMTQyMzc2
-XSB1c2IgMS0xLjM6IE1hbnVmYWN0dXJlcjogSENXClsgICAgMy4xNDIzODFdIHVzYiAxLTEuMzog
-U2VyaWFsTnVtYmVyOiAwMFhYWFg3WFhYClsgICAgMy4yMjE2ODZdIHVzYiAxLTEuNDogbmV3IGhp
-Z2gtc3BlZWQgVVNCIGRldmljZSBudW1iZXIgNCB1c2luZyBkd2Nfb3RnClsgICAgMy4zMjI0MDZd
-IHVzYiAxLTEuNDogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTIwNDAsIGlkUHJvZHVj
-dD0wMjY0ClsgICAgMy4zMjI0MTJdIHVzYiAxLTEuNDogTmV3IFVTQiBkZXZpY2Ugc3RyaW5nczog
-TWZyPTMsIFByb2R1Y3Q9MSwgU2VyaWFsTnVtYmVyPTIKWyAgICAzLjMyMjQxN10gdXNiIDEtMS40
-OiBQcm9kdWN0OiBzb2xvSEQKWyAgICAzLjMyMjQyMl0gdXNiIDEtMS40OiBNYW51ZmFjdHVyZXI6
-IEhDVwpbICAgIDMuMzIyNDI2XSB1c2IgMS0xLjQ6IFNlcmlhbE51bWJlcjogMDBYWFhYM1hYWApb
-ICAgIDMuNjQ2NTkwXSByYW5kb206IG5vbmJsb2NraW5nIHBvb2wgaXMgaW5pdGlhbGl6ZWQKWyAg
-ICA0LjAzMDAwNV0gRVhUNC1mcyAobW1jYmxrMHAyKTogY291bGRuJ3QgbW91bnQgYXMgZXh0MyBk
-dWUgdG8gZmVhdHVyZSBpbmNvbXBhdGliaWxpdGllcwpbICAgIDQuMDMwNDQyXSBFWFQ0LWZzICht
-bWNibGswcDIpOiBjb3VsZG4ndCBtb3VudCBhcyBleHQyIGR1ZSB0byBmZWF0dXJlIGluY29tcGF0
-aWJpbGl0aWVzClsgICAgNC4wNjM5OTRdIEVYVDQtZnMgKG1tY2JsazBwMik6IG1vdW50ZWQgZmls
-ZXN5c3RlbSB3aXRoIG9yZGVyZWQgZGF0YSBtb2RlLiBPcHRzOiAobnVsbCkKWyAgICA0LjQ2MDg5
-N10gc3dpdGNoX3ZwdV9tZW1fcGQ6IHZpdV92ZDEgT0ZGClsgICAgNC40NjA5MTNdIHN3aXRjaF92
-cHVfbWVtX3BkOiBhZmJjX2RlYyBPRkYKWyAgICA0LjQ2MDkxN10gc3dpdGNoX3ZwdV9tZW1fcGQ6
-IGRpX3Bvc3QgT0ZGClsgICAgNC40NjA5MjFdIHN3aXRjaF92cHVfbWVtX3BkOiB2aXVfdmQyIE9G
-RgpbICAgIDcuODg0NjgxXSBzeXN0ZW1kWzFdOiBTeXN0ZW0gdGltZSBiZWZvcmUgYnVpbGQgdGlt
-ZSwgYWR2YW5jaW5nIGNsb2NrLgpbICAgIDcuOTAwNDE4XSBzeXN0ZW1kWzFdOiBzeXN0ZW1kIDIy
-OSBydW5uaW5nIGluIHN5c3RlbSBtb2RlLiAoLVBBTSAtQVVESVQgLVNFTElOVVggLUlNQSAtQVBQ
-QVJNT1IgLVNNQUNLIC1TWVNWSU5JVCAtVVRNUCAtTElCQ1JZUFRTRVRVUCAtR0NSWVBUIC1HTlVU
-TFMgLUFDTCAtWFogLUxaNCAtU0VDQ09NUCArQkxLSUQgLUVMRlVUSUxTICtLTU9EIC1JRE4pClsg
-ICAgNy45MDA3NTFdIHN5c3RlbWRbMV06IERldGVjdGVkIGFyY2hpdGVjdHVyZSBhcm02NC4KWyAg
-ICA3LjkwMDk1OV0gc3lzdGVtZFsxXTogU2V0IGhvc3RuYW1lIHRvIDxMaWJyZUVMRUM+LgpbICAg
-IDcuOTU2NDE5XSBzeXN0ZW1kWzFdOiBMaXN0ZW5pbmcgb24gdWRldiBDb250cm9sIFNvY2tldC4K
-WyAgICA3Ljk1NjY2Nl0gc3lzdGVtZFsxXTogU3RhcnRlZCBEaXNwYXRjaCBQYXNzd29yZCBSZXF1
-ZXN0cyB0byBDb25zb2xlIERpcmVjdG9yeSBXYXRjaC4KWyAgICA3Ljk1Njc3MV0gc3lzdGVtZFsx
-XTogU3RhcnRlZCBGb3J3YXJkIFBhc3N3b3JkIFJlcXVlc3RzIHRvIFdhbGwgRGlyZWN0b3J5IFdh
-dGNoLgpbICAgIDcuOTU2ODA1XSBzeXN0ZW1kWzFdOiBSZWFjaGVkIHRhcmdldCBQYXRocy4KWyAg
-ICA3Ljk1Njg5OF0gc3lzdGVtZFsxXTogTGlzdGVuaW5nIG9uIC9kZXYvaW5pdGN0bCBDb21wYXRp
-YmlsaXR5IE5hbWVkIFBpcGUuClsgICAgNy45NTcwMTldIHN5c3RlbWRbMV06IExpc3RlbmluZyBv
-biBKb3VybmFsIFNvY2tldC4KWyAgICA3Ljk1NzEwOF0gc3lzdGVtZFsxXTogTGlzdGVuaW5nIG9u
-IEpvdXJuYWwgU29ja2V0ICgvZGV2L2xvZykuClsgICAgNy45NTcxOTZdIHN5c3RlbWRbMV06IExp
-c3RlbmluZyBvbiB1ZGV2IEtlcm5lbCBTb2NrZXQuClsgICAgNy45NTcyMjldIHN5c3RlbWRbMV06
-IFJlYWNoZWQgdGFyZ2V0IFN3YXAuClsgICAgNy45NTc1OTRdIHN5c3RlbWRbMV06IENyZWF0ZWQg
-c2xpY2UgVXNlciBhbmQgU2Vzc2lvbiBTbGljZS4KWyAgICA3Ljk1Nzc2NV0gc3lzdGVtZFsxXTog
-Q3JlYXRlZCBzbGljZSBTeXN0ZW0gU2xpY2UuClsgICAgNy45NTg4OTVdIHN5c3RlbWRbMV06IFN0
-YXJ0ZWQgRGVidWcgU2hlbGwgb24gL2Rldi9jb25zb2xlLgpbICAgIDcuOTYwNTg3XSBzeXN0ZW1k
-WzFdOiBTdGFydGluZyBDcmVhdGUgbGlzdCBvZiByZXF1aXJlZCBzdGF0aWMgZGV2aWNlIG5vZGVz
-IGZvciB0aGUgY3VycmVudCBrZXJuZWwuLi4KWyAgICA3Ljk2MjI0MV0gc3lzdGVtZFsxXTogU3Rh
-cnRpbmcgU2hvdyBWZXJzaW9uLi4uClsgICAgNy45NjI0MDNdIHN5c3RlbWRbMV06IFJlYWNoZWQg
-dGFyZ2V0IFNsaWNlcy4KWyAgICA3Ljk2Mzk5M10gc3lzdGVtZFsxXTogU3RhcnRpbmcgU2V0dXAg
-bWFjaGluZS1pZC4uLgpbICAgIDcuOTY1NDg4XSBzeXN0ZW1kWzFdOiBTdGFydGluZyBSZW1vdW50
-IFJvb3QgYW5kIEtlcm5lbCBGaWxlIFN5c3RlbXMuLi4KWyAgICA3Ljk2NzQ5NF0gc3lzdGVtZFsx
-XTogTW91bnRpbmcgVmFyaWFibGUgRGlyZWN0b3J5Li4uClsgICAgNy45NzQ4MDldIHN5c3RlbWRb
-MV06IFN0YXJ0aW5nIExvYWQgS2VybmVsIE1vZHVsZXMuLi4KWyAgICA3Ljk4Mjk2Ml0gc3lzdGVt
-ZFsxXTogTW91bnRpbmcgRGVidWcgRmlsZSBTeXN0ZW0uLi4KWyAgICA3Ljk4NjI2OV0gc3lzdGVt
-ZFsxXTogTW91bnRpbmcgUE9TSVggTWVzc2FnZSBRdWV1ZSBGaWxlIFN5c3RlbS4uLgpbICAgIDcu
-OTg3NzI5XSBzeXN0ZW1kWzFdOiBNb3VudGluZyBUZW1wb3JhcnkgRGlyZWN0b3J5Li4uClsgICAg
-Ny45OTU3MjFdIHN5c3RlbWRbMV06IE1vdW50ZWQgRGVidWcgRmlsZSBTeXN0ZW0uClsgICAgNy45
-OTU5MDVdIHN5c3RlbWRbMV06IE1vdW50ZWQgVmFyaWFibGUgRGlyZWN0b3J5LgpbICAgIDcuOTk3
-MzYyXSBSZWdpc3RlcmVkIElSIGtleW1hcCByYy1lbXB0eQpbICAgIDcuOTk3NTE2XSBpbnB1dDog
-bWVzb24taXIgYXMgL2RldmljZXMvcGxhdGZvcm0vYzgxMDA1ODAubWVzb24taXIvcmMvcmMwL2lu
-cHV0MgpbICAgIDcuOTk4Mjg5XSBzeXN0ZW1kWzFdOiBNb3VudGVkIFBPU0lYIE1lc3NhZ2UgUXVl
-dWUgRmlsZSBTeXN0ZW0uClsgICAgNy45OTg0MTZdIHJjMDogbWVzb24taXIgYXMgL2RldmljZXMv
-cGxhdGZvcm0vYzgxMDA1ODAubWVzb24taXIvcmMvcmMwClsgICAgNy45OTg0MjNdIHN5c3RlbWRb
-MV06IE1vdW50ZWQgVGVtcG9yYXJ5IERpcmVjdG9yeS4KWyAgICA4LjAwMDk3M10gc3lzdGVtZFsx
-XTogU3RhcnRlZCBDcmVhdGUgbGlzdCBvZiByZXF1aXJlZCBzdGF0aWMgZGV2aWNlIG5vZGVzIGZv
-ciB0aGUgY3VycmVudCBrZXJuZWwuClsgICAgOC4wMDE1OTZdIHN5c3RlbWRbMV06IFN0YXJ0ZWQg
-U2hvdyBWZXJzaW9uLgpbICAgIDguMDAyMTgwXSBzeXN0ZW1kWzFdOiBTdGFydGVkIFNldHVwIG1h
-Y2hpbmUtaWQuClsgICAgOC4wMDI3NjFdIHN5c3RlbWRbMV06IFN0YXJ0ZWQgUmVtb3VudCBSb290
-IGFuZCBLZXJuZWwgRmlsZSBTeXN0ZW1zLgpbICAgIDguMDE1MTM3XSBJUiBSQzUoeCkgcHJvdG9j
-b2wgaGFuZGxlciBpbml0aWFsaXplZApbICAgIDguMDE1MTQwXSBJUiBORUMgcHJvdG9jb2wgaGFu
-ZGxlciBpbml0aWFsaXplZApbICAgIDguMDIzNjY1XSBJUiBKVkMgcHJvdG9jb2wgaGFuZGxlciBp
-bml0aWFsaXplZApbICAgIDguMDIzNjY3XSBJUiBTb255IHByb3RvY29sIGhhbmRsZXIgaW5pdGlh
-bGl6ZWQKWyAgICA4LjAyMzY2OV0gSVIgUkM2IHByb3RvY29sIGhhbmRsZXIgaW5pdGlhbGl6ZWQK
-WyAgICA4LjAyNjQ0N10gSVIgTUNFIEtleWJvYXJkL21vdXNlIHByb3RvY29sIGhhbmRsZXIgaW5p
-dGlhbGl6ZWQKWyAgICA4LjAyNjQ1MF0gSVIgU0FOWU8gcHJvdG9jb2wgaGFuZGxlciBpbml0aWFs
-aXplZApbICAgIDguMDI2NjI1XSBsaXJjX2RldjogSVIgUmVtb3RlIENvbnRyb2wgZHJpdmVyIHJl
-Z2lzdGVyZWQsIG1ham9yIDIzMSAKWyAgICA4LjAyNjY5NV0gaW5wdXQ6IE1DRSBJUiBLZXlib2Fy
-ZC9Nb3VzZSAobWVzb24taXIpIGFzIC9kZXZpY2VzL3ZpcnR1YWwvaW5wdXQvaW5wdXQzClsgICAg
-OC4wMjY5NTRdIG1lc29uLWlyIGM4MTAwNTgwLm1lc29uLWlyOiBBT19SVElfUElOX01VWCA6IDB4
-NzgwMTk4MDEKWyAgICA4LjAyNjk2NF0gbWVzb24taXIgYzgxMDA1ODAubWVzb24taXI6IHJlY2Vp
-dmVyIGluaXRpYWxpemVkClsgICAgOC4wMjczMzddIHJjIHJjMDogbGlyY19kZXY6IGRyaXZlciBp
-ci1saXJjLWNvZGVjIChtZXNvbi1pcikgcmVnaXN0ZXJlZCBhdCBtaW5vciA9IDAKWyAgICA4LjAy
-NzM0NV0gSVIgTElSQyBicmlkZ2UgaGFuZGxlciBpbml0aWFsaXplZApbICAgIDguMDMxMDk5XSBz
-eXN0ZW1kWzFdOiBTdGFydGVkIExvYWQgS2VybmVsIE1vZHVsZXMuClsgICAgOC4wNTkzODNdIHN5
-c3RlbWRbMV06IFN0YXJ0aW5nIEFwcGx5IEtlcm5lbCBWYXJpYWJsZXMuLi4KWyAgICA4LjA2NDM1
-OV0gc3lzdGVtZFsxXTogU3RhcnRpbmcgdWRldiBDb2xkcGx1ZyBhbGwgRGV2aWNlcy4uLgpbICAg
-IDguMDY1Nzk5XSBzeXN0ZW1kWzFdOiBTdGFydGluZyBKb3VybmFsIFNlcnZpY2UuLi4KWyAgICA4
-LjA2NzQxNF0gc3lzdGVtZFsxXTogU3RhcnRpbmcgQ3JlYXRlIFN0YXRpYyBEZXZpY2UgTm9kZXMg
-aW4gL2Rldi4uLgpbICAgIDguMDY4OTE1XSBzeXN0ZW1kWzFdOiBTdGFydGluZyBTZXR1cCBUaW1l
-em9uZSBkYXRhLi4uClsgICAgOC4wNzE2OTRdIHN5c3RlbWRbMV06IFN0YXJ0ZWQgQXBwbHkgS2Vy
-bmVsIFZhcmlhYmxlcy4KWyAgICA4LjA4ODM1N10gc3lzdGVtZFsxXTogU3RhcnRlZCBTZXR1cCBU
-aW1lem9uZSBkYXRhLgpbICAgIDguMDkwNjkxXSBzeXN0ZW1kWzFdOiBTdGFydGVkIENyZWF0ZSBT
-dGF0aWMgRGV2aWNlIE5vZGVzIGluIC9kZXYuClsgICAgOC4wOTEwMDldIHN5c3RlbWRbMV06IFJl
-YWNoZWQgdGFyZ2V0IExvY2FsIEZpbGUgU3lzdGVtcyAoUHJlKS4KWyAgICA4LjA5MTA5Ml0gc3lz
-dGVtZFsxXTogUmVhY2hlZCB0YXJnZXQgTG9jYWwgRmlsZSBTeXN0ZW1zLgpbICAgIDguMTI3NTQz
-XSBzeXN0ZW1kWzFdOiBTdGFydGVkIEpvdXJuYWwgU2VydmljZS4KWyAgICA4LjE0MTA0OF0gc3lz
-dGVtZC1qb3VybmFsZFsyMDFdOiBSZWNlaXZlZCByZXF1ZXN0IHRvIGZsdXNoIHJ1bnRpbWUgam91
-cm5hbCBmcm9tIFBJRCAxClsgICAgOC43NjUzODldIENvbnNvbGU6IHN3aXRjaGluZyB0byBjb2xv
-dXIgZHVtbXkgZGV2aWNlIDgweDI1ClsgICAgOS4wNjExODFdIGlucHV0OiBsaXJjZCBhcyAvZGV2
-aWNlcy92aXJ0dWFsL2lucHV0L2lucHV0NQpbICAgIDkuMTEzNjQxXSA4MDIxcTogODAyLjFRIFZM
-QU4gU3VwcG9ydCB2MS44ClsgICAgOS4xMjY3ODddIE5vdCBzdXBwb3J0IHNldF93b2wsIHdhcyBN
-SUNSRUxfUEhZIGVuYWJsZWQ/ClsgICAgOS4xMzA3MzhdIG1lZGlhOiBMaW51eCBtZWRpYSBpbnRl
-cmZhY2U6IHYwLjEwClsgICAgOS4xMzY4NTZdIExpbnV4IHZpZGVvIGNhcHR1cmUgaW50ZXJmYWNl
-OiB2Mi4wMApbICAgIDkuMTM2ODcyXSBXQVJOSU5HOiBZb3UgYXJlIHVzaW5nIGFuIGV4cGVyaW1l
-bnRhbCB2ZXJzaW9uIG9mIHRoZSBtZWRpYSBzdGFjay4KWyAgICA5LjEzNjg3Ml0gCUFzIHRoZSBk
-cml2ZXIgaXMgYmFja3BvcnRlZCB0byBhbiBvbGRlciBrZXJuZWwsIGl0IGRvZXNuJ3Qgb2ZmZXIK
-WyAgICA5LjEzNjg3Ml0gCWVub3VnaCBxdWFsaXR5IGZvciBpdHMgdXNhZ2UgaW4gcHJvZHVjdGlv
-bi4KWyAgICA5LjEzNjg3Ml0gCVVzZSBpdCB3aXRoIGNhcmUuClsgICAgOS4xMzY4NzJdIExhdGVz
-dCBnaXQgcGF0Y2hlcyAobmVlZGVkIGlmIHlvdSByZXBvcnQgYSBidWcgdG8gbGludXgtbWVkaWFA
-dmdlci5rZXJuZWwub3JnKToKWyAgICA5LjEzNjg3Ml0gCWI2YWEzOTIyODk2NmUwZDNmMGJjMzMw
-NmJlMTg5MmY4Nzc5MjkwM2EgTWVyZ2UgdGFnICd2NC44LXJjMScgaW50byBwYXRjaHdvcmsKWyAg
-ICA5LjEzNjg3Ml0gCTI5YjQ4MTdkNDAxOGRmNzgwODYxNTdlYTNhNTVjMWQ5NDI0YTdjZmMgTGlu
-dXggNC44LXJjMQpbICAgIDkuMTM2ODcyXSAJODU3OTUzZDcyZjM3NDRmMzI1ZGU5MzMyMGNjMjY3
-Mzc5NWU5Y2E4OSBNZXJnZSBicmFuY2ggJ2Zvci1saW51cycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5k
-ay9saW51eC1ibG9jawpbICAgIDkuMTU3NjYwXSBlbTI4eHg6IE5ldyBkZXZpY2UgSENXIHNvbG9I
-RCBAIDQ4MCBNYnBzICgyMDQwOjAyNjQsIGludGVyZmFjZSAwLCBjbGFzcyAwKQpbICAgIDkuMTU3
-NjcyXSBlbTI4eHg6IERWQiBpbnRlcmZhY2UgMCBmb3VuZDogaXNvYwpbICAgIDkuMTU4OTYzXSBl
-bTI4eHg6IGNoaXAgSUQgaXMgZW0yODE3OApbICAgMTEuMTYwNjA4XSBlbTI4MTc4ICMwOiBFRVBS
-T00gSUQgPSAyNiAwMCAwMSAwMCwgRUVQUk9NIGhhc2ggPSAweGJlZTJjYTA0ClsgICAxMS4xNjA2
-MTddIGVtMjgxNzggIzA6IEVFUFJPTSBpbmZvOgpbICAgMTEuMTYwNjIyXSBlbTI4MTc4ICMwOiAJ
-bWljcm9jb2RlIHN0YXJ0IGFkZHJlc3MgPSAweDAwMDQsIGJvb3QgY29uZmlndXJhdGlvbiA9IDB4
-MDEKWyAgIDExLjE2Nzg1M10gZW0yODE3OCAjMDogCUFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVz
-KQpbICAgMTEuMTY3ODYwXSBlbTI4MTc4ICMwOiAJNTAwbUEgbWF4IHBvd2VyClsgICAxMS4xNjc4
-NjVdIGVtMjgxNzggIzA6IAlUYWJsZSBhdCBvZmZzZXQgMHgyNywgc3RyaW5ncz0weDBlNmEsIDB4
-MTg4OCwgMHgwODdlClsgICAxMS4xNjgwNjBdIGVtMjgxNzggIzA6IElkZW50aWZpZWQgYXMgUENU
-ViB0cmlwbGVTdGljayAoMjkyZSkgKGNhcmQ9OTQpClsgICAxMS4xNjgwNzFdIGVtMjgxNzggIzA6
-IGR2YiBzZXQgdG8gaXNvYyBtb2RlLgpbICAgMTEuMTY4NjAyXSBlbTI4eHg6IE5ldyBkZXZpY2Ug
-SENXIHNvbG9IRCBAIDQ4MCBNYnBzICgyMDQwOjAyNjQsIGludGVyZmFjZSAwLCBjbGFzcyAwKQpb
-ICAgMTEuMTY4NjEzXSBlbTI4eHg6IERWQiBpbnRlcmZhY2UgMCBmb3VuZDogaXNvYwpbICAgMTEu
-MTY4OTM2XSBlbTI4eHg6IGNoaXAgSUQgaXMgZW0yODE3OApbICAgMTEuMTczNjY4XSBXQVJOSU5H
-OiBZb3UgYXJlIHVzaW5nIGFuIGV4cGVyaW1lbnRhbCB2ZXJzaW9uIG9mIHRoZSBtZWRpYSBzdGFj
-ay4KWyAgIDExLjE3MzY2OF0gCUFzIHRoZSBkcml2ZXIgaXMgYmFja3BvcnRlZCB0byBhbiBvbGRl
-ciBrZXJuZWwsIGl0IGRvZXNuJ3Qgb2ZmZXIKWyAgIDExLjE3MzY2OF0gCWVub3VnaCBxdWFsaXR5
-IGZvciBpdHMgdXNhZ2UgaW4gcHJvZHVjdGlvbi4KWyAgIDExLjE3MzY2OF0gCVVzZSBpdCB3aXRo
-IGNhcmUuClsgICAxMS4xNzM2NjhdIExhdGVzdCBnaXQgcGF0Y2hlcyAobmVlZGVkIGlmIHlvdSBy
-ZXBvcnQgYSBidWcgdG8gbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnKToKWyAgIDExLjE3MzY2
-OF0gCWI2YWEzOTIyODk2NmUwZDNmMGJjMzMwNmJlMTg5MmY4Nzc5MjkwM2EgTWVyZ2UgdGFnICd2
-NC44LXJjMScgaW50byBwYXRjaHdvcmsKWyAgIDExLjE3MzY2OF0gCTI5YjQ4MTdkNDAxOGRmNzgw
-ODYxNTdlYTNhNTVjMWQ5NDI0YTdjZmMgTGludXggNC44LXJjMQpbICAgMTEuMTczNjY4XSAJODU3
-OTUzZDcyZjM3NDRmMzI1ZGU5MzMyMGNjMjY3Mzc5NWU5Y2E4OSBNZXJnZSBicmFuY2ggJ2Zvci1s
-aW51cycgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5kay9saW51eC1ibG9jawpbICAgMTMuMDcxNjY5XSBs
-aWJwaHk6IHN0bW1hYy0wOjAwIC0gTGluayBpcyBVcCAtIDEwMDAvRnVsbApbICAgMTMuMDcyNDA5
-XSBJUHY2OiBBRERSQ09ORihORVRERVZfQ0hBTkdFKTogZXRoMDogbGluayBiZWNvbWVzIHJlYWR5
-ClsgICAxMy4xNTkzODldIGVtMjgxNzggIzE6IEVFUFJPTSBJRCA9IDI2IDAwIDAxIDAwLCBFRVBS
-T00gaGFzaCA9IDB4NGJlOGM0MDQKWyAgIDEzLjE1OTM5OV0gZW0yODE3OCAjMTogRUVQUk9NIGlu
-Zm86ClsgICAxMy4xNTk0MDNdIGVtMjgxNzggIzE6IAltaWNyb2NvZGUgc3RhcnQgYWRkcmVzcyA9
-IDB4MDAwNCwgYm9vdCBjb25maWd1cmF0aW9uID0gMHgwMQpbICAgMTMuMTY2NjM2XSBlbTI4MTc4
-ICMxOiAJQUM5NyBhdWRpbyAoNSBzYW1wbGUgcmF0ZXMpClsgICAxMy4xNjY2NDNdIGVtMjgxNzgg
-IzE6IAk1MDBtQSBtYXggcG93ZXIKWyAgIDEzLjE2NjY0OF0gZW0yODE3OCAjMTogCVRhYmxlIGF0
-IG9mZnNldCAweDI3LCBzdHJpbmdzPTB4MGU2YSwgMHgxODg4LCAweDA4N2UKWyAgIDEzLjE2Njg0
-NF0gZW0yODE3OCAjMTogSWRlbnRpZmllZCBhcyBQQ1RWIHRyaXBsZVN0aWNrICgyOTJlKSAoY2Fy
-ZD05NCkKWyAgIDEzLjE2Njg1NV0gZW0yODE3OCAjMTogZHZiIHNldCB0byBpc29jIG1vZGUuClsg
-ICAxMy4xNjcwMTJdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgZW0y
-OHh4CgpbICAgMTMuMTY5MTI2XSBlbTI4MTc4ICMwOiBCaW5kaW5nIERWQiBleHRlbnNpb24KWyAg
-IDEzLjE4MDk3NV0gaTJjIGkyYy0zOiBBZGRlZCBtdWx0aXBsZXhlZCBpMmMgYnVzIDYKWyAgIDEz
-LjE4MDk5MF0gc2kyMTY4IDMtMDA2NDogU2lsaWNvbiBMYWJzIFNpMjE2OC1CNDAgc3VjY2Vzc2Z1
-bGx5IGlkZW50aWZpZWQKWyAgIDEzLjE4MDk5NV0gc2kyMTY4IDMtMDA2NDogZmlybXdhcmUgdmVy
-c2lvbjogQiA0LjAuMgpbICAgMTMuMTg2NzAwXSBzaTIxNTcgNi0wMDYwOiBTaWxpY29uIExhYnMg
-U2kyMTQ3LzIxNDgvMjE1Ny8yMTU4IHN1Y2Nlc3NmdWxseSBhdHRhY2hlZApbICAgMTMuMTg2NzQw
-XSBEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChlbTI4MTc4ICMwKQpbICAgMTMuMTg2NzU0
-XSB1c2IgMS0xLjM6IERWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZyb250ZW5kIDAgKFNpbGlj
-b24gTGFicyBTaTIxNjgpLi4uClsgICAxMy4xODY3NjddIGR2Yl9jcmVhdGVfbWVkaWFfZW50aXR5
-OiBtZWRpYSBlbnRpdHkgJ1NpbGljb24gTGFicyBTaTIxNjgnIHJlZ2lzdGVyZWQuClsgICAxMy4x
-ODkwMzddIGR2Yl9jcmVhdGVfbWVkaWFfZW50aXR5OiBtZWRpYSBlbnRpdHkgJ2R2Yi1kZW11eCcg
-cmVnaXN0ZXJlZC4KWyAgIDEzLjE5MDU2N10gZW0yODE3OCAjMDogRFZCIGV4dGVuc2lvbiBzdWNj
-ZXNzZnVsbHkgaW5pdGlhbGl6ZWQKWyAgIDEzLjE5MDU4MV0gZW0yODE3OCAjMTogQmluZGluZyBE
-VkIgZXh0ZW5zaW9uClsgICAxMy4yMDM3NDddIGkyYyBpMmMtNTogQWRkZWQgbXVsdGlwbGV4ZWQg
-aTJjIGJ1cyA3ClsgICAxMy4yMDM3NjFdIHNpMjE2OCA1LTAwNjQ6IFNpbGljb24gTGFicyBTaTIx
-NjgtQjQwIHN1Y2Nlc3NmdWxseSBpZGVudGlmaWVkClsgICAxMy4yMDM3NjddIHNpMjE2OCA1LTAw
-NjQ6IGZpcm13YXJlIHZlcnNpb246IEIgNC4wLjIKWyAgIDEzLjIwNzE3N10gc2kyMTU3IDctMDA2
-MDogU2lsaWNvbiBMYWJzIFNpMjE0Ny8yMTQ4LzIxNTcvMjE1OCBzdWNjZXNzZnVsbHkgYXR0YWNo
-ZWQKWyAgIDEzLjIwNzIwNl0gRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoZW0yODE3OCAj
-MSkKWyAgIDEzLjIwNzIxN10gdXNiIDEtMS40OiBEVkI6IHJlZ2lzdGVyaW5nIGFkYXB0ZXIgMSBm
-cm9udGVuZCAwIChTaWxpY29uIExhYnMgU2kyMTY4KS4uLgpbICAgMTMuMjA3MjMxXSBkdmJfY3Jl
-YXRlX21lZGlhX2VudGl0eTogbWVkaWEgZW50aXR5ICdTaWxpY29uIExhYnMgU2kyMTY4JyByZWdp
-c3RlcmVkLgpbICAgMTMuMjA4NDAxXSBkdmJfY3JlYXRlX21lZGlhX2VudGl0eTogbWVkaWEgZW50
-aXR5ICdkdmItZGVtdXgnIHJlZ2lzdGVyZWQuClsgICAxMy4yMTAxOTldIGVtMjgxNzggIzE6IERW
-QiBleHRlbnNpb24gc3VjY2Vzc2Z1bGx5IGluaXRpYWxpemVkClsgICAxMy4yMTAyMTJdIGVtMjh4
-eDogUmVnaXN0ZXJlZCAoRW0yOHh4IGR2YiBFeHRlbnNpb24pIGV4dGVuc2lvbgpbICAgMTMuMjE0
-OTc3XSACOiBSZW1vdGUgY29udHJvbCBzdXBwb3J0IGlzIG5vdCBhdmFpbGFibGUgZm9yIHRoaXMg
-Y2FyZC4KWyAgIDEzLjIxNDk5MV0gAjogUmVtb3RlIGNvbnRyb2wgc3VwcG9ydCBpcyBub3QgYXZh
-aWxhYmxlIGZvciB0aGlzIGNhcmQuClsgICAxMy4yMTQ5OTZdIGVtMjh4eDogUmVnaXN0ZXJlZCAo
-RW0yOHh4IElucHV0IEV4dGVuc2lvbikgZXh0ZW5zaW9uClsgICAxMy41MjAzODhdIHNpMjE2OCA1
-LTAwNjQ6IGRvd25sb2FkaW5nIGZpcm13YXJlIGZyb20gZmlsZSAnZHZiLWRlbW9kLXNpMjE2OC1i
-NDAtMDEuZncnClsgICAxMy43ODk0ODJdIHNldCBub3JtYWwgNTEyIGZzIC80IGZzClsgICAxMy43
-ODk1MDRdIElFQzk1OCAxNmJpdApbICAgMTMuNzg5NTExXSBoZG1pdHg6IGF1ZGlvOiBhb3V0IG5v
-dGlmeSByYXRlIDQ4MDAwClsgICAxMy43ODk1MzRdIGhkbWl0eDogYXVkaW86IGFvdXQgbm90aWZ5
-IHNpemUgMTYKWyAgIDEzLjg1NDk1OF0gc2kyMTY4IDUtMDA2NDogZmlybXdhcmUgdmVyc2lvbjog
-QiA0LjAuMTEKWyAgIDEzLjg2MjQ3MV0gc2kyMTU3IDctMDA2MDogZm91bmQgYSAnU2lsaWNvbiBM
-YWJzIFNpMjE1Ny1BMzAnClsgICAxMy44OTU3OTNdIGJ1Zj0wClsgICAxMy44OTU4MDhdIElFQzk1
-OF9tb2RlX3Jhdz0wClsgICAxMy44OTU4NDNdIElFQzk1OF9tb2RlX2NvZGVjPSAwLCBJRUM5NTgg
-dHlwZSAyIENIIFBDTQpbICAgMTMuODk1ODQ3XSBsYXN0IG1vZGUgMCxub3cgMApbICAgMTMuODk3
-NTAwXSAtLS0tYW1sX2h3X2llYzk1OF9pbml0LHJ1bnRpbWUtPnJhdGU9NDQxMDAsc2FtcGxlX3Jh
-dGU9NS0tClsgICAxMy44OTc1MTFdIGFtbF9zZXRfc3BkaWZfY2xrIHJhdGUKWyAgIDEzLjg5NzUy
-M10gZGl2aWRlcj0yMixmcmFjPTEzMDMwNDAwLFNETXZhbD0yMzY0ClsgICAxMy44OTc1MzRdIHNl
-dCBub3JtYWwgNTEyIGZzIC80IGZzClsgICAxMy44OTc1NDBdIGllYzk1OCBtb2RlIFBDTTE2Clsg
-ICAxMy44OTc1NDddIElFQzk1OCAxNmJpdApbICAgMTMuODk3NTU0XSBoZG1pdHg6IGF1ZGlvOiBh
-b3V0IG5vdGlmeSByYXRlIDQ0MTAwClsgICAxMy44OTc1NThdIGhkbWl0eDogYXVkaW86IGFvdXQg
-bm90aWZ5IHNpemUgMTYKWyAgIDEzLjg5NzU2Ml0gaGRtdGl4OiBzZXQgYXVkaW8KWyAgIDEzLjg5
-NzU3NV0gaGRtaXR4IHR4X2F1ZF9zcmMgPSAwClsgICAxMy44OTc2MDBdIGhkbWl0eCBhdWRfbl9w
-YXJhID0gNjE0NApbICAgMTMuODk3NjE3XSBoZG1pdHggc2V0IGNoYW5uZWwgc3RhdHVzClsgICAx
-My44OTc5OTZdIC0tLS1hbWxfaHdfaWVjOTU4X2luaXQscnVudGltZS0+cmF0ZT00NDEwMCxzYW1w
-bGVfcmF0ZT01LS0KWyAgIDEzLjg5ODAwMV0gc2V0IG5vcm1hbCA1MTIgZnMgLzQgZnMKWyAgIDEz
-Ljg5ODAwNl0gaWVjOTU4IG1vZGUgUENNMTYKWyAgIDEzLjg5ODAxMV0gSUVDOTU4IDE2Yml0Clsg
-ICAxMy44OTgwMTVdIGhkbWl0eDogYXVkaW86IGFvdXQgbm90aWZ5IHJhdGUgNDQxMDAKWyAgIDEz
-Ljg5ODAxOF0gaGRtaXR4OiBhdWRpbzogYW91dCBub3RpZnkgc2l6ZSAxNgpbICAgMTMuOTAxMTQy
-XSBlbnRlcmQgYW1sX3NwZGlmX3BsYXksc2V0X2Nsb2NrOjUsc2FtcGxlX3JhdGU9NApbICAgMTMu
-OTAxMTU0XSBhbWxfc2V0X3NwZGlmX2NsayByYXRlClsgICAxMy45MDExNjZdIGRpdmlkZXI9MjAs
-ZnJhYz0zMzkyMDAwMCxTRE12YWw9NTY1NApbICAgMTMuOTAxMjA1XSBzZXQgbm9ybWFsIDUxMiBm
-cyAvNCBmcwpbICAgMTMuOTAxMjE2XSBJRUM5NTggMTZiaXQKWyAgIDEzLjkwMTIyMl0gaGRtaXR4
-OiBhdWRpbzogYW91dCBub3RpZnkgcmF0ZSA0ODAwMApbICAgMTMuOTAxMjI2XSBoZG1pdHg6IGF1
-ZGlvOiBhb3V0IG5vdGlmeSBzaXplIDE2ClsgICAxMy45MDEyMzBdIGhkbXRpeDogc2V0IGF1ZGlv
-ClsgICAxMy45MDEyNDJdIGhkbWl0eCB0eF9hdWRfc3JjID0gMApbICAgMTMuOTAxMjY3XSBoZG1p
-dHggYXVkX25fcGFyYSA9IDYxNDQKWyAgIDEzLjkwMTMwOF0gaGRtaXR4IHNldCBjaGFubmVsIHN0
-YXR1cwpbICAgMTMuOTEyMjMwXSBzaTIxNTcgNy0wMDYwOiBmaXJtd2FyZSB2ZXJzaW9uOiAzLjAu
-NQpbICAgMTMuOTEyMjk0XSB1c2IgMS0xLjQ6IERWQjogYWRhcHRlciAxIGZyb250ZW5kIDAgZnJl
-cXVlbmN5IDAgb3V0IG9mIHJhbmdlICg0MjAwMDAwMC4uODcwMDAwMDAwKQpbICAgMTMuOTIwNTU1
-XSBzaTIxNjggMy0wMDY0OiBkb3dubG9hZGluZyBmaXJtd2FyZSBmcm9tIGZpbGUgJ2R2Yi1kZW1v
-ZC1zaTIxNjgtYjQwLTAxLmZ3JwpbICAgMTQuMDc0MjU1XSBjb2RlYzpoZXZjX2Nsb2NrX3NldC0t
-LS0tMgpbICAgMTQuMDc0MjY3XSBjb2RlYzpoZXZjX2Nsb2NrX3NldCAxIHRvIGNsayAyClsgICAx
-NC4wNzQyNzVdIGNvZGVjOmhldmNfc2V0X2NsayAwLCAxClsgICAxNC4wNzQyODBdIGNvZGVjOmhl
-dmNfY2xvY2tfc2V0IDIgdG8gcmNsaz01MDAKWyAgIDE0LjA3NDMwNV0gY29kZWM6dmRlY19jbG9j
-a19zZXQtLS0tLTIKWyAgIDE0LjA3NDMxMl0gY29kZWM6dmRlYzFfc2V0X2NsayAwLCAxClsgICAx
-NC4wNzQzMTddIGNvZGVjOnZkZWNfY2xvY2tfc2V0IDIgdG8gNTAwClsgICAxNC4xMTI1NjhdIHZv
-dXRfc2VydmU6IHZtb2RlIHNldCB0byAxMDgwcDYwaHoKWyAgIDE0LjExMjU4OF0gdm91dF9zZXJ2
-ZTogZG9uJ3Qgc2V0IHRoZSBzYW1lIG1vZGUgYXMgY3VycmVudC4KWyAgIDE0LjExMjc0Nl0gZmI6
-IG9zZFswXSBzZXQgc2NhbGUsIGhfc2NhbGU6IERJU0FCTEUsIHZfc2NhbGU6IERJU0FCTEUKWyAg
-IDE0LjExMjc1MV0gZmI6IG9zZFswXS5zY2FsZWRhdGE6IDAgMTkxOSAwIDEwNzkKWyAgIDE0LjEx
-Mjc1NV0gZmI6IG9zZFswXS5wYW5kYXRhOiAwIDE5MTkgMCAxMDc5ClsgICAxNC4yNDkwNzBdIHNp
-MjE2OCAzLTAwNjQ6IGZpcm13YXJlIHZlcnNpb246IEIgNC4wLjExClsgICAxNC4yNTY0NTZdIHNp
-MjE1NyA2LTAwNjA6IGZvdW5kIGEgJ1NpbGljb24gTGFicyBTaTIxNTctQTMwJwpbICAgMTQuMzA2
-ODM4XSBzaTIxNTcgNi0wMDYwOiBmaXJtd2FyZSB2ZXJzaW9uOiAzLjAuNQpbICAgMTQuMzA2ODk2
-XSB1c2IgMS0xLjM6IERWQjogYWRhcHRlciAwIGZyb250ZW5kIDAgZnJlcXVlbmN5IDAgb3V0IG9m
-IHJhbmdlICg0MjAwMDAwMC4uODcwMDAwMDAwKQo=
---abmobg-e0639c53-c6d1-4725-8e85-cf08171c08e7
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=v4
-Content-Transfer-Encoding: base64
-
-djQgZG9lc250IHdvcmsKbm8gc2kyMTY4IHNpMjE1NwoKWyAgICAzLjAwOTUxMl0gbW1jYmxrMDog
-c2Q6YWFhYSBTTDE2RyAxNC44IEdpQiAKWyAgICAzLjAxMTUyMF0gIG1tY2JsazA6IHAxIHAyClsg
-ICAgMy4wNzIzNzddIHVzYiAxLTEuMzogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTIw
-NDAsIGlkUHJvZHVjdD0wMjY0ClsgICAgMy4wNzIzODRdIHVzYiAxLTEuMzogTmV3IFVTQiBkZXZp
-Y2Ugc3RyaW5nczogTWZyPTMsIFByb2R1Y3Q9MSwgU2VyaWFsTnVtYmVyPTIKWyAgICAzLjA3MjM4
-OV0gdXNiIDEtMS4zOiBQcm9kdWN0OiBzb2xvSEQKWyAgICAzLjA3MjM5NF0gdXNiIDEtMS4zOiBN
-YW51ZmFjdHVyZXI6IEhDVwpbICAgIDMuMDcyMzk5XSB1c2IgMS0xLjM6IFNlcmlhbE51bWJlcjog
-MDBYWFhYN1hYWApbICAgIDMuMTUxNzAwXSB1c2IgMS0xLjQ6IG5ldyBoaWdoLXNwZWVkIFVTQiBk
-ZXZpY2UgbnVtYmVyIDQgdXNpbmcgZHdjX290ZwpbICAgIDMuMjUyMjk2XSB1c2IgMS0xLjQ6IE5l
-dyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0yMDQwLCBpZFByb2R1Y3Q9MDI2NApbICAgIDMu
-MjUyMzAyXSB1c2IgMS0xLjQ6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0zLCBQcm9kdWN0
-PTEsIFNlcmlhbE51bWJlcj0yClsgICAgMy4yNTIzMDddIHVzYiAxLTEuNDogUHJvZHVjdDogc29s
-b0hEClsgICAgMy4yNTIzMTJdIHVzYiAxLTEuNDogTWFudWZhY3R1cmVyOiBIQ1cKWyAgICAzLjI1
-MjMxNl0gdXNiIDEtMS40OiBTZXJpYWxOdW1iZXI6IDAwWFhYWDNYWFgKWyAgICAzLjU4OTk4NV0g
-cmFuZG9tOiBub25ibG9ja2luZyBwb29sIGlzIGluaXRpYWxpemVkClsgICAgNC4wMDIyMDVdIEVY
-VDQtZnMgKG1tY2JsazBwMik6IGNvdWxkbid0IG1vdW50IGFzIGV4dDMgZHVlIHRvIGZlYXR1cmUg
-aW5jb21wYXRpYmlsaXRpZXMKWyAgICA0LjAwMjY0M10gRVhUNC1mcyAobW1jYmxrMHAyKTogY291
-bGRuJ3QgbW91bnQgYXMgZXh0MiBkdWUgdG8gZmVhdHVyZSBpbmNvbXBhdGliaWxpdGllcwpbICAg
-IDQuMDM1OTI3XSBFWFQ0LWZzIChtbWNibGswcDIpOiBtb3VudGVkIGZpbGVzeXN0ZW0gd2l0aCBv
-cmRlcmVkIGRhdGEgbW9kZS4gT3B0czogKG51bGwpClsgICAgNC40MzIwMTVdIHN3aXRjaF92cHVf
-bWVtX3BkOiB2aXVfdmQxIE9GRgpbICAgIDQuNDMyMDI4XSBzd2l0Y2hfdnB1X21lbV9wZDogYWZi
-Y19kZWMgT0ZGClsgICAgNC40MzIwMzJdIHN3aXRjaF92cHVfbWVtX3BkOiBkaV9wb3N0IE9GRgpb
-ICAgIDQuNDMyMDM3XSBzd2l0Y2hfdnB1X21lbV9wZDogdml1X3ZkMiBPRkYKWyAgICA3LjgyMDg5
-OV0gc3lzdGVtZFsxXTogU3lzdGVtIHRpbWUgYmVmb3JlIGJ1aWxkIHRpbWUsIGFkdmFuY2luZyBj
-bG9jay4KWyAgICA3LjgzNzkzOV0gc3lzdGVtZFsxXTogc3lzdGVtZCAyMjkgcnVubmluZyBpbiBz
-eXN0ZW0gbW9kZS4gKC1QQU0gLUFVRElUIC1TRUxJTlVYIC1JTUEgLUFQUEFSTU9SIC1TTUFDSyAt
-U1lTVklOSVQgLVVUTVAgLUxJQkNSWVBUU0VUVVAgLUdDUllQVCAtR05VVExTIC1BQ0wgLVhaIC1M
-WjQgLVNFQ0NPTVAgK0JMS0lEIC1FTEZVVElMUyArS01PRCAtSUROKQpbICAgIDcuODM4Mjc3XSBz
-eXN0ZW1kWzFdOiBEZXRlY3RlZCBhcmNoaXRlY3R1cmUgYXJtNjQuClsgICAgNy44Mzg0NzJdIHN5
-c3RlbWRbMV06IFNldCBob3N0bmFtZSB0byA8TGlicmVFTEVDPi4KWyAgICA3Ljg5NDQ3OF0gc3lz
-dGVtZFsxXTogU3RhcnRlZCBGb3J3YXJkIFBhc3N3b3JkIFJlcXVlc3RzIHRvIFdhbGwgRGlyZWN0
-b3J5IFdhdGNoLgpbICAgIDcuODk0NjkxXSBzeXN0ZW1kWzFdOiBMaXN0ZW5pbmcgb24gSm91cm5h
-bCBTb2NrZXQuClsgICAgNy44OTQ3OTZdIHN5c3RlbWRbMV06IExpc3RlbmluZyBvbiAvZGV2L2lu
-aXRjdGwgQ29tcGF0aWJpbGl0eSBOYW1lZCBQaXBlLgpbICAgIDcuODk0ODY0XSBzeXN0ZW1kWzFd
-OiBMaXN0ZW5pbmcgb24gSm91cm5hbCBTb2NrZXQgKC9kZXYvbG9nKS4KWyAgICA3Ljg5NTA2MF0g
-c3lzdGVtZFsxXTogUmVhY2hlZCB0YXJnZXQgU3dhcC4KWyAgICA3Ljg5NTE1MF0gc3lzdGVtZFsx
-XTogTGlzdGVuaW5nIG9uIHVkZXYgS2VybmVsIFNvY2tldC4KWyAgICA3Ljg5NTI2NV0gc3lzdGVt
-ZFsxXTogU3RhcnRlZCBEaXNwYXRjaCBQYXNzd29yZCBSZXF1ZXN0cyB0byBDb25zb2xlIERpcmVj
-dG9yeSBXYXRjaC4KWyAgICA3Ljg5NTI5Nl0gc3lzdGVtZFsxXTogUmVhY2hlZCB0YXJnZXQgUGF0
-aHMuClsgICAgNy44OTUzODddIHN5c3RlbWRbMV06IExpc3RlbmluZyBvbiB1ZGV2IENvbnRyb2wg
-U29ja2V0LgpbICAgIDcuODk1NzQ2XSBzeXN0ZW1kWzFdOiBDcmVhdGVkIHNsaWNlIFVzZXIgYW5k
-IFNlc3Npb24gU2xpY2UuClsgICAgNy44OTU5MThdIHN5c3RlbWRbMV06IENyZWF0ZWQgc2xpY2Ug
-U3lzdGVtIFNsaWNlLgpbICAgIDcuOTAxMDU4XSBzeXN0ZW1kWzFdOiBTdGFydGluZyBMb2FkIEtl
-cm5lbCBNb2R1bGVzLi4uClsgICAgNy45MDI3MzhdIHN5c3RlbWRbMV06IFN0YXJ0aW5nIFJlbW91
-bnQgUm9vdCBhbmQgS2VybmVsIEZpbGUgU3lzdGVtcy4uLgpbICAgIDcuOTA0MTU5XSBzeXN0ZW1k
-WzFdOiBNb3VudGluZyBUZW1wb3JhcnkgRGlyZWN0b3J5Li4uClsgICAgNy45MDU4MDldIHN5c3Rl
-bWRbMV06IE1vdW50aW5nIERlYnVnIEZpbGUgU3lzdGVtLi4uClsgICAgNy45MDYxNjVdIHN5c3Rl
-bWRbMV06IFJlYWNoZWQgdGFyZ2V0IFNsaWNlcy4KWyAgICA3LjkwNzg5Nl0gc3lzdGVtZFsxXTog
-TW91bnRpbmcgUE9TSVggTWVzc2FnZSBRdWV1ZSBGaWxlIFN5c3RlbS4uLgpbICAgIDcuOTA5NTcy
-XSBzeXN0ZW1kWzFdOiBTdGFydGluZyBDcmVhdGUgbGlzdCBvZiByZXF1aXJlZCBzdGF0aWMgZGV2
-aWNlIG5vZGVzIGZvciB0aGUgY3VycmVudCBrZXJuZWwuLi4KWyAgICA3LjkxMTkzNV0gc3lzdGVt
-ZFsxXTogU3RhcnRlZCBEZWJ1ZyBTaGVsbCBvbiAvZGV2L2NvbnNvbGUuClsgICAgNy45MTg5Mjld
-IHN5c3RlbWRbMV06IE1vdW50aW5nIFZhcmlhYmxlIERpcmVjdG9yeS4uLgpbICAgIDcuOTE5NTEz
-XSBSZWdpc3RlcmVkIElSIGtleW1hcCByYy1lbXB0eQpbICAgIDcuOTE5Njg2XSBpbnB1dDogbWVz
-b24taXIgYXMgL2RldmljZXMvcGxhdGZvcm0vYzgxMDA1ODAubWVzb24taXIvcmMvcmMwL2lucHV0
-MgpbICAgIDcuOTE5ODUwXSByYzA6IG1lc29uLWlyIGFzIC9kZXZpY2VzL3BsYXRmb3JtL2M4MTAw
-NTgwLm1lc29uLWlyL3JjL3JjMApbICAgIDcuOTIxMDczXSBzeXN0ZW1kWzFdOiBTdGFydGluZyBT
-aG93IFZlcnNpb24uLi4KWyAgICA3LjkyNjUyN10gSVIgUkM2IHByb3RvY29sIGhhbmRsZXIgaW5p
-dGlhbGl6ZWQKWyAgICA3LjkyNzIxOV0gSVIgTkVDIHByb3RvY29sIGhhbmRsZXIgaW5pdGlhbGl6
-ZWQKWyAgICA3LjkyODg1OF0gSVIgSlZDIHByb3RvY29sIGhhbmRsZXIgaW5pdGlhbGl6ZWQKWyAg
-ICA3LjkyOTEzNl0gSVIgU0FOWU8gcHJvdG9jb2wgaGFuZGxlciBpbml0aWFsaXplZApbICAgIDcu
-OTI5NDE2XSBzeXN0ZW1kWzFdOiBTdGFydGluZyBTZXR1cCBtYWNoaW5lLWlkLi4uClsgICAgNy45
-Mjk3ODZdIElSIFNvbnkgcHJvdG9jb2wgaGFuZGxlciBpbml0aWFsaXplZApbICAgIDcuOTMwNDUz
-XSBJUiBSQzUoeCkgcHJvdG9jb2wgaGFuZGxlciBpbml0aWFsaXplZApbICAgIDcuOTMzNDM4XSBt
-ZXNvbi1pciBjODEwMDU4MC5tZXNvbi1pcjogQU9fUlRJX1BJTl9NVVggOiAweDc4MDE5ODAxClsg
-ICAgNy45MzM0NTJdIG1lc29uLWlyIGM4MTAwNTgwLm1lc29uLWlyOiByZWNlaXZlciBpbml0aWFs
-aXplZApbICAgIDcuOTM1NjU2XSBpbnB1dDogTUNFIElSIEtleWJvYXJkL01vdXNlIChtZXNvbi1p
-cikgYXMgL2RldmljZXMvdmlydHVhbC9pbnB1dC9pbnB1dDMKWyAgICA3LjkzNTg4N10gSVIgTUNF
-IEtleWJvYXJkL21vdXNlIHByb3RvY29sIGhhbmRsZXIgaW5pdGlhbGl6ZWQKWyAgICA3LjkzODM0
-Nl0gbGlyY19kZXY6IElSIFJlbW90ZSBDb250cm9sIGRyaXZlciByZWdpc3RlcmVkLCBtYWpvciAy
-MzEgClsgICAgNy45MzkwODNdIHJjIHJjMDogbGlyY19kZXY6IGRyaXZlciBpci1saXJjLWNvZGVj
-IChtZXNvbi1pcikgcmVnaXN0ZXJlZCBhdCBtaW5vciA9IDAKWyAgICA3LjkzOTA5NF0gSVIgTElS
-QyBicmlkZ2UgaGFuZGxlciBpbml0aWFsaXplZApbICAgIDcuOTM5OTQyXSBzeXN0ZW1kWzFdOiBN
-b3VudGVkIERlYnVnIEZpbGUgU3lzdGVtLgpbICAgIDcuOTQwMTE1XSBzeXN0ZW1kWzFdOiBNb3Vu
-dGVkIFZhcmlhYmxlIERpcmVjdG9yeS4KWyAgICA3Ljk0MDE3OV0gc3lzdGVtZFsxXTogTW91bnRl
-ZCBUZW1wb3JhcnkgRGlyZWN0b3J5LgpbICAgIDcuOTQwODczXSBzeXN0ZW1kWzFdOiBTdGFydGVk
-IExvYWQgS2VybmVsIE1vZHVsZXMuClsgICAgNy45NDM1MDldIHN5c3RlbWRbMV06IFN0YXJ0ZWQg
-UmVtb3VudCBSb290IGFuZCBLZXJuZWwgRmlsZSBTeXN0ZW1zLgpbICAgIDcuOTQ0NjUyXSBzeXN0
-ZW1kWzFdOiBNb3VudGVkIFBPU0lYIE1lc3NhZ2UgUXVldWUgRmlsZSBTeXN0ZW0uClsgICAgNy45
-NDUxOTldIHN5c3RlbWRbMV06IFN0YXJ0ZWQgQ3JlYXRlIGxpc3Qgb2YgcmVxdWlyZWQgc3RhdGlj
-IGRldmljZSBub2RlcyBmb3IgdGhlIGN1cnJlbnQga2VybmVsLgpbICAgIDcuOTQ5NjMxXSBzeXN0
-ZW1kWzFdOiBTdGFydGVkIFNob3cgVmVyc2lvbi4KWyAgICA3Ljk1MDE4NF0gc3lzdGVtZFsxXTog
-U3RhcnRlZCBTZXR1cCBtYWNoaW5lLWlkLgpbICAgIDguMDA1MDgzXSBzeXN0ZW1kWzFdOiBTdGFy
-dGluZyBKb3VybmFsIFNlcnZpY2UuLi4KWyAgICA4LjAwNjc3MV0gc3lzdGVtZFsxXTogU3RhcnRp
-bmcgQ3JlYXRlIFN0YXRpYyBEZXZpY2UgTm9kZXMgaW4gL2Rldi4uLgpbICAgIDguMDEyNTY0XSBz
-eXN0ZW1kWzFdOiBTdGFydGluZyB1ZGV2IENvbGRwbHVnIGFsbCBEZXZpY2VzLi4uClsgICAgOC4w
-MTQ3NjVdIHN5c3RlbWRbMV06IFN0YXJ0aW5nIEFwcGx5IEtlcm5lbCBWYXJpYWJsZXMuLi4KWyAg
-ICA4LjAxNjQ5Nl0gc3lzdGVtZFsxXTogU3RhcnRpbmcgU2V0dXAgVGltZXpvbmUgZGF0YS4uLgpb
-ICAgIDguMDE5NDQwXSBzeXN0ZW1kWzFdOiBTdGFydGVkIENyZWF0ZSBTdGF0aWMgRGV2aWNlIE5v
-ZGVzIGluIC9kZXYuClsgICAgOC4wMzA1NThdIHN5c3RlbWRbMV06IFN0YXJ0ZWQgQXBwbHkgS2Vy
-bmVsIFZhcmlhYmxlcy4KWyAgICA4LjAzMTE0N10gc3lzdGVtZFsxXTogU3RhcnRlZCBTZXR1cCBU
-aW1lem9uZSBkYXRhLgpbICAgIDguMDU4NzgwXSBzeXN0ZW1kWzFdOiBSZWFjaGVkIHRhcmdldCBM
-b2NhbCBGaWxlIFN5c3RlbXMgKFByZSkuClsgICAgOC4wNTg4ODRdIHN5c3RlbWRbMV06IFJlYWNo
-ZWQgdGFyZ2V0IExvY2FsIEZpbGUgU3lzdGVtcy4KWyAgICA4LjA3MzUzM10gc3lzdGVtZFsxXTog
-U3RhcnRlZCBKb3VybmFsIFNlcnZpY2UuClsgICAgOC4wOTE1MzddIHN5c3RlbWQtam91cm5hbGRb
-MTk5XTogUmVjZWl2ZWQgcmVxdWVzdCB0byBmbHVzaCBydW50aW1lIGpvdXJuYWwgZnJvbSBQSUQg
-MQpbICAgIDguNzQ1NjM0XSBDb25zb2xlOiBzd2l0Y2hpbmcgdG8gY29sb3VyIGR1bW15IGRldmlj
-ZSA4MHgyNQpbICAgIDkuMDQ5OTQ3XSBpbnB1dDogbGlyY2QgYXMgL2RldmljZXMvdmlydHVhbC9p
-bnB1dC9pbnB1dDUKWyAgICA5LjA1MjQ5N10gbWVkaWE6IExpbnV4IG1lZGlhIGludGVyZmFjZTog
-djAuMTAKWyAgICA5LjA2ODY1OV0gTm90IHN1cHBvcnQgc2V0X3dvbCwgd2FzIE1JQ1JFTF9QSFkg
-ZW5hYmxlZD8KWyAgICA5LjA4NTAzNF0gODAyMXE6IDgwMi4xUSBWTEFOIFN1cHBvcnQgdjEuOApb
-ICAgIDkuMDkyMjgwXSBMaW51eCB2aWRlbyBjYXB0dXJlIGludGVyZmFjZTogdjIuMDAKWyAgICA5
-LjA5MjI5OV0gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBlcmltZW50YWwgdmVyc2lvbiBv
-ZiB0aGUgbWVkaWEgc3RhY2suClsgICAgOS4wOTIyOTldIAlBcyB0aGUgZHJpdmVyIGlzIGJhY2tw
-b3J0ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0IG9mZmVyClsgICAgOS4wOTIyOTld
-IAllbm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGluIHByb2R1Y3Rpb24uClsgICAgOS4wOTIy
-OTldIAlVc2UgaXQgd2l0aCBjYXJlLgpbICAgIDkuMDkyMjk5XSBMYXRlc3QgZ2l0IHBhdGNoZXMg
-KG5lZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVnIHRvIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9y
-Zyk6ClsgICAgOS4wOTIyOTldIAlkM2Q4M2VlMjBhZmRhMTZhZDAxMzNiYTAwZjYzYzExYThkODQy
-YTM1IFttZWRpYV0gRGFWaW5jaS1WUEZFLUNhcHR1cmU6IGZpeCBlcnJvciBoYW5kbGluZwpbICAg
-IDkuMDkyMjk5XSAJMzk5NDI2Y2FkZjViMDUzOWE1YjJhNGQ4MDUyNTdjZThhY2M2YWJhMiBbbWVk
-aWFdIGN4ODg6IG1ha2UgY2hlY2twYXRjaC5wbCBoYXBweQpbICAgIDkuMDkyMjk5XSAJMWQzODk3
-MTQzODE1N2RjNTdmMGE0YmU4OWFiZjIzYjQ3MjQ1ODYzMyBbbWVkaWFdIHY0bDogcmNhcl9mZHAx
-OiBhZGQgRkNQIGRlcGVuZGVuY3kKWyAgICA5LjEyNDA4M10gdXNiIDEtMS4zOiBOZXcgZGV2aWNl
-IEhDVyBzb2xvSEQgQCA0ODAgTWJwcyAoMjA0MDowMjY0LCBpbnRlcmZhY2UgMCwgY2xhc3MgMCkK
-WyAgICA5LjEyNDA5OF0gdXNiIDEtMS4zOiBEVkIgaW50ZXJmYWNlIDAgZm91bmQ6IGlzb2MKWyAg
-ICA5LjEyNjQzOV0gdXNiIDEtMS4zOiBlbTI4MTc4IzA6IGNoaXAgSUQgaXMgZW0yODE3OApbICAg
-MTEuMTE5NzYxXSB1c2IgMS0xLjM6IGVtMjgxNzgjMDogRUVQUk9NIElEID0gMjYgMDAgMDEgMDAs
-IEVFUFJPTSBoYXNoID0gMHhiZWUyY2EwNApbICAgMTEuMTE5NzcyXSB1c2IgMS0xLjM6IGVtMjgx
-NzgjMDogRUVQUk9NIGluZm86ClsgICAxMS4xMTk3NzhdIHVzYiAxLTEuMzogZW0yODE3OCMwOiAJ
-bWljcm9jb2RlIHN0YXJ0IGFkZHJlc3MgPSAweDAwMDQsIGJvb3QgY29uZmlndXJhdGlvbiA9IDB4
-MDEKWyAgIDExLjEyNzUwNl0gdXNiIDEtMS4zOiBlbTI4MTc4IzA6IAlBQzk3IGF1ZGlvICg1IHNh
-bXBsZSByYXRlcykKWyAgIDExLjEyNzUxNV0gdXNiIDEtMS4zOiBlbTI4MTc4IzA6IAk1MDBtQSBt
-YXggcG93ZXIKWyAgIDExLjEyNzUyMV0gdXNiIDEtMS4zOiBlbTI4MTc4IzA6IAlUYWJsZSBhdCBv
-ZmZzZXQgMHgyNywgc3RyaW5ncz0weDBlNmEsIDB4MTg4OCwgMHgwODdlClsgICAxMS4xMjc3MDhd
-IHVzYiAxLTEuMzogZW0yODE3OCMwOiBJZGVudGlmaWVkIGFzIFBDVFYgdHJpcGxlU3RpY2sgKDI5
-MmUpIChjYXJkPTk0KQpbICAgMTEuMTI3NzE3XSB1c2IgMS0xLjM6IGVtMjgxNzgjMDogZHZiIHNl
-dCB0byBpc29jIG1vZGUuClsgICAxMS4xMjc5NDddIHVzYiAxLTEuNDogTmV3IGRldmljZSBIQ1cg
-c29sb0hEIEAgNDgwIE1icHMgKDIwNDA6MDI2NCwgaW50ZXJmYWNlIDAsIGNsYXNzIDApClsgICAx
-MS4xMjc5NTZdIHVzYiAxLTEuNDogRFZCIGludGVyZmFjZSAwIGZvdW5kOiBpc29jClsgICAxMS4x
-Mjg5OTJdIHVzYiAxLTEuNDogZW0yODE3OCMxOiBjaGlwIElEIGlzIGVtMjgxNzgKWyAgIDExLjEz
-MzQyMF0gV0FSTklORzogWW91IGFyZSB1c2luZyBhbiBleHBlcmltZW50YWwgdmVyc2lvbiBvZiB0
-aGUgbWVkaWEgc3RhY2suClsgICAxMS4xMzM0MjBdIAlBcyB0aGUgZHJpdmVyIGlzIGJhY2twb3J0
-ZWQgdG8gYW4gb2xkZXIga2VybmVsLCBpdCBkb2Vzbid0IG9mZmVyClsgICAxMS4xMzM0MjBdIAll
-bm91Z2ggcXVhbGl0eSBmb3IgaXRzIHVzYWdlIGluIHByb2R1Y3Rpb24uClsgICAxMS4xMzM0MjBd
-IAlVc2UgaXQgd2l0aCBjYXJlLgpbICAgMTEuMTMzNDIwXSBMYXRlc3QgZ2l0IHBhdGNoZXMgKG5l
-ZWRlZCBpZiB5b3UgcmVwb3J0IGEgYnVnIHRvIGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZyk6
-ClsgICAxMS4xMzM0MjBdIAlkM2Q4M2VlMjBhZmRhMTZhZDAxMzNiYTAwZjYzYzExYThkODQyYTM1
-IFttZWRpYV0gRGFWaW5jaS1WUEZFLUNhcHR1cmU6IGZpeCBlcnJvciBoYW5kbGluZwpbICAgMTEu
-MTMzNDIwXSAJMzk5NDI2Y2FkZjViMDUzOWE1YjJhNGQ4MDUyNTdjZThhY2M2YWJhMiBbbWVkaWFd
-IGN4ODg6IG1ha2UgY2hlY2twYXRjaC5wbCBoYXBweQpbICAgMTEuMTMzNDIwXSAJMWQzODk3MTQz
-ODE1N2RjNTdmMGE0YmU4OWFiZjIzYjQ3MjQ1ODYzMyBbbWVkaWFdIHY0bDogcmNhcl9mZHAxOiBh
-ZGQgRkNQIGRlcGVuZGVuY3kKWyAgIDEzLjA1MTY3MV0gbGlicGh5OiBzdG1tYWMtMDowMCAtIExp
-bmsgaXMgVXAgLSAxMDAwL0Z1bGwKWyAgIDEzLjA1MjQxM10gSVB2NjogQUREUkNPTkYoTkVUREVW
-X0NIQU5HRSk6IGV0aDA6IGxpbmsgYmVjb21lcyByZWFkeQpbICAgMTMuMTE5MDQyXSB1c2IgMS0x
-LjQ6IGVtMjgxNzgjMTogRUVQUk9NIElEID0gMjYgMDAgMDEgMDAsIEVFUFJPTSBoYXNoID0gMHg0
-YmU4YzQwNApbICAgMTMuMTE5MDU0XSB1c2IgMS0xLjQ6IGVtMjgxNzgjMTogRUVQUk9NIGluZm86
-ClsgICAxMy4xMTkwNjBdIHVzYiAxLTEuNDogZW0yODE3OCMxOiAJbWljcm9jb2RlIHN0YXJ0IGFk
-ZHJlc3MgPSAweDAwMDQsIGJvb3QgY29uZmlndXJhdGlvbiA9IDB4MDEKWyAgIDEzLjEyNzQxNF0g
-dXNiIDEtMS40OiBlbTI4MTc4IzE6IAlBQzk3IGF1ZGlvICg1IHNhbXBsZSByYXRlcykKWyAgIDEz
-LjEyNzQyM10gdXNiIDEtMS40OiBlbTI4MTc4IzE6IAk1MDBtQSBtYXggcG93ZXIKWyAgIDEzLjEy
-NzQyOV0gdXNiIDEtMS40OiBlbTI4MTc4IzE6IAlUYWJsZSBhdCBvZmZzZXQgMHgyNywgc3RyaW5n
-cz0weDBlNmEsIDB4MTg4OCwgMHgwODdlClsgICAxMy4xMjc2MTNdIHVzYiAxLTEuNDogZW0yODE3
-OCMxOiBJZGVudGlmaWVkIGFzIFBDVFYgdHJpcGxlU3RpY2sgKDI5MmUpIChjYXJkPTk0KQpbICAg
-MTMuMTI3NjIxXSB1c2IgMS0xLjQ6IGVtMjgxNzgjMTogZHZiIHNldCB0byBpc29jIG1vZGUuClsg
-ICAxMy4xMjc4NTddIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgZW0y
-OHh4CgpbICAgMTMuMTMwMDAxXSBlbTI4eHg6IFJlZ2lzdGVyZWQgKEVtMjh4eCBkdmIgRXh0ZW5z
-aW9uKSBleHRlbnNpb24KWyAgIDEzLjEzNjk2M10gATogUmVtb3RlIGNvbnRyb2wgc3VwcG9ydCBp
-cyBub3QgYXZhaWxhYmxlIGZvciB0aGlzIGNhcmQuClsgICAxMy4xMzY5NzVdIAE6IFJlbW90ZSBj
-b250cm9sIHN1cHBvcnQgaXMgbm90IGF2YWlsYWJsZSBmb3IgdGhpcyBjYXJkLgpbICAgMTMuMTM2
-OTc5XSBlbTI4eHg6IFJlZ2lzdGVyZWQgKEVtMjh4eCBJbnB1dCBFeHRlbnNpb24pIGV4dGVuc2lv
-bgpbICAgMTMuMjQ1MzUzXSBzeXN0ZW1kLWpvdXJuYWxkWzE5OV06IFJldGVudGlvbiB0aW1lIHJl
-YWNoZWQuClsgICAxMy43MDkxMDldIHNldCBub3JtYWwgNTEyIGZzIC80IGZzClsgICAxMy43MDkx
-MzBdIElFQzk1OCAxNmJpdApbICAgMTMuNzA5MTM4XSBoZG1pdHg6IGF1ZGlvOiBhb3V0IG5vdGlm
-eSByYXRlIDQ4MDAwClsgICAxMy43MDkxNDJdIGhkbWl0eDogYXVkaW86IGFvdXQgbm90aWZ5IHNp
-emUgMTYKWyAgIDEzLjc5NDM1OV0gYnVmPTAKWyAgIDEzLjc5NDM3M10gSUVDOTU4X21vZGVfcmF3
-PTAKWyAgIDEzLjc5NDQwOV0gSUVDOTU4X21vZGVfY29kZWM9IDAsIElFQzk1OCB0eXBlIDIgQ0gg
-UENNClsgICAxMy43OTQ0MTNdIGxhc3QgbW9kZSAwLG5vdyAwClsgICAxMy43OTYxNjRdIC0tLS1h
-bWxfaHdfaWVjOTU4X2luaXQscnVudGltZS0+cmF0ZT00NDEwMCxzYW1wbGVfcmF0ZT01LS0KWyAg
-IDEzLjc5NjE4Ml0gYW1sX3NldF9zcGRpZl9jbGsgcmF0ZQpbICAgMTMuNzk2MTk0XSBkaXZpZGVy
-PTIyLGZyYWM9MTMwMzA0MDAsU0RNdmFsPTIzNjQKWyAgIDEzLjc5NjIwNV0gc2V0IG5vcm1hbCA1
-MTIgZnMgLzQgZnMKWyAgIDEzLjc5NjIxMl0gaWVjOTU4IG1vZGUgUENNMTYKWyAgIDEzLjc5NjIy
-MF0gSUVDOTU4IDE2Yml0ClsgICAxMy43OTYyMjZdIGhkbWl0eDogYXVkaW86IGFvdXQgbm90aWZ5
-IHJhdGUgNDQxMDAKWyAgIDEzLjc5NjIzMF0gaGRtaXR4OiBhdWRpbzogYW91dCBub3RpZnkgc2l6
-ZSAxNgpbICAgMTMuNzk2MjM0XSBoZG10aXg6IHNldCBhdWRpbwpbICAgMTMuNzk2MjQ2XSBoZG1p
-dHggdHhfYXVkX3NyYyA9IDAKWyAgIDEzLjc5NjI3Ml0gaGRtaXR4IGF1ZF9uX3BhcmEgPSA2MTQ0
-ClsgICAxMy43OTYyOTFdIGhkbWl0eCBzZXQgY2hhbm5lbCBzdGF0dXMKWyAgIDEzLjc5NjY2NF0g
-LS0tLWFtbF9od19pZWM5NThfaW5pdCxydW50aW1lLT5yYXRlPTQ0MTAwLHNhbXBsZV9yYXRlPTUt
-LQpbICAgMTMuNzk2NjcyXSBzZXQgbm9ybWFsIDUxMiBmcyAvNCBmcwpbICAgMTMuNzk2Njc4XSBp
-ZWM5NTggbW9kZSBQQ00xNgpbICAgMTMuNzk2Njg0XSBJRUM5NTggMTZiaXQKWyAgIDEzLjc5NjY4
-OF0gaGRtaXR4OiBhdWRpbzogYW91dCBub3RpZnkgcmF0ZSA0NDEwMApbICAgMTMuNzk2NjkxXSBo
-ZG1pdHg6IGF1ZGlvOiBhb3V0IG5vdGlmeSBzaXplIDE2ClsgICAxMy43OTk5MDVdIGVudGVyZCBh
-bWxfc3BkaWZfcGxheSxzZXRfY2xvY2s6NSxzYW1wbGVfcmF0ZT00ClsgICAxMy43OTk5MTddIGFt
-bF9zZXRfc3BkaWZfY2xrIHJhdGUKWyAgIDEzLjc5OTkzMF0gZGl2aWRlcj0yMCxmcmFjPTMzOTIw
-MDAwLFNETXZhbD01NjU0ClsgICAxMy43OTk5NDFdIHNldCBub3JtYWwgNTEyIGZzIC80IGZzClsg
-ICAxMy43OTk5NTBdIElFQzk1OCAxNmJpdApbICAgMTMuNzk5OTU3XSBoZG1pdHg6IGF1ZGlvOiBh
-b3V0IG5vdGlmeSByYXRlIDQ4MDAwClsgICAxMy43OTk5NjBdIGhkbWl0eDogYXVkaW86IGFvdXQg
-bm90aWZ5IHNpemUgMTYKWyAgIDEzLjc5OTk2NF0gaGRtdGl4OiBzZXQgYXVkaW8KWyAgIDEzLjc5
-OTk3Nl0gaGRtaXR4IHR4X2F1ZF9zcmMgPSAwClsgICAxMy44MDAwMDFdIGhkbWl0eCBhdWRfbl9w
-YXJhID0gNjE0NApbICAgMTMuODAwMDIwXSBoZG1pdHggc2V0IGNoYW5uZWwgc3RhdHVzClsgICAx
-My45NjU5MjBdIGNvZGVjOmhldmNfY2xvY2tfc2V0LS0tLS0yClsgICAxMy45NjU5MzNdIGNvZGVj
-OmhldmNfY2xvY2tfc2V0IDEgdG8gY2xrIDIKWyAgIDEzLjk2NTk0MV0gY29kZWM6aGV2Y19zZXRf
-Y2xrIDAsIDEKWyAgIDEzLjk2NTk0N10gY29kZWM6aGV2Y19jbG9ja19zZXQgMiB0byByY2xrPTUw
-MApbICAgMTMuOTY1OTcyXSBjb2RlYzp2ZGVjX2Nsb2NrX3NldC0tLS0tMgpbICAgMTMuOTY1OTc4
-XSBjb2RlYzp2ZGVjMV9zZXRfY2xrIDAsIDEKWyAgIDEzLjk2NTk4M10gY29kZWM6dmRlY19jbG9j
-a19zZXQgMiB0byA1MDAKWyAgIDE0LjAxNzcwOF0gdm91dF9zZXJ2ZTogdm1vZGUgc2V0IHRvIDEw
-ODBwNjBoegpbICAgMTQuMDE3NzMwXSB2b3V0X3NlcnZlOiBkb24ndCBzZXQgdGhlIHNhbWUgbW9k
-ZSBhcyBjdXJyZW50LgpbICAgMTQuMDE3ODk2XSBmYjogb3NkWzBdIHNldCBzY2FsZSwgaF9zY2Fs
-ZTogRElTQUJMRSwgdl9zY2FsZTogRElTQUJMRQpbICAgMTQuMDE3OTAyXSBmYjogb3NkWzBdLnNj
-YWxlZGF0YTogMCAxOTE5IDAgMTA3OQpbICAgMTQuMDE3OTA2XSBmYjogb3NkWzBdLnBhbmRhdGE6
-IDAgMTkxOSAwIDEwNzkK
---abmobg-e0639c53-c6d1-4725-8e85-cf08171c08e7--
