@@ -1,96 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:35545 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751986AbcLKJy1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:54055 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761671AbcLPQ6K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 11 Dec 2016 04:54:27 -0500
-From: Bhumika Goyal <bhumirks@gmail.com>
-To: julia.lawall@lip6.fr, laurent.pinchart@ideasonboard.com,
-        hyun.kwon@xilinx.com, mchehab@kernel.org, michal.simek@xilinx.com,
-        soren.brinkmann@xilinx.com, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH] media: platform: xilinx: xilinx-tpg: constify v4l2_subdev_* structures
-Date: Sun, 11 Dec 2016 15:22:32 +0530
-Message-Id: <1481449952-26119-1-git-send-email-bhumirks@gmail.com>
+        Fri, 16 Dec 2016 11:58:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references as needed
+Date: Fri, 16 Dec 2016 18:58:48 +0200
+Message-ID: <1788710.LLpCZ7KsYZ@avalon>
+In-Reply-To: <bdfa08af-9c27-3f29-25af-312ee2805712@osg.samsung.com>
+References: <20161109154608.1e578f9e@vento.lan> <1604260.508DyjIRC9@avalon> <bdfa08af-9c27-3f29-25af-312ee2805712@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_subdev_{core/pad/video}_ops structures are stored in the
-fields of the v4l2_subdev_ops structure which are of type const. 
-Also, v4l2_subdev_ops structure is passed to a function
-having its argument of type const. As these structures are never
-modified, so declare them as const.
-Done using Coccinelle: (One of the scripts used)
+Hi Shuah,
 
-@r1 disable optional_qualifier @
-identifier i;
-position p;
-@@
-static struct v4l2_subdev_video_ops i@p = {...};
+On Thursday 15 Dec 2016 07:56:55 Shuah Khan wrote:
+> On 12/15/2016 03:39 AM, Laurent Pinchart wrote:
+> > On Tuesday 13 Dec 2016 15:23:53 Shuah Khan wrote:
 
-@ok1@
-identifier r1.i;
-position p;
-struct v4l2_subdev_ops obj;
-@@
-obj.video=&i@p;
+[snip]
 
-@bad@
-position p!={r1.p,ok1.p};
-identifier r1.i;
-@@
-i@p
+> >> Please don't pursue this RFC series that makes mc-core changes until
+> >> ompa3 driver problems are addressed. There is no need to change the
+> >> core unless it is necessary.
+> > 
+> > It is necessary as has been explained countless times, and will become
+> > more and more necessary as media_device instances get shared between
+> > multiple drivers, which is currently attempted *without* reference
+> > counting.
+> 
+> You are probably forgetting the Media Device Allocator API work I did
+> to make media_device sharable across media and audio drivers.
 
-@depends on !bad disable optional_qualifier@
-identifier r1.i;
-@@
-+const
-struct v4l2_subdev_video_ops i; 
+I haven't. How could I forget it ? :-) Media device sharing is important, and 
+will become even more so in the future.
 
-File size before:
-   text	   data	    bss	    dec	    hex	filename
-   6170	   2752	    144	   9066	   236a media/platform/xilinx/xilinx-tpg.o
+> Sakari's patches don't address the sharable need.
 
-File size after:
-   text	   data	    bss	    dec	    hex	filename
-   6666	   2384	      8	   9058	   2362 media/platform/xilinx/xilinx-tpg.o
+That's correct.
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/media/platform/xilinx/xilinx-tpg.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> I have been asking Sakari to use Media Device Allocator API in his patch
+> series for allocating media device.
 
-diff --git a/drivers/media/platform/xilinx/xilinx-tpg.c b/drivers/media/platform/xilinx/xilinx-tpg.c
-index 2ec1f6c..9c49d1d 100644
---- a/drivers/media/platform/xilinx/xilinx-tpg.c
-+++ b/drivers/media/platform/xilinx/xilinx-tpg.c
-@@ -460,21 +460,21 @@ static int xtpg_s_ctrl(struct v4l2_ctrl *ctrl)
- 	.s_ctrl	= xtpg_s_ctrl,
- };
- 
--static struct v4l2_subdev_core_ops xtpg_core_ops = {
-+static const struct v4l2_subdev_core_ops xtpg_core_ops = {
- };
- 
--static struct v4l2_subdev_video_ops xtpg_video_ops = {
-+static const struct v4l2_subdev_video_ops xtpg_video_ops = {
- 	.s_stream = xtpg_s_stream,
- };
- 
--static struct v4l2_subdev_pad_ops xtpg_pad_ops = {
-+static const struct v4l2_subdev_pad_ops xtpg_pad_ops = {
- 	.enum_mbus_code		= xvip_enum_mbus_code,
- 	.enum_frame_size	= xtpg_enum_frame_size,
- 	.get_fmt		= xtpg_get_format,
- 	.set_fmt		= xtpg_set_format,
- };
- 
--static struct v4l2_subdev_ops xtpg_ops = {
-+static const struct v4l2_subdev_ops xtpg_ops = {
- 	.core   = &xtpg_core_ops,
- 	.video  = &xtpg_video_ops,
- 	.pad    = &xtpg_pad_ops,
+That's where I disagree. The more we dig the more we realize that the current 
+infrastructure is broken. Adding anything on top of a construction that is on 
+the verge of collapsing isn't a good idea until the foundations have been 
+fixed and consolidated.
+
+> I discussed the conflicts between the work I am doing and Sakari's series
+> to find a common ground. But it doesn't look like we are going to get there.
+
 -- 
-1.9.1
+Regards,
+
+Laurent Pinchart
 
