@@ -1,123 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud3.xs4all.net ([194.109.24.22]:52672 "EHLO
-        lb1-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753995AbcLZEtn (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:34970 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933661AbcLPWJo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 23:49:43 -0500
-Message-ID: <8d5bddceea8050dae3c14acc03c4a223@smtp-cloud3.xs4all.net>
-Date: Mon, 26 Dec 2016 05:49:40 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 16 Dec 2016 17:09:44 -0500
+Date: Fri, 16 Dec 2016 23:09:38 +0100
+From: Richard Cochran <richardcochran@gmail.com>
+To: henrik@austad.us
+Cc: linux-kernel@vger.kernel.org, Henrik Austad <haustad@cisco.com>,
+        linux-media@vger.kernel.org, alsa-devel@vger.kernel.org,
+        netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>
+Subject: Re: [TSN RFC v2 5/9] Add TSN header for the driver
+Message-ID: <20161216220938.GB25258@netboy>
+References: <1481911153-549-1-git-send-email-henrik@austad.us>
+ <1481911153-549-6-git-send-email-henrik@austad.us>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1481911153-549-6-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, Dec 16, 2016 at 06:59:09PM +0100, henrik@austad.us wrote:
+> +/*
+> + * List of current subtype fields in the common header of AVTPDU
+> + *
+> + * Note: AVTPDU is a remnant of the standards from when it was AVB.
+> + *
+> + * The list has been updated with the recent values from IEEE 1722, draft 16.
+> + */
+> +enum avtp_subtype {
+> +	TSN_61883_IIDC = 0,	/* IEC 61883/IIDC Format */
+> +	TSN_MMA_STREAM,		/* MMA Streams */
+> +	TSN_AAF,		/* AVTP Audio Format */
+> +	TSN_CVF,		/* Compressed Video Format */
+> +	TSN_CRF,		/* Clock Reference Format */
+> +	TSN_TSCF,		/* Time-Synchronous Control Format */
+> +	TSN_SVF,		/* SDI Video Format */
+> +	TSN_RVF,		/* Raw Video Format */
+> +	/* 0x08 - 0x6D reserved */
+> +	TSN_AEF_CONTINOUS = 0x6e, /* AES Encrypted Format Continous */
+> +	TSN_VSF_STREAM,		/* Vendor Specific Format Stream */
+> +	/* 0x70 - 0x7e reserved */
+> +	TSN_EF_STREAM = 0x7f,	/* Experimental Format Stream */
+> +	/* 0x80 - 0x81 reserved */
+> +	TSN_NTSCF = 0x82,	/* Non Time-Synchronous Control Format */
+> +	/* 0x83 - 0xed reserved */
+> +	TSN_ESCF = 0xec,	/* ECC Signed Control Format */
+> +	TSN_EECF,		/* ECC Encrypted Control Format */
+> +	TSN_AEF_DISCRETE,	/* AES Encrypted Format Discrete */
+> +	/* 0xef - 0xf9 reserved */
+> +	TSN_ADP = 0xfa,		/* AVDECC Discovery Protocol */
+> +	TSN_AECP,		/* AVDECC Enumeration and Control Protocol */
+> +	TSN_ACMP,		/* AVDECC Connection Management Protocol */
+> +	/* 0xfd reserved */
+> +	TSN_MAAP = 0xfe,	/* MAAP Protocol */
+> +	TSN_EF_CONTROL,		/* Experimental Format Control */
+> +};
 
-Results of the daily build of media_tree:
+The kernel shouldn't be in the business of assembling media packets.
 
-date:			Mon Dec 26 05:00:17 CET 2016
-media-tree git hash:	c739c0a7c3c2472d7562b8f802cdce44d2597c8b
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	c9aacef24d152007c7344b691da0cc90788395a7
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: OK
-linux-3.12.67-i686: OK
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: OK
-linux-4.9-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: OK
-linux-3.12.67-x86_64: OK
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: OK
-linux-4.9-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Richard
