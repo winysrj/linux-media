@@ -1,108 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37663 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932090AbcLHOqm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 09:46:42 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        stable@vger.kernel.org
-Subject: [PATCH v2] tvp5150: don't touch register TVP5150_CONF_SHARED_PIN if not needed
-Date: Thu,  8 Dec 2016 12:46:37 -0200
-Message-Id: <42a5efc3dee39cd14e558df25cc8e7856d2c503b.1481208216.git.mchehab@s-opensource.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:51944 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934598AbcLPLrH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 06:47:07 -0500
+From: Pankaj Dubey <pankaj.dubey@samsung.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org
+Cc: kyungmin.park@samsung.com, jtp.park@samsung.com,
+        mchehab@kernel.org, mchehab@osg.samsung.com,
+        hans.verkuil@cisco.com, krzk@kernel.org, kgene@kernel.org,
+        javier@osg.samsung.com, Pankaj Dubey <pankaj.dubey@samsung.com>
+Subject: [PATCH 0/2] s5p-mfc fix for using reserved memory
+Date: Fri, 16 Dec 2016 17:18:33 +0530
+Message-id: <1481888915-19624-1-git-send-email-pankaj.dubey@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-commit 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation
-support") added a logic that overrides TVP5150_CONF_SHARED_PIN setting,
-depending on the type of bus set via the .set_fmt() subdev callback.
+It has been observed on ARM64 based Exynos SoC, if IOMMU is not enabled
+and we try to use reserved memory for MFC, reqbufs fails with below
+mentioned error
+---------------------------------------------------------------------------
+V4L2 Codec decoding example application
+Kamil Debski <k.debski@samsung.com>
+Copyright 2012 Samsung Electronics Co., Ltd.
 
-This is known to cause trobules on devices that don't use a V4L2
-subdev devnode, and a fix for it was made by commit 47de9bf8931e
-("[media] tvp5150: Fix breakage for serial usage"). Unfortunately,
-such fix doesn't consider the case of progressive video inputs,
-causing chroma decoding issues on such videos, as it overrides not
-only the type of video output, but also other unrelated bits.
+Opening MFC.
+(mfc.c:mfc_open:58): MFC Info (/dev/video0): driver="s5p-mfc" \
+bus_info="platform:12c30000.mfc0" card="s5p-mfc-dec" fd=0x4[
+42.339165] Remapping memory failed, error: -6
 
-So, instead of trying to guess, let's detect if the device configuration
-is set via Device Tree. If not, just ignore the new logic, restoring
-the original behavior.
+MFC Open Success.
+(main.c:main:711): Successfully opened all necessary files and devices
+(mfc.c:mfc_dec_setup_output:103): Setup MFC decoding OUTPUT buffer \
+size=4194304 (requested=4194304)
+(mfc.c:mfc_dec_setup_output:120): Number of MFC OUTPUT buffers is 2 \
+(requested 2)
 
-Fixes: 460b6c0831cb ("[media] tvp5150: Add s_stream subdev operation support")
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: stable@vger.kernel.org
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
+[App] Out buf phy : 0x00000000, virt : 0xffffffff
+Output Length is = 0x300000
+Error (mfc.c:mfc_dec_setup_output:145): Failed to MMAP MFC OUTPUT buffer
+-------------------------------------------------------------------------
+This is because the device requesting for memory is mfc0.left not the parent mfc0.
+Hence setting of alloc_devs need to be done only if IOMMU is enabled
+and in that case both the left and right device is treated as mfc0 only.
+Also we need to populate vb2_queue's dev pointer with mfc dev pointer.
 
-changes since version 1: added a notice about what's broken at the
-tvp5150_stream() logic, and improved patch's description.
+Smitha T Murthy (2):
+  media: s5p-mfc: convert drivers to use the new vb2_queue dev field
+  media: s5p-mfc: fix MMAP of mfc buffer during reqbufs
 
-changes since RFC: don't touch at enum v4l2_mbus_type.
+ drivers/media/platform/s5p-mfc/s5p_mfc.c     |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 17 ++++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 18 +++++++++++-------
+ 3 files changed, 23 insertions(+), 14 deletions(-)
 
-
- drivers/media/i2c/tvp5150.c | 18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 6737685d5be5..c9fd36998ac7 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -57,6 +57,7 @@ struct tvp5150 {
- 	u16 rom_ver;
- 
- 	enum v4l2_mbus_type mbus_type;
-+	bool has_dt;
- };
- 
- static inline struct tvp5150 *to_tvp5150(struct v4l2_subdev *sd)
-@@ -795,7 +796,7 @@ static int tvp5150_reset(struct v4l2_subdev *sd, u32 val)
- 
- 	tvp5150_set_std(sd, decoder->norm);
- 
--	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
-+	if (decoder->mbus_type == V4L2_MBUS_PARALLEL || !decoder->has_dt)
- 		tvp5150_write(sd, TVP5150_DATA_RATE_SEL, 0x40);
- 
- 	return 0;
-@@ -1053,6 +1054,20 @@ static int tvp5150_s_stream(struct v4l2_subdev *sd, int enable)
- 	/* Output format: 8-bit ITU-R BT.656 with embedded syncs */
- 	int val = 0x09;
- 
-+	if (!decoder->has_dt)
-+		return 0;
-+
-+	/*
-+	 * FIXME: the logic below is hardcoded to work with some OMAP3
-+	 * hardware with tvp5151. As such, it hardcodes values for
-+	 * both TVP5150_CONF_SHARED_PIN and TVP5150_MISC_CTL, and ignores
-+	 * what was set before at the driver. Ideally, we should have
-+	 * DT nodes describing the setup, instead of hardcoding those
-+	 * values, and doing a read before writing values to
-+	 * TVP5150_MISC_CTL, but any patch adding support for it should
-+	 * keep DT backward-compatible.
-+	 */
-+
- 	/* Output format: 8-bit 4:2:2 YUV with discrete sync */
- 	if (decoder->mbus_type == V4L2_MBUS_PARALLEL)
- 		val = 0x0d;
-@@ -1374,6 +1389,7 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
- 	}
- 
- 	decoder->mbus_type = bus_cfg.bus_type;
-+	decoder->has_dt = true;
- 
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	connectors = of_get_child_by_name(np, "connectors");
 -- 
-2.9.3
-
+2.7.4
 
