@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:50266 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755455AbcLZUwp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 15:52:45 -0500
-Subject: [PATCH 7/8] [media] videobuf-dma-sg: Delete an unnecessary return
- statement in videobuf_vm_close()
-To: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <23eb1fd5-696e-aed0-eb26-f5ae46b6e62e@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:52:23 +0100
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:63172 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757498AbcLPNck (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 08:32:40 -0500
+From: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
+CC: <kernel@stlinux.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Subject: [PATCH v1] [media] v4l2-common: fix aligned value calculation
+Date: Fri, 16 Dec 2016 14:32:15 +0100
+Message-ID: <1481895135-11055-1-git-send-email-jean-christophe.trotin@st.com>
 MIME-Version: 1.0
-In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:09:01 +0100
+Correct the calculation of the rounding to nearest aligned value in
+the clamp_align() function. For example, clamp_align(1277, 1, 9600, 2)
+returns 1276, while it should return 1280.
 
-The script "checkpatch.pl" pointed information out like the following.
-
-WARNING: void function return statements are not generally useful
-
-Thus remove such a statement here.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
 ---
- drivers/media/v4l2-core/videobuf-dma-sg.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 070ba10bbdbc..c8658530da57 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -427,7 +427,6 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 		videobuf_queue_unlock(q);
- 		kfree(map);
- 	}
--	return;
- }
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 57cfe26a..2970ce7 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -315,7 +315,7 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
  
- /*
+ 	/* Round to nearest aligned value */
+ 	if (align)
+-		x = (x + (1 << (align - 1))) & mask;
++		x = (x + ((1 << align) - 1)) & mask;
+ 
+ 	return x;
+ }
 -- 
-2.11.0
+1.9.1
 
