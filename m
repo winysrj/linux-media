@@ -1,41 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34541 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933192AbcLSQsR (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:43011
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1757708AbcLPOjX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Dec 2016 11:48:17 -0500
-From: Santosh Kumar Singh <kumar.san1093@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        mjpeg-users@lists.sourceforge.net
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>
-Subject: [PATCH] zoran: Clean up file handle in open() error path.
-Date: Mon, 19 Dec 2016 22:17:44 +0530
-Message-Id: <1482166064-3884-1-git-send-email-kumar.san1093@gmail.com>
+        Fri, 16 Dec 2016 09:39:23 -0500
+Subject: Re: [RFC v3 21/21] omap3isp: Don't rely on devm for memory resource
+ management
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1472255009-28719-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1472255009-28719-22-git-send-email-sakari.ailus@linux.intel.com>
+ <1551037.Hfmqsgr3In@avalon>
+ <20161216133254.GJ16630@valkosipuli.retiisi.org.uk>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@osg.samsung.com, Shuah Khan <shuahkh@osg.samsung.com>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <719695f1-b22f-8e9f-6a5b-9a1576a756c9@osg.samsung.com>
+Date: Fri, 16 Dec 2016 07:39:20 -0700
+MIME-Version: 1.0
+In-Reply-To: <20161216133254.GJ16630@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix to avoid possible memory leak and exit file handle
-in error paths.
+On 12/16/2016 06:32 AM, Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> On Thu, Dec 15, 2016 at 01:23:50PM +0200, Laurent Pinchart wrote:
+>>> @@ -1596,7 +1604,6 @@ static void isp_unregister_entities(struct isp_device
+>>> *isp) omap3isp_stat_unregister_entities(&isp->isp_af);
+>>>  	omap3isp_stat_unregister_entities(&isp->isp_hist);
+>>>
+>>> -	v4l2_device_unregister(&isp->v4l2_dev);
+>>
+>> This isn't correct. The v4l2_device instance should be unregistered here, to 
+>> make sure that the subdev nodes are unregistered too. And even if moving the 
+>> function call was correct, it should be done in a separate patch as it's 
+>> unrelated to $SUBJECT.
+> 
+> I think I tried to fix another problem here we haven't considered before,
+> which is that v4l2_device_unregister() also unregisters the entities through
+> media_device_unregister_entity(). This will set the media device of the
+> graph objects NULL.
+> 
+> I'll see whether something could be done to that.
+> 
 
-Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
----
- drivers/media/pci/zoran/zoran_driver.c | 1 +
- 1 file changed, 1 insertion(+)
+Right That is what I was pointing out, when I said the cleanup routines are
+done in the wrong place. Entity registration and unregistration are distributed
+in nature. v4l2 register will register entities and unregister will unregister
+its entities. dvb will do the same.
 
-diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-index d6b631a..13e17a4 100644
---- a/drivers/media/pci/zoran/zoran_driver.c
-+++ b/drivers/media/pci/zoran/zoran_driver.c
-@@ -975,6 +975,7 @@ static int zoran_open(struct file *file)
- 	return 0;
- 
- fail_fh:
-+	v4l2_fh_exit(&fh->fh);
- 	kfree(fh);
- fail_unlock:
- 	mutex_unlock(&zr->lock);
--- 
-1.9.1
+So essentially entities get added and removed when any of these drivers get
+unbound. Please see the following I posted on
 
+[RFC v3 00/21] Make use of kref in media device, grab references as needed
+
+> v4l2-core registers and unregisters entities and so does dvb-core. So when a
+> driver unregisters video and dvb, these entities get deleted. So we have a
+> distributed mode of registering and unregistering entities. We also have
+> ioctls (video, dvb, and media) accessing these entities. So where do we make
+> changes to ensure entities stick around until all users exit?
+>
+> Ref-counting entities won't work if they are embedded - like in the case of
+> struct video_device which embeds the media entity. When struct video goes
+> away then entity will disappear. So we do have a complex lifetime model here
+> that we need to figure out how to fix.
+
+thanks,
+-- Shuah
