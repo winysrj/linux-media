@@ -1,69 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f174.google.com ([209.85.161.174]:35984 "EHLO
-        mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752311AbcL2PKr (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50169 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757064AbcLPBYA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 29 Dec 2016 10:10:47 -0500
-Received: by mail-yw0-f174.google.com with SMTP id a10so208531489ywa.3
-        for <linux-media@vger.kernel.org>; Thu, 29 Dec 2016 07:10:47 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
-References: <1476466481-24030-1-git-send-email-p.zabel@pengutronix.de>
- <20161019213026.GU9460@valkosipuli.retiisi.org.uk> <CAH-u=807nRYzza0kTfOMv1AiWazk6FGJyz6W5_bYw7v9nOrccA@mail.gmail.com>
-From: Jean-Michel Hautbois <jean-michel.hautbois@veo-labs.com>
-Date: Thu, 29 Dec 2016 16:10:26 +0100
-Message-ID: <CAH-u=83snOXVS1iSk1=xhkq7-iDUJXutnR_jhyN+qpGxE_zejQ@mail.gmail.com>
-Subject: Re: [PATCH v2 00/21] Basic i.MX IPUv3 capture support
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Marek Vasut <marex@denx.de>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Gary Bisson <gary.bisson@boundarydevices.com>,
-        Sascha Hauer <kernel@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
+        Thu, 15 Dec 2016 20:24:00 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Laura Abbott <labbott@redhat.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [RFC v2 06/11] vb2: Improve struct vb2_mem_ops documentation; alloc and put are for MMAP
+Date: Fri, 16 Dec 2016 03:24:20 +0200
+Message-Id: <20161216012425.11179-7-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am so sorry... This mail wasn't send to the mailing list as this
-****** gmail switched back to HTML...
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-2016-12-29 16:08 GMT+01:00 Jean-Michel Hautbois
-<jean-michel.hautbois@veo-labs.com>:
-> Hi Philipp and al.,
->
->
-> 2016-10-19 23:30 GMT+02:00 Sakari Ailus <sakari.ailus@iki.fi>:
->>
->> On Fri, Oct 14, 2016 at 07:34:20PM +0200, Philipp Zabel wrote:
->> > Hi,
->> >
->> > the second round removes the prepare_stream callback and instead lets
->> > the
->> > intermediate subdevices propagate s_stream calls to their sources rather
->> > than individually calling s_stream on each subdevice from the bridge
->> > driver.
->> > This is similar to how drm bridges recursively call into their next
->> > neighbor.
->> > It makes it easier to do bringup ordering on a per-link level, as long
->> > as the
->> > source preparation can be done at s_power, and the sink can just
->> > prepare, call
->> > s_stream on its source, and then enable itself inside s_stream.
->> > Obviously this
->> > would only work in a generic fashion if all asynchronous subdevices with
->> > both
->> > inputs and outputs would propagate s_stream to their source subdevices.
->
->
-> What is the status of this work ? I saw Steve's patches before yours, so
-> both are implementing pretty much the same functionnality but differently.
-> Which one will be finally merged ?
-> I wanted to upgrade my kernel, in order to give it a try on a board with
-> adv7604 and adv7611 devices.
-> Is there a git tree somewhere integrating it too ?
->
-> Thanks,
-> JM
->
->
+The alloc() and put() ops are for MMAP buffers only. Document it.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+Changes since v1:
+
+- Fixed typo in documentation
+---
+ include/media/videobuf2-core.h | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index bfad0588bb2b..15084b90e2d5 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -46,16 +46,16 @@ struct vb2_threadio_data;
+ 
+ /**
+  * struct vb2_mem_ops - memory handling/memory allocator operations
+- * @alloc:	allocate video memory and, optionally, allocator private data,
+- *		return ERR_PTR() on failure or a pointer to allocator private,
+- *		per-buffer data on success; the returned private structure
+- *		will then be passed as @buf_priv argument to other ops in this
+- *		structure. Additional gfp_flags to use when allocating the
+- *		are also passed to this operation. These flags are from the
+- *		gfp_flags field of vb2_queue.
+- * @put:	inform the allocator that the buffer will no longer be used;
+- *		usually will result in the allocator freeing the buffer (if
+- *		no other users of this buffer are present); the @buf_priv
++ * @alloc:	allocate video memory for an MMAP buffer and, optionally,
++ *		allocator private data, return ERR_PTR() on failure or a pointer
++ *		to allocator private, per-buffer data on success; the returned
++ *		private structure will then be passed as @buf_priv argument to
++ *		other ops in this structure. Additional gfp_flags to use when
++ *		allocating the memory are also passed to this operation. These
++ *		flags are from the gfp_flags field of vb2_queue.
++ * @put:	inform the allocator that the MMAP buffer will no longer be
++ *		used; usually will result in the allocator freeing the buffer
++ *		(if no other users of this buffer are present); the @buf_priv
+  *		argument is the allocator private per-buffer structure
+  *		previously returned from the alloc callback.
+  * @get_dmabuf: acquire userspace memory for a hardware operation; used for
+-- 
+Regards,
+
+Laurent Pinchart
+
