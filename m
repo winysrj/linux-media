@@ -1,984 +1,998 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:48587 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752009AbcLERLy (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:36155 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757027AbcLPIvO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 12:11:54 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>
-CC: <kernel@stlinux.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-Subject: [PATCH v4 09/10] [media] st-delta: add mjpeg support
-Date: Mon, 5 Dec 2016 18:11:32 +0100
-Message-ID: <1480957893-25636-10-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-References: <1480957893-25636-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 16 Dec 2016 03:51:14 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v6 1/6] [media] rc-main: assign driver type during allocation
+Date: Fri, 16 Dec 2016 17:50:58 +0900
+Message-id: <20161216085058.16056-1-andi.shyti@samsung.com>
+In-reply-to: <20161216061218.5906-2-andi.shyti@samsung.com>
+References: <20161216061218.5906-2-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds support of DELTA MJPEG video decoder back-end,
-implemented by calling JPEG_DECODER_HW0 firmware
-using RPMSG IPC communication layer.
+The driver type can be assigned immediately when an RC device
+requests to the framework to allocate the device.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+This is an 'enum rc_driver_type' data type and specifies whether
+the device is a raw receiver or scancode receiver. The type will
+be given as parameter to the rc_allocate_device device.
+
+Change accordingly all the drivers calling rc_allocate_device()
+so that the device type is specified during the rc device
+allocation. Whenever the device type is not specified, it will be
+set as RC_DRIVER_SCANCODE which was the default '0' value.
+
+Suggested-by: Sean Young <sean@mess.org>
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Reviewed-by: Sean Young <sean@mess.org>
 ---
- drivers/media/platform/Kconfig                     |   6 +
- drivers/media/platform/sti/delta/Makefile          |   4 +
- drivers/media/platform/sti/delta/delta-cfg.h       |   3 +
- drivers/media/platform/sti/delta/delta-mjpeg-dec.c | 454 +++++++++++++++++++++
- drivers/media/platform/sti/delta/delta-mjpeg-fw.h  | 221 ++++++++++
- drivers/media/platform/sti/delta/delta-mjpeg-hdr.c | 150 +++++++
- drivers/media/platform/sti/delta/delta-mjpeg.h     |  35 ++
- drivers/media/platform/sti/delta/delta-v4l2.c      |   3 +
- 8 files changed, 876 insertions(+)
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-dec.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-fw.h
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
- create mode 100644 drivers/media/platform/sti/delta/delta-mjpeg.h
+Hi,
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 09e2797..b60de06 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -317,6 +317,12 @@ config VIDEO_STI_DELTA
+Sorry for further spamming, but these drivers change so fast and
+I'm taking too long to finalize this patch series.
+
+This is the correct patch which fixes the compile error from the
+kbuild test robot.
+
+The whole patch series, anyway, is rebased on next-161216 and all
+the files compile.
+
+Thanks,
+Andi
+
+ drivers/hid/hid-picolcd_cir.c               |  3 +--
+ drivers/media/cec/cec-core.c                |  3 +--
+ drivers/media/common/siano/smsir.c          |  3 +--
+ drivers/media/i2c/ir-kbd-i2c.c              |  2 +-
+ drivers/media/pci/bt8xx/bttv-input.c        |  2 +-
+ drivers/media/pci/cx23885/cx23885-input.c   | 11 +----------
+ drivers/media/pci/cx88/cx88-input.c         |  3 +--
+ drivers/media/pci/dm1105/dm1105.c           |  3 +--
+ drivers/media/pci/mantis/mantis_input.c     |  2 +-
+ drivers/media/pci/saa7134/saa7134-input.c   |  2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c      |  3 +--
+ drivers/media/pci/ttpci/budget-ci.c         |  2 +-
+ drivers/media/rc/ati_remote.c               |  3 +--
+ drivers/media/rc/ene_ir.c                   |  3 +--
+ drivers/media/rc/fintek-cir.c               |  3 +--
+ drivers/media/rc/gpio-ir-recv.c             |  3 +--
+ drivers/media/rc/igorplugusb.c              |  3 +--
+ drivers/media/rc/iguanair.c                 |  3 +--
+ drivers/media/rc/img-ir/img-ir-hw.c         |  2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c        |  3 +--
+ drivers/media/rc/imon.c                     |  3 +--
+ drivers/media/rc/ir-hix5hd2.c               |  3 +--
+ drivers/media/rc/ite-cir.c                  |  3 +--
+ drivers/media/rc/mceusb.c                   |  3 +--
+ drivers/media/rc/meson-ir.c                 |  3 +--
+ drivers/media/rc/nuvoton-cir.c              |  3 +--
+ drivers/media/rc/rc-loopback.c              |  3 +--
+ drivers/media/rc/rc-main.c                  |  9 ++++++---
+ drivers/media/rc/redrat3.c                  |  3 +--
+ drivers/media/rc/serial_ir.c                |  3 +--
+ drivers/media/rc/st_rc.c                    |  3 +--
+ drivers/media/rc/streamzap.c                |  3 +--
+ drivers/media/rc/sunxi-cir.c                |  3 +--
+ drivers/media/rc/ttusbir.c                  |  3 +--
+ drivers/media/rc/winbond-cir.c              |  3 +--
+ drivers/media/usb/au0828/au0828-input.c     |  3 +--
+ drivers/media/usb/cx231xx/cx231xx-input.c   |  2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c |  3 +--
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c  |  3 +--
+ drivers/media/usb/em28xx/em28xx-input.c     |  2 +-
+ drivers/media/usb/tm6000/tm6000-input.c     |  3 +--
+ include/media/rc-core.h                     |  6 ++++--
+ 42 files changed, 50 insertions(+), 85 deletions(-)
+
+diff --git a/drivers/hid/hid-picolcd_cir.c b/drivers/hid/hid-picolcd_cir.c
+index 9628651..38b0ea8 100644
+--- a/drivers/hid/hid-picolcd_cir.c
++++ b/drivers/hid/hid-picolcd_cir.c
+@@ -108,12 +108,11 @@ int picolcd_init_cir(struct picolcd_data *data, struct hid_report *report)
+ 	struct rc_dev *rdev;
+ 	int ret = 0;
  
- if VIDEO_STI_DELTA
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		return -ENOMEM;
  
-+config VIDEO_STI_DELTA_MJPEG
-+	bool "STMicroelectronics DELTA MJPEG support"
-+	default y
-+	help
-+		Enables DELTA MJPEG hardware support.
-+
- endif # VIDEO_STI_DELTA
+ 	rdev->priv             = data;
+-	rdev->driver_type      = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open             = picolcd_cir_open;
+ 	rdev->close            = picolcd_cir_close;
+diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
+index aca3ab8..37217e2 100644
+--- a/drivers/media/cec/cec-core.c
++++ b/drivers/media/cec/cec-core.c
+@@ -239,7 +239,7 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
  
- config VIDEO_SH_VEU
-diff --git a/drivers/media/platform/sti/delta/Makefile b/drivers/media/platform/sti/delta/Makefile
-index e47e0bd..663be70 100644
---- a/drivers/media/platform/sti/delta/Makefile
-+++ b/drivers/media/platform/sti/delta/Makefile
-@@ -1,2 +1,6 @@
- obj-$(CONFIG_VIDEO_STI_DELTA) := st-delta.o
- st-delta-y := delta-v4l2.o delta-mem.o delta-ipc.o
-+
-+# MJPEG support
-+st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-hdr.o
-+st-delta-$(CONFIG_VIDEO_STI_DELTA_MJPEG) += delta-mjpeg-dec.o
-diff --git a/drivers/media/platform/sti/delta/delta-cfg.h b/drivers/media/platform/sti/delta/delta-cfg.h
-index 0122a49..fa89064 100644
---- a/drivers/media/platform/sti/delta/delta-cfg.h
-+++ b/drivers/media/platform/sti/delta/delta-cfg.h
-@@ -56,5 +56,8 @@
- #define DELTA_HW_AUTOSUSPEND_DELAY_MS 5
+ #if IS_REACHABLE(CONFIG_RC_CORE)
+ 	/* Prepare the RC input device */
+-	adap->rc = rc_allocate_device();
++	adap->rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!adap->rc) {
+ 		pr_err("cec-%s: failed to allocate memory for rc_dev\n",
+ 		       name);
+@@ -259,7 +259,6 @@ struct cec_adapter *cec_allocate_adapter(const struct cec_adap_ops *ops,
+ 	adap->rc->input_id.vendor = 0;
+ 	adap->rc->input_id.product = 0;
+ 	adap->rc->input_id.version = 1;
+-	adap->rc->driver_type = RC_DRIVER_SCANCODE;
+ 	adap->rc->driver_name = CEC_NAME;
+ 	adap->rc->allowed_protocols = RC_BIT_CEC;
+ 	adap->rc->priv = adap;
+diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
+index 41f2a39..ee30c7b 100644
+--- a/drivers/media/common/siano/smsir.c
++++ b/drivers/media/common/siano/smsir.c
+@@ -58,7 +58,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 	struct rc_dev *dev;
  
- #define DELTA_MAX_DECODERS 10
-+#ifdef CONFIG_VIDEO_STI_DELTA_MJPEG
-+extern const struct delta_dec mjpegdec;
-+#endif
+ 	pr_debug("Allocating rc device\n");
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!dev)
+ 		return -ENOMEM;
  
- #endif /* DELTA_CFG_H */
-diff --git a/drivers/media/platform/sti/delta/delta-mjpeg-dec.c b/drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-new file mode 100644
-index 0000000..c6c421a
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mjpeg-dec.c
-@@ -0,0 +1,454 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2013
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include <linux/slab.h>
-+
-+#include "delta.h"
-+#include "delta-ipc.h"
-+#include "delta-mjpeg.h"
-+#include "delta-mjpeg-fw.h"
-+
-+#define DELTA_MJPEG_MAX_RESO DELTA_MAX_RESO
-+
-+struct delta_mjpeg_ctx {
-+	/* jpeg header */
-+	struct mjpeg_header header_struct;
-+	struct mjpeg_header *header;
-+
-+	/* ipc */
-+	void *ipc_hdl;
-+	struct delta_buf *ipc_buf;
-+
-+	/* decoded output frame */
-+	struct delta_frame *out_frame;
-+
-+	unsigned char str[3000];
-+};
-+
-+#define to_ctx(ctx) ((struct delta_mjpeg_ctx *)(ctx)->priv)
-+
-+static char *ipc_open_param_str(struct jpeg_video_decode_init_params_t *p,
-+				char *str, unsigned int len)
-+{
-+	char *b = str;
-+
-+	if (!p)
-+		return "";
-+
-+	b += snprintf(b, len,
-+		      "jpeg_video_decode_init_params_t\n"
-+		      "circular_buffer_begin_addr_p 0x%x\n"
-+		      "circular_buffer_end_addr_p   0x%x\n",
-+		      p->circular_buffer_begin_addr_p,
-+		      p->circular_buffer_end_addr_p);
-+
-+	return str;
-+}
-+
-+static char *ipc_decode_param_str(struct jpeg_decode_params_t *p,
-+				  char *str, unsigned int len)
-+{
-+	char *b = str;
-+
-+	if (!p)
-+		return "";
-+
-+	b += snprintf(b, len,
-+		      "jpeg_decode_params_t\n"
-+		      "picture_start_addr_p                  0x%x\n"
-+		      "picture_end_addr_p                    0x%x\n"
-+		      "decoding_mode                        %d\n"
-+		      "display_buffer_addr.display_decimated_luma_p   0x%x\n"
-+		      "display_buffer_addr.display_decimated_chroma_p 0x%x\n"
-+		      "main_aux_enable                       %d\n"
-+		      "additional_flags                     0x%x\n"
-+		      "field_flag                           %x\n"
-+		      "is_jpeg_image                        %x\n",
-+		      p->picture_start_addr_p,
-+		      p->picture_end_addr_p,
-+		      p->decoding_mode,
-+		      p->display_buffer_addr.display_decimated_luma_p,
-+		      p->display_buffer_addr.display_decimated_chroma_p,
-+		      p->main_aux_enable, p->additional_flags,
-+		      p->field_flag,
-+		      p->is_jpeg_image);
-+
-+	return str;
-+}
-+
-+static inline bool is_stream_error(enum jpeg_decoding_error_t err)
-+{
-+	switch (err) {
-+	case JPEG_DECODER_UNDEFINED_HUFF_TABLE:
-+	case JPEG_DECODER_BAD_RESTART_MARKER:
-+	case JPEG_DECODER_BAD_SOS_SPECTRAL:
-+	case JPEG_DECODER_BAD_SOS_SUCCESSIVE:
-+	case JPEG_DECODER_BAD_HEADER_LENGTH:
-+	case JPEG_DECODER_BAD_COUNT_VALUE:
-+	case JPEG_DECODER_BAD_DHT_MARKER:
-+	case JPEG_DECODER_BAD_INDEX_VALUE:
-+	case JPEG_DECODER_BAD_NUMBER_HUFFMAN_TABLES:
-+	case JPEG_DECODER_BAD_QUANT_TABLE_LENGTH:
-+	case JPEG_DECODER_BAD_NUMBER_QUANT_TABLES:
-+	case JPEG_DECODER_BAD_COMPONENT_COUNT:
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static inline const char *err_str(enum jpeg_decoding_error_t err)
-+{
-+	switch (err) {
-+	case JPEG_DECODER_NO_ERROR:
-+		return "JPEG_DECODER_NO_ERROR";
-+	case JPEG_DECODER_UNDEFINED_HUFF_TABLE:
-+		return "JPEG_DECODER_UNDEFINED_HUFF_TABLE";
-+	case JPEG_DECODER_UNSUPPORTED_MARKER:
-+		return "JPEG_DECODER_UNSUPPORTED_MARKER";
-+	case JPEG_DECODER_UNABLE_ALLOCATE_MEMORY:
-+		return "JPEG_DECODER_UNABLE_ALLOCATE_MEMORY";
-+	case JPEG_DECODER_NON_SUPPORTED_SAMP_FACTORS:
-+		return "JPEG_DECODER_NON_SUPPORTED_SAMP_FACTORS";
-+	case JPEG_DECODER_BAD_PARAMETER:
-+		return "JPEG_DECODER_BAD_PARAMETER";
-+	case JPEG_DECODER_DECODE_ERROR:
-+		return "JPEG_DECODER_DECODE_ERROR";
-+	case JPEG_DECODER_BAD_RESTART_MARKER:
-+		return "JPEG_DECODER_BAD_RESTART_MARKER";
-+	case JPEG_DECODER_UNSUPPORTED_COLORSPACE:
-+		return "JPEG_DECODER_UNSUPPORTED_COLORSPACE";
-+	case JPEG_DECODER_BAD_SOS_SPECTRAL:
-+		return "JPEG_DECODER_BAD_SOS_SPECTRAL";
-+	case JPEG_DECODER_BAD_SOS_SUCCESSIVE:
-+		return "JPEG_DECODER_BAD_SOS_SUCCESSIVE";
-+	case JPEG_DECODER_BAD_HEADER_LENGTH:
-+		return "JPEG_DECODER_BAD_HEADER_LENGTH";
-+	case JPEG_DECODER_BAD_COUNT_VALUE:
-+		return "JPEG_DECODER_BAD_COUNT_VALUE";
-+	case JPEG_DECODER_BAD_DHT_MARKER:
-+		return "JPEG_DECODER_BAD_DHT_MARKER";
-+	case JPEG_DECODER_BAD_INDEX_VALUE:
-+		return "JPEG_DECODER_BAD_INDEX_VALUE";
-+	case JPEG_DECODER_BAD_NUMBER_HUFFMAN_TABLES:
-+		return "JPEG_DECODER_BAD_NUMBER_HUFFMAN_TABLES";
-+	case JPEG_DECODER_BAD_QUANT_TABLE_LENGTH:
-+		return "JPEG_DECODER_BAD_QUANT_TABLE_LENGTH";
-+	case JPEG_DECODER_BAD_NUMBER_QUANT_TABLES:
-+		return "JPEG_DECODER_BAD_NUMBER_QUANT_TABLES";
-+	case JPEG_DECODER_BAD_COMPONENT_COUNT:
-+		return "JPEG_DECODER_BAD_COMPONENT_COUNT";
-+	case JPEG_DECODER_DIVIDE_BY_ZERO_ERROR:
-+		return "JPEG_DECODER_DIVIDE_BY_ZERO_ERROR";
-+	case JPEG_DECODER_NOT_JPG_IMAGE:
-+		return "JPEG_DECODER_NOT_JPG_IMAGE";
-+	case JPEG_DECODER_UNSUPPORTED_ROTATION_ANGLE:
-+		return "JPEG_DECODER_UNSUPPORTED_ROTATION_ANGLE";
-+	case JPEG_DECODER_UNSUPPORTED_SCALING:
-+		return "JPEG_DECODER_UNSUPPORTED_SCALING";
-+	case JPEG_DECODER_INSUFFICIENT_OUTPUTBUFFER_SIZE:
-+		return "JPEG_DECODER_INSUFFICIENT_OUTPUTBUFFER_SIZE";
-+	case JPEG_DECODER_BAD_HWCFG_GP_VERSION_VALUE:
-+		return "JPEG_DECODER_BAD_HWCFG_GP_VERSION_VALUE";
-+	case JPEG_DECODER_BAD_VALUE_FROM_RED:
-+		return "JPEG_DECODER_BAD_VALUE_FROM_RED";
-+	case JPEG_DECODER_BAD_SUBREGION_PARAMETERS:
-+		return "JPEG_DECODER_BAD_SUBREGION_PARAMETERS";
-+	case JPEG_DECODER_PROGRESSIVE_DECODE_NOT_SUPPORTED:
-+		return "JPEG_DECODER_PROGRESSIVE_DECODE_NOT_SUPPORTED";
-+	case JPEG_DECODER_ERROR_TASK_TIMEOUT:
-+		return "JPEG_DECODER_ERROR_TASK_TIMEOUT";
-+	case JPEG_DECODER_ERROR_FEATURE_NOT_SUPPORTED:
-+		return "JPEG_DECODER_ERROR_FEATURE_NOT_SUPPORTED";
-+	default:
-+		return "!unknown MJPEG error!";
-+	}
-+}
-+
-+static bool delta_mjpeg_check_status(struct delta_ctx *pctx,
-+				     struct jpeg_decode_return_params_t *status)
-+{
-+	struct delta_dev *delta = pctx->dev;
-+	bool dump = false;
-+
-+	if (status->error_code == JPEG_DECODER_NO_ERROR)
-+		goto out;
-+
-+	if (is_stream_error(status->error_code)) {
-+		dev_warn_ratelimited(delta->dev,
-+				     "%s  firmware: stream error @ frame %d (%s)\n",
-+				     pctx->name, pctx->decoded_frames,
-+				     err_str(status->error_code));
-+		pctx->stream_errors++;
-+	} else {
-+		dev_warn_ratelimited(delta->dev,
-+				     "%s  firmware: decode error @ frame %d (%s)\n",
-+				     pctx->name, pctx->decoded_frames,
-+				     err_str(status->error_code));
-+		pctx->decode_errors++;
-+		dump = true;
-+	}
-+
-+out:
-+	dev_dbg(delta->dev,
-+		"%s  firmware: decoding time(us)=%d\n", pctx->name,
-+		status->decode_time_in_us);
-+
-+	return dump;
-+}
-+
-+static int delta_mjpeg_ipc_open(struct delta_ctx *pctx)
-+{
-+	struct delta_dev *delta = pctx->dev;
-+	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
-+	int ret = 0;
-+	struct jpeg_video_decode_init_params_t params_struct;
-+	struct jpeg_video_decode_init_params_t *params = &params_struct;
-+	struct delta_buf *ipc_buf;
-+	u32 ipc_buf_size;
-+	struct delta_ipc_param ipc_param;
-+	void *hdl;
-+
-+	memset(params, 0, sizeof(*params));
-+	params->circular_buffer_begin_addr_p = 0x00000000;
-+	params->circular_buffer_end_addr_p = 0xffffffff;
-+
-+	dev_vdbg(delta->dev,
-+		 "%s  %s\n", pctx->name,
-+		 ipc_open_param_str(params, ctx->str, sizeof(ctx->str)));
-+
-+	ipc_param.size = sizeof(*params);
-+	ipc_param.data = params;
-+	ipc_buf_size = sizeof(struct jpeg_decode_params_t) +
-+	    sizeof(struct jpeg_decode_return_params_t);
-+	ret = delta_ipc_open(pctx, "JPEG_DECODER_HW0", &ipc_param,
-+			     ipc_buf_size, &ipc_buf, &hdl);
-+	if (ret) {
-+		dev_err(delta->dev,
-+			"%s  dumping command %s\n", pctx->name,
-+			ipc_open_param_str(params, ctx->str, sizeof(ctx->str)));
-+		return ret;
-+	}
-+
-+	ctx->ipc_buf = ipc_buf;
-+	ctx->ipc_hdl = hdl;
-+
-+	return 0;
-+}
-+
-+static int delta_mjpeg_ipc_decode(struct delta_ctx *pctx, struct delta_au *au)
-+{
-+	struct delta_dev *delta = pctx->dev;
-+	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
-+	int ret = 0;
-+	struct jpeg_decode_params_t *params = ctx->ipc_buf->vaddr;
-+	struct jpeg_decode_return_params_t *status =
-+	    ctx->ipc_buf->vaddr + sizeof(*params);
-+	struct delta_frame *frame;
-+	struct delta_ipc_param ipc_param, ipc_status;
-+
-+	ret = delta_get_free_frame(pctx, &frame);
-+	if (ret)
-+		return ret;
-+
-+	memset(params, 0, sizeof(*params));
-+
-+	params->picture_start_addr_p = (u32)(au->paddr);
-+	params->picture_end_addr_p = (u32)(au->paddr + au->size - 1);
-+
-+	/* !WARNING!
-+	 * the NV12 decoded frame is only available
-+	 * on decimated output when enabling flag
-+	 * "JPEG_ADDITIONAL_FLAG_420MB"...
-+	 * the non decimated output gives YUV422SP
-+	 */
-+	params->main_aux_enable = JPEG_DISP_AUX_EN;
-+	params->additional_flags = JPEG_ADDITIONAL_FLAG_420MB;
-+	params->horizontal_decimation_factor = JPEG_HDEC_1;
-+	params->vertical_decimation_factor = JPEG_VDEC_1;
-+	params->decoding_mode = JPEG_NORMAL_DECODE;
-+
-+	params->display_buffer_addr.struct_size =
-+	    sizeof(struct jpeg_display_buffer_address_t);
-+	params->display_buffer_addr.display_decimated_luma_p =
-+	    (u32)frame->paddr;
-+	params->display_buffer_addr.display_decimated_chroma_p =
-+	    (u32)(frame->paddr
-+		  + frame->info.aligned_width * frame->info.aligned_height);
-+
-+	dev_vdbg(delta->dev,
-+		 "%s  %s\n", pctx->name,
-+		 ipc_decode_param_str(params, ctx->str, sizeof(ctx->str)));
-+
-+	/* status */
-+	memset(status, 0, sizeof(*status));
-+	status->error_code = JPEG_DECODER_NO_ERROR;
-+
-+	ipc_param.size = sizeof(*params);
-+	ipc_param.data = params;
-+	ipc_status.size = sizeof(*status);
-+	ipc_status.data = status;
-+	ret = delta_ipc_decode(ctx->ipc_hdl, &ipc_param, &ipc_status);
-+	if (ret) {
-+		dev_err(delta->dev,
-+			"%s  dumping command %s\n", pctx->name,
-+			ipc_decode_param_str(params, ctx->str,
-+					     sizeof(ctx->str)));
-+		return ret;
-+	}
-+
-+	pctx->decoded_frames++;
-+
-+	/* check firmware decoding status */
-+	if (delta_mjpeg_check_status(pctx, status)) {
-+		dev_err(delta->dev,
-+			"%s  dumping command %s\n", pctx->name,
-+			ipc_decode_param_str(params, ctx->str,
-+					     sizeof(ctx->str)));
-+	}
-+
-+	frame->field = V4L2_FIELD_NONE;
-+	frame->flags = V4L2_BUF_FLAG_KEYFRAME;
-+	frame->state |= DELTA_FRAME_DEC;
-+
-+	ctx->out_frame = frame;
-+
-+	return 0;
-+}
-+
-+static int delta_mjpeg_open(struct delta_ctx *pctx)
-+{
-+	struct delta_mjpeg_ctx *ctx;
-+
-+	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
-+	pctx->priv = ctx;
-+
-+	return 0;
-+}
-+
-+static int delta_mjpeg_close(struct delta_ctx *pctx)
-+{
-+	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
-+
-+	if (ctx->ipc_hdl) {
-+		delta_ipc_close(ctx->ipc_hdl);
-+		ctx->ipc_hdl = NULL;
-+	}
-+
-+	kfree(ctx);
-+
-+	return 0;
-+}
-+
-+static int delta_mjpeg_get_streaminfo(struct delta_ctx *pctx,
-+				      struct delta_streaminfo *streaminfo)
-+{
-+	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
-+
-+	if (!ctx->header)
-+		goto nodata;
-+
-+	streaminfo->streamformat = V4L2_PIX_FMT_MJPEG;
-+	streaminfo->width = ctx->header->frame_width;
-+	streaminfo->height = ctx->header->frame_height;
-+
-+	/* progressive stream */
-+	streaminfo->field = V4L2_FIELD_NONE;
-+
-+	streaminfo->dpb = 1;
-+
-+	return 0;
-+
-+nodata:
-+	return -ENODATA;
-+}
-+
-+static int delta_mjpeg_decode(struct delta_ctx *pctx, struct delta_au *pau)
-+{
-+	struct delta_dev *delta = pctx->dev;
-+	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
-+	int ret;
-+	struct delta_au au = *pau;
-+	unsigned int data_offset;
-+	struct mjpeg_header *header = &ctx->header_struct;
-+
-+	if (!ctx->header) {
-+		ret = delta_mjpeg_read_header(pctx, au.vaddr, au.size,
-+					      header, &data_offset);
-+		if (ret) {
-+			pctx->stream_errors++;
-+			goto err;
-+		}
-+		if (header->frame_width * header->frame_height >
-+		    DELTA_MJPEG_MAX_RESO) {
-+			dev_err(delta->dev,
-+				"%s  stream resolution too large: %dx%d > %d pixels budget\n",
-+				pctx->name,
-+				header->frame_width,
-+				header->frame_height, DELTA_MJPEG_MAX_RESO);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+		ctx->header = header;
-+		goto out;
-+	}
-+
-+	if (!ctx->ipc_hdl) {
-+		ret = delta_mjpeg_ipc_open(pctx);
-+		if (ret)
-+			goto err;
-+	}
-+
-+	ret = delta_mjpeg_read_header(pctx, au.vaddr, au.size,
-+				      ctx->header, &data_offset);
-+	if (ret) {
-+		pctx->stream_errors++;
-+		goto err;
-+	}
-+
-+	au.paddr += data_offset;
-+	au.vaddr += data_offset;
-+
-+	ret = delta_mjpeg_ipc_decode(pctx, &au);
-+	if (ret)
-+		goto err;
-+
-+out:
-+	return 0;
-+
-+err:
-+	return ret;
-+}
-+
-+static int delta_mjpeg_get_frame(struct delta_ctx *pctx,
-+				 struct delta_frame **frame)
-+{
-+	struct delta_mjpeg_ctx *ctx = to_ctx(pctx);
-+
-+	if (!ctx->out_frame)
-+		return -ENODATA;
-+
-+	*frame = ctx->out_frame;
-+
-+	ctx->out_frame = NULL;
-+
-+	return 0;
-+}
-+
-+const struct delta_dec mjpegdec = {
-+	.name = "MJPEG",
-+	.streamformat = V4L2_PIX_FMT_MJPEG,
-+	.pixelformat = V4L2_PIX_FMT_NV12,
-+	.open = delta_mjpeg_open,
-+	.close = delta_mjpeg_close,
-+	.get_streaminfo = delta_mjpeg_get_streaminfo,
-+	.get_frameinfo = delta_get_frameinfo_default,
-+	.decode = delta_mjpeg_decode,
-+	.get_frame = delta_mjpeg_get_frame,
-+	.recycle = delta_recycle_default,
-+};
-diff --git a/drivers/media/platform/sti/delta/delta-mjpeg-fw.h b/drivers/media/platform/sti/delta/delta-mjpeg-fw.h
-new file mode 100644
-index 0000000..1a386c8
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mjpeg-fw.h
-@@ -0,0 +1,221 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2015
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_MJPEG_FW_H
-+#define DELTA_MJPEG_FW_H
-+
-+/*
-+ * struct jpeg_decoded_buffer_address_t
-+ *
-+ * defines the addresses where the decoded picture/additional
-+ * info related to the block structures will be stored
-+ *
-+ * @display_luma_p:		address of the luma buffer
-+ * @display_chroma_p:		address of the chroma buffer
-+ */
-+struct jpeg_decoded_buffer_address_t {
-+	u32 luma_p;
-+	u32 chroma_p;
-+};
-+
-+/*
-+ * struct jpeg_display_buffer_address_t
-+ *
-+ * defines the addresses (used by the Display Reconstruction block)
-+ * where the pictures to be displayed will be stored
-+ *
-+ * @struct_size:		size of the structure in bytes
-+ * @display_luma_p:		address of the luma buffer
-+ * @display_chroma_p:		address of the chroma buffer
-+ * @display_decimated_luma_p:	address of the decimated luma buffer
-+ * @display_decimated_chroma_p:	address of the decimated chroma buffer
-+ */
-+struct jpeg_display_buffer_address_t {
-+	u32 struct_size;
-+	u32 display_luma_p;
-+	u32 display_chroma_p;
-+	u32 display_decimated_luma_p;
-+	u32 display_decimated_chroma_p;
-+};
-+
-+/* used for enabling main/aux outputs for both display &
-+ * reference reconstruction blocks
-+ */
-+enum jpeg_rcn_ref_disp_enable_t {
-+	/* enable decimated (for display) reconstruction */
-+	JPEG_DISP_AUX_EN = 0x00000010,
-+	/* enable main (for display) reconstruction */
-+	JPEG_DISP_MAIN_EN = 0x00000020,
-+	/* enable both main & decimated (for display) reconstruction */
-+	JPEG_DISP_AUX_MAIN_EN = 0x00000030,
-+	/* enable only reference output(ex. for trick modes) */
-+	JPEG_REF_MAIN_EN = 0x00000100,
-+	/* enable reference output with decimated
-+	 * (for display) reconstruction
-+	 */
-+	JPEG_REF_MAIN_DISP_AUX_EN = 0x00000110,
-+	/* enable reference output with main
-+	 * (for display) reconstruction
-+	 */
-+	JPEG_REF_MAIN_DISP_MAIN_EN = 0x00000120,
-+	/* enable reference output with main & decimated
-+	 * (for display) reconstruction
-+	 */
-+	JPEG_REF_MAIN_DISP_MAIN_AUX_EN = 0x00000130
-+};
-+
-+/* identifies the horizontal decimation factor */
-+enum jpeg_horizontal_deci_factor_t {
-+	/* no resize */
-+	JPEG_HDEC_1 = 0x00000000,
-+	/* Advanced H/2 resize using improved 8-tap filters */
-+	JPEG_HDEC_ADVANCED_2 = 0x00000101,
-+	/* Advanced H/4 resize using improved 8-tap filters */
-+	JPEG_HDEC_ADVANCED_4 = 0x00000102
-+};
-+
-+/* identifies the vertical decimation factor */
-+enum jpeg_vertical_deci_factor_t {
-+	/* no resize */
-+	JPEG_VDEC_1 = 0x00000000,
-+	/* V/2 , progressive resize */
-+	JPEG_VDEC_ADVANCED_2_PROG = 0x00000204,
-+	/* V/2 , interlaced resize */
-+	JPEG_VDEC_ADVANCED_2_INT = 0x000000208
-+};
-+
-+/* status of the decoding process */
-+enum jpeg_decoding_error_t {
-+	JPEG_DECODER_NO_ERROR = 0,
-+	JPEG_DECODER_UNDEFINED_HUFF_TABLE = 1,
-+	JPEG_DECODER_UNSUPPORTED_MARKER = 2,
-+	JPEG_DECODER_UNABLE_ALLOCATE_MEMORY = 3,
-+	JPEG_DECODER_NON_SUPPORTED_SAMP_FACTORS = 4,
-+	JPEG_DECODER_BAD_PARAMETER = 5,
-+	JPEG_DECODER_DECODE_ERROR = 6,
-+	JPEG_DECODER_BAD_RESTART_MARKER = 7,
-+	JPEG_DECODER_UNSUPPORTED_COLORSPACE = 8,
-+	JPEG_DECODER_BAD_SOS_SPECTRAL = 9,
-+	JPEG_DECODER_BAD_SOS_SUCCESSIVE = 10,
-+	JPEG_DECODER_BAD_HEADER_LENGTH = 11,
-+	JPEG_DECODER_BAD_COUNT_VALUE = 12,
-+	JPEG_DECODER_BAD_DHT_MARKER = 13,
-+	JPEG_DECODER_BAD_INDEX_VALUE = 14,
-+	JPEG_DECODER_BAD_NUMBER_HUFFMAN_TABLES = 15,
-+	JPEG_DECODER_BAD_QUANT_TABLE_LENGTH = 16,
-+	JPEG_DECODER_BAD_NUMBER_QUANT_TABLES = 17,
-+	JPEG_DECODER_BAD_COMPONENT_COUNT = 18,
-+	JPEG_DECODER_DIVIDE_BY_ZERO_ERROR = 19,
-+	JPEG_DECODER_NOT_JPG_IMAGE = 20,
-+	JPEG_DECODER_UNSUPPORTED_ROTATION_ANGLE = 21,
-+	JPEG_DECODER_UNSUPPORTED_SCALING = 22,
-+	JPEG_DECODER_INSUFFICIENT_OUTPUTBUFFER_SIZE = 23,
-+	JPEG_DECODER_BAD_HWCFG_GP_VERSION_VALUE = 24,
-+	JPEG_DECODER_BAD_VALUE_FROM_RED = 25,
-+	JPEG_DECODER_BAD_SUBREGION_PARAMETERS = 26,
-+	JPEG_DECODER_PROGRESSIVE_DECODE_NOT_SUPPORTED = 27,
-+	JPEG_DECODER_ERROR_TASK_TIMEOUT = 28,
-+	JPEG_DECODER_ERROR_FEATURE_NOT_SUPPORTED = 29
-+};
-+
-+/* identifies the decoding mode */
-+enum jpeg_decoding_mode_t {
-+	JPEG_NORMAL_DECODE = 0,
-+};
-+
-+enum jpeg_additional_flags_t {
-+	JPEG_ADDITIONAL_FLAG_NONE = 0,
-+	/* request firmware to return values of the CEH registers */
-+	JPEG_ADDITIONAL_FLAG_CEH = 1,
-+	/* output storage of auxiliary reconstruction in Raster format. */
-+	JPEG_ADDITIONAL_FLAG_RASTER = 64,
-+	/* output storage of auxiliary reconstruction in 420MB format. */
-+	JPEG_ADDITIONAL_FLAG_420MB = 128
-+};
-+
-+/*
-+ * struct jpeg_video_decode_init_params_t - initialization command parameters
-+ *
-+ * @circular_buffer_begin_addr_p:	start address of fw circular buffer
-+ * @circular_buffer_end_addr_p:		end address of fw circular buffer
-+ */
-+struct jpeg_video_decode_init_params_t {
-+	u32 circular_buffer_begin_addr_p;
-+	u32 circular_buffer_end_addr_p;
-+	u32 reserved;
-+};
-+
-+/*
-+ * struct jpeg_decode_params_t - decode command parameters
-+ *
-+ * @picture_start_addr_p:	start address of jpeg picture
-+ * @picture_end_addr_p:		end address of jpeg picture
-+ * @decoded_buffer_addr:	decoded picture buffer
-+ * @display_buffer_addr:	display picture buffer
-+ * @main_aux_enable:		enable main and/or aux outputs
-+ * @horizontal_decimation_factor:horizontal decimation factor
-+ * @vertical_decimation_factor:	vertical decimation factor
-+ * @xvalue0:			the x(0) coordinate for subregion decoding
-+ * @xvalue1:			the x(1) coordinate for subregion decoding
-+ * @yvalue0:			the y(0) coordinate for subregion decoding
-+ * @yvalue1:			the y(1) coordinate for subregion decoding
-+ * @decoding_mode:		decoding mode
-+ * @additional_flags:		additional flags
-+ * @field_flag:			determines frame/field scan
-+ * @is_jpeg_image:		1 = still jpeg, 0 = motion jpeg
-+ */
-+struct jpeg_decode_params_t {
-+	u32 picture_start_addr_p;
-+	u32 picture_end_addr_p;
-+	struct jpeg_decoded_buffer_address_t decoded_buffer_addr;
-+	struct jpeg_display_buffer_address_t display_buffer_addr;
-+	enum jpeg_rcn_ref_disp_enable_t main_aux_enable;
-+	enum jpeg_horizontal_deci_factor_t horizontal_decimation_factor;
-+	enum jpeg_vertical_deci_factor_t vertical_decimation_factor;
-+	u32 xvalue0;
-+	u32 xvalue1;
-+	u32 yvalue0;
-+	u32 yvalue1;
-+	enum jpeg_decoding_mode_t decoding_mode;
-+	u32 additional_flags;
-+	u32 field_flag;
-+	u32 reserved;
-+	u32 is_jpeg_image;
-+};
-+
-+/*
-+ * struct jpeg_decode_return_params_t
-+ *
-+ * status returned by firmware after decoding
-+ *
-+ * @decode_time_in_us:	decoding time in microseconds
-+ * @pm_cycles:		profiling information
-+ * @pm_dmiss:		profiling information
-+ * @pm_imiss:		profiling information
-+ * @pm_bundles:		profiling information
-+ * @pm_pft:		profiling information
-+ * @error_code:		status of the decoding process
-+ * @ceh_registers:	array where values of the Contrast Enhancement
-+ *			Histogram (CEH) registers will be stored.
-+ *			ceh_registers[0] correspond to register MBE_CEH_0_7,
-+ *			ceh_registers[1] correspond to register MBE_CEH_8_15
-+ *			ceh_registers[2] correspond to register MBE_CEH_16_23
-+ *			Note that elements of this array will be updated only
-+ *			if additional_flags has JPEG_ADDITIONAL_FLAG_CEH set.
-+ */
-+struct jpeg_decode_return_params_t {
-+	/* profiling info */
-+	u32 decode_time_in_us;
-+	u32 pm_cycles;
-+	u32 pm_dmiss;
-+	u32 pm_imiss;
-+	u32 pm_bundles;
-+	u32 pm_pft;
-+	enum jpeg_decoding_error_t error_code;
-+	u32 ceh_registers[32];
-+};
-+
-+#endif /* DELTA_MJPEG_FW_H */
-diff --git a/drivers/media/platform/sti/delta/delta-mjpeg-hdr.c b/drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
-new file mode 100644
-index 0000000..b5eb153
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mjpeg-hdr.c
-@@ -0,0 +1,150 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2013
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#include "delta.h"
-+#include "delta-mjpeg.h"
-+
-+#define MJPEG_SOF_0  0xc0
-+#define MJPEG_SOF_1  0xc1
-+#define MJPEG_SOI    0xd8
-+#define MJPEG_MARKER 0xff
-+
-+static char *header_str(struct mjpeg_header *header,
-+			char *str,
-+			unsigned int len)
-+{
-+	char *cur = str;
-+	unsigned int left = len;
-+	int ret = 0;
-+
-+	if (!header)
-+		return "";
-+
-+	ret = snprintf(cur, left, "[MJPEG header]\n"
-+			"|- length     = %d\n"
-+			"|- precision  = %d\n"
-+			"|- width      = %d\n"
-+			"|- height     = %d\n"
-+			"|- components = %d\n",
-+			header->length,
-+			header->sample_precision,
-+			header->frame_width,
-+			header->frame_height,
-+			header->nb_of_components);
-+
-+	return str;
-+}
-+
-+static int delta_mjpeg_read_sof(struct delta_ctx *pctx,
-+				unsigned char *data, unsigned int size,
-+				struct mjpeg_header *header)
-+{
-+	struct delta_dev *delta = pctx->dev;
-+	unsigned int offset = 0;
-+
-+	if (size < 64)
-+		goto err_no_more;
-+
-+	memset(header, 0, sizeof(*header));
-+	header->length           = be16_to_cpu(*(__be16 *)(data + offset));
-+	offset += sizeof(u16);
-+	header->sample_precision = *(u8 *)(data + offset);
-+	offset += sizeof(u8);
-+	header->frame_height     = be16_to_cpu(*(__be16 *)(data + offset));
-+	offset += sizeof(u16);
-+	header->frame_width      = be16_to_cpu(*(__be16 *)(data + offset));
-+	offset += sizeof(u16);
-+	header->nb_of_components = *(u8 *)(data + offset);
-+	offset += sizeof(u8);
-+
-+	if (header->nb_of_components >= MJPEG_MAX_COMPONENTS) {
-+		dev_err(delta->dev,
-+			"%s   unsupported number of components (%d > %d)\n",
-+			pctx->name, header->nb_of_components,
-+			MJPEG_MAX_COMPONENTS);
-+		return -EINVAL;
-+	}
-+
-+	if ((offset + header->nb_of_components *
-+	     sizeof(header->components[0])) > size)
-+		goto err_no_more;
-+
-+	return 0;
-+
-+err_no_more:
-+	dev_err(delta->dev,
-+		"%s   sof: reached end of %d size input stream\n",
-+		pctx->name, size);
-+	return -ENODATA;
-+}
-+
-+int delta_mjpeg_read_header(struct delta_ctx *pctx,
-+			    unsigned char *data, unsigned int size,
-+			    struct mjpeg_header *header,
-+			    unsigned int *data_offset)
-+{
-+	struct delta_dev *delta = pctx->dev;
-+	unsigned char str[200];
-+
-+	unsigned int ret = 0;
-+	unsigned int offset = 0;
-+	unsigned int soi = 0;
-+
-+	if (size < 2)
-+		goto err_no_more;
-+
-+	offset = 0;
-+	while (1) {
-+		if (data[offset] == MJPEG_MARKER)
-+			switch (data[offset + 1]) {
-+			case MJPEG_SOI:
-+				soi = 1;
-+				*data_offset = offset;
-+				break;
-+
-+			case MJPEG_SOF_0:
-+			case MJPEG_SOF_1:
-+				if (!soi) {
-+					dev_err(delta->dev,
-+						"%s   wrong sequence, got SOF while SOI not seen\n",
-+						pctx->name);
-+					return -EINVAL;
-+				}
-+
-+				ret = delta_mjpeg_read_sof(pctx,
-+							   &data[offset + 2],
-+							   size - (offset + 2),
-+							   header);
-+				if (ret)
-+					goto err;
-+
-+				goto done;
-+
-+			default:
-+				break;
-+			}
-+
-+		offset++;
-+		if ((offset + 2) >= size)
-+			goto err_no_more;
-+	}
-+
-+done:
-+	dev_dbg(delta->dev,
-+		"%s   found header @ offset %d:\n%s", pctx->name,
-+		*data_offset,
-+		header_str(header, str, sizeof(str)));
-+	return 0;
-+
-+err_no_more:
-+	dev_err(delta->dev,
-+		"%s   no header found within %d bytes input stream\n",
-+		pctx->name, size);
-+	return -ENODATA;
-+
-+err:
-+	return ret;
-+}
-diff --git a/drivers/media/platform/sti/delta/delta-mjpeg.h b/drivers/media/platform/sti/delta/delta-mjpeg.h
-new file mode 100644
-index 0000000..18e6b37
---- /dev/null
-+++ b/drivers/media/platform/sti/delta/delta-mjpeg.h
-@@ -0,0 +1,35 @@
-+/*
-+ * Copyright (C) STMicroelectronics SA 2013
-+ * Author: Hugues Fruchet <hugues.fruchet@st.com> for STMicroelectronics.
-+ * License terms:  GNU General Public License (GPL), version 2
-+ */
-+
-+#ifndef DELTA_MJPEG_H
-+#define DELTA_MJPEG_H
-+
-+#include "delta.h"
-+
-+struct mjpeg_component {
-+	unsigned int id;/* 1=Y, 2=Cb, 3=Cr, 4=L, 5=Q */
-+	unsigned int h_sampling_factor;
-+	unsigned int v_sampling_factor;
-+	unsigned int quant_table_index;
-+};
-+
-+#define MJPEG_MAX_COMPONENTS 5
-+
-+struct mjpeg_header {
-+	unsigned int length;
-+	unsigned int sample_precision;
-+	unsigned int frame_width;
-+	unsigned int frame_height;
-+	unsigned int nb_of_components;
-+	struct mjpeg_component components[MJPEG_MAX_COMPONENTS];
-+};
-+
-+int delta_mjpeg_read_header(struct delta_ctx *pctx,
-+			    unsigned char *data, unsigned int size,
-+			    struct mjpeg_header *header,
-+			    unsigned int *data_offset);
-+
-+#endif /* DELTA_MJPEG_H */
-diff --git a/drivers/media/platform/sti/delta/delta-v4l2.c b/drivers/media/platform/sti/delta/delta-v4l2.c
-index 9e2d2955..4179975 100644
---- a/drivers/media/platform/sti/delta/delta-v4l2.c
-+++ b/drivers/media/platform/sti/delta/delta-v4l2.c
-@@ -32,6 +32,9 @@
+@@ -86,7 +86,6 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ #endif
  
- /* registry of available decoders */
- static const struct delta_dec *delta_decoders[] = {
-+#ifdef CONFIG_VIDEO_STI_DELTA_MJPEG
-+	&mjpegdec,
-+#endif
+ 	dev->priv = coredev;
+-	dev->driver_type = RC_DRIVER_IR_RAW;
+ 	dev->allowed_protocols = RC_BIT_ALL;
+ 	dev->map_name = sms_get_board(board_id)->rc_codes;
+ 	dev->driver_name = MODULE_NAME;
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index cede397..5ad5167 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -428,7 +428,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		 * If platform_data doesn't specify rc_dev, initialize it
+ 		 * internally
+ 		 */
+-		rc = rc_allocate_device();
++		rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 		if (!rc)
+ 			return -ENOMEM;
+ 	}
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index 4da720e..76daec7 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -424,7 +424,7 @@ int bttv_input_init(struct bttv *btv)
+ 		return -ENODEV;
+ 
+ 	ir = kzalloc(sizeof(*ir),GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ir || !rc)
+ 		goto err_out_free;
+ 
+diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
+index 1f092fe..c743317 100644
+--- a/drivers/media/pci/cx23885/cx23885-input.c
++++ b/drivers/media/pci/cx23885/cx23885-input.c
+@@ -267,7 +267,6 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	struct cx23885_kernel_ir *kernel_ir;
+ 	struct rc_dev *rc;
+ 	char *rc_map;
+-	enum rc_driver_type driver_type;
+ 	u64 allowed_protos;
+ 
+ 	int ret;
+@@ -285,28 +284,24 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		/* Integrated CX2388[58] IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* The grey Hauppauge RC-5 remote */
+ 		rc_map = RC_MAP_HAUPPAUGE;
+ 		break;
+ 	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* The grey Terratec remote with orange buttons */
+ 		rc_map = RC_MAP_NEC_TERRATEC_CINERGY_XS;
+ 		break;
+ 	case CX23885_BOARD_TEVII_S470:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TEVII_NEC;
+ 		break;
+ 	case CX23885_BOARD_MYGICA_X8507:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TOTAL_MEDIA_IN_HAND_02;
+@@ -314,7 +309,6 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_TBS_6980:
+ 	case CX23885_BOARD_TBS_6981:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		/* A guess at the remote */
+ 		rc_map = RC_MAP_TBS_NEC;
+@@ -326,13 +320,11 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_DVBSKY_S952:
+ 	case CX23885_BOARD_DVBSKY_T982:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		rc_map = RC_MAP_DVBSKY;
+ 		break;
+ 	case CX23885_BOARD_TT_CT2_4500_CI:
+ 		/* Integrated CX23885 IR controller */
+-		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = RC_BIT_ALL;
+ 		rc_map = RC_MAP_TT_1500;
+ 		break;
+@@ -352,7 +344,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 				    pci_name(dev->pci));
+ 
+ 	/* input device */
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		ret = -ENOMEM;
+ 		goto err_out_free;
+@@ -371,7 +363,6 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 		rc->input_id.product = dev->pci->device;
+ 	}
+ 	rc->dev.parent = &dev->pci->dev;
+-	rc->driver_type = driver_type;
+ 	rc->allowed_protocols = allowed_protos;
+ 	rc->priv = kernel_ir;
+ 	rc->open = cx23885_input_ir_open;
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index dcfea35..6e9f366e 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -276,7 +276,7 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 				 */
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir || !dev)
+ 		goto err_out_free;
+ 
+@@ -486,7 +486,6 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 	dev->scancode_mask = hardware_mask;
+ 
+ 	if (ir->sampling) {
+-		dev->driver_type = RC_DRIVER_IR_RAW;
+ 		dev->timeout = 10 * 1000 * 1000; /* 10 ms */
+ 	} else {
+ 		dev->driver_type = RC_DRIVER_SCANCODE;
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index a589aa7..76e07c7 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -743,7 +743,7 @@ static int dm1105_ir_init(struct dm1105_dev *dm1105)
+ 	struct rc_dev *dev;
+ 	int err = -ENOMEM;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+@@ -752,7 +752,6 @@ static int dm1105_ir_init(struct dm1105_dev *dm1105)
+ 
+ 	dev->driver_name = MODULE_NAME;
+ 	dev->map_name = RC_MAP_DM1105_NEC;
+-	dev->driver_type = RC_DRIVER_SCANCODE;
+ 	dev->input_name = "DVB on-card IR receiver";
+ 	dev->input_phys = dm1105->ir.input_phys;
+ 	dev->input_id.bustype = BUS_PCI;
+diff --git a/drivers/media/pci/mantis/mantis_input.c b/drivers/media/pci/mantis/mantis_input.c
+index 7f7f1d4..50d10cb 100644
+--- a/drivers/media/pci/mantis/mantis_input.c
++++ b/drivers/media/pci/mantis/mantis_input.c
+@@ -39,7 +39,7 @@ int mantis_input_init(struct mantis_pci *mantis)
+ 	struct rc_dev *dev;
+ 	int err;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev) {
+ 		dprintk(MANTIS_ERROR, 1, "Remote device allocation failed");
+ 		err = -ENOMEM;
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index 823b75e..509caa86 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -846,7 +846,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 	}
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ir || !rc) {
+ 		err = -ENOMEM;
+ 		goto err_out_free;
+diff --git a/drivers/media/pci/smipcie/smipcie-ir.c b/drivers/media/pci/smipcie/smipcie-ir.c
+index 826c7c7..d2730c3 100644
+--- a/drivers/media/pci/smipcie/smipcie-ir.c
++++ b/drivers/media/pci/smipcie/smipcie-ir.c
+@@ -183,7 +183,7 @@ int smi_ir_init(struct smi_dev *dev)
+ 	struct rc_dev *rc_dev;
+ 	struct smi_rc *ir = &dev->ir;
+ 
+-	rc_dev = rc_allocate_device();
++	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rc_dev)
+ 		return -ENOMEM;
+ 
+@@ -202,7 +202,6 @@ int smi_ir_init(struct smi_dev *dev)
+ 	rc_dev->input_id.product = dev->pci_dev->subsystem_device;
+ 	rc_dev->dev.parent = &dev->pci_dev->dev;
+ 
+-	rc_dev->driver_type = RC_DRIVER_SCANCODE;
+ 	rc_dev->map_name = dev->info->rc_map;
+ 
+ 	ir->rc_dev = rc_dev;
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 20ad93b..0c0b733 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -177,7 +177,7 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
+ 	struct rc_dev *dev;
+ 	int error;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev) {
+ 		printk(KERN_ERR "budget_ci: IR interface initialisation failed\n");
+ 		return -ENOMEM;
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 0884b7d..7d0ee3d 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -764,7 +764,6 @@ static void ati_remote_rc_init(struct ati_remote *ati_remote)
+ 	struct rc_dev *rdev = ati_remote->rdev;
+ 
+ 	rdev->priv = ati_remote;
+-	rdev->driver_type = RC_DRIVER_SCANCODE;
+ 	rdev->allowed_protocols = RC_BIT_OTHER;
+ 	rdev->driver_name = "ati_remote";
+ 
+@@ -851,7 +850,7 @@ static int ati_remote_probe(struct usb_interface *interface,
+ 	}
+ 
+ 	ati_remote = kzalloc(sizeof (struct ati_remote), GFP_KERNEL);
+-	rc_dev = rc_allocate_device();
++	rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ati_remote || !rc_dev)
+ 		goto exit_free_dev_rdev;
+ 
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index bd5512e..3b7275f 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -1012,7 +1012,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 
+ 	/* allocate memory */
+ 	dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!dev || !rdev)
+ 		goto exit_free_dev_rdev;
+ 
+@@ -1058,7 +1058,6 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 	if (!dev->hw_learning_and_tx_capable)
+ 		learning_mode_force = false;
+ 
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->priv = dev;
+ 	rdev->open = ene_open;
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index ecab69e..df125c2 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -492,7 +492,7 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
+ 		return ret;
+ 
+ 	/* input device for IR remote (and tx) */
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		goto exit_free_dev_rdev;
+ 
+@@ -534,7 +534,6 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
+ 
+ 	/* Set up the rc device */
+ 	rdev->priv = fintek;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = fintek_open;
+ 	rdev->close = fintek_close;
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 5b63b1f..d5d2152 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -143,14 +143,13 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 	if (!gpio_dev)
+ 		return -ENOMEM;
+ 
+-	rcdev = rc_allocate_device();
++	rcdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rcdev) {
+ 		rc = -ENOMEM;
+ 		goto err_allocate_device;
+ 	}
+ 
+ 	rcdev->priv = gpio_dev;
+-	rcdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rcdev->input_name = GPIO_IR_DEVICE_NAME;
+ 	rcdev->input_phys = GPIO_IR_DEVICE_NAME "/input0";
+ 	rcdev->input_id.bustype = BUS_HOST;
+diff --git a/drivers/media/rc/igorplugusb.c b/drivers/media/rc/igorplugusb.c
+index 5cf983b..d770a62 100644
+--- a/drivers/media/rc/igorplugusb.c
++++ b/drivers/media/rc/igorplugusb.c
+@@ -190,7 +190,7 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 
+ 	usb_make_path(udev, ir->phys, sizeof(ir->phys));
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc)
+ 		goto fail;
+ 
+@@ -198,7 +198,6 @@ static int igorplugusb_probe(struct usb_interface *intf,
+ 	rc->input_phys = ir->phys;
+ 	usb_to_input_id(udev, &rc->input_id);
+ 	rc->dev.parent = &intf->dev;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	/*
+ 	 * This device can only store 36 pulses + spaces, which is not enough
+ 	 * for the NEC protocol and many others.
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index 5f63454..4cd1e6b 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -431,7 +431,7 @@ static int iguanair_probe(struct usb_interface *intf,
+ 	struct usb_host_interface *idesc;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir || !rc) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -494,7 +494,6 @@ static int iguanair_probe(struct usb_interface *intf,
+ 	rc->input_phys = ir->phys;
+ 	usb_to_input_id(ir->udev, &rc->input_id);
+ 	rc->dev.parent = &intf->dev;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->priv = ir;
+ 	rc->open = iguanair_open;
+diff --git a/drivers/media/rc/img-ir/img-ir-hw.c b/drivers/media/rc/img-ir/img-ir-hw.c
+index 7bb71bc..c87ae03 100644
+--- a/drivers/media/rc/img-ir/img-ir-hw.c
++++ b/drivers/media/rc/img-ir/img-ir-hw.c
+@@ -1071,7 +1071,7 @@ int img_ir_probe_hw(struct img_ir_priv *priv)
+ 	}
+ 
+ 	/* Allocate hardware decoder */
+-	hw->rdev = rdev = rc_allocate_device();
++	hw->rdev = rdev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rdev) {
+ 		dev_err(priv->dev, "cannot allocate input device\n");
+ 		error = -ENOMEM;
+diff --git a/drivers/media/rc/img-ir/img-ir-raw.c b/drivers/media/rc/img-ir/img-ir-raw.c
+index 33f37ed..8d2f8e2 100644
+--- a/drivers/media/rc/img-ir/img-ir-raw.c
++++ b/drivers/media/rc/img-ir/img-ir-raw.c
+@@ -110,7 +110,7 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
+ 	setup_timer(&raw->timer, img_ir_echo_timer, (unsigned long)priv);
+ 
+ 	/* Allocate raw decoder */
+-	raw->rdev = rdev = rc_allocate_device();
++	raw->rdev = rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev) {
+ 		dev_err(priv->dev, "cannot allocate raw input device\n");
+ 		return -ENOMEM;
+@@ -118,7 +118,6 @@ int img_ir_probe_raw(struct img_ir_priv *priv)
+ 	rdev->priv = priv;
+ 	rdev->map_name = RC_MAP_EMPTY;
+ 	rdev->input_name = "IMG Infrared Decoder Raw";
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 
+ 	/* Register raw decoder */
+ 	error = rc_register_device(rdev);
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 0785a24..4234ae6 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1939,7 +1939,7 @@ static struct rc_dev *imon_init_rdev(struct imon_context *ictx)
+ 	const unsigned char fp_packet[] = { 0x40, 0x00, 0x00, 0x00,
+ 					    0x00, 0x00, 0x00, 0x88 };
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rdev) {
+ 		dev_err(ictx->dev, "remote control dev allocation failed\n");
+ 		goto out;
+@@ -1957,7 +1957,6 @@ static struct rc_dev *imon_init_rdev(struct imon_context *ictx)
+ 	rdev->dev.parent = ictx->dev;
+ 
+ 	rdev->priv = ictx;
+-	rdev->driver_type = RC_DRIVER_SCANCODE;
+ 	rdev->allowed_protocols = RC_BIT_OTHER | RC_BIT_RC6_MCE; /* iMON PAD or MCE */
+ 	rdev->change_protocol = imon_ir_change_protocol;
+ 	rdev->driver_name = MOD_NAME;
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index d26907e..dc3b959 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -229,7 +229,7 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 		return priv->irq;
+ 	}
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		return -ENOMEM;
+ 
+@@ -242,7 +242,6 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 	clk_prepare_enable(priv->clock);
+ 	priv->rate = clk_get_rate(priv->clock);
+ 
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->priv = priv;
+ 	rdev->open = hix5hd2_ir_open;
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 367b28b..92ed356 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1470,7 +1470,7 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 		return ret;
+ 
+ 	/* input device for IR remote (and tx) */
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev)
+ 		goto exit_free_dev_rdev;
+ 	itdev->rdev = rdev;
+@@ -1561,7 +1561,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 
+ 	/* set up ir-core props */
+ 	rdev->priv = itdev;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = ite_open;
+ 	rdev->close = ite_close;
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 9bf6917..ebcc82d 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -1181,7 +1181,7 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	struct rc_dev *rc;
+ 	int ret;
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		dev_err(dev, "remote dev allocation failed");
+ 		goto out;
+@@ -1201,7 +1201,6 @@ static struct rc_dev *mceusb_init_rc_dev(struct mceusb_dev *ir)
+ 	usb_to_input_id(ir->usbdev, &rc->input_id);
+ 	rc->dev.parent = dev;
+ 	rc->priv = ir;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->timeout = MS_TO_NS(100);
+ 	if (!ir->flags.no_tx) {
+diff --git a/drivers/media/rc/meson-ir.c b/drivers/media/rc/meson-ir.c
+index 7eb3f4f..8947dc6 100644
+--- a/drivers/media/rc/meson-ir.c
++++ b/drivers/media/rc/meson-ir.c
+@@ -131,7 +131,7 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 		return ir->irq;
+ 	}
+ 
+-	ir->rc = rc_allocate_device();
++	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir->rc) {
+ 		dev_err(dev, "failed to allocate rc device\n");
+ 		return -ENOMEM;
+@@ -144,7 +144,6 @@ static int meson_ir_probe(struct platform_device *pdev)
+ 	map_name = of_get_property(node, "linux,rc-map-name", NULL);
+ 	ir->rc->map_name = map_name ? map_name : RC_MAP_EMPTY;
+ 	ir->rc->dev.parent = dev;
+-	ir->rc->driver_type = RC_DRIVER_IR_RAW;
+ 	ir->rc->allowed_protocols = RC_BIT_ALL;
+ 	ir->rc->rx_resolution = US_TO_NS(MESON_TRATE);
+ 	ir->rc->timeout = MS_TO_NS(200);
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 4b78c89..d4cc880 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -998,7 +998,7 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 		return -ENOMEM;
+ 
+ 	/* input device for IR remote (and tx) */
+-	nvt->rdev = devm_rc_allocate_device(&pdev->dev);
++	nvt->rdev = devm_rc_allocate_device(&pdev->dev, RC_DRIVER_IR_RAW);
+ 	if (!nvt->rdev)
+ 		return -ENOMEM;
+ 	rdev = nvt->rdev;
+@@ -1061,7 +1061,6 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 
+ 	/* Set up the rc device */
+ 	rdev->priv = nvt;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->open = nvt_open;
+ 	rdev->close = nvt_close;
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index 63dace8..36192ac 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -181,7 +181,7 @@ static int __init loop_init(void)
+ 	struct rc_dev *rc;
+ 	int ret;
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc) {
+ 		printk(KERN_ERR DRIVER_NAME ": rc_dev allocation failed\n");
+ 		return -ENOMEM;
+@@ -194,7 +194,6 @@ static int __init loop_init(void)
+ 	rc->driver_name		= DRIVER_NAME;
+ 	rc->map_name		= RC_MAP_EMPTY;
+ 	rc->priv		= &loopdev;
+-	rc->driver_type		= RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols	= RC_BIT_ALL;
+ 	rc->timeout		= 100 * 1000 * 1000; /* 100 ms */
+ 	rc->min_timeout		= 1;
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index dedaf38..a6bbceb 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1357,7 +1357,7 @@ static struct device_type rc_dev_type = {
+ 	.uevent		= rc_dev_uevent,
  };
  
- static inline int frame_size(u32 w, u32 h, u32 fmt)
+-struct rc_dev *rc_allocate_device(void)
++struct rc_dev *rc_allocate_device(enum rc_driver_type type)
+ {
+ 	struct rc_dev *dev;
+ 
+@@ -1384,6 +1384,8 @@ struct rc_dev *rc_allocate_device(void)
+ 	dev->dev.class = &rc_class;
+ 	device_initialize(&dev->dev);
+ 
++	dev->driver_type = type;
++
+ 	__module_get(THIS_MODULE);
+ 	return dev;
+ }
+@@ -1410,7 +1412,8 @@ static void devm_rc_alloc_release(struct device *dev, void *res)
+ 	rc_free_device(*(struct rc_dev **)res);
+ }
+ 
+-struct rc_dev *devm_rc_allocate_device(struct device *dev)
++struct rc_dev *devm_rc_allocate_device(struct device *dev,
++					enum rc_driver_type type)
+ {
+ 	struct rc_dev **dr, *rc;
+ 
+@@ -1418,7 +1421,7 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev)
+ 	if (!dr)
+ 		return NULL;
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(type);
+ 	if (!rc) {
+ 		devres_free(dr);
+ 		return NULL;
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 2784f5d..2b6f828 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -945,7 +945,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ 	int ret;
+ 	u16 prod = le16_to_cpu(rr3->udev->descriptor.idProduct);
+ 
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rc)
+ 		return NULL;
+ 
+@@ -960,7 +960,6 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ 	usb_to_input_id(rr3->udev, &rc->input_id);
+ 	rc->dev.parent = dev;
+ 	rc->priv = rr3;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->min_timeout = MS_TO_NS(RR3_RX_MIN_TIMEOUT);
+ 	rc->max_timeout = MS_TO_NS(RR3_RX_MAX_TIMEOUT);
+diff --git a/drivers/media/rc/serial_ir.c b/drivers/media/rc/serial_ir.c
+index 436bd58..640acc6 100644
+--- a/drivers/media/rc/serial_ir.c
++++ b/drivers/media/rc/serial_ir.c
+@@ -738,7 +738,7 @@ static int __init serial_ir_init_module(void)
+ 	if (result)
+ 		return result;
+ 
+-	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev);
++	rcdev = devm_rc_allocate_device(&serial_ir.pdev->dev, RC_DRIVER_IR_RAW);
+ 	if (!rcdev) {
+ 		result = -ENOMEM;
+ 		goto serial_cleanup;
+@@ -777,7 +777,6 @@ static int __init serial_ir_init_module(void)
+ 	rcdev->open = serial_ir_open;
+ 	rcdev->close = serial_ir_close;
+ 	rcdev->dev.parent = &serial_ir.pdev->dev;
+-	rcdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rcdev->allowed_protocols = RC_BIT_ALL;
+ 	rcdev->driver_name = KBUILD_MODNAME;
+ 	rcdev->map_name = RC_MAP_RC6_MCE;
+diff --git a/drivers/media/rc/st_rc.c b/drivers/media/rc/st_rc.c
+index 1fa0c9d..e6f6735 100644
+--- a/drivers/media/rc/st_rc.c
++++ b/drivers/media/rc/st_rc.c
+@@ -235,7 +235,7 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	if (!rc_dev)
+ 		return -ENOMEM;
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 
+ 	if (!rdev)
+ 		return -ENOMEM;
+@@ -290,7 +290,6 @@ static int st_rc_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, rc_dev);
+ 	st_rc_hardware_init(rc_dev);
+ 
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	/* rx sampling rate is 10Mhz */
+ 	rdev->rx_resolution = 100;
+diff --git a/drivers/media/rc/streamzap.c b/drivers/media/rc/streamzap.c
+index 53f9b0a..f434e45 100644
+--- a/drivers/media/rc/streamzap.c
++++ b/drivers/media/rc/streamzap.c
+@@ -291,7 +291,7 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
+ 	struct device *dev = sz->dev;
+ 	int ret;
+ 
+-	rdev = rc_allocate_device();
++	rdev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!rdev) {
+ 		dev_err(dev, "remote dev allocation failed\n");
+ 		goto out;
+@@ -308,7 +308,6 @@ static struct rc_dev *streamzap_init_rc_dev(struct streamzap_ir *sz)
+ 	usb_to_input_id(sz->usbdev, &rdev->input_id);
+ 	rdev->dev.parent = dev;
+ 	rdev->priv = sz;
+-	rdev->driver_type = RC_DRIVER_IR_RAW;
+ 	rdev->allowed_protocols = RC_BIT_ALL;
+ 	rdev->driver_name = DRIVER_NAME;
+ 	rdev->map_name = RC_MAP_STREAMZAP;
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index eaadc08..5451f3d 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -212,7 +212,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 		goto exit_clkdisable_clk;
+ 	}
+ 
+-	ir->rc = rc_allocate_device();
++	ir->rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir->rc) {
+ 		dev_err(dev, "failed to allocate device\n");
+ 		ret = -ENOMEM;
+@@ -229,7 +229,6 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	ir->map_name = of_get_property(dn, "linux,rc-map-name", NULL);
+ 	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
+ 	ir->rc->dev.parent = dev;
+-	ir->rc->driver_type = RC_DRIVER_IR_RAW;
+ 	ir->rc->allowed_protocols = RC_BIT_ALL;
+ 	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
+ 	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index bc214e2..6ff2cef 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -205,7 +205,7 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 	int altsetting = -1;
+ 
+ 	tt = kzalloc(sizeof(*tt), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!tt || !rc) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -317,7 +317,6 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 	rc->input_phys = tt->phys;
+ 	usb_to_input_id(tt->udev, &rc->input_id);
+ 	rc->dev.parent = &intf->dev;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_ALL;
+ 	rc->priv = tt;
+ 	rc->driver_name = DRIVER_NAME;
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 78491ed..bc95d22 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -1059,13 +1059,12 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	if (err)
+ 		goto exit_free_data;
+ 
+-	data->dev = rc_allocate_device();
++	data->dev = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!data->dev) {
+ 		err = -ENOMEM;
+ 		goto exit_unregister_led;
+ 	}
+ 
+-	data->dev->driver_type = RC_DRIVER_IR_RAW;
+ 	data->dev->driver_name = DRVNAME;
+ 	data->dev->input_name = WBCIR_NAME;
+ 	data->dev->input_phys = "wbcir/cir0";
+diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+index 1e66e78..9ec919c 100644
+--- a/drivers/media/usb/au0828/au0828-input.c
++++ b/drivers/media/usb/au0828/au0828-input.c
+@@ -298,7 +298,7 @@ int au0828_rc_register(struct au0828_dev *dev)
+ 		return -ENODEV;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_IR_RAW);
+ 	if (!ir || !rc)
+ 		goto error;
+ 
+@@ -343,7 +343,6 @@ int au0828_rc_register(struct au0828_dev *dev)
+ 	rc->input_id.product = le16_to_cpu(dev->usbdev->descriptor.idProduct);
+ 	rc->dev.parent = &dev->usbdev->dev;
+ 	rc->driver_name = "au0828-input";
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->allowed_protocols = RC_BIT_NEC | RC_BIT_NECX | RC_BIT_NEC32 |
+ 								RC_BIT_RC5;
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-input.c b/drivers/media/usb/cx231xx/cx231xx-input.c
+index 15d8d1b..6e80f3c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-input.c
++++ b/drivers/media/usb/cx231xx/cx231xx-input.c
+@@ -72,7 +72,7 @@ int cx231xx_ir_init(struct cx231xx *dev)
+ 
+ 	memset(&info, 0, sizeof(struct i2c_board_info));
+ 	memset(&dev->init_data, 0, sizeof(dev->init_data));
+-	dev->init_data.rc_dev = rc_allocate_device();
++	dev->init_data.rc_dev = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!dev->init_data.rc_dev)
+ 		return -ENOMEM;
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index a8e6624..298c91a 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -147,7 +147,7 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
+ 	if (!d->rc.map_name)
+ 		return 0;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(d->rc.driver_type);
+ 	if (!dev) {
+ 		ret = -ENOMEM;
+ 		goto err;
+@@ -162,7 +162,6 @@ static int dvb_usbv2_remote_init(struct dvb_usb_device *d)
+ 	/* TODO: likely RC-core should took const char * */
+ 	dev->driver_name = (char *) d->props->driver_name;
+ 	dev->map_name = d->rc.map_name;
+-	dev->driver_type = d->rc.driver_type;
+ 	dev->allowed_protocols = d->rc.allowed_protos;
+ 	dev->change_protocol = d->rc.change_protocol;
+ 	dev->priv = d;
+diff --git a/drivers/media/usb/dvb-usb/dvb-usb-remote.c b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
+index c259f9e..059ded5 100644
+--- a/drivers/media/usb/dvb-usb/dvb-usb-remote.c
++++ b/drivers/media/usb/dvb-usb/dvb-usb-remote.c
+@@ -265,7 +265,7 @@ static int rc_core_dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	int err, rc_interval;
+ 	struct rc_dev *dev;
+ 
+-	dev = rc_allocate_device();
++	dev = rc_allocate_device(d->props.rc.core.driver_type);
+ 	if (!dev)
+ 		return -ENOMEM;
+ 
+@@ -273,7 +273,6 @@ static int rc_core_dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	dev->map_name = d->props.rc.core.rc_codes;
+ 	dev->change_protocol = d->props.rc.core.change_protocol;
+ 	dev->allowed_protocols = d->props.rc.core.allowed_protos;
+-	dev->driver_type = d->props.rc.core.driver_type;
+ 	usb_to_input_id(d->udev, &dev->input_id);
+ 	dev->input_name = "IR-receiver inside an USB DVB receiver";
+ 	dev->input_phys = d->rc_phys;
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 782ce09..aa24bba 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -719,7 +719,7 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 	ir = kzalloc(sizeof(*ir), GFP_KERNEL);
+ 	if (!ir)
+ 		return -ENOMEM;
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!rc)
+ 		goto error;
+ 
+diff --git a/drivers/media/usb/tm6000/tm6000-input.c b/drivers/media/usb/tm6000/tm6000-input.c
+index 26b2ebb..377a69b 100644
+--- a/drivers/media/usb/tm6000/tm6000-input.c
++++ b/drivers/media/usb/tm6000/tm6000-input.c
+@@ -429,7 +429,7 @@ int tm6000_ir_init(struct tm6000_core *dev)
+ 		return 0;
+ 
+ 	ir = kzalloc(sizeof(*ir), GFP_ATOMIC);
+-	rc = rc_allocate_device();
++	rc = rc_allocate_device(RC_DRIVER_SCANCODE);
+ 	if (!ir || !rc)
+ 		goto out;
+ 
+@@ -456,7 +456,6 @@ int tm6000_ir_init(struct tm6000_core *dev)
+ 		ir->polling = 50;
+ 		INIT_DELAYED_WORK(&ir->work, tm6000_ir_handle_key);
+ 	}
+-	rc->driver_type = RC_DRIVER_SCANCODE;
+ 
+ 	snprintf(ir->name, sizeof(ir->name), "tm5600/60x0 IR (%s)",
+ 						dev->name);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 55281b9..ba92c86 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -200,17 +200,19 @@ struct rc_dev {
+ /**
+  * rc_allocate_device - Allocates a RC device
+  *
++ * @rc_driver_type: specifies the type of the RC output to be allocated
+  * returns a pointer to struct rc_dev.
+  */
+-struct rc_dev *rc_allocate_device(void);
++struct rc_dev *rc_allocate_device(enum rc_driver_type);
+ 
+ /**
+  * devm_rc_allocate_device - Managed RC device allocation
+  *
+  * @dev: pointer to struct device
++ * @rc_driver_type: specifies the type of the RC output to be allocated
+  * returns a pointer to struct rc_dev.
+  */
+-struct rc_dev *devm_rc_allocate_device(struct device *dev);
++struct rc_dev *devm_rc_allocate_device(struct device *dev, enum rc_driver_type);
+ 
+ /**
+  * rc_free_device - Frees a RC device
 -- 
-1.9.1
+2.10.2
 
