@@ -1,249 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49678 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751446AbcL1SlW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Dec 2016 13:41:22 -0500
-Date: Wed, 28 Dec 2016 19:31:16 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: sakari.ailus@iki.fi, sre@kernel.org, pali.rohar@gmail.com,
-        pavel@ucw.cz, linux-media@vger.kernel.org,
-        kernel list <linux-kernel@vger.kernel.org>
-Subject: [PATCH] v4l: add support for CSI-1 bus
-Message-ID: <20161228183116.GA13407@amd>
+Received: from gofer.mess.org ([80.229.237.210]:35059 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755003AbcLPMKa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 07:10:30 -0500
+Date: Fri, 16 Dec 2016 12:10:26 +0000
+From: Sean Young <sean@mess.org>
+To: Andi Shyti <andi.shyti@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v5 2/6] [media] rc-main: split setup and unregister
+ functions
+Message-ID: <20161216121026.GA31618@gofer.mess.org>
+References: <20161216061218.5906-1-andi.shyti@samsung.com>
+ <20161216061218.5906-3-andi.shyti@samsung.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="J/dobhs11T7y2rNN"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20161216061218.5906-3-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Andi,
 
---J/dobhs11T7y2rNN
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry to add to your woes, but there are some checkpatch warnings and
+errors. Please can you correct these. One is below.
 
-=46rom: Sakari Ailus <sakari.ailus@iki.fi>
+Thanks
+Sean
 
-The function to parse CSI2 bus parameters was called
-v4l2_of_parse_csi_bus(), rename it as v4l2_of_parse_csi2_bus() in
-anticipation of CSI1/CCP2 support.
+On Fri, Dec 16, 2016 at 03:12:14PM +0900, Andi Shyti wrote:
+> Move the input device allocation, map and protocol handling to
+> different functions.
+> 
+> Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+> Reviewed-by: Sean Young <sean@mess.org>
+> ---
+>  drivers/media/rc/rc-main.c | 143 +++++++++++++++++++++++++--------------------
+>  1 file changed, 81 insertions(+), 62 deletions(-)
+> 
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index a6bbceb..7cc700d 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -1436,16 +1436,12 @@ struct rc_dev *devm_rc_allocate_device(struct device *dev,
+>  }
+>  EXPORT_SYMBOL_GPL(devm_rc_allocate_device);
+>  
+> -int rc_register_device(struct rc_dev *dev)
+> +static int rc_setup_rx_device(struct rc_dev *dev)
+>  {
+> -	static bool raw_init = false; /* raw decoders loaded? */
+> -	struct rc_map *rc_map;
+> -	const char *path;
+> -	int attr = 0;
+> -	int minor;
+>  	int rc;
+> +	struct rc_map *rc_map;
+>  
+> -	if (!dev || !dev->map_name)
+> +	if (!dev->map_name)
+>  		return -EINVAL;
+>  
+>  	rc_map = rc_map_get(dev->map_name);
+> @@ -1454,6 +1450,19 @@ int rc_register_device(struct rc_dev *dev)
+>  	if (!rc_map || !rc_map->scan || rc_map->size == 0)
+>  		return -EINVAL;
+>  
+> +	rc = ir_setkeytable(dev, rc_map);
+> +	if (rc)
+> +		return rc;
+> +
+> +	if (dev->change_protocol) {
+> +		u64 rc_type = (1ll << rc_map->rc_type);
+> +
+> +		rc = dev->change_protocol(dev, &rc_type);
+> +		if (rc < 0)
+> +			goto out_table;
+> +		dev->enabled_protocols = rc_type;
+> +	}
+> +
+>  	set_bit(EV_KEY, dev->input_dev->evbit);
+>  	set_bit(EV_REP, dev->input_dev->evbit);
+>  	set_bit(EV_MSC, dev->input_dev->evbit);
+> @@ -1463,6 +1472,61 @@ int rc_register_device(struct rc_dev *dev)
+>  	if (dev->close)
+>  		dev->input_dev->close = ir_close;
+>  
+> +	/*
+> +	 * Default delay of 250ms is too short for some protocols, especially
+> +	 * since the timeout is currently set to 250ms. Increase it to 500ms,
+> +	 * to avoid wrong repetition of the keycodes. Note that this must be
+> +	 * set after the call to input_register_device().
+> +	 */
+> +	dev->input_dev->rep[REP_DELAY] = 500;
+> +
+> +	/*
+> +	 * As a repeat event on protocols like RC-5 and NEC take as long as
+> +	 * 110/114ms, using 33ms as a repeat period is not the right thing
+> +	 * to do.
+> +	 */
+> +	dev->input_dev->rep[REP_PERIOD] = 125;
+> +
+> +	dev->input_dev->dev.parent = &dev->dev;
+> +	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
+> +	dev->input_dev->phys = dev->input_phys;
+> +	dev->input_dev->name = dev->input_name;
+> +
+> +	/* rc_open will be called here */
+> +	rc = input_register_device(dev->input_dev);
+> +	if (rc)
+> +		goto out_table;
+> +
+> +	return 0;
+> +
+> +out_table:
+> +	ir_free_table(&dev->rc_map);
+> +
+> +	return rc;
+> +}
+> +
+> +static void rc_free_rx_device(struct rc_dev *dev)
+> +{
+> +	if (!dev)
+> +		return;
+> +
+> +	ir_free_table(&dev->rc_map);
+> +
+> +	input_unregister_device(dev->input_dev);
+> +	dev->input_dev = NULL;
+> +}
+> +
+> +int rc_register_device(struct rc_dev *dev)
+> +{
+> +	static bool raw_init = false; /* raw decoders loaded? */
 
-Obtain data bus type from bus-type property. Only try parsing bus
-specific properties in this case.
+ERROR: do not initialise statics to false
+#110: FILE: drivers/media/rc/rc-main.c:1741:
++	static bool raw_init = false; /* raw decoders loaded? */
 
-Add CSI1 and CCP2 bus type to enum v4l2_mbus_type. CCP2, or CSI-1, is
-an older single data lane serial bus.
-
-Separate lane parsing from CSI-2 bus parameter parsing. The CSI-1 will
-need these as well, separate them into a different
-function. have_clk_lane and num_data_lanes arguments may be NULL; the
-CSI-1 bus will have no use for them.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4=
-l2-of.c
-index 93b3368..60bbc5f 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -20,53 +20,88 @@
-=20
- #include <media/v4l2-of.h>
-=20
--static int v4l2_of_parse_csi_bus(const struct device_node *node,
--				 struct v4l2_of_endpoint *endpoint)
-+enum v4l2_of_bus_type {
-+	V4L2_OF_BUS_TYPE_CSI2 =3D 0,
-+	V4L2_OF_BUS_TYPE_PARALLEL,
-+};
-+
-+static int v4l2_of_parse_lanes(const struct device_node *node,
-+			       unsigned char *clock_lane,
-+			       bool *have_clk_lane,
-+			       unsigned char *data_lanes,
-+			       bool *lane_polarities,
-+			       unsigned short *__num_data_lanes,
-+			       unsigned int max_data_lanes)
- {
--	struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2;
- 	struct property *prop;
--	bool have_clk_lane =3D false;
--	unsigned int flags =3D 0;
-+	unsigned short num_data_lanes =3D 0;
- 	u32 v;
-=20
- 	prop =3D of_find_property(node, "data-lanes", NULL);
- 	if (prop) {
- 		const __be32 *lane =3D NULL;
--		unsigned int i;
-=20
--		for (i =3D 0; i < ARRAY_SIZE(bus->data_lanes); i++) {
-+		for (num_data_lanes =3D 0; num_data_lanes < max_data_lanes;
-+		     num_data_lanes++) {
- 			lane =3D of_prop_next_u32(prop, lane, &v);
- 			if (!lane)
- 				break;
--			bus->data_lanes[i] =3D v;
-+			data_lanes[num_data_lanes] =3D v;
- 		}
--		bus->num_data_lanes =3D i;
- 	}
-+	if (__num_data_lanes)
-+		*__num_data_lanes =3D num_data_lanes;
-=20
- 	prop =3D of_find_property(node, "lane-polarities", NULL);
- 	if (prop) {
- 		const __be32 *polarity =3D NULL;
- 		unsigned int i;
-=20
--		for (i =3D 0; i < ARRAY_SIZE(bus->lane_polarities); i++) {
-+		for (i =3D 0; i < 1 + max_data_lanes; i++) {
- 			polarity =3D of_prop_next_u32(prop, polarity, &v);
- 			if (!polarity)
- 				break;
--			bus->lane_polarities[i] =3D v;
-+			lane_polarities[i] =3D v;
- 		}
-=20
--		if (i < 1 + bus->num_data_lanes /* clock + data */) {
-+		if (i < 1 + num_data_lanes /* clock + data */) {
- 			pr_warn("%s: too few lane-polarities entries (need %u, got %u)\n",
--				node->full_name, 1 + bus->num_data_lanes, i);
-+				node->full_name, 1 + num_data_lanes, i);
- 			return -EINVAL;
- 		}
- 	}
-=20
-+	if (have_clk_lane)
-+		*have_clk_lane =3D false;
-+
- 	if (!of_property_read_u32(node, "clock-lanes", &v)) {
--		bus->clock_lane =3D v;
--		have_clk_lane =3D true;
-+		*clock_lane =3D v;
-+		if (have_clk_lane)
-+			*have_clk_lane =3D true;
- 	}
-=20
-+	return 0;
-+}
-+
-+static int v4l2_of_parse_csi2_bus(const struct device_node *node,
-+				 struct v4l2_of_endpoint *endpoint)
-+{
-+	struct v4l2_of_bus_mipi_csi2 *bus =3D &endpoint->bus.mipi_csi2;
-+	bool have_clk_lane =3D false;
-+	unsigned int flags =3D 0;
-+	int rval;
-+	u32 v;
-+
-+	rval =3D v4l2_of_parse_lanes(node, &bus->clock_lane, &have_clk_lane,
-+				   bus->data_lanes, bus->lane_polarities,
-+				   &bus->num_data_lanes,
-+				   ARRAY_SIZE(bus->data_lanes));
-+	if (rval)
-+		return rval;
-+
-+	BUILD_BUG_ON(1 + ARRAY_SIZE(bus->data_lanes)
-+		       !=3D ARRAY_SIZE(bus->lane_polarities));
-+
- 	if (of_get_property(node, "clock-noncontinuous", &v))
- 		flags |=3D V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
- 	else if (have_clk_lane || bus->num_data_lanes > 0)
-@@ -151,6 +186,7 @@ static void v4l2_of_parse_parallel_bus(const struct dev=
-ice_node *node,
- int v4l2_of_parse_endpoint(const struct device_node *node,
- 			   struct v4l2_of_endpoint *endpoint)
- {
-+	u32 bus_type;
- 	int rval;
-=20
- 	of_graph_parse_endpoint(node, &endpoint->base);
-@@ -158,17 +194,33 @@ int v4l2_of_parse_endpoint(const struct device_node *=
-node,
- 	memset(&endpoint->bus_type, 0, sizeof(*endpoint) -
- 	       offsetof(typeof(*endpoint), bus_type));
-=20
--	rval =3D v4l2_of_parse_csi_bus(node, endpoint);
--	if (rval)
--		return rval;
--	/*
--	 * Parse the parallel video bus properties only if none
--	 * of the MIPI CSI-2 specific properties were found.
--	 */
--	if (endpoint->bus.mipi_csi2.flags =3D=3D 0)
--		v4l2_of_parse_parallel_bus(node, endpoint);
-+	rval =3D of_property_read_u32(node, "bus-type", &bus_type);
-+	if (rval < 0) {
-+		endpoint->bus_type =3D 0;
-+		rval =3D v4l2_of_parse_csi2_bus(node, endpoint);
-+		if (rval)
-+			return rval;
-+		/*
-+		 * Parse the parallel video bus properties only if none
-+		 * of the MIPI CSI-2 specific properties were found.
-+		 */
-+		if (endpoint->bus.mipi_csi2.flags =3D=3D 0)
-+			v4l2_of_parse_parallel_bus(node, endpoint);
-+
-+		return 0;
-+	}
-=20
--	return 0;
-+	switch (bus_type) {
-+	case V4L2_OF_BUS_TYPE_CSI2:
-+		return v4l2_of_parse_csi2_bus(node, endpoint);
-+	case V4L2_OF_BUS_TYPE_PARALLEL:
-+		v4l2_of_parse_parallel_bus(node, endpoint);
-+		return 0;
-+	default:
-+		pr_warn("bad bus-type %u, device_node \"%s\"\n",
-+			bus_type, node->full_name);
-+		return -EINVAL;
-+	}
- }
- EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-=20
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 34cc99e..315c167 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -69,11 +69,15 @@
-  * @V4L2_MBUS_PARALLEL:	parallel interface with hsync and vsync
-  * @V4L2_MBUS_BT656:	parallel interface with embedded synchronisation, can
-  *			also be used for BT.1120
-+ * @V4L2_MBUS_CSI1:	MIPI CSI-1 serial interface
-+ * @V4L2_MBUS_CCP2:	CCP2 (Compact Camera Port 2)
-  * @V4L2_MBUS_CSI2:	MIPI CSI-2 serial interface
-  */
- enum v4l2_mbus_type {
- 	V4L2_MBUS_PARALLEL,
- 	V4L2_MBUS_BT656,
-+	V4L2_MBUS_CSI1,
-+	V4L2_MBUS_CCP2,
- 	V4L2_MBUS_CSI2,
- };
-=20
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---J/dobhs11T7y2rNN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhkBPQACgkQMOfwapXb+vJtuQCgjPZYL48hUYrchZLiEbUqnbin
-RfkAniOrd06tYduhooasm48fbYTSsWGW
-=pbwN
------END PGP SIGNATURE-----
-
---J/dobhs11T7y2rNN--
+> +	const char *path;
+> +	int attr = 0;
+> +	int minor;
+> +	int rc;
+> +
+> +	if (!dev)
+> +		return -EINVAL;
+> +
+>  	minor = ida_simple_get(&rc_ida, 0, RC_DEV_MAX, GFP_KERNEL);
+>  	if (minor < 0)
+>  		return minor;
+> @@ -1486,39 +1550,15 @@ int rc_register_device(struct rc_dev *dev)
+>  	if (rc)
+>  		goto out_unlock;
+>  
+> -	rc = ir_setkeytable(dev, rc_map);
+> -	if (rc)
+> -		goto out_dev;
+> -
+> -	dev->input_dev->dev.parent = &dev->dev;
+> -	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
+> -	dev->input_dev->phys = dev->input_phys;
+> -	dev->input_dev->name = dev->input_name;
+> -
+> -	rc = input_register_device(dev->input_dev);
+> -	if (rc)
+> -		goto out_table;
+> -
+> -	/*
+> -	 * Default delay of 250ms is too short for some protocols, especially
+> -	 * since the timeout is currently set to 250ms. Increase it to 500ms,
+> -	 * to avoid wrong repetition of the keycodes. Note that this must be
+> -	 * set after the call to input_register_device().
+> -	 */
+> -	dev->input_dev->rep[REP_DELAY] = 500;
+> -
+> -	/*
+> -	 * As a repeat event on protocols like RC-5 and NEC take as long as
+> -	 * 110/114ms, using 33ms as a repeat period is not the right thing
+> -	 * to do.
+> -	 */
+> -	dev->input_dev->rep[REP_PERIOD] = 125;
+> -
+>  	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
+>  	dev_info(&dev->dev, "%s as %s\n",
+>  		dev->input_name ?: "Unspecified device", path ?: "N/A");
+>  	kfree(path);
+>  
+> +	rc = rc_setup_rx_device(dev);
+> +	if (rc)
+> +		goto out_dev;
+> +
+>  	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+>  		if (!raw_init) {
+>  			request_module_nowait("ir-lirc-codec");
+> @@ -1526,36 +1566,20 @@ int rc_register_device(struct rc_dev *dev)
+>  		}
+>  		rc = ir_raw_event_register(dev);
+>  		if (rc < 0)
+> -			goto out_input;
+> -	}
+> -
+> -	if (dev->change_protocol) {
+> -		u64 rc_type = (1ll << rc_map->rc_type);
+> -		rc = dev->change_protocol(dev, &rc_type);
+> -		if (rc < 0)
+> -			goto out_raw;
+> -		dev->enabled_protocols = rc_type;
+> +			goto out_rx;
+>  	}
+>  
+>  	/* Allow the RC sysfs nodes to be accessible */
+>  	atomic_set(&dev->initialized, 1);
+>  
+> -	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
+> +	IR_dprintk(1, "Registered rc%u (driver: %s)\n",
+>  		   dev->minor,
+> -		   dev->driver_name ? dev->driver_name : "unknown",
+> -		   rc_map->name ? rc_map->name : "unknown",
+> -		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
+> +		   dev->driver_name ? dev->driver_name : "unknown");
+>  
+>  	return 0;
+>  
+> -out_raw:
+> -	if (dev->driver_type == RC_DRIVER_IR_RAW)
+> -		ir_raw_event_unregister(dev);
+> -out_input:
+> -	input_unregister_device(dev->input_dev);
+> -	dev->input_dev = NULL;
+> -out_table:
+> -	ir_free_table(&dev->rc_map);
+> +out_rx:
+> +	rc_free_rx_device(dev);
+>  out_dev:
+>  	device_del(&dev->dev);
+>  out_unlock:
+> @@ -1601,12 +1625,7 @@ void rc_unregister_device(struct rc_dev *dev)
+>  	if (dev->driver_type == RC_DRIVER_IR_RAW)
+>  		ir_raw_event_unregister(dev);
+>  
+> -	/* Freeing the table should also call the stop callback */
+> -	ir_free_table(&dev->rc_map);
+> -	IR_dprintk(1, "Freed keycode table\n");
+> -
+> -	input_unregister_device(dev->input_dev);
+> -	dev->input_dev = NULL;
+> +	rc_free_rx_device(dev);
+>  
+>  	device_del(&dev->dev);
+>  
+> -- 
+> 2.10.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
