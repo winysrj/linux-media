@@ -1,58 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:39997 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753916AbcL3NH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Dec 2016 08:07:56 -0500
-Date: Fri, 30 Dec 2016 13:07:52 +0000
-From: Sean Young <sean@mess.org>
-To: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>,
-        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
-Message-ID: <20161230130752.GA7377@gofer.mess.org>
-References: <cover.1482255894.git.sean@mess.org>
- <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
- <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:42215
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1761155AbcLPLS6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 06:18:58 -0500
+Date: Fri, 16 Dec 2016 09:18:50 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg KH <greg@kroah.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Message-ID: <20161216091850.688dd863@vento.lan>
+In-Reply-To: <2965200.xcWXyJedNO@avalon>
+References: <20161214151406.20380-1-mchehab@s-opensource.com>
+        <e4f884d2-9746-a728-3f75-1aa211721f5e@osg.samsung.com>
+        <20161215105716.30186ff5@vento.lan>
+        <2965200.xcWXyJedNO@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivo,,
 
-On Fri, Dec 30, 2016 at 01:30:01PM +0200, Ivaylo Dimitrov wrote:
-> On 20.12.2016 19:50, Sean Young wrote:
-> >This driver was written using lirc since rc-core did not support
-> >transmitter-only hardware at that time. Now that it does, port
-> >this driver.
-> >
-> >Compile tested only.
-> >
-> 
-> I guess after that change, there will be no more /dev/lircN device, right?
-> Neither will LIRC_XXX IOCTL codes be supported?
+Em Thu, 15 Dec 2016 16:04:51 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Quite the opposite, /dev/lircN and all the LIRC_XXX ioctls will still be
-supported through ir-lirc-codec.c.
+We have now two threads discussing the same subject, which is bad, as
+we'll end repeating the same arguments on different threads...
 
-By using rc-core, the driver will be more succinct, and some latent bugs
-will be fixed. For example, at the moment it is possible to write hours
-of IR data and keep the n900 from suspending.
+Let's use the "[PATCH RFC 00/21]" for those discussions, as it seems we're
+reaching to somewhere there.
 
-I'm working on lirc scancode sending and receiving using the IR encoders,
-and when that is in place, any rc-core driver will get it for free.
+> Even if you're not entirely convinced by the reasons 
+> explained in this mail thread, remember that we will need sooner or later to 
+> implement support for media graph update at runtime. Refcounting will be 
+> needed, let's design it in the cleanest possible way.
 
-> That looks to me as a completely new driver, not a port to new API.
-> 
-> Right now there are applications using the current behaviour (pierogi for
-> example), which will be broken by the change.
+As I said, I'm not against using some other approach and even
+adding refcounting to each graph object.
 
-Nothing should break.
+What I am against is on a patchset that starts by breaking 
+the USB drivers that use the media controller.
+
+Btw, I'm starting to suspect that getting rid of devm_*alloc()
+on OMAP3, as proposed by the 00/21 thread is addressing a symptom of
+the problem and not a cause, and that using get_device()/put_device()
+may help fixing such issues. See Hans comments on that thread.
 
 Thanks,
-
-Sean
+Mauro
