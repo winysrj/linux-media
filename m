@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:52018 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933505AbcLLRQM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 12:16:12 -0500
-Subject: Re: [media] bt8xx: One function call less in bttv_input_init() after
- error detection
-To: Daniele Nicolodi <daniele@grinta.net>
-References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
- <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
- <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
- <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
- <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
- <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
- <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
-Cc: linux-media@vger.kernel.org,
-        Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <baf6a24e-6a4e-f1ea-1b4d-7a3211964e4b@users.sourceforge.net>
-Date: Mon, 12 Dec 2016 18:15:45 +0100
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51345 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759775AbcLPM3g (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 07:29:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, sakari.ailus@linux.intel.com,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: omap3isp change to devm for resources
+Date: Fri, 16 Dec 2016 14:19:44 +0200
+Message-ID: <2253735.S1P71dP0gH@avalon>
+In-Reply-To: <56d66910-1776-26a5-53fc-20e44fea490b@xs4all.nl>
+References: <cover.1481829721.git.shuahkh@osg.samsung.com> <98a3d1794bc001f312a7db31ad03465ba697bb36.1481829722.git.shuahkh@osg.samsung.com> <56d66910-1776-26a5-53fc-20e44fea490b@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> I suggest to check return values immediately after each function call.
->> An error situation can be detected earlier then and only the required
->> clean-up functionality will be executed at the end.
+Hi Hans,
+
+On Friday 16 Dec 2016 12:39:49 Hans Verkuil wrote:
+> On 15/12/16 20:40, Shuah Khan wrote:
+> > Using devm resources that have external dependencies such as a dev
+> > for a file handler could result in devm resources getting released
+> > durin unbind while an application has the file open holding pointer
+> > to the devm resource. This results in use-after-free errors when the
+> > application exits.
 > 
-> Which improvement does this bring?
+> That's solving the wrong problem.
+> 
+> The real problem is that when registering a video_device it should do
+> this:
+> 
+> devnode->cdev.kobj.parent = &devnode->dev.kobj;
+> 
+> (taken from cec-core.c)
+> 
+> This will prevent isp->dev from being released as long as there is a
+> filehandle still open.
 
-* How do you think about to avoid requesting additional system resources
-  when it was determined that a previously required memory allocation failed?
+But it won't be enough, devm_* resources are released at unbind time, not at 
+device release time. Right after the unbind (.remove() for platform devices) 
+handler returns, devm_kzalloc allocated memory goes away.
 
-* Can the corresponding exception handling become a bit more efficient?
+> After that change I believe that this will work correctly, but this
+> has to be tested first!
 
-
-> Why?
-
-Do you care for any results from static source code analysis?
-
+-- 
 Regards,
-Markus
+
+Laurent Pinchart
+
