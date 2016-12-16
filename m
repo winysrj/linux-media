@@ -1,151 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35032 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751539AbcL0X52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 18:57:28 -0500
-Date: Wed, 28 Dec 2016 00:57:21 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] mark myself as mainainer for camera on N900
-Message-ID: <20161227235721.xulzxdrwnb7feepn@earth>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161227092634.GK16630@valkosipuli.retiisi.org.uk>
- <20161227204558.GA23676@amd>
- <20161227205923.GA7859@amd>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51721 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1761927AbcLPQGA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 11:06:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg KH <greg@kroah.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH RFC] omap3isp: prevent releasing MC too early
+Date: Fri, 16 Dec 2016 18:06:37 +0200
+Message-ID: <2184723.57DbA5Qh8A@avalon>
+In-Reply-To: <20161216091850.688dd863@vento.lan>
+References: <20161214151406.20380-1-mchehab@s-opensource.com> <2965200.xcWXyJedNO@avalon> <20161216091850.688dd863@vento.lan>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="gcpm4ervip3yvwos"
-Content-Disposition: inline
-In-Reply-To: <20161227205923.GA7859@amd>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---gcpm4ervip3yvwos
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Friday 16 Dec 2016 09:18:50 Mauro Carvalho Chehab wrote:
+> Em Thu, 15 Dec 2016 16:04:51 +0200 Laurent Pinchart escreveu:
+> 
+> We have now two threads discussing the same subject, which is bad, as
+> we'll end repeating the same arguments on different threads...
+> 
+> Let's use the "[PATCH RFC 00/21]" for those discussions, as it seems we're
+> reaching to somewhere there.
+> 
+> > Even if you're not entirely convinced by the reasons
+> > explained in this mail thread, remember that we will need sooner or later
+> > to implement support for media graph update at runtime. Refcounting will
+> > be needed, let's design it in the cleanest possible way.
+> 
+> As I said, I'm not against using some other approach and even
+> adding refcounting to each graph object.
+> 
+> What I am against is on a patchset that starts by breaking
+> the USB drivers that use the media controller.
 
-Hi,
+So, what you're essentially saying, is that you noticed we have a problem in 
+the core when trying to add MC support to a bunch of USB driver. Instead of 
+fixing the problem properly, you've merged 3 patches that work around part of 
+the issue, despite negative comments received by the original authors of the 
+code, and then added a bunch of code to the USB drivers that make them subject 
+to the race condition. And you're then claiming that we can't revert the 
+patches that we know from the start were broken because you piled additional 
+patches on top of them, making the end result worse ? Sorry, I can't buy that. 
+If you really insist we can also revert the series that add MC support to the 
+USB drivers, but there's no way that your decision to ignore known issues can 
+ever be considered as an excuse to not revert broken changes.
 
-On Tue, Dec 27, 2016 at 09:59:23PM +0100, Pavel Machek wrote:
-> Mark and Sakari as maintainers for Nokia N900 camera pieces.
+This discussion is over as far as I'm concerned. The 3 patches in question are 
+wrong. I want the proper fixes to be merged, and we thus all need to work in 
+that direction, which means reviewing them. Once we agree on what the end 
+result should be we'll see whether we could possibly rework the code in a way 
+that doesn't require a revert. If that's not possible, we'll revert what is 
+broken. It's as simple as that. Now, let's get technical and fix this crap. If 
+I had wanted a show I would have bought tickets to the circus.
 
-^^^ missing me after Mark. Otherwise Mark looks like a name :)
+> Btw, I'm starting to suspect that getting rid of devm_*alloc()
+> on OMAP3, as proposed by the 00/21 thread is addressing a symptom of
+> the problem and not a cause, and that using get_device()/put_device()
+> may help fixing such issues. See Hans comments on that thread.
 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
->=20
-> ---
->=20
-> Hi!
->=20
-> > Yeah, there was big flamewar about the permissions. In the end Linus
-> > decided that everyone knows the octal numbers, but the constants are
-> > tricky. It began with patch series with 1000 patches...
-> >=20
-> > > Btw. should we update maintainers as well? Would you like to put your=
-self
-> > > there? Feel free to add me, too...
-> >=20
-> > Ok, will do.
->=20
-> Something like this? Actually, I guess we could merge ADP1653 entry
-> there. Yes, it is random collection of devices, but are usually tested
-> "together", so I believe one entry makes sense.
->=20
-> (But I have no problem with having multiple entries, too.)
->=20
-> Thanks,
-> 								Pavel
->=20
->=20
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 63cefa6..1cb1d97 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -8613,6 +8613,14 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/g=
-it/lftan/nios2.git
->  S:	Maintained
->  F:	arch/nios2/
-> =20
-> +NOKIA N900 CAMERA SUPPORT (ET8EK8 SENSOR, AD5820 FOCUS)
-> +M:	Pavel Machek <pavel@ucw.cz>
-> +M:	Sakari Ailus <sakari.ailus@iki.fi>
-> +L:	linux-media@vger.kernel.org
-> +S:	Maintained
-> +F:	drivers/media/i2c/et8ek8
-> +F:	drivers/media/i2c/ad5820.c
+-- 
+Regards,
 
-Not sure if this is useful information, but I solved it like this
-for N900 power supply drivers:
+Laurent Pinchart
 
-NOKIA N900 POWER SUPPLY DRIVERS
-R:	Pali Roh=E1r <pali.rohar@gmail.com>
-F:	include/linux/power/bq2415x_charger.h
-F:	include/linux/power/bq27xxx_battery.h
-F:	include/linux/power/isp1704_charger.h
-F:	drivers/power/supply/bq2415x_charger.c
-F:	drivers/power/supply/bq27xxx_battery.c
-F:	drivers/power/supply/bq27xxx_battery_i2c.c
-F:	drivers/power/supply/isp1704_charger.c
-F:	drivers/power/supply/rx51_battery.c
-
-TI BQ27XXX POWER SUPPLY DRIVER
-R:	Andrew F. Davis <afd@ti.com>
-F:	include/linux/power/bq27xxx_battery.h
-F:	drivers/power/supply/bq27xxx_battery.c
-F:	drivers/power/supply/bq27xxx_battery_i2c.c
-
-POWER SUPPLY CLASS/SUBSYSTEM and DRIVERS
-M:	Sebastian Reichel <sre@kernel.org>
-L:	linux-pm@vger.kernel.org
-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/sre/linux-power-supply=
-=2Egit
-S:	Maintained
-F:	Documentation/devicetree/bindings/power/supply/
-F:	include/linux/power_supply.h
-F:	drivers/power/supply/
-
-This makes it quite easy to see who applies patches and who should
-be Cc'd for what reason:
-
-$ ./scripts/get_maintainer.pl -f drivers/power/supply/bq27xxx_battery.c=20
-"Pali Roh=E1r" <pali.rohar@gmail.com> (reviewer:NOKIA N900 POWER SUPPLY DRI=
-VERS)
-"Andrew F. Davis" <afd@ti.com> (reviewer:TI BQ27XXX POWER SUPPLY DRIVER)
-Sebastian Reichel <sre@kernel.org> (maintainer:POWER SUPPLY CLASS/SUBSYSTEM=
- and DRIVERS)
-linux-pm@vger.kernel.org (open list:POWER SUPPLY CLASS/SUBSYSTEM and DRIVER=
-S)
-linux-kernel@vger.kernel.org (open list)
-
--- Sebastian
-
---gcpm4ervip3yvwos
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlhi/98ACgkQ2O7X88g7
-+pp7ohAAiHYDxwVufbuBRsZVfzUfNaUPqvycFMf2mOYIOJsBO3oFnedj49hiOb0G
-nS3WUHpMvQNLsNs7GcdNxRrV+u9Ia9ecKWEYEwGHLoCGGyBaywjjIq0s9cPFeuB+
-Zlfl/y0Jz7dRB7pxv6dLwZWDKDojNCaoP/USTO/lLD2rYfpbDdA94QY1zAJ+adkm
-PdQ61jCDyrJVqYkjZfCA9+BvrOtI20FYZuY+jjhdfnPeBtkZstZ2DuCbB2wG4vD6
-RsZLgq0CLXlLdIflx0YU+3zGiY0B1++kNtSYlRystFlL+2btAzGm7QeebNVASbqy
-JXJaEHfVhvwro8Qt3bswlIHkaDQ2KwIQGvfR5dtSCoZebGP1B+Su31BE4koRMaPs
-vaYros/wpczyIO5vSqjzOmO2xFtk8BcMULGYEy4G09PN3JkGNgM39KITKNdKgZE9
-D/2K/AMhdt7v82bSy39E4o2jFYBQ+ydgRLs3joenMhufzWrBgXAb/arQ+h8iHs/N
-qlKku6Mf9FEKojIJRFwUc5gAa2ncLpKnBZr+BJEGdbWPQskzp1GXb4KqcwuvXvQx
-ZuohBP3dJqieROLo1tJrbURr5x+vC402WQAdndyrkyUvtiLyIbb8in2Qinj9uyzp
-4pfAYNwbJz8J4vTMgKCCFhRWnvS17Ovr4zhE17/NpkTdvaFCMTA=
-=qlIZ
------END PGP SIGNATURE-----
-
---gcpm4ervip3yvwos--
