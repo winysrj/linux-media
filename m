@@ -1,76 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:53578 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751463AbcLUOBI (ORCPT
+Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:41259 "EHLO
+        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756851AbcLPL10 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Dec 2016 09:01:08 -0500
-Subject: Re: 3A / auto-exposure Region of Interest setting
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <Pine.LNX.4.64.1611281449520.6665@axis700.grange>
- <3544629.8KCDMPoHBf@avalon> <Pine.LNX.4.64.1612211142410.5430@axis700.grange>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
+        Fri, 16 Dec 2016 06:27:26 -0500
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab references
+ as needed
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <20161109154608.1e578f9e@vento.lan>
+ <20161213102447.60990b1c@vento.lan>
+ <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+ <7529355.zfqFdROYdM@avalon> <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+ <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+ <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+ <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+ <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+ <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+ <20161215152501.11ce2b2a@vento.lan>
+ <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
+ <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
+ <20161216085741.38bb2e18@vento.lan>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <80c71fd1-3df7-93e9-f865-832e8e2c4867@xs4all.nl>
-Date: Wed, 21 Dec 2016 15:01:05 +0100
+Message-ID: <c654bffd-792c-f860-33b4-3c399984dbd4@xs4all.nl>
+Date: Fri, 16 Dec 2016 12:27:18 +0100
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1612211142410.5430@axis700.grange>
+In-Reply-To: <20161216085741.38bb2e18@vento.lan>
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/12/16 12:05, Guennadi Liakhovetski wrote:
-> Hi Laurent,
+On 16/12/16 11:57, Mauro Carvalho Chehab wrote:
+> Em Fri, 16 Dec 2016 11:11:25 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 >
-> On Tue, 29 Nov 2016, Laurent Pinchart wrote:
->
->> Hi Guennadi,
->>
->> (CC'ing Sakari)
->>
->> On Monday 28 Nov 2016 15:18:03 Guennadi Liakhovetski wrote:
->>> Hi,
+>>> Would it make sense to enforce that dependency. Can we tie /dev/media usecount
+>>> to /dev/video etc. usecount? In other words:
 >>>
->>> Has anyone already considered supporting 3A (e.g. auto-exposure) Region of
->>> Interest selection? In UVC this is the "Digital Region of Interest (ROI)
->>> Control." Android defines ANDROID_CONTROL_AE_REGIONS,
->>> ANDROID_CONTROL_AWB_REGIONS, ANDROID_CONTROL_AF_REGIONS. The UVC control
->>> defines just a single rectangle for all (supported) 3A functions. That
->>> could be implemented, defining a new selection target. However, Android
->>> allows arbitrary numbers of ROI rectangles with associated weights. Any
->>> ideas?
+>>> /dev/video is opened, then open /dev/media.
 >>
->> Selections could be used, possibly with an update to the API to allow indexing
->> selections for a given target. We'd be missing weights though. Another option
->> would be to use compound controls.
+>> When a device node is registered it should increase the refcount on the media_device
+>> (as I proposed, that would be mdev->dev). When a device node is unregistered and the
+>> last user disappeared, then it can decrease the media_device refcount.
+>>
+>> So as long as anyone is using a device node, the media_device will stick around as
+>> well.
+>>
+>> No need to take refcounts on open/close.
 >
-> I talked to Hans online and he is in favour of a compound control for ROI
-> as well, which is also fine with me. Working on an implementation I
-> realised, that struct v4l2_query_ext_ctrl has min, max, step and default
-> values as 64-bit fields, which isn't enough for ROI. Shall they all be
-> replaced with unions of original values and pointers? As long as pointers
-> don't exceed 64 bits, we'll stay binary compatible. Or do we use those
-> fields similar to the STRING type to specify min, max, default number of
-> ROIs and a size of one ROI in step? I guess we should go with the latter.
+> That makes sense. You're meaning something like the enclosed (untested)
+> patch?
+>
+>> One note: as I mentioned, the video_device does not set the cdev parent correctly,
+>> so that bug needs to be fixed first for this to work.
+>
+> Actually, __video_register_device() seems to be setting the parent
+> properly:
+>
+> 	if (vdev->dev_parent == NULL)
+> 		vdev->dev_parent = vdev->v4l2_dev->dev;
 
-For compound controls it is currently possible to get the default value
-(see the VIDIOC_G_EXT_CTRLS, the documentation for the 'which' field).
+No, I mean this code (from cec-core.c):
 
-This can be extended to MIN/MAX/STEP if needed.
+
+        /* Part 2: Initialize and register the character device */
+         cdev_init(&devnode->cdev, &cec_devnode_fops);
+         devnode->cdev.kobj.parent = &devnode->dev.kobj;
+         devnode->cdev.owner = owner;
+
+         ret = cdev_add(&devnode->cdev, devnode->dev.devt, 1);
+         if (ret < 0) {
+                 pr_err("%s: cdev_add failed\n", __func__);
+                 goto clr_bit;
+         }
+
+         ret = device_add(&devnode->dev);
+         if (ret)
+                 goto cdev_del;
+
+which sets cdev.kobj.parent. And that would indeed be vdev->dev_parent.
+
+>
+> Thanks,
+> Mauro
+>
+> [PATCH] Be sure that the media_device won't be freed too early
+>
+> This code snippet is untested.
+>
+> Signed-off-by: Mauro Carvalho chehab <mchehab@s-opensource.com>
+>
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 8756275e9fc4..5fdeab382069 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -706,7 +706,7 @@ int __must_check __media_device_register(struct media_device *mdev,
+>  	struct media_devnode *devnode;
+>  	int ret;
+>
+> -	devnode = kzalloc(sizeof(*devnode), GFP_KERNEL);
+> +	devnode = devm_kzalloc(mdev->dev, sizeof(*devnode), GFP_KERNEL);
+
+I'm not sure about this change. I *think* this would work, but *only* if all
+the refcounting is 100% correct, and we know it isn't at the moment. So I
+think this should be postponed until we are confident everything is correct.
+
+>  	if (!devnode)
+>  		return -ENOMEM;
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index 8be561ab2615..14a3c56dbcac 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -196,6 +196,7 @@ static void v4l2_device_release(struct device *cd)
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>  	if (v4l2_dev->mdev) {
+>  		/* Remove interfaces and interface links */
+> +		put_device(v4l2_dev->mdev->dev);
+>  		media_devnode_remove(vdev->intf_devnode);
+>  		if (vdev->entity.function != MEDIA_ENT_F_UNKNOWN)
+>  			media_device_unregister_entity(&vdev->entity);
+
+I think this is the wrong order: put_device should go after media_device_unregister_entity().
+
+> @@ -810,6 +811,7 @@ static int video_register_media_controller(struct video_device *vdev, int type)
+>  			return -ENOMEM;
+>  		}
+>  	}
+> +	get_device(vdev->v4l2_dev->dev);
+
+You mean v4l2_dev->mdev->dev?
+
+>
+>  	/* FIXME: how to create the other interface links? */
+>
+> @@ -1015,6 +1017,11 @@ void video_unregister_device(struct video_device *vdev)
+>  	if (!vdev || !video_is_registered(vdev))
+>  		return;
+>
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	if (vdev->v4l2_dev->dev)
+> +		put_device(vdev->v4l2_dev->dev);
+
+Ditto.
+
+> +#endif
+> +
+>  	mutex_lock(&videodev_lock);
+>  	/* This must be in a critical section to prevent a race with v4l2_open.
+>  	 * Once this bit has been cleared video_get may never be called again.
+> diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
+> index 62bbed76dbbc..53f42090c762 100644
+> --- a/drivers/media/v4l2-core/v4l2-device.c
+> +++ b/drivers/media/v4l2-core/v4l2-device.c
+> @@ -188,6 +188,7 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>  		err = media_device_register_entity(v4l2_dev->mdev, entity);
+>  		if (err < 0)
+>  			goto error_module;
+> +		get_device(v4l2_dev->mdev->dev);
+>  	}
+>  #endif
+>
+> @@ -205,6 +206,8 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>
+>  error_unregister:
+>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> +	if (v4l2_dev->mdev)
+> +		put_device(v4l2_dev->mdev->dev);
+>  	media_device_unregister_entity(entity);
+>  #endif
+>  error_module:
+> @@ -310,6 +313,7 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+>  		 * links are removed by the function below, in the right order
+>  		 */
+>  		media_device_unregister_entity(&sd->entity);
+> +		put_device(v4l2_dev->mdev->dev);
+>  	}
+>  #endif
+>  	video_unregister_device(sd->devnode);
+>
+>
+>
+>
 
 Regards,
 
 	Hans
-
->
-> Thanks
-> Guennadi
->
->> --
->> Regards,
->>
->> Laurent Pinchart
->>
-
