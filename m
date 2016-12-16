@@ -1,199 +1,381 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw02.mediatek.com ([210.61.82.184]:61992 "EHLO
-        mailgw02.mediatek.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1752752AbcLNILz (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:34185 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756725AbcLPSAL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Dec 2016 03:11:55 -0500
-From: Rick Chang <rick.chang@mediatek.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Rob Herring <robh+dt@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        <srv_heupstream@mediatek.com>,
-        <linux-mediatek@lists.infradead.org>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <devicetree@vger.kernel.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Bin Liu <bin.liu@mediatek.com>
-Subject: [PATCH v9 0/4] Add Mediatek JPEG Decoder
-Date: Wed, 14 Dec 2016 16:04:46 +0800
-Message-ID: <1481702690-10476-1-git-send-email-rick.chang@mediatek.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 16 Dec 2016 13:00:11 -0500
+Received: by mail-lf0-f67.google.com with SMTP id 30so424591lfy.1
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 10:00:10 -0800 (PST)
+From: henrik@austad.us
+To: linux-kernel@vger.kernel.org
+Cc: Richard Cochran <richardcochran@gmail.com>, henrik@austad.us,
+        Henrik Austad <haustad@cisco.com>, linux-media@vger.kernel.org,
+        alsa-devel@vger.kernel.org, netdev@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Steven Rostedt <rostedt@goodmis.org>,
+        Ingo Molnar <mingo@redhat.com>
+Subject: [TSN RFC v2 7/9] Add TSN event-tracing
+Date: Fri, 16 Dec 2016 18:59:11 +0100
+Message-Id: <1481911153-549-8-git-send-email-henrik@austad.us>
+In-Reply-To: <1481911153-549-1-git-send-email-henrik@austad.us>
+References: <1481911153-549-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of patches provide a v4l2 driver to control Mediatek JPEG decoder
-for decoding JPEG image and Motion JPEG bitstream.
+From: Henrik Austad <haustad@cisco.com>
 
-changes since v8:
-- Fix state error in first bit stream when capture buffer has been stream on.
-  This will trigger device run inadvertently.
+Provide a fair debug-window into TSN. It tries to use TRACE_CLASS as much
+as possible and moves as much as possible of the logic into TP_printk() to
+minimize tracing overhead.
 
-changes since v7:
-- Update MAINTAINERS
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Steven Rostedt <rostedt@goodmis.org> (maintainer:TRACING)
+Cc: Ingo Molnar <mingo@redhat.com> (maintainer:TRACING)
+Signed-off-by: Henrik Austad <haustad@cisco.com>
+---
+ include/trace/events/tsn.h | 333 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 333 insertions(+)
+ create mode 100644 include/trace/events/tsn.h
 
-changes since v6:
-- fix kbuild test fail
-- Add patch for MAINTAINERS
-
-changes since v5:
-- remove redundant name from struct mtk_jpeg_fmt
-- Set state of all buffers to VB2_BUF_STATE_QUEUED if fail in start streaming
-- Remove VB2_USERPTR
-- Add check for buffer index
-
-changes since v4:
-- Change file name of binding documentation
-- Revise DT binding documentation
-- Revise compatible string
-
-changes since v3:
-- Revise DT binding documentation
-- Revise compatible string
-
-changes since v2:
-- Revise DT binding documentation 
-
-changes since v1:
-- Rebase for v4.9-rc1.
-- Update Compliance test version and result
-- Remove redundant path in Makefile
-- Fix potential build error without CONFIG_PM_RUNTIME and CONFIG_PM_SLEEP
-- Fix warnings from patch check and smatch check
-
-* Dependency
-The patch "arm: dts: mt2701: Add node for JPEG decoder" depends on: 
-  CCF "Add clock support for Mediatek MT2701"[1]
-  iommu and smi "Add the dtsi node of iommu and smi for mt2701"[2]
-
-[1] http://lists.infradead.org/pipermail/linux-mediatek/2016-October/007271.html
-[2] https://patchwork.kernel.org/patch/9164013/
-
-* Compliance test
-v4l2-compliance SHA   : 4ad7174b908a36c4f315e3fe2efa7e2f8a6f375a
-
-Driver Info:
-        Driver name   : mtk-jpeg decode
-        Card type     : mtk-jpeg decoder
-        Bus info      : platform:15004000.jpegdec
-        Driver version: 4.9.0
-        Capabilities  : 0x84204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04204000
-                Video Memory-to-Memory Multiplanar
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video3 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK
-                test Scaling: OK
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-
-Rick Chang (4):
-  dt-bindings: mediatek: Add a binding for Mediatek JPEG Decoder
-  vcodec: mediatek: Add Mediatek JPEG Decoder Driver
-  arm: dts: mt2701: Add node for Mediatek JPEG Decoder
-  vcodec: mediatek: Add Maintainers entry for Mediatek JPEG driver
-
- .../bindings/media/mediatek-jpeg-decoder.txt       |   37 +
- MAINTAINERS                                        |    7 +
- arch/arm/boot/dts/mt2701.dtsi                      |   14 +
- drivers/media/platform/Kconfig                     |   15 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/mtk-jpeg/Makefile           |    2 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c    | 1306 ++++++++++++++++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h    |  139 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c      |  417 +++++++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h      |   91 ++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c   |  160 +++
- drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h   |   25 +
- drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h     |   58 +
- 13 files changed, 2273 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/mediatek-jpeg-decoder.txt
- create mode 100644 drivers/media/platform/mtk-jpeg/Makefile
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_core.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_hw.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.c
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_parse.h
- create mode 100644 drivers/media/platform/mtk-jpeg/mtk_jpeg_reg.h
-
+diff --git a/include/trace/events/tsn.h b/include/trace/events/tsn.h
+new file mode 100644
+index 0000000..522229c
+--- /dev/null
++++ b/include/trace/events/tsn.h
+@@ -0,0 +1,333 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM tsn
++
++#if !defined(_TRACE_TSN_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_TSN_H
++
++#include <linux/tsn.h>
++#include <linux/tracepoint.h>
++
++#include <linux/if_ether.h>
++#include <linux/if_vlan.h>
++/* #include <linux/skbuff.h> */
++DECLARE_EVENT_CLASS(tsn_buffer_template,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t bytes),
++
++	TP_ARGS(link, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, size)
++		__field(size_t, bsize)
++		__field(void *, buffer)
++		__field(void *, head)
++		__field(void *, tail)
++		__field(void *, end)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->size = bytes;
++		__entry->bsize = link->used_buffer_size;
++		__entry->buffer = link->buffer;
++		__entry->head = link->head;
++		__entry->tail = link->tail;
++		__entry->end = link->end;
++		),
++
++	TP_printk("stream_id=%llu, copy=%zd, buffer: %zd, avail=%zd, [buffer=%p, head=%p, tail=%p, end=%p]",
++		__entry->stream_id, __entry->size, __entry->bsize,
++		(__entry->head - __entry->tail) % __entry->bsize,
++		__entry->buffer,    __entry->head, __entry->tail, __entry->end)
++);
++
++DEFINE_EVENT(tsn_buffer_template, tsn_buffer_write,
++	TP_PROTO(struct tsn_link *link, size_t bytes),
++	TP_ARGS(link, bytes)
++);
++
++DEFINE_EVENT(tsn_buffer_template, tsn_buffer_write_net,
++	TP_PROTO(struct tsn_link *link, size_t bytes),
++	TP_ARGS(link, bytes)
++);
++
++DEFINE_EVENT(tsn_buffer_template, tsn_buffer_read,
++	TP_PROTO(struct tsn_link *link, size_t bytes),
++	TP_ARGS(link, bytes)
++);
++
++DEFINE_EVENT(tsn_buffer_template, tsn_buffer_read_net,
++	TP_PROTO(struct tsn_link *link, size_t bytes),
++	TP_ARGS(link, bytes)
++);
++
++
++DECLARE_EVENT_CLASS(tsn_buffer_update,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t reported_avail),
++
++	TP_ARGS(link, reported_avail),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, bsize)
++		__field(void *, head)
++		__field(void *, tail)
++		__field(size_t, reported_left)
++		__field(size_t, low_water)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->bsize = link->used_buffer_size;
++		__entry->head = link->head;
++		__entry->tail = link->tail;
++		__entry->reported_left = reported_avail;
++		__entry->low_water = link->low_water_mark;
++		),
++
++	TP_printk("stream_id=%llu, buffer_size=%zd, avail=%zd, reported=%zd, low_water=%zd",
++		__entry->stream_id, __entry->bsize,
++		(__entry->head - __entry->tail) % __entry->bsize,
++		__entry->reported_left, __entry->low_water)
++);
++
++/* Bytes will be "reported left", i.e. how much more space we have in
++ * the buffer before we wrap.
++ */
++DEFINE_EVENT(tsn_buffer_update, tsn_refill,
++	TP_PROTO(struct tsn_link *link, size_t bytes),
++	TP_ARGS(link, bytes)
++);
++
++DEFINE_EVENT(tsn_buffer_update, tsn_buffer_drain,
++	TP_PROTO(struct tsn_link *link, size_t bytes),
++	TP_ARGS(link, bytes)
++);
++
++TRACE_EVENT(tsn_send_batch,
++
++	TP_PROTO(struct tsn_link *link,
++		int num_send,
++		u64 ts_base_ns,
++		u64 ts_delta_ns),
++
++	TP_ARGS(link, num_send, ts_base_ns, ts_delta_ns),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(int, seqnr)
++		__field(int, num_send)
++		__field(u64, ts_base_ns)
++		__field(u64, ts_delta_ns)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id   = link->stream_id;
++		__entry->seqnr	     = (int)link->last_seqnr;
++		__entry->ts_base_ns  = ts_base_ns;
++		__entry->ts_delta_ns = ts_delta_ns;
++		__entry->num_send    = num_send;
++		),
++
++	TP_printk("stream_id=%llu, seqnr=%d, num_send=%d, ts_base_ns=%llu, ts_delta_ns=%llu",
++		__entry->stream_id, __entry->seqnr, __entry->num_send, __entry->ts_base_ns, __entry->ts_delta_ns)
++);
++
++TRACE_EVENT(tsn_rx_handler,
++
++	TP_PROTO(struct tsn_link *link,
++		const struct ethhdr *ethhdr,
++		u64 sid),
++
++	TP_ARGS(link, ethhdr, sid),
++
++	TP_STRUCT__entry(
++		__field(char *, name)
++		__field(u16, proto)
++		__field(u64, sid)
++		__field(u64, link_sid)
++		),
++	TP_fast_assign(
++		__entry->name  = link->nic->name;
++		__entry->proto = ethhdr->h_proto;
++		__entry->sid   = sid;
++		__entry->link_sid = link->stream_id;
++		),
++
++	TP_printk("name=%s, proto: 0x%04x, stream_id=%llu, link->sid=%llu",
++		__entry->name, ntohs(__entry->proto), __entry->sid, __entry->link_sid)
++);
++
++TRACE_EVENT(tsn_du,
++
++	TP_PROTO(struct tsn_link *link,
++		size_t bytes),
++
++	TP_ARGS(link, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, link_sid)
++		__field(size_t, bytes)
++		),
++	TP_fast_assign(
++		__entry->link_sid = link->stream_id;
++		__entry->bytes = bytes;
++		),
++
++	TP_printk("stream_id=%llu,bytes=%zu",
++		__entry->link_sid, __entry->bytes)
++);
++
++DECLARE_EVENT_CLASS(tsn_buffer_mgmt_class,
++
++	TP_PROTO(struct tsn_link *link, size_t size),
++
++	TP_ARGS(link, size),
++
++
++	TP_STRUCT__entry(
++		__field(u64,  stream_id)
++		__field(size_t, size)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->size = size;
++		),
++
++	TP_printk("stream_id=%llu,buffer_size=%zu",
++		__entry->stream_id, __entry->size)
++
++);
++
++DEFINE_EVENT(tsn_buffer_mgmt_class, tsn_set_buffer,
++	TP_PROTO(struct tsn_link *link, size_t size),
++	TP_ARGS(link, size)
++);
++
++DEFINE_EVENT(tsn_buffer_mgmt_class, tsn_free_buffer,
++	TP_PROTO(struct tsn_link *link, size_t size),
++	TP_ARGS(link, size)
++);
++
++
++/* TODO: too long, need cleanup.
++ */
++TRACE_EVENT(tsn_pre_tx,
++
++	TP_PROTO(struct tsn_link *link, struct sk_buff *skb, size_t bytes),
++
++	TP_ARGS(link, skb, bytes),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(u32, vlan_tag)
++		__field(size_t, bytes)
++		__field(size_t, data_len)
++		__field(unsigned int, headlen)
++		__field(u16, protocol)
++		__field(u16, prot_native)
++		__field(int, tx_idx)
++		__field(u16, mac_len)
++		__field(u16, hdr_len)
++		__field(u16, vlan_tci)
++		__field(u16, mac_header)
++		__field(unsigned int, tail)
++		__field(unsigned int, end)
++		__field(unsigned int, truesize)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->vlan_tag = (skb_vlan_tag_present(skb) ? skb_vlan_tag_get(skb) : 0);
++		__entry->bytes = bytes;
++		__entry->data_len = skb->data_len;
++		__entry->headlen = skb_headlen(skb);
++		__entry->protocol = vlan_get_protocol(skb);
++		__entry->prot_native = skb->protocol;
++		__entry->tx_idx = skb_get_queue_mapping(skb);
++
++		__entry->mac_len = skb->mac_len;
++		__entry->hdr_len = skb->hdr_len;
++		__entry->vlan_tci = skb->vlan_tci;
++		__entry->mac_header = skb->mac_header;
++		__entry->tail = (unsigned int)skb->tail;
++		__entry->end  = (unsigned int)skb->end;
++		__entry->truesize = skb->truesize;
++		),
++
++	TP_printk("stream_id=%llu,vlan_tag=0x%04x,data_size=%zd,data_len=%zd,headlen=%u,proto=0x%04x (0x%04x),tx_idx=%d,mac_len=%u,hdr_len=%u,vlan_tci=0x%02x,mac_header=0x%02x,tail=%u,end=%u,truesize=%u",
++		__entry->stream_id,
++		__entry->vlan_tag,
++		__entry->bytes,
++		__entry->data_len,
++		__entry->headlen,
++		ntohs(__entry->protocol),
++		ntohs(__entry->prot_native),
++		__entry->tx_idx,
++		__entry->mac_len,
++		__entry->hdr_len,
++		__entry->vlan_tci,
++		__entry->mac_header,
++		__entry->tail,
++		__entry->end,
++		__entry->truesize)
++	);
++
++TRACE_EVENT(tsn_post_tx_set,
++
++	TP_PROTO(struct tsn_link *link, size_t sent),
++
++	TP_ARGS(link, sent),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(size_t, sent)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id=link->stream_id;
++		__entry->sent = sent;
++		),
++
++	TP_printk("stream_id=%llu,sent=%zu", __entry->stream_id, __entry->sent)
++
++	);
++
++TRACE_EVENT(tsn_update_net_time,
++
++	TP_PROTO(struct tsn_link *link),
++
++	TP_ARGS(link),
++
++	TP_STRUCT__entry(
++		__field(u64, stream_id)
++		__field(u64, ts_ns)
++		__field(u64, delta_ns)
++		__field(u64, delta_avg_ns)
++		__field(u64, sent_total)
++		),
++
++	TP_fast_assign(
++		__entry->stream_id = link->stream_id;
++		__entry->ts_ns = link->ts_net_ns;
++		__entry->delta_ns = link->ts_delta_ns;
++		__entry->delta_avg_ns = link->ts_exp_avg;
++		__entry->sent_total = link->frames_sent;
++		),
++
++	TP_printk("stream_id=%llu,ts=%llu,ts_delta=%llu,ts_delta_avg=%llu,sent_total=%llu",
++		__entry->stream_id,
++		__entry->ts_ns,
++		__entry->delta_ns,
++		__entry->delta_avg_ns,
++		__entry->sent_total)
++	);
++
++#endif	/* _TRACE_TSN_H || TRACE_HEADER_MULTI_READ */
++
++#include <trace/define_trace.h>
 -- 
-1.9.1
+2.7.4
 
