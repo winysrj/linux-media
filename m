@@ -1,76 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([217.72.192.78]:53276 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753245AbcLYSjL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Dec 2016 13:39:11 -0500
-Subject: [PATCH 08/19] [media] uvc_driver: Rename a jump label in
- uvc_scan_fallback()
-To: linux-media@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-References: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <9b6619ba-da8c-71c4-c700-c2cf1c8e4955@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 19:39:01 +0100
-MIME-Version: 1.0
-In-Reply-To: <47aa4314-74ec-b2bf-ee3b-aad4d6e9f0a2@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:33118 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756393AbcLPR77 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 12:59:59 -0500
+Received: by mail-lf0-f67.google.com with SMTP id y21so1917404lfa.0
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 09:59:57 -0800 (PST)
+From: henrik@austad.us
+To: linux-kernel@vger.kernel.org
+Cc: Richard Cochran <richardcochran@gmail.com>, henrik@austad.us,
+        Henrik Austad <haustad@cisco.com>, linux-media@vger.kernel.org,
+        alsa-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [TSN RFC v2 0/9] TSN driver for the kernel
+Date: Fri, 16 Dec 2016 18:59:04 +0100
+Message-Id: <1481911153-549-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 25 Dec 2016 10:57:12 +0100
+From: Henrik Austad <haustad@cisco.com>
 
-Adjust jump labels according to the Linux coding style convention.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/usb/uvc/uvc_driver.c | 9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+The driver is directed via ConfigFS as we need userspace to handle
+stream-reservation (MSRP), discovery and enumeration (IEEE 1722.1) and
+whatever other management is needed. This also includes running an
+appropriate PTP daemon (TSN favors gPTP).
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index f91965d0da97..c4e954aecdd5 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1698,7 +1698,7 @@ static int uvc_scan_fallback(struct uvc_device *dev)
- 		return -ENOMEM;
- 
- 	if (uvc_scan_chain_entity(chain, oterm) < 0)
--		goto error;
-+		goto free_chain;
- 
- 	prev = oterm;
- 
-@@ -1718,14 +1718,14 @@ static int uvc_scan_fallback(struct uvc_device *dev)
- 			continue;
- 
- 		if (uvc_scan_chain_entity(chain, entity) < 0)
--			goto error;
-+			goto free_chain;
- 
- 		prev->baSourceID[0] = entity->id;
- 		prev = entity;
- 	}
- 
- 	if (uvc_scan_chain_entity(chain, iterm) < 0)
--		goto error;
-+		goto free_chain;
- 
- 	prev->baSourceID[0] = iterm->id;
- 
-@@ -1736,8 +1736,7 @@ static int uvc_scan_fallback(struct uvc_device *dev)
- 		  uvc_print_chain(chain));
- 
- 	return 0;
--
--error:
-+free_chain:
- 	kfree(chain);
- 	return -EINVAL;
- }
--- 
-2.11.0
+Once we have all the required attributes, we can create link using
+mkdir, and use write() to set the attributes. Once ready, specify the
+'shim' (basically a thin wrapper between TSN and another subsystem) and
+we start pushing out frames.
 
+The network part: it ties directly into the Rx-handler for receive and
+writes skb's using dev_queue_xmit(). This could probably be improved.
+
+2 new fields in netdev_ops have been introduced, and the Intel
+igb-driver has been updated (as this an AVB-capable NIC which is
+available as a PCI-e card).
+
+What remains (tl;dr: a lot) a.k.a "Known problems" or "working on it!"
+- tie to (g)PTP properly, currently using ktime_get() for presentation
+  time
+- get time from shim into TSN
+- let shim create/manage buffer
+- redo parts of the link-stuff using RCUs, the current setup is a bit
+  clumsy.
+- The igb-driver does not work properly when compiled with IGB_TSN, some
+  details in setting the register values needs to be figured out. I am
+  working on this, but as it stands, the best bet is to load tsn using
+  in_debug=1 to bypass the capability-check. I have had e1000 and sky2
+  running for several days without crashing, igb crashes and burns
+  violently.
+- The ALSA driver does not handle multiple devices very well and is a
+  work in progress.
+
+* v2: changes since v1
+
+Changes since v1
+- updated to latest upstream kernel (v4.8)
+- set dedicated enabled-attribute and let shim be stored in own (support
+  future plan for enabling per-shim attributes)
+- fixed endianess issue in bitfields used in tsn-structs
+- Updated some of the trace-events to use trace_class
+- Fix various silly typos
+- Handle disabling of link from hrtimer a bit more gracefully (that
+  actually works-ish).
+- use old skb and size of skb when that is set (Reporte by Nikita)
+- Move PCP-codes to NIC and not in the link itself
+- Allow TSN-capable card to be loaded even when in debug-mode (and do
+  not enforce TSN behaviour)
+- Start hooking into ALSA's get_time_info hooks (very much incomplete)
+- use threads for sending frames, wake from hrtimer-callback.
+  This also queues up awaiting timers if we fail to complete the
+  transmit before another timer arrives, it will immediately execute
+  another iteration, so no events should be lost. That being said,
+  should this happen, it is a clear bug as we really should complete
+  well before the next interval.
+- Cleanup link-locking and differentiate between Talker and Listener (as
+  Listener grab link-lock from IRQ context)
+- Change list-lock to spinlock as we may need to take a link-lock whilst
+  holding the master list-lock.
+- Do a more careful dance holding the spinlocks to regions only doing
+  actual update.
+
+Network driver (I210 only)
+- bring up all Tx-/Rx-queues when igb is in TSN-mode regardless of how
+  many CPUs the system has for I210
+- Correctly calculate the idle_slope in I210's configure hook
+- Update igb-driver with queue-select and return correct queue when
+  sending TSN-frames
+- add IGB_FLAG_QAV_PRIO flag to igb_adapter (to handle proper config of
+  tx-ring when adapter is brought up.
+- add TXDCTL logic (part of preparatory work for TSN) to igb-driver
+- Improve SR(A|B) accountingo
+
+ALSA Shim
+- Allow userspace to grab much smaller chunks of data (down to a single
+  Class A frame for S16_LE 2ch 48kHz).
+- Create the card with index/id pattern to avoid collision with other
+  cards.
+* v1
+
+Before reading on - this is not even beta, but I'd really appreciate if
+people would comment on the overall architecture and perhaps provide
+some pointers to where I should improve/fix/update
+- thanks!
+
+This is a very early RFC for a TSN-driver in the kernel. It has been
+floating around in my repo for a while and I would appreciate some
+feedback on the overall design to avoid doing some major blunders.
+
+There are at least one AVB-driver (the AV-part of TSN) in the kernel
+already. This driver aims to solve a wider scope as TSN can do much more
+than just audio. A very basic ALSA-driver is added to the end that
+allows you to play music between 2 machines using aplay in one end and
+arecord | aplay on the other (some fiddling required) We have plans for
+doing the same for v4l2 eventually (but there are other fishes to fry
+first). The same goes for a TSN_SOCK type approach as well.
+
+Henrik Austad (9):
+  igb: add missing fields to TXDCTL-register
+  TSN: add documentation
+  TSN: Add the standard formerly known as AVB to the kernel
+  Adding TSN-driver to Intel I210 controller
+  Add TSN header for the driver
+  Add TSN machinery to drive the traffic from a shim over the network
+  Add TSN event-tracing
+  AVB ALSA - Add ALSA shim for TSN
+  MAINTAINERS: add TSN/AVB-entries
+
+ Documentation/TSN/tsn.txt                    |  345 ++++++++
+ MAINTAINERS                                  |   14 +
+ drivers/media/Kconfig                        |   15 +
+ drivers/media/Makefile                       |    2 +-
+ drivers/media/avb/Makefile                   |    5 +
+ drivers/media/avb/avb_alsa.c                 |  793 +++++++++++++++++
+ drivers/media/avb/tsn_iec61883.h             |  152 ++++
+ drivers/net/ethernet/intel/Kconfig           |   18 +
+ drivers/net/ethernet/intel/igb/Makefile      |    2 +-
+ drivers/net/ethernet/intel/igb/e1000_82575.h |    4 +
+ drivers/net/ethernet/intel/igb/igb.h         |   26 +
+ drivers/net/ethernet/intel/igb/igb_main.c    |   39 +-
+ drivers/net/ethernet/intel/igb/igb_tsn.c     |  468 ++++++++++
+ include/linux/netdevice.h                    |   44 +
+ include/linux/tsn.h                          |  952 +++++++++++++++++++++
+ include/trace/events/tsn.h                   |  333 ++++++++
+ net/Kconfig                                  |    1 +
+ net/Makefile                                 |    1 +
+ net/tsn/Kconfig                              |   32 +
+ net/tsn/Makefile                             |    6 +
+ net/tsn/tsn_configfs.c                       |  673 +++++++++++++++
+ net/tsn/tsn_core.c                           | 1189 ++++++++++++++++++++++++++
+ net/tsn/tsn_header.c                         |  162 ++++
+ net/tsn/tsn_internal.h                       |  397 +++++++++
+ net/tsn/tsn_net.c                            |  392 +++++++++
+ 25 files changed, 6061 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/TSN/tsn.txt
+ create mode 100644 drivers/media/avb/Makefile
+ create mode 100644 drivers/media/avb/avb_alsa.c
+ create mode 100644 drivers/media/avb/tsn_iec61883.h
+ create mode 100644 drivers/net/ethernet/intel/igb/igb_tsn.c
+ create mode 100644 include/linux/tsn.h
+ create mode 100644 include/trace/events/tsn.h
+ create mode 100644 net/tsn/Kconfig
+ create mode 100644 net/tsn/Makefile
+ create mode 100644 net/tsn/tsn_configfs.c
+ create mode 100644 net/tsn/tsn_core.c
+ create mode 100644 net/tsn/tsn_header.c
+ create mode 100644 net/tsn/tsn_internal.h
+ create mode 100644 net/tsn/tsn_net.c
+
+--
+2.7.4
