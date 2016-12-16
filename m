@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([92.60.52.57]:35753 "EHLO shell.v3.sk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751161AbcLELpN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 06:45:13 -0500
-Message-ID: <1480938303.16064.1.camel@v3.sk>
-Subject: Re: [PATCH] [media] usbtv: add a new usbid
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Icenowy Zheng <icenowy@aosc.xyz>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Federico Simoncelli <fsimonce@redhat.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 05 Dec 2016 12:45:03 +0100
-In-Reply-To: <20161204135943.34465-1-icenowy@aosc.xyz>
-References: <20161204135943.34465-1-icenowy@aosc.xyz>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:41944
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1759756AbcLPKNt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 05:13:49 -0500
+Date: Fri, 16 Dec 2016 08:12:12 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [RFC v3 00/21] Make use of kref in media device, grab
+ references as needed
+Message-ID: <20161216081212.33a7c197@vento.lan>
+In-Reply-To: <fb4e2e82-bee4-9cb5-eb4e-9d1f5e9abe82@xs4all.nl>
+References: <20161109154608.1e578f9e@vento.lan>
+        <20161213102447.60990b1c@vento.lan>
+        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+        <7529355.zfqFdROYdM@avalon>
+        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+        <fb4e2e82-bee4-9cb5-eb4e-9d1f5e9abe82@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2016-12-04 at 21:59 +0800, Icenowy Zheng wrote:
-> A new usbid of UTV007 is found in a newly bought device.
-> 
-> The usbid is 1f71:3301.
-> 
-> The ID on the chip is:
-> UTV007
-> A89029.1
-> 1520L18K1
-> 
-> Both video and audio is tested with the modified usbtv driver.
+Em Fri, 16 Dec 2016 11:03:09 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thank you.
-
-Acked-by: Lubomir Rintel <lkundrak@v3.sk>
-
-Also, it may make sense to add
-
-Tested-by: Icenowy Zheng <icenowy@aosc.xyz>
-
+> So:
 > 
-> Signed-off-by: Icenowy Zheng <icenowy@aosc.xyz>
-> ---
->  drivers/media/usb/usbtv/usbtv-core.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/usb/usbtv/usbtv-core.c
-> b/drivers/media/usb/usbtv/usbtv-core.c
-> index dc76fd4..0324633 100644
-> --- a/drivers/media/usb/usbtv/usbtv-core.c
-> +++ b/drivers/media/usb/usbtv/usbtv-core.c
-> @@ -141,6 +141,7 @@ static void usbtv_disconnect(struct usb_interface
-> *intf)
->  
->  static struct usb_device_id usbtv_id_table[] = {
->  	{ USB_DEVICE(0x1b71, 0x3002) },
-> +	{ USB_DEVICE(0x1f71, 0x3301) },
->  	{}
->  };
->  MODULE_DEVICE_TABLE(usb, usbtv_id_table);
+> 1) subdev drivers should disallow unbind
+> 2) interface entities should call media_device_unregister_entity() when they
+>     are unregistered (if that doesn't already happen)
+
+Sounds like a plan to me.
+
+Thanks,
+Mauro
