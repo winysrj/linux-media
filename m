@@ -1,268 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44995 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756730AbcLVWma (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50169 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756817AbcLPBX6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Dec 2016 17:42:30 -0500
-Date: Thu, 22 Dec 2016 23:42:26 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [RFC/PATCH] media: Add video bus switch
-Message-ID: <20161222224226.GB31151@amd>
-References: <20161023200355.GA5391@amd>
- <20161119232943.GF13965@valkosipuli.retiisi.org.uk>
- <20161214122451.GB27011@amd>
- <20161222100104.GA30917@amd>
- <20161222133938.GA30259@amd>
- <20161222143244.ykza4wdxmop2t7bg@earth>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="tsOsTdHNUZQcU9Ye"
-Content-Disposition: inline
-In-Reply-To: <20161222143244.ykza4wdxmop2t7bg@earth>
+        Thu, 15 Dec 2016 20:23:58 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        Rob Clark <robdclark@gmail.com>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Laura Abbott <labbott@redhat.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [RFC v2 04/11] v4l: Unify cache management hint buffer flags
+Date: Fri, 16 Dec 2016 03:24:18 +0200
+Message-Id: <20161216012425.11179-5-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
---tsOsTdHNUZQcU9Ye
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN
+buffer flags are currently not used by the kernel. Replace the definitions
+by a single V4L2_BUF_FLAG_NO_CACHE_SYNC flag to be used by further
+patches.
 
-On Thu 2016-12-22 15:32:44, Sebastian Reichel wrote:
-> Hi Pavel,
->=20
-> On Thu, Dec 22, 2016 at 02:39:38PM +0100, Pavel Machek wrote:
-> > N900 contains front and back camera, with a switch between the
-> > two. This adds support for the swich component.
-> >=20
-> > Signed-off-by: Sebastian Reichel <sre@kernel.org>
-> > Signed-off-by: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> >=20
-> > --
-> >=20
-> > I see this needs dts documentation, anything else than needs to be
-> > done?
->=20
-> Yes. This driver takes care of the switch gpio, but the cameras also
-> use different bus settings. Currently omap3isp gets the bus-settings
-> from the link connected to the CCP2 port in DT at probe time (*).
->=20
-> So there are two general problems:
->=20
-> 1. Settings must be applied before the streaming starts instead of
-> at probe time, since the settings may change (based one the selected
-> camera). That should be fairly easy to implement by just moving the
-> code to the s_stream callback as far as I can see.
->=20
-> 2. omap3isp should try to get the bus settings from using a callback
-> in the connected driver instead of loading it from DT. Then the
-> video-bus-switch can load the bus-settings from its downstream links
-> in DT and propagate the correct ones to omap3isp based on the
-> selected port. The DT loading part should actually remain in omap3isp
-> as fallback, in case it does not find a callback in the connected driver.
-> That way everything is backward compatible and the DT variant is
-> nice for 1-on-1 scenarios.
+Different cache architectures should not be visible to the user space
+which can make no meaningful use of the differences anyway. In case a
+device can make use of non-coherent memory accesses, the necessary cache
+operations depend on the CPU architecture and the buffer type, not the
+requests of the user. The cache operation itself may be skipped on the
+user's request which was the purpose of the two flags.
 
-So... did I understood it correctly? (Needs some work to be done...)
+On ARM the invalidate and clean are separate operations whereas on
+x86(-64) the two are a single operation (flush). Whether the hardware uses
+the buffer for reading (V4L2_BUF_TYPE_*_OUTPUT*) or writing
+(V4L2_BUF_TYPE_*CAPTURE*) already defines the required cache operation
+(clean and invalidate, respectively). No user input is required.
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform=
-/omap3isp/isp.c
-index 45c69ed..1f44da1 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -702,6 +704,33 @@ static int isp_pipeline_enable(struct isp_pipeline *pi=
-pe,
-=20
- 	entity =3D &pipe->output->video.entity;
- 	while (1) {
-+		struct v4l2_of_endpoint vep;
-+		pad =3D &entity->pads[0];
-+		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-+			break;
-+
-+		pad =3D media_entity_remote_pad(pad);
-+		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
-+			break;
-+
-+		entity =3D pad->entity;
-+		subdev =3D media_entity_to_v4l2_subdev(entity);
-+
-+	       	printk("Entity =3D %p\n", entity);
-+		ret =3D v4l2_subdev_call(subdev, video, g_endpoint_config, &vep);
-+		/* Is there better method than walking a list?
-+		   Can I easily get dev and isd pointers here? */
-+#if 0
-+		if (ret =3D=3D 0) {
-+			printk("success\n");
-+			/* notifier->subdevs[notifier->num_subdevs] ... contains isd */
-+			isp_endpoint_to_buscfg(dev, vep, isd->bus);
-+		}
-+#endif
-+	}
-+
-+	entity =3D &pipe->output->video.entity;
-+	while (1) {
- 		pad =3D &entity->pads[0];
- 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
- 			break;
-@@ -2099,27 +2128,8 @@ static void isp_of_parse_node_csi2(struct device *de=
-v,
- 	buscfg->bus.csi2.crc =3D 1;
- }
-=20
--static int isp_of_parse_node_endpoint(struct device *dev,
--				      struct device_node *node,
--				      struct isp_async_subdev *isd)
-+static int isp_endpoint_to_buscfg(struct device *dev, struct v4l2_of_endpo=
-int vep, struct isp_bus_cfg *buscfg)
- {
--	struct isp_bus_cfg *buscfg;
--	struct v4l2_of_endpoint vep;
--	int ret;
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst            | 24 ++++++++--------------
+ .../media/uapi/v4l/vidioc-prepare-buf.rst          |  5 ++---
+ include/trace/events/v4l2.h                        |  3 +--
+ include/uapi/linux/videodev2.h                     |  7 +++++--
+ 4 files changed, 17 insertions(+), 22 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ac58966ccb9b..601c3e96464a 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -437,23 +437,17 @@ Buffer Flags
+ 	:ref:`VIDIOC_PREPARE_BUF <VIDIOC_QBUF>`,
+ 	:ref:`VIDIOC_QBUF` or
+ 	:ref:`VIDIOC_DQBUF <VIDIOC_QBUF>` ioctl is called.
+-    * .. _`V4L2-BUF-FLAG-NO-CACHE-INVALIDATE`:
++    * .. _`V4L2-BUF-FLAG-NO-CACHE-SYNC`:
+ 
+-      - ``V4L2_BUF_FLAG_NO_CACHE_INVALIDATE``
++      - ``V4L2_BUF_FLAG_NO_CACHE_SYNC``
+       - 0x00000800
+-      - Caches do not have to be invalidated for this buffer. Typically
+-	applications shall use this flag if the data captured in the
+-	buffer is not going to be touched by the CPU, instead the buffer
+-	will, probably, be passed on to a DMA-capable hardware unit for
+-	further processing or output.
+-    * .. _`V4L2-BUF-FLAG-NO-CACHE-CLEAN`:
 -
--	isd->bus =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
--	if (!isd->bus)
--		return -ENOMEM;
--
--	buscfg =3D isd->bus;
--
--	ret =3D v4l2_of_parse_endpoint(node, &vep);
--	if (ret)
--		return ret;
--
--	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
--		vep.base.port);
--
- 	switch (vep.base.port) {
- 	case ISP_OF_PHY_PARALLEL:
- 		buscfg->interface =3D ISP_INTERFACE_PARALLEL;
-@@ -2147,10 +2157,35 @@ static int isp_of_parse_node_endpoint(struct device=
- *dev,
- 		break;
-=20
- 	default:
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+static int isp_of_parse_node_endpoint(struct device *dev,
-+				      struct device_node *node,
-+				      struct isp_async_subdev *isd)
-+{
-+	struct isp_bus_cfg *buscfg;
-+	struct v4l2_of_endpoint vep;
-+	int ret;
-+
-+	isd->bus =3D devm_kzalloc(dev, sizeof(*isd->bus), GFP_KERNEL);
-+	if (!isd->bus)
-+		return -ENOMEM;
-+
-+	buscfg =3D isd->bus;
-+
-+	ret =3D v4l2_of_parse_endpoint(node, &vep);
-+	if (ret)
-+		return ret;
-+
-+	dev_dbg(dev, "parsing endpoint %s, interface %u\n", node->full_name,
-+		vep.base.port);
-+
-+	if (isp_endpoint_to_buscfg(dev, vep, buscfg))
- 		dev_warn(dev, "%s: invalid interface %u\n", node->full_name,
- 			 vep.base.port);
--		break;
--	}
-=20
- 	return 0;
- }
-@@ -2262,6 +2297,10 @@ static int isp_of_parse_nodes(struct device *dev,
- 	}
-=20
- 	return notifier->num_subdevs;
-+
-+error:
-+	of_node_put(node);
-+	return -EINVAL;
- }
-=20
- static int isp_subdev_notifier_bound(struct v4l2_async_notifier *async,
-diff --git a/drivers/media/platform/video-bus-switch.c b/drivers/media/plat=
-form/video-bus-switch.c
-index 1a5d944..3a2d442 100644
---- a/drivers/media/platform/video-bus-switch.c
-+++ b/drivers/media/platform/video-bus-switch.c
-@@ -247,12 +247,21 @@ static int vbs_s_stream(struct v4l2_subdev *sd, int e=
-nable)
- {
- 	struct v4l2_subdev *subdev =3D vbs_get_remote_subdev(sd);
-=20
-+	/* FIXME: we need to set the GPIO here */
-+
- 	if (IS_ERR(subdev))
- 		return PTR_ERR(subdev);
-=20
- 	return v4l2_subdev_call(subdev, video, s_stream, enable);
- }
-=20
-+static int vbs_g_endpoint_config(struct v4l2_subdev *sd, struct isp_bus_cf=
-g *cfg)
-+{
-+	printk("vbs_g_endpoint_config...\n");
-+	return 0;
-+}
-+
-+
- static const struct v4l2_subdev_internal_ops vbs_internal_ops =3D {
- 	.registered =3D &vbs_registered,
- };
-@@ -265,6 +274,7 @@ static const struct media_entity_operations vbs_media_o=
-ps =3D {
- /* subdev video operations */
- static const struct v4l2_subdev_video_ops vbs_video_ops =3D {
- 	.s_stream =3D vbs_s_stream,
-+	.g_endpoint_config =3D vbs_g_endpoint_config,
- };
-=20
- static const struct v4l2_subdev_ops vbs_ops =3D {
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index cf778c5..30457b0 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -415,6 +415,8 @@ struct v4l2_subdev_video_ops {
- 			     const struct v4l2_mbus_config *cfg);
- 	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
- 			   unsigned int *size);
-+	int (*g_endpoint_config)(struct v4l2_subdev *sd,
-+			    struct v4l2_of_endpoint *cfg);
- };
-=20
- /**
+-      - ``V4L2_BUF_FLAG_NO_CACHE_CLEAN``
+-      - 0x00001000
+-      - Caches do not have to be cleaned for this buffer. Typically
+-	applications shall use this flag for output buffers if the data in
+-	this buffer has not been created by the CPU but by some
+-	DMA-capable unit, in which case caches have not been used.
++      - Do not perform CPU cache synchronisation operations when the buffer is
++	queued or dequeued. The user is responsible for the correct use of
++	this flag. It should be only used when the buffer is not accessed
++	using the CPU, e.g. the buffer is written to by a hardware block and
++	then read by another one, in which case the flag should be set in both
++	:ref:`VIDIOC_QBUF` and :ref:`VIDIOC_DQBUF` ioctls. The flag has no
++	effect on some devices / architectures.
+     * .. _`V4L2-BUF-FLAG-LAST`:
+ 
+       - ``V4L2_BUF_FLAG_LAST``
+diff --git a/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst b/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst
+index bdcfd9fe550d..80aeb7e403f3 100644
+--- a/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-prepare-buf.rst
+@@ -36,9 +36,8 @@ pass ownership of the buffer to the driver before actually enqueuing it,
+ using the :ref:`VIDIOC_QBUF` ioctl, and to prepare it for future I/O. Such
+ preparations may include cache invalidation or cleaning. Performing them
+ in advance saves time during the actual I/O. In case such cache
+-operations are not required, the application can use one of
+-``V4L2_BUF_FLAG_NO_CACHE_INVALIDATE`` and
+-``V4L2_BUF_FLAG_NO_CACHE_CLEAN`` flags to skip the respective step.
++operations are not required, the application can use the
++``V4L2_BUF_FLAG_NO_CACHE_SYNC`` flag to skip the cache synchronization step.
+ 
+ The struct :c:type:`v4l2_buffer` structure is specified in
+ :ref:`buffer`.
+diff --git a/include/trace/events/v4l2.h b/include/trace/events/v4l2.h
+index ee7754c6e4a1..fb9ad7b0dddd 100644
+--- a/include/trace/events/v4l2.h
++++ b/include/trace/events/v4l2.h
+@@ -80,8 +80,7 @@ SHOW_FIELD
+ 		{ V4L2_BUF_FLAG_ERROR,		     "ERROR" },		      \
+ 		{ V4L2_BUF_FLAG_TIMECODE,	     "TIMECODE" },	      \
+ 		{ V4L2_BUF_FLAG_PREPARED,	     "PREPARED" },	      \
+-		{ V4L2_BUF_FLAG_NO_CACHE_INVALIDATE, "NO_CACHE_INVALIDATE" }, \
+-		{ V4L2_BUF_FLAG_NO_CACHE_CLEAN,	     "NO_CACHE_CLEAN" },      \
++		{ V4L2_BUF_FLAG_NO_CACHE_SYNC,	     "NO_CACHE_SYNC" },	      \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_MASK,	     "TIMESTAMP_MASK" },      \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN,   "TIMESTAMP_UNKNOWN" },   \
+ 		{ V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC, "TIMESTAMP_MONOTONIC" }, \
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 46e8a2e369f9..3516dd638009 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -935,8 +935,11 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TIMECODE			0x00000100
+ /* Buffer is prepared for queuing */
+ #define V4L2_BUF_FLAG_PREPARED			0x00000400
+-/* Cache handling flags */
+-#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x00000800
++/* Cache sync hint */
++#define V4L2_BUF_FLAG_NO_CACHE_SYNC		0x00000800
++/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
++#define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	V4L2_BUF_FLAG_NO_CACHE_SYNC
++/* DEPRECATED. THIS WILL BE REMOVED IN THE FUTURE! */
+ #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x00001000
+ /* Timestamp type */
+ #define V4L2_BUF_FLAG_TIMESTAMP_MASK		0x0000e000
+-- 
+Regards,
 
+Laurent Pinchart
 
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---tsOsTdHNUZQcU9Ye
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlhcVtIACgkQMOfwapXb+vJFFQCeKha0YQAkH3VnygPbIL4w0G4M
-HDkAoLGG/tapDe0LgjtdQ0wxgyEkgUZe
-=17LJ
------END PGP SIGNATURE-----
-
---tsOsTdHNUZQcU9Ye--
