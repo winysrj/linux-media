@@ -1,80 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49508 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752203AbcLOUts (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:33170 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756216AbcLPSAJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 15:49:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, pawel@osciak.com,
-        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
-        daniel.vetter@ffwll.ch, labbott@redhat.com
-Subject: Re: [RFC RESEND 06/11] vb2: Improve struct vb2_mem_ops documentation; alloc and put are for MMAP
-Date: Thu, 15 Dec 2016 22:50:24 +0200
-Message-ID: <1699087.svoNNaWGMy@avalon>
-In-Reply-To: <1441972234-8643-7-git-send-email-sakari.ailus@linux.intel.com>
-References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com> <1441972234-8643-7-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 16 Dec 2016 13:00:09 -0500
+Received: by mail-lf0-f66.google.com with SMTP id y21so1917830lfa.0
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 10:00:08 -0800 (PST)
+From: henrik@austad.us
+To: linux-kernel@vger.kernel.org
+Cc: Richard Cochran <richardcochran@gmail.com>, henrik@austad.us,
+        Henrik Austad <haustad@cisco.com>, linux-media@vger.kernel.org,
+        alsa-devel@vger.kernel.org, netdev@vger.kernel.org
+Subject: [TSN RFC v2 9/9] MAINTAINERS: add TSN/AVB-entries
+Date: Fri, 16 Dec 2016 18:59:13 +0100
+Message-Id: <1481911153-549-10-git-send-email-henrik@austad.us>
+In-Reply-To: <1481911153-549-1-git-send-email-henrik@austad.us>
+References: <1481911153-549-1-git-send-email-henrik@austad.us>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Henrik Austad <haustad@cisco.com>
 
-Thank you for the patch.
+Not sure how relevant this is other than making a point about
+maintaining it.
 
-On Friday 11 Sep 2015 14:50:29 Sakari Ailus wrote:
-> The alloc() and put() ops are for MMAP buffers only. Document it.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  include/media/videobuf2-core.h | 20 ++++++++++----------
->  1 file changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index a825bd5..efc9a19 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -24,16 +24,16 @@ struct vb2_threadio_data;
-> 
->  /**
->   * struct vb2_mem_ops - memory handling/memory allocator operations
-> - * @alloc:	allocate video memory and, optionally, allocator private data,
-> - *		return NULL on failure or a pointer to allocator private,
-> - *		per-buffer data on success; the returned private structure
-> - *		will then be passed as buf_priv argument to other ops in this
-> - *		structure. Additional gfp_flags to use when allocating the
-> - *		are also passed to this operation. These flags are from the
-> - *		gfp_flags field of vb2_queue.
-> - * @put:	inform the allocator that the buffer will no longer be used;
-> - *		usually will result in the allocator freeing the buffer (if
-> - *		no other users of this buffer are present); the buf_priv
-> + * @alloc:	allocate video memory for an MMAP buffer and, optionally,
-> + *		allocator private data, return NULL on failure or a pointer
-> + *		to allocator private, per-buffer data on success; the returned
-> + *		private structure will then be passed as buf_priv argument to
-> + *		other ops in this structure. Additional gfp_flags to use when
-> + *		allocating the are also passed to this operation. These flags
+Signed-off-by: Henrik Austad <haustad@cisco.com>
+---
+ MAINTAINERS | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-s/the are/the memory are/
-
-Apart from that,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> + *		are from the gfp_flags field of vb2_queue.
-> + * @put:	inform the allocator that the MMAP buffer will no longer be
-> + *		used; usually will result in the allocator freeing the buffer
-> + *		(if no other users of this buffer are present); the buf_priv
->   *		argument is the allocator private per-buffer structure
->   *		previously returned from the alloc callback.
->   * @get_userptr: acquire userspace memory for a hardware operation; used
-> for
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 63cefa6..7c5afd2 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -12295,6 +12295,20 @@ T:	git git://linuxtv.org/anttip/media_tree.git
+ S:	Maintained
+ F:	drivers/media/tuners/tua9001*
+ 
++TSN CORE DRIVER
++M:	Henrik Austad <haustad@cisco.com>
++L:	linux-kernel@vger.kernel.org
++S:	Supported
++F:	drivers/net/tsn/
++F:	include/linux/tsn.h
++F:	include/trace/events/tsn.h
++
++TSN_AVB_DRIVER
++M:	Henrik Austad <haustad@cisco.com>
++L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
++S:	Supported
++F:	drivers/media/avb/
++
+ TULIP NETWORK DRIVERS
+ L:	netdev@vger.kernel.org
+ L:	linux-parisc@vger.kernel.org
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
 
