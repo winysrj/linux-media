@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46481 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932349AbcLHWW2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 17:22:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Prabhakar Lad <prabhakar.csengg@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 4/6] v4l: tvp5150: Don't reset device in get/set format handlers
-Date: Fri,  9 Dec 2016 00:22:44 +0200
-Message-Id: <1481235766-24469-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1481235766-24469-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1481235766-24469-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52014 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757479AbcLPN4b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 08:56:31 -0500
+Date: Fri, 16 Dec 2016 15:56:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        kernel@stlinux.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: Re: [PATCH v1] [media] v4l2-common: fix aligned value calculation
+Message-ID: <20161216135626.GK16630@valkosipuli.retiisi.org.uk>
+References: <1481895135-11055-1-git-send-email-jean-christophe.trotin@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1481895135-11055-1-git-send-email-jean-christophe.trotin@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tvp5150 doesn't support format setting through the subdev pad API
-and thus implements the set format handler as a get format operation.
-The single handler, tvp5150_fill_fmt(), resets the device by calling
-tvp5150_reset(). This causes malfunction as the device can be reset at
-will, possibly from userspace when the subdev userspace API is enabled.
+Hi Jean-Christophe,
 
-The reset call was added in commit ec2c4f3f93cb ("[media] media:
-tvp5150: Add mbus_fmt callbacks"), probably as an attempt to set the
-device to a known state before detecting the current TV standard.
-However, the get format handler doesn't access the hardware to get the
-TV standard since commit 963ddc63e20d ("[media] media: tvp5150: Add
-cropping support"). There is thus no need to reset the device when
-getting the format. Fix it.
+On Fri, Dec 16, 2016 at 02:32:15PM +0100, Jean-Christophe Trotin wrote:
+> Correct the calculation of the rounding to nearest aligned value in
+> the clamp_align() function. For example, clamp_align(1277, 1, 9600, 2)
+> returns 1276, while it should return 1280.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/tvp5150.c | 2 --
- 1 file changed, 2 deletions(-)
+Why should the function return 1280 instead of 1276, which is closer to
+1277?
 
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 3a0fe8cc64e9..19b79028cac5 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -861,8 +861,6 @@ static int tvp5150_fill_fmt(struct v4l2_subdev *sd,
- 
- 	f = &format->format;
- 
--	tvp5150_reset(sd, 0);
--
- 	f->width = decoder->rect.width;
- 	f->height = decoder->rect.height / 2;
- 
+> 
+> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-common.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index 57cfe26a..2970ce7 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -315,7 +315,7 @@ static unsigned int clamp_align(unsigned int x, unsigned int min,
+>  
+>  	/* Round to nearest aligned value */
+>  	if (align)
+> -		x = (x + (1 << (align - 1))) & mask;
+> +		x = (x + ((1 << align) - 1)) & mask;
+>  
+>  	return x;
+>  }
+
 -- 
 Regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
