@@ -1,238 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.3]:65275 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751918AbcLZUtc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 15:49:32 -0500
-Subject: [PATCH 4/8] [media] videobuf-dma-sg: Adjust 24 checks for null values
-To: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <7b963ec7-1ec7-5e44-e9ff-9385bc41aa48@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:48:19 +0100
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:36397 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757986AbcLQD5m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 22:57:42 -0500
+Received: by mail-qt0-f193.google.com with SMTP id n34so13046909qtb.3
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 19:57:41 -0800 (PST)
+Received: from whisper (cpe-74-71-229-113.nyc.res.rr.com. [74.71.229.113])
+        by smtp.gmail.com with ESMTPSA id p28sm5289653qtb.31.2016.12.16.19.57.40
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 16 Dec 2016 19:57:40 -0800 (PST)
+Date: Fri, 16 Dec 2016 22:57:39 -0500
+From: Kevin Cheng <kcheng@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] [media] em28xx: support for Hauppauge WinTV-dualHD 01595
+ ATSC/QAM
+Message-ID: <20161217035737.eldmgdbk7owqgygb@whisper>
 MIME-Version: 1.0
-In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 20:30:19 +0100
+Hauppauge WinTV-dualHD model 01595 is a USB 2.0 dual ATSC/QAM tuner with
+the following components:
 
-Convert comparisons with the preprocessor symbol "NULL" or the value "0"
-to condition checks without it.
+USB bridge: Empia em28274
+Demodulator: 2x LG LGDT3306a at addresses 0xb2 and 0x1c
+Tuner: 2x Silicon Labs si2157 at addresses 0xc0 and 0xc4
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+This patch enables only the first tuner.
+
+Signed-off-by: Kevin Cheng <kcheng@gmail.com>
 ---
- drivers/media/v4l2-core/videobuf-dma-sg.c | 48 +++++++++++++++----------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c | 19 ++++++++
+ drivers/media/usb/em28xx/em28xx-dvb.c   | 78 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/em28xx/em28xx.h       |  1 +
+ 3 files changed, 98 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index ab3c1f6a2ca1..9ccdc11aa016 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -70,12 +70,12 @@ static struct scatterlist *videobuf_vmalloc_to_sg(unsigned char *virt,
- 	int i;
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 23c6749..5f90d08 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -509,6 +509,7 @@ static struct em28xx_reg_seq plex_px_bcud[] = {
  
- 	sglist = vzalloc(nr_pages * sizeof(*sglist));
--	if (NULL == sglist)
-+	if (!sglist)
- 		return NULL;
- 	sg_init_table(sglist, nr_pages);
- 	for (i = 0; i < nr_pages; i++, virt += PAGE_SIZE) {
- 		pg = vmalloc_to_page(virt);
--		if (NULL == pg)
-+		if (!pg)
- 			goto err;
- 		BUG_ON(PageHighMem(pg));
- 		sg_set_page(&sglist[i], pg, PAGE_SIZE, 0);
-@@ -98,10 +98,10 @@ static struct scatterlist *videobuf_pages_to_sg(struct page **pages,
- 	struct scatterlist *sglist;
- 	int i;
+ /*
+  * 2040:0265 Hauppauge WinTV-dualHD DVB
++ * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM
+  * reg 0x80/0x84:
+  * GPIO_0: Yellow LED tuner 1, 0=on, 1=off
+  * GPIO_1: Green LED tuner 1, 0=on, 1=off
+@@ -2389,6 +2390,21 @@ struct em28xx_board em28xx_boards[] = {
+ 		.ir_codes      = RC_MAP_HAUPPAUGE,
+ 		.leds          = hauppauge_dualhd_leds,
+ 	},
++	/*
++	 * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM).
++	 * Empia EM28274, 2x LG LGDT3306A, 2x Silicon Labs Si2157
++	 */
++	[EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595] = {
++		.name          = "Hauppauge WinTV-dualHD 01595 ATSC/QAM",
++		.def_i2c_bus   = 1,
++		.i2c_speed     = EM28XX_I2C_CLK_WAIT_ENABLE |
++				 EM28XX_I2C_FREQ_400_KHZ,
++		.tuner_type    = TUNER_ABSENT,
++		.tuner_gpio    = hauppauge_dualhd_dvb,
++		.has_dvb       = 1,
++		.ir_codes      = RC_MAP_HAUPPAUGE,
++		.leds          = hauppauge_dualhd_leds,
++	},
+ };
+ EXPORT_SYMBOL_GPL(em28xx_boards);
  
--	if (NULL == pages[0])
-+	if (!pages[0])
- 		return NULL;
- 	sglist = vmalloc(nr_pages * sizeof(*sglist));
--	if (NULL == sglist)
-+	if (!sglist)
- 		return NULL;
- 	sg_init_table(sglist, nr_pages);
+@@ -2514,6 +2530,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850 },
+ 	{ USB_DEVICE(0x2040, 0x0265),
+ 			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
++	{ USB_DEVICE(0x2040, 0x026d),
++			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
+ 	{ USB_DEVICE(0x0438, 0xb002),
+ 			.driver_info = EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600 },
+ 	{ USB_DEVICE(0x2001, 0xf112),
+@@ -2945,6 +2963,7 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 	case EM2883_BOARD_HAUPPAUGE_WINTV_HVR_950:
+ 	case EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C:
+ 	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB:
++	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
+ 	{
+ 		struct tveeprom tv;
  
-@@ -112,7 +112,7 @@ static struct scatterlist *videobuf_pages_to_sg(struct page **pages,
- 			min_t(size_t, PAGE_SIZE - offset, size), offset);
- 	size -= min_t(size_t, PAGE_SIZE - offset, size);
- 	for (i = 1; i < nr_pages; i++) {
--		if (NULL == pages[i])
-+		if (!pages[i])
- 			goto nopage;
- 		if (PageHighMem(pages[i]))
- 			goto highmem;
-@@ -178,7 +178,7 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	dma->pages = kmalloc_array(dma->nr_pages,
- 				   sizeof(*dma->pages),
- 				   GFP_KERNEL);
--	if (NULL == dma->pages)
-+	if (!dma->pages)
- 		return -ENOMEM;
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 75a75da..35c186e 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -37,6 +37,7 @@
  
- 	if (rw == READ)
-@@ -233,14 +233,14 @@ static int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
+ #include "lgdt330x.h"
+ #include "lgdt3305.h"
++#include "lgdt3306a.h"
+ #include "zl10353.h"
+ #include "s5h1409.h"
+ #include "mt2060.h"
+@@ -920,6 +921,17 @@ static struct tda18271_config pinnacle_80e_dvb_config = {
+ 	.role    = TDA18271_MASTER,
+ };
  
- 		addr = dma_alloc_coherent(dma->dev, PAGE_SIZE,
- 					  &(dma->dma_addr[i]), GFP_KERNEL);
--		if (addr == NULL)
-+		if (!addr)
- 			goto out_free_pages;
++static struct lgdt3306a_config hauppauge_01595_lgdt3306a_config = {
++	.qam_if_khz         = 4000,
++	.vsb_if_khz         = 3250,
++	.spectral_inversion = 0,
++	.deny_i2c_rptr      = 0,
++	.mpeg_mode          = LGDT3306A_MPEG_SERIAL,
++	.tpclk_edge         = LGDT3306A_TPCLK_RISING_EDGE,
++	.tpvalid_polarity   = LGDT3306A_TP_VALID_HIGH,
++	.xtalMHz            = 25,
++};
++
+ /* ------------------------------------------------------------------ */
  
- 		dma->vaddr_pages[i] = virt_to_page(addr);
- 	}
- 	dma->vaddr = vmap(dma->vaddr_pages, nr_pages, VM_MAP | VM_IOREMAP,
- 			  PAGE_KERNEL);
--	if (NULL == dma->vaddr) {
-+	if (!dma->vaddr) {
- 		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
- 		goto out_free_pages;
- 	}
-@@ -277,7 +277,7 @@ static int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
- 		nr_pages, (unsigned long)addr);
- 	dma->direction = direction;
+ static int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
+@@ -1950,6 +1962,72 @@ static int em28xx_dvb_init(struct em28xx *dev)
  
--	if (0 == addr)
-+	if (!addr)
- 		return -EINVAL;
- 
- 	dma->bus_addr = addr;
-@@ -289,7 +289,7 @@ static int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
- static int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
- {
- 	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
--	BUG_ON(0 == dma->nr_pages);
-+	BUG_ON(!dma->nr_pages);
- 
- 	if (dma->pages) {
- 		dma->sglist = videobuf_pages_to_sg(dma->pages, dma->nr_pages,
-@@ -301,7 +301,7 @@ static int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
- 	}
- 	if (dma->bus_addr) {
- 		dma->sglist = vmalloc(sizeof(*dma->sglist));
--		if (NULL != dma->sglist) {
-+		if (dma->sglist) {
- 			dma->sglen = 1;
- 			sg_dma_address(&dma->sglist[0])	= dma->bus_addr
- 							& PAGE_MASK;
-@@ -309,14 +309,14 @@ static int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
- 			sg_dma_len(&dma->sglist[0]) = dma->nr_pages * PAGE_SIZE;
- 		}
- 	}
--	if (NULL == dma->sglist) {
-+	if (!dma->sglist) {
- 		dprintk(1, "scatterlist is NULL\n");
- 		return -ENOMEM;
- 	}
- 	if (!dma->bus_addr) {
- 		dma->sglen = dma_map_sg(dev, dma->sglist,
- 					dma->nr_pages, dma->direction);
--		if (0 == dma->sglen) {
-+		if (!dma->sglen) {
- 			printk(KERN_WARNING
- 			       "%s: videobuf_map_sg failed\n", __func__);
- 			vfree(dma->sglist);
-@@ -406,11 +406,11 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 		map->count, vma->vm_start, vma->vm_end);
- 
- 	map->count--;
--	if (0 == map->count) {
-+	if (!map->count) {
- 		dprintk(1, "munmap %p q=%p\n", map, q);
- 		videobuf_queue_lock(q);
- 		for (i = 0; i < VIDEO_MAX_FRAME; i++) {
--			if (NULL == q->bufs[i])
-+			if (!q->bufs[i])
- 				continue;
- 			mem = q->bufs[i]->priv;
- 			if (!mem)
-@@ -518,20 +518,20 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 	switch (vb->memory) {
- 	case V4L2_MEMORY_MMAP:
- 	case V4L2_MEMORY_USERPTR:
--		if (0 == vb->baddr) {
-+		if (!vb->baddr) {
- 			/* no userspace addr -- kernel bounce buffer */
- 			pages = PAGE_ALIGN(vb->size) >> PAGE_SHIFT;
- 			err = videobuf_dma_init_kernel(&mem->dma,
- 						       DMA_FROM_DEVICE,
- 						       pages);
--			if (0 != err)
-+			if (err)
- 				return err;
- 		} else if (vb->memory == V4L2_MEMORY_USERPTR) {
- 			/* dma directly to userspace */
- 			err = videobuf_dma_init_user(&mem->dma,
- 						     DMA_FROM_DEVICE,
- 						     vb->baddr, vb->bsize);
--			if (0 != err)
-+			if (err)
- 				return err;
- 		} else {
- 			/* NOTE: HACK: videobuf_iolock on V4L2_MEMORY_MMAP
-@@ -542,12 +542,12 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 			err = videobuf_dma_init_user_locked(&mem->dma,
- 						      DMA_FROM_DEVICE,
- 						      vb->baddr, vb->bsize);
--			if (0 != err)
-+			if (err)
- 				return err;
  		}
  		break;
- 	case V4L2_MEMORY_OVERLAY:
--		if (NULL == fbuf)
-+		if (!fbuf)
- 			return -EINVAL;
- 		/* FIXME: need sanity checks for vb->boff */
- 		/*
-@@ -559,14 +559,14 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 		pages = PAGE_ALIGN(vb->size) >> PAGE_SHIFT;
- 		err = videobuf_dma_init_overlay(&mem->dma, DMA_FROM_DEVICE,
- 						bus, pages);
--		if (0 != err)
-+		if (err)
- 			return err;
- 		break;
++	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
++		{
++			struct i2c_adapter *adapter;
++			struct i2c_client *client;
++			struct i2c_board_info info;
++			struct lgdt3306a_config lgdt3306a_config;
++			struct si2157_config si2157_config;
++
++			/* attach demod */
++			memcpy(&lgdt3306a_config,
++					&hauppauge_01595_lgdt3306a_config,
++					sizeof(struct lgdt3306a_config));
++			lgdt3306a_config.fe = &dvb->fe[0];
++			lgdt3306a_config.i2c_adapter = &adapter;
++			memset(&info, 0, sizeof(struct i2c_board_info));
++			strlcpy(info.type, "lgdt3306a", I2C_NAME_SIZE);
++			info.addr = 0x59;
++			info.platform_data = &lgdt3306a_config;
++			request_module(info.type);
++			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus],
++					&info);
++			if (client == NULL || client->dev.driver == NULL) {
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			if (!try_module_get(client->dev.driver->owner)) {
++				i2c_unregister_device(client);
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			dvb->i2c_client_demod = client;
++
++			/* attach tuner */
++			memset(&si2157_config, 0, sizeof(si2157_config));
++			si2157_config.fe = dvb->fe[0];
++			si2157_config.if_port = 1;
++			si2157_config.inversion = 1;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++			si2157_config.mdev = dev->media_dev;
++#endif
++			memset(&info, 0, sizeof(struct i2c_board_info));
++			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++			info.addr = 0x60;
++			info.platform_data = &si2157_config;
++			request_module(info.type);
++
++			client = i2c_new_device(adapter, &info);
++			if (client == NULL || client->dev.driver == NULL) {
++				module_put(dvb->i2c_client_demod->dev.driver->owner);
++				i2c_unregister_device(dvb->i2c_client_demod);
++				result = -ENODEV;
++				goto out_free;
++			}
++			if (!try_module_get(client->dev.driver->owner)) {
++				i2c_unregister_device(client);
++				module_put(dvb->i2c_client_demod->dev.driver->owner);
++				i2c_unregister_device(dvb->i2c_client_demod);
++				result = -ENODEV;
++				goto out_free;
++			}
++
++			dvb->i2c_client_tuner = client;
++		}
++		break;
  	default:
- 		BUG();
- 	}
- 	err = videobuf_dma_map(q->dev, &mem->dma);
--	if (0 != err)
-+	if (err)
- 		return err;
+ 		dev_err(&dev->intf->dev,
+ 			"The frontend of your DVB/ATSC card isn't supported yet\n");
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index ca59e2d..e9f3799 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -147,6 +147,7 @@
+ #define EM2884_BOARD_ELGATO_EYETV_HYBRID_2008     97
+ #define EM28178_BOARD_PLEX_PX_BCUD                98
+ #define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB  99
++#define EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 100
  
- 	return 0;
-@@ -621,12 +621,12 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	/* create mapping + update buffer list */
- 	retval = -ENOMEM;
- 	map = kmalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
--	if (NULL == map)
-+	if (!map)
- 		goto done;
- 
- 	size = 0;
- 	for (i = first; i <= last; i++) {
--		if (NULL == q->bufs[i])
-+		if (!q->bufs[i])
- 			continue;
- 		q->bufs[i]->map   = map;
- 		q->bufs[i]->baddr = vma->vm_start + size;
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
 -- 
-2.11.0
+2.9.3
 
