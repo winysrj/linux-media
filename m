@@ -1,235 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:54858 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S941238AbcLMSEC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Dec 2016 13:04:02 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCHv3 3/4] v4l: vsp1: Use local display lists and remove global pipe->dl
-Date: Tue, 13 Dec 2016 17:59:43 +0000
-Message-Id: <1481651984-7687-4-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1481651984-7687-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-pg0-f42.google.com ([74.125.83.42]:35665 "EHLO
+        mail-pg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932942AbcLQAr5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 19:47:57 -0500
+Received: by mail-pg0-f42.google.com with SMTP id p66so37603155pga.2
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 16:47:56 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v6.1 1/5] [media] davinci: VPIF: fix module loading, init errors
+Date: Fri, 16 Dec 2016 16:47:54 -0800
+Message-Id: <20161217004754.10241-1-khilman@baylibre.com>
+In-Reply-To: <20161207183025.20684-2-khilman@baylibre.com>
+References: <20161207183025.20684-2-khilman@baylibre.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The usage of pipe->dl is susceptible to races, and it is redundant to
-keep this pointer in a larger scoped context.
+Fix problems with automatic module loading by adding MODULE_ALIAS.  Also
+fix various load-time errors cause by incorrect or not present
+platform_data.
 
-Now that the calling order of vsp1_video_setup_pipeline() has been
-adapted, it is possible to remove the pipe->dl and pass the variable as
-required.
-
-Currently the pipe->dl is set during the atomic begin hook, but it is
-not utilised until the flush. Moving this should do no harm.
-
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Kevin Hilman <khilman@baylibre.com>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c   | 20 +++++++-------
- drivers/media/platform/vsp1/vsp1_pipe.h  |  2 --
- drivers/media/platform/vsp1/vsp1_video.c | 45 ++++++++++++++------------------
- 3 files changed, 30 insertions(+), 37 deletions(-)
+Minor tweaks since v6
+- added ack from Sakari
+- droped an extraneous change for NULL subdev_info
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index cd209dccff1b..bf735e85b597 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -220,9 +220,6 @@ void vsp1_du_atomic_begin(struct device *dev)
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
+ drivers/media/platform/davinci/vpif.c         |  5 ++++-
+ drivers/media/platform/davinci/vpif_capture.c | 13 +++++++++++++
+ drivers/media/platform/davinci/vpif_display.c |  6 ++++++
+ 3 files changed, 23 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 0380cf2e5775..f50148dcba64 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -32,6 +32,9 @@
+ MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
+ MODULE_LICENSE("GPL");
  
- 	vsp1->drm->num_inputs = pipe->num_inputs;
--
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_begin);
- 
-@@ -426,10 +423,14 @@ void vsp1_du_atomic_flush(struct device *dev)
- 	struct vsp1_pipeline *pipe = &vsp1->drm->pipe;
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
- 	struct vsp1_entity *entity;
-+	struct vsp1_dl_list *dl;
- 	unsigned long flags;
- 	unsigned int i;
- 	int ret;
- 
-+	/* Prepare the display list. */
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
++#define VPIF_DRIVER_NAME	"vpif"
++MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
 +
- 	/* Count the number of enabled inputs and sort them by Z-order. */
- 	pipe->num_inputs = 0;
+ #define VPIF_CH0_MAX_MODES	22
+ #define VPIF_CH1_MAX_MODES	2
+ #define VPIF_CH2_MAX_MODES	15
+@@ -466,7 +469,7 @@ static const struct dev_pm_ops vpif_pm = {
  
-@@ -484,26 +485,25 @@ void vsp1_du_atomic_flush(struct device *dev)
- 			struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
+ static struct platform_driver vpif_driver = {
+ 	.driver = {
+-		.name	= "vpif",
++		.name	= VPIF_DRIVER_NAME,
+ 		.pm	= vpif_pm_ops,
+ 	},
+ 	.remove = vpif_remove,
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 5104cc0ee40e..892a26f3c5b4 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -45,6 +45,7 @@ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Debug level 0-1");
  
- 			if (!pipe->inputs[rpf->entity.index]) {
--				vsp1_dl_list_write(pipe->dl, entity->route->reg,
-+				vsp1_dl_list_write(dl, entity->route->reg,
- 						   VI6_DPR_NODE_UNUSED);
- 				continue;
- 			}
- 		}
+ #define VPIF_DRIVER_NAME	"vpif_capture"
++MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
  
--		vsp1_entity_route_setup(entity, pipe->dl);
-+		vsp1_entity_route_setup(entity, dl);
+ /* global variables */
+ static struct vpif_device vpif_obj = { {NULL} };
+@@ -647,6 +648,10 @@ static int vpif_input_to_subdev(
  
- 		if (entity->ops->configure) {
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_INIT);
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_RUNTIME);
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_PARTITION);
- 		}
+ 	vpif_dbg(2, debug, "vpif_input_to_subdev\n");
+ 
++	if (!chan_cfg)
++		return -1;
++	if (input_index >= chan_cfg->input_count)
++		return -1;
+ 	subdev_name = chan_cfg->inputs[input_index].subdev_name;
+ 	if (subdev_name == NULL)
+ 		return -1;
+@@ -685,6 +690,9 @@ static int vpif_set_input(
+ 	if (sd_index >= 0) {
+ 		sd = vpif_obj.sd[sd_index];
+ 		subdev_info = &vpif_cfg->subdev_info[sd_index];
++	} else {
++		/* no subdevice, no input to setup */
++		return 0;
  	}
  
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
-+	vsp1_dl_list_commit(dl);
+ 	/* first setup input path from sub device to vpif */
+@@ -1435,6 +1443,11 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	int res_idx = 0;
+ 	int i, err;
  
- 	/* Start or stop the pipeline if needed. */
- 	if (!vsp1->drm->num_inputs && pipe->num_inputs) {
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index 0743b9fcb655..98980c85081f 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -108,8 +108,6 @@ struct vsp1_pipeline {
- 
- 	struct list_head entities;
- 
--	struct vsp1_dl_list *dl;
--
- 	unsigned int div_size;
- 	unsigned int partitions;
- 	struct v4l2_rect partition;
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index 7ff9f4c19ff0..9619ed4dda7c 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -350,18 +350,14 @@ static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
- 	pipe->buffers_ready |= 1 << video->pipe_index;
- }
- 
--static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
-+static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe,
-+				     struct vsp1_dl_list *dl)
- {
- 	struct vsp1_entity *entity;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
- 	vsp1_video_pipeline_setup_partitions(pipe);
- 
--	/* Prepare the display list. */
--	pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
--	if (!pipe->dl)
--		return -ENOMEM;
--
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
-@@ -381,10 +377,10 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	}
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe->dl);
-+		vsp1_entity_route_setup(entity, dl);
- 
- 		if (entity->ops->configure)
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_INIT);
- 	}
- 
-@@ -412,12 +408,16 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
- 	struct vsp1_entity *entity;
-+	struct vsp1_dl_list *dl;
- 
--	if (!pipe->configured)
--		vsp1_video_setup_pipeline(pipe);
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
-+	if (!dl) {
-+		dev_err(vsp1->dev, "Failed to obtain a dl list\n");
-+		return;
++	if (!pdev->dev.platform_data) {
++		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
++		return -EINVAL;
 +	}
++
+ 	vpif_dev = &pdev->dev;
  
--	if (!pipe->dl)
--		pipe->dl = vsp1_dl_list_get(pipe->output->dlm);
-+	if (!pipe->configured)
-+		vsp1_video_setup_pipeline(pipe, dl);
+ 	err = initialize_vpif();
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 75b27233ec2f..7f632b757d32 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -42,6 +42,7 @@ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Debug level 0-1");
  
- 	/*
- 	 * Start with the runtime parameters as the configure operation can
-@@ -426,45 +426,43 @@ static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
- 	 */
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
- 		if (entity->ops->configure)
--			entity->ops->configure(entity, pipe, pipe->dl,
-+			entity->ops->configure(entity, pipe, dl,
- 					       VSP1_ENTITY_PARAMS_RUNTIME);
- 	}
+ #define VPIF_DRIVER_NAME	"vpif_display"
++MODULE_ALIAS("platform:" VPIF_DRIVER_NAME);
  
- 	/* Run the first partition */
- 	pipe->current_partition = 0;
--	vsp1_video_pipeline_run_partition(pipe, pipe->dl);
-+	vsp1_video_pipeline_run_partition(pipe, dl);
+ /* Is set to 1 in case of SDTV formats, 2 in case of HDTV formats. */
+ static int ycmux_mode;
+@@ -1249,6 +1250,11 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	int res_idx = 0;
+ 	int i, err;
  
- 	/* Process consecutive partitions as necessary */
- 	for (pipe->current_partition = 1;
- 	     pipe->current_partition < pipe->partitions;
- 	     pipe->current_partition++) {
--		struct vsp1_dl_list *dl;
-+		struct vsp1_dl_list *child;
- 
- 		/*
- 		 * Partition configuration operations will utilise
- 		 * the pipe->current_partition variable to determine
- 		 * the work they should complete.
- 		 */
--		dl = vsp1_dl_list_get(pipe->output->dlm);
-+		child = vsp1_dl_list_get(pipe->output->dlm);
- 
- 		/*
- 		 * An incomplete chain will still function, but output only
- 		 * the partitions that had a dl available. The frame end
- 		 * interrupt will be marked on the last dl in the chain.
- 		 */
--		if (!dl) {
-+		if (!child) {
- 			dev_err(vsp1->dev, "Failed to obtain a dl list. Frame will be incomplete\n");
- 			break;
- 		}
- 
--		vsp1_video_pipeline_run_partition(pipe, dl);
--		vsp1_dl_list_add_chain(pipe->dl, dl);
-+		vsp1_video_pipeline_run_partition(pipe, child);
-+		vsp1_dl_list_add_chain(dl, child);
- 	}
- 
- 	/* Complete, and commit the head display list. */
--	vsp1_dl_list_commit(pipe->dl);
--	pipe->dl = NULL;
--
-+	vsp1_dl_list_commit(dl);
- 	vsp1_pipeline_run(pipe);
- }
- 
-@@ -835,9 +833,6 @@ static void vsp1_video_stop_streaming(struct vb2_queue *vq)
- 		ret = vsp1_pipeline_stop(pipe);
- 		if (ret == -ETIMEDOUT)
- 			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
--
--		vsp1_dl_list_put(pipe->dl);
--		pipe->dl = NULL;
- 	}
- 	mutex_unlock(&pipe->lock);
++	if (!pdev->dev.platform_data) {
++		dev_warn(&pdev->dev, "Missing platform data.  Giving up.\n");
++		return -EINVAL;
++	}
++
+ 	vpif_dev = &pdev->dev;
+ 	err = initialize_vpif();
  
 -- 
-2.7.4
+2.9.3
 
