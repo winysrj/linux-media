@@ -1,149 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:40419 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751888AbcLHPZc (ORCPT
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:33293 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754466AbcLQD5G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 10:25:32 -0500
-From: Michael Tretter <m.tretter@pengutronix.de>
+        Fri, 16 Dec 2016 22:57:06 -0500
+Received: by mail-qk0-f196.google.com with SMTP id n21so7003459qka.0
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 19:57:05 -0800 (PST)
+Received: from whisper (cpe-74-71-229-113.nyc.res.rr.com. [74.71.229.113])
+        by smtp.gmail.com with ESMTPSA id 53sm5304180qtm.5.2016.12.16.19.57.04
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Fri, 16 Dec 2016 19:57:04 -0800 (PST)
+Date: Fri, 16 Dec 2016 22:57:03 -0500
+From: Kevin Cheng <kcheng@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: p.zabel@pengutronix.de, Michael Tretter <m.tretter@pengutronix.de>
-Subject: [PATCH 9/9] [media] coda: support YUYV output if VDOA is used
-Date: Thu,  8 Dec 2016 16:24:16 +0100
-Message-Id: <20161208152416.16031-9-m.tretter@pengutronix.de>
-In-Reply-To: <20161208152416.16031-1-m.tretter@pengutronix.de>
-References: <20161208152416.16031-1-m.tretter@pengutronix.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] lgdt3306a: support i2c mux for use by em28xx
+Message-ID: <20161217035700.j7fnmh6wrd4pgmb3@whisper>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VDOA is able to transform the NV12 custom macroblock tiled format of
-the CODA to YUYV format. If and only if the VDOA is available, the
-driver can also provide YUYV support.
+Adds an i2c mux to the lgdt3306a demodulator.  This was done to support
+the Hauppauge WinTV-dualHD 01595 USB TV tuner (em28xx), which utilizes two
+si2157 tuners behind gate control.
 
-While the driver is configured to produce YUYV output, the CODA must be
-configured to produce NV12 macroblock tiled frames and the VDOA must
-transform the intermediate result into the final YUYV output.
-
-Signed-off-by: Michael Tretter <m.tretter@pengutronix.de>
+Signed-off-by: Kevin Cheng <kcheng@gmail.com>
 ---
- drivers/media/platform/coda/coda-bit.c    |  7 +++++--
- drivers/media/platform/coda/coda-common.c | 30 ++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ drivers/media/dvb-frontends/lgdt3306a.c | 108 ++++++++++++++++++++++++++++++++
+ drivers/media/dvb-frontends/lgdt3306a.h |   4 ++
+ 2 files changed, 112 insertions(+)
 
-diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
-index 3e2f830..b94ba62 100644
---- a/drivers/media/platform/coda/coda-bit.c
-+++ b/drivers/media/platform/coda/coda-bit.c
-@@ -759,7 +759,7 @@ static void coda9_set_frame_cache(struct coda_ctx *ctx, u32 fourcc)
- 		cache_config = 1 << CODA9_CACHE_PAGEMERGE_OFFSET;
- 	}
- 	coda_write(ctx->dev, cache_size, CODA9_CMD_SET_FRAME_CACHE_SIZE);
--	if (fourcc == V4L2_PIX_FMT_NV12) {
-+	if (fourcc == V4L2_PIX_FMT_NV12 || fourcc == V4L2_PIX_FMT_YUYV) {
- 		cache_config |= 32 << CODA9_CACHE_LUMA_BUFFER_SIZE_OFFSET |
- 				16 << CODA9_CACHE_CR_BUFFER_SIZE_OFFSET |
- 				0 << CODA9_CACHE_CB_BUFFER_SIZE_OFFSET;
-@@ -1537,7 +1537,7 @@ static int __coda_start_decoding(struct coda_ctx *ctx)
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 19dca46..b191e01 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -22,6 +22,7 @@
+ #include <linux/dvb/frontend.h>
+ #include "dvb_math.h"
+ #include "lgdt3306a.h"
++#include <linux/i2c-mux.h>
  
- 	ctx->frame_mem_ctrl &= ~(CODA_FRAME_CHROMA_INTERLEAVE | (0x3 << 9) |
- 				 CODA9_FRAME_TILED2LINEAR);
--	if (dst_fourcc == V4L2_PIX_FMT_NV12)
-+	if (dst_fourcc == V4L2_PIX_FMT_NV12 || dst_fourcc == V4L2_PIX_FMT_YUYV)
- 		ctx->frame_mem_ctrl |= CODA_FRAME_CHROMA_INTERLEAVE;
- 	if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP)
- 		ctx->frame_mem_ctrl |= (0x3 << 9) |
-@@ -2070,6 +2070,9 @@ static void coda_finish_decode(struct coda_ctx *ctx)
- 		trace_coda_dec_rot_done(ctx, dst_buf, meta);
  
- 		switch (q_data_dst->fourcc) {
-+		case V4L2_PIX_FMT_YUYV:
-+			payload = width * height * 2;
-+			break;
- 		case V4L2_PIX_FMT_YUV420:
- 		case V4L2_PIX_FMT_YVU420:
- 		case V4L2_PIX_FMT_NV12:
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 8b23ea4..1a809b2 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -95,6 +95,8 @@ void coda_write_base(struct coda_ctx *ctx, struct coda_q_data *q_data,
- 	u32 base_cb, base_cr;
- 
- 	switch (q_data->fourcc) {
-+	case V4L2_PIX_FMT_YUYV:
-+		/* Fallthrough: IN -H264-> CODA -NV12 MB-> VDOA -YUYV-> OUT */
- 	case V4L2_PIX_FMT_NV12:
- 	case V4L2_PIX_FMT_YUV420:
- 	default:
-@@ -201,6 +203,11 @@ static const struct coda_video_device coda_bit_decoder = {
- 		V4L2_PIX_FMT_NV12,
- 		V4L2_PIX_FMT_YUV420,
- 		V4L2_PIX_FMT_YVU420,
-+		/*
-+		 * If V4L2_PIX_FMT_YUYV should be default,
-+		 * set_default_params() must be adjusted.
-+		 */
-+		V4L2_PIX_FMT_YUYV,
- 	},
+ static int debug;
+@@ -65,6 +66,8 @@ struct lgdt3306a_state {
+ 	enum fe_modulation current_modulation;
+ 	u32 current_frequency;
+ 	u32 snr;
++
++	struct i2c_mux_core *muxc;
  };
  
-@@ -246,6 +253,7 @@ static u32 coda_format_normalize_yuv(u32 fourcc)
- 	case V4L2_PIX_FMT_YUV420:
- 	case V4L2_PIX_FMT_YVU420:
- 	case V4L2_PIX_FMT_YUV422P:
-+	case V4L2_PIX_FMT_YUYV:
- 		return V4L2_PIX_FMT_YUV420;
- 	default:
- 		return fourcc;
-@@ -437,6 +445,11 @@ static int coda_try_pixelformat(struct coda_ctx *ctx, struct v4l2_format *f)
- 		return -EINVAL;
+ /*
+@@ -2131,6 +2134,111 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
+ 	.search               = lgdt3306a_search,
+ };
  
- 	for (i = 0; i < CODA_MAX_FORMATS; i++) {
-+		/* Skip YUYV if the vdoa is not available */
-+		if (!ctx->vdoa && f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE &&
-+		    formats[i] == V4L2_PIX_FMT_YUYV)
-+			continue;
++static int lgdt3306a_select(struct i2c_mux_core *muxc, u32 chan)
++{
++	struct i2c_client *client = i2c_mux_priv(muxc);
++	struct lgdt3306a_state *state = i2c_get_clientdata(client);
 +
- 		if (formats[i] == f->fmt.pix.pixelformat) {
- 			f->fmt.pix.pixelformat = formats[i];
- 			return 0;
-@@ -520,6 +533,11 @@ static int coda_try_fmt(struct coda_ctx *ctx, const struct coda_codec *codec,
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
- 					f->fmt.pix.height * 3 / 2;
- 		break;
-+	case V4L2_PIX_FMT_YUYV:
-+		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16) * 2;
-+		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-+					f->fmt.pix.height;
-+		break;
- 	case V4L2_PIX_FMT_YUV422P:
- 		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16);
- 		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-@@ -592,6 +610,15 @@ static int coda_try_fmt_vid_cap(struct file *file, void *priv,
- 		ret = coda_try_vdoa(ctx, f);
- 		if (ret < 0)
- 			return ret;
++	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 1);
++}
 +
-+		if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_YUYV) {
-+			if (!ctx->use_vdoa)
-+				return -EINVAL;
++static int lgdt3306a_deselect(struct i2c_mux_core *muxc, u32 chan)
++{
++	struct i2c_client *client = i2c_mux_priv(muxc);
++	struct lgdt3306a_state *state = i2c_get_clientdata(client);
 +
-+			f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 16) * 2;
-+			f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
-+				f->fmt.pix.height;
-+		}
- 	}
++	return lgdt3306a_i2c_gate_ctrl(&state->frontend, 0);
++}
++
++static int lgdt3306a_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	struct lgdt3306a_config *config = client->dev.platform_data;
++	struct lgdt3306a_state *state;
++	struct dvb_frontend *fe;
++	int ret;
++
++	config = kzalloc(sizeof(struct lgdt3306a_config), GFP_KERNEL);
++	if (config == NULL) {
++		ret = -ENOMEM;
++		goto fail;
++	}
++
++	memcpy(config, client->dev.platform_data,
++			sizeof(struct lgdt3306a_config));
++
++	config->i2c_addr = client->addr;
++	fe = lgdt3306a_attach(config, client->adapter);
++	if (fe == NULL) {
++		ret = -ENODEV;
++		goto err_fe;
++	}
++
++	i2c_set_clientdata(client, fe->demodulator_priv);
++	state = fe->demodulator_priv;
++
++	/* create mux i2c adapter for tuner */
++	state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
++				  1, 0, I2C_MUX_LOCKED,
++				  lgdt3306a_select, lgdt3306a_deselect);
++	if (!state->muxc) {
++		ret = -ENOMEM;
++		goto err_kfree;
++	}
++	state->muxc->priv = client;
++	ret = i2c_mux_add_adapter(state->muxc, 0, 0, 0);
++	if (ret)
++		goto err_kfree;
++
++	/* create dvb_frontend */
++	fe->ops.i2c_gate_ctrl = NULL;
++	*config->i2c_adapter = state->muxc->adapter[0];
++	*config->fe = fe;
++
++	return 0;
++
++err_kfree:
++	kfree(state);
++err_fe:
++	kfree(config);
++fail:
++	dev_dbg(&client->dev, "failed=%d\n", ret);
++	return ret;
++}
++
++static int lgdt3306a_remove(struct i2c_client *client)
++{
++	struct lgdt3306a_state *state = i2c_get_clientdata(client);
++
++	i2c_mux_del_adapters(state->muxc);
++
++	state->frontend.ops.release = NULL;
++	state->frontend.demodulator_priv = NULL;
++
++	kfree(state->cfg);
++	kfree(state);
++
++	return 0;
++}
++
++static const struct i2c_device_id lgdt3306a_id_table[] = {
++	{"lgdt3306a", 0},
++	{}
++};
++MODULE_DEVICE_TABLE(i2c, lgdt3306a_id_table);
++
++static struct i2c_driver lgdt3306a_driver = {
++	.driver = {
++		.name                = "lgdt3306a",
++		.suppress_bind_attrs = true,
++	},
++	.probe		= lgdt3306a_probe,
++	.remove		= lgdt3306a_remove,
++	.id_table	= lgdt3306a_id_table,
++};
++
++module_i2c_driver(lgdt3306a_driver);
++
+ MODULE_DESCRIPTION("LG Electronics LGDT3306A ATSC/QAM-B Demodulator Driver");
+ MODULE_AUTHOR("Fred Richter <frichter@hauppauge.com>");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.h b/drivers/media/dvb-frontends/lgdt3306a.h
+index 9dbb2dc..6ce337e 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.h
++++ b/drivers/media/dvb-frontends/lgdt3306a.h
+@@ -56,6 +56,10 @@ struct lgdt3306a_config {
  
- 	return 0;
-@@ -670,6 +697,9 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
- 	 */
+ 	/* demod clock freq in MHz; 24 or 25 supported */
+ 	int  xtalMHz;
++
++	/* returned by driver if using i2c bus multiplexing */
++	struct dvb_frontend **fe;
++	struct i2c_adapter **i2c_adapter;
+ };
  
- 	switch (f->fmt.pix.pixelformat) {
-+	case V4L2_PIX_FMT_YUYV:
-+		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
-+		break;
- 	case V4L2_PIX_FMT_NV12:
- 		ctx->tiled_map_type = GDI_TILED_FRAME_MB_RASTER_MAP;
- 		if (!disable_tiling)
+ #if IS_REACHABLE(CONFIG_DVB_LGDT3306A)
 -- 
-2.10.2
+2.9.3
 
