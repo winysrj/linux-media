@@ -1,14 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:55234 "EHLO
-        lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751327AbcLFFKa (ORCPT
+Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:35282 "EHLO
+        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750820AbcLQFK7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 00:10:30 -0500
-Message-ID: <532c4227615e763f0975ab5206f8914d@smtp-cloud6.xs4all.net>
-Date: Tue, 06 Dec 2016 06:10:27 +0100
+        Sat, 17 Dec 2016 00:10:59 -0500
+Message-ID: <767f33846db59dbb72c2f5889189360d@smtp-cloud2.xs4all.net>
+Date: Sat, 17 Dec 2016 06:10:55 +0100
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -17,10 +17,10 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Tue Dec  6 05:00:14 CET 2016
-media-tree git hash:	365fe4e0ce218dc5ad10df17b150a366b6015499
+date:			Sat Dec 17 05:00:19 CET 2016
+media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
 media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	063d1f5d5e60783002d781e8a23911acbda65e99
+v4l-utils git hash:	1252d0de6a4ae3a7c8c55765e82c988be52cc729
 gcc version:		i686-linux-gcc (GCC) 6.2.0
 sparse version:		v0.5.0-3553-g78b2ea6
 smatch version:		v0.5.0-3553-g78b2ea6
@@ -71,7 +71,7 @@ linux-4.5.7-i686: WARNINGS
 linux-4.6.7-i686: WARNINGS
 linux-4.7.5-i686: WARNINGS
 linux-4.8-i686: OK
-linux-4.9-rc5-i686: OK
+linux-4.9-i686: OK
 linux-2.6.36.4-x86_64: WARNINGS
 linux-2.6.37.6-x86_64: WARNINGS
 linux-2.6.38.8-x86_64: WARNINGS
@@ -105,19 +105,18 @@ linux-4.5.7-x86_64: WARNINGS
 linux-4.6.7-x86_64: WARNINGS
 linux-4.7.5-x86_64: WARNINGS
 linux-4.8-x86_64: OK
-linux-4.9-rc5-x86_64: OK
+linux-4.9-x86_64: OK
 apps: WARNINGS
 spec-git: OK
-smatch: ERRORS
 sparse: WARNINGS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
