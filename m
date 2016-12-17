@@ -1,134 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f194.google.com ([209.85.210.194]:35249 "EHLO
-        mail-wj0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753973AbcLOWd3 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33914 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755398AbcLQAgd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 17:33:29 -0500
-Received: by mail-wj0-f194.google.com with SMTP id he10so11989538wjc.2
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2016 14:32:54 -0800 (PST)
-Date: Thu, 15 Dec 2016 23:14:03 +0100
-From: Marcel Hasler <mahasler@gmail.com>
-To: Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v4 3/3] stk1160: Wait for completion of transfers to and from
- AC97 codec.
-Message-ID: <20161215221403.GA18007@arch-desktop>
+        Fri, 16 Dec 2016 19:36:33 -0500
+Date: Sat, 17 Dec 2016 02:35:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, pawel@osciak.com,
+        m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+        hverkuil@xs4all.nl, sumit.semwal@linaro.org, robdclark@gmail.com,
+        daniel.vetter@ffwll.ch, labbott@redhat.com
+Subject: Re: [RFC RESEND 04/11] v4l: Unify cache management hint buffer flags
+Message-ID: <20161217003557.GN16630@valkosipuli.retiisi.org.uk>
+References: <1441972234-8643-1-git-send-email-sakari.ailus@linux.intel.com>
+ <1441972234-8643-5-git-send-email-sakari.ailus@linux.intel.com>
+ <1519569.UjI4aaJYKi@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20161215221146.GA9398@arch-desktop>
+In-Reply-To: <1519569.UjI4aaJYKi@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The STK1160 needs some time to transfer data to and from the AC97 codec. The transfer completion
-is indicated by command read/write bits in the chip's audio control register. The driver should
-poll these bits and wait until they have been cleared by hardware before trying to retrive the
-results of a read operation or setting a new write command.
+Hi Laurent,
 
-Signed-off-by: Marcel Hasler <mahasler@gmail.com>
----
- drivers/media/usb/stk1160/stk1160-ac97.c | 39 +++++++++++++++++++++++++-------
- drivers/media/usb/stk1160/stk1160-reg.h  |  2 ++
- drivers/media/usb/stk1160/stk1160.h      |  2 ++
- 3 files changed, 35 insertions(+), 8 deletions(-)
+Thank you for the review.
 
-diff --git a/drivers/media/usb/stk1160/stk1160-ac97.c b/drivers/media/usb/stk1160/stk1160-ac97.c
-index 5e9b76e..439d1b7 100644
---- a/drivers/media/usb/stk1160/stk1160-ac97.c
-+++ b/drivers/media/usb/stk1160/stk1160-ac97.c
-@@ -23,9 +23,30 @@
-  *
-  */
- 
-+#include <linux/delay.h>
-+
- #include "stk1160.h"
- #include "stk1160-reg.h"
- 
-+static int stk1160_ac97_wait_transfer_complete(struct stk1160 *dev)
-+{
-+	unsigned long timeout = jiffies + msecs_to_jiffies(STK1160_AC97_TIMEOUT);
-+	u8 value;
-+
-+	/* Wait for AC97 transfer to complete */
-+	while (time_is_after_jiffies(timeout)) {
-+		stk1160_read_reg(dev, STK1160_AC97CTL_0, &value);
-+
-+		if (!(value & (STK1160_AC97CTL_0_CR | STK1160_AC97CTL_0_CW)))
-+			return 0;
-+
-+		usleep_range(50, 100);
-+	}
-+
-+	stk1160_err("AC97 transfer took too long, this should never happen!");
-+	return -EBUSY;
-+}
-+
- static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
- {
- 	/* Set codec register address */
-@@ -35,11 +56,11 @@ static void stk1160_write_ac97(struct stk1160 *dev, u16 reg, u16 value)
- 	stk1160_write_reg(dev, STK1160_AC97_CMD, value & 0xff);
- 	stk1160_write_reg(dev, STK1160_AC97_CMD + 1, (value & 0xff00) >> 8);
- 
--	/*
--	 * Set command write bit to initiate write operation.
--	 * The bit will be cleared when transfer is done.
--	 */
-+	/* Set command write bit to initiate write operation */
- 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8c);
-+
-+	/* Wait for command write bit to be cleared */
-+	stk1160_ac97_wait_transfer_complete(dev);
- }
- 
- #ifdef DEBUG
-@@ -51,12 +72,14 @@ static u16 stk1160_read_ac97(struct stk1160 *dev, u16 reg)
- 	/* Set codec register address */
- 	stk1160_write_reg(dev, STK1160_AC97_ADDR, reg);
- 
--	/*
--	 * Set command read bit to initiate read operation.
--	 * The bit will be cleared when transfer is done.
--	 */
-+	/* Set command read bit to initiate read operation */
- 	stk1160_write_reg(dev, STK1160_AC97CTL_0, 0x8b);
- 
-+	/* Wait for command read bit to be cleared */
-+	if (stk1160_ac97_wait_transfer_complete(dev) < 0) {
-+		return 0;
-+	}
-+
- 	/* Retrieve register value */
- 	stk1160_read_reg(dev, STK1160_AC97_CMD, &vall);
- 	stk1160_read_reg(dev, STK1160_AC97_CMD + 1, &valh);
-diff --git a/drivers/media/usb/stk1160/stk1160-reg.h b/drivers/media/usb/stk1160/stk1160-reg.h
-index 296a9e7..7b08a3c 100644
---- a/drivers/media/usb/stk1160/stk1160-reg.h
-+++ b/drivers/media/usb/stk1160/stk1160-reg.h
-@@ -122,6 +122,8 @@
- /* AC97 Audio Control */
- #define STK1160_AC97CTL_0		0x500
- #define STK1160_AC97CTL_1		0x504
-+#define  STK1160_AC97CTL_0_CR		BIT(1)
-+#define  STK1160_AC97CTL_0_CW		BIT(2)
- 
- /* Use [0:6] bits of register 0x504 to set codec command address */
- #define STK1160_AC97_ADDR		0x504
-diff --git a/drivers/media/usb/stk1160/stk1160.h b/drivers/media/usb/stk1160/stk1160.h
-index e85e12e..acd1c81 100644
---- a/drivers/media/usb/stk1160/stk1160.h
-+++ b/drivers/media/usb/stk1160/stk1160.h
-@@ -50,6 +50,8 @@
- #define STK1160_MAX_INPUT 4
- #define STK1160_SVIDEO_INPUT 4
- 
-+#define STK1160_AC97_TIMEOUT 50
-+
- #define STK1160_I2C_TIMEOUT 100
- 
- /* TODO: Print helpers
+On Thu, Dec 15, 2016 at 10:15:39PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thank you for the patch.
+> 
+> On Friday 11 Sep 2015 14:50:27 Sakari Ailus wrote:
+> > The V4L2_BUF_FLAG_NO_CACHE_INVALIDATE and V4L2_BUF_FLAG_NO_CACHE_CLEAN
+> > buffer flags are currently not used by the kernel. Replace the definitions
+> > by a single V4L2_BUF_FLAG_NO_CACHE_SYNC flag to be used by further
+> > patches.
+> > 
+> > Different cache architectures should not be visible to the user space
+> > which can make no meaningful use of the differences anyway. In case a
+> > device can make use of non-coherent memory accesses, the necessary cache
+> > operations depend on the CPU architecture and the buffer type, not the
+> > requests of the user. The cache operation itself may be skipped on the
+> > user's request which was the purpose of the two flags.
+> > 
+> > On ARM the invalidate and clean are separate operations whereas on
+> > x86(-64) the two are a single operation (flush). Whether the hardware uses
+> > the buffer for reading (V4L2_BUF_TYPE_*_OUTPUT*) or writing
+> > (V4L2_BUF_TYPE_*CAPTURE*) already defines the required cache operation
+> > (clean and invalidate, respectively). No user input is required.
+> 
+> We need to perform the following operations.
+> 
+> 	| QBUF		| DQBUF
+> -----------------------------------------------
+> CAPTURE	| Invalidate	| Invalidate (*)
+> OUTPUT	| Clean		| -
+> 
+> (*) for systems using speculative pre-fetching only.
+> 
+> The following optimizations are possible:
+> 
+> 1. CAPTURE, the CPU has not written to the buffer before QBUF
+> 
+> Cache invalidation can be skipped at QBUF time, but becomes required at DQBUF 
+> time on all systems, regardless of whether they use speculative prefetching.
+> 
+> 2. CAPTURE, the CPU will not read from the buffer after DQBUF
+> 
+> Cache invalidation can be skipped at DQBUF time.
+> 
+> 3. CAPTURE, combination of (1) and (2)
+> 
+> Cache invalidation can be skipped at both QBUF and DQBUF time.
+> 
+> 4. OUTPUT, the CPU has not written to the buffer before QBUF
+> 
+> Cache clean can be skipped at QBUF time.
+
+Ack.
+
+> 
+> 
+> A single flag can cover all cases, provided we keep track of the flag being 
+> set at QBUF time to force cache invalidation at DQBUF time for case (1) if the 
+> flag isn't set at DQBUF time.
+> 
+> One issue is that cache invalidation at DQBUF time for CAPTURE buffers isn't 
+> fully under the control of videobuf. We can instruct the DMA mapping API to 
+> skip cache handling, but we can't ask it to force cache invalidation in the 
+> sync_for_cpu operation for non speculative prefetching systems. On ARM32 the 
+> implementation currently always invalidates the cache in 
+> __dma_page_dev_to_cpu() for CAPTURE buffers so we're currently safe, but 
+> there's a FIXME comment that might lead to someone fixing the implementation 
+> in the future. I believe we'll have to fix this in the DMA mapping level, 
+> userspace shouldn't be affected.
+> 
+> Feel free to capture (part of) this explanation in the commit message to 
+> clarify your last paragraph.
+> 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> > ---
+> >  Documentation/DocBook/media/v4l/io.xml | 25 +++++++++++--------------
+> >  include/trace/events/v4l2.h            |  3 +--
+> >  include/uapi/linux/videodev2.h         |  7 +++++--
+> >  3 files changed, 17 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > b/Documentation/DocBook/media/v4l/io.xml index 7bbc2a4..4facd63 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -1112,21 +1112,18 @@ application. Drivers set or clear this flag when the
+> > linkend="vidioc-qbuf">VIDIOC_DQBUF</link> ioctl is called.</entry> </row>
+> >  	  <row>
+> > -	    
+> <entry><constant>V4L2_BUF_FLAG_NO_CACHE_INVALIDATE</constant></entry>
+> > +	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_SYNC</constant></entry>
+> >  	    <entry>0x00000800</entry>
+> > -	    <entry>Caches do not have to be invalidated for this buffer.
+> > -Typically applications shall use this flag if the data captured in the
+> > buffer -is not going to be touched by the CPU, instead the buffer will,
+> > probably, be -passed on to a DMA-capable hardware unit for further
+> > processing or output. -</entry>
+> > -	  </row>
+> > -	  <row>
+> > -	    <entry><constant>V4L2_BUF_FLAG_NO_CACHE_CLEAN</constant></entry>
+> > -	    <entry>0x00001000</entry>
+> > -	    <entry>Caches do not have to be cleaned for this buffer.
+> > -Typically applications shall use this flag for output buffers if the data
+> > -in this buffer has not been created by the CPU but by some DMA-capable
+> > unit, -in which case caches have not been used.</entry>
+> > +	    <entry>Do not perform CPU cache synchronisation operations
+> > +	    when the buffer is queued or dequeued. The user is
+> > +	    responsible for the correct use of this flag. It should be
+> > +	    only used when the buffer is not accessed using the CPU,
+> > +	    e.g. the buffer is written to by a hardware block and then
+> > +	    read by another one, in which case the flag should be set
+> > +	    in both <link linkend="vidioc-qbuf">VIDIOC_DQBUF</link>
+> > +	    and <link linkend="vidioc-qbuf">VIDIOC_QBUF</link> IOCTLs.
+> 
+> I'd like to word this differently. As explained above, there can be cases 
+> where the flag would only be set in either QBUF or DQBUF. I would prefer 
+> documenting the flag as a hint for the kernel that userspace has not written 
+> to the buffer before QBUF (when the flag is set for VIDIOC_QBUF) or will not 
+> read from the buffer after DQBUF (when the flag is set for VIDIOC_DQBUF) and 
+> that the kernel is free to perform the appropriate cache optimizations 
+> (without any guarantee).
+
+AFAIR that was my intention but I don't seem to have written that in a way
+that could be deciphered later on. Sounds good to me. :-)
+
+> 
+> > +	    The flag has no effect on some devices / architectures.
+> > +	    </entry>
+> >  	  </row>
+> >  	  <row>
+> >  	    <entry><constant>V4L2_BUF_FLAG_LAST</constant></entry>
+> 
+> [snip]
+> 
+
 -- 
-2.10.2
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
