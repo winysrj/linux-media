@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zed.grinta.net ([109.74.203.128]:60744 "EHLO zed.grinta.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752035AbcLLXT2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Dec 2016 18:19:28 -0500
-Subject: Re: Clarification for acceptance statistics?
-To: SF Markus Elfring <elfring@users.sourceforge.net>
-References: <d9a0777b-8ea7-3f7d-4fa2-b16468c4a1a4@users.sourceforge.net>
- <e20a6835-a404-e894-d0d0-a408bfcd7fb6@users.sourceforge.net>
- <ecf01283-e2eb-ecef-313f-123ba41c0336@grinta.net>
- <d3ab238e-02f0-2511-9be1-a1447e7639bc@users.sourceforge.net>
- <5560ffc2-e17d-5750-24e5-3150aba5d8aa@grinta.net>
- <ce612b15-0dff-ce33-6b22-3a2775bed4cd@users.sourceforge.net>
- <581046dd-0a4a-acea-a6a8-8d2469594881@grinta.net>
- <3d09590c-9a10-f756-1b71-536ea37d8524@users.sourceforge.net>
- <a694926d-eedd-5d51-54d0-7ba88775c42e@grinta.net>
- <dc59427b-5631-b7e7-e9e9-80e786a8c2d6@users.sourceforge.net>
-Cc: linux-media@vger.kernel.org,
-        Alexey Khoroshilov <khoroshilov@ispras.ru>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: Daniele Nicolodi <daniele@grinta.net>
-Message-ID: <9708653c-c7ac-dcb0-1b5d-4b74ee5ed79a@grinta.net>
-Date: Mon, 12 Dec 2016 16:19:23 -0700
+Received: from mail-pg0-f53.google.com ([74.125.83.53]:33852 "EHLO
+        mail-pg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932929AbcLQAtI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 16 Dec 2016 19:49:08 -0500
+Received: by mail-pg0-f53.google.com with SMTP id a1so14654090pgf.1
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2016 16:49:07 -0800 (PST)
+From: Kevin Hilman <khilman@baylibre.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+        Axel Haslam <ahaslam@baylibre.com>,
+        Bartosz =?utf-8?Q?Go=C5=82aszewski?= <bgolaszewski@baylibre.com>,
+        Alexandre Bailon <abailon@baylibre.com>,
+        David Lechner <david@lechnology.com>,
+        Patrick Titiano <ptitiano@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v6 0/5] davinci: VPIF: add DT support
+References: <20161207183025.20684-1-khilman@baylibre.com>
+        <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl>
+Date: Fri, 16 Dec 2016 16:49:01 -0800
+In-Reply-To: <d4b0501a-f83a-c8b1-e460-1ba50f68cca7@xs4all.nl> (Hans Verkuil's
+        message of "Fri, 16 Dec 2016 10:47:09 +0100")
+Message-ID: <m2k2aze5xe.fsf@baylibre.com>
 MIME-Version: 1.0
-In-Reply-To: <dc59427b-5631-b7e7-e9e9-80e786a8c2d6@users.sourceforge.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/16 3:11 PM, SF Markus Elfring wrote:
->>> It is really needed to clarify the corresponding software development
->>> history any further?
+Hans Verkuil <hverkuil@xs4all.nl> writes:
+
+> On 07/12/16 19:30, Kevin Hilman wrote:
+>> Prepare the groundwork for adding DT support for davinci VPIF drivers.
+>> This series does some fixups/cleanups and then adds the DT binding and
+>> DT compatible string matching for DT probing.
 >>
->> It is relevant because you are submitting a patch and your changelog
->> implies that it makes the code follow some code structure rule that
->> needs to be applied to the kernel.
-> 
-> I am proposing a change which was described also around various other
-> functions in some software already.
+>> The controversial part from previous versions around async subdev
+>> parsing, and specifically hard-coding the input/output routing of
+>> subdevs, has been left out of this series.  That part can be done as a
+>> follow-on step after agreement has been reached on the path forward.
+>> With this version, platforms can still use the VPIF capture/display
+>> drivers, but must provide platform_data for the subdevs and subdev
+>> routing.
+>>
+>> Tested video capture to memory on da850-lcdk board using composite
+>> input.
+>
+> Other than the comment for the first patch this series looks good.
+>
+> So once that's addressed I'll queue it up for 4.11.
 
-What is this supposed to mean?
+I've fixed that issue, and sent an update for just that patch in reply
+to the original.
 
->> As the above is a recurring pattern in kernel code, it is legitimate
->> to ask if such a rule exist, and has been enforced before, or you are
->> making it up.
-> 
-> I got the impression that special software development habits can also
-> evolve over time.
-> 
->> As a proposer of a new pattern, what is the evidence you can bring to
->> the discussion that supports that your solution is better?
-> 
-> I am trying to increase the software development attention on error
-> detection and corresponding exception handling at various places.
+Thanks for the review,
 
-Are you doing this submitting random patches to the kernel sources?
-
->> What is the metric you are using to define "better"?
-> 
-> Do response times for system failures matter here?
-
-No. And you are again answering a question with a question.
-
-Cheers,
-Daniele
-
-
+Kevin
