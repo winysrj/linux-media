@@ -1,153 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:33150 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752937AbcLFQIQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2016 11:08:16 -0500
-Received: by mail-pf0-f195.google.com with SMTP id 144so18946900pfv.0
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2016 08:08:16 -0800 (PST)
-From: evgeni.raikhel@gmail.com
-To: linux-media@vger.kernel.org
-Cc: sergey.dorodnicov@intel.com, eliezer.tamir@intel.com,
-        evgeni.raikhel@intel.com, laurent.pinchart@ideasonboard.com,
-        Aviv Greenberg <avivgr@gmail.com>
-Subject: [PATCH 1/2 v2] media: Adding 'INZI' Depth data format to V4L2_API.
-Date: Tue,  6 Dec 2016 18:04:34 +0200
-Message-Id: <1481040275-18392-2-git-send-email-evgeni.raikhel@intel.com>
-In-Reply-To: <1481040275-18392-1-git-send-email-evgeni.raikhel@intel.com>
-References: <1481040275-18392-1-git-send-email-evgeni.raikhel@intel.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:59076 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759406AbcLRLVs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Dec 2016 06:21:48 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v6 0/6] Add support for IR transmitters
+Date: Sun, 18 Dec 2016 20:11:32 +0900
+Message-id: <20161218111138.12831-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Aviv Greenberg <avivgr@gmail.com>
+Hi,
 
-This is a proprietary multi-plane format that provides
-Infrared and Depth data.
-The format is utilized by Intel SR300 depth camera.
+The main goal is to add support in the rc framework for IR
+transmitters, which currently is only supported by lirc but that
+is not the preferred way.
 
-The patch comprises of the format definition
-to be introduced into V4L2_API via  include/uapi/linux/videodev2.h,
-and the pixel format description to be added to
-Documentation/media/uapi/v4l folder, under 'depth-formats' section
+The last patch adds support for an IR transmitter driven by
+the MOSI line of an SPI controller, it's the case of the Samsung
+TM2(e) board which support is currently ongoing.
 
-Signed-off-by: Aviv Greenberg <avivgr@gmail.com>
-Signed-off-by: Evgeni Raikhel <evgeni.raikhel@intel.com>
----
- Documentation/media/uapi/v4l/depth-formats.rst |  1 +
- Documentation/media/uapi/v4l/pixfmt-inzi.rst   | 83 ++++++++++++++++++++++++++
- include/uapi/linux/videodev2.h                 |  1 +
- 3 files changed, 85 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-inzi.rst
+The last patch adds support for an IR transmitter driven by
+the MOSI line of an SPI controller, it's the case of the Samsung
+TM2(e) board which support is currently ongoing.
 
-diff --git a/Documentation/media/uapi/v4l/depth-formats.rst b/Documentation/media/uapi/v4l/depth-formats.rst
-index 82f183870aae..c755be0e4d2a 100644
---- a/Documentation/media/uapi/v4l/depth-formats.rst
-+++ b/Documentation/media/uapi/v4l/depth-formats.rst
-@@ -13,3 +13,4 @@ Depth data provides distance to points, mapped onto the image plane
-     :maxdepth: 1
- 
-     pixfmt-z16
-+    pixfmt-inzi
-diff --git a/Documentation/media/uapi/v4l/pixfmt-inzi.rst b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-new file mode 100644
-index 000000000000..5adc2b679be4
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-inzi.rst
-@@ -0,0 +1,83 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _V4L2-PIX-FMT-INZI:
-+
-+**************************
-+V4L2_PIX_FMT_INZI ('INZI')
-+**************************
-+
-+Infrared 10-bit linked with Depth 16-bit images
-+
-+
-+Description
-+===========
-+
-+Proprietary multi-planar format used by Intel SR300 Depth cameras, comprise of
-+Infrared image followed by Depth data. The pixel definition is 32-bpp,
-+with the Depth and Infrared Data split into separate continuous planes of
-+identical dimensions.
-+
-+
-+
-+The first plane - Infrared data - is stored according to
-+:ref:`V4L2_PIX_FMT_Y10 <V4L2-PIX-FMT-Y10>` greyscale format.
-+Each pixel is 16-bit cell, with actual data stored in the 10 LSBs
-+with values in range 0 to 1023.
-+The six remaining MSBs are padded with zeros.
-+
-+
-+The second plane provides 16-bit per-pixel Depth data arranged in
-+:ref:`V4L2-PIX-FMT-Z16 <V4L2-PIX-FMT-Z16>` format.
-+
-+
-+**Frame Structure.**
-+Each cell is a 16-bit word with more significant data stored at higher
-+memory address (byte order is little-endian).
-+
-+.. raw:: latex
-+
-+    \newline\newline\begin{adjustbox}{width=\columnwidth}
-+
-+.. tabularcolumns:: |p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|p{4.0cm}|
-+
-+.. flat-table::
-+    :header-rows:  0
-+    :stub-columns: 1
-+    :widths:    1 1 1 1 1 1
-+
-+    * - Ir\ :sub:`0,0`
-+      - Ir\ :sub:`0,1`
-+      - Ir\ :sub:`0,2`
-+      - ...
-+      - ...
-+      - ...
-+    * - :cspan:`5` ...
-+    * - :cspan:`5` Infrared Data
-+    * - :cspan:`5` ...
-+    * - ...
-+      - ...
-+      - ...
-+      - Ir\ :sub:`n-1,n-3`
-+      - Ir\ :sub:`n-1,n-2`
-+      - Ir\ :sub:`n-1,n-1`
-+    * - Depth\ :sub:`0,0`
-+      - Depth\ :sub:`0,1`
-+      - Depth\ :sub:`0,2`
-+      - ...
-+      - ...
-+      - ...
-+    * - :cspan:`5` ...
-+    * - :cspan:`5` Depth Data
-+    * - :cspan:`5` ...
-+    * - ...
-+      - ...
-+      - ...
-+      - Depth\ :sub:`n-1,n-3`
-+      - Depth\ :sub:`n-1,n-2`
-+      - Depth\ :sub:`n-1,n-1`
-+
-+.. raw:: latex
-+
-+    \end{adjustbox}\newline\newline
-+
-+
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 46e8a2e369f9..04263c59b93f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -662,6 +662,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_Y12I     v4l2_fourcc('Y', '1', '2', 'I') /* Greyscale 12-bit L/R interleaved */
- #define V4L2_PIX_FMT_Z16      v4l2_fourcc('Z', '1', '6', ' ') /* Depth data 16-bit */
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
-+#define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Infrared 10-bit linked with Depth 16-bit */
- 
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+The patchset is based on next-20161218, while the media directory
+is a bit more outdated.
+
+Thanks,
+Andi
+
+Changelog from version 5:
+-------------------------
+patch 1: fixed rebase conflict on drivers/media/cec/cec-core.c
+patch 2: fixed checkpatch error
+patch 3: restored a Kbuild Test Robot error fix which was lost
+         in v5
+
+Changelog from version 4:
+-------------------------
+patch 2: fixed a slip on a copy/paste which caused the breakage
+         of the input interface for receivers. Thanks again Sean!
+
+Changelog from version 3:
+-------------------------
+Added the patches Sean's review.
+
+patch 1: commit ddbf7d5a has introduced the devm_* managed version
+	 of rc_allocate_device and rc_register_device, this patch
+	 has been rebased on top of it and adds the driver type
+	 as a parameter of the devm_rc_allocate_device.
+patch 3: fixes a warning from the kbuild test robot
+patch 5: after a discussion with Rob, despite mine, Jacek's and
+	 Mauro's objections [*] the binding has been placed under
+	 leds/irled/spi-ir-led.txt
+patch 6: uses the new devm_* allocation and registration rc
+	 functions
+
+[*] https://www.spinics.net/lists/linux-leds/msg07062.html
+    https://www.spinics.net/lists/linux-leds/msg07164.html
+    https://www.spinics.net/lists/linux-leds/msg07167.html
+
+Changelog from version 2:
+-------------------------
+The original patch number 5 has been abandoned because it was not
+bringing much benenfit.
+
+patch 1: rebased on the new kernel.
+patch 3: removed the sysfs attribute protocol for transmitters
+patch 5: the binding has been moved to the leds section instead
+         of the media. Fixed all the comments from Rob
+patch 6: fixed all the comments from Sean added also Sean's
+         review.
+
+Changelog from version 1:
+-------------------------
+The RFC is now PATCH. The main difference is that this version
+doesn't try to add the any bit streaming protocol and doesn't
+modify any LIRC interface specification.
+
+patch 1: updates all the drivers using rc_allocate_device
+patch 2: fixed errors and warning reported from the kbuild test
+         robot
+patch 5: this patch has been dropped and replaced with a new one
+         which avoids waiting for transmitters.
+patch 6: added new properties to the dts specification
+patch 7: the driver uses the pulse/space input and converts it to
+         a bit stream.
+
+Andi Shyti (6):
+  [media] rc-main: assign driver type during allocation
+  [media] rc-main: split setup and unregister functions
+  [media] rc-core: add support for IR raw transmitters
+  [media] rc-ir-raw: do not generate any receiving thread for raw
+    transmitters
+  Documentation: bindings: add documentation for ir-spi device driver
+  [media] rc: add support for IR LEDs driven through SPI
+
+ .../devicetree/bindings/leds/irled/spi-ir-led.txt  |  29 +++
+ drivers/hid/hid-picolcd_cir.c                      |   3 +-
+ drivers/media/cec/cec-core.c                       |   3 +-
+ drivers/media/common/siano/smsir.c                 |   3 +-
+ drivers/media/i2c/ir-kbd-i2c.c                     |   2 +-
+ drivers/media/pci/bt8xx/bttv-input.c               |   2 +-
+ drivers/media/pci/cx23885/cx23885-input.c          |  11 +-
+ drivers/media/pci/cx88/cx88-input.c                |   3 +-
+ drivers/media/pci/dm1105/dm1105.c                  |   3 +-
+ drivers/media/pci/mantis/mantis_input.c            |   2 +-
+ drivers/media/pci/saa7134/saa7134-input.c          |   2 +-
+ drivers/media/pci/smipcie/smipcie-ir.c             |   3 +-
+ drivers/media/pci/ttpci/budget-ci.c                |   2 +-
+ drivers/media/rc/Kconfig                           |   9 +
+ drivers/media/rc/Makefile                          |   1 +
+ drivers/media/rc/ati_remote.c                      |   3 +-
+ drivers/media/rc/ene_ir.c                          |   3 +-
+ drivers/media/rc/fintek-cir.c                      |   3 +-
+ drivers/media/rc/gpio-ir-recv.c                    |   3 +-
+ drivers/media/rc/igorplugusb.c                     |   3 +-
+ drivers/media/rc/iguanair.c                        |   3 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
+ drivers/media/rc/img-ir/img-ir-raw.c               |   3 +-
+ drivers/media/rc/imon.c                            |   3 +-
+ drivers/media/rc/ir-hix5hd2.c                      |   3 +-
+ drivers/media/rc/ir-spi.c                          | 199 +++++++++++++++++++++
+ drivers/media/rc/ite-cir.c                         |   3 +-
+ drivers/media/rc/mceusb.c                          |   3 +-
+ drivers/media/rc/meson-ir.c                        |   3 +-
+ drivers/media/rc/nuvoton-cir.c                     |   3 +-
+ drivers/media/rc/rc-ir-raw.c                       |  17 +-
+ drivers/media/rc/rc-loopback.c                     |   3 +-
+ drivers/media/rc/rc-main.c                         | 186 +++++++++++--------
+ drivers/media/rc/redrat3.c                         |   3 +-
+ drivers/media/rc/serial_ir.c                       |   3 +-
+ drivers/media/rc/st_rc.c                           |   3 +-
+ drivers/media/rc/streamzap.c                       |   3 +-
+ drivers/media/rc/sunxi-cir.c                       |   3 +-
+ drivers/media/rc/ttusbir.c                         |   3 +-
+ drivers/media/rc/winbond-cir.c                     |   3 +-
+ drivers/media/usb/au0828/au0828-input.c            |   3 +-
+ drivers/media/usb/cx231xx/cx231xx-input.c          |   2 +-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c        |   3 +-
+ drivers/media/usb/dvb-usb/dvb-usb-remote.c         |   3 +-
+ drivers/media/usb/em28xx/em28xx-input.c            |   2 +-
+ drivers/media/usb/tm6000/tm6000-input.c            |   3 +-
+ include/media/rc-core.h                            |  15 +-
+ 47 files changed, 408 insertions(+), 168 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+ create mode 100644 drivers/media/rc/ir-spi.c
+
 -- 
-2.7.4
+2.11.0
 
