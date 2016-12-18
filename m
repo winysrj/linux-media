@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0064.outbound.protection.outlook.com ([104.47.34.64]:52992
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753925AbcLPEvW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 23:51:22 -0500
-From: Soren Brinkmann <soren.brinkmann@xilinx.com>
-To: <hverkuil@xs4all.nl>, <mchehab@kernel.org>
-CC: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        Chris Kohn <ckohn@xilinx.com>, <kuldeepd@xilinx.com>,
-        <radheys@xilinx.com>,
-        "Soren Brinkmann" <soren.brinkmann@xilinx.com>
-Subject: [PATCH] vivid: Enable 4k resolution for webcam capture device
-Date: Thu, 15 Dec 2016 17:17:57 -0800
-Message-ID: <20161216011757.27079-1-soren.brinkmann@xilinx.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48506 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753752AbcLRWLa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Dec 2016 17:11:30 -0500
+Date: Mon, 19 Dec 2016 00:10:56 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>
+Subject: Re: [PATCH 00/15] atmel-isi/ov7670/ov2640: convert to standalone
+ drivers
+Message-ID: <20161218221055.GW16630@valkosipuli.retiisi.org.uk>
+References: <20161212155520.41375-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161212155520.41375-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add 3840x2160 as valid resolution for the webcam capture input and
-adjust the webcam intervals accordingly.
+On Mon, Dec 12, 2016 at 04:55:05PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch series converts the soc-camera atmel-isi to a standalone V4L2
+> driver.
+> 
+> The same is done for the ov7670 and ov2640 sensor drivers: the ov7670 was
+> used to test the atmel-isi driver. The ov2640 is needed because the em28xx
+> driver has a soc_camera include dependency. Both ov7670 and ov2640 sensors
+> have been tested with the atmel-isi driver.
+> 
+> The first 6 patches improve the ov7670 sensor driver, mostly adding modern
+> features such as MC and DT support.
+> 
+> The next three convert the atmel-isi and move it out of soc_camera.
 
-Signed-off-by: Soren Brinkmann <soren.brinkmann@xilinx.com>
----
-Hi,
+You're adding Media controller support but without device nodes. Does that
+make sense? You'll have an entity but the user won't be able to do anything
+with it.
 
-we'd like to use the vivid webcam capture device with a 4k resolution. This
-basically seems to do the trick, though, I'm not sure if there is a particular
-system in choosing values for the 'intervals' array.
-
-	Sören
-
- drivers/media/platform/vivid/vivid-vid-cap.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/vivid/vivid-vid-cap.c b/drivers/media/platform/vivid/vivid-vid-cap.c
-index c52dd8787794..a18e6fec219b 100644
---- a/drivers/media/platform/vivid/vivid-vid-cap.c
-+++ b/drivers/media/platform/vivid/vivid-vid-cap.c
-@@ -63,7 +63,7 @@ static const struct vivid_fmt formats_ovl[] = {
- };
- 
- /* The number of discrete webcam framesizes */
--#define VIVID_WEBCAM_SIZES 4
-+#define VIVID_WEBCAM_SIZES 5
- /* The number of discrete webcam frameintervals */
- #define VIVID_WEBCAM_IVALS (VIVID_WEBCAM_SIZES * 2)
- 
-@@ -73,6 +73,7 @@ static const struct v4l2_frmsize_discrete webcam_sizes[VIVID_WEBCAM_SIZES] = {
- 	{  640, 360 },
- 	{ 1280, 720 },
- 	{ 1920, 1080 },
-+	{ 3840, 2160 },
- };
- 
- /*
-@@ -80,7 +81,9 @@ static const struct v4l2_frmsize_discrete webcam_sizes[VIVID_WEBCAM_SIZES] = {
-  * elements in this array as there are in webcam_sizes.
-  */
- static const struct v4l2_fract webcam_intervals[VIVID_WEBCAM_IVALS] = {
-+	{  1, 1 },
- 	{  1, 2 },
-+	{  1, 4 },
- 	{  1, 5 },
- 	{  1, 10 },
- 	{  1, 15 },
 -- 
-2.11.0.3.g119133d
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
