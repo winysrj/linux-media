@@ -1,77 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.12]:58093 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751918AbcLZUvE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Dec 2016 15:51:04 -0500
-Subject: [PATCH 5/8] [media] videobuf-dma-sg: Move two assignments for error
- codes in __videobuf_mmap_mapper()
-To: linux-media@vger.kernel.org,
-        Dave Hansen <dave.hansen@linux.intel.com>,
-        Jan Kara <jack@suse.cz>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>,
-        Lorenzo Stoakes <lstoakes@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michal Hocko <mhocko@suse.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-        kernel-janitors@vger.kernel.org
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Message-ID: <acfaf0af-0104-1b47-322e-452900318c0a@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 21:50:05 +0100
-MIME-Version: 1.0
-In-Reply-To: <9268b60d-08ba-c64e-1848-f84679d64f80@users.sourceforge.net>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud3.xs4all.net ([194.109.24.26]:46704 "EHLO
+        lb2-smtp-cloud3.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750715AbcLRFL3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Dec 2016 00:11:29 -0500
+Message-ID: <b22dd2f6689fc1f3c4c0ca9ed1d34ba4@smtp-cloud3.xs4all.net>
+Date: Sun, 18 Dec 2016 06:11:26 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Mon, 26 Dec 2016 20:48:50 +0100
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Move two assignments for the local variable "retval" so that these statements
-will only be executed if a previous action failed in this function.
+Results of the daily build of media_tree:
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/media/v4l2-core/videobuf-dma-sg.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+date:			Sun Dec 18 05:00:17 CET 2016
+media-tree git hash:	d183e4efcae8d88a2f252e546978658ca6d273cc
+media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
+v4l-utils git hash:	6da6dcaa3de67be6ddeec2245bab0afa1c772afd
+gcc version:		i686-linux-gcc (GCC) 6.2.0
+sparse version:		v0.5.0-3553-g78b2ea6
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.8.0-164
 
-diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
-index 9ccdc11aa016..d09ddf2e56fe 100644
---- a/drivers/media/v4l2-core/videobuf-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
-@@ -596,8 +596,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	unsigned int first, last, size = 0, i;
- 	int retval;
- 
--	retval = -EINVAL;
--
- 	BUG_ON(!mem);
- 	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
- 
-@@ -613,16 +611,18 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	if (!size) {
- 		dprintk(1, "mmap app bug: offset invalid [offset=0x%lx]\n",
- 				(vma->vm_pgoff << PAGE_SHIFT));
-+		retval = -EINVAL;
- 		goto done;
- 	}
- 
- 	last = first;
- 
- 	/* create mapping + update buffer list */
--	retval = -ENOMEM;
- 	map = kmalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
--	if (!map)
-+	if (!map) {
-+		retval = -ENOMEM;
- 		goto done;
-+	}
- 
- 	size = 0;
- 	for (i = first; i <= last; i++) {
--- 
-2.11.0
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: OK
+linux-3.12.67-i686: OK
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: OK
+linux-3.12.67-x86_64: OK
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: OK
+linux-4.9-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: WARNINGS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
