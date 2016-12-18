@@ -1,53 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52858 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751839AbcLHIVY (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:36613 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751532AbcLRJGN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Dec 2016 03:21:24 -0500
-Received: from valkosipuli.retiisi.org.uk (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id D471860098
-        for <linux-media@vger.kernel.org>; Thu,  8 Dec 2016 10:21:20 +0200 (EET)
-Date: Thu, 8 Dec 2016 10:20:50 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.10] Smiapp runtime PM fixes
-Message-ID: <20161208082050.GC16630@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Sun, 18 Dec 2016 04:06:13 -0500
+Date: Sun, 18 Dec 2016 18:06:10 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi@etezian.org>
+Subject: Re: [PATCH v5 2/6] [media] rc-main: split setup and unregister
+ functions
+Message-id: <20161218090610.2whlhabeoxx74ldu@gangnam.samsung>
+References: <20161216061218.5906-1-andi.shyti@samsung.com>
+ <20161216061218.5906-3-andi.shyti@samsung.com>
+ <20161216121026.GA31618@gofer.mess.org>
+ <CGME20161216141636epcas4p16388dfbda7e061e0d1c3809fcad3b8fd@epcas4p1.samsung.com>
+ <20161216141629.GA32757@gofer.mess.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
+In-reply-to: <20161216141629.GA32757@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sean,
 
-These patches fix a compiler warning for the smiapp driver and also make
-power management work again without runtime PM.
+> On Fri, Dec 16, 2016 at 12:10:26PM +0000, Sean Young wrote:
+> > Sorry to add to your woes, but there are some checkpatch warnings and
+> > errors. Please can you correct these. One is below.
+> 
+> Actually, the changes are pretty minor, I can fix them up before sending
+> them to Mauro. Sorry for bothering you.
 
-Please pull.
+yes, it's an error on the previous code:
 
+ERROR: do not initialise statics to false
+#109: FILE: drivers/media/rc/rc-main.c:1521:
++       static bool raw_init = false; /* raw decoders loaded? */
 
-The following changes since commit 365fe4e0ce218dc5ad10df17b150a366b6015499:
+total: 1 errors, 0 warnings, 196 lines checked
 
-  [media] mn88472: fix chip id check on probe (2016-12-01 12:47:22 -0200)
+I noticed this already before, but I preferred to leave it
+in its original status.
 
-are available in the git repository at:
+No worries, if you want I will send the fix, it's indeed quite
+an easy fix.
 
-  ssh://linuxtv.org/git/sailus/media_tree.git smiapp-pm
-
-for you to fetch changes up to c29df33f9ec94226eab8ee92d8c66ab83c76659a:
-
-  smiapp: Make suspend and resume functions __maybe_unused (2016-12-08 10:01:57 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (2):
-      smiapp: Implement power-on and power-off sequences without runtime PM
-      smiapp: Make suspend and resume functions __maybe_unused
-
- drivers/media/i2c/smiapp/smiapp-core.c | 33 ++++++++++++---------------------
- 1 file changed, 12 insertions(+), 21 deletions(-)
-
--- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks,
+Andi
