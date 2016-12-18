@@ -1,49 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([80.229.237.210]:42829 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751070AbcLBRRJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 2 Dec 2016 12:17:09 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: Andi Shyti <andi.shyti@samsung.com>, <stable@vger.kernel.org>
-Subject: [PATCH 2/8] [media] lirc_dev: LIRC_{G,S}ET_REC_MODE do not work
-Date: Fri,  2 Dec 2016 17:16:08 +0000
-Message-Id: <1480698974-9093-2-git-send-email-sean@mess.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:58301 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760724AbcLRLL4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 18 Dec 2016 06:11:56 -0500
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Sean Young <sean@mess.org>, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Richard Purdie <rpurdie@rpsys.net>,
+        Jacek Anaszewski <j.anaszewski@samsung.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-leds@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Andi Shyti <andi.shyti@samsung.com>,
+        Andi Shyti <andi@etezian.org>
+Subject: [PATCH v6 5/6] Documentation: bindings: add documentation for ir-spi
+ device driver
+Date: Sun, 18 Dec 2016 20:11:37 +0900
+Message-id: <20161218111138.12831-6-andi.shyti@samsung.com>
+In-reply-to: <20161218111138.12831-1-andi.shyti@samsung.com>
+References: <20161218111138.12831-1-andi.shyti@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since "273b902 [media] lirc_dev: use LIRC_CAN_REC() define" these
-ioctls no longer work.
+Document the ir-spi driver's binding which is a IR led driven
+through the SPI line.
 
-Signed-off-by: Sean Young <sean@mess.org>
-Cc: Andi Shyti <andi.shyti@samsung.com>
-Cc: <stable@vger.kernel.org> # v4.8+
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Reviewed-by: Sean Young <sean@mess.org>
 ---
- drivers/media/rc/lirc_dev.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .../devicetree/bindings/leds/irled/spi-ir-led.txt  | 29 ++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 3854809..7f5d109 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -582,7 +582,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 		result = put_user(ir->d.features, (__u32 __user *)arg);
- 		break;
- 	case LIRC_GET_REC_MODE:
--		if (LIRC_CAN_REC(ir->d.features)) {
-+		if (!LIRC_CAN_REC(ir->d.features)) {
- 			result = -ENOTTY;
- 			break;
- 		}
-@@ -592,7 +592,7 @@ long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 				  (__u32 __user *)arg);
- 		break;
- 	case LIRC_SET_REC_MODE:
--		if (LIRC_CAN_REC(ir->d.features)) {
-+		if (!LIRC_CAN_REC(ir->d.features)) {
- 			result = -ENOTTY;
- 			break;
- 		}
+diff --git a/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt b/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+new file mode 100644
+index 000000000000..896b6997cf30
+--- /dev/null
++++ b/Documentation/devicetree/bindings/leds/irled/spi-ir-led.txt
+@@ -0,0 +1,29 @@
++Device tree bindings for IR LED connected through SPI bus which is used as
++remote controller.
++
++The IR LED switch is connected to the MOSI line of the SPI device and the data
++are delivered thourgh that.
++
++Required properties:
++	- compatible: should be "ir-spi-led".
++
++Optional properties:
++	- duty-cycle: 8 bit balue that represents the percentage of one period
++	  in which the signal is active.  It can be 50, 60, 70, 75, 80 or 90.
++	- led-active-low: boolean value that specifies whether the output is
++	  negated with a NOT gate.
++	- power-supply: specifies the power source. It can either be a regulator
++	  or a gpio which enables a regulator, i.e. a regulator-fixed as
++	  described in
++	  Documentation/devicetree/bindings/regulator/fixed-regulator.txt
++
++Example:
++
++	irled@0 {
++		compatible = "ir-spi-led";
++		reg = <0x0>;
++		spi-max-frequency = <5000000>;
++		power-supply = <&vdd_led>;
++		led-active-low;
++		duty-cycle = /bits/ 8 <60>;
++	};
 -- 
-2.9.3
+2.11.0
 
