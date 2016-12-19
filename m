@@ -1,123 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud6.xs4all.net ([194.109.24.28]:49255 "EHLO
-        lb2-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750728AbcL1EZn (ORCPT
+Received: from ec2-52-27-115-49.us-west-2.compute.amazonaws.com ([52.27.115.49]:49252
+        "EHLO osg.samsung.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751932AbcLSJ2y (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Dec 2016 23:25:43 -0500
-Message-ID: <222cc7e10bbfea46b23f9e1fcfede04c@smtp-cloud6.xs4all.net>
-Date: Wed, 28 Dec 2016 05:25:40 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 19 Dec 2016 04:28:54 -0500
+Date: Mon, 19 Dec 2016 07:28:29 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org
+Subject: Media summit in Feb? - Was: Re: [RFC v3 00/21] Make use of kref in
+ media device, grab references as needed
+Message-ID: <20161219072829.7f23c45b@vento.lan>
+In-Reply-To: <b34d42aa-2007-f1fb-70ee-2533998ec54e@xs4all.nl>
+References: <20161109154608.1e578f9e@vento.lan>
+        <20161213102447.60990b1c@vento.lan>
+        <20161215113041.GE16630@valkosipuli.retiisi.org.uk>
+        <7529355.zfqFdROYdM@avalon>
+        <896ef36c-435e-6899-5ae8-533da7731ec1@xs4all.nl>
+        <fa996ec5-0650-9774-7baf-5eaca60d76c7@osg.samsung.com>
+        <47bf7ca7-2375-3dfa-775c-a56d6bd9dabd@xs4all.nl>
+        <ea29010f-ffdc-f10f-8b4f-fb1337320863@osg.samsung.com>
+        <2f5a7ca0-70d1-c6a9-9966-2a169a62e405@xs4all.nl>
+        <b83be9ed-5ce3-3667-08c8-2b4d4cd047a0@osg.samsung.com>
+        <20161215152501.11ce2b2a@vento.lan>
+        <3023f381-1141-df8f-c1ae-2bff36d688ca@osg.samsung.com>
+        <150c057f-7ef8-30cb-07ca-885d4c2a4dcd@xs4all.nl>
+        <20161216085741.38bb2e18@vento.lan>
+        <c654bffd-792c-f860-33b4-3c399984dbd4@xs4all.nl>
+        <20161216100056.5f3fcb55@vento.lan>
+        <b34d42aa-2007-f1fb-70ee-2533998ec54e@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Fri, 16 Dec 2016 15:45:10 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> We really need a whiteboard for this :-(
 
-date:			Wed Dec 28 05:00:19 CET 2016
-media-tree git hash:	40eca140c404505c09773d1c6685d818cb55ab1a
-media_build git hash:	1606032398b1d79149c1507be2029e1a00d8dff0
-v4l-utils git hash:	8288fb4dac6cfeffdfdfbfbc1106aa4d7ecfb80b
-gcc version:		i686-linux-gcc (GCC) 6.2.0
-sparse version:		v0.5.0-3553-g78b2ea6
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.8.0-164
+Well, we could schedule a media summit together with ELC NA.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9-x86_64: ERRORS
-apps: WARNINGS
-spec-git: ERRORS
-sparse: WARNINGS
+ELC will be in Feb, 21-23 in Portland.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Comments?
+Mauro
