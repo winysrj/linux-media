@@ -1,102 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50153 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756817AbcLPBXz (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:44247 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751583AbcLSWXy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Dec 2016 20:23:55 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Sumit Semwal <sumit.semwal@linaro.org>,
-        Rob Clark <robdclark@gmail.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Laura Abbott <labbott@redhat.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [RFC v2 01/11] vb2: Rename confusingly named internal buffer preparation functions
-Date: Fri, 16 Dec 2016 03:24:15 +0200
-Message-Id: <20161216012425.11179-2-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20161216012425.11179-1-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 19 Dec 2016 17:23:54 -0500
+Date: Mon, 19 Dec 2016 23:23:51 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Tony Lindgren <tony@atomide.com>,
+        Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>,
+        Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, khilman@kernel.org,
+        aaro.koskinen@iki.fi, patrikbachan@gmail.com, serge@hallyn.com,
+        linux-media@vger.kernel.org, mchehab@osg.samsung.com
+Subject: Re: [PATCHv6] support for AD5820 camera auto-focus coil
+Message-ID: <20161219201015.GB4974@amd>
+References: <20160521054336.GA27123@amd>
+ <20160808080955.GA3182@valkosipuli.retiisi.org.uk>
+ <20160808214132.GB2946@xo-6d-61-c0.localdomain>
+ <201612141438.16603@pali>
+ <20161214150819.GW4920@atomide.com>
+ <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="kfjH4zxOES6UT95V"
+Content-Disposition: inline
+In-Reply-To: <20161215065022.GC16630@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Rename __qbuf_*() functions which are specific to a buffer type as
-__prepare_*() which matches with what they do. The naming was there for
-historical reasons; the purpose of the functions was changed without
-renaming them.
+--kfjH4zxOES6UT95V
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Hi!
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7c1d390ea438..5379c8718010 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -956,9 +956,9 @@ void vb2_discard_done(struct vb2_queue *q)
- EXPORT_SYMBOL_GPL(vb2_discard_done);
- 
- /**
-- * __qbuf_mmap() - handle qbuf of an MMAP buffer
-+ * __prepare_mmap() - prepare an MMAP buffer
-  */
--static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_mmap(struct vb2_buffer *vb, const void *pb)
- {
- 	int ret = 0;
- 
-@@ -969,9 +969,9 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const void *pb)
- }
- 
- /**
-- * __qbuf_userptr() - handle qbuf of a USERPTR buffer
-+ * __prepare_userptr() - prepare a USERPTR buffer
-  */
--static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_userptr(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1086,9 +1086,9 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const void *pb)
- }
- 
- /**
-- * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-+ * __prepare_dmabuf() - prepare a DMABUF buffer
-  */
--static int __qbuf_dmabuf(struct vb2_buffer *vb, const void *pb)
-+static int __prepare_dmabuf(struct vb2_buffer *vb, const void *pb)
- {
- 	struct vb2_plane planes[VB2_MAX_PLANES];
- 	struct vb2_queue *q = vb->vb2_queue;
-@@ -1253,13 +1253,13 @@ static int __buf_prepare(struct vb2_buffer *vb, const void *pb)
- 
- 	switch (q->memory) {
- 	case VB2_MEMORY_MMAP:
--		ret = __qbuf_mmap(vb, pb);
-+		ret = __prepare_mmap(vb, pb);
- 		break;
- 	case VB2_MEMORY_USERPTR:
--		ret = __qbuf_userptr(vb, pb);
-+		ret = __prepare_userptr(vb, pb);
- 		break;
- 	case VB2_MEMORY_DMABUF:
--		ret = __qbuf_dmabuf(vb, pb);
-+		ret = __prepare_dmabuf(vb, pb);
- 		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
--- 
-Regards,
+> Hi Pali and Tony,
+> On Wed, Dec 14, 2016 at 07:08:19AM -0800, Tony Lindgren wrote:
+> > * Pali Roh=E1r <pali.rohar@gmail.com> [161214 05:38]:
+> > > On Monday 08 August 2016 23:41:32 Pavel Machek wrote:
+> > > > On Mon 2016-08-08 11:09:56, Sakari Ailus wrote:
+> > > > > On Fri, Aug 05, 2016 at 12:26:11PM +0200, Pavel Machek wrote:
+> > > > > > This adds support for AD5820 autofocus coil, found for example =
+in
+> > > > > > Nokia N900 smartphone.
+> > > > >=20
+> > > > > Thanks, Pavel!
+> > > > >=20
+> > > > > Let's use V4L2_CID_FOCUS_ABSOLUTE, as is in the patch. If we get
+> > > > > something better in the future, we'll switch to that then.
+> > > > >=20
+> > > > > I've applied this to ad5820 branch in my tree.
+> > > >=20
+> > > > Thanks. If I understands things correctly, both DTS patch and this
+> > > > patch are waiting in your tree, so we should be good to go for 4.9
+> > > > (unless some unexpected problems surface)?
+> > > >=20
+> > > > Best regards,
+> > > > 									Pavel
+> > >=20
+> > > Was DTS patch merged into 4.9? At least I do not see updated that dts=
+=20
+> > > file omap3-n900.dts in linus tree...
+> >=20
+> > If it's not in current mainline or next, it's off my radar so sounds
+> > like I've somehow missed it and needs resending..
+>=20
+> Where's this patch? I remember seeing the driver patch and the DT
+> documentation but no actual DT source patch for the N900.
 
-Laurent Pinchart
+The patch was not yet submitted. Autofocus coil is not too useful
+withou camera support, and we don't yet have support for v4l subdevs
+for omap3. I have it in the camera tree, but there are still pieces to
+be done before this is useful.
 
+Best regards,
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--kfjH4zxOES6UT95V
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlhYXfYACgkQMOfwapXb+vLADQCfein6AqiDmRvoFpBDk1TlLiZp
+d6cAn2EiP64csq+pU1S0esCmqpMokMkk
+=O+TD
+-----END PGP SIGNATURE-----
+
+--kfjH4zxOES6UT95V--
