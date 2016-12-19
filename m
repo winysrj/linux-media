@@ -1,54 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud2.xs4all.net ([194.109.24.21]:54301 "EHLO
-        lb1-smtp-cloud2.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751064AbcLEMdA (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:33114 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754369AbcLSRBw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Dec 2016 07:33:00 -0500
-Subject: Re: [PATCH v3 3/3] ARM: multi_v7_defconfig: enable STMicroelectronics
- HVA debugfs
-To: Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        linux-media@vger.kernel.org
-References: <1480329054-30403-1-git-send-email-jean-christophe.trotin@st.com>
- <1480329054-30403-4-git-send-email-jean-christophe.trotin@st.com>
-Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <4cd00e98-5198-2c0e-4779-336f1cd32f8c@xs4all.nl>
-Date: Mon, 5 Dec 2016 13:32:53 +0100
-MIME-Version: 1.0
-In-Reply-To: <1480329054-30403-4-git-send-email-jean-christophe.trotin@st.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 19 Dec 2016 12:01:52 -0500
+From: Santosh Kumar Singh <kumar.san1093@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>
+Subject: [PATCH] tm6000: Clean up file handle in open() error path.
+Date: Mon, 19 Dec 2016 22:27:11 +0530
+Message-Id: <1482166631-4025-1-git-send-email-kumar.san1093@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please provide a commit message, it shouldn't be empty.
+Fix to avoid possible memory leak and exit file handle
+in error paths.
 
-But are you sure you want to enable it in the defconfig? I think in general
-DEBUGFS config options aren't enabled by default.
+Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
+---
+ drivers/media/usb/tm6000/tm6000-video.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Regards,
-
-	Hans
-
-On 11/28/2016 11:30 AM, Jean-Christophe Trotin wrote:
-> Signed-off-by: Jean-Christophe Trotin <jean-christophe.trotin@st.com>
-> ---
->  arch/arm/configs/multi_v7_defconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/arch/arm/configs/multi_v7_defconfig b/arch/arm/configs/multi_v7_defconfig
-> index eb14ab6..7a15107 100644
-> --- a/arch/arm/configs/multi_v7_defconfig
-> +++ b/arch/arm/configs/multi_v7_defconfig
-> @@ -563,6 +563,7 @@ CONFIG_VIDEO_SAMSUNG_S5P_JPEG=m
->  CONFIG_VIDEO_SAMSUNG_S5P_MFC=m
->  CONFIG_VIDEO_STI_BDISP=m
->  CONFIG_VIDEO_STI_HVA=m
-> +CONFIG_VIDEO_STI_HVA_DEBUGFS=y
->  CONFIG_DYNAMIC_DEBUG=y
->  CONFIG_VIDEO_RENESAS_JPU=m
->  CONFIG_VIDEO_RENESAS_VSP1=m
-> 
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index dee7e7d..b39247a 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1377,8 +1377,11 @@ static int __tm6000_open(struct file *file)
+ 
+ 	/* initialize hardware on analog mode */
+ 	rc = tm6000_init_analog_mode(dev);
+-	if (rc < 0)
++	if (rc < 0) {
++		v4l2_fh_exit(&fh->fh);
++		kfree(fh);
+ 		return rc;
++	}
+ 
+ 	dev->mode = TM6000_MODE_ANALOG;
+ 
+-- 
+1.9.1
 
