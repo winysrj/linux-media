@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wj0-f193.google.com ([209.85.210.193]:33899 "EHLO
-        mail-wj0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751961AbcL3LaE (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:36168 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1762613AbcLSRL7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 30 Dec 2016 06:30:04 -0500
-Subject: Re: [PATCH 1/5] [media] ir-rx51: port to rc-core
-To: Sean Young <sean@mess.org>
-References: <cover.1482255894.git.sean@mess.org>
- <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
+        Mon, 19 Dec 2016 12:11:59 -0500
+From: Santosh Kumar Singh <kumar.san1093@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Wolfram Sang <wsa-dev@sang-engineering.com>
 Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-        Pavel Machek <pavel@ucw.cz>,
-        =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
-From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
-Message-ID: <5878d916-6a60-d5c3-b912-948b5b970661@gmail.com>
-Date: Fri, 30 Dec 2016 13:30:01 +0200
-MIME-Version: 1.0
-In-Reply-To: <f5262cc638a494f238ef96a80d8f45265ca2fd02.1482255894.git.sean@mess.org>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+        Santosh Kumar Singh <kumar.san1093@gmail.com>
+Subject: [PATCH] tm6000: Clean up file handle in open() error path.
+Date: Mon, 19 Dec 2016 22:40:58 +0530
+Message-Id: <1482167458-4734-1-git-send-email-kumar.san1093@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Fix to avoid possible memory leak and exit file handle
+in error paths.
 
-On 20.12.2016 19:50, Sean Young wrote:
-> This driver was written using lirc since rc-core did not support
-> transmitter-only hardware at that time. Now that it does, port
-> this driver.
->
-> Compile tested only.
->
+Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
+---
+ drivers/media/usb/tm6000/tm6000-video.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-I guess after that change, there will be no more /dev/lircN device, 
-right? Neither will LIRC_XXX IOCTL codes be supported?
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index dee7e7d..b39247a 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -1377,8 +1377,11 @@ static int __tm6000_open(struct file *file)
+ 
+ 	/* initialize hardware on analog mode */
+ 	rc = tm6000_init_analog_mode(dev);
+-	if (rc < 0)
++	if (rc < 0) {
++		v4l2_fh_exit(&fh->fh);
++		kfree(fh);
+ 		return rc;
++	}
+ 
+ 	dev->mode = TM6000_MODE_ANALOG;
+ 
+-- 
+1.9.1
 
-That looks to me as a completely new driver, not a port to new API.
-
-Right now there are applications using the current behaviour (pierogi 
-for example), which will be broken by the change.
-
-Ivo
