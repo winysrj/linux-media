@@ -1,71 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:35098 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753006AbcLFJfh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Dec 2016 04:35:37 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH RFC 4/4] media: Catch null pipes on pipeline stop
-Date: Tue,  6 Dec 2016 09:35:13 +0000
-Message-Id: <1481016913-30608-5-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <1481016913-30608-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
-References: <1481016913-30608-1-git-send-email-kieran.bingham+renesas@ideasonboard.com>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:38722 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753453AbcLST4p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Dec 2016 14:56:45 -0500
+Received: by mail-wm0-f54.google.com with SMTP id f82so111232359wmf.1
+        for <linux-media@vger.kernel.org>; Mon, 19 Dec 2016 11:56:45 -0800 (PST)
+Date: Mon, 19 Dec 2016 19:56:37 +0000
+From: Andrey Utkin <andrey.utkin@corp.bluecherry.net>
+To: Kees Cook <keescook@chromium.org>
+Cc: linux-kernel@vger.kernel.org,
+        Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, andrey_utkin@fastmail.com
+Subject: Re: [PATCH] solo6x10: use designated initializers
+Message-ID: <20161219195637.GA15652@dell-m4800>
+References: <20161217010536.GA140725@beast>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20161217010536.GA140725@beast>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-media_entity_pipeline_stop() can be called through error paths with a
-NULL entity pipe object. In this instance, stopping is a no-op, so
-simply return without any action
+On Fri, Dec 16, 2016 at 05:05:36PM -0800, Kees Cook wrote:
+> Prepare to mark sensitive kernel structures for randomization by making
+> sure they're using designated initializers. These were identified during
+> allyesconfig builds of x86, arm, and arm64, with most initializer fixes
+> extracted from grsecurity.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
+Ok I've reviewed all the patchset, googled a bit and now I see what's
+going on.
 
-I've marked this patch as RFC, although if deemed suitable, by all means
-integrate it as is.
+> 
+> Signed-off-by: Kees Cook <keescook@chromium.org>
+> ---
+>  drivers/media/pci/solo6x10/solo6x10-g723.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/pci/solo6x10/solo6x10-g723.c b/drivers/media/pci/solo6x10/solo6x10-g723.c
+> index 6a35107aca25..36e93540bb49 100644
+> --- a/drivers/media/pci/solo6x10/solo6x10-g723.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+> @@ -350,7 +350,7 @@ static int solo_snd_pcm_init(struct solo_dev *solo_dev)
+>  
+>  int solo_g723_init(struct solo_dev *solo_dev)
+>  {
+> -	static struct snd_device_ops ops = { NULL };
+> +	static struct snd_device_ops ops = { };
 
-When testing suspend/resume operations on VSP1, I encountered a segfault on the
-WARN_ON(!pipe->streaming_count) line, where 'pipe == NULL'. The simple
-protection fix is to return early in this instance, as this patch does however:
+I'm not that keen on syntax subtleties, but...
+ * Empty initializer is not quite "designated" as I can judge.
+ * From brief googling I see that empty initializer is not valid in
+   some C standards.
 
-A) Does this early return path warrant a WARN() statement itself, to identify
-drivers which are incorrectly calling media_entity_pipeline_stop() with an
-invalid entity, or would this just be noise ...
+Since `ops` is static, what about this?
+For the variant given below, you have my signoff.
 
-and therefore..
-
-B) I also partly assume this patch could simply get NAK'd with a request to go
-and dig out the root cause of calling media_entity_pipeline_stop() with an
-invalid entity. 
-
-My brief investigation so far here so far shows that it's almost a second order
-fault - where the first suspend resume cycle completes but leaves the entity in
-an invalid state having followed an error path - and then on a second
-suspend/resume - the stop fails with the affected segfault.
-
-If statement A) or B) apply here, please drop this patch from the series, and
-don't consider it a blocking issue for the other 3 patches.
-
-Kieran
-
-
- drivers/media/media-entity.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index c68239e60487..93c9cbf4bf46 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -508,6 +508,8 @@ void __media_entity_pipeline_stop(struct media_entity *entity)
- 	struct media_entity_graph *graph = &entity->pipe->graph;
- 	struct media_pipeline *pipe = entity->pipe;
- 
-+	if (!pipe)
-+		return;
- 
- 	WARN_ON(!pipe->streaming_count);
- 	media_entity_graph_walk_start(graph, entity);
--- 
-2.7.4
-
+> --- a/drivers/media/pci/solo6x10/solo6x10-g723.c
+> +++ b/drivers/media/pci/solo6x10/solo6x10-g723.c
+> @@ -350,7 +350,7 @@ static int solo_snd_pcm_init(struct solo_dev *solo_dev)
+>  
+>  int solo_g723_init(struct solo_dev *solo_dev)
+>  {
+> -	static struct snd_device_ops ops = { NULL };
+> +	static struct snd_device_ops ops;
