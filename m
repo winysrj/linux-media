@@ -1,119 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45453 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751064AbcLHOT0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2016 09:19:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se
-Subject: Re: [PATCH 4/5] media: entity: Split graph walk iteration into two functions
-Date: Thu, 08 Dec 2016 16:02:05 +0200
-Message-ID: <3239339.ITEAqaAlQp@avalon>
-In-Reply-To: <1480082146-25991-5-git-send-email-sakari.ailus@linux.intel.com>
-References: <1480082146-25991-1-git-send-email-sakari.ailus@linux.intel.com> <1480082146-25991-5-git-send-email-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33372 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754052AbcLSRVb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 19 Dec 2016 12:21:31 -0500
+From: Santosh Kumar Singh <kumar.san1093@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mike Isely <isely@pobox.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>
+Subject: [PATCH] pvrusb2: Clean up file handle in open() error path.
+Date: Mon, 19 Dec 2016 22:50:37 +0530
+Message-Id: <1482168037-4995-1-git-send-email-kumar.san1093@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Fix to avoid possible exit file handle in error paths.
 
-Thank you for the patch.
+Signed-off-by: Santosh Kumar Singh <kumar.san1093@gmail.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-On Friday 25 Nov 2016 15:55:45 Sakari Ailus wrote:
-> With media_entity_graph_walk_next() getting more and more complicated (and
-> especially so with has_routing() support added), split the function into
-> two.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
->  drivers/media/media-entity.c | 56 +++++++++++++++++++++--------------------
->  1 file changed, 30 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 2bddebb..e242ead 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -338,6 +338,34 @@ void media_graph_walk_start(struct media_graph *graph,
->  }
->  EXPORT_SYMBOL_GPL(media_graph_walk_start);
-> 
-> +static void graph_walk_iter(struct media_graph *graph)
-
-I'd name the function media_graph_walk_iter(). With that changed,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +{
-> +	struct media_entity *entity = stack_top(graph);
-> +	struct media_link *link;
-> +	struct media_entity *next;
-> +
-> +	link = list_entry(link_top(graph), typeof(*link), list);
-> +
-> +	/* The link is not enabled so we do not follow. */
-> +	if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
-> +		link_top(graph) = link_top(graph)->next;
-> +		return;
-> +	}
-> +
-> +	/* Get the entity in the other end of the link . */
-> +	next = media_entity_other(entity, link);
-> +
-> +	/* Has the entity already been visited? */
-> +	if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
-> +		link_top(graph) = link_top(graph)->next;
-> +		return;
-> +	}
-> +
-> +	/* Push the new entity to stack and start over. */
-> +	link_top(graph) = link_top(graph)->next;
-> +	stack_push(graph, next);
-> +}
-> +
->  struct media_entity *media_graph_walk_next(struct media_graph *graph)
->  {
->  	if (stack_top(graph) == NULL)
-> @@ -348,32 +376,8 @@ struct media_entity *media_graph_walk_next(struct
-> media_graph *graph) * top of the stack until no more entities on the level
-> can be
->  	 * found.
->  	 */
-> -	while (link_top(graph) != &stack_top(graph)->links) {
-> -		struct media_entity *entity = stack_top(graph);
-> -		struct media_link *link;
-> -		struct media_entity *next;
-> -
-> -		link = list_entry(link_top(graph), typeof(*link), list);
-> -
-> -		/* The link is not enabled so we do not follow. */
-> -		if (!(link->flags & MEDIA_LNK_FL_ENABLED)) {
-> -			link_top(graph) = link_top(graph)->next;
-> -			continue;
-> -		}
-> -
-> -		/* Get the entity in the other end of the link . */
-> -		next = media_entity_other(entity, link);
-> -
-> -		/* Has the entity already been visited? */
-> -		if (media_entity_enum_test_and_set(&graph->ent_enum, next)) {
-> -			link_top(graph) = link_top(graph)->next;
-> -			continue;
-> -		}
-> -
-> -		/* Push the new entity to stack and start over. */
-> -		link_top(graph) = link_top(graph)->next;
-> -		stack_push(graph, next);
-> -	}
-> +	while (link_top(graph) != &stack_top(graph)->links)
-> +		graph_walk_iter(graph);
-> 
->  	return stack_pop(graph);
->  }
-
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index 2cc4d2b..2683373 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -1054,7 +1054,7 @@ static int pvr2_v4l2_open(struct file *file)
+ 		pvr2_trace(PVR2_TRACE_STRUCT,
+ 			   "Destroying pvr_v4l2_fh id=%p (input mask error)",
+ 			   fhp);
+-
++		v4l2_fh_exit(&fhp->fh);
+ 		kfree(fhp);
+ 		return ret;
+ 	}
+@@ -1071,6 +1071,7 @@ static int pvr2_v4l2_open(struct file *file)
+ 		pvr2_trace(PVR2_TRACE_STRUCT,
+ 			   "Destroying pvr_v4l2_fh id=%p (input map failure)",
+ 			   fhp);
++		v4l2_fh_exit(&fhp->fh);
+ 		kfree(fhp);
+ 		return -ENOMEM;
+ 	}
 -- 
-Regards,
-
-Laurent Pinchart
+1.9.1
 
